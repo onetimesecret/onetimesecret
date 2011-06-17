@@ -2,9 +2,11 @@ GEM
   remote: https://rubygems.org/
   specs:
     addressable (2.2.4)
+    rack (1.2.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   addressable
+  rack
