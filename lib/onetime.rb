@@ -10,6 +10,13 @@ require 'storable'
 
 module Onetime
   
+  def self.conf
+    {
+      :host => 'localhost:7143',
+      :ssl => false
+    }
+  end
+  
   class Secret < Storable
     include Familia
     include Gibbler::Complex
@@ -17,22 +24,30 @@ module Onetime
     field :kind
     field :key
     field :value
+    field :state
     field :paired_key
     attr_reader :entropy
     gibbler :kind, :entropy
     include Familia::Stamps
-    def initialize kind, entropy=nil
-      unless [:private, :shared].member?(kind.to_s.to_sym)
+    def initialize kind=nil, entropy=nil
+      unless kind.nil? || [:private, :shared].member?(kind.to_s.to_sym)
         raise ArgumentError, "Bad kind: #{kind}"
       end
+      @state = :new
       @kind, @entropy = kind, entropy
-      @key = gibbler.base(36)
+    end
+    def key
+      @key ||= gibbler.base(36)
+      @key
+    end
+    def load_pair
+      ret = self.class.from_redis paired_key
+      ret
     end
     def self.generate_pair entropy
       entropy = [entropy, Time.now.to_f * $$].flatten
       psecret, ssecret = new(:private, entropy), new(:shared, entropy)
-      psecret.paired_key = ssecret.key
-      ssecret.paired_key = psecret.key
+      psecret.paired_key, ssecret.paired_key = ssecret.key, psecret.key
       [psecret, ssecret]
     end
   end
@@ -54,4 +69,5 @@ module Onetime
 
 end
 
+Onetime::Secret.db 0
 Kernel.srand

@@ -13,17 +13,17 @@ Onetime::Secret.rediskey :poop
 ## Keys are consistent for :private
 s = Onetime::Secret.new :private
 s.rediskey
-#=> 'onetime:secret:sv79fy0gw2uliz9p27w78m28n9jl1gm:object'
+#=> 'onetime:secret:ql74nsxoz4fx8llfcwk8s9rdhsecw6e:object'
 
 ## Keys are consistent for :shared
 s = Onetime::Secret.new :shared
 s.rediskey
-#=> 'onetime:secret:mrx810potfbxsf8bds8lwijmkzmb4si:object'
+#=> 'onetime:secret:e08ai8m00fqjzq0mhf9qgahryul8a99:object'
 
 ## But can be modified with entropy
 s = Onetime::Secret.new :shared, [:some, :fixed, :values]
 s.rediskey
-#=> 'onetime:secret:toi8vxju6wn1yjldji4zax43f1s3ki7:object'
+#=> 'onetime:secret:9qz0no2zjyy8p1irl4v9kn5talo4rim:object'
 
 ## Generate a pair
 @psecret, @ssecret = Onetime::Secret.generate_pair :tryouts
@@ -42,3 +42,14 @@ s.rediskey
 [@psecret.kind, @ssecret.kind]
 #=> [:private, :shared]
 
+## Can save a secret
+@psecret.save
+#=> true
+
+## A saved secret exists
+@psecret.exists?
+#=> true
+
+## A secret can be destroyed
+@psecret.destroy!
+#=> 1

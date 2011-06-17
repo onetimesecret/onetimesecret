@@ -24,9 +24,13 @@ module Site
     self.view_namespace = Site::Views
     self.view_path = './app/site/views'
     attr_accessor :err
-    def initialize
+    def initialize req=nil, res=nil
       self[:subtitle] = "One-Time"
       init if respond_to? :init
+    end
+    def baseuri
+      scheme = Onetime.conf[:ssl] ? 'https://' : 'http://'
+      [scheme, Onetime.conf[:host]].join
     end
   end
   module Base
@@ -51,15 +55,14 @@ module Site
       SYSLOG.err "#{ex.class}: #{ex.message}"
       SYSLOG.err ex.backtrace
       #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
-      error_response req, res, "Stella will be right back"
+      error_response req, res, "An error occurred :["
     
     rescue => ex
       SYSLOG.err "#{ex.class}: #{ex.message}"
       SYSLOG.err req.current_absolute_uri
       SYSLOG.err ex.backtrace.join("\n")
       #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
-      error_response req, res, "Stella will be right back"
-      res.redirect '/cripes.html'
+      error_response req, res, "An error occurred :["
       
     end
     
