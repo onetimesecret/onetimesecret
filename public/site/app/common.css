@@ -1,1 +1,55 @@
-h1 { font-family: georgia}
+body { font-family: georgia }
+h1 { font-size: 16px; }
+
+#header {
+  margin-bottom: 40px;
+}
+
+#corset {
+  padding-left: 25px;
+  padding-right: 25px;
+  width: 800px;
+}
+
+#content {
+  padding-left: 25px;
+}
+
+#footer {
+  width: 100%;
+  text-align: center;
+  font-size: 80%;
+  line-height: 80%;
+  padding: 0px;
+  color: #999;
+  margin-top: 40px;
+}
+
+#footer a {
+  color: #333;
+}
+
+#footer p {
+  margin: 0px;
+  padding: 4px;
+}
+
+.nav {
+  line-height: 36px;
+  font-size: 36px;
+  color: #333;
+}
+.nav a {
+  font-weight: bolder;
+  text-decoration: none;
+}
+
+.nav li {
+  list-style-type: none;
+}
+
+.nav span.text {
+  color: #ccc;
+}
+
+.dotted{border-top:1px dotted #666;}
