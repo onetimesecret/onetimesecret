@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<!--
+  
+          (        )   (                  (        )          (
+          )\ )  ( /(   )\ )         *   ) )\ )  ( /(          )\ )
+         (()/(  )\()) (()/(    (  ` )  /((()/(  )\())     (  (()/(
+          /(_))((_)\   /(_))   )\  ( )(_))/(_))((_)\      )\  /(_))
+         (_))    ((_) (_))  _ ((_)(_(_())(_))    ((_)  _ ((_)(_))
+         / __|  / _ \ | |  | | | ||_   _||_ _|  / _ \ | | | |/ __|
+         \__ \ | (_) || |__| |_| |  | |   | |  | (_) || |_| |\__ \
+         |___/  \___/ |____|\___/   |_|  |___|  \___/  \___/ |___/
+  
+-->
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type" /> 
+  <title>{{title}} - {{subtitle}}</title> 
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="description" content="{{description}}">
+  <meta name="keywords" content="{{keywords}}">
+  <link href="/etc/blueprint/print.css" media="print" rel="Stylesheet" type="text/css" />
+  <link href="/app/common.css" media="screen" rel="Stylesheet" type="text/css" />
+  {{#css}}
+  <link href="{{to_s}}" media="screen" rel="Stylesheet" type="text/css" />
+  {{/css}}
+  <script src="/etc/jquery/jquery-1.6.1.min.js" type="text/javascript"></script> 
+  <script src="/etc/date.js" type="text/javascript"></script> 
+  <script type="text/javascript">
+  {{#jsvars}}
+    var {{name}} = {{{value}}};
+  {{/jsvars}}
+  </script>
+  <script src="/app/common.js" type="text/javascript"></script>
+  {{#js}}
+  <script src="{{to_s}}" type="text/javascript"></script>
+  {{/js}}
+</head>
+<body id="{{body_class}}">
+  <div id="corset">
+    <h1>One Time Secret</h1>

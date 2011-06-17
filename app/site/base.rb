@@ -25,6 +25,9 @@ module Site
     self.view_namespace = Site::Views
     self.view_path = './app/site/views'
     attr_accessor :err
+    def initialize
+      init if respond_to? :init
+    end
   end
   module Base
     def carefully req, res, redirect=nil
