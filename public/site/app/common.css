@@ -1,5 +1,5 @@
 body { font-family: georgia }
-h1 { font-size: 16px; }
+h1 { font-size: 16px; } /* Font Name: Graceful */
 
 #header {
   margin-bottom: 40px;
@@ -38,6 +38,8 @@ h1 { font-size: 16px; }
   line-height: 36px;
   font-size: 36px;
   color: #333;
+  margin-top: 50px;
+  margin-bottom: 50px;
 }
 .nav a {
   font-weight: bolder;
@@ -49,7 +51,7 @@ h1 { font-size: 16px; }
 }
 
 .nav span.text {
-  color: #ccc;
+  color: #999;
 }
 
 .dotted{border-top:1px dotted #666;}
