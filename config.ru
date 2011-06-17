@@ -29,8 +29,6 @@ if Otto.env?(:dev)
   }
   map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") } 
   map("/img/")      { run Rack::File.new("#{PUBLIC_DIR}/img") }
-end
-
-if Otto.env?(:prod, :prod2, :stage)
+else
   map("/")    { otto = Otto.new("#{ENV['APP_ROOT']}/app/routes"); run otto }
 end
