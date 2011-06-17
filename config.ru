@@ -31,5 +31,6 @@ else
   map("/")        { run otto }
 end
 
+map("/app/")      { run Rack::File.new("#{PUBLIC_DIR}/app") }
 map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") }
 map("/img/")      { run Rack::File.new("#{PUBLIC_DIR}/img") }
