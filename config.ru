@@ -13,22 +13,27 @@ $:.unshift(::File.join(ENV['APP_ROOT'], 'app'))
 require 'bundler'
 Bundler.require
 
+require 'syslog'
 require 'otto'
-
 require 'app/site'
 
 PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
 
+SYSLOG = Syslog.open('ots')
+SYSLOG.alert "hihi"
+
+otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
+otto.option[:public] = PUBLIC_DIR
+
 if Otto.env?(:dev)
-  map("/") { 
-    otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
-    otto.option[:public] = PUBLIC_DIR
+  map("/") {
     use Rack::CommonLogger
     use Rack::Reloader, 0
     run otto
   }
-  map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") } 
-  map("/img/")      { run Rack::File.new("#{PUBLIC_DIR}/img") }
 else
-  map("/")    { otto = Otto.new("#{ENV['APP_ROOT']}/app/routes"); run otto }
+  map("/")        { run otto }
 end
+
+map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") }
+map("/img/")      { run Rack::File.new("#{PUBLIC_DIR}/img") }

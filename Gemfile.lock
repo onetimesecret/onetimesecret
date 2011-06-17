@@ -2,11 +2,28 @@ GEM
   remote: https://rubygems.org/
   specs:
     addressable (2.2.4)
+    attic (0.5.3)
+    familia (0.7.1)
+      gibbler (>= 0.8.6)
+      multi_json (>= 0.0.5)
+      redis (>= 2.1.0)
+      storable (>= 0.8.6)
+      uri-redis (>= 0.4.2)
+    gibbler (0.8.9)
+      attic (>= 0.4.0)
+    multi_json (0.0.5)
+    mustache (0.99.3)
     rack (1.2.1)
+    redis (2.2.0)
+    storable (0.8.9)
+    uri-redis (0.4.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   addressable
+  familia (= 0.7.1)
+  gibbler (= 0.8.9)
+  mustache (= 0.99.3)
   rack
