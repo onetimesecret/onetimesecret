@@ -6,9 +6,8 @@ h1 a { text-decoration: none; color: #000}
 }
 
 #corset {
-  padding-left: 25px;
-  padding-right: 25px;
-  width: 640px;
+  margin-left: 20%;
+  margin-right: 20%;
 }
 
 #content {
@@ -16,7 +15,9 @@ h1 a { text-decoration: none; color: #000}
 }
 
 #footer {
-  width: 100%;
+  width: 80%;
+  margin-left: 10%;
+  margin-right: 10%;
   text-align: center;
   font-size: 80%;
   line-height: 80%;
