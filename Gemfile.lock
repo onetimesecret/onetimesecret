@@ -27,3 +27,4 @@ DEPENDENCIES
   gibbler (= 0.8.9)
   mustache (= 0.99.3)
   rack
+  storable

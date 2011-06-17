@@ -1,13 +1,13 @@
 require 'onetime'
 
 ## Create a strand
-OneTime::Utils.strand.class
+Onetime::Utils.strand.class
 #=> String
 
 ## strand is 12 chars by default
-OneTime::Utils.strand.size
+Onetime::Utils.strand.size
 #=> 12
 
 ## strand can be n chars
-OneTime::Utils.strand(20).size
+Onetime::Utils.strand(20).size
 #=> 20

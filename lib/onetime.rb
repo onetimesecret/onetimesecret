@@ -1,7 +1,42 @@
-Kernel.srand
 
-module OneTime
+require 'syslog'
+SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
+require 'gibbler'
+Gibbler.secret = "(I AM THE ONE TRUE SECRET!)"
+
+require 'familia'
+require 'storable'
+
+module Onetime
+  
+  class Secret < Storable
+    include Familia
+    include Gibbler::Complex
+    index :key
+    field :kind
+    field :key
+    field :value
+    field :paired_key
+    attr_reader :entropy
+    gibbler :kind, :entropy
+    include Familia::Stamps
+    def initialize kind, entropy=nil
+      unless [:private, :shared].member?(kind.to_s.to_sym)
+        raise ArgumentError, "Bad kind: #{kind}"
+      end
+      @kind, @entropy = kind, entropy
+      @key = gibbler.base(36)
+    end
+    def self.generate_pair entropy
+      entropy = [entropy, Time.now.to_f * $$].flatten
+      psecret, ssecret = new(:private, entropy), new(:shared, entropy)
+      psecret.paired_key = ssecret.key
+      ssecret.paired_key = psecret.key
+      [psecret, ssecret]
+    end
+  end
+  
   module Utils
     extend self
     unless defined?(VALID_CHARS)
@@ -18,3 +53,5 @@ module OneTime
   end
 
 end
+
+Kernel.srand

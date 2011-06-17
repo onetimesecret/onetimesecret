@@ -1,7 +1,6 @@
 
 require 'site/base'
 require 'onetime'
-require 'gibbler'
 
 module Site
   extend Base
@@ -20,7 +19,7 @@ module Site
         res.redirect '/generate'
       else
         view = Site::Views::Generate.new
-        view[:secret] = OneTime::Utils.strand
+        view[:secret] = Onetime::Utils.strand
         view[:admin_uri] = ['private', rand.gibbler.base(36)].join('/')
         view[:share_uri] = [rand.gibbler.base(36)].join('/')
         res.body = view.render
@@ -37,7 +36,6 @@ module Site
     class Homepage < Site::View
       def init *args
         self[:title] = "Share a secret"
-        self[:subtitle] = "One Time"
       end
     end
     class Generate < Site::View
