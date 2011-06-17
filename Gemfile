@@ -1,3 +1,3 @@
-source "http://production.s3.rubygems.org.s3.amazonaws.com"
+source "https:/rubygems.org/"
 
 gem 'addressable'

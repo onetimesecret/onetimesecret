@@ -10,6 +10,7 @@ $:.unshift(::File.join(ENV['APP_ROOT']))
 $:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
 $:.unshift(::File.join(ENV['APP_ROOT'], 'app'))
 
+require 'bundler'
 Bundler.require
 
 require 'otto'
