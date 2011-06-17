@@ -1,6 +1,6 @@
 
 require 'site/base'
-require 'ots'
+require 'onetime'
 require 'gibbler'
 
 module Site
@@ -20,7 +20,7 @@ module Site
         res.redirect '/generate'
       else
         view = Site::Views::Generate.new
-        view[:secret] = OTS::Utils.strand
+        view[:secret] = OneTime::Utils.strand
         view[:admin_uri] = ['private', rand.gibbler.base(36)].join('/')
         view[:share_uri] = [rand.gibbler.base(36)].join('/')
         res.body = view.render

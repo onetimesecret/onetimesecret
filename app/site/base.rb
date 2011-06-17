@@ -2,7 +2,7 @@ require 'syslog'
 require 'mustache'
 require 'familia'
 
-SYSLOG = Syslog.open('ots') unless defined?(SYSLOG)
+SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
 class Mustache
   def self.partial(name)

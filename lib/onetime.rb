@@ -1,6 +1,6 @@
 Kernel.srand
 
-module OTS
+module OneTime
 
   module Utils
     extend self
