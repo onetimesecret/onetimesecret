@@ -1,3 +1,15 @@
 
 
+##  WEB
 GET   /                                          Site.index
+GET   /generate                                  Site.generate
+POST  /generate                                  Site.generate
+GET   /share                                     Site.share
+
+GET   /private/[a-zA-Z0-9]{29,35}              Site.admin_uri
+GET   /([a-zA-Z0-9]{29,35})                      Site.share_uri
+
+
+##  API
+#POST   /api/v1/generate
+#POST   /api/v1/share

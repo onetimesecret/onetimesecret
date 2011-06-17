@@ -1,16 +1,27 @@
 {{>header}}
 
   <div id="content">
-    <ul class="nav">
-      <li><a href="#">share a secret</a> <span class="text">up to 120 characters</span></li>
-      <li><a href="#">generate a secret</a> <span class="text">alphanumeric string</span></li>
-    </ul>
-    
-    <h2>What is a secret?</h2>
-    
-    <p></p>
-    
-    
+    {{^secret}}
+    <form method="post">
+      <input class="generate" type="submit" name="" value="generate secret"/>
+    </form>
+    {{/secret}}
+    {{#secret}}
+    <div class="private">
+      <div class="secret">
+        <span class="context">SECRET:</span><br/>
+        <input value="{{secret}}"</div>
+      </div>
+      <div class="uri">
+        <span class="context">share this uri:</span><br/>
+        <input value="https://onetimesecret.com/{{share_uri}}"/>
+      </div>
+      <div class="uri">
+        <span class="context">your private uri:</span><br/>
+        <input value="https://onetimesecret.com/{{admin_uri}}" />
+      </div>
+    </div>
+    {{/secret}}
   </div>
 
 {{>footer}}

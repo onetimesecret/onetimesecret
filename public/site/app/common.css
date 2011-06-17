@@ -1,6 +1,6 @@
 body { font-family: georgia }
-h1 { font-size: 16px; } /* Font Name: Graceful */
-
+h1 { font-size: 16px; } /* Font Name: Graceful, Serifcap */
+h1 a { text-decoration: none; color: #000}
 #header {
   margin-bottom: 40px;
 }
@@ -8,11 +8,11 @@ h1 { font-size: 16px; } /* Font Name: Graceful */
 #corset {
   padding-left: 25px;
   padding-right: 25px;
-  width: 800px;
+  width: 640px;
 }
 
 #content {
-  padding-left: 25px;
+  padding-left: 0px;
 }
 
 #footer {
@@ -50,8 +50,23 @@ h1 { font-size: 16px; } /* Font Name: Graceful */
   list-style-type: none;
 }
 
-.nav span.text {
+.nav li.or {
   color: #999;
+  font-size: 16px;
+  line-height: 16px;
+  margin-top: 10px;
+  margin-left: 10px;
 }
 
 .dotted{border-top:1px dotted #666;}
+
+
+.private{font-size: 18px; line-height: 18px; margin-top: 10px}
+.secret input {width: 140px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0; color: #fff}
+.uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px}
+.secret, .uri{margin-bottom: 10px}
+.context {
+  color: #999;
+  line-height: 24px;
+  font-size: 24px;
+}

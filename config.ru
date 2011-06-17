@@ -13,14 +13,10 @@ $:.unshift(::File.join(ENV['APP_ROOT'], 'app'))
 require 'bundler'
 Bundler.require
 
-require 'syslog'
 require 'otto'
 require 'app/site'
 
 PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
-
-SYSLOG = Syslog.open('ots')
-SYSLOG.alert "hihi"
 
 otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
 otto.option[:public] = PUBLIC_DIR

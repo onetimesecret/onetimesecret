@@ -1,6 +1,8 @@
+require 'syslog'
 require 'mustache'
 require 'familia'
 
+SYSLOG = Syslog.open('ots') unless defined?(SYSLOG)
 
 class Mustache
   def self.partial(name)
@@ -26,6 +28,7 @@ module Site
     self.view_path = './app/site/views'
     attr_accessor :err
     def initialize
+      self[:subtitle] = "One Time"
       init if respond_to? :init
     end
   end
