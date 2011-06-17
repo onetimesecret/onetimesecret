@@ -1,0 +1,10 @@
+GEM
+  remote: http://production.s3.rubygems.org.s3.amazonaws.com/
+  specs:
+    addressable (2.2.4)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  addressable
