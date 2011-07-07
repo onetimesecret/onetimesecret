@@ -22,7 +22,7 @@ PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
 otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
 otto.option[:public] = PUBLIC_DIR
 
-puts Dir.glob('./*')
+puts File.exists?("./etc/#{ENV['RACK_ENV']}/onetime.yml")
 
 Onetime.load! ENV['RACK_ENV']
 
