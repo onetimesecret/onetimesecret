@@ -33,7 +33,7 @@ module Site
     carefully req, res do
       if req.post?
         @psecret, @ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
-        @ssecret.value = req.params[:secret]
+        @ssecret.value = req.params[:secret].to_s.slice(0, 500)
         @psecret.save
         @ssecret.save
         uri = ['/private/', @psecret.key].join
