@@ -1,0 +1,5 @@
+:site:  
+  :host: cold-fog-687.heroku.com
+  :ssl: true
+  :redis:
+    :uri: 'redis://redistogo:0bc270e696d73546e0b1ab7f64390b3a@bluegill.redistogo.com:9435/?timeout=5&thread_safe=false&logging=false'

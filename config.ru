@@ -3,8 +3,9 @@
 # Usage:
 # 
 #     $ thin -e dev -R config.ru -p 7143 start
+#     $ tail -f /var/log/system.log
 
-ENV['RACK_ENV'] ||= 'production'
+ENV['RACK_ENV'] ||= 'prod'
 ENV['APP_ROOT'] = ::File.expand_path(::File.join(::File.dirname(__FILE__)))
 $:.unshift(::File.join(ENV['APP_ROOT']))
 $:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
@@ -20,6 +21,8 @@ PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
 
 otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
 otto.option[:public] = PUBLIC_DIR
+
+Onetime.load! ENV['RACK_ENV']
 
 if Otto.env?(:dev)
   map("/") {

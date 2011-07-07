@@ -29,8 +29,8 @@ module Site
       init if respond_to? :init
     end
     def baseuri
-      scheme = Onetime.conf[:ssl] ? 'https://' : 'http://'
-      [scheme, Onetime.conf[:host]].join
+      scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+      [scheme, Onetime.conf[:site][:host]].join
     end
   end
   module Base

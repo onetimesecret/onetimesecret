@@ -9,12 +9,43 @@ require 'familia'
 require 'storable'
 
 module Onetime
+  unless defined?(Onetime::HOME)
+    HOME = File.expand_path(File.join(File.dirname(__FILE__), '..') )
+  end
+  @debug = true
   
-  def self.conf
-    {
-      :host => 'localhost:7143',
-      :ssl => false
-    }
+  class << self
+    attr_accessor :debug
+    attr_reader :conf
+    def load! env=:dev, base=Onetime::HOME
+      env && @env = env.to_sym.freeze
+      conf_path = File.join(base, 'etc', env.to_s, 'onetime.yml')
+      ld "Loading #{conf_path}"
+      @conf = read_config(conf_path)
+      Familia.uri = Onetime.conf[:site][:redis][:uri]
+      info "---  ONETIME ALPHA  -----------------------------------"
+      info "Connection: #{Familia.uri}"
+      @conf
+    end
+    
+    def read_config path
+      raise ArgumentError, "Bad config" unless File.extname(path) == '.yml'
+      raise ArgumentError, "Bad config" unless File.owned?(path)
+      YAML.load_file path
+    end
+    
+    def info(*msg)
+      prefix = "(#{Time.now}):  "
+      STDERR.puts "#{prefix}" << msg.join("#{$/}#{prefix}")
+      STDERR.flush
+    end
+
+    def ld(*msg)
+      return unless Onetime.debug
+      prefix = "D:  "
+      STDERR.puts "#{prefix}" << msg.join("#{$/}#{prefix}")
+      STDERR.flush
+    end
   end
   
   class Secret < Storable
@@ -68,6 +99,7 @@ module Onetime
   end
 
 end
+OT = Onetime
 
 Onetime::Secret.db 0
 Kernel.srand
