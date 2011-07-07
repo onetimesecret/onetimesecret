@@ -64,13 +64,16 @@ h1 a { text-decoration: none; color: #000}
 
 
 .private{font-size: 18px; line-height: 18px; margin-top: 10px}
-.secret input {width: 140px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0; color: #fff}
+.secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px;}
+.private .secret input { background-color: #ff0; color: #fff }
+.private .secret input[disabled] { background-color: #ccc; color: #fff }
+.shared .secret input { background-color: #ccc; color: #fff }
+.secret p {padding: 6px; font-size: 80%; margin: 0px; color: #999; font-style: italic}
 .uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px}
 .uri p {padding: 6px; font-size: 80%; margin: 0px; color: #999}
 .secret {margin-bottom: 30px}
 .uri{margin-bottom: 10px}
 .context {
-  color: #999;
   line-height: 24px;
   font-size: 24px;
 }
