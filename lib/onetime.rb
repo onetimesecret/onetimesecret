@@ -12,8 +12,7 @@ module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..') )
   end
-  @debug = true
-  
+  @debug = false
   class << self
     attr_accessor :debug
     attr_reader :conf
@@ -29,8 +28,8 @@ module Onetime
     end
     
     def read_config path
-      raise ArgumentError, "Bad config" unless File.extname(path) == '.yml'
-      raise ArgumentError, "Bad config" unless File.owned?(path)
+      raise ArgumentError, "Bad config: #{path}" unless File.extname(path) == '.yml'
+      raise ArgumentError, "Bad config: #{path}" unless File.owned?(path)
       YAML.load_file path
     end
     
