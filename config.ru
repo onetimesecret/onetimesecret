@@ -22,9 +22,9 @@ PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
 otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
 otto.option[:public] = PUBLIC_DIR
 
-Onetime.load! ENV['RACK_ENV']
-
 puts Dir.glob('./*')
+
+Onetime.load! ENV['RACK_ENV']
 
 if Otto.env?(:dev)
   map("/") {
