@@ -24,6 +24,8 @@ otto.option[:public] = PUBLIC_DIR
 
 Onetime.load! ENV['RACK_ENV']
 
+puts Dir.glob('./*')
+
 if Otto.env?(:dev)
   map("/") {
     use Rack::CommonLogger
