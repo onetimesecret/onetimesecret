@@ -1,0 +1,17 @@
+{{>header}}
+
+  <div id="content">
+    <div class="secret">
+      <span class="context">SECRET:</span><br/>
+      <form action="/share" method="post">
+        <input class="secretValue" name="secret" value=""/><br/>
+        <input type="submit" name="" value="share a secret"/>
+      </form>
+    </div>
+    
+    <h2>How it works</h2>
+    <p>When you enter a secret and click that button, we give you a unique URI where it can be viewed only once.</p>
+  
+  </div>
+
+{{>footer}}

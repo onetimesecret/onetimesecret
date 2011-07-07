@@ -64,7 +64,7 @@ h1 a { text-decoration: none; color: #000}
 
 
 .private{font-size: 18px; line-height: 18px; margin-top: 10px}
-.secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px;}
+#generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px;}
 .private .secret input { background-color: #ff0; color: #fff }
 .private .secret input[disabled] { background-color: #ccc; color: #fff }
 .shared .secret input { background-color: #ccc; color: #fff }
@@ -90,3 +90,5 @@ h1 a { text-decoration: none; color: #000}
   text-align: center;
   color: #fff;
 }
+
+#share .secretValue {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 1px solid #000;}

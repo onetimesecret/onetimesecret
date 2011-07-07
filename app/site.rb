@@ -29,7 +29,23 @@ module Site
     end
   end
   
-  def share_uri req, res
+  def share req, res
+    carefully req, res do
+      if req.post?
+        @psecret, @ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
+        @ssecret.value = req.params[:secret]
+        @psecret.save
+        @ssecret.save
+        uri = ['/private/', @psecret.key].join
+        res.redirect uri
+      else
+        view = Site::Views::Share.new
+        res.body = view.render
+      end
+    end
+  end
+  
+  def shared_uri req, res
     carefully req, res do
       view = Site::Views::Shared.new
       if Onetime::Secret.exists?(req.params[:key])
@@ -51,7 +67,7 @@ module Site
     end
   end
   
-  def admin_uri req, res
+  def private_uri req, res
     carefully req, res do
       view = Site::Views::Private.new
       if Onetime::Secret.exists?(req.params[:key])
@@ -80,6 +96,12 @@ module Site
       def init *args
         self[:title] = "Generate a secret"
         self[:body_class] = :generate
+      end
+    end
+    class Share < Site::View
+      def init *args
+        self[:title] = "Share a secret"
+        self[:body_class] = :share
       end
     end
     class Shared < Site::View
