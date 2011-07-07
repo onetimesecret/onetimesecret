@@ -10,7 +10,7 @@ require 'storable'
 
 module Onetime
   unless defined?(Onetime::HOME)
-    HOME = '.'
+    HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
   end
   @debug = false
   class << self
