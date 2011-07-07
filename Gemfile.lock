@@ -1,5 +1,14 @@
+GIT
+  remote: git://github.com/delano/otto.git
+  revision: 2e22cc521aa6e7e6e33ae0de052a0777318e9f03
+  branch: master
+  specs:
+    otto (0.2.0.001)
+      addressable (= 2.2.4)
+      rack (>= 1.2.1)
+
 GEM
-  remote: https://rubygems.org/
+  remote: http://production.s3.rubygems.org.s3.amazonaws.com/
   specs:
     addressable (2.2.4)
     attic (0.5.3)
@@ -26,5 +35,6 @@ DEPENDENCIES
   familia (= 0.7.1)
   gibbler (= 0.8.9)
   mustache (= 0.99.3)
+  otto (= 0.2.0.001)!
   rack
   storable
