@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/delano/otto.git
-  revision: 2e22cc521aa6e7e6e33ae0de052a0777318e9f03
+  revision: d10ff294df4e3eadf8d0280910469056b311adcf
   branch: master
   specs:
     otto (0.2.0.001)

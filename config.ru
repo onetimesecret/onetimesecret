@@ -21,6 +21,7 @@ PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
 
 otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
 otto.option[:public] = PUBLIC_DIR
+otto.add_static_path '/favicon.ico'
 
 Onetime.load! ENV['RACK_ENV']
 
@@ -34,7 +35,6 @@ else
   map("/")        { run otto }
 end
 
-map("/favicon.ico")   { run Rack::File.new("#{PUBLIC_DIR}/favicon.ico") }
-map("/app/")          { run Rack::File.new("#{PUBLIC_DIR}/app") }
-map("/etc/")          { run Rack::File.new("#{PUBLIC_DIR}/etc") }
-map("/img/")          { run Rack::File.new("#{PUBLIC_DIR}/img") }
+map("/app/")      { run Rack::File.new("#{PUBLIC_DIR}/app") }
+map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") }
+map("/img/")      { run Rack::File.new("#{PUBLIC_DIR}/img") }
