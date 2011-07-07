@@ -11,10 +11,18 @@ $:.unshift(::File.join(ENV['APP_ROOT']))
 $:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
 $:.unshift(::File.join(ENV['APP_ROOT'], 'app'))
 
+local_libs = %w{otto}
+local_libs.each { |dir| 
+  a = File.join(ENV['APP_ROOT'], '..', '..', 'opensource', dir, 'lib')
+  $:.unshift a
+}
+
+require 'otto'
+
+
 require 'bundler'
 Bundler.require
 
-require 'otto'
 require 'app/site'
 
 PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
@@ -35,6 +43,6 @@ else
   map("/")        { run otto }
 end
 
-map("/app/")      { run Rack::File.new("#{PUBLIC_DIR}/app") }
-map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") }
-map("/img/")      { run Rack::File.new("#{PUBLIC_DIR}/img") }
+map("/app/")          { run Rack::File.new("#{PUBLIC_DIR}/app") }
+map("/etc/")          { run Rack::File.new("#{PUBLIC_DIR}/etc") }
+map("/img/")          { run Rack::File.new("#{PUBLIC_DIR}/img") }
