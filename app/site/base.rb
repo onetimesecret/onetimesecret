@@ -25,7 +25,7 @@ module Site
     self.view_path = './app/site/views'
     attr_accessor :err
     def initialize req=nil, res=nil
-      self[:subtitle] = "One-Time"
+      self[:subtitle] = "One Time"
       init if respond_to? :init
     end
     def baseuri

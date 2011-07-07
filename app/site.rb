@@ -62,11 +62,11 @@ module Site
     end
     class Private < Site::View
       def init *args
-        self[:title] = "Generate a secret"
+        self[:title] = "Shhh, it's secret"
         self[:body_class] = :generate
       end
       def share_uri
-        [baseuri, self[:ssecret].key].join('/')
+        [baseuri, :shared, self[:ssecret].key].join('/')
       end
       def admin_uri
         [baseuri, :private, self[:psecret].key].join('/')

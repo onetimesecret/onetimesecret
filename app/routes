@@ -7,9 +7,10 @@ POST  /generate                                  Site.generate
 GET   /share                                     Site.share
 
 GET   /private/:key                              Site.admin_uri
+GET   /shared/:key                               Site.share_uri
 
-#GET   /private/[a-zA-Z0-9]{29,35}                Site.admin_uri
-#GET   /([a-zA-Z0-9]{29,35})                      Site.share_uri
+#GET   /private/[a-zA-Z0-9]{29,35}               Site.admin_uri
+#GET   /shared/([a-zA-Z0-9]{29,35})              Site.share_uri
 
 
 ##  API

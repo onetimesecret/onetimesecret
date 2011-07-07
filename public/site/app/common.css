@@ -16,12 +16,13 @@ h1 a { text-decoration: none; color: #000}
 
 #footer {
   width: 80%;
-  margin-left: 10%;
-  margin-right: 10%;
+  margin-left: 5%;
+  margin-right: 5%;
   text-align: center;
   font-size: 80%;
   line-height: 80%;
   padding: 0px;
+  padding-top: 10px;
   color: #999;
   margin-top: 40px;
 }
@@ -65,7 +66,8 @@ h1 a { text-decoration: none; color: #000}
 .private{font-size: 18px; line-height: 18px; margin-top: 10px}
 .secret input {width: 140px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0; color: #fff}
 .uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px}
-.secret, .uri{margin-bottom: 10px}
+.secret {margin-bottom: 30px}
+.uri{margin-bottom: 10px}
 .context {
   color: #999;
   line-height: 24px;

@@ -1,23 +1,32 @@
 {{>header}}
 
   <div class="private">
+    {{#show_secret}}
     <div class="secret">
       <span class="context">SECRET:</span><br/>
-      {{#show_secret}}
-      <input value="{{ssecret.value}}" /> (<em>careful: we'll only show it this once</em>)
-      {{/show_secret}}
-      {{^show_secret}}
-      <em>Already shown once before.</em>
-      {{/show_secret}}
+      <input value="{{ssecret.value}}" /> (<em>careful: this is the only time you'll see it</em>)
     </div>
     <div class="uri">
-      <span class="context">share this uri:</span><br/>
+      <span class="context">sharable uri:</span><br/>
       <input value="{{share_uri}}"/>
     </div>
     <div class="uri">
       <span class="context">your private uri:</span><br/>
       <input value="{{admin_uri}}" />
     </div>
+    {{/show_secret}}
+
+    {{^show_secret}}
+    <div class="secret">
+      <span class="context">SECRET:</span><br/>
+      {{#been_shared}}
+      <em>This secret was shared on {{shared_date}}</em>
+      {{/been_shared}}
+      {{^been_shared}}
+      <em>This secret has not been shared yet.</em>
+      {{/been_shared}}
+    </div>
+    {{/show_secret}}
   </div>
 
 
