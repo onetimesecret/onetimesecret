@@ -10,7 +10,7 @@ require 'storable'
 
 module Onetime
   unless defined?(Onetime::HOME)
-    HOME = File.expand_path(File.join(File.dirname(__FILE__), '..') )
+    HOME = '.'
   end
   @debug = false
   class << self
@@ -29,7 +29,7 @@ module Onetime
     
     def read_config path
       raise ArgumentError, "Bad config: #{path}" unless File.extname(path) == '.yml'
-      raise ArgumentError, "Bad config: #{path}" unless File.owned?(path)
+      raise RuntimeError, "Bad config: #{path}" unless File.owned?(path)
       YAML.load_file path
     end
     
