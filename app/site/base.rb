@@ -46,24 +46,29 @@ module Site
       res.redirect ex.location, ex.status
       
     #rescue BS::Problem => ex
-    #  SYSLOG.err "#{ex.class}: #{ex.message}"
-    #  SYSLOG.err ex.backtrace
+    #  err "#{ex.class}: #{ex.message}"
+    #  err ex.backtrace
     #  ex.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
     #  error_response "You found a bug. Feel free to tell Tucker."
       
     rescue Familia::NotConnected, Familia::Problem => ex
-      SYSLOG.err "#{ex.class}: #{ex.message}"
-      SYSLOG.err ex.backtrace
+      err "#{ex.class}: #{ex.message}"
+      err ex.backtrace
       #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
       error_response req, res, "An error occurred :["
     
     rescue => ex
-      SYSLOG.err "#{ex.class}: #{ex.message}"
-      SYSLOG.err req.current_absolute_uri
-      SYSLOG.err ex.backtrace.join("\n")
+      err "#{ex.class}: #{ex.message}"
+      err req.current_absolute_uri
+      err ex.backtrace.join("\n")
       #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
       error_response req, res, "An error occurred :["
       
+    end
+    
+    def err *args
+      #SYSLOG.err *args
+      STDERR.puts *args
     end
     
     def not_found_response req, res, message
