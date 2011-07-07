@@ -61,12 +61,15 @@ class Otto
     }
     self
   end
+
   def safe_file?(path)
     globstr = File.join(option[:public], '*')
     pathstr = File.join(option[:public], path)
-    arr = [File.fnmatch?(globstr, pathstr), File.owned?(pathstr), File.readable?(pathstr), !File.directory?(pathstr)]
-    STDERR.puts "safe_file? #{pathstr} (#{arr})"
-    File.fnmatch?(globstr, pathstr) && File.grpowned?(pathstr) && File.readable?(pathstr) && !File.directory?(pathstr)
+    File.fnmatch?(globstr, pathstr) && (File.owned?(pathstr) || File.grpowned?(pathstr)) && File.readable?(pathstr) && !File.directory?(pathstr)
+  end
+  
+  def safe_dir?(path)
+    (File.owned?(path) || File.grpowned?(path)) && File.directory?(path)
   end
   
   def add_static_path path
@@ -81,7 +84,7 @@ class Otto
   end
   
   def call env
-    if option[:public] && File.owned?(option[:public])
+    if option[:public] && safe_dir?(option[:public])
       @static_route ||= Rack::File.new(option[:public]) 
     end
     path_info = Rack::Utils.unescape(env['PATH_INFO'])
