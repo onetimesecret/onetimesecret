@@ -9,4 +9,4 @@ gem 'gibbler', '0.8.9'
 gem 'familia', '0.7.1'
 gem 'storable'
 
-gem 'otto', '0.2.0.001', :git => "git://github.com/delano/otto.git", :branch => 'master'
+gem 'otto', '0.2.1.001', :git => "git://github.com/delano/otto.git", :branch => 'master'

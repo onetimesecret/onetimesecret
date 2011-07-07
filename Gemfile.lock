@@ -1,9 +1,9 @@
 GIT
   remote: git://github.com/delano/otto.git
-  revision: d10ff294df4e3eadf8d0280910469056b311adcf
+  revision: 47c83be154d0b2424351821b99d05b296e731d03
   branch: master
   specs:
-    otto (0.2.0.001)
+    otto (0.2.1.001)
       addressable (= 2.2.4)
       rack (>= 1.2.1)
 
@@ -35,6 +35,6 @@ DEPENDENCIES
   familia (= 0.7.1)
   gibbler (= 0.8.9)
   mustache (= 0.99.3)
-  otto (= 0.2.0.001)!
+  otto (= 0.2.1.001)!
   rack
   storable
