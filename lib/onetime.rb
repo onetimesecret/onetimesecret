@@ -19,7 +19,7 @@ module Onetime
     def load! env=:dev, base=Onetime::HOME
       env && @env = env.to_sym.freeze
       conf_path = File.join(base, 'etc', env.to_s, 'onetime.yml')
-      ld "Loading #{conf_path}"
+      info "Loading #{conf_path}"
       @conf = read_config(conf_path)
       Familia.uri = Onetime.conf[:site][:redis][:uri]
       info "---  ONETIME ALPHA  -----------------------------------"
@@ -29,7 +29,7 @@ module Onetime
     
     def read_config path
       raise ArgumentError, "Bad config: #{path}" unless File.extname(path) == '.yml'
-      raise RuntimeError, "Bad config: #{path}" unless File.owned?(path)
+      raise RuntimeError, "Bad config: #{path}" unless File.exists?(path)
       YAML.load_file path
     end
     
