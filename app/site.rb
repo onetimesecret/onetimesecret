@@ -62,7 +62,7 @@ module Site
     end
     class Private < Site::View
       def init *args
-        self[:title] = "Shhh, it's secret"
+        self[:title] = "Shhh, it's a secret"
         self[:body_class] = :generate
       end
       def share_uri
