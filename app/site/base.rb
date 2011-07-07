@@ -33,6 +33,14 @@ module Site
     end
   end
   module Base
+    def deny_agents! req, res, *agents
+      agents.flatten.each do |agent|
+        if req.user_agent =~ /#{agent}/i
+          raise Redirect.new('/')
+        end
+      end
+    end
+    
     def carefully req, res, redirect=nil
       redirect ||= req.request_path
       # We check get here to stop an infinite redirect loop.

@@ -47,6 +47,7 @@ module Site
   
   def shared_uri req, res
     carefully req, res do
+      deny_agents! :facebook, :google, :yahoo, :bing, :stella, :baidu
       view = Site::Views::Shared.new
       if Onetime::Secret.exists?(req.params[:key])
         ssecret = Onetime::Secret.from_redis req.params[:key]
@@ -69,6 +70,7 @@ module Site
   
   def private_uri req, res
     carefully req, res do
+      deny_agents! :facebook, :google, :yahoo, :bing, :stella, :baidu
       view = Site::Views::Private.new
       if Onetime::Secret.exists?(req.params[:key])
         psecret = Onetime::Secret.from_redis req.params[:key]
