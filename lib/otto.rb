@@ -1,4 +1,4 @@
-p 1
+
 require 'rack/request'
 require 'rack/response'
 require 'rack/utils'
@@ -64,7 +64,7 @@ class Otto
   def safe_file?(path)
     globstr = File.join(option[:public], '*')
     pathstr = File.join(option[:public], path)
-    arr = [File.fnmatch?(globstr, pathstr), File.grpowned?(pathstr), File.readable?(pathstr), !File.directory?(pathstr)]
+    arr = [File.fnmatch?(globstr, pathstr), File.owned?(pathstr), File.readable?(pathstr), !File.directory?(pathstr)]
     STDERR.puts "safe_file? #{pathstr} (#{arr})"
     File.fnmatch?(globstr, pathstr) && File.grpowned?(pathstr) && File.readable?(pathstr) && !File.directory?(pathstr)
   end
