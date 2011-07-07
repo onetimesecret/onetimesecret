@@ -4,7 +4,7 @@
     {{#show_secret}}
     <div class="secret">
       <span class="context">SECRET:</span><br/>
-      <input value="{{ssecret.value}}" /> (<em>careful: this is the only time you'll see it</em>)
+      <input value="{{ssecret.value}}" /> (<em>careful: you only get one chance</em>)
     </div>
     <div class="uri">
       <span class="context">sharable uri:</span><br/>
@@ -23,7 +23,7 @@
       <em>This secret was shared on {{shared_date}}</em>
       {{/been_shared}}
       {{^been_shared}}
-      <em>This secret has not been shared yet.</em>
+      <em>No one else has seen this secret yet.</em>
       {{/been_shared}}
     </div>
     {{/show_secret}}
