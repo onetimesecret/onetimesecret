@@ -19,10 +19,10 @@
       <span class="context">SECRET:</span><br/>
       <input value="*******************" disabled="disabled" />
       {{#been_shared}}
-      <p><em>This secret was shared on {{shared_date}}</em></p>
+      <p><em>This secret was received {{shared_date}}.</em></p>
       {{/been_shared}}
       {{^been_shared}}
-      <p><em>No one has seen this secret yet.</em></p>
+      <p><em>No one else has seen this secret yet.</em></p>
       {{/been_shared}}
     </div>
     {{/show_secret}}

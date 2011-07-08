@@ -47,7 +47,7 @@ module Site
   
   def shared_uri req, res
     carefully req, res do
-      deny_agents! req, res, :facebook, :google, :yahoo, :bing, :stella, :baidu
+      deny_agents! req, res
       view = Site::Views::Shared.new
       if Onetime::Secret.exists?(req.params[:key])
         ssecret = Onetime::Secret.from_redis req.params[:key]
@@ -70,7 +70,7 @@ module Site
   
   def private_uri req, res
     carefully req, res do
-      deny_agents! req, res, :facebook, :google, :yahoo, :bing, :stella, :baidu
+      deny_agents! req, res
       view = Site::Views::Private.new
       if Onetime::Secret.exists?(req.params[:key])
         psecret = Onetime::Secret.from_redis req.params[:key]
@@ -128,6 +128,12 @@ module Site
       end
       def admin_uri
         [baseuri, :private, self[:psecret].key].join('/')
+      end
+      def been_shared
+        self[:ssecret].state.to_s == "viewed"
+      end
+      def shared_date
+        natural_time self[:ssecret].updated || 0
       end
     end
     class Error < Site::View
