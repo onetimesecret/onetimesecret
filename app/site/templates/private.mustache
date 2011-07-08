@@ -3,12 +3,12 @@
   <div class="private">
     {{#show_secret}}
     <div class="secret">
-      <span class="context">SECRET:</span><br/>
+      <span class="pretext">SECRET:</span><br/>
       <input value="{{ssecret.value}}" />
       <p>(careful: it will disappear when you refresh.)</p>
     </div>
     <div class="uri">
-      <span class="context">share this uri:</span><br/>
+      <span class="pretext">share this uri:</span><br/>
       <input value="{{share_uri}}"/>
       <p>(the person who receives it will see the secret only once too.)</p>
     </div>
@@ -16,7 +16,7 @@
     
     {{^show_secret}}
     <div class="secret">
-      <span class="context">SECRET:</span><br/>
+      <span class="pretext">SECRET:</span><br/>
       <input value="*******************" disabled="disabled" />
       {{#been_shared}}
       <p><em>This secret was received {{shared_date}}.</em></p>

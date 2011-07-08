@@ -23,9 +23,9 @@ module Site
     self.view_namespace = Site::Views
     self.view_path = './app/site/views'
     attr_accessor :err
-    def initialize req=nil, res=nil
+    def initialize req=nil, res=nil, *args
       self[:subtitle] = "One Time"
-      init if respond_to? :init
+      init *args if respond_to? :init
     end
     def baseuri
       scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
@@ -91,6 +91,11 @@ module Site
     #  err ex.backtrace
     #  ex.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
     #  error_response "You found a bug. Feel free to tell Tucker."
+    
+    rescue OT::MissingSecret => ex
+      view = Site::Views::UnknownSecret.new
+      res.status = 404
+      res.body = view.render
       
     rescue Familia::NotConnected, Familia::Problem => ex
       err "#{ex.class}: #{ex.message}"

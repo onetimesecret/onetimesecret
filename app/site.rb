@@ -5,7 +5,7 @@ require 'onetime'
 module Site
   extend Base
   extend self
-
+  
   def index req, res
     carefully req, res do
       view = Site::Views::Homepage.new
@@ -48,11 +48,10 @@ module Site
   def shared_uri req, res
     carefully req, res do
       deny_agents! req, res
-      view = Site::Views::Shared.new
       if Onetime::Secret.exists?(req.params[:key])
         ssecret = Onetime::Secret.from_redis req.params[:key]
         if ssecret.state.to_s == "new"
-          view[:ssecret] = ssecret
+          view = Site::Views::Shared.new req, res, ssecret
           view[:show_secret] = ssecret.state.to_s == 'new'
           if ssecret.state.to_s == 'new'
             ssecret.state = 'viewed'
@@ -60,10 +59,10 @@ module Site
           end
           res.body = view.render
         else
-          res.redirect '/'
+          raise OT::MissingSecret
         end
       else
-        res.redirect '/'
+        raise OT::MissingSecret
       end
     end
   end
@@ -71,11 +70,10 @@ module Site
   def private_uri req, res
     carefully req, res do
       deny_agents! req, res
-      view = Site::Views::Private.new
       if Onetime::Secret.exists?(req.params[:key])
         psecret = Onetime::Secret.from_redis req.params[:key]
         ssecret = psecret.load_pair
-        view[:psecret], view[:ssecret] = psecret, ssecret
+        view = Site::Views::Private.new req, res, psecret, ssecret
         view[:show_secret] = psecret.state.to_s == 'new'
         if psecret.state.to_s == 'new'
           psecret.state = 'viewed'
@@ -83,7 +81,7 @@ module Site
         end
         res.body = view.render
       else
-        res.redirect '/'
+        raise OT::MissingSecret
       end
     end
   end
@@ -106,10 +104,17 @@ module Site
         self[:body_class] = :share
       end
     end
+    class UnknownSecret < Site::View
+      def init 
+        self[:title] = "No such secret"
+      end
+    end
     class Shared < Site::View
-      def init *args
+      def init ssecret
+        self[:ssecret] = ssecret
         self[:title] = "Shhh, it's a secret"
         self[:body_class] = :generate
+        self[:show_secret] = false
       end
       def share_uri
         [baseuri, :shared, self[:ssecret].key].join('/')
@@ -119,9 +124,11 @@ module Site
       end
     end
     class Private < Site::View
-      def init *args
+      def init psecret, ssecret
+        self[:psecret], self[:ssecret] = psecret, ssecret
         self[:title] = "Shhh, it's a secret"
         self[:body_class] = :generate
+        self[:show_secret] = false
       end
       def share_uri
         [baseuri, :shared, self[:ssecret].key].join('/')

@@ -47,6 +47,9 @@ module Onetime
     end
   end
   
+  class MissingSecret < RuntimeError
+  end
+  
   class Secret < Storable
     include Familia
     include Gibbler::Complex
