@@ -66,7 +66,7 @@ module Site
     end
   end
   module Base
-    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot]
+    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     def deny_agents! req, res, *agents
       BADAGENTS.flatten.each do |agent|
         if req.user_agent =~ /#{agent}/i
@@ -133,7 +133,7 @@ module Site
   end
   class Redirect < RuntimeError
     attr_reader :location, :status
-    def initialize l, s=304
+    def initialize l, s=302
       @location, @status = l, s
     end
   end
