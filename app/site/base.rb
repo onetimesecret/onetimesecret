@@ -140,5 +140,16 @@ module Site
 end
 
 
-
-
+module Rack
+  class File
+    # from: rack 1.2.1
+    # don't print out the literal filename for 404s
+    def not_found
+      body = "File not found\n"
+      [404, {"Content-Type" => "text/plain",
+         "Content-Length" => body.size.to_s,
+         "X-Cascade" => "pass"},
+       [body]]
+    end
+  end
+end
