@@ -77,6 +77,12 @@ module Onetime
       ret = self.class.from_redis paired_key
       ret
     end
+    def shared?
+      kind.to_s == 'shared'
+    end
+    def private?
+      kind.to_s == 'private'
+    end
     def self.generate_pair entropy
       entropy = [entropy, Time.now.to_f * $$].flatten
       psecret, ssecret = new(:private, entropy), new(:shared, entropy)

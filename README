@@ -21,3 +21,8 @@ ONE-TIME SECRET
 * Now you share it, now you don't.
 * One secret. One person. One time.
 
+
+## Commands
+
+redis-cli -h bluegill.redistogo.com -p 9435 -a 0bc270e696d73546e0b1ab7f64390b3a
+
