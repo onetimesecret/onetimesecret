@@ -111,5 +111,9 @@ h1 a { text-decoration: none; color: #000}
 .tagline { width: 100%; text-align: center; font-style: italic; color: #999; margin-top: 20px;
 }
 input[type=submit] {
-  ;
+}
+
+.info {
+  font-size: 12px;
+  color: #999;
 }
