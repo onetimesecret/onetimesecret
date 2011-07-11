@@ -2,10 +2,7 @@
 
 ##  WEB
 GET   /                                          Site.index
-GET   /generate                                  Site.generate
-POST  /generate                                  Site.generate
-GET   /share                                     Site.share
-POST  /share                                     Site.share
+POST  /create                                    Site.create
 
 GET   /private/:key                              Site.private_uri
 GET   /shared/:key                               Site.shared_uri

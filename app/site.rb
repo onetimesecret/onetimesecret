@@ -13,34 +13,22 @@ module Site
     end
   end
   
-  def generate req, res
+  def create req, res
     carefully req, res do
-      if req.post?
+      if req.params[:kind] == 'generate'
         @psecret, @ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
         @ssecret.value = Onetime::Utils.strand 12
-        @psecret.save
-        @ssecret.save
-        uri = ['/private/', @psecret.key].join
-        res.redirect uri
-      else
-        view = Site::Views::Generate.new
-        res.body = view.render
-      end
-    end
-  end
-  
-  def share req, res
-    carefully req, res do
-      if req.post?
+      elsif req.params[:kind] == 'share'
         @psecret, @ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
         @ssecret.value = req.params[:secret].to_s.slice(0, 500)
+      end
+      if @psecret && @ssecret
         @psecret.save
         @ssecret.save
         uri = ['/private/', @psecret.key].join
         res.redirect uri
       else
-        view = Site::Views::Share.new
-        res.body = view.render
+        res.redirect '/'
       end
     end
   end
@@ -90,18 +78,6 @@ module Site
     class Homepage < Site::View
       def init *args
         self[:title] = "Share a secret"
-      end
-    end
-    class Generate < Site::View
-      def init *args
-        self[:title] = "Generate a secret"
-        self[:body_class] = :generate
-      end
-    end
-    class Share < Site::View
-      def init *args
-        self[:title] = "Share a secret"
-        self[:body_class] = :share
       end
     end
     class UnknownSecret < Site::View

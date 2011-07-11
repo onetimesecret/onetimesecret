@@ -1,0 +1,37 @@
+{{>header}}
+
+  <div id="content">
+    
+    <div class="intro">Keep sensitive info out of your chat &amp; email logs.</div>
+    
+    <form id="" method="post" action="/create">
+      <ul class="nav">
+        <li>
+          <input type="radio" id="shareRadio" name="kind" value="share" checked="checked" /> <label for="shareRadio">Paste it here:</label> 
+          <span class="context">(a password you want to share, a link to a demo, etc)</span>
+          <input name="secret" class="secretValue" />
+          
+        </li>
+        <li>
+          <input type="radio" id="generateRadio" name="kind" value="generate" /> <label for="generateRadio">Or generate a password to share</label>
+        </li>
+        <input type="submit" name="" value="Create a secret URI" />
+      </ul>
+    </form>
+    
+  </div>
+  
+  <!-- NOTE: We track analytics on the homepage only and not secret pages. -->
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-5320807-2']);
+    _gaq.push(['_setDomainName', '.onetimesecret.com']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+  
+{{>footer}}
