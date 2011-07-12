@@ -103,7 +103,7 @@ module Site
       end
       def display_lines
         ret = self[:ssecret].value.to_s.scan(/\n/).size + 2
-        ret = ret > 50 ? 50 : ret
+        ret = ret > 20 ? 20 : ret
       end
       def one_liner
         self[:ssecret].value.to_s.scan(/\n/).size <= 1
@@ -130,7 +130,7 @@ module Site
       end
       def display_lines
         ret = self[:ssecret].value.to_s.scan(/\n/).size + 2
-        ret = ret > 50 ? 50 : ret
+        ret = ret > 20 ? 20 : ret
       end
       def one_liner
         self[:ssecret].value.to_s.scan(/\n/).size <= 1

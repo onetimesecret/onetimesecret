@@ -2,11 +2,6 @@
 
   <div class="private">
     {{#show_secret}}
-    <div class="uri">
-      <span class="pretext">Share this URI:</span><br/>
-      <input value="{{share_uri}}"/>
-      <p>The person who receives it will be able to access it one time only.</p>
-    </div>
     <div class="secret">
       <span class="pretext">SECRET:</span><br/>
       <p>(careful: it will disappear when you refresh.)</p>
@@ -19,6 +14,11 @@
       {{#ssecret.long}}
       <p>Note: this secret was truncated b/c it was over 5KB</p>
       {{/ssecret.long}}
+    </div>
+    <div class="uri">
+      <span class="pretext">Share this URI:</span><br/>
+      <input value="{{share_uri}}"/>
+      <p>The person who receives it will be able to access it one time only.</p>
     </div>
     {{/show_secret}}
     
