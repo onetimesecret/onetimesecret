@@ -58,6 +58,8 @@ module Onetime
     field :key
     field :value
     field :state
+    field :original_size
+    field :size
     field :paired_key
     attr_reader :entropy
     gibbler :kind, :entropy
@@ -68,6 +70,12 @@ module Onetime
       end
       @state = :new
       @kind, @entropy = kind, entropy
+    end
+    def size
+      value.to_s.size
+    end
+    def long
+      original_size >= 5000
     end
     def key
       @key ||= gibbler.base(36)

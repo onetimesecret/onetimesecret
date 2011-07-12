@@ -2,15 +2,23 @@
 
   <div class="private">
     {{#show_secret}}
+    <div class="uri">
+      <span class="pretext">Share this URI:</span><br/>
+      <input value="{{share_uri}}"/>
+      <p>The person who receives it will be able to access it one time only.</p>
+    </div>
     <div class="secret">
       <span class="pretext">SECRET:</span><br/>
-      <input value="{{ssecret.value}}" />
       <p>(careful: it will disappear when you refresh.)</p>
-    </div>
-    <div class="uri">
-      <span class="pretext">share this uri:</span><br/>
-      <input value="{{share_uri}}"/>
-      <p>(the person who receives it will see the secret only once too.)</p>
+      {{#one_liner}}
+      <input value="{{ssecret.value}}" />
+      {{/one_liner}}
+      {{^one_liner}}
+      <textarea rows="{{display_lines}}" cols="80">{{ssecret.value}}</textarea>
+      {{/one_liner}}
+      {{#ssecret.long}}
+      <p>Note: this secret was truncated b/c it was over 5KB</p>
+      {{/ssecret.long}}
     </div>
     {{/show_secret}}
     

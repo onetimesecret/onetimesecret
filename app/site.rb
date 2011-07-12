@@ -18,10 +18,12 @@ module Site
     carefully req, res do
       if req.params[:kind] == 'generate'
         psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
+        ssecret.original_size = 12
         ssecret.value = Onetime::Utils.strand 12
       elsif req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
         psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
-        ssecret.value = req.params[:secret].to_s.slice(0, 500)
+        ssecret.original_size = req.params[:secret].to_s.size
+        ssecret.value = req.params[:secret].to_s.slice(0, 4999)
       end
       if psecret && ssecret
         psecret.save
@@ -99,6 +101,13 @@ module Site
       def admin_uri
         [baseuri, :private, self[:psecret].key].join('/')
       end
+      def display_lines
+        ret = self[:ssecret].value.to_s.scan(/\n/).size + 2
+        ret = ret > 50 ? 50 : ret
+      end
+      def one_liner
+        self[:ssecret].value.to_s.scan(/\n/).size <= 1
+      end
     end
     class Private < Site::View
       def init psecret, ssecret
@@ -118,6 +127,13 @@ module Site
       end
       def shared_date
         natural_time self[:ssecret].updated || 0
+      end
+      def display_lines
+        ret = self[:ssecret].value.to_s.scan(/\n/).size + 2
+        ret = ret > 50 ? 50 : ret
+      end
+      def one_liner
+        self[:ssecret].value.to_s.scan(/\n/).size <= 1
       end
     end
     class Error < Site::View
