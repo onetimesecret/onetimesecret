@@ -106,7 +106,7 @@ module Site
         ret = ret > 20 ? 20 : ret
       end
       def one_liner
-        self[:ssecret].value.to_s.scan(/\n/).size <= 1
+        self[:ssecret].value.to_s.scan(/\n/).size.zero?
       end
     end
     class Private < Site::View
@@ -133,7 +133,7 @@ module Site
         ret = ret > 20 ? 20 : ret
       end
       def one_liner
-        self[:ssecret].value.to_s.scan(/\n/).size <= 1
+        self[:ssecret].value.to_s.scan(/\n/).size.zero?
       end
     end
     class Error < Site::View
