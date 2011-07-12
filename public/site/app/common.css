@@ -64,6 +64,7 @@ h1 a { text-decoration: none; color: #000}
   margin-top: 10px;
   margin-left: 10px;
 }
+.nav em { font-style: normal; text-decoration: underline; }
 #content .intro {
   font-size: 24px;
   font-weight: bold;
@@ -116,4 +117,33 @@ input[type=submit] {
 .info {
   font-size: 12px;
   color: #999;
+}
+
+#fire button{width:280px; margin-top: 20px}
+.button button {
+  background-color: #e33100;
+  border-left: 1px solid red;
+  border-top: 1px solid red;
+  border-right: 1px solid #740500;
+  border-bottom: 1px solid #740500;
+  -webkit-border-radius: 2px 2px 2px 2px;
+  -moz-border-radius: 2px 2px 2px 2px;
+  color: #fff;
+  cursor: pointer;
+  display: block;
+  font-family: Georgia,serif;
+  font-weight: bold;
+  font-size: 20px;
+  padding: 12px 10px;
+  overflow: visible;
+  margin: 0;
+  text-shadow: 1px 1px 0 #740500;
+  width: 100%;
+}
+.button button:hover {
+  border-left: 1px solid #740500;
+  border-top: 1px solid #740500;
+  border-right: 1px solid red;
+  border-bottom: 1px solid red;
+  text-shadow: 1px 1px 0 #740500;
 }
