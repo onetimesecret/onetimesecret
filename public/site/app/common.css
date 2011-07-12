@@ -70,6 +70,9 @@ h1 a { text-decoration: none; color: #000}
   font-size: 24px;
   font-weight: bold;
 }
+#content .intro2 {
+  font-size: 20px;
+}
 
 
 .dotted{border-top:1px dotted #666;}
@@ -116,10 +119,6 @@ h1 a { text-decoration: none; color: #000}
 input[type=submit] {
 }
 
-.info {
-  font-size: 12px;
-  color: #999;
-}
 
 #fire button{width:280px; margin-top: 20px}
 .button button {
