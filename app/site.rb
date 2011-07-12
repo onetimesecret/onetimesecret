@@ -14,18 +14,19 @@ module Site
   end
   
   def create req, res
+    psecret, ssecret = nil, nil
     carefully req, res do
       if req.params[:kind] == 'generate'
-        @psecret, @ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
-        @ssecret.value = Onetime::Utils.strand 12
-      elsif req.params[:kind] == 'share'
-        @psecret, @ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
-        @ssecret.value = req.params[:secret].to_s.slice(0, 500)
+        psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
+        ssecret.value = Onetime::Utils.strand 12
+      elsif req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
+        psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
+        ssecret.value = req.params[:secret].to_s.slice(0, 500)
       end
-      if @psecret && @ssecret
-        @psecret.save
-        @ssecret.save
-        uri = ['/private/', @psecret.key].join
+      if psecret && ssecret
+        psecret.save
+        ssecret.save
+        uri = ['/private/', psecret.key].join
         res.redirect uri
       else
         res.redirect '/'
