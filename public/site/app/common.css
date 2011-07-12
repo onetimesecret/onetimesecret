@@ -42,12 +42,11 @@ h1 a { text-decoration: none; color: #000}
 }
 
 .nav {
-  line-height: 36px;
-  font-size: 26px;
   color: #333;
   margin-top: 20px;
   margin-bottom: 30px;
 }
+
 .nav a {
   font-weight: bolder;
   text-decoration: none;
@@ -56,6 +55,8 @@ h1 a { text-decoration: none; color: #000}
 .nav li {
   list-style-type: none;
 }
+.nav li.primary {line-height: 36px; font-size: 26px;}
+.nav li.secondary {font-size:16px; line-height: 16px}
 
 .nav li.or {
   color: #999;
@@ -72,6 +73,7 @@ h1 a { text-decoration: none; color: #000}
 
 
 .dotted{border-top:1px dotted #666;}
+
 
 .private{font-size: 18px; line-height: 18px; margin-top: 10px}
 #generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px;}

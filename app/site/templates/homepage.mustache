@@ -6,18 +6,18 @@
     
     <form id="" method="post" action="/create">
       <ul class="nav">
-        <li>
+        <li class="primary">
           <input type="radio" id="shareRadio" name="kind" value="share" checked="checked" /> <label for="shareRadio">Paste it here <em>instead</em>!</label> 
           <span class="context">(e.g. a secret phrase, a special link, a bad joke etc)</span>
           <textarea name="secret" class="secretValue" rows="3" cols="80"></textarea>
         </li>
-        <li>
-          <input type="radio" id="generateRadio" name="kind" value="generate" /> <label for="generateRadio">Or, generate a new, unique  string</label> <span class="context">(e.g. a temporary password)</span>
+        <li class="secondary">
+          <input type="radio" id="generateRadio" name="kind" value="generate" /> <label for="generateRadio">Or generate a new, unique  string</label> <span class="context">(e.g. to use as a temporary password)</span>
         </li>
         <span id="fire" class="button"><button type="submit">Create a secret URI*</button></span> 
       </ul>
     </form>
-    <div class="info2"><em>* A secret URI is available only one time and then it disappears forever.</em></div>
+    <div class=""><em>* A secret URI is available only one time and then it disappears forever.</em></div>
     
   </div>
   
