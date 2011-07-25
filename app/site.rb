@@ -26,6 +26,10 @@ module Site
         ssecret.value = req.params[:secret].to_s.slice(0, 4999)
       end
       if psecret && ssecret
+        unless req.params[:passphrase].to_s.empty?
+          psecret.passphrase = req.params[:passphrase]
+          ssecret.passphrase = req.params[:passphrase]
+        end
         psecret.save
         ssecret.save
         uri = ['/private/', psecret.key].join
@@ -43,10 +47,21 @@ module Site
         ssecret = Onetime::Secret.from_redis req.params[:key]
         if ssecret.state.to_s == "new"
           view = Site::Views::Shared.new req, res, ssecret
-          view[:show_secret] = ssecret.state.to_s == 'new'
-          if ssecret.state.to_s == 'new'
-            ssecret.state = 'viewed'
-            ssecret.save
+          if ssecret.viewed? 
+            view[:show_secret] = false
+          else
+            if ssecret.has_passphrase?
+              if ssecret.passphrase?(req.params[:passphrase])
+                view[:show_secret] = true
+                ssecret.viewed!
+              elsif req.post? && req.params[:passphrase]
+                view[:show_secret] = false
+                view[:err] = "Double check that passphrase"
+              end
+            else
+              view[:show_secret] = true
+              ssecret.viewed!  
+            end
           end
           res.body = view.render
         else
@@ -65,10 +80,12 @@ module Site
         psecret = Onetime::Secret.from_redis req.params[:key]
         ssecret = psecret.load_pair
         view = Site::Views::Private.new req, res, psecret, ssecret
-        view[:show_secret] = psecret.state.to_s == 'new'
-        if psecret.state.to_s == 'new'
-          psecret.state = 'viewed'
-          psecret.save
+        puts psecret.to_json
+        if psecret.viewed?
+          view[:show_secret] = false
+        else
+          view[:show_secret] = true
+          psecret.viewed!
         end
         res.body = view.render
       else
@@ -93,7 +110,6 @@ module Site
         self[:ssecret] = ssecret
         self[:title] = "Shhh, it's a secret"
         self[:body_class] = :generate
-        self[:show_secret] = false
       end
       def share_uri
         [baseuri, :shared, self[:ssecret].key].join('/')
@@ -114,7 +130,7 @@ module Site
         self[:psecret], self[:ssecret] = psecret, ssecret
         self[:title] = "Shhh, it's a secret"
         self[:body_class] = :generate
-        self[:show_secret] = false
+        self[:show_passphrase] = psecret.has_passphrase?
       end
       def share_uri
         [baseuri, :shared, self[:ssecret].key].join('/')

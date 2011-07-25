@@ -16,10 +16,17 @@
         {{/ssecret.long}}
       {{/one_liner}}
     </div>
+    {{#show_passphrase}}
+    <div class="passphrase">
+      <span class="pretext">Passphrase:</span><br/>
+      <input value="{{ssecret.passphrase}}" />
+      <p>(the recipient must provide this value to view the secret.)</p>
+    </div>
+    {{/show_passphrase}}
     <div class="uri">
       <span class="pretext">Share this URI:</span><br/>
       <input value="{{share_uri}}"/>
-      <p>The person who receives it will be able to access it one time only.</p>
+      <p>This URI can only be accessed one time.</p>
     </div>
     {{/show_secret}}
     

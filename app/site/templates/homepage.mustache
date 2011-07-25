@@ -14,7 +14,11 @@
         <li class="secondary">
           <input type="radio" id="generateRadio" name="kind" value="generate" /> <label for="generateRadio">Or generate a short, unique secret</label> <span class="context">(e.g. for a temporary password)</span>
         </li>
-        <span id="fire" class="button"><button type="submit">Create a secret URI*</button></span> 
+        <div class"optionToggle"><a href="#">More options</a></div>
+        <div class="options">
+          <input type="text" name="passphrase" value="" /> Enter a passphrase that only your recipient will know
+        </div>
+        <span id="fire" class="button"><button type="submit">Create a secret URI*</button></span>
       </ul>
     </form>
     <div class="intro2"><em>* A secret URI is available only one time and then it disappears forever.</em></div>

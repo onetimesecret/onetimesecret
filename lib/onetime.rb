@@ -60,6 +60,7 @@ module Onetime
     field :state
     field :original_size
     field :size
+    field :passphrase
     field :paired_key
     attr_reader :entropy
     gibbler :kind, :entropy
@@ -87,6 +88,19 @@ module Onetime
     end
     def shared?
       kind.to_s == 'shared'
+    end
+    def viewed?
+      state.to_s == 'viewed'
+    end
+    def viewed!
+      @state = 'viewed'
+      save
+    end
+    def has_passphrase?
+      !passphrase.to_s.empty?
+    end
+    def passphrase? guess
+      !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
     end
     def private?
       kind.to_s == 'private'

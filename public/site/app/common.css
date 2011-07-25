@@ -87,7 +87,10 @@ h1 a { text-decoration: none; color: #000}
 .secret p {padding: 6px; font-size: 80%; margin: 0px; color: #999; font-style: italic}
 .uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0; }
 .uri p {padding: 6px; font-size: 80%; margin: 0px; color: #999}
-.secret {margin-bottom: 30px}
+.passphrase { margin-bottom: 30px}
+.passphrase input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ccc; color: #fff;}
+.passphrase p {padding: 6px; font-size: 80%; margin: 0px; color: #999}
+.secret {margin-bottom: 20px}
 .uri{margin-bottom: 10px}
 .pretext {
   line-height: 24px;
@@ -120,8 +123,20 @@ h1 a { text-decoration: none; color: #000}
 input[type=submit] {
 }
 
+.optionToggle {
+  margin-top: 10px;
+  font-size: 12px;
+}
 
-#fire button{width:280px; margin-top: 20px}
+.optionToggle a {
+  color: #666;
+}
+
+.options {
+  display: block;
+}
+
+#fire button{width:280px; margin-top: 10px}
 .button button {
   background-color: #e33100;
   border-left: 1px solid red;
@@ -149,3 +164,5 @@ input[type=submit] {
   border-bottom: 1px solid red;
   text-shadow: 1px 1px 0 #740500;
 }
+
+.err { color: orange; font-style: italic}
