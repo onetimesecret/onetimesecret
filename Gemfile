@@ -2,6 +2,7 @@ source "http://production.s3.rubygems.org.s3.amazonaws.com"
 
 gem 'addressable'
 gem 'rack'
+gem 'yajl-ruby'
 
 gem 'mustache', '0.99.3'
 gem 'gibbler', '0.8.9'
