@@ -12,6 +12,8 @@ GEM
   specs:
     addressable (2.2.4)
     attic (0.5.3)
+    daemons (1.1.4)
+    eventmachine (0.12.10)
     familia (0.7.1)
       gibbler (>= 0.8.6)
       multi_json (>= 0.0.5)
@@ -25,6 +27,10 @@ GEM
     rack (1.2.1)
     redis (2.2.0)
     storable (0.8.9)
+    thin (1.2.11)
+      daemons (>= 1.0.9)
+      eventmachine (>= 0.12.6)
+      rack (>= 1.0.0)
     uri-redis (0.4.2)
     yajl-ruby (1.0.0)
 
@@ -39,4 +45,5 @@ DEPENDENCIES
   otto (= 0.2.1.002)!
   rack
   storable
+  thin
   yajl-ruby
