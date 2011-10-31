@@ -26,6 +26,7 @@ GEM
     redis (2.2.0)
     storable (0.8.9)
     uri-redis (0.4.2)
+    yajl-ruby (1.0.0)
 
 PLATFORMS
   ruby
@@ -38,3 +39,4 @@ DEPENDENCIES
   otto (= 0.2.1.002)!
   rack
   storable
+  yajl-ruby
