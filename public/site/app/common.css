@@ -18,18 +18,21 @@ h1 a { text-decoration: none; color: #000}
   width: 80%;
 }
 
-
+#faq {
+  margin-top: 60px;
+  color: #444;
+}
 #footer {
   width: 80%;
   margin-left: 5%;
   margin-right: 5%;
+  margin-bottom: 60px;
   text-align: center;
   font-size: 80%;
   line-height: 80%;
   padding: 0px;
   padding-top: 10px;
   color: #999;
-  margin-top: 60px;
 }
 
 #footer a {
