@@ -106,7 +106,7 @@ h1 a { text-decoration: none; color: #000}
 
 #banner {
   width: 100%;
-  padding: 0px;
+  padding: 2px;
   margin: 0px;
   background-color: red;
 }
@@ -118,7 +118,7 @@ h1 a { text-decoration: none; color: #000}
 
 .secretValue {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 1px solid #000; clear: both}
 
-.tagline { width: 100%; text-align: center; font-style: italic; color: #999; margin-top: 20px;
+.tagline { width: 100%; text-align: center; font-style: italic; color: #999; margin-bottom: 20px;
 }
 input[type=submit] {
 }
