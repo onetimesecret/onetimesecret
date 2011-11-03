@@ -135,7 +135,7 @@ input[type=submit] {
   color: #666;
 }
 
-.options {
+#options {
   display: block;
 }
 
