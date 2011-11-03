@@ -136,7 +136,7 @@ input[type=submit] {
 }
 
 #options {
-  display: block;
+  display: hide;
 }
 
 #fire button{width:280px; margin-top: 10px}
