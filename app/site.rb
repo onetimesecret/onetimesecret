@@ -98,6 +98,7 @@ module Site
     class Homepage < Site::View
       def init *args
         self[:title] = "Share a secret"
+        self[:monitored_link] = true
       end
     end
     class UnknownSecret < Site::View
