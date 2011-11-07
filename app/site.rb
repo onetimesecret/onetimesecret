@@ -51,6 +51,7 @@ module Site
             view[:show_secret] = false
           else
             if ssecret.has_passphrase?
+              view[:has_passphrase] = true
               if ssecret.passphrase?(req.params[:passphrase])
                 view[:show_secret] = true
                 ssecret.viewed!
@@ -59,8 +60,12 @@ module Site
                 view[:err] = "Double check that passphrase"
               end
             else
-              view[:show_secret] = true
-              ssecret.viewed!  
+              if req.params[:continue] == 'true'
+                view[:show_secret] = true 
+                ssecret.viewed!
+              else
+                view[:show_secret] = false 
+              end 
             end
           end
           res.body = view.render

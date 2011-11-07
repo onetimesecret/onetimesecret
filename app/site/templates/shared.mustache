@@ -3,10 +3,15 @@
   <div class="shared">
     {{#err}}<p class="err">{{err}}</p>{{/err}}
     {{^show_secret}}
+    <p>Please click on Continue to see this secret. Don't refresh your browser until
+       you've stored it somewhere safe. It will only be displayed once, then it's gone forever!</p>
     <div class="passphrase">
       <form method="POST">
+	<input name="continue" type="hidden" value="true" />
+	{{#has_passphrase}}
         <span class="pretext">Enter the passphrase:</span>
         <input name="passphrase" value="" /><br/>
+	{{/has_passphrase}}
         <span id="fire" class="button"><button type="submit">Continue</button></span>
       </form>
     </div>
@@ -25,10 +30,10 @@
       <p>Note: this secret was truncated b/c it was over 5KB</p>
       {{/ssecret.long}}
     </div>
-    {{/show_secret}}
     <ul class="nav">
       <li class="alt"><a href="/">Reply with another secret</a></li>
     </ul>
+    {{/show_secret}}
   </div>
 
 {{>footer}}
