@@ -25,6 +25,7 @@ module Site
     attr_accessor :err
     def initialize req=nil, res=nil, *args
       self[:subtitle] = "One Time"
+      self[:monitored_link] = false
       init *args if respond_to? :init
     end
     def baseuri
