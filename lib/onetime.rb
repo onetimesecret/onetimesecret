@@ -11,11 +11,18 @@ require 'storable'
 module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+    ERRNO = {
+      :internalerror.gibbler.short => 'Not found',
+      :nosecret.gibbler.short => 'No secret provided',
+    }.freeze unless defined?(Onetime::ERRNO)
   end
   @debug = false
   class << self
     attr_accessor :debug
     attr_reader :conf
+    def errno name
+      name.gibbler.short
+    end
     def load! env=:dev, base=Onetime::HOME
       env && @env = env.to_sym.freeze
       conf_path = File.join(base, 'etc', env.to_s, 'onetime.yml')
