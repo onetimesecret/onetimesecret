@@ -1,8 +1,11 @@
 # FEEDBACK #
 
+## Nov 8th, 2011
+
+* Phil (PlayerTakesAll): allow people to email right from there.
 
 
-## July 7, 2010: Matthew Huebert ##
+## July 7, 2011: Matthew Huebert ##
 
 OneTimeSecret... actually, yeah, I often need to share passwords with people and don't want it in either my email archives or theirs. Great idea. Somehow I didn't 'get' it at first, it took a couple passes at the idea. I think the way my brain works, if it was explained as a way to share "sensitive information" (rather than secrets) I might have understood it faster. For some reason 'secrets' didn't bring to mind passwords. But it's entirely possible that it's just a quirk of my brain.
 
