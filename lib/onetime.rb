@@ -62,6 +62,7 @@ module Onetime
     field :size
     field :passphrase
     field :paired_key
+    field :custid
     attr_reader :entropy
     gibbler :kind, :entropy
     include Familia::Stamps
@@ -72,11 +73,21 @@ module Onetime
       @state = :new
       @kind, @entropy = kind, entropy
     end
+    def customer?
+      ! custid.nil?
+    end
     def size
       value.to_s.size
     end
     def long
       original_size >= 5000
+    end
+    def age
+      @age ||= Time.now.utc.to_i-updated
+      @age
+    end
+    def older_than? seconds
+      age > seconds
     end
     def key
       @key ||= gibbler.base(36)
