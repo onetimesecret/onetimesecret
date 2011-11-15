@@ -79,13 +79,6 @@ module Site
     end
   end
  
-  def privacy req, res
-    carefully req, res do
-      view = Site::Views::Privacy.new req
-      res.body = view.render
-    end
-  end
-
   def private_uri req, res
     carefully req, res do
       deny_agents! req, res
@@ -107,6 +100,17 @@ module Site
     end
   end
   
+  module Info
+    extend Base
+    extend self
+    def privacy req, res
+      carefully req, res do
+        view = Site::Views::Info::Privacy.new req
+        res.body = view.render
+      end
+    end
+  end
+  
   module Views
     class Homepage < Site::View
       def init *args
@@ -114,10 +118,12 @@ module Site
         self[:monitored_link] = true
       end
     end
-    class Privacy < Site::View
-      def init *args
-        self[:title] = "Privacy Policy"
-        self[:monitored_link] = true
+    module Info
+      class Privacy < Site::View
+        def init *args
+          self[:title] = "Privacy Policy"
+          self[:monitored_link] = true
+        end
       end
     end
      class UnknownSecret < Site::View
