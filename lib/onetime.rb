@@ -1,3 +1,6 @@
+# https://github.com/shuber/encryptor
+
+require 'bundler/setup'
 
 require 'syslog'
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
