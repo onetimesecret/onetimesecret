@@ -73,6 +73,8 @@ module Onetime
     attr_reader :entropy
     gibbler :kind, :entropy
     include Familia::Stamps
+    field :viewed => Integer
+    field :shared => Integer
     def initialize kind=nil, entropy=nil
       unless kind.nil? || [:private, :shared].member?(kind.to_s.to_sym)
         raise ArgumentError, "Bad kind: #{kind}"
@@ -101,27 +103,33 @@ module Onetime
       @key
     end
     def load_pair
-      ret = self.class.from_redis paired_key
-      ret
+      self.class.from_redis paired_key
     end
-    def shared?
-      kind.to_s == 'shared'
+    def kind? guess
+      kind.to_s == guess.to_s
     end
-    def viewed?
-      state.to_s == 'viewed'
+    def state? guess
+      state.to_s == guess.to_s
+    end
+    def shared!
+      @state = 'shared'
+      @shared = Time.now.utc.to_i
+      save
     end
     def viewed!
+      # Make sure we don't go from :shared to :viewed
+      return if state?(:viewed) || state?(:shared)
       @state = 'viewed'
+      @viewed = Time.now.utc.to_i
       save
+      # update the private key
+      load_pair.shared! if kind?(:shared)
     end
     def has_passphrase?
       !passphrase.to_s.empty?
     end
     def passphrase? guess
       !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
-    end
-    def private?
-      kind.to_s == 'private'
     end
     def self.generate_pair entropy
       entropy = [entropy, Time.now.to_f * $$].flatten

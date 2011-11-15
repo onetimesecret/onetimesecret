@@ -53,3 +53,17 @@ s.rediskey
 ## A secret can be destroyed
 @psecret.destroy!
 #=> 1
+
+## Can set private secret to viewed state
+psecret, ssecret = Onetime::Secret.generate_pair :tryouts
+psecret.viewed!
+[psecret.viewed, psecret.state]
+#=> [Time.now.utc.to_i, 'viewed']
+
+## Can set shared secret to viewed state
+psecret, ssecret = Onetime::Secret.generate_pair :tryouts
+psecret.save && ssecret.save
+ssecret.viewed!
+psecret = ssecret.load_pair
+[psecret.shared, psecret.state, ssecret.viewed, ssecret.state]
+#=> [Time.now.utc.to_i, 'shared', Time.now.utc.to_i, 'viewed']

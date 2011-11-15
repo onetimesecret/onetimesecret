@@ -48,7 +48,7 @@ module Site
         ssecret = Onetime::Secret.from_redis req.params[:key]
         if ssecret.state.to_s == "new"
           view = Site::Views::Shared.new req, res, ssecret
-          if ssecret.viewed? 
+          if ssecret.state? :viewed
             view[:show_secret] = false
           else
             if ssecret.has_passphrase?
@@ -86,12 +86,9 @@ module Site
         psecret = Onetime::Secret.from_redis req.params[:key]
         ssecret = psecret.load_pair
         view = Site::Views::Private.new req, res, psecret, ssecret
-        puts psecret.to_json
-        if psecret.viewed?
-          view[:show_secret] = false
-        else
-          view[:show_secret] = true
+        unless psecret.state?(:viewed) || psecret.state?(:shared)
           psecret.viewed!
+          view[:show_secret] = true
         end
         res.body = view.render
       else
@@ -146,10 +143,10 @@ module Site
         [baseuri, :private, self[:psecret].key].join('/')
       end
       def been_shared
-        self[:ssecret].state.to_s == "viewed"
+        self[:psecret].state? :shared
       end
       def shared_date
-        natural_time self[:ssecret].updated || 0
+        natural_time self[:psecret].shared || 0
       end
       def display_lines
         ret = self[:ssecret].value.to_s.scan(/\n/).size + 2
