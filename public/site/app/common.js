@@ -13,4 +13,4 @@ $(function() {
   $("#secreturi").focus(function(){
     this.select();
   });
-}
+});
