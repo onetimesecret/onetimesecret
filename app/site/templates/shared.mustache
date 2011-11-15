@@ -20,10 +20,10 @@
     <div class="secret">
       <span class="pretext">This secret is for you:</span><br/>
       {{#one_liner}}
-      <input value="{{ssecret.value}}" />
+      <input value="{{ssecret.decrypted_value}}" />
       {{/one_liner}}
       {{^one_liner}}
-      <textarea rows="{{display_lines}}" cols="80">{{ssecret.value}}</textarea>
+      <textarea rows="{{display_lines}}" cols="80">{{ssecret.decrypted_value}}</textarea>
       {{/one_liner}}
       <p>(careful: it will disappear when you refresh.)</p>
       {{#ssecret.long}}

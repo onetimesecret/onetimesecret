@@ -20,11 +20,11 @@ module Site
       if req.params[:kind] == 'generate'
         psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
         ssecret.original_size = 12
-        ssecret.value = Onetime::Utils.strand 12
+        ssecret.update_value Onetime::Utils.strand 12
       elsif req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
         psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
         ssecret.original_size = req.params[:secret].to_s.size
-        ssecret.value = req.params[:secret].to_s.slice(0, 4999)
+        ssecret.update_value req.params[:secret].to_s.slice(0, 4999)
       end
       if psecret && ssecret
         unless req.params[:passphrase].to_s.empty?
@@ -122,11 +122,11 @@ module Site
         [baseuri, :private, self[:psecret].key].join('/')
       end
       def display_lines
-        ret = self[:ssecret].value.to_s.scan(/\n/).size + 2
+        ret = self[:ssecret].decrypted_value.to_s.scan(/\n/).size + 2
         ret = ret > 20 ? 20 : ret
       end
       def one_liner
-        self[:ssecret].value.to_s.scan(/\n/).size.zero?
+        self[:ssecret].decrypted_value.to_s.scan(/\n/).size.zero?
       end
     end
     class Private < Site::View
@@ -149,11 +149,11 @@ module Site
         natural_time self[:psecret].shared || 0
       end
       def display_lines
-        ret = self[:ssecret].value.to_s.scan(/\n/).size + 2
+        ret = self[:ssecret].decrypted_value.to_s.scan(/\n/).size + 2
         ret = ret > 20 ? 20 : ret
       end
       def one_liner
-        self[:ssecret].value.to_s.scan(/\n/).size.zero?
+        self[:ssecret].decrypted_value.to_s.scan(/\n/).size.zero?
       end
     end
     class Error < Site::View

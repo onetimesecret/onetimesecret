@@ -17,12 +17,12 @@
     <div class="secret">
       <span class="pretext">SECRET:</span><br/>
       {{#one_liner}}
-        <input id="displayedsecret" value="{{ssecret.value}}" />
+        <input id="displayedsecret" value="{{ssecret.decrypted_value}}" />
         <p>(careful: it will disappear when you refresh.)</p>
       {{/one_liner}}
       {{^one_liner}}
         <p>(careful: it will disappear when you refresh.)</p>
-        <textarea rows="{{display_lines}}" cols="80">{{ssecret.value}}</textarea>
+        <textarea rows="{{display_lines}}" cols="80">{{ssecret.decrypted_value}}</textarea>
         {{#ssecret.long}}
         <p>Note: this secret was truncated b/c it was over 5KB</p>
         {{/ssecret.long}}
