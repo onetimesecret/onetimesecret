@@ -12,6 +12,7 @@ GEM
   specs:
     addressable (2.2.4)
     attic (0.5.3)
+    bcrypt-ruby (3.0.0)
     daemons (1.1.4)
     encryptor (1.1.3)
     eventmachine (0.12.10)
@@ -40,6 +41,7 @@ PLATFORMS
 
 DEPENDENCIES
   addressable (= 2.2.4)
+  bcrypt-ruby (= 3.0.0)
   encryptor (= 1.1.3)
   familia (= 0.7.1)
   gibbler (= 0.8.9)

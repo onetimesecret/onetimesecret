@@ -17,20 +17,18 @@ module Site
   def create req, res
     psecret, ssecret = nil, nil
     carefully req, res do
+      psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
+      psecret.passphrase = req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
+      ssecret.update_passphrase req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
       if req.params[:kind] == 'generate'
-        psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
-        ssecret.original_size = 12
-        ssecret.update_value Onetime::Utils.strand 12
+        generated_value = Onetime::Utils.strand 12
+        ssecret.original_size = generated_value.size
+        ssecret.update_value generated_value
       elsif req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
-        psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
         ssecret.original_size = req.params[:secret].to_s.size
         ssecret.update_value req.params[:secret].to_s.slice(0, 4999)
       end
       if psecret && ssecret
-        unless req.params[:passphrase].to_s.empty?
-          psecret.passphrase = req.params[:passphrase]
-          ssecret.passphrase = req.params[:passphrase]
-        end
         psecret.save
         ssecret.save
         uri = ['/private/', psecret.key].join
@@ -87,6 +85,8 @@ module Site
         ssecret = psecret.load_pair
         view = Site::Views::Private.new req, res, psecret, ssecret
         unless psecret.state?(:viewed) || psecret.state?(:shared)
+          view[:temp_passphrase] = psecret.passphrase
+          psecret.passphrase = ssecret.passphrase
           psecret.viewed!
           view[:show_secret] = true
         end
@@ -134,13 +134,15 @@ module Site
         self[:psecret], self[:ssecret] = psecret, ssecret
         self[:title] = "Shhh, it's a secret"
         self[:body_class] = :generate
-        self[:show_passphrase] = psecret.has_passphrase?
       end
       def share_uri
         [baseuri, :shared, self[:ssecret].key].join('/')
       end
       def admin_uri
         [baseuri, :private, self[:psecret].key].join('/')
+      end
+      def show_passphrase
+        !self[:temp_passphrase].to_s.empty?
       end
       def been_shared
         self[:psecret].state? :shared

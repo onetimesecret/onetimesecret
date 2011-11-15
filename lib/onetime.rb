@@ -6,6 +6,7 @@ require 'syslog'
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
 require 'encryptor'
+require 'bcrypt'
 
 require 'gibbler'
 Gibbler.secret = "(I AM THE ONE TRUE SECRET!)"
@@ -81,12 +82,13 @@ module Onetime
     field :viewed => Integer
     field :shared => Integer
     field :value_encryption => Integer
+    field :passphrase_encryption => Integer
     ttl 7.days
     def initialize kind=nil, entropy=nil
       unless kind.nil? || [:private, :shared].member?(kind.to_s.to_sym)
         raise ArgumentError, "Bad kind: #{kind}"
       end
-      @state, @value_encryption = :new, 0
+      @state, @value_encryption, @passphrase_encryption = :new, 0, 0
       @kind, @entropy = kind, entropy
     end
     def customer?
@@ -128,6 +130,21 @@ module Onetime
     def encryption_key
       OT::Secret.encryption_key self.key, self.passphrase
     end
+    def update_passphrase v
+      @passphrase_encryption = 1
+      @passphrase = BCrypt::Password.create(v, :cost => 10).to_s
+    end
+    def has_passphrase?
+      !passphrase.to_s.empty?
+    end
+    def passphrase? guess
+      begin 
+        !has_passphrase? || BCrypt::Password.new(@passphrase) == guess
+      rescue BCrypt::Errors::InvalidHash => ex
+        msg = "[old-passphrase]"
+        !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
+      end
+    end
     def load_pair
       self.class.from_redis paired_key
     end
@@ -153,12 +170,6 @@ module Onetime
       else
         save
       end
-    end
-    def has_passphrase?
-      !passphrase.to_s.empty?
-    end
-    def passphrase? guess
-      !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
     end
     def self.generate_pair entropy
       entropy = [entropy, Time.now.to_f * $$].flatten
