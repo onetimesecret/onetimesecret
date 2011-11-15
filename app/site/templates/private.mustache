@@ -4,7 +4,7 @@
     {{#show_secret}}
     <div class="uri">
       <span class="pretext">Share this URI:</span><br/>
-      <input value="{{share_uri}}"/>
+      <input id="secreturi" value="{{share_uri}}"/>
       <p>This URI can only be accessed one time.</p>
     </div>
     {{#show_passphrase}}
@@ -17,7 +17,7 @@
     <div class="secret">
       <span class="pretext">SECRET:</span><br/>
       {{#one_liner}}
-        <input value="{{ssecret.value}}" />
+        <input id="displayedsecret" value="{{ssecret.value}}" />
         <p>(careful: it will disappear when you refresh.)</p>
       {{/one_liner}}
       {{^one_liner}}
@@ -28,6 +28,11 @@
         {{/ssecret.long}}
       {{/one_liner}}
     </div>
+    <script type="text/javascript">
+      $("#secreturi").focus(function(){
+        this.select();
+      });
+    </script>
     {{/show_secret}}
     
     {{^show_secret}}
