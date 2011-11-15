@@ -75,6 +75,7 @@ module Onetime
     include Familia::Stamps
     field :viewed => Integer
     field :shared => Integer
+    ttl 7.days
     def initialize kind=nil, entropy=nil
       unless kind.nil? || [:private, :shared].member?(kind.to_s.to_sym)
         raise ArgumentError, "Bad kind: #{kind}"
