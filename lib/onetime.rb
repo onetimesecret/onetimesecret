@@ -122,9 +122,12 @@ module Onetime
       return if state?(:viewed) || state?(:shared)
       @state = 'viewed'
       @viewed = Time.now.utc.to_i
-      save
-      # update the private key
-      load_pair.shared! if kind?(:shared)
+      if kind?(:shared)
+        load_pair.shared!  # update the private key
+        destroy!           # delete this shared key
+      else
+        save
+      end
     end
     def has_passphrase?
       !passphrase.to_s.empty?
