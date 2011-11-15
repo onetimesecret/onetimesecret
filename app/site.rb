@@ -1,6 +1,7 @@
 
+require 'onetime'  # must be required before
 require 'site/base'
-require 'onetime'
+
 
 module Site
   extend Base
@@ -8,7 +9,7 @@ module Site
   
   def index req, res
     carefully req, res do
-      view = Site::Views::Homepage.new
+      view = Site::Views::Homepage.new req
       res.body = view.render
     end
   end
@@ -35,7 +36,7 @@ module Site
         uri = ['/private/', psecret.key].join
         res.redirect uri
       else
-        res.redirect '/'
+        res.redirect '/?errno=%s' % [Onetime.errno(:nosecret)]
       end
     end
   end

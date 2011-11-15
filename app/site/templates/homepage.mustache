@@ -3,7 +3,7 @@
   <div id="content">
     
     <div class="intro">Keep sensitive info out of your chat logs &amp; email.</div>
-    
+    {{#err}}<p class="err">{{err}}</p>{{/err}}
     <form id="" method="post" action="/create">
       <ul class="nav">
         <li class="primary">
@@ -18,14 +18,14 @@
         <div id="options">
           <input type="text" name="passphrase" value="" /> Enter a passphrase that only your recipient will know
         </div>
-        <span id="fire" class="button"><button type="submit">Create a secret URI*</button></span>
+        <span id="fire" class="button"><button type="submit">Create a secret link*</button></span>
       </ul>
     </form>
-    <div class="intro2"><em>* A secret URI is available only one time and then it disappears forever.</em></div>
+    <div class="intro2"><em>* A secret link is available only one time and then it disappears forever.</em></div>
     <div id="faq">
       <h3>F.A.Q.</h3>
       <h4>Why would I use this?</h4>
-      <p>When you send people passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time URI instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Imagine hearing 'This message will self destruct!' right after the recipient has loaded it.</p>
+      <p>When you send people passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Imagine hearing 'This message will self destruct!' right after the recipient has loaded it.</p>
       
       <h4>Can I retrieve a secret that has already been shared?</h4>
       <p>Nope. We literally can only show it once. After that it's gone.</p>

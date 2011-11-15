@@ -11,11 +11,18 @@ require 'storable'
 module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+    ERRNO = {
+      :internalerror.gibbler.short => 'Not found',
+      :nosecret.gibbler.short => 'No secret provided',
+    }.freeze unless defined?(Onetime::ERRNO)
   end
   @debug = false
   class << self
     attr_accessor :debug
     attr_reader :conf
+    def errno name
+      name.gibbler.short
+    end
     def load! env=:dev, base=Onetime::HOME
       env && @env = env.to_sym.freeze
       conf_path = File.join(base, 'etc', env.to_s, 'onetime.yml')
@@ -62,6 +69,7 @@ module Onetime
     field :size
     field :passphrase
     field :paired_key
+    field :custid
     attr_reader :entropy
     gibbler :kind, :entropy
     include Familia::Stamps
@@ -72,11 +80,21 @@ module Onetime
       @state = :new
       @kind, @entropy = kind, entropy
     end
+    def customer?
+      ! custid.nil?
+    end
     def size
       value.to_s.size
     end
     def long
       original_size >= 5000
+    end
+    def age
+      @age ||= Time.now.utc.to_i-updated
+      @age
+    end
+    def older_than? seconds
+      age > seconds
     end
     def key
       @key ||= gibbler.base(36)
