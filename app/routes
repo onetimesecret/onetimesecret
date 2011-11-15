@@ -3,6 +3,7 @@
 ##  WEB
 GET   /                                          Site.index
 POST  /create                                    Site.create
+GET   /privacy                                   Site.privacy
 
 GET   /private/:key                              Site.private_uri
 GET   /shared/:key                               Site.shared_uri
