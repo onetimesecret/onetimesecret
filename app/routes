@@ -9,6 +9,7 @@ GET   /shared/:key                               Site.shared_uri
 POST  /shared/:key                               Site.shared_uri
 
 GET   /info/privacy                              Site::Info.privacy
+GET   /info/security                             Site::Info.security
 
 
 ##  API
