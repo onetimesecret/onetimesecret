@@ -111,6 +111,16 @@ module Onetime
       @key ||= gibbler.base(36)
       @key
     end
+    def valid?
+      case kind.to_s
+      when 'shared'
+        exists? && !value.to_s.empty?
+      when 'private'
+        exists?
+      else
+        false
+      end
+    end
     def update_value v, opts={}
       @value_encryption = 1
       opts.merge! :key => encryption_key 

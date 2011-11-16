@@ -20,17 +20,17 @@ module Site
       psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
       psecret.passphrase = req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
       ssecret.update_passphrase req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
-      if req.params[:kind] == 'generate'
+      if req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
+        ssecret.original_size = req.params[:secret].to_s.size
+        ssecret.update_value req.params[:secret].to_s.slice(0, 4999)
+      elsif req.params[:kind] == 'generate'
         generated_value = Onetime::Utils.strand 12
         ssecret.original_size = generated_value.size
         ssecret.update_value generated_value
-      elsif req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
-        ssecret.original_size = req.params[:secret].to_s.size
-        ssecret.update_value req.params[:secret].to_s.slice(0, 4999)
       end
-      if psecret && ssecret
-        psecret.save
-        ssecret.save
+      psecret.save
+      ssecret.save
+      if psecret.valid? && ssecret.valid?
         uri = ['/private/', psecret.key].join
         res.redirect uri
       else
