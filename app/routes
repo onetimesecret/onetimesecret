@@ -8,6 +8,9 @@ GET   /private/:key                              Site.private_uri
 GET   /shared/:key                               Site.shared_uri
 POST  /shared/:key                               Site.shared_uri
 
+GET   /info/privacy                              Site::Info.privacy
+
+
 ##  API
 #POST   /api/v1/generate
 #POST   /api/v1/share
