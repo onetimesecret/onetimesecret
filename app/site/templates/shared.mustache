@@ -3,7 +3,12 @@
   <div class="shared">
     {{#err}}<p class="err">{{err}}</p>{{/err}}
     {{^show_secret}}
+    {{^has_passphrase}}
     <span class="pretext">This secret is for you:</span><br/>
+    {{/has_passphrase}}
+    {{#has_passphrase}}
+    <h2 class="intro">You have found a secret.</div>
+    {{/has_passphrase}}
     <div class="passphrase">
       <form method="POST">
       <input name="continue" type="hidden" value="true" />

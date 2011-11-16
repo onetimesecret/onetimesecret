@@ -112,7 +112,7 @@ module Site
     class Shared < Site::View
       def init ssecret
         self[:ssecret] = ssecret
-        self[:title] = "Shhh, it's a secret"
+        self[:title] = "You received a secret"
         self[:body_class] = :generate
       end
       def share_uri
@@ -132,7 +132,7 @@ module Site
     class Private < Site::View
       def init psecret, ssecret
         self[:psecret], self[:ssecret] = psecret, ssecret
-        self[:title] = "Shhh, it's a secret"
+        self[:title] = "You saved a secret"
         self[:body_class] = :generate
       end
       def share_uri
