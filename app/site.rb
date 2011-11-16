@@ -109,6 +109,12 @@ module Site
         res.body = view.render
       end
     end
+    def security req, res
+      carefully req, res do
+        view = Site::Views::Info::Security.new req
+        res.body = view.render
+      end
+    end
   end
   
   module Views
@@ -122,6 +128,12 @@ module Site
       class Privacy < Site::View
         def init *args
           self[:title] = "Privacy Policy"
+          self[:monitored_link] = true
+        end
+      end
+       class Security < Site::View
+        def init *args
+          self[:title] = "Security Policy"
           self[:monitored_link] = true
         end
       end
