@@ -9,14 +9,14 @@ s.value
 
 ## Can encrypt a value
 s = Onetime::Secret.new :shared
-s.update_value 'poop', :key => 'tryouts'
+s.encrypt_value 'poop', :key => 'tryouts'
 puts "These values should match character for character. Not sure why they don't :-?"
 s.value
 #=> '\x8D\xF2k\xD0;\xB9\xB5\xC3\x02+@\xEA\x06\xA2+\xA9'
 
 ## Can decrypt a value
 s = Onetime::Secret.new :shared
-s.update_value 'poop', :key => 'tryouts'
+s.encrypt_value 'poop', :key => 'tryouts'
 s.decrypted_value
 #=> 'poop'
 

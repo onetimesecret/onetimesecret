@@ -76,13 +76,14 @@ module Onetime
     field :passphrase
     field :paired_key
     field :custid
-    attr_reader :entropy
-    gibbler :kind, :entropy
-    include Familia::Stamps
-    field :viewed => Integer
-    field :shared => Integer
     field :value_encryption => Integer
     field :passphrase_encryption => Integer
+    attr_reader :entropy
+    attr_accessor :passphrase_temp
+    gibbler :kind, :entropy
+    field :viewed => Integer
+    field :shared => Integer
+    include Familia::Stamps
     ttl 7.days
     def initialize kind=nil, entropy=nil
       unless kind.nil? || [:private, :shared].member?(kind.to_s.to_sym)
@@ -121,7 +122,7 @@ module Onetime
         false
       end
     end
-    def update_value v, opts={}
+    def encrypt_value v, opts={}
       @value_encryption = 1
       opts.merge! :key => encryption_key 
       @value = v.encrypt opts
@@ -138,10 +139,11 @@ module Onetime
       end
     end
     def encryption_key
-      OT::Secret.encryption_key self.key, self.passphrase
+      OT::Secret.encryption_key self.key, self.passphrase_temp
     end
     def update_passphrase v
       @passphrase_encryption = 1
+      @passphrase_temp = v
       @passphrase = BCrypt::Password.create(v, :cost => 10).to_s
     end
     def has_passphrase?
@@ -149,7 +151,9 @@ module Onetime
     end
     def passphrase? guess
       begin 
-        !has_passphrase? || BCrypt::Password.new(@passphrase) == guess
+        ret = !has_passphrase? || BCrypt::Password.new(@passphrase) == guess
+        @passphrase_temp = guess if ret  # used to decrypt the value
+        ret
       rescue BCrypt::Errors::InvalidHash => ex
         msg = "[old-passphrase]"
         !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)

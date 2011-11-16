@@ -10,19 +10,19 @@
     {{#show_passphrase}}
     <div class="passphrase">
       <span class="pretext">Passphrase:</span><br/>
-      <input value="{{temp_passphrase}}" />
+      <input value="{{ssecret.passphrase_temp}}" />
       <p>(the recipient will need this to view the secret.)</p>
     </div>
     {{/show_passphrase}}
     <div class="secret">
-      <span class="pretext">SECRET:</span><br/>
+      <span class="pretext">Secret:</span><br/>
       {{#one_liner}}
-        <input id="displayedsecret" value="{{ssecret.decrypted_value}}" />
+        <input id="displayedsecret" value="{{secret_value}}" />
         <p>(careful: it will disappear when you refresh.)</p>
       {{/one_liner}}
       {{^one_liner}}
         <p>(careful: it will disappear when you refresh.)</p>
-        <textarea rows="{{display_lines}}" cols="80">{{ssecret.decrypted_value}}</textarea>
+        <textarea rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
         {{#ssecret.long}}
         <p>Note: this secret was truncated b/c it was over 5KB</p>
         {{/ssecret.long}}
@@ -32,7 +32,7 @@
     
     {{^show_secret}}
     <div class="secret">
-      <span class="pretext">SECRET:</span><br/>
+      <span class="pretext">Secret:</span><br/>
       <input value="*******************" disabled="disabled" />
       {{#been_shared}}
       <p><em>This secret was received {{shared_date}}.</em></p>

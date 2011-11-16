@@ -22,11 +22,11 @@ module Site
       ssecret.update_passphrase req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
       if req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
         ssecret.original_size = req.params[:secret].to_s.size
-        ssecret.update_value req.params[:secret].to_s.slice(0, 4999)
+        ssecret.encrypt_value req.params[:secret].to_s.slice(0, 4999)
       elsif req.params[:kind] == 'generate'
         generated_value = Onetime::Utils.strand 12
         ssecret.original_size = generated_value.size
-        ssecret.update_value generated_value
+        ssecret.encrypt_value generated_value
       end
       psecret.save
       ssecret.save
@@ -85,7 +85,10 @@ module Site
         ssecret = psecret.load_pair
         view = Site::Views::Private.new req, res, psecret, ssecret
         unless psecret.state?(:viewed) || psecret.state?(:shared)
-          view[:temp_passphrase] = psecret.passphrase
+          # We temporarily store the raw passphrase when the private
+          # secret is created so we can display it once. Here we 
+          # update it with the encrypted one.
+          ssecret.passphrase_temp = psecret.passphrase
           psecret.passphrase = ssecret.passphrase
           psecret.viewed!
           view[:show_secret] = true
@@ -142,7 +145,7 @@ module Site
         [baseuri, :private, self[:psecret].key].join('/')
       end
       def show_passphrase
-        !self[:temp_passphrase].to_s.empty?
+        !self[:ssecret].passphrase_temp.to_s.empty?
       end
       def been_shared
         self[:psecret].state? :shared
@@ -151,11 +154,14 @@ module Site
         natural_time self[:psecret].shared || 0
       end
       def display_lines
-        ret = self[:ssecret].decrypted_value.to_s.scan(/\n/).size + 2
+        ret = secret_value.to_s.scan(/\n/).size + 2
         ret = ret > 20 ? 20 : ret
       end
       def one_liner
-        self[:ssecret].decrypted_value.to_s.scan(/\n/).size.zero?
+        secret_value.to_s.scan(/\n/).size.zero?
+      end
+      def secret_value
+        show_passphrase ? self[:ssecret].decrypted_value : self[:ssecret].value
       end
     end
     class Error < Site::View
