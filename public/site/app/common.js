@@ -7,3 +7,10 @@ function OptionsToggle() {
         myElement.style.display = "block";
     }
 }
+
+// COMMON BEHAVIORS
+$(function() {  
+  $("#secreturi").focus(function(){
+    this.select();
+  });
+});
