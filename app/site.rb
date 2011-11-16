@@ -161,7 +161,7 @@ module Site
         secret_value.to_s.scan(/\n/).size.zero?
       end
       def secret_value
-        show_passphrase ? self[:ssecret].decrypted_value : self[:ssecret].value
+        self[:ssecret].can_decrypt? ? self[:ssecret].decrypted_value : self[:ssecret].value
       end
     end
     class Error < Site::View

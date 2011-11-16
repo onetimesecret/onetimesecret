@@ -127,6 +127,9 @@ module Onetime
       opts.merge! :key => encryption_key 
       @value = v.encrypt opts
     end
+    def can_decrypt?
+      passphrase.to_s.empty? || !passphrase_temp.to_s.empty?
+    end
     def decrypted_value opts={}
       case value_encryption.to_i
       when 0
