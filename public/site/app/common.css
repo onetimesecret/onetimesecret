@@ -84,20 +84,24 @@ h1 a { text-decoration: none; color: #000}
 
 .private{font-size: 18px; line-height: 18px; margin-top: 10px}
 #generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px;}
-.private .secret input, .private .secret textarea { background-color: #ccc; color: #fff; padding: 5px; width: 90% }
+.private .secret input, .private .secret textarea { background-color: #eee; color: #666; padding: 5px; width: 90% }
 .private .secret input[disabled] { background-color: #ccc; color: #fff }
-.shared .secret input, .shared .secret textarea { background-color: #ccc; color: #fff; padding: 5px; width: 90% }
+.shared .secret input, .shared .secret textarea { background-color: #eee; color: #666; padding: 5px; width: 90% }
 .secret p {padding: 6px; font-size: 80%; margin: 0px; color: #999; font-style: italic}
 .uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0; }
 .uri p {padding: 6px; font-size: 80%; margin: 0px; color: #999}
-.passphrase { margin-bottom: 30px}
-.passphrase input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ccc; color: #fff;}
+.passphrase { margin-bottom: 30px; margin-left: 30px }
+.passphrase input {width: 320px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #eee; color: #000;}
 .passphrase p {padding: 6px; font-size: 80%; margin: 0px; color: #999}
 .secret {margin-bottom: 20px}
 .uri{margin-bottom: 10px}
 .pretext {
   line-height: 24px;
   font-size: 24px;
+}
+.passphrase .pretext {
+  line-height: 18px;
+  font-size: 18px;
 }
 .nav .context {
   line-height: 16px;

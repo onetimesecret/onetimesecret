@@ -8,11 +8,13 @@ GIT
       rack (>= 1.2.1)
 
 GEM
-  remote: http://production.s3.rubygems.org.s3.amazonaws.com/
+  remote: https://rubygems.org/
   specs:
     addressable (2.2.4)
     attic (0.5.3)
+    bcrypt-ruby (3.0.0)
     daemons (1.1.4)
+    encryptor (1.1.3)
     eventmachine (0.12.10)
     familia (0.7.1)
       gibbler (>= 0.8.6)
@@ -38,12 +40,14 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  addressable
+  addressable (= 2.2.4)
+  bcrypt-ruby (= 3.0.0)
+  encryptor (= 1.1.3)
   familia (= 0.7.1)
   gibbler (= 0.8.9)
   mustache (= 0.99.3)
   otto (= 0.2.1.002)!
-  rack
-  storable
-  thin
-  yajl-ruby
+  rack (= 1.2.1)
+  storable (= 0.8.9)
+  thin (= 1.2.11)
+  yajl-ruby (= 1.0.0)
