@@ -12,6 +12,7 @@ h1 a { text-decoration: none; color: #000}
 
 #content {
   padding-left: 0px;
+  padding-bottom: 20px;
 }
 
 #content p {
@@ -173,3 +174,4 @@ input[type=submit] {
 }
 
 .err { color: orange; font-style: italic}
+.address { margin-left: 150px; font-size: 24px; line-height: 24px; }
