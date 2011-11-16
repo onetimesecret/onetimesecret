@@ -131,17 +131,26 @@ h1 a { text-decoration: none; color: #000}
 input[type=submit] {
 }
 
-.optionToggle {
-  margin-top: 10px;
-  font-size: 12px;
+#optionsBlock {
+  padding: 10px;
+  font-size: 14px;
 }
 
-.optionToggle a {
+#optionsToggle {
+  margin-top: 10px;
+}
+
+#optionsToggle a {
   color: #666;
 }
 
 #options {
   display: none;
+  padding: 6px;
+  background-color: #eee;
+}
+#options input {
+  width: 400px; font-size: 14px; line-height: 14px; padding: 6px; border: 1px solid #999; clear: both;
 }
 
 #fire button{width:280px; margin-top: 10px}

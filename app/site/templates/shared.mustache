@@ -25,12 +25,12 @@
     <div class="secret">
       <span class="pretext">This secret is for you:</span><br/>
       {{#one_liner}}
-      <input value="{{ssecret.decrypted_value}}" />
+      <input class="selectable" value="{{ssecret.decrypted_value}}" />
       {{/one_liner}}
       {{^one_liner}}
-      <textarea rows="{{display_lines}}" cols="80">{{ssecret.decrypted_value}}</textarea>
+      <textarea class="selectable" rows="{{display_lines}}" cols="80">{{ssecret.decrypted_value}}</textarea>
       {{/one_liner}}
-      <p>(careful: it will disappear when you refresh.)</p>
+      <p>(careful: it will disappear when you refresh this page.)</p>
       {{#ssecret.long}}
       <p>Note: this secret was truncated b/c it was over 5KB</p>
       {{/ssecret.long}}
