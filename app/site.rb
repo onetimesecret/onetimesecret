@@ -39,7 +39,7 @@ module Site
     end
   end
   
-  def shared_uri req, res
+  def secret_uri req, res
     carefully req, res do
       deny_agents! req, res
       if Onetime::Secret.exists?(req.params[:key])
@@ -150,7 +150,7 @@ module Site
         self[:body_class] = :generate
       end
       def share_uri
-        [baseuri, :shared, self[:ssecret].key].join('/')
+        [baseuri, :secret, self[:ssecret].key].join('/')
       end
       def admin_uri
         [baseuri, :private, self[:psecret].key].join('/')
@@ -170,7 +170,7 @@ module Site
         self[:body_class] = :generate
       end
       def share_uri
-        [baseuri, :shared, self[:ssecret].key].join('/')
+        [baseuri, :secret, self[:ssecret].key].join('/')
       end
       def admin_uri
         [baseuri, :private, self[:psecret].key].join('/')

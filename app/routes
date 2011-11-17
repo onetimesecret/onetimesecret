@@ -5,8 +5,10 @@ GET   /                                          Site.index
 POST  /create                                    Site.create
 
 GET   /private/:key                              Site.private_uri
-GET   /shared/:key                               Site.shared_uri
-POST  /shared/:key                               Site.shared_uri
+GET   /shared/:key                               Site.secret_uri
+POST  /shared/:key                               Site.secret_uri
+GET   /secret/:key                               Site.secret_uri
+POST  /secret/:key                               Site.secret_uri
 
 GET   /info/privacy                              Site::Info.privacy
 GET   /info/security                             Site::Info.security
