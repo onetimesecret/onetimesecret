@@ -25,6 +25,7 @@ module Onetime
     }.freeze unless defined?(Onetime::ERRNO)
   end
   @debug = false
+  @mode = :app
   class << self
     attr_accessor :debug, :mode
     attr_reader :conf
@@ -34,28 +35,18 @@ module Onetime
     def errno name
       name.gibbler.short
     end
-    def load! env=:dev, base=Onetime::HOME
-      env && @env = env.to_sym.freeze
-      conf_path = File.join(base, 'etc', env.to_s, 'onetime.yml')
-      info "Loading #{conf_path}"
-      @conf = read_config(conf_path)
-      Familia.uri = Onetime.conf[:site][:redis][:uri]
-      info "---  ONETIME ALPHA  -----------------------------------"
-      info "Connection: #{Familia.uri}"
+    def load! mode=nil, base=Onetime::HOME
+      OT.mode = mode unless mode.nil?
+      @conf = OT::Config.load
+      Familia.uri = Onetime.conf[:redis][:uri]
+      ld "---  ONETIME v#{OT::VERSION}  -----------------------------------"
+      ld "Connection: #{Familia.uri}"
       @conf
     end
-    
-    def read_config path
-      raise ArgumentError, "Bad config: #{path}" unless File.extname(path) == '.yml'
-      raise RuntimeError, "Bad config: #{path}" unless File.exists?(path)
-      YAML.load_file path
-    end
-    
     def info(*msg)
       prefix = "(#{Time.now}):  "
       SYSLOG.info "#{prefix}" << msg.join("#{$/}#{prefix}")
     end
-
     def ld(*msg)
       return unless Onetime.debug
       prefix = "D:  "
@@ -63,22 +54,28 @@ module Onetime
     end
   end
   
-  class MissingSecret < RuntimeError
-  end
-  
-  
-  module Utils
+  module Config
     extend self
-    unless defined?(VALID_CHARS)
-      VALID_CHARS = [("a".."z").to_a, ("A".."Z").to_a, ("0".."9").to_a, %w[* $ ! ? ( )]].flatten
-      VALID_CHARS_SAFE = VALID_CHARS.clone
-      VALID_CHARS_SAFE.delete_if { |v| %w(i l o 1 0).member?(v) }
-      VALID_CHARS.freeze
-      VALID_CHARS_SAFE.freeze
+    SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
+    UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+    attr_reader :env, :base, :bootstrap
+    def load path=self.path
+      raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
+      YAML.load_file path
     end
-    def strand(len=12, safe=true)
-      chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
-      (1..len).collect { chars[rand(chars.size-1)] }.join
+    def exists?
+      !config_path.nil?
+    end
+    def path
+      find_configs.first
+    end
+    def find_configs
+      paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
+      paths.collect { |f| 
+        f = File.join File.expand_path(f), 'config'
+        Onetime.ld "Looking for #{f}"
+        f if File.exists?(f) 
+      }.compact
     end
   end
   
@@ -99,6 +96,24 @@ module Onetime
       @version = YAML.load_file(File.join(OT::HOME, 'BUILD.yml'))
     end
   end
+  
+  module Utils
+    extend self
+    unless defined?(VALID_CHARS)
+      VALID_CHARS = [("a".."z").to_a, ("A".."Z").to_a, ("0".."9").to_a, %w[* $ ! ? ( )]].flatten
+      VALID_CHARS_SAFE = VALID_CHARS.clone
+      VALID_CHARS_SAFE.delete_if { |v| %w(i l o 1 0).member?(v) }
+      VALID_CHARS.freeze
+      VALID_CHARS_SAFE.freeze
+    end
+    def strand(len=12, safe=true)
+      chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
+      (1..len).collect { chars[rand(chars.size-1)] }.join
+    end
+  end
+  
+  class MissingSecret < RuntimeError
+  end
 end
 OT = Onetime
 
@@ -106,3 +121,5 @@ require 'onetime/models'
 
 Onetime::Secret.db 0
 Kernel.srand
+
+

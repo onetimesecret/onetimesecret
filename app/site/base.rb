@@ -26,6 +26,7 @@ module Site
     def initialize req=nil, res=nil, *args
       self[:subtitle] = "One Time"
       self[:monitored_link] = false
+      self[:ot_version] = OT::VERSION
       if req && req.params[:errno] && Onetime::ERRNO.has_key?(req.params[:errno])
         self.err = Onetime::ERRNO[req.params[:errno]]
       end

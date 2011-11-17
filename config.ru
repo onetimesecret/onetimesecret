@@ -20,7 +20,7 @@ otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
 otto.option[:public] = PUBLIC_DIR
 otto.add_static_path '/favicon.ico'
 
-Onetime.load! ENV['RACK_ENV']
+Onetime.load! :app
 
 if Otto.env?(:dev)
   map("/") {

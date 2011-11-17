@@ -1,5 +1,0 @@
-:site:  
-  :host: onetimesecret.com
-  :ssl: true 
-  :redis:
-    :uri: 'redis://redistogo:0bc270e696d73546e0b1ab7f64390b3a@localhost:6379/?timeout=5&thread_safe=false&logging=false'

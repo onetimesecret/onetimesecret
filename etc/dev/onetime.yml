@@ -1,5 +1,0 @@
-:site:  
-  :host: www.ot.com:7143
-  :ssl: false
-  :redis:
-    :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
