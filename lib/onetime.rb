@@ -3,16 +3,18 @@
 require 'bundler/setup'
 
 require 'syslog'
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
 require 'encryptor'
 require 'bcrypt'
 
 require 'gibbler'
-Gibbler.secret = "(I AM THE ONE TRUE SECRET!)"
-
 require 'familia'
 require 'storable'
+
+SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+Gibbler.secret = "(I AM THE ONE TRUE SECRET!)".freeze
+Familia.secret = "[WHAT IS UP MY FAMILIALS??]".freeze
+
 
 module Onetime
   unless defined?(Onetime::HOME)
@@ -254,6 +256,23 @@ module Onetime
     end
   end
 
+  module VERSION
+    def self.to_a
+      load_config
+      [@version[:MAJOR], @version[:MINOR], @version[:PATCH], @version[:BUILD]]
+    end
+    def self.to_s
+      to_a[0..-2].join('.')
+    end
+    def self.inspect
+      to_a.join('.')
+    end
+    def self.load_config
+      return if @version
+      require 'yaml'
+      @version = YAML.load_file(File.join(OT::HOME, 'BUILD.yml'))
+    end
+  end
 end
 OT = Onetime
 
