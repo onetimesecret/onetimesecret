@@ -63,34 +63,85 @@ module Onetime
   class MissingSecret < RuntimeError
   end
   
+  class Metadata < Storable
+    include Familia
+    include Gibbler::Complex
+    prefix :metadata
+    index :key
+    field :key
+    field :custid
+    field :state
+    field :secret_key
+    field :passphrase
+    field :viewed => Integer
+    field :shared => Integer
+    include Familia::Stamps
+    attr_reader :entropy
+    attr_accessor :passphrase_temp
+    gibbler :custid, :secret_key, :entropy
+    ttl 7.days
+    def initialize custid=nil, entropy=nil
+      @custid, @entropy, @state = custid, entropy, :new
+    end
+    def age
+      @age ||= Time.now.utc.to_i-updated
+      @age
+    end
+    def older_than? seconds
+      age > seconds
+    end
+    def key
+      @key ||= gibbler.base(36)
+      @key
+    end
+    def valid?
+      exists?
+    end
+    def viewed!
+      # Make sure we don't go from :shared to :viewed
+      return if state?(:viewed) || state?(:shared)
+      @state = 'viewed'
+      @viewed = Time.now.utc.to_i
+      save
+    end
+    def state? guess
+      state.to_s == guess.to_s
+    end
+    def shared!
+      @state = 'shared'
+      @shared = Time.now.utc.to_i
+      save
+    end
+    def load_secret
+      OT::Secret.from_redis secret_key
+    end
+  end
+  
   class Secret < Storable
     include Familia
     include Gibbler::Complex
+    prefix :secret
     index :key
-    field :kind
     field :key
+    field :custid
     field :value
+    field :value_checksum
     field :state
     field :original_size
     field :size
     field :passphrase
-    field :paired_key
-    field :custid
+    field :metadata_key
     field :value_encryption => Integer
     field :passphrase_encryption => Integer
-    attr_reader :entropy
-    attr_accessor :passphrase_temp
-    gibbler :kind, :entropy
     field :viewed => Integer
     field :shared => Integer
     include Familia::Stamps
+    attr_reader :entropy
+    attr_accessor :passphrase_temp
+    gibbler :custid, :passphrase_temp, :value_checksum, :entropy
     ttl 7.days
-    def initialize kind=nil, entropy=nil
-      unless kind.nil? || [:private, :shared].member?(kind.to_s.to_sym)
-        raise ArgumentError, "Bad kind: #{kind}"
-      end
-      @state, @value_encryption, @passphrase_encryption = :new, 0, 0
-      @kind, @entropy = kind, entropy
+    def initialize custid=nil, entropy=nil
+      @custid, @entropy, @state = custid, entropy, :new
     end
     def customer?
       ! custid.nil?
@@ -113,19 +164,13 @@ module Onetime
       @key
     end
     def valid?
-      case kind.to_s
-      when 'shared'
-        exists? && !value.to_s.empty?
-      when 'private'
-        exists?
-      else
-        false
-      end
+      exists? && !value.to_s.empty?
     end
     def encrypt_value v, opts={}
       @value_encryption = 1
       opts.merge! :key => encryption_key 
       @value = v.encrypt opts
+      @value_checksum = v.gibbler
     end
     def can_decrypt?
       passphrase.to_s.empty? || !passphrase_temp.to_s.empty?
@@ -162,11 +207,8 @@ module Onetime
         !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
       end
     end
-    def load_pair
-      self.class.from_redis paired_key
-    end
-    def kind? guess
-      kind.to_s == guess.to_s
+    def load_metadata
+      OT::Metadata.from_redis metadata_key
     end
     def state? guess
       state.to_s == guess.to_s
@@ -181,18 +223,14 @@ module Onetime
       return if state?(:viewed) || state?(:shared)
       @state = 'viewed'
       @viewed = Time.now.utc.to_i
-      if kind?(:shared)
-        load_pair.shared!  # update the private key
-        destroy!           # delete this shared key
-      else
-        save
-      end
+      load_metadata.shared!  # update the private key
+      destroy!               # delete this shared key
     end
-    def self.generate_pair entropy
+    def self.generate_pair custid, entropy
       entropy = [entropy, Time.now.to_f * $$].flatten
-      psecret, ssecret = new(:private, entropy), new(:shared, entropy)
-      psecret.paired_key, ssecret.paired_key = ssecret.key, psecret.key
-      [psecret, ssecret]
+      metadata, secret = OT::Metadata.new(custid, entropy), OT::Secret.new(custid, entropy)
+      metadata.secret_key, secret.metadata_key = secret.key, metadata.key
+      [metadata, secret]
     end
     def self.encryption_key *entropy
       #entropy.unshift Gibbler.secret     # If we change this the values are fucked.

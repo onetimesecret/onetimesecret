@@ -15,10 +15,10 @@ module Site
   end
   
   def create req, res
-    psecret, ssecret = nil, nil
+    metadata, ssecret = nil, nil
     carefully req, res do
-      psecret, ssecret = Onetime::Secret.generate_pair [req.client_ipaddress, req.user_agent]
-      psecret.passphrase = req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
+      metadata, ssecret = Onetime::Secret.generate_pair :anon, [req.client_ipaddress, req.user_agent]
+      metadata.passphrase = req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
       ssecret.update_passphrase req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
       if req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
         ssecret.original_size = req.params[:secret].to_s.size
@@ -28,10 +28,10 @@ module Site
         ssecret.original_size = generated_value.size
         ssecret.encrypt_value generated_value
       end
-      psecret.save
+      metadata.save
       ssecret.save
-      if psecret.valid? && ssecret.valid?
-        uri = ['/private/', psecret.key].join
+      if metadata.valid? && ssecret.valid?
+        uri = ['/private/', metadata.key].join
         res.redirect uri
       else
         res.redirect '/?errno=%s' % [Onetime.errno(:nosecret)]
@@ -80,17 +80,17 @@ module Site
   def private_uri req, res
     carefully req, res do
       deny_agents! req, res
-      if Onetime::Secret.exists?(req.params[:key])
-        psecret = Onetime::Secret.from_redis req.params[:key]
-        ssecret = psecret.load_pair
-        view = Site::Views::Private.new req, res, psecret, ssecret
-        unless psecret.state?(:viewed) || psecret.state?(:shared)
+      if Onetime::Metadata.exists?(req.params[:key])
+        metadata = Onetime::Metadata.from_redis req.params[:key]
+        ssecret = metadata.load_secret
+        view = Site::Views::Private.new req, res, metadata, ssecret
+        unless metadata.state?(:viewed) || metadata.state?(:shared)
           # We temporarily store the raw passphrase when the private
           # secret is created so we can display it once. Here we 
           # update it with the encrypted one.
-          ssecret.passphrase_temp = psecret.passphrase
-          psecret.passphrase = ssecret.passphrase
-          psecret.viewed!
+          ssecret.passphrase_temp = metadata.passphrase
+          metadata.passphrase = ssecret.passphrase
+          metadata.viewed!
           view[:show_secret] = true
         end
         res.body = view.render
@@ -153,7 +153,7 @@ module Site
         [baseuri, :secret, self[:ssecret].key].join('/')
       end
       def admin_uri
-        [baseuri, :private, self[:psecret].key].join('/')
+        [baseuri, :private, self[:metadata].key].join('/')
       end
       def display_lines
         ret = self[:ssecret].decrypted_value.to_s.scan(/\n/).size + 2
@@ -164,8 +164,8 @@ module Site
       end
     end
     class Private < Site::View
-      def init psecret, ssecret
-        self[:psecret], self[:ssecret] = psecret, ssecret
+      def init metadata, ssecret
+        self[:metadata], self[:ssecret] = metadata, ssecret
         self[:title] = "You saved a secret"
         self[:body_class] = :generate
       end
@@ -173,16 +173,16 @@ module Site
         [baseuri, :secret, self[:ssecret].key].join('/')
       end
       def admin_uri
-        [baseuri, :private, self[:psecret].key].join('/')
+        [baseuri, :private, self[:metadata].key].join('/')
       end
       def show_passphrase
         !self[:ssecret].passphrase_temp.to_s.empty?
       end
       def been_shared
-        self[:psecret].state? :shared
+        self[:metadata].state? :shared
       end
       def shared_date
-        natural_time self[:psecret].shared || 0
+        natural_time self[:metadata].shared || 0
       end
       def display_lines
         ret = secret_value.to_s.scan(/\n/).size + 2

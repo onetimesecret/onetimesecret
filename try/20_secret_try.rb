@@ -26,44 +26,44 @@ s.rediskey
 #=> 'onetime:secret:9qz0no2zjyy8p1irl4v9kn5talo4rim:object'
 
 ## Generate a pair
-@psecret, @ssecret = Onetime::Secret.generate_pair :tryouts
-[@psecret.nil?, @ssecret.nil?]
+@metadata, @secret = Onetime::Secret.generate_pair :tryouts
+[@metadata.nil?, @secret.nil?]
 #=> [false, false]
 
 ## Private keys match
-!@ssecret.paired_key.nil? && @ssecret.paired_key == @psecret.key
+!@secret.paired_key.nil? && @secret.paired_key == @metadata.key
 #=> true
 
 ## Shared keys match
-!@psecret.paired_key.nil? && @psecret.paired_key == @ssecret.key
+!@metadata.paired_key.nil? && @metadata.paired_key == @secret.key
 #=> true
 
 ## Kinds are correct
-[@psecret.kind, @ssecret.kind]
+[@metadata.kind, @secret.kind]
 #=> [:private, :shared]
 
 ## Can save a secret
-@psecret.save
+@metadata.save
 #=> true
 
 ## A saved secret exists
-@psecret.exists?
+@metadata.exists?
 #=> true
 
 ## A secret can be destroyed
-@psecret.destroy!
+@metadata.destroy!
 #=> 1
 
 ## Can set private secret to viewed state
-psecret, ssecret = Onetime::Secret.generate_pair :tryouts
-psecret.viewed!
-[psecret.viewed, psecret.state]
+metadata, secret = Onetime::Secret.generate_pair :tryouts
+metadata.viewed!
+[metadata.viewed, metadata.state]
 #=> [Time.now.utc.to_i, 'viewed']
 
 ## Can set shared secret to viewed state
-psecret, ssecret = Onetime::Secret.generate_pair :tryouts
-psecret.save && ssecret.save
-ssecret.viewed!
-psecret = ssecret.load_pair
-[psecret.shared, psecret.state, ssecret.viewed, ssecret.state]
+metadata, secret = Onetime::Secret.generate_pair :tryouts
+metadata.save && secret.save
+secret.viewed!
+metadata = secret.load_metadata
+[metadata.shared, metadata.state, secret.viewed, secret.state]
 #=> [Time.now.utc.to_i, 'shared', Time.now.utc.to_i, 'viewed']
