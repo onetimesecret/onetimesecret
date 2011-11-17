@@ -110,6 +110,7 @@ module Onetime
     def shared!
       @state = 'shared'
       @shared = Time.now.utc.to_i
+      @secret_key = nil  # so we don't even know which secret this reffered to.
       save
     end
     def load_secret
