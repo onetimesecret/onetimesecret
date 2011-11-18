@@ -1,6 +1,6 @@
 
 require 'onetime'  # must be required before
-require 'site/base'
+require 'onetime/app/site/base'
 
 
 module Site

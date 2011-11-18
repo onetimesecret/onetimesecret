@@ -12,11 +12,11 @@ $:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
 $:.unshift(::File.join(ENV['APP_ROOT'], 'app'))
 
 require 'otto'
-require 'app/site'
+require 'onetime/app/site'
 
 PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
 
-otto = Otto.new("#{ENV['APP_ROOT']}/app/routes")
+otto = Otto.new("#{ENV['APP_ROOT']}/lib/onetime/app/routes")
 otto.option[:public] = PUBLIC_DIR
 otto.add_static_path '/favicon.ico'
 

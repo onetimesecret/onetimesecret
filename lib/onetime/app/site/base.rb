@@ -19,7 +19,7 @@ module Site
   module Views
   end
   class View < Mustache
-    self.template_path = './app/site/templates'
+    self.template_path = './templates/site'
     self.view_namespace = Site::Views
     self.view_path = './app/site/views'
     attr_accessor :err
