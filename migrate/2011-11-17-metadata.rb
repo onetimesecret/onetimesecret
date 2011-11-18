@@ -9,8 +9,6 @@ require 'familia/tools'
 #     sudo cp etc/dev/config.yml /etc/onetime/config
 #     [EDIT CONFIG FILE: move :redis into the root]
 #     bundle exec thin -e prod -R config.ru -p 7143 stop
-#     git co production
-#     git pull origin metadata-refactor
 #     ruby -Ilib migrate/2011-11-17-metadata.rb
 #     bundle exec thin -e prod -R config.ru -p 7143 start
 
