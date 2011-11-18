@@ -1,4 +1,5 @@
 User-agent: *
 Disallow: /private
+Disallow: /secret
 Disallow: /shared
 
