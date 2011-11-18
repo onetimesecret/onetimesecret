@@ -14,6 +14,10 @@ module Site
     end
   end
   
+  #def not_found
+  #  [404, {'Content-Type'=>'text/plain'}, ["Server error2"]]
+  #end
+  
   def create req, res
     metadata, ssecret = nil, nil
     carefully req, res do

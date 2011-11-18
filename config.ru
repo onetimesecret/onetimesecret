@@ -1,4 +1,4 @@
-# Stella Demo Rackup
+# Onetime Rackup
 #
 # Usage:
 # 
@@ -17,6 +17,8 @@ require 'onetime/app/site'
 PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
 
 otto = Otto.new("#{ENV['APP_ROOT']}/lib/onetime/app/routes")
+# TODO: Otto should check for not_found method instead of settign it here.
+#otto.not_found = [404, {'Content-Type'=>'text/plain'}, ["Server error2"]]
 otto.option[:public] = PUBLIC_DIR
 otto.add_static_path '/favicon.ico'
 
