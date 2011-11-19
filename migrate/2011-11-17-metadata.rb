@@ -1,5 +1,8 @@
 # ruby -Ilib migrate/2011-11-17-metadata.rb
 
+# This migration was run on 2011-11-17 (and it was kind of broken)
+exit 
+
 require 'onetime'
 require 'familia/tools'
 
@@ -44,29 +47,40 @@ class OldSecret < Storable
 end
 
 class OT::Secret
+  field :kind
   field :paired_key
+  def kind? guess
+    kind.to_s == guess.to_s
+  end
 end
 class OT::Metadata
+  field :kind
   field :paired_key
+  def kind? guess
+    kind.to_s == guess.to_s
+  end
 end
 
 begin
   OT.load! :app
-  Familia::Tools.rename 'onetime:secret:*:object', OldSecret.uri do |idx, type, key, ttl|
+  Familia::Tools.rename 'onetime:secret:*:object', OT::Secret.uri do |idx, type, key, ttl|
     obj = OldSecret.from_key(key)
     prefix = obj.kind?(:private) ? :metadata : :secret
     newkey = Familia.join [prefix, obj.key, :object]
     newkey
   end
-  secrets = OT::Secret.redis.keys 'secret:*:object'
+  
+  secrets = OT::Secret.redis.keys '*secret:*:object'; nil
   secrets.each { |key|
     obj = OT::Secret.from_key(key)
+    next unless obj.kind?(:shared)
     obj.metadata_key = obj.paired_key unless obj.paired_key.to_s.empty?
-    obj.save
-  }
-  metadatas = OT::Metadata.redis.keys 'metadata:*:object'
+    obj.save 
+  }; nil
+  metadatas = OT::Metadata.redis.keys '*metadata:*:object'; nil
   metadatas.each { |key|
     obj = OT::Metadata.from_key(key)
+    next unless obj.kind?(:private)
     obj.secret_key = obj.paired_key unless obj.paired_key.to_s.empty?
     obj.save
   }
