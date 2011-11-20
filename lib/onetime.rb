@@ -7,6 +7,7 @@ require 'syslog'
 require 'encryptor'
 require 'bcrypt'
 
+require 'sysinfo'
 require 'gibbler'
 require 'familia'
 require 'storable'
@@ -28,17 +29,22 @@ module Onetime
   @mode = :app
   class << self
     attr_accessor :debug, :mode
-    attr_reader :conf
+    attr_reader :conf, :instance, :sysinfo
     def mode? guess
       @mode.to_s == guess.to_s
     end
     def errno name
       name.gibbler.short
     end
+    def now
+      Time.now.utc
+    end
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
-      @conf = OT::Config.load
-      Familia.uri = Onetime.conf[:redis][:uri]
+      @conf = OT::Config.load  # load config before anything else.
+      Familia.uri = OT.conf[:redis][:uri]
+      @sysinfo = SysInfo.new.freeze
+      @instance = [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
       ld "---  ONETIME v#{OT::VERSION}  -----------------------------------"
       ld "Connection: #{Familia.uri}"
       @conf

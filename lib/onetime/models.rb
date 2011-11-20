@@ -1,7 +1,72 @@
 
+module Onetime::Models
+  module RedisHash
+    attr_accessor :prefix, :suffix
+    def name suffix=nil
+      self.suffix ||= suffix
+      @prefix ||= self.class.to_s.downcase.gsub('::', Familia.delim).to_sym
+      Familia.rediskey prefix, self.suffix
+    end
+    def update_fields hsh={}
+      hsh[:updated_time] = OT.now.to_i
+      ret = update hsh
+      self.cache.replace hsh
+      ret
+    end
+    def refresh_cache
+      self.cache.replace self.all 
+    end
+    def update_time!
+      put :updated_time, OT.now.to_i
+    end
+    #
+    # Support for accessing ModelBase hash keys via method names.
+    # e.g.
+    #     s = OT::Session.new
+    #     s.agent                 #=> nil
+    #     s.agent = "Mozilla..."
+    #     s.agent                 #=> "Mozilla..."
+    #
+    #     s.agent?                # raises NoMethodError
+    #
+    #     s.agent!                #=> "Mozilla..."
+    #     s.agent!                #=> nil
+    #
+    # NOTA BENE: This will hit the internal cache before redis.
+    #
+    def method_missing meth, *args
+      #OT.ld "Call to #{self.class}###{meth} (cache attempt)"
+      trailer = meth.to_s[-1] 
+      field = case trailer
+      when '=', '!', '?'
+        meth.to_s[0..-2]
+      else
+        meth.to_s
+      end
+      self.cache ||= {}
+      refresh_cache unless self.cache.has_key?(field)
+      ret = case trailer
+      when '='
+        self[field] = self.cache[field] = args.first
+      when '!'
+        self.delete(field) and self.cache.delete(field) # Hash#delete returns the value
+      when '?'
+        raise NoMethodError, "#{self.class}##{meth.to_s}"
+      else
+        self.cache[field]
+      end
+      ret
+    end
+    def value field
+      self.cache ||= {}
+      self.cache[field] || self[field]
+    end
+  end
+end
+
 
 module Onetime
-  
+    
   class Metadata < Storable
     include Familia
     include Gibbler::Complex
@@ -178,3 +243,5 @@ module Onetime
     end
   end
 end
+
+require 'onetime/models/session'
