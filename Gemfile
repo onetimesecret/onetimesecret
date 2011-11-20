@@ -1,5 +1,8 @@
 source "https://rubygems.org/"
 
+# DEVMACHINE: bundle install
+# PRODUCTION: bundle install --deployment --without dev
+
 gem 'addressable', '2.2.4'
 gem 'rack', '1.2.1'
 gem 'yajl-ruby', '1.0.0'
@@ -15,3 +18,8 @@ gem 'encryptor', '1.1.3'
 gem 'bcrypt-ruby', '3.0.0'
 
 gem 'otto', '0.2.1.002', :git => "git://github.com/delano/otto.git", :branch => 'master'
+
+group :dev do
+  gem 'rudy', '0.9.8.020'
+end
+
