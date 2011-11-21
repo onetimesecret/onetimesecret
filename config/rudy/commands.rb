@@ -28,6 +28,7 @@ commands do
   allow :ruby, 'ruby'
   allow :ulimit
   allow :sysinfo
+  allow :sysinfo2
   allow :s3cmd, "/usr/local/s3cmd/s3cmd"
   allow :nginx, "/etc/init.d/nginx"
   allow :wget, 'wget', :q

@@ -11,7 +11,7 @@ machines do
   env :prod do
     role :fe do
       user :ots
-      addresses '184.106.176.70'
+      hostname 'onetimesecret.com'
     end
     
   end
@@ -22,7 +22,7 @@ machines do
   env :dev do
     role :fe do
       user 'cmurtagh' 
-      hostname 'centos5'
+      hostname 'localhost'
     end
   end
 

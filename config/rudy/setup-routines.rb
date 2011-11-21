@@ -15,6 +15,17 @@ routines do
     end
   end
   
+  env :dev do  
+    upload_certs do
+      remote :root do
+        env = $global.environment
+        base_path = "config/certs"
+        file_upload "#{base_path}/onetimesecret.com.key", "/etc/pki/tls/private/"
+        file_upload "#{base_path}/onetimesecret.com.crt", "/etc/pki/tls/certs/"
+      end
+    end
+  end
+  
   env :proto, :status do
     upload_certs do
       remote :root do
@@ -35,54 +46,16 @@ routines do
     end
   end
   
-  reinstall_site do
-    after :install_site
-    remote :stella do
-      rm :r, 'blamestella.com'
-    end
-  end
-  
-  adduser do
-    adduser :stella
-    local {
-      $pubkey = wildly { cat '~/.ssh/id_rsa.pub' }.to_s
-      puts $pubkey
-    }
-    remote :root do |argv|
-      username = argv.first || :stella
-      raise "Usage: rudy adduser USERNAME" unless username
-      mkdir :p, "/home/#{username}/.ssh"
-      touch "/home/#{username}/.ssh/authorized_keys"
-      wildly { echo "#{$pubkey} >> /home/#{username}/.ssh/authorized_keys" }
-      chmod '600', "/home/#{username}/.ssh/authorized_keys"
-      chown :R, username, "/home/#{username}/.ssh"
-    end
-  end
-  
   install_redis do
     remote :root do
-      yum 'install redis'
+      yum 'install', 'redis'
     end
   end
 
   echo_nonsense do
-    puts "Nonsense!"
+    local do
+      puts "Nonsense!"
+    end
   end
 
-  env :prod, :status, :build do    
-    prepimage do
-      before :startup
-      after :setup
-    end
-    setup do
-      before :adduser, :sysupdate, :installdeps, :install_site, :install_stella, :install_redis, :init_data_dir
-      remote :root do
-        # For some reason the whois gem installs itself so only root can read the files
-        chmod :R, 'go+r', '/usr/local/lib/ruby/gems'
-        apache2 'stop'
-        chmod 000, '/etc/init.d/apache2'
-      end
-    end
-  end
-  
 end
