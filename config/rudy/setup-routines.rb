@@ -52,9 +52,15 @@ routines do
     end
   end
 
-  echo_nonsense do
-    local do
-      puts "Nonsense!"
+  set_nginx_config do
+    remote :root do
+      $otsconfig = YAML.load_file(File.join('config', 'environment', config_env, 'ots.yml'))
+      $nginx_opts = {}
+      $nginx_opts[:ipaddress] = $otsconfig[:nginx][:ipaddress]
+      $nginx_opts[:servername] = $otsconfig[:nginx][:servername]
+      puts File.expand_path(File.join('config', 'tmpl', 'nginx.conf.tmpl'))
+      template_upload File.expand_path(File.join('config', 'tmpl', 'nginx.conf.tmpl')), "./config/tmp/"
+      mv "./nginx.conf.tmpl", "/config/nginx-server.conf"
     end
   end
 
