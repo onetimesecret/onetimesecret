@@ -80,6 +80,25 @@ module Site
       end
     end
     
+    def anonymous req, res
+      carefully req, res do 
+        begin
+          @cust = OT::Customer.anonymous
+          if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
+            @sess = OT::Session.load req.cookie(:sess)
+          else
+            @sess = OT::Session.create req.client_ipaddress, @cust.custid, req.user_agent
+          end
+          if @sess
+            @sess.update_fields  # calls update_time!
+            # Only set the cookie after it's been saved
+            res.send_cookie :sess, @sess.sessid, @sess.ttl
+          end
+        end
+        yield
+      end
+    end
+    
     def carefully req, res, redirect=nil
       redirect ||= req.request_path
       # We check get here to stop an infinite redirect loop.

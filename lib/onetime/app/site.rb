@@ -8,7 +8,7 @@ module Site
   extend self
   
   def index req, res
-    carefully req, res do
+    anonymous req, res do
       view = Site::Views::Homepage.new req
       res.body = view.render
     end

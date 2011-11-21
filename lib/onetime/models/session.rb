@@ -5,14 +5,36 @@
 class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
   attr_reader :entropy
-  def initialize ipaddress, custid, useragent=nil
+  def initialize ipaddress=nil, custid=nil, useragent=nil
     @ipaddress, @custid, @useragent = ipaddress, custid, useragent
     @entropy = [ipaddress, custid, useragent]
+    @sessid = self.sessid || self.class.generate_id(*entropy)
     super name, :db => 1, :ttl => 20.minutes
   end
-  def sessid 
-    @sessid ||= self.class.generate_id *entropy
-    @sessid
+  class << self
+    def exists? sessid
+      sess = new 
+      sess.sessid = sessid
+      sess.exists?
+    end
+    def load sessid
+      sess = new 
+      sess.sessid = sessid
+      sess.exists? ? sess : nil
+    end
+    def create ipaddress, custid, useragent=nil
+      sess = new ipaddress, custid, useragent
+      # force the storing of the fields to redis
+      sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
+      sess.update_fields # calls update_time!
+      sess
+    end
+    def generate_id *entropy
+      entropy << OT.entropy
+      input = [OT.instance, OT.now, self.class, entropy].join(':')
+      # Not using gibbler to make sure it's always SHA512
+      Digest::SHA512.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
+    end
   end
   def sessid= sid
     @sessid = sid
@@ -20,21 +42,18 @@ class Onetime::Session < Familia::HashKey
     @sessid
   end
   def suffix
-    @sessid  # If we call the methos, we'll be popping Entropy every request
+    @sessid  # Don't call the method
   end
   def stale?
     self[:stale].to_s == "true"
   end
   def update_fields hsh={}
-    hsh[:sessid] ||= sessid
-    hsh[:updated_time] = OT.now.to_i
-    ret = update hsh
-    self.cache.replace hsh
-    ret
+    hsh[:sessid] ||= sessid || @sessid
+    super hsh
   end
   def replace!
     @custid ||= self[:custid]
-    newid = self.class.generate_id ipaddress, custid, sessid, agent
+    newid = self.class.generate_id @entropy
     rename name(newid) if exists?
     @sessid = newid
     # This update is important b/c it ensures that the
@@ -86,22 +105,4 @@ class Onetime::Session < Familia::HashKey
   def clitool?()          @agent.to_s  =~ /curl|wget/i  || stella?      end
   def human?()           !searchengine? && !superfeedr? && !clitool? && !stella? end
   private
-  class << self
-    def exists? sessid
-      sess = new 
-      sess.sessid = sessid
-      sess.exists?
-    end
-    def load sessid
-      sess = new 
-      sess.sessid = sessid
-      sess.exists? ? sess : nil
-    end
-    def generate_id *entropy
-      entropy << OT.entropy
-      input = [OT.instance, OT.now, self.class, entropy].join(':')
-      # Not using gibbler to make sure it's always SHA512
-      Digest::SHA512.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
-    end
-  end
 end

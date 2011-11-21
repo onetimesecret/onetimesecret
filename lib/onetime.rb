@@ -39,6 +39,9 @@ module Onetime
     def now
       Time.now.utc
     end
+    def entropy
+      OT::Entropy.pop
+    end
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load  # load config before anything else.
@@ -59,7 +62,6 @@ module Onetime
       SYSINFO.crit "#{prefix}" << msg.join("#{$/}#{prefix}")
     end
   end
-  
   module Config
     extend self
     SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
@@ -102,7 +104,16 @@ module Onetime
       @version = YAML.load_file(File.join(OT::HOME, 'BUILD.yml'))
     end
   end
-  
+  module Entropy
+    @values = Familia::Set.new name.to_s.downcase.gsub('::', Familia.delim).to_sym
+    class << self
+      attr_reader :values
+      def pop
+        values.pop ||
+        [caller[0], rand].gibbler.shorten(12) # TODO: replace this stub
+      end
+    end
+  end
   module Utils
     extend self
     unless defined?(VALID_CHARS)

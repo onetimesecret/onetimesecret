@@ -7,17 +7,24 @@ module Onetime::Models
       @prefix ||= self.class.to_s.downcase.gsub('::', Familia.delim).to_sym
       Familia.rediskey prefix, self.suffix
     end
+    def check_suffix!
+      if self.suffix.to_s.empty?
+        raise RuntimeError, "Suffix cannot be empty for #{self.class}"
+      end
+    end
     def update_fields hsh={}
+      check_suffix!
       hsh[:updated_time] = OT.now.to_i
       ret = update hsh
       self.cache.replace hsh
       ret
     end
     def refresh_cache
-      self.cache.replace self.all 
+      self.cache.replace self.all unless self.suffix.to_s.empty?
     end
     def update_time!
-      put :updated_time, OT.now.to_i
+      check_suffix!
+      self.put :updated_time, OT.now.to_i
     end
     def cache
       @cache ||= {}
