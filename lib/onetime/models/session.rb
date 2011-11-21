@@ -5,8 +5,9 @@
 class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
   attr_reader :entropy
-  def initialize *entropy
-    @entropy = entropy
+  def initialize ipaddress, custid, useragent=nil
+    @ipaddress, @custid, @useragent = ipaddress, custid, useragent
+    @entropy = [ipaddress, custid, useragent]
     super name, :db => 1, :ttl => 20.minutes
   end
   def sessid 

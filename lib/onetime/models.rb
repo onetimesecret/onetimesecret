@@ -1,7 +1,7 @@
 
 module Onetime::Models
   module RedisHash
-    attr_accessor :prefix, :suffix
+    attr_accessor :prefix, :suffix, :cache
     def name suffix=nil
       self.suffix ||= suffix
       @prefix ||= self.class.to_s.downcase.gsub('::', Familia.delim).to_sym
@@ -18,6 +18,10 @@ module Onetime::Models
     end
     def update_time!
       put :updated_time, OT.now.to_i
+    end
+    def cache
+      @cache ||= {}
+      @cache
     end
     #
     # Support for accessing ModelBase hash keys via method names.
@@ -43,7 +47,6 @@ module Onetime::Models
       else
         meth.to_s
       end
-      self.cache ||= {}
       refresh_cache unless self.cache.has_key?(field)
       ret = case trailer
       when '='
@@ -245,3 +248,4 @@ module Onetime
 end
 
 require 'onetime/models/session'
+require 'onetime/models/customer'
