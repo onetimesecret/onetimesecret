@@ -6,11 +6,12 @@ class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
   attr_reader :entropy
+  db 2
   def initialize ipaddress=nil, custid=nil, useragent=nil
     cache[:ipaddress], cache[:custid], cache[:useragent] = ipaddress, custid, useragent
     @entropy = [ipaddress, custid, useragent]
     @sessid = self.sessid || self.class.generate_id(*entropy)
-    super name, :db => 1, :ttl => 20.minutes
+    super name, :ttl => 20.minutes
   end
   class << self
     def exists? sessid

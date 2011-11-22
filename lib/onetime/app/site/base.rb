@@ -15,12 +15,102 @@ class Mustache
 end
 
 
-module Site
+module Onetime
+  module Base
+    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
+    attr_reader :req, :res
+    attr_reader :sess, :cust
+    def initialize req, res
+      @req, @res = req, res
+    end
+    def deny_agents! *agents
+      BADAGENTS.flatten.each do |agent|
+        if req.user_agent =~ /#{agent}/i
+          raise Redirect.new('/')
+        end
+      end
+    end
+    
+    def anonymous
+      carefully do 
+        begin
+          @cust = OT::Customer.anonymous
+          if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
+            @sess = OT::Session.load req.cookie(:sess)
+          else
+            @sess = OT::Session.create req.client_ipaddress, @cust.custid, req.user_agent
+          end
+          if @sess
+            @sess.update_fields  # calls update_time!
+            # Only set the cookie after it's been saved
+            res.send_cookie :sess, @sess.sessid, @sess.ttl
+          end
+        end
+        yield
+      end
+    end
+    
+    def carefully redirect=nil
+      redirect ||= req.request_path
+      # We check get here to stop an infinite redirect loop.
+      # Pages redirecting from a POST can get by with the same page once. 
+      redirect = '/error' if req.get? && redirect.to_s == req.request_path
+      res.header['Content-Type'] ||= "text/html; charset=utf-8"
+      yield
+    
+    rescue Redirect => ex
+      res.redirect ex.location, ex.status
+      
+    #rescue BS::Problem => ex
+    #  err "#{ex.class}: #{ex.message}"
+    #  err ex.backtrace
+    #  ex.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
+    #  error_response "You found a bug. Feel free to tell Tucker."
+    
+    rescue OT::MissingSecret => ex
+      view = Onetime::Views::UnknownSecret.new
+      res.status = 404
+      res.body = view.render
+      
+    rescue Familia::NotConnected, Familia::Problem => ex
+      err "#{ex.class}: #{ex.message}"
+      err ex.backtrace
+      #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
+      error_response "An error occurred :["
+    
+    rescue => ex
+      err "#{ex.class}: #{ex.message}"
+      err req.current_absolute_uri
+      err ex.backtrace.join("\n")
+      #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
+      error_response "An error occurred :["
+      
+    end
+    
+    def err *args
+      #SYSLOG.err *args
+      STDERR.puts *args
+    end
+    
+    def not_found_response message
+      view = Onetime::Views::NotFound.new req
+      view.err = message
+      res.status = 404
+      res.body = view.render
+    end
+    
+    def error_response message
+      view = Onetime::Views::Error.new req
+      view.err = message
+      res.status = 401
+      res.body = view.render
+    end
+  end
   module Views
   end
   class View < Mustache
     self.template_path = './templates/site'
-    self.view_namespace = Site::Views
+    self.view_namespace = Onetime::Views
     self.view_path = './app/site/views'
     attr_accessor :err
     def initialize req=nil, res=nil, *args
@@ -70,91 +160,7 @@ module Site
       result
     end
   end
-  module Base
-    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    def deny_agents! req, res, *agents
-      BADAGENTS.flatten.each do |agent|
-        if req.user_agent =~ /#{agent}/i
-          raise Redirect.new('/')
-        end
-      end
-    end
-    
-    def anonymous req, res
-      carefully req, res do 
-        begin
-          @cust = OT::Customer.anonymous
-          if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-            @sess = OT::Session.load req.cookie(:sess)
-          else
-            @sess = OT::Session.create req.client_ipaddress, @cust.custid, req.user_agent
-          end
-          if @sess
-            @sess.update_fields  # calls update_time!
-            # Only set the cookie after it's been saved
-            res.send_cookie :sess, @sess.sessid, @sess.ttl
-          end
-        end
-        yield
-      end
-    end
-    
-    def carefully req, res, redirect=nil
-      redirect ||= req.request_path
-      # We check get here to stop an infinite redirect loop.
-      # Pages redirecting from a POST can get by with the same page once. 
-      redirect = '/error' if req.get? && redirect.to_s == req.request_path
-      res.header['Content-Type'] ||= "text/html; charset=utf-8"
-      yield
-    
-    rescue Redirect => ex
-      res.redirect ex.location, ex.status
-      
-    #rescue BS::Problem => ex
-    #  err "#{ex.class}: #{ex.message}"
-    #  err ex.backtrace
-    #  ex.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
-    #  error_response "You found a bug. Feel free to tell Tucker."
-    
-    rescue OT::MissingSecret => ex
-      view = Site::Views::UnknownSecret.new
-      res.status = 404
-      res.body = view.render
-      
-    rescue Familia::NotConnected, Familia::Problem => ex
-      err "#{ex.class}: #{ex.message}"
-      err ex.backtrace
-      #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
-      error_response req, res, "An error occurred :["
-    
-    rescue => ex
-      err "#{ex.class}: #{ex.message}"
-      err req.current_absolute_uri
-      err ex.backtrace.join("\n")
-      #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
-      error_response req, res, "An error occurred :["
-      
-    end
-    
-    def err *args
-      #SYSLOG.err *args
-      STDERR.puts *args
-    end
-    
-    def not_found_response req, res, message
-      view = Site::Views::NotFound.new req
-      view.err = message
-      res.status = 404
-      res.body = view.render
-    end
-    
-    def error_response req, res, message
-      view = Site::Views::Error.new req
-      view.err = message
-      res.status = 401
-      res.body = view.render
-    end
-  end
+
   class Redirect < RuntimeError
     attr_reader :location, :status
     def initialize l, s=302

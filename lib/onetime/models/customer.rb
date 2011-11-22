@@ -2,12 +2,13 @@
 
 class Onetime::Customer < Familia::HashKey
   include Onetime::Models::RedisHash
+  db 3
   def initialize custid=:anon
-    self.cache[:custid] = custid  # if we use accessor methods it will sync to redis.
-    super name, :db => 1
+    @custid = custid  # if we use accessor methods it will sync to redis.
+    super name
   end
   def suffix 
-    custid
+    @custid
   end
   def anonymous?
     custid.to_s == 'anon'
