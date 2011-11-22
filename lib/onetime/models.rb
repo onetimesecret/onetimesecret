@@ -1,10 +1,13 @@
 
 module Onetime::Models
+  module RateLimited
+    
+  end
   module RedisHash
     attr_accessor :prefix, :suffix, :cache
     def name suffix=nil
       self.suffix ||= suffix
-      @prefix ||= self.class.to_s.downcase.gsub('::', Familia.delim).to_sym
+      @prefix ||= self.class.to_s.downcase.split('::').last.to_sym
       Familia.rediskey prefix, self.suffix
     end
     def check_suffix!

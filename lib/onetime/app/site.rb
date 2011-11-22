@@ -34,6 +34,8 @@ module Site
       end
       metadata.save
       ssecret.save
+      p [metadata.rediskey, metadata.valid?, metadata.save]
+      p [ssecret.rediskey, ssecret.valid?, ssecret.save]
       if metadata.valid? && ssecret.valid?
         uri = ['/private/', metadata.key].join
         res.redirect uri

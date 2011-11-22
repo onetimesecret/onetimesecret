@@ -4,9 +4,10 @@
 # s = Onetime::Session.load ''
 class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
+  include Onetime::Models::RateLimited
   attr_reader :entropy
   def initialize ipaddress=nil, custid=nil, useragent=nil
-    @ipaddress, @custid, @useragent = ipaddress, custid, useragent
+    cache[:ipaddress], cache[:custid], cache[:useragent] = ipaddress, custid, useragent
     @entropy = [ipaddress, custid, useragent]
     @sessid = self.sessid || self.class.generate_id(*entropy)
     super name, :db => 1, :ttl => 20.minutes
@@ -48,7 +49,7 @@ class Onetime::Session < Familia::HashKey
     self[:stale].to_s == "true"
   end
   def update_fields hsh={}
-    hsh[:sessid] ||= sessid || @sessid
+    hsh[:sessid] ||= sessid
     super hsh
   end
   def replace!
