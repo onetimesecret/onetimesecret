@@ -19,24 +19,22 @@ module Onetime
     #end
   
     def create
-      metadata, ssecret = nil, nil
+      metadata, secret = nil, nil
       carefully do
-        metadata, ssecret = Onetime::Secret.generate_pair :anon, [req.client_ipaddress, req.user_agent]
+        metadata, secret = Onetime::Secret.generate_pair :anon, [req.client_ipaddress, req.user_agent]
         metadata.passphrase = req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
-        ssecret.update_passphrase req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
+        secret.update_passphrase req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
         if req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
-          ssecret.original_size = req.params[:secret].to_s.size
-          ssecret.encrypt_value req.params[:secret].to_s.slice(0, 4999)
+          secret.original_size = req.params[:secret].to_s.size
+          secret.encrypt_value req.params[:secret].to_s.slice(0, 4999)
         elsif req.params[:kind] == 'generate'
           generated_value = Onetime::Utils.strand 12
-          ssecret.original_size = generated_value.size
-          ssecret.encrypt_value generated_value
+          secret.original_size = generated_value.size
+          secret.encrypt_value generated_value
         end
+        secret.save
         metadata.save
-        ssecret.save
-        p [metadata.rediskey, metadata.valid?, metadata.save]
-        p [ssecret.rediskey, ssecret.valid?, ssecret.save]
-        if metadata.valid? && ssecret.valid?
+        if metadata.valid? && secret.valid?
           uri = ['/private/', metadata.key].join
           res.redirect uri
         else
@@ -49,25 +47,27 @@ module Onetime
       carefully do
         deny_agents! 
         if Onetime::Secret.exists?(req.params[:key])
-          ssecret = Onetime::Secret.from_redis req.params[:key]
-          if ssecret.state.to_s == "new"
-            view = Onetime::Views::Shared.new req, res, ssecret
-            if ssecret.state? :viewed
+          secret = Onetime::Secret.load req.params[:key]
+          if secret.state.to_s == "new"
+            view = Onetime::Views::Shared.new req, res
+            if secret.state? :viewed
               view[:show_secret] = false
             else
-              if ssecret.has_passphrase?
+              if secret.has_passphrase?
                 view[:has_passphrase] = true
-                if ssecret.passphrase?(req.params[:passphrase])
+                if secret.passphrase?(req.params[:passphrase])
                   view[:show_secret] = true
-                  ssecret.viewed!
+                  view[:secret_value] = secret.can_decrypt? ? secret.decrypted_value : secret.value
+                  secret.viewed!
                 elsif req.post? && req.params[:passphrase]
                   view[:show_secret] = false
                   view[:err] = "Double check that passphrase"
                 end
               else
                 if req.params[:continue] == 'true'
-                  view[:show_secret] = true 
-                  ssecret.viewed!
+                  view[:show_secret] = true
+                  view[:secret_value] = secret.can_decrypt? ? secret.decrypted_value : secret.value
+                  secret.viewed!
                 else
                   view[:show_secret] = false 
                 end 
@@ -87,15 +87,17 @@ module Onetime
       carefully do
         deny_agents! 
         if Onetime::Metadata.exists?(req.params[:key])
-          metadata = Onetime::Metadata.from_redis req.params[:key]
-          ssecret = metadata.load_secret
-          view = Onetime::Views::Private.new req, res, metadata, ssecret
-          unless metadata.state?(:viewed) || metadata.state?(:shared)
+          metadata = Onetime::Metadata.load req.params[:key]
+          secret = metadata.load_secret
+          unless secret.nil?
             # We temporarily store the raw passphrase when the private
             # secret is created so we can display it once. Here we 
             # update it with the encrypted one.
-            ssecret.passphrase_temp = metadata.passphrase
-            metadata.passphrase = ssecret.passphrase
+            secret.passphrase_temp = metadata.passphrase
+            metadata.passphrase = secret.passphrase
+          end
+          view = Onetime::Views::Private.new req, res, metadata, secret
+          unless metadata.state?(:viewed) || metadata.state?(:shared)
             metadata.viewed!
             view[:show_secret] = true
           end
@@ -108,7 +110,6 @@ module Onetime
   
     class Info
       include Base
-
       def privacy
         carefully do
           view = Onetime::Views::Info::Privacy.new req
@@ -153,55 +154,44 @@ module Onetime
       end
     end
     class Shared < Onetime::View
-      def init ssecret
-        self[:ssecret] = ssecret
+      def init 
         self[:title] = "You received a secret"
         self[:body_class] = :generate
       end
-      def share_uri
-        [baseuri, :secret, self[:ssecret].key].join('/')
-      end
-      def admin_uri
-        [baseuri, :private, self[:metadata].key].join('/')
-      end
       def display_lines
-        ret = self[:ssecret].decrypted_value.to_s.scan(/\n/).size + 2
+        ret = self[:secret_value].to_s.scan(/\n/).size + 2
         ret = ret > 20 ? 20 : ret
       end
       def one_liner
-        self[:ssecret].decrypted_value.to_s.scan(/\n/).size.zero?
+        self[:secret_value].to_s.scan(/\n/).size.zero?
       end
     end
     class Private < Onetime::View
-      def init metadata, ssecret
-        self[:metadata], self[:ssecret] = metadata, ssecret
+      def init metadata, secret
         self[:title] = "You saved a secret"
         self[:body_class] = :generate
+        self[:metadata_key] = metadata.key
+        self[:been_shared] = metadata.state?(:shared)
+        self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+        unless secret.nil?
+          self[:secret_key] = secret.key
+          self[:show_passphrase] = !secret.passphrase_temp.to_s.empty?
+          self[:passphrase_temp] = secret.passphrase_temp
+          self[:secret_value] = secret.can_decrypt? ? secret.decrypted_value : secret.value
+        end
       end
       def share_uri
-        [baseuri, :secret, self[:ssecret].key].join('/')
+        [baseuri, :secret, self[:secret_key]].join('/')
       end
       def admin_uri
-        [baseuri, :private, self[:metadata].key].join('/')
-      end
-      def show_passphrase
-        !self[:ssecret].passphrase_temp.to_s.empty?
-      end
-      def been_shared
-        self[:metadata].state? :shared
-      end
-      def shared_date
-        natural_time self[:metadata].shared || 0
+        [baseuri, :private, self[:metadata_key]].join('/')
       end
       def display_lines
-        ret = secret_value.to_s.scan(/\n/).size + 2
+        ret = self[:secret_value].to_s.scan(/\n/).size + 2
         ret = ret > 20 ? 20 : ret
       end
       def one_liner
-        secret_value.to_s.scan(/\n/).size.zero?
-      end
-      def secret_value
-        self[:ssecret].can_decrypt? ? self[:ssecret].decrypted_value : self[:ssecret].value
+        self[:secret_value].to_s.scan(/\n/).size.zero?
       end
     end
     class Error < Onetime::View

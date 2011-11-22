@@ -1,6 +1,16 @@
 
 require 'mustache'
 
+class String
+  def plural(int=1)
+    int > 1 || int.zero? ? "#{self}s" : self
+  end
+  def shorten(len=50)
+    return self if size <= len
+    self[0..len] + "..."
+  end
+end
+
 class Mustache
   def self.partial(name)
     path = "#{template_path}/#{name}.#{template_extension}"
@@ -129,7 +139,7 @@ module Onetime
     protected
     def natural_time(e)
       return if e.nil?
-      val = Time.now.utc.to_i - e
+      val = Time.now.utc.to_i - e.to_i
       #puts val
       if val < 10 
         result = 'a moment ago'

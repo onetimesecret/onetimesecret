@@ -136,7 +136,6 @@ OT = Onetime
 
 require 'onetime/models'
 
-Onetime::Secret.db 0
 Kernel.srand
 
 

@@ -20,7 +20,7 @@ s.encrypt_value 'poop', :key => 'tryouts'
 s.decrypted_value
 #=> 'poop'
 
-## Decrypt does nothing if uodate_value wasn't called
+## Decrypt does nothing if encrypt_value wasn't called
 s = Onetime::Secret.new :shared
 s.value = 'poop'
 s.decrypted_value

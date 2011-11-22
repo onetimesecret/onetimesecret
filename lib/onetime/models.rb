@@ -15,9 +15,18 @@ module Onetime::Models
         raise RuntimeError, "Suffix cannot be empty for #{self.class}"
       end
     end
+    def destroy!
+      clear
+    end
+    def save
+      hsh = { :key => suffix }
+      hsh[:created] = Time.now.to_i unless exists?
+      ret = update_fields hsh
+      ret == "OK"
+    end
     def update_fields hsh={}
       check_suffix!
-      hsh[:updated_time] = OT.now.to_i
+      hsh[:updated] = OT.now.to_i
       ret = update hsh
       self.cache.replace hsh
       ret
@@ -27,7 +36,7 @@ module Onetime::Models
     end
     def update_time!
       check_suffix!
-      self.put :updated_time, OT.now.to_i
+      self.put :updated, OT.now.to_i
     end
     def cache
       @cache ||= {}
@@ -50,15 +59,16 @@ module Onetime::Models
     #
     def method_missing meth, *args
       #OT.ld "Call to #{self.class}###{meth} (cache attempt)"
-      trailer = meth.to_s[-1] 
-      field = case trailer
+      last_char = meth.to_s[-1] 
+      field = case last_char
       when '=', '!', '?'
         meth.to_s[0..-2]
       else
         meth.to_s
       end
-      refresh_cache unless self.cache.has_key?(field)
-      ret = case trailer
+      instance_value = instance_variable_get("@#{field}")
+      refresh_cache unless !instance_value.nil? || self.cache.has_key?(field)
+      ret = case last_char
       when '='
         self[field] = self.cache[field] = args.first
       when '!'
@@ -66,17 +76,24 @@ module Onetime::Models
       when '?'
         raise NoMethodError, "#{self.class}##{meth.to_s}"
       else
-        self.cache[field]
+        self.cache[field] || instance_value
       end
       ret
     end
-    def value field
+    def get_value field
       self.cache ||= {}
       self.cache[field] || self[field]
     end
   end
 end
 
+
+require 'onetime/models/metadata'
+require 'onetime/models/secret'
+require 'onetime/models/session'
+require 'onetime/models/customer'
+
+__END__
 
 module Onetime
     
@@ -256,6 +273,3 @@ module Onetime
     end
   end
 end
-
-require 'onetime/models/session'
-require 'onetime/models/customer'
