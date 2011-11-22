@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
+$:.unshift File.join(base_path, 'lib')
+
+require 'onetime'
+require 'onetime/cli'
+require 'rubygems'
+require 'rye'
+require 'drydock'
+
+# Command-line interface for bin/stella
+class OT::CLI::Definition
+  extend Drydock
+
+  about "Command Line tools and methods to manage OneTimeSecret"
+  command :welcome do
+    puts "Welcome to OneTimeSecret", $/
+    puts "No other help for now. You're on your own buddy!"
+  end
+
+  usage "ots register-build [msg]"
+  command :register_build => OT::CLI
+
+  command :anything => OT::CLI
+end
+
+Drydock.run! ARGV, STDIN

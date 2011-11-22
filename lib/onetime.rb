@@ -6,7 +6,7 @@ require 'syslog'
 
 require 'encryptor'
 require 'bcrypt'
-
+require 'sysinfo'
 require 'gibbler'
 require 'familia'
 require 'storable'
@@ -14,6 +14,17 @@ require 'storable'
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 Gibbler.secret = "(I AM THE ONE TRUE SECRET!)".freeze
 Familia.secret = "[WHAT IS UP MY FAMILIALS??]".freeze
+
+class String
+  def to_file(filename, mode, chmod=0744)
+    mode = (mode == :append) ? 'a' : 'w'
+    f = File.open(filename,mode)
+    f.puts self
+    f.close
+    raise "Provided chmod is not a Fixnum (#{chmod})" unless chmod.is_a?(Fixnum)
+    File.chmod(chmod, filename)
+  end
+end
 
 
 module Onetime
@@ -46,6 +57,10 @@ module Onetime
     def info(*msg)
       prefix = "(#{Time.now}):  "
       SYSLOG.info "#{prefix}" << msg.join("#{$/}#{prefix}")
+    end
+    def sysinfo
+      @sysinfo = SysInfo.new.freeze if @sysinfo.nil?
+      @sysinfo
     end
     def ld(*msg)
       return unless Onetime.debug
@@ -89,6 +104,15 @@ module Onetime
     end
     def self.inspect
       to_a.join('.')
+    end
+    def self.increment!(msg=nil)
+      load_config
+      @version[:BUILD] = @version[:BUILD].to_s.succ!
+      @version[:STAMP] = Time.now.utc.to_i
+      @version[:OWNER] = OT.sysinfo.user
+      @version[:STORY] = msg || '[no message]'
+      @version.to_yaml.to_file File.join(OT::HOME, 'BUILD.yml'), 'w'
+      @version
     end
     def self.load_config
       return if @version

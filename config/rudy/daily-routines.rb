@@ -6,34 +6,6 @@ routines do
 
   env :dev do
 
-    #def to_file(filename, mode, chmod=0744)
-    #  mode = (mode == :append) ? 'a' : 'w'
-    #  f = File.open(filename,mode)
-    #  f.puts self
-    #  f.close
-    #  raise "Provided chmod is not a Fixnum (#{chmod})" unless chmod.is_a?(Fixnum)
-    #  File.chmod(chmod, filename)
-    #end
-
-    #def increment!(msg=nil)
-    #  @info[:BUILD] = @info[:BUILD].to_s.succ!
-    #  @info[:STAMP] = Time.now.utc.to_i
-    #  @info[:OWNER] = 'ots' 
-    #  @info[:STORY] = msg || '[no message]'
-    #  @info.to_yaml.to_file('BUILD.yml', 'w')
-    #  @info
-    #end
-
-    #def register_build(msg=nil)
-    #  begin
-    #    increment! msg
-    #    puts load_config
-    #  rescue => ex
-    #    puts ex.message
-    #    exit 1
-    #  end
-    #end
-
     load_config do
       local do
         require 'yaml'
@@ -52,17 +24,7 @@ routines do
       local do |argv|
         #git 'fetch', '--tags', :origin
         msg = argv.first
-        require 'yaml'
-        @info ||= YAML.load_file('BUILD.yml')
-        @info[:BUILD] = @info[:BUILD].to_s.succ!
-        @info[:STAMP] = Time.now.utc.to_i
-        @info[:OWNER] = 'ots' 
-        @info[:STORY] = msg || '[no message]'
-        f = File.open('BUILD.yml','w')
-        f.puts @info.to_yaml 
-        f.close
-        File.chmod(0744, 'BUILD.yml')
-        $build = @info
+        $build = ruby './bin/ot', 'register-build', msg
         $build_tag = "rel-#{$build}"
         msg_ci = "RUDY PRESENTS: #{$build}"
         msg_ci << " (#{msg})" if msg
