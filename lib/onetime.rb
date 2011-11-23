@@ -1,4 +1,5 @@
 # https://github.com/shuber/encryptor
+puts "CONVERSION TO REDIS HASH REQUIRED"
 
 require 'bundler/setup'
 
