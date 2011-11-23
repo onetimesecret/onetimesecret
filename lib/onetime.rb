@@ -1,5 +1,6 @@
 # https://github.com/shuber/encryptor
-puts "CONVERSION TO REDIS HASH REQUIRED"
+puts "TODO: SECRETS MIGRATION TO REDIS HASH"
+puts "TODO: ADD SECRET TO prod config"
 
 require 'bundler/setup'
 
@@ -14,9 +15,6 @@ require 'familia'
 require 'storable'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
-Gibbler.secret = "(I AM THE ONE TRUE SECRET!)".freeze
-Familia.secret = "[WHAT IS UP MY FAMILIALS??]".freeze
-
 
 module Onetime
   unless defined?(Onetime::HOME)
@@ -26,7 +24,7 @@ module Onetime
       :nosecret.gibbler.short => 'No secret provided',
     }.freeze unless defined?(Onetime::ERRNO)
   end
-  @debug = false
+  @debug = true
   @mode = :app
   class << self
     attr_accessor :debug, :mode
@@ -46,21 +44,28 @@ module Onetime
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load  # load config before anything else.
-      Familia.uri = OT.conf[:redis][:uri]
       @sysinfo = SysInfo.new.freeze
       @instance = [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
+      secret = OT.conf[:site][:secret] || "CHANGEME"
+      Gibbler.secret = secret.freeze
+      Familia.uri = OT.conf[:redis][:uri]
       ld "---  ONETIME v#{OT::VERSION}  -----------------------------------"
-      ld "Connection: #{Familia.uri}"
+      ld " Redis: #{Familia.uri}"
+      ld "Secret: #{secret}"
       @conf
     end
     def info(*msg)
-      prefix = "(#{Time.now}):  "
-      SYSLOG.info "#{prefix}" << msg.join("#{$/}#{prefix}")
+      prefix = "I(#{Time.now.to_i}):  "
+      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      STDERR.puts(msg) if STDOUT.tty?
+      SYSLOG.info msg
     end
     def ld(*msg)
       return unless Onetime.debug
-      prefix = "D:  "
-      SYSINFO.crit "#{prefix}" << msg.join("#{$/}#{prefix}")
+      prefix = "D(#{Time.now.to_i}):  "
+      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      STDERR.puts(msg) if STDOUT.tty?
+      SYSLOG.crit msg
     end
   end
   module Config
