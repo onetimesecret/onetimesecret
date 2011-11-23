@@ -24,7 +24,7 @@ module Onetime
       hsh[:custid] ||= custid
       super hsh
     end
-    def suffix
+    def identifier
       @key
     end
     def key= objid

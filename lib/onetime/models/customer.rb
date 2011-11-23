@@ -7,7 +7,7 @@ class Onetime::Customer < Familia::HashKey
     @custid = custid  # if we use accessor methods it will sync to redis.
     super name
   end
-  def suffix 
+  def identifier 
     @custid
   end
   def anonymous?

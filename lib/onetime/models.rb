@@ -4,14 +4,14 @@ module Onetime::Models
     
   end
   module RedisHash
-    attr_accessor :prefix, :suffix, :cache
-    def name suffix=nil
-      self.suffix ||= suffix
+    attr_accessor :prefix, :identifier, :cache
+    def name identifier=nil
+      self.identifier ||= identifier
       @prefix ||= self.class.to_s.downcase.split('::').last.to_sym
-      Familia.rediskey prefix, self.suffix
+      Familia.rediskey prefix, self.identifier
     end
-    def check_suffix!
-      if self.suffix.to_s.empty?
+    def check_identifier!
+      if self.identifier.to_s.empty?
         raise RuntimeError, "Suffix cannot be empty for #{self.class}"
       end
     end
@@ -19,23 +19,23 @@ module Onetime::Models
       clear
     end
     def save
-      hsh = { :key => suffix }
+      hsh = { :key => identifier }
       hsh[:created] = Time.now.to_i unless exists?
       ret = update_fields hsh
       ret == "OK"
     end
     def update_fields hsh={}
-      check_suffix!
+      check_identifier!
       hsh[:updated] = OT.now.to_i
       ret = update hsh
       self.cache.replace hsh
       ret
     end
     def refresh_cache
-      self.cache.replace self.all unless self.suffix.to_s.empty?
+      self.cache.replace self.all unless self.identifier.to_s.empty?
     end
     def update_time!
-      check_suffix!
+      check_identifier!
       self.put :updated, OT.now.to_i
     end
     def cache

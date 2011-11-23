@@ -43,7 +43,7 @@ class Onetime::Session < Familia::HashKey
     @name = name
     @sessid
   end
-  def suffix
+  def identifier
     @sessid  # Don't call the method
   end
   def stale?
