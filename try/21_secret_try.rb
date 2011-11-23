@@ -9,18 +9,18 @@ s.class
 ## Keys are consistent for Metadata
 s = Onetime::Metadata.new :metadata, :entropy
 s.rediskey
-#=> 'metadata:8o719hhgf2t8eh15bdabkm6n98pmd97'
+#=> 'metadata:8o719hhgf2t8eh15bdabkm6n98pmd97:object'
 
 ## Keys are consistent for Secrets
 s = Onetime::Secret.new :shared, :entropy
 p s.name
 s.rediskey
-#=> 'secret:ct2cju1cwhqxcbh8de89sezrw0mtusa'
+#=> 'secret:ct2cju1cwhqxcbh8de89sezrw0mtusa:object'
 
 ## But can be modified with entropy
 s = Onetime::Secret.new :shared, [:some, :fixed, :values]
 s.rediskey
-#=> 'secret:ntit96jrq77myf5z0a333uvld21o6wq'
+#=> 'secret:ntit96jrq77myf5z0a333uvld21o6wq:object'
 
 ## Generate a pair
 @metadata, @secret = Onetime::Secret.generate_pair :anon, :tryouts

@@ -4,11 +4,12 @@ module Onetime::Models
     
   end
   module RedisHash
-    attr_accessor :prefix, :identifier, :cache
+    attr_accessor :prefix, :identifier, :suffix, :cache
     def name identifier=nil
       self.identifier ||= identifier
       @prefix ||= self.class.to_s.downcase.split('::').last.to_sym
-      Familia.rediskey prefix, self.identifier
+      @suffix ||= :object
+      Familia.rediskey prefix, self.identifier, suffix
     end
     def check_identifier!
       if self.identifier.to_s.empty?
