@@ -24,7 +24,7 @@ module Onetime
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        res.redirect logic.redirect_uri
+        res.redirect app_path(logic.redirect_uri)
       end
     end
   

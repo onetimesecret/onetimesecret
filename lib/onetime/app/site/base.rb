@@ -128,6 +128,13 @@ module Onetime
         res.status = 401
         res.body = view.render
       end
+      
+      def app_path *paths
+        paths = paths.flatten.compact
+        paths.unshift req.script_name
+        paths.join('/').gsub '//', '/'
+      end
+      
     end
   end
   module Views

@@ -10,6 +10,11 @@ class Onetime::App
         res.body = hsh.to_json
       end
       
+      def not_found hsh
+        res.status = 404
+        json hsh
+      end
+      
     end
   end
 end

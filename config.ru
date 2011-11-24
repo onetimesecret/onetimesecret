@@ -19,9 +19,9 @@ PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/site"
 APP_DIR = "#{ENV['APP_ROOT']}/lib/onetime/app"
 
 apps = {
-  '/'         => Otto.new("#{APP_DIR}/site/routes"),
-  '/api'      => Otto.new("#{APP_DIR}/api/routes"),
-  #'/colonel'  => Otto.new("#{APP_DIR}/colonel/routes"),
+  '/'          => Otto.new("#{APP_DIR}/site/routes"),
+  '/api/v1'    => Otto.new("#{APP_DIR}/api/routes"),
+  #'/colonel'   => Otto.new("#{APP_DIR}/colonel/routes"),
 }
 
 Onetime.load! :app
