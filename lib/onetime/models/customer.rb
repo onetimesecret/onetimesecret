@@ -2,10 +2,9 @@
 
 class Onetime::Customer < Familia::HashKey
   include Onetime::Models::RedisHash
-  db 3
   def initialize custid=:anon
     @custid = custid  # if we use accessor methods it will sync to redis.
-    super name
+    super name, :db => 6
   end
   def identifier 
     @custid

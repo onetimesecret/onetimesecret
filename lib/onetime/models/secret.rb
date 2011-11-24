@@ -25,7 +25,7 @@ module Onetime
     def initialize custid=nil, entropy=nil
       @custid, @entropy, @state = custid, entropy, :new
       @key = gibbler.base(36)
-      super name, :ttl => 7.days, :db => 2
+      super name, :ttl => 7.days, :db => 8
     end
     def update_fields hsh={}
       hsh[:custid] ||= custid

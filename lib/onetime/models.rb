@@ -1,10 +1,9 @@
 
 class Onetime::RateLimit < Familia::String
-  db 1
   ttl 10.minutes
   def initialize identifier, event
     #super [Familia.apiversion, :limiter, identifier, event, self.class.eventstamp]
-    super [:limiter, identifier, event, self.class.eventstamp]
+    super [:limiter, identifier, event, self.class.eventstamp], :db => 2
   end
   alias_method :count, :to_i
   class << self
