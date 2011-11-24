@@ -38,7 +38,6 @@ class Onetime::App
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        p logic.secret.all
         if logic.show_secret
           json :secret => logic.secret_value
           logic.secret.destroy!

@@ -12,7 +12,7 @@ class Onetime::RateLimit < Familia::String
       lmtr = new identifier, event
       count = lmtr.increment
       lmtr.update_expiration
-      OT.ld [:limit, event, identifier, count]
+      OT.ld [:limit, event, identifier, count].inspect
       raise OT::LimitExceeded if exceeded?(event, count)
       count
     end

@@ -38,6 +38,14 @@
 <div id="banner"><div class="broadcast"><!-- nothing to report --></div></div>
 <div id="corset">
   <div id="header">
+    <div id="sitenav">
+      {{^authenticated}}
+      <a href="/signup" title="Signup &amp; Pricing" class="signup">Signup</a> | <a href="/login" title="Log in to One-Time Secret">Login</a>
+      {{/authenticated}}
+      {{#authenticated}}
+      <a href="/dashboard" title="Your Dashboard">Dashboard</a> | <a href="/logout" title="Log out of One-Time Secret">Logout</a>
+      {{/authenticated}}
+    </div>
     <h1 title="One time secret"><a href="/"><pre>
   __ _  _ ___    ____ __ __  __ ___    ___ ___  __ ___  ___ ____ 
  /  \ \( )  _)  (_  _)  )  \/  )  _)  / __)  _)/ _)  ,)(  _)_  _)
