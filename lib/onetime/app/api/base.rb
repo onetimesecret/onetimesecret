@@ -6,6 +6,7 @@ class Onetime::App
       include Onetime::App::Base
       
       def json hsh
+        res.header['Content-Type'] = "application/json; charset=utf-8"
         res.body = hsh.to_json
       end
       
