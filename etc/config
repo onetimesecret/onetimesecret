@@ -2,5 +2,7 @@
   :host: localhost:7143
   :ssl: false
   :secret: 074eea80797de4111f68fc3152a8306c9b2388b4
+:limits:
+  :create_secret: 10
 :redis:
   :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'

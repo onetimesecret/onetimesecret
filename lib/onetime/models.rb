@@ -1,11 +1,47 @@
 
-module Onetime::RateLimit
-  
+class Onetime::RateLimit < Familia::String
+  ttl 10.minutes
+  def initialize identifier, event
+    #super [Familia.apiversion, :limiter, identifier, event, self.class.eventstamp]
+    super [:limiter, identifier, event, self.class.eventstamp]
+  end
+  alias_method :count, :to_i
+
+  class << self
+    attr_reader :events
+    def incr! identifier, event
+      lmtr = new identifier, event
+      count = lmtr.increment
+      lmtr.update_expiration
+      raise OT::LimitExceeded if exceeded?(event, count)
+      count
+    end
+    alias_method :increment!, :incr!
+    def exceeded? event, count
+      (count) > (events[event] || 5)
+    end
+    def register_event event, count
+      (@events ||= {})[event] = count
+    end
+    def register_events events
+      (@events ||= {}).merge! events
+    end
+    def eventstamp
+      now = OT.now.to_i
+      rounded = now - (now % self.ttl)
+      Time.at(rounded).utc.strftime('%H%M')
+    end
+  end
 end
 
 module Onetime::Models
   module RateLimited
-    
+    def event_incr! event
+      OT::RateLimit.incr! external_identifier, event
+    end
+    def external_identifier
+      raise RuntimeError, "TODO: #{self.class}.external_identifier"
+    end
   end
   module RedisHash
     attr_accessor :prefix, :identifier, :suffix, :cache

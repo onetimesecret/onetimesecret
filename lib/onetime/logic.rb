@@ -16,11 +16,6 @@ module Onetime
       end
       protected
       
-      # can raise OT::UserLimitError or OT::HostLimitError
-      def check_rate_limits!(event)
-        sess.event_incr! event
-      end
-
       # Generic params that can appear anywhere are processed here.
       # This is called in initialize AFTER process_params so that 
       # values set here don't overwrite values that already exist.
@@ -40,6 +35,8 @@ module Onetime
         @passphrase = params[:passphrase].to_s
       end
       def raise_concerns
+        # can raise OT::UserLimitError or OT::HostLimitError
+        sess.event_incr! :create_secret
         raise OT::Problem, "No secret value" if kind == :share && secret_value.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end

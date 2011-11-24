@@ -32,7 +32,7 @@ class Onetime::Session < Familia::HashKey
     end
     def generate_id *entropy
       entropy << OT.entropy
-      input = [OT.instance, OT.now, self.class, entropy].join(':')
+      input = [OT.instance, OT.now.to_f, :session, entropy].join(':')
       # Not using gibbler to make sure it's always SHA512
       Digest::SHA512.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
     end

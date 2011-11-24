@@ -15,6 +15,7 @@ require 'familia'
 require 'storable'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+Familia.apiversion = nil
 
 module Onetime
   unless defined?(Onetime::HOME)
@@ -24,7 +25,7 @@ module Onetime
       :nosecret.gibbler.short => 'No secret provided',
     }.freeze unless defined?(Onetime::ERRNO)
   end
-  @debug = true
+  @debug = false
   @mode = :app
   class << self
     attr_accessor :debug, :mode
@@ -49,9 +50,12 @@ module Onetime
       secret = OT.conf[:site][:secret] || "CHANGEME"
       Gibbler.secret = secret.freeze
       Familia.uri = OT.conf[:redis][:uri]
-      ld "---  ONETIME v#{OT::VERSION}  -----------------------------------"
-      ld " Redis: #{Familia.uri}"
-      ld "Secret: #{secret}"
+      OT::RateLimit.register_events OT.conf[:limits]
+      info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
+      info "Config: #{OT::Config.path}"
+      info " Redis: #{Familia.uri}"
+      info "Secret: #{secret}"
+      info "Limits: #{OT::RateLimit.events}"
       @conf
     end
     def info(*msg)
@@ -92,7 +96,6 @@ module Onetime
       }.compact
     end
   end
-  
   module VERSION
     def self.to_a
       load_config
@@ -115,6 +118,7 @@ module Onetime
     class << self
       attr_reader :values
       def pop
+        OT.info "TODO: OT::Entropy.pop"
         values.pop ||
         [caller[0], rand].gibbler.shorten(12) # TODO: replace this stub
       end
@@ -141,7 +145,8 @@ module Onetime
   end
   class UnknownKind < Problem
   end
-  
+  class LimitExceeded < RuntimeError
+  end
 end
 OT = Onetime
 
