@@ -1,4 +1,4 @@
-require 'onetime/app/site/base'
+require 'onetime/app/web/base'
 
 class Onetime::App
   class API

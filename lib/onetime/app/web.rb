@@ -1,7 +1,7 @@
 
 require 'onetime'  # must be required before
-require 'onetime/app/site/base'
-require 'onetime/app/site/views'
+require 'onetime/app/web/base'
+require 'onetime/app/web/views'
 
 module Onetime
   class App

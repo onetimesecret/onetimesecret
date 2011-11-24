@@ -140,9 +140,9 @@ module Onetime
   module Views
   end
   class View < Mustache
-    self.template_path = './templates/site'
+    self.template_path = './templates/web'
     self.view_namespace = Onetime::Views
-    self.view_path = './app/site/views'
+    self.view_path = './app/web/views'
     attr_accessor :err
     def initialize req=nil, res=nil, *args
       self[:subtitle] = "One Time"
