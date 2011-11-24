@@ -26,7 +26,7 @@ routines do
     end
   end
   
-  env :proto, :status do
+  env :proto do
     upload_certs do
       remote :root do
         env = $global.environment

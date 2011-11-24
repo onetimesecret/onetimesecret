@@ -22,16 +22,16 @@ routines do
 
     release do
       local do |argv|
-        #git 'fetch', '--tags', :origin
+        git 'fetch', '--tags', :origin
         msg = argv.first
         $build = ruby './bin/ot', 'register-build', msg
         $build_tag = "rel-#{$build}"
         msg_ci = "RUDY PRESENTS: #{$build}"
         msg_ci << " (#{msg})" if msg
-        #git 'commit', :m, msg_ci, 'BUILD.yml'
-        #git 'tag', $build_tag
-        #git 'push', :origin, '--tags'
-        #git 'push', :origin
+        git 'commit', :m, msg_ci, 'BUILD.yml'
+        git 'tag', $build_tag
+        git 'push', :origin, '--tags'
+        git 'push', :origin
       end
     end
 

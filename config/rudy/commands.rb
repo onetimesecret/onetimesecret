@@ -30,10 +30,9 @@ commands do
   allow :sysinfo
   allow :sysinfo2
   allow :s3cmd, "/usr/local/s3cmd/s3cmd"
-  allow :nginx, "/etc/init.d/nginx"
+  allow :nginx, 'service', 'nginx' 
   allow :wget, 'wget', :q
-  allow :redis_start, "/etc/init.d/redis", 'start'
-  allow :redis_stop, "/etc/init.d/redis", 'stop'
+  allow :redis, 'service', 'redis'
   allow :thin_instances, '1' 
   allow :config_env do
     case $global.environment.to_s

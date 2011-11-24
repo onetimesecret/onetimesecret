@@ -11,39 +11,44 @@ routines do
   end
   
   start_redis do
-    remote do
-      puts "(By the way, you need to run update-redis-config separately)"
-      redis "start"
+    remote :root do
+      redis 'start' 
     end
   end
 
   stop_redis do
-    remote do
-      redis "stop"
+    remote :root do
+      redis 'stop'
     end
   end
-  
+ 
+  restart_redis do
+    remote :root do
+      redis 'restart'
+    end
+  end
+ 
   start_nginx do
     remote :root do
-      nginx "start"
+      nginx 'start'
     end
   end
 
   stop_nginx do
     remote :root do
-      nginx "stop"
+      nginx 'stop'
     end
   end
 
   restart_nginx do
     remote :root do
-      nginx "restart"
+      nginx 'restart'
     end
   end
   
   reload_nginx do
     remote :root do
-      nginx "reload"
+      nginx 'reload'
     end
   end
   
@@ -72,15 +77,15 @@ routines do
   start_thin do
     remote do
       cd '/var/www/onetimesecret.com'
-      bundle 'exec', 'thin', :R, "config.ru", :p, '7143', :e, config_env, 'start'
-      #bundle exec thin -e dev -R config.ru -p 7143 start
+      #bundle exec thin -d -e dev -R config.ru -p 7143 start
+      bundle 'exec', 'thin', :d, :e, config_env, :R, "config.ru", :p, '7143', 'start'
     end
   end
 
   stop_thin do
     remote do
-      cd 'car/www/onetimesecret.com'
-      bundle 'exec', 'thin', :R, "config.ru", :p, '7143', :e, config_env, 'stop'
+      cd '/var/www/onetimesecret.com'
+      bundle 'exec', 'thin', :e, config_env, :R, "config.ru", :p, '7143', 'stop'
     end
   end
 
