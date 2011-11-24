@@ -7,7 +7,7 @@ class Onetime::Session < Familia::HashKey
   include Onetime::Models::RateLimited
   attr_reader :entropy
   def initialize ipaddress=nil, custid=nil, useragent=nil
-    @ipaddress, @custid, @useragent = ipaddress, custid, useragent
+    @ipaddress, @custid, @useragent = ipaddress, custid, useragent  # must be nil or have values!
     @entropy = [ipaddress, custid, useragent]
     @sessid = self.sessid || self.class.generate_id(*entropy)
     super name, :db => 1, :ttl => 20.minutes
@@ -48,7 +48,8 @@ class Onetime::Session < Familia::HashKey
   # Used by the limiter to estimate a unique client. We can't use
   # the session ID b/c they can choose to not send the cookie.
   def external_identifier  
-    @external_identifier ||= [ipaddress, useragent, custid].gibbler.base(36)
+    OT.ld "sess identifier input: #{[ipaddress.to_s, useragent.to_s, custid.to_s]}"
+    @external_identifier ||= [ipaddress.to_s, useragent.to_s, custid.to_s].gibbler.base(36)
     @external_identifier
   end
   def stale?

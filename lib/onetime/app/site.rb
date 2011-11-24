@@ -10,6 +10,7 @@ module Onetime
     def index
       anonymous do
         view = Onetime::Views::Homepage.new req
+        sess.event_incr! :homepage
         res.body = view.render
       end
     end

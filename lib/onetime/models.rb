@@ -1,18 +1,19 @@
 
 class Onetime::RateLimit < Familia::String
+  db 1
   ttl 10.minutes
   def initialize identifier, event
     #super [Familia.apiversion, :limiter, identifier, event, self.class.eventstamp]
     super [:limiter, identifier, event, self.class.eventstamp]
   end
   alias_method :count, :to_i
-
   class << self
     attr_reader :events
     def incr! identifier, event
       lmtr = new identifier, event
       count = lmtr.increment
       lmtr.update_expiration
+      OT.ld [:limit, event, identifier, count]
       raise OT::LimitExceeded if exceeded?(event, count)
       count
     end

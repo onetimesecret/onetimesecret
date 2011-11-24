@@ -77,7 +77,12 @@ module Onetime
       view = Onetime::Views::UnknownSecret.new
       res.status = 404
       res.body = view.render
-      
+    
+    rescue OT::LimitExceeded => ex
+      err "[limit-exceeded] #{sess.identifier.shorten(10)} (#{sess.ipaddress}): #{cust.custid}"
+      err req.current_absolute_uri
+      error_response "Apologies dear citizen! You have been rate limited. Try again in a few minutes."
+    
     rescue Familia::NotConnected, Familia::Problem => ex
       err "#{ex.class}: #{ex.message}"
       err ex.backtrace
