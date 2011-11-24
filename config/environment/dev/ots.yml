@@ -1,5 +1,0 @@
-:redis:  
-  :uri: 'redis://127.0.0.1:6379/?timeout=5&thread_safe=true'
-:nginx:
-  :ipaddress: '192.168.123.22'
-  :servername: 'ots5.com'
