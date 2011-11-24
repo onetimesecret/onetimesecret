@@ -6,12 +6,11 @@ class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
   attr_reader :entropy
-  db 1
   def initialize ipaddress=nil, custid=nil, useragent=nil
     @ipaddress, @custid, @useragent = ipaddress, custid, useragent
     @entropy = [ipaddress, custid, useragent]
     @sessid = self.sessid || self.class.generate_id(*entropy)
-    super name, :ttl => 20.minutes
+    super name, :db => 1, :ttl => 20.minutes
   end
   class << self
     def exists? sessid
@@ -45,6 +44,12 @@ class Onetime::Session < Familia::HashKey
   end
   def identifier
     @sessid  # Don't call the method
+  end
+  # Used by the limiter to estimate a unique client. We can't use
+  # the session ID b/c they can choose to not send the cookie.
+  def external_identifier  
+    @external_identifier ||= [ipaddress, useragent, custid].gibbler.base(36)
+    @external_identifier
   end
   def stale?
     self[:stale].to_s == "true"

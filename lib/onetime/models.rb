@@ -1,4 +1,8 @@
 
+module Onetime::RateLimit
+  
+end
+
 module Onetime::Models
   module RateLimited
     

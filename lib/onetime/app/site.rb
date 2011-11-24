@@ -19,92 +19,43 @@ module Onetime
     #end
   
     def create
-      metadata, secret = nil, nil
-      carefully do
-        metadata, secret = Onetime::Secret.generate_pair :anon, [req.client_ipaddress, req.user_agent]
-        metadata.passphrase = req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
-        secret.update_passphrase req.params[:passphrase] if !req.params[:passphrase].to_s.empty?
-        if req.params[:kind] == 'share' && !req.params[:secret].to_s.strip.empty?
-          secret.original_size = req.params[:secret].to_s.size
-          secret.encrypt_value req.params[:secret].to_s.slice(0, 4999)
-        elsif req.params[:kind] == 'generate'
-          generated_value = Onetime::Utils.strand 12
-          secret.original_size = generated_value.size
-          secret.encrypt_value generated_value
-        end
-        secret.save
-        metadata.save
-        if metadata.valid? && secret.valid?
-          uri = ['/private/', metadata.key].join
-          res.redirect uri
-        else
-          res.redirect '/?errno=%s' % [Onetime.errno(:nosecret)]
-        end
+      anonymous do
+        logic = OT::Logic::CreateSecret.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        res.redirect logic.redirect_uri
       end
     end
   
     def secret_uri
-      carefully do
+      anonymous do
         deny_agents! 
-        if Onetime::Secret.exists?(req.params[:key])
-          secret = Onetime::Secret.load req.params[:key]
-          if secret.state.to_s == "new"
-            view = Onetime::Views::Shared.new req, res
-            if secret.state? :viewed
-              view[:show_secret] = false
-            else
-              if secret.has_passphrase?
-                view[:has_passphrase] = true
-                if secret.passphrase?(req.params[:passphrase])
-                  view[:show_secret] = true
-                  view[:secret_value] = secret.can_decrypt? ? secret.decrypted_value : secret.value
-                  secret.viewed!
-                elsif req.post? && req.params[:passphrase]
-                  view[:show_secret] = false
-                  view[:err] = "Double check that passphrase"
-                end
-              else
-                if req.params[:continue] == 'true'
-                  view[:show_secret] = true
-                  view[:secret_value] = secret.can_decrypt? ? secret.decrypted_value : secret.value
-                  secret.viewed!
-                else
-                  view[:show_secret] = false 
-                end 
-              end
-            end
-            res.body = view.render
-          else
-            raise OT::MissingSecret
-          end
-        else
-          raise OT::MissingSecret
+        logic = OT::Logic::ShowSecret.new sess, cust, req.params
+        view = Onetime::Views::Shared.new req, res
+        logic.raise_concerns
+        logic.process
+        view[:has_passphrase] = logic.secret.has_passphrase?
+        if logic.show_secret
+          view[:show_secret] = true
+          view[:secret_value] = logic.secret_value
+        elsif req.post?
+          view[:err] = "Double check that passphrase"
         end
+        res.body = view.render
       end
     end
  
     def private_uri
       carefully do
         deny_agents! 
-        if Onetime::Metadata.exists?(req.params[:key])
-          metadata = Onetime::Metadata.load req.params[:key]
-          secret = metadata.load_secret
-          unless secret.nil?
-            # We temporarily store the raw passphrase when the private
-            # secret is created so we can display it once. Here we 
-            # update it with the encrypted one.
-            secret.passphrase_temp = metadata.passphrase
-            metadata.passphrase = secret.passphrase
-          end
-          view = Onetime::Views::Private.new req, res, metadata, secret
-          unless metadata.state?(:viewed) || metadata.state?(:shared)
-            metadata.viewed!
-            view[:show_secret] = true
-          end
-          res.body = view.render
-        else
-          raise OT::MissingSecret
+        logic = OT::Logic::ShowMetadata.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        view = Onetime::Views::Private.new req, res, logic.metadata, logic.secret
+        if logic.show_secret
+          view[:show_secret] = true
         end
+        res.body = view.render
       end
     end
   

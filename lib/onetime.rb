@@ -135,12 +135,18 @@ module Onetime
     end
   end
   
-  class MissingSecret < RuntimeError
+  class Problem < RuntimeError
   end
+  class MissingSecret < Problem
+  end
+  class UnknownKind < Problem
+  end
+  
 end
 OT = Onetime
 
 require 'onetime/models'
+require 'onetime/logic'
 
 Kernel.srand
 

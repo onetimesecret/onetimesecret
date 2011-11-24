@@ -22,7 +22,6 @@ module Onetime
     attr_reader :entropy
     attr_accessor :passphrase_temp
     gibbler :custid, :passphrase_temp, :value_checksum, :entropy
-    db 2
     def initialize custid=nil, entropy=nil
       @custid, @entropy, @state = custid, entropy, :new
       @key = gibbler.base(36)

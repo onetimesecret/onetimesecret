@@ -70,12 +70,8 @@ module Onetime
     
     rescue Redirect => ex
       res.redirect ex.location, ex.status
-      
-    #rescue BS::Problem => ex
-    #  err "#{ex.class}: #{ex.message}"
-    #  err ex.backtrace
-    #  ex.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
-    #  error_response "You found a bug. Feel free to tell Tucker."
+    
+    #rescue OT::UnknownKind => ex
     
     rescue OT::MissingSecret => ex
       view = Onetime::Views::UnknownSecret.new
@@ -85,14 +81,12 @@ module Onetime
     rescue Familia::NotConnected, Familia::Problem => ex
       err "#{ex.class}: #{ex.message}"
       err ex.backtrace
-      #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
       error_response "An error occurred :["
     
     rescue => ex
       err "#{ex.class}: #{ex.message}"
       err req.current_absolute_uri
       err ex.backtrace.join("\n")
-      #BS::Problem.report! req.request_method, req.request_uri, sess, cust, "#{ex.class}: #{ex.message}"
       error_response "An error occurred :["
       
     end
