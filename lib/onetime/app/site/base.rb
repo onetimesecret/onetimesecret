@@ -125,6 +125,8 @@ module Onetime
     def initialize req=nil, res=nil, *args
       self[:subtitle] = "One Time"
       self[:monitored_link] = false
+      self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
+      self[:keywords] = "secret,password generator,share a secret,onetime"
       self[:ot_version] = OT::VERSION
       if req && req.params[:errno] && Onetime::ERRNO.has_key?(req.params[:errno])
         self.err = Onetime::ERRNO[req.params[:errno]]
