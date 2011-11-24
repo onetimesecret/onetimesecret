@@ -24,95 +24,110 @@ class Mustache
   end
 end
 
+module Rack
+  class File
+    # from: rack 1.2.1
+    # don't print out the literal filename for 404s
+    def not_found
+      body = "File not found\n"
+      [404, {"Content-Type" => "text/plain",
+         "Content-Length" => body.size.to_s,
+         "X-Cascade" => "pass"},
+       [body]]
+    end
+  end
+end
 
 module Onetime
-  module Base
-    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    attr_reader :req, :res
-    attr_reader :sess, :cust
-    def initialize req, res
-      @req, @res = req, res
-    end
-    def deny_agents! *agents
-      BADAGENTS.flatten.each do |agent|
-        if req.user_agent =~ /#{agent}/i
-          raise Redirect.new('/')
+  class App
+    module Base
+      BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
+      attr_reader :req, :res
+      attr_reader :sess, :cust
+      def initialize req, res
+        @req, @res = req, res
+      end
+      def deny_agents! *agents
+        BADAGENTS.flatten.each do |agent|
+          if req.user_agent =~ /#{agent}/i
+            raise Redirect.new('/')
+          end
         end
       end
-    end
     
-    def anonymous
-      carefully do 
-        begin
-          @cust = OT::Customer.anonymous
-          if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-            @sess = OT::Session.load req.cookie(:sess)
-          else
-            @sess = OT::Session.create req.client_ipaddress, @cust.custid, req.user_agent
+      def anonymous
+        carefully do 
+          begin
+            @cust = OT::Customer.anonymous
+            if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
+              @sess = OT::Session.load req.cookie(:sess)
+            else
+              @sess = OT::Session.create req.client_ipaddress, @cust.custid, req.user_agent
+            end
+            if @sess
+              @sess.update_fields  # calls update_time!
+              # Only set the cookie after it's been saved
+              res.send_cookie :sess, @sess.sessid, @sess.ttl
+            end
           end
-          if @sess
-            @sess.update_fields  # calls update_time!
-            # Only set the cookie after it's been saved
-            res.send_cookie :sess, @sess.sessid, @sess.ttl
-          end
+          yield
         end
+      end
+    
+      def carefully redirect=nil
+        redirect ||= req.request_path
+        # We check get here to stop an infinite redirect loop.
+        # Pages redirecting from a POST can get by with the same page once. 
+        redirect = '/error' if req.get? && redirect.to_s == req.request_path
+        res.header['Content-Type'] ||= "text/html; charset=utf-8"
         yield
-      end
-    end
     
-    def carefully redirect=nil
-      redirect ||= req.request_path
-      # We check get here to stop an infinite redirect loop.
-      # Pages redirecting from a POST can get by with the same page once. 
-      redirect = '/error' if req.get? && redirect.to_s == req.request_path
-      res.header['Content-Type'] ||= "text/html; charset=utf-8"
-      yield
+      rescue Redirect => ex
+        res.redirect ex.location, ex.status
     
-    rescue Redirect => ex
-      res.redirect ex.location, ex.status
+      #rescue OT::UnknownKind => ex
     
-    #rescue OT::UnknownKind => ex
+      rescue OT::MissingSecret => ex
+        view = Onetime::Views::UnknownSecret.new
+        res.status = 404
+        res.body = view.render
     
-    rescue OT::MissingSecret => ex
-      view = Onetime::Views::UnknownSecret.new
-      res.status = 404
-      res.body = view.render
+      rescue OT::LimitExceeded => ex
+        err "[limit-exceeded] #{sess.identifier.shorten(10)} (#{sess.ipaddress}): #{cust.custid}"
+        err req.current_absolute_uri
+        error_response "Apologies dear citizen! You have been rate limited. Try again in a few minutes."
     
-    rescue OT::LimitExceeded => ex
-      err "[limit-exceeded] #{sess.identifier.shorten(10)} (#{sess.ipaddress}): #{cust.custid}"
-      err req.current_absolute_uri
-      error_response "Apologies dear citizen! You have been rate limited. Try again in a few minutes."
+      rescue Familia::NotConnected, Familia::Problem => ex
+        err "#{ex.class}: #{ex.message}"
+        err ex.backtrace
+        error_response "An error occurred :["
     
-    rescue Familia::NotConnected, Familia::Problem => ex
-      err "#{ex.class}: #{ex.message}"
-      err ex.backtrace
-      error_response "An error occurred :["
-    
-    rescue => ex
-      err "#{ex.class}: #{ex.message}"
-      err req.current_absolute_uri
-      err ex.backtrace.join("\n")
-      error_response "An error occurred :["
+      rescue => ex
+        err "#{ex.class}: #{ex.message}"
+        err req.current_absolute_uri
+        err ex.backtrace.join("\n")
+        error_response "An error occurred :["
       
-    end
+      end
     
-    def err *args
-      #SYSLOG.err *args
-      STDERR.puts *args
-    end
+      def err *args
+        #SYSLOG.err *args
+        STDERR.puts *args
+      end
     
-    def not_found_response message
-      view = Onetime::Views::NotFound.new req
-      view.err = message
-      res.status = 404
-      res.body = view.render
-    end
+      def not_found_response message
+        view = Onetime::Views::NotFound.new req
+        view.err = message
+        res.status = 404
+        res.body = view.render
+      end
     
-    def error_response message
-      view = Onetime::Views::Error.new req
-      view.err = message
-      res.status = 401
-      res.body = view.render
+      def error_response message
+        view = Onetime::Views::Error.new req
+        view.err = message
+        res.status = 401
+        res.body = view.render
+      end
     end
   end
   module Views
@@ -178,19 +193,5 @@ module Onetime
       @location, @status = l, s
     end
   end
-end
 
-
-module Rack
-  class File
-    # from: rack 1.2.1
-    # don't print out the literal filename for 404s
-    def not_found
-      body = "File not found\n"
-      [404, {"Content-Type" => "text/plain",
-         "Content-Length" => body.size.to_s,
-         "X-Cascade" => "pass"},
-       [body]]
-    end
-  end
 end
