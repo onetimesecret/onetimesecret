@@ -22,7 +22,11 @@ class OT::CLI::Definition
   usage "ots register-build [msg]"
   command :register_build => OT::CLI
 
-  command :anything => OT::CLI
+  usage "ots build"
+  command :build do
+    puts OT::VERSION
+  end
+
 end
 
 Drydock.run! ARGV, STDIN
