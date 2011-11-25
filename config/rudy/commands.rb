@@ -16,7 +16,6 @@ commands do
   allow :gem_update, "gem", "update"
   allow :gem_uninstall, "gem", "uninstall", :V
   allow :update_rubygems
-  allow :echo_nonsense
   allow :rake
   allow :thin
   allow :bundle

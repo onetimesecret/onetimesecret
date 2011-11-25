@@ -59,12 +59,14 @@ routines do
       else
         $otsconfig = YAML.load_file('./etc/config')
       end
-      $nginx_opts = {}
-      $nginx_opts[:ipaddress] = $otsconfig[:nginx][:ipaddress]
-      $nginx_opts[:servername] = $otsconfig[:nginx][:servername]
+      $nginx_config = {}
+      $nginx_config[:ipaddress] = $otsconfig[:nginx][:ipaddress]
+      $nginx_config[:servername] = $otsconfig[:nginx][:servername]
       puts File.expand_path(File.join('config', 'tmpl', 'nginx.conf.tmpl'))
-      template_upload File.expand_path(File.join('config', 'tmpl', 'nginx.conf.tmpl')), "./config/tmp/"
-      mv "./nginx.conf.tmpl", "/config/nginx-server.conf"
+      template_upload File.expand_path(File.join('config', 'tmpl', 'nginx.conf.tmpl')), "/tmp/"
+      mv '/tmp/nginx.conf.tmpl', '/etc/nginx/nginx.conf'
+      chown 'root:', '/etc/nginx/nginx.conf'
+      chmod '644', '/etc/nginx/nginx.conf'
     end
   end
 

@@ -6,7 +6,7 @@
   :create_secret: 10
   :homepage: 25
 :redis:
-  :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
+  :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=true&logging=false'
 :nginx:
   :ipaddress: '192.168.123.22'
   :servername: 'ots5.com'
