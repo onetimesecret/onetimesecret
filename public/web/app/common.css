@@ -31,6 +31,16 @@ a {
   color: #000;
 }
 
+form.signup {
+  width: 600px;
+  clear:both;
+}
+.signup label{clear:both;display:block;width:300px;} 
+.signup input{clear:both;display:block;} 
+
+input.short { width:150px; }
+input.long { width:300px; }
+
 #corset {
   margin-left: 20%;
   margin-right: 20%;
@@ -180,6 +190,7 @@ input[type=submit] {
 }
 
 #fire button{width:280px; margin-top: 10px}
+#fireSmall button{width:210px; margin-top: 10px}
 .button button {
   background-color: #e33100;
   border-left: 1px solid red;

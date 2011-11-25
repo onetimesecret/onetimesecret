@@ -59,7 +59,31 @@ module Onetime
         res.body = view.render
       end
     end
-  
+    
+    def create_account
+    end
+    
+    def signup
+      carefully do
+        view = Onetime::Views::Signup.new req
+        res.body = view.render
+      end
+    end
+    
+    def login
+      carefully do
+        view = Onetime::Views::Login.new req
+        res.body = view.render
+      end
+    end
+    
+    def pricing
+      carefully do
+        view = Onetime::Views::Pricing.new req
+        res.body = view.render
+      end
+    end
+    
     class Info
       include Base
       def privacy

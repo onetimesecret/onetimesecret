@@ -138,6 +138,24 @@ module Onetime
         self[:secret_value].to_s.scan(/\n/).size.zero?
       end
     end
+    class Login < Onetime::View
+      def init 
+        self[:title] = "Login"
+        self[:body_class] = :login
+      end
+    end
+    class Signup < Onetime::View
+      def init 
+        self[:title] = "Create an account"
+        self[:body_class] = :signup
+      end
+    end
+    class Pricing < Onetime::View
+      def init 
+        self[:title] = "Pricing Plans"
+        self[:body_class] = :pricing
+      end
+    end
     class Error < Onetime::View
       def init *args
         self[:title] = "Oh cripes!"

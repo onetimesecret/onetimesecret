@@ -13,7 +13,8 @@ POST  /secret/:key                               Onetime::App#secret_uri
 GET   /info/privacy                              Onetime::App::Info#privacy
 GET   /info/security                             Onetime::App::Info#security
 
-
-##  API
-#POST   /api/v1/generate
-#POST   /api/v1/share
+GET   /pricing                                   Onetime::App#pricing
+GET   /signup                                    Onetime::App#signup
+POST  /signup                                    Onetime::App#create_account
+GET   /login                                     Onetime::App#login
+GET   /logout                                    Onetime::App#logout
