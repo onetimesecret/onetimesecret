@@ -260,7 +260,7 @@ table.pricing td.bestvalue {
 table.pricing td.pricingfeature {
   text-align: left;
   font-weight: bold;
-  border-left: 2px solid black;
+  border-left: none; 
   padding: 2px 4px 2px 2px;
 }
 
@@ -292,14 +292,14 @@ td.topright {
 
 td.bottomleft {
   border-bottom: 1px solid black;
-  border-left: 1px solid black;
+  border-left: none; 
   border-bottom-left-radius: 15px;
   -moz-border-radius-bottomleft: 15px;
 }
 
 td.bottomright {
   border-bottom: 1px solid black;
-  border-right: 1px solid black;
+  border-right: none;
   border-bottom-right-radius: 15px;
   -moz-border-radius-bottomright: 15px;
 }
@@ -309,9 +309,9 @@ table.pricing tr.pricingodd {
 }
 
 table.pricing td.lastcolumn {
-  border-right: 2px solid black;
+  border-right: none; 
 }
 
 table.pricing tr.pricinglastrow td {
-  border-bottom: 2px solid black;
+  border-bottom: rone;
 }
