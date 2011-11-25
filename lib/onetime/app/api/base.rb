@@ -1,9 +1,9 @@
-require 'onetime/app/web/base'
+require 'onetime/app/helpers'
 
 class Onetime::App
   class API
     module Base
-      include Onetime::App::Base
+      include Onetime::App::Helpers
       
       def json hsh
         res.header['Content-Type'] = "application/json; charset=utf-8"
