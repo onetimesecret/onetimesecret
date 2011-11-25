@@ -51,10 +51,14 @@ routines do
       yum 'install', 'redis'
     end
   end
-
+  
   set_nginx_config do
     remote :root do
-      $otsconfig = YAML.load_file(File.join('config', 'environment', config_env, 'ots.yml'))
+      if File.exists?('/etc/onetime/config')
+        $otsconfig = YAML.load_file('/etc/onetime/config')
+      else
+        $otsconfig = YAML.load_file('./etc/config')
+      end
       $nginx_opts = {}
       $nginx_opts[:ipaddress] = $otsconfig[:nginx][:ipaddress]
       $nginx_opts[:servername] = $otsconfig[:nginx][:servername]
