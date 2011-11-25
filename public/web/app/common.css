@@ -226,3 +226,19 @@ input[type=submit] {
 
 .err { color: orange; font-style: italic}
 .address { margin-left: 150px; font-size: 24px; line-height: 24px; }
+
+
+table.pricing td, table.pricing th {
+  padding: 2px;
+  margin: 0px;
+  border: 1px solid #cccccc;
+}
+
+table.pricing {
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+tr.priceodd {
+  background-color: #eeeeee;
+}
