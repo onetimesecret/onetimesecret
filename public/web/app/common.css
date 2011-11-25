@@ -269,7 +269,8 @@ table.pricing tr.blankrow td {
   text-align: center;
 }
 
-table.pricing tr.bottomblankrow td {
+table.pricing tr.bottomblankrow td,
+table.pricing tr.pricingheading td.blankcell {
   border: none;
   text-align: center;
 }
