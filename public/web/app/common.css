@@ -290,20 +290,6 @@ td.topright {
   -moz-border-radius-topright: 15px;
 }
 
-td.bottomleft {
-  border-bottom: 1px solid black;
-  border-left: none; 
-  border-bottom-left-radius: 15px;
-  -moz-border-radius-bottomleft: 15px;
-}
-
-td.bottomright {
-  border-bottom: 1px solid black;
-  border-right: none;
-  border-bottom-right-radius: 15px;
-  -moz-border-radius-bottomright: 15px;
-}
-
 table.pricing tr.pricingodd {
   background-color: #eeeeee;
 }
@@ -313,5 +299,5 @@ table.pricing td.lastcolumn {
 }
 
 table.pricing tr.pricinglastrow td {
-  border-bottom: rone;
+  border-bottom: 2px solid #cccccc;
 }
