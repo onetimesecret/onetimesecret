@@ -64,15 +64,15 @@ module Onetime
     end
     
     def signup
-      carefully do
-        view = Onetime::Views::Signup.new req
+      anonymous do
+        view = Onetime::Views::Signup.new req, sess
         res.body = view.render
       end
     end
     
     def login
-      carefully do
-        view = Onetime::Views::Login.new req
+      anonymous do
+        view = Onetime::Views::Login.new req, sess
         res.body = view.render
       end
     end

@@ -15,12 +15,16 @@ end
 module Onetime
   module Views
   end
+  require 'onetime/app/web/views/helpers'
   class View < Mustache
+    include Onetime::Views::Helpers
     self.template_path = './templates/web'
     self.view_namespace = Onetime::Views
     self.view_path = './app/web/views'
+    attr_reader :req, :sess, :cust
     attr_accessor :err
-    def initialize req=nil, res=nil, *args
+    def initialize req=nil, sess=nil, cust=nil, *args
+      @req, @sess, @cust = req, sess, cust
       self[:subtitle] = "One Time"
       self[:monitored_link] = false
       self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
