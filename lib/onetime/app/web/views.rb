@@ -80,6 +80,7 @@ module Onetime
       def init *args
         self[:title] = "Share a secret"
         self[:monitored_link] = true
+        self[:with_anal] = true
       end
     end
     module Info
@@ -87,16 +88,18 @@ module Onetime
         def init *args
           self[:title] = "Privacy Policy"
           self[:monitored_link] = true
+          self[:with_anal] = true
         end
       end
        class Security < Onetime::View
         def init *args
           self[:title] = "Security Policy"
           self[:monitored_link] = true
+          self[:with_anal] = true
         end
       end
     end
-     class UnknownSecret < Onetime::View
+    class UnknownSecret < Onetime::View
       def init 
         self[:title] = "No such secret"
       end
@@ -146,18 +149,21 @@ module Onetime
       def init 
         self[:title] = "Login"
         self[:body_class] = :login
+        self[:with_anal] = true
       end
     end
     class Signup < Onetime::View
       def init 
         self[:title] = "Create an account"
         self[:body_class] = :signup
+        self[:with_anal] = true
       end
     end
     class Pricing < Onetime::View
       def init 
         self[:title] = "Pricing Plans"
         self[:body_class] = :pricing
+        self[:with_anal] = true
       end
     end
     class Error < Onetime::View

@@ -9,7 +9,7 @@ module Onetime
   
     def index
       anonymous do
-        view = Onetime::Views::Homepage.new req
+        view = Onetime::Views::Homepage.new req, sess, cust
         sess.event_incr! :homepage
         res.body = view.render
       end
@@ -32,7 +32,7 @@ module Onetime
       anonymous do
         deny_agents! 
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
-        view = Onetime::Views::Shared.new req, res
+        view = Onetime::Views::Shared.new req, sess, cust
         logic.raise_concerns
         logic.process
         view[:has_passphrase] = logic.secret.has_passphrase?
@@ -52,7 +52,7 @@ module Onetime
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        view = Onetime::Views::Private.new req, res, logic.metadata, logic.secret
+        view = Onetime::Views::Private.new req, sess, cust, logic.metadata, logic.secret
         if logic.show_secret
           view[:show_secret] = true
         end
