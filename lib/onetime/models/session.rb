@@ -9,6 +9,7 @@ class Onetime::Session < Familia::HashKey
   def initialize ipaddress=nil, custid=nil, useragent=nil
     @ipaddress, @custid, @useragent = ipaddress, custid, useragent  # must be nil or have values!
     @entropy = [ipaddress, custid, useragent]
+    # TODO: This calls Entropy every time
     @sessid = self.sessid || self.class.generate_id(*entropy)
     super name, :db => 1, :ttl => 20.minutes
   end

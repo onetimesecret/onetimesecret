@@ -2,6 +2,7 @@
 
 class Onetime::Customer < Familia::HashKey
   include Onetime::Models::RedisHash
+  include Onetime::Models::Passphrase
   def initialize custid=:anon
     @custid = custid  # if we use accessor methods it will sync to redis.
     super name, :db => 6

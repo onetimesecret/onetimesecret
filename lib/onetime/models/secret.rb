@@ -2,25 +2,9 @@
 module Onetime
   class Secret < Familia::HashKey
     include Onetime::Models::RedisHash
+    include Onetime::Models::Passphrase
     include Gibbler::Complex
-    #prefix :secret
-    #index :key
-    #field :key
-    #field :custid
-    #field :value
-    #field :value_checksum
-    #field :state
-    #field :original_size
-    #field :size
-    #field :passphrase
-    #field :metadata_key
-    #field :value_encryption => Integer
-    #field :passphrase_encryption => Integer
-    #field :viewed => Integer
-    #field :shared => Integer
-    #include Familia::Stamps
     attr_reader :entropy
-    attr_accessor :passphrase_temp
     gibbler :custid, :passphrase_temp, :value_checksum, :entropy
     def initialize custid=nil, entropy=nil
       @custid, @entropy, @state = custid, entropy, :new
@@ -85,24 +69,7 @@ module Onetime
     def encryption_key
       OT::Secret.encryption_key self.key, self.passphrase_temp
     end
-    def update_passphrase v
-      self.passphrase_encryption = 1
-      @passphrase_temp = v
-      self.passphrase = BCrypt::Password.create(v, :cost => 10).to_s
-    end
-    def has_passphrase?
-      !passphrase.to_s.empty?
-    end
-    def passphrase? guess
-      begin 
-        ret = !has_passphrase? || BCrypt::Password.new(passphrase) == guess
-        @passphrase_temp = guess if ret  # used to decrypt the value
-        ret
-      rescue BCrypt::Errors::InvalidHash => ex
-        msg = "[old-passphrase]"
-        !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
-      end
-    end
+
     def load_metadata
       OT::Metadata.load metadata_key
     end

@@ -1,4 +1,5 @@
 
+
 class Onetime::RateLimit < Familia::String
   ttl 10.minutes
   def initialize identifier, event
@@ -35,6 +36,27 @@ class Onetime::RateLimit < Familia::String
 end
 
 module Onetime::Models
+  module Passphrase
+    attr_accessor :passphrase_temp
+    def update_passphrase v
+      self.passphrase_encryption = 1
+      @passphrase_temp = v
+      self.passphrase = BCrypt::Password.create(v, :cost => 12).to_s
+    end
+    def has_passphrase?
+      !passphrase.to_s.empty?
+    end
+    def passphrase? guess
+      begin 
+        ret = !has_passphrase? || BCrypt::Password.new(passphrase) == guess
+        @passphrase_temp = guess if ret  # used to decrypt the value
+        ret
+      rescue BCrypt::Errors::InvalidHash => ex
+        msg = "[old-passphrase]"
+        !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
+      end
+    end
+  end
   module RateLimited
     def event_incr! event
       OT::RateLimit.incr! external_identifier, event
