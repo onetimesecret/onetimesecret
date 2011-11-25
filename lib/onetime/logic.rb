@@ -24,6 +24,24 @@ module Onetime
       end
     end
     
+    class CreateAccount < OT::Logic::Base
+      def process_params
+      end
+      def raise_concerns
+      end
+      def process
+      end
+    end
+    
+    class Dashboard < OT::Logic::Base
+      def process_params
+      end
+      def raise_concerns
+      end
+      def process
+      end
+    end
+    
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind
       attr_reader :metadata, :secret

@@ -47,7 +47,7 @@ module Onetime
     end
  
     def private_uri
-      carefully do
+      anonymous do
         deny_agents! 
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
@@ -61,25 +61,42 @@ module Onetime
     end
     
     def create_account
+      anonymous do
+        deny_agents! 
+        logic = OT::Logic::CreateAccount.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        res.redirect '/dashboard'
+      end
+    end
+    
+    def dashboard
+      anonymous do
+        logic = OT::Logic::Dashboard.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        view = Onetime::Views::Dashboard.new req, sess, cust
+        res.body = view.render
+      end
     end
     
     def signup
       anonymous do
-        view = Onetime::Views::Signup.new req, sess
+        view = Onetime::Views::Signup.new req, sess, cust
         res.body = view.render
       end
     end
     
     def login
       anonymous do
-        view = Onetime::Views::Login.new req, sess
+        view = Onetime::Views::Login.new req, sess, cust
         res.body = view.render
       end
     end
     
     def authenticate
       carefully do
-        res.redirect '/'
+        res.redirect '/dashboard'
       end
     end
     

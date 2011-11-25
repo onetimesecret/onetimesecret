@@ -19,3 +19,5 @@ POST  /signup                                    Onetime::App#create_account
 GET   /login                                     Onetime::App#login
 POST  /login                                     Onetime::App#authenticate
 GET   /logout                                    Onetime::App#logout
+
+GET   /dashboard                                 Onetime::App#dashboard

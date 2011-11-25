@@ -166,6 +166,13 @@ module Onetime
         self[:with_anal] = true
       end
     end
+    class Dashboard < Onetime::View
+      def init 
+        self[:title] = "Your Dashboard"
+        self[:body_class] = :dashboard
+        self[:with_anal] = true
+      end
+    end
     class Error < Onetime::View
       def init *args
         self[:title] = "Oh cripes!"
