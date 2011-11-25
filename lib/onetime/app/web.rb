@@ -77,6 +77,12 @@ module Onetime
       end
     end
     
+    def authenticate
+      carefully do
+        res.redirect '/'
+      end
+    end
+    
     def pricing
       carefully do
         view = Onetime::Views::Pricing.new req

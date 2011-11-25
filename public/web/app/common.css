@@ -34,12 +34,17 @@ a {
 form.signup {
   width: 600px;
   clear:both;
+  margin-left: 40px;
 }
-.signup label{clear:both;display:block;width:300px;} 
-.signup input{clear:both;display:block;} 
+form.signup div {  
+  background-color: #eee;
+  padding: 10px;
+}
+form.signup label{clear:both;display:block;width:300px;font-style: italic} 
+form.signup input{clear:both;display:block;font-size: 24px;} 
 
-input.short { width:150px; }
-input.long { width:300px; }
+input.short { width:220px; }
+input.long { width:380px; }
 
 #corset {
   margin-left: 20%;

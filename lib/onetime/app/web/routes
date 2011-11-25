@@ -17,4 +17,5 @@ GET   /pricing                                   Onetime::App#pricing
 GET   /signup                                    Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account
 GET   /login                                     Onetime::App#login
+POST  /login                                     Onetime::App#authenticate
 GET   /logout                                    Onetime::App#logout
