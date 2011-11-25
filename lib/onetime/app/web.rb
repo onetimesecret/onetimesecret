@@ -60,22 +60,9 @@ module Onetime
       end
     end
     
-    def create_account
-      anonymous do
-        deny_agents! 
-        logic = OT::Logic::CreateAccount.new sess, cust, req.params
-        logic.raise_concerns
-        logic.process
-        res.redirect '/dashboard'
-      end
-    end
-    
-    def dashboard
-      anonymous do
-        logic = OT::Logic::Dashboard.new sess, cust, req.params
-        logic.raise_concerns
-        logic.process
-        view = Onetime::Views::Dashboard.new req, sess, cust
+    def pricing
+      carefully do
+        view = Onetime::Views::Pricing.new req
         res.body = view.render
       end
     end
@@ -84,6 +71,16 @@ module Onetime
       anonymous do
         view = Onetime::Views::Signup.new req, sess, cust
         res.body = view.render
+      end
+    end
+    
+    def create_account
+      anonymous do
+        deny_agents! 
+        logic = OT::Logic::CreateAccount.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        res.redirect '/dashboard'
       end
     end
     
@@ -100,9 +97,12 @@ module Onetime
       end
     end
     
-    def pricing
-      carefully do
-        view = Onetime::Views::Pricing.new req
+    def dashboard
+      anonymous do
+        logic = OT::Logic::Dashboard.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        view = Onetime::Views::Dashboard.new req, sess, cust
         res.body = view.render
       end
     end
