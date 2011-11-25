@@ -31,6 +31,9 @@ module Onetime
       self[:keywords] = "secret,password generator,share a secret,onetime"
       self[:ot_version] = OT::VERSION
       self[:authenticated] = false
+      self[:people_we_care_about] = true
+      self[:display_promo] = false
+      self[:display_faq] = true
       if req && req.params[:errno] && Onetime::ERRNO.has_key?(req.params[:errno])
         self.err = Onetime::ERRNO[req.params[:errno]]
       end

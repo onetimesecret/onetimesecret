@@ -2,8 +2,14 @@
 
   <div id="content">
     
+    {{^people_we_care_about}}
+      <!-- people_we_care_about, etc -->
+    {{/people_we_care_about}}
+    
+    {{#people_we_care_about}}
     <h2 class="intro">Keep sensitive info out of your chat logs &amp; email.</h2>
     {{#err}}<p class="err">{{err}}</p>{{/err}}
+    
     <form id="" method="post" action="/create">
       <ul class="nav">
         <li class="primary">
@@ -23,7 +29,13 @@
         <span id="fire" class="button"><button type="submit">Create a secret link*</button></span>
       </ul>
     </form>
+    
     <div class="intro2"><em>* A secret link is available only once and then it disappears forever.</em></div>
+    
+    {{#display_promo}}
+    {{/display_promo}}
+
+    {{#display_faq}}
     <div id="faq">
       <h3>F.A.Q.</h3>
       
@@ -47,6 +59,10 @@
         <a href="https://twitter.com/murtaghchris" title="Chris Murtagh"><img src="/img/chris-g.png" border="0" /></a>
       </p>
     </div>
+    {{/display_faq}}
+    {{/people_we_care_about}}
+    
+    
   </div>
   
 {{>footer}}

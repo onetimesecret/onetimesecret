@@ -25,11 +25,23 @@ module Onetime
     end
     
     class CreateAccount < OT::Logic::Base
+      attr_reader :custid, :password, :email
       def process_params
+        @custid = params[:custid].to_s
+        @password = params[:password].to_s
+        @password2 = params[:password2].to_s
+        @email = params[:email].to_s
       end
       def raise_concerns
+        unless @custid.size > 4
+          raise OT::FormError, "Customer ID is too short"
+        end
+        unless @password == @password2
+          raise OT::FormError, "Passwords do not match"
+        end
       end
       def process
+        Customer
       end
     end
     

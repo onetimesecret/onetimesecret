@@ -6,7 +6,7 @@ require 'onetime/app/web/views'
 module Onetime
   class App
     include Base
-  
+    
     def index
       anonymous do
         view = Onetime::Views::Homepage.new req, sess, cust
@@ -75,7 +75,7 @@ module Onetime
     end
     
     def create_account
-      anonymous do
+      anonymous('/signup') do
         deny_agents! 
         logic = OT::Logic::CreateAccount.new sess, cust, req.params
         logic.raise_concerns

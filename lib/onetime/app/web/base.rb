@@ -72,7 +72,10 @@ module Onetime
         view = Onetime::Views::UnknownSecret.new
         res.status = 404
         res.body = view.render
-    
+      
+      #rescue OT::BadParameter => ex
+        
+        
       rescue OT::LimitExceeded => ex
         err "[limit-exceeded] #{sess.identifier.shorten(10)} (#{sess.ipaddress}): #{cust.custid}"
         err req.current_absolute_uri

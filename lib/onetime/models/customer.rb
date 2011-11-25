@@ -20,5 +20,12 @@ class Onetime::Customer < Familia::HashKey
     def anonymous
       cust = new
     end
+    def create custid, email=nil
+      cust = new custid
+      # force the storing of the fields to redis
+      cust.sess.custid = custid
+      sess.update_fields # calls update_time!
+      sess
+    end
   end
 end
