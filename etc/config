@@ -10,3 +10,6 @@
 :nginx:
   :ipaddress: '192.168.123.22'
   :servername: 'ots5.com'
+:errno:
+  :nosecret: 'No secret provided'
+  :internalerror: 'Not found'

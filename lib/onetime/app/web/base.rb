@@ -67,13 +67,17 @@ module Onetime
         res.redirect ex.location, ex.status
     
       #rescue OT::UnknownKind => ex
-    
+      
+      rescue OT::DefinedError => ex
+        res.redirect '/?errno=%s' % [Onetime.errno(ex.message.to_s.to_sym)]
+        
       rescue OT::MissingSecret => ex
         view = Onetime::Views::UnknownSecret.new
         res.status = 404
         res.body = view.render
       
-      #rescue OT::BadParameter => ex
+      #rescue OT::FormError => ex
+        
         
         
       rescue OT::LimitExceeded => ex

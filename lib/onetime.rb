@@ -21,9 +21,7 @@ module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
     ERRNO = {
-      :internalerror.gibbler.short => 'Not found',
-      :nosecret.gibbler.short => 'No secret provided',
-    }.freeze unless defined?(Onetime::ERRNO)
+    } unless defined?(Onetime::ERRNO)
   end
   @debug = false
   @mode = :app
@@ -51,6 +49,8 @@ module Onetime
       Gibbler.secret = secret.freeze
       Familia.uri = OT.conf[:redis][:uri]
       OT::RateLimit.register_events OT.conf[:limits]
+      OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last }
+      OT::ERRNO.freeze
       info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
       info " Redis: #{Familia.uri}"
@@ -162,9 +162,13 @@ module Onetime
   
   class Problem < RuntimeError
   end
+  class DefinedError < Problem
+  end
   class MissingSecret < Problem
   end
   class UnknownKind < Problem
+  end
+  class FormError < Problem
   end
   class LimitExceeded < RuntimeError
   end

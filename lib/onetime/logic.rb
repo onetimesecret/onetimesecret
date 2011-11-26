@@ -41,7 +41,7 @@ module Onetime
         end
       end
       def process
-        Customer
+        p [custid, password, email]
       end
     end
     
@@ -67,7 +67,7 @@ module Onetime
       def raise_concerns
         # can raise OT::UserLimitError or OT::HostLimitError
         sess.event_incr! :create_secret
-        raise OT::Problem, "No secret value" if kind == :share && secret_value.empty?
+        raise OT::DefinedError, :nosecret if kind == :share && secret_value.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process

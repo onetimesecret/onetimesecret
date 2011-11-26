@@ -75,7 +75,7 @@ module Onetime
     end
     
     def create_account
-      anonymous('/signup') do
+      anonymous do
         deny_agents! 
         logic = OT::Logic::CreateAccount.new sess, cust, req.params
         logic.raise_concerns
