@@ -51,7 +51,6 @@
       border-bottom: 1px solid {{secondary_color}};
       text-shadow: 1px 1px 0 {{secondary_color}};
     }
-
     #brandedlogo { background:#ffffff url({{banner_url}}) no-repeat right top; }
     #banner { background-color: {{primary_color}}; }
   </style>
@@ -63,7 +62,7 @@
   <div id="header">
     <div id="sitenav">
       {{^authenticated}}
-      <a href="/pricing" title="Pricing &amp; Signup" class="standout">Pricing &amp; Signup</a> | <a href="/login" title="Log in to One-Time Secret">Login</a>
+      <a href="/pricing" title="Pricing &amp; Signup" class="standout">Create an account</a> | <a href="/login" title="Log in to One-Time Secret">Login</a>
       {{/authenticated}}
       {{#authenticated}}
       <a href="/dashboard" title="Your Dashboard">Dashboard</a> | <a href="/logout" title="Log out of One-Time Secret">Logout</a>
