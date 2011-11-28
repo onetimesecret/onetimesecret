@@ -14,5 +14,12 @@ class Onetime::App
       paths.unshift req.script_name
       paths.join('/').gsub '//', '/'
     end
+    
+    attr_reader :req, :res
+    attr_reader :sess, :cust
+    def initialize req, res
+      @req, @res = req, res
+    end
+    
   end
 end
