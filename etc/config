@@ -2,11 +2,16 @@
   :host: localhost:7143
   :ssl: false
   :secret: 074eea80797de4111f68fc3152a8306c9b2388b4
+  :primary_color: '#4c739a'
+  :secondary_color: '#7aa0c7'
+  :border_color: '#000000'
+  :cobranded: true
+  :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png' 
 :limits:
   :create_secret: 10
   :homepage: 25
 :redis:
-  :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=true&logging=false'
+  :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
 :nginx:
   :ipaddress: '192.168.123.22'
   :servername: 'ots5.com'

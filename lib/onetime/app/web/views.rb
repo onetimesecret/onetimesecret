@@ -33,7 +33,20 @@ module Onetime
       self[:authenticated] = false
       self[:people_we_care_about] = true
       self[:display_promo] = false
-      self[:display_faq] = true
+
+      if Onetime.conf[:site][:cobranded]
+        self[:display_faq] = false
+        self[:override_styles] = true
+        self[:display_otslogo] = false
+        self[:primary_color] = Onetime.conf[:site][:primary_color] 
+        self[:secondary_color] = Onetime.conf[:site][:secondary_color] 
+        self[:border_color] = Onetime.conf[:site][:border_color] 
+        self[:banner_url] = Onetime.conf[:site][:banner_url] 
+      else
+        self[:display_faq] = true
+        self[:display_otslogo] = true
+      end
+
       if req && req.params[:errno] && Onetime::ERRNO.has_key?(req.params[:errno])
         self.err = Onetime::ERRNO[req.params[:errno]]
       end
