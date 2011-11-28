@@ -47,7 +47,7 @@ module Onetime
         self[:display_faq] = true
         self[:display_otslogo] = true
       end
-
+      
       if req && req.params[:errno] && Onetime::ERRNO.has_key?(req.params[:errno])
         add_error Onetime::ERRNO[req.params[:errno]]
       else
@@ -62,7 +62,9 @@ module Onetime
       messages[:error] << msg unless msg.to_s.empty?
     end
     def add_form_fields hsh
-      (self[:form_fields] ||= {}).merge! hsh unless hsh.nil?
+      (self.form_fields ||= {}).merge! hsh unless hsh.nil?
+      unless form_fields
+      end
     end
     def baseuri
       scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'

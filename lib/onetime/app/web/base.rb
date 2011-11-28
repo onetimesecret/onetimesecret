@@ -61,8 +61,8 @@ module Onetime
         res.redirect ex.location, ex.status
     
       rescue OT::FormError => ex
-        sess.update_fields :error_message => ex.message
         sess.set_form_fields ex.form_fields
+        sess.update_fields :error_message => ex.message
         res.redirect redirect
         
       rescue OT::DefinedError => ex

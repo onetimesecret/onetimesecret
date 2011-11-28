@@ -8,12 +8,12 @@
     
     <form action="/signup" method="post" class="signup">
       {{{add_shrimp}}}
-      <input type="hidden" name="planid" value="{{planid}}" />
+      <input type="hidden" name="planid" value="{{form_fields.planid}}" />
       <div>
         <label for="custid">Username:</label>
-        <input type="text" name="custid" id="custid" class="short" />
+        <input type="text" name="custid" id="custid" class="short" value="{{form_fields.custid}}" />
         <label for="email">Email Address <em>(optional)</em>:</label>
-        <input type="text" name="email" id="email" class="long"/>
+        <input type="text" name="email" id="email" class="long" value="{{form_fields.email}}"/>
         <label for="password">Password:</label>
         <input type="password" name="password" id="password" class="short" />
         <label for="password2">Confirm Password:</label>
