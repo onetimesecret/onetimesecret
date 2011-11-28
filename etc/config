@@ -5,7 +5,7 @@
   :primary_color: '#4c739a'
   :secondary_color: '#7aa0c7'
   :border_color: '#000000'
-  :cobranded: true
+  :cobranded: false
   :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png' 
 :limits:
   :create_secret: 10
