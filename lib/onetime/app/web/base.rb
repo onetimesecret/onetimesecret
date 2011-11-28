@@ -61,20 +61,20 @@ module Onetime
         res.redirect ex.location, ex.status
     
       rescue OT::FormError => ex
-        sess.update_fields :error_message => ex.message, :form_fields => ex.form_fields
+        sess.update_fields :error_message => ex.message
+        sess.set_form_fields ex.form_fields
         res.redirect redirect
         
       rescue OT::DefinedError => ex
+        # TODO: Remove this after debugging the errno issue (2011-11-28)
+        err ex.message
+        err ex.backtrace
         res.redirect '/?errno=%s' % [Onetime.errno(ex.message.to_s.to_sym)]
         
       rescue OT::MissingSecret => ex
         view = Onetime::Views::UnknownSecret.new
         res.status = 404
         res.body = view.render
-      
-      #rescue OT::FormError => ex
-        
-        
         
       rescue OT::LimitExceeded => ex
         err "[limit-exceeded] #{sess.identifier.shorten(10)} (#{sess.ipaddress}): #{cust.custid}"

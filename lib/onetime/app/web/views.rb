@@ -62,7 +62,6 @@ module Onetime
       messages[:error] << msg unless msg.to_s.empty?
     end
     def add_form_fields hsh
-      p [1, hsh]
       (self[:form_fields] ||= {}).merge! hsh unless hsh.nil?
     end
     def baseuri

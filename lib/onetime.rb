@@ -158,6 +158,27 @@ module Onetime
       chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
       (1..len).collect { chars[rand(chars.size-1)] }.join
     end
+    def indifferent_params(params)
+      if params.is_a?(Hash)
+        params = indifferent_hash.merge(params)
+        params.each do |key, value|
+          next unless value.is_a?(Hash) || value.is_a?(Array)
+          params[key] = indifferent_params(value)
+        end
+      elsif params.is_a?(Array)
+        params.collect! do |value|
+          if value.is_a?(Hash) || value.is_a?(Array)
+            indifferent_params(value)
+          else
+            value
+          end
+        end
+      end
+    end
+    # Creates a Hash with indifferent access.
+    def indifferent_hash
+      Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
+    end
   end
   
   class Problem < RuntimeError
@@ -169,10 +190,7 @@ module Onetime
   class UnknownKind < Problem
   end
   class FormError < Problem
-    def form_fields
-      @form_fields ||= {}
-      @form_fields
-    end
+    attr_accessor :form_fields, :message
   end
   class LimitExceeded < RuntimeError
   end

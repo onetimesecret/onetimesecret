@@ -44,15 +44,12 @@ class Onetime::Session < Familia::HashKey
     @sessid
   end
   def set_form_fields hsh
-    p [:set, hsh]
     self.form_fields = hsh.to_json
   end
   def get_form_fields!
     fields_json = self.form_fields!
-    p [:get, fields_json]
-    p :TODO_FIX_FORM_FIELDS
     return if fields_json.nil?
-    Yajl::Parser.parse fields_json
+    OT::Utils.indifferent_params Yajl::Parser.parse(fields_json)
   end
   def identifier
     @sessid  # Don't call the method

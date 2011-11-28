@@ -36,8 +36,10 @@ module Onetime
       end
       def raise_concerns
         if OT::Customer.exists?(@custid)
-          sess.set_form_fields :planid => planid, :custid => custid, :email => email
-          raise OT::FormError, "Username not available"
+          ex = OT::FormError.new 
+          ex.message = "Username not available"
+          ex.form_fields = {:planid => planid, :custid => custid, :email => email}
+          raise ex
         end
         unless @custid.size >= 4
           raise OT::FormError, "Customer ID is too short"
