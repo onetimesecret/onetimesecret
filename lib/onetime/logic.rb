@@ -22,6 +22,15 @@ module Onetime
       def process_generic_params
         # remember to set with ||= 
       end
+      def form_fields
+        raise "No form_fields method for #{self}"
+      end
+      def raise_form_error msg
+        ex = OT::FormError.new 
+        ex.message = msg
+        ex.form_fields = form_fields
+        raise ex
+      end
     end
     
     class CreateAccount < OT::Logic::Base
@@ -35,22 +44,17 @@ module Onetime
         @email = params[:email].to_s
       end
       def raise_concerns
-        if OT::Customer.exists?(@custid)
-          ex = OT::FormError.new 
-          ex.message = "Username not available"
-          ex.form_fields = {:planid => planid, :custid => custid, :email => email}
-          raise ex
-        end
-        unless @custid.size >= 4
-          raise OT::FormError, "Customer ID is too short"
-        end
-        unless @password == @password2
-          raise OT::FormError, "Passwords do not match"
-        end
+        raise_form_error "Username not available" if OT::Customer.exists?(@custid)
+        raise_form_error "Customer ID is too short"  unless @custid.size >= 4
+        raise_form_error "Passwords do not match" unless @password == @password2
       end
       def process
         @cust = OT::Customer.create @custid
         cust.update_passphrase @password
+      end
+      private
+      def form_fields
+        {:planid => planid, :custid => custid, :email => email}
       end
     end
     

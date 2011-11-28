@@ -44,7 +44,7 @@ class Onetime::Session < Familia::HashKey
     @sessid
   end
   def set_form_fields hsh
-    self.form_fields = hsh.to_json
+    self.form_fields = hsh.to_json unless hsh.nil?
   end
   def get_form_fields!
     fields_json = self.form_fields!
