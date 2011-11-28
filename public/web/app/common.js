@@ -1,4 +1,3 @@
-
 $(function() {  
   $.fn.deobfuscate = function() {
     $(this).each(function(i, el) {
@@ -23,5 +22,10 @@ $(function() {
   $('.email').deobfuscate();
   $('#optionsToggle').click(function(){
     $('#options').toggle();
+    var displayed = $('#options').css('display') == 'block'
+    $.cookie("display_options", displayed);
   });
+  if ($.cookie("display_options") == "true") {
+    $('#options').toggle();
+  }
 });
