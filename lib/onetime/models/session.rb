@@ -57,8 +57,11 @@ class Onetime::Session < Familia::HashKey
   # Used by the limiter to estimate a unique client. We can't use
   # the session ID b/c they can choose to not send the cookie.
   def external_identifier  
-    #OT.ld "sess identifier input: #{[ipaddress.to_s, useragent.to_s, custid.to_s]}"
-    @external_identifier ||= [ipaddress.to_s, useragent.to_s, custid.to_s].gibbler.base(36)
+    elements = []
+    elements << ipaddress || 'UNKNOWNIP'
+    elements << custid || 'anon'
+    #OT.ld "sess identifier input: #{elements.inspect}"
+    @external_identifier ||= elements.gibbler.base(36)
     @external_identifier
   end
   def stale?
