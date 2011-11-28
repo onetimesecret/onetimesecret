@@ -154,14 +154,16 @@ input.long { width:380px; }
 
 #banner {
   width: 100%;
-  padding: 2px;
+  background-color: #ff6;
   margin: 0px;
-  background-color: red;
+  padding: 0px;
+  border-bottom: 4px solid red;
 }
 
 #banner .broadcast {
   text-align: center;
-  color: #fff;
+  color: #000;
+  font-weight: bolder;
 }
 
 .secretValue {width: 550px; font-size: 16px; line-height: 16px; padding: 6px; border: 1px solid #000; clear: both}
