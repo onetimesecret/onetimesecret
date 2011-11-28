@@ -98,6 +98,8 @@ module Onetime
         if valid?
           ['/private/', metadata.key].join
         else
+          p [:metadata, metadata.all]
+          p [:secret, secret.all]
           '/?errno=%s' % [Onetime.errno(:nosecret)]
         end
       end
