@@ -254,6 +254,10 @@ table.pricing tr.blankrow td.bestvalue {
   text-align: center;
 }
 
+table.pricing td.action {
+  font-size: 24px;
+}
+
 table.pricing td {
   padding: 4px;
   margin: 0px;
@@ -280,9 +284,11 @@ table.pricing tr.bottomblankrow td.bestvalue {
 
 table.pricing td.pricingfeature {
   text-align: left;
-  font-weight: bold;
+  font-style: italic;
   border-left: none; 
   padding: 2px 4px 2px 2px;
+  font-size: 14px;
+  background-color: #fff;
 }
 
 table.pricing tr.blankrow td {
@@ -297,7 +303,7 @@ table.pricing tr.pricingheading td.blankcell {
 }
 
 table.pricing {
-  font-size: 0.9em;
+  font-size: 14px;
 }
 
 td.topleft {
@@ -312,8 +318,13 @@ td.topright {
   -moz-border-radius-topright: 15px;
 }
 
-table.pricing tr.pricingodd {
+table.pricing tr.pricingeven {
   background-color: #eeeeee;
+}
+
+table.pricing tr.prices {
+  font-size: 24px;
+  text-align: center;
 }
 
 table.pricing td.lastcolumn {

@@ -4,8 +4,9 @@
     
     <h2 class="intro">Create an account</h2>
     
-    <form method="post" class="signup">
+    <form action="/signup" method="post" class="signup">
       {{{add_shrimp}}}
+      <input type="hidden" name="planid" value="{{planid}}" />
       <div>
         <label for="custid">Username:</label>
         <input type="text" name="custid" id="custid" class="short" />

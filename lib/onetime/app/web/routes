@@ -15,6 +15,9 @@ GET   /info/security                             Onetime::App::Info#security
 
 GET   /pricing                                   Onetime::App#pricing
 GET   /signup                                    Onetime::App#signup
+GET   /signup/personal                           Onetime::App#signup
+GET   /signup/professional                       Onetime::App#signup
+GET   /signup/agency                             Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account
 GET   /login                                     Onetime::App#login
 POST  /login                                     Onetime::App#authenticate
