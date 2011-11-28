@@ -30,12 +30,6 @@ module Onetime
     module Base
       include OT::App::Helpers
       
-      attr_reader :req, :res
-      attr_reader :sess, :cust
-      def initialize req, res
-        @req, @res = req, res
-      end
-    
       def anonymous
         carefully do 
           begin
@@ -66,8 +60,10 @@ module Onetime
       rescue Redirect => ex
         res.redirect ex.location, ex.status
     
-      #rescue OT::UnknownKind => ex
-      
+      rescue OT::FormError => ex
+        sess.update_fields :error_message => ex.message, :form_fields => ex.form_fields
+        res.redirect redirect
+        
       rescue OT::DefinedError => ex
         res.redirect '/?errno=%s' % [Onetime.errno(ex.message.to_s.to_sym)]
         
@@ -105,14 +101,14 @@ module Onetime
       
       def not_found_response message
         view = Onetime::Views::NotFound.new req
-        view.err = message
+        view.add_error message
         res.status = 404
         res.body = view.render
       end
     
       def error_response message
         view = Onetime::Views::Error.new req
-        view.err = message
+        view.add_error message
         res.status = 401
         res.body = view.render
       end

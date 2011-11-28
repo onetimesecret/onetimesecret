@@ -22,9 +22,10 @@ module Onetime
     self.view_namespace = Onetime::Views
     self.view_path = './app/web/views'
     attr_reader :req, :sess, :cust
-    attr_accessor :err
+    attr_accessor :messages, :form_fields
     def initialize req=nil, sess=nil, cust=nil, *args
       @req, @sess, @cust = req, sess, cust
+      @messages = { :info => [], :error => [] }
       self[:subtitle] = "One Time"
       self[:monitored_link] = false
       self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
@@ -48,9 +49,21 @@ module Onetime
       end
 
       if req && req.params[:errno] && Onetime::ERRNO.has_key?(req.params[:errno])
-        self.err = Onetime::ERRNO[req.params[:errno]]
+        add_error Onetime::ERRNO[req.params[:errno]]
+      else
+        unless sess.nil?
+          add_error sess.error_message!
+          add_form_fields sess.get_form_fields!
+        end
       end
       init *args if respond_to? :init
+    end
+    def add_error msg
+      messages[:error] << msg unless msg.to_s.empty?
+    end
+    def add_form_fields hsh
+      p [1, hsh]
+      (self[:form_fields] ||= {}).merge! hsh unless hsh.nil?
     end
     def baseuri
       scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'

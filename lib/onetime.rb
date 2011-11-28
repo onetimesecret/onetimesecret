@@ -169,6 +169,10 @@ module Onetime
   class UnknownKind < Problem
   end
   class FormError < Problem
+    def form_fields
+      @form_fields ||= {}
+      @form_fields
+    end
   end
   class LimitExceeded < RuntimeError
   end

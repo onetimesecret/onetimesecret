@@ -61,8 +61,8 @@ module Onetime
     end
     
     def pricing
-      carefully do
-        view = Onetime::Views::Pricing.new req
+      anonymous do
+        view = Onetime::Views::Pricing.new req, sess, cust
         res.body = view.render
       end
     end
@@ -92,7 +92,7 @@ module Onetime
     end
     
     def authenticate
-      carefully do
+      anonymous do
         res.redirect '/dashboard'
       end
     end
@@ -110,14 +110,14 @@ module Onetime
     class Info
       include Base
       def privacy
-        carefully do
-          view = Onetime::Views::Info::Privacy.new req
+        anonymous do
+          view = Onetime::Views::Info::Privacy.new req, sess, cust
           res.body = view.render
         end
       end
       def security
-        carefully do
-          view = Onetime::Views::Info::Security.new req
+        anonymous do
+          view = Onetime::Views::Info::Security.new req, sess, cust
           res.body = view.render
         end
       end

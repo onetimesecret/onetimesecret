@@ -26,8 +26,9 @@ module Onetime
     
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
-      attr_reader :custid, :password, :email
+      attr_reader :planid, :custid, :password, :email
       def process_params
+        @planid = params[:planid].to_s
         @custid = params[:custid].to_s
         @password = params[:password].to_s
         @password2 = params[:password2].to_s
@@ -35,6 +36,7 @@ module Onetime
       end
       def raise_concerns
         if OT::Customer.exists?(@custid)
+          sess.set_form_fields :planid => planid, :custid => custid, :email => email
           raise OT::FormError, "Username not available"
         end
         unless @custid.size >= 4
