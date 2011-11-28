@@ -4,6 +4,8 @@
     
     <h2 class="intro">Create an account</h2>
     
+    {{>partial/session_messages}}
+    
     <form action="/signup" method="post" class="signup">
       {{{add_shrimp}}}
       <input type="hidden" name="planid" value="{{planid}}" />
