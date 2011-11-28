@@ -262,20 +262,20 @@ table.pricing td {
 }
 
 table.pricing td.bestvalue {
-  background-color: #FFA288;
-  border: 1px solid #e33100 !important;
-  border-right: 2px solid #e33100 !important;
-  border-left: 2px solid #e33100 !important;
+  background-color: #C3CDE3;
+  border: 1px solid #243661 !important;
+  border-right: 2px solid #243661 !important;
+  border-left: 2px solid #243661 !important;
 }
 
 table.pricing tr.blankrow td.bestvalue {
-  border-top: 2px solid #e33100 !important;
-  border-right: 2px solid #e33100 !important;
-  border-left: 2px solid #e33100 !important;
+  border-top: 2px solid #243661 !important;
+  border-right: 2px solid #243661 !important;
+  border-left: 2px solid #243661 !important;
 }
 
 table.pricing tr.bottomblankrow td.bestvalue {
-  border-bottom: 2px solid #e33100 !important;
+  border-bottom: 2px solid #243661 !important;
 }
 
 table.pricing td.pricingfeature {
