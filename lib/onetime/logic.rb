@@ -93,18 +93,10 @@ module Onetime
         secret.encrypt_value processed_value
         secret.save
         metadata.save
+        raise OT::DefinedError, :nosecret unless metadata.valid? && secret.valid?
       end
       def redirect_uri
-        if valid?
-          ['/private/', metadata.key].join
-        else
-          p [:metadata, metadata.all]
-          p [:secret, secret.all]
-          '/?errno=%s' % [Onetime.errno(:nosecret)]
-        end
-      end
-      def valid?
-        metadata.valid? && secret.valid?
+        ['/private/', metadata.key].join
       end
     end
     
