@@ -43,6 +43,7 @@ module Onetime
               @sess.update_fields  # calls update_time!
               # Only set the cookie after it's been saved
               res.send_cookie :sess, @sess.sessid, @sess.ttl
+              OT.ld "[sessid] #{sess.sessid}"
             end
           end
           yield
