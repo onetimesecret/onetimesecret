@@ -334,3 +334,7 @@ table.pricing td.lastcolumn {
 table.pricing tr.pricinglastrow td {
   border-bottom: 2px solid #cccccc;
 }
+
+.strikethrough {
+  text-decoration: line-through;
+}
