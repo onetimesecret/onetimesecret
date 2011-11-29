@@ -9,8 +9,6 @@
   :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png' 
 :limits:
   :create_secret: 10
-  :homepage: 25
-  :dashboard: 25
   :create_account: 3
 :redis:
   :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'

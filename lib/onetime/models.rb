@@ -1,6 +1,7 @@
 
 
 class Onetime::RateLimit < Familia::String
+  DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
   ttl 10.minutes
   def initialize identifier, event
     #super [Familia.apiversion, :limiter, identifier, event, self.class.eventstamp]
@@ -19,7 +20,7 @@ class Onetime::RateLimit < Familia::String
     end
     alias_method :increment!, :incr!
     def exceeded? event, count
-      (count) > (events[event] || 5)
+      (count) > (events[event] || DEFAULT_LIMIT)
     end
     def register_event event, count
       (@events ||= {})[event] = count
