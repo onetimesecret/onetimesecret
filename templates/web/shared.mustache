@@ -4,7 +4,12 @@
     {{#err}}<p class="err">{{err}}</p>{{/err}}
     {{^show_secret}}
     {{^has_passphrase}}
+    {{#verification}}
+    <span class="pretext">Continue to verify your account:</span><br/>
+    {{/verification}}
+    {{^verification}}
     <span class="pretext">This secret is for you:</span><br/>
+    {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
     <h2 class="intro">You have found a secret.</div>
@@ -23,7 +28,12 @@
     {{/show_secret}}
     {{#show_secret}}
     <div class="secret">
-      <span class="pretext">This secret is for you:</span><br/>
+      {{#verification}}
+      <span class="pretext">Your secret message:</span><br/>
+      {{/verification}}
+      {{^verification}}
+      <span class="pretext">This secret is for you:</span><br/><br/>
+      {{/verification}}
       {{#one_liner}}
       <input class="selectable" value="{{secret_value}}" />
       {{/one_liner}}

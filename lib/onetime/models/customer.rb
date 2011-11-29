@@ -22,6 +22,9 @@ class Onetime::Customer < Familia::HashKey
   def role? guess
     role.to_s == guess.to_s
   end
+  def verified?
+    verified.to_s == "verified"
+  end
   def metadata_list
     if @metadata_list.nil?
       el = [prefix, identifier, :metadata]

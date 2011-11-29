@@ -55,11 +55,11 @@ module Onetime
         sess.update_fields :custid => cust.custid, :authenticated => 'true'
         cust.update_fields :planid => planid, :verified => false
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
-        secret.encrypt_value Onetime::Utils.strand(12)
+        secret.encrypt_value "Thanks for verifying your account. You can now log in. \n\nYour fortune cookie for today is:\n%s" % ['blah']
         secret.verification = true
+        secret.custid = cust.custid
         secret.save
         view = OT::Email::Welcome.new cust, secret
-        puts view.render
         view.deliver_email
       end
       private
@@ -226,7 +226,7 @@ module Onetime
     
     class ShowSecret < OT::Logic::Base
       attr_reader :key, :passphrase, :continue
-      attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size
+      attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size, :verification
       def process_params
         @key = params[:key].to_s
         @secret = Onetime::Secret.load key
@@ -238,10 +238,16 @@ module Onetime
       end
       def process
         @show_secret = secret.state?(:new) && ((secret.has_passphrase? && secret.passphrase?(passphrase)) || continue)
+        @verification = secret.verification.to_s == "true"
+        cust.verified = true if @verification
         if show_secret 
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
           @truncated = secret.truncated
           @original_size = secret.original_size
+          if secret.verification.to_s == "true" && !cust.verified?
+            @verification = true
+            cust.verified = "true"
+          end
           secret.viewed!
         end
       end
