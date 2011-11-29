@@ -54,16 +54,17 @@ module Onetime
       OT::RateLimit.register_events OT.conf[:limits]
       OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last }
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
-      if OT::Entropy.count < 50_000
-        info "Entropy is low (#{OT::Entropy.count}). Generating..."
-        OT::Entropy.generate
-        info "Entropy now @ #{OT::Entropy.count}"
-      end
+      
       info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
       info " Redis: #{Familia.uri}"
       info "Secret: #{secret}"
       info "Limits: #{OT::RateLimit.events}"
+      if OT::Entropy.count < 10_000
+        info "Entropy is low (#{OT::Entropy.count}). Generating..."
+        OT::Entropy.generate
+      end
+      info "Entropy: #{OT::Entropy.count}"
       @conf
     end
     def to_file(content, filename, mode, chmod=0744)
