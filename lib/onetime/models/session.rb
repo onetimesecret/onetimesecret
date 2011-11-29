@@ -97,9 +97,6 @@ class Onetime::Session < Familia::HashKey
     nil
   end
   def authenticated?
-    unless self.cache.has_key?(:authenticated)
-      refresh_cache
-    end
     self.authenticated.to_s == 'true'
   end
   def load_customer

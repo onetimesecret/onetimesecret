@@ -34,7 +34,7 @@ module Onetime
       self[:authenticated] = sess.authenticated? if sess
       self[:people_we_care_about] = true
       self[:display_promo] = false
-
+      
       if Onetime.conf[:site][:cobranded]
         self[:display_faq] = false
         self[:override_styles] = true

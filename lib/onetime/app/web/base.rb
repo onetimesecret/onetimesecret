@@ -68,7 +68,7 @@ module Onetime
         res.redirect '/?errno=%s' % [Onetime.errno(ex.message.to_s.to_sym)]
         
       rescue OT::MissingSecret => ex
-        view = Onetime::Views::UnknownSecret.new
+        view = Onetime::Views::UnknownSecret.new req, sess, cust
         res.status = 404
         res.body = view.render
         
@@ -113,14 +113,14 @@ module Onetime
       end
       
       def not_found_response message
-        view = Onetime::Views::NotFound.new req
+        view = Onetime::Views::NotFound.new req, sess, cust
         view.add_error message
         res.status = 404
         res.body = view.render
       end
     
       def error_response message
-        view = Onetime::Views::Error.new req
+        view = Onetime::Views::Error.new req, sess, cust
         view.add_error message
         res.status = 401
         res.body = view.render
