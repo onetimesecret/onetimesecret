@@ -193,6 +193,11 @@ module Onetime
     attr_accessor :form_fields, :message
   end
   class LimitExceeded < RuntimeError
+    attr_accessor :event, :message, :cust
+    attr_reader :identifier, :event, :count
+    def initialize identifier, event, count
+      @identifier, @event, @count = identifier, event, count
+    end
   end
 end
 OT = Onetime

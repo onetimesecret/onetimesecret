@@ -93,7 +93,32 @@ module Onetime
     
     def authenticate
       anonymous do
-        res.redirect '/dashboard'
+        logic = OT::Logic::AuthenticateSession.new sess, cust, req.params
+        view = Onetime::Views::Login.new req, sess, cust
+        if sess.authenticated?
+          sess.msg! "You are already logged in."
+          res.redirect '/'
+        else
+          if req.post?
+            logic.raise_concerns
+            logic.process
+            sess, cust = logic.sess, logic.cust
+            res.send_cookie :sess, sess.sessid, sess.ttl
+            res.redirect '/dashboard'
+          else
+            view.cust = OT::Customer.anonymous
+            res.body = view.render
+          end
+        end
+      end
+    end
+    
+    def logout
+      anonymous do
+        logic = OT::Logic::DestroySession.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        res.redirect app_path('/')
       end
     end
     

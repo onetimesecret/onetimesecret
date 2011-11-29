@@ -3,7 +3,7 @@
 module Onetime
   module Logic
     class Base
-      unless defined?(Stella::Logic::Base::MOBILE_REGEX)
+      unless defined?(Onetime::Logic::Base::MOBILE_REGEX)
         MOBILE_REGEX = /^\+?\d{9,16}$/
         EMAIL_REGEX = %r{^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,4})$}i
       end
@@ -51,10 +51,86 @@ module Onetime
       def process
         @cust = OT::Customer.create @custid
         cust.update_passphrase @password
+        sess.authenticated = true
       end
       private
       def form_fields
         {:planid => planid, :custid => custid, :email => email}
+      end
+    end
+
+    class AuthenticateSession < OT::Logic::Base
+      attr_reader :custid
+      def process_params
+        @custid = params[:custid]
+      end
+      def raise_concerns
+        sess.event_incr! :authenticate_session
+        if @cust.nil?
+          @cust ||= OT::Customer.anonymous
+          u, p = params[:u], params[:p].gibbler.short
+          raise_form_error "Try again"
+        end
+      end
+
+      def process
+        if success?
+          OT.info "[login-success] #{cust.custid} #{cust.role}"
+          #TODO: sess = OT::Session.new @sess.ipaddress, @cust.custid, @sess.agent
+          #@sess.destroy!   # get rid of the unauthenticated session ID
+          #@sess = sess
+          @sess.custid = @cust.custid
+          @sess.authenticated = true
+          @sess.ttl = 20.days if @stay
+          #OT::Customer.active.add OT.now.to_i, @cust if @cust && @sess.authenticated?
+          @cust.save
+        else
+          raise_form_error "Try again"
+        end
+      end
+      
+      def success?
+        !cust.nil? && !cust.anonymous?
+      end
+      
+      protected 
+
+      def process_params
+        @stay = params[:stay].to_s == "true"
+        if params[:u].to_s.index(':as:')
+          @colonelname, @custid = *params[:u].downcase.split(':as:')
+        else
+          @custid = params[:u].downcase if params[:u]
+        end
+        if params[:p].to_s.empty?
+          @cust = nil
+        elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@custid)
+          OT.info "[login-as-attempt] #{@colonelname} as #{@custid  } #{@sess.ipaddress}"
+          @potential = OT::Customer.load @colonelname
+          colonel = potential if potential.password?(params[:p])
+          @cust = OT::Customer.load @custid if colonel.colonel?
+          OT.info "[login-as-success] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
+        elsif (potential = OT::Customer.load(@custid))
+          @cust = potential if potential.passphrase?(params[:p])
+        #elsif OT::Customer.email_index.taken? @custid
+        #  potential = OT::Customer.email_index[@custid]
+        #  @cust = potential if potential.password?(params[:p])
+        end
+      end
+      private
+      def form_fields
+        {:custid => custid}
+      end
+    end
+
+    class DestroySession < OT::Logic::Base
+      def process_params
+      end
+      def raise_concerns
+        sess.event_incr! :destroy_session
+      end
+      def process
+        sess.destroy!
       end
     end
     
@@ -62,6 +138,7 @@ module Onetime
       def process_params
       end
       def raise_concerns
+        sess.event_incr! :dashboard
       end
       def process
       end
@@ -78,7 +155,6 @@ module Onetime
         @passphrase = params[:passphrase].to_s
       end
       def raise_concerns
-        # can raise OT::UserLimitError or OT::HostLimitError
         sess.event_incr! :create_secret
         raise OT::DefinedError, :nosecret if kind == :share && secret_value.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?

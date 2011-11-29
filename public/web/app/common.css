@@ -11,12 +11,14 @@ h1 a { text-decoration: none; color: #000}
 
 #sitenav {
   margin-top: 10px;
-  margin-left: 68%;
-  margin-bottom: 0px;
+  margin-left: 20%;
+  margin-right: 20%;
+  margin-bottom: 5px;
   padding: 0px;
   line-height: 80%;
   font-size: 80%;
   color: #999;
+  text-align: right;
 }
 
 #sitenav a {

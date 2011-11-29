@@ -21,8 +21,8 @@ module Onetime
     self.template_path = './templates/web'
     self.view_namespace = Onetime::Views
     self.view_path = './app/web/views'
-    attr_reader :req, :sess, :cust
-    attr_accessor :messages, :form_fields
+    attr_reader :req
+    attr_accessor :sess, :cust, :messages, :form_fields
     def initialize req=nil, sess=nil, cust=nil, *args
       @req, @sess, @cust = req, sess, cust
       @messages = { :info => [], :error => [] }
@@ -31,7 +31,7 @@ module Onetime
       self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
       self[:keywords] = "secret,password generator,share a secret,onetime"
       self[:ot_version] = OT::VERSION
-      self[:authenticated] = false
+      self[:authenticated] = sess.authenticated? if sess
       self[:people_we_care_about] = true
       self[:display_promo] = false
 

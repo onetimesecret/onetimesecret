@@ -78,7 +78,7 @@ module Onetime
         res.body = view.render
         
       rescue OT::LimitExceeded => ex
-        err "[limit-exceeded] #{sess.identifier.shorten(10)} (#{sess.ipaddress}): #{cust.custid}"
+        err "[limit-exceeded] #{cust.custid}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
         err req.current_absolute_uri
         error_response "Apologies dear citizen! You have been rate limited. Try again in a few minutes."
     
