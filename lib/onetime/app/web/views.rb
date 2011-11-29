@@ -123,6 +123,7 @@ module Onetime
           self[:show_passphrase] = !secret.passphrase_temp.to_s.empty?
           self[:passphrase_temp] = secret.passphrase_temp
           self[:secret_value] = secret.can_decrypt? ? secret.decrypted_value : secret.value
+          self[:truncated] = secret.truncated
         end
       end
       def share_uri

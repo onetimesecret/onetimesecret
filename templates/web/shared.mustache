@@ -31,9 +31,9 @@
       <textarea class="selectable" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
       {{/one_liner}}
       <p>(careful: it will disappear when you refresh this page.)</p>
-      {{#ssecret.long}}
+      {{#truncated}}
       <p>Note: this secret was truncated b/c it was over 5KB</p>
-      {{/ssecret.long}}
+      {{/truncated}}
     </div>
     <ul class="nav">
       <li class="alt"><a href="/">Reply with another secret</a></li>

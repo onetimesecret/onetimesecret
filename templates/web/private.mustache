@@ -23,9 +23,9 @@
       {{^one_liner}}
         <p>(careful: it will disappear when you refresh this page.)</p>
         <textarea class="selectable" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
-        {{#ssecret.long}}
+        {{#truncated}}
         <p>Note: this secret was truncated b/c it was over 5KB</p>
-        {{/ssecret.long}}
+        {{/truncated}}
       {{/one_liner}}
     </div>
     {{/show_secret}}

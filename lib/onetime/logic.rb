@@ -192,7 +192,7 @@ module Onetime
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym 
         end
-        @secret_value = params[:secret].to_s
+        @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
       end
       def raise_concerns
@@ -204,14 +204,7 @@ module Onetime
         @metadata, @secret = Onetime::Secret.spawn_pair :anon, [sess.external_identifier]
         metadata.passphrase = passphrase if !passphrase.empty?
         secret.update_passphrase passphrase if !passphrase.empty?
-        processed_value = case kind
-        when :share
-          secret_value.slice(0, 4999)
-        when :generate
-          @secret_value = Onetime::Utils.strand 12 # set secret_value too.
-        end
-        secret.original_size = secret_value.size
-        secret.encrypt_value processed_value
+        secret.encrypt_value secret_value
         secret.save
         metadata.save
         if metadata.valid? && secret.valid?
@@ -227,7 +220,7 @@ module Onetime
     
     class ShowSecret < OT::Logic::Base
       attr_reader :key, :passphrase, :continue
-      attr_reader :secret, :show_secret, :secret_value
+      attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size
       def process_params
         @key = params[:key].to_s
         @secret = Onetime::Secret.load key
@@ -241,6 +234,8 @@ module Onetime
         @show_secret = secret.state?(:new) && ((secret.has_passphrase? && secret.passphrase?(passphrase)) || continue)
         if show_secret 
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
+          @truncated = secret.truncated
+          @original_size = secret.original_size
           secret.viewed!
         end
       end

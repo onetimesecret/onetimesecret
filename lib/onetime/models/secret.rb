@@ -46,11 +46,16 @@ module Onetime
     def valid?
       exists? && !value.to_s.empty?
     end
-    def encrypt_value v, opts={}
+    def encrypt_value original_value, opts={}
       self.value_encryption = 1
       opts.merge! :key => encryption_key 
-      self.value = v.encrypt opts
-      self.value_checksum = v.gibbler
+      storable_value = original_value.slice(0, 4999)
+      self.original_size = original_value.size
+      self.value = storable_value.encrypt opts
+      self.value_checksum = storable_value.gibbler
+    end
+    def truncated
+      self.original_size.to_i >= 4999
     end
     def can_decrypt?
       passphrase.to_s.empty? || !passphrase_temp.to_s.empty?

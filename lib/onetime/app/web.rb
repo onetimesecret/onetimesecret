@@ -39,6 +39,8 @@ module Onetime
         if logic.show_secret
           view[:show_secret] = true
           view[:secret_value] = logic.secret_value
+          view[:original_size] = logic.original_size
+          view[:truncated] = logic.truncated
         elsif req.post?
           view[:err] = "Double check that passphrase"
         end
