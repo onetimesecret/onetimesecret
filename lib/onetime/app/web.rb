@@ -8,7 +8,7 @@ module Onetime
     include Base
     
     def index
-      anonymous do
+      carefully do
         view = Onetime::Views::Homepage.new req, sess, cust
         sess.event_incr! :homepage
         res.body = view.render
@@ -20,7 +20,7 @@ module Onetime
     #end
   
     def create
-      anonymous do
+      carefully do
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
@@ -29,7 +29,7 @@ module Onetime
     end
   
     def secret_uri
-      anonymous do
+      carefully do
         deny_agents! 
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
         view = Onetime::Views::Shared.new req, sess, cust
@@ -47,7 +47,7 @@ module Onetime
     end
  
     def private_uri
-      anonymous do
+      carefully do
         deny_agents! 
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
@@ -61,21 +61,21 @@ module Onetime
     end
     
     def pricing
-      anonymous do
+      carefully do
         view = Onetime::Views::Pricing.new req, sess, cust
         res.body = view.render
       end
     end
     
     def signup
-      anonymous do
+      carefully do
         view = Onetime::Views::Signup.new req, sess, cust
         res.body = view.render
       end
     end
     
     def create_account
-      anonymous do
+      carefully do
         deny_agents! 
         logic = OT::Logic::CreateAccount.new sess, cust, req.params
         logic.raise_concerns
@@ -85,14 +85,14 @@ module Onetime
     end
     
     def login
-      anonymous do
+      carefully do
         view = Onetime::Views::Login.new req, sess, cust
         res.body = view.render
       end
     end
     
     def authenticate
-      anonymous do
+      carefully do
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params
         view = Onetime::Views::Login.new req, sess, cust
         if sess.authenticated?
@@ -114,7 +114,7 @@ module Onetime
     end
     
     def logout
-      anonymous do
+      authenticated do
         logic = OT::Logic::DestroySession.new sess, cust, req.params
         logic.raise_concerns
         logic.process
@@ -123,7 +123,7 @@ module Onetime
     end
     
     def dashboard
-      anonymous do
+      authenticated do
         logic = OT::Logic::Dashboard.new sess, cust, req.params
         logic.raise_concerns
         logic.process
@@ -135,13 +135,13 @@ module Onetime
     class Info
       include Base
       def privacy
-        anonymous do
+        carefully do
           view = Onetime::Views::Info::Privacy.new req, sess, cust
           res.body = view.render
         end
       end
       def security
-        anonymous do
+        carefully do
           view = Onetime::Views::Info::Security.new req, sess, cust
           res.body = view.render
         end

@@ -76,7 +76,7 @@ module Onetime
       def process
         if success?
           OT.info "[login-success] #{cust.custid} #{cust.role}"
-          #TODO: sess = OT::Session.new @sess.ipaddress, @cust.custid, @sess.agent
+          #TODO: sess = OT::Session.new @sess.ipaddress, @sess.agent, @cust.custid
           #@sess.destroy!   # get rid of the unauthenticated session ID
           #@sess = sess
           @sess.custid = @cust.custid
@@ -108,7 +108,7 @@ module Onetime
           OT.info "[login-as-attempt] #{@colonelname} as #{@custid  } #{@sess.ipaddress}"
           @potential = OT::Customer.load @colonelname
           colonel = potential if potential.password?(params[:p])
-          @cust = OT::Customer.load @custid if colonel.colonel?
+          @cust = OT::Customer.load @custid if colonel.role?(:colonel)
           OT.info "[login-as-success] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
         elsif (potential = OT::Customer.load(@custid))
           @cust = potential if potential.passphrase?(params[:p])

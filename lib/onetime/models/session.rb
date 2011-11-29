@@ -6,7 +6,7 @@ class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
   attr_reader :entropy
-  def initialize ipaddress=nil, custid=nil, useragent=nil
+  def initialize ipaddress=nil, useragent=nil, custid=nil
     @ipaddress, @custid, @useragent = ipaddress, custid, useragent  # must be nil or have values!
     @entropy = [ipaddress, custid, useragent]
     # TODO: This calls Entropy every time
@@ -102,10 +102,10 @@ class Onetime::Session < Familia::HashKey
     end
     self.authenticated.to_s == 'true'
   end
-  #def load_customer
-  #  ret = OT::Customer.first(:custid=>custid) || OT::Customer.anonymous
-  #  ret
-  #end
+  def load_customer
+    cust = OT::Customer.load custid 
+    cust.nil? ? OT::Customer.anonymous : cust
+  end
   def opera?()            @agent.to_s  =~ /opera/i                      end
   def firefox?()          @agent.to_s  =~ /firefox/i                    end
   def chrome?()          !(@agent.to_s =~ /chrome/i).nil?               end

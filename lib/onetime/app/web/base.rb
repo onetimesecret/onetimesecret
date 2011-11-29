@@ -30,32 +30,27 @@ module Onetime
     module Base
       include OT::App::Helpers
       
-      def anonymous
+      def authenticated
         carefully do 
-          begin
-            @cust = OT::Customer.anonymous
-            if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-              @sess = OT::Session.load req.cookie(:sess)
-            else
-              @sess = OT::Session.create req.client_ipaddress, @cust.custid, req.user_agent
-            end
-            if @sess
-              @sess.update_fields  # calls update_time!
-              # Only set the cookie after it's been saved
-              res.send_cookie :sess, @sess.sessid, @sess.ttl
-              OT.ld "[sessid] #{sess.sessid}"
-            end
-          end
-          yield
+          sess.authenticated? ? yield : res.redirect(app_path('/'))
         end
       end
-    
+      
+      def colonels
+        carefully do
+          sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(app_path('/'))
+        end
+      end
+      
       def carefully redirect=nil
         redirect ||= req.request_path
         # We check get here to stop an infinite redirect loop.
         # Pages redirecting from a POST can get by with the same page once. 
         redirect = '/error' if req.get? && redirect.to_s == req.request_path
         res.header['Content-Type'] ||= "text/html; charset=utf-8"
+        
+        check_session!
+        
         yield
     
       rescue Redirect => ex
@@ -95,6 +90,23 @@ module Onetime
       
       end
     
+      def check_session!
+        if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
+          @sess = OT::Session.load req.cookie(:sess)
+        else
+          @sess = OT::Session.create req.client_ipaddress, req.user_agent
+        end
+        if sess
+          sess.update_fields  # calls update_time!
+          # Only set the cookie after it's been saved
+          res.send_cookie :sess, sess.sessid, sess.ttl
+          @cust = sess.load_customer
+        end
+        @sess ||= OT::Session.new
+        @cust ||= OT::Customer.anonymous
+        OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
+      end
+      
       def err *args
         #SYSLOG.err *args
         STDERR.puts *args

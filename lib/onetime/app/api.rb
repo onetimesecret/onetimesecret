@@ -6,14 +6,14 @@ class Onetime::App
     include Onetime::App::API::Base
       
     def status
-      anonymous do
+      carefully do
         sess.event_incr! :check_status
         json :status => :nominal
       end
     end
 
     def share
-      anonymous do
+      carefully do
         req.params[:kind] = :share
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
@@ -23,7 +23,7 @@ class Onetime::App
     end
 
     def generate
-      anonymous do
+      carefully do
         req.params[:kind] = :generate
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
@@ -33,7 +33,7 @@ class Onetime::App
     end
     
     def show_secret
-      anonymous do
+      carefully do
         req.params[:continue] = 'true'
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
         logic.raise_concerns
@@ -48,7 +48,7 @@ class Onetime::App
     end
     
     def show_metadata
-      anonymous do
+      carefully do
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
         logic.process

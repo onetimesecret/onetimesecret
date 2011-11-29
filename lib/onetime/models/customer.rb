@@ -13,8 +13,11 @@ class Onetime::Customer < Familia::HashKey
   def anonymous?
     custid.to_s == 'anon'
   end
-  def colonel?
-    role.to_s == 'colonel'
+  def role
+    self.get_value(:role) || 'customer'
+  end
+  def role? guess
+    role.to_s == guess.to_s
   end
   class << self
     def anonymous
