@@ -22,6 +22,20 @@ class Onetime::Customer < Familia::HashKey
   def role? guess
     role.to_s == guess.to_s
   end
+  def metadata_list
+    if @metadata_list.nil?
+      el = [prefix, identifier, :metadata]
+      el.unshift Familia.apiversion unless Familia.apiversion.nil?
+      @metadata_list = Familia::SortedSet.new Familia.join(el)
+    end
+    @metadata_list
+  end
+  def metadata
+    metadata_list.revmembers.collect { |key| OT::Metadata.load key }.compact
+  end
+  def add_metadata s
+    metadata_list.add OT.now.to_i, s.key
+  end
   class << self
     def anonymous
       cust = new

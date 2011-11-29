@@ -51,7 +51,7 @@ module Onetime
       def process
         @cust = OT::Customer.create @custid
         cust.update_passphrase @password
-        sess.authenticated = true
+        sess.update_fields :custid => cust.custid, :authenticated => 'true'
       end
       private
       def form_fields
@@ -63,15 +63,38 @@ module Onetime
     end
 
     class AuthenticateSession < OT::Logic::Base
-      attr_reader :custid
+      attr_reader :custid, :stay
+      
       def process_params
-        @custid = params[:custid]
+        @custid = params[:u]
+        @passwd = params[:p]
+        
+        @stay = params[:stay].to_s == "true"
+        if @custid.to_s.index(':as:')
+          @colonelname, @custid = *@custid.downcase.split(':as:')
+        else
+          @custid = @custid.downcase if @custid
+        end
+        if @passwd.to_s.empty?
+          @cust = nil
+        elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@custid)
+          OT.info "[login-as-attempt] #{@colonelname} as #{@custid  } #{@sess.ipaddress}"
+          @potential = OT::Customer.load @colonelname
+          colonel = potential if potential.password?(@passwd)
+          @cust = OT::Customer.load @custid if colonel.role?(:colonel)
+          OT.info "[login-as-success] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
+        elsif (potential = OT::Customer.load(@custid))
+          @cust = potential if potential.passphrase?(@passwd)
+        #elsif OT::Customer.email_index.taken? @custid
+        #  potential = OT::Customer.email_index[@custid]
+        #  @cust = potential if potential.password?(@passwd)
+        end
       end
+      
       def raise_concerns
         sess.event_incr! :authenticate_session
         if @cust.nil?
           @cust ||= OT::Customer.anonymous
-          u, p = params[:u], params[:p].gibbler.short
           raise_form_error "Try again"
         end
       end
@@ -80,13 +103,12 @@ module Onetime
         if success?
           OT.info "[login-success] #{cust.custid} #{cust.role}"
           #TODO: sess = OT::Session.new @sess.ipaddress, @sess.agent, @cust.custid
-          #@sess.destroy!   # get rid of the unauthenticated session ID
-          #@sess = sess
-          @sess.custid = @cust.custid
-          @sess.authenticated = true
-          @sess.ttl = 20.days if @stay
-          #OT::Customer.active.add OT.now.to_i, @cust if @cust && @sess.authenticated?
-          @cust.save
+          #sess.destroy!   # get rid of the unauthenticated session ID
+          #sess = sess
+          sess.update_fields :custid => cust.custid, :authenticated => 'true'
+          sess.ttl = 20.days if @stay
+          sess.save
+          cust.save
         else
           raise_form_error "Try again"
         end
@@ -96,30 +118,6 @@ module Onetime
         !cust.nil? && !cust.anonymous?
       end
       
-      protected 
-
-      def process_params
-        @stay = params[:stay].to_s == "true"
-        if params[:u].to_s.index(':as:')
-          @colonelname, @custid = *params[:u].downcase.split(':as:')
-        else
-          @custid = params[:u].downcase if params[:u]
-        end
-        if params[:p].to_s.empty?
-          @cust = nil
-        elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@custid)
-          OT.info "[login-as-attempt] #{@colonelname} as #{@custid  } #{@sess.ipaddress}"
-          @potential = OT::Customer.load @colonelname
-          colonel = potential if potential.password?(params[:p])
-          @cust = OT::Customer.load @custid if colonel.role?(:colonel)
-          OT.info "[login-as-success] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
-        elsif (potential = OT::Customer.load(@custid))
-          @cust = potential if potential.passphrase?(params[:p])
-        #elsif OT::Customer.email_index.taken? @custid
-        #  potential = OT::Customer.email_index[@custid]
-        #  @cust = potential if potential.password?(params[:p])
-        end
-      end
       private
       def form_fields
         {:custid => custid}
@@ -213,7 +211,11 @@ module Onetime
         secret.encrypt_value processed_value
         secret.save
         metadata.save
-        raise_form_error "Could not store your secret" unless metadata.valid? && secret.valid?
+        if metadata.valid? && secret.valid?
+          cust.add_metadata metadata unless cust.anonymous?
+        else
+          raise_form_error "Could not store your secret" 
+        end
       end
       def redirect_uri
         ['/private/', metadata.key].join

@@ -52,7 +52,7 @@ module Onetime
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        view = Onetime::Views::Private.new req, sess, cust, logic.metadata, logic.secret
+        view = Onetime::Views::Private.new req, sess, cust, logic.metadata
         if logic.show_secret
           view[:show_secret] = true
         end

@@ -66,11 +66,12 @@
       <a href="/login" title="Log in to One-Time Secret">Login</a>
       {{/authenticated}}
       {{#authenticated}}
-      <a href="/dashboard" title="Your Dashboard">Dashboard</a> | 
+      <span class="light">{{cust.custid}}</span> - <a href="/dashboard" title="Your Dashboard">Dashboard</a> | 
       <a href="/account" title="Your Account">Account</a> | 
       <a href="/logout" title="Log out of One-Time Secret">Logout</a>
       {{/authenticated}}
     </div>
+    <hr/>
     {{#display_otslogo}}
     <h1 title="One time secret"><!-- {{ot_version}} --><a href="/"><pre>
   __ _  _ ___    ____ __ __  __ ___    ___ ___  __ ___  ___ ____ 

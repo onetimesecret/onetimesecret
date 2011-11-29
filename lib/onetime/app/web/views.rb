@@ -148,12 +148,13 @@ module Onetime
       end
     end
     class Private < Onetime::View
-      def init metadata, secret
+      def init metadata
         self[:title] = "You saved a secret"
         self[:body_class] = :generate
         self[:metadata_key] = metadata.key
         self[:been_shared] = metadata.state?(:shared)
         self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+        secret = metadata.load_secret
         unless secret.nil?
           self[:secret_key] = secret.key
           self[:show_passphrase] = !secret.passphrase_temp.to_s.empty?
@@ -201,6 +202,12 @@ module Onetime
         self[:title] = "Your Dashboard"
         self[:body_class] = :dashboard
         self[:with_anal] = true
+        self[:metadata] = cust.metadata.collect { |m| 
+          { :uri => private_secret_uri(m), 
+            :stamp => natural_time(m.updated), 
+            :key => m.key,
+            :been_shared => m.state?(:shared) }
+        }
       end
     end
     class Account < Onetime::View

@@ -4,9 +4,14 @@
     
     <h2 class="intro">Your dashboard</h2>
     
-    
     {{>partial/create_secret_form}}
     
+    <h3>Recent secrets</h3>
+    <ul>
+    {{#metadata}}
+      <li><a href="{{uri}}" class="{{#been_shared}}strikethrough{{/been_shared}}">{{key}}</a> - {{stamp}}</li>
+    {{/metadata}}
+    </ul>
     
   </div>
   
