@@ -62,10 +62,13 @@
   <div id="header">
     <div id="sitenav">
       {{^authenticated}}
-      <a href="/pricing" title="Pricing &amp; Signup" class="standout">Create an account</a> | <a href="/login" title="Log in to One-Time Secret">Login</a>
+      <a href="/pricing" title="Pricing &amp; Signup" class="standout">Create an account</a> | 
+      <a href="/login" title="Log in to One-Time Secret">Login</a>
       {{/authenticated}}
       {{#authenticated}}
-      <a href="/dashboard" title="Your Dashboard">Dashboard</a> | <a href="/logout" title="Log out of One-Time Secret">Logout</a>
+      <a href="/dashboard" title="Your Dashboard">Dashboard</a> | 
+      <a href="/account" title="Your Account">Account</a> | 
+      <a href="/logout" title="Log out of One-Time Secret">Logout</a>
       {{/authenticated}}
     </div>
     {{#display_otslogo}}

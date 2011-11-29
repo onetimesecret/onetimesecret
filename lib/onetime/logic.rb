@@ -146,6 +146,16 @@ module Onetime
       def process
       end
     end
+
+    class ViewAccount < OT::Logic::Base
+      def process_params
+      end
+      def raise_concerns
+        sess.event_incr! :show_account
+      end
+      def process
+      end
+    end
     
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind

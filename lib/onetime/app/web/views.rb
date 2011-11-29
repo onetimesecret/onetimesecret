@@ -203,6 +203,13 @@ module Onetime
         self[:with_anal] = true
       end
     end
+    class Account < Onetime::View
+      def init 
+        self[:title] = "Your Account"
+        self[:body_class] = :account
+        self[:with_anal] = true
+      end
+    end
     class Error < Onetime::View
       def init *args
         self[:title] = "Oh cripes!"

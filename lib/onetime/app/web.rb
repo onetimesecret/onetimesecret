@@ -19,8 +19,8 @@ module Onetime
     #  [404, {'Content-Type'=>'text/plain'}, ["Server error2"]]
     #end
   
-    def create
-      carefully('/') do
+    def create_secret
+      carefully(req.request_path) do
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
@@ -123,11 +123,21 @@ module Onetime
     end
     
     def dashboard
-      authenticated('/dashboard') do
+      authenticated do
         logic = OT::Logic::Dashboard.new sess, cust, req.params
         logic.raise_concerns
         logic.process
         view = Onetime::Views::Dashboard.new req, sess, cust
+        res.body = view.render
+      end
+    end
+    
+    def account
+      authenticated do
+        logic = OT::Logic::ViewAccount.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        view = Onetime::Views::Account.new req, sess, cust
         res.body = view.render
       end
     end

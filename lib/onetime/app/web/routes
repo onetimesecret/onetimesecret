@@ -2,7 +2,7 @@
 
 ##  WEB
 GET   /                                          Onetime::App#index
-POST  /create                                    Onetime::App#create
+POST  /                                          Onetime::App#create_secret
 
 GET   /private/:key                              Onetime::App#private_uri
 GET   /shared/:key                               Onetime::App#secret_uri
@@ -24,3 +24,6 @@ POST  /login                                     Onetime::App#authenticate
 GET   /logout                                    Onetime::App#logout
 
 GET   /dashboard                                 Onetime::App#dashboard
+POST  /dashboard                                 Onetime::App#create_secret
+
+GET   /account                                   Onetime::App#account
