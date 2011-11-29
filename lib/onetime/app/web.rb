@@ -123,7 +123,7 @@ module Onetime
     end
     
     def dashboard
-      authenticated do
+      authenticated('/dashboard') do
         logic = OT::Logic::Dashboard.new sess, cust, req.params
         logic.raise_concerns
         logic.process

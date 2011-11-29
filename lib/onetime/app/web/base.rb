@@ -30,14 +30,14 @@ module Onetime
     module Base
       include OT::App::Helpers
       
-      def authenticated
-        carefully do 
+      def authenticated redirect=nil
+        carefully(redirect) do 
           sess.authenticated? ? yield : res.redirect(app_path('/'))
         end
       end
       
-      def colonels
-        carefully do
+      def colonels redirect=nil
+        carefully(redirect) do
           sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(app_path('/'))
         end
       end
@@ -59,6 +59,7 @@ module Onetime
       rescue OT::FormError => ex
         sess.set_form_fields ex.form_fields
         sess.update_fields :error_message => ex.message
+        p [:poop, redirect]
         res.redirect redirect
         
       rescue OT::MissingSecret => ex

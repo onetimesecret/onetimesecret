@@ -7,30 +7,8 @@
     {{/people_we_care_about}}
     
     {{#people_we_care_about}}
-    <h2 class="intro">Keep sensitive info out of your chat logs &amp; email.</h2>
-    {{>partial/session_messages}}
     
-    <form id="" method="post" action="/create">
-      <ul class="nav">
-        <li class="primary">
-          <input type="radio" id="shareRadio" name="kind" value="share" checked="checked" /> <label for="shareRadio">Paste it here!</label> 
-          <span class="context">(e.g. a secret phrase, a special link, a bad joke etc)</span>
-          <textarea name="secret" class="secretValue" rows="3" cols="80"></textarea>
-        </li>
-        <li class="secondary">
-          <input type="radio" id="generateRadio" name="kind" value="generate" /> <label for="generateRadio">Or generate a unique secret</label> <span class="context">(e.g. for a temporary password)</span>
-        </li>
-        <div id="optionsBlock">
-          <a href="#" id="optionsToggle">More options</a>
-          <div id="options">
-            Enter a passphrase: <input type="text" name="passphrase" value="" />
-          </div>
-        </div>
-        <span id="fire" class="button"><button type="submit">Create a secret link*</button></span>
-      </ul>
-    </form>
-    
-    <div class="intro2"><em>* A secret link is available only once and then it disappears forever.</em></div>
+    {{>partial/create_secret_form}}
     
     {{#display_promo}}
     {{/display_promo}}

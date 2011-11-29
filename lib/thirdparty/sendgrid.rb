@@ -3,10 +3,6 @@ require 'pp'
  
 # http://wiki.sendgrid.com/doku.php?id=web_api
 
-
-API_USER="info@blamestella.com"
-API_KEY=ENV['API_KEY']
-
 class SendGrid
   include HTTParty
   #ssl_ca_file Stella::Client::SSL_CERT_PATH
