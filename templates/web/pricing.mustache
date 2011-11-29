@@ -2,12 +2,15 @@
 {{>header}}
 
   <div id="content">
+    
+    <h2 class="intro">Beta Pricing!</h2>
+    
     <table cellpadding="0" cellspacing="0" class="pricing">
       <tr class="blankrow">
         <td></td>
         <td></td>
         <td></td>
-        <td class="bestvalue">Best Value!</td>
+        <td class="bestvalue">Best Value</td>
         <td></td>
       </tr>
       <tr class="pricingheading">
@@ -18,11 +21,11 @@
         <td class="pricingheader topright"><a href="/signup/agency" title="Create a Agency account">Agency</a></td>
       </tr>
       <tr class="pricingodd prices">
-        <td class="pricingfeature">Price</td>
-        <td>Free</td>
-        <td><a href="/signup/personal" title="Create a Personal account"><span class="strikethrough">$5</span> $0</a></td>
-        <td class="bestvalue"><a href="/signup/professional" title="Create a Professional account"><span class="strikethrough">$30</span> $15</a></td>
-        <td class="lastcolumn"><a href="/signup/agency" title="Create an Agency account"><span class="strikethrough">$75</span> $50!</a></td>
+        <td class="pricingfeature">Per month</td>
+        <td>{{anonymous.price}}</td>
+        <td><a href="/signup/personal" title="Create a Personal account"><span class="strikethrough light">${{personal.original_price}}</span> ${{personal.price}}</a></td>
+        <td class="bestvalue"><a href="/signup/professional" title="Create a Professional account"><span class="strikethrough light">${{professional.original_price}}</span> ${{professional.price}}!</a></td>
+        <td class="lastcolumn"><a href="/signup/agency" title="Create an Agency account"><span class="strikethrough light">${{agency.original_price}}</span> ${{agency.price}}</a></td>
       </tr>
       <tr class="pricingeven">
         <td class="pricingfeature">Domain</td>
@@ -32,18 +35,18 @@
         <td class="lastcolumn">secret.company.com</td>
       </tr>
       <tr class="pricingodd">
-        <td class="pricingfeature">Hosting</td>
-        <td>Public</td>
-        <td>Public</td>
+        <td class="pricingfeature">Instance</td>
+        <td>Multi-tenant </td>
+        <td>Multi-tenant</td>
         <td class="bestvalue">Multi-tenant/CNAME</td>
-        <td class="lastcolumn">private / A Record</td>
+        <td class="lastcolumn">Private/A record</td>
       </tr>
       <tr class="pricingeven">
         <td class="pricingfeature">Secret max TTL</td>
-        <td>2 days</td>
-        <td>15 days</td>
-        <td class="bestvalue">90 days</td>
-        <td class="lastcolumn">90 days</td>
+        <td>{{anonymous.ttl}} days</td>
+        <td>{{personal.ttl}} days</td>
+        <td class="bestvalue">{{professional.ttl}} days</td>
+        <td class="lastcolumn">{{agency.ttl}} days</td>
       </tr>
       <tr class="pricingodd">
         <td class="pricingfeature">Secret max size</td>
@@ -54,33 +57,33 @@
       </tr>
       <!--
       <tr class="pricingeven">
-              <td class="pricingfeature">Max # of secrets</td>
-              <td>n/a</td>
-              <td>1k secrets</td>
-              <td class="bestvalue">5k secrets</td>
-              <td class="lastcolumn">25k secrets</td>
-            </tr>-->
-      
-      <tr class="pricingodd">
-        <td class="pricingfeature">API access</td>
-        <td>--</td>
-        <td>Yes</td>
-        <td class="bestvalue">Yes</td>
-        <td class="lastcolumn">Yes</td>
+        <td class="pricingfeature">Max # of secrets</td>
+        <td>&#8208;&#8208;</td>
+        <td>1k secrets</td>
+        <td class="bestvalue">5k secrets</td>
+        <td class="lastcolumn">25k secrets</td>
       </tr>
       <tr class="pricingeven">
         <td class="pricingfeature">Email recipient</td>
-        <td>--</td>
+        <td>&#8208;&#8208;</td>
         <td>Yes</td>
         <td class="bestvalue">Yes</td>
         <td class="lastcolumn">Yes</td>
       </tr>
       <tr class="pricingodd">
         <td class="pricingfeature">Email receipt</td>
-        <td>--</td>
-        <td>--</td>
+        <td>&#8208;&#8208;</td>
+        <td>&#8208;&#8208;</td>
         <td class="bestvalue">Yes</td>
         <td class="lastcolumn">Yes</td>
+      </tr>
+      -->
+      <tr class="pricingodd">
+        <td class="pricingfeature">API access</td>
+        <td>&#8208;&#8208;</td>
+        <td>{{personal.api}}</td>
+        <td class="bestvalue">{{professional.api}}</td>
+        <td class="lastcolumn">{{agency.api}}</td>
       </tr>
       <tr class="pricingeven pricinglastrow">
         <td class="pricingfeature bottomleft">Branding</td>
@@ -97,9 +100,13 @@
         <td class="action"><a href="/signup/agency" title="Create an Agency account">Pwn it!</a></td>
       </tr>
     </table>
-
-    <br />
-    <p class="centre">Need more control? Get a custom install. <a href="mailto:custom@onetimesecret.com">Contact us</a>.</p>
+    <hr />
+    
+    <p class="centre">
+      <em>Sign up during the beta and get the discounts for life!</em>
+    </p>
+    
+    <p class="intro2 centre">Need more control? Try a custom install. <a href="mailto:custom@onetimesecret.com">Contact us</a>.</p>
     
   </div>
   

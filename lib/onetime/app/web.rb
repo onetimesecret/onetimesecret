@@ -67,7 +67,7 @@ module Onetime
     
     def signup
       carefully do
-        if OT::Plans.plan?(req.params[:planid])
+        if OT::Plan.plan?(req.params[:planid])
           view = Onetime::Views::Signup.new req, sess, cust
           res.body = view.render
         else

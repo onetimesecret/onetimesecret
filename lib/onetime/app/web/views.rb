@@ -188,7 +188,7 @@ module Onetime
         self[:title] = "Create an account"
         self[:body_class] = :signup
         self[:with_anal] = true
-        self[:planid] = req.params[:planid] if OT::Plans.plan?(req.params[:planid])
+        self[:planid] = req.params[:planid] if OT::Plan.plan?(req.params[:planid])
       end
     end
     class Pricing < Onetime::View
@@ -196,6 +196,16 @@ module Onetime
         self[:title] = "Pricing Plans"
         self[:body_class] = :pricing
         self[:with_anal] = true
+        Onetime::Plan.plans.each_pair do |planid,plan|
+          self[planid] = {
+            :price => plan.price.zero? ? 'Free' : plan.calculated_price,
+            :original_price => plan.price.to_i,
+            :ttl => plan.options[:ttl].in_days.to_i,
+            :size => plan.options[:size].to_bytes.to_i,
+            :api => plan.options[:api] ? 'Yes' : 'No'
+          }
+        end
+        y self[:anonymous]
       end
     end
     class Dashboard < Onetime::View
@@ -216,7 +226,7 @@ module Onetime
         self[:title] = "Your Account"
         self[:body_class] = :account
         self[:with_anal] = true
-        self[:price] = Onetime::Plans.plans[cust.planid].to_i
+        self[:price] = Onetime::Plan.plans[cust.planid].to_i
       end
     end
     class Error < Onetime::View

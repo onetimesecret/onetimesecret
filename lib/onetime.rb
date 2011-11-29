@@ -4,6 +4,8 @@ puts "TODO: ADD SECRET TO prod config"
 
 require 'bundler/setup'
 
+require 'onetime/core_ext'
+
 require 'syslog'
 
 require 'encryptor'
@@ -201,19 +203,28 @@ module Onetime
     end
   end
   
-  module Plans
-    extend self
-    attr_reader :plans
-    def add_plan planid, price
-      @plans ||= Onetime::Utils.indifferent_hash
-      plans[planid.to_s] = price
+  class Plan
+    class << self
+      attr_reader :plans
+      def add_plan planid, *args
+        @plans ||= Onetime::Utils.indifferent_hash
+        plans[planid.to_s] = new planid, *args
+      end
+      def plan? planid
+        @plans.member?(planid.to_s)
+      end
     end
-    def plan? planid
-      @plans.member?(planid.to_s)
+    attr_reader :planid, :price, :discount, :options
+    def initialize planid, price, discount, options={}
+      @planid, @price, @discount, @options = planid, price, discount, options
     end
-    add_plan :personal, 5.0
-    add_plan :professional, 20.0
-    add_plan :agency, 45.0
+    def calculated_price
+      (price * (1-discount)).to_i
+    end
+    add_plan :anonymous, 0, 0, :ttl => 2.days, :size => 1_000, :api => false
+    add_plan :personal, 5.0, 1, :ttl => 14.days, :size => 1_000, :api => false
+    add_plan :professional, 30.0, 0.5, :ttl => 90.days, :size => 5_000, :api => true
+    add_plan :agency, 75.0, 0.33333, :ttl => 90.days, :size => 10_000, :api => true
   end
   
   class Problem < RuntimeError

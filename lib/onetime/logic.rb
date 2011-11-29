@@ -47,7 +47,7 @@ module Onetime
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
         raise_form_error "Passwords do not match" unless password == password2
-        raise_form_error "Unknown plan type" unless OT::Plans.plan?(planid)
+        raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
       end
       def process
         @cust = OT::Customer.create custid
