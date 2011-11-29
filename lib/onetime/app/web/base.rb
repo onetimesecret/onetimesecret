@@ -98,7 +98,11 @@ module Onetime
         end
         @sess ||= OT::Session.new
         @cust ||= OT::Customer.anonymous
-        sess.authenticated = false if cust.anonymous?
+        if cust.anonymous?
+          sess.authenticated = false 
+        elsif cust.verified.to_s != 'true'
+          sess.authenticated = false 
+        end
         OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
       end
       

@@ -54,7 +54,13 @@ module Onetime
         cust.update_passphrase password
         sess.update_fields :custid => cust.custid, :authenticated => 'true'
         cust.update_fields :planid => planid, :verified => false
-        OT::Email::Welcome.new cust
+        metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
+        secret.encrypt_value Onetime::Utils.strand(12)
+        secret.verification = true
+        secret.save
+        view = OT::Email::Welcome.new cust, secret
+        puts view.render
+        view.deliver_email
       end
       private
       def form_fields

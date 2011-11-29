@@ -12,13 +12,16 @@ module Onetime
       @cust = cust
       init *args if respond_to? :init
     end
-    def send_email
+    def deliver_email
+      ret = OT.emailer.send cust.email, subject, render
+      p [cust.email, subject, ret.class, ret.code]
     end
     class Welcome < OT::Email
-      def init
-        self[:subject] = "Verify your One-time Secret account"
+      def init secret
         self[:secret] = secret
-        
+      end
+      def subject
+        "Verify your One-time Secret account"
       end
       def verify_uri
         secret_uri self[:secret]

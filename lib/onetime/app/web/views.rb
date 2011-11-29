@@ -52,7 +52,11 @@ module Onetime
         add_error Onetime::ERRNO[req.params[:errno]]
       else
         unless sess.nil?
-          add_error sess.error_message!
+          if cust.has_key?(:verified) && cust.verified.to_s != 'true'
+            add_error "Check your email for your verification (#{cust.custid})"
+          else
+            add_error sess.error_message!
+          end
           add_form_fields sess.get_form_fields!
         end
       end
