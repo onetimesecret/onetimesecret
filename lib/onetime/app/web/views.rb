@@ -189,7 +189,8 @@ module Onetime
         self[:title] = "Your Account"
         self[:body_class] = :account
         self[:with_anal] = true
-        self[:price] = Onetime::Plan.plans[cust.planid].to_i
+        self[:plan] = Onetime::Plan.plans[cust.planid] || OT::Plan.plans[:aonymous]
+        self[:price] = self[:plan].price
       end
     end
     class Error < Onetime::View
