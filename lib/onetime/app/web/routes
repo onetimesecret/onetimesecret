@@ -27,3 +27,6 @@ GET   /dashboard                                 Onetime::App#dashboard
 POST  /dashboard                                 Onetime::App#create_secret
 
 GET   /account                                   Onetime::App#account
+POST  /account                                   Onetime::App#update_account
+POST  /account/password                          Onetime::App#update_account
+

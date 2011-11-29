@@ -103,6 +103,12 @@ class Onetime::Session < Familia::HashKey
     cust = OT::Customer.load custid 
     cust.nil? ? OT::Customer.anonymous : cust
   end
+  def set_error_message msg
+    self.error_message = msg
+  end
+  def set_info_message msg
+    self.info_message = msg
+  end
   def opera?()            @agent.to_s  =~ /opera/i                      end
   def firefox?()          @agent.to_s  =~ /firefox/i                    end
   def chrome?()          !(@agent.to_s =~ /chrome/i).nil?               end

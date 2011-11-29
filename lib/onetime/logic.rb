@@ -157,6 +157,33 @@ module Onetime
       end
     end
     
+    class UpdateAccount < OT::Logic::Base
+      attr_reader :modified
+      def process_params
+        @currentp = params[:currentp].to_s
+        @newp = params[:newp].to_s
+        @newp2 = params[:newp2].to_s
+      end
+      def raise_concerns
+        @modified ||= []
+        sess.event_incr! :update_account
+        if ! @currentp.empty?
+          raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
+          raise_form_error "New passwords do not match" unless @newp == @newp2
+          @modified << :password
+        end
+      end
+      def process
+        cust.update_passphrase @newp
+        cust.update_time!
+        sess.set_error_message "Password changed" if modified?(:password)
+        sess.set_error_message "Nothing changed" if modified.empty?
+      end
+      def modified? guess
+        modified.member? guess
+      end
+    end
+    
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind
       attr_reader :metadata, :secret

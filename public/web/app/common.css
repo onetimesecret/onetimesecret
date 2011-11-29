@@ -1,6 +1,7 @@
 body { font-family: georgia; margin: 0px; padding: 0px }
 h1 { font-size: 16px; } /* Font Name: Graceful, Serifcap */
 h1 a { text-decoration: none; color: #000}
+hr {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1em;margin:0 0 1.45em;border:none;}
 #header {
   margin-bottom: 40px;
 }
@@ -343,3 +344,5 @@ table.pricing tr.pricinglastrow td {
 .strikethrough {
   text-decoration: line-through;
 }
+
+.light { color: #999 }

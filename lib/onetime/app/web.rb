@@ -141,6 +141,15 @@ module Onetime
         res.body = view.render
       end
     end
+
+    def update_account
+      authenticated do
+        logic = OT::Logic::UpdateAccount.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        res.redirect app_path('/account')
+      end
+    end
     
     class Info
       include Base

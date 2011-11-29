@@ -13,6 +13,9 @@ class Onetime::Customer < Familia::HashKey
   def anonymous?
     custid.to_s == 'anon'
   end
+  def email
+    @custid
+  end
   def role
     self.get_value(:role) || 'customer'
   end

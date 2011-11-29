@@ -58,8 +58,7 @@ module Onetime
     
       rescue OT::FormError => ex
         sess.set_form_fields ex.form_fields
-        sess.update_fields :error_message => ex.message
-        p [:poop, redirect]
+        sess.set_error_message ex.message
         res.redirect redirect
         
       rescue OT::MissingSecret => ex
@@ -99,6 +98,7 @@ module Onetime
         end
         @sess ||= OT::Session.new
         @cust ||= OT::Customer.anonymous
+        sess.authenticated = false if cust.anonymous?
         OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
       end
       
