@@ -23,7 +23,7 @@ s.rediskey
 #=> 'secret:ntit96jrq77myf5z0a333uvld21o6wq:object'
 
 ## Generate a pair
-@metadata, @secret = Onetime::Secret.generate_pair :anon, :tryouts
+@metadata, @secret = Onetime::Secret.spawn_pair :anon, :tryouts
 [@metadata.nil?, @secret.nil?]
 #=> [false, false]
 
@@ -52,13 +52,13 @@ s.rediskey
 #=> 1
 
 ## Can set private secret to viewed state
-metadata, secret = Onetime::Secret.generate_pair :anon, :tryouts
+metadata, secret = Onetime::Secret.spawn_pair :anon, :tryouts
 metadata.viewed!
 [metadata.viewed, metadata.state]
 #=> [Time.now.utc.to_i.to_s, 'viewed']
 
 ## Can set shared secret to viewed state
-metadata, secret = Onetime::Secret.generate_pair :anon, :tryouts
+metadata, secret = Onetime::Secret.spawn_pair :anon, :tryouts
 metadata.save && secret.save
 secret.viewed!
 metadata = secret.load_metadata

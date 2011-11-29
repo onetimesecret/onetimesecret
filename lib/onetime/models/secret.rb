@@ -103,7 +103,7 @@ module Onetime
         obj.update_fields :custid => custid # calls update_time!
         obj
       end
-      def generate_pair custid, entropy
+      def spawn_pair custid, entropy
         entropy = [OT.instance, Time.now.to_f, entropy].flatten
         metadata, secret = OT::Metadata.new(custid, entropy), OT::Secret.new(custid, entropy)
         metadata.secret_key, secret.metadata_key = secret.key, metadata.key

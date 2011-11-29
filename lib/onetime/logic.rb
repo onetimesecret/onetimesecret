@@ -53,7 +53,8 @@ module Onetime
         @cust = OT::Customer.create custid
         cust.update_passphrase password
         sess.update_fields :custid => cust.custid, :authenticated => 'true'
-        cust.update_fields :planid => planid
+        cust.update_fields :planid => planid, :verified => false
+        OT::Email::Welcome.new cust
       end
       private
       def form_fields
@@ -200,7 +201,7 @@ module Onetime
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process
-        @metadata, @secret = Onetime::Secret.generate_pair :anon, [sess.external_identifier]
+        @metadata, @secret = Onetime::Secret.spawn_pair :anon, [sess.external_identifier]
         metadata.passphrase = passphrase if !passphrase.empty?
         secret.update_passphrase passphrase if !passphrase.empty?
         processed_value = case kind

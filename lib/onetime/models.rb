@@ -325,7 +325,7 @@ module Onetime
       load_metadata.shared!  # update the private key
       destroy!               # delete this shared key
     end
-    def self.generate_pair custid, entropy
+    def self.spawn_pair custid, entropy
       entropy = [entropy, Time.now.to_f * $$].flatten
       metadata, secret = OT::Metadata.new(custid, entropy), OT::Secret.new(custid, entropy)
       metadata.secret_key, secret.metadata_key = secret.key, metadata.key

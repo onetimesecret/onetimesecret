@@ -248,6 +248,7 @@ OT = Onetime
 
 require 'onetime/models'
 require 'onetime/logic'
+require 'onetime/email'
 
 Kernel.srand
 
