@@ -1,6 +1,5 @@
 require 'onetime'
 
-OT.load!
 @stamp = OT::RateLimit.eventstamp
 
 ## Has events defined

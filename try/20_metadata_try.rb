@@ -3,7 +3,7 @@ require 'onetime'
 ## Keys are consistent for Metadata
 @metadata = Onetime::Metadata.new :metadata, :entropy
 [@metadata.rediskey, @metadata.db, @metadata.secret_key, @metadata.all]
-#=> ['metadata:8o719hhgf2t8eh15bdabkm6n98pmd97:object', 2, nil, {}]
+#=> ['metadata:8o719hhgf2t8eh15bdabkm6n98pmd97:object', 7, nil, {}]
 
 ## Keys don't change with values
 @metadata.secret_key = :hihi

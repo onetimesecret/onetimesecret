@@ -19,6 +19,8 @@ gem 'bcrypt-ruby', '3.0.0'
 
 gem 'otto', '0.2.1.002', :git => "git://github.com/delano/otto.git", :branch => 'master'
 
+gem 'httparty', '0.7.7'
+
 group :dev do
   gem 'rudy', '0.9.8.020'
 end

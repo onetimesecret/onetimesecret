@@ -13,6 +13,7 @@ require 'sysinfo'
 require 'gibbler'
 require 'familia'
 require 'storable'
+require 'thirdparty/sendgrid'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 Familia.apiversion = nil
@@ -27,7 +28,7 @@ module Onetime
   @mode = :app
   class << self
     attr_accessor :debug, :mode
-    attr_reader :conf, :instance, :sysinfo
+    attr_reader :conf, :instance, :sysinfo, :emailer
     def mode? guess
       @mode.to_s == guess.to_s
     end
@@ -43,24 +44,22 @@ module Onetime
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load  # load config before anything else.
-      @sysinfo = SysInfo.new.freeze
-      @instance = [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
+      @sysinfo ||= SysInfo.new.freeze
+      @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
+      emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
+      @emailer = SendGrid.new *emailer_opts
       secret = OT.conf[:site][:secret] || "CHANGEME"
-      Gibbler.secret = secret.freeze
+      Gibbler.secret = secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
       Familia.uri = OT.conf[:redis][:uri]
       OT::RateLimit.register_events OT.conf[:limits]
       OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last }
-      OT::ERRNO.freeze
+      OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
       info " Redis: #{Familia.uri}"
       info "Secret: #{secret}"
       info "Limits: #{OT::RateLimit.events}"
       @conf
-    end
-    def sysinfo
-      @sysinfo = SysInfo.new.freeze if @sysinfo.nil?
-      @sysinfo
     end
     def to_file(content, filename, mode, chmod=0744)
       mode = (mode == :append) ? 'a' : 'w'

@@ -11,11 +11,19 @@
   :create_secret: 10
   :homepage: 25
   :dashboard: 25
+  :create_account: 3
 :redis:
   :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
 :nginx:
-  :ipaddress: '192.168.123.22'
+  :ipaddress: '127.0.0.1'
   :servername: 'ots5.com'
+:emailer:
+  :mode: :sendgrid
+  :account: 
+  :password: 
+  :from:
+  :fromname:
+  :bcc:
 :errno:
   :nosecret: 'No secret provided'
   :internalerror: 'Not found'
