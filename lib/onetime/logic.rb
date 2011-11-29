@@ -36,7 +36,7 @@ module Onetime
     
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
-      attr_reader :planid, :custid, :password
+      attr_reader :planid, :custid, :password, :password2
       def process_params
         @planid = params[:planid].to_s
         @custid = params[:custid].to_s
@@ -44,18 +44,20 @@ module Onetime
         @password2 = params[:password2].to_s
       end
       def raise_concerns
-        raise_form_error "Username not available" if OT::Customer.exists?(@custid)
+        raise_form_error "Username not available" if OT::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
-        raise_form_error "Passwords do not match" unless @password == @password2
+        raise_form_error "Passwords do not match" unless password == password2
+        raise_form_error "Unknown plan type" unless OT::Plans.plan?(planid)
       end
       def process
-        @cust = OT::Customer.create @custid
-        cust.update_passphrase @password
+        @cust = OT::Customer.create custid
+        cust.update_passphrase password
         sess.update_fields :custid => cust.custid, :authenticated => 'true'
+        cust.update_fields :planid => planid
       end
       private
       def form_fields
-        {:planid => planid, :custid => custid }
+        { :planid => planid, :custid => custid }
       end
       def valid_email?(email)
         !email.match(EMAIL_REGEX).nil?

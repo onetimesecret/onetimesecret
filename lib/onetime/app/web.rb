@@ -53,9 +53,7 @@ module Onetime
         logic.raise_concerns
         logic.process
         view = Onetime::Views::Private.new req, sess, cust, logic.metadata
-        if logic.show_secret
-          view[:show_secret] = true
-        end
+        view[:show_secret] = true if logic.show_secret
         res.body = view.render
       end
     end
@@ -69,8 +67,12 @@ module Onetime
     
     def signup
       carefully do
-        view = Onetime::Views::Signup.new req, sess, cust
-        res.body = view.render
+        if OT::Plans.plan?(req.params[:planid])
+          view = Onetime::Views::Signup.new req, sess, cust
+          res.body = view.render
+        else
+          res.redirect app_path('/')
+        end
       end
     end
     
@@ -80,6 +82,7 @@ module Onetime
         logic = OT::Logic::CreateAccount.new sess, cust, req.params
         logic.raise_concerns
         logic.process
+        sess, cust = logic.sess, logic.cust
         res.redirect '/dashboard'
       end
     end

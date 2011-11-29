@@ -180,6 +180,21 @@ module Onetime
     end
   end
   
+  module Plans
+    extend self
+    attr_reader :plans
+    def add_plan planid, price
+      @plans ||= Onetime::Utils.indifferent_hash
+      plans[planid.to_s] = price
+    end
+    def plan? planid
+      @plans.member?(planid.to_s)
+    end
+    add_plan :personal, 5.0
+    add_plan :professional, 20.0
+    add_plan :agency, 45.0
+  end
+  
   class Problem < RuntimeError
   end
   class MissingSecret < Problem

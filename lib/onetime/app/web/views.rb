@@ -188,6 +188,7 @@ module Onetime
         self[:title] = "Create an account"
         self[:body_class] = :signup
         self[:with_anal] = true
+        self[:planid] = req.params[:planid] if OT::Plans.plan?(req.params[:planid])
       end
     end
     class Pricing < Onetime::View
@@ -215,6 +216,7 @@ module Onetime
         self[:title] = "Your Account"
         self[:body_class] = :account
         self[:with_anal] = true
+        self[:price] = Onetime::Plans.plans[cust.planid].to_i
       end
     end
     class Error < Onetime::View
