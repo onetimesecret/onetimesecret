@@ -35,17 +35,16 @@ module Onetime
     
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
-      attr_reader :planid, :custid, :password, :email
+      attr_reader :planid, :custid, :password
       def process_params
         @planid = params[:planid].to_s
         @custid = params[:custid].to_s
         @password = params[:password].to_s
         @password2 = params[:password2].to_s
-        @email = params[:email].to_s
       end
       def raise_concerns
         raise_form_error "Username not available" if OT::Customer.exists?(@custid)
-        raise_form_error "Customer ID is too short"  unless @custid.size >= 4
+        raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
         raise_form_error "Passwords do not match" unless @password == @password2
       end
       def process
@@ -55,7 +54,10 @@ module Onetime
       end
       private
       def form_fields
-        {:planid => planid, :custid => custid, :email => email}
+        {:planid => planid, :custid => custid }
+      end
+      def valid_email?(email)
+        !email.match(EMAIL_REGEX).nil?
       end
     end
 
