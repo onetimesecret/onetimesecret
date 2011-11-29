@@ -23,7 +23,8 @@ module Onetime
         # remember to set with ||= 
       end
       def form_fields
-        raise "No form_fields method for #{self}"
+        OT.ld "No form_fields method for #{self.class}"
+        {}
       end
       def raise_form_error msg
         ex = OT::FormError.new 
@@ -158,7 +159,7 @@ module Onetime
       end
       def raise_concerns
         sess.event_incr! :create_secret
-        raise OT::DefinedError, :nosecret if kind == :share && secret_value.empty?
+        raise_form_error "You must provide a secret" if kind == :share && secret_value.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process
@@ -175,7 +176,7 @@ module Onetime
         secret.encrypt_value processed_value
         secret.save
         metadata.save
-        raise OT::DefinedError, :nosecret unless metadata.valid? && secret.valid?
+        raise_form_error "Could not store your secret" unless metadata.valid? && secret.valid?
       end
       def redirect_uri
         ['/private/', metadata.key].join

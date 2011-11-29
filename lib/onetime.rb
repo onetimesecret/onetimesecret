@@ -182,8 +182,6 @@ module Onetime
   
   class Problem < RuntimeError
   end
-  class DefinedError < Problem
-  end
   class MissingSecret < Problem
   end
   class UnknownKind < Problem

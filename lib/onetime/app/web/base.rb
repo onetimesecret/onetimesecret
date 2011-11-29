@@ -61,12 +61,6 @@ module Onetime
         sess.update_fields :error_message => ex.message
         res.redirect redirect
         
-      rescue OT::DefinedError => ex
-        # TODO: Remove this after debugging the errno issue (2011-11-28)
-        err ex.message
-        err ex.backtrace
-        res.redirect '/?errno=%s' % [Onetime.errno(ex.message.to_s.to_sym)]
-        
       rescue OT::MissingSecret => ex
         view = Onetime::Views::UnknownSecret.new req, sess, cust
         res.status = 404

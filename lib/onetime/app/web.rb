@@ -20,7 +20,7 @@ module Onetime
     #end
   
     def create
-      carefully do
+      carefully('/') do
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
