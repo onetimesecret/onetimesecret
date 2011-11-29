@@ -26,6 +26,11 @@ class OT::CLI::Definition
   command :build do
     puts OT::VERSION
   end
+  
+  option :c, :count, Integer, "Number of entropies to create (use with -G)"
+  action :C, :clear, "Clear existing entropy"
+  action :G, :generate, "Generate entropy"
+  command :entropy => OT::CLI
 
 end
 

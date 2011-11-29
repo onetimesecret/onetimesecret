@@ -54,6 +54,11 @@ module Onetime
       OT::RateLimit.register_events OT.conf[:limits]
       OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last }
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
+      if OT::Entropy.count < 50_000
+        info "Entropy is low (#{OT::Entropy.count}). Generating..."
+        OT::Entropy.generate
+        info "Entropy now @ #{OT::Entropy.count}"
+      end
       info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
       info " Redis: #{Familia.uri}"
@@ -134,13 +139,28 @@ module Onetime
     end
   end
   module Entropy
-    @values = Familia::Set.new name.to_s.downcase.gsub('::', Familia.delim).to_sym
+    @values = Familia::Set.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 11
     class << self
       attr_reader :values
+      def count
+        values.size
+      end
+      def empty?
+        count.zero?
+      end
       def pop
-        OT.info "TODO: OT::Entropy.pop"
         values.pop ||
         [caller[0], rand].gibbler.shorten(12) # TODO: replace this stub
+      end
+      def generate count=nil
+        count ||= 10_000
+        stack = caller
+        values.redis.pipelined do
+          newvalues = (0...count).to_a.collect do |idx|
+            val = [OT.instance, stack, OT.now.to_f, idx].gibbler.shorten(12)
+            values.add val
+          end
+        end
       end
     end
   end
