@@ -73,6 +73,30 @@ module Onetime
         unless form_fields
         end
       end
+      def expiration_options
+        selected = (!sess || !sess.authenticated?) ? 2.days : 7.days
+        disabled = (!sess || !sess.authenticated?) ? 2.days : 90.days
+        options = [
+          [1.hour, "1 hour"],
+          [4.hour, "4 hours"],
+          [12.hour, "12 hours"],
+          [1.days, "1 day"],
+          [2.days, "2 days"],
+          [7.days, "7 days"],
+          [14.days, "14 days"],
+          [30.days, "30 days"],
+          [60.days, "2 months"],
+          [90.days, "3 months"]
+        ]
+        options.collect do |option|
+          { 
+            :value => option[0].to_i, 
+            :text => option[1], 
+            :selected => option[0] == selected,
+            :disabled => option[0] > disabled
+          }
+        end
+      end
     end
   
     module Views

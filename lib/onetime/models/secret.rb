@@ -9,7 +9,7 @@ module Onetime
     def initialize custid=nil, entropy=nil
       @custid, @entropy, @state = custid, entropy, :new
       @key = gibbler.base(36)
-      super name, :ttl => 7.days, :db => 8
+      super name, :db => 8, :ttl => 7.days
     end
     def update_fields hsh={}
       hsh[:custid] ||= custid
@@ -103,7 +103,7 @@ module Onetime
         obj.exists? ? obj : nil
       end
       def create custid, entropy=[]
-        obj = new custid, entropy << [OT.instance, Time.now.to_f, OT.entropy]
+        obj = new custid, entropy << [OT.instance, Time.now.to_f, OT.entropy], opts
         # force the storing of the fields to redis
         obj.update_fields :custid => custid # calls update_time!
         obj
