@@ -35,9 +35,10 @@ module Onetime
     end
     
     class ReceiveFeedback < OT::Logic::Base
-      
+      attr_reader :msg
       def process_params
         @msg = params[:msg].to_s.slice(0, 999)
+        @msg = "#{msg} from #{sess.external_identifier}"
       end
       
       def raise_concerns
