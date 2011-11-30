@@ -155,7 +155,7 @@ module Onetime
     end
     attr_accessor :fortunes
     def self.random_fortune
-      @fortunes.random
+      @fortunes.random.to_s.strip
     rescue => ex
       'A house is full of games and puzzles.'
     end
