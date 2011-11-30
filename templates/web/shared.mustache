@@ -23,7 +23,9 @@
       {{/has_passphrase}}
         <span id="fire" class="button"><button type="submit">Show Secret</button></span>
       </form>
+      {{^verification}}
       <p>(careful: we will only show it once.)</p>
+      {{/verification}}
     </div>
     {{/show_secret}}
     {{#show_secret}}
