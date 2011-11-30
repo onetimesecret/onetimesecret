@@ -184,12 +184,13 @@ module Onetime
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
           self[:with_anal] = true
-          self[:metadata] = cust.metadata.collect { |m| 
+          self[:metadata] = cust.metadata.collect do |m| 
             { :uri => private_uri(m), 
               :stamp => natural_time(m.updated), 
               :key => m.key,
               :been_shared => m.state?(:shared) }
-          }
+          end.compact
+          self[:has_secrets] = !self[:metadata].empty?
         end
       end
       class Account < Onetime::App::View

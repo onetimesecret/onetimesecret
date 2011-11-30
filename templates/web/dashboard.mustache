@@ -6,12 +6,19 @@
     
     {{>partial/create_secret_form}}
     
+    {{#has_secrets}}
     <h3>Recent secrets</h3>
     <ul>
     {{#metadata}}
       <li><a href="{{uri}}" class="{{#been_shared}}strikethrough{{/been_shared}}">{{key}}</a> - {{stamp}}</li>
     {{/metadata}}
     </ul>
+    {{/has_secrets}}
+    
+    {{^has_secrets}}
+    <h3>No Recent secrets</h3>
+    <p class="intro2"><em>Go on then. Share a secret!</em></p>
+    {{/has_secrets}}
     
   </div>
   
