@@ -37,7 +37,7 @@ module Onetime
     class ReceiveFeedback < OT::Logic::Base
       
       def process_params
-        @msg = params[:msg].to_s
+        @msg = params[:msg].to_s.slice(0, 999)
       end
       
       def raise_concerns
@@ -209,7 +209,7 @@ module Onetime
         if cust.passphrase?(@currentp) && @newp == @newp2
           cust.update_passphrase @newp
           @modified << :password
-          sess.set_error_message "Password changed"
+          sess.set_info_message "Password changed"
         end
         if modified.empty?
           sess.set_error_message "Nothing changed" 
