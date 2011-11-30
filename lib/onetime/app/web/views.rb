@@ -54,7 +54,7 @@ module Onetime
         else
           unless sess.nil?
             if cust.has_key?(:verified) && cust.verified.to_s != 'true'
-              add_error "Check your email for your verification (#{cust.custid})"
+              add_message "A verification was sent to #{cust.custid}."
             else
               add_error sess.error_message!
             end
@@ -62,6 +62,9 @@ module Onetime
           end
         end
         init *args if respond_to? :init
+      end
+      def add_message msg
+        messages[:info] << msg unless msg.to_s.empty?
       end
       def add_error msg
         messages[:error] << msg unless msg.to_s.empty?

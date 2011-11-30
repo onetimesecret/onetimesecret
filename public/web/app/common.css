@@ -239,9 +239,11 @@ input[type=submit] {
   text-shadow: 1px 1px 0 #740500;
 }
 
-.err { color: orange; font-style: italic}
-.address { margin-left: 150px; font-size: 24px; line-height: 24px; }
+.err, .msg { font-weight: bold; padding: 8px; }
+.err { background-color: red; color: #fff }
+.msg { background-color: #ff0; }
 
+.address { margin-left: 150px; font-size: 24px; line-height: 24px; }
 
 table.pricing td.pricingheader {
   border: 1px solid black;

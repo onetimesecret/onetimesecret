@@ -48,6 +48,7 @@ module Onetime
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
         raise_form_error "Passwords do not match" unless password == password2
+        raise_form_error "Password is too short" unless password.size >= 6
         raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
       end
       def process
@@ -58,7 +59,7 @@ module Onetime
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
         msg = "Thanks for verifying your account. "
         # TODO: Add fortunes
-        msg << " Here is your fortune cookie for today:\n%s" % ['A house is full of games and puzzles.']
+        msg << "Here is your fortune cookie for today:\n\n%s" % ['A house is full of games and puzzles.']
         secret.encrypt_value msg
         secret.verification = true
         secret.custid = cust.custid
@@ -181,7 +182,8 @@ module Onetime
         if ! @currentp.empty?
           raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
           raise_form_error "New passwords do not match" unless @newp == @newp2
-          raise_form_error "New password is too short" unless @newp.size > 6
+          raise_form_error "New password is too short" unless @newp.size >= 6
+          raise_form_error "New password cannot match current password" if @newp == @currentp
         end
       end
       def process

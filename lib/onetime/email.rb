@@ -10,6 +10,7 @@ module Onetime
     attr_reader :cust
     def initialize cust, *args
       @cust = cust
+      self[:email_address] = cust.email
       init *args if respond_to? :init
     end
     def deliver_email
