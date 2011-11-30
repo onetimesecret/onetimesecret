@@ -58,7 +58,7 @@ module Onetime
       OT::RateLimit.register_events OT.conf[:limits]
       OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last }
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
-      
+      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
       info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
       info " Redis: #{Familia.uri}"
@@ -151,6 +151,12 @@ module Onetime
       VALID_CHARS_SAFE.delete_if { |v| %w(i l o 1 0).member?(v) }
       VALID_CHARS.freeze
       VALID_CHARS_SAFE.freeze
+    end
+    attr_accessor :fortunes
+    def self.random_fortune
+      @fortunes.random
+    rescue => ex
+      'A house is full of games and puzzles.'
     end
     def strand(len=12, safe=true)
       chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
