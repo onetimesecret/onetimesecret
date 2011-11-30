@@ -36,13 +36,12 @@ module Onetime
         logic.raise_concerns
         logic.process
         view[:has_passphrase] = logic.secret.has_passphrase?
-        p view[:verification] = logic.verification
+        view[:verification] = logic.verification
         if logic.show_secret
           view[:show_secret] = true
           view[:secret_value] = logic.secret_value
           view[:original_size] = logic.original_size
           view[:truncated] = logic.truncated
-          
         elsif req.post?
           view[:err] = "Double check that passphrase"
         end
@@ -72,6 +71,7 @@ module Onetime
     def signup
       carefully do
         if OT::Plan.plan?(req.params[:planid])
+          sess.set_error_message "You're already signed up" if sess.authenticated?
           view = Onetime::Views::Signup.new req, sess, cust
           res.body = view.render
         else
@@ -81,7 +81,7 @@ module Onetime
     end
     
     def create_account
-      carefully do
+      carefully("/signup/#{req.params[:planid]}") do
         deny_agents! 
         logic = OT::Logic::CreateAccount.new sess, cust, req.params
         logic.raise_concerns

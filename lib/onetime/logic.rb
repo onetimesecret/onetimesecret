@@ -44,6 +44,7 @@ module Onetime
         @password2 = params[:password2].to_s
       end
       def raise_concerns
+        raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
         raise_form_error "Passwords do not match" unless password == password2
