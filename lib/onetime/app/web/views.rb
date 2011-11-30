@@ -36,6 +36,7 @@ module Onetime
         self[:people_we_care_about] = true
         self[:display_promo] = false
         self[:display_feedback] = true
+        self[:colonel] = cust.role?(:colonel) if cust
         self[:feedback_text] = OT.conf[:site][:feedback][:text]
         if Onetime.conf[:site][:cobranded]
           self[:display_faq] = false

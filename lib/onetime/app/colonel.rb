@@ -37,9 +37,11 @@ class Onetime::App
           self[:feedback_count] = OT::Feedback.values.size
           self[:recent_feedback_count] = self[:recent_feedback].size
           self[:recent_customers] = OT::Customer.recent.collect do |this_cust|
-            {:custid => this_cust.custid, :planid => this_cust.planid, :stamp => natural_time(this_cust.created) || '[no create stamp]' }
+            { :custid => this_cust.custid, 
+              :planid => this_cust.planid,
+              :colonel => this_cust.role?(:colonel),
+              :stamp => natural_time(this_cust.created) || '[no create stamp]' }
           end
-          p OT::Customer.values.all
           self[:customer_count] = OT::Customer.values.size
           self[:recent_customer_count] = self[:recent_customers].size
           self[:metadata_count] = OT::Metadata.new.redis.keys('metadata*:object').count

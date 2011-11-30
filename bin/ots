@@ -12,26 +12,33 @@ require 'drydock'
 # Command-line interface for bin/stella
 class OT::CLI::Definition
   extend Drydock
-
+  
   about "Command Line tools and methods to manage OneTimeSecret"
   command :welcome do
     puts "Welcome to OneTimeSecret", $/
     puts "No other help for now. You're on your own buddy!"
   end
-
+  
   usage "ots register-build [msg]"
   command :register_build => OT::CLI
-
+  
   usage "ots build"
   command :build do
     puts OT::VERSION
   end
   
+  usage "ots entropy"
+  usage "ots entropy -G [-c NUM]"
   option :c, :count, Integer, "Number of entropies to create (use with -G)"
-  action :C, :clear, "Clear existing entropy"
+  action :D, :clear, "Destroy existing entropy"
   action :G, :generate, "Generate entropy"
   command :entropy => OT::CLI
-
+  
+  #usage "ots colonels"
+  #usage "ots colonels -C <CUSTID>"
+  #action :C, :create, "Create a new colonel"
+  #command :colonels => OT::CLI
+  
 end
 
 Drydock.run! ARGV, STDIN

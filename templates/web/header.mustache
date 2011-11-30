@@ -66,7 +66,7 @@
       <a href="/login" title="Log in to One-Time Secret">Login</a>
       {{/authenticated}}
       {{#authenticated}}
-      <span class="light">{{cust.custid}}</span> - <a href="/dashboard" title="Your Dashboard">Dashboard</a> | 
+      <span class="light">{{cust.custid}}</span>{{#colonel}}*{{/colonel}} - <a href="/dashboard" title="Your Dashboard">Dashboard</a> | 
       <a href="/account" title="Your Account">Account</a> | 
       <a href="/logout" title="Log out of One-Time Secret">Logout</a>
       {{/authenticated}}

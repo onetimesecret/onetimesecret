@@ -9,6 +9,9 @@
   :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png'
   :feedback: 
     :text: 'What do you think? Give us your feedback.'
+:colonels:
+  - delano@onetimesecret.com
+  - chris@onetimesecret.com
 :limits:
   :create_secret: 10
   :create_account: 3

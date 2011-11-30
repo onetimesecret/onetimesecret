@@ -52,7 +52,6 @@ module Onetime
         sess.set_info_message "Message received. Thank you kindly!"
       end
     end
-    
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
       attr_reader :planid, :custid, :password, :password2
@@ -76,14 +75,15 @@ module Onetime
         sess.update_fields :custid => cust.custid, :authenticated => 'true'
         cust.update_fields :planid => planid, :verified => false
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
-        msg = "Thanks for verifying your account.\n\n"
-        msg << "Here is your fortune cookie for today: %s" % OT::Utils.random_fortune
+        msg = "Thanks for verifying your account. "
+        msg << 'Here is a secret fortune cookie for today:\n\n"%s"' % OT::Utils.random_fortune
         secret.encrypt_value msg
         secret.verification = true
         secret.custid = cust.custid
         secret.save
         view = OT::Email::Welcome.new cust, secret
         view.deliver_email
+        cust.role = :colonel if OT.conf[:colonels].member?(cust.custid)
       end
       private
       def form_fields
@@ -139,6 +139,7 @@ module Onetime
           #sess = sess
           sess.update_fields :custid => cust.custid, :authenticated => 'true'
           sess.ttl = 20.days if @stay
+          cust.role = :colonel if OT.conf[:colonels].member?(cust.custid)
           sess.save
           cust.save
         else
