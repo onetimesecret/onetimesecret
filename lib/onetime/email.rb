@@ -14,7 +14,8 @@ module Onetime
     end
     def deliver_email
       ret = OT.emailer.send cust.email, subject, render
-      p [cust.email, subject, ret.class, ret.code]
+      # TODO: 
+      #raise OT::Problem if ret.code != 200
     end
     class Welcome < OT::Email
       def init secret

@@ -42,13 +42,24 @@
       {{^one_liner}}
       <textarea class="selectable" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
       {{/one_liner}}
+      {{^verification}}
       <p>(careful: it will disappear when you refresh this page.)</p>
+      {{/verification}}
+      
       {{#truncated}}
       <p>Note: this secret was truncated b/c it was over 5KB</p>
       {{/truncated}}
+      
     </div>
     <ul class="nav">
-      <li class="alt"><a href="/">Reply with another secret</a></li>
+      <li class="alt">
+        {{^verification}}
+        <a href="/">Reply with another secret</a>
+        {{/verification}}
+        {{#verification}}
+        <a href="/login">Log in to your account</a>
+        {{/verification}}
+      </li>
     </ul>
     {{/show_secret}}
   </div>
