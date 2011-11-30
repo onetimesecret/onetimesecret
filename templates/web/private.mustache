@@ -5,7 +5,7 @@
     <div class="uri">
       <span class="pretext">Share this link:</span><br/>
       <input id="secreturi" class="selectable" value="{{share_uri}}"/>
-      <p>This link can only be accessed one time.</p>
+      <p>This link can only be accessed one time. Expires in {{expiration_stamp}}.</p>
     </div>
     {{#show_passphrase}}
     <div class="passphrase">
@@ -38,7 +38,7 @@
       <p><em>This secret was received {{shared_date}}.</em></p>
       {{/been_shared}}
       {{^been_shared}}
-      <p><em>This secret has not been received yet.</em></p>
+      <p><em>This secret has not been received yet. Expires in {{expiration_stamp}}.</em></p>
       {{/been_shared}}
     </div>
     <div id="faq">

@@ -149,6 +149,14 @@ module Onetime
           self[:metadata_key] = metadata.key
           self[:been_shared] = metadata.state?(:shared)
           self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+          ttl = metadata.ttl.to_i
+          self[:expiration_stamp] = if ttl <= 1.hour
+            '%d minutes' % ttl.in_minutes
+          elsif ttl <= 1.day
+            '%d hours' % ttl.in_hours
+          else
+            '%d days' % ttl.in_days
+          end
           secret = metadata.load_secret
           unless secret.nil?
             self[:secret_key] = secret.key
