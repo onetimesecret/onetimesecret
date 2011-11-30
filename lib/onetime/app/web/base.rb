@@ -1,29 +1,5 @@
 require 'onetime/app/helpers'
 
-class String
-  def plural(int=1)
-    int > 1 || int.zero? ? "#{self}s" : self
-  end
-  def shorten(len=50)
-    return self if size <= len
-    self[0..len] + "..."
-  end
-end
-
-module Rack
-  class File
-    # from: rack 1.2.1
-    # don't print out the literal filename for 404s
-    def not_found
-      body = "File not found\n"
-      [404, {"Content-Type" => "text/plain",
-         "Content-Length" => body.size.to_s,
-         "X-Cascade" => "pass"},
-       [body]]
-    end
-  end
-end
-
 module Onetime
   class App
     

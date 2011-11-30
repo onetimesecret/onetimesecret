@@ -1,0 +1,14 @@
+{{>header}}
+
+  <div id="content">
+    
+    <h3>Feedback</h3>
+    <ul>
+    {{#recent_feedback}}
+      <li>{{msg}} <em>{{stamp}}</em></li>
+    {{/recent_feedback}}
+    </ul>
+    
+  </div>
+  
+{{>footer}}

@@ -50,17 +50,14 @@ module Onetime
           self[:display_otslogo] = true
         end
       
-        if req && req.params[:errno] && Onetime::ERRNO.has_key?(req.params[:errno])
-          add_error Onetime::ERRNO[req.params[:errno]]
-        else
-          unless sess.nil?
-            if cust.has_key?(:verified) && cust.verified.to_s != 'true'
-              add_message "A verification was sent to #{cust.custid}."
-            else
-              add_error sess.error_message!
-            end
-            add_form_fields sess.get_form_fields!
+        unless sess.nil?
+          if cust.has_key?(:verified) && cust.verified.to_s != 'true'
+            add_message "A verification was sent to #{cust.custid}."
+          else
+            add_error sess.error_message!
           end
+          add_message sess.info_message!
+          add_form_fields sess.get_form_fields!
         end
         init *args if respond_to? :init
       end
@@ -222,9 +219,9 @@ module Onetime
           self[:body_class] = :info
           self[:with_anal] = true
           self[:display_feedback] = false
-          self[:recent_feedback] = OT::Feedback.all.collect do |k,v|
-            {:msg => k, :stamp => natural_time(v) }
-          end
+          #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
+          #  {:msg => k, :stamp => natural_time(v) }
+          #end
         end
       end
     end

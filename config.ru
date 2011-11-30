@@ -14,6 +14,7 @@ $:.unshift(::File.join(ENV['APP_ROOT'], 'app'))
 require 'otto'
 require 'onetime/app/web'
 require 'onetime/app/api'
+require 'onetime/app/colonel'
 
 PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/web"
 APP_DIR = "#{ENV['APP_ROOT']}/lib/onetime/app"
@@ -21,7 +22,7 @@ APP_DIR = "#{ENV['APP_ROOT']}/lib/onetime/app"
 apps = {
   '/'          => Otto.new("#{APP_DIR}/web/routes"),
   '/api/v1'    => Otto.new("#{APP_DIR}/api/routes"),
-  #'/colonel'   => Otto.new("#{APP_DIR}/colonel/routes"),
+  '/colonel'   => Otto.new("#{APP_DIR}/colonel/routes"),
 }
 
 Onetime.load! :app

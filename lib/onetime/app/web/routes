@@ -1,6 +1,5 @@
 
 
-##  WEB
 GET   /                                          Onetime::App#index
 POST  /                                          Onetime::App#create_secret
 
