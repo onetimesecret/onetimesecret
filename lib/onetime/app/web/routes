@@ -4,6 +4,10 @@
 GET   /                                          Onetime::App#index
 POST  /                                          Onetime::App#create_secret
 
+GET   /about                                     Onetime::App#about
+GET   /contact                                   Onetime::App#contact
+GET   /bookmarklet                               Onetime::App#bookmarklet
+
 GET   /private/:key                              Onetime::App#private_uri
 GET   /shared/:key                               Onetime::App#secret_uri
 POST  /shared/:key                               Onetime::App#secret_uri

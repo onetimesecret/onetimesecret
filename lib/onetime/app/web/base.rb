@@ -30,6 +30,31 @@ module Onetime
     module Base
       include OT::App::Helpers
       
+      ## e.g.
+      ## class App 
+      ##   include Base
+      ##   simple_page :about 
+      ## end
+      ##
+      #module ClassMethods
+      #  def simple_page *pages
+      #    pages.each do |page|
+      #      klass = eval "#{self}::Views::#{page.to_s.capitalize}"
+      #      define_method page do
+      #        carefully do 
+      #          view = klass.new req, sess, cust
+      #          res.body = view.render
+      #        end
+      #      end
+      #    end
+      #  end
+      #  alias_method :simple_pages, :simple_page
+      #end
+      #  
+      #def self.included obj
+      #  obj.extend OT::App::Base::ClassMethods
+      #end
+      
       def authenticated redirect=nil
         carefully(redirect) do 
           sess.authenticated? ? yield : res.redirect(app_path('/'))
@@ -62,7 +87,7 @@ module Onetime
         res.redirect redirect
         
       rescue OT::MissingSecret => ex
-        view = Onetime::Views::UnknownSecret.new req, sess, cust
+        view = Onetime::App::Views::UnknownSecret.new req, sess, cust
         res.status = 404
         res.body = view.render
         
@@ -112,14 +137,14 @@ module Onetime
       end
       
       def not_found_response message
-        view = Onetime::Views::NotFound.new req, sess, cust
+        view = Onetime::App::Views::NotFound.new req, sess, cust
         view.add_error message
         res.status = 404
         res.body = view.render
       end
     
       def error_response message
-        view = Onetime::Views::Error.new req, sess, cust
+        view = Onetime::App::Views::Error.new req, sess, cust
         view.add_error message
         res.status = 401
         res.body = view.render

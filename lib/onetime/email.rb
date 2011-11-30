@@ -3,7 +3,7 @@ require 'mustache'
 module Onetime
   require 'onetime/app/web/views/helpers'
   class Email < Mustache
-    include Onetime::Views::Helpers
+    include Onetime::App::Views::Helpers
     self.template_path = './templates/email'
     self.view_namespace = Onetime::Email
     self.view_path = './onetime/email'
