@@ -1,0 +1,354 @@
+"Virtual" means never knowing where your next byte is coming from.
+$HOME is where you hang your @.
+A bad random number generator:  1, 1, 1, 1, 1, 4.33e+67, 1, 1, 1
+A bug in the hand is better than one as yet undetected.
+A computer program does what you tell it to do, not what you want it to do.
+A computer scientist is someone who fixes things that aren't broken.
+A CONS is an object which cares.  -- Bernie Greenberg
+A crash reduces your expensive computer to a simple stone.
+A journey of a thousand sites begins with a single click.
+A list is only as strong as its weakest link.  -- Donald Knuth
+A true Klingon Warrior does not comment his code!
+A user and his leisure time are soon parted.
+After enough decimal places, nobody gives a damn.
+All computers run at the same speed...  With the power off.
+All computers wait at the same speed.
+Another megabytes the dust.
+Any given program will expand to fill available memory.
+Any program that runs right is obsolete.
+Any sufficiently advanced bug is indistinguishable from a feature.  -- Rich Kulawiec
+Artificial intelligence usually beats real stupidity.
+Artificial Intelligence:  Making computers behave like they do in the movies.
+As a computer, I find your faith in technology amusing!
+As far as we know, our computer has never had an undetected error.  -- Conrad Weisert
+As of next week, passwords will be entered in Morse code.
+Asking whether machines can think is like asking whether submarines can swim.
+Back up my hard drive?  I can't find the reverse switch!
+Backup not found:  (A)bort (R)etry (P)anic?
+Base 8 is just like base 10, if you are missing two fingers.  -- Tom Lehrer
+Best file compression around:  "DEL" = 100% compression.
+Beware of programmers who carry screwdrivers.  -- Leonard Brandwein
+Brain fried -- core dumped.
+BREAKFAST.COM Halted -- Cereal Port Not Responding.
+Breakthrough:  It finally booted on the first try.
+Cannot find REALITY.SYS.  Universe halted.
+CChheecckk yyoouurr dduupplleexx sswwiittcchh..
+Compatible:  Gracefully accepts erroneous data from any source.
+Computer and car salesmen differ in that the latter know when they are lying.
+Computer chips are so small because computers don't eat much.
+Computer programmers do it byte by byte.
+Computer:  A device designed to speed up and automate errors.
+Computers are a more fun way to do the same work you'd have to do without them.
+Computers are not intelligent -- they just think they are.
+Computers are useless.  They can only give you answers.  -- Pablo Picasso
+Computers make very fast, very accurate mistakes.
+Congratulations!  You are the one-millionth user to log into our system.
+CONGRESS.SYS corrupted:  Reboot Washington, DC?  (Y/N)
+Counting in binary is just like counting in decimal if you are all thumbs.
+Counting in octal is just like counting in decimal if you don't use your thumbs.
+Dain bramaged, dore cumped.
+Death is a non-maskable interrupt.
+Diagnostics are the programs that run when nothing else will.
+Disc space -- the final frontier!
+Disclaimer:  Any errors in spelling, tact, or fact are transmission errors.
+Don't byte off more than you can view.
+Don't hit the keys so hard, it hurts.
+Don't let the computer bugs bite!
+Don't pay computer programmers too much money, it just encourages the bad ones.
+Dreams are free, but you get soaked on the connect time.
+Emacs is a nice operating system, but I prefer UNIX.  -- Tom Christaensen
+Enter any 11-digit prime number to continue.
+Error, no keyboard.  Press F1 to continue.
+Ethernet:  Something used to catch the etherbunny.
+Every program can be reduced to just one instruction -- that doesn't work.
+Every program in development at MIT expands until it can read mail.
+Every program is a part of some other program, and rarely fits.
+Everybody needs a little love sometime; stop hacking and fall in love!
+Excuse me for butting in, but I'm interrupt-driven.
+f u cn rd ths, u cn gt a gd jb n cmptr prgrmmng.
+Failure is not an option.  It comes bundled with the software.
+Feature:  A bug with seniority.
+File not found.  Should I fake it?  (Y/N)
+Foolproof operation:  All parameters are hard coded.
+fortune:  No such file or directory
+Futuristic:  It will only run on a next generation supercomputer.
+God is real, unless declared integer.
+God made machine language; all the rest is the work of man.
+Hackers have kernel knowledge.
+Hardware:  The parts of a computer system that can be kicked.
+Help!  I'm trapped in a Chinese computer factory!
+Help,MySpaceBarIsBroken!AnndMyBBackspaaceKeyyToo!
+Hit any user to continue.
+HOST SYSTEM NOT RESPONDING, PROBABLY DOWN.  DO YOU WANT TO WAIT?  (Y/N)
+How an engineer writes a program:  Start by debugging an empty file...
+How do I love thee?  My accumulator overflows.
+How do I set my laser printer on stun?
+How do you know it's an ENDLESS loop?
+How long is this Beta guy going to keep testing our stuff?  -- Mark Roop-Kharasch
+How much net work could a network work, if a network could net work?
+How was Thomas J. Watson buried?  9 edge down.
+I "upgraded" my computer to several levels above my head.  -- Ellen Goodman
+I am a computer -- dumber than any human and smarter than an administrator.
+I am still waiting for the advent of the computer science groupie.
+I am the computer your mother warned you about.
+I bet the human brain is a kludge.  -- Marvin Minsky
+I came, I saw, I deleted all your files.
+I haven't lost my mind; it's backed up on tape somewhere.
+I must have slipped a disk; my pack hurts.
+I smell a wumpus.
+I still get goose bumps every time I override a method...  -- Harry Wiguna
+I'm a firm believer in baseball bat therapy for computers.  -- Dan Gookin
+If a listener nods his head when you're explaining your program, wake him up.
+If a program is useful, it must be changed.
+If a program is useless, it must be documented.
+If a train station is where the train stops, what is a work station?
+If at first you don't succeed, you must be a programmer.
+If God had intended Man to program, we would be born with serial I/O ports.
+If I had it all to do over again, I'd spell creat with an "e".  -- Brian Kernighan
+If it was easy, the hardware people would take care of it.
+If it's not in the computer, it doesn't exist.
+In computer science, we stand on each other's feet.  -- Brian Reid
+In God we trust; all else we walk through.
+In the future on the Web, everyone will have 15 megabytes of fame.
+It is now pitch dark.  If you proceed, you will likely fall into a pit.
+It is ten o'clock; do you know where your processes are?
+It's a bad sign when you need a screwdriver to install a new operating system.
+Keyboard:  The standard way to generate computer errors.
+Kiss your keyboard goodbye!
+Last one out, turn off the computer!
+Life would be so much easier if we could just look at the source code.
+Lisp Users:  Due to the holiday, there will be no garbage collection on Monday.
+LISP:  To call a spade a thpade.
+Login incorrect.  Only perfect spellers may enter this system.
+logout
+Long computations that yield zero are probably all for naught.
+Machine-independent:  Does not run on any existing machine.
+Mainframe:  The biggest PC peripheral available.
+Managing software engineers is like herding cats.
+Manual Writer's Creed:  Garbage in, gospel out.
+Maybe Computer Science should be in the College of Theology.  -- R. S. Barton
+Meets quality standards:  Compiles without errors.
+Mental backup in progress -- do not disturb.
+MIPS:  Meaningless Indicator of Processor Speed.
+Mouse:  An advanced input device to make computer errors easier to generate.
+My New Year's resolution is:  1024 x 768.
+My software never has bugs.  It just develops random features.
+Netnews is like yelling, "Anyone want to buy a used car?" in a crowded theater.
+Never trust a computer you can't lift.  -- Stan Masor
+Never trust a computer you can't throw out the window.  -- S. Hunt
+Nice computers don't go down.
+No line available at 300 baud.
+No program done by a hacker will work unless he is on the system.
+No program done by an undergrad will work after she graduates.
+Obsolete:  Any computer you own.
+Old mail has arrived.
+Old programmers never die; they just branch to a new address.
+Old programmers never die; they just GOSUB without RETURN.
+On a clear disk you can seek forever.  -- Denning
+One if by LAN, two if by C.  -- Paul Revere, as told by John Karwoski
+One man's constant is another man's variable.  -- Alan Perlis
+One person's error is another person's data.
+One picture is worth 128K words.
+Our mothers would be proud of us if we could explain to them what it is we do.
+Over-computered is when you try to enter your password on your microwave oven.
+Overflow on /dev/null; please empty the bit bucket.
+Pause for storage relocation.
+People who deal with bits should expect to get bitten.  -- Jon Bentley
+Portable:  Survives system reboot.
+Power corrupts, and PowerPoint corrupts absolutely.  -- Vint Cerf
+Press any key to continue or any other key to quit.
+Press any key...  No, no, no, NOT THAT ONE!
+Profanity is the one language all programmers know best.
+Program:  A magic spell that converts input data to error messages.
+Programmers do it bit by bit.
+Programming Department:  Mistakes made while you wait.
+Programming is an art form that fights back.
+Programming is an unnatural act.
+Programming just with goto's is like swatting flies with a sledgehammer.
+Protect your software at all costs -- all else is meat.
+RAM disk is NOT an installation procedure.
+Random access is the optimum of the mass storages.
+Real programs don't eat cache.
+Remember the good old days, when CPU was singular?
+Remember, UNIX spelled backwards is XINU.
+Revolutionary:  Disk drives go round and round.
+Save energy:  Drive a smaller shell.
+SCCS, the source motel!  Programs check in and never check out!  -- Ken Thompson
+Shift to the left!  Shift to the right!  Pop up, push down, byte, byte, byte!
+Smash forehead on keyboard to continue.
+Software is to computers as yeast is to dough.  -- Chuck Bradshaw
+Some programming languages manage to absorb change but withstand progress.
+Southern DOS:  Y'all reckon?  (Yep/Nope)
+Spelling checker:  Converts spelling errors into malapropisms.
+State-of-the-art:  Any computer you can't afford.
+Structured programming supports the law of the excluded muddle.
+Supercomputer:  Turns CPU-bound problem into I/O-bound problem.  -- Ken Batcher
+Swap read error.  You lose your mind.
+Syntax error:  "Hello, I want to buy a computer and money is no object."
+System going down at 1:45 for disk crashing.
+System going down at 5 pm to install scheduler bug.
+Systems programmers are the high priests of a low cult.  -- R. S. Barton
+That does not compute.
+The amount of clue on the Internet remains constant.  -- Evi Nemeth
+The attention span of a computer is only as long as its power cord.
+The code was willing.  It considered your request, but the chips were weak.
+The computer is mightier than the pen, the sword, and usually, the programmer.
+The determined programmer can write a FORTRAN program in any language.
+The e-mail of the species is more deadly than the mail.
+The generation of random numbers is too important to be left to chance.
+The hardest bugs to find are the easiest ones to fix.
+The Internet is a logic-optional forum.  -- Marc Callier
+The moving cursor prints, and having printed, blinks on.
+The next generation of computers will have a "Warranty Expired" interrupt.
+The original point-and-click interface was a Smith & Wesson.
+The program is absolutely right; therefore, the computer must be wrong.
+The steady state of disks is full.  -- Ken Thompson
+The Tao that is seen is not the true Tao, until you bring fresh toner.
+The value of a program is proportional to the weight of its output.
+The world is coming to an end...  SAVE YOUR BUFFERS!!
+The world will end in 5 minutes.  Please log out.
+There are two ways to write error-free programs; only the third one works.
+There must be more to life than compile-and-go.
+There's no place like http://www.home.com.
+This fortune soaks up 47 times its own weight in excess memory.
+This login session:  $13.76, but for you:  $11.88.
+This screen intentionally left blank.
+This site was moved.  We'd tell you where, but then we'd have to delete you.
+This system will self-destruct in five minutes.
+Those who can't write, write help files.
+Those who can, do.  Those who cannot, teach.  Those who cannot teach, HACK!
+Thrashing is just virtual crashing.
+Three things are certain:  Death, taxes, and lost data.  Guess which occurred.
+To be, or not to be, those are the parameters.
+To err is human; to forgive, beyond the scope of the Operating System.
+To err is human; to really foul things up requires a computer.
+To iterate is human; to recurse, divine.  -- Robert Heller
+Too many clicks spoil the browse.
+Unable to locate coffee -- operator halted!
+UNIX is a nice place to live, but you don't want to visit there.
+UNIX is very user-friendly...  It's just picky about its friends.
+Unprecedented performance:  Nothing ever ran this slow before.
+Upgrade:  Take old bugs out, put new ones in.
+Variables won't; constants aren't.  -- Adam Osborn
+Virtual memory is for weenies!  -- Seymour Cray
+What boots up must come down.
+What do computer engineers use for birth control?  Their personalities.
+What this country needs is a good five-cent microcomputer.
+Where the system is concerned, you are not allowed to ask "Why?".
+Why do we want intelligent terminals when there are so many stupid users?
+Would YOU pass a Turing test?
+You can't go home again, unless you set $HOME.
+You can't make a program without broken egos.
+You can't teach a new mouse old clicks.
+You depend too much on computers for information.
+You forgot to do your backup 16 days ago.  Tomorrow you will need that version.
+You had mail, but the super-user read it, and deleted it!
+You have a tendency to feel you are superior to most computers.
+You have junk mail.
+You know it is going to be a bad day when you forget your new password.
+You might have mail.
+You never finish a program, you just stop working on it.
+Your email has been returned due to insufficient voltage.
+Your fault -- core dumped.
+Your password is pitifully obvious.
+[Unix] is not necessarily evil, like OS/2.  -- Peter Norton
+A bug in the code is worth two in the documentation.
+A fault tolerant system must report the faults even as it tolerates them.
+A hacker does for love what others would not do for money.  -- Laura Creighton
+A low level language is one whose programs require attention to the irrelevant.
+A paperless office has about as much chance as a paperless bathroom.
+A successful tool is used to do something undreamed of by its author.  -- Samuel Johnson
+Abstraction is achieved by data hiding and enforced by encapsulation.
+Actual usability is inversely proportionate to apparent user-friendliness.
+Adding manpower to a late software project makes it later.  -- Frederick Brooks
+All programmers are playwrights and all computers are lousy actors.
+All the simple programs have been written, and all the good names taken.
+All you need to know is the user interface.  -- J. Redford
+An algorithm must be seen to be believed.  -- Donald Knuth
+An infinite loop is OK as long as you don't get stuck in it.
+An operating system without virtual memory is an OS without virtue.
+Any programming language is at its best before it is implemented and used.
+Avoid GOTOs completely if you can keep the program readable.
+Avoid the Fortran arithmetic IF (or better yet, just avoid Fortran).
+Avoid unnecessary branches.
+Bad style destroys an otherwise superb program.
+Bad tools result in bad software.  -- J.L. Marsh
+BASIC is to computer programming as QWERTY is to typing.  -- Seymour Papert
+Be careful when a loop exits to the same place from side and bottom.
+Choose variable names that will not be confused.
+Computers are unreliable, but humans are even more unreliable.  -- Gilb
+Computers talk to each other worse than their designers do.
+Computers... are not designed, as we are, for ambiguity.  -- Thomas
+Controlling complexity is the essence of computer programming.  -- Brian Kernighan
+Digital circuits are made from analog parts.
+Don't comment or patch bad code; rewrite it.
+Don't compare floating point numbers solely for equality.
+Don't diddle code to make it faster; find a better algorithm.
+Don't document the program; program the document.
+Don't stop at one bug.
+Every bug you find is the last one.
+Every good work of software starts by scratching a developer's personal itch.
+Every program is either trivial or it contains at least one bug.
+Everything should be transparent to the user.
+Expert systems are built to embody the knowledge of human experts.  -- Rich Kulawiec
+Favor object composition over class inheritance.
+Garbage in, garbage out.
+Given enough eyeballs, all bugs are shallow.  -- Eric Raymond
+Good programmers know what to write.  Great ones know what to rewrite.  -- Eric Raymond
+I do not fear computers.  I fear the lack of them.  -- Isaac Asimov
+I suppose when it gets to that point, we shan't know how it does it.  -- Alan Turing
+If the code and the comments disagree, then both are probably wrong.  -- Schryer
+If you have a procedure with 10 parameters, you probably missed some.
+In the long run, every program becomes rococco, and then rubble.  -- Alan Perlis
+It is easier to change the specification to fit the program than vice versa.
+It is easier to write an incorrect program than understand a correct one.
+It wasn't as easy to get programs right as we had thought.  -- Maurice Wilkes, 1949
+It's easy to get lost in the details of an incorrect implementation.  -- Tom von Alten
+Know Thy User.
+Let the machine do the dirty work.  -- Elements of Programming Style
+Machine independent code isn't.
+Make input easy to proofread.
+Make it right before you make it faster.
+Make sure all variables are initialized before use.
+Make sure comments and code agree.
+Make sure your code "does nothing" gracefully.
+Never put off till run-time what you can do at compile-time.  -- David Gries
+Never test for an error condition you don't know how to handle.  -- Steinbach
+Never underestimate the bandwidth of a station wagon full of tapes.  -- Jackson
+Never write software that anthropomorphizes the machine.
+Never write software that patronizes the user.
+New technology becomes salable three years before it becomes usable.
+New technology becomes usable three years before its users become competent.
+No extensible language will be universal.  -- T. Cheatham
+On the Web, understanding the medium matters more than controlling the layout.
+Performance is easier to add than clarity.
+Plan the system for change.  -- Frederick Brooks
+Program to an interface, not an implementation.
+Replace repetitive expressions by calls to a common function.
+Smart data structures and dumb code works a lot better than vice versa.
+Software is best understood as a branch of movie making.  -- Ted Nelson
+Software is mind work.  Having the right frame of mind is essential.
+The best packed information most resembles random noise.
+The computer is the Proteus of machines.  -- Seymour Papert
+The computing field is always in need of new cliches.  -- Alan Perlis
+The less time planning, the more time programming.
+The Macintosh was the first personal computer good enough to be criticized.
+The number of UNIX installations has grown to 10, with more expected.  (6/72)
+The purpose of computing is insight, not numbers.  -- Richard Hamming
+The wise person writes bomb-proof code.
+There are always at least two ways to program the same thing.
+There are never any bugs you haven't found yet.
+There can never be a computer language in which you cannot write a bad program.
+There is no problem that, when programmed just right, isn't more complicated.
+To understand a program you must become both the machine and the program.
+Try not to let implementation details sneak into design documents.
+Undetectable errors are infinite; detectable errors by definition are finite.
+UNIX is many things to many people, but it has never been everything to anybody.
+Use free-form input where possible.
+Use GOTOs only to implement a fundamental structure.
+Use IF...ELSE  IF...ELSE  IF...ELSE... to implement multi-way branches.
+Use text for text and images for images.  -- Paul Martz
+Watch out for off-by-one errors.
+When a program is being tested, it is too late to make design changes.
+When we write programs that "learn", it turns out we do and they don't.
+You don't have to know how the computer works, just how to work the computer.

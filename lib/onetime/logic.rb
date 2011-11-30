@@ -55,12 +55,25 @@ module Onetime
         sess.update_fields :custid => cust.custid, :authenticated => 'true'
         cust.update_fields :planid => planid, :verified => false
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
-        secret.encrypt_value "Thanks for verifying your account. You can now log in. \n\nYour fortune cookie for today is:\n%s" % ['blah']
+        secret.encrypt_value "Thanks for verifying your account. You can now log in. \n\nYour fortune cookie for today is:\n\n'%s'" % [get_random_line] 
         secret.verification = true
         secret.custid = cust.custid
         secret.save
         view = OT::Email::Welcome.new cust, secret
         view.deliver_email
+      end
+      def get_random_line
+        number = (rand * 354 + 1).to_i #FIXME - hack: 354 is number of lines in file below
+        counter = 0
+        line = nil
+        File.foreach('lib/fortunes.txt') do |line|
+          counter += 1
+          if counter == number
+            line.chomp!
+            return line
+          end
+        end
+        return 'Sometimes life returns an unexpected end of file.'
       end
       private
       def form_fields
