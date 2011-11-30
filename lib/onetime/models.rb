@@ -82,6 +82,10 @@ module Onetime::Models
     def destroy!
       clear
     end
+    def ttl
+      ret = get_value(:ttl) || super
+      ret
+    end
     def save
       hsh = { :key => identifier }
       hsh[:created] = Time.now.to_i unless exists?

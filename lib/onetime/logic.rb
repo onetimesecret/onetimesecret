@@ -231,9 +231,13 @@ module Onetime
     end
     
     class CreateSecret < OT::Logic::Base
-      attr_reader :passphrase, :secret_value, :kind
+      attr_reader :passphrase, :secret_value, :kind, :ttl
       attr_reader :metadata, :secret
       def process_params
+        @ttl = params[:ttl].to_i
+        @ttl = 1.hour if @ttl < 1.hour
+        @ttl = 2.days if @ttl > 2.days && cust.anonymous?
+        @ttl = 90.days if @ttl > 90.days && !cust.anonymous?
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym 
         end
@@ -250,6 +254,7 @@ module Onetime
         metadata.passphrase = passphrase if !passphrase.empty?
         secret.update_passphrase passphrase if !passphrase.empty?
         secret.encrypt_value secret_value
+        metadata.ttl, secret.ttl = ttl, ttl
         secret.save
         metadata.save
         if metadata.valid? && secret.valid?
