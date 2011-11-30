@@ -49,6 +49,7 @@ module Onetime
       
       def process
         OT::Feedback.add @msg
+        sess.set_info_message "Message received. Thank you kindly!"
       end
     end
     
