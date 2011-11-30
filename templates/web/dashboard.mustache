@@ -2,9 +2,28 @@
   
   <div id="content">
     
-    <h2 class="intro">Your dashboard</h2>
+    <!--
+    <div id="signupSteps">
+      <div id="step1" class="step">
+        <p>Step 1:</p>
+        <div>Create Account</div>
+      </div>
+      <div id="step2" class="step">
+        <p>Step 2:</p>
+        <div>Verify Account</div>
+      </div>
+      <div id="step3" class="step">
+        <p>Step 3:</p>
+        <div>Share Secret</div>
+      </div>
+    </div>
+    -->
     
-    {{>partial/create_secret_form}}
+    <!--<a href="#" class="secretToggle">Share a secret</a>-->
+    
+    <div class="shareSecret">
+      {{>partial/create_secret_form}}
+    </div>
     
     {{#has_secrets}}
     <h3>Recent secrets</h3>
