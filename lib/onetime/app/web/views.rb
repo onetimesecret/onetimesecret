@@ -35,7 +35,8 @@ module Onetime
         self[:authenticated] = sess.authenticated? if sess
         self[:people_we_care_about] = true
         self[:display_promo] = false
-      
+        self[:display_feedback] = true
+        self[:feedback_text] = OT.conf[:site][:feedback][:text]
         if Onetime.conf[:site][:cobranded]
           self[:display_faq] = false
           self[:override_styles] = true
@@ -109,6 +110,7 @@ module Onetime
         def init 
           self[:title] = "You received a secret"
           self[:body_class] = :generate
+          self[:display_feedback] = false
         end
         def display_lines
           ret = self[:secret_value].to_s.scan(/\n/).size + 2
@@ -205,6 +207,24 @@ module Onetime
       class Error < Onetime::App::View
         def init *args
           self[:title] = "Oh cripes!"
+        end
+      end
+      class About < Onetime::App::View
+        def init *args
+          self[:title] = "About Us"
+          self[:body_class] = :info
+          self[:with_anal] = true
+        end
+      end
+      class Feedback < Onetime::App::View
+        def init *args
+          self[:title] = "Your Feedback"
+          self[:body_class] = :info
+          self[:with_anal] = true
+          self[:display_feedback] = false
+          self[:recent_feedback] = OT::Feedback.all.collect do |k,v|
+            {:msg => k, :stamp => natural_time(v) }
+          end
         end
       end
     end

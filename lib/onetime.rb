@@ -1,6 +1,8 @@
 # https://github.com/shuber/encryptor
 puts "TODO: SECRETS MIGRATION TO REDIS HASH"
 puts "TODO: ADD SECRET TO prod config"
+puts "TODO: ADD FEEDBACK TO prod config"
+puts "TODO: ADD EMAILER TO prod config"
 
 require 'bundler/setup'
 
@@ -139,32 +141,6 @@ module Onetime
       return if @version
       require 'yaml'
       @version = YAML.load_file(File.join(OT::HOME, 'BUILD.yml'))
-    end
-  end
-  module Entropy
-    @values = Familia::Set.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 11
-    class << self
-      attr_reader :values
-      def count
-        values.size
-      end
-      def empty?
-        count.zero?
-      end
-      def pop
-        values.pop ||
-        [caller[0], rand].gibbler.shorten(12) # TODO: replace this stub
-      end
-      def generate count=nil
-        count ||= 10_000
-        stack = caller
-        values.redis.pipelined do
-          newvalues = (0...count).to_a.collect do |idx|
-            val = [OT.instance, stack, OT.now.to_f, idx].gibbler.shorten(12)
-            values.add val
-          end
-        end
-      end
     end
   end
   module Utils

@@ -34,6 +34,24 @@ module Onetime
       end
     end
     
+    class ReceiveFeedback < OT::Logic::Base
+      
+      def process_params
+        @msg = params[:msg].to_s
+      end
+      
+      def raise_concerns
+        sess.event_incr! :send_feedback
+        if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:site][:feedback][:text])}/
+          raise_form_error "You can be more original than that!"
+        end
+      end
+      
+      def process
+        OT::Feedback.add @msg
+      end
+    end
+    
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
       attr_reader :planid, :custid, :password, :password2

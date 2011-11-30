@@ -6,15 +6,18 @@
   :secondary_color: '#7aa0c7'
   :border_color: '#000000'
   :cobranded: false
-  :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png' 
+  :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png'
+  :feedback: 
+    :text: 'What do you think? Give us your feedback.'
 :limits:
   :create_secret: 10
   :create_account: 3
+  :send_feedback: 3
 :redis:
   :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
 :nginx:
   :ipaddress: '127.0.0.1'
-  :servername: 'ots5.com'
+  :servername: 'www.ot.com'
 :emailer:
   :mode: :sendgrid
   :account: 

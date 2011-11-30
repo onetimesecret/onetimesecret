@@ -1,0 +1,23 @@
+{{>header}}
+
+  <div id="content">
+
+    <h2 class="intro">Give us your feedback</h2>
+    
+    {{>partial/session_messages}}
+    
+    <form class="feedback" action="/feedback" method="post">
+      <input class="clearDefault" type="text" name="msg" value="" />
+      <span><button type="submit">Send</button></span>
+    </form>
+    
+    <hr/>
+    
+    <ul>
+    {{#recent_feedback}}
+      <li>{{msg}} <em>{{stamp}}</em></li>
+    {{/recent_feedback}}
+    </ul>
+  </div>
+
+{{>footer}}

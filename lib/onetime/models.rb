@@ -151,7 +151,54 @@ module Onetime::Models
   end
 end
 
-
+module Onetime
+  module Feedback
+    @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 11
+    class << self
+      attr_reader :values
+      def add msg
+        self.values.add OT.now.to_i, msg
+        self.values.remrangebyscore 0, OT.now.to_i-30.days
+      end
+      # Returns a Hash like: {"msg1"=>"1322644672", "msg2"=>"1322644668"}
+      def all
+        ret = self.values.revrangeraw 0, -1, :with_scores => true
+        Hash[*ret]
+      end
+      def recent duration=30.days
+        spoint, epoint = OT.now.to_i-duration, OT.now.to_i
+        ret = self.values.rangebyscoreraw spoint, epoint, :with_scores => true
+        Hash[*ret]
+      end
+    end
+  end
+  module Entropy
+    @values = Familia::Set.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 11
+    class << self
+      attr_reader :values
+      def count
+        values.size
+      end
+      def empty?
+        count.zero?
+      end
+      def pop
+        values.pop ||
+        [caller[0], rand].gibbler.shorten(12) # TODO: replace this stub
+      end
+      def generate count=nil
+        count ||= 10_000
+        stack = caller
+        values.redis.pipelined do
+          newvalues = (0...count).to_a.collect do |idx|
+            val = [OT.instance, stack, OT.now.to_f, idx].gibbler.shorten(12)
+            values.add val
+          end
+        end
+      end
+    end
+  end
+end
 require 'onetime/models/metadata'
 require 'onetime/models/secret'
 require 'onetime/models/session'

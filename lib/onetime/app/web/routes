@@ -4,8 +4,10 @@
 GET   /                                          Onetime::App#index
 POST  /                                          Onetime::App#create_secret
 
+GET   /feedback                                  Onetime::App#feedback
+POST  /feedback                                  Onetime::App#receive_feedback
+
 GET   /about                                     Onetime::App#about
-GET   /contact                                   Onetime::App#contact
 GET   /bookmarklet                               Onetime::App#bookmarklet
 
 GET   /private/:key                              Onetime::App#private_uri

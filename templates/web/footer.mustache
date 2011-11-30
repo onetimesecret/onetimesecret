@@ -12,8 +12,15 @@
     })();
   </script>
   {{/with_anal}}
-
+  
   <div id="footer" class="dotted">
+    {{#display_feedback}}
+    <form class="feedback" action="/feedback" method="post">
+      <input class="clearDefault" type="text" name="msg" value="{{feedback_text}}" />
+      <span><button type="submit">Send</button></span>
+    </form>
+    {{/display_feedback}}
+    
     <p><a href="/about">About</a> | <a href="/pricing">Pricing</a> <!--| <a href="/bookmarklet">Bookmarklet</a></p>-->
     <p><a href="/info/privacy">Privacy policy</a> | <a href="/info/security">Security policy</a></p>
     {{#monitored_link}}

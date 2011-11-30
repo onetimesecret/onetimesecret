@@ -21,6 +21,15 @@ module Onetime
       end
     end
     
+    def receive_feedback
+      carefully do
+        logic = OT::Logic::ReceiveFeedback.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        res.redirect app_path('/feedback')
+      end
+    end
+    
     def dashboard
       authenticated do
         logic = OT::Logic::Dashboard.new sess, cust, req.params
@@ -85,7 +94,12 @@ module Onetime
         res.body = view.render
       end
     end
-    
+    def feedback
+      carefully do
+        view = Onetime::App::Views::Feedback.new req, sess, cust
+        res.body = view.render
+      end
+    end
   end
 end
 
