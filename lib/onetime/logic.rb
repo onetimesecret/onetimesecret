@@ -56,7 +56,10 @@ module Onetime
         sess.update_fields :custid => cust.custid, :authenticated => 'true'
         cust.update_fields :planid => planid, :verified => false
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
-        secret.encrypt_value "Thanks for verifying your account. You can now log in. \n\nYour fortune cookie for today is:\n%s" % ['blah']
+        msg = "Thanks for verifying your account. "
+        # TODO: Add fortunes
+        msg << " Here is your fortune cookie for today:\n%s" % ['A house is full of games and puzzles.']
+        secret.encrypt_value msg
         secret.verification = true
         secret.custid = cust.custid
         secret.save
@@ -178,14 +181,20 @@ module Onetime
         if ! @currentp.empty?
           raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
           raise_form_error "New passwords do not match" unless @newp == @newp2
-          @modified << :password
+          raise_form_error "New password is too short" unless @newp.size > 6
         end
       end
       def process
-        cust.update_passphrase @newp
-        cust.update_time!
-        sess.set_error_message "Password changed" if modified?(:password)
-        sess.set_error_message "Nothing changed" if modified.empty?
+        if cust.passphrase?(@currentp) && @newp == @newp2
+          cust.update_passphrase @newp
+          @modified << :password
+          sess.set_error_message "Password changed"
+        end
+        if modified.empty?
+          sess.set_error_message "Nothing changed" 
+        else
+          cust.update_time!
+        end
       end
       def modified? guess
         modified.member? guess
