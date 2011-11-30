@@ -1,6 +1,20 @@
 
 
 class Onetime::Customer < Familia::HashKey
+  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 6
+  class << self
+    attr_reader :values
+    def add cust
+      self.values.add OT.now.to_i, cust.identifier
+    end
+    def all
+      self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+    end
+    def recent duration=30.days
+      spoint, epoint = OT.now.to_i-duration, OT.now.to_i
+      self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+    end
+  end
   include Onetime::Models::RedisHash
   include Onetime::Models::Passphrase
   def initialize custid=:anon
@@ -55,7 +69,9 @@ class Onetime::Customer < Familia::HashKey
       cust = new custid
       # force the storing of the fields to redis
       cust.custid = custid
+      cust.created = OT.now.to_i
       cust.update_fields # calls update_time!
+      add cust
       cust
     end
   end

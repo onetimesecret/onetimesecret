@@ -3,6 +3,21 @@
 
 # s = Onetime::Session.load ''
 class Onetime::Session < Familia::HashKey
+  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 1
+  class << self
+    attr_reader :values
+    def add sess
+      self.values.add OT.now.to_i, sess.identifier
+      self.values.remrangebyscore 0, OT.now.to_i-2.days
+    end
+    def all
+      self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+    end
+    def recent duration=30.days
+      spoint, epoint = OT.now.to_i-duration, OT.now.to_i
+      self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+    end
+  end
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
   attr_reader :entropy
@@ -29,6 +44,7 @@ class Onetime::Session < Familia::HashKey
       # force the storing of the fields to redis
       sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
       sess.update_fields # calls update_time!
+      add sess
       sess
     end
     def generate_id *entropy

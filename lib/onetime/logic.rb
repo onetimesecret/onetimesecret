@@ -233,7 +233,7 @@ module Onetime
       end
       def raise_concerns
         sess.event_incr! :create_secret
-        raise_form_error "You must provide a secret" if kind == :share && secret_value.empty?
+        raise_form_error "You did not provide anything to share" if kind == :share && secret_value.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process

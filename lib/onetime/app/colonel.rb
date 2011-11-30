@@ -19,14 +19,31 @@ class Onetime::App
       self.template_path = './templates/colonel'
       self.view_namespace = Onetime::App::Colonel::Views
       self.view_path = './lib/onetime/app/colonel/views'
+      def initialize *args
+        super
+        self[:subtitle] = "Colonel"
+      end
     end
     
     module Views
       class Homepage < OT::App::Colonel::View
         def init *args
-          self[:recent_feedback] = OT::Feedback.all.collect do |k,v|
+          self[:title] = "Home"
+          self[:body_class] = :colonel
+          self[:session_count] = OT::Session.values.size
+          self[:recent_feedback] = OT::Feedback.recent.collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
           end
+          self[:feedback_count] = OT::Feedback.values.size
+          self[:recent_feedback_count] = self[:recent_feedback].size
+          self[:recent_customers] = OT::Customer.recent.collect do |this_cust|
+            {:custid => this_cust.custid, :planid => this_cust.planid, :stamp => natural_time(this_cust.created) || '[no create stamp]' }
+          end
+          p OT::Customer.values.all
+          self[:customer_count] = OT::Customer.values.size
+          self[:recent_customer_count] = self[:recent_customers].size
+          self[:metadata_count] = OT::Metadata.new.redis.keys('metadata*:object').count
+          self[:secret_count] = OT::Secret.new.redis.keys('secret*:object').count
         end
       end
     end

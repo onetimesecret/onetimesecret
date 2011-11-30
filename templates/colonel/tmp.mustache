@@ -2,11 +2,22 @@
 
   <div id="content">
     
-    <h3>Feedback</h3>
+    <p>Sessions: {{session_count}}</p>
+    
+    <p>Metadata/Secrets: {{secret_count}}/{{metadata_count}}</p>
+        
+    <h3>Feedback ({{recent_feedback_count}} of {{feedback_count}})</h3>
     <ul>
     {{#recent_feedback}}
       <li>{{msg}} <em>{{stamp}}</em></li>
     {{/recent_feedback}}
+    </ul>
+
+    <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
+    <ul>
+    {{#recent_customers}}
+      <li><strong>{{custid}}</strong> {{planid}} <em>{{stamp}}</em></li>
+    {{/recent_customers}}
     </ul>
     
   </div>
