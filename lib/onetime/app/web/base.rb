@@ -33,13 +33,13 @@ module Onetime
       
       def authenticated redirect=nil
         carefully(redirect) do 
-          sess.authenticated? ? yield : res.redirect(app_path('/'))
+          sess.authenticated? ? yield : res.redirect(('/'))
         end
       end
       
       def colonels redirect=nil
         carefully(redirect) do
-          sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(app_path('/'))
+          sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
         end
       end
       

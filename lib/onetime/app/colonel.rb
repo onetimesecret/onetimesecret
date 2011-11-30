@@ -5,7 +5,7 @@ class Onetime::App
     include OT::App::Base
     
     def index
-      carefully do
+      colonels do
         view = Onetime::App::Colonel::Views::Homepage.new req, sess, cust
         sess.event_incr! :homepage
         res.body = view.render
@@ -33,7 +33,7 @@ class Onetime::App
           self[:session_count] = OT::Session.values.size
           self[:recent_feedback] = OT::Feedback.recent.collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
-          end
+          end.reverse
           self[:feedback_count] = OT::Feedback.values.size
           self[:recent_feedback_count] = self[:recent_feedback].size
           self[:recent_customers] = OT::Customer.recent.collect do |this_cust|
@@ -41,7 +41,7 @@ class Onetime::App
               :planid => this_cust.planid,
               :colonel => this_cust.role?(:colonel),
               :stamp => natural_time(this_cust.created) || '[no create stamp]' }
-          end
+          end.reverse
           self[:customer_count] = OT::Customer.values.size
           self[:recent_customer_count] = self[:recent_customers].size
           self[:metadata_count] = OT::Metadata.new.redis.keys('metadata*:object').count

@@ -162,12 +162,12 @@ module Onetime
       end
       # Returns a Hash like: {"msg1"=>"1322644672", "msg2"=>"1322644668"}
       def all
-        ret = self.values.revrangeraw 0, -1, :with_scores => true
+        ret = self.values.revrangeraw(0, -1, :with_scores => true)
         Hash[*ret]
       end
       def recent duration=30.days
         spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-        ret = self.values.rangebyscoreraw spoint, epoint, :with_scores => true
+        ret = self.values.rangebyscoreraw(spoint, epoint, :with_scores => true)
         Hash[*ret]
       end
     end
