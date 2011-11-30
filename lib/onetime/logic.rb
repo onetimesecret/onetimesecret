@@ -63,7 +63,7 @@ module Onetime
         view.deliver_email
       end
       def get_random_line
-        number = (rand * 354 + 1).to_i #FIXME - hack: 354 is number of lines in file below
+        number = (rand * 69 + 1).to_i #FIXME - hack: 69 is number of lines in file below
         counter = 0
         line = nil
         File.foreach('lib/fortunes.txt') do |line|
