@@ -13,9 +13,12 @@
   - delano@onetimesecret.com
   - chris@onetimesecret.com
 :limits:
-  :create_secret: 10
+  :create_secret: 25
   :create_account: 3
   :send_feedback: 3
+  :authenticate_session: 5
+  :homepage: 25
+  :dashboard: 50
 :redis:
   :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
 :nginx:

@@ -63,6 +63,7 @@ module Onetime
         @password2 = params[:password2].to_s
       end
       def raise_concerns
+        sess.event_incr! :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
@@ -76,8 +77,8 @@ module Onetime
         sess.update_fields :custid => cust.custid, :authenticated => 'true'
         cust.update_fields :planid => planid, :verified => false
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
-        msg = "Thanks for verifying your account. "
-        msg << %Q{Here is a secret fortune cookie for today:\n\n"%s"} % OT::Utils.random_fortune
+        msg = "Thanks for verifying your account.\n\n"
+        msg << %Q{Here is a secret fortune cookie for today:\n"%s"} % OT::Utils.random_fortune
         secret.encrypt_value msg
         secret.verification = true
         secret.custid = cust.custid
