@@ -3,15 +3,16 @@
 require 'onetime'
 require 'familia/tools'
 
-unless ARGV.first == 'MIGRATE'
-  OT.info "No change made"
+
+if true #ARGV.first != 'MIGRATE'
+  OT.info "No change made (already migrated 2011-12-03)"
   exit 
 end
 
 def run
   OT.load! :app
   
-  secrets = Familia.redis(0).keys '*secret:*:object'; nil
+  secrets = Familia.redis(0).keys 'secret:*:object'; nil
   OT.info "Migrating #{secrets.size} secrets"
   secrets.collect! { |key|
     obj = OldModel::Secret.from_key(key)
@@ -20,7 +21,7 @@ def run
     s.update_fields obj.to_hash
   }; nil
   
-  metadata = Familia.redis(0).keys '*metadata:*:object'; nil
+  metadata = Familia.redis(0).keys 'metadata:*:object'; nil
   OT.info "Migrating #{metadata.size} metadata"
   metadata.collect! { |key|
     obj = OldModel::Metadata.from_key(key)
