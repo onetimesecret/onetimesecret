@@ -3,10 +3,16 @@
 require 'onetime'
 require 'familia/tools'
 
+unless ARGV.first == 'MIGRATE'
+  OT.info "No change made"
+  exit 
+end
+
 def run
   OT.load! :app
   
   secrets = Familia.redis(0).keys '*secret:*:object'; nil
+  OT.info "Migrating #{secrets.size} secrets"
   secrets.collect! { |key|
     obj = OldModel::Secret.from_key(key)
     s = OT::Secret.new
@@ -15,6 +21,7 @@ def run
   }; nil
   
   metadata = Familia.redis(0).keys '*metadata:*:object'; nil
+  OT.info "Migrating #{metadata.size} metadata"
   metadata.collect! { |key|
     obj = OldModel::Metadata.from_key(key)
     s = OT::Metadata.new
@@ -42,6 +49,7 @@ module OldModel
     attr_accessor :passphrase_temp
     gibbler :custid, :secret_key, :entropy
     ttl 7.days
+    db 0
     def initialize custid=nil, entropy=nil
       @custid, @entropy, @state = custid, entropy, :new
     end
@@ -103,6 +111,7 @@ module OldModel
     attr_accessor :passphrase_temp
     gibbler :custid, :passphrase_temp, :value_checksum, :entropy
     ttl 7.days
+    db 0
     def initialize custid=nil, entropy=nil
       @custid, @entropy, @state = custid, entropy, :new
     end
