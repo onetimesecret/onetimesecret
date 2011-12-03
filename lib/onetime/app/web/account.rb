@@ -1,18 +1,13 @@
 module Onetime
   class App
     
-    def signup
-      carefully do
-        view = Onetime::App::Views::Signup.new req, sess, cust
-        res.body = view.render
-      end
-    end
     def login
       carefully do
         view = Onetime::App::Views::Login.new req, sess, cust
         res.body = view.render
       end
     end
+    
     def pricing
       carefully do
         view = Onetime::App::Views::Pricing.new req, sess, cust
@@ -22,7 +17,9 @@ module Onetime
     
     def signup
       carefully do
-        if OT::Plan.plan?(req.params[:planid])
+        if ! req.params[:colonel]
+          res.redirect app_path('/')
+        elsif OT::Plan.plan?(req.params[:planid])
           sess.set_error_message "You're already signed up" if sess.authenticated?
           view = Onetime::App::Views::Signup.new req, sess, cust
           res.body = view.render

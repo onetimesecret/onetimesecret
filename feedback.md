@@ -1,5 +1,10 @@
 # FEEDBACK #
 
+## Dec 2nd, 2011
+
+* "Also a cool band name RT @brainpicker: One Time Secret lets you send self-destructing messages http://j.mp/uBPUj2 (HT @nttd)" https://twitter.com/#!/DrewFromTV/status/142730130689761280
+
+
 ## Nov 8th, 2011
 
 * Phil (PlayerTakesAll): allow people to email right from there.
