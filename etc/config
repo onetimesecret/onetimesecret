@@ -31,6 +31,3 @@
   :from:
   :fromname:
   :bcc:
-:errno:
-  :nosecret: 'No secret provided'
-  :internalerror: 'Not found'
