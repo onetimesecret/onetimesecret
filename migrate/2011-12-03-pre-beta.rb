@@ -5,20 +5,23 @@ require 'familia/tools'
 
 def run
   OT.load! :app
-  ##Familia::Tools.rename 'onetime:secret:*:object', OT::Secret.uri do |idx, type, key, ttl|
-  ##  obj = OldSecret.from_key(key)
-  ##  prefix = obj.kind?(:private) ? :metadata : :secret
-  ##  newkey = Familia.join [prefix, obj.key, :object]
-  ##  newkey
-  ##end
-  ##
-  ##secrets = OT::Secret.redis.keys '*secret:*:object'; nil
-  ##secrets.each { |key|
-  ##  obj = OT::Secret.from_key(key)
-  ##  next unless obj.kind?(:shared)
-  ##  obj.metadata_key = obj.paired_key unless obj.paired_key.to_s.empty?
-  ##  obj.save 
-  ##}; nil
+  
+  secrets = Familia.redis(0).keys '*secret:*:object'; nil
+  secrets.collect! { |key|
+    obj = OldModel::Secret.from_key(key)
+    s = OT::Secret.new
+    s.key = obj.key
+    s.update_fields obj.to_hash
+  }; nil
+  
+  metadata = Familia.redis(0).keys '*metadata:*:object'; nil
+  metadata.collect! { |key|
+    obj = OldModel::Metadata.from_key(key)
+    s = OT::Metadata.new
+    s.key = obj.key
+    s.update_fields obj.to_hash
+  }; nil
+  
 end
 
 module OldModel
