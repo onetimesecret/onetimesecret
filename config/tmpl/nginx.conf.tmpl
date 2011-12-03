@@ -52,7 +52,7 @@ http {
     
     client_max_body_size 5M;
     
-    root /var/www/onetimesecret.com/public/site/;
+    root /var/www/onetimesecret.com/public/web/;
     
     # Do this for any host name. SSL only, and only this site/domain
     rewrite  ^/(.*)$  https://<%= $nginx_config[:servername] %>/$1  permanent;
@@ -70,7 +70,7 @@ http {
     
     client_max_body_size 5M;
     
-    root /var/www/onetimesecret.com/public/site/;
+    root /var/www/onetimesecret.com/public/web/;
     
     # Some clients send bad (non root) favicon.ico requests
     rewrite ^/(.*)/favicon.ico$ /favicon.ico last;
