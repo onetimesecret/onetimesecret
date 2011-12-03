@@ -52,7 +52,7 @@ module Onetime
       Gibbler.secret = secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
       Familia.uri = OT.conf[:redis][:uri]
       OT::RateLimit.register_events OT.conf[:limits]
-      OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last }
+      OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last } if OT.conf[:errno]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
       info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
