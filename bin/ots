@@ -13,6 +13,10 @@ require 'drydock'
 class OT::CLI::Definition
   extend Drydock
   
+  before do
+    OT.load! :cli
+  end
+  
   about "Command Line tools and methods to manage OneTimeSecret"
   command :welcome do
     puts "Welcome to OneTimeSecret", $/
@@ -41,4 +45,10 @@ class OT::CLI::Definition
   
 end
 
-Drydock.run! ARGV, STDIN
+begin
+  Drydock.run! ARGV, STDIN
+rescue => ex
+  puts ex.message
+  puts ex.backtrace
+  exit 1
+end

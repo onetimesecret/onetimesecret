@@ -1,9 +1,4 @@
 # https://github.com/shuber/encryptor
-puts "TODO: SECRETS MIGRATION TO REDIS HASH"
-puts "TODO: ADD SECRET TO prod config"
-puts "TODO: ADD FEEDBACK TO prod config"
-puts "TODO: ADD EMAILER TO prod config"
-puts "TODO: ADD COLONELS TO prod config"
 
 require 'bundler/setup'
 

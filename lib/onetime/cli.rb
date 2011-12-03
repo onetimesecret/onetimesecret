@@ -9,7 +9,7 @@ class OT::CLI < Drydock::Command
   def register_build
     begin
       Onetime::VERSION.increment! argv.first
-      puts Onetime::VERSION
+      puts Onetime::VERSION.inspect
     rescue => ex
       puts ex.message
       exit 1
