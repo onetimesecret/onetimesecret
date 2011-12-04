@@ -16,6 +16,7 @@
   <div id="footer" class="dotted">
     {{#display_feedback}}
     <form class="feedback" action="/feedback" method="post">
+      {{{add_shrimp}}}
       <input class="clearDefault" type="text" name="msg" value="{{feedback_text}}" />
       <span><button type="submit">Send</button></span>
     </form>

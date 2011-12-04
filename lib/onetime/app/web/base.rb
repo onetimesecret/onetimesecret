@@ -6,43 +6,6 @@ module Onetime
     module Base
       include OT::App::Helpers
       
-      ## e.g.
-      ## class App 
-      ##   include Base
-      ##   simple_page :about 
-      ## end
-      ##
-      #module ClassMethods
-      #  def simple_page *pages
-      #    pages.each do |page|
-      #      klass = eval "#{self}::Views::#{page.to_s.capitalize}"
-      #      define_method page do
-      #        carefully do 
-      #          view = klass.new req, sess, cust
-      #          res.body = view.render
-      #        end
-      #      end
-      #    end
-      #  end
-      #  alias_method :simple_pages, :simple_page
-      #end
-      #  
-      #def self.included obj
-      #  obj.extend OT::App::Base::ClassMethods
-      #end
-      
-      def authenticated redirect=nil
-        carefully(redirect) do 
-          sess.authenticated? ? yield : res.redirect(('/'))
-        end
-      end
-      
-      def colonels redirect=nil
-        carefully(redirect) do
-          sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
-        end
-      end
-      
       def carefully redirect=nil
         redirect ||= req.request_path
         # We check get here to stop an infinite redirect loop.
@@ -50,13 +13,18 @@ module Onetime
         redirect = '/error' if req.get? && redirect.to_s == req.request_path
         res.header['Content-Type'] ||= "text/html; charset=utf-8"
         
-        check_session!
+        check_session!     # 1. Load or create the session, load customer (or anon)
+        check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
         
         yield
-    
+      
       rescue Redirect => ex
         res.redirect ex.location, ex.status
-    
+
+      rescue OT::BadShrimp => ex
+        sess.set_error_message "Please go back, refresh the page, and try again."
+        res.redirect redirect
+      
       rescue OT::FormError => ex
         sess.set_form_fields ex.form_fields
         sess.set_error_message ex.message
@@ -71,45 +39,18 @@ module Onetime
         err "[limit-exceeded] #{cust.custid}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
         err req.current_absolute_uri
         error_response "Apologies dear citizen! You have been rate limited. Try again in a few minutes."
-    
+      
       rescue Familia::NotConnected, Familia::Problem => ex
         err "#{ex.class}: #{ex.message}"
         err ex.backtrace
         error_response "An error occurred :["
-    
+      
       rescue => ex
         err "#{ex.class}: #{ex.message}"
         err req.current_absolute_uri
         err ex.backtrace.join("\n")
         error_response "An error occurred :["
       
-      end
-    
-      def check_session!
-        if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-          @sess = OT::Session.load req.cookie(:sess)
-        else
-          @sess = OT::Session.create req.client_ipaddress, req.user_agent
-        end
-        if sess
-          sess.update_fields  # calls update_time!
-          # Only set the cookie after it's been saved
-          res.send_cookie :sess, sess.sessid, sess.ttl
-          @cust = sess.load_customer
-        end
-        @sess ||= OT::Session.new
-        @cust ||= OT::Customer.anonymous
-        if cust.anonymous?
-          sess.authenticated = false 
-        elsif cust.verified.to_s != 'true'
-          sess.authenticated = false 
-        end
-        OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
-      end
-      
-      def err *args
-        #SYSLOG.err *args
-        STDERR.puts *args
       end
       
       def not_found_response message
@@ -128,7 +69,7 @@ module Onetime
       
     end
   end
-
+  
   class Redirect < RuntimeError
     attr_reader :location, :status
     def initialize l, s=302

@@ -214,6 +214,18 @@ module Onetime
   class FormError < Problem
     attr_accessor :form_fields, :message
   end
+  class BadShrimp < Problem
+    attr_reader :path, :user, :got, :wanted
+    def initialize path, user, got, wanted
+      @path, @user, @got, @wanted = path, user, got.to_s, wanted.to_s
+    end
+    def report()
+      "BAD SHRIMP FOR #{@path}: #{@user}: #{got.shorten(16)}/#{wanted.shorten(16)}"
+    end
+    def message() 
+      "Sorry, bad shrimp"
+    end
+  end
   class LimitExceeded < RuntimeError
     attr_accessor :event, :message, :cust
     attr_reader :identifier, :event, :count
