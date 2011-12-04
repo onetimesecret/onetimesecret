@@ -78,7 +78,7 @@ module Onetime
         cust.update_fields :planid => planid, :verified => false
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
         msg = "Thanks for verifying your account.\n\n"
-        msg << %Q{Here is a secret fortune cookie for today:\n"%s"} % OT::Utils.random_fortune
+        msg << %Q{Here is your secret fortune cookie:\n"%s"} % OT::Utils.random_fortune
         secret.encrypt_value msg
         secret.verification = true
         secret.custid = cust.custid
