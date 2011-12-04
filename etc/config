@@ -19,6 +19,7 @@
   :authenticate_session: 5
   :homepage: 25
   :dashboard: 50
+  :failed_passphrase: 5
 :redis:
   :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
 :nginx:

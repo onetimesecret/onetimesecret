@@ -282,6 +282,7 @@ module Onetime
         @continue = params[:continue] == 'true'
       end
       def raise_concerns
+        sess.event_incr! :show_secret
         raise OT::MissingSecret if secret.nil?
       end
       def process
@@ -298,6 +299,8 @@ module Onetime
             cust.verified = "true"
           end
           secret.viewed!
+        elsif !correct_passphrase
+          sess.event_incr! :failed_passphrase
         end
       end
     end

@@ -2,7 +2,8 @@
 :MAJOR: 0
 :MINOR: 6
 :STAMP: 1322962103
-:PATCH: 1
+:PATCH: 2
 :OWNER: delano
 :BUILD: "001"
-:STORY: With Shrimp
+:STORY: "Rate limit passphrase attempts"
+  
