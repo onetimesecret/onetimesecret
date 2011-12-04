@@ -162,7 +162,8 @@ module Onetime
             self[:secret_key] = secret.key
             self[:show_passphrase] = !secret.passphrase_temp.to_s.empty?
             self[:passphrase_temp] = secret.passphrase_temp
-            self[:secret_value] = secret.can_decrypt? ? secret.decrypted_value : secret.value
+            self[:secret_value] = secret.decrypted_value if secret.can_decrypt?
+            self[:can_decrypt] = secret.can_decrypt?
             self[:truncated] = secret.truncated
           end
         end

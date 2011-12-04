@@ -1,7 +1,7 @@
 {{>header}}
 
   <div class="shared">
-    {{#err}}<p class="err">{{err}}</p>{{/err}}
+    {{>partial/session_messages}}
     {{^show_secret}}
     {{^has_passphrase}}
     {{#verification}}
@@ -12,7 +12,7 @@
     {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
-    <h2 class="intro">You have found a secret.</div>
+    <h2 class="intro">This secret requires a passphrase.</div>
     {{/has_passphrase}}
     <div class="passphrase">
       <form method="POST">

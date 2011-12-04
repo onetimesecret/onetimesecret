@@ -253,8 +253,10 @@ module Onetime
       end
       def process
         @metadata, @secret = Onetime::Secret.spawn_pair :anon, [sess.external_identifier]
-        metadata.passphrase = passphrase if !passphrase.empty?
-        secret.update_passphrase passphrase if !passphrase.empty?
+        if !passphrase.empty?
+          secret.update_passphrase passphrase 
+          metadata.passphrase = secret.passphrase
+        end
         secret.encrypt_value secret_value
         metadata.ttl, secret.ttl = ttl, ttl
         secret.save
@@ -272,7 +274,7 @@ module Onetime
     
     class ShowSecret < OT::Logic::Base
       attr_reader :key, :passphrase, :continue
-      attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size, :verification
+      attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size, :verification, :correct_passphrase
       def process_params
         @key = params[:key].to_s
         @secret = Onetime::Secret.load key
@@ -283,10 +285,11 @@ module Onetime
         raise OT::MissingSecret if secret.nil?
       end
       def process
-        @show_secret = secret.state?(:new) && ((secret.has_passphrase? && secret.passphrase?(passphrase)) || continue)
+        @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
+        @show_secret = secret.state?(:new) && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
-        cust.verified = true if @verification
-        if show_secret 
+        cust.verified = "true" if @verification
+        if show_secret && correct_passphrase
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
           @truncated = secret.truncated
           @original_size = secret.original_size
@@ -311,12 +314,7 @@ module Onetime
       end
       def process
         @secret = @metadata.load_secret
-        # We temporarily store the raw passphrase when the private
-        # secret is created so we can display it once. Here we 
-        # update it with the encrypted one.
         unless metadata.state?(:viewed) || metadata.state?(:shared)
-          secret.passphrase_temp = metadata.passphrase
-          metadata.passphrase = secret.passphrase
           metadata.viewed!
           @show_secret = true
         end

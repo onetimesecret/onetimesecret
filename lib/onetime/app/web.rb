@@ -63,8 +63,8 @@ module Onetime
           view[:secret_value] = logic.secret_value
           view[:original_size] = logic.original_size
           view[:truncated] = logic.truncated
-        elsif req.post?
-          view[:err] = "Double check that passphrase"
+        elsif req.post? && !logic.correct_passphrase
+          view.add_error   "Double check that passphrase"
         end
         res.body = view.render
       end
