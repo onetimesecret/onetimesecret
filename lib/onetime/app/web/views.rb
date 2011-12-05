@@ -253,7 +253,7 @@ module Onetime
           self[:title] = "Bookmarklet"
           self[:body_class] = :info
           self[:with_anal] = true
-          self[:token] = cust.anonymous? ? sess.sessid.gibbler : cust.external_identifier
+          self[:token] = sess.sessid.gibbler
           self[:js] << '/etc/packer/base2.js'
           self[:js] << '/etc/packer/packer.js'
           self[:js] << '/etc/packer/words.js'

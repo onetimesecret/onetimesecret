@@ -4,7 +4,11 @@
   http://scripts.cwillu.com/passwords/
 -->
 <div id="jstemplate" style="display: none">
-  (function(){function doIt(){var _="{{token}}";
+  (function(){
+    //function getSelection() { return (document.selection) ? document.selection : window.getSelection(); };
+    //console.log(getSelection().rangeCount);
+    function doIt(){
+      var _="{{token}}";
       var constants = {
         GENSALT_DEFAULT_LOG2_ROUNDS: 10,
         BCRYPT_SALT_LEN: 16,
@@ -513,7 +517,7 @@
         host = document.location.href.match(re)[1];
     } catch (Exception) {
         host = "none";
-    }
+    };
     var body = document.getElementsByTagName('body').item(0);
     var JSPWDiv = document.createElement('div');
     JSPWDiv.setAttribute('id', 'JSMD5PwGenDiv');
@@ -561,7 +565,6 @@
     var packer = new Packer;
     var jscontent = $('#jstemplate').text().trim();
     var bookmarklet = packer.pack(jscontent, true, true);
-    console.log(bookmarklet);
     $('#generatedBookmarklet').attr('href', 'javascript:' + bookmarklet + ';')
   </script>
 </div>
