@@ -1,12 +1,12 @@
 var passgenTemplate = (function(){
   //function getSelection() { return (document.selection) ? document.selection : window.getSelection(); };
   //console.log(getSelection().rangeCount);
-  function doIt(){
-    var _="{{token}}";
+  function genPass(){
+    var _ = '{{CHANGEMECHANGEME}}';
     var constants = {
-      GENSALT_DEFAULT_LOG2_ROUNDS: 10,
+      GENSALT_DEFAULT_LOG2_ROUNDS: 20,
       BCRYPT_SALT_LEN: 16,
-      BLOWFISH_NUM_ROUNDS: 16,
+      BLOWFISH_NUM_ROUNDS: 12,
       bf_crypt_ciphertext: [0x4f727068, 0x65616e42, 0x65686f6c, 0x64657253, 0x63727944, 0x6f756274],
       base64_code: ['.', '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
           'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -471,8 +471,8 @@ var passgenTemplate = (function(){
     };
 
 
-    var host = document.getElementById('MD5MasterHost').value;
-    var master = document.getElementById('MD5MasterPassword').value;
+    var host = document.getElementById('MasterHost').value;
+    var master = document.getElementById('MasterPassword').value;
     var c = 0;
     document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'));
     if (master != '' && master != null) {
@@ -484,7 +484,7 @@ var passgenTemplate = (function(){
             E = F[i].elements;
             for (j = 0; j < E.length; j++) {
                 D = E[j];
-                if (D.type == 'password' && D.id != 'MD5MasterPassword') {
+                if (D.type == 'password' && D.id != 'MasterPassword') {
                     c++;
                 }
             }
@@ -493,7 +493,7 @@ var passgenTemplate = (function(){
             E = F[i].elements;
             for (j = 0; j < E.length; j++) {
                 D = E[j];
-                if (D.type == 'password' && D.id != 'MD5MasterPassword') {
+                if (D.type == 'password' && D.id != 'MasterPassword') {
                     D.value = p;
                     D.focus();
                 }
@@ -518,24 +518,24 @@ var passgenTemplate = (function(){
   JSPWDiv.setAttribute('style', 'margin:100px;padding:100;');
   var pwBox = document.createElement("input");
   pwBox.setAttribute("type", "password");
-  pwBox.setAttribute("id", "MD5MasterPassword");
+  pwBox.setAttribute("id", "MasterPassword");
   pwBox.setAttribute("style", "border:1px solid #000;");
   var hostBox = document.createElement("input");
   hostBox.setAttribute("type", "text");
-  hostBox.setAttribute("id", "MD5MasterHost");
+  hostBox.setAttribute("id", "MasterHost");
   hostBox.setAttribute("value", host);
   hostBox.setAttribute("style", "border:1px solid #000;color:#000;");
   var frm = document.createElement('form');
-  frm.setAttribute('onsubmit', 'javascript:' + doIt.toString() + doIt.name + '();return false;');
+  frm.setAttribute('onsubmit', 'javascript:' + genPass.toString() + genPass.name + '();return false;');
   var closeBtn = document.createElement('a');
-  closeBtn.setAttribute('onclick', "document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'))");
+  closeBtn.setAttribute('onclick', "document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'));");
   closeBtn.setAttribute('style', "color:#666;text-decoration:none;font-weight:bold;position:absolute;top:0;right:5px;");
-  closeBtn.setAttribute('href', "javascript:void;");
+  closeBtn.setAttribute('href', "javascript:false;");
   closeBtn.appendChild(document.createTextNode("[x]"));
   var submitBtn = document.createElement('input');
   submitBtn.setAttribute('type', 'submit');
   submitBtn.setAttribute('value', 'Generate');
-  submitBtn.setAttribute("style", "margin:10px 0;background:#eee;border:1px solid #988;");
+  submitBtn.setAttribute("style", "margin:10px 0;background:#E33100;color: #fff;border-left: 1px solid red;  border-top: 1px solid red;  border-right: 1px solid #740500;  border-bottom: 1px solid #740500;");
   JSPWDiv.appendChild(closeBtn);
   JSPWDiv.onkeypress = new Function("e", "if (!e) var e = window.event;if(e.keyCode == 27){document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'));e.cancelBubble = true;if (e.stopPropagation) e.stopPropagation();return false;}e.cancelBubble=false;return true;");
   frm.appendChild(document.createTextNode("Using Host: "));
@@ -549,4 +549,4 @@ var passgenTemplate = (function(){
   JSPWDiv.setAttribute("style", "text-align:right;padding:30px 10px 0 10px;position:fixed;z-index:9999;color:#000;font-family:arial,sans-serif;font-size:12pt;background:#eee;line-height:18pt;border:2px solid #333;top:10px;left:10px;");
   body.appendChild(JSPWDiv);
   pwBox.focus();
-});
+})

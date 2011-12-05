@@ -6,15 +6,22 @@
 
 <div id="content">
   <h2 class="intro">Password Generator </h2>
-  <p><a href="" id="generatedBookmarklet">Try me</a> &lt;-- drag to toolbar</p>
-  <p>host + master password + unique token (built into the bookmarklet) == the password</p>
+  <p><a href="" id="generatedBookmarklet">OTPassGen</a> &lt;-- drag to toolbar</p>
+  <p>Password formula: host + master password + unique token</p>
+  <p>Your unique token: <input id="uniqueToken" value="{{token}}" class="selectable" size="60" /><br/><span class="light">(Hint: you can change it to anything you like)</span></p>
   <script type="text/javascript" src="/app/passgen-template.js"></script>
   <script type="text/javascript">
+  function updateBookmarklet(token) {
     var packer = new Packer;
     var template = '(' + passgenTemplate.toString() + ')();'
-    var jscontent = Mustache.to_html(template, {token: '{{token}}'})
-    var bookmarklet = packer.pack(jscontent, true, true);
+    var jscontent = Mustache.to_html(template, {CHANGEMECHANGEME: token})
+    var bookmarklet = encodeURI(packer.pack(jscontent, false));
     $('#generatedBookmarklet').attr('href', 'javascript:/*v0.1*/' + bookmarklet)
+  }
+  updateBookmarklet($('#uniqueToken').val());
+  $('#uniqueToken').change(function() {
+    updateBookmarklet($('#uniqueToken').val());
+  });
   </script>
 </div>
 
