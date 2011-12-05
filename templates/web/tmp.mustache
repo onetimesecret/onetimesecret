@@ -12,17 +12,17 @@
   <p>Careful: make a note of your token. If you lose it, you won't be able to generate your passwords!</p>
   <script type="text/javascript" src="/app/passgen-template.js"></script>
   <script type="text/javascript">
-  function updateBookmarklet(token) {
-    var packer = new Packer;
-    var template = '(' + passgenTemplate.toString() + ')();'
-    var jscontent = Mustache.to_html(template, {CHANGEMECHANGEME: token})
-    var bookmarklet = encodeURI(packer.pack(jscontent, false));
-    $('#generatedBookmarklet').attr('href', 'javascript:/*v0.2*/' + bookmarklet)
-  }
-  $('#uniqueToken').change(function() {
+    function updateBookmarklet(token) {
+      var template = '(' + passgenTemplate.toString() + ')();'
+      var jscontent = Mustache.to_html(template, {CHANGEMECHANGEME: token})
+      var packer = new Packer;
+      var bookmarklet = encodeURI(packer.pack(jscontent, false));
+      $('#generatedBookmarklet').attr('href', 'javascript:/*v0.2*/' + bookmarklet)
+    }
+    $('#uniqueToken').change(function() {
+      updateBookmarklet($('#uniqueToken').val());
+    });
     updateBookmarklet($('#uniqueToken').val());
-  });
-  updateBookmarklet($('#uniqueToken').val());
   </script>
 </div>
 

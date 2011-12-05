@@ -4,9 +4,9 @@ var passgenTemplate = (function(){
   function genPass(){
     var _ = '{{CHANGEMECHANGEME}}';
     var constants = {
-      GENSALT_DEFAULT_LOG2_ROUNDS: 20,
-      BCRYPT_SALT_LEN: 16,
-      BLOWFISH_NUM_ROUNDS: 12,
+      BCRYPT_SALT_LEN: 6,   // This value determines the minimum length of the unique token (+2 ?)
+      BLOWFISH_NUM_ROUNDS: 20,
+      NUM_ROUNDS: 7,
       bf_crypt_ciphertext: [0x4f727068, 0x65616e42, 0x65686f6c, 0x64657253, 0x63727944, 0x6f756274],
       base64_code: ['.', '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
           'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -469,22 +469,21 @@ var passgenTemplate = (function(){
           constants.bf_crypt_ciphertext.length * 4 - 1);
       }
     };
-
-
-    var host = document.getElementById('MasterHost').value;
-    var master = document.getElementById('MasterPassword').value;
+    
+    var host = document.getElementById('JSBCMasterHost').value;
+    var master = document.getElementById('JSBCMasterPassword').value;
     var c = 0;
-    document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'));
+    document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSBCPassGen'));
     if (master != '' && master != null) {
         var i = 0,
             j = 0,
-            p = bCrypt.hashpw(master, bCrypt.hashpw(host, _, 0), 6),
+            p = bCrypt.hashpw(master, bCrypt.hashpw(host, _, 0), constants.MASTER_ROUNDS),
             F = document.forms;
         for (i = 0; i < F.length; i++) {
             E = F[i].elements;
             for (j = 0; j < E.length; j++) {
                 D = E[j];
-                if (D.type == 'password' && D.id != 'MasterPassword') {
+                if (D.type == 'password' && D.id != 'JSBCMasterPassword') {
                     c++;
                 }
             }
@@ -493,12 +492,13 @@ var passgenTemplate = (function(){
             E = F[i].elements;
             for (j = 0; j < E.length; j++) {
                 D = E[j];
-                if (D.type == 'password' && D.id != 'MasterPassword') {
+                if (D.type == 'password' && D.id != 'JSBCMasterPassword') {
                     D.value = p;
                     D.focus();
                 }
             }
         }
+        
         if (c != 1) 
           prompt('The generated password is:', p);
     }
@@ -514,21 +514,21 @@ var passgenTemplate = (function(){
   };
   var body = document.getElementsByTagName('body').item(0);
   var JSPWDiv = document.createElement('div');
-  JSPWDiv.setAttribute('id', 'JSMD5PwGenDiv');
+  JSPWDiv.setAttribute('id', 'JSBCPassGen');
   JSPWDiv.setAttribute('style', 'margin:100px;padding:100;');
   var pwBox = document.createElement("input");
   pwBox.setAttribute("type", "password");
-  pwBox.setAttribute("id", "MasterPassword");
+  pwBox.setAttribute("id", "JSBCMasterPassword");
   pwBox.setAttribute("style", "border:1px solid #000;");
   var hostBox = document.createElement("input");
   hostBox.setAttribute("type", "text");
-  hostBox.setAttribute("id", "MasterHost");
+  hostBox.setAttribute("id", "JSBCMasterHost");
   hostBox.setAttribute("value", host);
   hostBox.setAttribute("style", "border:1px solid #000;color:#000;");
   var frm = document.createElement('form');
   frm.setAttribute('onsubmit', 'javascript:' + genPass.toString() + genPass.name + '();return false;');
   var closeBtn = document.createElement('a');
-  closeBtn.setAttribute('onclick', "document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'));");
+  closeBtn.setAttribute('onclick', "document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSBCPassGen'));");
   closeBtn.setAttribute('style', "color:#666;text-decoration:none;font-weight:bold;position:absolute;top:0;right:5px;");
   closeBtn.setAttribute('href', "javascript:false;");
   closeBtn.appendChild(document.createTextNode("[x]"));
@@ -537,7 +537,7 @@ var passgenTemplate = (function(){
   submitBtn.setAttribute('value', 'Generate');
   submitBtn.setAttribute("style", "margin:10px 0;background:#E33100;color: #fff;border-left: 1px solid red;  border-top: 1px solid red;  border-right: 1px solid #740500;  border-bottom: 1px solid #740500;");
   JSPWDiv.appendChild(closeBtn);
-  JSPWDiv.onkeypress = new Function("e", "if (!e) var e = window.event;if(e.keyCode == 27){document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'));e.cancelBubble = true;if (e.stopPropagation) e.stopPropagation();return false;}e.cancelBubble=false;return true;");
+  JSPWDiv.onkeypress = new Function("e", "if (!e) var e = window.event;if(e.keyCode == 27){document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSBCPassGen'));e.cancelBubble = true;if (e.stopPropagation) e.stopPropagation();return false;}e.cancelBubble=false;return true;");
   frm.appendChild(document.createTextNode("Using Host: "));
   frm.appendChild(hostBox);
   frm.appendChild(document.createElement('br'));
