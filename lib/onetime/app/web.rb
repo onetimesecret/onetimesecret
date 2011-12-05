@@ -82,9 +82,9 @@ module Onetime
       end
     end
     
-    def bookmarklet
+    def passgen
       carefully do
-        view = Onetime::App::Views::Bookmarklet.new req, sess, cust
+        view = Onetime::App::Views::PasswordGenerator.new req, sess, cust
         res.body = view.render
       end
     end

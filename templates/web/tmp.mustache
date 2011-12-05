@@ -9,6 +9,7 @@
   <p><a href="" id="generatedBookmarklet">OTPassGen</a> &lt;-- drag to toolbar</p>
   <p>Password formula: host + master password + unique token</p>
   <p>Your unique token: <input id="uniqueToken" value="{{token}}" class="selectable" size="60" /><br/><span class="light">(Hint: you can change it to anything you like)</span></p>
+  <p>Careful: make a note of your token. If you lose it, you won't be able to generate your passwords!</p>
   <script type="text/javascript" src="/app/passgen-template.js"></script>
   <script type="text/javascript">
   function updateBookmarklet(token) {
@@ -16,12 +17,12 @@
     var template = '(' + passgenTemplate.toString() + ')();'
     var jscontent = Mustache.to_html(template, {CHANGEMECHANGEME: token})
     var bookmarklet = encodeURI(packer.pack(jscontent, false));
-    $('#generatedBookmarklet').attr('href', 'javascript:/*v0.1*/' + bookmarklet)
+    $('#generatedBookmarklet').attr('href', 'javascript:/*v0.2*/' + bookmarklet)
   }
-  updateBookmarklet($('#uniqueToken').val());
   $('#uniqueToken').change(function() {
     updateBookmarklet($('#uniqueToken').val());
   });
+  updateBookmarklet($('#uniqueToken').val());
   </script>
 </div>
 

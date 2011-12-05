@@ -248,9 +248,9 @@ module Onetime
           self[:with_anal] = true
         end
       end
-      class Bookmarklet < Onetime::App::View
+      class PasswordGenerator < Onetime::App::View
         def init *args
-          self[:title] = "Bookmarklet"
+          self[:title] = "Password Generator"
           self[:body_class] = :info
           self[:with_anal] = true
           self[:token] = sess.sessid.gibbler
