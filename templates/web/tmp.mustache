@@ -4,7 +4,7 @@
   http://scripts.cwillu.com/passwords/
 -->
 <div id="jstemplate" style="display: none">
-  (function(){function doIt(){var _="vdnRGMynTXFm.s6vMbwCgqrdVRtJpKq";
+  (function(){function doIt(){var _="{{token}}";
       var constants = {
         GENSALT_DEFAULT_LOG2_ROUNDS: 10,
         BCRYPT_SALT_LEN: 16,
@@ -521,17 +521,17 @@
     var pwBox = document.createElement("input");
     pwBox.setAttribute("type", "password");
     pwBox.setAttribute("id", "MD5MasterPassword");
-    pwBox.setAttribute("style", "border:1px solid #b44;");
+    pwBox.setAttribute("style", "border:1px solid #000;");
     var hostBox = document.createElement("input");
     hostBox.setAttribute("type", "text");
     hostBox.setAttribute("id", "MD5MasterHost");
     hostBox.setAttribute("value", host);
-    hostBox.setAttribute("style", "border:1px solid #b44;color:#666;");
+    hostBox.setAttribute("style", "border:1px solid #000;color:#000;");
     var frm = document.createElement('form');
     frm.setAttribute('onsubmit', 'javascript:' + doIt.toString() + doIt.name + '();return false;');
     var closeBtn = document.createElement('a');
     closeBtn.setAttribute('onclick', "document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'))");
-    closeBtn.setAttribute('style', "color:#b44;text-decoration:none;font-weight:bold;position:absolute;top:0;right:5px;");
+    closeBtn.setAttribute('style', "color:#666;text-decoration:none;font-weight:bold;position:absolute;top:0;right:5px;");
     closeBtn.setAttribute('href', "javascript:void;");
     closeBtn.appendChild(document.createTextNode("[x]"));
     var submitBtn = document.createElement('input');
@@ -540,27 +540,28 @@
     submitBtn.setAttribute("style", "margin:10px 0;background:#eee;border:1px solid #988;");
     JSPWDiv.appendChild(closeBtn);
     JSPWDiv.onkeypress = new Function("e", "if (!e) var e = window.event;if(e.keyCode == 27){document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSMD5PwGenDiv'));e.cancelBubble = true;if (e.stopPropagation) e.stopPropagation();return false;}e.cancelBubble=false;return true;");
-    frm.appendChild(document.createTextNode("Master Password: "));
-    frm.appendChild(pwBox);
-    frm.appendChild(document.createElement('br'));
     frm.appendChild(document.createTextNode("Using Host: "));
     frm.appendChild(hostBox);
     frm.appendChild(document.createElement('br'));
+    frm.appendChild(document.createTextNode("Master Password: "));
+    frm.appendChild(pwBox);
+    frm.appendChild(document.createElement('br'));
     frm.appendChild(submitBtn);
     JSPWDiv.appendChild(frm);
-    JSPWDiv.setAttribute("style", "text-align:right;padding:30px 10px 0 10px;position:fixed;z-index:9999;color:#422;font-family:arial,sans-serif;font-size:12pt;background:#fdd;line-height:18pt;border:2px solid #b44;top:10px;right:10px;");
+    JSPWDiv.setAttribute("style", "text-align:right;padding:30px 10px 0 10px;position:fixed;z-index:9999;color:#000;font-family:arial,sans-serif;font-size:12pt;background:#eee;line-height:18pt;border:2px solid #333;top:10px;left:10px;");
     body.appendChild(JSPWDiv);
     pwBox.focus();
   })();
 </div>
 
 <div id="content">
-  <h2 class="intro">Password Generator</h2>
+  <h2 class="intro">Password Generator </h2>
   <a href="" id="generatedBookmarklet">Try me</a>
   <script type="text/javascript">
-    var jscontent = $('#jstemplate').text().trim();
     var packer = new Packer;
+    var jscontent = $('#jstemplate').text().trim();
     var bookmarklet = packer.pack(jscontent, true, true);
+    console.log(bookmarklet);
     $('#generatedBookmarklet').attr('href', 'javascript:' + bookmarklet + ';')
   </script>
 </div>

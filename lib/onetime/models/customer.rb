@@ -24,6 +24,14 @@ class Onetime::Customer < Familia::HashKey
   def identifier 
     @custid
   end
+  def external_identifier
+    if anonymous?
+      raise OT::Problem, "Anonymous customer has no external identifier"
+    end
+    elements = [custid]
+    @external_identifier ||= elements.gibbler #.base(36)
+    @external_identifier
+  end
   def anonymous?
     custid.to_s == 'anon'
   end
