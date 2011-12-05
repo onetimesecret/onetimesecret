@@ -1,5 +1,8 @@
 {{>header}}
 
+<!--
+  http://scripts.cwillu.com/passwords/
+-->
 <div id="jstemplate" style="display: none">
   (function(){function doIt(){var _="vdnRGMynTXFm.s6vMbwCgqrdVRtJpKq";
       var constants = {
@@ -551,13 +554,15 @@
   })();
 </div>
 
-<a href="" id="generatedBookmarklet">Drag me</a>
-
-<script type="text/javascript">
-  var jscontent = $('#jstemplate').text().trim();
-  var packer = new Packer;
-  var bookmarklet = packer.pack(jscontent, true, true);
-  $('#generatedBookmarklet').attr('href', 'javascript:(' + bookmarklet + ')();')
-</script>
+<div id="content">
+  <h2 class="intro">Password Generator</h2>
+  <a href="" id="generatedBookmarklet">Try me</a>
+  <script type="text/javascript">
+    var jscontent = $('#jstemplate').text().trim();
+    var packer = new Packer;
+    var bookmarklet = packer.pack(jscontent, true, true);
+    $('#generatedBookmarklet').attr('href', 'javascript:' + bookmarklet + ';')
+  </script>
+</div>
 
 {{>footer}}
