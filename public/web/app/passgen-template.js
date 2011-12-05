@@ -526,7 +526,7 @@ var passgenTemplate = (function(){
   hostBox.setAttribute("value", host);
   hostBox.setAttribute("style", "border:1px solid #000;color:#000;");
   var frm = document.createElement('form');
-  frm.setAttribute('onsubmit', 'javascript:' + genPass.toString() + genPass.name + '();return false;');
+  frm.setAttribute('onsubmit', 'javascript:' + genPass.toString() + genPass.name + '();return null;');
   var closeBtn = document.createElement('a');
   closeBtn.setAttribute('onclick', "document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSBCPassGen'));");
   closeBtn.setAttribute('style', "color:#666;text-decoration:none;font-weight:bold;position:absolute;top:0;right:5px;");
