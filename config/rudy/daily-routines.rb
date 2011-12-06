@@ -37,15 +37,16 @@ routines do
     
     release do
       local do |argv|
+        $branch = git 'rev-parse', '--abbrev-ref', 'HEAD'
+        raise "Cannot release from master" if $branch == 'master'
         git 'fetch', '--tags', :origin
         msg = argv.first
         $build = ruby './bin/ots', 'register-build', msg
         $build_tag = "rel-#{$build}"
-        $branch = git 'rev-parse', '--abbrev-ref', 'HEAD'
         msg_ci = "RUDY PRESENTS: #{$build}"
         msg_ci << " (#{msg})" if msg
         git 'commit', :m, msg_ci, 'BUILD.yml'
-        git 'co', 'production'
+        git 'co', 'master'
         git 'merge', $branch
         git 'tag', $build_tag
         git 'push', :origin, '--tags'
