@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 6
-:STAMP: 1323199734
+:STAMP: 1323200354
 :PATCH: 2
 :OWNER: delano
-:BUILD: "002"
-:STORY: Test 1
+:BUILD: "003"
+:STORY: Display OT::VERSION.inspect
