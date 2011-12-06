@@ -1,9 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 6
-:STAMP: 1322962103
+:STAMP: 1323199734
 :PATCH: 2
 :OWNER: delano
-:BUILD: "001"
-:STORY: "Rate limit passphrase attempts"
-  
+:BUILD: "002"
+:STORY: Test 1
