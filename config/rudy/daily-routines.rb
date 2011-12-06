@@ -24,13 +24,16 @@ routines do
       local do |argv|
         git 'fetch', '--tags', :origin
         msg = argv.first
-        $build = ruby './bin/ot', 'register-build', msg
+        $build = ruby './bin/ots', 'register-build', msg
         $build_tag = "rel-#{$build}"
         msg_ci = "RUDY PRESENTS: #{$build}"
         msg_ci << " (#{msg})" if msg
         git 'commit', :m, msg_ci, 'BUILD.yml'
         git 'tag', $build_tag
         git 'push', :origin, '--tags'
+        git 'co', 'production'
+        git 'merge', 'master'
+        git 'co', 'master'
         git 'push', :origin
       end
     end
