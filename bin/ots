@@ -28,7 +28,7 @@ class OT::CLI::Definition
   
   usage "ots build"
   command :build do
-    puts OT::VERSION
+    puts OT::VERSION.inspect
   end
   
   usage "ots entropy"

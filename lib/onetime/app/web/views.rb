@@ -31,7 +31,7 @@ module Onetime
         self[:monitored_link] = false
         self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
         self[:keywords] = "secret,password generator,share a secret,onetime"
-        self[:ot_version] = OT::VERSION
+        self[:ot_version] = OT::VERSION.inspect
         self[:authenticated] = sess.authenticated? if sess
         self[:people_we_care_about] = true
         self[:display_promo] = false
