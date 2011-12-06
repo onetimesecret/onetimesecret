@@ -21,7 +21,7 @@ machines do
   #
   env :dev do
     role :fe do
-      user 'cmurtagh' 
+      user Rudy.sysinfo.user 
       hostname 'localhost'
     end
   end

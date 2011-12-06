@@ -5,7 +5,7 @@
 # can be overridden by the command-line global options.  
 #
 defaults do
-  environment :status
+  environment :dev
   zone :'us-east-1b'
   role :fe
   color true                         # Terminal colors? true/false
