@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 6
-:STAMP: 1323200354
+:STAMP: 1323201187
 :PATCH: 2
 :OWNER: delano
-:BUILD: "003"
-:STORY: Display OT::VERSION.inspect
+:BUILD: "004"
+:STORY: "Release from any branch #1"
