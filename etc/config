@@ -20,6 +20,16 @@
   :homepage: 25
   :dashboard: 50
   :failed_passphrase: 5
+:split_tests:
+  :personal_plans:
+    - personal_v1
+    - personal_v2
+  :professional_plans:
+    - professional_v1
+    - professional_v2
+  :agency_plans:
+    - agendy_v1
+    - agency_v2
 :redis:
   :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
 :nginx:

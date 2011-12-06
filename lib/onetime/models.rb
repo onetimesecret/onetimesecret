@@ -1,5 +1,4 @@
 
-
 class Onetime::RateLimit < Familia::String
   DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
   ttl 10.minutes
@@ -207,3 +206,4 @@ require 'onetime/models/metadata'
 require 'onetime/models/secret'
 require 'onetime/models/session'
 require 'onetime/models/customer'
+require 'onetime/models/splittest'

@@ -55,6 +55,7 @@ module Onetime
       OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last } if OT.conf[:errno]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+      OT::SplitTest.from_config OT.conf[:split_tests] 
       info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
       info " Redis: #{Familia.uri}"

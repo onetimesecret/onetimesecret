@@ -43,7 +43,7 @@ class Onetime::Session < Familia::HashKey
       sess = new ipaddress, custid, useragent
       # force the storing of the fields to redis
       sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
-      sess.update_fields # calls update_time!
+      sess.save
       add sess
       sess
     end
@@ -125,6 +125,9 @@ class Onetime::Session < Familia::HashKey
   def set_info_message msg
     self.info_message = msg
   end
+  def session_group groups=2
+    sessid.to_i % groups.to_i
+  end
   def opera?()            @agent.to_s  =~ /opera/i                      end
   def firefox?()          @agent.to_s  =~ /firefox/i                    end
   def chrome?()          !(@agent.to_s =~ /chrome/i).nil?               end
@@ -140,7 +143,9 @@ class Onetime::Session < Familia::HashKey
   def yandex?()           @agent.to_s  =~ /yandex/i                     end
   def baidu?()            @agent.to_s  =~ /baidu/i                      end
   def stella?()           @agent.to_s  =~ /stella/i                     end
-  def searchengine?()     google? || yahoo? || yandex? || baidu?        end
+  def searchengine?()     
+    @agent.to_s  =~ /\b(Baidu|Gigabot|Googlebot|libwww-perl|lwp-trivial|msnbot|SiteUptime|Slurp|WordPress|ZIBB|ZyBorg|Yahoo|bing|superfeedr)\b/i
+  end
   def clitool?()          @agent.to_s  =~ /curl|wget/i  || stella?      end
   def human?()           !searchengine? && !superfeedr? && !clitool? && !stella? end
   private

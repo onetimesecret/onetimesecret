@@ -69,8 +69,7 @@ class Onetime::Customer < Familia::HashKey
       cust = new custid
       # force the storing of the fields to redis
       cust.custid = custid
-      cust.created = OT.now.to_i
-      cust.update_fields # calls update_time!
+      cust.save
       add cust
       cust
     end
