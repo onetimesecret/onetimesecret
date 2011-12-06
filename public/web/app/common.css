@@ -130,7 +130,7 @@ input.long { width:380px; }
 #generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; margin: 6px 0px 6px 0px;}
 .private .secret input, .private .secret textarea { background-color: #eee; color: #666; padding: 5px; width: 90%;}
 .private .secret input[disabled] { background-color: #eee; color: #fff;}
-.shared .secret input, .shared .secret textarea { border: 1px solid black; background-color: #fff; color: #000; padding: 5px; width: 90%; margin: 6px 0px 6px 0px;}
+.shared .secret input, .shared .secret textarea { border: 1px solid black; font-size: 16px; line-height: 16px; background-color: #fff; color: #000; padding: 5px; width: 90%;}
 .secret p {padding: 6px; font-size: 80%; margin: 0px; color: #999; font-style: italic;}
 .uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0;}
 .uri p {padding: 6px; font-size: 80%; margin: 0px; color: #999;}
@@ -177,7 +177,7 @@ input[type=submit] {
 }
 
 #optionsBlock {
-  width: 560px;
+  width: 540px;
   padding: 10px;
   margin-top: 10px;
   font-size: 14px;
@@ -200,7 +200,7 @@ input[type=submit] {
   background-color: #eee;
 }
 #options input {
-  width: 400px; font-size: 14px; line-height: 14px; padding: 6px; border: 1px solid #999; clear: both;
+  width: 375px; font-size: 14px; line-height: 14px; padding: 6px; border: 1px solid #999; clear: both;
 }
 
 #fire button{width:280px; margin-top: 10px}

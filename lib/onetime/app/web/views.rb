@@ -135,8 +135,9 @@ module Onetime
           self[:display_feedback] = false
         end
         def display_lines
-          ret = self[:secret_value].to_s.scan(/\n/).size + 2
-          ret = ret > 20 ? 20 : ret
+          v = self[:secret_value].to_s
+          ret = ((80+v.size)/80) + (v.scan(/\n/).size)
+          ret = ret > 30 ? 30 : ret
         end
         def one_liner
           self[:secret_value].to_s.scan(/\n/).size.zero?
