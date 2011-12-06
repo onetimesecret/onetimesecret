@@ -4,7 +4,7 @@
 # To run a routine, specify its name on the command-line: rudy startup
 routines do
 
-  env :stage, :prod do
+  role :fe do
     
     quick_deploy do
       before :release
