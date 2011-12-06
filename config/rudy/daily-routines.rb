@@ -26,9 +26,11 @@ routines do
         # TODO: can do a fetch without a release using: 
         # git describe --tags HEAD
         $build = ruby './bin/ots', 'build'
+        $branch = git 'rev-parse', '--abbrev-ref', 'HEAD'
         git 'co', 'production'
         git 'merge', 'master'
         git 'push', 'origin', 'production'
+        git 'co', $branch
       end
       remote do |argv|
         rel = argv.first || $build
