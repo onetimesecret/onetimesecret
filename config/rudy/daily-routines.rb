@@ -4,22 +4,37 @@
 # To run a routine, specify its name on the command-line: rudy startup
 routines do
 
-  env :dev do
-
-    load_config do
-      local do
-        require 'yaml'
-        @info ||= YAML.load_file('BUILD.yml')
-        puts @info
-        increment! "Yeehaw"
-      end
-    end
-
+  env :stage, :prod do
+    
     quick_deploy do
       before :release
       after :deploy
     end
-
+    
+    deploy do 
+      before :promote
+      after :restart_thin
+    end
+    
+    upgrade do
+      before :promote
+      after :bundle_install
+    end
+    
+    promote do
+      local do
+        # TODO: can do a fetch without a release using: 
+        # git describe --tags HEAD
+        $build = ruby './bin/ots', 'build'
+      end
+      remote do |argv|
+        rel = argv.first || $build
+        cd 'onetimesecret.com'
+        git 'fetch', '--tags', 'origin'
+        git 'checkout', "rel-#{rel}"
+      end
+    end
+    
     release do
       local do |argv|
         git 'fetch', '--tags', :origin
