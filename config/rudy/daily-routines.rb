@@ -41,14 +41,15 @@ routines do
         msg = argv.first
         $build = ruby './bin/ots', 'register-build', msg
         $build_tag = "rel-#{$build}"
+        $branch = git 'rev-parse', '--abbrev-ref', 'HEAD'
         msg_ci = "RUDY PRESENTS: #{$build}"
         msg_ci << " (#{msg})" if msg
         git 'commit', :m, msg_ci, 'BUILD.yml'
+        git 'co', 'production'
+        git 'merge', $branch
         git 'tag', $build_tag
         git 'push', :origin, '--tags'
-        git 'co', 'production'
-        git 'merge', 'master'
-        git 'co', 'master'
+        git 'co', $branch
         git 'push', :origin
       end
     end
