@@ -203,7 +203,7 @@ module Onetime
           self[:body_class] = :pricing
           self[:with_anal] = true
           Onetime::Plan.plans.each_pair do |planid,plan|
-            self[planid] = {
+            self[planid.to_s] = {
               :price => plan.price.zero? ? 'Free' : plan.calculated_price,
               :original_price => plan.price.to_i,
               :ttl => plan.options[:ttl].in_days.to_i,
@@ -211,8 +211,17 @@ module Onetime
               :api => plan.options[:api] ? 'Yes' : 'No'
             }
           end
-          self[:plan1], self[:plan2], self[:plan3], self[:plan4] = *OT::SplitTest.initial_pricing.sample!
+          group_idx = (cust.initial_pricing_group || sess.initial_pricing_group)
+          if group_idx.nil?
+            group_idx = OT::SplitTest.initial_pricing.register_visitor!
+            (cust.anonymous? ? sess : cust)[:initial_pricing_group] = group_idx
+          end
+          @plan1, @plan2, @plan3, @plan4 = *OT::SplitTest.initial_pricing.sample!(group_idx.to_i)
         end
+        def plan1;  self[@plan1.to_s]; end
+        def plan2;  self[@plan2.to_s]; end
+        def plan3;  self[@plan3.to_s]; end
+        def plan4;  self[@plan4.to_s]; end
       end
       class Dashboard < Onetime::App::View
         def init 

@@ -44,9 +44,14 @@ class Onetime::SplitTest < Familia::HashKey
       test
     end
   end
-  def sample!
-    ret = increment(:samples)+1  # Add one so we always start with the first group
-    group_idx = ret % values.size
+  def register_visitor!
+    sample_count = increment(:samples)+1  # Add one so we always start with the first group
+    group_idx = sample_count % values.size
+  end
+  def sample! group_idx
+    if group_idx > values.size
+      raise RuntimeError, "group_idx cannot be higher than number of groups"
+    end
     counter_key = Familia.join :counter, OT.now.quantize(1.day).to_i, group_idx
     increment counter_key
     group_values group_idx
