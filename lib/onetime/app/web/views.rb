@@ -194,7 +194,19 @@ module Onetime
           self[:title] = "Create an account"
           self[:body_class] = :signup
           self[:with_anal] = true
-          self[:planid] = req.params[:planid] if OT::Plan.plan?(req.params[:planid])
+          if OT::Plan.plan?(req.params[:planid])
+            self[:planid] = req.params[:planid]
+            plan = OT::Plan.plans[req.params[:planid]]
+            self[:plan] = {
+              :price => plan.price.zero? ? 'Free' : plan.calculated_price,
+              :original_price => plan.price.to_i,
+              :ttl => plan.options[:ttl].in_days.to_i,
+              :size => plan.options[:size].to_bytes.to_i,
+              :api => plan.options[:api] ? 'Yes' : 'No',
+              :name => plan.options[:name],
+              :planid => req.params[:planid]
+            }
+          end
         end
       end
       class Pricing < Onetime::App::View
@@ -208,7 +220,9 @@ module Onetime
               :original_price => plan.price.to_i,
               :ttl => plan.options[:ttl].in_days.to_i,
               :size => plan.options[:size].to_bytes.to_i,
-              :api => plan.options[:api] ? 'Yes' : 'No'
+              :api => plan.options[:api] ? 'Yes' : 'No',
+              :name => plan.options[:name],
+              :planid => planid
             }
           end
           if OT::SplitTest.test_running? :initial_pricing
