@@ -211,12 +211,17 @@ module Onetime
               :api => plan.options[:api] ? 'Yes' : 'No'
             }
           end
-          group_idx = (cust.initial_pricing_group || sess.initial_pricing_group)
-          if group_idx.nil?
-            group_idx = OT::SplitTest.initial_pricing.register_visitor!
-            (cust.anonymous? ? sess : cust)[:initial_pricing_group] = group_idx
+          if OT::SplitTest.test_running? :initial_pricing
+            group_idx = (cust.initial_pricing_group || sess.initial_pricing_group)
+            if group_idx.nil?
+              group_idx = OT::SplitTest.initial_pricing.register_visitor!
+              OT.info "Split test visitor: #{sess.sessid} is in group #{group_idx}"
+              (cust.anonymous? ? sess : cust)[:initial_pricing_group] = group_idx
+            end
+            @plan1, @plan2, @plan3, @plan4 = *OT::SplitTest.initial_pricing.sample!(group_idx.to_i)
+          else
+            @plan1, @plan2, @plan3, @plan4 = [:anonymous, :personal_v1, :professional_v1, :agency_v1]
           end
-          @plan1, @plan2, @plan3, @plan4 = *OT::SplitTest.initial_pricing.sample!(group_idx.to_i)
         end
         def plan1;  self[@plan1.to_s]; end
         def plan2;  self[@plan2.to_s]; end

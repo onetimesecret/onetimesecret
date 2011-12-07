@@ -19,7 +19,15 @@ class Onetime::SplitTest < Familia::HashKey
       end
     end
     def register_test name, *values
-      tests[name] = create(name, *values)
+      tests[name.to_s] = create(name, *values)
+    end
+    def test_running? testname
+      OT::SplitTest.tests.has_key?(testname.to_s)
+    end
+    def method_missing meth, *args
+      test = tests[meth.to_s]
+      raise NoMethodError, meth.to_s if test.nil?
+      test
     end
     def exists? objid
       obj = new 
@@ -37,11 +45,6 @@ class Onetime::SplitTest < Familia::HashKey
       obj.testname, obj.values = testname, values
       obj.save
       obj
-    end
-    def method_missing meth, *args
-      test = tests[meth.to_s]
-      raise NoMethodError, meth if test.nil?
-      test
     end
   end
   def register_visitor!
