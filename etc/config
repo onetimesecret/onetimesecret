@@ -28,8 +28,12 @@
       - agency_v1
     - - anonymous
       - personal_v2
-      - professional_v2
-      - agency_v2
+      - professional_v1
+      - agency_v1
+    - - anonymous
+      - personal_v3
+      - professional_v1
+      - agency_v1
 :redis:
   :uri: 'redis://127.0.0.1:6379/0?timeout=5&thread_safe=false&logging=false'
 :nginx:

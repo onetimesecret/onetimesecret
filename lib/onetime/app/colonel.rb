@@ -46,6 +46,9 @@ class Onetime::App
           self[:recent_customer_count] = self[:recent_customers].size
           self[:metadata_count] = OT::Metadata.new.redis.keys('metadata*:object').count
           self[:secret_count] = OT::Secret.new.redis.keys('secret*:object').count
+          self[:split_tests] = OT::SplitTest.tests.collect do |plan|
+            { :name => plan[1].testname, :values => plan[1].values, :samples => plan[1].samples }
+          end
         end
       end
     end

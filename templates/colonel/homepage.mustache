@@ -12,13 +12,19 @@
       <li><strong>{{msg}}</strong> <em>{{stamp}}</em></li>
     {{/recent_feedback}}
     </ul>
-
+    
     <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
     <ul>
     {{#recent_customers}}
       <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} {{planid}} <em>{{stamp}}</em></li>
     {{/recent_customers}}
     </ul>
+    
+    <h3>Split tests</h3>
+    
+    {{#split_tests}}
+      {{name}} {{samples}} {{scores}}
+    {{/split_tests}}
     
   </div>
   
