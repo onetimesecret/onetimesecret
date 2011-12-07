@@ -224,6 +224,7 @@ module Onetime
               :name => plan.options[:name],
               :planid => planid
             }
+            self[planid.to_s][:adjusted_price] = (plan.calculated_price == plan.price)
           end
           if OT::SplitTest.test_running? :initial_pricing
             group_idx = (cust.initial_pricing_group || sess.initial_pricing_group)

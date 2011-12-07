@@ -23,7 +23,10 @@
       <tr class="pricingodd prices">
         <td class="pricingfeature">Per month</td>
         <td>{{plan1.price}}</td>
-        <td><a href="/signup/{{plan2.planid}}" title="Create a Personal account"><span class="strikethrough light">${{plan2.original_price}}</span> ${{plan2.price}}</a></td>
+        <td><a href="/signup/{{plan2.planid}}" title="Create a Personal account">
+          {{#plan2.adjusted_price}}<span class="strikethrough light">${{plan2.original_price}}</span> ${{plan2.price}}{{/plan2.adjusted_price}}
+          {{^plan2.adjusted_price}}${{plan2.price}}{{/plan2.adjusted_price}}
+        </a></td>
         <td class="bestvalue"><a href="/signup/{{plan3.planid}}" title="Create a Professional account"><span class="strikethrough light">${{plan3.original_price}}</span> ${{plan3.price}}!</a></td>
         <td class="lastcolumn"><a href="/signup/{{plan4.planid}}" title="Create an Agency account"><span class="strikethrough light">${{plan4.original_price}}</span> ${{plan4.price}}</a></td>
       </tr>
