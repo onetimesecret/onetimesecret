@@ -125,8 +125,8 @@ class Onetime::Session < Familia::HashKey
   def set_info_message msg
     self.info_message = msg
   end
-  def session_group groups=2
-    sessid.to_i % groups.to_i
+  def session_group groups
+    sessid.to_i(16) % groups.to_i
   end
   def opera?()            @agent.to_s  =~ /opera/i                      end
   def firefox?()          @agent.to_s  =~ /firefox/i                    end

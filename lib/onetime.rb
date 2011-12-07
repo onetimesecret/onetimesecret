@@ -52,7 +52,6 @@ module Onetime
       Gibbler.secret = secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
       Familia.uri = OT.conf[:redis][:uri]
       OT::RateLimit.register_events OT.conf[:limits]
-      OT.conf[:errno].each { |e| OT::ERRNO[e.first.gibbler.short] = e.last } if OT.conf[:errno]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
       OT::SplitTest.from_config OT.conf[:split_tests] 
@@ -201,9 +200,12 @@ module Onetime
       (price * (1-discount)).to_i
     end
     add_plan :anonymous, 0, 0, :ttl => 2.days, :size => 1_000, :api => false
-    add_plan :personal, 5.0, 1, :ttl => 14.days, :size => 1_000, :api => false
-    add_plan :professional, 30.0, 0.5, :ttl => 90.days, :size => 5_000, :api => true
-    add_plan :agency, 75.0, 0.33333, :ttl => 90.days, :size => 10_000, :api => true
+    add_plan :personal_v1, 5.0, 1, :ttl => 14.days, :size => 1_000, :api => false
+    add_plan :personal_v2, 5.0, 1, :ttl => 14.days, :size => 1_000, :api => false
+    add_plan :professional_v1, 30.0, 0.5, :ttl => 90.days, :size => 5_000, :api => true
+    add_plan :professional_v2, 30.0, 0.5, :ttl => 90.days, :size => 5_000, :api => true
+    add_plan :agency_v1, 75.0, 0.33333, :ttl => 90.days, :size => 10_000, :api => true
+    add_plan :agency_v2, 75.0, 0.33333, :ttl => 90.days, :size => 10_000, :api => true
   end
   
   class Problem < RuntimeError

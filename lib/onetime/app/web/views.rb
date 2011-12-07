@@ -211,6 +211,7 @@ module Onetime
               :api => plan.options[:api] ? 'Yes' : 'No'
             }
           end
+          self[:plan1], self[:plan2], self[:plan3], self[:plan4] = *OT::SplitTest.initial_pricing.sample!
         end
       end
       class Dashboard < Onetime::App::View

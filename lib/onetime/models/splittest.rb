@@ -12,9 +12,10 @@ class Onetime::SplitTest < Familia::HashKey
     attr_reader :tests
     def from_config conf
       conf ||= {}
-      conf.each_pair do |name,values|
-        OT.ld "Split test #{name}: #{values}"
-        register_test name.to_s, *values
+      conf.each_pair do |name,groups|
+        groups.collect! { |v| [v].flatten }
+        OT.info "Split test #{name}: #{groups.inspect}"
+        register_test name.to_s, *groups
       end
     end
     def register_test name, *values
@@ -33,20 +34,25 @@ class Onetime::SplitTest < Familia::HashKey
     def create testname, *values
       obj = new testname
       # force the storing of the fields to redis
-      obj.testname, obj.values = testname, values.flatten.compact
+      obj.testname, obj.values = testname, values
       obj.save
       obj
     end
-  end
-  def method_missing meth, *args
-    test = self.class.tests[meth.to_s]
-    super if test.nil?
-    test
+    def method_missing meth, *args
+      test = tests[meth.to_s]
+      raise NoMethodError, meth if test.nil?
+      test
+    end
   end
   def sample!
-    cnt = increment :samples
-    counter_key = Familia.join :counter, OT.now.quantize(1.day).to_i
+    ret = increment(:samples)+1  # Add one so we always start with the first group
+    group_idx = ret % values.size
+    counter_key = Familia.join :counter, OT.now.quantize(1.day).to_i, group_idx
     increment counter_key
+    group_values group_idx
+  end
+  def group_values idx
+    values[idx]
   end
   def testname= sid
     @testname = sid
@@ -57,3 +63,8 @@ class Onetime::SplitTest < Familia::HashKey
     @testname  # Don't call the method
   end
 end
+
+
+__END__
+OT.load!
+OT::SplitTest.initial_pricing
