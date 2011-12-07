@@ -122,6 +122,13 @@ module Onetime
             self[:with_anal] = true
           end
         end
+        class Terms < Onetime::App::View
+          def init *args
+            self[:title] = "Terms and Conditions"
+            self[:monitored_link] = true
+            self[:with_anal] = true
+          end
+        end
       end
       class UnknownSecret < Onetime::App::View
         def init 

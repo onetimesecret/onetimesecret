@@ -16,6 +16,12 @@ module Onetime
           res.body = view.render
         end
       end
+      def terms 
+        carefully do
+          view = Onetime::App::Views::Info::Terms.new req, sess, cust
+          res.body = view.render
+        end
+      end
     end
     
   end
