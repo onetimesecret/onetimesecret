@@ -204,7 +204,7 @@ module Onetime
     add_plan :personal_v2, 10.0, 0.5, :ttl => 30.days, :size => 1_000, :api => true, :name => 'Personal'
     add_plan :personal_v3, 5.0, 0, :ttl => 14.days, :size => 1_000, :api => true, :name => 'Personal'
     add_plan :professional_v1, 30.0, 0.5, :ttl => 90.days, :size => 5_000, :api => true, :name => 'Professional'
-    add_plan :agency_v1, 75.0, 0.33333, :ttl => 90.days, :size => 10_000, :api => true, :name => 'Agency'
+    add_plan :agency_v1, 100.0, 0.25, :ttl => 90.days, :size => 10_000, :api => true, :name => 'Agency'
   end
   
   class Problem < RuntimeError
