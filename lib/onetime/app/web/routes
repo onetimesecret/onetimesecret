@@ -17,6 +17,7 @@ POST  /secret/:key                               Onetime::App#secret_uri
 
 GET   /info/privacy                              Onetime::App::Info#privacy
 GET   /info/security                             Onetime::App::Info#security
+GET   /info/terms                                Onetime::App::Info#terms
 
 GET   /pricing                                   Onetime::App#pricing
 GET   /signup                                    Onetime::App#signup

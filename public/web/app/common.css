@@ -390,7 +390,9 @@ table.pricing tr.pricinglastrow td {
 
 .centre { text-align: center }
 
-
+.socialicon {
+  padding-right: 8px;
+}
 
 .highlight {background:#ff0;}
 .highlight2 {background:#6FF;} 
