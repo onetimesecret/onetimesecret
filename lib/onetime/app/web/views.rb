@@ -224,14 +224,14 @@ module Onetime
               :name => plan.options[:name],
               :planid => planid
             }
-            self[planid.to_s][:adjusted_price] = (plan.calculated_price == plan.price)
+            self[planid.to_s][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
           end
           if OT::SplitTest.test_running? :initial_pricing
-            group_idx = (cust.initial_pricing_group || sess.initial_pricing_group)
+            group_idx = cust.get_persistent_value sess, :initial_pricing_group
             if group_idx.nil?
               group_idx = OT::SplitTest.initial_pricing.register_visitor!
               OT.info "Split test visitor: #{sess.sessid} is in group #{group_idx}"
-              (cust.anonymous? ? sess : cust)[:initial_pricing_group] = group_idx
+              cust.set_persistent_value sess, :initial_pricing_group, group_idx
             end
             @plan1, @plan2, @plan3, @plan4 = *OT::SplitTest.initial_pricing.sample!(group_idx.to_i)
           else

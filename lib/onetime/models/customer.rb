@@ -24,6 +24,12 @@ class Onetime::Customer < Familia::HashKey
   def identifier 
     @custid
   end
+  def get_persistent_value sess, n
+    (anonymous? ? sess : self)[n]
+  end
+  def set_persistent_value sess, n, v 
+    (anonymous? ? sess : self)[n] = v
+  end
   def anonymous?
     custid.to_s == 'anon'
   end
