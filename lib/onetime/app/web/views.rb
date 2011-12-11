@@ -253,6 +253,17 @@ module Onetime
           @plans = get_split_test_values :initial_pricing do
             [:anonymous, :personal_v1, :professional_v1, :agency_v1]
           end
+          unless cust.anonymous?
+            plan_idx = case cust.planid 
+            when /personal/
+              1
+            when /professional/
+              2
+            when /agency/
+              3
+            end
+            @plans[plan_idx] = cust.planid unless plan_idx.nil?
+          end
         end
         def plan1;  self[@plans[0].to_s]; end
         def plan2;  self[@plans[1].to_s]; end
