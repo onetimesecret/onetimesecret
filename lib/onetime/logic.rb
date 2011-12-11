@@ -7,7 +7,7 @@ module Onetime
         MOBILE_REGEX = /^\+?\d{9,16}$/
         EMAIL_REGEX = %r{^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,4})$}i
       end
-      attr_reader :sess, :cust, :params, :processed_params
+      attr_reader :sess, :cust, :params, :processed_params, :plan
       def initialize(sess, cust, params=nil)
         @sess, @cust, @params = sess, cust, params
         @processed_params ||= {}
@@ -31,6 +31,10 @@ module Onetime
         ex.message = msg
         ex.form_fields = form_fields
         raise ex
+      end
+      def plan
+        @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
+        @plan ||= Onetime::Plan.plans['anonymous']
       end
     end
     
@@ -74,11 +78,12 @@ module Onetime
       def process
         @cust = OT::Customer.create custid
         cust.update_passphrase password
-        sess.update_fields :custid => cust.custid, :authenticated => 'true'
+        sess.update_fields :custid => cust.custid #, :authenticated => 'true'
         cust.update_fields :planid => planid, :verified => false
+        cust.
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
-        msg = "Thanks for verifying your account.\n\n"
-        msg << %Q{Here is your secret fortune cookie:\n"%s"} % OT::Utils.random_fortune
+        msg = "Thanks for verifying your account. "
+        msg << %Q{We got you a secret fortune cookie!\n\n"%s"} % OT::Utils.random_fortune
         secret.encrypt_value msg
         secret.verification = true
         secret.custid = cust.custid
@@ -238,8 +243,8 @@ module Onetime
       def process_params
         @ttl = params[:ttl].to_i
         @ttl = 1.hour if @ttl < 1.hour
-        @ttl = 2.days if @ttl > 2.days && cust.anonymous?
-        @ttl = 90.days if @ttl > 90.days && !cust.anonymous?
+        @ttl = plan.options[:ttl] if @ttl > plan.options[:ttl]
+        p [:plan_ttl, @ttl, plan.options[:ttl] ]
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym 
         end

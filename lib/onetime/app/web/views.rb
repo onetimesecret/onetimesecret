@@ -22,7 +22,7 @@ module Onetime
       self.template_path = './templates/web'
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
-      attr_reader :req
+      attr_reader :req, :plan
       attr_accessor :sess, :cust, :messages, :form_fields
       def initialize req=nil, sess=nil, cust=nil, *args
         @req, @sess, @cust = req, sess, cust
@@ -50,7 +50,6 @@ module Onetime
           self[:display_faq] = true
           self[:display_otslogo] = true
         end
-      
         unless sess.nil?
           if cust.has_key?(:verified) && cust.verified.to_s != 'true'
             add_message "A verification was sent to #{cust.custid}."
@@ -60,6 +59,8 @@ module Onetime
           add_message sess.info_message!
           add_form_fields sess.get_form_fields!
         end
+        @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
+        @plan ||= Onetime::Plan.plans['anonymous']
         init *args if respond_to? :init
       end
       def get_split_test_values testname
@@ -89,7 +90,7 @@ module Onetime
       end
       def expiration_options
         selected = (!sess || !sess.authenticated?) ? 2.days : 7.days
-        disabled = (!sess || !sess.authenticated?) ? 2.days : 90.days
+        disabled = (!sess || !sess.authenticated?) ? 2.days : plan.options[:ttl]
         options = [
           [1.hour, "1 hour"],
           [4.hour, "4 hours"],
@@ -277,7 +278,6 @@ module Onetime
           self[:title] = "Your Account"
           self[:body_class] = :account
           self[:with_anal] = true
-          self[:plan] = Onetime::Plan.plans[cust.planid] || OT::Plan.plans[:aonymous]
           self[:price] = self[:plan].calculated_price
         end
       end
