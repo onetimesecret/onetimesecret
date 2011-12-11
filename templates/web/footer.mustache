@@ -15,6 +15,7 @@
   
   <div id="footer" class="dotted">
     {{#display_feedback}}
+    <a name="feedback">&nbsp;</a>
     <form class="feedback" action="/feedback" method="post">
       {{{add_shrimp}}}
       <input class="clearDefault" type="text" name="msg" value="{{feedback_text}}" />
@@ -24,6 +25,7 @@
     
     <p>
       <a href="/about">About</a> | 
+      {{#plan.options.api}}<a href="/docs/api">API</a> | {{/plan.options.api}}
       <a href="/pricing">Pricing</a>
     </p>
     <p><a href="/info/privacy">Privacy policy</a> | <a href="/info/terms">Terms &amp; Conditions</a> | <a href="/info/security">Security policy</a></p>

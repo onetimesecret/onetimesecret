@@ -22,6 +22,12 @@ class Onetime::App
       end
     end
     
+    def plan
+      @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
+      @plan ||= Onetime::Plan.plans['anonymous']
+      @plan
+    end
+    
     def check_shrimp!
       return unless req.post? || req.put? || req.delete?
       attempted_shrimp = req.params[:shrimp]

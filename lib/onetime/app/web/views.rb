@@ -122,6 +122,15 @@ module Onetime
           self[:with_anal] = true
         end
       end
+      module Docs
+        class Api < Onetime::App::View
+          def init *args
+            self[:title] = "API Docs"
+            self[:monitored_link] = true
+            self[:with_anal] = true
+          end
+        end
+      end
       module Info
         class Privacy < Onetime::App::View
           def init *args

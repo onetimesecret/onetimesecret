@@ -21,6 +21,17 @@ module Onetime
       end
     end
     
+    def show_docs
+      authenticated do
+        if plan.options[:api]
+          view = Onetime::App::Views::Docs::Api.new req, sess, cust
+          res.body = view.render
+        else
+          res.redirect app_path('/')
+        end
+      end
+    end
+    
     def receive_feedback
       carefully do
         logic = OT::Logic::ReceiveFeedback.new sess, cust, req.params
