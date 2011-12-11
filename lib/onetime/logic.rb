@@ -203,7 +203,7 @@ module Onetime
       end
     end
     
-    class UpdateAccount < OT::Logic::Base
+    class GenerateAPIkey < OT::Logic::Base
       attr_reader :modified
       def process_params
         @currentp = params[:currentp].to_s
@@ -236,6 +236,23 @@ module Onetime
         modified.member? guess
       end
     end
+
+    class GenerateAPIkey < OT::Logic::Base
+      attr_reader :apikey
+      def process_params
+        
+      end
+      def raise_concerns
+        if (!sess.authenticated?) || (cust.anonymous?)
+          raise_form_error "Sorry, we don't support that"
+        end
+      end
+      def process
+        unless cust.anonymous?
+          @apikey = cust.regenerate_apikey
+        end
+      end
+    end
     
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl
@@ -244,7 +261,6 @@ module Onetime
         @ttl = params[:ttl].to_i
         @ttl = 1.hour if @ttl < 1.hour
         @ttl = plan.options[:ttl] if @ttl > plan.options[:ttl]
-        p [:plan_ttl, @ttl, plan.options[:ttl] ]
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym 
         end

@@ -30,8 +30,25 @@
         <span id="fireSmall" class="button"><button type="submit">Update</button></span>
       </form>
     </div>
-          
     <hr/>
+    
+    {{#plan.options.api}}
+    <div style="float: left; margin-top: 40px">
+      <h3>API Credentials</h3>
+      <form action="/account/apikey" method="post">
+        {{{add_shrimp}}}
+        <div>
+          <label for="custid">Your API token:</label>
+          <span class="highlight2">{{#cust.apitoken}}{{cust.apitoken}}{{/cust.apitoken}}</span>
+          {{^cust.apitoken}}<em>Click button to generate</em>{{/cust.apitoken}}
+          <hr/>
+        </div>
+        
+        <span id="fireSmall" class="button"><button type="submit">Regenerate Token</button></span>
+      </form>
+    </div>
+    <hr/>
+    {{/plan.options.api}}
   </div>
   
 {{>footer}}
