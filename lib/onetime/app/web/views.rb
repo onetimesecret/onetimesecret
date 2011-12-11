@@ -62,6 +62,20 @@ module Onetime
         end
         init *args if respond_to? :init
       end
+      def get_split_test_values testname
+        varname = "#{testname}_group"
+        if OT::SplitTest.test_running? testname
+          group_idx = cust.get_persistent_value sess, varname
+          if group_idx.nil?
+            group_idx = OT::SplitTest.send(testname).register_visitor!
+            OT.info "Split test visitor: #{sess.sessid} is in group #{group_idx}"
+            cust.set_persistent_value sess, varname, group_idx
+          end
+          @plans = *OT::SplitTest.send(testname).sample!(group_idx.to_i)
+        else
+          @plans = yield # TODO: not tested
+        end
+      end
       def add_message msg
         messages[:info] << msg unless msg.to_s.empty?
       end
@@ -206,6 +220,8 @@ module Onetime
               :name => plan.options[:name],
               :planid => req.params[:planid]
             }
+          else
+            sess.set_error_message "Unknown plan"
           end
         end
       end
@@ -226,22 +242,14 @@ module Onetime
             }
             self[planid.to_s][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
           end
-          if OT::SplitTest.test_running? :initial_pricing
-            group_idx = cust.get_persistent_value sess, :initial_pricing_group
-            if group_idx.nil?
-              group_idx = OT::SplitTest.initial_pricing.register_visitor!
-              OT.info "Split test visitor: #{sess.sessid} is in group #{group_idx}"
-              cust.set_persistent_value sess, :initial_pricing_group, group_idx
-            end
-            @plan1, @plan2, @plan3, @plan4 = *OT::SplitTest.initial_pricing.sample!(group_idx.to_i)
-          else
-            @plan1, @plan2, @plan3, @plan4 = [:anonymous, :personal_v1, :professional_v1, :agency_v1]
+          @plans = get_split_test_values :initial_pricing do
+            [:anonymous, :personal_v1, :professional_v1, :agency_v1]
           end
         end
-        def plan1;  self[@plan1.to_s]; end
-        def plan2;  self[@plan2.to_s]; end
-        def plan3;  self[@plan3.to_s]; end
-        def plan4;  self[@plan4.to_s]; end
+        def plan1;  self[@plans[0].to_s]; end
+        def plan2;  self[@plans[1].to_s]; end
+        def plan3;  self[@plans[2].to_s]; end
+        def plan4;  self[@plans[3].to_s]; end
       end
       class Dashboard < Onetime::App::View
         def init 

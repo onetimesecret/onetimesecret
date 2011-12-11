@@ -18,9 +18,14 @@ module Onetime
     def signup
       carefully do
         if OT::Plan.plan?(req.params[:planid])
-          sess.set_error_message "You're already signed up" if sess.authenticated?
-          view = Onetime::App::Views::Signup.new req, sess, cust
-          res.body = view.render
+          group_idx = cust.get_persistent_value sess, :initial_pricing_group
+          if group_idx.to_s.empty?
+            res.redirect app_path('/pricing')
+          else
+            sess.set_error_message "You're already signed up" if sess.authenticated?
+            view = Onetime::App::Views::Signup.new req, sess, cust
+            res.body = view.render
+          end
         else
           res.redirect app_path('/')
         end
