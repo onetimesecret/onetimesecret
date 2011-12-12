@@ -10,6 +10,7 @@ module Onetime
         carefully(redirect) do 
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
+          check_referrer!
           yield
         end
       end
@@ -28,6 +29,11 @@ module Onetime
           check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
           sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
         end
+      end
+      
+      def check_referrer!
+        return if req.referrer.match(Onetime.conf[:site][:host])
+        sess.referrer ||= req.referrer
       end
       
       def secret_not_found_response

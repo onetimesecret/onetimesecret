@@ -52,6 +52,10 @@ module Onetime
           self[:display_otslogo] = true
         end
         unless sess.nil?
+          if sess.referrer
+            self[:via_hn] = !sess.referrer.match(/news.ycombinator.com/).nil?
+            self[:via_test] = !sess.referrer.match(/www.ot.com/).nil?
+          end
           if cust.has_key?(:verified) && cust.verified.to_s != 'true' && self.class != Onetime::App::Views::Shared
             add_message "A verification was sent to #{cust.custid}."
           else
