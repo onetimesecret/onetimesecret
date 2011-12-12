@@ -31,11 +31,19 @@ class Onetime::App
           self[:title] = "Home"
           self[:body_class] = :colonel
           self[:session_count] = OT::Session.values.size
-          self[:recent_feedback] = OT::Feedback.recent.collect do |k,v|
+          self[:today_feedback] = OT::Feedback.recent(24.hours, OT.now.to_i).collect do |k,v|
+            {:msg => k, :stamp => natural_time(v) }
+          end.reverse
+          self[:yesterday_feedback] = OT::Feedback.recent(48.hours, OT.now.to_i-24.hours).collect do |k,v|
+            {:msg => k, :stamp => natural_time(v) }
+          end.reverse
+          self[:older_feedback] = OT::Feedback.recent(14.days, OT.now.to_i-48.hours).collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
           end.reverse
           self[:feedback_count] = OT::Feedback.values.size
-          self[:recent_feedback_count] = self[:recent_feedback].size
+          self[:today_feedback_count] = self[:today_feedback].size
+          self[:yesterday_feedback_count] = self[:yesterday_feedback].size
+          self[:older_feedback_count] = self[:older_feedback].size
           self[:recent_customers] = OT::Customer.recent.collect do |this_cust|
             { :custid => this_cust.custid, 
               :planid => this_cust.planid,

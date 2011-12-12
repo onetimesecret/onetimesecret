@@ -54,7 +54,7 @@ module Onetime
       def process
         @msg = "#{msg} [#{sess.ipaddress}]"
         OT::Feedback.add @msg
-        sess.set_info_message "Message received. Thank you kindly!"
+        sess.set_info_message "Message received. Send as much as you like!"
       end
     end
     
