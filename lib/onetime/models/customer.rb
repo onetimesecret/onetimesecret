@@ -24,7 +24,10 @@ class Onetime::Customer < Familia::HashKey
   def identifier 
     @custid
   end
-  def regenerate_apikey
+  def apitoken? guess
+    self.apitoken.to_s == guess.to_s
+  end
+  def regenerate_apitoken
     self.apitoken = [OT.instance, OT.now.to_f, :apikey, custid].gibbler
   end
   def get_persistent_value sess, n

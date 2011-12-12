@@ -57,6 +57,7 @@ module Onetime
         sess.set_info_message "Message received. Thank you kindly!"
       end
     end
+    
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
       attr_reader :planid, :custid, :password, :password2
@@ -80,7 +81,6 @@ module Onetime
         cust.update_passphrase password
         sess.update_fields :custid => cust.custid #, :authenticated => 'true'
         cust.update_fields :planid => planid, :verified => false
-        cust.
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
         msg = "Thanks for verifying your account. "
         msg << %Q{We got you a secret fortune cookie!\n\n"%s"} % OT::Utils.random_fortune
@@ -246,7 +246,7 @@ module Onetime
       end
       def process
         unless cust.anonymous?
-          @apikey = cust.regenerate_apikey
+          @apikey = cust.regenerate_apitoken
         end
       end
     end
