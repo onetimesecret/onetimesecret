@@ -65,6 +65,15 @@ module Onetime
         OT::Entropy.generate
       end
       info "Entropy: #{OT::Entropy.count}"
+      # Digest lazy-loads classes. We need to make sure these
+      # are loaded so we can increase the $SAFE level.
+      Digest::SHA256
+      Digest::SHA384
+      Digest::SHA512
+      # Seed the random number generator
+      Kernel.srand
+      # Need to connect to all redis DBs so we can increase $SAFE level.
+      16.times { |idx| OT.info 'Connecting to %s (%s)' % [Familia.redis(idx).uri, Familia.redis(idx).ping] }
       @conf
     end
     def to_file(content, filename, mode, chmod=0744)
@@ -243,5 +252,4 @@ require 'onetime/models'
 require 'onetime/logic'
 require 'onetime/email'
 
-Kernel.srand
 

@@ -49,4 +49,5 @@ else
   apps.each_pair do |path,app|
     map(path) { run app }
   end
+  #$SAFE = 1  # http://www.rubycentral.com/pickaxe/taint.html
 end
