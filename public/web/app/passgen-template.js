@@ -7,7 +7,7 @@ var passgenTemplate = (function(){
     var constants = {
       BCRYPT_SALT_LEN: 6,   // This value determines the minimum length of the unique token (+2 ?)
       BLOWFISH_NUM_ROUNDS: 20,
-      NUM_ROUNDS: 7,
+      NUM_ROUNDS: 12,
       bf_crypt_ciphertext: [0x4f727068, 0x65616e42, 0x65686f6c, 0x64657253, 0x63727944, 0x6f756274],
       base64_code: ['.', '/', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
           'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -519,9 +519,11 @@ var passgenTemplate = (function(){
       host = "none";
   };
   
-  if (document.activeElement.tagName == 'INPUT' && document.activeElement.getAttribute('type') == 'password')
+  if (document.activeElement.tagName == 'INPUT' && document.activeElement.getAttribute('type') == 'password') {
     passField = document.activeElement;
-  console.log(passField);
+  } else {
+    passField = undefined;
+  }
   var body = document.getElementsByTagName('body').item(0);
   var JSPWDiv = document.createElement('div');
   JSPWDiv.setAttribute('id', 'JSBCPassGen');
