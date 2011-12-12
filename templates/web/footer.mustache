@@ -1,9 +1,10 @@
-  {{#with_anal}}
+  {{#with_analytics}}
   <!-- NOTE: Secret pages are not tracked. -->
   <script type="text/javascript">
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-5320807-2']);
     _gaq.push(['_setDomainName', '.onetimesecret.com']);
+    _gaq.push(['_trackPageLoadTime']);
     _gaq.push(['_trackPageview']);
     (function() {
       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
@@ -11,7 +12,7 @@
       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
   </script>
-  {{/with_anal}}
+  {{/with_analytics}}
   
   <div id="footer" class="dotted">
     {{#display_feedback}}

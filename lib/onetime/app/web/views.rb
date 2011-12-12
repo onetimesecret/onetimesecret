@@ -120,7 +120,7 @@ module Onetime
         def init *args
           self[:title] = "Share a secret"
           self[:monitored_link] = true
-          self[:with_anal] = true
+          self[:with_analytics] = true
         end
       end
       module Docs
@@ -128,7 +128,7 @@ module Onetime
           def init *args
             self[:title] = "API Docs"
             self[:monitored_link] = true
-            self[:with_anal] = true
+            self[:with_analytics] = true
           end
         end
       end
@@ -137,21 +137,21 @@ module Onetime
           def init *args
             self[:title] = "Privacy Policy"
             self[:monitored_link] = true
-            self[:with_anal] = true
+            self[:with_analytics] = true
           end
         end
          class Security < Onetime::App::View
           def init *args
             self[:title] = "Security Policy"
             self[:monitored_link] = true
-            self[:with_anal] = true
+            self[:with_analytics] = true
           end
         end
         class Terms < Onetime::App::View
           def init *args
             self[:title] = "Terms and Conditions"
             self[:monitored_link] = true
-            self[:with_anal] = true
+            self[:with_analytics] = true
           end
         end
       end
@@ -218,14 +218,14 @@ module Onetime
         def init 
           self[:title] = "Login"
           self[:body_class] = :login
-          self[:with_anal] = true
+          self[:with_analytics] = true
         end
       end
       class Signup < Onetime::App::View
         def init 
           self[:title] = "Create an account"
           self[:body_class] = :signup
-          self[:with_anal] = true
+          self[:with_analytics] = true
           if OT::Plan.plan?(req.params[:planid])
             self[:planid] = req.params[:planid]
             plan = OT::Plan.plans[req.params[:planid]]
@@ -247,7 +247,7 @@ module Onetime
         def init 
           self[:title] = "Pricing Plans"
           self[:body_class] = :pricing
-          self[:with_anal] = true
+          self[:with_analytics] = true
           Onetime::Plan.plans.each_pair do |planid,plan|
             self[planid.to_s] = {
               :price => plan.price.zero? ? 'Free' : plan.calculated_price,
@@ -284,7 +284,7 @@ module Onetime
         def init 
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
-          self[:with_anal] = true
+          self[:with_analytics] = true
           self[:metadata] = cust.metadata.collect do |m| 
             { :uri => private_uri(m), 
               :stamp => natural_time(m.updated), 
@@ -298,7 +298,7 @@ module Onetime
         def init 
           self[:title] = "Your Account"
           self[:body_class] = :account
-          self[:with_anal] = true
+          self[:with_analytics] = true
           self[:price] = self[:plan].calculated_price
         end
       end
@@ -311,14 +311,14 @@ module Onetime
         def init *args
           self[:title] = "About Us"
           self[:body_class] = :info
-          self[:with_anal] = true
+          self[:with_analytics] = true
         end
       end
       class PasswordGenerator < Onetime::App::View
         def init *args
           self[:title] = "Password Generator"
           self[:body_class] = :info
-          self[:with_anal] = true
+          self[:with_analytics] = true
           self[:token] = sess.sessid.gibbler
           self[:js] << '/etc/packer/base2.js'
           self[:js] << '/etc/packer/packer.js'
@@ -329,7 +329,7 @@ module Onetime
         def init *args
           self[:title] = "Your Feedback"
           self[:body_class] = :info
-          self[:with_anal] = true
+          self[:with_analytics] = true
           self[:display_feedback] = false
           #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
           #  {:msg => k, :stamp => natural_time(v) }
