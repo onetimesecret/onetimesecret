@@ -37,6 +37,7 @@ class Onetime::App
       res.redirect ex.location, ex.status
     
     rescue OT::App::Unauthorized => ex
+      OT.info ex.message
       not_found_response "Not found"
     
     rescue OT::BadShrimp => ex

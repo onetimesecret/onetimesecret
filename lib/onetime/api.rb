@@ -1,6 +1,9 @@
 require 'httparty'
 require 'uri'
 
+# a=OT::API.new 'delano@onetimesecret.com', '4eb33c6340006d6607c813fc7e707a32f8bf5342'
+# a.get '/status'
+# a.post '/generate'
 module Onetime
   class API
     include HTTParty
