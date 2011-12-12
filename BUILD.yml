@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
-:MINOR: 6
-:STAMP: 1323201503
-:PATCH: 2
+:MINOR: 7
+:STAMP: 1323671819
+:PATCH: 0
 :OWNER: delano
-:BUILD: "007"
-:STORY: "Release from any branch #4"
+:BUILD: "001"
+:STORY: 0.7.0
