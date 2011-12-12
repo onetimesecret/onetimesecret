@@ -24,16 +24,24 @@
           <label for="newp2">Confirm New Password:</label>
           <input type="password" name="newp2" id="newp2" class="short" />
           <hr/>
-          <em class="lighter">More cool stuff coming soon! -- Delano</em>
         </div>
         
-        <span id="fireSmall" class="button"><button type="submit">Update</button></span>
+        <span id="fireSmall" class="button"><button type="submit">Update Info</button></span>
       </form>
     </div>
     <hr/>
     
+    {{#is_paid}}
+    <div style="float: left; margin-top: 20px">
+      <h3>Billing Info</h3>
+      <p class="msg">We will request billing info on or before January 1st, 2012.</p>
+      <span id="fireSmall" class="button"><button type="submit" disabled="disabled">Update Billing</button></span>
+    </div>
+    <hr/>
+    {{/is_paid}}
+    
     {{#plan.options.api}}
-    <div style="float: left; margin-top: 40px">
+    <div style="float: left; margin-top: 20px">
       <h3>API Credentials</h3>
       <form action="/account/apikey" method="post">
         {{{add_shrimp}}}

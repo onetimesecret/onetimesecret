@@ -310,7 +310,8 @@ module Onetime
           self[:body_class] = :account
           self[:monitored_link] = true
           self[:with_analytics] = true
-          self[:price] = self[:plan].calculated_price
+          self[:price] = plan.calculated_price
+          self[:is_paid] = !plan.calculated_price.zero?
         end
       end
       class Error < Onetime::App::View
