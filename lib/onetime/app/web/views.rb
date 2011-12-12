@@ -66,6 +66,7 @@ module Onetime
         end
         @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
         @plan ||= Onetime::Plan.plans['anonymous']
+        OT.info [sess.sessid, cust, @plan.planid].inspect
         init *args if respond_to? :init
       end
       def get_split_test_values testname
