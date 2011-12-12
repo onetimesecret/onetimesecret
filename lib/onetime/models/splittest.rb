@@ -48,7 +48,7 @@ class Onetime::SplitTest < Familia::HashKey
     end
   end
   def register_visitor!
-    sample_count = increment(:samples)+1  # Add one so we always start with the first group
+    sample_count = increment(:samples)
     group_idx = sample_count % values.size
   end
   def sample! group_idx
