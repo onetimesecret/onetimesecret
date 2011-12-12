@@ -17,13 +17,16 @@
       var jscontent = Mustache.to_html(template, {CHANGEMECHANGEME: token})
       var packer = new Packer;
       var bookmarklet = encodeURI(packer.pack(jscontent, false));
-      $('#generatedBookmarklet').attr('href', 'javascript:/*v0.2*/' + bookmarklet)
+      $('#generatedBookmarklet').attr('href', 'javascript:/*v0.3*/' + bookmarklet)
     }
     $('#uniqueToken').change(function() {
       updateBookmarklet($('#uniqueToken').val());
     });
     updateBookmarklet($('#uniqueToken').val());
   </script>
+  <input id="password" type="password" size="60" /><br/>
+  <input type="password" size="60" /><br/>
+  <input size="60" /><br/>
 </div>
 
 {{>footer}}

@@ -1,3 +1,4 @@
+var passField;
 var passgenTemplate = (function(){
   //function getSelection() { return (document.selection) ? document.selection : window.getSelection(); };
   //console.log(getSelection().rangeCount);
@@ -499,8 +500,13 @@ var passgenTemplate = (function(){
             }
         }
         
-        if (c != 1) 
-          prompt('The generated password is:', p);
+        if (c != 1) {
+          if (typeof(passField) == 'undefined') {
+            prompt('The generated password is:', p);
+          } else {
+            passField.setAttribute('value', p);
+          }
+        }
     }
     return false;
   };
@@ -512,6 +518,10 @@ var passgenTemplate = (function(){
   } catch (Exception) {
       host = "none";
   };
+  
+  if (document.activeElement.tagName == 'INPUT' && document.activeElement.getAttribute('type') == 'password')
+    passField = document.activeElement;
+  console.log(passField);
   var body = document.getElementsByTagName('body').item(0);
   var JSPWDiv = document.createElement('div');
   JSPWDiv.setAttribute('id', 'JSBCPassGen');
@@ -526,7 +536,7 @@ var passgenTemplate = (function(){
   hostBox.setAttribute("value", host);
   hostBox.setAttribute("style", "border:1px solid #000;color:#000;");
   var frm = document.createElement('form');
-  frm.setAttribute('onsubmit', 'javascript:' + genPass.toString() + genPass.name + '();return null;');
+  frm.setAttribute('onsubmit', 'javascript:' + genPass.toString() + genPass.name + '();return false;');
   var closeBtn = document.createElement('a');
   closeBtn.setAttribute('onclick', "document.getElementsByTagName('body').item(0).removeChild(document.getElementById('JSBCPassGen'));");
   closeBtn.setAttribute('style', "color:#666;text-decoration:none;font-weight:bold;position:absolute;top:0;right:5px;");
