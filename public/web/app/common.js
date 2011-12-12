@@ -22,8 +22,12 @@ $(function() {
       });
     });
   };
+  $.fn.mustache = function (data, partial, stream) {
+    var content = Mustache.to_html(this.html(), data, partial, stream)
+    this.replaceWith(content);
+    $(this)
+  };
 });
-
 
 // COMMON BEHAVIORS
 $(function() {  

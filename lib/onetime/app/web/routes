@@ -8,7 +8,8 @@ POST  /feedback                                  Onetime::App#receive_feedback
 
 GET   /about                                     Onetime::App#about
 GET   /docs/api                                  Onetime::App#show_docs
-GET   /bookmarklet                               Onetime::App#bookmarklet
+
+GET   /passgen                                   Onetime::App#passgen
 
 GET   /private/:key                              Onetime::App#private_uri
 GET   /shared/:key                               Onetime::App#secret_uri

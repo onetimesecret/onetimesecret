@@ -1,1 +1,117 @@
-{{>tmp}}
+<div id="content">
+  <h2 class="intro">API Documentation</h2>
+
+  <p class="quiet">
+  <em>PRIVATE BETA - Updated 2011-12-12 (<a href="#feedback">Chris is available</a> if you need anything.)</em>
+  </p>
+
+  <ul id="docnav">
+    <li class="selected"><a href="/docs/api/overview" title="">Overview</a></li>
+    <li class=""><a href="/docs/api/authentication" title="">Authentication</a></li>
+    <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
+  </ul>
+
+  <div id="topicContent">
+
+
+  <h3 class="cufon">API Overview</h3>
+
+  <p></p>
+
+  <h4 class="cufon docTitle dotted">Base URI</h4>
+  <span class="docSubtext">{{baseuri}}/api</span>
+  <div class="">This endpoint is <strong>
+  public.
+
+  </strong></div>
+
+  <p>All API access occurs over HTTPS and starts with <tt>/api</tt>. All responses are JSON. The following parameters and attributes are common across the API.</p>
+
+  <div class="options">
+    <strong>Parameters</strong>
+    <ul>
+      <li><span class="name">field</span> (optional): if specified, returns the content for this field only.</li>
+    </ul>
+  </div>
+
+
+
+  <p></p>
+
+  <div class="options">
+    <strong>Attributes</strong>
+    <ul>
+      <li><span class="name">ANY TIMESTAMP FIELD</span>: All timestamp attributes are returned in unix time (in seconds) UTC. In Ruby you can get the correct the value like this: Time.at(TIMESTAMP).utc</li>
+      <li><span class="name">summaries</span>: A collection of MetricsPack objects, usually organized by pre-determined time range 
+(the past hour, past 7 days, etc). Each MetricsPack contains performance data for one or 
+more HTTP requests in a compact format. The keys are as follows: 
+<ul>
+<li><strong>stamp</strong>: unix timestamp</li>
+<li><strong>uid</strong>: unique ID</li>
+<li><strong>n</strong>: number of HTTP requests</li>
+<li><strong>rt</strong>: response time</li>
+<li><strong>sc</strong>: socket connect</li>
+<li><strong>sr</strong>: send request</li>
+<li><strong>fb</strong>: first byte</li>
+<li><strong>lb</strong>: last byte</li>
+<li><strong>rqhs</strong>: request header size</li>
+<li><strong>rqcs</strong>: request content size</li>
+<li><strong>rshs</strong>: response header size</li>
+<li><strong>rscs</strong>: response content size</li>
+<li><strong>score</strong>: this response time compared to the previous hour</li>
+<li><strong>errors</strong>: number of request errors</li>
+<li><strong>rtsd</strong>: resposne time standard deviation.</li>
+</ul>
+</li>
+      <li><span class="name">metrics</span>: A hash containing the timestamp and response time metrics broken down into (in milliseconds): 
+<ul>
+<li><strong>rt</strong>: response time, the full time taken for a request (sc + fb + lb)</li>
+<li><strong>sc</strong>: socket connect or "network latency", the time taken to open a socket connection.</li>
+<li><strong>fb</strong>: first byte or "application latency", the time it took the server to start returning data (after the connection was opened).</li>
+<li><strong>lb</strong>: last byte or "download time", the amount of time it took to transfer the remaining data.</li>
+</ul>
+</li>
+    </ul>
+  </div>
+
+
+  <p></p>
+
+  <h4 class="cufon docTitle dotted">System Status</h4>
+  <span class="docSubtext">GET /v2/status</span>
+  <div class="">This endpoint is <strong>
+  public.
+
+  </strong></div>
+
+  <p></p>
+
+  <div class="options">
+    <strong>Parameters</strong>
+    <ul>
+      <li><span class="name"></span> (): </li>
+    </ul>
+    <em>None</em>
+  </div>
+
+  <pre class="colourize">$ curl   {{baseuri}}/api/v2/status</pre>
+
+  <pre class="colourize">{<span class="ke"><span class="dl">&quot;</span><span class="k">status</span><span class="dl">&quot;</span></span>:<span class="s"><span class="dl">&quot;</span><span class="k">nominal</span><span class="dl">&quot;</span></span>}
+</pre>
+
+  <p></p>
+
+  <div class="options">
+    <strong>Attributes</strong>
+    <ul>
+      <li><span class="name">status</span>: The current system status. One of: nominal, offline.</li>
+    </ul>
+  </div>
+
+
+  <p></p>
+
+  <br/><br/><br/>
+  </div>
+
+</div>

@@ -25,10 +25,15 @@
     
     <p>
       <a href="/about">About</a> | 
+      {{#colonel}}<a href="/passgen">Passgen</a> |{{/colonel}}
       {{#plan.options.api}}<a href="/docs/api">API</a> | {{/plan.options.api}}
       <a href="/pricing">Pricing</a>
     </p>
-    <p><a href="/info/privacy">Privacy policy</a> | <a href="/info/terms">Terms &amp; Conditions</a> | <a href="/info/security">Security policy</a></p>
+    <p>
+      <a href="/info/privacy">Privacy policy</a> | 
+      <a href="/info/terms">Terms &amp; Conditions</a> | 
+      <a href="/info/security">Security policy</a>
+    </p>
     {{#monitored_link}}
     <p>Monitored by <a href="https://www.blamestella.com/host/onetimesecret.com/report" title="Web monitoring -- The Blamey &amp; Stella Information Company">Stella</a></p>
     {{/monitored_link}}

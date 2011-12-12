@@ -27,6 +27,7 @@ module Onetime
       def initialize req=nil, sess=nil, cust=nil, *args
         @req, @sess, @cust = req, sess, cust
         @messages = { :info => [], :error => [] }
+        self[:js] = []
         self[:subtitle] = "One Time"
         self[:monitored_link] = false
         self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
@@ -311,6 +312,17 @@ module Onetime
           self[:title] = "About Us"
           self[:body_class] = :info
           self[:with_anal] = true
+        end
+      end
+      class PasswordGenerator < Onetime::App::View
+        def init *args
+          self[:title] = "Password Generator"
+          self[:body_class] = :info
+          self[:with_anal] = true
+          self[:token] = sess.sessid.gibbler
+          self[:js] << '/etc/packer/base2.js'
+          self[:js] << '/etc/packer/packer.js'
+          self[:js] << '/etc/packer/words.js'
         end
       end
       class Feedback < Onetime::App::View
