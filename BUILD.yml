@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1323729282
+:STAMP: 1323729685
 :PATCH: 0
 :OWNER: delano
-:BUILD: 009
-:STORY: Hidden link to Whoomp there it is
+:BUILD: "010"
+:STORY: Remove debug link; debug output for cust.planid
