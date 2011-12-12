@@ -25,7 +25,7 @@
       </ul>
       </li>
       
-      <li>Older ({{older_feedback_count}})
+      <li>Past 14 days ({{older_feedback_count}})
       <ul>
       {{#older_feedback}}
         <li><strong>{{msg}}</strong> <em class="light">{{stamp}}</em></li>
@@ -37,7 +37,7 @@
     <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
     <ul>
     {{#recent_customers}}
-      <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} {{planid}} <em class="light">{{stamp}}</em></li>
+      <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} [{{planid}}] <em class="light">{{stamp}}</em></li>
     {{/recent_customers}}
     </ul>
     
