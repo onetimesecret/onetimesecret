@@ -92,7 +92,9 @@ class Onetime::Customer < Familia::HashKey
       cust = new custid
       # force the storing of the fields to redis
       cust.custid = custid
+      p [1, cust.all]
       cust.save
+      p [2, cust.all]
       add cust
       cust
     end

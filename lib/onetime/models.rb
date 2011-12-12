@@ -87,13 +87,13 @@ module Onetime::Models
     end
     def save
       hsh = { :key => identifier }
-      hsh[:created] = Time.now.to_i unless exists?
       ret = update_fields hsh
       ret == "OK"
     end
     def update_fields hsh={}
       check_identifier!
       hsh[:updated] = OT.now.to_i
+      hsh[:created] = OT.now.to_i unless has_key?(:created)
       ret = update hsh
       self.cache.replace hsh
       ret

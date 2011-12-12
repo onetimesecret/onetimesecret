@@ -52,7 +52,7 @@ module Onetime
     end
     
     def create_secret
-      carefully(req.request_path) do
+      publically(req.request_path) do
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
