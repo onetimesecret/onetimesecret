@@ -216,6 +216,8 @@ module Onetime
     add_plan :professional_v2, 30.0, 0.333333, :ttl => 90.days, :size => 5_000, :api => true, :cname => true, :name => 'Professional'
     add_plan :agency_v1, 100.0, 0.25, :ttl => 90.days, :size => 10_000, :api => true, :private => true, :name => 'Agency'
     add_plan :agency_v2, 75.0, 0.33333333, :ttl => 90.days, :size => 10_000, :api => true, :private => true, :name => 'Agency'
+    # Hacker News special
+    add_plan :personal_hn, 10.0, 1, :ttl => 14.days, :size => 1_000, :api => true, :name => 'Personal (HN)'
   end
   
   class Problem < RuntimeError

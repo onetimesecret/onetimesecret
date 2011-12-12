@@ -18,14 +18,16 @@ module Onetime
     def signup
       publically do
         if OT::Plan.plan?(req.params[:planid])
-          group_idx = cust.get_persistent_value sess, :initial_pricing_group
-          if group_idx.to_s.empty?
-            res.redirect app_path('/pricing')
-          else
+          # NOTE: Not sure why it's necessary to redirect.
+          #group_idx = cust.get_persistent_value sess, :initial_pricing_group
+          #p [sess.sessid, group_idx]
+          #if group_idx.to_s.empty?
+          #  res.redirect app_path('/pricing')
+          #else
             sess.set_error_message "You're already signed up" if sess.authenticated?
             view = Onetime::App::Views::Signup.new req, sess, cust
             res.body = view.render
-          end
+          #end
         else
           res.redirect app_path('/')
         end

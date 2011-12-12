@@ -273,8 +273,12 @@ module Onetime
             }
             self[planid.to_s][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
           end
-          @plans = get_split_test_values :initial_pricing do
-            [:anonymous, :personal_v1, :professional_v1, :agency_v1]
+          if self[:via_test] || self[:via_hn]
+            @plans = [:anonymous, :personal_hn, :professional_v1, :agency_v1]
+          else
+            @plans = get_split_test_values :initial_pricing do
+              [:anonymous, :personal_v1, :professional_v1, :agency_v1]
+            end
           end
           unless cust.anonymous?
             plan_idx = case cust.planid 
