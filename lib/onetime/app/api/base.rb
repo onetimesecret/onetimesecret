@@ -5,12 +5,13 @@ class Onetime::App
     module Base
       include Onetime::App::Helpers
       
-      def publically redirect=nil
-        carefully(redirect) do 
+      def publically
+        carefully do 
           yield
         end
       end
       
+      # curl -F 'ttl=7200' -u 'delano@onetimesecret.com:4eb33c6340006d6607c813fc7e707a32f8bf5342' http://www.ot.com:7143/api/v1/generate
       def authorized allow_anonymous=false
         carefully do 
           success = false
@@ -18,55 +19,27 @@ class Onetime::App
           auth = req.env['otto.auth']
           if auth.provided?
             OT.ld ['meth: authorized', auth.basic?, auth.credentials].inspect if Otto.env?(:dev)
-            raise Unsupported unless auth.basic?
-            custid, apikey = *(auth.credentials || [])
-            raise Unauthorized if custid.to_s.empty? || apikey.to_s.empty?
-            @cust = OT::Customer.from_redis custid
-            raise Unauthorized if @cust.nil?
-            @sess = @cust.session || OT::Session.new(req.client_ipaddress, cust.custid)
-          elsif req.cookie?(:sess)
-            if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-              raise "TODO: from_redis doesn't exist. Use load."
-              @sess = OT::Session.from_redis(req.cookie(:sess))
-              @sess.location = req.current_absolute_uri
-              if @sess.stale?
-                @sess.destroy!
-                @sess.regenerate_id 
-              end
-              @cust = @sess.load_customer
-            else
-              if req.cookie?(:sess)
-                res.delete_cookie :sess 
-                OT.li "delete cookie"
-              end
-              @cust = OT::Customer.anonymous
-              @sess = OT::Session.new req.client_ipaddress, cust.custid
+            raise Unauthorized unless auth.basic?
+            custid, apitoken = *(auth.credentials || [])
+            raise Unauthorized if custid.to_s.empty? || apitoken.to_s.empty?
+            possible = OT::Customer.load custid
+            raise Unauthorized if possible.nil?
+            @cust = possible if possible.apitoken?(apitoken)
+            unless cust.nil? || @sess = cust.load_session 
+              @sess = OT::Session.create req.client_ipaddress, cust.custid
             end
-            @sess.set :noredirect, true if req.params[:noredirect]
+            sess.authenticated = true unless sess.nil?
+          elsif req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
+            check_session!
           else
-            if allow_anonymous
-              OT.info "TODO"
-            else
-              raise Unauthorized, "No session or credentials"
-            end
+            raise Unauthorized, "No session or credentials" unless allow_anonymous
           end
-          if @sess
-            @sess.agent, @sess.ipaddress = req.user_agent, req.client_ipaddress
-            @sess.update_time! # calls save
-            # Only set the cookie after it's been saved
-            res.send_cookie :sess, @sess.sessid, @sess.ttl
-          end
-        
-          if !cust.nil? && cust.apikey?(apikey)
-            success = true
-            @sess = OT::Session.new req.client_ipaddress, cust.custid
-            @sess.authorized = true
-            @cust = cust
-            @cust.sessid = @sess.sessid
-            yield
-          else
+          if cust.nil? || sess.nil? || cust.anonymous? && !sess.authenticated?
             OT.ld " [bad-cust] #{custid}"
             raise Unauthorized
+          else
+            cust.sessid = sess.sessid
+            yield
           end
         end
       end

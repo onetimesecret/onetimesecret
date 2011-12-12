@@ -36,6 +36,9 @@ class Onetime::App
     rescue Redirect => ex
       res.redirect ex.location, ex.status
     
+    rescue OT::App::Unauthorized => ex
+      not_found_response "Not found"
+    
     rescue OT::BadShrimp => ex
       sess.set_error_message "Please go back, refresh the page, and try again."
       res.redirect redirect
@@ -44,7 +47,7 @@ class Onetime::App
       sess.set_form_fields ex.form_fields
       sess.set_error_message ex.message
       res.redirect redirect
-    
+      
     rescue OT::MissingSecret => ex
       secret_not_found_response
     

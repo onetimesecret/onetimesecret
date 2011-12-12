@@ -4,16 +4,16 @@ require 'onetime/app/api/base'
 class Onetime::App
   class API
     include Onetime::App::API::Base
-      
+    
     def status
-      publically  do
+      authorized do
         sess.event_incr! :check_status
         json :status => :nominal
       end
     end
-
+    
     def share
-      publically  do
+      authorized do
         req.params[:kind] = :share
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
@@ -21,19 +21,23 @@ class Onetime::App
         res.redirect app_path(logic.redirect_uri)
       end
     end
-
+    
     def generate
-      publically  do
+      authorized do
         req.params[:kind] = :generate
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        res.redirect app_path(logic.redirect_uri)
+        if req.get?
+          res.redirect app_path(logic.redirect_uri)
+        else
+          json logic.metadata.all
+        end
       end
     end
     
     def show_secret
-      publically  do
+      authorized do
         req.params[:continue] = 'true'
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
         logic.raise_concerns
@@ -48,7 +52,7 @@ class Onetime::App
     end
     
     def show_metadata
-      publically  do
+      authorized do
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
         logic.process

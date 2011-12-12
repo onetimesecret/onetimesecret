@@ -59,6 +59,9 @@ class Onetime::Customer < Familia::HashKey
   def verified?
     verified.to_s == "verified"
   end
+  def load_session
+    sess = OT::Session.load sessid unless sessid.to_s.empty?
+  end
   def metadata_list
     if @metadata_list.nil?
       el = [prefix, identifier, :metadata]
