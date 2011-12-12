@@ -18,8 +18,7 @@ module Onetime
         carefully(redirect) do 
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
-          # TODO: raise OT::Redirect
-          sess.authenticated? ? yield : res.redirect(('/'))
+          sess.authenticated? ? yield : res.redirect(('/')) # TODO: raise OT::Redirect
         end
       end
 
@@ -29,6 +28,12 @@ module Onetime
           check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
           sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
         end
+      end
+      
+      def secret_not_found_response
+        view = Onetime::App::Views::UnknownSecret.new req, sess, cust
+        res.status = 404
+        res.body = view.render
       end
       
       def not_found_response message

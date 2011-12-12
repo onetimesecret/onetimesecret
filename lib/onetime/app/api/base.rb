@@ -5,22 +5,8 @@ class Onetime::App
     module Base
       include Onetime::App::Helpers
       
-      
-      def anonymous
-        carefully do 
-          begin
-            @cust = OT::Customer.anonymous
-            if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-              @sess = OT::Session.load req.cookie(:sess)
-            else
-              @sess = OT::Session.create req.client_ipaddress, @cust.custid, req.user_agent
-            end
-            if @sess
-              @sess.update_fields  # calls update_time!
-              # Only set the cookie after it's been saved
-              res.send_cookie :sess, @sess.sessid, @sess.ttl
-            end
-          end
+      def publically redirect=nil
+        carefully(redirect) do 
           yield
         end
       end
@@ -90,7 +76,18 @@ class Onetime::App
         res.body = hsh.to_json
       end
       
-      def not_found hsh
+      def secret_not_found_response
+        not_found_response "Unknown secret", :key => req.params[:key]
+      end
+      
+      def not_found_response msg, hsh={}
+        hsh[:message] = msg
+        res.status = 404
+        json hsh
+      end
+    
+      def error_response msg, hsh={}
+        hsh[:message] = msg
         res.status = 404
         json hsh
       end

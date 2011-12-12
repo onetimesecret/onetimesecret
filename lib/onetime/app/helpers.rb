@@ -46,9 +46,7 @@ class Onetime::App
       res.redirect redirect
     
     rescue OT::MissingSecret => ex
-      view = Onetime::App::Views::UnknownSecret.new req, sess, cust
-      res.status = 404
-      res.body = view.render
+      secret_not_found_response
     
     rescue OT::LimitExceeded => ex
       err "[limit-exceeded] #{cust.custid}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
@@ -62,7 +60,7 @@ class Onetime::App
     
     rescue Errno::ECONNREFUSED => ex
       OT.info "Redis is down: #{ex.message}"
-      raise OT::Problem.new("OT will be back shortly!")
+      error_response "OT will be back shortly!"
     
     rescue => ex
       err "#{ex.class}: #{ex.message}"
