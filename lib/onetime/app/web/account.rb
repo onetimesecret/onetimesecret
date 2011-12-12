@@ -2,21 +2,21 @@ module Onetime
   class App
     
     def login
-      carefully do
+      publically do
         view = Onetime::App::Views::Login.new req, sess, cust
         res.body = view.render
       end
     end
     
     def pricing
-      carefully do
+      publically do
         view = Onetime::App::Views::Pricing.new req, sess, cust
         res.body = view.render
       end
     end
     
     def signup
-      carefully do
+      publically do
         if OT::Plan.plan?(req.params[:planid])
           group_idx = cust.get_persistent_value sess, :initial_pricing_group
           if group_idx.to_s.empty?
@@ -44,7 +44,7 @@ module Onetime
     end
     
     def authenticate
-      carefully do
+      publically do
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params
         view = Onetime::App::Views::Login.new req, sess, cust
         if sess.authenticated?

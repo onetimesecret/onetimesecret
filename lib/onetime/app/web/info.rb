@@ -5,19 +5,19 @@ module Onetime
     class Info
       include Base
       def privacy
-        carefully do
+        publically do
           view = Onetime::App::Views::Info::Privacy.new req, sess, cust
           res.body = view.render
         end
       end
       def security
-        carefully do
+        publically do
           view = Onetime::App::Views::Info::Security.new req, sess, cust
           res.body = view.render
         end
       end
       def terms 
-        carefully do
+        publically do
           view = Onetime::App::Views::Info::Terms.new req, sess, cust
           res.body = view.render
         end

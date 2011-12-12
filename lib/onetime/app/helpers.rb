@@ -1,5 +1,13 @@
 
 class Onetime::App
+  class Unauthorized < RuntimeError
+  end
+  class Redirect < RuntimeError
+    attr_reader :location, :status
+    def initialize l, s=302
+      @location, @status = l, s
+    end
+  end
   BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
   module Helpers
     
@@ -10,22 +18,61 @@ class Onetime::App
       @req, @res = req, res
     end
     
-    def authenticated redirect=nil
-      carefully(redirect) do 
-        sess.authenticated? ? yield : res.redirect(('/'))
-      end
-    end
-    
-    def colonels redirect=nil
-      carefully(redirect) do
-        sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
-      end
-    end
-    
     def plan
       @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
       @plan ||= Onetime::Plan.plans['anonymous']
       @plan
+    end
+    
+    def carefully redirect=nil
+      redirect ||= req.request_path
+      # We check get here to stop an infinite redirect loop.
+      # Pages redirecting from a POST can get by with the same page once. 
+      redirect = '/error' if req.get? && redirect.to_s == req.request_path
+      res.header['Content-Type'] ||= "text/html; charset=utf-8"
+      
+      yield
+    
+    rescue Redirect => ex
+      res.redirect ex.location, ex.status
+    
+    rescue OT::BadShrimp => ex
+      sess.set_error_message "Please go back, refresh the page, and try again."
+      res.redirect redirect
+    
+    rescue OT::FormError => ex
+      sess.set_form_fields ex.form_fields
+      sess.set_error_message ex.message
+      res.redirect redirect
+    
+    rescue OT::MissingSecret => ex
+      view = Onetime::App::Views::UnknownSecret.new req, sess, cust
+      res.status = 404
+      res.body = view.render
+    
+    rescue OT::LimitExceeded => ex
+      err "[limit-exceeded] #{cust.custid}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
+      err req.current_absolute_uri
+      error_response "Apologies dear citizen! You have been rate limited. Try again in a few minutes."
+    
+    rescue Familia::NotConnected, Familia::Problem => ex
+      err "#{ex.class}: #{ex.message}"
+      err ex.backtrace
+      error_response "An error occurred :["
+    
+    rescue Errno::ECONNREFUSED => ex
+      OT.info "Redis is down: #{ex.message}"
+      raise OT::Problem.new("OT will be back shortly!")
+    
+    rescue => ex
+      err "#{ex.class}: #{ex.message}"
+      err req.current_absolute_uri
+      err ex.backtrace.join("\n")
+      error_response "An error occurred :["
+    
+    ensure
+      @sess ||= OT::Session.new :failover
+      @cust ||= OT::Customer.anonymous
     end
     
     def check_shrimp!
@@ -54,7 +101,7 @@ class Onetime::App
         res.send_cookie :sess, sess.sessid, sess.ttl
         @cust = sess.load_customer
       end
-      @sess ||= OT::Session.new
+      @sess ||= OT::Session.new :check_session
       @cust ||= OT::Customer.anonymous
       if cust.anonymous?
         sess.authenticated = false 

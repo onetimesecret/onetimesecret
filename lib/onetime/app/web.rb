@@ -14,7 +14,7 @@ module Onetime
     #end
     
     def index
-      carefully do
+      publically do
         view = Onetime::App::Views::Homepage.new req, sess, cust
         sess.event_incr! :homepage
         res.body = view.render
@@ -33,7 +33,7 @@ module Onetime
     end
     
     def receive_feedback
-      carefully do
+      publically do
         logic = OT::Logic::ReceiveFeedback.new sess, cust, req.params
         logic.raise_concerns
         logic.process
@@ -61,7 +61,7 @@ module Onetime
     end
     
     def secret_uri
-      carefully do
+      publically do
         deny_agents! 
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
         view = Onetime::App::Views::Shared.new req, sess, cust
@@ -82,7 +82,7 @@ module Onetime
     end
     
     def private_uri
-      carefully do
+      publically do
         deny_agents!
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
@@ -94,19 +94,19 @@ module Onetime
     end
     
     def passgen
-      carefully do
+      publically do
         view = Onetime::App::Views::PasswordGenerator.new req, sess, cust
         res.body = view.render
       end
     end
     def about
-      carefully do
+      publically do
         view = Onetime::App::Views::About.new req, sess, cust
         res.body = view.render
       end
     end
     def feedback
-      carefully do
+      publically do
         view = Onetime::App::Views::Feedback.new req, sess, cust
         res.body = view.render
       end
