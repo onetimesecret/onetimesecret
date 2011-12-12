@@ -128,9 +128,6 @@ module Onetime
           OT.info "[login-as-success] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
         elsif (potential = OT::Customer.load(@custid))
           @cust = potential if potential.passphrase?(@passwd)
-        #elsif OT::Customer.email_index.taken? @custid
-        #  potential = OT::Customer.email_index[@custid]
-        #  @cust = potential if potential.password?(@passwd)
         end
       end
       
@@ -163,7 +160,7 @@ module Onetime
       end
       
       def success?
-        !cust.nil? && !cust.anonymous?
+        !cust.nil? && !cust.anonymous? && cust.passphrase?(@passwd)
       end
       
       private
@@ -203,7 +200,7 @@ module Onetime
       end
     end
     
-    class GenerateAPIkey < OT::Logic::Base
+    class UpdateAccount < OT::Logic::Base
       attr_reader :modified
       def process_params
         @currentp = params[:currentp].to_s
@@ -310,7 +307,6 @@ module Onetime
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret = secret.state?(:new) && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
-        cust.verified = "true" if @verification
         if show_secret && correct_passphrase
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
           @truncated = secret.truncated
@@ -318,6 +314,7 @@ module Onetime
           if secret.verification.to_s == "true" && !cust.verified?
             @verification = true
             cust.verified = "true"
+            sess.destroy!
           end
           secret.viewed!
         elsif !correct_passphrase
