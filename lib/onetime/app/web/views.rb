@@ -52,7 +52,7 @@ module Onetime
           self[:display_otslogo] = true
         end
         unless sess.nil?
-          if cust.has_key?(:verified) && cust.verified.to_s != 'true'
+          if cust.has_key?(:verified) && cust.verified.to_s != 'true' && self.class != Onetime::App::Views::Shared
             add_message "A verification was sent to #{cust.custid}."
           else
             add_error sess.error_message!
