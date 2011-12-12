@@ -3,7 +3,7 @@
 
   <div id="content">
     
-    <h2 class="intro">Check out our special BETA Pricing!</h2>
+    <h2 class="intro">Check out our BETA Pricing!</h2>
     
     <table cellpadding="0" cellspacing="0" class="pricing">
       <tr class="blankrow">
@@ -24,11 +24,11 @@
         <td class="pricingfeature">Per month</td>
         <td>{{plan1.price}}</td>
         <td><a href="/signup/{{plan2.planid}}" title="Create a Personal account">
-          {{#plan2.price_adjustment}}<span class="strikethrough light">${{plan2.original_price}}</span> ${{plan2.price}}{{/plan2.price_adjustment}}
+          {{#plan2.price_adjustment}}<span class="strikethrough lighter">${{plan2.original_price}}</span> ${{plan2.price}}{{/plan2.price_adjustment}}
           {{^plan2.price_adjustment}}${{plan2.price}}{{/plan2.price_adjustment}}
         </a></td>
-        <td class="bestvalue"><a href="/signup/{{plan3.planid}}" title="Create a Professional account"><span class="strikethrough light">${{plan3.original_price}}</span> ${{plan3.price}}!</a></td>
-        <td class="lastcolumn"><a href="/signup/{{plan4.planid}}" title="Create an Agency account"><span class="strikethrough light">${{plan4.original_price}}</span> ${{plan4.price}}</a></td>
+        <td class="bestvalue"><a href="/signup/{{plan3.planid}}" title="Create a Professional account"><span class="strikethrough lighter">${{plan3.original_price}}</span> ${{plan3.price}}!</a></td>
+        <td class="lastcolumn"><a href="/signup/{{plan4.planid}}" title="Create an Agency account"><span class="strikethrough lighter">${{plan4.original_price}}</span> ${{plan4.price}}</a></td>
       </tr>
       <tr class="pricingeven">
         <td class="pricingfeature">Domain</td>

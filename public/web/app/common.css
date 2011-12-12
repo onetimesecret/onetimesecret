@@ -60,7 +60,7 @@ input.long { width:380px; }
 }
 
 #content p {
-  width: 80%;
+  width: 100%;
 }
 
 #faq {
@@ -69,6 +69,7 @@ input.long { width:380px; }
 }
 #footer {
   width: 100%;
+  margin-top: 25px;
   margin-left: 5%;
   margin-right: 5%;
   margin-bottom: 60px;
@@ -115,6 +116,7 @@ input.long { width:380px; }
 }
 .nav em { font-style: normal; text-decoration: underline; }
 #content .intro {
+  width: 600px;
   font-size: 24px;
   font-weight: bold;
 }
@@ -122,6 +124,9 @@ input.long { width:380px; }
   font-size: 20px;
 }
 
+#content #createSecret {
+  width: 620px;
+}
 
 .dotted{border-top:1px dotted #666;}
 
@@ -386,8 +391,8 @@ table.pricing tr.pricinglastrow td {
   text-decoration: line-through;
 }
 
-.light { color: #999 }
-
+.lighter { color: #999 }
+.smaller { font-size: 80%; }
 .centre { text-align: center }
 
 .socialicon {

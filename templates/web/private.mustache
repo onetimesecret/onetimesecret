@@ -17,7 +17,7 @@
     <div class="secret">
       <span class="pretext">Secret:</span><br/>
       {{^can_decrypt}}
-      <em class="light">This secret is encrypted with your passphrase.</em>
+      <em class="lighter">This secret is encrypted with your passphrase.</em>
       {{/can_decrypt}}
       {{#can_decrypt}}
       {{#one_liner}}
@@ -46,7 +46,7 @@
       <p><em>This secret has not been received yet. Expires in {{expiration_stamp}}.</em></p>
       {{/been_shared}}
     </div>
-    <div id="faq">
+    <div id="faq" class="smaller">
       <h3>F.A.Q.</h3>
       <h4>What if I forgot to copy the shared link?</h4>
       <p>You need to create a new secret. We can't retrieve it for you.</p>

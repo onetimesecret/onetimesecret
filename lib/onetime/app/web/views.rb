@@ -236,12 +236,18 @@ module Onetime
               :original_price => plan.price.to_i,
               :ttl => plan.options[:ttl].in_days.to_i,
               :size => plan.options[:size].to_bytes.to_i,
-              :api => plan.options[:api] ? 'Yes' : 'No',
+              :api => plan.options[:api].to_s == 'true',
               :name => plan.options[:name],
+              :private => plan.options[:private].to_s == 'true',
+              :cname => plan.options[:cname].to_s == 'true',
+              :is_paid => !plan.calculated_price.zero?,
               :planid => req.params[:planid]
             }
+            if self[:plan][:is_paid]
+              add_message "Good news! This plan is free until January 1st."
+            end
           else
-            sess.set_error_message "Unknown plan"
+            add_error "Unknown plan"
           end
         end
       end
