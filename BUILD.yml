@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1323729685
+:STAMP: 1323730525
 :PATCH: 0
 :OWNER: delano
-:BUILD: "010"
-:STORY: Remove debug link; debug output for cust.planid
+:BUILD: "011"
+:STORY: Remove debug output
