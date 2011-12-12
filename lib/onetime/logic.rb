@@ -42,7 +42,6 @@ module Onetime
       attr_reader :msg
       def process_params
         @msg = params[:msg].to_s.slice(0, 999)
-        @msg = "#{msg} from #{sess.external_identifier}"
       end
       
       def raise_concerns
@@ -53,6 +52,7 @@ module Onetime
       end
       
       def process
+        @msg = "#{msg} [#{sess.ipaddress}]"
         OT::Feedback.add @msg
         sess.set_info_message "Message received. Thank you kindly!"
       end
