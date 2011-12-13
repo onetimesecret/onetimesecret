@@ -52,7 +52,7 @@ module Onetime
       end
       
       def process
-        @msg = "#{msg} [#{sess.ipaddress}]"
+        @msg = "#{msg} [%s]" % [cust.anonymous? ? sess.ipaddress : cust.custid]
         OT::Feedback.add @msg
         sess.set_info_message "Message received. Send as much as you like!"
       end
