@@ -45,6 +45,7 @@ class Onetime::App
           self[:yesterday_feedback_count] = self[:yesterday_feedback].size
           self[:older_feedback_count] = self[:older_feedback].size
           self[:recent_customers] = OT::Customer.recent.collect do |this_cust|
+            next if this_cust.nil?
             { :custid => this_cust.custid, 
               :planid => this_cust.planid,
               :colonel => this_cust.role?(:colonel),
