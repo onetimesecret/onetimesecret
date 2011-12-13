@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1323730525
+:STAMP: 1323744932
 :PATCH: 0
 :OWNER: delano
-:BUILD: "011"
-:STORY: Remove debug output
+:BUILD: "012"
+:STORY: Include custid with feedback for logged in users
