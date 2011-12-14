@@ -186,6 +186,7 @@ module Onetime
           self[:metadata_key] = metadata.key
           self[:been_shared] = metadata.state?(:shared)
           self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+          self[:display_feedback] = false
           ttl = metadata.ttl.to_i
           self[:expiration_stamp] = if ttl <= 1.hour
             '%d minutes' % ttl.in_minutes
