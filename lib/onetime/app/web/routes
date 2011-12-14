@@ -6,6 +6,7 @@ GET   /feedback                                  Onetime::App#feedback
 POST  /feedback                                  Onetime::App#receive_feedback
 
 GET   /about                                     Onetime::App#about
+GET   /logo                                      Onetime::App#logo
 GET   /docs/api                                  Onetime::App#show_docs
 
 GET   /passgen                                   Onetime::App#passgen

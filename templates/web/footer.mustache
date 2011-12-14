@@ -23,7 +23,11 @@
       <span><button type="submit">Send</button></span>
     </form>
     {{/display_feedback}}
-    
+
+    {{^is_logo}}
+    <p><h2><a href="/logo">Contest: We need a logo!</a></h2></p>
+    {{/is_logo}}
+
     <p>
       <a href="/about">About</a> | 
       {{#plan.options.api}}<a href="/docs/api">API</a> | {{/plan.options.api}}

@@ -335,6 +335,15 @@ module Onetime
           self[:with_analytics] = true
         end
       end
+      class Logo < Onetime::App::View
+        def init *args
+          self[:title] = "Contest: Help us get a logo"
+          self[:body_class] = :info
+          self[:monitored_link] = true
+          self[:with_analytics] = true
+          self[:is_logo] = true
+        end
+      end
       class PasswordGenerator < Onetime::App::View
         def init *args
           self[:title] = "Password Generator"

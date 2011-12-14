@@ -105,6 +105,12 @@ module Onetime
         res.body = view.render
       end
     end
+    def logo 
+      publically do
+        view = Onetime::App::Views::Logo.new req, sess, cust
+        res.body = view.render
+      end
+    end
     def feedback
       publically do
         view = Onetime::App::Views::Feedback.new req, sess, cust
