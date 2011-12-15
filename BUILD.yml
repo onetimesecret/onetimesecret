@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1323900896
+:STAMP: 1323919110
 :PATCH: 0
 :OWNER: delano
-:BUILD: "014"
-:STORY: UI tweaks
+:BUILD: "015"
+:STORY: "Added password to redis [REQ: config update, promote, manual restart]"
