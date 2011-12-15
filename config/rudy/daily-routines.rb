@@ -59,12 +59,7 @@ routines do
         git 'co', $branch
       end
     end
-
-    restart_thin do
-      before :stop_thin
-      after :start_thin
-    end
-
+    
   end
   
 end

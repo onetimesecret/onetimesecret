@@ -17,7 +17,7 @@ commands do
   allow :gem_uninstall, "gem", "uninstall", :V
   allow :update_rubygems
   allow :rake
-  allow :thin
+  allow :thin, 'bundle', 'exec', 'thin', :P, '/var/run/thin/thin.pid', :l, '/var/log/thin/thin.log', :d
   allow :bundle
   allow :redis_dump, 'redis-dump'
   allow :redis_report, 'redis-report'

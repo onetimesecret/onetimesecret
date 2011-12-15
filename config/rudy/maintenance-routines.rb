@@ -77,15 +77,21 @@ routines do
   start_thin do
     remote do
       cd '/var/www/onetimesecret.com'
-      #bundle exec thin -d -e dev -R config.ru -p 7143 start
-      bundle 'exec', 'thin', :d, :e, config_env, :R, "config.ru", :p, '7143', 'start'
+      thin :e, config_env, :R, "config.ru", :p, '7143', 'start'
     end
   end
-
+  
+  restart_thin do
+    remote do
+      cd '/var/www/onetimesecret.com'
+      thin :e, config_env, :R, "config.ru", :p, '7143', 'restart'
+    end
+  end
+  
   stop_thin do
     remote do
       cd '/var/www/onetimesecret.com'
-      bundle 'exec', 'thin', :e, config_env, :R, "config.ru", :p, '7143', 'stop'
+      thin :e, config_env, :R, "config.ru", :p, '7143', 'stop'
     end
   end
 
