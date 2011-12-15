@@ -54,6 +54,7 @@ module Onetime
         unless sess.nil?
           if sess.referrer
             self[:via_hn] = !sess.referrer.match(/news.ycombinator.com/).nil?
+            self[:via_reddit] = !sess.referrer.match(/www.reddit.com/).nil?
             self[:via_test] = !sess.referrer.match(/www.ot.com/).nil?
           end
           if cust.has_key?(:verified) && cust.verified.to_s != 'true' && self.class != Onetime::App::Views::Shared
@@ -276,6 +277,8 @@ module Onetime
           end
           if self[:via_test] || self[:via_hn]
             @plans = [:anonymous, :personal_hn, :professional_v1, :agency_v1]
+          elsif self[:via_reddit]
+            @plans = [:anonymous, :personal_reddit, :professional_v1, :agency_v1]
           else
             @plans = get_split_test_values :initial_pricing do
               [:anonymous, :personal_v1, :professional_v1, :agency_v1]

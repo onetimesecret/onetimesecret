@@ -218,6 +218,8 @@ module Onetime
     add_plan :agency_v2, 75.0, 0.33333333, :ttl => 90.days, :size => 10_000, :api => true, :private => true, :name => 'Agency'
     # Hacker News special
     add_plan :personal_hn, 10.0, 1, :ttl => 14.days, :size => 1_000, :api => true, :name => 'Personal (HN)'
+    # Reddit special
+    add_plan :personal_reddit, 10.0, 1, :ttl => 14.days, :size => 1_000, :api => true, :name => 'Reddit Special'
   end
   
   class Problem < RuntimeError
