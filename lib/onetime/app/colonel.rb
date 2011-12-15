@@ -59,6 +59,10 @@ class Onetime::App
             { :name => plan[1].testname, :values => plan[1].values, :samples => plan[1].samples }
           end
         end
+        def redis_info
+          Familia.redis.info.to_yaml
+        end
+        
       end
     end
     

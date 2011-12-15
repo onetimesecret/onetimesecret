@@ -1,5 +1,6 @@
 # FEEDBACK #
 
+* Delano: We could do a callback feature to help with forgot password implementations. So when a secret is retrieved, make a callback to some URI with that secret's key
 
 ## Dec 13th
 

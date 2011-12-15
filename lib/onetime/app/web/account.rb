@@ -58,7 +58,11 @@ module Onetime
             logic.process
             sess, cust = logic.sess, logic.cust
             res.send_cookie :sess, sess.sessid, sess.ttl
-            res.redirect '/dashboard'
+            if cust.role?(:colonel)
+              res.redirect '/colonel/2nccpefyria0p533zxtks62fa'
+            else
+              res.redirect '/dashboard'
+            end
           else
             view.cust = OT::Customer.anonymous
             res.body = view.render
