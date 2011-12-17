@@ -1,5 +1,9 @@
 # FEEDBACK #
 
+## Dec 16th ##
+
+* http://www.metafilter.com/110618/Spill-Then-Poof
+
 * Delano: We could do a callback feature to help with forgot password implementations. So when a secret is retrieved, make a callback to some URI with that secret's key
 
 ## Dec 13th
