@@ -32,6 +32,7 @@ a {
   color: #000;
 }
 
+
 form.signup {
   width: 600px;
   clear:both;
@@ -398,6 +399,9 @@ table.pricing tr.pricinglastrow td {
   border-bottom: 2px solid #cccccc;
 }
 
+.nounderline {
+  text-decoration: none;
+}
 .strikethrough {
   text-decoration: line-through;
 }
@@ -406,6 +410,7 @@ table.pricing tr.pricinglastrow td {
 .smaller { font-size: 80%; }
 .larger { font-size: 120%; }
 .centre { text-align: center }
+.italic { font-style: italic }
 
 .socialicon {
   padding-right: 8px;

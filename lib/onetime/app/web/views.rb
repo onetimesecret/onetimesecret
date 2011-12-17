@@ -315,8 +315,10 @@ module Onetime
             { :uri => private_uri(m), 
               :stamp => natural_time(m.updated), 
               :key => m.key,
+              :recipients => m.recipients,
               :been_shared => m.state?(:shared) }
           end.compact
+          
           self[:has_secrets] = !self[:metadata].empty?
         end
       end

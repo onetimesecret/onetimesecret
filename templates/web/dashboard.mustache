@@ -29,7 +29,9 @@
     <h3>Recent secrets</h3>
     <ul>
     {{#metadata}}
-      <li><a href="{{uri}}" class="{{#been_shared}}strikethrough{{/been_shared}}">{{key}}</a> - {{stamp}}</li>
+      <li> 
+        <a href="{{uri}}" class="{{#been_shared}}strikethrough italic lighter{{/been_shared}} {{^been_shared}}nounderline{{/been_shared}}">{{#recipients}}{{to_s}}{{/recipients}}{{^recipients}}Anonymous recipient{{/recipients}}</a>
+        - <em class="lighter">{{stamp}}</em></li>
     {{/metadata}}
     </ul>
     {{/has_secrets}}
