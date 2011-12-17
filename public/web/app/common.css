@@ -417,6 +417,9 @@ table.pricing tr.pricinglastrow td {
 .nounderline {
   text-decoration: none;
 }
+.underline {
+  text-decoration: underline;
+}
 .strikethrough {
   text-decoration: line-through;
 }

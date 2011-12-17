@@ -14,6 +14,13 @@ class Onetime::Customer < Familia::HashKey
       spoint = OT.now.to_i-duration
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
+    def global
+      if @global.nil?
+        @global = exists?(:GLOBAL) ? load(:GLOBAL) : create(:GLOBAL)
+        @global.secrets_created ||= 20_000 #starting point at time of implementation
+      end
+      @global
+    end
   end
   include Onetime::Models::RedisHash
   include Onetime::Models::Passphrase
@@ -66,7 +73,7 @@ class Onetime::Customer < Familia::HashKey
     if @metadata_list.nil?
       el = [prefix, identifier, :metadata]
       el.unshift Familia.apiversion unless Familia.apiversion.nil?
-      @metadata_list = Familia::SortedSet.new Familia.join(el)
+      @metadata_list = Familia::SortedSet.new Familia.join(el) # TODO: put in db 6
     end
     @metadata_list
   end

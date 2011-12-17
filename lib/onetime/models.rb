@@ -147,9 +147,9 @@ module Onetime::Models
       end
       ret
     end
-    def get_value field
+    def get_value field, bypass_cache=false
       self.cache ||= {}
-      self.cache[field] || self[field]
+      bypass_cache ? self[field] : (self.cache[field] || self[field])
     end
   end
 end

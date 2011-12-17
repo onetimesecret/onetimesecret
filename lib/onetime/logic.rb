@@ -300,6 +300,7 @@ module Onetime
         if metadata.valid? && secret.valid?
           cust.add_metadata metadata unless cust.anonymous?
           cust.incr :secrets_created
+          OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
             metadata.recipients = recipient_safe.join(', ')
             recipient.each do |eaddr|
