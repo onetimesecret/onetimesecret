@@ -107,12 +107,12 @@ module Onetime
 
     class AuthenticateSession < OT::Logic::Base
       attr_reader :custid, :stay
-      
+      attr_reader :session_ttl
       def process_params
         @custid = params[:u]
         @passwd = params[:p]
-        
         @stay = params[:stay].to_s == "true"
+        @session_ttl = (stay ? 30.days : 20.minutes).to_i
         if @custid.to_s.index(':as:')
           @colonelname, @custid = *@custid.downcase.split(':as:')
         else
@@ -146,7 +146,7 @@ module Onetime
           #sess.destroy!   # get rid of the unauthenticated session ID
           #sess = sess
           sess.update_fields :custid => cust.custid, :authenticated => 'true'
-          sess.ttl = 20.days if @stay
+          sess.ttl = session_ttl if @stay
           sess.save
           cust.save
           if OT.conf[:colonels].member?(cust.custid)
@@ -189,7 +189,7 @@ module Onetime
       def process
       end
     end
-
+    
     class ViewAccount < OT::Logic::Base
       def process_params
       end

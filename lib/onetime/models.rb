@@ -82,7 +82,7 @@ module Onetime::Models
       clear
     end
     def ttl
-      ret = get_value(:ttl) || super
+      ret = (get_value(:ttl) || super).to_i
       ret
     end
     def save
