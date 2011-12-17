@@ -188,6 +188,17 @@ module Onetime
     def indifferent_hash
       Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
     end
+    
+    def obscure_email(text)
+      el = text.split('@')
+      if el[0].size <= 2
+        text.gsub /(\b[A-Z0-9._%-]+(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "*******\\2"
+      elsif el[0].size <= 6
+        text.gsub /(\b([A-Z0-9])[A-Z0-9._%-]*(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "\\2******\\3"
+      else
+        text.gsub /(\b([A-Z0-9])[A-Z0-9._%-]{2,}([A-Z0-9])(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "\\2*****\\3\\4"
+      end
+    end
   end
   
   class Plan
@@ -207,6 +218,12 @@ module Onetime
     end
     def calculated_price
       (price * (1-discount)).to_i
+    end
+    def paid?
+      !free?
+    end
+    def free?
+      calculated_price.zero?
     end
     add_plan :anonymous, 0, 0, :ttl => 2.days, :size => 1_000, :api => false, :name => 'Anonymous'
     add_plan :personal_v1, 5.0, 1, :ttl => 14.days, :size => 1_000, :api => false, :name => 'Personal'

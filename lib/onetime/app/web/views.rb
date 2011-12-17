@@ -72,7 +72,7 @@ module Onetime
         end
         @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
         @plan ||= Onetime::Plan.plans['anonymous']
-        @is_paid = !plan.calculated_price.zero?
+        @is_paid = plan.paid?
         init *args if respond_to? :init
       end
       def get_split_test_values testname
@@ -193,6 +193,7 @@ module Onetime
           self[:metadata_key] = metadata.key
           self[:been_shared] = metadata.state?(:shared)
           self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+          self[:recipients] = metadata.recipients
           self[:display_feedback] = false
           ttl = metadata.ttl.to_i
           self[:expiration_stamp] = if ttl <= 1.hour
@@ -317,8 +318,10 @@ module Onetime
             { :uri => private_uri(m), 
               :stamp => natural_time(m.updated), 
               :key => m.key,
+              :recipients => m.recipients,
               :been_shared => m.state?(:shared) }
           end.compact
+          
           self[:has_secrets] = !self[:metadata].empty?
         end
       end
