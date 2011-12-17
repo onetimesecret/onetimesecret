@@ -26,7 +26,7 @@ module Onetime
         def secure_request?
           !local? || secure?
         end
-
+        # TODO: secure ad local are already in Otto
         def secure?
           # X-Scheme is set by nginx
           # X-FORWARDED-PROTO is set by elastic load balancer

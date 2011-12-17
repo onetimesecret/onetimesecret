@@ -6,14 +6,12 @@ div#docsContent{padding-top:20px;}
 .params{}
 .options ul li{margin-left:12px;}
 .options ul li .name{font-style:italic; text-decoration: underline}
-#docnav { display:block; width: 140px; margin-top: 30px; }
+#docnav { display:block; width: 140px; margin-top: 0px; }
 #docnav li { padding-left: 10px }
 #docnav li.selected {
   font-weight: bold;  padding-top: 5px; padding-bottom: 5px; font-style: italic;
   padding-left: 10px;
   background: #e33100;
-  color: white;
-  display: block;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
   border-radius: 10px;
@@ -31,7 +29,7 @@ div#docsContent{padding-top:20px;}
   font-family: 'Courier New', 'Terminal', monospace;
   color: #000;
 }
-.colourize pre { margin: 0px }
+pre.colourize  { margin: 10px; padding: 6px }
 
 div.colourize { }
 

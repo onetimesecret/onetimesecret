@@ -27,7 +27,7 @@ module Onetime
       def initialize req=nil, sess=nil, cust=nil, *args
         @req, @sess, @cust = req, sess, cust
         @messages = { :info => [], :error => [] }
-        self[:js] = []
+        self[:js], self[:css] = [], []
         self[:subtitle] = "One Time"
         self[:monitored_link] = false
         self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
@@ -140,6 +140,7 @@ module Onetime
             self[:title] = "API Docs"
             self[:monitored_link] = true
             self[:with_analytics] = true
+            self[:css] << '/app/docs.css'
           end
         end
       end
