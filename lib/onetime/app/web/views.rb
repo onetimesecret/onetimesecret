@@ -253,7 +253,7 @@ module Onetime
               :name => plan.options[:name],
               :private => plan.options[:private].to_s == 'true',
               :cname => plan.options[:cname].to_s == 'true',
-              :is_paid => !plan.calculated_price.zero?,
+              :is_paid => plan.paid?,
               :planid => req.params[:planid]
             }
             if self[:plan][:is_paid]
@@ -332,7 +332,7 @@ module Onetime
           self[:monitored_link] = true
           self[:with_analytics] = true
           self[:price] = plan.calculated_price
-          self[:is_paid] = !plan.calculated_price.zero?
+          self[:is_paid] = plan.paid?
         end
       end
       class Error < Onetime::App::View

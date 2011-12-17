@@ -37,7 +37,7 @@ module Onetime
         @plan ||= Onetime::Plan.plans['anonymous']
       end
       def limit_action event
-        return if !plan.calculated_price.zero?
+        return if plan.paid?
         sess.event_incr! event
       end
       def valid_email?(guess)
