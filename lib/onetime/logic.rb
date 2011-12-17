@@ -296,6 +296,7 @@ module Onetime
         metadata.save
         if metadata.valid? && secret.valid?
           cust.add_metadata metadata unless cust.anonymous?
+          cust.incr :secrets_created
         else
           raise_form_error "Could not store your secret" 
         end

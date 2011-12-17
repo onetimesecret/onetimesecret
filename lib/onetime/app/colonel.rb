@@ -49,6 +49,7 @@ class Onetime::App
             { :custid => this_cust.custid, 
               :planid => this_cust.planid,
               :colonel => this_cust.role?(:colonel),
+              :secrets_created => this_cust.secrets_created,
               :stamp => natural_time(this_cust.created) || '[no create stamp]' }
           end.reverse
           self[:customer_count] = OT::Customer.values.size
