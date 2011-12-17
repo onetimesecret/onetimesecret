@@ -62,7 +62,7 @@ module Onetime
     
     def secret_uri
       publically do
-        deny_agents! 
+        deny_agents!
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
         view = Onetime::App::Views::Shared.new req, sess, cust
         logic.raise_concerns
