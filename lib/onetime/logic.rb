@@ -331,6 +331,7 @@ module Onetime
         @metadata = Onetime::Metadata.load key
       end
       def raise_concerns
+        sess.event_incr! :show_metadata
         raise OT::MissingSecret if metadata.nil?
       end
       def process
