@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324093255
+:STAMP: 1324109495
 :PATCH: 1
 :OWNER: delano
-:BUILD: '000'
-:STORY: Stay logged in
+:BUILD: "001"
+:STORY: Initial email recipient support
