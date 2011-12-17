@@ -82,10 +82,12 @@ routines do
   end
   
   restart_thin do
-    remote do
-      cd '/var/www/onetimesecret.com'
-      thin :e, config_env, :R, "config.ru", :p, '7143', 'restart'
-    end
+    #remote do
+    #  cd '/var/www/onetimesecret.com'
+    #  thin :e, config_env, :R, "config.ru", :p, '7143', 'restart'
+    #end
+    before :stop_thin
+    after :start_thin
   end
   
   stop_thin do
