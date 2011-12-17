@@ -11,3 +11,10 @@ puts view.render
 [view.verify_uri, view[:secret]]
 true
 #=> true
+
+## Can create a view
+view = OT::Email::SecretLink.new @cust, @secret
+puts view.render
+[view.verify_uri, view[:secret]]
+true
+#=> true

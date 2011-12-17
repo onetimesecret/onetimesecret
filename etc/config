@@ -10,7 +10,7 @@
 :text:
   :feedback: 'What do you think of the site? Let Chris know.'
   :nonpaid_recipient_text: 'Available on paid plans!'
-  :paid_recipient_text: 'Enter email address or mobile number'
+  :paid_recipient_text: 'Enter email address'
 :colonels:
   - delano@onetimesecret.com
   - chris@onetimesecret.com

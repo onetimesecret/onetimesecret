@@ -297,6 +297,12 @@ module Onetime
         if metadata.valid? && secret.valid?
           cust.add_metadata metadata unless cust.anonymous?
           cust.incr :secrets_created
+          unless recipient.nil? || recipient.empty?
+            recipient.each do |email_or_mobile|
+              view = OT::Email::SecretLink.new cust, secret, email_or_mobile
+              view.deliver_email
+            end
+          end
         else
           raise_form_error "Could not store your secret" 
         end
