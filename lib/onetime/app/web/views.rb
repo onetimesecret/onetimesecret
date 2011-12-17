@@ -41,7 +41,8 @@ module Onetime
         self[:feedback_text] = OT.conf[:text][:feedback]
         self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
         self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
-        self[:with_broadcast] = ! self[:authenticated]
+        # NOTE: uncomment the following line to show the broadcast
+        #self[:with_broadcast] = ! self[:authenticated]
         if Onetime.conf[:site][:cobranded]
           self[:display_faq] = false
           self[:override_styles] = true
