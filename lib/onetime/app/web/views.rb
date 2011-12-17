@@ -41,6 +41,7 @@ module Onetime
         self[:feedback_text] = OT.conf[:text][:feedback]
         self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
         self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
+        self[:with_broadcast] = ! self[:authenticated]
         if Onetime.conf[:site][:cobranded]
           self[:display_faq] = false
           self[:override_styles] = true
@@ -54,6 +55,7 @@ module Onetime
           self[:display_otslogo] = true
         end
         unless sess.nil?
+          self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
           if sess.referrer
             self[:via_hn] = !sess.referrer.match(/news.ycombinator.com/).nil?
             self[:via_reddit] = !sess.referrer.match(/www.reddit.com/).nil?
@@ -348,7 +350,7 @@ module Onetime
           self[:body_class] = :info
           self[:monitored_link] = true
           self[:with_analytics] = true
-          self[:is_logo] = true
+          self[:with_broadcast] = false
         end
       end
       class PasswordGenerator < Onetime::App::View

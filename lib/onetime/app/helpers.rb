@@ -8,7 +8,11 @@ class Onetime::App
       @location, @status = l, s
     end
   end
-  BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
+  unless defined?(Onetime::App::BADAGENTS)
+    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
+    LOCAL_HOSTS = ['localhost', '127.0.0.1', 'www.ot.com'].freeze
+  end
+  
   module Helpers
     
     attr_reader :req, :res
@@ -111,6 +115,20 @@ class Onetime::App
         sess.authenticated = false 
       end
       OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
+    end
+    
+    def secure_request?
+      !local? || secure?
+    end
+    
+    def secure?
+      # X-Scheme is set by nginx
+      # X-FORWARDED-PROTO is set by elastic load balancer
+      (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")  
+    end
+
+    def local?
+      (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
     end
     
     def err *args

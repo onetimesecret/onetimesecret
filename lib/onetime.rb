@@ -60,7 +60,7 @@ module Onetime
       info " Redis: #{Familia.uri}"
       info "Secret: #{secret}"
       info "Limits: #{OT::RateLimit.events}"
-      if OT::Entropy.count < 10_000
+      if OT::Entropy.count < 5_000
         info "Entropy is low (#{OT::Entropy.count}). Generating..."
         OT::Entropy.generate
       end
