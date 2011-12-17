@@ -369,6 +369,14 @@ module Onetime
           self[:js] << '/etc/packer/words.js'
         end
       end
+      class NotFound < Onetime::App::View
+        def init *args
+          self[:title] = "Page not found"
+          self[:body_class] = :info
+          self[:monitored_link] = true
+          self[:with_analytics] = true
+        end
+      end
       class Feedback < Onetime::App::View
         def init *args
           self[:title] = "Your Feedback"

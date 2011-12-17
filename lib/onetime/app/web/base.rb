@@ -42,6 +42,18 @@ module Onetime
         res.body = view.render
       end
       
+      def not_found
+        publically do
+          not_found_response "Not sure what you're looking for..."
+        end
+      end
+      
+      def server_error
+        publically do
+          error_response "You found a bug. Let us know how it happened!"
+        end
+      end
+      
       def not_found_response message
         view = Onetime::App::Views::NotFound.new req, sess, cust
         view.add_error message
