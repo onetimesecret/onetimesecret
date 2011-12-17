@@ -74,7 +74,7 @@ class Onetime::Customer < Familia::HashKey
     if @metadata_list.nil?
       el = [prefix, identifier, :metadata]
       el.unshift Familia.apiversion unless Familia.apiversion.nil?
-      @metadata_list = Familia::SortedSet.new Familia.join(el) # TODO: put in db 6
+      @metadata_list = Familia::SortedSet.new Familia.join(el), :db => db
     end
     @metadata_list
   end
