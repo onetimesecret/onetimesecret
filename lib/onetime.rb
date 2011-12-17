@@ -1,3 +1,5 @@
+puts "TODO: need to move customer.metadata zset to db 6 (currently 0)"
+
 # https://github.com/shuber/encryptor
 
 require 'bundler/setup'
