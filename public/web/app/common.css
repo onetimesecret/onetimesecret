@@ -101,9 +101,15 @@ input.long { width:380px; }
 .nav li {
   list-style-type: none;
 }
-.nav li.primary {line-height: 36px; font-size: 26px;}
+.nav li.primary {line-height: 26px; font-size: 20px;}
 .nav li.secondary {font-size:16px; line-height: 16px}
 .nav li.alt {font-size:24px; line-height: 24px}
+
+.inputform li.primary {line-height: 26px; font-size: 20px;}
+.inputform li.secondary {font-size:16px; line-height: 16px}
+.inputform li.alt {font-size:24px; line-height: 24px}
+
+.inputform li {list-style-type: none;}
 
 .nav li.or {
   color: #999;
@@ -114,8 +120,8 @@ input.long { width:380px; }
 }
 .nav em { font-style: normal; text-decoration: underline; }
 #content .intro {
-  width: 600px;
-  font-size: 24px;
+  width: 680px;
+  font-size: 22px;
   font-weight: bold;
 }
 #content .intro2 {
@@ -151,8 +157,15 @@ input.long { width:380px; }
   font-size: 18px;
 }
 .nav .context {
-  line-height: 16px;
-  font-size: 16px;
+  padding-left: 8px;
+  line-height: 14px;
+  font-size: 14px;
+  color: #999;
+}
+.inputform .context {
+  padding-left: 8px;
+  line-height: 14px;
+  font-size: 14px;
   color: #999;
 }
 
@@ -414,7 +427,13 @@ table.pricing tr.pricinglastrow td {
 .hilight {background:#ff0;}
 .hilight2 {background:#6FF;} 
 
+#contest {
+  font-size: 0.9em;
+}
 
+#contest li {
+  line-height: 1.5em;
+}
 #footer .label {
   color: #999; float: left; padding-left: 8px
 }
