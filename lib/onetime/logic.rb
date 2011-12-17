@@ -46,7 +46,7 @@ module Onetime
       
       def raise_concerns
         sess.event_incr! :send_feedback
-        if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:site][:feedback][:text])}/
+        if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:text][:feedback])}/
           raise_form_error "You can be more original than that!"
         end
       end

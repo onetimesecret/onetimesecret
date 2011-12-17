@@ -22,7 +22,7 @@ module Onetime
       self.template_path = './templates/web'
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
-      attr_reader :req, :plan
+      attr_reader :req, :plan, :is_paid
       attr_accessor :sess, :cust, :messages, :form_fields
       def initialize req=nil, sess=nil, cust=nil, *args
         @req, @sess, @cust = req, sess, cust
@@ -38,7 +38,8 @@ module Onetime
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
-        self[:feedback_text] = OT.conf[:site][:feedback][:text]
+        self[:feedback_text] = OT.conf[:text][:feedback]
+        self[:recipient_text] = OT.conf[:text][:recipient]
         if Onetime.conf[:site][:cobranded]
           self[:display_faq] = false
           self[:override_styles] = true
@@ -67,6 +68,7 @@ module Onetime
         end
         @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
         @plan ||= Onetime::Plan.plans['anonymous']
+        @is_paid = !plan.calculated_price.zero?
         init *args if respond_to? :init
       end
       def get_split_test_values testname

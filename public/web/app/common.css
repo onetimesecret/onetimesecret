@@ -12,13 +12,11 @@ hr {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1em;bord
 
 #sitenav {
   margin-top: 10px;
-  margin-right: 20%;
   margin-bottom: 5px;
   padding: 0px;
   line-height: 80%;
   font-size: 80%;
   color: #999;
-  margin-right: 10%;
   float: right;
 }
 
@@ -179,6 +177,19 @@ input.long { width:380px; }
 .tagline { width: 100%; text-align: center; font-style: italic; color: #999; margin-top: 20px;
 }
 input[type=submit] {
+}
+
+
+#recipientsBlock {
+  width: 540px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+#recipientsBlock input {
+  color: #666;
+  width: 460px;
+  padding: 5px;
 }
 
 #optionsBlock {
@@ -393,6 +404,7 @@ table.pricing tr.pricinglastrow td {
 
 .lighter { color: #999 }
 .smaller { font-size: 80%; }
+.larger { font-size: 120%; }
 .centre { text-align: center }
 
 .socialicon {
