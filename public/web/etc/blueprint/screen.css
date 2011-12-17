@@ -64,7 +64,7 @@ caption {background:#eee;}
 .hide {display:none;}
 .quiet {color:#666;}
 .loud {color:#000;}
-.hilight {background:#ff0;}
+.hilite {background:#ff0;}
 .added {background:#060;color:#fff;}
 .removed {background:#900;color:#fff;}
 .first {margin-left:0;padding-left:0;}
