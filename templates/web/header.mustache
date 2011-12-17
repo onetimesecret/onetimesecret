@@ -58,7 +58,7 @@
   {{/override_styles}}
 </head>
 <body id="{{body_class}}">
-<div id="banner"><div class="broadcast"><!-- nothing to report --></div></div>
+<div id="banner"><div class="broadcast">{{#with_broadcast}}<a href="/logo">Contest: We need a logo!</a>{{/with_broadcast}}</div></div>
 <div id="corset">
   <div id="header">
     <div id="sitenav">
@@ -68,6 +68,7 @@
       <a href="/login" title="Log in to One-Time Secret">Login</a>
       {{/authenticated}}
       {{#authenticated}}
+      <img src="{{gravatar_uri}}?s=24" alt="avatar" />
       <span class="lighter">{{cust.custid}}</span>{{#colonel}}<a href="/colonel/2nccpefyria0p533zxtks62fa" title="">*</a>{{/colonel}} - <a href="/dashboard" title="Your Dashboard">Dashboard</a> | 
       <a href="/account" title="Your Account">Account</a> | 
       <a href="/logout" title="Log out of One-Time Secret">Logout</a>
