@@ -36,6 +36,10 @@ module Onetime
         @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
         @plan ||= Onetime::Plan.plans['anonymous']
       end
+      def limit_action event
+        return if !plan.calculated_price.zero?
+        sess.event_incr! event
+      end
     end
     
     class ReceiveFeedback < OT::Logic::Base
@@ -45,7 +49,7 @@ module Onetime
       end
       
       def raise_concerns
-        sess.event_incr! :send_feedback
+        limit_action :send_feedback
         if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:text][:feedback])}/
           raise_form_error "You can be more original than that!"
         end
@@ -68,7 +72,7 @@ module Onetime
         @password2 = params[:password2].to_s
       end
       def raise_concerns
-        sess.event_incr! :create_account
+        limit_action :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
@@ -132,7 +136,7 @@ module Onetime
       end
       
       def raise_concerns
-        sess.event_incr! :authenticate_session
+        limit_action :authenticate_session
         if @cust.nil?
           @cust ||= OT::Customer.anonymous
           raise_form_error "Try again"
@@ -173,7 +177,7 @@ module Onetime
       def process_params
       end
       def raise_concerns
-        sess.event_incr! :destroy_session
+        limit_action :destroy_session
       end
       def process
         sess.destroy!
@@ -184,7 +188,7 @@ module Onetime
       def process_params
       end
       def raise_concerns
-        sess.event_incr! :dashboard
+        limit_action :dashboard
       end
       def process
       end
@@ -194,7 +198,7 @@ module Onetime
       def process_params
       end
       def raise_concerns
-        sess.event_incr! :show_account
+        limit_action :show_account
       end
       def process
       end
@@ -209,7 +213,7 @@ module Onetime
       end
       def raise_concerns
         @modified ||= []
-        sess.event_incr! :update_account
+        limit_action :update_account
         if ! @currentp.empty?
           raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
           raise_form_error "New passwords do not match" unless @newp == @newp2
@@ -265,7 +269,7 @@ module Onetime
         @passphrase = params[:passphrase].to_s
       end
       def raise_concerns
-        sess.event_incr! :create_secret
+        limit_action :create_secret
         raise_form_error "You did not provide anything to share" if kind == :share && secret_value.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
@@ -300,7 +304,7 @@ module Onetime
         @continue = params[:continue] == 'true'
       end
       def raise_concerns
-        sess.event_incr! :show_secret
+        limit_action :show_secret
         raise OT::MissingSecret if secret.nil?
       end
       def process
@@ -318,7 +322,7 @@ module Onetime
           end
           secret.viewed!
         elsif !correct_passphrase
-          sess.event_incr! :failed_passphrase
+          limit_action :failed_passphrase
         end
       end
     end
@@ -331,7 +335,7 @@ module Onetime
         @metadata = Onetime::Metadata.load key
       end
       def raise_concerns
-        sess.event_incr! :show_metadata
+        limit_action :show_metadata
         raise OT::MissingSecret if metadata.nil?
       end
       def process
