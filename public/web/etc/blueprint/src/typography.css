@@ -96,7 +96,7 @@ caption     { background: #eee; }
 
 .quiet      { color: #666; }
 .loud       { color: #000; }
-.highlight  { background:#ff0; }
+.hilight  { background:#ff0; }
 .added      { background:#060; color: #fff; }
 .removed    { background:#900; color: #fff; }
 
