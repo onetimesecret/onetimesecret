@@ -17,7 +17,8 @@ class Onetime::Customer < Familia::HashKey
     def global
       if @global.nil?
         @global = exists?(:GLOBAL) ? load(:GLOBAL) : create(:GLOBAL)
-        @global.secrets_created ||= 20_000 #starting point at time of implementation
+        @global.secrets_created ||= 20_000 # Starting point at time of implementation
+        @global.secrets_shared  ||= 18_000 
       end
       @global
     end

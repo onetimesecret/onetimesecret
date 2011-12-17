@@ -288,7 +288,7 @@ module Onetime
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair :anon, [sess.external_identifier]
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
         if !passphrase.empty?
           secret.update_passphrase passphrase 
           metadata.passphrase = secret.passphrase
@@ -305,7 +305,13 @@ module Onetime
             metadata.recipients = recipient_safe.join(', ')
             recipient.each do |eaddr|
               view = OT::Email::SecretLink.new cust, secret, eaddr
-              view.deliver_email
+              ret = view.deliver_email
+              if ret.code == 200
+                cust.incr :emails_sent
+                OT::Customer.global.incr :emails_sent
+              else
+                OT.info "Error sending email: #{ret}"
+              end
             end
           end
         else
@@ -342,6 +348,10 @@ module Onetime
             @verification = true
             cust.verified = "true"
             sess.destroy!
+          else
+            owner = secret.load_customer
+            owner.incr :secrets_shared unless owner.anonymous?
+            OT::Customer.global.incr :secrets_shared
           end
           secret.viewed!
         elsif !correct_passphrase

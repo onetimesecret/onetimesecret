@@ -30,7 +30,7 @@ class Onetime::App
         def init *args
           self[:title] = "Home"
           self[:body_class] = :colonel
-          self[:session_count] = OT::Session.values.size
+          self[:session_count] = OT::Session.recent(5.minutes).size
           self[:today_feedback] = OT::Feedback.recent(24.hours, OT.now.to_i).collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
           end.reverse
@@ -50,6 +50,8 @@ class Onetime::App
               :planid => this_cust.planid,
               :colonel => this_cust.role?(:colonel),
               :secrets_created => this_cust.secrets_created,
+              :secrets_shared => this_cust.secrets_shared,
+              :emails_sent => this_cust.emails_sent,
               :stamp => natural_time(this_cust.created) || '[no create stamp]' }
           end.reverse
           self[:customer_count] = OT::Customer.values.size
@@ -57,6 +59,8 @@ class Onetime::App
           self[:metadata_count] = OT::Metadata.new.redis.keys('metadata*:object').count
           self[:secret_count] = OT::Secret.new.redis.keys('secret*:object').count
           self[:secrets_created] = OT::Customer.global.get_value(:secrets_created, true)
+          self[:secrets_shared] = OT::Customer.global.get_value(:secrets_shared, true)
+          self[:emails_sent] = OT::Customer.global.get_value(:emails_sent, true)
           self[:split_tests] = OT::SplitTest.tests.collect do |plan|
             { :name => plan[1].testname, :values => plan[1].values, :samples => plan[1].samples }
           end
