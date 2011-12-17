@@ -188,6 +188,17 @@ module Onetime
     def indifferent_hash
       Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
     end
+    
+    def obscure_email(text)
+      el = text.split('@')
+      if el[0].size <= 2
+        text.gsub /(\b[A-Z0-9._%-]+(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "*******\\2"
+      elsif el[0].size <= 6
+        text.gsub /(\b([A-Z0-9])[A-Z0-9._%-]*(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "\\2******\\3"
+      else
+        text.gsub /(\b([A-Z0-9])[A-Z0-9._%-]{2,}([A-Z0-9])(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "\\2*****\\3\\4"
+      end
+    end
   end
   
   class Plan
