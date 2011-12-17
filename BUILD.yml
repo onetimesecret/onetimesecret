@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324109495
+:STAMP: 1324156963
 :PATCH: 1
 :OWNER: delano
-:BUILD: "001"
-:STORY: Initial email recipient support
+:BUILD: "002"
+:STORY: Customer metadata list db fix; Email recipient w/ basic stats collection
