@@ -8,8 +8,9 @@
   :cobranded: false
   :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png'
 :text:
-  :feedback: 'What do you think? Tell Chris.'
-  :recipient: 'Send link via email or SMS'
+  :feedback: 'What do you think of the site? Let Chris know.'
+  :nonpaid_recipient_text: 'Available on paid plans!'
+  :paid_recipient_text: 'Enter email address or mobile number'
 :colonels:
   - delano@onetimesecret.com
   - chris@onetimesecret.com

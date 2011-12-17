@@ -39,7 +39,8 @@ module Onetime
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
         self[:feedback_text] = OT.conf[:text][:feedback]
-        self[:recipient_text] = OT.conf[:text][:recipient]
+        self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
+        self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
         if Onetime.conf[:site][:cobranded]
           self[:display_faq] = false
           self[:override_styles] = true
