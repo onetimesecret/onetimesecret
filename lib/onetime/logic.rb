@@ -36,6 +36,14 @@ module Onetime
         @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
         @plan ||= Onetime::Plan.plans['anonymous']
       end
+      protected
+      def valid_email?(guess)
+        !guess.to_s.match(EMAIL_REGEX).nil?
+      end
+      def valid_mobile?(guess)
+        !guess.to_s.tr('-.','').match(MOBILE_REGEX).nil?
+      end
+      
     end
     
     class ReceiveFeedback < OT::Logic::Base
@@ -99,9 +107,6 @@ module Onetime
       private
       def form_fields
         { :planid => planid, :custid => custid }
-      end
-      def valid_email?(email)
-        !email.match(EMAIL_REGEX).nil?
       end
     end
 
@@ -252,7 +257,7 @@ module Onetime
     end
     
     class CreateSecret < OT::Logic::Base
-      attr_reader :passphrase, :secret_value, :kind, :ttl
+      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient
       attr_reader :metadata, :secret
       def process_params
         @ttl = params[:ttl].to_i
@@ -263,6 +268,16 @@ module Onetime
         end
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
+        if plan.paid?
+          params[:recipient] = [params[:recipient]].flatten.compact.uniq
+          @recipient = params[:recipient].collect { |r| 
+            next if r =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
+            unless valid_email?(r) || valid_mobile?(r)
+              raise_form_error "Recipient must be an email address or mobile number."
+            end
+            r
+          }.compact.uniq
+        end
       end
       def raise_concerns
         sess.event_incr! :create_secret

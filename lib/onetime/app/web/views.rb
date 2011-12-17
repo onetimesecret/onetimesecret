@@ -69,7 +69,7 @@ module Onetime
         end
         @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
         @plan ||= Onetime::Plan.plans['anonymous']
-        @is_paid = !plan.calculated_price.zero?
+        @is_paid = plan.paid?
         init *args if respond_to? :init
       end
       def get_split_test_values testname

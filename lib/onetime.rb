@@ -208,6 +208,12 @@ module Onetime
     def calculated_price
       (price * (1-discount)).to_i
     end
+    def paid?
+      !free?
+    end
+    def free?
+      calculated_price.zero?
+    end
     add_plan :anonymous, 0, 0, :ttl => 2.days, :size => 1_000, :api => false, :name => 'Anonymous'
     add_plan :personal_v1, 5.0, 1, :ttl => 14.days, :size => 1_000, :api => false, :name => 'Personal'
     add_plan :personal_v2, 10.0, 0.5, :ttl => 30.days, :size => 1_000, :api => true, :name => 'Personal'
