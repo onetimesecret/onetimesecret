@@ -4,6 +4,8 @@ h1 a { text-decoration: none; color: #000}
 hr {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1em;border:none;}
 #header {
   margin-bottom: 40px;
+  width: 620px;
+  
 }
 
 #header h1, #header pre {
