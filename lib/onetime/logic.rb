@@ -257,7 +257,7 @@ module Onetime
     end
     
     class CreateSecret < OT::Logic::Base
-      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient
+      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe
       attr_reader :metadata, :secret
       def process_params
         @ttl = params[:ttl].to_i
@@ -272,11 +272,12 @@ module Onetime
           params[:recipient] = [params[:recipient]].flatten.compact.uniq
           @recipient = params[:recipient].collect { |r| 
             next if r =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
-            unless valid_email?(r) || valid_mobile?(r)
-              raise_form_error "Recipient must be an email address or mobile number."
+            unless valid_email?(r) #|| valid_mobile?(r)
+              raise_form_error "Recipient must be an email address."
             end
             r
           }.compact.uniq
+          @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
         end
       end
       def raise_concerns
@@ -298,8 +299,9 @@ module Onetime
           cust.add_metadata metadata unless cust.anonymous?
           cust.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            recipient.each do |email_or_mobile|
-              view = OT::Email::SecretLink.new cust, secret, email_or_mobile
+            metadata.recipients = recipient_safe.join(', ')
+            recipient.each do |eaddr|
+              view = OT::Email::SecretLink.new cust, secret, eaddr
               view.deliver_email
             end
           end

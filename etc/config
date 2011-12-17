@@ -9,7 +9,7 @@
   :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png'
 :text:
   :feedback: 'What do you think of the site? Let Chris know.'
-  :nonpaid_recipient_text: 'Available on paid plans!'
+  :nonpaid_recipient_text: 'You need to create an account!'
   :paid_recipient_text: 'Enter email address'
 :colonels:
   - delano@onetimesecret.com
