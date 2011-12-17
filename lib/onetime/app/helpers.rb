@@ -10,7 +10,7 @@ class Onetime::App
   end
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    LOCAL_HOSTS = ['localhost', '127.0.0.1', 'www.ot.com'].freeze
+    LOCAL_HOSTS = ['localhost', '127.0.0.1', 'www.ot.com', 'www.ots.com'].freeze
   end
   
   module Helpers
@@ -42,7 +42,7 @@ class Onetime::App
     
     rescue OT::App::Unauthorized => ex
       OT.info ex.message
-      not_found_response "Not found"
+      not_found_response "Not authorized"
     
     rescue OT::BadShrimp => ex
       sess.set_error_message "Please go back, refresh the page, and try again."
