@@ -7,8 +7,9 @@
   :border_color: '#000000'
   :cobranded: false
   :banner_url: 'http://audiophile.ca/images/audiophile_secret_banner.png'
-  :feedback: 
-    :text: 'What do you think? Tell Chris.'
+:text:
+  :feedback: 'What do you think? Tell Chris.'
+  :recipient: 'Send link via email or SMS'
 :colonels:
   - delano@onetimesecret.com
   - chris@onetimesecret.com
