@@ -279,12 +279,13 @@ module Onetime
             end
             r
           }.compact.uniq
+          # TODO: enforce maximum number of recipients
           @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
         end
       end
       def raise_concerns
         limit_action :create_secret
-        raise_form_error "You did not provide anything to share" if kind == :share && secret_value.empty?
+        raise_form_error "You did not provide anything to share" if kind == :share && secret_value.to_s.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process

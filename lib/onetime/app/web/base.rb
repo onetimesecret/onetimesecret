@@ -36,6 +36,12 @@ module Onetime
         sess.referrer ||= req.referrer
       end
       
+      def handle_form_error ex
+        sess.set_form_fields ex.form_fields
+        sess.set_error_message ex.message
+        res.redirect redirect
+      end
+      
       def secret_not_found_response
         view = Onetime::App::Views::UnknownSecret.new req, sess, cust
         res.status = 404

@@ -22,13 +22,24 @@ module Onetime
     end
     
     def show_docs
-      authenticated do
-        if plan.options[:api]
+      publically do
+        #if plan.options[:api]
           view = Onetime::App::Views::Docs::Api.new req, sess, cust
           res.body = view.render
-        else
-          res.redirect app_path('/')
-        end
+        #else
+        #  res.redirect app_path('/')
+        #end
+      end
+    end
+    
+    def show_docs_page
+      publically do
+        #if plan.options[:api]
+          view = Onetime::App::Views::Docs::Api::Secrets.new req, sess, cust
+          res.body = view.render
+        #else
+        #  res.redirect app_path('/')
+        #end
       end
     end
     

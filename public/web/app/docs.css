@@ -4,19 +4,20 @@ div#docsContent{padding-top:20px;}
 .docTitle{margin-bottom:4px;padding-top:10px;}
 .docSubtext{font-style:italic;margin-bottom:12px;background:#ff0;}
 .params{}
+.options em {margin-left: 12px}
 .options ul li{margin-left:12px;}
 .options ul li .name{font-style:italic; text-decoration: underline}
 #docnav { display:block; width: 140px; margin-top: 0px; }
-#docnav li { padding-left: 10px }
+#docnav li { padding-left: 10px; line-height: 28px; }
 #docnav li.selected {
-  font-weight: bold;  padding-top: 5px; padding-bottom: 5px; font-style: italic;
-  padding-left: 10px;
-  background: #e33100;
+  font-weight: bold;  
+  font-style: italic;
+  background: #eee;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
   border-radius: 10px;
 }
-#docnav .selected a { color: #fff;}
+#docnav .selected a { color: #000;}
 #topicContent {
   font-size: 0.9em;
   margin-top: 0px; 
@@ -29,7 +30,7 @@ div#docsContent{padding-top:20px;}
   font-family: 'Courier New', 'Terminal', monospace;
   color: #000;
 }
-pre.colourize  { margin: 10px; padding: 6px }
+pre.colourize  { margin: 12px; padding: 6px }
 
 div.colourize { }
 

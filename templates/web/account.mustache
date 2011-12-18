@@ -49,7 +49,7 @@
           <label for="custid">Your API token:</label>
           <span class="hilite">{{#cust.apitoken}}{{cust.apitoken}}{{/cust.apitoken}}</span>
           {{^cust.apitoken}}<em>Click button to generate</em>{{/cust.apitoken}}
-          <hr/>
+          <p class="smaller lighter">DO NOT SHARE YOUR TOKEN WITH ANYONE. Keep it safe. When in doubt, generate a new one.</p>
         </div>
         <span id="fireSmall" class="button"><button type="submit">Regenerate Token</button></span>
       </form>

@@ -2,42 +2,51 @@
 
 <div id="content">
   <div id="documentation">
-    <h2 class="intro">API Documentation</h2>
+    <h2 class="intro">API Overview</h2>
     
     <ul id="docnav">
-      <li class="selected"><a href="/docs/api/overview" title="">Overview</a></li>
-      <li class=""><a href="/docs/api/authentication" title="">Authentication</a></li>
+      <li class="selected"><a href="/docs/api" title="">Overview</a></li>
       <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
     </ul>
 
     <div id="topicContent">
 
-      <h3 class="cufon">API Overview</h3>
-
-      <h4 class="cufon docTitle dotted">Base URI</h4>
+      <h3 class="cufon docTitle dotted">Base URI</h3>
       <span class="docSubtext">{{baseuri}}/api</span>
-      <div class="">This endpoint is <strong>public.</strong></div>
 
-      <p>All API access occurs over HTTPS and starts with <tt>/api</tt>. All responses are JSON. The following parameters and attributes are common across the API.</p>
+      <p>
+        All API access is over HTTPS and starts with <tt>/api</tt>. All responses are JSON. 
+        <!-- The following parameters and attributes are common across the API. -->
+      </p>
       
       <!--
       <div class="options">
-        <strong>Query Parameters</strong>
+        <strong>Query Params</strong>
         <ul>
           <li><span class="name">field</span> (optional): if specified, returns the content for this field only.</li>
         </ul>
       </div>
       -->
       
-      <h4 class="cufon docTitle dotted">System Status</h4>
-      <span class="docSubtext">GET /v1/status</span>
-      <div class="">This endpoint is <strong> public.</strong></div>
-
-      <p></p>
-
+      <h4 class="cufon docTitle dotted">Authentication</h4>
+      <span class="docSubtext">{{baseuri_httpauth}}/api</span>
+      
+      <p>
+        We use HTTP Basic Authentication for all requests and require a username and password.
+        <ul>
+          <li>The username is the same as your Stella account login.</li>
+          <li>The password is the API token which you can find on your account page.</li>
+        </ul>
+      </p>
+      
+      <h3 class="cufon docTitle dotted">System Status</h3>
+      <span class="docSubtext">GET {{baseuri}}/api/v1/status</span>
+      
+      <p>Current status of the system.</p>
+      
       <div class="options">
-        <strong>Parameters</strong>
-        <p><em>None</em></p>
+        <strong>Parameters</strong><br/>
+        <em>None</em>
       </div>
 
       <pre class="colourize">$ curl -u 'USERNAME:APITOKEN' {{baseuri}}/api/v1/status</pre>

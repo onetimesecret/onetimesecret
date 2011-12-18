@@ -49,9 +49,7 @@ class Onetime::App
       res.redirect redirect
     
     rescue OT::FormError => ex
-      sess.set_form_fields ex.form_fields
-      sess.set_error_message ex.message
-      res.redirect redirect
+      handle_form_error ex
       
     rescue OT::MissingSecret => ex
       secret_not_found_response

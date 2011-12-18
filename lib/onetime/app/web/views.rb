@@ -138,9 +138,18 @@ module Onetime
         class Api < Onetime::App::View
           def init *args
             self[:title] = "API Docs"
+            self[:subtitle] = "OTS Developers"
             self[:monitored_link] = true
             self[:with_analytics] = true
             self[:css] << '/app/docs.css'
+          end
+          def baseuri_httpauth
+            scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+            [scheme, 'USERNAME:APITOKEN@', Onetime.conf[:site][:host]].join
+          end
+        end
+        class Api < Onetime::App::View
+          class Secrets < Api
           end
         end
       end
