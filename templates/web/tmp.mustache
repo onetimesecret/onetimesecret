@@ -13,9 +13,9 @@
       
       <h3 class="cufon docTitle dotted">Share a Secret</h3>
       <span class="docSubtext">POST {{baseuri}}/api/v1/share</span>
-
+      
       <p>
-        
+        Use this method to store a secret value.
       </p>
       
       <div class="options">
@@ -32,10 +32,12 @@
         <strong>Attributes</strong>
         <ul>
           <li><span class="name">custid</span>: this is you :]</li>
-          <li><span class="name">key</span>: </li>
-          <li><span class="name">secret_key</span>: this is you :]</li>
-          <li><span class="name">custid</span>: this is you :]</li>
-          <li><span class="name">custid</span>: this is you :]</li>
+          <li><span class="name">key</span>: the unique key for the metadata. DO NOT share this.</li>
+          <li><span class="name">secret_key</span>: the unique key for the secret you create. This is key that you can share.</li>
+          <li><span class="name">ttl</span>: The time-to-live that was specified (i.e. not the time remaining)</li>
+          <li><span class="name">realttl</span>: <em>TBD</em></li>
+          <li><span class="name">created</span>: Time the secret was created in unix time (UTC)</li>
+          <li><span class="name">updated</span>: ditto, but the time it was last updated.</li>
         </ul>
       </div>
       
@@ -54,7 +56,7 @@
       <h3 class="cufon docTitle dotted">Generate a Secret</h3>
       <span class="docSubtext">POST {{baseuri}}/api/v1/generate</span>
       
-      <p>Current status of the system.</p>
+      <p>Generate a short, unique secret. This is useful for temporary passwords, one-time pads, salts, etc.</p>
       
       <div class="options">
         <strong>Query Params</strong>
@@ -79,10 +81,8 @@
       <p></p>
 
       <div class="options">
-        <strong>Attributes</strong>
-        <ul>
-          <li><span class="name">status</span>: The current system status. One of: nominal, offline.</li>
-        </ul>
+        <strong>Attributes</strong><br/>
+        <em>Same as Share A Secret above</em>
       </div>
 
 
