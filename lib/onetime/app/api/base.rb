@@ -30,7 +30,8 @@ class Onetime::App
             end
             sess.authenticated = true unless sess.nil?
           elsif req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-            check_session!
+            #check_session!
+            raise Unauthorized, "No session support"
           else
             raise Unauthorized, "No session or credentials" unless allow_anonymous
           end
