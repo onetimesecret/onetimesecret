@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324332240
+:STAMP: 1324332283
 :PATCH: 1
 :OWNER: delano
-:BUILD: "003"
+:BUILD: "004"
 :STORY: autocomplete=false for passphrase
