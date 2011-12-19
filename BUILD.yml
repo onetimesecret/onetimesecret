@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1323922813
+:STAMP: 1324332155
 :PATCH: 0
 :OWNER: delano
-:BUILD: "017"
-:STORY: Free plan for reddit referrer
+:BUILD: 019
+:STORY: autocomplete=false for passphrase
