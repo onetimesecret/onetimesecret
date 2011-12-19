@@ -82,7 +82,7 @@ module Onetime::Models
       clear
     end
     def ttl
-      ret = get_value(:ttl) || super
+      ret = (get_value(:ttl) || super).to_i
       ret
     end
     def save
@@ -147,9 +147,9 @@ module Onetime::Models
       end
       ret
     end
-    def get_value field
+    def get_value field, bypass_cache=false
       self.cache ||= {}
-      self.cache[field] || self[field]
+      bypass_cache ? self[field] : (self.cache[field] || self[field])
     end
   end
 end

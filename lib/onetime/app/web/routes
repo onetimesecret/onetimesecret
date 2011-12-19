@@ -6,7 +6,10 @@ GET   /feedback                                  Onetime::App#feedback
 POST  /feedback                                  Onetime::App#receive_feedback
 
 GET   /about                                     Onetime::App#about
+GET   /logo                                      Onetime::App#logo
+
 GET   /docs/api                                  Onetime::App#show_docs
+GET   /docs/api/secrets                          Onetime::App#show_docs_page
 
 GET   /passgen                                   Onetime::App#passgen
 
@@ -36,3 +39,5 @@ POST  /account                                   Onetime::App#update_account
 POST  /account/password                          Onetime::App#update_account
 POST  /account/apikey                            Onetime::App#generate_apikey
 
+GET   /404                                       Onetime::App#not_found
+GET   /500                                       Onetime::App#server_error

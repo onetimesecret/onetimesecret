@@ -22,13 +22,24 @@ module Onetime
     end
     
     def show_docs
-      authenticated do
-        if plan.options[:api]
+      publically do
+        #if plan.options[:api]
           view = Onetime::App::Views::Docs::Api.new req, sess, cust
           res.body = view.render
-        else
-          res.redirect app_path('/')
-        end
+        #else
+        #  res.redirect app_path('/')
+        #end
+      end
+    end
+    
+    def show_docs_page
+      publically do
+        #if plan.options[:api]
+          view = Onetime::App::Views::Docs::Api::Secrets.new req, sess, cust
+          res.body = view.render
+        #else
+        #  res.redirect app_path('/')
+        #end
       end
     end
     
@@ -62,7 +73,7 @@ module Onetime
     
     def secret_uri
       publically do
-        deny_agents! 
+        deny_agents!
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
         view = Onetime::App::Views::Shared.new req, sess, cust
         logic.raise_concerns
@@ -102,6 +113,12 @@ module Onetime
     def about
       publically do
         view = Onetime::App::Views::About.new req, sess, cust
+        res.body = view.render
+      end
+    end
+    def logo 
+      publically do
+        view = Onetime::App::Views::Logo.new req, sess, cust
         res.body = view.render
       end
     end

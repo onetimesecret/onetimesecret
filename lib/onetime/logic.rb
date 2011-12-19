@@ -36,6 +36,16 @@ module Onetime
         @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
         @plan ||= Onetime::Plan.plans['anonymous']
       end
+      def limit_action event
+        return if plan.paid?
+        sess.event_incr! event
+      end
+      def valid_email?(guess)
+        !guess.to_s.match(EMAIL_REGEX).nil?
+      end
+      def valid_mobile?(guess)
+        !guess.to_s.tr('-.','').match(MOBILE_REGEX).nil?
+      end
     end
     
     class ReceiveFeedback < OT::Logic::Base
@@ -45,8 +55,8 @@ module Onetime
       end
       
       def raise_concerns
-        sess.event_incr! :send_feedback
-        if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:site][:feedback][:text])}/
+        limit_action :send_feedback
+        if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:text][:feedback])}/
           raise_form_error "You can be more original than that!"
         end
       end
@@ -68,7 +78,7 @@ module Onetime
         @password2 = params[:password2].to_s
       end
       def raise_concerns
-        sess.event_incr! :create_account
+        limit_action :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
@@ -100,19 +110,16 @@ module Onetime
       def form_fields
         { :planid => planid, :custid => custid }
       end
-      def valid_email?(email)
-        !email.match(EMAIL_REGEX).nil?
-      end
     end
 
     class AuthenticateSession < OT::Logic::Base
       attr_reader :custid, :stay
-      
+      attr_reader :session_ttl
       def process_params
         @custid = params[:u]
         @passwd = params[:p]
-        
         @stay = params[:stay].to_s == "true"
+        @session_ttl = (stay ? 30.days : 20.minutes).to_i
         if @custid.to_s.index(':as:')
           @colonelname, @custid = *@custid.downcase.split(':as:')
         else
@@ -132,7 +139,7 @@ module Onetime
       end
       
       def raise_concerns
-        sess.event_incr! :authenticate_session
+        limit_action :authenticate_session
         if @cust.nil?
           @cust ||= OT::Customer.anonymous
           raise_form_error "Try again"
@@ -146,7 +153,7 @@ module Onetime
           #sess.destroy!   # get rid of the unauthenticated session ID
           #sess = sess
           sess.update_fields :custid => cust.custid, :authenticated => 'true'
-          sess.ttl = 20.days if @stay
+          sess.ttl = session_ttl if @stay
           sess.save
           cust.save
           if OT.conf[:colonels].member?(cust.custid)
@@ -173,7 +180,7 @@ module Onetime
       def process_params
       end
       def raise_concerns
-        sess.event_incr! :destroy_session
+        limit_action :destroy_session
       end
       def process
         sess.destroy!
@@ -184,17 +191,17 @@ module Onetime
       def process_params
       end
       def raise_concerns
-        sess.event_incr! :dashboard
+        limit_action :dashboard
       end
       def process
       end
     end
-
+    
     class ViewAccount < OT::Logic::Base
       def process_params
       end
       def raise_concerns
-        sess.event_incr! :show_account
+        limit_action :show_account
       end
       def process
       end
@@ -209,7 +216,7 @@ module Onetime
       end
       def raise_concerns
         @modified ||= []
-        sess.event_incr! :update_account
+        limit_action :update_account
         if ! @currentp.empty?
           raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
           raise_form_error "New passwords do not match" unless @newp == @newp2
@@ -252,7 +259,7 @@ module Onetime
     end
     
     class CreateSecret < OT::Logic::Base
-      attr_reader :passphrase, :secret_value, :kind, :ttl
+      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe
       attr_reader :metadata, :secret
       def process_params
         @ttl = params[:ttl].to_i
@@ -263,14 +270,26 @@ module Onetime
         end
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
+        if plan.paid?
+          params[:recipient] = [params[:recipient]].flatten.compact.uniq
+          @recipient = params[:recipient].collect { |r| 
+            next if r =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
+            unless valid_email?(r) #|| valid_mobile?(r)
+              raise_form_error "Recipient must be an email address."
+            end
+            r
+          }.compact.uniq
+          # TODO: enforce maximum number of recipients
+          @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
+        end
       end
       def raise_concerns
-        sess.event_incr! :create_secret
-        raise_form_error "You did not provide anything to share" if kind == :share && secret_value.empty?
+        limit_action :create_secret
+        raise_form_error "You did not provide anything to share" if kind == :share && secret_value.to_s.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair :anon, [sess.external_identifier]
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
         if !passphrase.empty?
           secret.update_passphrase passphrase 
           metadata.passphrase = secret.passphrase
@@ -281,6 +300,21 @@ module Onetime
         metadata.save
         if metadata.valid? && secret.valid?
           cust.add_metadata metadata unless cust.anonymous?
+          cust.incr :secrets_created
+          OT::Customer.global.incr :secrets_created
+          unless recipient.nil? || recipient.empty?
+            metadata.recipients = recipient_safe.join(', ')
+            recipient.each do |eaddr|
+              view = OT::Email::SecretLink.new cust, secret, eaddr
+              ret = view.deliver_email
+              if ret.code == 200
+                cust.incr :emails_sent
+                OT::Customer.global.incr :emails_sent
+              else
+                OT.info "Error sending email: #{ret}"
+              end
+            end
+          end
         else
           raise_form_error "Could not store your secret" 
         end
@@ -300,7 +334,7 @@ module Onetime
         @continue = params[:continue] == 'true'
       end
       def raise_concerns
-        sess.event_incr! :show_secret
+        limit_action :show_secret
         raise OT::MissingSecret if secret.nil?
       end
       def process
@@ -315,10 +349,14 @@ module Onetime
             @verification = true
             cust.verified = "true"
             sess.destroy!
+          else
+            owner = secret.load_customer
+            owner.incr :secrets_shared unless owner.anonymous?
+            OT::Customer.global.incr :secrets_shared
           end
           secret.viewed!
         elsif !correct_passphrase
-          sess.event_incr! :failed_passphrase
+          limit_action :failed_passphrase
         end
       end
     end
@@ -331,6 +369,7 @@ module Onetime
         @metadata = Onetime::Metadata.load key
       end
       def raise_concerns
+        limit_action :show_metadata
         raise OT::MissingSecret if metadata.nil?
       end
       def process

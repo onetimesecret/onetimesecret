@@ -74,7 +74,10 @@ module Onetime
     def encryption_key
       OT::Secret.encryption_key self.key, self.passphrase_temp
     end
-
+    def load_customer
+      cust = OT::Customer.load custid 
+      cust.nil? ? OT::Customer.anonymous : cust
+    end
     def load_metadata
       OT::Metadata.load metadata_key
     end

@@ -30,7 +30,8 @@ class Onetime::App
             end
             sess.authenticated = true unless sess.nil?
           elsif req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-            check_session!
+            #check_session!
+            raise Unauthorized, "No session support"
           else
             raise Unauthorized, "No session or credentials" unless allow_anonymous
           end
@@ -46,6 +47,10 @@ class Onetime::App
       def json hsh
         res.header['Content-Type'] = "application/json; charset=utf-8"
         res.body = hsh.to_json
+      end
+      
+      def handle_form_error ex
+        error_response ex.message
       end
       
       def secret_not_found_response

@@ -18,7 +18,11 @@ class Onetime::App
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        res.redirect app_path(logic.redirect_uri)
+        if req.get?
+          res.redirect app_path(logic.redirect_uri)
+        else
+          json logic.metadata.all
+        end
       end
     end
     

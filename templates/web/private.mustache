@@ -7,6 +7,10 @@
       <input id="secreturi" class="selectable" value="{{share_uri}}"/>
       <p>This link can only be accessed one time. Expires in {{expiration_stamp}}.</p>
     </div>
+    {{#recipients}}
+    <h3>Sent to:</h3>
+    <p>{{to_s}}</p>
+    {{/recipients}}
     {{#show_passphrase}}
     <div class="passphrase">
       <span class="pretext">Passphrase:</span><br/>
@@ -46,13 +50,19 @@
       <p><em>This secret has not been received yet. Expires in {{expiration_stamp}}.</em></p>
       {{/been_shared}}
     </div>
+    
+    {{#recipients}}
+    <h3>Sent to:</h3>
+    <p>{{to_s}}</p>
+    {{/recipients}}
+    
     <div id="faq" class="smaller">
       <h3>F.A.Q.</h3>
       <h4>What if I forgot to copy the shared link?</h4>
       <p>You need to create a new secret. We can't retrieve it for you.</p>
       
       <h4>How long with the secret be available?</h4>
-      <p>The secret link will be available for 7 days or until it's viewed.</p>
+      <p>The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
     </div>
     {{/show_secret}}
   </div>

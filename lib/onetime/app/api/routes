@@ -2,10 +2,10 @@
 ## API v1
 GET    /status                               Onetime::App::API#status
        
-POST   /generate                             Onetime::App::API#generate
-GET    /generate                             Onetime::App::API#generate
 POST   /share                                Onetime::App::API#share
 GET    /share                                Onetime::App::API#share
+POST   /generate                             Onetime::App::API#generate
+GET    /generate                             Onetime::App::API#generate
        
 GET    /secret/:key                          Onetime::App::API#show_secret
 GET    /private/:key                         Onetime::App::API#show_metadata

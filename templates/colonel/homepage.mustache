@@ -2,9 +2,9 @@
 
   <div id="content">
     
-    <p>Sessions: {{session_count}}</p>
+    <p>Sessions: {{session_count}} (active in the past 5 minutes)</p>
     
-    <p>Metadata/Secrets: {{metadata_count}}/{{secret_count}}</p>
+    <p>Metadata/Secrets: {{metadata_count}}/{{secret_count}} ({{secrets_created}}/{{secrets_shared}}/{{emails_sent}} total)</p>
         
     <h3>Feedback ({{feedback_count}})</h3>
     
@@ -37,7 +37,7 @@
     <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
     <ul class="smaller">
     {{#recent_customers}}
-      <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} [{{planid}}] <em class="lighter">{{stamp}}</em></li>
+      <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} {{secrets_created}}/{{secrets_shared}}/{{emails_sent}} [{{planid}}] <em class="lighter">{{stamp}}</em></li>
     {{/recent_customers}}
     </ul>
     

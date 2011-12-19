@@ -17,6 +17,25 @@ module Onetime
           scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
           [scheme, Onetime.conf[:site][:host]].join
         end
+        def gravatar(email)
+          return '/img/stella.png' if email.nil? || email.empty?
+          suffix = Digest::MD5.hexdigest email.to_s.downcase
+          prefix = secure_request? ? 'https://secure' : 'http://www'
+          [prefix, '.gravatar.com/avatar/', suffix].join
+        end
+        def secure_request?
+          !local? || secure?
+        end
+        # TODO: secure ad local are already in Otto
+        def secure?
+          # X-Scheme is set by nginx
+          # X-FORWARDED-PROTO is set by elastic load balancer
+          (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")  
+        end
+
+        def local?
+          (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
+        end
         protected
         def natural_time(e)
           return if e.nil?

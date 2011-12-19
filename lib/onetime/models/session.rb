@@ -37,7 +37,7 @@ class Onetime::Session < Familia::HashKey
     def load sessid
       sess = new 
       sess.sessid = sessid
-      sess.exists? ? sess : nil
+      sess.exists? ? (add(sess); sess) : nil
     end
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress, custid, useragent

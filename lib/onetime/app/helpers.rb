@@ -8,7 +8,11 @@ class Onetime::App
       @location, @status = l, s
     end
   end
-  BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
+  unless defined?(Onetime::App::BADAGENTS)
+    BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
+    LOCAL_HOSTS = ['localhost', '127.0.0.1', 'www.ot.com', 'www.ots.com'].freeze
+  end
+  
   module Helpers
     
     attr_reader :req, :res
@@ -38,16 +42,14 @@ class Onetime::App
     
     rescue OT::App::Unauthorized => ex
       OT.info ex.message
-      not_found_response "Not found"
+      not_found_response "Not authorized"
     
     rescue OT::BadShrimp => ex
       sess.set_error_message "Please go back, refresh the page, and try again."
       res.redirect redirect
     
     rescue OT::FormError => ex
-      sess.set_form_fields ex.form_fields
-      sess.set_error_message ex.message
-      res.redirect redirect
+      handle_form_error ex
       
     rescue OT::MissingSecret => ex
       secret_not_found_response
@@ -111,6 +113,20 @@ class Onetime::App
         sess.authenticated = false 
       end
       OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
+    end
+    
+    def secure_request?
+      !local? || secure?
+    end
+    
+    def secure?
+      # X-Scheme is set by nginx
+      # X-FORWARDED-PROTO is set by elastic load balancer
+      (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")  
+    end
+
+    def local?
+      (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
     end
     
     def err *args

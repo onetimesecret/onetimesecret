@@ -22,12 +22,12 @@ module Onetime
       self.template_path = './templates/web'
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
-      attr_reader :req, :plan
+      attr_reader :req, :plan, :is_paid
       attr_accessor :sess, :cust, :messages, :form_fields
       def initialize req=nil, sess=nil, cust=nil, *args
         @req, @sess, @cust = req, sess, cust
         @messages = { :info => [], :error => [] }
-        self[:js] = []
+        self[:js], self[:css] = [], []
         self[:subtitle] = "One Time"
         self[:monitored_link] = false
         self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
@@ -38,7 +38,11 @@ module Onetime
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
-        self[:feedback_text] = OT.conf[:site][:feedback][:text]
+        self[:feedback_text] = OT.conf[:text][:feedback]
+        self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
+        self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
+        # NOTE: uncomment the following line to show the broadcast
+        #self[:with_broadcast] = ! self[:authenticated]
         if Onetime.conf[:site][:cobranded]
           self[:display_faq] = false
           self[:override_styles] = true
@@ -52,6 +56,7 @@ module Onetime
           self[:display_otslogo] = true
         end
         unless sess.nil?
+          self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
           if sess.referrer
             self[:via_hn] = !sess.referrer.match(/news.ycombinator.com/).nil?
             self[:via_reddit] = !sess.referrer.match(/www.reddit.com/).nil?
@@ -67,6 +72,7 @@ module Onetime
         end
         @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
         @plan ||= Onetime::Plan.plans['anonymous']
+        @is_paid = plan.paid?
         init *args if respond_to? :init
       end
       def get_split_test_values testname
@@ -132,8 +138,18 @@ module Onetime
         class Api < Onetime::App::View
           def init *args
             self[:title] = "API Docs"
+            self[:subtitle] = "OTS Developers"
             self[:monitored_link] = true
             self[:with_analytics] = true
+            self[:css] << '/app/docs.css'
+          end
+          def baseuri_httpauth
+            scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+            [scheme, 'USERNAME:APITOKEN@', Onetime.conf[:site][:host]].join
+          end
+        end
+        class Api < Onetime::App::View
+          class Secrets < Api
           end
         end
       end
@@ -187,6 +203,7 @@ module Onetime
           self[:metadata_key] = metadata.key
           self[:been_shared] = metadata.state?(:shared)
           self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+          self[:recipients] = metadata.recipients
           self[:display_feedback] = false
           ttl = metadata.ttl.to_i
           self[:expiration_stamp] = if ttl <= 1.hour
@@ -246,7 +263,7 @@ module Onetime
               :name => plan.options[:name],
               :private => plan.options[:private].to_s == 'true',
               :cname => plan.options[:cname].to_s == 'true',
-              :is_paid => !plan.calculated_price.zero?,
+              :is_paid => plan.paid?,
               :planid => req.params[:planid]
             }
             if self[:plan][:is_paid]
@@ -311,8 +328,10 @@ module Onetime
             { :uri => private_uri(m), 
               :stamp => natural_time(m.updated), 
               :key => m.key,
+              :recipients => m.recipients,
               :been_shared => m.state?(:shared) }
           end.compact
+          
           self[:has_secrets] = !self[:metadata].empty?
         end
       end
@@ -323,7 +342,7 @@ module Onetime
           self[:monitored_link] = true
           self[:with_analytics] = true
           self[:price] = plan.calculated_price
-          self[:is_paid] = !plan.calculated_price.zero?
+          self[:is_paid] = plan.paid?
         end
       end
       class Error < Onetime::App::View
@@ -339,6 +358,15 @@ module Onetime
           self[:with_analytics] = true
         end
       end
+      class Logo < Onetime::App::View
+        def init *args
+          self[:title] = "Contest: Help us get a logo"
+          self[:body_class] = :info
+          self[:monitored_link] = true
+          self[:with_analytics] = true
+          self[:with_broadcast] = false
+        end
+      end
       class PasswordGenerator < Onetime::App::View
         def init *args
           self[:title] = "Password Generator"
@@ -349,6 +377,14 @@ module Onetime
           self[:js] << '/etc/packer/base2.js'
           self[:js] << '/etc/packer/packer.js'
           self[:js] << '/etc/packer/words.js'
+        end
+      end
+      class NotFound < Onetime::App::View
+        def init *args
+          self[:title] = "Page not found"
+          self[:body_class] = :info
+          self[:monitored_link] = true
+          self[:with_analytics] = true
         end
       end
       class Feedback < Onetime::App::View

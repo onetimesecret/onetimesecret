@@ -9,12 +9,18 @@ require 'rubygems'
 require 'rye'
 require 'drydock'
 
+
 # Command-line interface for bin/stella
 class OT::CLI::Definition
   extend Drydock
   
   before do
     OT.load! :cli
+  end
+  
+  global :v, :verbose, "Increase output" do 
+    @verbose ||= 0
+    @verbose += 1
   end
   
   about "Command Line tools and methods to manage OneTimeSecret"
@@ -37,6 +43,9 @@ class OT::CLI::Definition
   action :D, :clear, "Destroy existing entropy"
   action :G, :generate, "Generate entropy"
   command :entropy => OT::CLI
+  
+  usage "ots move-keys SOURCEDB TARGETDB [filter]"
+  command :move_keys => OT::CLI
   
   #usage "ots colonels"
   #usage "ots colonels -C <CUSTID>"
