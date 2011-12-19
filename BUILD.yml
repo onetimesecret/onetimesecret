@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324156963
+:STAMP: 1324332283
 :PATCH: 1
 :OWNER: delano
-:BUILD: "002"
-:STORY: Customer metadata list db fix; Email recipient w/ basic stats collection
+:BUILD: "004"
+:STORY: autocomplete=false for passphrase
