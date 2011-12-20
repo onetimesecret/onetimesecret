@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324405333
+:STAMP: 1324419128
 :PATCH: 1
 :OWNER: delano
-:BUILD: 009
-:STORY: New logo to email field
+:BUILD: "011"
+:STORY: public/web/img/
