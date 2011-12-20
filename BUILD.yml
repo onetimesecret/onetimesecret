@@ -1,8 +1,8 @@
----
+--- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324334949
+:STAMP: 1324405333
 :PATCH: 1
-:OWNER: cmurtagh
-:BUILD: '008'
-:STORY: Autocomplete so that some things are zero time secrets
+:OWNER: delano
+:BUILD: 009
+:STORY: New logo to email field
