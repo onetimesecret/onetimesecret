@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324431647
+:STAMP: 1324444630
 :PATCH: 1
 :OWNER: delano
-:BUILD: "013"
-:STORY: "[no message]"
+:BUILD: "014"
+:STORY: "API: generate returns value when created if a passphras is included"
