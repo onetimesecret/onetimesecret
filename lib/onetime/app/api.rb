@@ -26,25 +26,6 @@ class Onetime::App
       end
     end
     
-    def metadata_hsh md, opts={:with_secret => false}
-      hsh = md.all
-      ret = {
-        :custid => hsh['custid'],
-        :metadata_key => hsh['key'],
-        :secret_key => hsh['secret_key'],
-        :ttl => hsh['ttl'],
-        :state => hsh['state'],
-        :updated => hsh['updated'],
-        :created => hsh['created']
-      }
-      ret[:shared] = hsh['shared'] if hsh['state'].to_s == 'shared'
-      if opts[:with_secret]
-        secret = md.load_secret
-        ret[:value] = secret.decrypted_value if secret.can_decrypt?
-      end
-      ret
-    end
-          
     def generate
       authorized do
         req.params[:kind] = :generate
@@ -87,6 +68,27 @@ class Onetime::App
         end
       end
     end
+    
+    private
+    def metadata_hsh md, opts={:with_secret => false}
+      hsh = md.all
+      ret = {
+        :custid => hsh['custid'],
+        :metadata_key => hsh['key'],
+        :secret_key => hsh['secret_key'],
+        :ttl => hsh['ttl'].to_i,
+        :state => hsh['state'],
+        :updated => hsh['updated'],
+        :created => hsh['created']
+      }
+      ret[:shared] = hsh['shared'] if hsh['state'].to_s == 'shared'
+      if opts[:with_secret]
+        secret = md.load_secret
+        ret[:value] = secret.decrypted_value if secret.can_decrypt?
+      end
+      ret
+    end
+          
     
   end
 end
