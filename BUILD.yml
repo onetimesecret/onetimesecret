@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324444630
+:STAMP: 1324455778
 :PATCH: 1
 :OWNER: delano
-:BUILD: "014"
-:STORY: "API: generate returns value when created if a passphras is included"
+:BUILD: "015"
+:STORY: Polished, basic docs w/ PHP and Ruby client libs
