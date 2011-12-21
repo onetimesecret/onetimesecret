@@ -151,6 +151,8 @@ module Onetime
         class Api < Onetime::App::View
           class Secrets < Api
           end
+          class Libs < Api
+          end
         end
       end
       module Info

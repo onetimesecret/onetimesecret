@@ -9,7 +9,8 @@ GET   /about                                     Onetime::App#about
 GET   /logo                                      Onetime::App#logo
 
 GET   /docs/api                                  Onetime::App#show_docs
-GET   /docs/api/secrets                          Onetime::App#show_docs_page
+GET   /docs/api/secrets                          Onetime::App#show_docs_secrets
+GET   /docs/api/libs                             Onetime::App#show_docs_libs
 
 GET   /passgen                                   Onetime::App#passgen
 

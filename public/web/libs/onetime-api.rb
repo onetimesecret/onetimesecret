@@ -7,7 +7,7 @@ require 'uri'
 #
 # Usage:
 #
-#     api = OT::API.new 'delano@onetimesecret.com', '4eb33c6340006d6607c813fc7e707a32f8bf5342'
+#     api = Onetime::API.new 'chris@onetimesecret.com', '4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181'
 #
 #     api.get '/status'     
 #       # => {'status' => 'nominal'}

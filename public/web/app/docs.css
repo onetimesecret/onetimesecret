@@ -7,7 +7,7 @@ div#docsContent{padding-top:20px;}
 .options em {margin-left: 12px}
 .options ul li{margin-left:12px;}
 .options ul li .name{font-style:italic; text-decoration: underline}
-#docnav { display:block; width: 140px; margin-top: 0px; }
+#docnav { display:block; width: 180px; margin-top: 0px; }
 #docnav li { padding-left: 10px; line-height: 28px; }
 #docnav li.selected {
   font-weight: bold;  

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * One-Time Secret API. This requires an account and API key on https://onetimesecret.com/ to use. 
+ * One-Time Secret API v1. This requires an account and API key on https://onetimesecret.com/ to use. 
  *
  * @package OneTimeSecret
  */

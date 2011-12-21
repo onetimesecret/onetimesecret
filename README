@@ -1,5 +1,22 @@
 ONE-TIME SECRET
 
+[chris@mafalda ~]$ cat create_onetime_secret.php 
+<?php
+
+  include('onetimesecret-api.php');
+  $myOnetime = new OneTimeSecret;
+  $myOnetime->setRecipient('delano@onetimesecret.com');
+  $myOnetime->setTTL(7200);
+  $myOnetime->setCustomerID('chris@onetimesecret.com');
+  $myOnetime->setToken('4dc74449d8327acf98428f02be5e618bffd38e41');
+  print $myOnetime->getSecretURI($myOnetime->shareSecret("It is fun to send secrets via the API. Don't you agree?", 'thepassword'));
+  print "\n\n";
+?>
+[chris@mafalda ~]$ php create_onetime_secret.php 
+https://onetimesecret.com/secret/omncoysx3c3irrebz4gfpkx2of9t31b
+
+
+
 
 ## Opportunities
 

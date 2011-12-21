@@ -1,5 +1,4 @@
 <?php
-
   include('onetimesecret-api.php');
   $myOnetime = new OneTimeSecret;
   $myOnetime->setRecipient('delano@onetimesecret.com');
