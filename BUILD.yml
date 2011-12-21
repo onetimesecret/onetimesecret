@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324430322
+:STAMP: 1324431647
 :PATCH: 1
 :OWNER: delano
-:BUILD: "012"
-:STORY: Added secret value to generate JSON response in the API
+:BUILD: "013"
+:STORY: "[no message]"
