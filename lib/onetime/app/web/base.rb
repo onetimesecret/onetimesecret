@@ -36,7 +36,7 @@ module Onetime
         sess.referrer ||= req.referrer
       end
       
-      def handle_form_error ex
+      def handle_form_error ex, redirect
         sess.set_form_fields ex.form_fields
         sess.set_error_message ex.message
         res.redirect redirect

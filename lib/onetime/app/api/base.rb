@@ -49,12 +49,12 @@ class Onetime::App
         res.body = hsh.to_json
       end
       
-      def handle_form_error ex
+      def handle_form_error ex, redirect
         error_response ex.message
       end
       
       def secret_not_found_response
-        not_found_response "Unknown secret", :key => req.params[:key]
+        not_found_response "Unknown secret", :secret_key => req.params[:key]
       end
       
       def not_found_response msg, hsh={}

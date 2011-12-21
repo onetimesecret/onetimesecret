@@ -12,7 +12,7 @@
 RDBFILE=/var/lib/redis/dump.rdb
 
 # Config component for s3cmd (we need to create a new bucket)
-BUCKET=blamestella
+BUCKET=solutious-onetime
 
 # Used to stamp this particular backup
 NOWSTAMP=`date '+%F-%T'`

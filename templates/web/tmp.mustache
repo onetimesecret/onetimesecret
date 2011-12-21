@@ -32,7 +32,7 @@
         <strong>Attributes</strong>
         <ul>
           <li><span class="name">custid</span>: this is you :]</li>
-          <li><span class="name">key</span>: the unique key for the metadata. DO NOT share this.</li>
+          <li><span class="name">metadata_key</span>: the unique key for the metadata. DO NOT share this.</li>
           <li><span class="name">secret_key</span>: the unique key for the secret you create. This is key that you can share.</li>
           <li><span class="name">ttl</span>: The time-to-live that was specified (i.e. not the time remaining)</li>
           <li><span class="name">realttl</span>: <em>TBD</em></li>
@@ -77,17 +77,48 @@
   "updated":"1324174095",
   "created":"1324174095"
 }</pre>
-
+  
       <p></p>
-
+      
       <div class="options">
         <strong>Attributes</strong><br/>
         <em>Same as Share A Secret above</em>
       </div>
-
-
-      <p></p>
-
+      
+      
+      <h3 class="cufon docTitle dotted">Retrieve a Secret</h3>
+      <span class="docSubtext">POST {{baseuri}}/api/v1/secret/:key</span>
+      
+      <p>
+        
+      </p>
+      
+      <div class="options">
+        <strong>Query Params</strong>
+        <ul>
+          <li><span class="name">key</span>: the unique key for this secret.</li>
+          <li><span class="name">passphrase</span> (if required): the passphrase is required only if the secret was create with one.</li>
+        </ul>
+      </div>
+      
+      <div class="options">
+        <strong>Attributes</strong>
+        <ul>
+          <li><span class="name">custid</span>: this is you :]</li>
+          <li><span class="name">metadata_key</span>: the unique key for the metadata. DO NOT share this.</li>
+          <li><span class="name">secret_key</span>: the unique key for the secret you create. This is key that you can share.</li>
+          <li><span class="name">ttl</span>: The time-to-live that was specified (i.e. not the time remaining)</li>
+          <li><span class="name">realttl</span>: <em>TBD</em></li>
+          <li><span class="name">created</span>: Time the secret was created in unix time (UTC)</li>
+          <li><span class="name">updated</span>: ditto, but the time it was last updated.</li>
+        </ul>
+      </div>
+      
+      <strong>Example:</strong>
+      
+      <pre class="colourize">$ curl -u 'USERNAME:APITOKEN' -F 'secret=[SECRET]' {{baseuri}}/api/v1/share</pre>
+      
+      
       <br/><br/><br/>
     </div>
   </div>
