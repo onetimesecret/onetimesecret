@@ -1,1 +1,56 @@
-{{>tmp}}
+{{>header}}
+
+<div id="content">
+  <div id="documentation">
+    <h2 class="intro">Client Libraries</h2>
+    
+    <p><em class="msg">BETA API - updated 2011-12-21 (<a href="#feedback">Have a question?</a>)</em></p>
+    
+    <ul id="docnav">
+      <li class=""><a href="/docs/api" title="">Overview</a></li>
+      <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
+      <li class="selected"><a href="/docs/api/libs" title="">Client Libraries</a></li>
+    </ul>
+
+    <div id="topicContent">
+      
+      <h3 class="cufon docTitle dotted">PHP</h3>
+      
+      <a href="/libs/onetime-api.php" title="PHP library - One-Time Secret">Download onetime-api.php</a>
+      
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+&lt;?php
+  include('onetimesecret-api.php');
+  $myOnetime = new OneTimeSecret;
+  $myOnetime->setCustomerID('chris@onetimesecret.com');
+  $myOnetime->setToken('4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181');
+  $myOnetime->setRecipient('delano@onetimesecret.com');
+  $myOnetime->setTTL(7200);
+  $myResult = $myOnetime->shareSecret('Jazz, jazz and more jazz.', 'thepassword'));
+  print $myOnetime->getSecretURI($myResult);
+?&gt;
+      </pre>
+      
+      <h3 class="cufon docTitle dotted">Ruby</h3>
+      
+      <a href="/libs/onetime-api.rb" title="Ruby library - One-Time Secret">Download onetime-api.rb</a>
+      
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+require 'onetime-api'
+api = Onetime::API.new 'chris@onetimesecret.com', '4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181'
+options = {
+  :secret => 'Jazz, jazz and more jazz.',
+  :recipient => 'delano@onetimesecret.com',
+  :ttl => 7200
+}
+ret = api.post '/share', options
+puts ret['secret_key']
+      </pre>
+      
+    </div>
+  </div>
+</div>
+
+{{>footer}}
