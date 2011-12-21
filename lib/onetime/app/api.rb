@@ -47,8 +47,8 @@ class Onetime::App
         logic.raise_concerns
         logic.process
         if logic.show_secret
-          json :secret => logic.secret_value, :secret_key => req.params[:key]
-          logic.secret.destroy!
+          json :value => logic.secret_value, :secret_key => req.params[:key]
+          logic.secret.viewed!
         else
           secret_not_found_response
         end
@@ -79,7 +79,7 @@ class Onetime::App
         :metadata_key => hsh['key'],
         :secret_key => hsh['secret_key'],
         :ttl => hsh['ttl'].to_i,
-        :state => hsh['state'],
+        :state => hsh['state'] || 'new',
         :updated => hsh['updated'],
         :created => hsh['created']
       }
