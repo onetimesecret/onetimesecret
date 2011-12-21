@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324456139
+:STAMP: 1324456406
 :PATCH: 1
 :OWNER: delano
-:BUILD: "016"
-:STORY: Minor docs fixes; added beta api notice
+:BUILD: "017"
+:STORY: Footer update
