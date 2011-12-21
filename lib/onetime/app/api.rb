@@ -35,7 +35,7 @@ class Onetime::App
         if req.get?
           res.redirect app_path(logic.redirect_uri)
         else
-          json metadata_hsh(logic.metadata, :with_secret => true)
+          json metadata_hsh(logic.metadata, :value => logic.secret_value)
         end
       end
     end
@@ -61,7 +61,9 @@ class Onetime::App
         logic.raise_concerns
         logic.process
         if logic.show_secret
-          json metadata_hsh(logic.metadata, :with_secret => true)
+          secret = md.load_secret
+          secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
+          json metadata_hsh(logic.metadata, :value => secret_value)
           logic.metadata.delete :secret_key
         else
           json metadata_hsh(logic.metadata)
@@ -70,7 +72,7 @@ class Onetime::App
     end
     
     private
-    def metadata_hsh md, opts={:with_secret => false}
+    def metadata_hsh md, opts={}
       hsh = md.all
       ret = {
         :custid => hsh['custid'],
@@ -82,10 +84,7 @@ class Onetime::App
         :created => hsh['created']
       }
       ret[:shared] = hsh['shared'] if hsh['state'].to_s == 'shared'
-      if opts[:with_secret]
-        secret = md.load_secret
-        ret[:value] = secret.decrypted_value if secret.can_decrypt?
-      end
+      ret[:value] = opts[:value] if opts[:value]
       ret
     end
           

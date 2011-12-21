@@ -9,3 +9,4 @@ GET    /v1/generate                             Onetime::App::API#generate
        
 POST   /v1/secret/:key                          Onetime::App::API#show_secret
 POST   /v1/private/:key                         Onetime::App::API#show_metadata
+POST   /v1/metadata/:key                         Onetime::App::API#show_metadata
