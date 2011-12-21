@@ -42,7 +42,7 @@ module Onetime
         self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
         self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
         # NOTE: uncomment the following line to show the broadcast
-        #self[:with_broadcast] = ! self[:authenticated]
+        self[:with_broadcast] = ! self[:authenticated]
         if Onetime.conf[:site][:cobranded]
           self[:display_faq] = false
           self[:override_styles] = true
@@ -366,7 +366,7 @@ module Onetime
           self[:body_class] = :info
           self[:monitored_link] = true
           self[:with_analytics] = true
-          self[:with_broadcast] = false
+          self[:with_broadcast] = false 
         end
       end
       class PasswordGenerator < Onetime::App::View
