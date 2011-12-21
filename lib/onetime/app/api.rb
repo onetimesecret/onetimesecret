@@ -50,7 +50,7 @@ class Onetime::App
           json :secret => logic.secret_value, :secret_key => req.params[:key]
           logic.secret.destroy!
         else
-          not_found :msg => 'Unknown secret', :secret_key => req.params[:key]
+          secret_not_found_response
         end
       end
     end
