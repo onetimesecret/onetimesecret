@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324419128
+:STAMP: 1324430322
 :PATCH: 1
 :OWNER: delano
-:BUILD: "011"
-:STORY: public/web/img/
+:BUILD: "012"
+:STORY: Added secret value to generate JSON response in the API
