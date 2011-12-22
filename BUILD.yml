@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324590539
+:STAMP: 1324590816
 :PATCH: 1
 :OWNER: delano
-:BUILD: "024"
-:STORY: Restore last expiration; auto-focus to secret input; remove ui-widget ui-corner-all from most form elements
+:BUILD: "025"
+:STORY: "[no message]"
