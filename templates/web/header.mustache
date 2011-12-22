@@ -20,7 +20,7 @@
   <meta name="description" content="{{description}}">
   <meta name="keywords" content="{{keywords}}">
   <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" media="screen" rel="Stylesheet" type="text/css">
-  <link href="/app/common.css" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="/app/common.css?{{ot_version_id}}" media="screen" rel="Stylesheet" type="text/css" />
   {{#css}}
   <link href="{{to_s}}" media="screen" rel="Stylesheet" type="text/css" />
   {{/css}}
@@ -30,10 +30,10 @@
   {{/jsvars}}
   </script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type="text/javascript"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type="text/javascript"></script>
   <script src="/etc/jquery-cookie.js" type="text/javascript"></script>
   <script src="/etc/mustache.js" type="text/javascript"></script>
-  <script src="/app/common.js" type="text/javascript"></script>
+  <script src="/app/common.js?{{ot_version_id}}" type="text/javascript"></script>
   {{#js}}
   <script src="{{to_s}}" type="text/javascript"></script>
   {{/js}}
