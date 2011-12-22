@@ -28,7 +28,8 @@ def run
     log cmd
     `#{cmd}` && (deleted_count+=1) unless TESTMODE
   end
-  STDERR.puts "Deleted %d backups" % deleted_count
+  msg = "Deleted %d backups" % deleted_count
+  STDERR.ttl? ? STDERR.puts(msg) : log(msg)
 end
 
 begin
