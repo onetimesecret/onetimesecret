@@ -4,8 +4,8 @@
 KEEPERS=8
 BUCKET='solutious-onetime'
 S3CMD='/usr/bin/s3cmd'
-TESTMODE=true
-HOSTNAME=`hostname`.chomp
+TESTMODE=false
+HOSTNAME=`hostname`.chomp.gsub(/[^0-9a-z\.\-\_]/i, '')
 
 ## DO NOT MODIFY BELOW THIS LINE (UNLESS YOU'RE A COOL WEIGHT-LIFTER)
 require 'syslog'
@@ -14,15 +14,21 @@ def log msg
   TESTMODE ? STDERR.puts(msg) : SYSLOG.info(msg)
 end
 def run
-  all_backups = TESTMODE ? File.readlines(DATA) : `#{S3CMD} ls s3://#{BUCKET}/#{HOSTNAME}`.split($/)
+  cmd = "#{S3CMD} ls s3://#{BUCKET}/#{HOSTNAME}/"
+  log "Running #{cmd}" 
+  log "THIS IS TESTMODE. FILES WILL NOT BE DELETED." if TESTMODE
+  all_backups = TESTMODE ? File.readlines(DATA) : `#{cmd}`.split($/)
   stale_backups = all_backups[0..-(KEEPERS+1)] # should be 1 or 2 stale backups every time
   log "%d backups, %d stale" % [all_backups.size, stale_backups.size]
+  deleted_count = 0
   stale_backups.each do |line|
     next unless line.match(/^\d/)
     date, time, size, name = *line.chomp.split(/\s+/)
     cmd = "#{S3CMD} del #{name}"
-    TESTMODE ? log(cmd) : `#{cmd}`
+    log cmd
+    `#{cmd}` && (deleted_count+=1) unless TESTMODE
   end
+  STDERR.puts "Deleted %d backups" % deleted_count
 end
 
 begin
