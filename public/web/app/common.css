@@ -238,6 +238,11 @@ input[type=submit] {
 
 .option {
   margin-bottom:10px;
+  margin-right: 20px;
+}
+
+.option .label {
+  margin-right: 20px;
 }
 
 #fire button{width:280px; margin-top: 10px}
@@ -453,12 +458,9 @@ table.pricing tr.pricinglastrow td {
   color: #999; float: left; padding-left: 8px
 }
 
-.sliderParent {}
-
 #ttlslider {
   display:inline-block;
   width:320px;
-  margin-left:20px;
   margin-right:20px;
 }
 
