@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324588961
+:STAMP: 1324590539
 :PATCH: 1
 :OWNER: delano
-:BUILD: "023"
-:STORY: Add version id to css/js; fix call to http javascript
+:BUILD: "024"
+:STORY: Restore last expiration; auto-focus to secret input; remove ui-widget ui-corner-all from most form elements
