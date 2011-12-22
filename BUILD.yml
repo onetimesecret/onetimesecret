@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324520710
+:STAMP: 1324588738
 :PATCH: 1
 :OWNER: delano
-:BUILD: "021"
-:STORY: "[no message]"
+:BUILD: "022"
+:STORY: Replace expiration dropdown with slider
