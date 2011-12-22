@@ -100,34 +100,42 @@ module Onetime
         unless form_fields
         end
       end
-      def expiration_options
-        selected = (!sess || !sess.authenticated?) ? 2.days : 7.days
-        disabled = (!sess || !sess.authenticated?) ? 2.days : plan.options[:ttl]
-        options = [
-          [1.hour, "1 hour"],
-          [4.hour, "4 hours"],
-          [12.hour, "12 hours"],
-          [1.days, "1 day"],
-          [2.days, "2 days"],
-          [7.days, "7 days"],
-          [14.days, "14 days"],
-          [30.days, "30 days"],
-          [60.days, "2 months"],
-          [90.days, "3 months"]
-        ].inspect
-        #options.collect do |option|
-        # { 
-        #    :value => option[0].to_i, 
-        #    :text => option[1], 
-        #    :selected => option[0] == selected,
-        #    :disabled => option[0] > disabled
-        #  }
-        #end
-      end
     end
   
     module Views
+      module CreateSecretElements
+        def default_expiration
+          option_count = expiration_options.size
+          self[:authenticated] ? (option_count)/2 : option_count-1
+        end
+        def expiration_options
+          if @expiration_options.nil?
+            selected = (!sess || !sess.authenticated?) ? 2.days : 7.days
+            disabled = (!sess || !sess.authenticated?) ? 2.days : plan.options[:ttl]
+            @expiration_options = [
+              [1.hour, "1 hour"],
+              [4.hour, "4 hours"],
+              [12.hour, "12 hours"],
+              [1.days, "1 day"],
+              [2.days, "2 days"],
+            ]
+            if self[:authenticated]
+              @expiration_options << [7.days, "7 days"]
+              @expiration_options << [14.days, "14 days"]
+              @expiration_options << [30.days, "30 days"]
+              if plan.options[:ttl] > 30.days
+                @expiration_options.push *[
+                  [60.days, "2 months"],
+                  [90.days, "3 months"]
+                ]
+              end
+            end
+          end
+          @expiration_options
+        end
+      end
       class Homepage < Onetime::App::View
+        include CreateSecretElements
         def init *args
           self[:title] = "Share a secret"
           self[:monitored_link] = true
@@ -321,6 +329,7 @@ module Onetime
         def plan4;  self[@plans[3].to_s]; end
       end
       class Dashboard < Onetime::App::View
+        include CreateSecretElements
         def init 
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
