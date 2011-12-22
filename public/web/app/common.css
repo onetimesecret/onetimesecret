@@ -447,3 +447,53 @@ table.pricing tr.pricinglastrow td {
 #footer .label {
   color: #999; float: left; padding-left: 8px
 }
+
+
+/**
+ * Dragdealer JS v0.9.5
+ * http://code.ovidiu.ch/dragdealer-js
+ *
+ * Copyright (c) 2010, Ovidiu Chereches
+ * MIT License
+ * http://legal.ovidiu.ch/licenses/MIT
+ */
+
+.dragdealer {
+	position: relative;
+	height: 30px;
+	background: #EEE;
+}
+.dragdealer .handle {
+	position: absolute;
+	cursor: pointer;
+}
+.dragdealer .red-bar {
+	width: 100px;
+	height: 30px;
+	background: #CC0000;
+	color: #FFF;
+	line-height: 30px;
+	text-align: center;
+}
+.dragdealer .disabled {
+	background: #898989;
+}
+
+.sliderParent {font-size: 14px;font-family: georgia;}
+
+#ttlslider {
+  display:inline-block;
+  width:320px;
+  margin-left:20px;
+  margin-right:20px;
+}
+
+#ttlslider span {
+  float: right;
+  font-family: georgia;
+
+}
+
+.option {
+  margin-bottom:10px;
+}

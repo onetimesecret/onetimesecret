@@ -114,15 +114,15 @@ module Onetime
           [30.days, "30 days"],
           [60.days, "2 months"],
           [90.days, "3 months"]
-        ]
-        options.collect do |option|
-          { 
-            :value => option[0].to_i, 
-            :text => option[1], 
-            :selected => option[0] == selected,
-            :disabled => option[0] > disabled
-          }
-        end
+        ].inspect
+        #options.collect do |option|
+        # { 
+        #    :value => option[0].to_i, 
+        #    :text => option[1], 
+        #    :selected => option[0] == selected,
+        #    :disabled => option[0] > disabled
+        #  }
+        #end
       end
     end
   
