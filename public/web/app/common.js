@@ -38,8 +38,7 @@ $(function() {
   $('.email').deobfuscate();
   $('#optionsToggle').click(function(){
     $('#options').toggle();
-    var displayed = $('#options').css('display') == 'block'
-    $.cookie("display_options", displayed);
+    $.cookie("display_options", $('#options').css('display') == 'block');
   });
   if ($.cookie("display_options") == "true") {
     $('#options').toggle();

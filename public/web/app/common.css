@@ -188,7 +188,7 @@ input.long { width:380px; }
   font-weight: bolder;
 }
 
-.secretValue {width: 550px; font-size: 16px; line-height: 16px; padding: 6px; border: 1px solid #000; clear: both}
+.secretValue {width: 550px; font-size: 16px; line-height: 16px; padding: 6px; border: 1px solid #000; clear: both;}
 
 .tagline { width: 100%; text-align: center; font-style: italic; color: #999; margin-top: 20px;
 }
