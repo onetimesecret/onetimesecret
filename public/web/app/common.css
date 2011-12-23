@@ -468,6 +468,15 @@ table.pricing tr.pricinglastrow td {
   font-weight: bold;
 }
 
+#viewsslider {
+  display:inline-block;
+  width:320px;
+  margin-right:20px;
+}
 
+#viewsslider-value {
+  font-weight: bold;
+}
 
+a.ui-slider-handle:hover { color: red}
 .ui-slider-horizontal .ui-state-default {background-color: #999; border: 2px solid #999}
