@@ -32,6 +32,7 @@ $(function() {
 // COMMON BEHAVIORS
 $(function() {  
   $('input.clearDefault').clearDefault();
+  $('#secreturi').select();
   $(".selectable").click(function(){
     this.select();
   });
