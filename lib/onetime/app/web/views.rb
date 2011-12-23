@@ -227,8 +227,7 @@ module Onetime
           secret = metadata.load_secret
           unless secret.nil?
             self[:secret_key] = secret.key
-            self[:show_passphrase] = !secret.passphrase_temp.to_s.empty?
-            self[:passphrase_temp] = secret.passphrase_temp
+            self[:has_passphrase] = !secret.passphrase.to_s.empty? 
             self[:secret_value] = secret.decrypted_value if secret.can_decrypt?
             self[:can_decrypt] = secret.can_decrypt?
             self[:truncated] = secret.truncated

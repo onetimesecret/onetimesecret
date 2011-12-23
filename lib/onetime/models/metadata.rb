@@ -13,7 +13,6 @@ module Onetime
     #field :viewed => Integer
     #field :shared => Integer
     attr_reader :entropy
-    attr_accessor :passphrase_temp
     gibbler :custid, :secret_key, :entropy
     def initialize custid=nil, entropy=[]
       @custid, @entropy, @state = custid, entropy, :new
