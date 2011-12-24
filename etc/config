@@ -24,16 +24,13 @@
   :failed_passphrase: 5
 :split_tests:
   :initial_pricing:
-    - - anonymous
-      - personal_v1
+    - - basic_v1
       - professional_v1
       - agency_v1
-    - - anonymous
-      - personal_v2
+    - - basic_v1
       - professional_v2
       - agency_v1
-    - - anonymous
-      - personal_v3
+    - - basic_v1
       - professional_v2
       - agency_v2
 :redis:
