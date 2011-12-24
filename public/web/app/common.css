@@ -36,9 +36,8 @@ a {
 
 
 form.signup {
-  width: 600px;
   clear:both;
-  margin-left: 40px;
+  margin-left: 20px;
 }
 form.signup div {  
   background-color: #eee;
@@ -335,10 +334,10 @@ table.pricing td.pricingheader {
 }
 
 table.pricing tr.blankrow td.bestvalue {
-  border-top-left-radius: 15px;
-  -moz-border-radius-topleft: 15px;
-  border-top-right-radius: 15px;
-  -moz-border-radius-topright: 15px;
+  border-top-left-radius: 5px;
+  -moz-border-radius-topleft: 5px;
+  border-top-right-radius: 5px;
+  -moz-border-radius-topright: 5px;
   font-weight: bold;
   text-align: center;
 }
@@ -397,14 +396,14 @@ table.pricing {
 
 td.topleft {
   border-left: 2px solid black !important;
-  border-top-left-radius: 15px;
-  -moz-border-radius-topleft: 15px;
+  border-top-left-radius: 5px;
+  -moz-border-radius-topleft: 5px;
 }
 
 td.topright {
   border-right: 2px solid black !important;
-  border-top-right-radius: 15px;
-  -moz-border-radius-topright: 15px;
+  border-top-right-radius: 5px;
+  -moz-border-radius-topright: 5px;
 }
 
 table.pricing tr.pricingeven {
@@ -480,3 +479,29 @@ table.pricing tr.pricinglastrow td {
 
 a.ui-slider-handle:hover { color: red}
 .ui-slider-horizontal .ui-state-default {background-color: #999; border: 2px solid #999}
+
+#tabs {
+	background: transparent;
+	border: none;
+	font-family: georgia;
+}
+#tabs .ui-widget-header {
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid #c0c0c0;
+}
+#tabs .ui-state-default {
+	background: transparent;
+	border: none;
+}
+#tabs .ui-state-active {
+	background: transparent url(/img/uiTabsArrow.png) no-repeat bottom center;
+	border: none;
+}
+#tabs .ui-state-default a {
+	color: #999;
+}
+#tabs .ui-state-active a {
+	color: #000;
+	font-weight: bold;
+}
