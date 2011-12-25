@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324795642
+:STAMP: 1324838790
 :PATCH: 2
 :OWNER: delano
-:BUILD: "001"
-:STORY: Create secret is now via /create which does not redirect to the private URI
+:BUILD: "002"
+:STORY: Run thin on a socket w/ two instances (requires ngxinx config update); updated maintenance page
