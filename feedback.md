@@ -1,5 +1,10 @@
 # FEEDBACK #
 
+
+## Dec 24th ##
+
+* Delano: offer a verification feature which presents someone with N pre-determined questions. Respond with a webhook, success of failure with the number of tries.
+
 http://foundation.zurb.com/docs/ui.php
 
 ## Dec 16th ##
