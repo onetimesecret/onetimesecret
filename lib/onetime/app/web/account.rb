@@ -25,6 +25,14 @@ module Onetime
       end
     end
     
+    def business_pricing
+      publically do
+        view = Onetime::App::Views::Pricing.new req, sess, cust
+        view[:business] = true
+        res.body = view.render
+      end
+    end
+    
     def create_account
       publically("/signup/#{req.params[:planid]}") do
         deny_agents! 

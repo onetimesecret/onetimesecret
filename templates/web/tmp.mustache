@@ -16,8 +16,14 @@
     
     <div id="tabs">
       <ul>
+        {{#business}}
+        <li><a href="#business"><strong>For Business</strong></a></li>
+        <li><a href="#individuals"><strong>For Individuals</strong></a></li>
+        {{/business}}
+        {{^business}}
         <li><a href="#individuals"><strong>For Individuals</strong></a></li>
         <li><a href="#business"><strong>For Business</strong> <img src="/img/new.png" /></a></li>
+        {{/business}}
       </ul>
       <div id="individuals">
         <p class="smaller">The {{individual_plan.name}} plan is <strong class="hilite">free</strong>. You get:</p>
