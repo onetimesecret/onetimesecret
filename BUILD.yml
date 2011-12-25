@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1324838790
+:STAMP: 1324847640
 :PATCH: 2
 :OWNER: delano
-:BUILD: "002"
-:STORY: Run thin on a socket w/ two instances (requires ngxinx config update); updated maintenance page
+:BUILD: "003"
+:STORY: Fix for login:as
