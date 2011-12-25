@@ -17,23 +17,20 @@
     <div id="tabs">
       <ul>
         <li><a href="#individuals">For Individuals</a></li>
-        <li><a href="#business">For Business</a></li>
+        <li><a href="#business">For Business <img src="/img/new.png" /></a></li>
       </ul>
       <div id="individuals">
         <p class="smaller">The {{individual_plan.name}} plan is <strong class="hilite">free</strong>. You get:</p>
         <ul class="smaller">
-          <li>secrets that last for up to <span class="">{{individual_plan.ttl}} days</span>.</li>
-          <li>ability to send secret links via <span class="">email</span>.</li>
-          {{#individual_plan.api}}<li>access to the <span class="">API</span>.</li>{{/individual_plan.api}}
+          <li>secrets that last for up to <span class="hilite2">{{individual_plan.ttl}} days</span>.</li>
+          <li>ability to send secret links via <span class="hilite2">email</span>.</li>
+          {{#individual_plan.api}}<li>access to the <span class="hilite2">API</span>.</li>{{/individual_plan.api}}
         </ul>
         
         {{>partial/signup_form_basic}}
       </div>
       <div id="business">
-        
-        <p class=""><em> Sign up during the beta to lock in your discount! </em></p>
         <hr/>
-        
         <table cellpadding="0" cellspacing="0" class="pricing">
           <tr class="blankrow">
             <td></td>

@@ -71,8 +71,8 @@ module Onetime
           add_message sess.info_message!
           add_form_fields sess.get_form_fields!
         end
-        @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
-        @plan ||= Onetime::Plan.plans['anonymous']
+        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
+        @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
         init *args if respond_to? :init
       end
@@ -263,7 +263,7 @@ module Onetime
           self[:with_analytics] = true
           if OT::Plan.plan?(req.params[:planid])
             self[:planid] = req.params[:planid]
-            plan = OT::Plan.plans[req.params[:planid]]
+            plan = OT::Plan.plan(req.params[:planid])
             self[:plan] = {
               :price => plan.price.zero? ? 'Free' : plan.calculated_price,
               :original_price => plan.price.to_i,
@@ -291,7 +291,7 @@ module Onetime
           self[:monitored_link] = true
           self[:with_analytics] = true
           Onetime::Plan.plans.each_pair do |planid,plan|
-            self[planid.to_s] = {
+            self[plan.plansid] = {
               :price => plan.price.zero? ? 'Free' : plan.calculated_price,
               :original_price => plan.price.to_i,
               :ttl => plan.options[:ttl].in_days.to_i,
@@ -300,7 +300,7 @@ module Onetime
               :name => plan.options[:name],
               :planid => planid
             }
-            self[planid.to_s][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
+            self[plan.plansid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
           end
           if self[:via_test] || self[:via_hn]
             @plans = [:personal_hn, :professional_v1, :agency_v1]

@@ -23,8 +23,8 @@ class Onetime::App
     end
     
     def plan
-      @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
-      @plan ||= Onetime::Plan.plans['anonymous']
+      @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
+      @plan ||= Onetime::Plan.plan('anonymous')
       @plan
     end
     
