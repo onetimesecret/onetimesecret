@@ -35,6 +35,24 @@ module Onetime
       @age ||= Time.now.utc.to_i-updated
       @age
     end
+    def deliver_by_email cust, secret, eaddrs
+      if eaddrs.nil? || eaddrs.empty?
+        OT.info "[deliver-by-email] No addresses specified"
+      end
+      eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
+      eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
+      self.recipients = eaddrs_safe.join(', ')
+      eaddrs.each do |email_address|
+        view = OT::Email::SecretLink.new cust, secret, email_address
+        ret = view.deliver_email
+        if ret.code == 200
+          cust.incr :emails_sent
+          OT::Customer.global.incr :emails_sent
+        else
+          OT.info "Error sending email: #{ret}"
+        end
+      end
+    end
     def older_than? seconds
       age > seconds
     end

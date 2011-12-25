@@ -303,17 +303,7 @@ module Onetime
           cust.incr :secrets_created
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.recipients = recipient_safe.join(', ')
-            recipient.each do |eaddr|
-              view = OT::Email::SecretLink.new cust, secret, eaddr
-              ret = view.deliver_email
-              if ret.code == 200
-                cust.incr :emails_sent
-                OT::Customer.global.incr :emails_sent
-              else
-                OT.info "Error sending email: #{ret}"
-              end
-            end
+            metadata.deliver_by_email cust, secret, recipient
           end
         else
           raise_form_error "Could not store your secret" 
