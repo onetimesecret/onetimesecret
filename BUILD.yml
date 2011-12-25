@@ -2,7 +2,7 @@
 :MAJOR: 0
 :MINOR: 7
 :STAMP: 1324795609
-:PATCH: 1
+:PATCH: 2
 :OWNER: delano
-:BUILD: "031"
+:BUILD: "000"
 :STORY: Create secret is now via /create which does not redirect to the private URI
