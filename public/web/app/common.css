@@ -3,7 +3,7 @@ h1 { font-size: 16px; } /* Font Name: Graceful, Serifcap */
 h1 a { text-decoration: none; color: #000}
 hr {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1em;border:none;}
 #header {
-  margin-bottom: 40px;
+  margin-bottom: 0px;
   width: 620px;
   
 }
@@ -438,7 +438,8 @@ table.pricing tr.pricinglastrow td {
 .larger { font-size: 120%; }
 .centre { text-align: center }
 .italic { font-style: italic }
-
+#content p.narrow, .narrow { width: 80% }
+  
 .socialicon {
   padding-right: 8px;
 }
@@ -481,27 +482,26 @@ a.ui-slider-handle:hover { color: red}
 .ui-slider-horizontal .ui-state-default {background-color: #999; border: 2px solid #999}
 
 #tabs {
-	background: transparent;
-	border: none;
-	font-family: georgia;
+  background: transparent;
+  border: none;
+  font-family: georgia;
 }
 #tabs .ui-widget-header {
-	background: transparent;
-	border: none;
-	border-bottom: 1px solid #c0c0c0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #c0c0c0;
 }
 #tabs .ui-state-default {
-	background: transparent;
-	border: none;
+  background: transparent;
+  border: none;
 }
 #tabs .ui-state-active {
-	background: transparent url(/img/uiTabsArrow.png) no-repeat bottom center;
-	border: none;
+  background: transparent url(/img/uiTabsArrow.png) no-repeat bottom center;
+  border: none;
 }
 #tabs .ui-state-default a {
-	color: #999;
+  color: #999;
 }
 #tabs .ui-state-active a {
-	color: #000;
-	font-weight: bold;
+  color: #000;
 }

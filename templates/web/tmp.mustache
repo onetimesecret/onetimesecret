@@ -2,7 +2,6 @@
 {{>header}}
 
   <div id="content">
-    
     {{#via_hn}}
     <p class="msg">HN special: The personal plan is free!</p>
     {{/via_hn}}
@@ -21,11 +20,11 @@
         <li><a href="#business">For Business</a></li>
       </ul>
       <div id="individuals">
-        <p class="smaller">The {{individual_plan.name}} plan is <strong class="hilite2">free</strong>. You get:</p>
+        <p class="smaller">The {{individual_plan.name}} plan is <strong class="hilite">free</strong>. You get:</p>
         <ul class="smaller">
-          <li>secrets that last for up to <span class="hilite2">{{individual_plan.ttl}} days</span>.</li>
-          <li>ability to send secret links via <span class="hilite2">email</span>.</li>
-          {{#individual_plan.api}}<li>access to the <span class="hilite2">API</span>.</li>{{/individual_plan.api}}
+          <li>secrets that last for up to <span class="">{{individual_plan.ttl}} days</span>.</li>
+          <li>ability to send secret links via <span class="">email</span>.</li>
+          {{#individual_plan.api}}<li>access to the <span class="">API</span>.</li>{{/individual_plan.api}}
         </ul>
         
         {{>partial/signup_form_basic}}
@@ -54,14 +53,14 @@
               {{#plan1.price_adjustment}}<span class="strikethrough lighter">${{plan1.original_price}}</span> ${{plan1.price}}{{/plan1.price_adjustment}}
               {{^plan1.price_adjustment}}${{plan1.price}}{{/plan1.price_adjustment}}
             </a></td>
-            <td><a href="/signup/{{plan2.planid}}" title="Create an {{plan2.name}} account"><span class="strikethrough lighter">${{plan2.original_price}}</span> ${{plan2.price}}</a></td>
+            <td class="bestvalue"><a href="/signup/{{plan2.planid}}" title="Create an {{plan2.name}} account"><span class="strikethrough lighter">${{plan2.original_price}}</span> ${{plan2.price}}</a></td>
             <td class="lastcolumn"><a href="/signup/{{plan3.planid}}" title="Create an {{plan3.name}} account"><span class="strikethrough lighter">${{plan3.original_price}}</span> ${{plan3.price}}</a></td>
           </tr>
           <tr class="pricingeven">
             <td class="pricingfeature">Domain</td>
             <td>onetimesecret.com</td>
             <td class="bestvalue">yourcompany.onetimesecret.com</td>
-            <td class="lastcolumn">secrets.yourcompany.com</td>
+            <td class="lastcolumn">ots.yourcompany.com</td>
           </tr>
           <tr class="pricingodd">
             <td class="pricingfeature">Instance</td>
@@ -124,17 +123,17 @@
         </table>
         <hr />
         
-        <p class="smaller centre lighter">All business plans come with API access, deliver unlimited secret links via email, and secrets that live up to 30 days.</p>
+        <p class="smaller lighter narrow" style="text-align: center">All paid plans come with API access, deliver unlimited secret links via email, and secrets that live up to 30 days.</p>
         
       </div>
+    
+      <p class="intro2 centre">Need even more control? <a href="mailto:custom@onetimesecret.com">Contact us</a> for a custom install.</p>
     </div>
     <script>
     $(function() {
       $( "#tabs" ).tabs();
     });
     </script>
-    
-    <p class="intro2 centre">Need even more control? <a href="mailto:custom@onetimesecret.com">Contact us</a> for a custom install.</p>
     
   </div>
   
