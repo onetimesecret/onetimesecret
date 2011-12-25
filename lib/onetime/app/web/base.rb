@@ -32,6 +32,8 @@ module Onetime
       end
       
       def check_referrer!
+        return if @check_referrer_ran
+        @check_referrer_ran = true
         return if req.referrer.match(Onetime.conf[:site][:host])
         sess.referrer ||= req.referrer
       end

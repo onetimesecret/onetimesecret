@@ -80,6 +80,8 @@ class Onetime::App
     end
     
     def check_shrimp!
+      return if @check_shrimp_ran
+      @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete?
       attempted_shrimp = req.params[:shrimp]
       ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
@@ -94,6 +96,8 @@ class Onetime::App
     end
     
     def check_session!
+      return if @check_session_ran
+      @check_session_ran = true
       if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
         @sess = OT::Session.load req.cookie(:sess)
       else
