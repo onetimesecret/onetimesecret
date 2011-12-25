@@ -482,27 +482,27 @@ table.pricing tr.pricinglastrow td {
 a.ui-slider-handle:hover { color: red}
 .ui-slider-horizontal .ui-state-default {background-color: #999; border: 2px solid #999}
 
-#tabs {
+#primaryTabs {
   background: transparent;
   border: none;
   font-family: georgia;
 }
-#tabs .ui-widget-header {
+#primaryTabs .ui-widget-header {
   background: transparent;
   border: none;
   border-bottom: 1px solid #c0c0c0;
 }
-#tabs .ui-state-default {
+#primaryTabs .ui-state-default {
   background: transparent;
   border: none;
 }
-#tabs .ui-state-active {
+#primaryTabs .ui-state-active {
   background: transparent url(/img/uiTabsArrow.png) no-repeat bottom center;
   border: none;
 }
-#tabs .ui-state-default a {
+#primaryTabs .ui-state-default a {
   color: #999;
 }
-#tabs .ui-state-active a {
+#primaryTabs .ui-state-active a {
   color: #000;
 }

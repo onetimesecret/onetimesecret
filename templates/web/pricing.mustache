@@ -1,1 +1,141 @@
-{{>tmp}}
+
+{{>header}}
+
+  <div id="content">
+    {{#via_hn}}
+    <p class="msg">HN special: The personal plan is free!</p>
+    {{/via_hn}}
+    
+    {{#via_test}}
+    <p class="msg">HN special: The personal plan is free!</p>
+    {{/via_test}}
+    
+    {{#via_reddit}}
+    <p class="msg">Reddit special: We got a free plan for you!</p>
+    {{/via_reddit}}
+    
+    <div id="primaryTabs">
+      <ul>
+        {{#business}}
+        <li><a href="#business"><strong>For Business</strong></a></li>
+        <li><a href="#individuals"><strong>For Individuals</strong></a></li>
+        {{/business}}
+        {{^business}}
+        <li><a href="#individuals"><strong>For Individuals</strong></a></li>
+        <li><a href="#business"><strong>For Business</strong> <img src="/img/new.png" /></a></li>
+        {{/business}}
+      </ul>
+      <div id="individuals">
+        <p class="smaller"><strong>The {{individual_plan.name}} plan is <span class="hilite">free</span>. You get:</strong></p>
+        <ul class="smaller">
+          <li>secrets that last for up to <span class="hilite2">{{individual_plan.ttl}} days</span>.</li>
+          <li>ability to send secret links via <span class="hilite2">email</span>.</li>
+          {{#individual_plan.api}}<li>access to the <a href="/docs/api" class="hilite2">API</a>.</li>{{/individual_plan.api}}
+        </ul>
+        
+        {{>partial/signup_form_basic}}
+        
+        <p class="bigger centre">We also do custom installs. <a href="mailto:custom@onetimesecret.com">Contact us</a>.</p>
+      </div>
+      <div id="business">
+        <hr/>
+        <table cellpadding="0" cellspacing="0" class="pricing">
+          <tr class="blankrow">
+            <td></td>
+            <td></td>
+            <td class="bestvalue">Best Value</td>
+            <td></td>
+          </tr>
+          <tr class="pricingheading">
+            <td class="blankcell"></td>
+            <td class="pricingheader topleft"><a href="/signup/{{plan1.planid}}" title="Create a {{plan1.name}} account">{{plan1.name}}</a></td>
+            <td class="pricingheader bestvalue"><a href="/signup/{{plan2.planid}}" title="Create a {{plan2.name}} account">{{plan2.name}}</a></td>
+            <td class="pricingheader topright"><a href="/signup/{{plan3.planid}}" title="Create a {{plan3.name}} account">{{plan3.name}}</a></td>
+          </tr>
+          <tr class="pricingodd prices">
+            <td class="pricingfeature"><strong>Per month</strong></td>
+            <td><a href="/signup/{{plan1.planid}}" title="Create a {{plan1.name}} account">
+              {{#plan1.price_adjustment}}<span class="strikethrough lighter">${{plan1.original_price}}</span> ${{plan1.price}}{{/plan1.price_adjustment}}
+              {{^plan1.price_adjustment}}${{plan1.price}}{{/plan1.price_adjustment}}
+            </a></td>
+            <td class="bestvalue"><a href="/signup/{{plan2.planid}}" title="Create an {{plan2.name}} account"><span class="strikethrough lighter">${{plan2.original_price}}</span> ${{plan2.price}}</a></td>
+            <td class="lastcolumn"><a href="/signup/{{plan3.planid}}" title="Create an {{plan3.name}} account"><span class="strikethrough lighter">${{plan3.original_price}}</span> ${{plan3.price}}</a></td>
+          </tr>
+          <tr class="pricingeven">
+            <td class="pricingfeature">Domain</td>
+            <td>onetimesecret.com</td>
+            <td class="bestvalue">yourcompany.onetimesecret.com</td>
+            <td class="lastcolumn">ots.yourcompany.com</td>
+          </tr>
+          <tr class="pricingodd">
+            <td class="pricingfeature">Instance</td>
+            <td>Multi-tenant </td>
+            <td class="bestvalue">Multi-tenant/CNAME</td>
+            <td class="lastcolumn">Private/A record</td>
+          </tr>
+          <!--
+          <tr class="pricingeven">
+            <td class="pricingfeature">Secret max TTL</td>
+            <td>{{plan1.ttl}} days</td>
+            <td class="bestvalue">{{plan2.ttl}} days</td>
+            <td class="lastcolumn">{{plan3.ttl}} days</td>
+          </tr>
+          <tr class="pricingodd">
+            <td class="pricingfeature">Secret max size</td>
+            <td>{{plan1.size}}KB</td>
+            <td class="bestvalue">{{plan2.size}}KB</td>
+            <td class="lastcolumn">{{plan3.size}}KB</td>
+          </tr>
+          <tr class="pricingodd">
+            <td class="pricingfeature">API access</td>
+            <td>{{plan1.api}}</td>
+            <td class="bestvalue">{{plan2.api}}</td>
+            <td class="lastcolumn">{{plan3.api}}</td>
+          </tr>
+          <tr class="pricingeven">
+            <td class="pricingfeature">Email recipient</td>
+            <td>Yes</td>
+            <td class="bestvalue">Yes</td>
+            <td class="lastcolumn">Yes</td>
+          </tr>
+          -->
+          {{!
+          <tr class="pricingeven">
+            <td class="pricingfeature">Max # of secrets</td>
+            <td>1k secrets</td>
+            <td class="bestvalue">5k secrets</td>
+            <td class="lastcolumn">25k secrets</td>
+          </tr>
+          <tr class="pricingodd">
+            <td class="pricingfeature">Email receipt</td>
+            <td>&#8208;&#8208;</td>
+            <td class="bestvalue">Yes</td>
+            <td class="lastcolumn">Yes</td>
+          </tr>
+          }}
+          <tr class="pricingeven pricinglastrow">
+            <td class="pricingfeature bottomleft">Branding</td>
+            <td>None</td>
+            <td class="bestvalue">Co-Branding</td>
+            <td class="lastcolumn bottomright">Fully Branded</td>
+          </tr>
+          <tr class="bottomblankrow">
+            <td></td>
+            <td class="action"><a href="/signup/{{plan1.planid}}" title="Create a Personal account">Get it!</a></td>
+            <td class="action bestvalue"><a href="/signup/{{plan2.planid}}" title="Create a Professional account">Buy it!</a></td>
+            <td class="action"><a href="/signup/{{plan3.planid}}" title="Create an Agency account">Own it!</a></td>
+          </tr>
+        </table>
+        <hr />
+        
+        <p class="smaller lighter centre" style="text-align: center">All paid plans come with API access, unlimited email delivery, and  30-day secrets.</p>
+        
+        <p class="bigger centre">Need more control? <a href="mailto:custom@onetimesecret.com">Contact us</a> for a custom install.</p>
+      </div>
+      
+      
+    </div>
+    
+  </div>
+  
+{{>footer}}
