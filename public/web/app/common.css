@@ -137,7 +137,8 @@ input.long { width:380px; }
 .dotted{border-top:1px dotted #666;}
 
 
-.private{font-size: 18px; line-height: 18px; margin-top: 10px;}
+.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
+.shared{ margin-top: 20px;}
 #generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; margin: 6px 0px 6px 0px;}
 .private .secret input, .private .secret textarea { background-color: #eee; color: #666; padding: 5px; width: 90%;}
 .private .secret input[disabled] { background-color: #eee; color: #fff;}

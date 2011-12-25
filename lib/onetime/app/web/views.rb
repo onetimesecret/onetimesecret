@@ -323,6 +323,7 @@ module Onetime
             @plans[plan_idx] = cust.planid unless plan_idx.nil?
           end
           self[:individual_plan] = self['individual_v1']
+          self[:planid] = self['individual_v1'][:planid]
         end
         def plan1;  self[@plans[0].to_s]; end
         def plan2;  self[@plans[1].to_s]; end
