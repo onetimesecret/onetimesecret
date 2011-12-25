@@ -1,6 +1,13 @@
 module Onetime
   class App
     
+    def forgot
+      publically do
+        view = Onetime::App::Views::Forgot.new req, sess, cust
+        res.body = view.render
+      end
+    end
+
     def login
       publically do
         view = Onetime::App::Views::Login.new req, sess, cust

@@ -1,5 +1,9 @@
 # FEEDBACK #
 
+## Dec 22nd ##
+
+* Hugo+some other guy: don't log IP addresses in nginx. [We should keep the logs the same but delete them instead of rotating. Only keep a few hours or a day for operational purposes.]
+
 http://foundation.zurb.com/docs/ui.php
 
 ## Dec 16th ##

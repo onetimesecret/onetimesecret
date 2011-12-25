@@ -1,0 +1,25 @@
+{{>header}}
+  
+  <div id="content">
+    
+    <h2 class="intro">Request a password reset</h2>
+    
+    {{>partial/session_messages}}
+    
+    <form method="post" class="signup">
+      {{{add_shrimp}}}
+      <div>
+        <label for="custid">Email address:</label>
+        <input type="text" name="u" id="custid" class="long ui-widget ui-corner-all" value="{{form_fields.custid}}" />
+        <script type="text/javascript">
+          $('#custid').focus();
+        </script>
+      </div>
+      
+      <span id="fireSmall" class="button"><button type="submit">Request</button></span>
+      
+    </form>
+    
+  </div>
+  
+{{>footer}}

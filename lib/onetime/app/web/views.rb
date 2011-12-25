@@ -247,6 +247,14 @@ module Onetime
           self[:secret_value].to_s.scan(/\n/).size.zero?
         end
       end
+      class Forgot < Onetime::App::View
+        def init 
+          self[:title] = "Forgotten Password"
+          self[:body_class] = :login
+          self[:monitored_link] = true
+          self[:with_analytics] = true
+        end
+      end
       class Login < Onetime::App::View
         def init 
           self[:title] = "Login"
