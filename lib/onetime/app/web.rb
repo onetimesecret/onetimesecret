@@ -9,10 +9,6 @@ module Onetime
     require 'onetime/app/web/info'
     require 'onetime/app/web/account'
     
-    #def not_found
-    #  [404, {'Content-Type'=>'text/plain'}, ["Server error2"]]
-    #end
-    
     def index
       publically do
         view = Onetime::App::Views::Homepage.new req, sess, cust
@@ -66,7 +62,10 @@ module Onetime
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        res.redirect app_path(logic.redirect_uri)
+        #res.redirect app_path(logic.redirect_uri)
+        req.params.clear
+        req.params[:key] = logic.metadata.key
+        private_uri
       end
     end
     

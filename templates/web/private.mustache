@@ -3,16 +3,21 @@
   <div class="private">
     {{#show_secret}}
     <div class="uri">
-      <span class="pretext">Share this secret link:</span><br/>
+      <span class="pretext">Share this link:</span><br/>
       <input id="secreturi" class="selectable" value="{{share_uri}}" disabled="disabled" />
       <p>
         {{^has_passphrase}}
         <strong>Expires in {{expiration_stamp}}</strong>.
         {{/has_passphrase}}
         {{#has_passphrase}}
-        <strong>Requires a passphrase and expires in {{expiration_stamp}}</strong>.
+        <strong>Expires in {{expiration_stamp}}. Requires a passphrase.</strong>
         {{/has_passphrase}}
       </p>
+      <hr/>
+      <span class="">Your private link:</span><br/>
+      <input id="" class="selectable private" value="{{metadata_uri}}" disabled="disabled" />
+      <p>Keep this link to find out when the secret is received</p>
+      <hr/>
     </div>
     {{#recipients}}
     <h3>Sent to:</h3>
@@ -57,10 +62,10 @@
       <span class="pretext">Secret:</span><br/>
       <input value="*******************" disabled="disabled" />
       {{#been_shared}}
-      <p><em>This secret was received {{shared_date}}.</em></p>
+      <p><em>Received {{shared_date}}.</em></p>
       {{/been_shared}}
       {{^been_shared}}
-      <p><em>This secret has not been received yet. <strong>Expires in {{expiration_stamp}}</strong>.</em></p>
+      <p><em><strong>Expires in {{expiration_stamp}}</strong>. Not yet received.</em></p>
       {{/been_shared}}
     </div>
     

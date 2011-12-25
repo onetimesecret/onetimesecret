@@ -236,7 +236,7 @@ module Onetime
         def share_uri
           [baseuri, :secret, self[:secret_key]].join('/')
         end
-        def admin_uri
+        def metadata_uri
           [baseuri, :private, self[:metadata_key]].join('/')
         end
         def display_lines

@@ -144,6 +144,7 @@ input.long { width:380px; }
 .shared .secret input, .shared .secret textarea { border: 1px solid black; font-size: 16px; line-height: 16px; background-color: #fff; color: #000; padding: 5px; width: 90%;}
 .secret p {padding: 6px; font-size: 80%; margin: 0px; color: #999; font-style: italic;}
 .uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0;}
+.uri input.private {background-color: #eee;}
 .uri p {padding: 6px; font-size: 80%; margin: 0px; color: #999;}
 .passphrase { margin-bottom: 30px; margin-left: 30px; }
 .passphrase input {width: 320px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #eee; color: #000;}
