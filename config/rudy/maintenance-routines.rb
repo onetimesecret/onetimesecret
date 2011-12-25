@@ -77,23 +77,23 @@ routines do
   start_thin do
     remote do
       cd '/var/www/onetimesecret.com'
-      thin :e, config_env, :R, "config.ru", :p, '7143', 'start'
+      # Note: here is an example for running thin on a port:
+      # thin :e, config_env, :R, 'config.ru', :p, '7143', 'start'
+      thin :e, config_env, :R, 'config.ru', :S, '/var/run/thin/thin.sock', :s, 2, 'start'
     end
   end
   
   restart_thin do
-    #remote do
-    #  cd '/var/www/onetimesecret.com'
-    #  thin :e, config_env, :R, "config.ru", :p, '7143', 'restart'
-    #end
-    before :stop_thin
-    after :start_thin
+    remote do
+      cd '/var/www/onetimesecret.com'
+      thin :e, config_env, :R, 'config.ru', :S, '/var/run/thin/thin.sock', :s, 2, 'restart'
+    end
   end
   
   stop_thin do
     remote do
       cd '/var/www/onetimesecret.com'
-      thin :e, config_env, :R, "config.ru", :p, '7143', 'stop'
+      thin :e, config_env, :R, 'config.ru', :S, '/var/run/thin/thin.sock', :s, 2, 'stop'
     end
   end
 

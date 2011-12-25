@@ -16,45 +16,82 @@
 <html xmlns="http://www.w3.org/1999/xhtml"> 
 <head> 
   <meta content="text/html; charset=UTF-8" http-equiv="content-type" /> 
-  <title>Maintenance - One Time</title> 
+  <title>Share a secret - One Time</title> 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="description" content="">
-  <meta name="keywords" content="">
+  <meta name="description" content="Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.">
+  <meta name="keywords" content="secret,password generator,share a secret,onetime">
   <link href="/app/common.css" media="screen" rel="Stylesheet" type="text/css" />
   <script type="text/javascript">
   </script>
-  <script src="/app/jquery-1.7.min.js" type="text/javascript"></script>
+  <script src="/etc/jquery-1.7.min.js" type="text/javascript"></script>
+  <script src="/etc/jquery-cookie.js" type="text/javascript"></script>
+  <script src="/etc/mustache.js" type="text/javascript"></script>
   <script src="/app/common.js" type="text/javascript"></script>
 </head>
 <body id="">
 <div id="banner"><div class="broadcast"><!-- nothing to report --></div></div>
 <div id="corset">
   <div id="header">
-    <h1 title="One time secret"><a href="/"><pre>
+    <div id="sitenav">
+      <a href="/pricing" title="Pricing &amp; Signup" class="standout">Create an account</a> | 
+      <a href="/login" title="Log in to One-Time Secret">Login</a>
+    </div>
+    <hr/>
+    <a href="http://www.youtube.com/watch?v=1V6T0lJc3dU" title="Release 0.7.2.001" style="position: absolute; right: 50px; top: 5px; width: 10px; text-decoration: none;">&nbsp;</a>
+    <h1 title="We know how to keep a secret!"><a href="/"><pre>
   __ _  _ ___    ____ __ __  __ ___    ___ ___  __ ___  ___ ____ 
  /  \ \( )  _)  (_  _)  )  \/  )  _)  / __)  _)/ _)  ,)(  _)_  _)
 ( () )  ( ) _)    )(  )( )    ( ) _)  \__ \) _) (_ )  \ ) _) )(  
  \__/_)\_)___)   (__)(__)_/\/\_)___)  (___/___)\__)_)\_)___)(__)
-                                                         alpha </pre></a></h1></div>
+                                                          BETA </pre></a></h1>
+
+</div>
 
   <div id="content">
-
+    
     <h2 class="intro">Site Maintenance</h2>
-    <p class="err">We'll be right back!</p>
+    <p class="msg">I'm sure it's only temporary<em>!</em></p>
+    <p>Don't hesitate to give us hell on Twitter: <a href="https://twitter.com/onetimesecret">@onetimesecret</a>.
     
   </div>
+  
+  <!-- NOTE: Secret pages are not tracked. -->
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-5320807-2']);
+    _gaq.push(['_setDomainName', '.onetimesecret.com']);
+    _gaq.push(['_trackPageLoadTime']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+  
+  <div id="footer" class="dotted">
+    <p>
+      <a href="/about">About</a> | 
+      <a href="http://blog.onetimesecret.com/">Blog</a>
+    </p>
+    <p>
+      <a href="/info/privacy">Privacy policy</a> | 
+      <a href="/info/terms">Terms &amp; Conditions</a> | 
+      <a href="/info/security">Security policy</a>
+    </p>
+    
+    <hr/>
+    <p>Uptime monitoring by <a href="https://www.blamestella.com/host/onetimesecret.com/report" title="Web monitoring -- The Blamey &amp; Stella Information Company">Stella</a>.</p>
 
-
-    <div id="footer" class="dotted">
-      <p><a href="/info/privacy">Privacy policy</a> | <a href="/info/security">Security policy</a></p>
-      <p>Monitored by <a href="https://www.blamestella.com/">Stella</a></p>
-      
-      <div class="tagline">
-        We know how to keep a secret!
-        <p><a href="http://twitter.com/onetimesecret">@onetimesecret</a></p>
-      </div>
+    <div class="tagline">
+      Follow our latest news:
+      <p>
+        <a href="http://www.facebook.com/pages/One-Time-Secret/284990691536190" title="Join us on Facebook"><img class="socialicon" src="/img/facebook.png" height="16" width="16" alt="facebook icon" /></a>
+        <a href="http://twitter.com/onetimesecret" title="Join us on Twitter"><img class="socialicon" src="/img/twitter.png" height="16" width="16" alt="twitter icon" /></a>
+      </p>
     </div>
   </div>
   
+</div>
 </body>
 </html>
