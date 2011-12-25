@@ -128,10 +128,10 @@ module Onetime
         if @passwd.to_s.empty?
           @cust = nil
         elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@custid)
-          OT.info "[login-as-attempt] #{@colonelname} as #{@custid  } #{@sess.ipaddress}"
+          OT.info "[login-as-attempt] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
           potential = OT::Customer.load @colonelname
-          colonel = potential if potential.passphrase?(@passwd)
-          @cust = OT::Customer.load @custid if colonel.role?(:colonel)
+          @colonel = potential if potential.passphrase?(@passwd)
+          @cust = OT::Customer.load @custid if @colonel.role?(:colonel)
           OT.info "[login-as-success] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
         elsif (potential = OT::Customer.load(@custid))
           @cust = potential if potential.passphrase?(@passwd)
@@ -167,7 +167,7 @@ module Onetime
       end
       
       def success?
-        !cust.nil? && !cust.anonymous? && cust.passphrase?(@passwd)
+        !cust.nil? && !cust.anonymous? && (cust.passphrase?(@passwd) || @colonel.passphrase?(@passwd))
       end
       
       private
