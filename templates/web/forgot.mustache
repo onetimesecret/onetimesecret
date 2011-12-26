@@ -1,1 +1,41 @@
-{{>tmp}}
+{{>header}}
+  
+  <div id="content">
+    
+    <h2 class="intro">Reset your password</h2>
+    
+    {{>partial/session_messages}}
+    
+    {{^verified}}
+    <form method="post" class="signup">
+      {{{add_shrimp}}}
+      <div>
+        <label for="custid">Email address:</label>
+        <input type="text" name="u" id="custid" class="long ui-widget ui-corner-all" value="{{form_fields.custid}}" />
+        <script type="text/javascript">
+          $('#custid').focus();
+        </script>
+      </div>
+      <span id="fireSmall" class="button"><button type="submit">Request</button></span>
+    </form>
+    {{/verified}}
+
+    {{#verified}}
+    <form method="post" class="signup">
+      {{{add_shrimp}}}
+      <div>
+        <label for="custid">New password:</label>
+        <input type="password" name="newp" id="password" class="short ui-widget ui-corner-all" />
+        <label for="custid">Confirm password:</label>
+        <input type="password" name="newp2" class="short ui-widget ui-corner-all" />
+        <script type="text/javascript">
+          $('#password').focus();
+        </script>
+      </div>
+      <span id="fireSmall" class="button"><button type="submit">Update Password</button></span>
+    </form>
+    {{/verified}}
+    
+  </div>
+  
+{{>footer}}

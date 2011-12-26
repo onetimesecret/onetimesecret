@@ -42,5 +42,17 @@ module Onetime
         secret_uri self[:secret]
       end
     end
+    class PasswordRequest < OT::Email
+      def init secret
+        self[:secret] = secret
+        self[:email_address] = cust.email
+      end
+      def subject
+        "Reset your password (OneTimeSecret.com)"
+      end
+      def forgot_path
+        '/forgot/%s' % self[:secret].key
+      end
+    end
   end
 end

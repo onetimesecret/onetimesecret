@@ -26,7 +26,7 @@ module Onetime
     def customer?
       ! custid.nil?
     end
-    def size
+    def value_length
       value.to_s.size
     end
     def long
@@ -105,14 +105,15 @@ module Onetime
         obj.key = objid
         obj.exists? ? obj : nil
       end
-      def create custid, entropy=[]
-        obj = new custid, entropy << [OT.instance, Time.now.to_f, OT.entropy], opts
+      def create custid, extra_entropy=[]
+        entropy = [OT.instance, Time.now.to_f, OT.entropy, extra_entropy].flatten
+        obj = new custid, entropy
         # force the storing of the fields to redis
         obj.update_fields :custid => custid # calls update_time!
         obj
       end
       def spawn_pair custid, extra_entropy
-        entropy = [OT.instance, Time.now.to_f, extra_entropy].flatten
+        entropy = [OT.instance, Time.now.to_f, OT.entropy, extra_entropy].flatten
         metadata, secret = OT::Metadata.new(custid, entropy), OT::Secret.new(custid, entropy)
         metadata.secret_key, secret.metadata_key = secret.key, metadata.key
         [metadata, secret]

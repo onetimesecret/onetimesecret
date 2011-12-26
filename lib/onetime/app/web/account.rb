@@ -3,11 +3,39 @@ module Onetime
     
     def forgot
       publically do
-        view = Onetime::App::Views::Forgot.new req, sess, cust
-        res.body = view.render
+        if req.params[:key]
+          secret = OT::Secret.load req.params[:key]
+          if secret.nil? || secret.verification.to_s != 'true'
+            sess.set_info_message "You'll need to try again."
+            res.redirect '/'
+          else
+            view = Onetime::App::Views::Forgot.new req, sess, cust
+            view[:verified] = true
+            res.body = view.render
+          end
+        else
+          view = Onetime::App::Views::Forgot.new req, sess, cust
+          res.body = view.render
+        end
       end
     end
-
+    
+    def request_reset
+      publically do
+        if req.params[:key]
+          logic = OT::Logic::ResetPassword.new sess, cust, req.params
+          logic.raise_concerns
+          logic.process
+          res.redirect '/login'
+        else
+          logic = OT::Logic::ResetPasswordRequest.new sess, cust, req.params
+          logic.raise_concerns
+          logic.process
+          res.redirect '/'
+        end
+      end
+    end
+    
     def login
       publically do
         view = Onetime::App::Views::Login.new req, sess, cust

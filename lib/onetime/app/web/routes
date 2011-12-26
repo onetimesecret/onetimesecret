@@ -34,7 +34,9 @@ POST  /login                                     Onetime::App#authenticate
 GET   /logout                                    Onetime::App#logout
 
 GET   /forgot                                    Onetime::App#forgot
-POST   /forgot                                   Onetime::App#request_reset
+GET   /forgot/:key                               Onetime::App#forgot
+POST  /forgot                                    Onetime::App#request_reset
+POST  /forgot/:key                               Onetime::App#request_reset
 
 GET   /dashboard                                 Onetime::App#dashboard
 POST  /dashboard                                 Onetime::App#create_secret

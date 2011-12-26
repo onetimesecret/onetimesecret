@@ -73,7 +73,7 @@ module Onetime
       attr_reader :planid, :custid, :password, :password2
       def process_params
         @planid = params[:planid].to_s
-        @custid = params[:custid].to_s
+        @custid = params[:custid].to_s.downcase
         @password = params[:password].to_s
         @password2 = params[:password2].to_s
       end
@@ -116,7 +116,7 @@ module Onetime
       attr_reader :custid, :stay
       attr_reader :session_ttl
       def process_params
-        @custid = params[:u]
+        @custid = params[:u].to_s.downcase
         @passwd = params[:p]
         @stay = params[:stay].to_s == "true"
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
@@ -204,6 +204,54 @@ module Onetime
         limit_action :show_account
       end
       def process
+      end
+    end
+    
+    class ResetPasswordRequest < OT::Logic::Base
+      attr_reader :custid
+      def process_params
+        @custid = params[:u].to_s.downcase
+      end
+      def raise_concerns
+        #limit_action :update_account
+        raise_form_error "Not a valid email address" unless valid_email?(@custid)
+        raise_form_error "Not a valid email address" unless OT::Customer.exists?(@custid)
+      end
+      def process
+        cust = OT::Customer.load @custid
+        secret = OT::Secret.create @custid, [@custid]
+        secret.ttl = 24.hours
+        secret.verification = true
+        view = OT::Email::PasswordRequest.new cust, secret
+        ret = view.deliver_email
+        if ret.code == 200
+          sess.set_info_message "We sent instructions to #{cust.custid}"
+        else
+          sess.set_info_message "Couldn't send the notification. Let Chris know."
+        end
+      end
+    end
+
+    class ResetPassword < OT::Logic::Base
+      attr_reader :secret
+      def process_params
+        @secret = OT::Secret.load params[:key].to_s
+        @newp = params[:newp].to_s
+        @newp2 = params[:newp2].to_s
+      end
+      def raise_concerns
+        raise OT::MissingSecret if secret.nil?
+        raise OT::MissingSecret if secret.custid.to_s == 'anon'
+        limit_action :update_account
+        raise_form_error "New passwords do not match" unless @newp == @newp2
+        raise_form_error "New password is too short" unless @newp.size >= 6
+        raise_form_error "New password cannot match current password" if @newp == @currentp
+      end
+      def process
+        cust = secret.load_customer
+        cust.update_passphrase @newp
+        sess.set_info_message "Password changed"
+        secret.destroy!
       end
     end
     
