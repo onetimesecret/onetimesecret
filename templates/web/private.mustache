@@ -34,7 +34,7 @@
         <input class="selectable" id="displayedsecret" value="{{secret_value}}" />
       {{/one_liner}}
       {{^one_liner}}
-        <textarea class="selectable" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
+        <textarea class="" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
         {{#truncated}}
         <p>Note: this secret was truncated b/c it was over 5KB</p>
         {{/truncated}}
