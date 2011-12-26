@@ -6,8 +6,7 @@ module Onetime
         if req.params[:key]
           secret = OT::Secret.load req.params[:key]
           if secret.nil? || secret.verification.to_s != 'true'
-            sess.set_info_message "You'll need to try again."
-            res.redirect '/'
+            raise OT::MissingSecret if secret.nil?
           else
             view = Onetime::App::Views::Forgot.new req, sess, cust
             view[:verified] = true
