@@ -33,8 +33,8 @@ module Onetime
         raise ex
       end
       def plan
-        @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
-        @plan ||= Onetime::Plan.plans['anonymous']
+        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
+        @plan ||= Onetime::Plan.plan('anonymous')
       end
       def limit_action event
         return if plan.paid?

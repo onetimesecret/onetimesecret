@@ -44,4 +44,5 @@ $(function() {
   if ($.cookie("display_options") == "true") {
     $('#options').toggle();
   }
+  $( "#primaryTabs" ).tabs();
 });

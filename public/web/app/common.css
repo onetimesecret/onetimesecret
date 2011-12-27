@@ -3,7 +3,7 @@ h1 { font-size: 16px; } /* Font Name: Graceful, Serifcap */
 h1 a { text-decoration: none; color: #000}
 hr {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1em;border:none;}
 #header {
-  margin-bottom: 40px;
+  margin-bottom: 0px;
   width: 620px;
   
 }
@@ -137,7 +137,8 @@ input.long { width:380px; }
 .dotted{border-top:1px dotted #666;}
 
 
-.private{font-size: 18px; line-height: 18px; margin-top: 10px;}
+.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
+.shared{ margin-top: 20px;}
 #generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; margin: 6px 0px 6px 0px;}
 .private .secret input, .private .secret textarea { background-color: #eee; color: #666; padding: 5px; width: 90%;}
 .private .secret input[disabled] { background-color: #eee; color: #fff;}
@@ -412,7 +413,7 @@ table.pricing tr.pricingeven {
 }
 
 table.pricing tr.prices {
-  font-size: 24px;
+  font-size: 32px;
   text-align: center;
 }
 
@@ -439,7 +440,8 @@ table.pricing tr.pricinglastrow td {
 .larger { font-size: 120%; }
 .centre { text-align: center }
 .italic { font-style: italic }
-
+#content p.narrow, .narrow { width: 80% }
+  
 .socialicon {
   padding-right: 8px;
 }
@@ -481,28 +483,27 @@ table.pricing tr.pricinglastrow td {
 a.ui-slider-handle:hover { color: red}
 .ui-slider-horizontal .ui-state-default {background-color: #999; border: 2px solid #999}
 
-#tabs {
-	background: transparent;
-	border: none;
-	font-family: georgia;
+#primaryTabs {
+  background: transparent;
+  border: none;
+  font-family: georgia;
 }
-#tabs .ui-widget-header {
-	background: transparent;
-	border: none;
-	border-bottom: 1px solid #c0c0c0;
+#primaryTabs .ui-widget-header {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #c0c0c0;
 }
-#tabs .ui-state-default {
-	background: transparent;
-	border: none;
+#primaryTabs .ui-state-default {
+  background: transparent;
+  border: none;
 }
-#tabs .ui-state-active {
-	background: transparent url(/img/uiTabsArrow.png) no-repeat bottom center;
-	border: none;
+#primaryTabs .ui-state-active {
+  background: transparent url(/img/uiTabsArrow.png) no-repeat bottom center;
+  border: none;
 }
-#tabs .ui-state-default a {
-	color: #999;
+#primaryTabs .ui-state-default a {
+  color: #000;
 }
-#tabs .ui-state-active a {
-	color: #000;
-	font-weight: bold;
+#primaryTabs .ui-state-active a {
+  color: #999;
 }

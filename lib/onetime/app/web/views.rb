@@ -71,8 +71,8 @@ module Onetime
           add_message sess.info_message!
           add_form_fields sess.get_form_fields!
         end
-        @plan = Onetime::Plan.plans[cust.planid] unless cust.nil?
-        @plan ||= Onetime::Plan.plans['anonymous']
+        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
+        @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
         init *args if respond_to? :init
       end
@@ -271,7 +271,7 @@ module Onetime
           self[:with_analytics] = true
           if OT::Plan.plan?(req.params[:planid])
             self[:planid] = req.params[:planid]
-            plan = OT::Plan.plans[req.params[:planid]]
+            plan = OT::Plan.plan(req.params[:planid])
             self[:plan] = {
               :price => plan.price.zero? ? 'Free' : plan.calculated_price,
               :original_price => plan.price.to_i,
@@ -294,12 +294,12 @@ module Onetime
       end
       class Pricing < Onetime::App::View
         def init 
-          self[:title] = "Pricing Plans"
+          self[:title] = "Create an Account"
           self[:body_class] = :pricing
           self[:monitored_link] = true
           self[:with_analytics] = true
           Onetime::Plan.plans.each_pair do |planid,plan|
-            self[planid.to_s] = {
+            self[plan.plansid] = {
               :price => plan.price.zero? ? 'Free' : plan.calculated_price,
               :original_price => plan.price.to_i,
               :ttl => plan.options[:ttl].in_days.to_i,
@@ -308,28 +308,30 @@ module Onetime
               :name => plan.options[:name],
               :planid => planid
             }
-            self[planid.to_s][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
+            self[plan.plansid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
           end
           if self[:via_test] || self[:via_hn]
-            @plans = [:anonymous, :personal_hn, :professional_v1, :agency_v1]
+            @plans = [:personal_hn, :professional_v1, :agency_v1]
           elsif self[:via_reddit]
-            @plans = [:anonymous, :personal_reddit, :professional_v1, :agency_v1]
+            @plans = [:personal_reddit, :professional_v1, :agency_v1]
           else
             @plans = get_split_test_values :initial_pricing do
-              [:anonymous, :personal_v1, :professional_v1, :agency_v1]
+              [:basic_v1, :professional_v1, :agency_v1]
             end
           end
           unless cust.anonymous?
             plan_idx = case cust.planid 
             when /personal/
-              1
+              0
             when /professional/
-              2
+              1
             when /agency/
-              3
+              2
             end
             @plans[plan_idx] = cust.planid unless plan_idx.nil?
           end
+          self[:individual_plan] = self['individual_v1']
+          self[:planid] = self['individual_v1'][:planid]
         end
         def plan1;  self[@plans[0].to_s]; end
         def plan2;  self[@plans[1].to_s]; end

@@ -1,5 +1,9 @@
 # FEEDBACK #
 
+## Dec 24th ##
+
+* Delano: offer a verification feature which presents someone with N pre-determined questions. Respond with a webhook, success of failure with the number of tries.
+
 ## Dec 22nd ##
 
 * https://github.com/paulasmuth/fnordmetric/blob/master/readme.rdoc
