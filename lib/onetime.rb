@@ -233,7 +233,7 @@ module Onetime
         add_plan :personal_reddit, 10.0, 1, :ttl => 14.days, :size => 1_000, :api => true, :name => 'Reddit Special'
         # Added 2011-12-24s
         add_plan :basic_v1, 10.0, 0.5, :ttl => 30.days, :size => 1_000, :api => true, :name => 'Basic'
-        add_plan :individual_v1, 0, 0, :ttl => 7.days, :size => 1_000, :api => true, :name => 'Individual'
+        add_plan :individual_v1, 0, 0, :ttl => 2.days, :size => 1_000, :api => true, :name => 'Individual'
       end
     end
     attr_reader :plansid, :planid, :price, :discount, :options
