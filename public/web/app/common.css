@@ -460,11 +460,13 @@ table.pricing tr.pricinglastrow td {
 
 #ttlslider {
   display:inline-block;
-  width:320px;
-  margin-right:20px;
+  width:310px;
+  margin-right:10px;
+  white-space:nowrap;
 }
 
 #ttlslider-value {
+  white-space:nowrap;
   font-weight: bold;
 }
 
