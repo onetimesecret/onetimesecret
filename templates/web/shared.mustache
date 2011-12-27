@@ -20,7 +20,7 @@
         <input name="continue" type="hidden" value="true" />
         {{#has_passphrase}}
         <span class="pretext">Enter the passphrase:</span>
-        <input name="passphrase" value="" /><br/>
+        <input name="passphrase" value="" autocomplete="off" /><br/>
         {{/has_passphrase}}
         <span id="fire" class="button"><button type="submit">Show Secret</button></span>
       </form>

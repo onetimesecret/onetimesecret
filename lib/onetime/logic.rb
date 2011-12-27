@@ -292,7 +292,6 @@ module Onetime
     class GenerateAPIkey < OT::Logic::Base
       attr_reader :apikey
       def process_params
-        
       end
       def raise_concerns
         if (!sess.authenticated?) || (cust.anonymous?)
@@ -307,27 +306,30 @@ module Onetime
     end
     
     class CreateSecret < OT::Logic::Base
-      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe
+      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :maxviews
       attr_reader :metadata, :secret
       def process_params
         @ttl = params[:ttl].to_i
         @ttl = 1.hour if @ttl < 1.hour
         @ttl = plan.options[:ttl] if @ttl > plan.options[:ttl]
-        if ['share', 'generate'].member?(params[:kind].to_s)
+        @maxviews = params[:maxviews].to_i
+        @maxviews = 1 if @maxviews < 1
+        @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
+         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym 
         end
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
         if plan.paid?
           params[:recipient] = [params[:recipient]].flatten.compact.uniq
-          @recipient = params[:recipient].collect { |r| 
-            next if r =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
-            unless valid_email?(r) #|| valid_mobile?(r)
+          # TODO: enforce maximum number of recipients
+          @recipient = params[:recipient].collect { |email_address| 
+            next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
+            unless valid_email?(email_address) #|| valid_mobile?(email_address)
               raise_form_error "Recipient must be an email address."
             end
-            r
+            email_address
           }.compact.uniq
-          # TODO: enforce maximum number of recipients
           @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
         end
       end
@@ -344,6 +346,7 @@ module Onetime
         end
         secret.encrypt_value secret_value
         metadata.ttl, secret.ttl = ttl, ttl
+        secret.maxviews = maxviews
         secret.save
         metadata.save
         if metadata.valid? && secret.valid?
@@ -373,11 +376,11 @@ module Onetime
       end
       def raise_concerns
         limit_action :show_secret
-        raise OT::MissingSecret if secret.nil?
+        raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
       def process
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
-        @show_secret = secret.state?(:new) && correct_passphrase && continue
+        @show_secret = secret.viewable? && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
         if show_secret && correct_passphrase
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value

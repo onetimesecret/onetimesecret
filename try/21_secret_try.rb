@@ -62,5 +62,6 @@ metadata, secret = Onetime::Secret.spawn_pair :anon, :tryouts
 metadata.save && secret.save
 secret.viewed!
 metadata = secret.load_metadata
+# NOTE: The secret no longer keeps a reference to the metadata
 [metadata.shared, metadata.state, secret.viewed, secret.state]
-#=> [Time.now.utc.to_i.to_s, 'shared', Time.now.utc.to_i.to_s, 'viewed']
+##=> [Time.now.utc.to_i.to_s, 'shared', Time.now.utc.to_i.to_s, 'viewed']

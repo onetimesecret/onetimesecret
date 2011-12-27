@@ -97,7 +97,7 @@ module Onetime
         logic.raise_concerns
         logic.process
         view = Onetime::App::Views::Private.new req, sess, cust, logic.metadata
-        view[:show_secret] = true if logic.show_secret
+        view[:show_secret] = logic.show_secret
         res.body = view.render
       end
     end

@@ -6,12 +6,13 @@
       <span class="pretext">Share this link:</span><br/>
       <input id="secreturi" class="selectable" value="{{share_uri}}" />
       <p>
-        {{^has_passphrase}}
         <strong>Expires in {{expiration_stamp}}</strong>.
-        {{/has_passphrase}}
         {{#has_passphrase}}
-        <strong>Expires in {{expiration_stamp}}. Requires a passphrase.</strong>
+        <strong>Requires a passphrase.</strong>
         {{/has_passphrase}}
+        {{#has_maxviews}}
+        <strong>Viewed {{view_count}} of {{maxviews}} times.</strong>
+        {{/has_maxviews}}
       </p>
       <hr/>
       <span class="">Your private link:</span><br/>
@@ -62,7 +63,15 @@
       <span class="pretext">Secret:</span><br/>
       <input value="*******************" disabled="disabled" />
       {{#been_shared}}
+      {{^has_maxviews}}
       <p><em>Received {{shared_date}}.</em></p>
+      {{/has_maxviews}}
+      {{#has_maxviews}}
+      <p>
+        <strong>Expires in {{expiration_stamp}}.</strong>
+        <strong>Viewed {{view_count}} of {{maxviews}} times</strong> (<em>{{shared_date}}</em>).
+      </p>
+      {{/has_maxviews}}
       {{/been_shared}}
       {{^been_shared}}
       <p><em><strong>Expires in {{expiration_stamp}}</strong>. Not yet received.</em></p>
