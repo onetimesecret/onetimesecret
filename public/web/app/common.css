@@ -501,8 +501,8 @@ a.ui-slider-handle:hover { color: red}
   border: none;
 }
 #primaryTabs .ui-state-default a {
-  color: #999;
+  color: #000;
 }
 #primaryTabs .ui-state-active a {
-  color: #000;
+  color: #999;
 }
