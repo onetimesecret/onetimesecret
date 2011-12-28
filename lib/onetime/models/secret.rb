@@ -32,6 +32,18 @@ module Onetime
     def long
       original_size >= 5000
     end
+    def maxviews
+      (get_value(:maxviews) || 1).to_i
+    end
+    def view_count
+      (get_value(:view_count) || 0).to_i
+    end
+    def maxviews?
+      self.view_count >= self.maxviews
+    end
+    def viewable?
+      has_key?(:value) && (state?(:new) || !maxviews?)
+    end
     def age
       @age ||= Time.now.utc.to_i-self.updated
       @age
@@ -78,21 +90,25 @@ module Onetime
       cust = OT::Customer.load custid 
       cust.nil? ? OT::Customer.anonymous : cust
     end
-    def load_metadata
-      OT::Metadata.load metadata_key
+    def state
+      get_value(:state) || @state
     end
     def state? guess
       state.to_s == guess.to_s
     end
-    def shared!
-      update_fields :state => :shared, :shared => Time.now.utc.to_i, :secret_key => nil
-    end
     def viewed!
-      # Make sure we don't go from :shared to :viewed
-      return if state?(:viewed) || state?(:shared)
-      update_fields :state => :viewed, :viewed => Time.now.utc.to_i
-      load_metadata.shared!  # update the private key
-      destroy!               # delete this shared key
+      # Make sure we don't go from :viewed to something else
+      return unless state?(:new) || state?(:viewed)
+      @state = 'viewed'
+      update_fields :viewed => Time.now.utc.to_i, :state => :viewed
+      self.incr :view_count
+      if maxviews?
+        self.delete :value
+        self.delete :passphrase
+        self.delete :value_checksum
+        self.delete :original_size
+        @passphrase_temp = nil
+      end
     end
     class << self
       def exists? objid
@@ -115,7 +131,7 @@ module Onetime
       def spawn_pair custid, extra_entropy
         entropy = [OT.instance, Time.now.to_f, OT.entropy, extra_entropy].flatten
         metadata, secret = OT::Metadata.new(custid, entropy), OT::Secret.new(custid, entropy)
-        metadata.secret_key, secret.metadata_key = secret.key, metadata.key
+        metadata.secret_key = secret.key
         [metadata, secret]
       end
       def encryption_key *entropy

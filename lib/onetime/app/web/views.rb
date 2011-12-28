@@ -212,8 +212,7 @@ module Onetime
           self[:title] = "You saved a secret"
           self[:body_class] = :generate
           self[:metadata_key] = metadata.key
-          self[:been_shared] = metadata.state?(:shared)
-          self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+          self[:secret_key] = metadata.secret_key
           self[:recipients] = metadata.recipients
           self[:display_feedback] = false
           ttl = metadata.ttl.to_i
@@ -225,12 +224,21 @@ module Onetime
             '%d days' % ttl.in_days
           end
           secret = metadata.load_secret
-          unless secret.nil?
-            self[:secret_key] = secret.key
-            self[:has_passphrase] = !secret.passphrase.to_s.empty? 
-            self[:secret_value] = secret.decrypted_value if secret.can_decrypt?
-            self[:can_decrypt] = secret.can_decrypt?
-            self[:truncated] = secret.truncated
+          if secret.nil?
+            self[:been_shared] = true
+            self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+          else
+            self[:been_shared] = secret.state?(:viewed)
+            self[:shared_date] = natural_time(secret.viewed.to_i || 0)
+            self[:maxviews] = secret.maxviews
+            self[:has_maxviews] = true if self[:maxviews] > 1
+            self[:view_count] = secret.view_count
+            if secret.viewable?
+              self[:has_passphrase] = !secret.passphrase.to_s.empty? 
+              self[:can_decrypt] = secret.can_decrypt?
+              self[:secret_value] = secret.decrypted_value if self[:can_decrypt]
+              self[:truncated] = secret.truncated
+            end
           end
         end
         def share_uri

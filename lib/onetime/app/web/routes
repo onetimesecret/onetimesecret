@@ -1,7 +1,6 @@
 
 GET   /                                          Onetime::App#index
-GET   /create                                    Onetime::App#index
-POST  /create                                    Onetime::App#create_secret
+POST  /                                          Onetime::App#create_secret
 
 GET   /feedback                                  Onetime::App#feedback
 POST  /feedback                                  Onetime::App#receive_feedback
