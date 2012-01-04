@@ -4,19 +4,20 @@
   <div id="documentation">
     <h2 class="intro">Client Libraries</h2>
     
-    <p><em class="msg">BETA API - updated 2011-12-21 (<a href="#feedback">Have a question?</a>)</em></p>
-    
     <ul id="docnav">
       <li class=""><a href="/docs/api" title="">Overview</a></li>
       <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
       <li class="selected"><a href="/docs/api/libs" title="">Client Libraries</a></li>
     </ul>
-
+    
+    <p class="centre"><em class="larger">BETA API - updated 2011-12-21 (<a href="/feedback">Have a question?</a>)</em></p>
+    
     <div id="topicContent">
       
       <h3 class="cufon docTitle dotted">PHP</h3>
       
-      <a href="/libs/onetime-api.php" title="PHP library - One-Time Secret"><strong>Download onetime-api.php</strong></a> <em>by <a href="http://christopher.murtagh.name/">Christopher Murtagh</a></em>
+      <a href="/libs/onetime-api.php" title="PHP library - One-Time Secret"><strong>Download onetime-api.php</strong></a><br/>
+      <em>by <a href="http://christopher.murtagh.name/">Christopher Murtagh</a> (added 2011-12-21)</em>
       
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -34,7 +35,8 @@
       
       <h3 class="cufon docTitle dotted">Ruby</h3>
       
-      <a href="/libs/onetime-api.rb" title="Ruby library - One-Time Secret"><strong>Download onetime-api.rb</strong></a> <em>by <a href="http://delanotes.com/">Delano Mandelbaum</a></em>
+      <a href="/libs/onetime-api.rb" title="Ruby library - One-Time Secret"><strong>Download onetime-api.rb</strong></a><br/>
+      <em>by <a href="http://delanotes.com/">Delano Mandelbaum</a> (added 2011-12-21)</em>
       
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -47,6 +49,24 @@ options = {
 }
 ret = api.post '/share', options
 puts ret['secret_key']
+      </pre>
+
+      <h3 class="cufon docTitle dotted">Perl</h3>
+
+      <a href="https://raw.github.com/quile/OneTimeSecret/master/lib/Net/OneTimeSecret.pm" title="Perl library - One-Time Secret"><strong>Download Net::OneTimeSecret</strong></a><br/>
+      <em>by <a href="http://www.shoffle.com/">Kyle Dawkins</a> (added 2012-01-03)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+use Net::OneTimeSecret;
+
+$api = Net::OneTimeSecret->new( 'chris@onetimesecret.com', '4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181' );
+
+$response = $api->shareSecret( "Jazz, jazz and more jazz." );
+$secretKey = $response->{secret_key};
+
+$retrievedMessage = $api->retrieveSecret( $secretKey );
+print $retrievedMessage->{value};  #=> Jazz, jazz and more jazz.
       </pre>
       
       <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
