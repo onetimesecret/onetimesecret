@@ -61,7 +61,7 @@ class Onetime::App
         logic.raise_concerns
         logic.process
         if logic.show_secret
-          secret = md.load_secret
+          secret = logic.metadata.load_secret
           secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
           json metadata_hsh(logic.metadata, :value => secret_value)
           logic.metadata.delete :secret_key
