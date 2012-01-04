@@ -15,10 +15,6 @@
         {{/has_maxviews}}
       </p>
       <hr/>
-      <span class="">Your private link:</span><br/>
-      <input id="" class="selectable private" value="{{metadata_uri}}" />
-      <p>Keep this link to find out when the secret is received</p>
-      <hr/>
     </div>
     {{#recipients}}
     <h3>Sent to:</h3>
@@ -42,6 +38,11 @@
       {{/one_liner}}
       {{/can_decrypt}}
     </div>
+    <hr/>
+    <p class=" lighter">
+      Keep this link to find out when the secret is received:<br/>
+      <a id="" class="" href="{{metadata_uri}}">{{metadata_uri}}</a>
+    </p>
     <div id="faq" class="smaller">
       <h3>F.A.Q.</h3>
       {{#has_passphrase}}
