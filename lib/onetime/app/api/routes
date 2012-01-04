@@ -3,9 +3,9 @@
 GET    /v1/status                               Onetime::App::API#status
        
 POST   /v1/share                                Onetime::App::API#share
-GET    /v1/share                                Onetime::App::API#share
+#GET    /v1/share                                Onetime::App::API#share
 POST   /v1/generate                             Onetime::App::API#generate
-GET    /v1/generate                             Onetime::App::API#generate
+#GET    /v1/generate                             Onetime::App::API#generate
        
 POST   /v1/secret/:key                          Onetime::App::API#show_secret
 POST   /v1/private/:key                         Onetime::App::API#show_metadata
