@@ -87,10 +87,11 @@ module Onetime
         raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
       end
       def process
+        @plan = OT::Plan.plan(planid)
         @cust = OT::Customer.create custid
         cust.update_passphrase password
         sess.update_fields :custid => cust.custid #, :authenticated => 'true'
-        cust.update_fields :planid => planid, :verified => false
+        cust.update_fields :planid => @plan.planid, :verified => false
         metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
         msg = "Thanks for verifying your account. "
         msg << %Q{We got you a secret fortune cookie!\n\n"%s"} % OT::Utils.random_fortune

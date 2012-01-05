@@ -307,7 +307,7 @@ module Onetime
           self[:monitored_link] = true
           self[:with_analytics] = true
           Onetime::Plan.plans.each_pair do |planid,plan|
-            self[plan.plansid] = {
+            self[plan.planid] = {
               :price => plan.price.zero? ? 'Free' : plan.calculated_price,
               :original_price => plan.price.to_i,
               :ttl => plan.options[:ttl].in_days.to_i,
@@ -316,7 +316,7 @@ module Onetime
               :name => plan.options[:name],
               :planid => planid
             }
-            self[plan.plansid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
+            self[plan.planid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
           end
           if self[:via_test] || self[:via_hn]
             @plans = [:personal_hn, :professional_v1, :agency_v1]
