@@ -58,15 +58,26 @@ puts ret['secret_key']
 
       <h4>Usage Example</h4>
       <pre class="colourize">
+#!/usr/bin/env perl
 use Net::OneTimeSecret;
 
-$api = Net::OneTimeSecret->new( 'chris@onetimesecret.com', '4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181' );
+# Note: replace these with yours in order for this to work!
+my $customerId  = 'chris@onetimesecret.com';
+my $testApiKey  = '4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181';
 
-$response = $api->shareSecret( "Jazz, jazz and more jazz." );
-$secretKey = $response->{secret_key};
+my $api = Net::OneTimeSecret->new( $customerId, $testApiKey );
 
-$retrievedMessage = $api->retrieveSecret( $secretKey );
-print $retrievedMessage->{value};  #=> Jazz, jazz and more jazz.
+# Generate a secret
+my $result = $api->shareSecret( 'Jazz, jazz and more jazz.',
+                  password  => 'thepassword',
+                  recipient => 'kyle@shoffle.com',
+                  ttl       => 7200,
+                );
+printf( "%s\n", $result->{secret_key} );
+
+# Retrieve the secret value
+my $secret = $api->retrieveSecret( $result->{secret_key} );
+printf( "%s\n", $result->{value} );
       </pre>
       
       <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
