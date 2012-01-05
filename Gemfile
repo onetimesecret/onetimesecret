@@ -20,7 +20,10 @@ gem 'bcrypt-ruby', '3.0.0'
 gem 'otto', '0.3.0', :git => "git://github.com/delano/otto.git", :branch => 'master'
 
 gem 'redis-dump', '0.3.1'
+
 gem 'sysinfo', '0.7.3'
+gem 'annoy', '0.5.6'
+gem 'rye', '0.9.4'
 
 gem 'httparty', '0.7.7'
 
