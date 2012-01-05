@@ -98,8 +98,6 @@ module Onetime
       end
       def add_form_fields hsh
         (self.form_fields ||= {}).merge! hsh unless hsh.nil?
-        unless form_fields
-        end
       end
     end
   
@@ -269,6 +267,7 @@ module Onetime
           self[:body_class] = :login
           self[:monitored_link] = true
           self[:with_analytics] = true
+          add_form_fields :custid => req.params[:custid]
         end
       end
       class Signup < Onetime::App::View
