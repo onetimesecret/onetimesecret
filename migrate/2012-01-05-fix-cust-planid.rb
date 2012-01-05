@@ -7,8 +7,8 @@
 
 require 'onetime'
 
-if ARGV.first != 'MIGRATE'
-  OT.info "No change made (already migrated)"
+if true #ARGV.first != 'MIGRATE'
+  OT.info "No change made"
   exit 
 end
 

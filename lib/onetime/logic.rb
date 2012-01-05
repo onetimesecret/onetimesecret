@@ -383,22 +383,27 @@ module Onetime
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret = secret.viewable? && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
-        if show_secret && correct_passphrase
+        owner = secret.load_customer
+        if show_secret
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
           @truncated = secret.truncated
           @original_size = secret.original_size
-          if secret.verification.to_s == "true" && !cust.verified?
-            @verification = true
-            cust.verified = "true"
-            sess.destroy!
+          if verification
+            if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+              owner.verified = "true"
+              sess.destroy!
+              secret.viewed!
+            else
+              raise_form_error "You can't verify an account when you're already logged in."
+            end
           else
-            owner = secret.load_customer
             owner.incr :secrets_shared unless owner.anonymous?
             OT::Customer.global.incr :secrets_shared
+            secret.viewed!
           end
-          secret.viewed!
         elsif !correct_passphrase
-          limit_action :failed_passphrase
+          limit_action :failed_passphrase if secret.has_passphrase?
+          # do nothing
         end
       end
     end

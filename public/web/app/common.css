@@ -457,7 +457,7 @@ table.pricing tr.pricinglastrow td {
   line-height: 1.5em;
 }
 #footer .label {
-  color: #999; float: left; padding-left: 8px
+  color: #000; float: left; padding-left: 8px; font-style: italic;
 }
 
 #ttlslider {
