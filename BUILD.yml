@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325776791
+:STAMP: 1325784273
 :PATCH: 5
 :OWNER: delano
-:BUILD: "000"
-:STORY: Fix for cust.planid w/ migration
+:BUILD: "001"
+:STORY: Fixed verification logic
