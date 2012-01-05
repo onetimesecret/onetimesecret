@@ -54,18 +54,12 @@ module Onetime
       OT::RateLimit.register_events OT.conf[:limits]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
-      OT::SplitTest.from_config OT.conf[:split_tests] 
-      info "---  ONETIME v#{OT::VERSION}  -----------------------------------"
+      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
       info " Redis: #{Familia.uri}"
       info "Secret: #{secret}"
       info "Limits: #{OT::RateLimit.events}"
-      if OT::Entropy.count < 5_000
-        info "Entropy is low (#{OT::Entropy.count}). Generating..."
-        OT::Entropy.generate
-      end
       OT::Plan.load_plans!
-      info "Entropy: #{OT::Entropy.count}"
       # Digest lazy-loads classes. We need to make sure these
       # are loaded so we can increase the $SAFE level.
       Digest::SHA256
@@ -74,7 +68,20 @@ module Onetime
       # Seed the random number generator
       Kernel.srand
       # Need to connect to all redis DBs so we can increase $SAFE level.
-      16.times { |idx| OT.info 'Connecting to %s (%s)' % [Familia.redis(idx).uri, Familia.redis(idx).ping] }
+      begin
+        16.times { |idx| OT.info 'Connecting to %s (%s)' % [Familia.redis(idx).uri, Familia.redis(idx).ping] }
+        OT::SplitTest.from_config OT.conf[:split_tests] 
+        if OT::Entropy.count < 5_000
+          info "Entropy is low (#{OT::Entropy.count}). Generating..."
+          OT::Entropy.generate
+        end
+      rescue => ex
+        if mode?(:cli)
+          OT.info "Cannot connect to redis #{Familia.uri}"
+        else
+          raise ex
+        end
+      end
       @conf
     end
     def to_file(content, filename, mode, chmod=0744)
