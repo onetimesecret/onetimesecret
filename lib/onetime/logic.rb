@@ -73,7 +73,7 @@ module Onetime
       attr_reader :planid, :custid, :password, :password2
       def process_params
         @planid = params[:planid].to_s
-        @custid = params[:custid].to_s.downcase
+        @custid = params[:custid].to_s.downcase.strip
         @password = params[:password].to_s
         @password2 = params[:password2].to_s
       end
@@ -117,7 +117,7 @@ module Onetime
       attr_reader :custid, :stay
       attr_reader :session_ttl
       def process_params
-        @custid = params[:u].to_s.downcase
+        @custid = params[:u].to_s.downcase.strip
         @passwd = params[:p]
         @stay = params[:stay].to_s == "true"
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
@@ -311,6 +311,7 @@ module Onetime
       attr_reader :metadata, :secret
       def process_params
         @ttl = params[:ttl].to_i
+        @ttl = 2.days if @ttl <= 0
         @ttl = 1.hour if @ttl < 1.hour
         @ttl = plan.options[:ttl] if @ttl > plan.options[:ttl]
         @maxviews = params[:maxviews].to_i
