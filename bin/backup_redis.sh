@@ -18,7 +18,7 @@
 
 # Location of the redis dump. 
 # TODO: call redis bgsave explicitly
-RDBFILE=/var/lib/redis/dump.rdb
+RDBFILE=/var/lib/redis/ots-global.rdb
 
 # Config component for s3cmd (we need to create a new bucket)
 BUCKET=solutious-onetime
@@ -28,7 +28,7 @@ NOWSTAMP=`/bin/date '+%F-%T'`
 HOSTNAME=`/bin/hostname`
 S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
 OUTFILE="/var/lib/redis/ots-$HOSTNAME-$NOWSTAMP.rdb.bz2.gpg"
-LOGGER="/usr/bin/logger -i -p user.info -t ots-backup"
+LOGGER="/usr/bin/logger -i -p user.info -t ots-$0"
 LOCALDIR='/home/encrypted_backups'
 
 # The passphrase used to gpg encrypt the backup
@@ -42,13 +42,20 @@ if [ ! -f "$PKEYFILE" ]; then
   chmod 600 $PKEYFILE
 fi
 
+$LOGGER "Creating $RDBFILE"
+su -c "cd onetimesecret.com; /usr/local/bin/ruby bin/ots redis --save" -l ots
+
 if [ ! -f "$RDBFILE" ]; then
   $LOGGER "Redis RDB file does not exists at $RDBFILE!"
   exit 10
 fi
 
-$LOGGER "Creating $OUTFILE"
-/usr/bin/bzip2 -c /var/lib/redis/dump.rdb | /usr/bin/gpg $GPGOPTS > $OUTFILE
+$LOGGER "Encrypting to $RDBFILE.bz2.gpg"
+/usr/bin/bzip2 -c $RDBFILE | /usr/bin/gpg $GPGOPTS > $RDBFILE.bz2.gpg
+/bin/rm -f $RDBFILE
+
+$LOGGER "Copying to $OUTFILE"
+/bin/cp $RDBFILE.bz2.gpg $OUTFILE
 
 if [ ! -f "$OUTFILE" ]; then
   $LOGGER "Could not create $OUTFILE!"
@@ -60,12 +67,6 @@ $S3CMD put $OUTFILE s3://$BUCKET/$HOSTNAME/
 
 $LOGGER "Moving local copy to $LOCALDIR"
 /bin/mv $OUTFILE $LOCALDIR
-
-$LOGGER "Encrypting $RDBFILE"
-< $RDBFILE /usr/bin/gpg $GPGOPTS > $RDBFILE.gpg
-
-$LOGGER "Removing the unencrypted redis file"
-/bin/rm -f $RDBFILE
 
 $LOGGER "Deleting encrypted backups older than 3 hours"
 /bin/rm -f `find $LOCALDIR/ -name '*.rdb*' -cmin +190`
