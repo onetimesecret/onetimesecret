@@ -1,8 +1,12 @@
 #!/bin/sh
 # Create backup of redis database 
 # 
-#   onetime-rdb-HOSTNAME-YYYY-MM-DD-HH:mm:ss.bz2.gpg
-#   onetime-rdb-m-rackspace-bs-1-test-wo-01-2011-12-20-15:49:54.bz2.gpg
+#   ots-HOSTNAME-YYYY-MM-DD-HH:mm:ss.rdb.bz2.gpg
+#   ots-m-rackspace-bs-1-test-wo-01-2011-12-20-15:49:54.rdb.bz2.gpg
+#
+# Installation:
+#   * cp bin/backup_redis.sh /etc/cron.hourly/
+#   * chmod 755 /etc/cron.hourly/backup_redis.sh
 #
 # To decrypt a file:
 #   $ gpg -d --passphrase-file /etc/pki/tls/private/onlinephras path/2/file

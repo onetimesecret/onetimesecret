@@ -48,4 +48,9 @@ class OT::CLI < Drydock::Command
     end
     puts
   end
+  
+  def customers
+    puts '%d customers' % OT::Customer.values.size
+  end
+  
 end

@@ -56,8 +56,7 @@ module Onetime
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
       info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
-      info " Redis: #{Familia.uri}"
-      info "Secret: #{secret}"
+      info " Redis: #{Familia.uri.serverid}" # don't print the password
       info "Limits: #{OT::RateLimit.events}"
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
@@ -69,7 +68,7 @@ module Onetime
       Kernel.srand
       # Need to connect to all redis DBs so we can increase $SAFE level.
       begin
-        16.times { |idx| OT.info 'Connecting to %s (%s)' % [Familia.redis(idx).uri, Familia.redis(idx).ping] }
+        16.times { |idx| OT.ld 'Connecting to %s (%s)' % [Familia.redis(idx).uri, Familia.redis(idx).ping] }
         OT::SplitTest.from_config OT.conf[:split_tests] 
         if OT::Entropy.count < 5_000
           info "Entropy is low (#{OT::Entropy.count}). Generating..."
@@ -95,7 +94,7 @@ module Onetime
     def info(*msg)
       prefix = "I(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      STDERR.puts(msg) if STDOUT.tty?
+      STDERR.puts(msg) if STDOUT.tty? && (mode?(:app) || (mode?(:cli) && debug))
       SYSLOG.info msg
     end
     def ld(*msg)

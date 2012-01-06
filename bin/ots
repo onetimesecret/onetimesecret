@@ -23,6 +23,10 @@ class OT::CLI::Definition
     @verbose += 1
   end
   
+  global :D, :debug do
+    OT.debug = true
+  end
+  
   about "Command Line tools and methods to manage OneTimeSecret"
   command :welcome do
     puts "Welcome to OneTimeSecret", $/
@@ -46,6 +50,9 @@ class OT::CLI::Definition
   
   usage "ots move-keys SOURCEDB TARGETDB [filter]"
   command :move_keys => OT::CLI
+  
+  usage "ots customers"
+  command :customers => OT::CLI
   
   #usage "ots colonels"
   #usage "ots colonels -C <CUSTID>"
