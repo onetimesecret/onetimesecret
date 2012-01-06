@@ -5,11 +5,11 @@
 #   ots-m-rackspace-bs-1-test-wo-01-2011-12-20-15:49:54.rdb.bz2.gpg
 #
 # Installation:
-#   * cp bin/backup_redis.sh /etc/cron.hourly/
-#   * chmod 755 /etc/cron.hourly/backup_redis.sh
+#   * vi /etc/cron.d/backup_redis
+#   0,30 * * * * root sh /var/www/onetimesecret.com/bin/backup_redis.sh && ruby /var/www/onetimesecret.com/bin/clean_backups.rb
 #
 # To decrypt a file:
-#   $ gpg -d --passphrase-file /etc/pki/tls/private/onlinephras path/2/file
+#   $ gpg -d --passphrase-file $PKEYFILE path/2/file
 #
 
 # Location of the redis dump. 
@@ -23,7 +23,7 @@ BUCKET=solutious-onetime
 NOWSTAMP=`date '+%F-%T'`
 HOSTNAME=`hostname`
 S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
-OUTFILE="/var/lib/ots-$HOSTNAME-$NOWSTAMP.rdb.bz2.gpg"
+OUTFILE="/var/lib/redis/ots-$HOSTNAME-$NOWSTAMP.rdb.bz2.gpg"
 LOGGER="logger -i -p user.info -t ots-backup"
 LOCALDIR='/home/encrypted_backups'
 
@@ -64,4 +64,4 @@ $LOGGER "Removing the unencrypted redis file"
 /bin/rm -f $RDBFILE
 
 $LOGGER "Deleting encrypted backups older than 3 hours"
-rm -f `find $LOCALDIR/ -cmin +190`
+rm -f `find $LOCALDIR/ -name '*.rdb*' -cmin +190`
