@@ -70,4 +70,4 @@ $LOGINFO "Moving local copy to $LOCALDIR"
 /bin/mv $OUTFILE $LOCALDIR/
 
 $LOGINFO "Deleting encrypted backups older than 3 hours"
-/bin/rm -f `find $LOCALDIR/ -name '$PREFIX*' -cmin +190`
+/bin/rm -f `find $LOCALDIR/ -name "$PREFIX*.gpg" -cmin +190`

@@ -69,4 +69,4 @@ $LOGGER "Moving local copy to $LOCALDIR"
 /bin/mv $OUTFILE $LOCALDIR
 
 $LOGGER "Deleting encrypted backups older than 3 hours"
-/bin/rm -f `find $LOCALDIR/ -name '*.rdb*' -cmin +190`
+/bin/rm -f `find $LOCALDIR/ -name "ots-$HOSTNAME-*.rdb*.gpg" -cmin +190`
