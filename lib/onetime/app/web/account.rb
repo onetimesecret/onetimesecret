@@ -74,7 +74,7 @@ module Onetime
         logic.raise_concerns
         logic.process
         sess, cust = logic.sess, logic.cust
-        res.redirect '/dashboard'
+        res.redirect '/login'
       end
     end
     
