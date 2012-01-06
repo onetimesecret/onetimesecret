@@ -17,7 +17,7 @@ def log msg
   TESTMODE ? STDERR.puts(msg) : SYSLOG.info(msg)
 end
 def run
-  log NOW
+  log NOW.to_s # necessary for 1.9.3
   log "THIS IS TESTMODE. FILES WILL NOT BE DELETED." if TESTMODE
   all_backups = file_list
   stale_backups = all_backups.select { |info|
