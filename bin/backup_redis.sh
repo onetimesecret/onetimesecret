@@ -8,7 +8,8 @@
 #   $ gpg -d --passphrase-file /etc/pki/tls/private/onlinephras path/2/file
 #
 
-# Location of the redis dump
+# Location of the redis dump. 
+# TODO: call redis bgsave explicitly
 RDBFILE=/var/lib/redis/dump.rdb
 
 # Config component for s3cmd (we need to create a new bucket)
@@ -17,31 +18,46 @@ BUCKET=solutious-onetime
 # Used to stamp this particular backup
 NOWSTAMP=`date '+%F-%T'`
 HOSTNAME=`hostname`
-TEMPFILE="/tmp/onetime-rdb-$HOSTNAME-$NOWSTAMP"
+S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
+OUTFILE="/var/lib/ots-$HOSTNAME-$NOWSTAMP.rdb.bz2.gpg"
+LOGGER="logger -i -p user.info -t ots-backup"
+LOCALDIR='/home/encrypted_backups'
 
 # The passphrase used to gpg encrypt the backup
 PKEYFILE="/etc/pki/tls/private/onlinephrase"
+GPGOPTS="--no-use-agent --no-tty --force-mdc --passphrase-file $PKEYFILE --simple-sk-checksum -c"
 
 # Derive the passphrase from another important file 
-if [ ! -f $PKEYFILE ]; then
+if [ ! -f "$PKEYFILE" ]; then
   rm -f $PKEYFILE
   grep 33eM /etc/pki/tls/private/onetimesecret.com.key > $PKEYFILE
   chmod 600 $PKEYFILE
 fi
 
-# Copy the dump to a temp location, bzip2 and gpg encrypt it
-/bin/cp /var/lib/redis/dump.rdb $TEMPFILE
-/usr/bin/bzip2 $TEMPFILE
-/usr/bin/gpg --no-use-agent --no-tty --force-mdc --passphrase-file $PKEYFILE --simple-sk-checksum -c $TEMPFILE.bz2
+if [ ! -f "$RDBFILE" ]; then
+  $LOGGER "Redis RDB file does not exists at $RDBFILE!"
+  exit 10
+fi
 
-# Upload the file to S3
-/usr/bin/s3cmd put $TEMPFILE.bz2 s3://$BUCKET/$HOSTNAME/
+$LOGGER "Creating $OUTFILE"
+/usr/bin/bzip2 -c /var/lib/redis/dump.rdb | /usr/bin/gpg $GPGOPTS > $OUTFILE
 
-# Remove the backups from the temp location
-/bin/rm -f $TEMPFILE.bz2
+if [ ! -f "$OUTFILE" ]; then
+  $LOGGER "Could not create $OUTFILE!"
+  exit 20
+fi
 
-# Store the encrypted backup locally
-/bin/mv $TEMPFILE.bz2.gpg /home/encrypted_backups
+$LOGGER "Uploading to s3://$BUCKET/$HOSTNAME/"
+$S3CMD put $OUTFILE s3://$BUCKET/$HOSTNAME/
 
-# Delete any encrypted backups that are older than 3 hours
-rm -f `find /home/encrypted_backups/ -cmin +190`
+$LOGGER "Moving local copy to $LOCALDIR"
+/bin/mv $OUTFILE $LOCALDIR
+
+$LOGGER "Encrypting $RDBFILE"
+< $RDBFILE /usr/bin/gpg $GPGOPTS > $RDBFILE.gpg
+
+$LOGGER "Removing the unencrypted redis file"
+/bin/rm -f $RDBFILE
+
+$LOGGER "Deleting encrypted backups older than 3 hours"
+rm -f `find $LOCALDIR/ -cmin +190`

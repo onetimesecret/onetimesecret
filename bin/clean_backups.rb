@@ -3,13 +3,13 @@
 # Config component for s3cmd (we need to create a new bucket)
 KEEPERS=8
 BUCKET='solutious-onetime'
-S3CMD='/usr/bin/s3cmd'
+S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
 TESTMODE=false
 HOSTNAME=`hostname`.chomp.gsub(/[^0-9a-z\.\-\_]/i, '')
 
 ## DO NOT MODIFY BELOW THIS LINE (UNLESS YOU'RE A COOL WEIGHT-LIFTER)
 require 'syslog'
-SYSLOG = Syslog.open('onetime-backups')
+SYSLOG = Syslog.open('ots-backup')
 def log msg
   TESTMODE ? STDERR.puts(msg) : SYSLOG.info(msg)
 end
