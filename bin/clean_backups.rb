@@ -12,7 +12,7 @@ HOSTNAME=`/bin/hostname`.chomp.gsub(/[^0-9a-z\.\-\_]/i, '')
 
 ## DO NOT MODIFY BELOW THIS LINE (UNLESS YOU'RE A COOL WEIGHT-LIFTER)
 require 'syslog'
-SYSLOG = Syslog.open("ots-$0")
+SYSLOG = Syslog.open("ots-backups-clean")
 def log msg
   TESTMODE ? STDERR.puts(msg) : SYSLOG.info(msg)
 end

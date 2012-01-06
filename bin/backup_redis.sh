@@ -28,7 +28,7 @@ NOWSTAMP=`/bin/date '+%F-%T'`
 HOSTNAME=`/bin/hostname`
 S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
 OUTFILE="/var/lib/redis/ots-$HOSTNAME-$NOWSTAMP.rdb.bz2.gpg"
-LOGGER="/usr/bin/logger -i -p user.info -t ots-$0"
+LOGGER="/usr/bin/logger -i -p user.info -t ots-backup-redis"
 LOCALDIR='/home/encrypted_backups'
 
 # The passphrase used to gpg encrypt the backup
