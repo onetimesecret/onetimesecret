@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325844842
+:STAMP: 1325845748
 :PATCH: 6
 :OWNER: delano
-:BUILD: "007"
-:STORY: redis commands
+:BUILD: 008
+:STORY: "[no message]"
