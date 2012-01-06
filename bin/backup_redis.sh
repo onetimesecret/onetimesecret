@@ -8,8 +8,9 @@
 #   * vi /etc/cron.d/backup_redis
 #   0,30 * * * * root /bin/sh /var/www/onetimesecret.com/bin/backup_redis.sh && /usr/bin/ruby /var/www/onetimesecret.com/bin/clean_backups.rb
 #   * On another machine, sync the S3 bucket to local disk:
-#   5,35 * * * * root /usr/local/s3cmd/s3cmd -c /root/.s3cfg sync --skip-existing s3://solutious-onetime/ /data/ots/
-#   59 * * * * root /bin/rm -f `find /data/ots/ -name '*.gpg'  -cmin +4340`
+#   5,35 * * * * root /usr/bin/logger "syncing ots backups" && /usr/local/s3cmd/s3cmd -c /root/.s3cfg sync --skip-existing s3://solutious-onetime/ /data/ots/
+#   59 * * * * root /usr/bin/logger "deleting ots files older than 3 days" && /bin/rm -f `find /data/ots/ -name '*.gpg'  -cmin +4340`
+#   
 #   
 # To decrypt a file:
 #   $ gpg -d --passphrase-file $PKEYFILE path/2/file
