@@ -53,12 +53,13 @@ puts ret['secret_key']
 
       <h3 class="cufon docTitle dotted">Perl</h3>
 
-      <a href="https://raw.github.com/quile/OneTimeSecret/master/lib/Net/OneTimeSecret.pm" title="Perl library - One-Time Secret"><strong>Download Net::OneTimeSecret</strong></a><br/>
-      <em>by <a href="http://www.shoffle.com/">Kyle Dawkins</a> (added 2012-01-03)</em>
+      <a href="http://search.cpan.org/~kyled/Net-OneTimeSecret/lib/Net/OneTimeSecret.pm" title="Perl library - One-Time Secret"><strong>Download Net::OneTimeSecret</strong></a><br/>
+      <em>by <a href="http://www.shoffle.com/">Kyle Dawkins</a> (added 2012-01-06)</em>
 
       <h4>Usage Example</h4>
       <pre class="colourize">
 #!/usr/bin/env perl
+
 use Net::OneTimeSecret;
 
 # Note: replace these with yours in order for this to work!
@@ -66,18 +67,15 @@ my $customerId  = 'chris@onetimesecret.com';
 my $testApiKey  = '4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181';
 
 my $api = Net::OneTimeSecret->new( $customerId, $testApiKey );
-
-# Generate a secret
 my $result = $api->shareSecret( 'Jazz, jazz and more jazz.',
-                  password  => 'thepassword',
-                  recipient => 'kyle@shoffle.com',
-                  ttl       => 7200,
-                );
+                   passphrase => 'thepassword',
+                   recipient => 'kyle@shoffle.com',
+                   ttl => 7200,
+                 );
 printf( "%s\n", $result->{secret_key} );
 
-# Retrieve the secret value
-my $secret = $api->retrieveSecret( $result->{secret_key} );
-printf( "%s\n", $result->{value} );
+my $secret = $api->retrieveSecret( $result->{secret_key}, passphrase => "thepassword" );
+printf( "%s\n", $secret->{value} );
       </pre>
       
       <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
