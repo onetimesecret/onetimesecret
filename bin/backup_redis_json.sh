@@ -25,7 +25,7 @@ S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
 LOGINFO="/usr/bin/logger -i -p user.info -t ots-backup-redis-json -s"
 LOGERROR="/usr/bin/logger -i -p user.err -t ots-backup-redis-json -s"
 LOCALDIR='/home/encrypted_backups'
-PREFIX="ots-$DB-$FILTER-$HOSTNAME"
+PREFIX="ots-$HOSTNAME-db$DB-$FILTER"
 OUTFILE="/var/lib/redis/$PREFIX-$NOWSTAMP.json.bz2.gpg"
 
 REDIS_CONFIG=/etc/redis.conf
