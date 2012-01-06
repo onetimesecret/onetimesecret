@@ -54,6 +54,7 @@ module Onetime
       OT::RateLimit.register_events OT.conf[:limits]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+      if 
       info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
       info "Config: #{OT::Config.path}"
       info " Redis: #{Familia.uri.serverid}" # don't print the password
@@ -94,8 +95,10 @@ module Onetime
     def info(*msg)
       prefix = "I(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      STDERR.puts(msg) if STDOUT.tty? && (mode?(:app) || (mode?(:cli) && debug))
-      SYSLOG.info msg
+      if (mode?(:app) || (mode?(:cli) && debug))
+        STDERR.puts(msg) if STDOUT.tty?
+        SYSLOG.info msg
+      end
     end
     def ld(*msg)
       return unless Onetime.debug
