@@ -46,7 +46,7 @@ GEM
       net-ssh (>= 1.99.1)
     net-ssh (2.2.1)
     rack (1.2.1)
-    redis (2.2.0)
+    redis (2.2.2)
     redis-dump (0.3.2)
       drydock (>= 0.6.9)
       redis (>= 2.0)
@@ -96,6 +96,7 @@ DEPENDENCIES
   mustache (= 0.99.3)
   otto (= 0.3.0)!
   rack (= 1.2.1)
+  redis (= 2.2.2)
   redis-dump (= 0.3.2)
   rudy (= 0.9.8.020)
   rye (= 0.9.4)

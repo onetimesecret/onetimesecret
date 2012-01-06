@@ -22,7 +22,7 @@ def run
   all_backups = file_list
   stale_backups = all_backups.select { |info|
     stamp = Time.parse("#{info[0]} UTC")
-    log '%s is old: %s (%s)' % [info[2], stamp.to_i < THRESHOLD.to_i, stamp]
+    log '%s is old: %s (%s)' % [info[2], stamp.to_i < THRESHOLD.to_i, stamp] if TESTMODE
     (stamp.to_i < THRESHOLD.to_i)
   }
   log "%d backups, %d stale" % [all_backups.size, stale_backups.size]

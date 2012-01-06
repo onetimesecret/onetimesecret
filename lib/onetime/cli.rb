@@ -53,4 +53,23 @@ class OT::CLI < Drydock::Command
     puts '%d customers' % OT::Customer.values.size
   end
   
+  def redis
+    y Familia.redis.info
+  end
+  
+  def redis_start
+    puts 'RUN THIS:'
+    puts 'redis-server %s' % [OT.conf[:redis][:config] || '[no config set]']
+  end
+  def redis_stop
+    uptime = Familia.redis.info['uptime_in_seconds']
+    puts( "Shutting down... (up for %d hours)" % [uptime.to_i/3600])
+    # SHUTDOWN does the following:
+    #   Stop all the clients.
+    #   Perform a blocking SAVE if at least one save point is configured.
+    #   Flush the Append Only File if AOF is enabled.
+    #   Quit the server.
+    Familia.redis.shutdown
+  end
+  
 end

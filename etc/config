@@ -36,6 +36,7 @@
       - agency_v2
 :redis:
   :uri: 'redis://user:d1dc36cbc3047d00f56af777caefed0ad736d691@127.0.0.1:6379/0?timeout=10&thread_safe=false&logging=false'
+  :config: config/services/redis.conf
 :nginx:
   :ipaddress: '127.0.0.1'
   :servername: 'www.ot.com'

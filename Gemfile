@@ -11,6 +11,7 @@ gem 'thin', '1.2.11'
 gem 'mustache', '0.99.3'
 gem 'gibbler', '0.8.9'
 
+gem 'redis', '2.2.2'
 gem 'familia', '0.7.1'
 gem 'storable', '0.8.9'
 

@@ -54,6 +54,10 @@ class OT::CLI::Definition
   usage "ots customers"
   command :customers => OT::CLI
   
+  action :stop
+  action :start
+  command :redis => OT::CLI
+  
   #usage "ots colonels"
   #usage "ots colonels -C <CUSTID>"
   #action :C, :create, "Create a new colonel"
