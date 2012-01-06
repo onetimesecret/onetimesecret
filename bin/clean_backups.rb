@@ -5,7 +5,7 @@ require 'time'
 # Config component for s3cmd (we need to create a new bucket)
 BUCKET='solutious-onetime'
 S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
-TESTMODE=true
+TESTMODE=false
 NOW=TESTMODE ? Time.parse('2012-01-06 09:21 UTC').utc : Time.now.utc
 THRESHOLD=NOW - 3600*3.5  # 3.5 hours ago
 HOSTNAME=`/bin/hostname`.chomp.gsub(/[^0-9a-z\.\-\_]/i, '')
