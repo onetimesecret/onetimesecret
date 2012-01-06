@@ -56,6 +56,9 @@ class OT::CLI::Definition
   
   action :stop
   action :start
+  action :save
+  action :bgsave
+  action :bgrewriteaof
   command :redis => OT::CLI
   
   #usage "ots colonels"

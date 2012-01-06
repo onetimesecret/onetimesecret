@@ -58,9 +58,10 @@ class OT::CLI < Drydock::Command
   end
   
   def redis_start
-    puts 'RUN THIS:'
+    STDERR.puts 'RUN THIS:'
     puts 'redis-server %s' % [OT.conf[:redis][:config] || '[no config set]']
   end
+  
   def redis_stop
     uptime = Familia.redis.info['uptime_in_seconds']
     puts( "Shutting down... (up for %d hours)" % [uptime.to_i/3600])
@@ -70,6 +71,18 @@ class OT::CLI < Drydock::Command
     #   Flush the Append Only File if AOF is enabled.
     #   Quit the server.
     Familia.redis.shutdown
+  end
+  
+  def redis_save
+    Familia.redis.save
+  end
+  
+  def redis_bgsave
+    Familia.redis.bgsave
+  end
+  
+  def redis_bgrewriteaof
+    Familia.redis.bgrewriteaof
   end
   
 end
