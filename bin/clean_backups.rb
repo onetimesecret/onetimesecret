@@ -17,9 +17,7 @@ def log msg
   TESTMODE ? STDERR.puts(msg) : SYSLOG.info(msg)
 end
 def run
-  cmd = "#{S3CMD} ls s3://#{BUCKET}/#{HOSTNAME}/"
   log NOW
-  log "Running #{cmd}" 
   log "THIS IS TESTMODE. FILES WILL NOT BE DELETED." if TESTMODE
   all_backups = file_list
   stale_backups = all_backups.select { |info|
@@ -59,6 +57,8 @@ def file_list
 2012-01-06 09:01    507133   s3://BUCKET/HOSTNAME/FILANAME-2012-01-06-09:01:01.bz2
 }
   else
+    cmd = "#{S3CMD} ls s3://#{BUCKET}/#{HOSTNAME}/"
+    log "Running #{cmd}" 
     `#{cmd}`
   end
   # Returns an array of arrays: [DATETIME, SIZE, FILEPATH]
@@ -67,7 +67,7 @@ end
 begin
   run
 rescue => ex
-  log ex.message
+  log "#{ex.class}: #{ex.message}"
   STDERR.puts ex.backtrace
 end
 
