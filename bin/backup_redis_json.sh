@@ -6,7 +6,7 @@
 #
 # Installation:
 #   * vi /etc/cron.d/backup_customers
-#   0,30 * * * * root sh /var/www/onetimesecret.com/bin/backup_redis_json.sh 6 customer
+#   0,20 * * * * root /bin/sh /var/www/onetimesecret.com/bin/backup_redis_json.sh 6 customer
 #
 # To decrypt a file:
 #   $ gpg -d --passphrase-file $PKEYFILE path/2/file
@@ -19,11 +19,11 @@ FILTER=$2
 BUCKET=solutious-onetime
 
 # Used to stamp this particular backup
-NOWSTAMP=`date '+%F-%T'`
-HOSTNAME=`hostname`
+NOWSTAMP=`/bin/date '+%F-%T'`
+HOSTNAME=`/bin/hostname`
 S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
-LOGINFO="logger -i -p user.info -t ots-backup -s"
-LOGERROR="logger -i -p user.err -t ots-backup -s"
+LOGINFO="/usr/bin/logger -i -p user.info -t ots-backup -s"
+LOGERROR="/usr/bin/logger -i -p user.err -t ots-backup -s"
 LOCALDIR='/home/encrypted_backups'
 PREFIX="ots-$DB-$FILTER-$HOSTNAME"
 OUTFILE="/var/lib/redis/$PREFIX-$NOWSTAMP.json.bz2.gpg"
@@ -70,4 +70,4 @@ $LOGINFO "Moving local copy to $LOCALDIR"
 /bin/mv $OUTFILE $LOCALDIR/
 
 $LOGINFO "Deleting encrypted backups older than 3 hours"
-rm -f `find $LOCALDIR/ -name '$PREFIX*' -cmin +190`
+/bin/rm -f `find $LOCALDIR/ -name '$PREFIX*' -cmin +190`
