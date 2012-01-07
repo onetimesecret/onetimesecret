@@ -320,10 +320,10 @@ module Onetime
         end
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
-        if cust.anonymous?
+        params[:recipient] = [params[:recipient]].flatten.compact.uniq
+        if cust.anonymous? && !params[:recipient].empty?
           raise_form_error "An account is required to send emails. Signup here: http://#{OT.conf[:site][:host]}"
         else
-          params[:recipient] = [params[:recipient]].flatten.compact.uniq
           @recipient = params[:recipient].collect { |email_address|
             next if email_address.to_s.empty?
             next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
