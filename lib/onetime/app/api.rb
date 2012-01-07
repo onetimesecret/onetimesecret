@@ -98,7 +98,7 @@ class Onetime::App
         :updated => hsh['updated'].to_i,
         :created => hsh['created'].to_i,
         :received => hsh['received'].to_i,
-        :recipient => [hsh['recipients']].flatten
+        :recipient => [hsh['recipients']].flatten.compact.uniq
       }
       if ret[:state] == 'received'
         ret.delete :secret_ttl
