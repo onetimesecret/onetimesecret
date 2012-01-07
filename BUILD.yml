@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325878777
+:STAMP: 1325921429
 :PATCH: 7
 :OWNER: delano
-:BUILD: "000"
-:STORY: "[no message]"
+:BUILD: "001"
+:STORY: encryption key v2
