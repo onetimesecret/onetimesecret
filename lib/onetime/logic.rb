@@ -324,8 +324,8 @@ module Onetime
           raise_form_error "An account is required to send emails. Signup here: http://#{OT.conf[:site][:host]}"
         else
           params[:recipient] = [params[:recipient]].flatten.compact.uniq
-          # TODO: enforce maximum number of recipients
-          @recipient = params[:recipient].collect { |email_address| 
+          @recipient = params[:recipient].collect { |email_address|
+            next if email_address.to_s.empty?
             next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
             unless valid_email?(email_address) #|| valid_mobile?(email_address)
               raise_form_error "Recipient must be an email address."
