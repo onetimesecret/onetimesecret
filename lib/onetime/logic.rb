@@ -320,7 +320,9 @@ module Onetime
         end
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
-        if plan.paid?
+        if cust.anonymous?
+          raise_form_error "An account is required to send emails. Signup here: http://#{OT.conf[:site][:host]}"
+        else
           params[:recipient] = [params[:recipient]].flatten.compact.uniq
           # TODO: enforce maximum number of recipients
           @recipient = params[:recipient].collect { |email_address| 
@@ -356,7 +358,7 @@ module Onetime
           end
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, secret, recipient
+            metadata.deliver_by_email cust, secret, recipient.first
           end
         else
           raise_form_error "Could not store your secret" 
@@ -364,6 +366,9 @@ module Onetime
       end
       def redirect_uri
         ['/private/', metadata.key].join
+      end
+      private 
+      def form_fields
       end
     end
     
