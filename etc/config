@@ -1,6 +1,7 @@
 :site:  
   :host: localhost:7143
   :ssl: false
+  # ABOUT THIS SECRET VALUE: ONCE SET, KEEP A BACKUP AND DO NOT CHANGE IT.
   :secret: 074eea80797de4111f68fc3152a8306c9b2388b4
   :primary_color: '#4c739a'
   :secondary_color: '#7aa0c7'

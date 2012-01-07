@@ -5,7 +5,7 @@ module Onetime
     include Onetime::Models::Passphrase
     include Gibbler::Complex
     attr_reader :entropy
-    gibbler :custid, :passphrase_temp, :value_checksum, :entropy
+    gibbler :custid, :passphrase_temp, :entropy
     def initialize custid=nil, entropy=nil
       @custid, @entropy, @state = custid, entropy, :new
       @key = gibbler.base(36)
@@ -58,33 +58,48 @@ module Onetime
     def valid?
       exists? && !value.to_s.empty?
     end
-    def encrypt_value original_value, opts={}
-      self.value_encryption = 1
-      opts.merge! :key => encryption_key 
-      storable_value = original_value.slice(0, 4999)
-      self.original_size = original_value.size
-      self.value = storable_value.encrypt opts
-      self.value_checksum = storable_value.gibbler
-    end
     def truncated
       self.original_size.to_i >= 4999
     end
-    def can_decrypt?
-      passphrase.to_s.empty? || !passphrase_temp.to_s.empty?
+    def encrypt_value original_value, opts={}
+      storable_value = original_value.slice(0, 4999)
+      self.original_size = original_value.size
+      self.value_checksum = storable_value.gibbler
+      self.value_encryption = 2
+      self.value = storable_value.encrypt opts.merge(:key => encryption_key(value_checksum))
     end
     def decrypted_value opts={}
       case value_encryption.to_i
       when 0
         self.value
       when 1
-        opts.merge! :key => encryption_key
-        self.value.decrypt opts
+        self.value.decrypt opts.merge(:key => encryption_key_v1)
+      when 2
+        self.value.decrypt opts.merge(:key => encryption_key_v2(self.value_checksum))
       else
-        raise RuntimeError, "Unknown encryption"
+        raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
       end
     end
-    def encryption_key
+    def can_decrypt?
+      passphrase.to_s.empty? || !passphrase_temp.to_s.empty?
+    end
+    def encryption_key *args
+      case value_encryption.to_i
+      when 0
+        self.value
+      when 1  # Last used 2012-01-07
+        encryption_key_v1 *args
+      when 2
+        encryption_key_v2 *args
+      else
+        raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
+      end
+    end
+    def encryption_key_v1 *ignored
       OT::Secret.encryption_key self.key, self.passphrase_temp
+    end
+    def encryption_key_v2 checksum
+      OT::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
     end
     def load_customer
       cust = OT::Customer.load custid 
@@ -135,8 +150,8 @@ module Onetime
         [metadata, secret]
       end
       def encryption_key *entropy
-        #entropy.unshift Gibbler.secret     # If we change this the values are fucked.
-        Digest::SHA256.hexdigest(entropy.flatten.compact.join(':'))   # So don't use gibbler here either.
+        input = entropy.flatten.compact.join ':'
+        ret = Digest::SHA256.hexdigest(input)
       end
     end
   end
