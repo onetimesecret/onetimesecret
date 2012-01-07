@@ -38,6 +38,7 @@ class Onetime::App
         else
           secret = logic.secret
           json metadata_hsh(logic.metadata, :value => logic.secret_value, :secret_ttl => secret.realttl, :passphrase_required => secret && secret.has_passphrase?)
+          logic.metadata.viewed!
         end
       end
     end
