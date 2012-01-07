@@ -33,7 +33,6 @@ OUTFILE="/var/lib/redis/ots-$HOSTNAME-$OTSVERSION-$NOWSTAMP.rdb.bz2.gpg"
 LOGGER="/usr/bin/logger -i -p user.info -t ots-backup-redis"
 LOCALDIR='/home/encrypted_backups'
 
-
 # The passphrase used to gpg encrypt the backup
 PKEYFILE="/etc/pki/tls/private/onlinephrase"
 GPGOPTS="--no-use-agent --no-tty --force-mdc --passphrase-file $PKEYFILE --simple-sk-checksum -c"
@@ -55,7 +54,6 @@ fi
 
 $LOGGER "Encrypting to $RDBFILE.bz2.gpg"
 /usr/bin/bzip2 -c $RDBFILE | /usr/bin/gpg $GPGOPTS > $RDBFILE.bz2.gpg
-/bin/rm -f $RDBFILE
 
 $LOGGER "Copying to $OUTFILE"
 /bin/cp $RDBFILE.bz2.gpg $OUTFILE
