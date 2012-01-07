@@ -22,11 +22,13 @@ class OT::CLI < Drydock::Command
   end
   
   def clear_entropy
+    require_sudo
     OT::Entropy.values.clear
     entropy
   end
   
   def generate_entropy
+    require_sudo
     option.count = 100_000 if option.count.to_i > 100_000
     OT::Entropy.generate option.count
     entropy
@@ -53,16 +55,24 @@ class OT::CLI < Drydock::Command
     puts '%d customers' % OT::Customer.values.size
   end
   
+  def require_sudo
+    unless Process.uid.zero?
+      raise RuntimeError, "Must run as root or with sudo" 
+    end
+  end
   def redis
+    require_sudo
     y Familia.redis.info
   end
   
   def redis_start
+    require_sudo
     STDERR.puts 'RUN THIS:'
     puts 'redis-server %s' % [OT.conf[:redis][:config] || '[no config set]']
   end
   
   def redis_stop
+    require_sudo
     uptime = Familia.redis.info['uptime_in_seconds']
     puts( "Shutting down... (up for %d hours)" % [uptime.to_i/3600])
     # SHUTDOWN does the following:
@@ -74,14 +84,17 @@ class OT::CLI < Drydock::Command
   end
   
   def redis_save
+    require_sudo
     Familia.redis.save
   end
   
   def redis_bgsave
+    require_sudo
     Familia.redis.bgsave
   end
   
   def redis_bgrewriteaof
+    require_sudo
     Familia.redis.bgrewriteaof
   end
   

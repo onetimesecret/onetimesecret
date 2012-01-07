@@ -73,6 +73,8 @@ end
 
 begin
   Drydock.run! ARGV, STDIN
+rescue RuntimeError => ex
+  STDERR.puts ex.message
 rescue => ex
   puts ex.message
   puts ex.backtrace
