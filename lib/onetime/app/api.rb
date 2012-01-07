@@ -22,7 +22,9 @@ class Onetime::App
           res.redirect app_path(logic.redirect_uri)
         else
           secret = logic.secret
-          json metadata_hsh(logic.metadata, :secret_ttl => secret.realttl, :passphrase_required => secret && secret.has_passphrase?)
+          json metadata_hsh(logic.metadata, 
+                              :secret_ttl => secret.realttl, 
+                              :passphrase_required => secret && secret.has_passphrase?)
         end
       end
     end
@@ -37,9 +39,33 @@ class Onetime::App
           res.redirect app_path(logic.redirect_uri)
         else
           secret = logic.secret
-          json metadata_hsh(logic.metadata, :value => logic.secret_value, :secret_ttl => secret.realttl, :passphrase_required => secret && secret.has_passphrase?)
+          json metadata_hsh(logic.metadata, 
+                              :value => logic.secret_value, 
+                              :secret_ttl => secret.realttl, 
+                              :passphrase_required => secret && secret.has_passphrase?)
           logic.metadata.viewed!
         end
+      end
+    end
+    
+    def show_metadata
+      authorized(true) do
+        logic = OT::Logic::ShowMetadata.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        secret = logic.metadata.load_secret
+        if logic.show_secret
+          secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
+          json metadata_hsh(logic.metadata, 
+                              :value => secret_value, 
+                              :secret_ttl => secret.realttl, 
+                              :passphrase_required => secret && secret.has_passphrase?)
+        else
+          json metadata_hsh(logic.metadata, 
+                              :secret_ttl => secret ? secret.realttl : nil, 
+                              :passphrase_required => secret && secret.has_passphrase?)
+        end
+        logic.metadata.viewed!
       end
     end
     
@@ -55,22 +81,6 @@ class Onetime::App
         else
           secret_not_found_response
         end
-      end
-    end
-    
-    def show_metadata
-      authorized(true) do
-        logic = OT::Logic::ShowMetadata.new sess, cust, req.params
-        logic.raise_concerns
-        logic.process
-        secret = logic.metadata.load_secret
-        if logic.show_secret
-          secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
-          json metadata_hsh(logic.metadata, :value => secret_value, :secret_ttl => secret.realttl, :passphrase_required => secret && secret.has_passphrase?)
-        else
-          json metadata_hsh(logic.metadata, :secret_ttl => secret ? secret.realttl : nil, :passphrase_required => secret && secret.has_passphrase?)
-        end
-        logic.metadata.viewed!
       end
     end
     
