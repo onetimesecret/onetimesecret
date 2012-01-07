@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325955023
+:STAMP: 1325955075
 :PATCH: 10
 :OWNER: delano
-:BUILD: "000"
+:BUILD: "001"
 :STORY: API response improvements and all accounts can email
