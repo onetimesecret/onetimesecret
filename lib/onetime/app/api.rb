@@ -63,9 +63,9 @@ class Onetime::App
         secret = logic.metadata.load_secret
         if logic.show_secret
           secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
-          json metadata_hsh(logic.metadata, :value => secret_value, :secret_ttl => secret.realttl)
+          json metadata_hsh(logic.metadata, :value => secret_value, :secret_ttl => secret.realttl, :passphrase_required => secret.has_passphrase?)
         else
-          json metadata_hsh(logic.metadata, :secret_ttl => secret ? secret.realttl : nil)
+          json metadata_hsh(logic.metadata, :secret_ttl => secret ? secret.realttl : nil, :passphrase_required => secret && secret.has_passphrase?)
         end
         logic.metadata.viewed!
       end
@@ -93,6 +93,7 @@ class Onetime::App
         ret.delete :received
       end
       ret[:value] = opts[:value] if opts[:value]
+      ret[:passphrase_required] = opts[:passphrase_required] if !opts[:passphrase_required].nil?
       ret
     end
           
