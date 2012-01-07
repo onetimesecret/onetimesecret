@@ -13,7 +13,7 @@ module Onetime
       init *args if respond_to? :init
     end
     def deliver_email
-      OT.ld "Emailing #{self[:email_address]} [#{self.class}]"
+      #OT.ld "Emailing #{self[:email_address]} [#{self.class}]"
       ret = OT.emailer.send self[:email_address], subject, render
       # TODO: 
       #raise OT::Problem if ret.code != 200
@@ -33,10 +33,11 @@ module Onetime
     class SecretLink < OT::Email
       def init secret, recipient
         self[:secret] = secret
+        self[:custid] = cust.custid
         self[:email_address] = recipient
       end
       def subject
-        "Someone sent you a secret via OneTimeSecret.com"
+        "#{self[:custid]} sent you a secret"
       end
       def verify_uri
         secret_uri self[:secret]

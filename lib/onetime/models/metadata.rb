@@ -42,6 +42,7 @@ module Onetime
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
       eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
       self.recipients = eaddrs_safe.join(', ')
+      OT.ld "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
       eaddrs.each do |email_address|
         view = OT::Email::SecretLink.new cust, secret, email_address
         ret = view.deliver_email
@@ -51,6 +52,7 @@ module Onetime
         else
           OT.info "Error sending email: #{ret}"
         end
+        break
       end
     end
     def older_than? seconds

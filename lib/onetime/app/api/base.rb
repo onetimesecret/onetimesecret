@@ -17,8 +17,8 @@ class Onetime::App
           success = false
           req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
           auth = req.env['otto.auth']
+          #req.env['HTTP_X_ONETIME_CLIENT']
           if auth.provided?
-            OT.ld ['meth: authorized', auth.basic?, auth.credentials].inspect if Otto.env?(:dev)
             raise Unauthorized unless auth.basic?
             custid, apitoken = *(auth.credentials || [])
             raise Unauthorized if custid.to_s.empty? || apitoken.to_s.empty?
@@ -32,8 +32,9 @@ class Onetime::App
           elsif req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
             #check_session!
             raise Unauthorized, "No session support"
+          elsif !allow_anonymous
+            raise Unauthorized, "No session or credentials"
           else
-            raise Unauthorized, "No session or credentials" unless allow_anonymous
             @cust = OT::Customer.anonymous
             @sess = OT::Session.new req.client_ipaddress, cust.custid
           end

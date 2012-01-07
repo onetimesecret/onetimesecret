@@ -19,6 +19,7 @@
   :create_secret: 25
   :create_account: 3
   :update_account: 5
+  :email_recipient: 5
   :send_feedback: 3
   :authenticate_session: 5
   :homepage: 25
