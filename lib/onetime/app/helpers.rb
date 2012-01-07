@@ -57,7 +57,7 @@ class Onetime::App
     rescue OT::LimitExceeded => ex
       err "[limit-exceeded] #{cust.custid}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
       err req.current_absolute_uri
-      error_response "Apologies dear citizen! You have been rate limited. Try again in a few minutes."
+      error_response "Apologies dear citizen! You have been rate limited. Consider upgrading or try again in a few minutes."
     
     rescue Familia::NotConnected, Familia::Problem => ex
       err "#{ex.class}: #{ex.message}"

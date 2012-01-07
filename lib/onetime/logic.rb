@@ -337,6 +337,7 @@ module Onetime
       end
       def raise_concerns
         limit_action :create_secret
+        limit_action :email_recipient unless recipient.empty?
         raise_form_error "You did not provide anything to share" if kind == :share && secret_value.to_s.empty?
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
