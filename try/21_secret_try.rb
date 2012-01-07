@@ -64,4 +64,4 @@ secret.received!
 metadata = secret.load_metadata
 # NOTE: The secret no longer keeps a reference to the metadata
 [metadata.shared, metadata.state, secret.received, secret.state]
-##=> [Time.now.utc.to_i.to_s, 'shared', Time.now.utc.to_i.to_s, 'viewed']
+##=> [Time.now.utc.to_i.to_s, 'shared', Time.now.utc.to_i.to_s, 'received']
