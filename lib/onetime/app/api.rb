@@ -21,7 +21,8 @@ class Onetime::App
         if req.get?
           res.redirect app_path(logic.redirect_uri)
         else
-          json metadata_hsh(logic.metadata, :secret_ttl => logic.secret.realttl)
+          secret = logic.secret
+          json metadata_hsh(logic.metadata, :secret_ttl => secret.realttl, :passphrase_required => secret && secret.has_passphrase?)
         end
       end
     end
@@ -35,7 +36,8 @@ class Onetime::App
         if req.get?
           res.redirect app_path(logic.redirect_uri)
         else
-          json metadata_hsh(logic.metadata, :value => logic.secret_value)
+          secret = logic.secret
+          json metadata_hsh(logic.metadata, :value => logic.secret_value, :secret_ttl => secret.realttl, :passphrase_required => secret && secret.has_passphrase?)
         end
       end
     end
@@ -63,7 +65,7 @@ class Onetime::App
         secret = logic.metadata.load_secret
         if logic.show_secret
           secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
-          json metadata_hsh(logic.metadata, :value => secret_value, :secret_ttl => secret.realttl, :passphrase_required => secret.has_passphrase?)
+          json metadata_hsh(logic.metadata, :value => secret_value, :secret_ttl => secret.realttl, :passphrase_required => secret && secret.has_passphrase?)
         else
           json metadata_hsh(logic.metadata, :secret_ttl => secret ? secret.realttl : nil, :passphrase_required => secret && secret.has_passphrase?)
         end
