@@ -27,7 +27,8 @@ BUCKET=solutious-onetime
 NOWSTAMP=`/bin/date '+%F-%T'`
 HOSTNAME=`/bin/hostname`
 S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
-OTSVERSION=`/usr/local/bin/ruby bin/ots build`
+OTSHOME='/var/www/onetimesecret.com'
+OTSVERSION=`/usr/local/bin/ruby $OTSHOME/bin/ots build`
 OUTFILE="/var/lib/redis/ots-$HOSTNAME-$OTSVERSION-$NOWSTAMP.rdb.bz2.gpg"
 LOGGER="/usr/bin/logger -i -p user.info -t ots-backup-redis"
 LOCALDIR='/home/encrypted_backups'
@@ -45,7 +46,7 @@ if [ ! -f "$PKEYFILE" ]; then
 fi
 
 $LOGGER "Creating $RDBFILE"
-su -c "cd onetimesecret.com; /usr/local/bin/ruby bin/ots redis --save" -l ots
+/usr/local/bin/ruby $OTSHOME/bin/ots redis --save
 
 if [ ! -f "$RDBFILE" ]; then
   $LOGGER "Redis RDB file does not exists at $RDBFILE!"
