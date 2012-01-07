@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325946532
+:STAMP: 1325955023
 :PATCH: 9
 :OWNER: delano
-:BUILD: "001"
-:STORY: Allow anonymous API access
+:BUILD: "002"
+:STORY: API response improvements and all accounts can email
