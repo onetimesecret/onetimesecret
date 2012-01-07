@@ -16,7 +16,11 @@ ONE-TIME SECRET
 https://onetimesecret.com/secret/omncoysx3c3irrebz4gfpkx2of9t31b
 
 
+## Generating a global secret
 
+With encryption_v2 (2012-01-07) we include a global secret in the encryption key so it needs to be long and secure (that's what she said). One approach:
+
+history | ruby -ropenssl -rgibbler -e 'Gibbler.digest_type = OpenSSL::Digest::SHA256; puts [`/usr/bin/uname -a`, $$, Time.now.to_f, ARGF.read].gibbler.base(36)'
 
 ## Opportunities
 

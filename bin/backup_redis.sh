@@ -16,6 +16,9 @@
 #   $ gpg -d --passphrase-file $PKEYFILE path/2/file
 #
 
+WD=`pwd`
+cd /var/www/onetimesecret.com;
+
 # Location of the redis dump. 
 # TODO: call redis bgsave explicitly
 RDBFILE=/var/lib/redis/ots-global.rdb
@@ -27,9 +30,11 @@ BUCKET=solutious-onetime
 NOWSTAMP=`/bin/date '+%F-%T'`
 HOSTNAME=`/bin/hostname`
 S3CMD='/usr/bin/s3cmd -c /root/.s3cfg --no-progress'
-OUTFILE="/var/lib/redis/ots-$HOSTNAME-$NOWSTAMP.rdb.bz2.gpg"
+OTSVERSION=`/usr/local/bin/ruby bin/ots build`
+OUTFILE="/var/lib/redis/ots-$HOSTNAME-$OTSVERSION-$NOWSTAMP.rdb.bz2.gpg"
 LOGGER="/usr/bin/logger -i -p user.info -t ots-backup-redis"
 LOCALDIR='/home/encrypted_backups'
+
 
 # The passphrase used to gpg encrypt the backup
 PKEYFILE="/etc/pki/tls/private/onlinephrase"
@@ -70,3 +75,5 @@ $LOGGER "Moving local copy to $LOCALDIR"
 
 $LOGGER "Deleting encrypted backups older than 3 hours"
 /bin/rm -f `find $LOCALDIR/ -name "ots-$HOSTNAME-*.rdb*.gpg" -cmin +190`
+
+cd $WD
