@@ -28,7 +28,7 @@ module Onetime
   @mode = :app
   class << self
     attr_accessor :debug, :mode
-    attr_reader :conf, :instance, :sysinfo, :emailer
+    attr_reader :conf, :instance, :sysinfo, :emailer, :global_secret
     def mode? guess
       @mode.to_s == guess.to_s
     end
@@ -48,8 +48,8 @@ module Onetime
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
       emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
       @emailer = SendGrid.new *emailer_opts
-      secret = OT.conf[:site][:secret] || "CHANGEME"
-      Gibbler.secret = secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
+      @global_secret = OT.conf[:site][:secret] || "CHANGEME"
+      Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
       Familia.uri = OT.conf[:redis][:uri]
       OT::RateLimit.register_events OT.conf[:limits]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
