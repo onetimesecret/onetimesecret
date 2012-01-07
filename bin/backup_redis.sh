@@ -16,9 +16,6 @@
 #   $ gpg -d --passphrase-file $PKEYFILE path/2/file
 #
 
-WD=`pwd`
-cd /var/www/onetimesecret.com;
-
 # Location of the redis dump. 
 # TODO: call redis bgsave explicitly
 RDBFILE=/var/lib/redis/ots-global.rdb
@@ -75,5 +72,3 @@ $LOGGER "Moving local copy to $LOCALDIR"
 
 $LOGGER "Deleting encrypted backups older than 3 hours"
 /bin/rm -f `find $LOCALDIR/ -name "ots-$HOSTNAME-*.rdb*.gpg" -cmin +190`
-
-cd $WD

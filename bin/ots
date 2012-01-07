@@ -3,6 +3,9 @@
 base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
 $:.unshift File.join(base_path, 'lib')
 
+# TODO: Replace with bundle install --standalone (Bundler v1.1)
+ENV['BUNDLE_GEMFILE'] ||= File.join(base_path, 'Gemfile')
+
 require 'onetime'
 require 'onetime/cli'
 require 'rubygems'
