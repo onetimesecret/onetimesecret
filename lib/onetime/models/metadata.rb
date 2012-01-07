@@ -67,9 +67,6 @@ module Onetime
     def state? guess
       state.to_s == guess.to_s
     end
-    def shared!
-      update_fields :state => :shared, :shared => Time.now.utc.to_i
-    end
     def load_secret
       OT::Secret.load secret_key
     end

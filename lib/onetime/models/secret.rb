@@ -81,7 +81,7 @@ module Onetime
       end
     end
     def can_decrypt?
-      passphrase.to_s.empty? || !passphrase_temp.to_s.empty?
+      !value.to_s.empty?  && (passphrase.to_s.empty? || !passphrase_temp.to_s.empty?)
     end
     def encryption_key *args
       case value_encryption.to_i
