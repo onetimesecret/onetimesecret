@@ -22,6 +22,11 @@ With encryption_v2 (2012-01-07) we include a global secret in the encryption key
 
 history | ruby -ropenssl -rgibbler -e 'Gibbler.digest_type = OpenSSL::Digest::SHA256; puts [`/usr/bin/uname -a`, $$, Time.now.to_f, ARGF.read].gibbler.base(36)'
 
+## Manually encrypting files
+
+gpg --force-mdc --simple-sk-checksum -c path/2/file
+
+
 ## Opportunities
 
 * Secure file transfer w/ notifications
