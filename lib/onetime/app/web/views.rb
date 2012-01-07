@@ -267,7 +267,9 @@ module Onetime
           self[:body_class] = :login
           self[:monitored_link] = true
           self[:with_analytics] = true
-          add_form_fields :custid => req.params[:custid]
+          if req.params[:custid]
+            add_form_fields :custid => req.params[:custid]
+          end
         end
       end
       class Signup < Onetime::App::View
