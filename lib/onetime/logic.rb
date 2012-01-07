@@ -422,7 +422,7 @@ module Onetime
       end
       def process
         @secret = @metadata.load_secret
-        @show_secret = !metadata.state?(:viewed) && !secret.nil?
+        @show_secret = !metadata.state?(:viewed) && !metadata.state?(:new) && !secret.nil?
       end
     end
   end

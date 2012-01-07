@@ -21,7 +21,7 @@ class Onetime::App
         if req.get?
           res.redirect app_path(logic.redirect_uri)
         else
-          json metadata_hsh(logic.metadata)
+          json metadata_hsh(logic.metadata, :secret_ttl => logic.secret.realttl)
         end
       end
     end
@@ -63,11 +63,11 @@ class Onetime::App
         secret = logic.metadata.load_secret
         if logic.show_secret
           secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
-          json metadata_hsh(logic.metadata, :value => secret_value)
-          logic.metadata.viewed!
+          json metadata_hsh(logic.metadata, :value => secret_value, :secret_ttl => secret.realttl)
         else
-          json metadata_hsh(logic.metadata, :received => secret.viewed || -1)
+          json metadata_hsh(logic.metadata, :received => secret.viewed || -1, :secret_ttl => secret.realttl)
         end
+        logic.metadata.viewed!
       end
     end
     
@@ -79,12 +79,16 @@ class Onetime::App
         :metadata_key => hsh['key'],
         :secret_key => hsh['secret_key'],
         :ttl => hsh['ttl'].to_i,
-        :realttl => md.realttl.to_i,
+        :metadata_ttl => md.realttl.to_i,
+        :secret_ttl => opts[:secret_ttl].to_i,
         :state => hsh['state'] || 'new',
         :updated => hsh['updated'].to_i,
         :created => hsh['created'].to_i
       }
-      ret[:received] = opts[:received].to_i if opts[:received] && opts[:received].to_i >= 0
+      if opts[:received] && opts[:received].to_i >= 0
+        ret[:received] = opts[:received].to_i
+        ret.delete :secret_ttl
+      end
       ret[:value] = opts[:value] if opts[:value]
       ret
     end
