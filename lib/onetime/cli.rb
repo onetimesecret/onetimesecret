@@ -74,12 +74,16 @@ class OT::CLI < Drydock::Command
   def redis_stop
     require_sudo
     uptime = Familia.redis.info['uptime_in_seconds']
-    puts( "Shutting down... (up for %d hours)" % [uptime.to_i/3600])
+    # In some cases SHUTDOWN does not call SAVE so we call it to be sure.
+    # (If there are no SAVE lines in redis.conf for example.)
+    puts "Saving..."
+    redis_save
     # SHUTDOWN does the following:
     #   Stop all the clients.
     #   Perform a blocking SAVE if at least one save point is configured.
     #   Flush the Append Only File if AOF is enabled.
     #   Quit the server.
+    puts( "Shutting down... (up for %d hours)" % [uptime.to_i/3600])
     Familia.redis.shutdown
   end
   
