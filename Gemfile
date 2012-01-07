@@ -28,6 +28,8 @@ gem 'rye', '0.9.4'
 
 gem 'httparty', '0.7.7'
 
+gem 'stathat'
+
 group :dev do
   gem 'rudy', '0.9.8.020'
 end

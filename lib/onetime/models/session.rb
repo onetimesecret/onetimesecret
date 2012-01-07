@@ -25,7 +25,7 @@ class Onetime::Session < Familia::HashKey
     @ipaddress, @custid, @useragent = ipaddress, custid, useragent  # must be nil or have values!
     @entropy = [ipaddress, custid, useragent]
     # TODO: This calls Entropy every time
-    @sessid = self.sessid || self.class.generate_id(*entropy)
+    @sessid = "anon"
     super name, :db => 1, :ttl => 20.minutes
   end
   class << self
@@ -42,6 +42,7 @@ class Onetime::Session < Familia::HashKey
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress, custid, useragent
       # force the storing of the fields to redis
+      sess.update_sessid
       sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
       sess.save
       add sess
@@ -87,6 +88,9 @@ class Onetime::Session < Familia::HashKey
     hsh[:sessid] ||= sessid
     super hsh
   end
+  def update_sessid
+    self.sessid = self.class.generate_id *entropy
+  end
   def replace!
     @custid ||= self[:custid]
     newid = self.class.generate_id @entropy
@@ -115,7 +119,11 @@ class Onetime::Session < Familia::HashKey
   def authenticated?
     self.authenticated.to_s == 'true'
   end
+  def anonymous?
+    sessid.to_s == 'anon' || sessid.to_s.empty?
+  end
   def load_customer
+    return OT::Customer.anonymous if anonymous?
     cust = OT::Customer.load custid 
     cust.nil? ? OT::Customer.anonymous : cust
   end

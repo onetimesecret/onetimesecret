@@ -150,9 +150,7 @@ module Onetime
       def process
         if success?
           OT.info "[login-success] #{cust.custid} #{cust.role}"
-          #TODO: sess = OT::Session.new @sess.ipaddress, @sess.agent, @cust.custid
-          #sess.destroy!   # get rid of the unauthenticated session ID
-          #sess = sess
+          #TODO: get rid of the unauthenticated session ID
           sess.update_fields :custid => cust.custid, :authenticated => 'true'
           sess.ttl = session_ttl if @stay
           sess.save
@@ -352,8 +350,10 @@ module Onetime
         secret.save
         metadata.save
         if metadata.valid? && secret.valid?
-          cust.add_metadata metadata unless cust.anonymous?
-          cust.incr :secrets_created
+          unless cust.anonymous?
+            cust.add_metadata metadata 
+            cust.incr :secrets_created
+          end
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
             metadata.deliver_by_email cust, secret, recipient

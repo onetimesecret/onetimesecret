@@ -34,11 +34,13 @@ class Onetime::App
             raise Unauthorized, "No session support"
           else
             raise Unauthorized, "No session or credentials" unless allow_anonymous
+            @cust = OT::Customer.anonymous
+            @sess = OT::Session.new req.client_ipaddress, cust.custid
           end
-          if cust.nil? || sess.nil? || cust.anonymous? && !sess.authenticated?
+          if cust.nil? || sess.nil? #|| cust.anonymous? && !sess.authenticated?
             raise Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}"
           else
-            cust.sessid = sess.sessid
+            cust.sessid = sess.sessid unless cust.anonymous?
             yield
           end
         end
