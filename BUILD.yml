@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325925611
+:STAMP: 1325930417
 :PATCH: 7
 :OWNER: delano
-:BUILD: "005"
-:STORY: bin/ots redis commands now rquire sudo or root
+:BUILD: "006"
+:STORY: "[no message]"
