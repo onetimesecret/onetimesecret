@@ -12,6 +12,20 @@ class Onetime::App
       end
     end
     
+    def secrets
+      colonels do
+        res.header['Content-Type'] = 'text/plain'
+        res.body = OT::Secret.new.redis.keys('secret*:object').join($/)
+      end
+    end
+
+    def metadata
+      colonels do
+        res.header['Content-Type'] = 'text/plain'
+        res.body = OT::Metadata.new.redis.keys('metadata:*:object').join($/)
+      end
+    end
+    
     module Views
     end
     
