@@ -223,11 +223,11 @@ module Onetime
           end
           secret = metadata.load_secret
           if secret.nil?
-            self[:been_shared] = true
-            self[:shared_date] = natural_time(metadata.updated.to_i || 0)
+            self[:is_received] = true
+            self[:received_date] = natural_time(metadata.received.to_i || 0)
           else
-            self[:been_shared] = secret.state?(:viewed)
-            self[:shared_date] = natural_time(secret.viewed.to_i || 0)
+            self[:is_received] = secret.state?(:received)
+            self[:received_date] = natural_time(metadata.received.to_i || 0)
             self[:maxviews] = secret.maxviews
             self[:has_maxviews] = true if self[:maxviews] > 1
             self[:view_count] = secret.view_count
@@ -357,7 +357,7 @@ module Onetime
               :stamp => natural_time(m.updated), 
               :key => m.key,
               :recipients => m.recipients,
-              :been_shared => m.state?(:shared) }
+              :is_received => m.state?(:received) }
           end.compact
           
           self[:has_secrets] = !self[:metadata].empty?

@@ -48,7 +48,7 @@ class Onetime::App
         logic.process
         if logic.show_secret
           json :value => logic.secret_value, :secret_key => req.params[:key]
-          logic.secret.viewed!
+          logic.secret.received!
         else
           secret_not_found_response
         end
@@ -65,7 +65,7 @@ class Onetime::App
           secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
           json metadata_hsh(logic.metadata, :value => secret_value, :secret_ttl => secret.realttl)
         else
-          json metadata_hsh(logic.metadata, :received => secret.viewed || -1, :secret_ttl => secret.realttl)
+          json metadata_hsh(logic.metadata, :secret_ttl => secret ? secret.realttl : nil)
         end
         logic.metadata.viewed!
       end
@@ -83,11 +83,14 @@ class Onetime::App
         :secret_ttl => opts[:secret_ttl].to_i,
         :state => hsh['state'] || 'new',
         :updated => hsh['updated'].to_i,
-        :created => hsh['created'].to_i
+        :created => hsh['created'].to_i,
+        :received => hsh['received'].to_i
       }
-      if opts[:received] && opts[:received].to_i >= 0
-        ret[:received] = opts[:received].to_i
+      if ret[:state] == 'received'
         ret.delete :secret_ttl
+        ret.delete :secret_key
+      else
+        ret.delete :received
       end
       ret[:value] = opts[:value] if opts[:value]
       ret

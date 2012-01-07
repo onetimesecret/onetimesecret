@@ -30,7 +30,7 @@
     <ul>
     {{#metadata}}
       <li> 
-        <a href="{{uri}}" class="{{#been_shared}}strikethrough italic lighter{{/been_shared}} {{^been_shared}}nounderline{{/been_shared}}">{{#recipients}}{{to_s}}{{/recipients}}{{^recipients}}Anonymous recipient{{/recipients}}</a>
+        <a href="{{uri}}" class="{{#is_received}}strikethrough italic lighter{{/is_received}} {{^is_received}}nounderline{{/is_received}}">{{#recipients}}{{to_s}}{{/recipients}}{{^recipients}}Anonymous recipient{{/recipients}}</a>
         - <em class="lighter">{{stamp}}</em></li>
     {{/metadata}}
     </ul>

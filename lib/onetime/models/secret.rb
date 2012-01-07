@@ -111,19 +111,15 @@ module Onetime
     def state? guess
       state.to_s == guess.to_s
     end
-    def viewed!
+    def load_metadata
+      OT::Metadata.load metadata_key
+    end
+    def received!
       # Make sure we don't go from :viewed to something else
-      return unless state?(:new) || state?(:viewed)
-      @state = 'viewed'
-      update_fields :viewed => Time.now.utc.to_i, :state => :viewed
-      self.incr :view_count
-      if maxviews?
-        self.delete :value
-        self.delete :passphrase
-        self.delete :value_checksum
-        self.delete :original_size
-        @passphrase_temp = nil
-      end
+      return unless state?(:new)
+      load_metadata.received!
+      @passphrase_temp = nil
+      self.destroy!
     end
     class << self
       def exists? objid
@@ -146,7 +142,7 @@ module Onetime
       def spawn_pair custid, extra_entropy
         entropy = [OT.instance, Time.now.to_f, OT.entropy, extra_entropy].flatten
         metadata, secret = OT::Metadata.new(custid, entropy), OT::Secret.new(custid, entropy)
-        metadata.secret_key = secret.key
+        metadata.secret_key, secret.metadata_key = secret.key, metadata.key
         [metadata, secret]
       end
       def encryption_key *entropy

@@ -66,20 +66,20 @@
     <div class="secret">
       <span class="pretext">Secret:</span><br/>
       <input value="*******************" disabled="disabled" />
-      {{#been_shared}}
+      {{#is_received}}
       {{^has_maxviews}}
-      <p><em>Received {{shared_date}}.</em></p>
+      <p><em>Received {{received_date}}.</em></p>
       {{/has_maxviews}}
       {{#has_maxviews}}
       <p>
         <strong>Expires in {{expiration_stamp}}.</strong>
-        <strong>Viewed {{view_count}} of {{maxviews}} times</strong> (last <em>{{shared_date}}</em>).
+        <strong>Viewed {{view_count}} of {{maxviews}} times</strong> (last <em>{{received_date}}</em>).
       </p>
       {{/has_maxviews}}
-      {{/been_shared}}
-      {{^been_shared}}
+      {{/is_received}}
+      {{^is_received}}
       <p><em><strong>Expires in {{expiration_stamp}}</strong>. Not yet received.</em></p>
-      {{/been_shared}}
+      {{/is_received}}
     </div>
     
     {{#recipients}}

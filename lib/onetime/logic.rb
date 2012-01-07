@@ -393,14 +393,14 @@ module Onetime
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
               owner.verified = "true"
               sess.destroy!
-              secret.viewed!
+              secret.received!
             else
               raise_form_error "You can't verify an account when you're already logged in."
             end
           else
             owner.incr :secrets_shared unless owner.anonymous?
             OT::Customer.global.incr :secrets_shared
-            secret.viewed!
+            secret.received!
           end
         elsif !correct_passphrase
           limit_action :failed_passphrase if secret.has_passphrase?
@@ -422,7 +422,7 @@ module Onetime
       end
       def process
         @secret = @metadata.load_secret
-        @show_secret = !metadata.state?(:viewed) && !metadata.state?(:new) && !secret.nil?
+        @show_secret = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received))
       end
     end
   end

@@ -61,8 +61,15 @@ module Onetime
     end
     def viewed!
       # Make sure we don't go from :shared to :viewed
-      return if state?(:viewed) || state?(:shared)
+      return unless state?(:new)
+      @state = :viewed
       update_fields :state => :viewed, :viewed => Time.now.utc.to_i
+    end
+    def received!
+      # Make sure we don't go from :shared to :viewed
+      return unless state?(:new) || state?(:viewed)
+      @state = :received
+      update_fields :state => :received, :received => Time.now.utc.to_i, :secret_key => nil
     end
     def state? guess
       state.to_s == guess.to_s
