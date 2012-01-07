@@ -66,7 +66,7 @@ module Onetime
       self.original_size = original_value.size
       self.value_checksum = storable_value.gibbler
       self.value_encryption = 2
-      self.value = storable_value.encrypt opts.merge(:key => encryption_key(value_checksum))
+      self.value = storable_value.encrypt opts.merge(:key => encryption_key)
     end
     def decrypted_value opts={}
       case value_encryption.to_i
@@ -75,7 +75,7 @@ module Onetime
       when 1
         self.value.decrypt opts.merge(:key => encryption_key_v1)
       when 2
-        self.value.decrypt opts.merge(:key => encryption_key_v2(self.value_checksum))
+        self.value.decrypt opts.merge(:key => encryption_key_v2)
       else
         raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
       end
@@ -98,7 +98,7 @@ module Onetime
     def encryption_key_v1 *ignored
       OT::Secret.encryption_key self.key, self.passphrase_temp
     end
-    def encryption_key_v2 checksum
+    def encryption_key_v2 *ignored
       OT::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
     end
     def load_customer
