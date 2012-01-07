@@ -60,13 +60,13 @@ class Onetime::App
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
         logic.process
+        secret = logic.metadata.load_secret
         if logic.show_secret
-          secret = logic.metadata.load_secret
           secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
           json metadata_hsh(logic.metadata, :value => secret_value)
-          logic.metadata.delete :secret_key
+          logic.metadata.viewed!
         else
-          json metadata_hsh(logic.metadata)
+          json metadata_hsh(logic.metadata, :received => secret.viewed || -1)
         end
       end
     end
@@ -79,11 +79,12 @@ class Onetime::App
         :metadata_key => hsh['key'],
         :secret_key => hsh['secret_key'],
         :ttl => hsh['ttl'].to_i,
+        :realttl => md.realttl.to_i,
         :state => hsh['state'] || 'new',
-        :updated => hsh['updated'],
-        :created => hsh['created']
+        :updated => hsh['updated'].to_i,
+        :created => hsh['created'].to_i
       }
-      ret[:shared] = hsh['shared'] if hsh['state'].to_s == 'shared'
+      ret[:received] = opts[:received].to_i if opts[:received] && opts[:received].to_i >= 0
       ret[:value] = opts[:value] if opts[:value]
       ret
     end

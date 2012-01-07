@@ -65,7 +65,7 @@ module Onetime
         #res.redirect app_path(logic.redirect_uri)
         req.params.clear
         req.params[:key] = logic.metadata.key
-        private_uri
+        private_uri # redirect straight to private_uri
       end
     end
     
@@ -99,6 +99,7 @@ module Onetime
         view = Onetime::App::Views::Private.new req, sess, cust, logic.metadata
         view[:show_secret] = logic.show_secret
         res.body = view.render
+        logic.metadata.viewed!
       end
     end
     

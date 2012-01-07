@@ -224,7 +224,7 @@ module Onetime
           secret = metadata.load_secret
           if secret.nil?
             self[:been_shared] = true
-            self[:shared_date] = natural_time(metadata.shared.to_i || 0)
+            self[:shared_date] = natural_time(metadata.updated.to_i || 0)
           else
             self[:been_shared] = secret.state?(:viewed)
             self[:shared_date] = natural_time(secret.viewed.to_i || 0)
