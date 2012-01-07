@@ -321,24 +321,25 @@ module Onetime
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
         params[:recipient] = [params[:recipient]].flatten.compact.uniq
-        if cust.anonymous? && !params[:recipient].empty?
-          raise_form_error "An account is required to send emails. Signup here: http://#{OT.conf[:site][:host]}"
-        else
-          @recipient = params[:recipient].collect { |email_address|
-            next if email_address.to_s.empty?
-            next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
-            unless valid_email?(email_address) #|| valid_mobile?(email_address)
-              raise_form_error "Recipient must be an email address."
-            end
-            email_address
-          }.compact.uniq
-          @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
-        end
+        @recipient = params[:recipient].collect { |email_address|
+          next if email_address.to_s.empty?
+          next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
+          unless valid_email?(email_address) #|| valid_mobile?(email_address)
+            raise_form_error "Recipient must be an email address."
+          end
+          email_address
+        }.compact.uniq
+        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
       def raise_concerns
         limit_action :create_secret
         limit_action :email_recipient unless recipient.empty?
-        raise_form_error "You did not provide anything to share" if kind == :share && secret_value.to_s.empty?
+        if kind == :share && secret_value.to_s.empty?
+          raise_form_error "You did not provide anything to share"
+        end
+        if cust.anonymous? && !@recipient.empty?
+          raise_form_error "An account is required to send emails. Signup here: http://#{OT.conf[:site][:host]}"
+        end
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process
