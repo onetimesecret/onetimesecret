@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325991878
+:STAMP: 1325992078
 :PATCH: 10
 :OWNER: delano
-:BUILD: "007"
-:STORY: "StatHat test: Secrets Created (timeout 500ms)"
+:BUILD: 008
+:STORY: Move stathat call to logic
