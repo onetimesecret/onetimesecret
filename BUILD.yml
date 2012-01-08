@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325958019
+:STAMP: 1325991878
 :PATCH: 10
 :OWNER: delano
-:BUILD: "006"
-:STORY: "[no message]"
+:BUILD: "007"
+:STORY: "StatHat test: Secrets Created (timeout 500ms)"
