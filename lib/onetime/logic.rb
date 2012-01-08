@@ -362,6 +362,13 @@ module Onetime
           unless recipient.nil? || recipient.empty?
             metadata.deliver_by_email cust, secret, recipient.first
           end
+          begin
+            timeout(0.500) do
+              StatHat::API.ez_post_count("Secrets", "delano@blamestella.com", 1)
+            end
+          rescue Timeout::Error
+            OT.info "timeout calling stathat"
+          end
         else
           raise_form_error "Could not store your secret" 
         end

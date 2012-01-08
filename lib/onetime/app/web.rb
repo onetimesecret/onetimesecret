@@ -61,13 +61,6 @@ module Onetime
     
     def create_secret
       publically(req.request_path) do
-        begin
-          timeout(0.500) do
-            StatHat::API.ez_post_count("Secrets Created", "delano@blamestella.com", 1)
-          end
-        rescue Timeout::Error
-          OT.info "timeout calling stathat"
-        end
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
