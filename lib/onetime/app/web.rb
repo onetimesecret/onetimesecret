@@ -78,6 +78,7 @@ module Onetime
         view = Onetime::App::Views::Shared.new req, sess, cust
         logic.raise_concerns
         logic.process
+        view[:is_owner] = logic.secret.owner?(cust)
         view[:has_passphrase] = logic.secret.has_passphrase?
         view[:verification] = logic.verification
         if logic.show_secret

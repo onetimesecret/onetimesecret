@@ -1,5 +1,14 @@
 {{>header}}
-
+  
+  {{#is_owner}}
+    {{^show_secret}}
+    <p class="msg">You created this secret. If you view it, the recipient will not be able to see it.</p>
+    {{/show_secret}}
+    {{#show_secret}}
+    <p class="msg">You have viewed your own secret. It is not longer available for anyone else.</p>
+    {{/show_secret}}
+  {{/is_owner}}
+  
   <div class="shared">
     {{>partial/session_messages}}
     {{^show_secret}}
@@ -22,7 +31,7 @@
         <span class="pretext"></span>
         <input name="passphrase" value="" autocomplete="off" /><br/>
         {{/has_passphrase}}
-        <span id="fire" class="button"><button type="submit">Show Secret</button></span>
+        <span id="fire" class="button"><button type="submit">View Secret</button></span>
       </form>
       {{^verification}}
       <p>(careful: we will only show it once.)</p>
