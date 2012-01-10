@@ -13,7 +13,7 @@ true
 #=> true
 
 ## Can create a view
-view = OT::Email::SecretLink.new @cust, @secret
+view = OT::Email::SecretLink.new @cust, @secret, 'tryouts@onetime.com'
 puts view.render
 [view.verify_uri, view[:secret]]
 true

@@ -1,5 +1,6 @@
 require 'onetime'
 
+OT.load! :app
 
 ## Can create Secret
 s = Onetime::Secret.new :private
@@ -15,12 +16,12 @@ s.rediskey
 s = Onetime::Secret.new :shared, :entropy
 p s.name
 s.rediskey
-#=> 'secret:ct2cju1cwhqxcbh8de89sezrw0mtusa:object'
+#=> 'secret:q6luo3pn9e8vzcl9v21uw5d084rlh6n:object'
 
 ## But can be modified with entropy
 s = Onetime::Secret.new :shared, [:some, :fixed, :values]
 s.rediskey
-#=> 'secret:ntit96jrq77myf5z0a333uvld21o6wq:object'
+#=> 'secret:6genol59u9is7nuh8wr9gvokaply5h3:object'
 
 ## Generate a pair
 @metadata, @secret = Onetime::Secret.spawn_pair :anon, :tryouts

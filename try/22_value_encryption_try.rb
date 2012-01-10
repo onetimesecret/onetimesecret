@@ -12,7 +12,7 @@ s = Onetime::Secret.new :shared
 s.encrypt_value 'poop', :key => 'tryouts'
 puts "These values should match character for character. Not sure why they don't :-?"
 s.value
-#=> '\x8D\xF2k\xD0;\xB9\xB5\xC3\x02+@\xEA\x06\xA2+\xA9'
+#=> '\xEF\xDF\xAEt\xAF\xD6\f\x15oZ\x9E\xB8a\xF1\x9E/'
 
 ## Can decrypt a value
 s = Onetime::Secret.new :shared

@@ -1,9 +1,9 @@
 require 'onetime'
 
-# Sessions have unique IDs by default
+# Sessions don't have unique IDs by default
 s1, s2 = OT::Session.new, OT::Session.new
 s1.sessid == s2.sessid
-#=> false
+#=> true
 
 # Can set form fields
 @sess = OT::Session.new
