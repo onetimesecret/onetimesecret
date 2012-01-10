@@ -35,6 +35,12 @@ module Onetime
       @age ||= Time.now.utc.to_i-updated
       @age
     end
+    def anonymous?
+      custid.to_s == 'anon'
+    end
+    def owner? cust
+      !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+    end
     def deliver_by_email cust, secret, eaddrs
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] No addresses specified"

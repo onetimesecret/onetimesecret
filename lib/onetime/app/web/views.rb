@@ -238,6 +238,10 @@ module Onetime
               self[:truncated] = secret.truncated
             end
           end
+          self[:show_secret] = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received))
+          self[:show_secret_link] = self[:show_secret] || metadata.owner?(cust)
+          self[:show_metadata_link] = ! metadata.state?(:viewed)
+          self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
         end
         def share_uri
           [baseuri, :secret, self[:secret_key]].join('/')

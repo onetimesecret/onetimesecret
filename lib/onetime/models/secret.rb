@@ -114,6 +114,12 @@ module Onetime
     def load_metadata
       OT::Metadata.load metadata_key
     end
+    def anonymous?
+      custid.to_s == 'anon'
+    end
+    def owner? cust
+      !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+    end
     def received!
       # Make sure we don't go from :viewed to something else
       return unless state?(:new)

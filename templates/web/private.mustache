@@ -1,25 +1,24 @@
 {{>header}}
-
+  
   <div class="private">
-    {{#show_secret}}
+    {{#show_secret_link}}
     <div class="uri">
       <span class="pretext">Share this link:</span><br/>
       <input id="secreturi" class="selectable" value="{{share_uri}}" />
-      <p>
-        <strong>Expires in {{expiration_stamp}}</strong>.
-        {{#has_passphrase}}
-        <strong>Requires a passphrase.</strong>
-        {{/has_passphrase}}
-        {{#has_maxviews}}
-        <strong>Viewed {{view_count}} of {{maxviews}} times.</strong>
-        {{/has_maxviews}}
-      </p>
-      <hr/>
+      {{#has_passphrase}}
+      <p><strong>Requires a passphrase.</strong></p>
+      {{/has_passphrase}}
     </div>
+    {{/show_secret_link}}
+    
+    {{#show_metadata}}
     {{#recipients}}
     <h3>Sent to:</h3>
     <p>{{to_s}}</p>
     {{/recipients}}
+    {{/show_metadata}}
+    
+    {{#show_secret}}
     <div class="secret">
       {{^can_decrypt}}
       <em>Secret:</em><br/>
@@ -38,11 +37,35 @@
       {{/one_liner}}
       {{/can_decrypt}}
     </div>
+    {{/show_secret}}
+    
+    {{^show_secret}}
+    <div class="secret">
+      <span class="pretext">Secret:</span><br/>
+      <input value="*******************" disabled="disabled" />
+    </div>
+    {{/show_secret}}
+    
+    <p>
+      <strong>Expires in {{expiration_stamp}}</strong>. 
+      {{#is_received}}
+      <em>Received {{received_date}}.</em>
+      {{/is_received}}
+      {{^is_received}}
+      <em>Not yet received.</em>
+      {{/is_received}}
+    </p>
+    
     <hr/>
+    
+    {{#show_metadata_link}}
     <p class=" lighter">
       Keep this link to find out when the secret is received:<br/>
       <a id="" class="" href="{{metadata_uri}}">{{metadata_uri}}</a>
     </p>
+    {{/show_metadata_link}}
+    
+    {{#show_secret}}
     <div id="faq" class="smaller">
       <h3>F.A.Q.</h3>
       {{#has_passphrase}}
@@ -63,34 +86,12 @@
     {{/show_secret}}
     
     {{^show_secret}}
-    <div class="secret">
-      <span class="pretext">Secret:</span><br/>
-      <input value="*******************" disabled="disabled" />
-      {{#is_received}}
-      {{^has_maxviews}}
-      <p><em>Received {{received_date}}.</em></p>
-      {{/has_maxviews}}
-      {{#has_maxviews}}
-      <p>
-        <strong>Expires in {{expiration_stamp}}.</strong>
-        <strong>Viewed {{view_count}} of {{maxviews}} times</strong> (last <em>{{received_date}}</em>).
-      </p>
-      {{/has_maxviews}}
-      {{/is_received}}
-      {{^is_received}}
-      <p><em><strong>Expires in {{expiration_stamp}}</strong>. Not yet received.</em></p>
-      {{/is_received}}
-    </div>
-    
-    {{#recipients}}
-    <h3>Sent to:</h3>
-    <p>{{to_s}}</p>
-    {{/recipients}}
-    
     <div id="faq" class="smaller">
       <h3>F.A.Q.</h3>
+      {{^show_secret_link}}
       <h4>What if I forgot to copy the shared link?</h4>
       <p>You need to create a new secret. We can't retrieve it for you.</p>
+      {{/show_secret_link}}
       
       <h4>How long with the secret be available?</h4>
       <p>The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
