@@ -57,6 +57,7 @@ input.long { width:380px; }
 #content {
   padding-left: 0px;
   padding-bottom: 20px;
+  width: 620px;
 }
 
 #content p {
