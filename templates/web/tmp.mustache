@@ -58,6 +58,11 @@
           <input type="text" name="cname" id="cnameField" class="short" value="{{cname}}" />.onetimesecret.com<br/>
           <span id="fireSmall" class="button"><button type="submit">Update CNAME</button></span>
         </form>
+        
+        {{#has_cname}}
+        <p><a href="{{cname_uri}}">View your subdomain</a></p>
+        {{/has_cname}}
+        
       </div>
       {{/plan.options.cname}}
       

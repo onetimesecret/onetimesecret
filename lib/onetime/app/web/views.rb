@@ -42,6 +42,7 @@ module Onetime
         self[:feedback_text] = OT.conf[:text][:feedback]
         self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
         self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
+        self[:base_domain] = OT.conf[:site][:domain]
         # NOTE: uncomment the following line to show the broadcast
         self[:with_broadcast] = ! self[:authenticated]
         if Onetime.conf[:site][:cobranded]
@@ -379,6 +380,8 @@ module Onetime
           self[:is_paid] = plan.paid?
           self[:has_cname] = cust.has_key?(:cname)
           self[:cname] = cust.cname || 'yourcompany'
+          self[:cname_uri] = '//%s.%s' % [self[:cname], self[:base_domain]]
+          self[:cname_uri] << (':%d' % req.env['SERVER_PORT']) if req.env['SERVER_PORT'] != 443
         end
       end
       class Error < Onetime::App::View

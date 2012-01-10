@@ -13,6 +13,7 @@ module Onetime
     
     def index
       publically do
+        p [is_subdomain?, subdomain]
         view = Onetime::App::Views::Homepage.new req, sess, cust
         sess.event_incr! :homepage
         res.body = view.render

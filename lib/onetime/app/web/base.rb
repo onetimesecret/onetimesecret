@@ -5,12 +5,14 @@ module Onetime
     
     module Base
       include OT::App::Helpers
+      attr_reader :subdomain
       
       def publically redirect=nil
         carefully(redirect) do 
           check_session!     # 1. Load or create the session, load customer (or anon)
-          check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
-          check_referrer!
+          check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)\
+          check_subdomain!   # 3. Check if we're running as a subdomain
+          check_referrer!    # 4. Check referrers for public requests
           yield
         end
       end
@@ -19,6 +21,7 @@ module Onetime
         carefully(redirect) do 
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
+          check_subdomain!   # 3. Check if we're running as a subdomain
           sess.authenticated? ? yield : res.redirect(('/')) # TODO: raise OT::Redirect
         end
       end
@@ -28,6 +31,13 @@ module Onetime
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
           sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
+        end
+      end
+      
+      def check_subdomain!
+        subdomstr = req.env['SERVER_NAME'].split('.').first
+        if !subdomstr.to_s.empty? && subdomstr != 'www' && OT::Subdomain.exists?(subdomstr)
+          @subdomain = OT::Subdomain.load(subdomstr)
         end
       end
       
@@ -76,6 +86,9 @@ module Onetime
         res.body = view.render
       end
       
+      def is_subdomain?
+        ! subdomain.nil?
+      end
     end
   end
   

@@ -1,5 +1,6 @@
 :site:  
   :host: localhost:7143
+  :domain: ot.com
   :ssl: false
   # ABOUT THIS SECRET: ONCE SET, DO NOT CHANGE IT (KEEP A BACKUP OFFSITE).
   :secret: 074eea80797de4111f68fc3152a8306c9b2388b4

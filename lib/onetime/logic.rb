@@ -278,12 +278,10 @@ module Onetime
       end
       def process
         if ! @cname.nil? && @cname != cust.cname
-          if cust.cname && (tmp = OT::Subdomain.load(cust.cname))
-            tmp.destroy!
-          end
+          # DON'T DESTROY EXISTING SUBDOMAIN
+          # FUUUUUCK, identifier should be custid
           if ! OT::Subdomain.exists?(@cname)
             tmp = OT::Subdomain.create @cname, cust.custid
-            p [1, tmp.all, cust.all]
             cust.update_fields :cname => tmp.cname
             @modified << :cname
             sess.set_info_message "CNAME updated"
