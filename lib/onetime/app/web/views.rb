@@ -377,6 +377,8 @@ module Onetime
           self[:with_analytics] = true
           self[:price] = plan.calculated_price
           self[:is_paid] = plan.paid?
+          self[:has_cname] = cust.has_key?(:cname)
+          self[:cname] = cust.cname || 'yourcompany'
         end
       end
       class Error < Onetime::App::View

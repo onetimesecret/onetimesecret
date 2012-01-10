@@ -257,6 +257,7 @@ module Onetime
     class UpdateAccount < OT::Logic::Base
       attr_reader :modified
       def process_params
+        @cname = params[:cname]
         @currentp = params[:currentp].to_s
         @newp = params[:newp].to_s
         @newp2 = params[:newp2].to_s
@@ -270,21 +271,38 @@ module Onetime
           raise_form_error "New password is too short" unless @newp.size >= 6
           raise_form_error "New password cannot match current password" if @newp == @currentp
         end
+        if ! @cname.nil?
+          @current_subdomain = OT::Subdomain.load(@cname)
+          raise_form_error "That CNAME is not available" if @current_subdomain && !@current_subdomain.owner?(cust)
+        end
       end
       def process
+        if ! @cname.nil? && @cname != cust.cname
+          if cust.cname && (tmp = OT::Subdomain.load(cust.cname))
+            tmp.destroy!
+          end
+          if ! OT::Subdomain.exists?(@cname)
+            tmp = OT::Subdomain.create @cname, cust.custid
+            p [1, tmp.all, cust.all]
+            cust.update_fields :cname => tmp.cname
+            @modified << :cname
+            sess.set_info_message "CNAME updated"
+          end
+        end
         if cust.passphrase?(@currentp) && @newp == @newp2
           cust.update_passphrase @newp
           @modified << :password
           sess.set_info_message "Password changed"
         end
-        if modified.empty?
-          sess.set_error_message "Nothing changed" 
-        else
-          cust.update_time!
-        end
+        sess.set_error_message "Nothing changed" if modified.empty?
+        sess.set_form_fields form_fields # for tabindex
       end
       def modified? guess
         modified.member? guess
+      end
+      private
+      def form_fields
+        { :tabindex => params[:tabindex], :cname => params[:cname] }
       end
     end
 
@@ -301,6 +319,12 @@ module Onetime
         unless cust.anonymous?
           @apikey = cust.regenerate_apitoken
         end
+        sess.set_form_fields form_fields
+        sess.set_info_message "Key changed"
+      end
+      private
+      def form_fields
+        { :tabindex => params[:tabindex] }
       end
     end
     

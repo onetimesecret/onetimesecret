@@ -34,6 +34,14 @@
       </li>
     </ul>
     
+    <h3>Subdomains ({{subdomain_count}})</h3>
+    
+    <ul class="smaller">
+      {{#subdomains}}
+      <li>{{cname}}</li>
+      {{/subdomains}}
+    </ul>
+
     <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
     <ul class="smaller">
     {{#recent_customers}}
