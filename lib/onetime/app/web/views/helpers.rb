@@ -32,7 +32,7 @@ module Onetime
             fulldomain = Onetime.conf[:site][:host]
           end
           uri = [scheme, fulldomain].join
-          uri << (':%d' % server_port) ![443, 80].member?(server_port.to_i)
+          uri << (':%d' % server_port) if ![443, 80].member?(server_port.to_i)
           uri
         end
         def gravatar(email)
