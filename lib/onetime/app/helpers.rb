@@ -86,11 +86,11 @@ class Onetime::App
       attempted_shrimp = req.params[:shrimp]
       ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
       ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
-      OT.ld "SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp}"
       unless sess.shrimp?(attempted_shrimp) || ignoreshrimp
         shrimp = (sess.shrimp || '[noshrimp]').clone
         sess.clear_shrimp!  # assume the shrimp is being tampered with
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
+        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp}"
         raise ex
       end
     end

@@ -47,12 +47,11 @@
     {{/show_secret}}
     
     <p>
-      <strong>Expires in {{expiration_stamp}}</strong>. 
       {{#is_received}}
       <em>Received {{received_date}}.</em>
       {{/is_received}}
       {{^is_received}}
-      <em>Not yet received.</em>
+      <strong>Expires in {{expiration_stamp}}</strong>. 
       {{/is_received}}
     </p>
     
