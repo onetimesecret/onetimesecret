@@ -15,7 +15,14 @@ module Onetime
         end
         def baseuri
           scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
-          [scheme, Onetime.conf[:site][:host]].join
+          if req.env['ots.subdomain']
+            fulldomain = [req.env['ots.subdomain'].cname, Onetime.conf[:site][:domain]].join('.')
+          else
+            fulldomain = Onetime.conf[:site][:host]
+          end
+          uri = [scheme, fulldomain].join
+          uri << (':%d' % req.env['SERVER_PORT']) if req.env['SERVER_PORT'] != 443
+          uri
         end
         def gravatar(email)
           return '/img/stella.png' if email.nil? || email.empty?
