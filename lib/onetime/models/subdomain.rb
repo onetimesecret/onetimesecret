@@ -17,6 +17,7 @@ class Onetime::Subdomain < Familia::HashKey
   end
   attr_accessor :values
   def initialize custid=nil, cname=nil
+    @prefix, @suffix = :customer, :subdomain
     @cname, @custid = OT::Subdomain.normalize_cname(cname), custid
     super name, :db => 6
   end
