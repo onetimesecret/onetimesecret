@@ -299,7 +299,7 @@ module Onetime
       end
       private
       def form_fields
-        { :tabindex => params[:tabindex], :cname => cname }
+        properties.merge :tabindex => params[:tabindex], :cname => cname 
       end
     end
     
