@@ -48,10 +48,10 @@ module Onetime
           self[:subdomain] = tmp.to_hash
           self[:subdomain]['company_domain'] = tmp.company_domain
           self[:subtitle] = self[:subdomain]['company'] || self[:subdomain]['company_domain']
-          self[:display_feedback] = false
-          self[:display_icons] = false
+          self[:display_feedback] = self[:authenticated]
+          self[:display_icons] = self[:authenticated]
           self[:display_faq] = false
-          self[:display_recipients] = false
+          self[:display_recipients] = self[:authenticated]
           self[:display_privacy_options] = self[:authenticated]
           self[:actionable_visitor] = self[:authenticated]
           self[:override_styles] = true

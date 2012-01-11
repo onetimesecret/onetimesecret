@@ -64,7 +64,6 @@
 <div id="corset">
   <div id="header">
     <div id="sitenav">
-      {{#display_sitenav}}
       {{^authenticated}}
       {{#is_subdomain}}
       <a href="{{baseotsuri}}/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
@@ -80,10 +79,6 @@
       <a href="/account" title="Your Account">Account</a> | 
       <a href="/logout" title="Log out of One-Time Secret">Logout</a>
       {{/authenticated}}
-      {{/display_sitenav}}
-      {{^display_sitenav}}
-      &nbsp;
-      {{/display_sitenav}}
     </div>
     
     <hr/>
