@@ -44,6 +44,7 @@ POST  /dashboard                                 Onetime::App#create_secret
 GET   /account                                   Onetime::App#account
 POST  /account                                   Onetime::App#update_account
 POST  /account/apikey                            Onetime::App#generate_apikey
+POST  /account/subdomain                         Onetime::App#update_subdomain
 
 GET   /404                                       Onetime::App#not_found
 GET   /500                                       Onetime::App#server_error

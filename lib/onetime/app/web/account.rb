@@ -131,7 +131,16 @@ module Onetime
         res.redirect app_path('/account')
       end
     end
-
+    
+    def update_subdomain
+      authenticated('/account') do
+        logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        res.redirect app_path('/account')
+      end
+    end
+    
     def generate_apikey
       authenticated do
         logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params

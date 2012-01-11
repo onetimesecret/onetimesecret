@@ -42,6 +42,9 @@ class Onetime::Subdomain < Familia::HashKey
   def identifier
     @custid  # Don't call the method
   end
+  def update_cname cname
+    self.cname = OT::Subdomain.normalize_cname(cname)
+  end
   def owner? cust
     (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
   end

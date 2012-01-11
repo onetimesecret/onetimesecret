@@ -380,8 +380,10 @@ module Onetime
           self[:is_paid] = plan.paid?
           self[:has_cname] = cust.has_key?(:cname)
           self[:cname] = cust.cname || 'yourcompany'
+          self[:subdomain] = cust.load_subdomain
           self[:cname_uri] = '//%s.%s' % [self[:cname], self[:base_domain]]
           self[:cname_uri] << (':%d' % req.env['SERVER_PORT']) if req.env['SERVER_PORT'] != 443
+          
         end
       end
       class Error < Onetime::App::View

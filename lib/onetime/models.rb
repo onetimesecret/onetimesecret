@@ -95,7 +95,7 @@ module Onetime::Models
       hsh[:updated] = OT.now.to_i
       hsh[:created] = OT.now.to_i unless has_key?(:created)
       ret = update hsh
-      self.cache.replace hsh
+      #self.cache.replace hsh  ## NOTE: this only works of hsh has all keys
       ret
     end
     def refresh_cache

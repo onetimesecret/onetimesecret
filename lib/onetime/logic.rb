@@ -254,10 +254,52 @@ module Onetime
       end
     end
     
+    class UpdateSubdomain < OT::Logic::Base
+      attr_reader :subdomain, :cname, :properties
+      def process_params
+        @cname = params[:cname].to_s.strip.slice(0,30)
+        @properties = {
+          :logo_uri => params[:logo_uri].to_s.strip.slice(0,120), 
+          :primary_color => params[:cp].to_s.strip.slice(0,30), 
+          :secondary_color => params[:cs].to_s.strip.slice(0,30), 
+          :border_color => params[:cb].to_s.strip.slice(0,30)
+        }
+      end
+      def raise_concerns
+        limit_action :update_account
+        if ! @cname.empty?
+          @subdomain = OT::Subdomain.load(cust.custid)
+          raise_form_error "That CNAME is not available" if subdomain && !subdomain.owner?(cust.custid)
+        end
+        if ! properties[:logo_uri].empty?
+          begin
+            URI.parse properties[:logo_uri]
+          rescue => ex
+            raise_form_error "Check the logo URI"
+          end
+        end
+      end
+      def process
+        @subdomain ||= OT::Subdomain.create cust.custid, @cname
+        if ! cname.empty?
+          subdomain.update_cname cname
+          subdomain.update_fields properties
+          cust.update_fields :cname => subdomain.cname
+          sess.set_info_message "CNAME updated"
+        else
+          sess.set_error_message "Nothing changed"
+        end
+        sess.set_form_fields form_fields # for tabindex
+      end
+      private
+      def form_fields
+        { :tabindex => params[:tabindex], :cname => cname }
+      end
+    end
+    
     class UpdateAccount < OT::Logic::Base
       attr_reader :modified, :subdomain
       def process_params
-        @cname = params[:cname]
         @currentp = params[:currentp].to_s
         @newp = params[:newp].to_s
         @newp2 = params[:newp2].to_s
@@ -271,18 +313,8 @@ module Onetime
           raise_form_error "New password is too short" unless @newp.size >= 6
           raise_form_error "New password cannot match current password" if @newp == @currentp
         end
-        if ! @cname.nil?
-          @subdomain = OT::Subdomain.load(cust.custid)
-          raise_form_error "That CNAME is not available" if subdomain && !subdomain.owner?(cust.custid)
-        end
       end
       def process
-        if ! @cname.nil? && @cname != cust.cname
-          @subdomain ||= OT::Subdomain.create cust.custid, @cname
-          cust.update_fields :cname => subdomain.cname, :custid => cust.custid
-          @modified << :cname
-          sess.set_info_message "CNAME updated"
-        end
         if cust.passphrase?(@currentp) && @newp == @newp2
           cust.update_passphrase @newp
           @modified << :password
@@ -296,7 +328,7 @@ module Onetime
       end
       private
       def form_fields
-        { :tabindex => params[:tabindex], :cname => params[:cname] }
+        { :tabindex => params[:tabindex] }
       end
     end
 
