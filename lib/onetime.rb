@@ -144,7 +144,7 @@ module Onetime
     end
     def self.increment!(msg=nil)
       load_config
-      @version[:BUILD] = @version[:BUILD].to_s.succ!
+      @version[:BUILD] = @version[:BUILD].to_s.succ!.to_s
       @version[:STAMP] = Time.now.utc.to_i
       @version[:OWNER] = OT.sysinfo.user
       @version[:STORY] = msg || '[no message]'

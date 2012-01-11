@@ -2,7 +2,7 @@
 :MAJOR: 0
 :MINOR: 7
 :STAMP: 1325992078
-:PATCH: 10
+:PATCH: 11
 :OWNER: delano
-:BUILD: 008
+:BUILD: "000"
 :STORY: Move stathat call to logic
