@@ -35,13 +35,6 @@ module Onetime
       end
     end
     
-    def login
-      publically do
-        view = Onetime::App::Views::Login.new req, sess, cust
-        res.body = view.render
-      end
-    end
-    
     def pricing
       res.redirect '/signup'
     end
@@ -78,12 +71,20 @@ module Onetime
       end
     end
     
+    
+    def login
+      publically do
+        view = Onetime::App::Views::Login.new req, sess, cust
+        res.body = view.render
+      end
+    end
+    
     def authenticate
       publically do
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params
         view = Onetime::App::Views::Login.new req, sess, cust
         if sess.authenticated?
-          sess.msg! "You are already logged in."
+          sess.set_info_message "You are already logged in."
           res.redirect '/'
         else
           if req.post?

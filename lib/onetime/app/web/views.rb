@@ -28,7 +28,6 @@ module Onetime
         @req, @sess, @cust = req, sess, cust
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
-        self[:subtitle] = "One Time"
         self[:monitored_link] = false
         self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
         self[:keywords] = "secret,password generator,share a secret,onetime"
@@ -47,7 +46,8 @@ module Onetime
         if self[:is_subdomain]
           tmp = req.env['ots.subdomain']
           self[:subdomain] = tmp.to_hash
-          self[:subdomain][:company_domain] = tmp.company_domain
+          self[:subdomain]['company_domain'] = tmp.company_domain
+          self[:subtitle] = self[:subdomain]['company'] || self[:subdomain]['company_domain']
           self[:display_feedback] = false
           self[:display_icons] = false
           self[:display_faq] = false
@@ -62,6 +62,7 @@ module Onetime
           self[:banner_url] = req.env['ots.subdomain'].logo_uri
           self[:with_broadcast] = false
         else
+          self[:subtitle] = "One Time"
           self[:display_faq] = true
           self[:display_icons] = true
           self[:display_otslogo] = true
@@ -289,6 +290,9 @@ module Onetime
           self[:with_analytics] = true
           if req.params[:custid]
             add_form_fields :custid => req.params[:custid]
+          end
+          if sess.authenticated?
+            add_message "You are already logged in."
           end
         end
       end
