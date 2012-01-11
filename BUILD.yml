@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1325992078
+:STAMP: 1326309565
 :PATCH: 11
 :OWNER: delano
-:BUILD: "000"
-:STORY: Move stathat call to logic
+:BUILD: "001"
+:STORY: Subdomain
