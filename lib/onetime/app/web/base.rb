@@ -5,7 +5,6 @@ module Onetime
     
     module Base
       include OT::App::Helpers
-      attr_reader :subdomain
       
       def publically redirect=nil
         carefully(redirect) do 
@@ -36,8 +35,8 @@ module Onetime
       
       def check_subdomain!
         subdomstr = req.env['SERVER_NAME'].split('.').first
-        if !subdomstr.to_s.empty? && subdomstr != 'www' && OT::Subdomain.exists?(subdomstr)
-          req.env['ots.subdomain'] = OT::Subdomain.load(subdomstr)
+        if !subdomstr.to_s.empty? && subdomstr != 'www' && OT::Subdomain.mapped?(subdomstr)
+          req.env['ots.subdomain'] = OT::Subdomain.load_by_cname(subdomstr)
         end
       end
       

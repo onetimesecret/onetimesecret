@@ -56,7 +56,7 @@ class Onetime::App
           end.reverse
           self[:subdomain_count] = OT::Subdomain.values.size
           self[:subdomains] = OT::Subdomain.all.collect do |v|
-            v.to_hash unless v.nil?
+            { :cname => v['cname'], :custid => v.custid, :fulldomain => v.fulldomain }
           end.reverse
           self[:feedback_count] = OT::Feedback.values.size
           self[:today_feedback_count] = self[:today_feedback].size

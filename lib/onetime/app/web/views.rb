@@ -43,19 +43,20 @@ module Onetime
         self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
         self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
         self[:base_domain] = OT.conf[:site][:domain]
-        # NOTE: uncomment the following line to show the broadcast
-        self[:with_broadcast] = ! self[:authenticated]
-        if Onetime.conf[:site][:cobranded]
+        if req.env['ots.subdomain']
           self[:display_faq] = false
           self[:override_styles] = true
           self[:display_otslogo] = false
-          self[:primary_color] = Onetime.conf[:site][:primary_color] 
-          self[:secondary_color] = Onetime.conf[:site][:secondary_color] 
-          self[:border_color] = Onetime.conf[:site][:border_color] 
-          self[:banner_url] = Onetime.conf[:site][:banner_url] 
+          self[:primary_color] = req.env['ots.subdomain'].primary_color
+          self[:secondary_color] = req.env['ots.subdomain'].secondary_color
+          self[:border_color] = req.env['ots.subdomain'].border_color
+          self[:banner_url] = req.env['ots.subdomain'].logo_uri
+          self[:with_broadcast] = false
         else
           self[:display_faq] = true
           self[:display_otslogo] = true
+          # NOTE: uncomment the following line to show the broadcast
+          self[:with_broadcast] = ! self[:authenticated]
         end
         unless sess.nil?
           self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?

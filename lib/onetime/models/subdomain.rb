@@ -1,18 +1,25 @@
 class Onetime::Subdomain < Familia::HashKey
   include Onetime::Models::RedisHash
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 6
+  @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 6
   class << self
     attr_reader :values
     def add obj
-      self.values.add OT.now.to_i, obj.identifier
-      self.values.remrangebyscore 0, OT.now.to_i-2.days
+      self.values.put obj.cname, obj.custid
     end
     def all
-      self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+      self.values.all.collect { |cname,custid| load(custid) }.compact
     end
-    def recent duration=30.days
-      spoint, epoint = OT.now.to_i-duration, OT.now.to_i
-      self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+    def owned_by? cname, custid
+      map(cname) == custid
+    end
+    def map cname
+      self.values.get(cname)
+    end
+    def mapped? cname
+      self.values.has_key?(cname)
+    end
+    def load_by_cname cname
+      load map(cname)
     end
   end
   attr_accessor :values
@@ -28,7 +35,7 @@ class Onetime::Subdomain < Familia::HashKey
     end
     def load objid
       obj = new objid
-      obj.exists? ? (add(obj); obj) : nil
+      obj.exists? ? obj : nil
     end
     def create custid, cname
       obj = new custid, cname
@@ -44,16 +51,17 @@ class Onetime::Subdomain < Familia::HashKey
     @custid  # Don't call the method
   end
   def update_cname cname
-    self.cname = OT::Subdomain.normalize_cname(cname)
+    @cname = self.cname = OT::Subdomain.normalize_cname(cname)
+    self.class.add self
   end
   def owner? cust
     (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
   end
   def destroy! *args
+    OT::Subdomain.values.rem @cname
     super
-    OT::Subdomain.values.rem identifier
   end
   def fulldomain
-    '%s.onetimesecret.com' % @cname
+    '%s.%s' % [self['cname'], OT.conf[:site][:domain]]
   end
 end
