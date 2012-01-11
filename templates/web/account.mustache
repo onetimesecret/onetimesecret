@@ -56,7 +56,7 @@
           <input type="hidden" name="tabindex" value="cname" />
           
           <strong><label for="cnameField"></label>
-          <input type="text" name="cname" id="cnameField" class="short" value="{{cname}}" />.onetimesecret.com</strong> ({{#has_cname}}<a href="{{cname_uri}}" class="smaller lighter">Link</a>{{/has_cname}})<br/>
+          <input type="text" name="cname" id="cnameField" class="short" value="{{cname}}" />.onetimesecret.com</strong> {{#has_cname}}(<a href="{{cname_uri}}" class="smaller lighter">Link</a>){{/has_cname}}<br/>
           <hr/>
           <label for="companyField">Company:</label>
           <input type="text" name="company" id="companyField" class="long" value="{{cust_subdomain.company}}" /><br/>

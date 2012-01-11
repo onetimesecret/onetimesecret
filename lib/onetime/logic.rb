@@ -257,7 +257,7 @@ module Onetime
     class UpdateSubdomain < OT::Logic::Base
       attr_reader :subdomain, :cname, :properties
       def process_params
-        @cname = params[:cname].to_s.strip.slice(0,30)
+        @cname = params[:cname].to_s.downcase.strip.slice(0,30)
         @properties = {
           :company => params[:company].to_s.strip.slice(0,120), 
           :homepage => params[:homepage].to_s.strip.slice(0,120), 
@@ -272,8 +272,12 @@ module Onetime
       def raise_concerns
         limit_action :update_account
         if ! @cname.empty?
-          @subdomain = OT::Subdomain.load(cust.custid)
-          raise_form_error "That CNAME is not available" if subdomain && !subdomain.owner?(cust.custid)
+          if %w{www yourcompany demo mycompany}.member?(@cname)
+            raise_form_error "That CNAME is not available"
+          else
+            @subdomain = OT::Subdomain.load(cust.custid)
+            raise_form_error "That CNAME is not available" if subdomain && !subdomain.owner?(cust.custid)
+          end
         end
         if ! properties[:logo_uri].empty?
           begin
