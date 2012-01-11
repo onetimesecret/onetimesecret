@@ -256,7 +256,7 @@ module Onetime
             end
           end
           self[:show_secret] = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received))
-          self[:show_secret_link] = (self[:show_secret] || metadata.owner?(cust)) && self[:recipients].empty?
+          self[:show_secret_link] = (self[:show_secret] || metadata.owner?(cust)) && self[:recipients].nil?
           self[:show_metadata_link] = metadata.state?(:new)
           self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
         end
