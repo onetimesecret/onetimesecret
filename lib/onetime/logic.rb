@@ -270,14 +270,12 @@ module Onetime
         }
       end
       def raise_concerns
-        limit_action :update_account
-        if ! @cname.empty?
-          if %w{www yourcompany demo mycompany}.member?(@cname)
-            raise_form_error "That CNAME is not available"
-          else
-            @subdomain = OT::Subdomain.load(cust.custid)
-            raise_form_error "That CNAME is not available" if subdomain && !subdomain.owner?(cust.custid)
-          end
+        limit_action :update_branding
+        if %w{www yourcompany mycompany}.member?(@cname)
+          raise_form_error "That CNAME is not available"
+        elsif ! @cname.empty?
+          @subdomain = OT::Subdomain.load(cust.custid)
+          raise_form_error "That CNAME is not available" if subdomain && !subdomain.owner?(cust.custid)
         end
         if ! properties[:logo_uri].empty?
           begin
