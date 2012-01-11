@@ -1,3 +1,4 @@
+# http://www.artviper.net/website-tools/colorfinder.php
 class Onetime::Subdomain < Familia::HashKey
   include Onetime::Models::RedisHash
   @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 6
