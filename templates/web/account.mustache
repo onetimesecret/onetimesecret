@@ -56,7 +56,7 @@
           <input type="hidden" name="tabindex" value="cname" />
           
           <strong><label for="cnameField"></label>
-          <input type="text" name="cname" id="cnameField" class="short" value="{{cname}}" />.onetimesecret.com</strong><br/>
+          <input type="text" name="cname" id="cnameField" class="short" value="{{cname}}" />.onetimesecret.com</strong> ({{#has_cname}}<a href="{{cname_uri}}" class="smaller lighter">Link</a>{{/has_cname}})<br/>
           <hr/>
           <label for="companyField">Company:</label>
           <input type="text" name="company" id="companyField" class="long" value="{{cust_subdomain.company}}" /><br/>
@@ -83,7 +83,7 @@
           <input type="text" name="cb" id="colorBorderField" class="short" value="{{cust_subdomain.border_color}}" /><br/>
 
           <span id="fireSmall" class="button"><button type="submit">Update Branding</button></span>
-          {{#has_cname}}<div class="smaller lighter"><a href="{{cname_uri}}">View your subdomain</a></div>{{/has_cname}}
+          
         </form>
         
       </div>
@@ -111,7 +111,7 @@
             <label for="custid">Your API key:</label>
             <span class="hilite">{{#cust.apitoken}}{{cust.apitoken}}{{/cust.apitoken}}</span>
             {{^cust.apitoken}}<em>Click button to generate</em>{{/cust.apitoken}}
-            <p class="smaller lighter">DO NOT SHARE YOUR TOKEN WITH ANYONE. When in doubt, generate a new one.</p>
+            <p class="smaller lighter">DO NOT SHARE YOUR KEY. When in doubt, generate a new one.</p>
           </div>
           <span id="fireSmall" class="button"><button type="submit">Regenerate Token</button></span>
         </form>

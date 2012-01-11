@@ -289,7 +289,7 @@ module Onetime
           subdomain.update_cname cname
           subdomain.update_fields properties
           cust.update_fields :cname => subdomain.cname
-          sess.set_info_message "CNAME updated"
+          sess.set_info_message "Branding updated"
         else
           sess.set_error_message "Nothing changed"
         end
