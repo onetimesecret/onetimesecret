@@ -43,8 +43,11 @@ module Onetime
         self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
         self[:base_domain] = OT.conf[:site][:domain]
         self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
+        self[:display_sitenav] = true
         if self[:is_subdomain]
-          self[:subdomain] = req.env['ots.subdomain']
+          tmp = req.env['ots.subdomain']
+          self[:subdomain] = tmp.to_hash
+          self[:subdomain][:company_domain] = tmp.company_domain
           self[:display_feedback] = false
           self[:display_icons] = false
           self[:display_faq] = false
@@ -207,6 +210,7 @@ module Onetime
           self[:title] = "You received a secret"
           self[:body_class] = :generate
           self[:display_feedback] = false
+          self[:display_sitenav] = ! self[:is_subdomain]
         end
         def display_lines
           v = self[:secret_value].to_s

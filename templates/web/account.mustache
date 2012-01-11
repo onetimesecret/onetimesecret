@@ -6,7 +6,7 @@
       <ul>
         <li><a href="#account"><strong>Your Account</strong></a></li>
         {{#plan.options.cname}}
-        <li><a href="#cname"><strong>Co-Branding</strong></a></li>
+        <li><a href="#cname"><strong>Branding</strong></a></li>
         {{/plan.options.cname}}
         {{#is_paid}}
         <li><a href="#billing"><strong>Billing</strong></a></li>
@@ -19,7 +19,6 @@
       <div id="account">
         {{>partial/session_messages}}
         <hr/>
-
         
         <strong>Account type: {{plan.options.name}}</strong>
         {{#is_paid}}(${{price}} per month){{/is_paid}}
@@ -59,6 +58,18 @@
           <strong><label for="cnameField"></label>
           <input type="text" name="cname" id="cnameField" class="short" value="{{cname}}" />.onetimesecret.com</strong><br/>
           <hr/>
+          <label for="companyField">Company:</label>
+          <input type="text" name="company" id="companyField" class="long" value="{{cust_subdomain.company}}" /><br/>
+
+          <label for="homepageField">Homepage:</label>
+          <input type="text" name="homepage" id="homepageField" class="long" value="{{cust_subdomain.homepage}}" /><br/>
+
+          <label for="contactField">Contact Name:</label>
+          <input type="text" name="contact" id="contactField" class="long" value="{{cust_subdomain.contact}}" /><br/>
+
+          <label for="emailField">Contact Email:</label>
+          <input type="text" name="email" id="emailField" class="long" value="{{cust_subdomain.email}}" /><br/>
+
           <label for="logoURLField">Logo URL:</label>
           <input type="text" name="logo_uri" id="logoURLField" class="long" value="{{cust_subdomain.logo_uri}}" /><br/>
           

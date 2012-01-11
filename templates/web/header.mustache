@@ -64,6 +64,7 @@
 <div id="corset">
   <div id="header">
     <div id="sitenav">
+      {{#display_sitenav}}
       {{^authenticated}}
       {{#is_subdomain}}
       <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">Login to onetimesecret.com</a>
@@ -79,7 +80,12 @@
       <a href="/account" title="Your Account">Account</a> | 
       <a href="/logout" title="Log out of One-Time Secret">Logout</a>
       {{/authenticated}}
+      {{/display_sitenav}}
+      {{^display_sitenav}}
+      &nbsp;
+      {{/display_sitenav}}
     </div>
+    
     <hr/>
     {{#display_otslogo}}
     <a href="http://www.youtube.com/watch?v=1V6T0lJc3dU" title="Release {{ot_version}}" style="position: absolute; right: 50px; top: 5px; width: 10px; text-decoration: none;">&nbsp;</a>
@@ -92,7 +98,6 @@
 
     {{/display_otslogo}}
     {{^display_otslogo}}
-    <a href="/"><div id="brandedlogo">
-    </div></a>
+    <a href="{{baseuri}}"><div id="brandedlogo"></div></a>
     {{/display_otslogo}}
 </div>

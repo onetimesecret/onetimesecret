@@ -17,7 +17,7 @@
     <span class="pretext">Continue to verify your account:</span><br/>
     {{/verification}}
     {{^verification}}
-    <span class="pretext">This secret is for you:</span><br/>
+    <span class="pretext">Click to continue:</span><br/>
     {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
@@ -53,7 +53,7 @@
       <textarea class="" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
       {{/one_liner}}
       {{^verification}}
-      <p>(careful: it will disappear when you refresh this page.)</p>
+      <p>(careful: it will disappear when you refresh.)</p>
       {{/verification}}
       
       {{#truncated}}
@@ -64,7 +64,12 @@
     <ul class="nav">
       <li class="alt">
         {{^verification}}
+        {{^is_subdomain}}
         <a href="/">Reply with another secret</a>
+        {{/is_subdomain}}
+        {{#is_subdomain}}
+        <a href="{{subdomain.homepage}}">Return to {{subdomain.company_domain}}</a>
+        {{/is_subdomain}}
         {{/verification}}
         {{#verification}}
         <a href="/login" class="hilite">Log in to your account</a>

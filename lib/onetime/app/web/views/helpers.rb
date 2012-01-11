@@ -19,12 +19,10 @@ module Onetime
           [scheme, Onetime.conf[:site][:host]].join
         end
         def server_port
-          req ||= nil
-          (req.nil? ? 443 : req.env['SERVER_PORT']).to_i
+          (defined?(req) ? req.env['SERVER_PORT'] : 443).to_i
         end
         def current_subdomain
-          req ||= nil
-          req.nil? ? subdomain : req.env['ots.subdomain']
+          defined?(req) ? req.env['ots.subdomain'] : subdomain
         end
         def baseuri
           scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'

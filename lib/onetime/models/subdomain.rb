@@ -65,4 +65,8 @@ class Onetime::Subdomain < Familia::HashKey
   def fulldomain
     '%s.%s' % [self['cname'], OT.conf[:site][:domain]]
   end
+  def company_domain
+    return unless self['homepage']
+    URI.parse(self['homepage']).host
+  end
 end
