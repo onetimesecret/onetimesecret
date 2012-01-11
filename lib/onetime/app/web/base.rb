@@ -25,7 +25,7 @@ module Onetime
           sess.authenticated? ? yield : res.redirect(('/')) # TODO: raise OT::Redirect
         end
       end
-
+      
       def colonels redirect=nil
         carefully(redirect) do
           check_session!     # 1. Load or create the session, load customer (or anon)
@@ -37,7 +37,7 @@ module Onetime
       def check_subdomain!
         subdomstr = req.env['SERVER_NAME'].split('.').first
         if !subdomstr.to_s.empty? && subdomstr != 'www' && OT::Subdomain.exists?(subdomstr)
-          @subdomain = OT::Subdomain.load(subdomstr)
+          req.env['ots.subdomain'] = OT::Subdomain.load(subdomstr)
         end
       end
       
@@ -87,7 +87,7 @@ module Onetime
       end
       
       def is_subdomain?
-        ! subdomain.nil?
+        ! req.env['ots.subdomain'].nil?
       end
     end
   end

@@ -255,7 +255,7 @@ module Onetime
     end
     
     class UpdateAccount < OT::Logic::Base
-      attr_reader :modified
+      attr_reader :modified, :subdomain
       def process_params
         @cname = params[:cname]
         @currentp = params[:currentp].to_s
@@ -272,20 +272,16 @@ module Onetime
           raise_form_error "New password cannot match current password" if @newp == @currentp
         end
         if ! @cname.nil?
-          @current_subdomain = OT::Subdomain.load(@cname)
-          raise_form_error "That CNAME is not available" if @current_subdomain && !@current_subdomain.owner?(cust)
+          @subdomain = OT::Subdomain.load(cust.custid)
+          raise_form_error "That CNAME is not available" if subdomain && !subdomain.owner?(cust.custid)
         end
       end
       def process
         if ! @cname.nil? && @cname != cust.cname
-          # DON'T DESTROY EXISTING SUBDOMAIN
-          # FUUUUUCK, identifier should be custid
-          if ! OT::Subdomain.exists?(@cname)
-            tmp = OT::Subdomain.create @cname, cust.custid
-            cust.update_fields :cname => tmp.cname
-            @modified << :cname
-            sess.set_info_message "CNAME updated"
-          end
+          @subdomain ||= OT::Subdomain.create cust.custid, @cname
+          cust.update_fields :cname => subdomain.cname, :custid => cust.custid
+          @modified << :cname
+          sess.set_info_message "CNAME updated"
         end
         if cust.passphrase?(@currentp) && @newp == @newp2
           cust.update_passphrase @newp

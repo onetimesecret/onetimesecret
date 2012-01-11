@@ -29,10 +29,9 @@
         <form action="/account" method="post">
           {{{add_shrimp}}}
           <input type="hidden" name="tabindex" value="account" />
-          <input>
           <div>
-            <label for="custid">Email Address:</label>
-            <input type="text" name="custid" id="custid" class="long" value="{{cust.custid}}" disabled="disabled"/><br/>
+            <em><label for="custid">Email Address:</label>
+            {{cust.custid}}</em><br/>
             <hr/>
             <label for="currentp">Current Password:</label>
             <input type="password" name="currentp" id="currentp" class="short" /><br/>
@@ -57,11 +56,8 @@
           <input type="hidden" name="tabindex" value="cname" />
           <input type="text" name="cname" id="cnameField" class="short" value="{{cname}}" />.onetimesecret.com<br/>
           <span id="fireSmall" class="button"><button type="submit">Update CNAME</button></span>
+          {{#has_cname}}<div class="smaller lighter"><a href="{{cname_uri}}">View your subdomain</a></div>{{/has_cname}}
         </form>
-        
-        {{#has_cname}}
-        <p><a href="{{cname_uri}}">View your subdomain</a></p>
-        {{/has_cname}}
         
       </div>
       {{/plan.options.cname}}

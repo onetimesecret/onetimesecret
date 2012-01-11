@@ -16,8 +16,8 @@ class Onetime::Subdomain < Familia::HashKey
     end
   end
   attr_accessor :values
-  def initialize cname=nil, custid=nil
-    @cname, @custid = OT::Subdomain.normalize(cname), custid
+  def initialize custid=nil, cname=nil
+    @cname, @custid = OT::Subdomain.normalize_cname(cname), custid
     super name, :db => 6
   end
   class << self
@@ -29,18 +29,18 @@ class Onetime::Subdomain < Familia::HashKey
       obj = new objid
       obj.exists? ? (add(obj); obj) : nil
     end
-    def create cname, custid
-      obj = new cname, custid
-      obj.update_fields :cname => normalize(cname), :custid => custid
+    def create custid, cname
+      obj = new custid, cname
+      obj.update_fields :cname => normalize_cname(cname), :custid => custid
       add obj
       obj
     end
-    def normalize cname
+    def normalize_cname cname
       cname.to_s.downcase.gsub(/[^a-z0-9\_]/, '')
     end
   end
   def identifier
-    @cname  # Don't call the method
+    @custid  # Don't call the method
   end
   def owner? cust
     (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
