@@ -1,5 +1,6 @@
 {{>header}}
   
+  {{^verification}}
   {{#is_owner}}
     {{^show_secret}}
     <p class="msg">You created this secret. If you view it, the recipient will not be able to see it.</p>
@@ -8,6 +9,7 @@
     <p class="msg">You have viewed your own secret. It is not longer available for anyone else.</p>
     {{/show_secret}}
   {{/is_owner}}
+  {{/verification}}
   
   <div class="shared">
     {{>partial/session_messages}}
