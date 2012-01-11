@@ -6,7 +6,7 @@
       <ul>
         <li><a href="#account"><strong>Your Account</strong></a></li>
         {{#plan.options.cname}}
-        <li><a href="#cname"><strong>Subdomain</strong></a></li>
+        <li><a href="#cname"><strong>Co-Branding</strong></a></li>
         {{/plan.options.cname}}
         {{#is_paid}}
         <li><a href="#billing"><strong>Billing</strong></a></li>
@@ -60,18 +60,18 @@
           <input type="text" name="cname" id="cnameField" class="short" value="{{cname}}" />.onetimesecret.com</strong><br/>
           <hr/>
           <label for="logoURLField">Logo URL:</label>
-          <input type="text" name="logo_uri" id="logoURLField" class="long" value="{{subdomain.logo_uri}}" /><br/>
+          <input type="text" name="logo_uri" id="logoURLField" class="long" value="{{cust_subdomain.logo_uri}}" /><br/>
           
           <label for="colorPrimaryField">Primary color:</label>
-          <input type="text" name="cp" id="colorPrimaryField" class="short" value="{{subdomain.primary_color}}" /><br/>
+          <input type="text" name="cp" id="colorPrimaryField" class="short" value="{{cust_subdomain.primary_color}}" /><br/>
 
           <label for="colorSecondaryField">Secondary color:</label>
-          <input type="text" name="cs" id="colorSecondaryField" class="short" value="{{subdomain.secondary_color}}" /><br/>
+          <input type="text" name="cs" id="colorSecondaryField" class="short" value="{{cust_subdomain.secondary_color}}" /><br/>
 
           <label for="colorBorderField">Border color:</label>
-          <input type="text" name="cb" id="colorBorderField" class="short" value="{{subdomain.border_color}}" /><br/>
+          <input type="text" name="cb" id="colorBorderField" class="short" value="{{cust_subdomain.border_color}}" /><br/>
 
-          <span id="fireSmall" class="button"><button type="submit">Update CNAME</button></span>
+          <span id="fireSmall" class="button"><button type="submit">Update Branding</button></span>
           {{#has_cname}}<div class="smaller lighter"><a href="{{cname_uri}}">View your subdomain</a></div>{{/has_cname}}
         </form>
         

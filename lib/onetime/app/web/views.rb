@@ -35,7 +35,6 @@ module Onetime
         self[:ot_version] = OT::VERSION.inspect
         self[:ot_version_id] = self[:ot_version].gibbler.short
         self[:authenticated] = sess.authenticated? if sess
-        self[:people_we_care_about] = true
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
@@ -43,8 +42,15 @@ module Onetime
         self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
         self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
         self[:base_domain] = OT.conf[:site][:domain]
-        if req.env['ots.subdomain']
+        self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
+        if self[:is_subdomain]
+          self[:subdomain] = req.env['ots.subdomain']
+          self[:display_feedback] = false
+          self[:display_icons] = false
           self[:display_faq] = false
+          self[:display_recipients] = false
+          self[:display_privacy_options] = self[:authenticated]
+          self[:actionable_visitor] = self[:authenticated]
           self[:override_styles] = true
           self[:display_otslogo] = false
           self[:primary_color] = req.env['ots.subdomain'].primary_color
@@ -54,7 +60,11 @@ module Onetime
           self[:with_broadcast] = false
         else
           self[:display_faq] = true
+          self[:display_icons] = true
           self[:display_otslogo] = true
+          self[:display_recipients] = true
+          self[:display_privacy_options] = true
+          self[:actionable_visitor] = true
           # NOTE: uncomment the following line to show the broadcast
           self[:with_broadcast] = ! self[:authenticated]
         end
@@ -139,7 +149,7 @@ module Onetime
         include CreateSecretElements
         def init *args
           self[:title] = "Share a secret"
-          self[:monitored_link] = true
+          self[:monitored_link] = !self[:is_subdomain]
           self[:with_analytics] = true
         end
       end
@@ -148,7 +158,7 @@ module Onetime
           def init *args
             self[:title] = "API Docs"
             self[:subtitle] = "OTS Developers"
-            self[:monitored_link] = true
+            self[:monitored_link] = !self[:is_subdomain]
             self[:with_analytics] = true
             self[:css] << '/app/docs.css'
           end
@@ -381,10 +391,9 @@ module Onetime
           self[:is_paid] = plan.paid?
           self[:has_cname] = cust.has_key?(:cname)
           self[:cname] = cust.cname || 'yourcompany'
-          self[:subdomain] = cust.load_subdomain
+          self[:cust_subdomain] = cust.load_subdomain
           self[:cname_uri] = '//%s.%s' % [self[:cname], self[:base_domain]]
           self[:cname_uri] << (':%d' % req.env['SERVER_PORT']) if req.env['SERVER_PORT'] != 443
-          
         end
       end
       class Error < Onetime::App::View

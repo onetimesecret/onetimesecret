@@ -25,17 +25,18 @@
     {{/display_feedback}}
     
     <p>
-      <a href="/about">About</a> | 
-      <a href="/docs/api">API</a> |
-      <a href="/business" title="Plans for Business">For Business</a> |
+      <a href="{{baseotsuri}}/about">About</a> | 
+      <a href="{{baseotsuri}}/docs/api">API</a> |
+      <a href="{{baseotsuri}}/business" title="Plans for Business">For Business</a> |
       <a href="http://blog.onetimesecret.com/">Blog</a>
     </p>
     <p>
-      <a href="/info/privacy">Privacy policy</a> | 
-      <a href="/info/terms">Terms &amp; Conditions</a> | 
-      <a href="/info/security">Security policy</a>
+      <a href="{{baseotsuri}}/info/privacy">Privacy policy</a> | 
+      <a href="{{baseotsuri}}/info/terms">Terms &amp; Conditions</a> | 
+      <a href="{{baseotsuri}}/info/security">Security policy</a>
     </p>
     
+    {{#display_icons}}
     <div class="tagline">
       Follow our latest news:
       <p>
@@ -43,6 +44,7 @@
         <a href="http://twitter.com/onetimesecret" title="Join us on Twitter"><img class="socialicon" src="/img/twitter.png" height="16" width="16" alt="twitter icon" /></a>
       </p>
     </div>
+    {{/display_icons}}
     
     {{#monitored_link}}
     <hr/>

@@ -13,6 +13,10 @@ module Onetime
         def secret_uri s 
           '/secret/%s' % s.key
         end
+        def baseotsuri
+          scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+          [scheme, Onetime.conf[:site][:host]].join
+        end
         def baseuri
           scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
           if req.env['ots.subdomain']

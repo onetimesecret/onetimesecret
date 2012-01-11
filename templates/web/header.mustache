@@ -65,9 +65,14 @@
   <div id="header">
     <div id="sitenav">
       {{^authenticated}}
+      {{#is_subdomain}}
+      <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">Login to onetimesecret.com</a>
+      {{/is_subdomain}}
+      {{^is_subdomain}}
       <a href="/signup" title="Signup - Individual and Business plans" class="standout">Create an account</a> | 
       <a href="http://blog.onetimesecret.com/" title="Our weblog">Blog</a> |
       <a href="/login" title="Log in to One-Time Secret">Login</a>
+      {{/is_subdomain}}
       {{/authenticated}}
       {{#authenticated}}
       <span class="lighter">{{cust.custid}}</span>{{#colonel}}<a href="/colonel/2nccpefyria0p533zxtks62fa" title="" class="nounderline">*</a>{{/colonel}} - <a href="/dashboard" title="Your Dashboard">Dashboard</a> | 
