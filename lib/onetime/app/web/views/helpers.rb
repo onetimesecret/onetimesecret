@@ -4,7 +4,7 @@ module Onetime
   class App
     module Views
       module Helpers
-        attr_reader :subdomain
+        attr_accessor :subdomain
         def add_shrimp
           '<input type="hidden" name="shrimp" value="%s" />' % [sess.add_shrimp]
         end
@@ -27,12 +27,12 @@ module Onetime
         def baseuri
           scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
           if current_subdomain
-            fulldomain = [current_subdomain.cname, Onetime.conf[:site][:domain]].join('.')
+            fulldomain = [current_subdomain['cname'], Onetime.conf[:site][:domain]].join('.')
           else
             fulldomain = Onetime.conf[:site][:host]
           end
           uri = [scheme, fulldomain].join
-          uri << (':%d' % server_port) if server_port != 443
+          uri << (':%d' % server_port) ![443, 80].member?(server_port.to_i)
           uri
         end
         def gravatar(email)

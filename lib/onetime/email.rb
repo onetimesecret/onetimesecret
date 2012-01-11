@@ -35,6 +35,14 @@ module Onetime
         self[:secret] = secret
         self[:custid] = cust.custid
         self[:email_address] = recipient
+        self.subdomain = cust.load_subdomain if cust.has_key?(:cname)
+        if self.subdomain
+          self[:from_name] = subdomain['contact']
+          self[:signature_link] = subdomain['homepage']
+        else 
+          self[:from_name] = 'Chris, co-founder'
+          self[:signature_link] = 'https://onetimesecret.com/'
+        end
       end
       def subject
         "#{self[:custid]} sent you a secret"
