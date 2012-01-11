@@ -401,7 +401,7 @@ module Onetime
           self[:cname] = cust.cname || 'yourcompany'
           self[:cust_subdomain] = cust.load_subdomain
           self[:cname_uri] = '//%s.%s' % [self[:cname], self[:base_domain]]
-          self[:cname_uri] << (':%d' % req.env['SERVER_PORT']) if req.env['SERVER_PORT'] != 443
+          self[:cname_uri] << (':%d' % req.env['SERVER_PORT']) if ![443, 80].member?(req.env['SERVER_PORT'].to_i)
         end
       end
       class Error < Onetime::App::View
