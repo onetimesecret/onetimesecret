@@ -37,6 +37,8 @@ module Onetime
         subdomstr = req.env['SERVER_NAME'].split('.').first
         if !subdomstr.to_s.empty? && subdomstr != 'www' && OT::Subdomain.mapped?(subdomstr)
           req.env['ots.subdomain'] = OT::Subdomain.load_by_cname(subdomstr)
+        elsif cust.has_key?(:cname)
+          req.env['ots.subdomain'] = cust.load_subdomain
         end
       end
       
