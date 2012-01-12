@@ -47,7 +47,7 @@ module Onetime
           tmp = req.env['ots.subdomain']
           self[:subdomain] = tmp.to_hash
           self[:subdomain]['company_domain'] = tmp.company_domain || 'One-Time Secret'
-          self[:subdomain]['company_name'] = "One-Time Secret"
+          self[:subdomain]['company'] = "One-Time Secret"
           self[:subtitle] = self[:subdomain]['company'] || self[:subdomain]['company_domain']
           self[:display_feedback] = self[:authenticated]
           self[:display_icons] = self[:authenticated]
