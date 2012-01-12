@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1326391712
+:STAMP: 1326392854
 :PATCH: 11
 :OWNER: delano
-:BUILD: "015"
-:STORY: "FIX: should not be able to overtake someone else's subdomain; added to blacklist"
+:BUILD: "016"
+:STORY: "[no message]"
