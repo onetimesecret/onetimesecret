@@ -289,9 +289,11 @@ module Onetime
       def process
         @subdomain ||= OT::Subdomain.create cust.custid, @cname
         if ! cname.empty?
+          OT::Subdomain.rem cust['cname']
           subdomain.update_cname cname
           subdomain.update_fields properties
           cust.update_fields :cname => subdomain.cname
+          OT::Subdomain.add cname, cust.custid
           sess.set_info_message "Branding updated"
         else
           sess.set_error_message "Nothing changed"
