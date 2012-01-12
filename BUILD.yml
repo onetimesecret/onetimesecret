@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1326369468
+:STAMP: 1326370611
 :PATCH: 11
 :OWNER: delano
-:BUILD: "010"
-:STORY: "[no message]"
+:BUILD: "011"
+:STORY: Allow colonel to login as unverified account
