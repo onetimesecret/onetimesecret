@@ -7,6 +7,9 @@ class Onetime::Subdomain < Familia::HashKey
     def add obj
       self.values.put obj.cname, obj.custid
     end
+    def rem obj
+      self.values.del(obj['cname'])
+    end
     def all
       self.values.all.collect { |cname,custid| load(custid) }.compact
     end
@@ -52,6 +55,7 @@ class Onetime::Subdomain < Familia::HashKey
     @custid  # Don't call the method
   end
   def update_cname cname
+    self.class.rem self
     @cname = self.cname = OT::Subdomain.normalize_cname(cname)
     self.class.add self
   end
