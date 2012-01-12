@@ -318,7 +318,7 @@ module Onetime
               :planid => req.params[:planid]
             }
             if self[:plan][:is_paid]
-              add_message "Good news! This plan is free until January 1st."
+              add_message "Good news! This plan is free until February 1st."
             end
           else
             add_error "Unknown plan"
