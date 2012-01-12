@@ -219,7 +219,8 @@ module Onetime
           ret = ret > 30 ? 30 : ret
         end
         def one_liner
-          self[:secret_value].to_s.scan(/\n/).size.zero?
+          v = self[:secret_value].to_s
+          v.scan(/\n/).size.zero?
         end
       end
       class Private < Onetime::App::View
