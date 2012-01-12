@@ -12,8 +12,6 @@ GET   /docs/api                                  Onetime::App#show_docs
 GET   /docs/api/secrets                          Onetime::App#show_docs_secrets
 GET   /docs/api/libs                             Onetime::App#show_docs_libs
 
-GET   /passgen                                   Onetime::App#passgen
-
 GET   /private/:key                              Onetime::App#private_uri
 GET   /shared/:key                               Onetime::App#secret_uri
 POST  /shared/:key                               Onetime::App#secret_uri
@@ -43,6 +41,7 @@ POST  /dashboard                                 Onetime::App#create_secret
 
 GET   /account                                   Onetime::App#account
 POST  /account                                   Onetime::App#update_account
+POST  /account/passgen                           Onetime::App#update_account
 POST  /account/apikey                            Onetime::App#generate_apikey
 POST  /account/subdomain                         Onetime::App#update_subdomain
 

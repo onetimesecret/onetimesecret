@@ -307,9 +307,10 @@ module Onetime
     class UpdateAccount < OT::Logic::Base
       attr_reader :modified, :subdomain
       def process_params
-        @currentp = params[:currentp].to_s
-        @newp = params[:newp].to_s
-        @newp2 = params[:newp2].to_s
+        @currentp = params[:currentp].to_s.strip.slice(0,60)
+        @newp = params[:newp].to_s.strip.slice(0,60)
+        @newp2 = params[:newp2].to_s.strip.slice(0,60)
+        @passgen_token = params[:passgen_token].to_s.strip.slice(0,60)
       end
       def raise_concerns
         @modified ||= []
@@ -320,12 +321,20 @@ module Onetime
           raise_form_error "New password is too short" unless @newp.size >= 6
           raise_form_error "New password cannot match current password" if @newp == @currentp
         end
+        if ! @passgen_token.empty?
+          raise_form_error "Token is too short" if @passgen_token.size < 6
+        end
       end
       def process
         if cust.passphrase?(@currentp) && @newp == @newp2
           cust.update_passphrase @newp
           @modified << :password
           sess.set_info_message "Password changed"
+        end
+        if ! @passgen_token.empty?
+          cust.update_passgen_token @passgen_token
+          @modified << :token
+          sess.set_info_message "Token changed"
         end
         sess.set_error_message "Nothing changed" if modified.empty?
         sess.set_form_fields form_fields # for tabindex

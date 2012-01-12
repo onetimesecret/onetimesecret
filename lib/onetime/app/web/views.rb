@@ -403,6 +403,15 @@ module Onetime
           self[:cust_subdomain] = cust.load_subdomain
           self[:cname_uri] = '//%s.%s' % [self[:cname], self[:base_domain]]
           self[:cname_uri] << (':%d' % req.env['SERVER_PORT']) if ![443, 80].member?(req.env['SERVER_PORT'].to_i)
+          if self[:colonel]
+            if cust.passgen_token.nil?
+              cust.update_passgen_token sess.sessid.gibbler
+            end
+            self[:token] = cust.passgen_token
+            self[:js] << '/etc/packer/base2.js'
+            self[:js] << '/etc/packer/packer.js'
+            self[:js] << '/etc/packer/words.js'
+          end
         end
       end
       class Error < Onetime::App::View
@@ -425,18 +434,6 @@ module Onetime
           self[:monitored_link] = true
           self[:with_analytics] = true
           self[:with_broadcast] = false 
-        end
-      end
-      class PasswordGenerator < Onetime::App::View
-        def init *args
-          self[:title] = "Password Generator"
-          self[:body_class] = :info
-          self[:monitored_link] = true
-          self[:with_analytics] = true
-          self[:token] = sess.sessid.gibbler
-          self[:js] << '/etc/packer/base2.js'
-          self[:js] << '/etc/packer/packer.js'
-          self[:js] << '/etc/packer/words.js'
         end
       end
       class NotFound < Onetime::App::View

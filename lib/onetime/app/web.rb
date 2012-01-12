@@ -105,12 +105,6 @@ module Onetime
       end
     end
     
-    def passgen
-      publically do
-        view = Onetime::App::Views::PasswordGenerator.new req, sess, cust
-        res.body = view.render
-      end
-    end
     def about
       publically do
         view = Onetime::App::Views::About.new req, sess, cust

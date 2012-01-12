@@ -87,6 +87,15 @@ class Onetime::Customer < Familia::HashKey
   def add_metadata s
     metadata_list.add OT.now.to_i, s.key
   end
+  def update_passgen_token v
+    self['passgen_token'] = v.encrypt(:key => encryption_key)
+  end
+  def passgen_token
+    self['passgen_token'].decrypt(:key => encryption_key) if has_key?(:passgen_token)
+  end
+  def encryption_key
+    OT::Secret.encryption_key OT.global_secret, custid
+  end
   class << self
     def anonymous
       cust = new
