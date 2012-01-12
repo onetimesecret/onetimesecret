@@ -46,7 +46,8 @@ module Onetime
         if self[:is_subdomain]
           tmp = req.env['ots.subdomain']
           self[:subdomain] = tmp.to_hash
-          self[:subdomain]['company_domain'] = tmp.company_domain
+          self[:subdomain]['company_domain'] = tmp.company_domain || 'One-Time Secret'
+          self[:subdomain]['company_name'] = "One-Time Secret"
           self[:subtitle] = self[:subdomain]['company'] || self[:subdomain]['company_domain']
           self[:display_feedback] = self[:authenticated]
           self[:display_icons] = self[:authenticated]
@@ -55,11 +56,11 @@ module Onetime
           self[:display_privacy_options] = self[:authenticated]
           self[:actionable_visitor] = self[:authenticated]
           self[:override_styles] = true
-          self[:display_otslogo] = false
           self[:primary_color] = req.env['ots.subdomain'].primary_color
           self[:secondary_color] = req.env['ots.subdomain'].secondary_color
           self[:border_color] = req.env['ots.subdomain'].border_color
           self[:banner_url] = req.env['ots.subdomain'].logo_uri
+          self[:display_otslogo] = self[:banner_url].to_s.empty?
           self[:with_broadcast] = false
         else
           self[:subtitle] = "One Time"
