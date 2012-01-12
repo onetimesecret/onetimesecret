@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1326372630
+:STAMP: 1326381148
 :PATCH: 11
 :OWNER: delano
-:BUILD: "012"
-:STORY: "[no message]"
+:BUILD: "013"
+:STORY: Passgen moved to Labs (colonel only)
