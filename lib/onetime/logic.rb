@@ -133,6 +133,7 @@ module Onetime
           potential = OT::Customer.load @colonelname
           @colonel = potential if potential.passphrase?(@passwd)
           @cust = OT::Customer.load @custid if @colonel.role?(:colonel)
+          sess['authenticated_by'] = @colonel.custid
           OT.info "[login-as-success] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
         elsif (potential = OT::Customer.load(@custid))
           @cust = potential if potential.passphrase?(@passwd)

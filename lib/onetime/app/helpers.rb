@@ -113,7 +113,7 @@ class Onetime::App
       @cust ||= OT::Customer.anonymous
       if cust.anonymous?
         sess.authenticated = false 
-      elsif cust.verified.to_s != 'true'
+      elsif cust.verified.to_s != 'true' && !sess['authenticated_by']
         sess.authenticated = false 
       end
       OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
