@@ -355,9 +355,10 @@ table.pricing td {
   border: 1px solid #cccccc;
   white-space: nowrap;
 }
+/*
 
 table.pricing td.bestvalue {
-  background-color: #ff0; /*#C3CDE3;*/
+  background-color: #ff0;
   border: 1px solid #243661 !important;
   border-right: 2px solid #243661 !important;
   border-left: 2px solid #243661 !important;
@@ -372,6 +373,7 @@ table.pricing tr.blankrow td.bestvalue {
 table.pricing tr.bottomblankrow td.bestvalue {
   border-bottom: 2px solid #243661 !important;
 }
+*/
 
 table.pricing td.pricingfeature {
   text-align: left;
@@ -414,8 +416,12 @@ table.pricing tr.pricingeven {
 }
 
 table.pricing tr.prices {
-  font-size: 32px;
+  font-size: 24px;
   text-align: center;
+}
+
+table.pricing tr.domain {
+  font-weight: bold;
 }
 
 table.pricing td.lastcolumn {
