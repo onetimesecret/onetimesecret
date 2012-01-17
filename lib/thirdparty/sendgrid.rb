@@ -8,7 +8,7 @@ class SendGrid
   #ssl_ca_file Stella::Client::SSL_CERT_PATH
   #debug_output $stdout
   base_uri 'https://sendgrid.com/api/'
-  attr_reader :api_user, :api_key, :from, :fromname, :bcc
+  attr_accessor :api_user, :api_key, :from, :fromname, :bcc
   def initialize api_user, api_key, from, fromname=nil, bcc=nil
     @api_user, @api_key, @from, @fromname, @bcc = api_user, api_key, from, fromname, bcc
   end
