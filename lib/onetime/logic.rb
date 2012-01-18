@@ -3,19 +3,19 @@
 module Onetime
   module Logic
     class << self
-      def stathat_count name, custid, count, wait=0.500
+      def stathat_count name, count, wait=0.500
         begin
           timeout(wait) do
-            StatHat::API.ez_post_count(name, custid, count)
+            StatHat::API.ez_post_count(name, "delano@blamestella.com", count)
           end
         rescue Timeout::Error
           OT.info "timeout calling stathat"
         end
       end
-      def stathat_value name, custid, value, wait=0.500
+      def stathat_value name, value, wait=0.500
         begin
           timeout(wait) do
-            StatHat::API.ez_post_value(name, custid, value)
+            StatHat::API.ez_post_value(name, "delano@blamestella.com", value)
           end
         rescue Timeout::Error
           OT.info "timeout calling stathat"
@@ -126,7 +126,7 @@ module Onetime
         else
           cust.role = :customer unless cust.role?(:customer)
         end
-        OT::Logic.stathat_count("New Customers", "delano@blamestella.com", 1)
+        OT::Logic.stathat_count("New Customers (OTS)", 1)
       end
       private
       def form_fields
@@ -451,7 +451,7 @@ module Onetime
           unless recipient.nil? || recipient.empty?
             metadata.deliver_by_email cust, secret, recipient.first
           end
-          OT::Logic.stathat_count("Secrets", "delano@blamestella.com", 1)
+          OT::Logic.stathat_count("Secrets", 1)
         else
           raise_form_error "Could not store your secret" 
         end
@@ -498,7 +498,7 @@ module Onetime
             owner.incr :secrets_shared unless owner.anonymous?
             OT::Customer.global.incr :secrets_shared
             secret.received!
-            OT::Logic.stathat_count("Viewed Secrets", "delano@blamestella.com", 1)
+            OT::Logic.stathat_count("Viewed Secrets", 1)
           end
         elsif !correct_passphrase
           limit_action :failed_passphrase if secret.has_passphrase?
