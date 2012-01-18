@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1326822557
+:STAMP: 1326923960
 :PATCH: 11
 :OWNER: delano
-:BUILD: "020"
-:STORY: Send secret link emails from brand config email w/ account page note
+:BUILD: "021"
+:STORY: Viewed Secrets and New Customers stats
