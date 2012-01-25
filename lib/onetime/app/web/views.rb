@@ -71,7 +71,7 @@ module Onetime
           self[:display_privacy_options] = true
           self[:actionable_visitor] = true
           # NOTE: uncomment the following line to show the broadcast
-          self[:with_broadcast] = ! self[:authenticated]
+          #self[:with_broadcast] = ! self[:authenticated]
         end
         unless sess.nil?
           self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
