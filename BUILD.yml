@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1326924879
+:STAMP: 1327511953
 :PATCH: 11
 :OWNER: delano
-:BUILD: "022"
-:STORY: "[no message]"
+:BUILD: "023"
+:STORY: Remove contest broadcast
