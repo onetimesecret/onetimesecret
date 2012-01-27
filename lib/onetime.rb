@@ -244,6 +244,8 @@ module Onetime
         # Added 2011-12-24s
         add_plan :basic_v1, 10.0, 0.5, :ttl => 30.days, :size => 1_000, :api => true, :name => 'Basic'
         add_plan :individual_v1, 0, 0, :ttl => 2.days, :size => 1_000, :api => true, :name => 'Individual'
+        # Added 2012-01-27
+        add_plan :nonprofit_v1, 0, 0, :ttl => 30.days, :size => 10_000, :api => true, :cname => true, :name => 'Non Profit'
       end
     end
     attr_reader :planid, :price, :discount, :options
