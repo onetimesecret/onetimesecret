@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1331711063
+:STAMP: 1331711100
 :PATCH: 12
 :OWNER: delano
-:BUILD: "000"
+:BUILD: "001"
 :STORY: Fix for forward/back buttons in brower history
