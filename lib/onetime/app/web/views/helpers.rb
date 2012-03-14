@@ -50,7 +50,7 @@ module Onetime
           # X-FORWARDED-PROTO is set by elastic load balancer
           (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")  
         end
-
+        
         def local?
           (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
         end

@@ -19,6 +19,10 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="description" content="{{description}}">
   <meta name="keywords" content="{{keywords}}">
+  {{#no_cache}}
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="expires" content="-1">
+  {{/no_cache}}
   <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" media="screen" rel="Stylesheet" type="text/css">
   <link href="/app/common.css?{{ot_version_id}}" media="screen" rel="Stylesheet" type="text/css" />
   {{#css}}
@@ -60,7 +64,7 @@
   {{/override_styles}}
 </head>
 <body id="{{body_class}}">
-<div id="banner"><div class="broadcast">{{#with_broadcast}}<a href="/logo">Contest: We heard our logo sucks!</a>{{/with_broadcast}}</div></div>
+<div id="banner"><div class="broadcast">{{#with_broadcast}}{{/with_broadcast}}</div></div>
 <div id="corset">
   <div id="header">
     <div id="sitenav">

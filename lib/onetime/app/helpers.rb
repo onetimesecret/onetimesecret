@@ -146,6 +146,12 @@ class Onetime::App
       end
     end
     
+    def no_cache!
+      res.header['Cache-Control'] = "no-store, no-cache, must-revalidate, max-age=0"
+      res.header['Expires'] = "Mon, 7 Nov 2011 00:00:00 UTC"
+      res.header['Pragma'] = "no-cache"
+    end
+    
     def app_path *paths
       paths = paths.flatten.compact
       paths.unshift req.script_name

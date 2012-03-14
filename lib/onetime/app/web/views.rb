@@ -42,6 +42,7 @@ module Onetime
         self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
         self[:base_domain] = OT.conf[:site][:domain]
         self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
+        self[:no_cache] = false
         self[:display_sitenav] = true
         if self[:is_subdomain]
           tmp = req.env['ots.subdomain']
@@ -213,6 +214,7 @@ module Onetime
           self[:body_class] = :generate
           self[:display_feedback] = false
           self[:display_sitenav] = ! self[:is_subdomain]
+          self[:no_cache] = true
         end
         def display_lines
           v = self[:secret_value].to_s
@@ -232,6 +234,7 @@ module Onetime
           self[:secret_key] = metadata.secret_key
           self[:recipients] = metadata.recipients
           self[:display_feedback] = false
+          self[:no_cache] = true
           ttl = metadata.ttl.to_i
           self[:expiration_stamp] = if ttl <= 1.hour
             '%d minutes' % ttl.in_minutes

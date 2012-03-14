@@ -74,6 +74,7 @@ module Onetime
     def secret_uri
       publically do
         deny_agents!
+        no_cache!
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
         view = Onetime::App::Views::Shared.new req, sess, cust
         logic.raise_concerns
@@ -96,6 +97,7 @@ module Onetime
     def private_uri
       publically do
         deny_agents!
+        no_cache!
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
         logic.process
