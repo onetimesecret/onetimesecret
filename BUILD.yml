@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1331714267
+:STAMP: 1331714392
 :PATCH: 12
 :OWNER: delano
-:BUILD: "002"
-:STORY: "UI: dashboards has recent secrets as default; Can now create ttls of 5 minutes and 30 minutes"
+:BUILD: "003"
+:STORY: Default expiration fix
