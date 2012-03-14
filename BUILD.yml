@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1327697661
+:STAMP: 1331711063
 :PATCH: 11
 :OWNER: delano
-:BUILD: "024"
-:STORY: Added Non Profit plan
+:BUILD: "025"
+:STORY: Fix for forward/back buttons in brower history
