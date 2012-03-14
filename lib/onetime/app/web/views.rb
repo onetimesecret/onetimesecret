@@ -130,6 +130,8 @@ module Onetime
             selected = (!sess || !sess.authenticated?) ? 2.days : 7.days
             disabled = (!sess || !sess.authenticated?) ? 2.days : plan.options[:ttl]
             @expiration_options = [
+              [5.minutes, "5 minutes"],
+              [30.minutes, "30 minutes"],
               [1.hour, "1 hour"],
               [4.hour, "4 hours"],
               [12.hour, "12 hours"],
@@ -235,8 +237,10 @@ module Onetime
           self[:recipients] = metadata.recipients
           self[:display_feedback] = false
           self[:no_cache] = true
-          ttl = metadata.ttl.to_i
-          self[:expiration_stamp] = if ttl <= 1.hour
+          ttl = metadata.realttl.to_i
+          self[:expiration_stamp] = if ttl <= 1.minute
+            '%d seconds' % ttl
+          elsif ttl <= 1.hour
             '%d minutes' % ttl.in_minutes
           elsif ttl <= 1.day
             '%d hours' % ttl.in_hours

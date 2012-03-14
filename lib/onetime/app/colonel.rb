@@ -15,14 +15,22 @@ class Onetime::App
     def secrets
       colonels do
         res.header['Content-Type'] = 'text/plain'
-        res.body = OT::Secret.new.redis.keys('secret*:object').join($/)
+        obj = OT::Secret.new
+        data = obj.redis.keys('secret*:object')
+        res.body = data.collect { |key| 
+          '%s: %i' % [key, obj.redis.ttl(key)]
+        }.join($/)
       end
     end
 
     def metadata
       colonels do
         res.header['Content-Type'] = 'text/plain'
-        res.body = OT::Metadata.new.redis.keys('metadata:*:object').join($/)
+        obj = OT::Metadata.new
+        data = obj.redis.keys('metadata:*:object')
+        res.body = data.collect { |key| 
+          '%s: %i' % [key, obj.redis.ttl(key)]
+        }.join($/)
       end
     end
     

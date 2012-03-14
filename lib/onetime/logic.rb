@@ -399,7 +399,7 @@ module Onetime
       def process_params
         @ttl = params[:ttl].to_i
         @ttl = 2.days if @ttl <= 0
-        @ttl = 1.hour if @ttl < 1.hour
+        @ttl = 5.minutes if @ttl < 1.minutes
         @ttl = plan.options[:ttl] if @ttl > plan.options[:ttl]
         @maxviews = params[:maxviews].to_i
         @maxviews = 1 if @maxviews < 1
