@@ -20,15 +20,15 @@
         <hr/>
         
         <strong>Account type: {{plan.options.name}}</strong>
-        {{{#bogus}}}
+        {{#bogus}}
         {{#is_paid}}(${{price}} per month){{/is_paid}}
         {{^is_paid}}(It's free<em>!</em>){{/is_paid}}
         {{/bogus}}
         <hr/>
         
-        {{{#bogus}}}
+        {{#bogus}}
         {{#is_paid}}<p class="msg">We will request billing info on or before February 1st, 2012.</p>{{/is_paid}}
-        {{{/bogus}}}
+        {{/bogus}}
         
         <form action="/account" method="post">
           {{{add_shrimp}}}
