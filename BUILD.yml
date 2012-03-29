@@ -1,8 +1,8 @@
 --- 
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1331714392
+:STAMP: 1333064129
 :PATCH: 12
 :OWNER: delano
-:BUILD: "003"
-:STORY: Default expiration fix
+:BUILD: "004"
+:STORY: Remove payments notes on account page
