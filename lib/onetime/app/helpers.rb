@@ -34,7 +34,6 @@ class Onetime::App
       # Pages redirecting from a POST can get by with the same page once. 
       redirect = '/error' if req.get? && redirect.to_s == req.request_path
       res.header['Content-Type'] ||= "text/html; charset=utf-8"
-      
       yield
     
     rescue Redirect => ex
