@@ -1,7 +1,10 @@
---- 
+---
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1339606712
+:STAMP: 1339606822
 :PATCH: 12
-:BUILD: 008
-:OWNER: delano
+:BUILD: 009
+:OWNER: !binary |-
+  ZGVsYW5v
+:STORY: !binary |-
+  bGliIGRvYyBmaXg=
