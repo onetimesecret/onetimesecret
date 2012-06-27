@@ -1,6 +1,6 @@
 
 
-GET   /2nccpefyria0p533zxtks62fa                  Onetime::App::Colonel#index
+GET   /                  Onetime::App::Colonel#index
 
-GET   /2nccpefyria0p533zxtks62fa/secrets          Onetime::App::Colonel#secrets
-GET   /2nccpefyria0p533zxtks62fa/metadata         Onetime::App::Colonel#metadata
+GET   /secrets          Onetime::App::Colonel#secrets
+GET   /metadata         Onetime::App::Colonel#metadata

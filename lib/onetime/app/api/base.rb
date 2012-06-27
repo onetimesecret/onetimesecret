@@ -11,7 +11,7 @@ class Onetime::App
         end
       end
       
-      # curl -F 'ttl=7200' -u 'delano@onetimesecret.com:4eb33c6340006d6607c813fc7e707a32f8bf5342' http://www.ot.com:7143/api/v1/generate
+      # curl -F 'ttl=7200' -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:7143/api/v1/generate
       def authorized allow_anonymous=false
         carefully do 
           success = false

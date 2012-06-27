@@ -93,7 +93,7 @@ module Onetime
             sess, cust = logic.sess, logic.cust
             res.send_cookie :sess, sess.sessid, sess.ttl
             if cust.role?(:colonel)
-              res.redirect '/colonel/2nccpefyria0p533zxtks62fa'
+              res.redirect '/colonel/'
             else
               res.redirect '/dashboard'
             end
