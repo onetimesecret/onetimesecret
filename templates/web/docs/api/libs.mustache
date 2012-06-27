@@ -51,6 +51,24 @@ ret = api.post '/share', options
 puts ret['secret_key']
       </pre>
 
+      <h3 class="cufon docTitle dotted">Python</h3>
+
+      <a href="https://github.com/utter-step/py_onetimesecret" title="Python library - One-Time Secret"><strong>Download onetimesecret.py</strong></a><br/>
+      <em>by <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added 2012-06-26)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+from onetimesecret import OneTimeSecret
+
+o = OneTimeSecret("YOUR_EMAIL", "YOUR_OTS_APIKEY")
+secret = o.share(u"test")
+
+print o.retrieve_secret(secret["secret_key"])
+# {u'secret_key': u'dtr7ixukiolpx1i4i87kahmhyoy2q65',
+# u'value': u'test'}
+      </pre>
+
+
       <h3 class="cufon docTitle dotted">Perl</h3>
 
       <a href="http://search.cpan.org/~kyled/Net-OneTimeSecret/lib/Net/OneTimeSecret.pm" title="Perl library - One-Time Secret"><strong>Download Net::OneTimeSecret</strong></a><br/>
