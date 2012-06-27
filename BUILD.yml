@@ -1,6 +1,7 @@
---- 
+---
 :MAJOR: 0
 :MINOR: 7
+:STAMP: 1339606822
 :PATCH: 12
 :STORY: Python lib
 :BUILD: "011"
