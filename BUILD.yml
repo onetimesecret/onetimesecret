@@ -1,8 +1,10 @@
---- 
+---
 :MAJOR: 0
 :MINOR: 7
-:STAMP: 1340761243
+:STAMP: 1341009869
 :PATCH: 12
-:STORY: Python lib
-:BUILD: "012"
-:OWNER: delano
+:STORY: !binary |-
+  QVBJIGRvY3MgY2xhcml0eQ==
+:BUILD: '013'
+:OWNER: !binary |-
+  ZGVsYW5v
