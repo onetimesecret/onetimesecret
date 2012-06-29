@@ -22,13 +22,13 @@
       <h4>Usage Example</h4>
       <pre class="colourize">
 &lt;?php
-  include('onetimesecret-api.php');
+  include('onetime-api.php');
   $myOnetime = new OneTimeSecret;
-  $myOnetime->setCustomerID('chris@onetimesecret.com');
-  $myOnetime->setToken('4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181');
+  $myOnetime->setCustomerID('YOUR_EMAIL');
+  $myOnetime->setToken('YOUR_OTS_APIKEY');
   $myOnetime->setRecipient('delano@onetimesecret.com');
   $myOnetime->setTTL(7200);
-  $myResult = $myOnetime->shareSecret('Jazz, jazz and more jazz.', 'thepassword'));
+  $myResult = $myOnetime->shareSecret('Jazz, jazz and more jazz.', 'thepassword');
   print $myOnetime->getSecretURI($myResult);
 ?&gt;
       </pre>
@@ -41,7 +41,7 @@
       <h4>Usage Example</h4>
       <pre class="colourize">
 require 'onetime/api'
-api = Onetime::API.new 'chris@onetimesecret.com', '4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181'
+api = Onetime::API.new 'YOUR_EMAIL', 'YOUR_OTS_APIKEY'
 options = {
   :secret => 'Jazz, jazz and more jazz.',
   :recipient => 'delano@onetimesecret.com',
@@ -81,8 +81,8 @@ print o.retrieve_secret(secret["secret_key"])
 use Net::OneTimeSecret;
 
 # Note: replace these with yours in order for this to work!
-my $customerId  = 'chris@onetimesecret.com';
-my $testApiKey  = '4dc74a03fwr9aya5qur5wa8vavo4gih1hasj6181';
+my $customerId  = 'YOUR_EMAIL';
+my $testApiKey  = 'YOUR_OTS_APIKEY';
 
 my $api = Net::OneTimeSecret->new( $customerId, $testApiKey );
 my $result = $api->shareSecret( 'Jazz, jazz and more jazz.',
