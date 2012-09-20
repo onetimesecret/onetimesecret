@@ -13,7 +13,13 @@ machines do
       user :ots
       hostname 'onetimesecret.com'
     end
-    
+  end
+  
+  env :prod2 do
+    role :fe do
+      user :ots
+      hostname '176.58.122.230'
+    end
   end
   
   # ------------------------------------------------
