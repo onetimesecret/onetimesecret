@@ -39,6 +39,7 @@ commands do
     when 'proto' then 'status' 
     when 'status' then 'status' 
     when 'prod' then 'prod'
+    when 'prod2' then 'prod'
     else
       raise "Unknown thin environment (#{$global.environment})"
     end

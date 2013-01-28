@@ -43,7 +43,9 @@ http {
   #include /etc/nginx/conf.d/*.conf;
 
   upstream onetimesecret {
-    server 127.0.0.1:7143; 
+    #server 127.0.0.1:7143; 
+    server unix:/var/run/thin/thin.0.sock fail_timeout=2s;
+    server unix:/var/run/thin/thin.1.sock fail_timeout=2s;
   }
 
   server {

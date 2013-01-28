@@ -15,12 +15,6 @@ machines do
     end
   end
   
-  env :prod2 do
-    role :fe do
-      user :ots
-      hostname '176.58.122.230'
-    end
-  end
   
   # ------------------------------------------------
   # LOCAL DEV ENVIRONMENT

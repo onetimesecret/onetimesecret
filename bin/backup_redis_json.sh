@@ -7,7 +7,7 @@
 # Installation:
 #   * vi /etc/cron.d/backup_customers
 #   0,20 * * * * root /bin/sh /var/www/onetimesecret.com/bin/backup_redis_json.sh 6 customer
-#
+#   
 # To decrypt a file:
 #   $ gpg -d --passphrase-file $PKEYFILE path/2/file
 #

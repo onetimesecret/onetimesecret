@@ -12,21 +12,21 @@ routines do
   
   start_redis do
     remote :root do
-      redis 'start' 
+      redis_server '/etc/redis.conf' 
     end
   end
 
-  stop_redis do
-    remote :root do
-      redis 'stop'
-    end
-  end
- 
-  restart_redis do
-    remote :root do
-      redis 'restart'
-    end
-  end
+  #stop_redis do
+  #  remote :root do
+  #    redis 'stop'
+  #  end
+  #end
+  #
+  #restart_redis do
+  #  remote :root do
+  #    redis 'restart'
+  #  end
+  #end
  
   start_nginx do
     remote :root do
