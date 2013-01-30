@@ -1,13 +1,13 @@
 {{>header}}
 
   <div id="content">
-    
+
     {{^actionable_visitor}}
       <h2 class="intro">Return to <a href="{{subdomain.homepage}}">{{subdomain.company_domain}}</a></h2>
     {{/actionable_visitor}}
-    
+
     {{#actionable_visitor}}
-    
+
     {{^is_subdomain}}
     <h2 class="intro">Keep sensitive info out of your email &amp; chat logs.</h2>
     {{/is_subdomain}}
@@ -15,37 +15,37 @@
     {{#is_subdomain}}
     <h2 class="intro">Keep sensitive info out of your email &amp; chat logs.</h2>
     {{/is_subdomain}}
-    
+
     {{>partial/create_secret_form}}
-    
+
     {{#display_promo}}
     {{/display_promo}}
 
     {{#display_faq}}
     <div id="faq" class="smaller">
       <h3>F.A.Q.</h3>
-      
+
       <h4>Why would I use this?</h4>
       <p>When you send people passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.</p>
-      
+
       <h4>Can I retrieve a secret that has already been shared?</h4>
       <p>Nope. We display it once and then delete it. After that it's gone forever.</p>
-      
+
       <h4>How long do you keep non-viewed secrets?</h4>
       <p>We keep secrets for up to 2 days for anonymous users, 7 days for free accounts, and up to 30 days with paid plans. After they are viewed they are deleted immediately and gone forever.</p>
-      
+
       <h4>What do you do when I specify an email address?</h4>
       <p>If you specify an email address, we send the secret link to that recipient immediately so you don't have to. If you're logged in, we store an obfuscated version of it to help you keep track of who you sent secrets to (e.g. d*****o@o*****t.com). We'll never spam them or contact them for any other reason. We couldn't even if we wanted to though because we don't store their complete address.</p>
-      
+
       <h4>Why should I trust you?</h4>
       <p>In addition to being really cool guys, we can't really do anything with your information. If it's a password for example, we don't know the username or even the application that the credentials are for.</p>
       <p>If you include a passphrase (available under "Privacy Options"), we use it to encrypt the secret. We don't store the passphrase (only a bcrypted hash) so we can never know what the secret is because we can't decrypt it.</p>
-      
+
       <h4>What if a search engine crawled my secret link before I could?</h4>
       <p>We block benevolent crawlers with our <a href="/robots.txt">robots.txt</a> file and we take further measures to stop malicious ones as well. If you are really concerned, protect it with a passphrase that only you and the recipient know.</p>
-      
+
       <h4>Who are you guys?</h4>
-      <p>We're <a href="http://delanotes.com/" title="Delano Mandelbaum">Delano</a> and <a href="http://christopher.murtagh.name/" title="Chris Murtagh">Chris</a>, the guys behind the <a href="https://www.blamestella.com/" title="Stella: The future of Web Monitoring">Blamey &amp; Stella Information Co</a>. It's the web monitoring service of the future. One-time Secret is one of our side-projects.</p>
+      <p>We're <a href="http://delanotes.com/" title="Delano Mandelbaum">Delano</a> and <a href="http://christopher.murtagh.name/" title="Chris Murtagh">Chris</a>, the guys behind the <a href="https://www.blamestella.com/" title="Stella: Responsive web monitoring">Blamey &amp; Stella Information Co</a>. It's the web monitoring service of the future. One-time Secret is one of our side-projects.</p>
       <p style="margin-left: 30%; margin-right: 30%">
         <a href="http://delanotes.com/" title="Delano Mandelbaum"><img src="/img/delano-g.png" width="95" height="120" border="0" /></a>
         <a href="http://christopher.murtagh.name/" title="Chris Murtagh"><img src="/img/chris-g.png" width="87" height="120" border="0" /></a>
@@ -53,8 +53,8 @@
     </div>
     {{/display_faq}}
     {{/actionable_visitor}}
-    
-    
+
+
   </div>
-  
+
 {{>footer}}
