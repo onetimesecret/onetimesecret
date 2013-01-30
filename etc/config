@@ -7,12 +7,19 @@
 :redis:
   :uri: 'redis://user:CHANGEME@127.0.0.1:6379/0?timeout=10&thread_safe=false&logging=false'
   :config: /etc/onetime/redis.conf
+:colonels:
+  - CHANGEME@EXAMPLE.com
+:emailer:
+  :mode: :sendgrid
+  :account: CHANGEME
+  :password: CHANGEME
+  :from: CHANGEME@example.com
+  :fromname: CHANGEME
+  :bcc:
 :text:
   :feedback: 'Have a question or comment?.'
   :nonpaid_recipient_text: 'You need to create an account!'
   :paid_recipient_text: 'Send the secret link via email'
-:colonels:
-  - CHANGEME@EXAMPLE.com
 :limits:
   :create_secret: 25
   :create_account: 3
@@ -34,13 +41,4 @@
 #    - - basic_v1
 #      - professional_v2
 #      - agency_v2
-:nginx:
-  :ipaddress: '1.2.3.4'
-  :servername: 'example.com'
-:emailer:
-  :mode: :sendgrid
-  :account: CHANGEME
-  :password: CHANGEME
-  :from: CHANGEME@example.com
-  :fromname: CHANGEME
-  :bcc:
+
