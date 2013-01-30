@@ -6,19 +6,32 @@ ONE-TIME SECRET - v0.8 (2013-01-01)
 * Ruby 1.9.1+
 * Redis 2.6+
 
-## Installation (DEBIAN)
+## Install Dependencies
 
-    $ sudo apt-get install build-essentials
+    # DEBIAN
+    $ sudo apt-get update
+    $ sudo apt-get install build-essential
     $ sudo apt-get install libyaml-dev libevent-dev zlib1g zlib1g-dev openssl libssl-dev libxml2 libreadline5-dev
     $ mkdir ~/sources
-    $ cd ~/sources
 
+    # CENTOS
+    $ sudo yum install gcc gcc-c++ make libtool git ntp
+    $ sudo yum install openssl-devel readline-devel libevent-devel libyaml-devel zlib-devel
+    $ mkdir ~/sources
+
+
+## Install Ruby 1.9
+
+    $ cd ~/sources
     $ curl -O ftp://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p362.tar.gz
     $ tar zxf ruby-1.9.3-p362.tar.gz
     $ cd ruby-1.9.3-p362
     $ ./configure && make
     $ sudo make install
     $ sudo gem install bundler
+
+
+## Install Redis 2.6
 
     $ cd ~/sources
     $ curl -O http://redis.googlecode.com/files/redis-2.6.9.tar.gz
@@ -27,15 +40,24 @@ ONE-TIME SECRET - v0.8 (2013-01-01)
     $ make
     $ sudo make install
 
+
+## Install One-Time Secret
+
     $ sudo adduser ots
+    $ sudo mkdir /etc/onetime
+    $ sudo chown ots /etc/onetime
+
     $ sudo su - ots
     $ [download onetimesecret]
     $ cd onetimesecret
     $ bundle install --frozen --deployment --without=dev
+    $ bin/ots init
+    $ cp etc/* /etc/onetime/
+    $ [edit settings in /etc/onetime/config]
+    $ [edit settings in /etc/onetime/redis.conf]
 
-## Installation (CENTOS)
-
-    $ sudo yum install zlib-devel
+    $ redis-server /etc/onetime/redis.conf
+    $ bundle exec thin -e dev -R config.ru -p 7143 start
 
 ## Generating a global secret
 
