@@ -16,6 +16,9 @@
   :from: CHANGEME@example.com
   :fromname: CHANGEME
   :bcc:
+:stathat:
+  :enabled: false
+  :apikey: CHANGEME
 :text:
   :feedback: 'Have a question or comment?.'
   :nonpaid_recipient_text: 'You need to create an account!'

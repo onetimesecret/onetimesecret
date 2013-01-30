@@ -1,21 +1,31 @@
-
+require 'stathat'
 
 module Onetime
   module Logic
     class << self
+      attr_writer :stathat_apikey, :stathat_enabled
+      def stathat_apikey
+        @stathat_apikey ||= Onetime.conf[:stathat][:apikey]
+      end
+      def stathat_enabled
+        @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
+        @stathat_enabled
+      end
       def stathat_count name, count, wait=0.500
+        return false if ! stathat_enabled
         begin
           timeout(wait) do
-            StatHat::API.ez_post_count(name, "delano@blamestella.com", count)
+            StatHat::API.ez_post_count(name, stathat_apikey, count)
           end
         rescue Timeout::Error
           OT.info "timeout calling stathat"
         end
       end
       def stathat_value name, value, wait=0.500
+        return false if ! stathat_enabled
         begin
           timeout(wait) do
-            StatHat::API.ez_post_value(name, "delano@blamestella.com", value)
+            StatHat::API.ez_post_value(name, stathat_apikey, value)
           end
         rescue Timeout::Error
           OT.info "timeout calling stathat"
@@ -35,19 +45,19 @@ module Onetime
         process_generic_params if @params
       end
       protected
-      
+
       # Generic params that can appear anywhere are processed here.
-      # This is called in initialize AFTER process_params so that 
+      # This is called in initialize AFTER process_params so that
       # values set here don't overwrite values that already exist.
       def process_generic_params
-        # remember to set with ||= 
+        # remember to set with ||=
       end
       def form_fields
         OT.ld "No form_fields method for #{self.class}"
         {}
       end
       def raise_form_error msg
-        ex = OT::FormError.new 
+        ex = OT::FormError.new
         ex.message = msg
         ex.form_fields = form_fields
         raise ex
@@ -67,27 +77,27 @@ module Onetime
         !guess.to_s.tr('-.','').match(MOBILE_REGEX).nil?
       end
     end
-    
+
     class ReceiveFeedback < OT::Logic::Base
       attr_reader :msg
       def process_params
         @msg = params[:msg].to_s.slice(0, 999)
       end
-      
+
       def raise_concerns
         limit_action :send_feedback
         if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:text][:feedback])}/
           raise_form_error "You can be more original than that!"
         end
       end
-      
+
       def process
         @msg = "#{msg} [%s]" % [cust.anonymous? ? sess.ipaddress : cust.custid]
         OT::Feedback.add @msg
         sess.set_info_message "Message received. Send as much as you like!"
       end
     end
-    
+
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
       attr_reader :planid, :custid, :password, :password2
@@ -122,7 +132,7 @@ module Onetime
         view = OT::Email::Welcome.new cust, secret
         view.deliver_email
         if OT.conf[:colonels].member?(cust.custid)
-          cust.role = :colonel 
+          cust.role = :colonel
         else
           cust.role = :customer unless cust.role?(:customer)
         end
@@ -160,7 +170,7 @@ module Onetime
           @cust = potential if potential.passphrase?(@passwd)
         end
       end
-      
+
       def raise_concerns
         limit_action :authenticate_session
         if @cust.nil?
@@ -178,7 +188,7 @@ module Onetime
           sess.save
           cust.save
           if OT.conf[:colonels].member?(cust.custid)
-            cust.role = :colonel 
+            cust.role = :colonel
           else
             cust.role = :customer unless cust.role?(:customer)
           end
@@ -186,11 +196,11 @@ module Onetime
           raise_form_error "Try again"
         end
       end
-      
+
       def success?
         !cust.nil? && !cust.anonymous? && (cust.passphrase?(@passwd) || @colonel.passphrase?(@passwd))
       end
-      
+
       private
       def form_fields
         {:custid => custid}
@@ -207,7 +217,7 @@ module Onetime
         sess.destroy!
       end
     end
-    
+
     class Dashboard < OT::Logic::Base
       def process_params
       end
@@ -217,7 +227,7 @@ module Onetime
       def process
       end
     end
-    
+
     class ViewAccount < OT::Logic::Base
       def process_params
       end
@@ -227,7 +237,7 @@ module Onetime
       def process
       end
     end
-    
+
     class ResetPasswordRequest < OT::Logic::Base
       attr_reader :custid
       def process_params
@@ -275,19 +285,19 @@ module Onetime
         secret.destroy!
       end
     end
-    
+
     class UpdateSubdomain < OT::Logic::Base
       attr_reader :subdomain, :cname, :properties
       def process_params
         @cname = params[:cname].to_s.downcase.strip.slice(0,30)
         @properties = {
-          :company => params[:company].to_s.strip.slice(0,120), 
-          :homepage => params[:homepage].to_s.strip.slice(0,120), 
-          :contact => params[:contact].to_s.strip.slice(0,60), 
-          :email => params[:email].to_s.strip.slice(0,120), 
-          :logo_uri => params[:logo_uri].to_s.strip.slice(0,120), 
-          :primary_color => params[:cp].to_s.strip.slice(0,30), 
-          :secondary_color => params[:cs].to_s.strip.slice(0,30), 
+          :company => params[:company].to_s.strip.slice(0,120),
+          :homepage => params[:homepage].to_s.strip.slice(0,120),
+          :contact => params[:contact].to_s.strip.slice(0,60),
+          :email => params[:email].to_s.strip.slice(0,120),
+          :logo_uri => params[:logo_uri].to_s.strip.slice(0,120),
+          :primary_color => params[:cp].to_s.strip.slice(0,30),
+          :secondary_color => params[:cs].to_s.strip.slice(0,30),
           :border_color => params[:cb].to_s.strip.slice(0,30)
         }
       end
@@ -323,10 +333,10 @@ module Onetime
       end
       private
       def form_fields
-        properties.merge :tabindex => params[:tabindex], :cname => cname 
+        properties.merge :tabindex => params[:tabindex], :cname => cname
       end
     end
-    
+
     class UpdateAccount < OT::Logic::Base
       attr_reader :modified, :subdomain
       def process_params
@@ -392,7 +402,7 @@ module Onetime
         { :tabindex => params[:tabindex] }
       end
     end
-    
+
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :maxviews
       attr_reader :metadata, :secret
@@ -405,7 +415,7 @@ module Onetime
         @maxviews = 1 if @maxviews < 1
         @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
          if ['share', 'generate'].member?(params[:kind].to_s)
-          @kind = params[:kind].to_s.to_sym 
+          @kind = params[:kind].to_s.to_sym
         end
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
@@ -434,7 +444,7 @@ module Onetime
       def process
         @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
         if !passphrase.empty?
-          secret.update_passphrase passphrase 
+          secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
         end
         secret.encrypt_value secret_value
@@ -444,7 +454,7 @@ module Onetime
         metadata.save
         if metadata.valid? && secret.valid?
           unless cust.anonymous?
-            cust.add_metadata metadata 
+            cust.add_metadata metadata
             cust.incr :secrets_created
           end
           OT::Customer.global.incr :secrets_created
@@ -453,17 +463,17 @@ module Onetime
           end
           OT::Logic.stathat_count("Secrets", 1)
         else
-          raise_form_error "Could not store your secret" 
+          raise_form_error "Could not store your secret"
         end
       end
       def redirect_uri
         ['/private/', metadata.key].join
       end
-      private 
+      private
       def form_fields
       end
     end
-    
+
     class ShowSecret < OT::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size, :verification, :correct_passphrase
@@ -506,7 +516,7 @@ module Onetime
         end
       end
     end
-    
+
     class ShowMetadata < OT::Logic::Base
       attr_reader :key
       attr_reader :metadata, :secret, :show_secret
@@ -522,6 +532,6 @@ module Onetime
         @secret = @metadata.load_secret
       end
     end
-    
+
   end
 end

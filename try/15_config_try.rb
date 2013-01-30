@@ -1,5 +1,7 @@
 require 'onetime'
 
+OT.load! :cli
+
 # sudo mkdir /etc/onetime
 # mkdir ~/.onetime
 # sudo touch /etc/onetime/config
@@ -7,17 +9,17 @@ require 'onetime'
 
 ## Available config paths in default mode (app)
 Onetime::Config.find_configs
-#=> ["/etc/onetime/config", "/Users/delano/Projects/private/onetimesecret.com/etc/config"]
+#=> ["/etc/onetime/config", File.join(OT::HOME, "etc/config")]
 
 ## Available config paths in cli mode
 OT.mode = :cli
 Onetime::Config.find_configs
-#=> ["/Users/delano/.onetime/config", "/etc/onetime/config", "/Users/delano/Projects/private/onetimesecret.com/etc/config"]
+#=> [File.join(OT.sysinfo.home, ".onetime/config"), "/etc/onetime/config", File.join(OT::HOME, "etc/config")]
 
 ## Available config paths in app mode
 OT.mode = :app
 Onetime::Config.find_configs
-#=> ["/etc/onetime/config", "/Users/delano/Projects/private/onetimesecret.com/etc/config"]
+#=> ["/etc/onetime/config", File.join(OT::HOME, "etc/config")]
 
 ## Finds a config path
 Onetime::Config.path

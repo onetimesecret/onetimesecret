@@ -1,7 +1,7 @@
 # Onetime Rackup
 #
 # Usage:
-# 
+#
 #     $ bundle exec thin -e dev -R config.ru -p 7143 start
 #     $ tail -f /var/log/system.log
 
@@ -28,10 +28,9 @@ apps = {
 Onetime.load! :app
 
 if Otto.env?(:dev)
-  OT.debug = true
   # DEV: Run web apps with extra logging and reloading
   apps.each_pair do |path,app|
-    map(path) { 
+    map(path) {
       use Rack::CommonLogger
       use Rack::Reloader, 0
       app.option[:public] = PUBLIC_DIR
@@ -41,8 +40,8 @@ if Otto.env?(:dev)
       run app
     }
   end
-  map("/app/")      { run Rack::File.new("#{PUBLIC_DIR}/app") } 
-  map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") } 
+  map("/app/")      { run Rack::File.new("#{PUBLIC_DIR}/app") }
+  map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") }
   map("/img/")      { run Rack::File.new("#{PUBLIC_DIR}/img") }
 else
   # PROD: run barebones webapps

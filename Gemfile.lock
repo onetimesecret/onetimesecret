@@ -64,7 +64,6 @@ GEM
       net-scp (>= 1.0.2)
       net-ssh (>= 2.0.13)
       sysinfo (>= 0.7.3)
-    stathat (0.0.3)
     storable (0.8.9)
     sysinfo (0.7.3)
       drydock
@@ -94,7 +93,6 @@ DEPENDENCIES
   redis (= 2.2.2)
   redis-dump (= 0.3.2)
   rudy (= 0.9.8.020)
-  stathat
   storable (= 0.8.9)
   sysinfo (= 0.7.3)
   thin (= 1.2.11)

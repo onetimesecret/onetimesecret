@@ -28,8 +28,6 @@ gem 'annoy', '0.5.6'
 
 gem 'httparty', '0.7.7'
 
-gem 'stathat'
-
 # bundle install --frozen --deployment --without=dev
 group :dev do
   gem 'rudy', '0.9.8.020'

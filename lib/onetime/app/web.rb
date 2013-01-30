@@ -2,7 +2,6 @@
 require 'onetime'  # must be required before
 require 'onetime/app/web/base'
 require 'onetime/app/web/views'
-require 'stathat'
 require 'timeout'
 
 module Onetime
@@ -10,7 +9,7 @@ module Onetime
     include Base
     require 'onetime/app/web/info'
     require 'onetime/app/web/account'
-    
+
     def index
       publically do
         view = Onetime::App::Views::Homepage.new req, sess, cust
@@ -18,28 +17,28 @@ module Onetime
         res.body = view.render
       end
     end
-    
+
     def show_docs
       publically do
         view = Onetime::App::Views::Docs::Api.new req, sess, cust
         res.body = view.render
       end
     end
-    
+
     def show_docs_secrets
       publically do
         view = Onetime::App::Views::Docs::Api::Secrets.new req, sess, cust
         res.body = view.render
       end
     end
-    
+
     def show_docs_libs
       publically do
         view = Onetime::App::Views::Docs::Api::Libs.new req, sess, cust
         res.body = view.render
       end
     end
-    
+
     def receive_feedback
       publically do
         logic = OT::Logic::ReceiveFeedback.new sess, cust, req.params
@@ -48,7 +47,7 @@ module Onetime
         res.redirect app_path('/feedback')
       end
     end
-    
+
     def dashboard
       authenticated do
         logic = OT::Logic::Dashboard.new sess, cust, req.params
@@ -58,7 +57,7 @@ module Onetime
         res.body = view.render
       end
     end
-    
+
     def create_secret
       publically(req.request_path) do
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
@@ -70,7 +69,7 @@ module Onetime
         private_uri # redirect straight to private_uri
       end
     end
-    
+
     def secret_uri
       publically do
         deny_agents!
@@ -93,7 +92,7 @@ module Onetime
         res.body = view.render
       end
     end
-    
+
     def private_uri
       publically do
         deny_agents!
@@ -106,14 +105,14 @@ module Onetime
         logic.metadata.viewed!
       end
     end
-    
+
     def about
       publically do
         view = Onetime::App::Views::About.new req, sess, cust
         res.body = view.render
       end
     end
-    def logo 
+    def logo
       publically do
         view = Onetime::App::Views::Logo.new req, sess, cust
         res.body = view.render
