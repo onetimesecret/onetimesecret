@@ -1,11 +1,47 @@
-ONE-TIME SECRET
+ONE-TIME SECRET - v0.8 (2013-01-01)
 
+## Dependencies
+
+* Any recent Linux (we use Debian, Ubuntu, and CentOS)
+* Ruby 1.9.1+
+* Redis 2.6+
+
+## Installation (DEBIAN)
+
+    $ sudo apt-get install build-essentials
+    $ sudo apt-get install libyaml-dev libevent-dev zlib1g zlib1g-dev openssl libssl-dev libxml2 libreadline5-dev
+    $ mkdir ~/sources
+    $ cd ~/sources
+
+    $ curl -O ftp://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p362.tar.gz
+    $ tar zxf ruby-1.9.3-p362.tar.gz
+    $ cd ruby-1.9.3-p362
+    $ ./configure && make
+    $ sudo make install
+    $ sudo gem install bundler
+
+    $ cd ~/sources
+    $ curl -O http://redis.googlecode.com/files/redis-2.6.9.tar.gz
+    $ tar zxf redis-2.6.9.tar.gz
+    $ cd redis-2.6.9
+    $ make
+    $ sudo make install
+
+    $ sudo adduser ots
+    $ sudo su - ots
+    $ [download onetimesecret]
+    $ cd onetimesecret
+    $ bundle install --frozen --deployment --without=dev
+
+## Installation (CENTOS)
+
+    $ sudo yum install zlib-devel
 
 ## Generating a global secret
 
-With encryption_v2 (2012-01-07) we include a global secret in the encryption key so it needs to be long and secure (that's what she said). One approach:
+We include a global secret in the encryption key so it needs to be long and secure. One approach for generating a secret:
 
-history | ruby -ropenssl -rgibbler -e 'Gibbler.digest_type = OpenSSL::Digest::SHA256; puts [`/usr/bin/uname -a`, $$, Time.now.to_f, ARGF.read].gibbler.base(36)'
+    history | openssl sha1
 
 
 
