@@ -24,12 +24,13 @@ gem 'redis-dump', '0.3.2'
 
 gem 'sysinfo', '0.7.3'
 gem 'annoy', '0.5.6'
-gem 'rye', '0.9.4'
+#gem 'rye', '0.9.4'
 
 gem 'httparty', '0.7.7'
 
 gem 'stathat'
 
+# bundle install --frozen --deployment --without=dev
 group :dev do
   gem 'rudy', '0.9.8.020'
 end
