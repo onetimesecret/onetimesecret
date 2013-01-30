@@ -26,6 +26,13 @@ class OT::CLI::Definition
     OT.debug = true
   end
 
+  about "Ruby irb with Onetime preloaded"
+  command :irb do
+    cmd = 'irb -I%s -ronetime/irb' % [File.join(OT::HOME, 'lib')]
+    OT.ld cmd
+    Kernel.exec cmd
+  end
+
   about "Run this after installing"
   command :init do
     dirs_needed = []
