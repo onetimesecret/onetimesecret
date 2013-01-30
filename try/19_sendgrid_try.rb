@@ -9,7 +9,7 @@ SendGrid.debug_output $stdout
 ## Has global emailer
 OT.load!
 [OT.emailer.class, OT.emailer.from, OT.emailer.fromname]
-#=> [SendGrid, 'chris@onetimesecret.com', 'Chris Murtagh']
+#=> [SendGrid, 'tryouts@onetimesecret.com', 'Tryouts']
 
 ## Can send email
 ret = OT.emailer.send 'tryouts@onetimesecret.com', "tryouts #{OT.now}", "Hello you!"
