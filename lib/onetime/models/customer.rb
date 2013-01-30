@@ -17,8 +17,8 @@ class Onetime::Customer < Familia::HashKey
     def global
       if @global.nil?
         @global = exists?(:GLOBAL) ? load(:GLOBAL) : create(:GLOBAL)
-        @global.secrets_created ||= 20_000 # Starting point at time of implementation
-        @global.secrets_shared  ||= 18_000 
+        @global.secrets_created ||= 0
+        @global.secrets_shared  ||= 0
       end
       @global
     end
@@ -29,7 +29,7 @@ class Onetime::Customer < Familia::HashKey
     @custid = custid  # if we use accessor methods it will sync to redis.
     super name, :db => 6
   end
-  def identifier 
+  def identifier
     @custid
   end
   def apitoken? guess
@@ -41,7 +41,7 @@ class Onetime::Customer < Familia::HashKey
   def get_persistent_value sess, n
     (anonymous? ? sess : self)[n]
   end
-  def set_persistent_value sess, n, v 
+  def set_persistent_value sess, n, v
     (anonymous? ? sess : self)[n] = v
   end
   def external_identifier
