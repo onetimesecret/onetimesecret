@@ -52,6 +52,8 @@ ONE-TIME SECRET - v0.8 (2013-01-01)
     $ cd onetimesecret
     $ bundle install --frozen --deployment --without=dev
     $ bin/ots init
+    $ sudo mkdir /var/log/onetime /var/run/onetime /var/lib/onetime
+    $ sudo chown ots /var/log/onetime /var/run/onetime /var/lib/onetime
     $ cp etc/* /etc/onetime/
     $ [edit settings in /etc/onetime/config]
     $ [edit settings in /etc/onetime/redis.conf]
