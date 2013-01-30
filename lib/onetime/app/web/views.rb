@@ -44,6 +44,10 @@ module Onetime
         self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
         self[:no_cache] = false
         self[:display_sitenav] = true
+        self[:jsvars] = []
+        self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
+        self[:jsvars] << jsvar(:custid, cust.custid)
+        self[:jsvars] << jsvar(:email, cust.email)
         if self[:is_subdomain]
           tmp = req.env['ots.subdomain']
           self[:subdomain] = tmp.to_hash
@@ -118,7 +122,7 @@ module Onetime
         (self.form_fields ||= {}).merge! hsh unless hsh.nil?
       end
     end
-  
+
     module Views
       module CreateSecretElements
         def default_expiration
@@ -206,12 +210,12 @@ module Onetime
         end
       end
       class UnknownSecret < Onetime::App::View
-        def init 
+        def init
           self[:title] = "No such secret"
         end
       end
       class Shared < Onetime::App::View
-        def init 
+        def init
           self[:title] = "You received a secret"
           self[:body_class] = :generate
           self[:display_feedback] = false
@@ -258,7 +262,7 @@ module Onetime
             self[:has_maxviews] = true if self[:maxviews] > 1
             self[:view_count] = secret.view_count
             if secret.viewable?
-              self[:has_passphrase] = !secret.passphrase.to_s.empty? 
+              self[:has_passphrase] = !secret.passphrase.to_s.empty?
               self[:can_decrypt] = secret.can_decrypt?
               self[:secret_value] = secret.decrypted_value if self[:can_decrypt]
               self[:truncated] = secret.truncated
@@ -284,7 +288,7 @@ module Onetime
         end
       end
       class Forgot < Onetime::App::View
-        def init 
+        def init
           self[:title] = "Forgotten Password"
           self[:body_class] = :login
           self[:monitored_link] = true
@@ -292,7 +296,7 @@ module Onetime
         end
       end
       class Login < Onetime::App::View
-        def init 
+        def init
           self[:title] = "Login"
           self[:body_class] = :login
           self[:monitored_link] = true
@@ -306,7 +310,7 @@ module Onetime
         end
       end
       class Signup < Onetime::App::View
-        def init 
+        def init
           self[:title] = "Create an account"
           self[:body_class] = :signup
           self[:monitored_link] = true
@@ -335,7 +339,7 @@ module Onetime
         end
       end
       class Pricing < Onetime::App::View
-        def init 
+        def init
           self[:title] = "Create an Account"
           self[:body_class] = :pricing
           self[:monitored_link] = true
@@ -362,7 +366,7 @@ module Onetime
             end
           end
           unless cust.anonymous?
-            plan_idx = case cust.planid 
+            plan_idx = case cust.planid
             when /personal/
               0
             when /professional/
@@ -382,24 +386,24 @@ module Onetime
       end
       class Dashboard < Onetime::App::View
         include CreateSecretElements
-        def init 
+        def init
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
           self[:monitored_link] = true
           self[:with_analytics] = true
-          self[:metadata] = cust.metadata.collect do |m| 
-            { :uri => private_uri(m), 
-              :stamp => natural_time(m.updated), 
+          self[:metadata] = cust.metadata.collect do |m|
+            { :uri => private_uri(m),
+              :stamp => natural_time(m.updated),
               :key => m.key,
               :recipients => m.recipients,
               :is_received => m.state?(:received) }
           end.compact
-          
+
           self[:has_secrets] = !self[:metadata].empty?
         end
       end
       class Account < Onetime::App::View
-        def init 
+        def init
           self[:title] = "Your Account"
           self[:body_class] = :account
           self[:monitored_link] = true
@@ -441,7 +445,7 @@ module Onetime
           self[:body_class] = :info
           self[:monitored_link] = true
           self[:with_analytics] = true
-          self[:with_broadcast] = false 
+          self[:with_broadcast] = false
         end
       end
       class NotFound < Onetime::App::View
@@ -466,5 +470,5 @@ module Onetime
       end
     end
   end
-  
+
 end

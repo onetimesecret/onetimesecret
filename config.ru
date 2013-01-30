@@ -32,7 +32,7 @@ if Otto.env?(:dev)
   apps.each_pair do |path,app|
     map(path) {
       use Rack::CommonLogger
-      use Rack::Reloader, 0
+      use Rack::Reloader, 1
       app.option[:public] = PUBLIC_DIR
       app.add_static_path '/favicon.ico'
       # TODO: Otto should check for not_found method instead of settign it here.

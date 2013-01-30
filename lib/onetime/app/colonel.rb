@@ -3,7 +3,7 @@ require 'onetime/app/web/base'
 class Onetime::App
   class Colonel
     include OT::App::Base
-    
+
     def index
       colonels do
         view = Onetime::App::Colonel::Views::Homepage.new req, sess, cust
@@ -11,13 +11,13 @@ class Onetime::App
         res.body = view.render
       end
     end
-    
+
     def secrets
       colonels do
         res.header['Content-Type'] = 'text/plain'
         obj = OT::Secret.new
         data = obj.redis.keys('secret*:object')
-        res.body = data.collect { |key| 
+        res.body = data.collect { |key|
           '%s: %i' % [key, obj.redis.ttl(key)]
         }.join($/)
       end
@@ -28,15 +28,22 @@ class Onetime::App
         res.header['Content-Type'] = 'text/plain'
         obj = OT::Metadata.new
         data = obj.redis.keys('metadata:*:object')
-        res.body = data.collect { |key| 
+        res.body = data.collect { |key|
           '%s: %i' % [key, obj.redis.ttl(key)]
         }.join($/)
       end
     end
-    
+
+    def generate_entropy
+      colonels do
+        Onetime::Entropy.generate
+        res.redirect '/colonel'
+      end
+    end
+
     module Views
     end
-    
+
     class View < OT::App::View
       self.template_path = './templates/colonel'
       self.view_namespace = Onetime::App::Colonel::Views
@@ -46,7 +53,7 @@ class Onetime::App
         self[:subtitle] = "Colonel"
       end
     end
-    
+
     module Views
       class Homepage < OT::App::Colonel::View
         def init *args
@@ -72,7 +79,7 @@ class Onetime::App
           self[:older_feedback_count] = self[:older_feedback].size
           self[:recent_customers] = OT::Customer.recent.collect do |this_cust|
             next if this_cust.nil?
-            { :custid => this_cust.custid, 
+            { :custid => this_cust.custid,
               :planid => this_cust.planid,
               :colonel => this_cust.role?(:colonel),
               :secrets_created => this_cust.secrets_created,
@@ -90,13 +97,15 @@ class Onetime::App
           self[:split_tests] = OT::SplitTest.tests.collect do |plan|
             { :name => plan[1].testname, :values => plan[1].values, :samples => plan[1].samples }
           end
+          self[:has_split_tests] = !self[:split_tests].empty?
+          self[:entropy_count] = OT::Entropy.count
         end
         def redis_info
           Familia.redis.info.to_yaml
         end
-        
+
       end
     end
-    
+
   end
 end

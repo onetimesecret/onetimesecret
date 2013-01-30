@@ -8,15 +8,30 @@ module Onetime
         def add_shrimp
           '<input type="hidden" name="shrimp" value="%s" />' % [sess.add_shrimp]
         end
-        def private_uri m 
+        def private_uri m
           '/private/%s' % m.key
         end
-        def secret_uri s 
+        def secret_uri s
           '/secret/%s' % s.key
         end
         def baseotsuri
           scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
           [scheme, Onetime.conf[:site][:host]].join
+        end
+        def jsvar name, value
+          value = case value.class.to_s
+          when 'String', 'Gibbler::Digest', 'Symbol'
+            "'#{Rack::Utils.escape_html(value)}'"
+          when 'Array'
+            value.inspect
+          when 'Hash'
+            "jQuery.parseJSON('#{value.to_json}')"
+          when 'NilClass'
+            'null'
+          else
+            value
+          end
+          { :name => name, :value => value }
         end
         def server_port
           (defined?(req) ? req.env['SERVER_PORT'] : 443).to_i
@@ -48,9 +63,9 @@ module Onetime
         def secure?
           # X-Scheme is set by nginx
           # X-FORWARDED-PROTO is set by elastic load balancer
-          (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")  
+          (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")
         end
-        
+
         def local?
           (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
         end
@@ -59,21 +74,21 @@ module Onetime
           return if e.nil?
           val = Time.now.utc.to_i - e.to_i
           #puts val
-          if val < 10 
+          if val < 10
             result = 'a moment ago'
-          elsif val < 40  
+          elsif val < 40
             result = 'about ' + (val * 1.5).to_i.to_s.slice(0,1) + '0 seconds ago'
-          elsif val < 60 
+          elsif val < 60
             result = 'about a minute ago'
-          elsif val < 60 * 1.3  
+          elsif val < 60 * 1.3
             result = "1 minute ago"
-          elsif val < 60 * 2  
+          elsif val < 60 * 2
             result = "2 minutes ago"
-          elsif val < 60 * 50  
+          elsif val < 60 * 50
             result = "#{(val / 60).to_i} minutes ago"
-          elsif val < 3600 * 1.4 
+          elsif val < 3600 * 1.4
             result = 'about 1 hour ago'
-          elsif val < 3600 * (24 / 1.02) 
+          elsif val < 3600 * (24 / 1.02)
             result = "about #{(val / 60 / 60 * 1.02).to_i} hours ago"
           elsif val < 3600 * 24 * 1.6
             result = Time.at(e.to_i).strftime("yesterday").downcase
@@ -88,7 +103,7 @@ module Onetime
           result
         end
       end
-    
+
     end
   end
 end
