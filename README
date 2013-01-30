@@ -1,20 +1,5 @@
 ONE-TIME SECRET
 
-[chris@mafalda ~]$ cat create_onetime_secret.php 
-<?php
-
-  include('onetimesecret-api.php');
-  $myOnetime = new OneTimeSecret;
-  $myOnetime->setRecipient('delano@onetimesecret.com');
-  $myOnetime->setTTL(7200);
-  $myOnetime->setCustomerID('chris@onetimesecret.com');
-  $myOnetime->setToken('4dc74449d8327acf98428f02be5e618bffd38e41');
-  print $myOnetime->getSecretURI($myOnetime->shareSecret("It is fun to send secrets via the API. Don't you agree?", 'thepassword'));
-  print "\n\n";
-?>
-[chris@mafalda ~]$ php create_onetime_secret.php 
-https://onetimesecret.com/secret/omncoysx3c3irrebz4gfpkx2of9t31b
-
 
 ## Generating a global secret
 
@@ -22,58 +7,5 @@ With encryption_v2 (2012-01-07) we include a global secret in the encryption key
 
 history | ruby -ropenssl -rgibbler -e 'Gibbler.digest_type = OpenSSL::Digest::SHA256; puts [`/usr/bin/uname -a`, $$, Time.now.to_f, ARGF.read].gibbler.base(36)'
 
-## Manually encrypting files
-
-gpg --force-mdc --simple-sk-checksum -c path/2/file
-
-
-## Opportunities
-
-* Secure file transfer w/ notifications
-* Time-based secrets (limited time, future-compatible passwords)
-* Usage-based billing
-* API
-* Access counter (available to the first N people)
-* CNAME support (secrets.yourcompany.com)
-* Command-line utility: onetime
-
-
-## Taglines
-
-* Be cool about privacy. Share a one-time secret.
-* Give people a chance. But just one.
-* Share your secrets one at a time.
-* Now they see it, now they don't.
-* Now you share it, now you don't.
-* One secret. One person. One time.
-* Share sensitive information... without leaving a trace.
-
-
-## Commands
-
-redis-cli -h bluegill.redistogo.com -p 9435 -a 0bc270e696d73546e0b1ab7f64390b3a
-
-
-## IP tables
-
-*filter
-:INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
-:RH-Firewall-1-INPUT - [0:0]
--A OUTPUT -p tcp --sport 1024: --dport 1024: -m state --state ESTABLISHED,RELATED -j ACCEPT
--A INPUT -i eth0 -p tcp -m tcp --dport 22 -m state --state NEW -m recent --update --seconds 30 --hitcount 4 --name DEFAULT --rsource -j DROP
--A INPUT -i eth0 -p tcp -m tcp --dport 22 -m state --state NEW -m recent --set --name DEFAULT --rsource
--A INPUT -j RH-Firewall-1-INPUT
--A FORWARD -j RH-Firewall-1-INPUT
--A RH-Firewall-1-INPUT -i lo -j ACCEPT
--A RH-Firewall-1-INPUT -p icmp --icmp-type any -j ACCEPT
--A RH-Firewall-1-INPUT -p udp --dport 5353 -d 224.0.0.251 -j ACCEPT
--A RH-Firewall-1-INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
--A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 443 -j ACCEPT 
--A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT
--A RH-Firewall-1-INPUT -j REJECT --reject-with icmp-host-prohibited
-COMMIT
 
 
