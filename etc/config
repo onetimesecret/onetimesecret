@@ -1,16 +1,18 @@
-:site:  
+:site:
   :host: localhost:7143
-  :domain: ot.com
+  :domain: localhost
   :ssl: false
   # ABOUT THIS SECRET: ONCE SET, DO NOT CHANGE IT (KEEP A BACKUP OFFSITE).
-  :secret: 074eea80797de4111f68fc3152a8306c9b2388b4
+  :secret: CHANGEME
+:redis:
+  :uri: 'redis://user:CHANGEME@127.0.0.1:6379/0?timeout=10&thread_safe=false&logging=false'
+  :config: /etc/onetime/redis.conf
 :text:
-  :feedback: 'Have a question or comment? Ask Delano.'
+  :feedback: 'Have a question or comment?.'
   :nonpaid_recipient_text: 'You need to create an account!'
   :paid_recipient_text: 'Send the secret link via email'
 :colonels:
-  - delano@onetimesecret.com
-  - chris@onetimesecret.com
+  - CHANGEME@EXAMPLE.com
 :limits:
   :create_secret: 25
   :create_account: 3
@@ -21,27 +23,24 @@
   :homepage: 25
   :dashboard: 50
   :failed_passphrase: 5
-:split_tests:
-  :initial_pricing:
-    - - basic_v1
-      - professional_v1
-      - agency_v1
-    - - basic_v1
-      - professional_v2
-      - agency_v1
-    - - basic_v1
-      - professional_v2
-      - agency_v2
-:redis:
-  :uri: 'redis://user:d1dc36cbc3047d00f56af777caefed0ad736d691@127.0.0.1:6379/0?timeout=10&thread_safe=false&logging=false'
-  :config: config/services/redis.conf
+#:split_tests:
+#  :initial_pricing:
+#    - - basic_v1
+#      - professional_v1
+#      - agency_v1
+#    - - basic_v1
+#      - professional_v2
+#      - agency_v1
+#    - - basic_v1
+#      - professional_v2
+#      - agency_v2
 :nginx:
-  :ipaddress: '176.58.122.230'
-  :servername: 'onetimesecret.com'
+  :ipaddress: '1.2.3.4'
+  :servername: 'example.com'
 :emailer:
   :mode: :sendgrid
-  :account: 
-  :password: 
-  :from:
-  :fromname:
+  :account: CHANGEME
+  :password: CHANGEME
+  :from: CHANGEME@example.com
+  :fromname: CHANGEME
   :bcc:
