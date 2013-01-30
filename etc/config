@@ -2,10 +2,10 @@
   :host: localhost:7143
   :domain: localhost
   :ssl: false
-  # ABOUT THIS SECRET: ONCE SET, DO NOT CHANGE IT (KEEP A BACKUP OFFSITE).
+  # NOTE Once the secret is set, do not change it (keep a backup offsite)
   :secret: CHANGEME
 :redis:
-  :uri: 'redis://user:CHANGEME@127.0.0.1:6379/0?timeout=10&thread_safe=false&logging=false'
+  :uri: 'redis://user:CHANGEME@127.0.0.1:7179/0?timeout=10&thread_safe=false&logging=false'
   :config: /etc/onetime/redis.conf
 :colonels:
   - CHANGEME@EXAMPLE.com
