@@ -36,8 +36,9 @@ class Onetime::App
 
     def generate_entropy
       colonels do
-        Onetime::Entropy.generate
-        res.redirect '/colonel'
+        Onetime::Entropy.generate 5000
+        sess.set_info_message "Added 5000 elements to entropy"
+        res.redirect '/colonel' unless req.ajax?
       end
     end
 

@@ -11,6 +11,8 @@
       </ul>
       <div id="stats">
 
+        {{>partial/session_messages}}
+
         <p>Sessions: {{session_count}} (active in the past 5 minutes)</p>
 
         <h3>Secrets ({{secret_count}})</h3>
@@ -73,7 +75,7 @@
 
         <h3>Entropy</h3>
 
-        <p>{{entropy_count}} values. <a href="/colonel/entropy/generate" class="entropy-generate">Generate more</a></p>
+        <p>{{entropy_count}} values. <a href="/colonel/entropy/generate" class="entropy-generate" alt="Generating...">Generate more</a></p>
 
         {{#has_split_tests}}
         <h3>Split tests</h3>

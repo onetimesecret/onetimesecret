@@ -29,52 +29,21 @@ $(function() {
   };
 });
 
-function postAndRefresh(e) {
+function generateEntropy(e) {
   var obj = $(this);
+  obj.text(obj.attr('alt'));
+  obj.click(function(e) {
+    e.preventDefault();
+  });
   $.ajax({
     type: 'POST',
     url: obj.attr('href'),
     data: {'shrimp': shrimp},
     success: function(data, textStatus){
-      //log(data)
       window.location.reload()
     },
     error: function(){
-      //alertify.error("Ooops! There was an error.")
-    }
-  });
-  return e.preventDefault();
-};
-
-function postAndRedirect(e) {
-  var obj = $(this);
-  log(obj.attr('href'))
-  $.ajax({
-    type: 'POST',
-    url: obj.attr('href'),
-    data: {'shrimp': shrimp},
-    success: function(data, textStatus){
-      window.location = '/';
-    },
-    error: function(){
-      //alertify.error("Ooops! There was an error.")
-    }
-  });
-  return e.preventDefault();
-};
-
-function postAndIgnore(e) {
-  var obj = $(this);
-  $.ajax({
-    type: 'POST',
-    url: obj.attr('href'),
-    data: {'shrimp': shrimp},
-    success: function(data, textStatus){
-      //alertify.log("Updated")
-      window.location.reload()
-    },
-    error: function(){
-      //alertify.error("Ooops! There was an error.")
+      alertify.error("Ooops! There was an error.")
     }
   });
   return e.preventDefault();
@@ -82,7 +51,7 @@ function postAndIgnore(e) {
 
 // COMMON BEHAVIORS
 $(function() {
-  $('.entropy-generate').click(postAndRefresh);
+  $('.entropy-generate').click(generateEntropy);
   $('input.clearDefault').clearDefault();
   $('#secreturi').select();
   $(".selectable").click(function(){

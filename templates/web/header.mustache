@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-  
+
           (        )   (                  (        )          (
           )\ )  ( /(   )\ )         *   ) )\ )  ( /(          )\ )
          (()/(  )\()) (()/(    (  ` )  /((()/(  )\())     (  (()/(
@@ -10,12 +10,12 @@
          / __|  / _ \ | |  | | | ||_   _||_ _|  / _ \ | | | |/ __|
          \__ \ | (_) || |__| |_| |  | |   | |  | (_) || |_| |\__ \
          |___/  \___/ |____|\___/   |_|  |___|  \___/  \___/ |___/
-  
+
 -->
-<html xmlns="http://www.w3.org/1999/xhtml"> 
-<head> 
-  <meta content="text/html; charset=UTF-8" http-equiv="content-type" /> 
-  <title>{{title}} - {{subtitle}}</title> 
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
+  <title>{{title}} - {{subtitle}}</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <meta name="description" content="{{description}}">
   <meta name="keywords" content="{{keywords}}">
@@ -25,6 +25,7 @@
   {{/no_cache}}
   <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" media="screen" rel="Stylesheet" type="text/css">
   <link href="/app/common.css?{{ot_version_id}}" media="screen" rel="Stylesheet" type="text/css" />
+  <link href="/etc/alertify.css" rel="stylesheet">
   {{#css}}
   <link href="{{to_s}}" media="screen" rel="Stylesheet" type="text/css" />
   {{/css}}
@@ -37,6 +38,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type="text/javascript"></script>
   <script src="/etc/jquery-cookie.js" type="text/javascript"></script>
   <script src="/etc/mustache.js" type="text/javascript"></script>
+  <script src="/etc/alertify.min.js"></script>
   <script src="/app/common.js?{{ot_version_id}}" type="text/javascript"></script>
   {{#js}}
   <script src="{{to_s}}" type="text/javascript"></script>
@@ -73,25 +75,25 @@
       <a href="{{baseotsuri}}/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
       {{/is_subdomain}}
       {{^is_subdomain}}
-      <a href="{{baseotsuri}}/signup" title="Signup - Individual and Business plans" class="standout">Create an account</a> | 
+      <a href="{{baseotsuri}}/signup" title="Signup - Individual and Business plans" class="standout">Create an account</a> |
       <a href="http://blog.onetimesecret.com/" title="Our weblog">Blog</a> |
       <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">Login</a>
       {{/is_subdomain}}
       {{/authenticated}}
       {{#authenticated}}
-      <span class="lighter">{{cust.custid}}</span>{{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} - <a href="{{baseotsuri}}/dashboard" title="Your Dashboard">Dashboard</a> | 
-      <a href="{{baseotsuri}}/account" title="Your Account">Account</a> | 
+      <span class="lighter">{{cust.custid}}</span>{{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} - <a href="{{baseotsuri}}/dashboard" title="Your Dashboard">Dashboard</a> |
+      <a href="{{baseotsuri}}/account" title="Your Account">Account</a> |
       <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">Logout</a>
       {{/authenticated}}
     </div>
-    
+
     <hr/>
     {{#display_otslogo}}
     <a href="http://www.youtube.com/watch?v=1V6T0lJc3dU" title="Release {{ot_version}}" style="position: absolute; right: 50px; top: 5px; width: 10px; text-decoration: none;">&nbsp;</a>
     <h1 title="We know how to keep a secret!"><a href="/"><pre>
-  __ _  _ ___    ____ __ __  __ ___    ___ ___  __ ___  ___ ____ 
+  __ _  _ ___    ____ __ __  __ ___    ___ ___  __ ___  ___ ____
  /  \ \( )  _)  (_  _)  )  \/  )  _)  / __)  _)/ _)  ,)(  _)_  _)
-( () )  ( ) _)    )(  )( )    ( ) _)  \__ \) _) (_ )  \ ) _) )(  
+( () )  ( ) _)    )(  )( )    ( ) _)  \__ \) _) (_ )  \ ) _) )(
  \__/_)\_)___)   (__)(__)_/\/\_)___)  (___/___)\__)_)\_)___)(__)
                                                           BETA </pre></a></h1>
 
