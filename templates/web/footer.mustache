@@ -1,0 +1,58 @@
+  {{#with_analytics}}
+  <!-- NOTE: Secret pages are not tracked. -->
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-5320807-2']);
+    _gaq.push(['_setDomainName', '.onetimesecret.com']);
+    _gaq.push(['_trackPageLoadTime']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+  {{/with_analytics}}
+  
+  <div id="footer" class="dotted">
+    {{#display_feedback}}
+    <a name="feedback" class="label">Send us feedback:</a><hr/>
+    <form class="feedback" action="/feedback" method="post">
+      {{{add_shrimp}}}
+      <input class="clearDefault" type="text" name="msg" value="{{feedback_text}}" />
+      <span><button type="submit">Send</button></span>
+    </form>
+    {{/display_feedback}}
+    
+    <p>
+      <a href="{{baseotsuri}}/about">About</a> | 
+      <a href="{{baseotsuri}}/docs/api">API</a> |
+      <a href="{{baseotsuri}}/business" title="Plans for Business">For Business</a> |
+      <a href="http://blog.onetimesecret.com/">Blog</a>
+    </p>
+    <p>
+      <a href="{{baseotsuri}}/info/privacy">Privacy policy</a> | 
+      <a href="{{baseotsuri}}/info/terms">Terms &amp; Conditions</a> | 
+      <a href="{{baseotsuri}}/info/security">Security policy</a>
+    </p>
+    
+    {{#display_icons}}
+    <div class="tagline">
+      Follow our latest news:
+      <p>
+        <a href="http://www.facebook.com/pages/One-Time-Secret/284990691536190" title="Join us on Facebook"><img class="socialicon" src="/img/facebook.png" height="16" width="16" alt="facebook icon" /></a>
+        <a href="http://twitter.com/onetimesecret" title="Join us on Twitter"><img class="socialicon" src="/img/twitter.png" height="16" width="16" alt="twitter icon" /></a>
+      </p>
+    </div>
+    {{/display_icons}}
+    
+    {{#monitored_link}}
+    <hr/>
+    <p>Uptime monitoring by <a href="https://www.blamestella.com/host/onetimesecret.com/report" title="Web monitoring -- The Blamey &amp; Stella Information Company">Stella</a>.</p>
+    {{/monitored_link}}
+    
+  </div>
+  <!-- {{via_hn}}:{{via_test}}:{{via_reddit}} -->
+</div>
+</body>
+</html>

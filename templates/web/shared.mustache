@@ -1,0 +1,84 @@
+{{>header}}
+  
+  {{^verification}}
+  {{#is_owner}}
+    {{^show_secret}}
+    <p class="msg">You created this secret. If you view it, the recipient will not be able to see it.</p>
+    {{/show_secret}}
+    {{#show_secret}}
+    <p class="msg">You have viewed your own secret. It is no longer available for anyone else.</p>
+    {{/show_secret}}
+  {{/is_owner}}
+  {{/verification}}
+  
+  <div class="shared">
+    {{>partial/session_messages}}
+    {{^show_secret}}
+    {{^has_passphrase}}
+    {{#verification}}
+    <span class="pretext">Continue to verify your account:</span><br/>
+    {{/verification}}
+    {{^verification}}
+    <span class="pretext">Click to continue:</span><br/>
+    {{/verification}}
+    {{/has_passphrase}}
+    {{#has_passphrase}}
+    <h2 class="intro">This secret requires a passphrase:</div>
+    {{/has_passphrase}}
+    <div class="passphrase">
+      <form method="POST">
+        {{{add_shrimp}}}
+        <input name="continue" type="hidden" value="true" />
+        {{#has_passphrase}}
+        <span class="pretext"></span>
+        <input name="passphrase" value="" autocomplete="off" /><br/>
+        {{/has_passphrase}}
+        <span id="fire" class="button"><button type="submit">View Secret</button></span>
+      </form>
+      {{^verification}}
+      <p>(careful: we will only show it once.)</p>
+      {{/verification}}
+    </div>
+    {{/show_secret}}
+    {{#show_secret}}
+    <div class="secret">
+      {{#verification}}
+      <span class="pretext">Your secret message:</span><br/>
+      {{/verification}}
+      {{^verification}}
+      <div class="pretext">This secret is for you:</div>
+      {{/verification}}
+      {{#one_liner}}
+      <input class="selectable" value="{{secret_value}}" />
+      {{/one_liner}}
+      {{^one_liner}}
+      <textarea class="" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
+      {{/one_liner}}
+      {{^verification}}
+      <p>(careful: it will disappear when you refresh.)</p>
+      {{/verification}}
+      
+      {{#truncated}}
+      <p>Note: this secret was truncated b/c it was over 5KB</p>
+      {{/truncated}}
+      
+    </div>
+    <ul class="nav">
+      <li class="alt">
+        {{^verification}}
+        {{^is_subdomain}}
+        <a href="/">Reply with another secret</a>
+        {{/is_subdomain}}
+        {{#is_subdomain}}
+        <a href="{{subdomain.homepage}}">Return to {{subdomain.company_domain}}</a>
+        {{/is_subdomain}}
+        {{/verification}}
+        {{#verification}}
+        <a href="/login" class="hilite">Log in to your account</a>
+        {{/verification}}
+      </li>
+    </ul>
+    {{/show_secret}}
+  </div>
+
+{{>footer}}

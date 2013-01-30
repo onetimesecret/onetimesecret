@@ -1,0 +1,104 @@
+{{>header}}
+
+<div id="content">
+  <div id="documentation">
+    <h2 class="intro">Client Libraries</h2>
+    
+    <ul id="docnav">
+      <li class=""><a href="/docs/api" title="">Overview</a></li>
+      <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
+      <li class="selected"><a href="/docs/api/libs" title="">Client Libraries</a></li>
+    </ul>
+    
+    <p class="centre"><em class="larger">BETA API - updated 2012-01-07 (<a href="/feedback">Have a question?</a>)</em></p>
+    
+    <div id="topicContent">
+      
+      <h3 class="cufon docTitle dotted">PHP</h3>
+      
+      <a href="/libs/onetime-api.php" title="PHP library - One-Time Secret"><strong>Download onetime-api.php</strong></a><br/>
+      <em>by <a href="http://christopher.murtagh.name/">Christopher Murtagh</a> (added 2011-12-21)</em>
+      
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+&lt;?php
+  include('onetime-api.php');
+  $myOnetime = new OneTimeSecret;
+  $myOnetime->setCustomerID('YOUR_EMAIL');
+  $myOnetime->setToken('YOUR_OTS_APIKEY');
+  $myOnetime->setRecipient('delano@onetimesecret.com');
+  $myOnetime->setTTL(7200);
+  $myResult = $myOnetime->shareSecret('Jazz, jazz and more jazz.', 'thepassword');
+  print $myOnetime->getSecretURI($myResult);
+?&gt;
+      </pre>
+      
+      <h3 class="cufon docTitle dotted">Ruby</h3>
+      
+      <a href="https://github.com/onetimesecret/onetime-ruby" title="Ruby library - One-Time Secret"><strong>Download onetime-api.rb</strong></a><br/>
+      <em>by <a href="http://delanotes.com/">Delano Mandelbaum</a> (added 2011-12-21)</em>
+      
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+require 'onetime/api'
+api = Onetime::API.new 'YOUR_EMAIL', 'YOUR_OTS_APIKEY'
+options = {
+  :secret => 'Jazz, jazz and more jazz.',
+  :recipient => 'delano@onetimesecret.com',
+  :ttl => 7200
+}
+ret = api.post '/share', options
+puts ret['secret_key']
+      </pre>
+
+      <h3 class="cufon docTitle dotted">Python</h3>
+
+      <a href="https://github.com/utter-step/py_onetimesecret" title="Python library - One-Time Secret"><strong>Download onetimesecret.py</strong></a><br/>
+      <em>by <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added 2012-06-26)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+from onetimesecret import OneTimeSecret
+
+o = OneTimeSecret("YOUR_EMAIL", "YOUR_OTS_APIKEY")
+secret = o.share(u"test")
+
+print o.retrieve_secret(secret["secret_key"])
+# {u'secret_key': u'dtr7ixukiolpx1i4i87kahmhyoy2q65',
+# u'value': u'test'}
+      </pre>
+
+
+      <h3 class="cufon docTitle dotted">Perl</h3>
+
+      <a href="http://search.cpan.org/~kyled/Net-OneTimeSecret/lib/Net/OneTimeSecret.pm" title="Perl library - One-Time Secret"><strong>Download Net::OneTimeSecret</strong></a><br/>
+      <em>by <a href="http://www.shoffle.com/">Kyle Dawkins</a> (added 2012-01-06)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+#!/usr/bin/env perl
+
+use Net::OneTimeSecret;
+
+# Note: replace these with yours in order for this to work!
+my $customerId  = 'YOUR_EMAIL';
+my $testApiKey  = 'YOUR_OTS_APIKEY';
+
+my $api = Net::OneTimeSecret->new( $customerId, $testApiKey );
+my $result = $api->shareSecret( 'Jazz, jazz and more jazz.',
+                   passphrase => 'thepassword',
+                   recipient => 'kyle@shoffle.com',
+                   ttl => 7200,
+                 );
+printf( "%s\n", $result->{secret_key} );
+
+my $secret = $api->retrieveSecret( $result->{secret_key}, passphrase => "thepassword" );
+printf( "%s\n", $secret->{value} );
+      </pre>
+      
+      <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
+    </div>
+  </div>
+</div>
+
+{{>footer}}

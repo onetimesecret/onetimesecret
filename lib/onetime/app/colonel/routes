@@ -1,0 +1,8 @@
+
+
+GET   /                       Onetime::App::Colonel#index
+
+GET   /secrets                Onetime::App::Colonel#secrets
+GET   /metadata               Onetime::App::Colonel#metadata
+
+POST  /entropy/generate       Onetime::App::Colonel#generate_entropy

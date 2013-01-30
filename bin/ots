@@ -1,0 +1,97 @@
+#!/usr/bin/env ruby
+
+base_path = File.expand_path File.join(File.dirname(__FILE__), '..')
+$:.unshift File.join(base_path, 'lib')
+
+# TODO: Replace with bundle install --standalone (Bundler v1.1)
+ENV['BUNDLE_GEMFILE'] ||= File.join(base_path, 'Gemfile')
+
+require 'onetime'
+require 'onetime/cli'
+require 'rubygems'
+#require 'rye'
+require 'drydock'
+
+
+# Command-line interface for bin/stella
+class OT::CLI::Definition
+  extend Drydock
+
+  global :v, :verbose, "Increase output" do
+    @verbose ||= 0
+    @verbose += 1
+  end
+
+  global :D, :debug do
+    OT.debug = true
+  end
+
+  about "Ruby irb with Onetime preloaded"
+  command :irb do
+    cmd = 'irb -I%s -ronetime/irb' % [File.join(OT::HOME, 'lib')]
+    OT.ld cmd
+    Kernel.exec cmd
+  end
+
+  about "Run this after installing"
+  command :init do
+    dirs_needed = []
+    ['/var/log/onetime',
+     '/var/run/onetime',
+     '/var/lib/onetime'].each do |dirpath|
+      next if File.directory? dirpath
+      dirs_needed << dirpath
+    end
+    if dirs_needed.empty?
+      # TODO
+    else
+      Onetime.info 'Run the following:'
+      Onetime.info 'sudo mkdir %s' % [dirs_needed.join(' ')]
+      Onetime.info 'sudo chown %s %s' % [ENV['USER'], dirs_needed.join(' ')]
+    end
+  end
+
+  usage "ots register-build [msg]"
+  command :register_build => OT::CLI
+
+  usage "ots build"
+  command :build do
+    puts OT::VERSION.inspect
+  end
+
+  usage "ots entropy"
+  usage "ots entropy -G [-c NUM]"
+  option :c, :count, Integer, "Number of entropies to create (use with -G)"
+  action :D, :clear, "Destroy existing entropy"
+  action :G, :generate, "Generate entropy"
+  command :entropy => OT::CLI
+
+  usage "ots move-keys SOURCEDB TARGETDB [filter]"
+  command :move_keys => OT::CLI
+
+  usage "ots customers"
+  command :customers => OT::CLI
+
+  action :stop
+  action :start
+  action :save
+  action :bgsave
+  action :bgrewriteaof
+  command :redis => OT::CLI
+
+  #usage "ots colonels"
+  #usage "ots colonels -C <CUSTID>"
+  #action :C, :create, "Create a new colonel"
+  #command :colonels => OT::CLI
+
+end
+
+begin
+  Drydock.run! ARGV, STDIN
+rescue RuntimeError => ex
+  STDERR.puts ex.message
+rescue => ex
+  puts ex.message
+  puts ex.backtrace
+  exit 1
+end
