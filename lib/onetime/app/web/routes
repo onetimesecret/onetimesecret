@@ -23,7 +23,7 @@ GET   /info/security                             Onetime::App::Info#security
 GET   /info/terms                                Onetime::App::Info#terms
 
 GET   /pricing                                   Onetime::App#pricing
-GET   /business                                  Onetime::App#business_pricing
+#GET   /business                                  Onetime::App#business_pricing
 GET   /signup                                    Onetime::App#signup
 GET   /signup/:planid                            Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account

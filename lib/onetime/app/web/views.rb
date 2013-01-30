@@ -83,7 +83,7 @@ module Onetime
           if sess.referrer
             self[:via_hn] = !sess.referrer.match(/news.ycombinator.com/).nil?
             self[:via_reddit] = !sess.referrer.match(/www.reddit.com/).nil?
-            self[:via_test] = !sess.referrer.match(/www.ot.com/).nil?
+            self[:via_test] = !sess.referrer.match(/ot.com/).nil?
           end
           if cust.has_key?(:verified) && cust.verified.to_s != 'true' && self.class != Onetime::App::Views::Shared
             add_message "A verification was sent to #{cust.custid}."
@@ -356,14 +356,12 @@ module Onetime
             }
             self[plan.planid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
           end
-          if self[:via_test] || self[:via_hn]
-            @plans = [:personal_hn, :professional_v1, :agency_v1]
+          @plans = if self[:via_test] || self[:via_hn]
+            [:personal_hn, :professional_v1, :agency_v1]
           elsif self[:via_reddit]
-            @plans = [:personal_reddit, :professional_v1, :agency_v1]
+            [:personal_reddit, :professional_v1, :agency_v1]
           else
-            @plans = get_split_test_values :initial_pricing do
-              [:basic_v1, :professional_v1, :agency_v1]
-            end
+            [:individual_v1, :professional_v1, :agency_v1]
           end
           unless cust.anonymous?
             plan_idx = case cust.planid
@@ -376,8 +374,9 @@ module Onetime
             end
             @plans[plan_idx] = cust.planid unless plan_idx.nil?
           end
-          self[:individual_plan] = self['individual_v1']
-          self[:planid] = self['individual_v1'][:planid]
+          self[:default_plan] = self[@plans.first.to_s] || self['individual_v1']
+          OT.ld self[:default_plan].to_json
+          self[:planid] = self[:default_plan][:planid]
         end
         def plan1;  self[@plans[0].to_s]; end
         def plan2;  self[@plans[1].to_s]; end

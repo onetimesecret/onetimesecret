@@ -2,41 +2,30 @@
 {{>header}}
 
   <div id="content">
-    {{#via_hn}}
-    <p class="msg">HN special: The personal plan is free!</p>
-    {{/via_hn}}
-    
-    {{#via_test}}
-    <p class="msg">HN special: The personal plan is free!</p>
-    {{/via_test}}
-    
-    {{#via_reddit}}
-    <p class="msg">Reddit special: We got a free plan for you!</p>
-    {{/via_reddit}}
-    
-    <div id="primaryTabs">
-      <ul>
-        {{#business}}
-        <li><a href="#business"><strong>For Business</strong></a></li>
-        <li><a href="#individuals"><strong>For Individuals</strong></a></li>
-        {{/business}}
-        {{^business}}
-        <li><a href="#individuals"><strong>For Individuals</strong></a></li>
-        <li><a href="#business"><strong>For Business</strong> <img src="/img/new.png" /></a></li>
-        {{/business}}
+
+    <div id="individuals">
+      <h2>Signup is free! You get:</h2>
+      <ul class="smaller">
+        <li>secrets that live up to <span class="hilite2">{{default_plan.ttl}} days</span>.</li>
+        <li>ability to send secret links via <span class="hilite2">email</span>.</li>
+        {{#default_plan.api}}<li>access to the <a href="/docs/api" class="hilite2">API</a>.</li>{{/default_plan.api}}
+        {{#via_reddit}}
+        <li><span class="hilite"><strong>b/c you're from Reddit, you get a few little extras!</strong></span></li>
+        {{/via_reddit}}
+        {{#via_hn}}
+        <li><span class="hilite"><strong>b/c you're from HN, you get a few little extras!</strong></span></li>
+        {{/via_hn}}
+        {{#via_test}}
+        <li><span class="hilite"><strong>b/c you're from HN, you get a few little extras!</strong></span></li>
+        {{/via_test}}
       </ul>
-      <div id="individuals">
-        <p class="smaller"><strong>The {{individual_plan.name}} plan is <span class="hilite">free</span>. You get:</strong></p>
-        <ul class="smaller">
-          <li>secrets that last for up to <span class="hilite2">{{individual_plan.ttl}} days</span>.</li>
-          <li>ability to send secret links via <span class="hilite2">email</span>.</li>
-          {{#individual_plan.api}}<li>access to the <a href="/docs/api" class="hilite2">API</a>.</li>{{/individual_plan.api}}
-        </ul>
-        
-        {{>partial/signup_form_basic}}
-        
-        <p class="bigger centre">We also do custom installs. <a href="mailto:custom@onetimesecret.com">Contact us</a>.</p>
-      </div>
+
+      {{>partial/signup_form_basic}}
+
+      <p class="bigger centre">We also do custom installs. <a href="mailto:custom@onetimesecret.com">Contact us</a>.</p>
+    </div>
+
+      {{#bogus}}
       <div id="business">
         <h2 class="intro">Use your own custom branding.</h2>
         <hr/>
@@ -130,15 +119,14 @@
           </tr>
         </table>
         <hr />
-        
+
         <p class="smaller lighter centre" style="text-align: center">All paid plans come with API access, unlimited email delivery, and  30-day secrets.</p>
-        
+
         <p class="bigger centre">Need more control? <a href="mailto:custom@onetimesecret.com">Contact us</a> for a custom install.</p>
       </div>
-      
-      
-    </div>
-    
+      {{/bogus}}
+
+
   </div>
-  
+
 {{>footer}}
