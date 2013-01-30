@@ -27,8 +27,12 @@ module Onetime
   @debug = false
   @mode = :app
   class << self
-    attr_accessor :debug, :mode
+    attr_accessor :mode
     attr_reader :conf, :instance, :sysinfo, :emailer, :global_secret
+    attr_writer :debug
+    def debug
+      @debug || (@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true' || ENV['ONETIME_DEBUG'].to_i == 1)
+    end
     def mode? guess
       @mode.to_s == guess.to_s
     end
@@ -54,10 +58,10 @@ module Onetime
       OT::RateLimit.register_events OT.conf[:limits]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
-      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
-      info "Config: #{OT::Config.path}"
-      info " Redis: #{Familia.uri.serverid}" # don't print the password
-      info "Limits: #{OT::RateLimit.events}"
+      ld "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
+      ld "Config: #{OT::Config.path}"
+      ld " Redis: #{Familia.uri.serverid}" # don't print the password
+      ld "Limits: #{OT::RateLimit.events}"
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
       # are loaded so we can increase the $SAFE level.
@@ -69,7 +73,7 @@ module Onetime
       # Need to connect to all redis DBs so we can increase $SAFE level.
       begin
         16.times { |idx| OT.ld 'Connecting to %s (%s)' % [Familia.redis(idx).uri, Familia.redis(idx).ping] }
-        OT::SplitTest.from_config OT.conf[:split_tests] 
+        OT::SplitTest.from_config OT.conf[:split_tests]
         if OT::Entropy.count < 5_000
           info "Entropy is low (#{OT::Entropy.count}). Generating..."
           OT::Entropy.generate
@@ -92,9 +96,10 @@ module Onetime
       File.chmod(chmod, filename)
     end
     def info(*msg)
-      prefix = "I(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      if (mode?(:app) || (mode?(:cli) && debug))
+      #prefix = "I(#{Time.now.to_i}):  "
+      #msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      msg = msg.join($/)
+      if (mode?(:app) || mode?(:cli))
         STDERR.puts(msg) if STDOUT.tty?
         SYSLOG.info msg
       end
@@ -110,11 +115,14 @@ module Onetime
   module Config
     extend self
     SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
-    UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
+    UTILITY_PATHS = %w[/etc/onetime ~/.onetime ./etc].freeze
     attr_reader :env, :base, :bootstrap
     def load path=self.path
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
       YAML.load_file path
+    rescue => ex
+      Onetime.info "Error loading config: #{path}"
+      Kernel.exit(1)
     end
     def exists?
       !config_path.nil?
@@ -124,10 +132,10 @@ module Onetime
     end
     def find_configs
       paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
-      paths.collect { |f| 
+      paths.collect { |f|
         f = File.join File.expand_path(f), 'config'
         Onetime.ld "Looking for #{f}"
-        f if File.exists?(f) 
+        f if File.exists?(f)
       }.compact
     end
   end
@@ -197,7 +205,7 @@ module Onetime
     def indifferent_hash
       Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
     end
-    
+
     def obscure_email(text)
       el = text.split('@')
       if el[0].size <= 2
@@ -209,7 +217,7 @@ module Onetime
       end
     end
   end
-  
+
   class Plan
     class << self
       attr_reader :plans
@@ -262,7 +270,7 @@ module Onetime
       calculated_price.zero?
     end
   end
-  
+
   class Problem < RuntimeError
   end
   class MissingSecret < Problem
@@ -280,7 +288,7 @@ module Onetime
     def report()
       "BAD SHRIMP FOR #{@path}: #{@user}: #{got.shorten(16)}/#{wanted.shorten(16)}"
     end
-    def message() 
+    def message()
       "Sorry, bad shrimp"
     end
   end
