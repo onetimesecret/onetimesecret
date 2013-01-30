@@ -32,7 +32,7 @@ class OT::CLI < Drydock::Command
   end
 
   def generate_entropy
-    require_sudo
+    #require_sudo
     option.count = 100_000 if option.count.to_i > 100_000
     OT::Entropy.generate option.count
     entropy

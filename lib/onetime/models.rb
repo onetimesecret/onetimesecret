@@ -1,3 +1,4 @@
+require 'securerandom'
 
 class Onetime::RateLimit < Familia::String
   DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
@@ -47,7 +48,7 @@ module Onetime::Models
       !passphrase.to_s.empty?
     end
     def passphrase? guess
-      begin 
+      begin
         ret = !has_passphrase? || BCrypt::Password.new(passphrase) == guess
         @passphrase_temp = guess if ret  # used to decrypt the value
         ret
@@ -126,7 +127,7 @@ module Onetime::Models
     #
     def method_missing meth, *args
       #OT.ld "Call to #{self.class}###{meth} (cache attempt)"
-      last_char = meth.to_s[-1] 
+      last_char = meth.to_s[-1]
       field = case last_char
       when '=', '!', '?'
         meth.to_s[0..-2]
@@ -187,17 +188,20 @@ module Onetime
       end
       def pop
         values.pop ||
-        [caller[0], rand].gibbler.shorten(12) # TODO: replace this stub
+        [caller, rand].gibbler.shorten(12).to_s
       end
       def generate count=nil
         count ||= 10_000
         stack = caller
+        randval = SecureRandom.hex
+        newvalues = []
         values.redis.pipelined do
           newvalues = (0...count).to_a.collect do |idx|
-            val = [OT.instance, stack, OT.now.to_f, idx].gibbler.shorten(12)
+            val = [OT.instance, stack, randval, Time.now.to_f, idx].gibbler.shorten(12)
             values.add val
           end
         end
+        newvalues.size
       end
     end
   end

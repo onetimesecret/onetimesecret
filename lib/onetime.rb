@@ -43,7 +43,7 @@ module Onetime
       Time.now.utc
     end
     def entropy
-      OT::Entropy.pop
+      SecureRandom.hex
     end
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
