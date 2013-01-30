@@ -1,6 +1,6 @@
-ONE-TIME SECRET - v0.8 (2013-01-01)
+# ONE-TIME SECRET - v0.8 (2013-01-01)
 
-Keep sensitive info out of your email & chat logs.
+*Keep sensitive info out of your email & chat logs.*
 
 ## What is a One-Time Secret? ##
 
