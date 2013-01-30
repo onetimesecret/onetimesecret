@@ -3,7 +3,7 @@ $KCODE = "u" if RUBY_VERSION =~ /^1.8/
 
 module QuantizeTime
   def quantize quantum
-    stamp = self === Integer ? self : to_i 
+    stamp = self === Integer ? self : to_i
     Time.at(stamp - (stamp % quantum)).utc
   end
   def on_the_next quantum
@@ -12,7 +12,7 @@ module QuantizeTime
 end
 module QuantizeInteger
   def quantize quantum
-    stamp = self === Integer ? self : to_i 
+    stamp = self === Integer ? self : to_i
     stamp - (stamp % quantum)
   end
   def on_the_next quantum
@@ -24,10 +24,10 @@ end
 class Time
   include QuantizeTime
 end
-class Integer 
+class Integer
   include QuantizeInteger
 end
-class Fixnum 
+class Fixnum
   include QuantizeInteger
 end
 
@@ -40,7 +40,7 @@ unless defined?(Time::Units)
       PER_MINUTE = 60.0.freeze
       PER_HOUR = 3600.0.freeze
       PER_DAY = 86400.0.freeze
-    
+
       def microseconds()    seconds * PER_MICROSECOND     end
       def milliseconds()    seconds * PER_MILLISECOND    end
       def seconds()         self                         end
@@ -48,8 +48,8 @@ unless defined?(Time::Units)
       def hours()           seconds * PER_HOUR             end
       def days()            seconds * PER_DAY               end
       def weeks()           seconds * PER_DAY * 7           end
-      def years()           seconds * PER_DAY * 365        end 
-            
+      def years()           seconds * PER_DAY * 365        end
+
       def in_years()        seconds / PER_DAY / 365      end
       def in_weeks()        seconds / PER_DAY / 7       end
       def in_days()         seconds / PER_DAY          end
@@ -57,11 +57,11 @@ unless defined?(Time::Units)
       def in_minutes()      seconds / PER_MINUTE         end
       def in_milliseconds() seconds / PER_MILLISECOND    end
       def in_microseconds() seconds / PER_MICROSECOND   end
-    
+
       def in_time
         Time.at(self).utc
       end
-    
+
       def in_seconds(u=nil)
         case u.to_s
         when /\A(y)|(years?)\z/
@@ -82,21 +82,21 @@ unless defined?(Time::Units)
           self
         end
       end
-    
-    
-      ## JRuby doesn't like using instance_methods.select here. 
-      ## It could be a bug or something quirky with Attic 
+
+
+      ## JRuby doesn't like using instance_methods.select here.
+      ## It could be a bug or something quirky with Attic
       ## (although it works in 1.8 and 1.9). The error:
-      ##  
+      ##
       ##  lib/attic.rb:32:in `select': yield called out of block (LocalJumpError)
       ##  lib/stella/mixins/numeric.rb:24
       ##
-      ## Create singular methods, like hour and day. 
+      ## Create singular methods, like hour and day.
       # instance_methods.select.each do |plural|
       #   singular = plural.to_s.chop
       #   alias_method singular, plural
       # end
-    
+
       alias_method :ms, :milliseconds
       alias_method :'μs', :microseconds
       alias_method :second, :seconds
@@ -115,7 +115,7 @@ unless defined?(Time::Units)
     def to_ms
       (self*1000.to_f)
     end
-  
+
     # TODO: Use 1024?
     def to_bytes
       args = case self.abs.to_i
@@ -201,5 +201,37 @@ class Array
   end
   def percentile_index(perc)
     (perc * self.length).ceil - 1
+  end
+end
+
+
+
+
+# Since rack 1.4, Rack::Reloader doesn't actually reload.
+# A new instance is created for every request, so the cached
+# modified times are reset every time.
+# This patch uses a class variable for the @mtimes hash
+# instead of an instance variable.
+module Rack
+  class Reloader
+    @mtimes = {}
+    class << self
+      attr_reader :mtimes
+    end
+    def reload!(stderr = $stderr)
+      rotation do |file, mtime|
+        previous_mtime = self.class.mtimes[file] ||= mtime
+        safe_load(file, mtime, stderr) if mtime > previous_mtime
+      end
+    end
+    def safe_load(file, mtime, stderr = $stderr)
+      load(file)
+      stderr.puts "#{self.class}: reloaded `#{file}'"
+      file
+    rescue LoadError, SyntaxError => ex
+      stderr.puts ex
+    ensure
+      self.class.mtimes[file] = mtime
+    end
   end
 end
