@@ -237,7 +237,7 @@ module Onetime
         plans.member?(normalize(planid))
       end
       def load_plans!
-        add_plan :anonymous, 0, 0, :ttl => 2.days, :size => 1_000, :api => false, :name => 'Anonymous'
+        add_plan :anonymous, 0, 0, :ttl => 7.days, :size => 1_000, :api => false, :name => 'Anonymous'
         add_plan :personal_v1, 5.0, 1, :ttl => 14.days, :size => 1_000, :api => false, :name => 'Personal'
         add_plan :personal_v2, 10.0, 0.5, :ttl => 30.days, :size => 1_000, :api => true, :name => 'Personal'
         add_plan :personal_v3, 5.0, 0, :ttl => 14.days, :size => 1_000, :api => true, :name => 'Personal'
@@ -251,7 +251,7 @@ module Onetime
         add_plan :personal_reddit, 0, 0, :ttl => 14.days, :size => 1_000, :api => true, :name => 'Reddit Special'
         # Added 2011-12-24s
         add_plan :basic_v1, 10.0, 0.5, :ttl => 30.days, :size => 1_000, :api => true, :name => 'Basic'
-        add_plan :individual_v1, 0, 0, :ttl => 7.days, :size => 1_000, :api => true, :name => 'Individual'
+        add_plan :individual_v1, 0, 0, :ttl => 14.days, :size => 1_000, :api => true, :name => 'Individual'
         # Added 2012-01-27
         add_plan :nonprofit_v1, 0, 0, :ttl => 30.days, :size => 10_000, :api => true, :cname => true, :name => 'Non Profit'
       end

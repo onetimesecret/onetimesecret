@@ -131,8 +131,8 @@ module Onetime
         end
         def expiration_options
           if @expiration_options.nil?
-            selected = (!sess || !sess.authenticated?) ? 2.days : 7.days
-            disabled = (!sess || !sess.authenticated?) ? 2.days : plan.options[:ttl]
+            selected = (!sess || !sess.authenticated?) ? 7.days : 7.days
+            disabled = (!sess || !sess.authenticated?) ? 7.days : plan.options[:ttl]
             @expiration_options = [
               [5.minutes, "5 minutes"],
               [30.minutes, "30 minutes"],
@@ -141,11 +141,11 @@ module Onetime
               [12.hour, "12 hours"],
               [1.days, "1 day"],
               [2.days, "2 days"],
+              [7.days, "7 days"],
             ]
             if self[:authenticated]
-              @expiration_options << [7.days, "7 days"]
-              @expiration_options << [14.days, "14 days"]
-              @expiration_options << [30.days, "30 days"]
+              @expiration_options << [14.days, "14 days"] if plan.options[:ttl] >= 14.days
+              @expiration_options << [30.days, "30 days"] if plan.options[:ttl] >= 30.days
               if plan.options[:ttl] > 30.days
                 @expiration_options.push *[
                   [60.days, "2 months"],
