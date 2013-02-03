@@ -1,0 +1,48 @@
+{{>header}}
+
+  {{^actionable_visitor}}
+  <div class="jumbotron">
+    <h2 class="intro">Return to <a href="{{subdomain.homepage}}">{{subdomain.company_domain}}</a></h2>
+  </div>
+  {{/actionable_visitor}}
+
+  {{#actionable_visitor}}
+  <div class="jumbotron">
+    <h1 class="">Paste a password, secret phrase, or private link below</h1>
+    <p class="lead">Keep sensitive info out of your email and chat logs.</p>
+    <form id="createSecret">
+      <fieldset>
+        <textarea rows="7" class="btn-block" placeholder=""></textarea>
+        <button class="btn btn-large btn-block btn-custom cufon" type="submit">Create a secret link*</button>
+      </fieldset>
+    </form>
+    <form id="createSecret">
+      <fieldset>
+        <button class="btn btn-block cufon" type="submit">Or generate a random password</button>
+      </fieldset>
+    </form>
+    <hr/>
+    <p class="hint">* A secret link only works once and then disappears forever.</p>
+    <p class="more">Sign up for a <a href="#">free account</a> to set passphrases for extra security along with additional privacy options. We'll even email the secret for you if you want.</p>
+    <hr/>
+  </div>
+
+  <div class="row-fluid marketing">
+    <div class="span4">
+      <h4>Screencast</h4>
+      <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+    </div>
+
+    <div class="span4">
+      <h4>Get the App</h4>
+      <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+    </div>
+
+    <div class="span4">
+      <h4>F.A.Q.</h4>
+      <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+    </div>
+  </div>
+  {{/actionable_visitor}}
+
+{{>footer}}
