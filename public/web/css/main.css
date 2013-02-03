@@ -1,0 +1,88 @@
+
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+
+.nav a {
+  color: black;
+  text-decoration: underline;
+}
+
+.nav a.active {
+  font-weight: bolder;
+}
+
+#logo {
+  padding: 0px;
+  margin-top: 10px;
+}
+
+#banner {
+  width: 100%;
+  background-color: #f0f0f0;
+  margin: 0px;
+  padding: 0px;
+  margin-bottom: 0px;
+  border-bottom: 4px solid red; /* dd4a22, d22000, b04420 */
+}
+
+#banner .broadcast {
+  text-align: center;
+  color: #000;
+  font-weight: bolder;
+}
+
+#createSecret textarea {
+  background-color: #f9f9f9;
+  padding: 6px;
+}
+.btn-custom {
+  -webkit-font-smoothing: antialiased;
+  background-color: #d22000!important;
+  background-repeat: repeat-x;
+  background-image: none;
+  color: #fff!important;
+  border-color: #b04420 #b04420 hsl(15,69%,41%);
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.00);
+  font-weight: bold;
+  font-size: 20px;
+}
+.btn-custom:hover {
+  background-color: #dd4a22 !important;
+  text-shadow: 1px 1px 0 #740500;
+}
+
+
+
+
+#footer {
+
+  text-align: center;
+  font-size: 80%;
+  line-height: 80%;
+  padding: 0px;
+  color: #999;
+}
+
+#footer a {
+  color: #000;
+}
+
+#footer p {
+  margin: 0px;
+  padding: 4px;
+}
+
+#footer .intro {
+  color: #000; float: left; padding-left: 8px; font-style: italic;
+}
+
+
+
+hr.clear {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1em;border:none;margin:4px;}
+
+.tagline { width: 100%; text-align: center; font-style: italic; color: #999; margin-top: 20px; }
+
+.lighter { color: #999; }

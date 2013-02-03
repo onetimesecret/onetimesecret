@@ -1,3 +1,7 @@
+
+// Font Replacement
+Cufon.replace('.cufon');
+
 $(function() {
   $.fn.deobfuscate = function() {
     $(this).each(function(i, el) {
@@ -67,3 +71,4 @@ $(function() {
   }
   $( "#primaryTabs" ).tabs();
 });
+
