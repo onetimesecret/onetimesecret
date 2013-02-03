@@ -73,7 +73,7 @@
       margin: 20px 0;
     }
     #logo {
-      background-image: url('/img/logo-48-2.png');
+      background-image: url('/img/logo-48.png');
       display: inline-block;
       width: 48px;
       height: 48px;
@@ -134,8 +134,8 @@
       {{/authenticated}}
 
       {{#authenticated}}
-        <span class="lighter">{{cust.custid}}</span>{{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} - <a href="{{baseotsuri}}/dashboard" title="Your Dashboard">Dashboard</a> |
-        <a href="{{baseotsuri}}/account" title="Your Account">Account</a> |
+        <span class="lighter">{{cust.custid}}</span> |
+        <a href="{{baseotsuri}}/account" title="Your Account">Account</a> {{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} |
         <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">Logout</a>
       {{/authenticated}}
 

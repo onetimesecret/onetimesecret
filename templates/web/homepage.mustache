@@ -8,8 +8,10 @@
 
   {{#actionable_visitor}}
   <div class="jumbotron">
+    {{^authenticated}}
     <h1 class="">Paste a password, secret phrase, or private link below</h1>
     <p class="lead">Keep sensitive info out of your email and chat logs.</p>
+    {{/authenticated}}
     <form id="createSecret">
       <fieldset>
         <textarea rows="7" class="btn-block" placeholder=""></textarea>
@@ -23,8 +25,10 @@
     </form>
     <hr/>
     <p class="hint">* A secret link only works once and then disappears forever.</p>
+    {{^authenticated}}
     <p class="more">Sign up for a <a href="#">free account</a> to set passphrases for extra security along with additional privacy options. We'll even email the link for you if you want.</p>
-    <hr/>
+    {{/authenticated}}
+    <!--<hr/>-->
   </div>
 
   <!--
