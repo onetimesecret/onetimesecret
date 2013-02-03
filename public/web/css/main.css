@@ -40,7 +40,7 @@
 }
 .btn-custom {
   -webkit-font-smoothing: antialiased;
-  background-color: #d22000!important;
+  background-color: #dd4a22!important;
   background-repeat: repeat-x;
   background-image: none;
   color: #fff!important;
@@ -50,7 +50,7 @@
   font-size: 20px;
 }
 .btn-custom:hover {
-  background-color: #dd4a22 !important;
+  background-color: #d22000 !important;
   text-shadow: 1px 1px 0 #740500;
 }
 
