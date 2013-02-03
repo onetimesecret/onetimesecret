@@ -3,3 +3,5 @@ vendor
 log
 tmp
 .rudy
+
+.DS_Store
