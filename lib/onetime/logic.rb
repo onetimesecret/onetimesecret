@@ -353,7 +353,9 @@ module Onetime
       def raise_concerns
         @modified ||= []
         limit_action :update_account
+        p 1
         if ! @currentp.empty?
+          p 2
           raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
           raise_form_error "New passwords do not match" unless @newp == @newp2
           raise_form_error "New password is too short" unless @newp.size >= 6
