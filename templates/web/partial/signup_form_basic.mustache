@@ -1,18 +1,35 @@
-<form action="/signup" method="post" class="signup">
+<form action="/signup" method="post" class="form-horizontal well">
   {{{add_shrimp}}}
   <input type="hidden" name="planid" value="{{planid}}" />
-  <div>
-    <label for="custid">Email Address:</label>
-    <input type="text" name="custid" id="custid" class="long ui-widget ui-corner-all" value="{{form_fields.custid}}"/>
-    <label for="password">Password:</label>
-    <input type="password" name="password" id="password" class="short ui-widget ui-corner-all" />
-    <label for="password2">Confirm Password:</label>
-    <input type="password" name="password2" id="password2" class="short ui-widget ui-corner-all" />
+  <fieldset>
+    <!--<legend>Legend</legend>-->
+    <div class="control-group">
+      <label class="control-label" for="custidField">Email</label>
+      <div class="controls">
+        <input type="text" name="custid" id="custidField" class="input-xlarge" value="{{form_fields.custid}}" placeholder="" />
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="passField">Password</label>
+      <div class="controls">
+        <input type="password" name="password" id="passField" class="input-medium" value="" placeholder="" />
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="pass2Field">Confirm Password</label>
+      <div class="controls">
+        <input type="password" name="password2" id="pass2Field" class="input-medium" value="" placeholder="" />
+      </div>
+    </div>
     <script type="text/javascript">
       $('#custid').focus();
     </script>
-  </div>
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" class="btn btn-large btn-custom">Create Account</button>
+        <br/><a href="/login" class="smaller lighter">Already have an account?</a>
+      </div>
+    </div>
+  </fieldset>
 
-  <span id="fireSmall" class="button"><button type="submit">Signup</button></span>
-  <a href="/login" class="smaller" style="color: #666">Already have an account?</a>
 </form>

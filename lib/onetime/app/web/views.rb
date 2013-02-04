@@ -338,7 +338,7 @@ module Onetime
           end
         end
       end
-      class Pricing < Onetime::App::View
+      class Plans < Onetime::App::View
         def init
           self[:title] = "Create an Account"
           self[:body_class] = :pricing

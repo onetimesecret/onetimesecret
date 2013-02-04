@@ -1,6 +1,6 @@
 module Onetime
   class App
-    
+
     def forgot
       publically do
         if req.params[:key]
@@ -18,7 +18,7 @@ module Onetime
         end
       end
     end
-    
+
     def request_reset
       publically do
         if req.params[:key]
@@ -34,35 +34,35 @@ module Onetime
         end
       end
     end
-    
+
     def pricing
       res.redirect '/signup'
     end
-    
+
     def signup
       publically do
-        if OT::Plan.plan?(req.params[:planid])
+        if OT::Plan.plan?(req.params[:planid])  # Specific Plan is selected
           sess.set_error_message "You're already signed up" if sess.authenticated?
           view = Onetime::App::Views::Signup.new req, sess, cust
           res.body = view.render
-        else
-          view = Onetime::App::Views::Pricing.new req, sess, cust
+        else                                    # Default signup page
+          view = Onetime::App::Views::Plans.new req, sess, cust
           res.body = view.render
         end
       end
     end
-    
+
     def business_pricing
       publically do
-        view = Onetime::App::Views::Pricing.new req, sess, cust
+        view = Onetime::App::Views::Plans.new req, sess, cust
         view[:business] = true
         res.body = view.render
       end
     end
-    
+
     def create_account
       publically("/signup/#{req.params[:planid]}") do
-        deny_agents! 
+        deny_agents!
         logic = OT::Logic::CreateAccount.new sess, cust, req.params
         logic.raise_concerns
         logic.process
@@ -70,15 +70,15 @@ module Onetime
         res.redirect '/login'
       end
     end
-    
-    
+
+
     def login
       publically do
         view = Onetime::App::Views::Login.new req, sess, cust
         res.body = view.render
       end
     end
-    
+
     def authenticate
       publically do
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params
@@ -104,7 +104,7 @@ module Onetime
         end
       end
     end
-    
+
     def logout
       authenticated do
         logic = OT::Logic::DestroySession.new sess, cust, req.params
@@ -113,7 +113,7 @@ module Onetime
         res.redirect app_path('/')
       end
     end
-    
+
     def account
       authenticated do
         logic = OT::Logic::ViewAccount.new sess, cust, req.params
@@ -132,7 +132,7 @@ module Onetime
         res.redirect app_path('/account')
       end
     end
-    
+
     def update_subdomain
       authenticated('/account') do
         logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params
@@ -141,7 +141,7 @@ module Onetime
         res.redirect app_path('/account')
       end
     end
-    
+
     def generate_apikey
       authenticated do
         logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params
