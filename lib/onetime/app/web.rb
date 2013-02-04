@@ -70,7 +70,8 @@ module Onetime
         #res.redirect app_path(logic.redirect_uri)
         req.params.clear
         req.params[:key] = logic.metadata.key
-        private_uri # redirect straight to private_uri
+        #private_uri # redirect straight to private_uri
+        res.redirect logic.redirect_uri
       end
     end
 
