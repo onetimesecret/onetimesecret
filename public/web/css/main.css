@@ -1,7 +1,8 @@
 
 
+
 /* ==========================================================================
-   Author's custom styles
+   Custom styles
    ========================================================================== */
 
 
@@ -88,3 +89,138 @@ hr.clear {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1e
 .lighter { color: #999; }
 
 a.release {position: absolute; right: 50px; top: 5px; width: 10px; text-decoration: none;}
+
+
+
+
+a {
+  color: #000;
+}
+
+
+
+#faq {
+  margin-top: 60px;
+  color: #444;
+}
+
+.nav li.primary {line-height: 26px; font-size: 20px;}
+.nav li.secondary {font-size:16px; line-height: 16px}
+.nav li.alt {font-size:24px; line-height: 24px}
+
+.inputform li.primary {line-height: 26px; font-size: 20px;}
+.inputform li.secondary {font-size:16px; line-height: 16px}
+.inputform li.alt {font-size:24px; line-height: 24px}
+
+.inputform li {list-style-type: none;}
+
+.nav li.or {
+  color: #999;
+  font-size: 16px;
+  line-height: 16px;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+.nav em { font-style: normal; text-decoration: underline; }
+#content .intro {
+  width: 680px;
+  font-size: 22px;
+  font-weight: bold;
+}
+#content .intro2 {
+  font-size: 20px;
+}
+
+#content #createSecret {
+  width: 620px;
+}
+
+
+div.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
+.shared{ margin-top: 20px;}
+#generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; margin: 6px 0px 6px 0px;}
+.private .secret input, .private .secret textarea { background-color: #eee; color: #666; padding: 10px; width: 100%;}
+.private .secret input[disabled] { background-color: #eee; color: #fff;}
+.shared .secret input, .shared .secret textarea { border: 1px solid #999; font-size: 14px; line-height: 14px; background-color: #fafafa; color: #000; padding: 10px; width: 100%; margin-top: 20px}
+.secret p {padding: 6px; font-size: 80%; margin: 0px; color: #999; font-style: italic;}
+.uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0;}
+.uri input.private {background-color: #eee;}
+.uri p {padding: 6px; font-size: 80%; margin: 0px; color: #999;}
+.passphrase { margin-bottom: 30px; margin-left: 30px; }
+.passphrase input {width: 320px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #eee; color: #000;}
+.passphrase p {padding: 6px; font-size: 80%; margin: 0px; color: #999;}
+.secret {margin-bottom: 20px}
+.uri{margin-bottom: 10px}
+.pretext {
+  line-height: 24px;
+  font-size: 24px;
+}
+.passphrase . text {
+  line-height: 18px;
+  font-size: 18px;
+}
+
+
+#brandedlogo {
+  height: 80px;
+  width: 600px;
+  margin: 10px 0px;
+  background: #ffffff;
+  background-repeat: no-repeat;
+}
+
+.dotted{border-top:1px dotted #666;}
+.nounderline {
+  text-decoration: none !important;
+}
+.underline {
+  text-decoration: underline;
+}
+.strikethrough {
+  text-decoration: line-through;
+}
+.smaller { font-size: 85%; }
+.larger { font-size: 120%; }
+.centre { text-align: center }
+.italic { font-style: italic }
+.socialicon {
+  padding-right: 8px;
+}
+
+.hilite {background:#ff0;}
+.hilite2 {background:#6ff;}
+
+
+.err, .msg { font-weight: bold; padding: 8px; line-height: 32px; width: 100%; }
+.err { background-color: red; color: #fff }
+.msg { background-color: #ff0; }
+
+.address { margin-left: 150px; font-size: 24px; line-height: 24px; }
+
+
+#primaryTabs {
+  background: transparent;
+  border: none;
+  font-family: georgia;
+}
+#primaryTabs .ui-widget-header {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #c0c0c0;
+}
+#primaryTabs .ui-state-default {
+  background: transparent;
+  border: none;
+}
+#primaryTabs .ui-state-active {
+  background: transparent url(/img/uiTabsArrow.png) no-repeat bottom center;
+  border: none;
+}
+#primaryTabs .ui-state-default a {
+  color: #000;
+}
+
+#primaryTabs .ui-state-active a {
+  color: #999;
+}
+
