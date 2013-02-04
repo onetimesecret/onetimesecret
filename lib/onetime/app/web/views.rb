@@ -390,11 +390,12 @@ module Onetime
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           self[:metadata] = cust.metadata.collect do |m|
             { :uri => private_uri(m),
               :stamp => natural_time(m.updated),
               :key => m.key,
+              :shortkey => m.key.slice(0,12),
               :recipients => m.recipients,
               :is_received => m.state?(:received) }
           end.compact

@@ -12,8 +12,22 @@ module Onetime
 
     def index
       publically do
-        view = Onetime::App::Views::Homepage.new req, sess, cust
-        sess.event_incr! :homepage
+        if sess.authenticated?
+          dashboard
+        else
+          view = Onetime::App::Views::Homepage.new req, sess, cust
+          sess.event_incr! :homepage
+          res.body = view.render
+        end
+      end
+    end
+
+    def dashboard
+      authenticated do
+        logic = OT::Logic::Dashboard.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        view = Onetime::App::Views::Dashboard.new req, sess, cust
         res.body = view.render
       end
     end
@@ -45,16 +59,6 @@ module Onetime
         logic.raise_concerns
         logic.process
         res.redirect app_path('/feedback')
-      end
-    end
-
-    def dashboard
-      authenticated do
-        logic = OT::Logic::Dashboard.new sess, cust, req.params
-        logic.raise_concerns
-        logic.process
-        view = Onetime::App::Views::Dashboard.new req, sess, cust
-        res.body = view.render
       end
     end
 

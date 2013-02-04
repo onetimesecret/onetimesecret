@@ -56,19 +56,22 @@ function generateEntropy(e) {
 // COMMON BEHAVIORS
 $(function() {
   $('.entropy-generate').click(generateEntropy);
-  $('input.clearDefault').clearDefault();
   $('#secreturi').select();
   $(".selectable").click(function(){
     this.select();
   });
   $('.email').deobfuscate();
-  $('#optionsToggle').click(function(){
-    $('#options').toggle();
-    $.cookie("display_options", $('#options').css('display') == 'block');
+  //$('#optionsToggle').click(function(){
+  //  $('#options').toggle();
+  //  $.cookie("display_options", $('#options').css('display') == 'block');
+  //});
+  // if ($.cookie("display_options") == "true") {
+  //   $('#options').toggle();
+  // }
+
+  $('#myTab a').click(function (e) {
+    e.preventDefault();
+    $(this).tab('show');
   });
-  if ($.cookie("display_options") == "true") {
-    $('#options').toggle();
-  }
-  $( "#primaryTabs" ).tabs();
 });
 
