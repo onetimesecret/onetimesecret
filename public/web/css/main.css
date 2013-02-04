@@ -10,6 +10,10 @@
   color: black;
   text-decoration: underline;
 }
+.masthead .nav a.home {
+  color: #999;
+  text-decoration: none;
+}
 
 .nav a.active {
   font-weight: bolder;
