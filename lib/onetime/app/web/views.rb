@@ -212,6 +212,7 @@ module Onetime
       class UnknownSecret < Onetime::App::View
         def init
           self[:title] = "No such secret"
+          self[:display_feedback] = false
         end
       end
       class Shared < Onetime::App::View
