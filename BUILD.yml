@@ -2,7 +2,7 @@
 :MAJOR: 0
 :MINOR: 8
 :PATCH: 2
-:BUILD: '005'
-:STORY: UI v3 (feedback form fix)
-:STAMP: 1360017149
+:BUILD: '006'
+:STORY: Removed Modernizer and moved jQuery to header
+:STAMP: 1360017538
 :OWNER: delano
