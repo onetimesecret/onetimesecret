@@ -17,6 +17,8 @@ module Onetime
           timeout(wait) do
             StatHat::API.ez_post_count(name, stathat_apikey, count)
           end
+        rescue SocketError => ex
+          OT.info "Cannot connect to StatHat: #{ex.message}"
         rescue Timeout::Error
           OT.info "timeout calling stathat"
         end
@@ -27,6 +29,8 @@ module Onetime
           timeout(wait) do
             StatHat::API.ez_post_value(name, stathat_apikey, value)
           end
+        rescue SocketError => ex
+          OT.info "Cannot connect to StatHat: #{ex.message}"
         rescue Timeout::Error
           OT.info "timeout calling stathat"
         end

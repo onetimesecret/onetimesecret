@@ -67,8 +67,8 @@ module Onetime
         logic = OT::Logic::CreateAccount.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        sess, cust = logic.sess, logic.cust
-        res.redirect '/login'
+        #sess, cust = logic.sess, logic.cust
+        res.redirect '/'
       end
     end
 
