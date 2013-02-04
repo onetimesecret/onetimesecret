@@ -35,10 +35,15 @@
   font-weight: bolder;
 }
 
-#createSecret textarea {
+#createSecret {
+  text-align: left;
+}
+
+#createSecret textarea, #createSecret input {
   background-color: #f9f9f9;
   padding: 6px;
 }
+
 .btn-custom {
   -webkit-font-smoothing: antialiased;
   background-color: #dd4a22!important;
@@ -122,18 +127,6 @@ a {
   margin-left: 10px;
 }
 .nav em { font-style: normal; text-decoration: underline; }
-#content .intro {
-  width: 680px;
-  font-size: 22px;
-  font-weight: bold;
-}
-#content .intro2 {
-  font-size: 20px;
-}
-
-#content #createSecret {
-  width: 620px;
-}
 
 
 div.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
@@ -141,14 +134,13 @@ div.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
 #generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; margin: 6px 0px 6px 0px;}
 .private .secret input, .private .secret textarea { background-color: #eee; color: #666; padding: 10px; width: 100%;}
 .private .secret input[disabled] { background-color: #eee; color: #fff;}
-.shared .secret input, .shared .secret textarea { border: 1px solid #999; font-size: 14px; line-height: 14px; background-color: #fafafa; color: #000; padding: 10px; width: 100%; margin-top: 20px}
-.secret p {padding: 6px; font-size: 80%; margin: 0px; color: #999; font-style: italic;}
+.shared .secret input, .shared .secret textarea { border: 1px solid #999; font-size: 14px; line-height: 14px; background-color: #fafafa; color: #000; -padding: 10px; width: 100%; margin-top: 20px}
 .uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0;}
 .uri input.private {background-color: #eee;}
 .uri p {padding: 6px; font-size: 80%; margin: 0px; color: #999;}
-.passphrase { margin-bottom: 30px; margin-left: 30px; }
+.passphrase { margin-bottom: 30px; }
 .passphrase input {width: 320px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #eee; color: #000;}
-.passphrase p {padding: 6px; font-size: 80%; margin: 0px; color: #999;}
+
 .secret {margin-bottom: 20px}
 .uri{margin-bottom: 10px}
 .pretext {

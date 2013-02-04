@@ -46,12 +46,12 @@
           </div>
         <div class="control-group">
           <div class="controls">
-            <button type="submit" class="btn btn-large btn-custom cufon">View Secret</button>
+            <button type="submit" class="btn btn-large btn-block btn-custom cufon">View Secret</button>
           </div>
         </div>
       </form>
       {{^verification}}
-      <p>(careful: we will only show it once.)</p>
+      <p class="lighter">(careful: we will only show it once.)</p>
       {{/verification}}
     </div>
     {{/show_secret}}
@@ -70,7 +70,7 @@
       <textarea class="" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
       {{/one_liner}}
       {{^verification}}
-      <p>(careful: it will disappear when you refresh.)</p>
+      <p class="lighter">(careful: it will disappear when you refresh.)</p>
       {{/verification}}
 
       {{#truncated}}

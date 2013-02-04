@@ -172,7 +172,7 @@ module Onetime
             self[:subtitle] = "OTS Developers"
             self[:monitored_link] = !self[:is_subdomain]
             self[:with_analytics] = true
-            self[:css] << '/app/docs.css'
+            self[:css] << '/css/docs.css'
           end
           def baseuri_httpauth
             scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
