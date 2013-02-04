@@ -3,13 +3,13 @@
 
 # TEAM
 
-    <name> -- <role> -- <twitter>
+    Delano Mandelbaum -- creator -- @solutious
 
 # THANKS
 
-    <name>
+    Chris Murtagh -- for idea, feedback, help, and good times.
 
 # TECHNOLOGY COLOPHON
 
-    HTML5, CSS3
-    jQuery, Modernizr
+    HTML5, CSS3, jQuery, Bootstrap
+    Ruby, Redis
