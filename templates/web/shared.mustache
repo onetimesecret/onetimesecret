@@ -3,16 +3,21 @@
   {{^verification}}
   {{#is_owner}}
     {{^show_secret}}
-    <p class="msg">You created this secret. If you view it, the recipient will not be able to see it.</p>
+    <div class="alert alert-warning">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Warning</strong> You created this secret. If you view it, the recipient will not be able to see it.
+    </div>
     {{/show_secret}}
     {{#show_secret}}
-    <p class="msg">You have viewed your own secret. It is no longer available for anyone else.</p>
+    <div class="alert alert-info">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      You have viewed your own secret. It is no longer available for anyone else.
+    </div>
     {{/show_secret}}
   {{/is_owner}}
   {{/verification}}
 
   <div class="shared">
-    {{>partial/session_messages}}
     {{^show_secret}}
     {{^has_passphrase}}
     {{#verification}}
@@ -23,17 +28,27 @@
     {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
-    <h2 class="intro">This secret requires a passphrase:</div>
+    <h2 class="intro cufon">This secret requires a passphrase:</div>
     {{/has_passphrase}}
+    {{>partial/session_messages}}
     <div class="passphrase">
       <form method="POST">
         {{{add_shrimp}}}
         <input name="continue" type="hidden" value="true" />
-        {{#has_passphrase}}
-        <span class="pretext"></span>
-        <input name="passphrase" value="" autocomplete="off" /><br/>
-        {{/has_passphrase}}
-        <button type="submit" class="btn btn-large btn-block btn-custom cufon">View Secret</button>
+        <fieldset>
+          <!--<legend>Legend</legend>-->
+          <div class="control-group">
+            {{#has_passphrase}}
+            <div class="controls">
+              <input type="password" name="passphrase" id="passField" class="input-large" value="" placeholder="Enter the passphrase here" />
+            </div>
+            {{/has_passphrase}}
+          </div>
+        <div class="control-group">
+          <div class="controls">
+            <button type="submit" class="btn btn-large btn-custom cufon">View Secret</button>
+          </div>
+        </div>
       </form>
       {{^verification}}
       <p>(careful: we will only show it once.)</p>
