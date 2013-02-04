@@ -9,20 +9,24 @@
   {{#actionable_visitor}}
   <div class="jumbotron">
 
-    {{>partial/session_messages}}
-
     {{^authenticated}}
     <h1 class="">Paste a password, secret phrase, or private link below</h1>
     <p class="lead">Keep sensitive info out of your email and chat logs.</p>
     {{/authenticated}}
+
+    {{>partial/session_messages}}
+
     <form id="createSecret" method="post" autocomplete="off" action="/">
       {{{add_shrimp}}}
+      <input type="hidden" name="kind" value="share" />
       <fieldset>
         <textarea rows="7" class="btn-block" name="secret" autocomplete="off" placeholder=""></textarea>
         <button class="btn btn-large btn-block btn-custom cufon" type="submit">Create a secret link*</button>
       </fieldset>
     </form>
     <form id="generateSecret" method="post" autocomplete="off" action="/">
+      {{{add_shrimp}}}
+      <input type="hidden" name="kind" value="generate" />
       <fieldset>
         <button class="btn btn-block cufon" type="submit">Or generate a random password</button>
       </fieldset>

@@ -241,7 +241,7 @@ module Onetime
           self[:recipients] = metadata.recipients
           self[:display_feedback] = false
           self[:no_cache] = true
-          ttl = metadata.realttl.to_i
+          ttl = metadata.ttl.to_i  # the real ttl is always a whole number
           self[:expiration_stamp] = if ttl <= 1.minute
             '%d seconds' % ttl
           elsif ttl <= 1.hour
