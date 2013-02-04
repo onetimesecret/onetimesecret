@@ -103,9 +103,9 @@ module Onetime
       attr_reader :planid, :custid, :password, :password2
       def process_params
         @planid = params[:planid].to_s
-        @custid = params[:custid].to_s.downcase.strip
-        @password = params[:password].to_s
-        @password2 = params[:password2].to_s
+        @custid = params[:u].to_s.downcase.strip
+        @password = params[:p].to_s
+        @password2 = params[:p2].to_s
       end
       def raise_concerns
         limit_action :create_account

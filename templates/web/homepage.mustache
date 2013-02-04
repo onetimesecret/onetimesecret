@@ -21,7 +21,7 @@
       <input type="hidden" name="kind" value="share" />
       <fieldset>
         <textarea rows="7" class="btn-block" name="secret" autocomplete="off" placeholder=""></textarea>
-        <button class="btn btn-large btn-block btn-custom cufon" type="submit">Create a secret link*</button>
+        <button class="btn btn-large btn-block btn-custom cufon" type="submit">Create a secret link{{^authenticated}}*{{/authenticated}}</button>
       </fieldset>
     </form>
     <form id="generateSecret" method="post" autocomplete="off" action="/">
@@ -31,9 +31,9 @@
         <button class="btn btn-block cufon" type="submit">Or generate a random password</button>
       </fieldset>
     </form>
+    {{^authenticated}}
     <hr/>
     <p class="hint">* A secret link only works once and then disappears forever.</p>
-    {{^authenticated}}
     <p class="more">Sign up for a <a href="#">free account</a> to set passphrases for extra security along with additional privacy options. We'll even email the link for you if you want.</p>
     {{/authenticated}}
     <!--<hr/>-->

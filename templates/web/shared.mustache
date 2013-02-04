@@ -1,5 +1,5 @@
 {{>header}}
-  
+
   {{^verification}}
   {{#is_owner}}
     {{^show_secret}}
@@ -10,16 +10,16 @@
     {{/show_secret}}
   {{/is_owner}}
   {{/verification}}
-  
+
   <div class="shared">
     {{>partial/session_messages}}
     {{^show_secret}}
     {{^has_passphrase}}
     {{#verification}}
-    <span class="pretext">Continue to verify your account:</span><br/>
+    <span class="pretext cufon">Continue to verify your account:</span><br/>
     {{/verification}}
     {{^verification}}
-    <span class="pretext">Click to continue:</span><br/>
+    <span class="pretext cufon">Click to continue:</span><br/>
     {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
@@ -33,7 +33,7 @@
         <span class="pretext"></span>
         <input name="passphrase" value="" autocomplete="off" /><br/>
         {{/has_passphrase}}
-        <span id="fire" class="button"><button type="submit">View Secret</button></span>
+        <button type="submit" class="btn btn-large btn-block btn-custom cufon">View Secret</button>
       </form>
       {{^verification}}
       <p>(careful: we will only show it once.)</p>
@@ -57,24 +57,24 @@
       {{^verification}}
       <p>(careful: it will disappear when you refresh.)</p>
       {{/verification}}
-      
+
       {{#truncated}}
       <p>Note: this secret was truncated b/c it was over 5KB</p>
       {{/truncated}}
-      
+
     </div>
     <ul class="nav">
       <li class="alt">
         {{^verification}}
         {{^is_subdomain}}
-        <a href="/">Reply with another secret</a>
+        <a class="btn btn-large btn-block cufon" href="/" class="">Reply with another secret</a>
         {{/is_subdomain}}
         {{#is_subdomain}}
         <a href="{{subdomain.homepage}}">Return to {{subdomain.company_domain}}</a>
         {{/is_subdomain}}
         {{/verification}}
         {{#verification}}
-        <a href="/login" class="hilite">Log in to your account</a>
+        <a class="btn btn-large btn-block cufon" href="/login" class="">Log in to your account</a>
         {{/verification}}
       </li>
     </ul>
