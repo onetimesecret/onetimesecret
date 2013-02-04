@@ -1,8 +1,14 @@
 
 {{#messages.info}}
-<p><span class="msg">{{to_s}}</span></p>
+<div class="alert alert-info">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  {{to_s}}
+</div>
 {{/messages.info}}
 
 {{#messages.error}}
-<p><span class="err">{{to_s}}</span></p>
+<div class="alert alert-error">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  <strong>Oops!</strong> {{to_s}}
+</div>
 {{/messages.error}}

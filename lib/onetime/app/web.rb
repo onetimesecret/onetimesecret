@@ -12,8 +12,22 @@ module Onetime
 
     def index
       publically do
-        view = Onetime::App::Views::Homepage.new req, sess, cust
-        sess.event_incr! :homepage
+        if sess.authenticated?
+          dashboard
+        else
+          view = Onetime::App::Views::Homepage.new req, sess, cust
+          sess.event_incr! :homepage
+          res.body = view.render
+        end
+      end
+    end
+
+    def dashboard
+      authenticated do
+        logic = OT::Logic::Dashboard.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        view = Onetime::App::Views::Dashboard.new req, sess, cust
         res.body = view.render
       end
     end
@@ -48,16 +62,6 @@ module Onetime
       end
     end
 
-    def dashboard
-      authenticated do
-        logic = OT::Logic::Dashboard.new sess, cust, req.params
-        logic.raise_concerns
-        logic.process
-        view = Onetime::App::Views::Dashboard.new req, sess, cust
-        res.body = view.render
-      end
-    end
-
     def create_secret
       publically(req.request_path) do
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
@@ -66,7 +70,8 @@ module Onetime
         #res.redirect app_path(logic.redirect_uri)
         req.params.clear
         req.params[:key] = logic.metadata.key
-        private_uri # redirect straight to private_uri
+        #private_uri # redirect straight to private_uri
+        res.redirect logic.redirect_uri
       end
     end
 

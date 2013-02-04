@@ -48,18 +48,18 @@ module Onetime
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:email, cust.email)
+        self[:display_options] = sess.authenticated?
+        self[:display_recipients] = sess.authenticated?
         if self[:is_subdomain]
           tmp = req.env['ots.subdomain']
           self[:subdomain] = tmp.to_hash
           self[:subdomain]['company_domain'] = tmp.company_domain || 'One-Time Secret'
           self[:subdomain]['company'] = "One-Time Secret"
           self[:subtitle] = self[:subdomain]['company'] || self[:subdomain]['company_domain']
-          self[:display_feedback] = self[:authenticated]
-          self[:display_icons] = self[:authenticated]
+          self[:display_feedback] = sess.authenticated?
+          self[:display_icons] = sess.authenticated?
           self[:display_faq] = false
-          self[:display_recipients] = self[:authenticated]
-          self[:display_privacy_options] = self[:authenticated]
-          self[:actionable_visitor] = self[:authenticated]
+          self[:actionable_visitor] = sess.authenticated?
           self[:override_styles] = true
           self[:primary_color] = req.env['ots.subdomain'].primary_color
           self[:secondary_color] = req.env['ots.subdomain'].secondary_color
@@ -72,8 +72,6 @@ module Onetime
           self[:display_faq] = true
           self[:display_icons] = true
           self[:display_otslogo] = true
-          self[:display_recipients] = true
-          self[:display_privacy_options] = true
           self[:actionable_visitor] = true
           # NOTE: uncomment the following line to show the broadcast
           #self[:with_broadcast] = ! self[:authenticated]
@@ -172,7 +170,7 @@ module Onetime
             self[:subtitle] = "OTS Developers"
             self[:monitored_link] = !self[:is_subdomain]
             self[:with_analytics] = true
-            self[:css] << '/app/docs.css'
+            self[:css] << '/css/docs.css'
           end
           def baseuri_httpauth
             scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
@@ -212,6 +210,7 @@ module Onetime
       class UnknownSecret < Onetime::App::View
         def init
           self[:title] = "No such secret"
+          self[:display_feedback] = false
         end
       end
       class Shared < Onetime::App::View
@@ -224,7 +223,7 @@ module Onetime
         end
         def display_lines
           v = self[:secret_value].to_s
-          ret = ((80+v.size)/80) + (v.scan(/\n/).size)
+          ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
           ret = ret > 30 ? 30 : ret
         end
         def one_liner
@@ -241,7 +240,7 @@ module Onetime
           self[:recipients] = metadata.recipients
           self[:display_feedback] = false
           self[:no_cache] = true
-          ttl = metadata.realttl.to_i
+          ttl = metadata.ttl.to_i  # the real ttl is always a whole number
           self[:expiration_stamp] = if ttl <= 1.minute
             '%d seconds' % ttl
           elsif ttl <= 1.hour
@@ -338,7 +337,7 @@ module Onetime
           end
         end
       end
-      class Pricing < Onetime::App::View
+      class Plans < Onetime::App::View
         def init
           self[:title] = "Create an Account"
           self[:body_class] = :pricing
@@ -389,11 +388,12 @@ module Onetime
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           self[:metadata] = cust.metadata.collect do |m|
             { :uri => private_uri(m),
               :stamp => natural_time(m.updated),
               :key => m.key,
+              :shortkey => m.key.slice(0,12),
               :recipients => m.recipients,
               :is_received => m.state?(:received) }
           end.compact
@@ -409,6 +409,7 @@ module Onetime
           self[:with_analytics] = true
           self[:price] = plan.calculated_price
           self[:is_paid] = plan.paid?
+          self[:customer_since] = epochdom(cust.created)
           self[:has_cname] = cust.has_key?(:cname)
           self[:cname] = cust.cname || 'yourcompany'
           self[:cust_subdomain] = cust.load_subdomain

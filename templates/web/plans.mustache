@@ -1,0 +1,35 @@
+
+{{>header}}
+
+  <div class="row-fluid">
+    <div class="span12">
+      <h3 class="cufon">Signup is free! You get:</h3>
+      <ul class="">
+        <li>secrets that live up to <span class="hilite">{{default_plan.ttl}} days</span>.</li>
+        <li>to send secret links via <span class="hilite">email</span>.</li>
+        {{#default_plan.api}}<li>access to the <a href="/docs/api" class="hilite">API</a>.</li>{{/default_plan.api}}
+        {{#via_reddit}}
+        <li><span class="hilite"><strong>b/c you're from Reddit, you get a few little extras!</strong></span></li>
+        {{/via_reddit}}
+        {{#via_hn}}
+        <li><span class="hilite"><strong>b/c you're from HN, you get a few little extras!</strong></span></li>
+        {{/via_hn}}
+        {{#via_test}}
+        <li><span class="hilite"><strong>b/c you're from HN, you get a few little extras!</strong></span></li>
+        {{/via_test}}
+      </ul>
+
+      {{>partial/session_messages}}
+
+      {{>partial/signup_form_basic}}
+    </div>
+  </div>
+  <div class="row-fluid">
+    <ul class="unstyled">
+      <li><a href="/login" class="smaller lighter">Already have an account?</a></li>
+    </ul>
+
+    <p class="bigger centre lighter">We do custom installs. <a href="mailto:custom@onetimesecret.com">Contact us</a>.</p>
+  </div>
+
+{{>footer}}

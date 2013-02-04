@@ -17,8 +17,10 @@ module Onetime
     def deliver_email
       #OT.ld "Emailing #{self[:email_address]} [#{self.class}]"
       ret = emailer.send self[:email_address], subject, render
-      # TODO: 
+      # TODO:
       #raise OT::Problem if ret.code != 200
+    rescue SocketError => ex
+      OT.ld "Cannot connect to SendGrid: #{ex.message}"
     end
     class Welcome < OT::Email
       def init secret
@@ -44,7 +46,7 @@ module Onetime
           self[:signature_link] = subdomain['homepage']
           emailer.from = self[:from]
           emailer.fromname = self[:from_name]
-        else 
+        else
           self[:from_name] = 'Delano, co-founder'
           self[:signature_link] = 'https://onetimesecret.com/'
           emailer.fromname = 'One-Time Secret'

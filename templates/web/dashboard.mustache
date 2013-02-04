@@ -1,60 +1,62 @@
 {{>header}}
-  
-  <div id="content">
-    
-    {{#new_account}}
-    <div id="signupSteps">
-      <div id="step1" class="step">
-        <p>Step 1:</p>
-        <div>Create Account</div>
-      </div>
-      <div id="step2" class="step">
-        <p>Step 2:</p>
-        <div>Verify Account</div>
-      </div>
-      <div id="step3" class="step">
-        <p>Step 3:</p>
-        <div>Share Secret</div>
-      </div>
-    </div>
-    
-    
-    <a href="#" class="secretToggle">Share a secret</a>
-    {{/new_account}}
-    
-    <div id="primaryTabs">
-      <ul>
-        <li><a href="#recent"><strong>Recent Secrets</strong></a></li>
-        <li><a href="#share"><strong>Share</strong></a></li>
+
+
+  <div class="row-fluid">
+    <div class="span12">
+
+      <ul class="nav nav-tabs" id="contentTab">
+        <li class="active"><a href="#home">Home</a></li>
+        <li><a href="#recent">Recent Secrets <span class="badge">{{metadata.size}}</span></a></li>
       </ul>
-      <div id="share">
-        <div class="shareSecret">
+
+      <div class="tab-content">
+
+        <div class="tab-pane active" id="home">
+
+          {{#new_account}}
+          <div id="signupSteps">
+            <div id="step1" class="step">
+              <p>Step 1:</p>
+              <div>Create Account</div>
+            </div>
+            <div id="step2" class="step">
+              <p>Step 2:</p>
+              <div>Verify Account</div>
+            </div>
+            <div id="step3" class="step">
+              <p>Step 3:</p>
+              <div>Share Secret</div>
+            </div>
+          </div>
+          <a href="#" class="secretToggle">Share a secret</a>
+          {{/new_account}}
+
           {{>partial/create_secret_form}}
+
         </div>
-        
-      </div>
-      <div id="recent">
-        
-        {{#has_secrets}}
-        <h3>Recent secrets</h3>
-        <ul>
-        {{#metadata}}
-          <li> 
-            <a href="{{uri}}" class="{{#is_received}}strikethrough italic lighter{{/is_received}} {{^is_received}}nounderline{{/is_received}}">{{#recipients}}{{to_s}}{{/recipients}}{{^recipients}}Anonymous recipient{{/recipients}}</a>
-            - <em class="lighter">{{stamp}}</em></li>
-        {{/metadata}}
-        </ul>
-        {{/has_secrets}}
-        
-        {{^has_secrets}}
-        <h3>No Recent secrets</h3>
-        <p class="intro2"><em>Go on then. Share a secret!</em></p>
-        {{/has_secrets}}
+        <div class="tab-pane" id="recent">
+
+          {{#has_secrets}}
+          <h3>Recent secrets</h3>
+          <ul>
+          {{#metadata}}
+            <li>
+              <a href="{{uri}}" class="{{#is_received}}strikethrough italic lighter{{/is_received}} {{^is_received}}nounderline{{/is_received}}">
+              {{shortkey}} {{#recipients}}{{to_s}}{{/recipients}}
+              </a>
+              - <em class="lighter">{{stamp}}</em></li>
+          {{/metadata}}
+          </ul>
+          {{/has_secrets}}
+
+          {{^has_secrets}}
+          <h3>No Recent secrets</h3>
+          <p class="intro2"><em>Go on then. Share a secret!</em></p>
+          {{/has_secrets}}
+
+        </div>
       </div>
     </div>
-    
-    <hr/>
-    
   </div>
-  
+
 {{>footer}}

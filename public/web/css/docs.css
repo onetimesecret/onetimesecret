@@ -1,3 +1,4 @@
+a { text-decoration: underline; }
 pre.example{max-height:100px;}
 div.line{border-bottom:4px solid #0cc;font-weight:bold;padding:0px;margin:0px;}
 div#docsContent{padding-top:20px;}
@@ -10,7 +11,7 @@ div#docsContent{padding-top:20px;}
 #docnav { display:block; width: 180px; margin-top: 0px; }
 #docnav li { padding-left: 10px; line-height: 28px; }
 #docnav li.selected {
-  font-weight: bold;  
+  font-weight: bold;
   font-style: italic;
   background: #eee;
   -moz-border-radius: 10px;
@@ -20,7 +21,7 @@ div#docsContent{padding-top:20px;}
 #docnav .selected a { color: #000;}
 #topicContent {
   font-size: 0.9em;
-  margin-top: 0px; 
+  margin-top: 0px;
   padding-top: 0px;
 }
 

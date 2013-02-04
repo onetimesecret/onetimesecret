@@ -17,6 +17,8 @@ module Onetime
           timeout(wait) do
             StatHat::API.ez_post_count(name, stathat_apikey, count)
           end
+        rescue SocketError => ex
+          OT.info "Cannot connect to StatHat: #{ex.message}"
         rescue Timeout::Error
           OT.info "timeout calling stathat"
         end
@@ -27,6 +29,8 @@ module Onetime
           timeout(wait) do
             StatHat::API.ez_post_value(name, stathat_apikey, value)
           end
+        rescue SocketError => ex
+          OT.info "Cannot connect to StatHat: #{ex.message}"
         rescue Timeout::Error
           OT.info "timeout calling stathat"
         end
@@ -103,9 +107,9 @@ module Onetime
       attr_reader :planid, :custid, :password, :password2
       def process_params
         @planid = params[:planid].to_s
-        @custid = params[:custid].to_s.downcase.strip
-        @password = params[:password].to_s
-        @password2 = params[:password2].to_s
+        @custid = params[:u].to_s.downcase.strip
+        @password = params[:p].to_s
+        @password2 = params[:p2].to_s
       end
       def raise_concerns
         limit_action :create_account
@@ -150,7 +154,8 @@ module Onetime
       def process_params
         @custid = params[:u].to_s.downcase.strip
         @passwd = params[:p]
-        @stay = params[:stay].to_s == "true"
+        #@stay = params[:stay].to_s == "true"
+        @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
         if @custid.to_s.index(':as:')
           @colonelname, @custid = *@custid.downcase.split(':as:')
@@ -348,7 +353,9 @@ module Onetime
       def raise_concerns
         @modified ||= []
         limit_action :update_account
+        p 1
         if ! @currentp.empty?
+          p 2
           raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
           raise_form_error "New passwords do not match" unless @newp == @newp2
           raise_form_error "New password is too short" unless @newp.size >= 6

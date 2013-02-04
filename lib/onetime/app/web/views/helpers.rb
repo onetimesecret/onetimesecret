@@ -70,6 +70,51 @@ module Onetime
           (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
         end
         protected
+
+        def epochdate(e)
+          t = Time.at e.to_i
+          dformat t.utc
+        end
+        def epochtime(e)
+          t = Time.at e.to_i
+          tformat t.utc
+        end
+        def epochformat(e)
+          t = Time.at e.to_i
+          dtformat t.utc
+        end
+        def epochformat2(e)
+          t = Time.at e.to_i
+          dtformat2 t.utc
+        end
+        def epochdom(e)
+          t = Time.at e.to_i
+          t.utc.strftime('%b %d, %Y')
+        end
+        def epochtod(e)
+          t = Time.at e.to_i
+          t.utc.strftime('%I:%M%p').gsub(/^0/, '').downcase
+        end
+        def epochcsvformat(e)
+          t = Time.at e.to_i
+          t.utc.strftime("%Y/%m/%d %H:%M:%S")
+        end
+        def dtformat(t)
+          t = DateTime.parse t unless t.kind_of?(Time)
+          t.strftime("%Y-%m-%d@%H:%M:%S UTC")
+        end
+        def dtformat2(t)
+          t = DateTime.parse t unless t.kind_of?(Time)
+          t.strftime("%Y-%m-%d@%H:%M UTC")
+        end
+        def dformat(t)
+          t = DateTime.parse t unless t.kind_of?(Time)
+          t.strftime("%Y-%m-%d")
+        end
+        def tformat(t)
+          t = DateTime.parse t unless t.kind_of?(Time)
+          t.strftime("%H:%M:%S")
+        end
         def natural_time(e)
           return if e.nil?
           val = Time.now.utc.to_i - e.to_i
