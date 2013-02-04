@@ -154,7 +154,8 @@ module Onetime
       def process_params
         @custid = params[:u].to_s.downcase.strip
         @passwd = params[:p]
-        @stay = params[:stay].to_s == "true"
+        #@stay = params[:stay].to_s == "true"
+        @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
         if @custid.to_s.index(':as:')
           @colonelname, @custid = *@custid.downcase.split(':as:')

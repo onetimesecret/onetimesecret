@@ -96,7 +96,7 @@ module Onetime
             if cust.role?(:colonel)
               res.redirect '/colonel/'
             else
-              res.redirect '/dashboard'
+              res.redirect '/'
             end
           else
             view.cust = OT::Customer.anonymous

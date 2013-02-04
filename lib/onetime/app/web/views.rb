@@ -48,6 +48,7 @@ module Onetime
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:email, cust.email)
+        self[:display_privacy_options] = self[:authenticated]
         if self[:is_subdomain]
           tmp = req.env['ots.subdomain']
           self[:subdomain] = tmp.to_hash
@@ -58,7 +59,6 @@ module Onetime
           self[:display_icons] = self[:authenticated]
           self[:display_faq] = false
           self[:display_recipients] = self[:authenticated]
-          self[:display_privacy_options] = self[:authenticated]
           self[:actionable_visitor] = self[:authenticated]
           self[:override_styles] = true
           self[:primary_color] = req.env['ots.subdomain'].primary_color
@@ -73,7 +73,6 @@ module Onetime
           self[:display_icons] = true
           self[:display_otslogo] = true
           self[:display_recipients] = true
-          self[:display_privacy_options] = true
           self[:actionable_visitor] = true
           # NOTE: uncomment the following line to show the broadcast
           #self[:with_broadcast] = ! self[:authenticated]
