@@ -63,12 +63,9 @@
       {{^verification}}
       <div class="pretext">This secret is for you:</div>
       {{/verification}}
-      {{#one_liner}}
-      <input class="selectable" value="{{secret_value}}" />
-      {{/one_liner}}
-      {{^one_liner}}
-      <textarea class="" rows="{{display_lines}}" cols="80">{{secret_value}}</textarea>
-      {{/one_liner}}
+
+      <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
+
       {{^verification}}
       <p class="lighter">(careful: it will disappear when you refresh.)</p>
       {{/verification}}

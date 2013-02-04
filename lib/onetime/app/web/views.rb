@@ -223,7 +223,7 @@ module Onetime
         end
         def display_lines
           v = self[:secret_value].to_s
-          ret = ((80+v.size)/80) + (v.scan(/\n/).size)
+          ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
           ret = ret > 30 ? 30 : ret
         end
         def one_liner
