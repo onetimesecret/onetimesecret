@@ -1,12 +1,12 @@
 {{>header}}
 
   <div class="row-fluid">
-    <div class="span12">
+    <div class="span8">
       <h3 class="cufon">Enter your credentials</h3>
 
       {{>partial/session_messages}}
 
-      <form method="post" class="form-horizontal well">
+      <form method="post" class="well">
         {{{add_shrimp}}}
 
         <fieldset>
@@ -14,10 +14,8 @@
           <div class="control-group">
             <label class="control-label" for="custidField">Email</label>
             <div class="controls">
-              <input type="text" name="custid" id="custidField" class="input-large" value="{{form_fields.custid}}" placeholder="" />
+              <input type="text" name="custid" id="custidField" class="input-xlarge" value="{{form_fields.custid}}" placeholder="" />
             </div>
-          </div>
-          <div class="control-group">
             <label class="control-label" for="passField">Password</label>
             <div class="controls">
               <input type="password" name="password" id="passField" class="input-large" value="" placeholder="" />
@@ -25,22 +23,24 @@
           </div>
           <div class="control-group">
             <div class="controls">
-              <button type="submit" class="btn btn-large btn-custom">Sign in</button>
-
+              <button type="submit" class="btn btn-large btn-custom cufon">Sign in</button>
             </div>
           </div>
         </fieldset>
         <script type="text/javascript">
-          $('#custid').focus();
+          $('#custidField').focus();
         </script>
       </form>
 
     </div>
+  </div>
 
+  <div class="row-fluid">
     <ul class="unstyled">
       <li><a href="/signup" class="smaller lighter">Need an account?</a></li>
       <li><a href="/forgot" class="smaller lighter">Forgotten Password?</a></li>
     </ul>
   </div>
+
 
 {{>footer}}

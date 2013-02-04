@@ -8,6 +8,9 @@
 
   {{#actionable_visitor}}
   <div class="jumbotron">
+
+    {{>partial/session_messages}}
+
     {{^authenticated}}
     <h1 class="">Paste a password, secret phrase, or private link below</h1>
     <p class="lead">Keep sensitive info out of your email and chat logs.</p>

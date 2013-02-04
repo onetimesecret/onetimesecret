@@ -1,41 +1,63 @@
 {{>header}}
-  
-  <div id="content">
-    
-    <h2 class="intro">Reset your password</h2>
-    
-    {{>partial/session_messages}}
-    
-    {{^verified}}
-    <form method="post" class="signup">
-      {{{add_shrimp}}}
-      <div>
-        <label for="custid">Email address:</label>
-        <input type="text" name="u" id="custid" class="long ui-widget ui-corner-all" value="{{form_fields.custid}}" />
-        <script type="text/javascript">
-          $('#custid').focus();
-        </script>
-      </div>
-      <span id="fireSmall" class="button"><button type="submit">Request</button></span>
-    </form>
-    {{/verified}}
 
-    {{#verified}}
-    <form method="post" class="signup">
-      {{{add_shrimp}}}
-      <div>
-        <label for="custid">New password:</label>
-        <input type="password" name="newp" id="password" class="short ui-widget ui-corner-all" />
-        <label for="custid">Confirm password:</label>
-        <input type="password" name="newp2" class="short ui-widget ui-corner-all" />
+  <div class="row-fluid">
+    <div class="span8">
+      <h3 class="cufon">Reset your password</h3>
+
+      {{>partial/session_messages}}
+
+      <form method="post" class="form-horiz2ontal well">
+        {{{add_shrimp}}}
+
+        {{^verified}}
+        <fieldset>
+          <!--<legend>Legend</legend>-->
+          <div class="control-group">
+            <label class="control-label" for="custidField">Email address</label>
+            <div class="controls">
+              <input type="text" name="u" id="custidField" class="input-xlarge" value="{{form_fields.custid}}" placeholder="" />
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn btn-custom cufon">Request</button>
+            </div>
+          </div>
+        </fieldset>
         <script type="text/javascript">
-          $('#password').focus();
+          $('#custidField').focus();
         </script>
-      </div>
-      <span id="fireSmall" class="button"><button type="submit">Update Password</button></span>
-    </form>
-    {{/verified}}
-    
+      </form>
+      {{/verified}}
+
+      {{#verified}}
+      <form method="post" class="well">
+        {{{add_shrimp}}}
+        <fieldset>
+          <!--<legend>Legend</legend>-->
+          <div class="control-group">
+            <label class="control-label" for="passField">New password</label>
+            <div class="controls">
+              <input type="password" name="newp" id="passField" class="input-large" value="" placeholder="" />
+            </div>
+            <label class="control-label" for="pass2Field">Confirm password</label>
+            <div class="controls">
+              <input type="password" name="newp2" id="pass2Field" class="input-large" value="" placeholder="" />
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn btn-custom cufon">Update Password</button>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+      {{/verified}}
+    </div>
+
+    <ul class="unstyled">
+    </ul>
   </div>
-  
+
+
 {{>footer}}
