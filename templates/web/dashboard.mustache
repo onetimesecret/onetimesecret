@@ -4,12 +4,13 @@
   <div class="row-fluid">
     <div class="span12">
 
-      <ul class="nav nav-tabs" id="myTab">
+      <ul class="nav nav-tabs" id="contentTab">
         <li class="active"><a href="#home">Home</a></li>
         <li><a href="#recent">Recent Secrets</a></li>
       </ul>
 
       <div class="tab-content">
+
         <div class="tab-pane active" id="home">
 
           {{#new_account}}
@@ -35,23 +36,23 @@
         </div>
         <div class="tab-pane" id="recent">
 
-        {{#has_secrets}}
-        <h3>Recent secrets</h3>
-        <ul>
-        {{#metadata}}
-          <li>
-            <a href="{{uri}}" class="{{#is_received}}strikethrough italic lighter{{/is_received}} {{^is_received}}nounderline{{/is_received}}">
-            {{shortkey}} {{#recipients}}{{to_s}}{{/recipients}}
-            </a>
-            - <em class="lighter">{{stamp}}</em></li>
-        {{/metadata}}
-        </ul>
-        {{/has_secrets}}
+          {{#has_secrets}}
+          <h3>Recent secrets</h3>
+          <ul>
+          {{#metadata}}
+            <li>
+              <a href="{{uri}}" class="{{#is_received}}strikethrough italic lighter{{/is_received}} {{^is_received}}nounderline{{/is_received}}">
+              {{shortkey}} {{#recipients}}{{to_s}}{{/recipients}}
+              </a>
+              - <em class="lighter">{{stamp}}</em></li>
+          {{/metadata}}
+          </ul>
+          {{/has_secrets}}
 
-        {{^has_secrets}}
-        <h3>No Recent secrets</h3>
-        <p class="intro2"><em>Go on then. Share a secret!</em></p>
-        {{/has_secrets}}
+          {{^has_secrets}}
+          <h3>No Recent secrets</h3>
+          <p class="intro2"><em>Go on then. Share a secret!</em></p>
+          {{/has_secrets}}
 
         </div>
       </div>

@@ -69,7 +69,7 @@ $(function() {
   //   $('#options').toggle();
   // }
 
-  $('#myTab a').click(function (e) {
+  $('#contentTab a').click(function (e) {
     e.preventDefault();
     $(this).tab('show');
   });

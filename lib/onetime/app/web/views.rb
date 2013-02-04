@@ -411,6 +411,7 @@ module Onetime
           self[:with_analytics] = true
           self[:price] = plan.calculated_price
           self[:is_paid] = plan.paid?
+          self[:customer_since] = epochdom(cust.created)
           self[:has_cname] = cust.has_key?(:cname)
           self[:cname] = cust.cname || 'yourcompany'
           self[:cust_subdomain] = cust.load_subdomain
