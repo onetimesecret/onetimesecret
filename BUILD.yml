@@ -2,7 +2,7 @@
 :MAJOR: 0
 :MINOR: 8
 :PATCH: 2
-:BUILD: '006'
-:STORY: Removed Modernizer and moved jQuery to header
-:STAMP: 1360017538
+:BUILD: '007'
+:STORY: Added char counter
+:STAMP: 1360078421
 :OWNER: delano
