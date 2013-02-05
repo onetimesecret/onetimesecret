@@ -192,6 +192,18 @@ div.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
 .err, .msg { font-weight: bold; padding: 8px; line-height: 32px; width: 100%; }
 .err { background-color: red; color: #fff }
 .msg { background-color: #ff0; }
+.warning-text { color: red;}
+
+.lightest {
+  color: #ccc;
+}
+
+.text-input {
+  padding-bottom: 6px;
+}
+.chars-display {
+  position: relative; display: block; float: right; margin-top: -24px; margin-right: 24px;
+}
 
 .address { margin-left: 150px; font-size: 24px; line-height: 24px; }
 
