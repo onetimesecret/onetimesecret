@@ -2,7 +2,7 @@
 :MAJOR: 0
 :MINOR: 8
 :PATCH: 2
-:BUILD: '010'
-:STORY: Allow flexible email address input
-:STAMP: 1360180792
+:BUILD: '011'
+:STORY: ! ' size of secret link text'
+:STAMP: 1360181229
 :OWNER: delano
