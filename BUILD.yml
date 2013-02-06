@@ -2,7 +2,7 @@
 :MAJOR: 0
 :MINOR: 8
 :PATCH: 2
-:BUILD: 009
-:STORY: Added pics
-:STAMP: 1360172657
+:BUILD: '010'
+:STORY: Allow flexible email address input
+:STAMP: 1360180792
 :OWNER: delano
