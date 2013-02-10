@@ -50,6 +50,7 @@ module Onetime
         self[:jsvars] << jsvar(:email, cust.email)
         self[:display_options] = sess.authenticated?
         self[:display_recipients] = sess.authenticated?
+        self[:display_masthead] = true
         if self[:is_subdomain]
           tmp = req.env['ots.subdomain']
           self[:subdomain] = tmp.to_hash
@@ -218,7 +219,11 @@ module Onetime
           self[:title] = "You received a secret"
           self[:body_class] = :generate
           self[:display_feedback] = false
-          self[:display_sitenav] = ! self[:is_subdomain]
+          self[:display_sitenav] = false
+          self[:display_links] = false
+          self[:display_icons] = false
+          self[:monitored_link] = false
+          self[:display_masthead] = false
           self[:no_cache] = true
         end
         def display_lines

@@ -133,6 +133,7 @@
 
   <div class="masthead">
     <div class="nav pull-right">
+    {{#display_masthead}}
 
       {{^authenticated}}
         {{#is_subdomain}}
@@ -150,6 +151,7 @@
         <a href="{{baseotsuri}}/account" title="Your Account">Account</a> |
         <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">Logout</a>
       {{/authenticated}}
+      {{/display_masthead}}
 
     </div>
     <a href="http://www.youtube.com/watch?v=1V6T0lJc3dU" title="Release {{ot_version}}" tabIndex="-1" class="release">&nbsp;</a>

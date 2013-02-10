@@ -2,7 +2,7 @@
 #
 # Usage:
 #
-#     $ bundle exec thin -e dev -R config.ru -p 7143 start
+#     $ thin -e dev -R config.ru -p 7143 start
 #     $ tail -f /var/log/system.log
 
 ENV['RACK_ENV'] ||= 'prod'
