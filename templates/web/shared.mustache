@@ -28,7 +28,7 @@
     {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
-    <h2 class="intro cufon">This secret requires a passphrase:</div>
+    <h2 class="intro cufon">This message requires a passphrase:</div>
     {{/has_passphrase}}
     {{>partial/session_messages}}
     <div class="passphrase">
@@ -61,7 +61,7 @@
       <span class="pretext">Your secret message:</span><br/>
       {{/verification}}
       {{^verification}}
-      <div class="pretext">This secret is for you:</div>
+      <div class="pretext">This message is for you:</div>
       {{/verification}}
 
       <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
