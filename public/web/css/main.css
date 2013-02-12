@@ -90,6 +90,9 @@
 }
 
 
+#info a {
+  text-decoration: underline;
+}
 
 hr.clear {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1em;border:none;margin:4px;}
 
