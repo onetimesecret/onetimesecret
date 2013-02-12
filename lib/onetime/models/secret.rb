@@ -58,11 +58,16 @@ module Onetime
     def valid?
       exists? && !value.to_s.empty?
     end
-    def truncated
-      self.original_size.to_i >= 4999
+    def truncated?
+      self.truncated.to_s == "true"
     end
     def encrypt_value original_value, opts={}
-      storable_value = original_value.slice(0, 4999)
+      if opts[:size] && original_value.size > opts[:size]
+        storable_value = original_value.slice(0, opts[:size])
+        self.truncated = true
+      else
+        storable_value = original_value
+      end
       self.original_size = original_value.size
       self.value_checksum = storable_value.gibbler
       self.value_encryption = 2
@@ -102,7 +107,7 @@ module Onetime
       OT::Secret.encryption_key OT.global_secret, self.key, self.passphrase_temp
     end
     def load_customer
-      cust = OT::Customer.load custid 
+      cust = OT::Customer.load custid
       cust.nil? ? OT::Customer.anonymous : cust
     end
     def state
@@ -129,12 +134,12 @@ module Onetime
     end
     class << self
       def exists? objid
-        obj = new 
+        obj = new
         obj.key = objid
         obj.exists?
       end
       def load objid
-        obj = new 
+        obj = new
         obj.key = objid
         obj.exists? ? obj : nil
       end
