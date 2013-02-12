@@ -71,7 +71,11 @@
       {{/verification}}
 
       {{#truncated}}
-      <p>Note: this secret was truncated b/c it was over 5KB</p>
+      <div class="alert alert-info smaller">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>Please Note!</strong> The message was truncated b/c it was over {{secret_value.size.to_bytes}}.
+        {{^authenticated}}<a href="/signup">Signup for more</a>.{{/authenticated}}
+      </div>
       {{/truncated}}
 
     </div>
