@@ -51,6 +51,8 @@ module Onetime
       OT.ld "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
       eaddrs.each do |email_address|
         view = OT::Email::SecretLink.new cust, secret, email_address
+        view.emailer.from = cust.custid
+        view.emailer.fromname = ''
         ret = view.deliver_email
         if ret.code == 200
           cust.incr :emails_sent
@@ -87,12 +89,12 @@ module Onetime
     end
     class << self
       def exists? objid
-        obj = new 
+        obj = new
         obj.key = objid
         obj.exists?
       end
       def load objid
-        obj = new 
+        obj = new
         obj.key = objid
         obj.exists? ? obj : nil
       end
