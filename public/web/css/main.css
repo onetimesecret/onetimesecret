@@ -264,3 +264,7 @@ div.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
      -moz-border-radius: 4px 0 4px 0;
           border-radius: 4px 0 4px 0;
 }
+
+.alert a {
+  text-decoration: underline;
+}
