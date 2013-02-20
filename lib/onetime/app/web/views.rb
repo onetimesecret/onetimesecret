@@ -416,6 +416,10 @@ module Onetime
           self[:price] = plan.calculated_price
           self[:is_paid] = plan.paid?
           self[:customer_since] = epochdom(cust.created)
+          self[:contributor] = cust.contributor?
+          if self[:contributor]
+            self[:contributor_since] = epochdate(cust.contributor_at)
+          end
           self[:has_cname] = cust.has_key?(:cname)
           self[:cname] = cust.cname || 'yourcompany'
           self[:cust_subdomain] = cust.load_subdomain
@@ -472,6 +476,16 @@ module Onetime
           #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
           #  {:msg => k, :stamp => natural_time(v) }
           #end
+        end
+      end
+      class Contributor < Onetime::App::View
+        attr_accessor :secret
+        def init *args
+          self[:title] = "Contribute"
+          self[:contributor] = cust.contributor?
+          if self[:contributor]
+            self[:contributor_since] = epochdate(cust.contributor_at)
+          end
         end
       end
     end

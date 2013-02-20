@@ -1,6 +1,37 @@
 module Onetime
   class App
 
+    def contributors
+      publically do
+        if !sess.authenticated? && req.post?
+          sess.set_error_message "You'll need to sign in before agreeing."
+          res.redirect '/login'
+        end
+        if sess.authenticated? && req.post?
+          if cust.contributor?
+            sess.set_info_message "You are already a contributor!"
+            res.redirect "/"
+          else
+            if !req.params[:contributor].to_s.empty?
+              if !cust.contributor_at
+                cust.contributor = req.params[:contributor]
+                cust.contributor_at = Onetime.now.to_i unless cust.contributor_at
+                cust.save
+              end
+              sess.set_info_message "You are now a contributor!"
+              res.redirect "/"
+            else
+              sess.set_error_message "You need to check the confirm box."
+              res.redirect '/contributor'
+            end
+          end
+        else
+          view = Onetime::App::Views::Contributor.new req, sess, cust
+          res.body = view.render
+        end
+      end
+    end
+
     def forgot
       publically do
         if req.params[:key]

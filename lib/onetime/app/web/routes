@@ -45,5 +45,10 @@ POST  /account/passgen                           Onetime::App#update_account
 POST  /account/apikey                            Onetime::App#generate_apikey
 POST  /account/subdomain                         Onetime::App#update_subdomain
 
+GET   /contributor                               Onetime::App#contributors
+POST  /contributor                               Onetime::App#contributors
+
+
+
 GET   /404                                       Onetime::App#not_found
 GET   /500                                       Onetime::App#server_error
