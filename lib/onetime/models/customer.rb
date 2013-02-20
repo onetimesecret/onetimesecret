@@ -32,6 +32,9 @@ class Onetime::Customer < Familia::HashKey
   def identifier
     @custid
   end
+  def contributor?
+    self.contributor.to_s == "true"
+  end
   def apitoken? guess
     self.apitoken.to_s == guess.to_s
   end
