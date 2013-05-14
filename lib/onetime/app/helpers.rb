@@ -105,7 +105,8 @@ class Onetime::App
       if sess
         sess.update_fields  # calls update_time!
         # Only set the cookie after it's been saved
-        res.send_cookie :sess, sess.sessid, sess.ttl
+        is_secure = Onetime.conf[:site][:ssl]
+        res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
         @cust = sess.load_customer
       end
       @sess ||= OT::Session.new :check_session

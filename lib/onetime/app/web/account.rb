@@ -123,7 +123,8 @@ module Onetime
             logic.raise_concerns
             logic.process
             sess, cust = logic.sess, logic.cust
-            res.send_cookie :sess, sess.sessid, sess.ttl
+            is_secure = Onetime.conf[:site][:ssl]
+            res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
             if cust.role?(:colonel)
               res.redirect '/colonel/'
             else
