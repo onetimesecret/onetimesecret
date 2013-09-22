@@ -64,8 +64,9 @@ class Onetime::App
       error_response "An error occurred :["
 
     rescue Errno::ECONNREFUSED => ex
-      OT.info "Redis is down: #{ex.message}"
-      error_response "OT will be back shortly!"
+      OT.info ex.message
+      OT.ld ex.backtrace
+      error_response "We'll be back shortly!"
 
     rescue => ex
       err "#{ex.class}: #{ex.message}"

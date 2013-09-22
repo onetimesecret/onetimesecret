@@ -22,6 +22,17 @@ module Onetime
       end
     end
 
+    def test_send_email
+      publically do
+        OT.info "test_send_email"
+        view = OT::Email::TestEmail.new cust
+        view.emailer.from = cust.custid
+        view.emailer.fromname = ''
+        ret = view.deliver_email
+        res.body = 'Check your email'
+      end
+    end
+
     def dashboard
       authenticated do
         logic = OT::Logic::Dashboard.new sess, cust, req.params

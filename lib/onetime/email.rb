@@ -1,26 +1,61 @@
 require 'mustache'
+require 'mail'
 
 module Onetime
+  class SMTP
+    attr_accessor :from, :fromname
+    def initialize from, fromname=nil
+      @from, @fromname = from, fromname
+    end
+    def send to_address, subject, content
+      mail = Mail.new
+      mail.to to_address
+      mail.from self.from
+      mail.subject subject
+      mail.html_part do
+        content_type 'text/html; charset=UTF-8'
+        body content
+      end
+      mail.deliver
+    end
+    def self.setup
+      Mail.defaults do
+        opts = { :address   => OT.conf[:emailer][:host] || 'localhost',
+                 :port      => OT.conf[:emailer][:port] || 587  ,
+                 :domain    => OT.conf[:site][:domain],
+                 :user_name => OT.conf[:emailer][:user],
+                 :password  => OT.conf[:emailer][:pass],
+                 :authentication => OT.conf[:emailer][:auth],
+                 :enable_starttls_auto => OT.conf[:emailer][:tls].to_s == 'true'
+        }
+        delivery_method :smtp, opts
+      end
+    end
+  end
   require 'onetime/app/web/views/helpers'
   class Email < Mustache
     include Onetime::App::Views::Helpers
     self.template_path = './templates/email'
     self.view_namespace = Onetime::Email
     self.view_path = './onetime/email'
-    attr_reader :cust, :emailer
+    attr_reader :cust, :emailer, :mode
     def initialize cust, *args
       @cust = cust
-      emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
-      @emailer = SendGrid.new *emailer_opts
+      @mode = OT.conf[:emailer][:mode]
+      if @mode == :sendgrid
+        emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
+        @emailer = SendGrid.new *emailer_opts
+      else
+        @emailer = OT::SMTP.new OT.conf[:emailer][:from]
+      end
+      OT.ld "[emailer] #{@emailer} (#{@mode})"
       init *args if respond_to? :init
     end
     def deliver_email
-      #OT.ld "Emailing #{self[:email_address]} [#{self.class}]"
+      OT.ld "Emailing #{self[:email_address]} [#{self.class}]"
       ret = emailer.send self[:email_address], subject, render
-      # TODO:
-      #raise OT::Problem if ret.code != 200
     rescue SocketError => ex
-      OT.ld "Cannot connect to SendGrid: #{ex.message}"
+      OT.ld "Cannot send mail: #{ex.message}"
     end
     class Welcome < OT::Email
       def init secret
@@ -70,6 +105,17 @@ module Onetime
       end
       def forgot_path
         '/forgot/%s' % self[:secret].key
+      end
+    end
+    class TestEmail < OT::Email
+      def init
+        self[:email_address] = cust.email
+      end
+      def subject
+        "This is a test email #{OT.now}"
+      end
+      def test_variable
+        'test_value'
       end
     end
   end
