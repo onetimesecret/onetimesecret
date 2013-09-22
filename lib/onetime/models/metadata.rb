@@ -54,13 +54,14 @@ module Onetime
         view.emailer.from = cust.custid
         view.emailer.fromname = ''
         ret = view.deliver_email
-        if ret.code == 200
-          cust.incr :emails_sent
-          OT::Customer.global.incr :emails_sent
-        else
-          OT.info "Error sending email: #{ret}"
-        end
-        break
+        puts ret
+        #if ret.code == 200
+        #  cust.incr :emails_sent
+        #  OT::Customer.global.incr :emails_sent
+        #else
+        #  OT.info "Error sending email: #{ret}"
+        #end
+        break # force just a single recipient
       end
     end
     def older_than? seconds

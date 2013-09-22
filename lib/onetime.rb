@@ -21,10 +21,8 @@ Familia.apiversion = nil
 module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
-    ERRNO = {
-    } unless defined?(Onetime::ERRNO)
+    ERRNO = {}
   end
-  @debug = false
   @mode = :app
   class << self
     attr_accessor :mode
@@ -50,8 +48,7 @@ module Onetime
       @conf = OT::Config.load  # load config before anything else.
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
-      emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
-      @emailer = SendGrid.new *emailer_opts
+      OT::SMTP.setup
       @global_secret = OT.conf[:site][:secret] || "CHANGEME"
       Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
       Familia.uri = OT.conf[:redis][:uri]

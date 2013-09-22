@@ -48,7 +48,7 @@ POST  /account/subdomain                         Onetime::App#update_subdomain
 GET   /contributor                               Onetime::App#contributors
 POST  /contributor                               Onetime::App#contributors
 
-
+#GET   /email                                     Onetime::App#test_send_email
 
 GET   /404                                       Onetime::App#not_found
 GET   /500                                       Onetime::App#server_error

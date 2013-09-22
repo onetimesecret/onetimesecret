@@ -16,6 +16,15 @@
   :from: CHANGEME@example.com
   :fromname: CHANGEME
   :bcc:
+#:emailer:
+#  :mode: :smtp
+#  :from: delano@onetimesecret.com
+#  :host: localhost
+#  :port: 587
+#  :tls: false
+#  :user:
+#  :pass:
+#  :auth:
 :stathat:
   :enabled: false
   :apikey: CHANGEME
