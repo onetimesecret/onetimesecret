@@ -70,7 +70,7 @@
       <h3>F.A.Q.</h3>
       {{#has_passphrase}}
       <h4>Why can't I see my passphrase?</h4>
-      <p>We can't show it to you because we don't know what it is. When you create a secret with a passphrase, we immediately hash it with <a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>. If we were to show </p>
+      <p>We can't show it to you because we don't know what it is. When you create a secret with a passphrase, we immediately hash it with <a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>. Since we don't store the passphrase, we have no way to show it to you. That also means when you include a passphrase, we have no way to decrypt your secret. </p>
 
       <h4>Why can't I see the secret value?</h4>
       <p>We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
