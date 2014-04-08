@@ -77,7 +77,7 @@ When you send people sensitive info like passwords and private links via email o
 
 We include a global secret in the encryption key so it needs to be long and secure. One approach for generating a secret:
 
-    history | openssl sha1
+    dd if=/dev/urandom bs=20 count=1 | openssl sha1
 
 
 
