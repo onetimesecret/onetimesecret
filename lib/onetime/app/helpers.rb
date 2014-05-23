@@ -64,8 +64,9 @@ class Onetime::App
       error_response "An error occurred :["
 
     rescue Errno::ECONNREFUSED => ex
-      OT.info "Redis is down: #{ex.message}"
-      error_response "OT will be back shortly!"
+      OT.info ex.message
+      OT.ld ex.backtrace
+      error_response "We'll be back shortly!"
 
     rescue => ex
       err "#{ex.class}: #{ex.message}"
@@ -105,7 +106,8 @@ class Onetime::App
       if sess
         sess.update_fields  # calls update_time!
         # Only set the cookie after it's been saved
-        res.send_cookie :sess, sess.sessid, sess.ttl
+        is_secure = Onetime.conf[:site][:ssl]
+        res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
         @cust = sess.load_customer
       end
       @sess ||= OT::Session.new :check_session
