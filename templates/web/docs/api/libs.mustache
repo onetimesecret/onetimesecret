@@ -95,6 +95,32 @@ printf( "%s\n", $result->{secret_key} );
 my $secret = $api->retrieveSecret( $result->{secret_key}, passphrase => "thepassword" );
 printf( "%s\n", $secret->{value} );
       </pre>
+
+      <h3 class="cufon docTitle dotted">Java</h3>
+
+      <a href="https://github.com/mpawlowski/onetime-java" title="Java library - One-Time Secret"><strong>Download onetime-java</strong></a><br/>
+      <em>by <a href="https://github.com/mpawlowski">Marcin Pawlowski</a> (added 2014-05-22)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+OneTimeSecret ots = new OneTimeSecretRestImpl(
+    "https://path/to/ots/instance",
+    "ots-username",
+    "ots-apikey");
+
+GenerateResponse generateResponse = ots.generate(
+                new GenerateRequest.Builder()
+                        .withPassphrase("supersecret")
+                        .build());
+
+RetrieveResponse retrieveResponse = ots.retrieve(
+                new RetrieveRequest.Builder()
+                        .withSecretKey(shareResponse.getSecretKey())
+                        .withPassphrase("supersecret")
+                        .build());
+
+assertEquals(generateResponse.getValue(), retrieveResponse.getValue());
+      </pre>
       
       <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
     </div>
