@@ -23,7 +23,7 @@ When you send people sensitive info like passwords and private links via email o
     # DEBIAN
     $ sudo apt-get update
     $ sudo apt-get install build-essential
-    $ sudo apt-get install libyaml-dev libevent-dev zlib1g zlib1g-dev openssl libssl-dev libxml2 libreadline5-dev
+    $ sudo apt-get install ntp libyaml-dev libevent-dev zlib1g zlib1g-dev openssl libssl-dev libxml2 libreadline5-dev
     $ mkdir ~/sources
 
     # CENTOS
