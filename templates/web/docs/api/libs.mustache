@@ -121,6 +121,37 @@ RetrieveResponse retrieveResponse = ots.retrieve(
 
 assertEquals(generateResponse.getValue(), retrieveResponse.getValue());
       </pre>
+
+      <h3 class="cufon docTitle dotted">C#</h3>
+
+      <a href="https://github.com/utter-step/OneTimeSharp" title="C# library - One-Time Secret"><strong>Download OneTimeSharp</strong></a><br/>
+      <em>by <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added 2014-05-29)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+# You can use OneTimeSharp in any of your projects which are compatible with .NET (4.0+) or Mono (2.10.8+).
+using VStepanov.OneTimeSharp;
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        var ots = new OneTimeSecret("YOUR_EMAIL", "YOUR_OTS_APIKEY");
+
+        var generated = ots.GenerateSecret();
+
+        Console.WriteLine(generated.Value); // LR*?us*A(UT*
+
+        Console.WriteLine(generated.SecretKey); // ikzx3m77j5by8411cg5lk5fvfylvl0i
+        Console.WriteLine(ots.GetSecretLink(generated)); // https://onetimesecret.com/secret/ikzx3m77j5by8411cg5lk5fvfylvl0i
+
+        var shared = ots.ShareSecret("Hello, OTS!");
+
+        Console.WriteLine(shared.MetadataKey); // kd6rgsucl98qbgu9eavjq4k5sdxsom0
+        Console.WriteLine(ots.GetMetadataLink(shared)); // https://onetimesecret.com/private/kd6rgsucl98qbgu9eavjq4k5sdxsom0
+    }
+}
+      </pre>
       
       <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
     </div>
