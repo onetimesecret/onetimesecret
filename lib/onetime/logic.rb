@@ -540,5 +540,18 @@ module Onetime
       end
     end
 
+    class ShowRecentMetadata < OT::Logic::Base
+      attr_reader :metadata
+      def process_params
+        @metadata = cust.metadata
+      end
+      def raise_concerns
+        limit_action :show_metadata
+        raise OT::MissingSecret if metadata.nil?
+      end
+      def process
+      end
+    end
+
   end
 end

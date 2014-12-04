@@ -46,9 +46,9 @@ When you send people sensitive info like passwords and private links via email o
 ## Install Redis 2.6
 
     $ cd ~/sources
-    $ curl -O http://redis.googlecode.com/files/redis-2.6.9.tar.gz
-    $ tar zxf redis-2.6.9.tar.gz
-    $ cd redis-2.6.9
+    $ curl -O http://download.redis.io/releases/redis-2.6.17.tar.gz
+    $ tar zxf redis-2.6.17.tar.gz
+    $ cd redis-2.6.17
     $ make
     $ sudo make install
 
