@@ -4,14 +4,14 @@ require 'onetime/app/api/base'
 class Onetime::App
   class API
     include Onetime::App::API::Base
-    
+
     def status
       authorized(true) do
         sess.event_incr! :check_status
         json :status => :nominal
       end
     end
-    
+
     def share
       authorized(true) do
         req.params[:kind] = :share
@@ -22,13 +22,13 @@ class Onetime::App
           res.redirect app_path(logic.redirect_uri)
         else
           secret = logic.secret
-          json metadata_hsh(logic.metadata, 
-                              :secret_ttl => secret.realttl, 
+          json metadata_hsh(logic.metadata,
+                              :secret_ttl => secret.realttl,
                               :passphrase_required => secret && secret.has_passphrase?)
         end
       end
     end
-    
+
     def generate
       authorized(true) do
         req.params[:kind] = :generate
@@ -39,15 +39,15 @@ class Onetime::App
           res.redirect app_path(logic.redirect_uri)
         else
           secret = logic.secret
-          json metadata_hsh(logic.metadata, 
-                              :value => logic.secret_value, 
-                              :secret_ttl => secret.realttl, 
+          json metadata_hsh(logic.metadata,
+                              :value => logic.secret_value,
+                              :secret_ttl => secret.realttl,
                               :passphrase_required => secret && secret.has_passphrase?)
           logic.metadata.viewed!
         end
       end
     end
-    
+
     def show_metadata
       authorized(true) do
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
@@ -56,19 +56,34 @@ class Onetime::App
         secret = logic.metadata.load_secret
         if logic.show_secret
           secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
-          json metadata_hsh(logic.metadata, 
-                              :value => secret_value, 
-                              :secret_ttl => secret.realttl, 
+          json metadata_hsh(logic.metadata,
+                              :value => secret_value,
+                              :secret_ttl => secret.realttl,
                               :passphrase_required => secret && secret.has_passphrase?)
         else
-          json metadata_hsh(logic.metadata, 
-                              :secret_ttl => secret ? secret.realttl : nil, 
+          json metadata_hsh(logic.metadata,
+                              :secret_ttl => secret ? secret.realttl : nil,
                               :passphrase_required => secret && secret.has_passphrase?)
         end
         logic.metadata.viewed!
       end
     end
-    
+
+    def show_metadata_recent
+      authorized(false) do
+        logic = OT::Logic::ShowRecentMetadata.new sess, cust, req.params
+        logic.raise_concerns
+        logic.process
+        recent_metadata = logic.metadata.collect { |md|
+          next if md.nil?
+          hash = metadata_hsh(md)
+          hash.delete :secret_key   # Don't call md.delete, that will delete from redis
+          hash
+        }.compact
+        json recent_metadata
+      end
+    end
+
     def show_secret
       authorized(true) do
         req.params[:continue] = 'true'
@@ -83,17 +98,19 @@ class Onetime::App
         end
       end
     end
-    
+
     private
     def metadata_hsh md, opts={}
       hsh = md.all
+      secret_ttl = opts[:secret_ttl] ?
+        opts[:secret_ttl].to_i : md.realttl.to_i
       ret = {
         :custid => hsh['custid'],
         :metadata_key => hsh['key'],
         :secret_key => hsh['secret_key'],
         :ttl => hsh['ttl'].to_i,
         :metadata_ttl => md.realttl.to_i,
-        :secret_ttl => opts[:secret_ttl].to_i,
+        :secret_ttl => secret_ttl,
         :state => hsh['state'] || 'new',
         :updated => hsh['updated'].to_i,
         :created => hsh['created'].to_i,
@@ -107,10 +124,12 @@ class Onetime::App
         ret.delete :received
       end
       ret[:value] = opts[:value] if opts[:value]
-      ret[:passphrase_required] = opts[:passphrase_required] if !opts[:passphrase_required].nil?
+      if !opts[:passphrase_required].nil?
+        ret[:passphrase_required] = opts[:passphrase_required]
+      end
       ret
     end
-          
-    
+
+
   end
 end
