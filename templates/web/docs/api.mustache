@@ -3,14 +3,14 @@
 <div id="content">
   <div id="documentation">
     <h2 class="intro">API Overview</h2>
-    
+
     <ul id="docnav">
       <li class="selected"><a href="/docs/api" title="">Overview</a></li>
       <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
       <li class=""><a href="/docs/api/libs" title="">Client Libraries</a></li>
     </ul>
 
-    <p class="centre"><em class="larger">BETA API - updated 2012-01-07 (<a href="#feedback">Have a question?</a>)</em></p>
+    <p class="centre"><em class="larger">BETA API - updated 2014-12-03 (<a href="#feedback">Have a question?</a>)</em></p>
 
     <div id="topicContent">
 
@@ -18,10 +18,10 @@
       <span class="docSubtext">{{baseuri}}/api</span>
 
       <p>
-        All API access is over HTTPS and starts with <tt>/api</tt>. All responses are JSON. 
+        All API access is over HTTPS and starts with <tt>/api</tt>. All responses are JSON.
         <!-- The following parameters and attributes are common across the API. -->
       </p>
-      
+
       <!--
       <div class="options">
         <strong>Query Params</strong>
@@ -30,10 +30,10 @@
         </ul>
       </div>
       -->
-      
+
       <h4 class="cufon docTitle dotted">Authentication</h4>
       <span class="docSubtext">{{baseuri_httpauth}}/api</span>
-      
+
       <p>
         We use HTTP Basic Authentication for all requests and require a username and password.
         <ul>
@@ -41,12 +41,12 @@
           <li>The password is the API token which you can find on your account page.</li>
         </ul>
       </p>
-      
+
       <h3 class="cufon docTitle dotted">System Status</h3>
       <span class="docSubtext">GET {{baseuri}}/api/v1/status</span>
-      
+
       <p>Current status of the system.</p>
-      
+
       <div class="options">
         <strong>Parameters</strong><br/>
         <em>None</em>
