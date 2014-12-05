@@ -37,15 +37,18 @@
         <div class="tab-pane" id="recent">
 
           {{#has_secrets}}
-          <h3>Recent secrets</h3>
+          <h3>Not Received</h3>
           <ul>
-          {{#metadata}}
-            <li>
-              <a href="{{uri}}" class="{{#is_received}}strikethrough italic lighter{{/is_received}} {{^is_received}}nounderline{{/is_received}}">
-              {{shortkey}} {{#recipients}}{{to_s}}{{/recipients}}
-              </a>
-              - <em class="lighter">{{stamp}}</em></li>
-          {{/metadata}}
+          {{#notreceived}}
+            {{>partial/li_metadata}}
+          {{/notreceived}}
+          </ul>
+
+          <h3>Received</h3>
+          <ul>
+          {{#received}}
+            {{>partial/li_metadata}}
+          {{/received}}
           </ul>
           {{/has_secrets}}
 

@@ -399,11 +399,13 @@ module Onetime
             { :uri => private_uri(m),
               :stamp => natural_time(m.updated),
               :key => m.key,
-              :shortkey => m.key.slice(0,12),
+              :shortkey => m.key.slice(0,8),
+              :sshortkey => m.secret_key.to_s.empty? ? nil : m.secret_key.slice(0,6),
               :recipients => m.recipients,
               :is_received => m.state?(:received) }
           end.compact
-
+          self[:received],self[:notreceived] =
+            *self[:metadata].group_by{ |m| m[:is_received] }.map{|m| m.last }
           self[:has_secrets] = !self[:metadata].empty?
         end
       end

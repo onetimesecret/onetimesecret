@@ -1,0 +1,14 @@
+<li>
+  <a href="{{uri}}"
+     class="{{#is_received}}strikethrough italic lighter{{/is_received}} {{^is_received}}nounderline{{/is_received}}"
+     title="{{^is_received}}NOT {{/is_received}}RECEIVED">
+  {{#sshortkey}}
+  s:{{sshortkey}}
+  {{/sshortkey}}
+  {{^sshortkey}}
+  m:{{shortkey}}
+  {{/sshortkey}}
+  {{#recipients}}(sent to {{to_s}}){{/recipients}}
+  </a>
+  - <em class="lighter">{{stamp}}</em>
+</li>
