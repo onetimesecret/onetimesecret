@@ -37,24 +37,36 @@
         <div class="tab-pane" id="recent">
 
           {{#has_secrets}}
+
           <h3>Not Received</h3>
+          {{#has_notreceived}}
           <ul>
           {{#notreceived}}
             {{>partial/li_metadata}}
           {{/notreceived}}
           </ul>
+          {{/has_notreceived}}
+          {{^has_notreceived}}
+          <p class="intro2"><em>Go on then. <a href="/">Share a secret!</a></em></p>
+          {{/has_notreceived}}
+
 
           <h3>Received</h3>
+          {{#has_received}}
           <ul>
           {{#received}}
             {{>partial/li_metadata}}
           {{/received}}
           </ul>
+          {{/has_received}}
+          {{^has_received}}
+          <em>None</em>
+          {{/has_received}}
           {{/has_secrets}}
 
           {{^has_secrets}}
           <h3>No Recent secrets</h3>
-          <p class="intro2"><em>Go on then. Share a secret!</em></p>
+          <p class="intro2"><em>Go on then. <a href="/">Share a secret!</a></em></p>
           {{/has_secrets}}
 
         </div>
