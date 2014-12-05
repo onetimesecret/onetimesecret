@@ -398,15 +398,20 @@ module Onetime
           self[:metadata] = cust.metadata.collect do |m|
             { :uri => private_uri(m),
               :stamp => natural_time(m.updated),
+              :updated => epochformat(m.updated),
               :key => m.key,
               :shortkey => m.key.slice(0,8),
-              :sshortkey => m.secret_key.to_s.empty? ? nil : m.secret_key.slice(0,6),
+              # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
+              :ssecret_key => m.ssecret_key.to_s.empty? ? nil : m.ssecret_key,
               :recipients => m.recipients,
               :is_received => m.state?(:received) }
           end.compact
           self[:received],self[:notreceived] =
-            *self[:metadata].group_by{ |m| m[:is_received] }.map{|m| m.last }
+            *self[:metadata].partition{ |m| m[:is_received] }
+          self[:received].sort!{ |a,b| b[:updated] <=> a[:updated] }
           self[:has_secrets] = !self[:metadata].empty?
+          self[:has_received] = !self[:received].empty?
+          self[:has_notreceived] = !self[:notreceived].empty?
         end
       end
       class Account < Onetime::App::View
