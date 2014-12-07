@@ -71,6 +71,8 @@ $(function() {
 
   $('#contentTab a').click(function (e) {
     e.preventDefault();
+    window.location.hash = this.hash + '-tab';
+    e.preventDefault();
     $(this).tab('show');
   });
 });
