@@ -284,12 +284,49 @@ module Onetime
         def metadata_uri
           [baseuri, :private, self[:metadata_key]].join('/')
         end
+        def burn_uri
+          [baseuri, :private, self[:metadata_key], 'burn'].join('/')
+        end
         def display_lines
           ret = self[:secret_value].to_s.scan(/\n/).size + 2
           ret = ret > 20 ? 20 : ret
         end
         def one_liner
           self[:secret_value].to_s.scan(/\n/).size.zero?
+        end
+      end
+      class Burn < Onetime::App::View
+        def init metadata
+          self[:title] = "You saved a secret"
+          self[:body_class] = :generate
+          self[:metadata_key] = metadata.key
+          self[:secret_key] = metadata.secret_key
+          self[:state] = metadata.state
+          self[:recipients] = metadata.recipients
+          self[:display_feedback] = false
+          self[:no_cache] = true
+          self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
+          secret = metadata.load_secret
+          ttl = metadata.ttl.to_i  # the real ttl is always a whole number
+          self[:expiration_stamp] = if ttl <= 1.minute
+            '%d seconds' % ttl
+          elsif ttl <= 1.hour
+            '%d minutes' % ttl.in_minutes
+          elsif ttl <= 1.day
+            '%d hours' % ttl.in_hours
+          else
+            '%d days' % ttl.in_days
+          end
+          if secret.nil?
+            self[:is_received] = true
+            self[:received_date] = natural_time(metadata.received.to_i || 0)
+          else
+            self[:is_received] = secret.state?(:received)
+            self[:received_date] = natural_time(metadata.received.to_i || 0)
+          end
+        end
+        def metadata_uri
+          [baseuri, :private, self[:metadata_key]].join('/')
         end
       end
       class Forgot < Onetime::App::View

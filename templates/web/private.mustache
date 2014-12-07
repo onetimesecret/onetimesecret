@@ -13,8 +13,7 @@
 
     {{#show_metadata}}
     {{#recipients}}
-    <h3>Sent to:</h3>
-    <p>{{to_s}}</p>
+    <h3>Sent to: {{to_s}}</h3>
     {{/recipients}}
     {{/show_metadata}}
 
@@ -54,6 +53,7 @@
       {{/is_received}}
       {{^is_received}}
       <strong>Expires in {{expiration_stamp}}</strong>.
+
       {{/is_received}}
     </p>
 
@@ -64,6 +64,8 @@
       Remember this page to find out when the secret was viewed.
     </p>
     {{/show_metadata_link}}
+
+    <a class="btn btn-block btn-large btn-warning cufon" href="{{burn_uri}}"><i class="icon-fire"></i> Burn this secret</a>
 
     {{#show_secret}}
     <div id="faq" class="smaller">

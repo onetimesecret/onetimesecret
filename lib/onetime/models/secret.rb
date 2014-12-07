@@ -132,6 +132,13 @@ module Onetime
       @passphrase_temp = nil
       self.destroy!
     end
+    def burned!
+      # Make sure we don't go from :viewed to something else
+      return unless state?(:new)
+      load_metadata.burned!
+      @passphrase_temp = nil
+      self.destroy!
+    end
     class << self
       def exists? objid
         obj = new

@@ -82,6 +82,12 @@ module Onetime
       @state = :received
       update_fields :state => :received, :received => Time.now.utc.to_i, :secret_key => nil
     end
+    def burned!
+      # Make sure we don't go from :shared to :viewed
+      return unless state?(:new) || state?(:viewed)
+      @state = :burned
+      update_fields :state => :burned, :burned => Time.now.utc.to_i, :secret_key => nil
+    end
     def state? guess
       state.to_s == guess.to_s
     end

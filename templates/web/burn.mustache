@@ -1,0 +1,49 @@
+{{>header}}
+
+  <div class="private">
+
+    {{#show_metadata}}
+    {{#recipients}}
+    <h3>Sent to: {{to_s}}</h3>
+    {{/recipients}}
+    {{/show_metadata}}
+
+    {{^show_secret}}
+    <div class="secret">
+      <span class="pretext">Secret:</span><br/>
+      <input value="*******************" disabled="disabled" />
+    </div>
+    {{/show_secret}}
+
+    <p>
+      {{#is_received}}
+      <em>Received {{received_date}}.</em>
+      {{/is_received}}
+      {{^is_received}}
+      <strong>Expires in {{expiration_stamp}}</strong>.
+      {{/is_received}}
+    </p>
+
+    <hr/>
+
+    {{#is_received}}
+    <div class="alert alert-warning">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Cannot burn!</strong> The secret has already been viewed.
+    </div>
+
+    <a class="btn btn-block btn-large cufon" href="{{metadata_uri}}">Back</a>
+    {{/is_received}}
+    {{^is_received}}
+    <div>Please confirm:</div>
+    <form method="POST">
+      {{{add_shrimp}}}
+      <input type="hidden" name="continue" value="true" />
+      <button class="btn btn-block btn-large btn-custom cufon" type="submit"><i class="icon-fire"></i> Burn this secret -- PERMANENT</button>
+      <a class="btn btn-block btn-large cufon" href="{{metadata_uri}}">Cancel</a>
+    </form>
+    {{/is_received}}
+
+  </div>
+
+{{>footer}}

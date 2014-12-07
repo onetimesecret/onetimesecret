@@ -11,4 +11,10 @@
   {{#recipients}}(sent to {{to_s}}){{/recipients}}
   </a>
   - <em class="lighter" title="{{updated}}">{{stamp}}</em>
+  {{#is_received}}
+  <a href="#" class="delete-metadata" title="Delete the metadata"><i class="icon-remove"></i></a>
+  {{/is_received}}
+  {{^is_received}}
+  <a href="{{uri}}/burn" class="burn-secret" title="Burn the secret"><i class="icon-fire"></i></a>
+  {{/is_received}}
 </li>

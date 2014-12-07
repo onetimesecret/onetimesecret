@@ -80,11 +80,8 @@
 $(function() {
   var tab = (window.location.hash || 'home-tab').toLowerCase().split('-tab')[0];
   var allowed = ['#home', '#recent'];
-  console.log(tab, allowed.indexOf(tab))
   if (allowed.indexOf(tab) >= 0) {
-    console.log(tab)
     $('#contentTab a[href="'+tab+'"]').tab('show');
-
   }
 });
 </script>
