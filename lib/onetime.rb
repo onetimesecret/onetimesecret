@@ -204,14 +204,9 @@ module Onetime
     end
 
     def obscure_email(text)
+      regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
       el = text.split('@')
-      if el[0].size <= 2
-        text.gsub /(\b[A-Z0-9._%-]+(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "*******\\2"
-      elsif el[0].size <= 6
-        text.gsub /(\b([A-Z0-9])[A-Z0-9._%-]*(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "\\2******\\3"
-      else
-        text.gsub /(\b([A-Z0-9])[A-Z0-9._%-]{2,}([A-Z0-9])(@[A-Z0-9.-]+\.[A-Z]{2,4}\b))/i, "\\2*****\\3\\4"
-      end
+      text.gsub regex, "\\3*****\\4@\\6*****\\7"
     end
   end
 

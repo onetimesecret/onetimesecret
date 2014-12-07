@@ -14,12 +14,20 @@ Onetime::Utils.strand(20).size
 
 ## Obscure email address (6 or more chars)
 Onetime::Utils.obscure_email('tryouts@onetimesecret.com')
-#=> 't*****s@onetimesecret.com'
+#=> 'tr*****@o*****.com'
 
 ## Obscure email address (4 or more chars)
 Onetime::Utils.obscure_email('dave@onetimesecret.com')
-#=> 'd******@onetimesecret.com'
+#=> 'da*****@o*****.com'
 
 ## Obscure email address (less than 4 chars)
 Onetime::Utils.obscure_email('dm@onetimesecret.com')
-#=> '*******@onetimesecret.com'
+#=> 'dm*****@o*****.com'
+
+## Obscure email address (single char)
+Onetime::Utils.obscure_email('r@onetimesecret.com')
+#=> 'r*****@o*****.com'
+
+## Obscure email address (Long)
+Onetime::Utils.obscure_email('readyreadyreadyready@onetimesecretonetimesecretonetimesecret.com')
+#=> 're*****@o*****.com'
