@@ -98,6 +98,41 @@ module Onetime
         @is_paid = plan.paid?
         init *args if respond_to? :init
       end
+      def setup_plan_variables
+        Onetime::Plan.plans.each_pair do |planid,plan|
+          self[plan.planid] = {
+            :price => plan.price.zero? ? 'Free' : plan.calculated_price,
+            :original_price => plan.price.to_i,
+            :ttl => plan.options[:ttl].in_days.to_i,
+            :size => plan.options[:size].to_bytes.to_i,
+            :api => plan.options[:api] ? 'Yes' : 'No',
+            :name => plan.options[:name],
+            :planid => planid
+          }
+          self[plan.planid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
+        end
+        @plans = if self[:via_test] || self[:via_hn]
+          [:personal_hn, :professional_v1, :agency_v1]
+        elsif self[:via_reddit]
+          [:personal_reddit, :professional_v1, :agency_v1]
+        else
+          [:individual_v1, :professional_v1, :agency_v1]
+        end
+        unless cust.anonymous?
+          plan_idx = case cust.planid
+          when /personal/
+            0
+          when /professional/
+            1
+          when /agency/
+            2
+          end
+          @plans[plan_idx] = cust.planid unless plan_idx.nil?
+        end
+        self[:default_plan] = self[@plans.first.to_s] || self['individual_v1']
+        OT.ld self[:default_plan].to_json
+        self[:planid] = self[:default_plan][:planid]
+      end
       def get_split_test_values testname
         varname = "#{testname}_group"
         if OT::SplitTest.test_running? testname
@@ -372,9 +407,6 @@ module Onetime
               :is_paid => plan.paid?,
               :planid => req.params[:planid]
             }
-            if self[:plan][:is_paid]
-              add_message "Good news! This plan is free until February 1st."
-            end
           else
             add_error "Unknown plan"
           end
@@ -386,39 +418,7 @@ module Onetime
           self[:body_class] = :pricing
           self[:monitored_link] = true
           self[:with_analytics] = true
-          Onetime::Plan.plans.each_pair do |planid,plan|
-            self[plan.planid] = {
-              :price => plan.price.zero? ? 'Free' : plan.calculated_price,
-              :original_price => plan.price.to_i,
-              :ttl => plan.options[:ttl].in_days.to_i,
-              :size => plan.options[:size].to_bytes.to_i,
-              :api => plan.options[:api] ? 'Yes' : 'No',
-              :name => plan.options[:name],
-              :planid => planid
-            }
-            self[plan.planid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
-          end
-          @plans = if self[:via_test] || self[:via_hn]
-            [:personal_hn, :professional_v1, :agency_v1]
-          elsif self[:via_reddit]
-            [:personal_reddit, :professional_v1, :agency_v1]
-          else
-            [:individual_v1, :professional_v1, :agency_v1]
-          end
-          unless cust.anonymous?
-            plan_idx = case cust.planid
-            when /personal/
-              0
-            when /professional/
-              1
-            when /agency/
-              2
-            end
-            @plans[plan_idx] = cust.planid unless plan_idx.nil?
-          end
-          self[:default_plan] = self[@plans.first.to_s] || self['individual_v1']
-          OT.ld self[:default_plan].to_json
-          self[:planid] = self[:default_plan][:planid]
+          setup_plan_variables
         end
         def plan1;  self[@plans[0].to_s]; end
         def plan2;  self[@plans[1].to_s]; end
@@ -491,6 +491,7 @@ module Onetime
           self[:body_class] = :info
           self[:monitored_link] = true
           self[:with_analytics] = true
+          setup_plan_variables
         end
       end
       class Logo < Onetime::App::View
