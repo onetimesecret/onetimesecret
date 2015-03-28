@@ -15,7 +15,7 @@
   text-decoration: none;
 }
 
-.nav a.active {
+.nav a.active, .footerNav a.active {
   font-weight: bolder;
 }
 

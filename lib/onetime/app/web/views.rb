@@ -104,7 +104,7 @@ module Onetime
             :price => plan.price.zero? ? 'Free' : plan.calculated_price,
             :original_price => plan.price.to_i,
             :ttl => plan.options[:ttl].in_days.to_i,
-            :size => plan.options[:size].to_bytes.to_i,
+            :size => plan.options[:size].to_i,
             :api => plan.options[:api] ? 'Yes' : 'No',
             :name => plan.options[:name],
             :planid => planid
