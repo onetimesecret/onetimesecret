@@ -456,7 +456,7 @@ module Onetime
         end
         secret.encrypt_value secret_value, :size => plan.options[:size]
         metadata.ttl, secret.ttl = ttl, ttl
-        metadata.ssecret_key = secret.key.slice(0,6)
+        metadata.secret_shortkey = secret.shortkey
         secret.maxviews = maxviews
         secret.save
         metadata.save

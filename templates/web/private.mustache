@@ -22,7 +22,7 @@
     {{#show_secret}}
     <div class="secret">
       {{^can_decrypt}}
-      <em>Secret:</em><br/>
+      <em>Secret ({{secret_shortkey}}):</em><br/>
       <input class="selectable" id="displayedsecret" value="This message is encrypted with your passphrase." />
       {{/can_decrypt}}
       {{#can_decrypt}}
@@ -35,16 +35,15 @@
       </div>
       {{/truncated}}
 
-      <em>Secret:</em> <span class="smaller lighter">(you will only see this once)</span><br/>
+      <em>Secret ({{secret_shortkey}}):</em> <span class="smaller lighter">(you will only see this once)</span><br/>
       <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
 
       {{/can_decrypt}}
     </div>
     {{/show_secret}}
-
     {{^show_secret}}
     <div class="secret">
-      <span class="pretext">Secret:</span><br/>
+      <span class="pretext">Secret ({{secret_shortkey}}):</span> <br/>
       <input value="*******************" disabled="disabled" />
     </div>
     {{/show_secret}}
@@ -52,15 +51,16 @@
     <p>
       {{#is_received}}
       <em>Received {{received_date}}.</em>
+      <span class="smaller lighter">({{received_date_utc}})</span>
       {{/is_received}}
       {{^is_received}}
       <strong>Expires in {{expiration_stamp}}</strong>.
-
+      <span class="smaller lighter">({{created_date_utc}})</span>
       {{/is_received}}
     </p>
 
     <hr/>
-    <a class="btn btn-block btn-large cufon" href="{{burn_uri}}"><i class="icon-fire"></i> Burn this secret *</a>
+    <a class="btn btn-block btn-large cufon" href="{{burn_uri}}"><i class="icon-fire"></i> Burn this secret*</a>
 
     <hr/>
     <p class="hint">* Burning a secret will delete it before it has been read (click to confirm).</p>

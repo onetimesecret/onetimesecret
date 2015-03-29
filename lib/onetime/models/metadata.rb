@@ -35,6 +35,9 @@ module Onetime
       @age ||= Time.now.utc.to_i-updated
       @age
     end
+    def shortkey
+      key.slice(0,6)
+    end
     def anonymous?
       custid.to_s == 'anon'
     end

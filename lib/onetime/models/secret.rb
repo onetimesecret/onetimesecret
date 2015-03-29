@@ -35,6 +35,9 @@ module Onetime
     def maxviews
       (get_value(:maxviews) || 1).to_i
     end
+    def shortkey
+      key.slice(0,6)
+    end
     def view_count
       (get_value(:view_count) || 0).to_i
     end

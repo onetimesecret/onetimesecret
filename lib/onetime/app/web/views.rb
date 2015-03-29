@@ -277,11 +277,14 @@ module Onetime
           self[:title] = "You saved a secret"
           self[:body_class] = :generate
           self[:metadata_key] = metadata.key
+          self[:metadata_shortkey] = metadata.shortkey
           self[:secret_key] = metadata.secret_key
+          self[:secret_shortkey] = metadata.secret_shortkey
           self[:recipients] = metadata.recipients
           self[:display_feedback] = false
           self[:no_cache] = true
           ttl = metadata.ttl.to_i  # the real ttl is always a whole number
+          self[:created_date_utc] = epochformat(metadata.created.to_i)
           self[:expiration_stamp] = if ttl <= 1.minute
             '%d seconds' % ttl
           elsif ttl <= 1.hour
@@ -295,9 +298,11 @@ module Onetime
           if secret.nil?
             self[:is_received] = true
             self[:received_date] = natural_time(metadata.received.to_i || 0)
+            self[:received_date_utc] = epochformat(metadata.received.to_i || 0)
           else
             self[:is_received] = secret.state?(:received)
             self[:received_date] = natural_time(metadata.received.to_i || 0)
+            self[:received_date_utc] = epochformat(metadata.received.to_i || 0)
             self[:maxviews] = secret.maxviews
             self[:has_maxviews] = true if self[:maxviews] > 1
             self[:view_count] = secret.view_count
@@ -439,7 +444,7 @@ module Onetime
               :key => m.key,
               :shortkey => m.key.slice(0,8),
               # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
-              :ssecret_key => m.ssecret_key.to_s.empty? ? nil : m.ssecret_key,
+              :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
               :recipients => m.recipients,
               :is_received => m.state?(:received) }
           end.compact
