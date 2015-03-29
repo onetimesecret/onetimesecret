@@ -99,6 +99,20 @@ class Onetime::App
       end
     end
 
+    # def burn_secret
+    #   authorized(true) do
+    #     req.params[:continue] = 'true'
+    #     logic = OT::Logic::BurnSecret.new sess, cust, req.params
+    #     logic.raise_concerns
+    #     logic.process
+    #     if logic.burn_secret
+    #       json :state => logic.metadata, :secret_shortkey => logic.metadata.secret_shortkey
+    #     else
+    #       # TODO
+    #     end
+    #   end
+    # end
+
     private
     def metadata_hsh md, opts={}
       hsh = md.all
