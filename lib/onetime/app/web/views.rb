@@ -458,10 +458,12 @@ module Onetime
               # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
               :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
               :recipients => m.recipients,
-              :is_received => m.state?(:received) }
+              :is_received => m.state?(:received),
+              :is_burned => m.state?(:burned),
+              :is_destroyed => (m.state?(:received) || m.state?(:burned))}
           end.compact
           self[:received],self[:notreceived] =
-            *self[:metadata].partition{ |m| m[:is_received] }
+            *self[:metadata].partition{ |m| m[:is_destroyed] }
           self[:received].sort!{ |a,b| b[:updated] <=> a[:updated] }
           self[:has_secrets] = !self[:metadata].empty?
           self[:has_received] = !self[:received].empty?
