@@ -1,14 +1,18 @@
 <li>
   <a href="{{uri}}"
-     class="{{#is_received}}strikethrough italic lighter{{/is_received}} {{^is_received}}nounderline{{/is_received}}"
-     title="{{^is_received}}NOT {{/is_received}}RECEIVED">
-  {{#ssecret_key}}
-  {{ssecret_key}}
-  {{/ssecret_key}}
-  {{^ssecret_key}}
+     class="{{#is_destroyed}}strikethrough italic lighter{{/is_destroyed}} {{^is_destroyed}}nounderline{{/is_destroyed}}"
+     title="{{^is_destroyed}}NOT {{/is_destroyed}}RECEIVED">
+  {{#secret_shortkey}}
+  {{secret_shortkey}}
+  {{/secret_shortkey}}
+  {{^secret_shortkey}}
   m:{{shortkey}}
-  {{/ssecret_key}}
+  {{/secret_shortkey}}
   {{#recipients}}(sent to {{to_s}}){{/recipients}}
   </a>
-  - <em class="lighter" title="{{updated}}">{{stamp}}</em>
+  - <em class="lighter" title="{{updated}}">{{#is_received}}received{{/is_received}} {{#is_burned}}burned{{/is_burned}}  {{stamp}}</em>
+
+  {{^is_destroyed}}
+  <a href="{{uri}}/burn" class="burn-secret" title="Burn the secret"><i class="icon-fire"></i></a>
+  {{/is_destroyed}}
 </li>

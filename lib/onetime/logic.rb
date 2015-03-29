@@ -416,7 +416,7 @@ module Onetime
         @ttl = params[:ttl].to_i
         @ttl = 7.days if @ttl <= 0
         @ttl = 5.minutes if @ttl < 1.minutes
-        @ttl = plan.options[:ttl] if @ttl > plan.options[:ttl]
+        @ttl = plan.options[:ttl] if plan.options[:ttl] > @ttl
         @maxviews = params[:maxviews].to_i
         @maxviews = 1 if @maxviews < 1
         @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
@@ -456,7 +456,7 @@ module Onetime
         end
         secret.encrypt_value secret_value, :size => plan.options[:size]
         metadata.ttl, secret.ttl = ttl, ttl
-        metadata.ssecret_key = secret.key.slice(0,6)
+        metadata.secret_shortkey = secret.shortkey
         secret.maxviews = maxviews
         secret.save
         metadata.save
@@ -538,6 +538,38 @@ module Onetime
       end
       def process
         @secret = @metadata.load_secret
+      end
+    end
+
+    class BurnSecret < OT::Logic::Base
+      attr_reader :key, :passphrase, :continue
+      attr_reader :metadata, :secret, :correct_passphrase, :burn_secret
+      def process_params
+        @key = params[:key].to_s
+        @metadata = Onetime::Metadata.load key
+        @passphrase = params[:passphrase].to_s
+        @continue = params[:continue] == 'true'
+      end
+      def raise_concerns
+        limit_action :burn_secret
+        raise OT::MissingSecret if metadata.nil?
+      end
+      def process
+        @secret = @metadata.load_secret
+        if secret
+          @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
+          @burn_secret = secret.viewable? && correct_passphrase && continue
+          owner = secret.load_customer
+          if burn_secret
+            owner.incr :secrets_burned unless owner.anonymous?
+            OT::Customer.global.incr :secrets_burned
+            secret.burned!
+            OT::Logic.stathat_count('Burned Secrets', 1)
+          elsif !correct_passphrase
+            limit_action :failed_passphrase if secret.has_passphrase?
+            # do nothing
+          end
+        end
       end
     end
 

@@ -35,6 +35,9 @@ module Onetime
     def maxviews
       (get_value(:maxviews) || 1).to_i
     end
+    def shortkey
+      key.slice(0,6)
+    end
     def view_count
       (get_value(:view_count) || 0).to_i
     end
@@ -129,6 +132,13 @@ module Onetime
       # Make sure we don't go from :viewed to something else
       return unless state?(:new)
       load_metadata.received!
+      @passphrase_temp = nil
+      self.destroy!
+    end
+    def burned!
+      # Make sure we don't go from :viewed to something else
+      return unless state?(:new)
+      load_metadata.burned!
       @passphrase_temp = nil
       self.destroy!
     end

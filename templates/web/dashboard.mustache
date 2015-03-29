@@ -73,5 +73,15 @@
       </div>
     </div>
   </div>
-
 {{>footer}}
+
+
+<script>
+$(function() {
+  var tab = (window.location.hash || 'home-tab').toLowerCase().split('-tab')[0];
+  var allowed = ['#home', '#recent'];
+  if (allowed.indexOf(tab) >= 0) {
+    $('#contentTab a[href="'+tab+'"]').tab('show');
+  }
+});
+</script>

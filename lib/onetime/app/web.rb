@@ -122,6 +122,23 @@ module Onetime
       end
     end
 
+    def burn_secret
+      publically do
+        deny_agents!
+        no_cache!
+        logic = OT::Logic::BurnSecret.new sess, cust, req.params
+        view = Onetime::App::Views::Burn.new req, sess, cust, logic.metadata
+        logic.raise_concerns
+        logic.process
+        if logic.burn_secret
+          res.redirect '/private/' + logic.metadata.key
+        else
+          view.add_error 'Double check that passphrase' if req.post? && !logic.correct_passphrase
+          res.body = view.render
+        end
+      end
+    end
+
     def about
       publically do
         view = Onetime::App::Views::About.new req, sess, cust

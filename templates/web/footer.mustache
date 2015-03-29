@@ -12,14 +12,16 @@
     </form>
     {{/display_feedback}}
     {{#display_links}}
-    <p>
+    <p class="footerNav">
       <a href="{{baseotsuri}}/about">About</a> |
       <a href="{{baseotsuri}}/docs/api">API</a> |
       <a href="https://github.com/onetimesecret/onetimesecret">Code</a> |
-      <a href="https://github.com/onetimesecret/onetimesecret/issues" title="Issue Tracker">Issues</a> |
-      <a href="http://blog.onetimesecret.com/">Blog</a>
+      <a href="https://github.com/onetimesecret/onetimesecret/issues" title="Issue Tracker">Issues</a>
+      {{^authenticated}}
+      | <a href="{{baseotsuri}}/signup" title="Signup - Individual and Business plans" class="active">Create an account</a>
+      {{/authenticated}}
     </p>
-    <p>
+    <p class="footerNav">
       <a href="{{baseotsuri}}/info/privacy">Privacy</a> |
       <a href="{{baseotsuri}}/info/terms">Terms &amp; Conditions</a> |
       <a href="{{baseotsuri}}/info/security">Security</a>
@@ -35,8 +37,6 @@
     </div>
     {{/display_icons}}
 
-    {{#monitored_link}}
-    {{/monitored_link}}
   </div>
 
 </div> <!-- /container -->

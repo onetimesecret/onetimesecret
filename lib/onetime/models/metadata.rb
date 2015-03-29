@@ -35,6 +35,9 @@ module Onetime
       @age ||= Time.now.utc.to_i-updated
       @age
     end
+    def shortkey
+      key.slice(0,6)
+    end
     def anonymous?
       custid.to_s == 'anon'
     end
@@ -81,6 +84,12 @@ module Onetime
       return unless state?(:new) || state?(:viewed)
       @state = :received
       update_fields :state => :received, :received => Time.now.utc.to_i, :secret_key => nil
+    end
+    def burned!
+      # Make sure we don't go from :shared to :viewed
+      return unless state?(:new) || state?(:viewed)
+      @state = :burned
+      update_fields :state => :burned, :burned => Time.now.utc.to_i, :secret_key => nil
     end
     def state? guess
       state.to_s == guess.to_s

@@ -1,6 +1,7 @@
 {{>header}}
 
   <div class="private">
+
     {{#show_secret_link}}
     <div class="uri">
       <span class="pretext">Share this link:</span><br/>
@@ -13,15 +14,14 @@
 
     {{#show_metadata}}
     {{#recipients}}
-    <h3>Sent to:</h3>
-    <p>{{to_s}}</p>
+    <h3>Sent to: {{to_s}}</h3>
     {{/recipients}}
     {{/show_metadata}}
 
     {{#show_secret}}
     <div class="secret">
       {{^can_decrypt}}
-      <em>Secret:</em><br/>
+      <em>Secret ({{secret_shortkey}}):</em><br/>
       <input class="selectable" id="displayedsecret" value="This message is encrypted with your passphrase." />
       {{/can_decrypt}}
       {{#can_decrypt}}
@@ -34,7 +34,7 @@
       </div>
       {{/truncated}}
 
-      <em>Secret:</em> <span class="smaller lighter">(you will only see this once)</span><br/>
+      <em>Secret ({{secret_shortkey}}):</em> <span class="smaller lighter">(you will only see this once)</span><br/>
       <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
 
       {{/can_decrypt}}
@@ -43,7 +43,7 @@
 
     {{^show_secret}}
     <div class="secret">
-      <span class="pretext">Secret:</span><br/>
+      <span class="pretext">Secret ({{secret_shortkey}}):</span> <br/>
       <input value="*******************" disabled="disabled" />
     </div>
     {{/show_secret}}
@@ -51,18 +51,35 @@
     <p>
       {{#is_received}}
       <em>Received {{received_date}}.</em>
+      <span class="smaller lighter">({{received_date_utc}})</span>
       {{/is_received}}
-      {{^is_received}}
+
+      {{#is_burned}}
+      <em>Burned {{burned_date}}.</em>
+      <span class="smaller lighter">({{burned_date_utc}})</span>
+      {{/is_burned}}
+
+      {{^is_destroyed}}
       <strong>Expires in {{expiration_stamp}}</strong>.
-      {{/is_received}}
+      <span class="smaller lighter">({{created_date_utc}})</span>
+      {{/is_destroyed}}
     </p>
 
     <hr/>
+    {{^is_destroyed}}
+    <a class="btn btn-block btn-large cufon" href="{{burn_uri}}"><i class="icon-fire"></i> Burn this secret*</a>
+
+    <hr/>
+    <p class="hint">* Burning a secret will delete it before it has been read (click to confirm).</p>
+    {{/is_destroyed}}
 
     {{#show_metadata_link}}
-    <p class=" lighter">
-      Remember this page to find out when the secret was viewed.
-    </p>
+    <!--
+    <div class="alert alert-info">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Remember this page to find out when the secret was viewed..
+    </div>
+    -->
     {{/show_metadata_link}}
 
     {{#show_secret}}
@@ -75,6 +92,9 @@
       <h4>Why can't I see the secret value?</h4>
       <p>We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
       {{/has_passphrase}}
+
+      <h4>What happens when I burn a secret?</h4>
+      <p>Burning a secret will delete it before it has been read. If you send someone a secret link and burn the secret before they view it, they will not be able to read it. In fact, it will look to them like the secret never existed at all.</p>
 
       <h4>Why can I only see the secret value once?</h4>
       <p>We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
@@ -95,6 +115,9 @@
 
       <h4>How long will the secret be available?</h4>
       <p>The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
+
+      <h4>What happens when I burn a secret?</h4>
+      <p>Burning a secret will delete it before it has been read. If you send someone a secret link and burn the secret before they view it, they will not be able to read it. In fact, it will look to them like the secret never existed at all.</p>
     </div>
     {{/show_secret}}
   </div>

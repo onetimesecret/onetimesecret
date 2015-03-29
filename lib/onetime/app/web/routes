@@ -18,6 +18,9 @@ POST  /shared/:key                               Onetime::App#secret_uri
 GET   /secret/:key                               Onetime::App#secret_uri
 POST  /secret/:key                               Onetime::App#secret_uri
 
+GET   /private/:key/burn                         Onetime::App#burn_secret
+POST  /private/:key/burn                         Onetime::App#burn_secret
+
 GET   /info/privacy                              Onetime::App::Info#privacy
 GET   /info/security                             Onetime::App::Info#security
 GET   /info/terms                                Onetime::App::Info#terms

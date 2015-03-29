@@ -15,3 +15,4 @@ POST   /v1/private/:key                         Onetime::App::API#show_metadata
 GET    /v1/metadata/:key                        Onetime::App::API#show_metadata
 POST   /v1/metadata/:key                        Onetime::App::API#show_metadata
 
+#POST   /v1/private/:key/burn                    Onetime::App::API#burn_secret

@@ -105,8 +105,6 @@
         letter-spacing: -1px;
         display: none;
       }
-
-
     }
   </style>
   <script src="/js/vendor/cufon-yui.js" type="text/javascript"></script>
@@ -128,7 +126,7 @@
   <!-- <script src="/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script> -->
 </head>
 <body id="{{body_class}}">
-<div id="banner"><div class="broadcast"><!-- nothing to report --></div></div>
+<div id="banner"><div class="broadcast">Update (2015-03-28): You can now burn a secret before it's viewed!</div></div>
 <div class="container-narrow">
 
   <div class="masthead">
@@ -141,7 +139,7 @@
         {{/is_subdomain}}
         {{^is_subdomain}}
         <a href="{{baseotsuri}}/signup" title="Signup - Individual and Business plans" class="active">Create an account</a> |
-        <a href="http://blog.onetimesecret.com/" title="Our weblog">Blog</a> |
+        <a href="{{baseotsuri}}/about" title="About One-Time Secret">About</a> |
         <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">Sign In</a>
         {{/is_subdomain}}
       {{/authenticated}}

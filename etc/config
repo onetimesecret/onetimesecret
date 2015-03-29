@@ -28,8 +28,9 @@
 :stathat:
   :enabled: false
   :apikey: CHANGEME
+  :default_chart: CHANGEME
 :text:
-  :feedback: 'Have a question or comment?.'
+  :feedback: 'Have a question or comment?'
   :nonpaid_recipient_text: 'You need to create an account!'
   :paid_recipient_text: 'Send the secret link via email'
 :limits:
@@ -43,6 +44,8 @@
   :dashboard: 100
   :failed_passphrase: 5
   :show_metadata: 200
+  :show_secret: 100
+  :burn_secret: 100
 #:split_tests:
 #  :initial_pricing:
 #    - - basic_v1
