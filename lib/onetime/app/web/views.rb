@@ -296,9 +296,13 @@ module Onetime
           end
           secret = metadata.load_secret
           if secret.nil?
-            self[:is_received] = true
+            self[:is_received] = metadata.state?(:received)
+            self[:is_burned] = metadata.state?(:burned)
+            self[:is_destroyed] = self[:is_burned] || self[:is_received]
             self[:received_date] = natural_time(metadata.received.to_i || 0)
             self[:received_date_utc] = epochformat(metadata.received.to_i || 0)
+            self[:burned_date] = natural_time(   metadata.burned.to_i || 0)
+            self[:burned_date_utc] = epochformat(metadata.burned.to_i || 0)
           else
             self[:is_received] = secret.state?(:received)
             self[:received_date] = natural_time(metadata.received.to_i || 0)
@@ -313,8 +317,8 @@ module Onetime
               self[:truncated] = secret.truncated
             end
           end
-          self[:show_secret] = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received))
-          self[:show_secret_link] = !metadata.state?(:received) && (self[:show_secret] || metadata.owner?(cust)) && self[:recipients].nil?
+          self[:show_secret] = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received) || metadata.state?(:burned))
+          self[:show_secret_link] = !(metadata.state?(:received) || metadata.state?(:burned)) && (self[:show_secret] || metadata.owner?(cust)) && self[:recipients].nil?
           self[:show_metadata_link] = metadata.state?(:new)
           self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
         end

@@ -2,7 +2,6 @@
 
   <div class="private">
 
-
     {{#show_secret_link}}
     <div class="uri">
       <span class="pretext">Share this link:</span><br/>
@@ -41,6 +40,7 @@
       {{/can_decrypt}}
     </div>
     {{/show_secret}}
+
     {{^show_secret}}
     <div class="secret">
       <span class="pretext">Secret ({{secret_shortkey}}):</span> <br/>
@@ -53,18 +53,25 @@
       <em>Received {{received_date}}.</em>
       <span class="smaller lighter">({{received_date_utc}})</span>
       {{/is_received}}
-      {{^is_received}}
+
+      {{#is_burned}}
+      <em>Burned {{burned_date}}.</em>
+      <span class="smaller lighter">({{burned_date_utc}})</span>
+      {{/is_burned}}
+
+      {{^is_destroyed}}
       <strong>Expires in {{expiration_stamp}}</strong>.
       <span class="smaller lighter">({{created_date_utc}})</span>
-      {{/is_received}}
+      {{/is_destroyed}}
     </p>
 
     <hr/>
+    {{^is_destroyed}}
     <a class="btn btn-block btn-large cufon" href="{{burn_uri}}"><i class="icon-fire"></i> Burn this secret*</a>
 
     <hr/>
     <p class="hint">* Burning a secret will delete it before it has been read (click to confirm).</p>
-
+    {{/is_destroyed}}
 
     {{#show_metadata_link}}
     <!--
