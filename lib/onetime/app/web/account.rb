@@ -51,7 +51,7 @@ module Onetime
     end
 
     def request_reset
-      publically do
+      publically('/forgot') do
         if req.params[:key]
           logic = OT::Logic::ResetPassword.new sess, cust, req.params
           logic.raise_concerns
@@ -93,7 +93,7 @@ module Onetime
 
     def create_account
       #publically("/signup/#{req.params[:planid]}") do
-      publically() do
+      publically('/signup') do
         deny_agents!
         logic = OT::Logic::CreateAccount.new sess, cust, req.params
         logic.raise_concerns

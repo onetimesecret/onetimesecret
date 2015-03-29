@@ -65,7 +65,7 @@ module Onetime
     end
 
     def receive_feedback
-      publically do
+      publically('/feedback') do
         logic = OT::Logic::ReceiveFeedback.new sess, cust, req.params
         logic.raise_concerns
         logic.process
@@ -74,7 +74,7 @@ module Onetime
     end
 
     def create_secret
-      publically(req.request_path) do
+      publically('/') do
         logic = OT::Logic::CreateSecret.new sess, cust, req.params
         logic.raise_concerns
         logic.process
@@ -159,4 +159,3 @@ module Onetime
     end
   end
 end
-
