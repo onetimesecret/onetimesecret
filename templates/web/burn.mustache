@@ -2,16 +2,18 @@
 
   <div class="private">
 
-    {{#is_received}}
+    {{#is_destroyed}}
     <div class="alert alert-error">
       <button type="button" class="close" data-dismiss="alert">&times;</button>
-      <strong>Cannot burn!</strong> The secret has already been viewed.
+      <strong>Cannot burn!</strong>
+      {{#is_received}}The secret has already been viewed ({{received_date}}).{{/is_received}}
+      {{#is_burned}}The secret has already been burned ({{burned_date}}).{{/is_burned}}
     </div>
 
     <a class="btn btn-block btn-large cufon" href="{{metadata_uri}}">Back</a>
-    {{/is_received}}
-    {{^is_received}}
+    {{/is_destroyed}}
 
+    {{^is_destroyed}}
     <div><strong>Please confirm:</strong></div>
     <form method="POST">
       {{{add_shrimp}}}
@@ -19,7 +21,7 @@
       <button class="btn btn-block btn-large btn-warning cufon" type="submit"><i class="icon-fire"></i> Burn this secret -- PERMANENT</button>
       <a class="btn btn-block btn-large cufon" href="{{metadata_uri}}">Cancel</a>
     </form>
-    {{/is_received}}
+    {{/is_destroyed}}
 
   </div>
 

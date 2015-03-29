@@ -362,8 +362,13 @@ module Onetime
             '%d days' % ttl.in_days
           end
           if secret.nil?
-            self[:is_received] = true
+            self[:is_received] = metadata.state?(:received)
+            self[:is_burned] = metadata.state?(:burned)
+            self[:is_destroyed] = self[:is_burned] || self[:is_received]
             self[:received_date] = natural_time(metadata.received.to_i || 0)
+            self[:received_date_utc] = epochformat(metadata.received.to_i || 0)
+            self[:burned_date] = natural_time(   metadata.burned.to_i || 0)
+            self[:burned_date_utc] = epochformat(metadata.burned.to_i || 0)
           else
             self[:is_received] = secret.state?(:received)
             self[:received_date] = natural_time(metadata.received.to_i || 0)
