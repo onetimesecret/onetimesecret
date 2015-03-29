@@ -109,7 +109,12 @@ a {
   color: #000;
 }
 
-
+.private .hint {
+  font-style: italic;
+  color: #999;
+  font-size: 16px;
+  text-align: center;
+}
 
 #faq {
   margin-top: 60px;
