@@ -304,9 +304,6 @@ module Onetime
             self[:burned_date] = natural_time(   metadata.burned.to_i || 0)
             self[:burned_date_utc] = epochformat(metadata.burned.to_i || 0)
           else
-            self[:is_received] = secret.state?(:received)
-            self[:received_date] = natural_time(metadata.received.to_i || 0)
-            self[:received_date_utc] = epochformat(metadata.received.to_i || 0)
             self[:maxviews] = secret.maxviews
             self[:has_maxviews] = true if self[:maxviews] > 1
             self[:view_count] = secret.view_count
@@ -344,7 +341,9 @@ module Onetime
           self[:title] = "You saved a secret"
           self[:body_class] = :generate
           self[:metadata_key] = metadata.key
+          self[:metadata_shortkey] = metadata.shortkey
           self[:secret_key] = metadata.secret_key
+          self[:secret_shortkey] = metadata.secret_shortkey
           self[:state] = metadata.state
           self[:recipients] = metadata.recipients
           self[:display_feedback] = false
@@ -370,8 +369,12 @@ module Onetime
             self[:burned_date] = natural_time(   metadata.burned.to_i || 0)
             self[:burned_date_utc] = epochformat(metadata.burned.to_i || 0)
           else
-            self[:is_received] = secret.state?(:received)
-            self[:received_date] = natural_time(metadata.received.to_i || 0)
+            if secret.viewable?
+              self[:has_passphrase] = !secret.passphrase.to_s.empty?
+              self[:can_decrypt] = secret.can_decrypt?
+              self[:secret_value] = secret.decrypted_value if self[:can_decrypt]
+              self[:truncated] = secret.truncated
+            end
           end
         end
         def metadata_uri

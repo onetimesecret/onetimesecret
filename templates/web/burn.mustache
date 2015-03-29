@@ -2,6 +2,7 @@
 
   <div class="private">
 
+    {{>partial/session_messages}}
     {{#is_destroyed}}
     <div class="alert alert-error">
       <button type="button" class="close" data-dismiss="alert">&times;</button>
@@ -13,13 +14,25 @@
     <a class="btn btn-block btn-large cufon" href="{{metadata_uri}}">Back</a>
     {{/is_destroyed}}
 
+
     {{^is_destroyed}}
-    <div><strong>Please confirm:</strong></div>
+    <div class="secret">
+      <span class="pretext">Secret: {{secret_shortkey}}</span>
+      <h2 class="intro cufon">This message requires a passphrase:</h2>
+    </div>
+
     <form method="POST">
       {{{add_shrimp}}}
       <input type="hidden" name="continue" value="true" />
-      <button class="btn btn-block btn-large btn-warning cufon" type="submit"><i class="icon-fire"></i> Burn this secret -- PERMANENT</button>
+      <div class="control-group passphrase">
+        {{#has_passphrase}}
+          <input type="password" name="passphrase" id="passField" class="input-large" value="" placeholder="Enter the passphrase here" />
+        {{/has_passphrase}}
+      </div>
+      <button class="btn btn-block btn-large btn-warning cufon" type="submit"><i class="icon-fire"></i> CONFIRM: Burn this secret</button>
       <a class="btn btn-block btn-large cufon" href="{{metadata_uri}}">Cancel</a>
+      <hr/>
+      <p class="hint">Burning a secret is permanent and cannot be undone.</p>
     </form>
     {{/is_destroyed}}
 
