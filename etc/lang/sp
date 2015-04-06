@@ -1,0 +1,32 @@
+:web:
+  :COMMON:
+    :description: "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
+    :keywords: "secret,password generator,share a secret,onetime"
+    :secret_create_cta: "Create a secret link"
+    :secret_generate_cta: "Or generate a random password"
+    :secret_privacy_options: "Privacy Options"
+    :secret_passphrase: "Passphrase"
+    :secret_passphrase_hint: "A word or phrase that's difficult to guess"
+    :secret_recipient_address: "Recipient Address"
+    :secret_placeholder: "Secret content goes here..."
+    :header_create_account: "Create Account"
+    :header_about: "About"
+    :header_sign_in: "Sign In"
+    :header_dashboard: "Account"
+    :header_logout: "Logout"
+  :homepage:
+    :tagline1: "Paste a password, secret message or private link below."
+    :tagline2: "We help keep sensitive info out of your email and chat logs."
+    :secret_hint: "* A secret link only works once and then disappears forever."
+    :secret_form_more_text1: "Sign up for a"
+    :secret_form_more_text2: "free account"
+    :secret_form_more_text3: "to set passphrases for extra security along with additional privacy options. We'll even email the link for you if you want."
+    :anon_info1: "Stay anonymous!"
+    :anon_info2: "Create an account using a "
+    :anon_info3: "temporary email address"
+    :anon_info4: "."
+:email:
+  :secret_link:
+    :subject: "#{self[:from]} sent you a secret"
+    :body1: "We have a secret for you from {{from}}. Get it here:"
+    :body_tagline: "If you don't know the sender or believe it to be spam, send us the details here:"
