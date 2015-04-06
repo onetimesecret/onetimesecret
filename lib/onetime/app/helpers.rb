@@ -29,12 +29,15 @@ class Onetime::App
     end
 
     def carefully redirect=nil
+      env = self.req.env
       redirect ||= req.request_path
+      # Determine the locale for the current request
+      env['ots.locale'], env['ots.locales'] = *find_locale
+      OT.ld [:locale, env['ots.locale'], env['ots.locales'], env['rack.locale']].inspect
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.
       redirect = '/error' if req.get? && redirect.to_s == req.request_path
-      res.header['Content-Language'] = req.env['ots.locale'] unless res.header['Content-Language']
-      p [111, res.header['Content-Language'], req.env['ots.locale']]
+      res.header['Content-Language'] = env['ots.locale'] unless res.header['Content-Language']
       res.header['Content-Type'] ||= "text/html; charset=utf-8"
       yield
 
@@ -81,6 +84,19 @@ class Onetime::App
       @cust ||= OT::Customer.anonymous
     end
 
+    # Find the locale of the request based on env['rack.locale']
+    # which is set automatically by Otto v0.4.0 and greater.
+    def find_locale locale=nil
+      locales = self.req.env['rack.locale'] || []
+      locales << OT.conf[:locales].first
+      if !OT.locale.has_key?(locale)
+        locales = locales.uniq.reject { |l| !OT.locale.has_key?(l) }.compact
+        locale = locales.first
+      end
+      [locale, locales]
+    end
+
+    # Check XSRF value submitted with POST requests (aka shrimp)
     def check_shrimp!
       return if @check_shrimp_ran
       @check_shrimp_ran = true

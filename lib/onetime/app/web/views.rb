@@ -25,10 +25,8 @@ module Onetime
       attr_reader :req, :plan, :is_paid
       attr_accessor :sess, :cust, :locale, :messages, :form_fields
       def initialize req=nil, sess=nil, cust=nil, locale=nil, *args
-        locale ||= req.env['rack.locale']
-        locale = 'en' unless OT.locale.has_key?(locale)
-        req.env['ots.locale'] = locale
         @req, @sess, @cust, @locale = req, sess, cust, locale
+        @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
         self[:monitored_link] = false
