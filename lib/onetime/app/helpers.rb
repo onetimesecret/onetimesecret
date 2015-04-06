@@ -29,15 +29,12 @@ class Onetime::App
     end
 
     def carefully redirect=nil
-      env = self.req.env
       redirect ||= req.request_path
       # Determine the locale for the current request
-      env['ots.locale'], env['ots.locales'] = *find_locale(req.params[:locale])
-      OT.ld [:locale, env['ots.locale'], env['ots.locales'], env['rack.locale']].inspect
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.
       redirect = '/error' if req.get? && redirect.to_s == req.request_path
-      res.header['Content-Language'] = env['ots.locale'] unless res.header['Content-Language']
+      res.header['Content-Language'] = req.env['ots.locale'] unless res.header['Content-Language']
       res.header['Content-Type'] ||= "text/html; charset=utf-8"
       yield
 
@@ -84,18 +81,21 @@ class Onetime::App
       @cust ||= OT::Customer.anonymous
     end
 
-    # Find the locale of the request based on env['rack.locale']
+    # Find the locale of the request based on req.env['rack.locale']
     # which is set automatically by Otto v0.4.0 and greater.
     # If `locale` is specifies it will override if available.
-    def find_locale locale=nil
-      locales = self.req.env['rack.locale'] || []
-      locales.unshift locale.split('-').first if locale.is_a?(String)  # en or en-US
-      locales << OT.conf[:locales].first
-      if !OT.locale.has_key?(locale)
-        locales = locales.uniq.reject { |l| !OT.locale.has_key?(l) }.compact
-        locale = locales.first
+    # If the `local` query param is set, it will override.
+    def check_locale! locale=nil
+      unless req.params[:locale].to_s.empty?
+        locale = req.params[:locale]                                 # Use query param
       end
-      [locale, locales]
+      locales = req.env['rack.locale'] || []                          # Requested list
+      locales.unshift locale.split('-').first if locale.is_a?(String) # Support both en and en-US
+      locales << OT.conf[:locales].first                              # Ensure at least one configured locale is available
+      locales = locales.uniq.reject { |l| !OT.locale.has_key?(l) }.compact
+      locale = locales.first if !OT.locale.has_key?(locale)           # Default to the first available
+      OT.ld [:locale, locale, locales, req.env['rack.locale'], OT.locale.keys].inspect
+      req.env['ots.locale'], req.env['ots.locales'] = locale, locales
     end
 
     # Check XSRF value submitted with POST requests (aka shrimp)
