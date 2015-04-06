@@ -58,7 +58,7 @@ module Onetime
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
       ld "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
       ld "Config: #{OT::Config.path}"
-      ld " Redis: #{Familia.uri.serverid}" # don't print the password
+      ld "Redis:  #{Familia.uri.serverid}" # don't print the password
       ld "Limits: #{OT::RateLimit.events}"
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
@@ -127,7 +127,10 @@ module Onetime
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
       YAML.load_file path
     rescue => ex
-      Onetime.info "Error loading config: #{path}"
+      msg = path =~ /lang/ ?
+        "Error loading language: #{path} (if upgrading to 0.9, you need to copy ./etc/lang to #{dirname}/)"
+        : "Error loading config: #{path}"
+      Onetime.info msg
       Kernel.exit(1)
     end
     def exists?
