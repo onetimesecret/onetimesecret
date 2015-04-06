@@ -2,10 +2,10 @@
   :COMMON:
     :description: "Mantén la información confidencial fuera de tus chats y correos electrónicos. Comparte enlaces secretos que estarán disponibles sólo una vez."
     :keywords: "secreto,generador de contraseñas,comparte un secreto,solo una vez"
-    :secret_create_cta: "Crea un enlace secreto"
-    :secret_generate_cta: "O genera una contraseña al azar."
+    :secret_create_cta: "Crear un enlace secreto"
+    :secret_generate_cta: "O generar una contraseña al azar."
     :secret_privacy_options: "Opciones de privacidad"
-    :secret_passphrase: "Contraseñas"
+    :secret_passphrase: "Contraseña"
     :secret_passphrase_hint: "Una palabra o frase que es difícil de adivinar"
     :secret_recipient_address: "Dirección Del Receptor"
     :secret_placeholder: "El contenido secreto va aquí..."
