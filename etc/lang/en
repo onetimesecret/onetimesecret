@@ -29,3 +29,4 @@
   :secret_link:
     :subject: "#{self[:from]} sent you a secret"
     :body1: "We have a secret for you from {{from}}. Get it here:"
+    :body_tagline: "If you don't know the sender or believe it to be spam, send us the details here:"
