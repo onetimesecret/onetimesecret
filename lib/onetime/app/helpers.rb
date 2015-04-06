@@ -16,7 +16,7 @@ class Onetime::App
   module Helpers
 
     attr_reader :req, :res
-    attr_reader :sess, :cust
+    attr_reader :sess, :cust, :lang
     attr_reader :ignoreshrimp
     def initialize req, res
       @req, @res = req, res

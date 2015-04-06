@@ -24,7 +24,7 @@ module Onetime
       self.view_path = './app/web/views'
       attr_reader :req, :plan, :is_paid
       attr_accessor :sess, :cust, :messages, :form_fields
-      def initialize req=nil, sess=nil, cust=nil, *args
+      def initialize req=nil, sess=nil, cust=nil, lang=nil, *args
         @req, @sess, @cust = req, sess, cust
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
