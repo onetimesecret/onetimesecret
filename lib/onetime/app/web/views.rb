@@ -29,7 +29,7 @@ module Onetime
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
-        self[:supported_locales] = req.env['ots.locales'] || OT.conf[:locales]
+        self[:supported_locales] = OT.conf[:locales]
         self[:unsupported_locales] = OT.conf[:unsupported_locales]
         self[:monitored_link] = false
         self[:description] = OT.locales[self.locale][:web][:COMMON][:description]
