@@ -132,10 +132,10 @@ module Onetime
       !config_path.nil?
     end
     def dirname
-      File.dirname(self.path)
+      @dirname ||= File.dirname(self.path)
     end
     def path
-      find_configs.first
+      @path ||= find_configs.first
     end
     def find_configs
       paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
