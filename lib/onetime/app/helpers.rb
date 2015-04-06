@@ -86,8 +86,10 @@ class Onetime::App
     # If `locale` is specifies it will override if available.
     # If the `local` query param is set, it will override.
     def check_locale! locale=nil
+      locale = locale || req.cookie(:locale) if req.cookie?(:locale) # Use cookie value
       unless req.params[:locale].to_s.empty?
         locale = req.params[:locale]                                 # Use query param
+        res.send_cookie :locale, locale, 30.days, Onetime.conf[:site][:ssl]
       end
       locales = req.env['rack.locale'] || []                          # Requested list
       locales.unshift locale.split('-').first if locale.is_a?(String) # Support both en and en-US
