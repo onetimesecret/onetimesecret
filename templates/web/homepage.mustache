@@ -19,13 +19,13 @@
     {{^authenticated}}
     <hr/>
     <p class="hint">{{i18n.page.secret_hint}}</p>
-    <p class="more">{{{i18n.page.secret_form_more_text}}}</p>
+    <p class="more">{{i18n.page.secret_form_more_text1}} <a href='/signup'>{{i18n.page.secret_form_more_text2}}</a> {{i18n.page.secret_form_more_text3}}</p>
     {{/authenticated}}
     <hr/>
 
     <div class="alert alert-info">
       <button type="button" class="close" data-dismiss="alert">&times;</button>
-      <strong>Stay anonymous!</strong> Create an account using a <a href="http://www.mailinator.com/">temporary email address</a>.
+      <strong>{{i18n.page.anon_info1}}</strong> {{i18n.page.anon_info2}} <a href="http://www.mailinator.com/">{{i18n.page.anon_info3}}</a>{{i18n.page.anon_info4}}
     </div>
 
   </div>
