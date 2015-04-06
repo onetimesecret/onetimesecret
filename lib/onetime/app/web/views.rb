@@ -23,14 +23,17 @@ module Onetime
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
       attr_reader :req, :plan, :is_paid
-      attr_accessor :sess, :cust, :lang, :messages, :form_fields
-      def initialize req=nil, sess=nil, cust=nil, lang=nil, *args
-        @req, @sess, @cust, @lang = req, sess, cust, (lang ||= 'en')
+      attr_accessor :sess, :cust, :locale, :messages, :form_fields
+      def initialize req=nil, sess=nil, cust=nil, locale=nil, *args
+        locale ||= req.env['rack.locale']
+        locale = 'en' unless OT.locale.has_key?(locale)
+        req.env['ots.locale'] = locale
+        @req, @sess, @cust, @locale = req, sess, cust, locale
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
         self[:monitored_link] = false
-        self[:description] = OT.lang[self.lang][:web][:COMMON][:description]
-        self[:keywords] = OT.lang[self.lang][:web][:COMMON][:keywords]
+        self[:description] = OT.locale[self.locale][:web][:COMMON][:description]
+        self[:keywords] = OT.locale[self.locale][:web][:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
         self[:ot_version_id] = self[:ot_version].gibbler.short
         self[:authenticated] = sess.authenticated? if sess
@@ -100,7 +103,7 @@ module Onetime
       end
       def i18n
         pagename = self.class.name.split('::').last.downcase.to_sym
-        { lang: self.lang, page: OT.lang[self.lang][:web][pagename], COMMON: OT.lang[self.lang][:web][:COMMON]}
+        { locale: self.locale, page: OT.locale[self.locale][:web][pagename], COMMON: OT.locale[self.locale][:web][:COMMON]}
       end
       def setup_plan_variables
         Onetime::Plan.plans.each_pair do |planid,plan|

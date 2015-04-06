@@ -26,7 +26,7 @@ module Onetime
   @mode = :app
   class << self
     attr_accessor :mode
-    attr_reader :conf, :lang, :instance, :sysinfo, :emailer, :global_secret
+    attr_reader :conf, :locale, :instance, :sysinfo, :emailer, :global_secret
     attr_writer :debug
     def debug
       @debug || (@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true' || ENV['ONETIME_DEBUG'].to_i == 1)
@@ -46,7 +46,7 @@ module Onetime
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load  # load config before anything else.
-      @lang = OT.load_langs
+      @locale = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
       OT::SMTP.setup
@@ -85,11 +85,11 @@ module Onetime
       end
       @conf
     end
-    def load_langs langs=OT.conf[:langs]||['en']
-      confs = langs.collect do |lang|
-        OT.ld 'Loading lang: %s' % lang
-        conf = OT::Config.load '%s/lang/%s' % [OT::Config.dirname, lang]
-        [lang, conf]
+    def load_locales locales=OT.conf[:locales]||['en']
+      confs = locales.collect do |locale|
+        OT.ld 'Loading locale: %s' % locale
+        conf = OT::Config.load '%s/locale/%s' % [OT::Config.dirname, locale]
+        [locale, conf]
       end
       Hash[confs]
     end
@@ -127,8 +127,8 @@ module Onetime
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
       YAML.load_file path
     rescue => ex
-      msg = path =~ /lang/ ?
-        "Error loading language: #{path} (if upgrading to 0.9, you need to copy ./etc/lang to #{dirname}/)"
+      msg = path =~ /locale/ ?
+        "Error loading locale: #{path} (if upgrading to 0.9, you need to copy ./etc/locale to #{dirname}/)"
         : "Error loading config: #{path}"
       Onetime.info msg
       Kernel.exit(1)

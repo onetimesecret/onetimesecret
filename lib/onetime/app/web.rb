@@ -15,7 +15,7 @@ module Onetime
         if sess.authenticated?
           dashboard
         else
-          view = Onetime::App::Views::Homepage.new req, sess, cust, lang
+          view = Onetime::App::Views::Homepage.new req, sess, cust, locale
           sess.event_incr! :homepage
           res.body = view.render
         end
@@ -38,28 +38,28 @@ module Onetime
         logic = OT::Logic::Dashboard.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        view = Onetime::App::Views::Dashboard.new req, sess, cust, lang
+        view = Onetime::App::Views::Dashboard.new req, sess, cust, locale
         res.body = view.render
       end
     end
 
     def show_docs
       publically do
-        view = Onetime::App::Views::Docs::Api.new req, sess, cust, lang
+        view = Onetime::App::Views::Docs::Api.new req, sess, cust, locale
         res.body = view.render
       end
     end
 
     def show_docs_secrets
       publically do
-        view = Onetime::App::Views::Docs::Api::Secrets.new req, sess, cust, lang
+        view = Onetime::App::Views::Docs::Api::Secrets.new req, sess, cust, locale
         res.body = view.render
       end
     end
 
     def show_docs_libs
       publically do
-        view = Onetime::App::Views::Docs::Api::Libs.new req, sess, cust, lang
+        view = Onetime::App::Views::Docs::Api::Libs.new req, sess, cust, locale
         res.body = view.render
       end
     end
@@ -91,7 +91,7 @@ module Onetime
         deny_agents!
         no_cache!
         logic = OT::Logic::ShowSecret.new sess, cust, req.params
-        view = Onetime::App::Views::Shared.new req, sess, cust, lang
+        view = Onetime::App::Views::Shared.new req, sess, cust, locale
         logic.raise_concerns
         logic.process
         view[:is_owner] = logic.secret.owner?(cust)
@@ -116,7 +116,7 @@ module Onetime
         logic = OT::Logic::ShowMetadata.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        view = Onetime::App::Views::Private.new req, sess, cust, lang, logic.metadata
+        view = Onetime::App::Views::Private.new req, sess, cust, locale, logic.metadata
         res.body = view.render
         logic.metadata.viewed!
       end
@@ -127,7 +127,7 @@ module Onetime
         deny_agents!
         no_cache!
         logic = OT::Logic::BurnSecret.new sess, cust, req.params
-        view = Onetime::App::Views::Burn.new req, sess, cust, lang, logic.metadata
+        view = Onetime::App::Views::Burn.new req, sess, cust, locale, logic.metadata
         logic.raise_concerns
         logic.process
         if logic.burn_secret
@@ -141,19 +141,19 @@ module Onetime
 
     def about
       publically do
-        view = Onetime::App::Views::About.new req, sess, cust, lang
+        view = Onetime::App::Views::About.new req, sess, cust, locale
         res.body = view.render
       end
     end
     def logo
       publically do
-        view = Onetime::App::Views::Logo.new req, sess, cust, lang
+        view = Onetime::App::Views::Logo.new req, sess, cust, locale
         res.body = view.render
       end
     end
     def feedback
       publically do
-        view = Onetime::App::Views::Feedback.new req, sess, cust, lang
+        view = Onetime::App::Views::Feedback.new req, sess, cust, locale
         res.body = view.render
       end
     end

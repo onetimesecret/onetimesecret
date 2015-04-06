@@ -56,7 +56,7 @@ module Onetime
       end
 
       def secret_not_found_response
-        view = Onetime::App::Views::UnknownSecret.new req, sess, cust, lang
+        view = Onetime::App::Views::UnknownSecret.new req, sess, cust, locale
         res.status = 404
         res.body = view.render
       end
@@ -74,14 +74,14 @@ module Onetime
       end
 
       def not_found_response message
-        view = Onetime::App::Views::NotFound.new req, sess, cust, lang
+        view = Onetime::App::Views::NotFound.new req, sess, cust, locale
         view.add_error message
         res.status = 404
         res.body = view.render
       end
 
       def error_response message
-        view = Onetime::App::Views::Error.new req, sess, cust, lang
+        view = Onetime::App::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 401
         res.body = view.render

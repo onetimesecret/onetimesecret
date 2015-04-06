@@ -26,7 +26,7 @@ module Onetime
             end
           end
         else
-          view = Onetime::App::Views::Contributor.new req, sess, cust, lang
+          view = Onetime::App::Views::Contributor.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -39,12 +39,12 @@ module Onetime
           if secret.nil? || secret.verification.to_s != 'true'
             raise OT::MissingSecret if secret.nil?
           else
-            view = Onetime::App::Views::Forgot.new req, sess, cust, lang
+            view = Onetime::App::Views::Forgot.new req, sess, cust, locale
             view[:verified] = true
             res.body = view.render
           end
         else
-          view = Onetime::App::Views::Forgot.new req, sess, cust, lang
+          view = Onetime::App::Views::Forgot.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -74,10 +74,10 @@ module Onetime
       publically do
         if OT::Plan.plan?(req.params[:planid])  # Specific Plan is selected
           sess.set_error_message "You're already signed up" if sess.authenticated?
-          view = Onetime::App::Views::Signup.new req, sess, cust, lang
+          view = Onetime::App::Views::Signup.new req, sess, cust, locale
           res.body = view.render
         else                                    # Default signup page
-          view = Onetime::App::Views::Plans.new req, sess, cust, lang
+          view = Onetime::App::Views::Plans.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -85,7 +85,7 @@ module Onetime
 
     def business_pricing
       publically do
-        view = Onetime::App::Views::Plans.new req, sess, cust, lang
+        view = Onetime::App::Views::Plans.new req, sess, cust, locale
         view[:business] = true
         res.body = view.render
       end
@@ -106,7 +106,7 @@ module Onetime
 
     def login
       publically do
-        view = Onetime::App::Views::Login.new req, sess, cust, lang
+        view = Onetime::App::Views::Login.new req, sess, cust, locale
         res.body = view.render
       end
     end
@@ -114,7 +114,7 @@ module Onetime
     def authenticate
       publically do
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params
-        view = Onetime::App::Views::Login.new req, sess, cust, lang
+        view = Onetime::App::Views::Login.new req, sess, cust, locale
         if sess.authenticated?
           sess.set_info_message "You are already logged in."
           res.redirect '/'
@@ -152,7 +152,7 @@ module Onetime
         logic = OT::Logic::ViewAccount.new sess, cust, req.params
         logic.raise_concerns
         logic.process
-        view = Onetime::App::Views::Account.new req, sess, cust, lang
+        view = Onetime::App::Views::Account.new req, sess, cust, locale
         res.body = view.render
       end
     end
