@@ -91,7 +91,17 @@ module Onetime
         conf = OT::Config.load '%s/locale/%s' % [OT::Config.dirname, locale]
         [locale, conf]
       end
-      Hash[confs]
+      locales = Hash[confs]                               # convert zipped array to hash
+      default_locale = locales[ OT.conf[:locales].first ] # default locale is the first
+      # Here we overlay each locale on top of the default just
+      # in case there are keys that haven't been translated.
+      # That way, at least the default language will display.
+      locales.each do |key, locale|
+        if (default_locale != locale)
+          locales[ key ] = OT::Utils.deep_merge(default_locale, locale)
+        end
+      end
+      locales
     end
     def to_file(content, filename, mode, chmod=0744)
       mode = (mode == :append) ? 'a' : 'w'
@@ -217,7 +227,10 @@ module Onetime
     def indifferent_hash
       Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
     end
-
+    def deep_merge(default, overlay)
+      merger = proc { |key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
+      default.merge(overlay, &merger)
+    end
     def obscure_email(text)
       regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
       el = text.split('@')
