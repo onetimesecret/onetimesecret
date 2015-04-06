@@ -26,7 +26,7 @@ module Onetime
   @mode = :app
   class << self
     attr_accessor :mode
-    attr_reader :conf, :instance, :sysinfo, :emailer, :global_secret
+    attr_reader :conf, :lang, :instance, :sysinfo, :emailer, :global_secret
     attr_writer :debug
     def debug
       @debug || (@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true' || ENV['ONETIME_DEBUG'].to_i == 1)
@@ -46,6 +46,7 @@ module Onetime
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load  # load config before anything else.
+      @lang = OT.load_langs
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
       OT::SMTP.setup
@@ -83,6 +84,12 @@ module Onetime
         end
       end
       @conf
+    end
+    def load_langs langs=OT.conf[:langs]||['en']
+      langs.collect do |lang|
+        OT.ld 'Loading lang: %s' % lang
+        OT::Config.load '%s/lang/%s' % [OT::Config.dirname, lang]
+      end
     end
     def to_file(content, filename, mode, chmod=0744)
       mode = (mode == :append) ? 'a' : 'w'
@@ -123,6 +130,9 @@ module Onetime
     end
     def exists?
       !config_path.nil?
+    end
+    def dirname
+      File.dirname(self.path)
     end
     def path
       find_configs.first

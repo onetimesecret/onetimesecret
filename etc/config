@@ -16,6 +16,8 @@
   :from: CHANGEME@example.com
   :fromname: CHANGEME
   :bcc:
+:langs:
+  - en
 #:emailer:
 #  :mode: :smtp
 #  :from: delano@onetimesecret.com
