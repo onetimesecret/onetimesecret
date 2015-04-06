@@ -1,0 +1,48 @@
+
+{{>header}}
+
+  <div id="content">
+
+    <h3>Translators</h3>
+    <p>The following people have donated their time to help expand the reach of One-Time Secret:</p>
+
+    <h4>Spanish</h4>
+    <p>
+      <ul>
+        <li><a href="https://play.google.com/store/apps/details?id=com.goldeagle.secretemail">Freedom Apps</a>, developer of unofficial OTS Android app (<a href="">April, 2015</a>)</li>
+      </ul>
+    </p>
+
+    <hr>
+
+    <h2 class="intro">Help us translate!</h2>
+
+    <p>Since I launched One-Time Secret in 2012, one of the most requested features has been to support languages other than english. Many visitors -- in fact, most -- live in countries where English is not the first or even second language.</p>
+
+    <p>One of the major goals of One-Time Secret is to simplify secure communication so that it can help as many people as possible. Translating the site is the next step in doing that and as of April 2015 it's now possible but<strong class="hilite"> I need your help to support more languages. </strong></p>
+
+    <h4>Currently Supported Languages</h4>
+
+    <ul>
+    {{#supported_locales}}
+      <li><a href="https://github.com/onetimesecret/onetimesecret/blob/0.9/etc/locale/{{to_s}}">{{to_s}}</a></li>
+    {{/supported_locales}}
+    </ul>
+
+    <h4>Most Requested Languages</h4>
+
+    <ul>
+    {{#unsupported_locales}}
+      <li><a href="https://github.com/onetimesecret/onetimesecret/new/0.9/etc/locale?filename={{to_s}}">{{to_s}}</a></li>
+    {{/unsupported_locales}}
+    </ul>
+
+    <p>If you have a Github account, you can use the links above to create a new language file. If not, you can copy the text from an existing lanaguage -- like <a href="https://github.com/onetimesecret/onetimesecret/blob/0.9/etc/locale/en">english</a> -- and send a text file via email to <a href="mailto:contribute@onetimesecret.com">contribute@onetimesecret.com</a>.</p>
+
+    <p>If you have any questions, there is a feedback form at the bottom of the page. Be sure to include an email address or twitter handle so I can reply.</p>
+
+    <p>Delano</p>
+
+  </div>
+
+{{>footer}}

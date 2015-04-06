@@ -18,6 +18,12 @@
   :bcc:
 :locales:
   - en
+:unsupported_locales:
+  - de
+  - ru
+  - fr
+  - nl
+  - pt
 #:emailer:
 #  :mode: :smtp
 #  :from: delano@onetimesecret.com

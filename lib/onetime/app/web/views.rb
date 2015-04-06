@@ -29,6 +29,8 @@ module Onetime
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
+        self[:supported_locales] = req.env['ots.locales']
+        self[:unsupported_locales] = OT.conf[:unsupported_locales]
         self[:monitored_link] = false
         self[:description] = OT.locale[self.locale][:web][:COMMON][:description]
         self[:keywords] = OT.locale[self.locale][:web][:COMMON][:keywords]
@@ -516,6 +518,14 @@ module Onetime
           self[:monitored_link] = true
           self[:with_analytics] = true
           setup_plan_variables
+        end
+      end
+      class Translations < Onetime::App::View
+        def init *args
+          self[:title] = "Help us translate"
+          self[:body_class] = :info
+          self[:monitored_link] = true
+          self[:with_analytics] = true
         end
       end
       class Logo < Onetime::App::View

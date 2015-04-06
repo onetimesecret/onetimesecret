@@ -1,6 +1,13 @@
 module Onetime
   class App
 
+    def translations
+      publically do
+        view = Onetime::App::Views::Translations.new req, sess, cust, locale
+        res.body = view.render
+      end
+    end
+
     def contributors
       publically do
         if !sess.authenticated? && req.post?
