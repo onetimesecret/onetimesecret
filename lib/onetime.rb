@@ -26,7 +26,7 @@ module Onetime
   @mode = :app
   class << self
     attr_accessor :mode
-    attr_reader :conf, :locale, :instance, :sysinfo, :emailer, :global_secret
+    attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret
     attr_writer :debug
     def debug
       @debug || (@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true' || ENV['ONETIME_DEBUG'].to_i == 1)
@@ -46,7 +46,7 @@ module Onetime
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load  # load config before anything else.
-      @locale = OT.load_locales
+      @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
       OT::SMTP.setup

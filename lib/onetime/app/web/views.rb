@@ -32,8 +32,8 @@ module Onetime
         self[:supported_locales] = req.env['ots.locales'] || OT.conf[:locales]
         self[:unsupported_locales] = OT.conf[:unsupported_locales]
         self[:monitored_link] = false
-        self[:description] = OT.locale[self.locale][:web][:COMMON][:description]
-        self[:keywords] = OT.locale[self.locale][:web][:COMMON][:keywords]
+        self[:description] = OT.locales[self.locale][:web][:COMMON][:description]
+        self[:keywords] = OT.locales[self.locale][:web][:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
         self[:ot_version_id] = self[:ot_version].gibbler.short
         self[:authenticated] = sess.authenticated? if sess
@@ -103,7 +103,7 @@ module Onetime
       end
       def i18n
         pagename = self.class.name.split('::').last.downcase.to_sym
-        { locale: self.locale, page: OT.locale[self.locale][:web][pagename], COMMON: OT.locale[self.locale][:web][:COMMON]}
+        { locale: self.locale, page: OT.locales[self.locale][:web][pagename], COMMON: OT.locales[self.locale][:web][:COMMON]}
       end
       def setup_plan_variables
         Onetime::Plan.plans.each_pair do |planid,plan|

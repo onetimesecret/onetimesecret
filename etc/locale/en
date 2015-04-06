@@ -14,6 +14,7 @@
     :header_sign_in: "Sign In"
     :header_dashboard: "Account"
     :header_logout: "Logout"
+    :test_value: "poop"
   :homepage:
     :tagline1: "Paste a password, secret message or private link below."
     :tagline2: "We help keep sensitive info out of your email and chat logs."
