@@ -86,10 +86,12 @@ module Onetime
       @conf
     end
     def load_langs langs=OT.conf[:langs]||['en']
-      langs.collect do |lang|
+      confs = langs.collect do |lang|
         OT.ld 'Loading lang: %s' % lang
-        OT::Config.load '%s/lang/%s' % [OT::Config.dirname, lang]
+        conf = OT::Config.load '%s/lang/%s' % [OT::Config.dirname, lang]
+        [lang, conf]
       end
+      Hash[confs]
     end
     def to_file(content, filename, mode, chmod=0744)
       mode = (mode == :append) ? 'a' : 'w'
