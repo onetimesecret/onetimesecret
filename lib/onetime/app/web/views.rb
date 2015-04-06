@@ -23,9 +23,9 @@ module Onetime
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
       attr_reader :req, :plan, :is_paid
-      attr_accessor :sess, :cust, :messages, :form_fields
+      attr_accessor :sess, :cust, :lang, :messages, :form_fields
       def initialize req=nil, sess=nil, cust=nil, lang=nil, *args
-        @req, @sess, @cust = req, sess, cust
+        @req, @sess, @cust, @lang = req, sess, cust, (lang ||= 'en')
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
         self[:monitored_link] = false
@@ -97,6 +97,10 @@ module Onetime
         @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
         init *args if respond_to? :init
+      end
+      def i18n
+        pagename = self.class.name.split('::').last.downcase.to_sym
+        { lang: self.lang, page: OT.lang[self.lang][:web][pagename], COMMON: OT.lang[self.lang][:web][:COMMON]}
       end
       def setup_plan_variables
         Onetime::Plan.plans.each_pair do |planid,plan|

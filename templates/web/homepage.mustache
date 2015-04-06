@@ -10,16 +10,16 @@
   <div class="jumbotron">
 
     {{^authenticated}}
-    <h1 class="">Paste a password, secret message or private link below.</h1>
-    <p class="lead">We help keep sensitive info out of your email and chat logs.</p>
+    <h1 class="">{{i18n.page.tagline1}}</h1>
+    <p class="lead">{{i18n.page.tagline2}}</p>
     {{/authenticated}}
 
     {{>partial/create_secret_form}}
 
     {{^authenticated}}
     <hr/>
-    <p class="hint">* A secret link only works once and then disappears forever.</p>
-    <p class="more">Sign up for a <a href="/signup">free account</a> to set passphrases for extra security along with additional privacy options. We'll even email the link for you if you want.</p>
+    <p class="hint">{{i18n.page.secret_hint}}</p>
+    <p class="more">{{{i18n.page.secret_form_more_text}}}</p>
     {{/authenticated}}
     <hr/>
 
