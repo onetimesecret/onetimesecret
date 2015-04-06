@@ -32,7 +32,7 @@ class Onetime::App
       env = self.req.env
       redirect ||= req.request_path
       # Determine the locale for the current request
-      env['ots.locale'], env['ots.locales'] = *find_locale
+      env['ots.locale'], env['ots.locales'] = *find_locale(req.params[:locale])
       OT.ld [:locale, env['ots.locale'], env['ots.locales'], env['rack.locale']].inspect
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.
@@ -87,7 +87,7 @@ class Onetime::App
     # Find the locale of the request based on env['rack.locale']
     # which is set automatically by Otto v0.4.0 and greater.
     def find_locale locale=nil
-      locales = self.req.env['rack.locale'] || []
+      locales ||= self.req.env['rack.locale'] || []
       locales << OT.conf[:locales].first
       if !OT.locale.has_key?(locale)
         locales = locales.uniq.reject { |l| !OT.locale.has_key?(l) }.compact
