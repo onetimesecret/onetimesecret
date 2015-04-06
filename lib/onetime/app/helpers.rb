@@ -86,8 +86,10 @@ class Onetime::App
 
     # Find the locale of the request based on env['rack.locale']
     # which is set automatically by Otto v0.4.0 and greater.
+    # If `locale` is specifies it will override if available.
     def find_locale locale=nil
-      locales ||= self.req.env['rack.locale'] || []
+      locales = self.req.env['rack.locale'] || []
+      locales.unshift locale.split('-').first if locale.is_a?(String)  # en or en-US
       locales << OT.conf[:locales].first
       if !OT.locale.has_key?(locale)
         locales = locales.uniq.reject { |l| !OT.locale.has_key?(l) }.compact
