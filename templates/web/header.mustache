@@ -151,6 +151,10 @@
       {{/authenticated}}
       {{/display_masthead}}
 
+      {{^is_default_locale}}
+      | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a>
+      {{/is_default_locale}}
+
     </div>
     <a href="/"><h3 id="logo"></h3></a>
   </div>

@@ -29,11 +29,12 @@ module Onetime
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
+        self[:is_default_locale] = OT.conf[:locales].first.to_s == locale
         self[:supported_locales] = OT.conf[:locales]
         self[:unsupported_locales] = OT.conf[:unsupported_locales]
         self[:monitored_link] = false
-        self[:description] = OT.locales[self.locale][:web][:COMMON][:description]
-        self[:keywords] = OT.locales[self.locale][:web][:COMMON][:keywords]
+        self[:description] = i18n[:COMMON][:description]
+        self[:keywords] = i18n[:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
         self[:ot_version_id] = self[:ot_version].gibbler.short
         self[:authenticated] = sess.authenticated? if sess
@@ -105,6 +106,7 @@ module Onetime
         pagename = self.class.name.split('::').last.downcase.to_sym
         @i18n ||= {
           locale: self.locale,
+          default: OT.conf[:locales].first.to_s,
           page: OT.locales[self.locale][:web][pagename],
           COMMON: OT.locales[self.locale][:web][:COMMON]
         }
