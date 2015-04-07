@@ -41,6 +41,7 @@ module Onetime
     attr_reader :cust, :locale, :emailer, :mode
     def initialize cust, locale, *args
       @cust, @locale = cust, locale
+      OT.ld "#{self.class} locale is: #{locale.to_s}"
       @mode = OT.conf[:emailer][:mode]
       if @mode == :sendgrid
         emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
@@ -52,11 +53,12 @@ module Onetime
       init *args if respond_to? :init
     end
     def i18n
+      locale = self.locale || 'en'
       pagename = self.class.name.split('::').last.downcase.to_sym
       @i18n ||= {
-        locale: self.locale,
-        email: OT.locales[self.locale][:email][pagename],
-        COMMON: OT.locales[self.locale][:email][:COMMON]
+        locale: locale,
+        email: OT.locales[locale][:email][pagename],
+        COMMON: OT.locales[locale][:email][:COMMON]
       }
     end
     def deliver_email

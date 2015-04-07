@@ -41,9 +41,9 @@ module Onetime
         MOBILE_REGEX = /^\+?\d{9,16}$/
         EMAIL_REGEX = %r{^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,4})$}i
       end
-      attr_reader :sess, :cust, :params, :processed_params, :plan
-      def initialize(sess, cust, params=nil)
-        @sess, @cust, @params = sess, cust, params
+      attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
+      def initialize(sess, cust, params=nil, locale=nil)
+        @sess, @cust, @params, @locale = sess, cust, params, locale
         @processed_params ||= {}
         process_params if respond_to?(:process_params) && @params
         process_generic_params if @params
@@ -133,7 +133,7 @@ module Onetime
         secret.verification = true
         secret.custid = cust.custid
         secret.save
-        view = OT::Email::Welcome.new cust, secret
+        view = OT::Email::Welcome.new cust, locale, secret
         view.deliver_email
         if OT.conf[:colonels].member?(cust.custid)
           cust.role = :colonel
@@ -258,7 +258,7 @@ module Onetime
         secret = OT::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
         secret.verification = true
-        view = OT::Email::PasswordRequest.new cust, secret
+        view = OT::Email::PasswordRequest.new cust, locale, secret
         ret = view.deliver_email
         sess.set_info_message "We sent instructions to #{cust.custid}"
         #if ret.code == 200
@@ -467,7 +467,7 @@ module Onetime
           end
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, secret, recipient.first
+            metadata.deliver_by_email cust, locale, secret, recipient.first
           end
           OT::Logic.stathat_count("Secrets", 1)
         else

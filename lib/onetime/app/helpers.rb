@@ -97,7 +97,7 @@ class Onetime::App
       locales = locales.uniq.reject { |l| !OT.locales.has_key?(l) }.compact
       locale = locales.first if !OT.locales.has_key?(locale)           # Default to the first available
       OT.ld [:locale, locale, locales, req.env['rack.locale'], OT.locales.keys].inspect
-      req.env['ots.locale'], req.env['ots.locales'] = locale, locales
+      req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
     end
 
     # Check XSRF value submitted with POST requests (aka shrimp)

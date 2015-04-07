@@ -60,12 +60,12 @@ module Onetime
     def request_reset
       publically do
         if req.params[:key]
-          logic = OT::Logic::ResetPassword.new sess, cust, req.params
+          logic = OT::Logic::ResetPassword.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/login'
         else
-          logic = OT::Logic::ResetPasswordRequest.new sess, cust, req.params
+          logic = OT::Logic::ResetPasswordRequest.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/'
@@ -102,7 +102,7 @@ module Onetime
       #publically("/signup/#{req.params[:planid]}") do
       publically() do
         deny_agents!
-        logic = OT::Logic::CreateAccount.new sess, cust, req.params
+        logic = OT::Logic::CreateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         #sess, cust = logic.sess, logic.cust
@@ -120,7 +120,7 @@ module Onetime
 
     def authenticate
       publically do
-        logic = OT::Logic::AuthenticateSession.new sess, cust, req.params
+        logic = OT::Logic::AuthenticateSession.new sess, cust, req.params, locale
         view = Onetime::App::Views::Login.new req, sess, cust, locale
         if sess.authenticated?
           sess.set_info_message "You are already logged in."
@@ -147,7 +147,7 @@ module Onetime
 
     def logout
       authenticated do
-        logic = OT::Logic::DestroySession.new sess, cust, req.params
+        logic = OT::Logic::DestroySession.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/')
@@ -156,7 +156,7 @@ module Onetime
 
     def account
       authenticated do
-        logic = OT::Logic::ViewAccount.new sess, cust, req.params
+        logic = OT::Logic::ViewAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         view = Onetime::App::Views::Account.new req, sess, cust, locale
@@ -166,7 +166,7 @@ module Onetime
 
     def update_account
       authenticated do
-        logic = OT::Logic::UpdateAccount.new sess, cust, req.params
+        logic = OT::Logic::UpdateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/account')
@@ -175,7 +175,7 @@ module Onetime
 
     def update_subdomain
       authenticated('/account') do
-        logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params
+        logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/account')
@@ -184,7 +184,7 @@ module Onetime
 
     def generate_apikey
       authenticated do
-        logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params
+        logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/account')
