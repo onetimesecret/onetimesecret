@@ -8,14 +8,14 @@ class Onetime::App
     def status
       authorized(true) do
         sess.event_incr! :check_status
-        json :status => :nominal
+        json :status => :nominal, :locale => locale
       end
     end
 
     def share
       authorized(true) do
         req.params[:kind] = :share
-        logic = OT::Logic::CreateSecret.new sess, cust, req.params
+        logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if req.get?
@@ -32,7 +32,7 @@ class Onetime::App
     def generate
       authorized(true) do
         req.params[:kind] = :generate
-        logic = OT::Logic::CreateSecret.new sess, cust, req.params
+        logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if req.get?
@@ -50,7 +50,7 @@ class Onetime::App
 
     def show_metadata
       authorized(true) do
-        logic = OT::Logic::ShowMetadata.new sess, cust, req.params
+        logic = OT::Logic::ShowMetadata.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         secret = logic.metadata.load_secret
@@ -71,7 +71,7 @@ class Onetime::App
 
     def show_metadata_recent
       authorized(false) do
-        logic = OT::Logic::ShowRecentMetadata.new sess, cust, req.params
+        logic = OT::Logic::ShowRecentMetadata.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         recent_metadata = logic.metadata.collect { |md|
@@ -87,7 +87,7 @@ class Onetime::App
     def show_secret
       authorized(true) do
         req.params[:continue] = 'true'
-        logic = OT::Logic::ShowSecret.new sess, cust, req.params
+        logic = OT::Logic::ShowSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if logic.show_secret
@@ -102,7 +102,7 @@ class Onetime::App
     # def burn_secret
     #   authorized(true) do
     #     req.params[:continue] = 'true'
-    #     logic = OT::Logic::BurnSecret.new sess, cust, req.params
+    #     logic = OT::Logic::BurnSecret.new sess, cust, req.params, locale
     #     logic.raise_concerns
     #     logic.process
     #     if logic.burn_secret

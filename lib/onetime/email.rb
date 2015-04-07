@@ -38,9 +38,10 @@ module Onetime
     self.template_path = './templates/email'
     self.view_namespace = Onetime::Email
     self.view_path = './onetime/email'
-    attr_reader :cust, :emailer, :mode
-    def initialize cust, *args
-      @cust = cust
+    attr_reader :cust, :locale, :emailer, :mode
+    def initialize cust, locale, *args
+      @cust, @locale = cust, locale
+      OT.ld "#{self.class} locale is: #{locale.to_s}"
       @mode = OT.conf[:emailer][:mode]
       if @mode == :sendgrid
         emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
@@ -50,6 +51,15 @@ module Onetime
       end
       OT.ld "[emailer] #{@emailer} (#{@mode})"
       init *args if respond_to? :init
+    end
+    def i18n
+      locale = self.locale || 'en'
+      pagename = self.class.name.split('::').last.downcase.to_sym
+      @i18n ||= {
+        locale: locale,
+        email: OT.locales[locale][:email][pagename],
+        COMMON: OT.locales[locale][:email][:COMMON]
+      }
     end
     def deliver_email
       OT.ld "Emailing #{self[:email_address]} [#{self.class}]"
@@ -63,7 +73,7 @@ module Onetime
         self[:email_address] = cust.email
       end
       def subject
-        "Verify your One-time Secret account"
+        i18n[:email][:subject]
       end
       def verify_uri
         secret_uri self[:secret]
@@ -82,14 +92,14 @@ module Onetime
           emailer.from = self[:from]
           emailer.fromname = self[:from_name]
         else
-          self[:from_name] = 'Delano, co-founder'
+          self[:from_name] = 'Delano'
           self[:signature_link] = 'https://onetimesecret.com/'
           emailer.fromname = 'One-Time Secret'
           self[:from] = cust.custid
         end
       end
       def subject
-        "#{self[:from]} sent you a secret"
+        i18n[:email][:subject] % [self[:from]]
       end
       def verify_uri
         secret_uri self[:secret]

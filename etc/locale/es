@@ -1,0 +1,33 @@
+:web:
+  :COMMON:
+    :broadcast: "Actualización (28/03/2015): Ahora puede grabar un secreto antes de ser vistos!"
+    :description: "Mantén la información confidencial fuera de tus chats y correos electrónicos. Comparte enlaces secretos que estarán disponibles sólo una vez."
+    :keywords: "secreto,generador de contraseñas,comparte un secreto,solo una vez"
+    :button_create_secret: "Crear un enlace secreto"
+    :button_generate_secret: "O generar una contraseña al azar."
+    :secret_privacy_options: "Opciones de privacidad"
+    :secret_passphrase: "Contraseña"
+    :secret_passphrase_hint: "Una palabra o frase que es difícil de adivinar"
+    :secret_recipient_address: "Dirección Del Receptor"
+    :secret_placeholder: "El contenido secreto va aquí..."
+    :header_create_account: "Crear cuenta"
+    :header_about: "Acerca"
+    :header_sign_in: "Ingresar"
+    :header_dashboard: "Cuenta"
+    :header_logout: "Salir"
+  :homepage:
+    :tagline1: "Pegue una contraseña, mensaje secreto o enlace privado a continuación."
+    :tagline2: "Ayudamos a mantener la información confidencial fuera de tus chats y correos electrónicos"
+    :secret_hint: "* El enlace secreto sólo funciona una vez y luego desaparece para siempre ."
+    :secret_form_more_text1: "Regístrese para obtener"
+    :secret_form_more_text2: "una cuenta gratuita"
+    :secret_form_more_text3: "para fijar frases de contraseña para mayor seguridad junto con opciones de privacidad adicionales. Incluso enviamos el enlace por correo electrónico si usted lo desea."
+    :anon_info1: "¡Permanece anónimo!"
+    :anon_info2: "Crear una cuenta usando una"
+    :anon_info3: "dirección de correo electrónico efímera"
+    :anon_info4: "."
+:email:
+  :secretlink:
+    :subject: "%s le ha enviado un secreto"
+    :body1: "Tenemos un secreto para usted desde"
+    :body_tagline: "Si no conoce al remitente o cree que este sea un correo no deseado, envíenos los detalles aquí:"

@@ -26,7 +26,7 @@ module Onetime
   @mode = :app
   class << self
     attr_accessor :mode
-    attr_reader :conf, :instance, :sysinfo, :emailer, :global_secret
+    attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret
     attr_writer :debug
     def debug
       @debug || (@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true' || ENV['ONETIME_DEBUG'].to_i == 1)
@@ -46,6 +46,7 @@ module Onetime
     def load! mode=nil, base=Onetime::HOME
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load  # load config before anything else.
+      @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
       OT::SMTP.setup
@@ -57,7 +58,7 @@ module Onetime
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
       ld "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
       ld "Config: #{OT::Config.path}"
-      ld " Redis: #{Familia.uri.serverid}" # don't print the password
+      ld "Redis:  #{Familia.uri.serverid}" # don't print the password
       ld "Limits: #{OT::RateLimit.events}"
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
@@ -83,6 +84,24 @@ module Onetime
         end
       end
       @conf
+    end
+    def load_locales locales=OT.conf[:locales]||['en']
+      confs = locales.collect do |locale|
+        OT.ld 'Loading locale: %s' % locale
+        conf = OT::Config.load '%s/locale/%s' % [OT::Config.dirname, locale]
+        [locale, conf]
+      end
+      locales = Hash[confs]                               # convert zipped array to hash
+      default_locale = locales[ OT.conf[:locales].first ] # default locale is the first
+      # Here we overlay each locale on top of the default just
+      # in case there are keys that haven't been translated.
+      # That way, at least the default language will display.
+      locales.each do |key, locale|
+        if (default_locale != locale)
+          locales[ key ] = OT::Utils.deep_merge(default_locale, locale)
+        end
+      end
+      locales
     end
     def to_file(content, filename, mode, chmod=0744)
       mode = (mode == :append) ? 'a' : 'w'
@@ -118,14 +137,20 @@ module Onetime
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
       YAML.load_file path
     rescue => ex
-      Onetime.info "Error loading config: #{path}"
+      msg = path =~ /locale/ ?
+        "Error loading locale: #{path} (if upgrading to 0.9, you need to copy ./etc/locale to #{dirname}/)"
+        : "Error loading config: #{path}"
+      Onetime.info msg
       Kernel.exit(1)
     end
     def exists?
       !config_path.nil?
     end
+    def dirname
+      @dirname ||= File.dirname(self.path)
+    end
     def path
-      find_configs.first
+      @path ||= find_configs.first
     end
     def find_configs
       paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
@@ -149,7 +174,7 @@ module Onetime
     end
     def self.increment!(msg=nil)
       load_config
-      @version[:BUILD] = @version[:BUILD].to_s.succ!.to_s
+      @version[:BUILD] = (@version[:BUILD] || '000').to_s.succ!.to_s
       @version[:STAMP] = Time.now.utc.to_i
       @version[:OWNER] = OT.sysinfo.user
       @version[:STORY] = msg || '[no message]'
@@ -202,7 +227,10 @@ module Onetime
     def indifferent_hash
       Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
     end
-
+    def deep_merge(default, overlay)
+      merger = proc { |key, v1, v2| Hash === v1 && Hash === v2 ? v1.merge(v2, &merger) : v2 }
+      default.merge(overlay, &merger)
+    end
     def obscure_email(text)
       regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
       el = text.split('@')

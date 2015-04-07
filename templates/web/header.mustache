@@ -126,7 +126,7 @@
   <!-- <script src="/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script> -->
 </head>
 <body id="{{body_class}}">
-<div id="banner"><div class="broadcast">Update (2015-03-28): You can now burn a secret before it's viewed!</div></div>
+<div id="banner"><div class="broadcast">{{i18n.COMMON.broadcast}}</div></div>
 <div class="container-narrow">
 
   <div class="masthead">
@@ -138,20 +138,19 @@
         <a href="{{baseotsuri}}/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
         {{/is_subdomain}}
         {{^is_subdomain}}
-        <a href="{{baseotsuri}}/signup" title="Signup - Individual and Business plans" class="active">Create an account</a> |
-        <a href="{{baseotsuri}}/about" title="About One-Time Secret">About</a> |
-        <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">Sign In</a>
+        <a href="{{baseotsuri}}/signup" title="Signup - Individual and Business plans" class="active">{{i18n.COMMON.header_create_account}}</a> |
+        <a href="{{baseotsuri}}/about" title="About One-Time Secret">{{i18n.COMMON.header_about}}</a> |
+        <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">{{i18n.COMMON.header_sign_in}}</a>
         {{/is_subdomain}}
       {{/authenticated}}
 
       {{#authenticated}}
         <a href="/" class="home">{{cust.custid}}</a> {{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} |
-        <a href="{{baseotsuri}}/account" title="Your Account">Account</a> |
-        <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">Logout</a>
+        <a href="{{baseotsuri}}/account" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> |
+        <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
       {{/authenticated}}
       {{/display_masthead}}
 
     </div>
-    <a href="http://www.youtube.com/watch?v=1V6T0lJc3dU" title="Release {{ot_version}}" tabIndex="-1" class="release">&nbsp;</a>
     <a href="/"><h3 id="logo"></h3></a>
   </div>

@@ -23,14 +23,17 @@ module Onetime
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
       attr_reader :req, :plan, :is_paid
-      attr_accessor :sess, :cust, :messages, :form_fields
-      def initialize req=nil, sess=nil, cust=nil, *args
-        @req, @sess, @cust = req, sess, cust
+      attr_accessor :sess, :cust, :locale, :messages, :form_fields
+      def initialize req=nil, sess=nil, cust=nil, locale=nil, *args
+        @req, @sess, @cust, @locale = req, sess, cust, locale
+        @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
         @messages = { :info => [], :error => [] }
         self[:js], self[:css] = [], []
+        self[:supported_locales] = OT.conf[:locales]
+        self[:unsupported_locales] = OT.conf[:unsupported_locales]
         self[:monitored_link] = false
-        self[:description] = "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
-        self[:keywords] = "secret,password generator,share a secret,onetime"
+        self[:description] = OT.locales[self.locale][:web][:COMMON][:description]
+        self[:keywords] = OT.locales[self.locale][:web][:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
         self[:ot_version_id] = self[:ot_version].gibbler.short
         self[:authenticated] = sess.authenticated? if sess
@@ -86,7 +89,7 @@ module Onetime
             self[:via_test] = !sess.referrer.match(/ot.com/).nil?
           end
           if cust.has_key?(:verified) && cust.verified.to_s != 'true' && self.class != Onetime::App::Views::Shared
-            add_message "A verification was sent to #{cust.custid}."
+            add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
           else
             add_error sess.error_message!
           end
@@ -97,6 +100,14 @@ module Onetime
         @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
         init *args if respond_to? :init
+      end
+      def i18n
+        pagename = self.class.name.split('::').last.downcase.to_sym
+        @i18n ||= {
+          locale: self.locale,
+          page: OT.locales[self.locale][:web][pagename],
+          COMMON: OT.locales[self.locale][:web][:COMMON]
+        }
       end
       def setup_plan_variables
         Onetime::Plan.plans.each_pair do |planid,plan|
@@ -511,6 +522,14 @@ module Onetime
           self[:monitored_link] = true
           self[:with_analytics] = true
           setup_plan_variables
+        end
+      end
+      class Translations < Onetime::App::View
+        def init *args
+          self[:title] = "Help us translate"
+          self[:body_class] = :info
+          self[:monitored_link] = true
+          self[:with_analytics] = true
         end
       end
       class Logo < Onetime::App::View

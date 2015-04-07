@@ -16,6 +16,15 @@
   :from: CHANGEME@example.com
   :fromname: CHANGEME
   :bcc:
+:locales:
+  - en
+  - es
+:unsupported_locales:
+  - de
+  - ru
+  - fr
+  - nl
+  - pt
 #:emailer:
 #  :mode: :smtp
 #  :from: delano@onetimesecret.com
@@ -30,7 +39,6 @@
   :apikey: CHANGEME
   :default_chart: CHANGEME
 :text:
-  :feedback: 'Have a question or comment?'
   :nonpaid_recipient_text: 'You need to create an account!'
   :paid_recipient_text: 'Send the secret link via email'
 :limits:

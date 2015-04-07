@@ -7,6 +7,7 @@ class Onetime::App
 
       def publically
         carefully do
+          check_locale!
           yield
         end
       end
@@ -15,6 +16,7 @@ class Onetime::App
       def authorized allow_anonymous=false
         carefully do
           success = false
+          check_locale!
           req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
           auth = req.env['otto.auth']
           #req.env['HTTP_X_ONETIME_CLIENT']
@@ -45,6 +47,24 @@ class Onetime::App
             yield
           end
         end
+      end
+
+      # Find the locale of the request based on req.env['rack.locale']
+      # which is set automatically by Otto v0.4.0 and greater.
+      # If `locale` is specifies it will override if available.
+      # If the `local` query param is set, it will override.
+      def check_locale! locale=nil
+        unless req.params[:locale].to_s.empty?
+          locale = req.params[:locale]                                 # Use query param
+          res.send_cookie :locale, locale, 30.days, Onetime.conf[:site][:ssl]
+        end
+        locales = req.env['rack.locale'] || []                          # Requested list
+        locales.unshift locale.split('-').first if locale.is_a?(String) # Support both en and en-US
+        locales << OT.conf[:locales].first                              # Ensure at least one configured locale is available
+        locales = locales.uniq.reject { |l| !OT.locales.has_key?(l) }.compact
+        locale = locales.first if !OT.locales.has_key?(locale)           # Default to the first available
+        OT.ld [:locale, locale, locales, req.env['rack.locale'], OT.locales.keys].inspect
+        req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
       end
 
       def json hsh

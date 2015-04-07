@@ -9,9 +9,10 @@ module Onetime
       def publically redirect=nil
         carefully(redirect) do
           check_session!     # 1. Load or create the session, load customer (or anon)
-          check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)\
-          check_subdomain!   # 3. Check if we're running as a subdomain
-          check_referrer!    # 4. Check referrers for public requests
+          check_locale!      # 2. Check the request for the desired locale
+          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
+          check_subdomain!   # 4. Check if we're running as a subdomain
+          check_referrer!    # 5. Check referrers for public requests
           yield
         end
       end
@@ -19,8 +20,9 @@ module Onetime
       def authenticated redirect=nil
         carefully(redirect) do
           check_session!     # 1. Load or create the session, load customer (or anon)
-          check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
-          check_subdomain!   # 3. Check if we're running as a subdomain
+          check_locale!      # 2. Check the request for the desired locale
+          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
+          check_subdomain!   # 4. Check if we're running as a subdomain
           sess.authenticated? ? yield : res.redirect(('/')) # TODO: raise OT::Redirect
         end
       end
@@ -28,7 +30,8 @@ module Onetime
       def colonels redirect=nil
         carefully(redirect) do
           check_session!     # 1. Load or create the session, load customer (or anon)
-          check_shrimp!      # 2. Check the shrimp for POST,PUT,DELETE (after session)
+          check_locale!      # 2. Check the request for the desired locale
+          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
         end
       end
@@ -56,7 +59,7 @@ module Onetime
       end
 
       def secret_not_found_response
-        view = Onetime::App::Views::UnknownSecret.new req, sess, cust
+        view = Onetime::App::Views::UnknownSecret.new req, sess, cust, locale
         res.status = 404
         res.body = view.render
       end
@@ -74,14 +77,14 @@ module Onetime
       end
 
       def not_found_response message
-        view = Onetime::App::Views::NotFound.new req, sess, cust
+        view = Onetime::App::Views::NotFound.new req, sess, cust, locale
         view.add_error message
         res.status = 404
         res.body = view.render
       end
 
       def error_response message
-        view = Onetime::App::Views::Error.new req, sess, cust
+        view = Onetime::App::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 401
         res.body = view.render

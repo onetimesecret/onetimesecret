@@ -1,6 +1,13 @@
 module Onetime
   class App
 
+    def translations
+      publically do
+        view = Onetime::App::Views::Translations.new req, sess, cust, locale
+        res.body = view.render
+      end
+    end
+
     def contributors
       publically do
         if !sess.authenticated? && req.post?
@@ -26,7 +33,7 @@ module Onetime
             end
           end
         else
-          view = Onetime::App::Views::Contributor.new req, sess, cust
+          view = Onetime::App::Views::Contributor.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -39,12 +46,12 @@ module Onetime
           if secret.nil? || secret.verification.to_s != 'true'
             raise OT::MissingSecret if secret.nil?
           else
-            view = Onetime::App::Views::Forgot.new req, sess, cust
+            view = Onetime::App::Views::Forgot.new req, sess, cust, locale
             view[:verified] = true
             res.body = view.render
           end
         else
-          view = Onetime::App::Views::Forgot.new req, sess, cust
+          view = Onetime::App::Views::Forgot.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -53,12 +60,12 @@ module Onetime
     def request_reset
       publically do
         if req.params[:key]
-          logic = OT::Logic::ResetPassword.new sess, cust, req.params
+          logic = OT::Logic::ResetPassword.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/login'
         else
-          logic = OT::Logic::ResetPasswordRequest.new sess, cust, req.params
+          logic = OT::Logic::ResetPasswordRequest.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/'
@@ -74,10 +81,10 @@ module Onetime
       publically do
         if OT::Plan.plan?(req.params[:planid])  # Specific Plan is selected
           sess.set_error_message "You're already signed up" if sess.authenticated?
-          view = Onetime::App::Views::Signup.new req, sess, cust
+          view = Onetime::App::Views::Signup.new req, sess, cust, locale
           res.body = view.render
         else                                    # Default signup page
-          view = Onetime::App::Views::Plans.new req, sess, cust
+          view = Onetime::App::Views::Plans.new req, sess, cust, locale
           res.body = view.render
         end
       end
@@ -85,7 +92,7 @@ module Onetime
 
     def business_pricing
       publically do
-        view = Onetime::App::Views::Plans.new req, sess, cust
+        view = Onetime::App::Views::Plans.new req, sess, cust, locale
         view[:business] = true
         res.body = view.render
       end
@@ -95,7 +102,7 @@ module Onetime
       #publically("/signup/#{req.params[:planid]}") do
       publically() do
         deny_agents!
-        logic = OT::Logic::CreateAccount.new sess, cust, req.params
+        logic = OT::Logic::CreateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         #sess, cust = logic.sess, logic.cust
@@ -106,15 +113,15 @@ module Onetime
 
     def login
       publically do
-        view = Onetime::App::Views::Login.new req, sess, cust
+        view = Onetime::App::Views::Login.new req, sess, cust, locale
         res.body = view.render
       end
     end
 
     def authenticate
       publically do
-        logic = OT::Logic::AuthenticateSession.new sess, cust, req.params
-        view = Onetime::App::Views::Login.new req, sess, cust
+        logic = OT::Logic::AuthenticateSession.new sess, cust, req.params, locale
+        view = Onetime::App::Views::Login.new req, sess, cust, locale
         if sess.authenticated?
           sess.set_info_message "You are already logged in."
           res.redirect '/'
@@ -140,7 +147,7 @@ module Onetime
 
     def logout
       authenticated do
-        logic = OT::Logic::DestroySession.new sess, cust, req.params
+        logic = OT::Logic::DestroySession.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/')
@@ -149,17 +156,17 @@ module Onetime
 
     def account
       authenticated do
-        logic = OT::Logic::ViewAccount.new sess, cust, req.params
+        logic = OT::Logic::ViewAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
-        view = Onetime::App::Views::Account.new req, sess, cust
+        view = Onetime::App::Views::Account.new req, sess, cust, locale
         res.body = view.render
       end
     end
 
     def update_account
       authenticated do
-        logic = OT::Logic::UpdateAccount.new sess, cust, req.params
+        logic = OT::Logic::UpdateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/account')
@@ -168,7 +175,7 @@ module Onetime
 
     def update_subdomain
       authenticated('/account') do
-        logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params
+        logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/account')
@@ -177,7 +184,7 @@ module Onetime
 
     def generate_apikey
       authenticated do
-        logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params
+        logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/account')
