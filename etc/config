@@ -18,6 +18,7 @@
   :bcc:
 :locales:
   - en
+  - es
 :unsupported_locales:
   - de
   - ru
