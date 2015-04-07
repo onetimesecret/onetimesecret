@@ -82,7 +82,7 @@ module Onetime
           emailer.from = self[:from]
           emailer.fromname = self[:from_name]
         else
-          self[:from_name] = 'Delano, co-founder'
+          self[:from_name] = 'Delano'
           self[:signature_link] = 'https://onetimesecret.com/'
           emailer.fromname = 'One-Time Secret'
           self[:from] = cust.custid

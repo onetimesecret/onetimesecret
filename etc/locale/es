@@ -1,5 +1,6 @@
 :web:
   :COMMON:
+    :broadcast: "Actualización (28/03/2015): Ahora puede grabar un secreto antes de ser vistos!"
     :description: "Mantén la información confidencial fuera de tus chats y correos electrónicos. Comparte enlaces secretos que estarán disponibles sólo una vez."
     :keywords: "secreto,generador de contraseñas,comparte un secreto,solo una vez"
     :button_create_secret: "Crear un enlace secreto"

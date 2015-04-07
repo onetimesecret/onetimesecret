@@ -47,6 +47,7 @@
     :word_burned: "burned"
     :word_received: "received"
     :feedback_text: "Have a question or comment?"
+    :button_send_feedback: "Send Feedback"
   :homepage:
     :tagline1: "Paste a password, secret message or private link below."
     :tagline2: "We help keep sensitive info out of your email and chat logs."
@@ -74,6 +75,11 @@
     :title_received: "Received"
     :title_not_received: "Not Received"
     :title_no_recent_secrets: "No recent secrets"
+  :login:
+    :need_an_account: "Need an account?"
+    :forgot_your_password: "Forgot your password?"
+    :button_sign_in: "Sign In"
+    :enter_your_credentials: "Enter your credentials"
 :email:
   :secret_link:
     :subject: "#{self[:from]} sent you a secret"
