@@ -1,6 +1,6 @@
 :web:
   :COMMON:
-    :broadcast: "Actualización (28/03/2015): Ahora puede grabar un secreto antes de ser vistos!"
+    :broadcast: "Actualización (28/03/2015): Ahora puede destruir un secreto antes de ser visto!"
     :description: "Mantén la información confidencial fuera de tus chats y correos electrónicos. Comparte enlaces secretos que estarán disponibles sólo una vez."
     :keywords: "secreto,generador de contraseñas,comparte un secreto,solo una vez"
     :button_create_secret: "Crear un enlace secreto"
@@ -21,7 +21,7 @@
     :secret_hint: "* El enlace secreto sólo funciona una vez y luego desaparece para siempre ."
     :secret_form_more_text1: "Regístrese para obtener"
     :secret_form_more_text2: "una cuenta gratuita"
-    :secret_form_more_text3: "para fijar frases de contraseña para mayor seguridad junto con opciones de privacidad adicionales. Incluso enviamos el enlace por correo electrónico si usted lo desea."
+    :secret_form_more_text3: "y poder fijar frases de contraseña para mayor seguridad junto con opciones de privacidad adicionales. Incluso enviamos el enlace por correo electrónico si usted lo desea."
     :anon_info1: "¡Permanece anónimo!"
     :anon_info2: "Crear una cuenta usando una"
     :anon_info3: "dirección de correo electrónico efímera"
