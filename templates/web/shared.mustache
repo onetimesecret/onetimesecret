@@ -5,13 +5,13 @@
     {{^show_secret}}
     <div class="alert alert-warning">
       <button type="button" class="close" data-dismiss="alert">&times;</button>
-      <strong>Warning</strong> You created this secret. If you view it, the recipient will not be able to see it.
+      <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.you_created_this_secret}}
     </div>
     {{/show_secret}}
     {{#show_secret}}
     <div class="alert alert-info">
       <button type="button" class="close" data-dismiss="alert">&times;</button>
-      You have viewed your own secret. It is no longer available for anyone else.
+      {{i18n.page.viewed_own_secret}}
     </div>
     {{/show_secret}}
   {{/is_owner}}
@@ -21,14 +21,14 @@
     {{^show_secret}}
     {{^has_passphrase}}
     {{#verification}}
-    <span class="pretext cufon">Continue to verify your account:</span><br/>
+    <span class="pretext cufon">{{i18n.COMMON.click_to_verify}}</span><br/>
     {{/verification}}
     {{^verification}}
-    <span class="pretext cufon">Click to continue:</span><br/>
+    <span class="pretext cufon">{{i18n.COMMON.click_to_continue}}</span><br/>
     {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
-    <h2 class="intro cufon">This message requires a passphrase:</h2>
+    <h2 class="intro cufon">{{i18n.page.requires_passphrase}}</h2>
     {{/has_passphrase}}
     {{>partial/session_messages}}
     <div class="passphrase">
@@ -40,41 +40,41 @@
           <div class="control-group">
             {{#has_passphrase}}
             <div class="controls">
-              <input type="password" name="passphrase" id="passField" class="input-large" value="" placeholder="Enter the passphrase here" />
+              <input type="password" name="passphrase" id="passField" class="input-large" value="" placeholder="{{i18n.COMMON.enter_passphrase_here}}" />
             </div>
             {{/has_passphrase}}
           </div>
         <div class="control-group">
           <div class="controls">
-            <button type="submit" class="btn btn-large btn-block btn-custom cufon">View Secret</button>
+            <button type="submit" class="btn btn-large btn-block btn-custom cufon">{{i18n.COMMON.view_secret}}</button>
           </div>
         </div>
       </form>
       {{^verification}}
-      <p class="lighter">(careful: we will only show it once.)</p>
+      <p class="lighter">({{i18n.COMMON.careful_only_see_once}})</p>
       {{/verification}}
     </div>
     {{/show_secret}}
     {{#show_secret}}
     <div class="secret">
       {{#verification}}
-      <span class="pretext">Your secret message:</span><br/>
+      <span class="pretext">{{i18n.page.your_secret_message}}</span><br/>
       {{/verification}}
       {{^verification}}
-      <div class="pretext">This message is for you:</div>
+      <div class="pretext">{{i18n.page.this_message_for_you}}</div>
       {{/verification}}
 
       <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
 
       {{^verification}}
-      <p class="lighter">(careful: it will disappear when you refresh.)</p>
+      <p class="lighter">({{i18n.COMMON.careful_only_see_once}})</p>
       {{/verification}}
 
       {{#truncated}}
       <div class="alert alert-info smaller">
         <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <strong>Please Note!</strong> The message was truncated b/c it was over {{secret_value.size.to_bytes}}.
-        {{^authenticated}}<a href="/signup">Signup for more</a>.{{/authenticated}}
+        <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.secret_was_truncated}} {{secret_value.size.to_bytes}}.
+        {{^authenticated}}<a href="/signup">{{i18n.COMMON.signup_for_more}}</a>.{{/authenticated}}
       </div>
       {{/truncated}}
 
@@ -83,14 +83,14 @@
       <li class="alt">
         {{^verification}}
         {{^is_subdomain}}
-        <a class="btn btn-large btn-block cufon" href="/" class="">Reply with another secret</a>
+        <a class="btn btn-large btn-block cufon" href="/" class="">{{i18n.page.reply_with_secret}}</a>
         {{/is_subdomain}}
         {{#is_subdomain}}
         <a href="{{subdomain.homepage}}">Return to {{subdomain.company_domain}}</a>
         {{/is_subdomain}}
         {{/verification}}
         {{#verification}}
-        <a class="btn btn-large btn-block cufon" href="/login" class="">Log in to your account</a>
+        <a class="btn btn-large btn-block cufon" href="/login" class="">{{i18n.COMMON.login_to_your_account}}</a>
         {{/verification}}
       </li>
     </ul>

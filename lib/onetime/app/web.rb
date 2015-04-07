@@ -29,7 +29,7 @@ module Onetime
         view.emailer.from = cust.custid
         view.emailer.fromname = ''
         ret = view.deliver_email
-        res.body = 'Check your email'
+        res.body = view.i18n[:COMMON][:msg_check_email]
       end
     end
 
@@ -103,7 +103,7 @@ module Onetime
           view[:original_size] = logic.original_size
           view[:truncated] = logic.truncated
         elsif req.post? && !logic.correct_passphrase
-          view.add_error   "Double check that passphrase"
+          view.add_error view.i18n[:COMMON][:error_passphrase]
         end
         res.body = view.render
       end
@@ -133,7 +133,7 @@ module Onetime
         if logic.burn_secret
           res.redirect '/private/' + logic.metadata.key
         else
-          view.add_error 'Double check that passphrase' if req.post? && !logic.correct_passphrase
+          view.add_error view.i18n[:COMMON][:error_passphrase] if req.post? && !logic.correct_passphrase
           res.body = view.render
         end
       end

@@ -38,7 +38,6 @@
   :apikey: CHANGEME
   :default_chart: CHANGEME
 :text:
-  :feedback: 'Have a question or comment?'
   :nonpaid_recipient_text: 'You need to create an account!'
   :paid_recipient_text: 'Send the secret link via email'
 :limits:

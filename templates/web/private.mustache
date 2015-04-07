@@ -4,37 +4,37 @@
 
     {{#show_secret_link}}
     <div class="uri">
-      <span class="pretext">Share this link:</span><br/>
+      <span class="pretext">{{i18n.page.pretext}}</span><br/>
       <input id="secreturi" class="selectable" value="{{share_uri}}" />
       {{#has_passphrase}}
-      <p><strong>Requires a passphrase.</strong></p>
+      <p><strong>{{i18n.page.requires_passphrase}}</strong></p>
       {{/has_passphrase}}
     </div>
     {{/show_secret_link}}
 
     {{#show_metadata}}
     {{#recipients}}
-    <h3>Sent to: {{to_s}}</h3>
+    <h3>{{i18n.COMMON.sent_to}} {{to_s}}</h3>
     {{/recipients}}
     {{/show_metadata}}
 
     {{#show_secret}}
     <div class="secret">
       {{^can_decrypt}}
-      <em>Secret ({{secret_shortkey}}):</em><br/>
-      <input class="selectable" id="displayedsecret" value="This message is encrypted with your passphrase." />
+      <em>{{i18n.COMMON.secret}} ({{secret_shortkey}}):</em><br/>
+      <input class="selectable" id="displayedsecret" value="{{i18n.page.this_msg_is_encrypted}}" />
       {{/can_decrypt}}
       {{#can_decrypt}}
 
       {{#truncated}}
       <div class="alert alert-info smaller">
         <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <strong>Please Note!</strong> The message was truncated b/c it was over {{secret_value.size.to_bytes}}.
-        {{^authenticated}}<a href="/signup">Signup for more</a>{{/authenticated}}.
+        <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.secret_was_truncated}} {{secret_value.size.to_bytes}}.
+        {{^authenticated}}<a href="/signup">{{i18n.COMMON.signup_for_more}}</a>{{/authenticated}}.
       </div>
       {{/truncated}}
 
-      <em>Secret ({{secret_shortkey}}):</em> <span class="smaller lighter">(you will only see this once)</span><br/>
+      <em>{{i18n.COMMON.secret}} ({{secret_shortkey}}):</em> <span class="smaller lighter">({{i18n.page.only_see_once}})</span><br/>
       <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
 
       {{/can_decrypt}}
@@ -43,34 +43,34 @@
 
     {{^show_secret}}
     <div class="secret">
-      <span class="pretext">Secret ({{secret_shortkey}}):</span> <br/>
+      <span class="pretext">{{i18n.COMMON.secret}} ({{secret_shortkey}}):</span> <br/>
       <input value="*******************" disabled="disabled" />
     </div>
     {{/show_secret}}
 
     <p>
       {{#is_received}}
-      <em>Received {{received_date}}.</em>
+      <em>{{i18n.COMMON.received}} {{received_date}}.</em>
       <span class="smaller lighter">({{received_date_utc}})</span>
       {{/is_received}}
 
       {{#is_burned}}
-      <em>Burned {{burned_date}}.</em>
+      <em>{{i18n.COMMON.burned}} {{burned_date}}.</em>
       <span class="smaller lighter">({{burned_date_utc}})</span>
       {{/is_burned}}
 
       {{^is_destroyed}}
-      <strong>Expires in {{expiration_stamp}}</strong>.
+      <strong>{{i18n.COMMON.expires_in}} {{expiration_stamp}}</strong>.
       <span class="smaller lighter">({{created_date_utc}})</span>
       {{/is_destroyed}}
     </p>
 
     <hr/>
     {{^is_destroyed}}
-    <a class="btn btn-block btn-large cufon" href="{{burn_uri}}"><i class="icon-fire"></i> Burn this secret*</a>
+    <a class="btn btn-block btn-large cufon" href="{{burn_uri}}"><i class="icon-fire"></i> {{i18n.COMMON.burn_this_secret}}*</a>
 
     <hr/>
-    <p class="hint">* Burning a secret will delete it before it has been read (click to confirm).</p>
+    <p class="hint">* {{i18n.COMMON.burn_this_secret_hint}}.</p>
     {{/is_destroyed}}
 
     {{#show_metadata_link}}
