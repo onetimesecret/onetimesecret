@@ -73,7 +73,7 @@ module Onetime
         self[:email_address] = cust.email
       end
       def subject
-        "Verify your One-time Secret account"
+        i18n[:email][:subject]
       end
       def verify_uri
         secret_uri self[:secret]

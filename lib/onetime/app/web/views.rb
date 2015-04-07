@@ -89,7 +89,7 @@ module Onetime
             self[:via_test] = !sess.referrer.match(/ot.com/).nil?
           end
           if cust.has_key?(:verified) && cust.verified.to_s != 'true' && self.class != Onetime::App::Views::Shared
-            add_message "A verification was sent to #{cust.custid}."
+            add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
           else
             add_error sess.error_message!
           end
