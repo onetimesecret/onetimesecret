@@ -1,6 +1,8 @@
 
+/* NOTE: Disable cufon to resolve issues displaying utf-8 characters
 // Font Replacement
-Cufon.replace('.cufon');
+// Cufon.replace('.cufon');
+*/
 
 $(function() {
   $.fn.deobfuscate = function() {
