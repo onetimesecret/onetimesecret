@@ -27,7 +27,7 @@
     :anon_info3: "dirección de correo electrónico efímera"
     :anon_info4: "."
 :email:
-  :secret_link:
-    :subject: "#{self[:from]} le ha enviado un secreto"
-    :body1: "Tenemos un secreto para usted desde {{from}}. Léalo aquí:"
+  :secretlink:
+    :subject: "%s le ha enviado un secreto"
+    :body1: "Tenemos un secreto para usted desde"
     :body_tagline: "Si no conoce al remitente o cree que este sea un correo no deseado, envíenos los detalles aquí:"

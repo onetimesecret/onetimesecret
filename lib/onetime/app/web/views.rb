@@ -103,7 +103,11 @@ module Onetime
       end
       def i18n
         pagename = self.class.name.split('::').last.downcase.to_sym
-        { locale: self.locale, page: OT.locales[self.locale][:web][pagename], COMMON: OT.locales[self.locale][:web][:COMMON]}
+        @i18n ||= {
+          locale: self.locale,
+          page: OT.locales[self.locale][:web][pagename],
+          COMMON: OT.locales[self.locale][:web][:COMMON]
+        }
       end
       def setup_plan_variables
         Onetime::Plan.plans.each_pair do |planid,plan|
