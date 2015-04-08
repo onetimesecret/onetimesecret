@@ -149,11 +149,12 @@
         <a href="{{baseotsuri}}/account" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> |
         <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
       {{/authenticated}}
-      {{/display_masthead}}
 
       {{^is_default_locale}}
       | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a>
       {{/is_default_locale}}
+
+    {{/display_masthead}}
 
     </div>
     <a href="/"><h3 id="logo"></h3></a>
