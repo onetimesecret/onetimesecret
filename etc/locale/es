@@ -55,7 +55,7 @@
     :verification_sent_to: "Una verificación fue enviada a"
   :homepage:
     :tagline1: "Pegue una contraseña, mensaje secreto o enlace privado a continuación."
-    :tagline2: "Ayudamos a mantener la información confidencial fuera de tus chats y correos electrónicos"
+    :tagline2: "Mantener la información confidencial fuera de tus chats y correos electrónicos"
     :secret_hint: "* El enlace secreto sólo funciona una vez y luego desaparece para siempre."
     :secret_form_more_text1: "Regístrese para obtener"
     :secret_form_more_text2: "una cuenta gratuita"
