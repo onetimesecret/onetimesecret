@@ -89,7 +89,7 @@ class Onetime::App
       locale = locale || req.cookie(:locale) if req.cookie?(:locale) # Use cookie value
       unless req.params[:locale].to_s.empty?
         locale = req.params[:locale]                                 # Use query param
-        res.send_cookie :locale, locale, 30.days, Onetime.conf[:site][:ssl]
+        res.send_cookie :locale, locale, 4.hours, Onetime.conf[:site][:ssl]
       end
       locales = req.env['rack.locale'] || []                          # Requested list
       locales.unshift locale.split('-').first if locale.is_a?(String) # Support both en and en-US
