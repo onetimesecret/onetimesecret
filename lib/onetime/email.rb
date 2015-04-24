@@ -117,6 +117,22 @@ module Onetime
         '/forgot/%s' % self[:secret].key
       end
     end
+    class IncomingSupport < OT::Email
+      attr_accessor :ticketno
+      def init secret, recipient
+        self[:secret] = secret
+        self[:custid] = cust.custid
+        self[:email_address] = recipient
+        self.subdomain = cust.load_subdomain if cust.has_key?(:cname)
+      end
+      def subject
+        puts [self[:ticketno], i18n[:email]]
+        i18n[:email][:subject] % [self[:ticketno]]
+      end
+      def verify_uri
+        secret_uri self[:secret]
+      end
+    end
     class TestEmail < OT::Email
       def init
         self[:email_address] = cust.email

@@ -95,7 +95,11 @@
     :incoming_ticket_number: "Enter Ticket #"
     :incoming_ticket_number_hint: "You can find this in tyour email (e.g. 123456)"
     :incoming_recipient_address: "Support recipient"
+    :incoming_success_message: "Your email has been sent"
 :email:
+  :incomingsupport:
+    :subject: "Received infor for ticket #%s"
+    :body1: "A customer has sent the following info:"
   :secretlink:
     :subject: "%s sent you a secret"
     :body1: "We have a secret for you from"

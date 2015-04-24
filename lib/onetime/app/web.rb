@@ -91,8 +91,9 @@ module Onetime
           logic.raise_concerns
           logic.process
           req.params.clear
-          req.params[:key] = logic.metadata.key
-          res.redirect logic.redirect_uri
+          view = Onetime::App::Views::Incoming.new req, sess, cust, locale
+          view.add_message view.i18n[:page][:incoming_success_message]
+          res.body = view.render
         else
           res.redirect '/'
         end
@@ -104,10 +105,8 @@ module Onetime
         logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
-        #res.redirect app_path(logic.redirect_uri)
         req.params.clear
         req.params[:key] = logic.metadata.key
-        #private_uri # redirect straight to private_uri
         res.redirect logic.redirect_uri
       end
     end

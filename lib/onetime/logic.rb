@@ -482,6 +482,59 @@ module Onetime
       end
     end
 
+    class CreateIncoming < OT::Logic::Base
+      attr_reader :passphrase, :secret_value, :ticketno
+      attr_reader :metadata, :secret, :recipient, :ttl
+      def process_params
+        @ttl = 7.days
+        @secret_value = params[:secret]
+        @ticketno = params[:ticketno]
+        @passphrase = OT.conf[:incoming][:passphrase]
+        params[:recipient] = [OT.conf[:incoming][:email]]
+        r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
+        @recipient = params[:recipient].collect { |email_address|
+          next if email_address.to_s.empty?
+          next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
+          #unless valid_email?(email_address) #|| valid_mobile?(email_address)
+          #  raise_form_error "Recipient must be an email address."
+          #end
+          email_address.scan(r).uniq.first
+        }.compact.uniq
+      end
+      def raise_concerns
+        limit_action :create_secret
+        limit_action :email_recipient unless recipient.empty?
+        if ticketno.to_s.empty?
+          raise_form_error "You must provide a ticket number"
+        end
+      end
+      def process
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
+        if !passphrase.empty?
+          secret.update_passphrase passphrase
+          metadata.passphrase = secret.passphrase
+        end
+        secret.encrypt_value secret_value, :size => plan.options[:size]
+        metadata.ttl, secret.ttl = ttl, ttl
+        metadata.secret_shortkey = secret.shortkey
+        secret.save
+        metadata.save
+        if metadata.valid? && secret.valid?
+          unless cust.anonymous?
+            cust.add_metadata metadata
+            cust.incr :secrets_created
+          end
+          OT::Customer.global.incr :secrets_created
+          unless recipient.nil? || recipient.empty?
+            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::Email::IncomingSupport, ticketno
+          end
+          OT::Logic.stathat_count("Secrets", 1)
+        else
+          raise_form_error "Could not store your secret"
+        end
+      end
+    end
+
     class ShowSecret < OT::Logic::Base
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size, :verification, :correct_passphrase

@@ -19,6 +19,7 @@
 :incoming:
   :enabled: true
   :email: example@onetimesecret.com
+  :passphrase: CHANGEME
 :locales:
   - en
   - es
