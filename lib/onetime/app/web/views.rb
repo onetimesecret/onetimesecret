@@ -213,6 +213,15 @@ module Onetime
           self[:with_analytics] = true
         end
       end
+      class Incoming < Onetime::App::View
+        include CreateSecretElements
+        def init *args
+          self[:title] = "Share a secret"
+          self[:monitored_link] = !self[:is_subdomain]
+          self[:with_analytics] = true
+          self[:incoming_recipient] = OT.conf[:incoming][:email]
+        end
+      end
       module Docs
         class Api < Onetime::App::View
           def init *args

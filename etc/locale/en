@@ -1,6 +1,6 @@
 :web:
   :COMMON:
-    :broadcast: "Update (2015-03-28): You can now burn a secret before it's viewed!"
+    :broadcast: ""
     :description: "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
     :keywords: "secret,password generator,share a secret,onetime"
     :button_create_secret: "Create a secret link"
@@ -85,6 +85,16 @@
     :forgot_your_password: "Forgot your password?"
     :button_sign_in: "Sign In"
     :enter_your_credentials: "Enter your credentials"
+  :incoming:
+    :tagline1: "Paste a password, secret message or private link below."
+    :tagline2: "Keep sensitive info out of your email and chat logs."
+    :secret_hint: "* A secret link only works once and then disappears forever."
+    :incoming_button_create: "Send to Support Staff"
+    :incoming_secret_options: "Support Info"
+    :incoming_secret_placeholder: "Enter any information your support representitive will need (e.g. system password)"
+    :incoming_ticket_number: "Enter Ticket #"
+    :incoming_ticket_number_hint: "You can find this in tyour email (e.g. 123456)"
+    :incoming_recipient_address: "Support recipient"
 :email:
   :secretlink:
     :subject: "%s sent you a secret"

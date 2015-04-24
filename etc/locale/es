@@ -1,6 +1,6 @@
 :web:
   :COMMON:
-    :broadcast: "Actualización (28/03/2015): Ahora puede destruir un secreto antes de ser visto!"
+    :broadcast: ""
     :description: "Mantén la información confidencial fuera de tus chats y correos electrónicos. Comparte enlaces secretos que estarán disponibles sólo una vez."
     :keywords: "secreto,generador de contraseñas,comparte un secreto,solo una vez"
     :button_create_secret: "Crear un enlace secreto"
@@ -53,6 +53,7 @@
     :feedback_text: "¿Tiene alguna pregunta o comentario?"
     :button_send_feedback: "Envíanos tus comentarios!"
     :verification_sent_to: "Una verificación fue enviada a"
+    :button_create_incoming: "Send to Support Staff"
   :homepage:
     :tagline1: "Pegue una contraseña, mensaje secreto o enlace privado a continuación."
     :tagline2: "Mantener la información confidencial fuera de tus chats y correos electrónicos"

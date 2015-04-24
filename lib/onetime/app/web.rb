@@ -73,6 +73,32 @@ module Onetime
       end
     end
 
+    def incoming
+      publically do
+        if OT.conf[:incoming] && OT.conf[:incoming][:enabled]
+          view = Onetime::App::Views::Incoming.new req, sess, cust, locale
+          res.body = view.render
+        else
+          res.redirect '/'
+        end
+      end
+    end
+
+    def create_incoming
+      publically(req.request_path) do
+        if OT.conf[:incoming] && OT.conf[:incoming][:enabled]
+          logic = OT::Logic::CreateIncoming.new sess, cust, req.params, locale
+          logic.raise_concerns
+          logic.process
+          req.params.clear
+          req.params[:key] = logic.metadata.key
+          res.redirect logic.redirect_uri
+        else
+          res.redirect '/'
+        end
+      end
+    end
+
     def create_secret
       publically(req.request_path) do
         logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale

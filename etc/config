@@ -16,6 +16,9 @@
   :from: CHANGEME@example.com
   :fromname: CHANGEME
   :bcc:
+:incoming:
+  :enabled: true
+  :email: example@onetimesecret.com
 :locales:
   - en
   - es
