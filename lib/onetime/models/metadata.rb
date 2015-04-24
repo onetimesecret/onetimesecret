@@ -44,7 +44,7 @@ module Onetime
     def owner? cust
       !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
-    def deliver_by_email cust, locale, secret, eaddrs
+    def deliver_by_email cust, locale, secret, eaddrs, template=OT::Email::SecretLink, ticketno=null
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] No addresses specified"
       end
@@ -53,17 +53,11 @@ module Onetime
       self.recipients = eaddrs_safe.join(', ')
       OT.ld "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
       eaddrs.each do |email_address|
-        view = OT::Email::SecretLink.new cust, locale, secret, email_address
+        view = template.new cust, locale, secret, email_address
+        view.ticketno = ticketno if (ticketno)
         view.emailer.from = cust.custid
         view.emailer.fromname = ''
         ret = view.deliver_email
-        puts ret
-        #if ret.code == 200
-        #  cust.incr :emails_sent
-        #  OT::Customer.global.incr :emails_sent
-        #else
-        #  OT.info "Error sending email: #{ret}"
-        #end
         break # force just a single recipient
       end
     end

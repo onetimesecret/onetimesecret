@@ -1,0 +1,54 @@
+{{>partial/session_messages}}
+
+<form id="createSecret" method="post" autocomplete="off" action="/incoming" class="form-horizontal">
+  {{{add_shrimp}}}
+  <fieldset>
+    <div class="text-input">
+      <textarea rows="7" class="btn-block" name="secret" autocomplete="off" placeholder="{{i18n.page.incoming_secret_placeholder}}"></textarea>
+      <div class="chars-display lightest"></div>
+    </div>
+    <div class="well options-box">
+      <div class="title">{{i18n.page.incoming_secret_options}}</div>
+
+      <div class="control-group">
+        <label class="control-label lighter" for="ticketnoField">{{i18n.page.incoming_ticket_number}}:</label>
+        <div class="controls">
+          <input class="input-block-level" type="text" name="ticketno" id="ticketnoField" value="" placeholder="{{i18n.page.incoming_ticket_number_hint}}" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label lighter" for="recipientField">{{i18n.page.incoming_recipient_address}}:</label>
+        <div class="controls" style="margin-top: 5px">
+          {{incoming_recipient}}
+        </div>
+      </div>
+    </div>
+
+    <button class="create btn btn-large btn-block btn-custom cufon" type="submit" name="kind" value="share" >{{i18n.page.incoming_button_create}}</button>
+  </fieldset>
+</form>
+<script type="text/javascript">
+$('#createSecret textarea').on('keyup', function () {
+  var max = {{plan.options.size}};
+  var len = $(this).val().length;
+  var obj = $('#createSecret .chars-display');
+  if (len > max && obj.hasClass('lightest')) {
+    obj.removeClass('lightest');
+    obj.addClass('warning-text');
+  } else if (len <= max && obj.hasClass('warning-text')) {
+    obj.removeClass('warning-text');
+    obj.addClass('lightest');
+  }
+  var char = max - len;
+  obj.text(char);
+  var sub = $('#createSecret .generate');
+  if (len > 0 && !sub.attr('disabled')) {
+    sub.attr('disabled', true);
+  }
+  if (len == 0) {
+    sub.attr('disabled', false);
+  }
+});
+</script>
+

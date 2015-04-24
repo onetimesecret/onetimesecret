@@ -1,0 +1,23 @@
+{{>header}}
+
+  {{^actionable_visitor}}
+  <div class="jumbotron">
+    <h2 class="intro">Return to <a href="{{subdomain.homepage}}">{{subdomain.company_domain}}</a></h2>
+  </div>
+  {{/actionable_visitor}}
+
+  {{#actionable_visitor}}
+  <div class="jumbotron">
+
+    {{^authenticated}}
+    <h1 class="">{{i18n.page.tagline1}}</h1>
+    <p class="lead">{{i18n.page.tagline2}}</p>
+    {{/authenticated}}
+
+    {{>partial/create_incoming_form}}
+
+  </div>
+
+  {{/actionable_visitor}}
+
+{{>footer}}
