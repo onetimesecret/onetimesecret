@@ -92,12 +92,6 @@ Upgrading to 0.9 should be seemless, however b/c of new functionality you will n
     :locales:
       - en
       - es
-    :unsupported_locales:
-      - de
-      - ru
-      - fr
-      - nl
-      - pt
 
 You run your configuration from `/etc/onetime/config` you will also need to copy the `./etc/locale` directory to `/etc/onetime/locale`:
 
