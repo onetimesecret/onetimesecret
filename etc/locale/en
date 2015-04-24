@@ -93,7 +93,7 @@
     :incoming_secret_options: "Support Info"
     :incoming_secret_placeholder: "Enter any information your support representitive will need (e.g. system password)"
     :incoming_ticket_number: "Enter Ticket #"
-    :incoming_ticket_number_hint: "You can find this in tyour email (e.g. 123456)"
+    :incoming_ticket_number_hint: "You can find this in your email (e.g. 123456)"
     :incoming_recipient_address: "Support recipient"
     :incoming_success_message: "Your email has been sent"
 :email:
