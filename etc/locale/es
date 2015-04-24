@@ -100,7 +100,7 @@
 :email:
   :incomingsupport:
     :subject: "Received info for ticket #%s"
-    :body1: "A customer has sent the following info:"
+    :body1: "A customer has sent the following info"
   :secretlink:
     :subject: "le ha enviado un secreto"
     :body1: "Tenemos un secreto para usted desde"
