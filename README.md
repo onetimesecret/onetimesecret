@@ -96,4 +96,4 @@ Upgrading to 0.9 should be seemless, however b/c of new functionality you will n
 You run your configuration from `/etc/onetime/config` you will also need to copy the `./etc/locale` directory to `/etc/onetime/locale`:
 
     $ cd /path/2/onetimesecret
-    $ sudo cp etc/locale /etc/onetime/
+    $ sudo cp -r etc/locale /etc/onetime/
