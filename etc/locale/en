@@ -98,7 +98,7 @@
     :incoming_success_message: "Your email has been sent"
 :email:
   :incomingsupport:
-    :subject: "Received info for ticket #%s"
+    :subject: "[Ticket: %s]"
     :body1: "A customer has sent the following info"
   :secretlink:
     :subject: "%s sent you a secret"

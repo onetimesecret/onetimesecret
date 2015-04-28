@@ -488,8 +488,8 @@ module Onetime
       def process_params
         @ttl = 7.days
         @secret_value = params[:secret]
-        @ticketno = params[:ticketno]
-        @passphrase = OT.conf[:incoming][:passphrase]
+        @ticketno = params[:ticketno].strip
+        @passphrase = OT.conf[:incoming][:passphrase].strip
         params[:recipient] = [OT.conf[:incoming][:email]]
         r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
         @recipient = params[:recipient].collect { |email_address|
@@ -504,8 +504,9 @@ module Onetime
       def raise_concerns
         limit_action :create_secret
         limit_action :email_recipient unless recipient.empty?
-        if ticketno.to_s.empty?
-          raise_form_error "You must provide a ticket number"
+        regex = Regexp.new(OT.conf[:incoming][:regex] || '\A[a-zA-Z0-9]{1,32}\z')
+        if ticketno.to_s.empty? || !ticketno.match(regex)
+          raise_form_error "You must provide a valid ticket number"
         end
       end
       def process
