@@ -505,6 +505,9 @@ module Onetime
         limit_action :create_secret
         limit_action :email_recipient unless recipient.empty?
         regex = Regexp.new(OT.conf[:incoming][:regex] || '\A[a-zA-Z0-9]{1,32}\z')
+        if secret_value.to_s.empty?
+          raise_form_error "You did not provide any information to share"
+        end
         if ticketno.to_s.empty? || !ticketno.match(regex)
           raise_form_error "You must provide a valid ticket number"
         end
