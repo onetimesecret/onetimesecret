@@ -20,6 +20,7 @@
   :enabled: true
   :email: example@onetimesecret.com
   :passphrase: CHANGEME
+  :regex: \A[a-zA-Z0-9]{6}\z
 :locales:
   - en
   - es
