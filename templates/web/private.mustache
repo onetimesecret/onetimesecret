@@ -67,11 +67,14 @@
 
     <hr/>
     {{^is_destroyed}}
-    <a class="btn btn-block btn-large cufon" href="{{burn_uri}}"><i class="icon-fire"></i> {{i18n.COMMON.burn_this_secret}}*</a>
+    <a class="btn btn-block btn-large" href="{{burn_uri}}"><i class="icon-fire"></i> {{i18n.COMMON.burn_this_secret}}*</a>
 
     <hr/>
     <p class="hint">* {{i18n.COMMON.burn_this_secret_hint}}.</p>
     {{/is_destroyed}}
+
+    <hr/>
+    <p class=""><a class="btn btn-block btn-large btn-custom" href="/">Create another secret</a></p>
 
     {{#show_metadata_link}}
     <!--

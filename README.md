@@ -89,6 +89,7 @@ Upgrading to 0.9 should be seemless, however b/c of new functionality you will n
       :enabled: true
       :email: example@onetimesecret.com
       :passphrase: CHANGEME
+      :regex: \A[a-zA-Z0-9]{6}\z
     :locales:
       - en
       - es
