@@ -109,6 +109,12 @@ a {
   color: #000;
 }
 
+a.keepgoing {
+  font-size: 120%;
+  font-weight: bolder;
+  padding: 10px;
+}
+
 .private .hint {
   font-style: italic;
   color: #999;

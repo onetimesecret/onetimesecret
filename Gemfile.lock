@@ -107,3 +107,6 @@ DEPENDENCIES
   sysinfo (= 0.7.3)
   thin (= 1.5.0)
   yajl-ruby (= 1.1.0)
+
+BUNDLED WITH
+   1.10.2
