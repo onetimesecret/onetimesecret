@@ -72,7 +72,7 @@
   :shared:
     :requires_passphrase: "Diese Nachricht benötigt eine Passphrase:"
     :viewed_own_secret: "Du hast dein eigenes Geheimnis angeschaut. Es ist jetzt nicht mehr verfügbar für jemanden anderen."
-    :you_created_this_secret: "YDu hast dieses Geheimnis erstellt. Wenn du es anschaust wird der Empfänger nicht in der Lage sein es anzuschauen."
+    :you_created_this_secret: "Du hast dieses Geheimnis erstellt. Wenn du es anschaust wird der Empfänger nicht in der Lage sein es anzuschauen."
     :your_secret_message: "Deine geheime Nachricht:"
     :this_message_for_you: "Diese Nachricht ist für dich:"
     :reply_with_secret: "Mit einem Geheimnis antworten"
