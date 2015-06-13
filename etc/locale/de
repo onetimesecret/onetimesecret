@@ -67,7 +67,7 @@
   :private:
     :pretext: "Teile diesen Link:"
     :requires_passphrase: "Benötigt eine Passphrase."
-    :this_msg_is_encrypted: "DIese Nachricht ist mit deiner Passphrase verschlüsselt."
+    :this_msg_is_encrypted: "Diese Nachricht ist mit deiner Passphrase verschlüsselt."
     :only_see_once: "du wirst dies nur einmal sehen"
   :shared:
     :requires_passphrase: "Diese Nachricht benötigt eine Passphrase:"
