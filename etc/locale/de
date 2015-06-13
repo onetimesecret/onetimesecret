@@ -4,7 +4,7 @@
     :description: "Halte sensible Informationen aus deinen Chat-Logs und E-Mails heraus. Teile einen Link, der nur einmal verfügbar ist."
     :keywords: "geheim,Passwort-Generator,Teile ein Geheimnis,einmalig"
     :button_create_secret: "Erstelle einen geheimen Link"
-    :button_generate_secret: "Oder las ein zufälliges Passwort generieren"
+    :button_generate_secret: "Oder lass ein zufälliges Passwort generieren"
     :secret_privacy_options: "Privatsphäre-Einstellungen"
     :secret_passphrase: "Passphrase"
     :secret_passphrase_hint: "Ein Wort oder eine Phrase, die schwierig zu erraten ist"
