@@ -2,7 +2,7 @@
   :COMMON:
     :broadcast: ""
     :description: "Zorg ervoor dat geheime informatie buiten chat logs en E-mail blijft. Deel een geheime link welke maar één keer beschikbaar is."
-	:keywords: "geheim,wachtwoord generator,deel geheim,een keer"
+    :keywords: "geheim,wachtwoord generator,deel geheim,een keer"
     :button_create_secret: "Creëer een geheime link"
     :button_generate_secret: "Of genereer een geheim wachtwoord"
     :secret_privacy_options: "Privacy Opties"
@@ -60,7 +60,7 @@
     :secret_form_more_text1: "Schrijf in voor een"
     :secret_form_more_text2: "gratis account"
     :secret_form_more_text3: "Om  wachtwoordzinnen voor extra beveiliging samen met additionele privacy opties. We sturen u zelfs een link als u dat wilt."
-	:anon_info1: "Blijf anoniem"
+    :anon_info1: "Blijf anoniem"
     :anon_info2: "Creëer een account via "
     :anon_info3: "tijdelijk E-mail adres"
     :anon_info4: "."
