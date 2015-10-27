@@ -24,11 +24,13 @@
 :locales:
   - en
   - es
-:unsupported_locales:
   - de
+  - nl
+:unsupported_locales:
   - ru
   - fr
-  - nl
+  - pt
+  - jp
   - pt
 #:emailer:
 #  :mode: :smtp

@@ -81,7 +81,7 @@ We include a global secret in the encryption key so it needs to be long and secu
     dd if=/dev/urandom bs=20 count=1 | openssl sha1
 
 
-## Upgradng to 0.9
+## Upgrading to 0.9
 
 Upgrading to 0.9 should be seemless, however b/c of new functionality you will need to add the following to your config file:
 
