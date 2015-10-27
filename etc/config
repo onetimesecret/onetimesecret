@@ -24,8 +24,8 @@
 :locales:
   - en
   - es
-:unsupported_locales:
   - de
+:unsupported_locales:
   - ru
   - fr
   - nl
