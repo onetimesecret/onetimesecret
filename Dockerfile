@@ -14,9 +14,10 @@ RUN mkdir -p /var/log/onetime /var/run/onetime /var/lib/onetime
 RUN chown ots /var/log/onetime /var/run/onetime /var/lib/onetime
 RUN cp -r /home/ots/onetime/etc/* /etc/onetime
 
-RUN echo $ots_domain | xargs -I domurl sed -ir 's/:domain:/:domain: domurl/g' /etc/onetime/config
-RUN echo $ots_host | xargs -I hosturl sed -ir 's/:domain:/:domain: hosturl/g' /etc/onetime/config
-
 EXPOSE 7143
 
-ENTRYPOINT dd if=/dev/urandom bs=40 count=1 | openssl sha1 | grep stdin | awk '{print $2}' | xargs -I key sed -ir 's/:secret:/:secret: key/g' /etc/onetime/config && cd /home/ots/onetime/ && bundle exec thin -e dev -R config.ru -p 7143 start
+ENTRYPOINT echo $ots_domain | xargs -I domurl sed -ir 's/:domain:/:domain: domurl/g' /etc/onetime/config \
+&& echo $ots_host | xargs -I hosturl sed -ir 's/:host:/:host: hosturl/g' /etc/onetime/config \
+&& dd if=/dev/urandom bs=40 count=1 | openssl sha1 | grep stdin | awk '{print $2}' | xargs -I key sed -ir 's/:secret:/:secret: key/g' /etc/onetime/config \
+&& cd /home/ots/onetime/ \
+&& bundle exec thin -e dev -R config.ru -p 7143 start

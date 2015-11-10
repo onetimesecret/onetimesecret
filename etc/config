@@ -1,9 +1,9 @@
 :site:
-  :host: localhost:7143
-  :domain: localhost
+  :host:
+  :domain:
   :ssl: false
   # NOTE Once the secret is set, do not change it (keep a backup offsite)
-  :secret: CHANGEME
+  :secret: 
 :redis:
   :uri: 'redis://redis:6379/0?timeout=10&thread_safe=false&logging=false'
   :config: /etc/onetime/redis.conf
@@ -12,7 +12,7 @@
 :emailer:
   :mode: :sendgrid
   :account: CHANGEME
-  :password: CHANGEME 
+  :password: CHANGEME
   :from: CHANGEME@example.com
   :fromname: CHANGEME
   :bcc:
