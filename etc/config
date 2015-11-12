@@ -1,7 +1,7 @@
 :site:
   :host:
   :domain:
-  :ssl: false
+  :ssl:
   # NOTE Once the secret is set, do not change it (keep a backup offsite)
   :secret: 
 :redis:
