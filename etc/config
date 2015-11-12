@@ -1,11 +1,11 @@
 :site:
-  :host: localhost:7143
-  :domain: localhost
-  :ssl: false
+  :host:
+  :domain:
+  :ssl:
   # NOTE Once the secret is set, do not change it (keep a backup offsite)
-  :secret: CHANGEME
+  :secret: 
 :redis:
-  :uri: 'redis://user:CHANGEME@127.0.0.1:7179/0?timeout=10&thread_safe=false&logging=false'
+  :uri: 'redis://redis:6379/0?timeout=10&thread_safe=false&logging=false'
   :config: /etc/onetime/redis.conf
 :colonels:
   - CHANGEME@EXAMPLE.com
@@ -72,4 +72,3 @@
 #    - - basic_v1
 #      - professional_v2
 #      - agency_v2
-
