@@ -23,7 +23,7 @@ When you send people sensitive info like passwords and private links via email o
     # DEBIAN
     $ sudo apt-get update
     $ sudo apt-get install build-essential
-    $ sudo apt-get install ntp libyaml-dev libevent-dev zlib1g zlib1g-dev openssl libssl-dev libxml2 libreadline5-dev
+    $ sudo apt-get install ntp libyaml-dev libevent-dev zlib1g zlib1g-dev openssl libssl-dev libxml2 libreadline-gplv2-dev
     $ mkdir ~/sources
 
     # CENTOS
@@ -66,7 +66,9 @@ When you send people sensitive info like passwords and private links via email o
     $ bin/ots init
     $ sudo mkdir /var/log/onetime /var/run/onetime /var/lib/onetime
     $ sudo chown ots /var/log/onetime /var/run/onetime /var/lib/onetime
-    $ cp etc/* /etc/onetime/
+    $ mkdir /etc/onetime
+    $ cp -R etc/* /etc/onetime/
+    $ [secure the /etc/onetime directory to prevent unauthorized access]
     $ [edit settings in /etc/onetime/config]
     $ [edit settings in /etc/onetime/redis.conf]
 
