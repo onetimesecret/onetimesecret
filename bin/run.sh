@@ -18,7 +18,7 @@ done
 
 #Stop the script if its started as root
 if [ "$(id -u)" -eq 0 ] && [ $ignoreRoot -eq 0 ]; then
-   echo "You shouldn't start OneTimePSecret as root!"
+   echo "You shouldn't start OneTimeSecret as root!"
    echo "Please type 'OneTimeSecret rocks my socks' or supply the '--root' argument if you still want to start it as root"
    read rocks
    if [ ! "$rocks" == "OneTimeSecret rocks my socks" ]
@@ -35,6 +35,7 @@ if [ $# -ge 1 ]; then
 fi
 
 #start redis server
+#Note: disable this if your redis server is already running!
 redis-server /etc/onetime/redis.conf
 
 #Move to the node folder and start
