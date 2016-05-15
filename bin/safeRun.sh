@@ -18,7 +18,7 @@ TIME_BETWEEN_EMAILS=600 # 10 minutes
 LAST_EMAIL_SEND=0
 LOG="$1"
 
-#Move to the folder where ep-liteOneTImePad is installed
+#Move to the folder where OneTimeSecret is installed
 cd `dirname $0`
 
 #Was this script started in the bin folder? if yes move out
@@ -55,7 +55,7 @@ do
     TIME_SINCE_LAST_SEND=$(($TIME_NOW - $LAST_EMAIL_SEND))
     
     if [ $TIME_SINCE_LAST_SEND -gt $TIME_BETWEEN_EMAILS ]; then
-      printf "Server was restarted at: $(date)\nThe last 50 lines of the log before the error happens:\n $(tail -n 50 ${LOG})" | mail -s "OneTimePad Server was restarted" $EMAIL_ADDRESS
+      printf "Server was restarted at: $(date)\nThe last 50 lines of the log before the error happens:\n $(tail -n 50 ${LOG})" | mail -s "OneTimeSecret Server was restarted" $EMAIL_ADDRESS
       
       LAST_EMAIL_SEND=$TIME_NOW
     fi
