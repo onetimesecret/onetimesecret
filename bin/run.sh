@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#Move to the folder where onetimepad is installed
+#Move to the folder where OneTimeSecret is installed
 cd `dirname $0`
 
 #Was this script started in the bin folder? if yes move out
@@ -18,10 +18,10 @@ done
 
 #Stop the script if its started as root
 if [ "$(id -u)" -eq 0 ] && [ $ignoreRoot -eq 0 ]; then
-   echo "You shouldn't start OneTimePad as root!"
-   echo "Please type 'OneTimePad rocks my socks' or supply the '--root' argument if you still want to start it as root"
+   echo "You shouldn't start OneTimePSecret as root!"
+   echo "Please type 'OneTimeSecret rocks my socks' or supply the '--root' argument if you still want to start it as root"
    read rocks
-   if [ ! "$rocks" == "OneTimePad rocks my socks" ]
+   if [ ! "$rocks" == "OneTimeSecret rocks my socks" ]
    then
      echo "Your input was incorrect"
      exit 1
