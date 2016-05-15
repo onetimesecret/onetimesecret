@@ -68,7 +68,7 @@ When you send people sensitive info like passwords and private links via email o
     $ sudo chown ots /var/log/onetime /var/run/onetime /var/lib/onetime
     $ mkdir /etc/onetime
     $ cp -R etc/* /etc/onetime/
-    $ [secure the /etc/onetime directory to prevent unauthorized access]
+    $ [secure the /etc/onetime and /var/lib/onetime directory to prevent unauthorized access]
     $ [edit settings in /etc/onetime/config]
     $ [edit settings in /etc/onetime/redis.conf]
 
