@@ -49,18 +49,18 @@
   :nonpaid_recipient_text: 'You need to create an account!'
   :paid_recipient_text: 'Send the secret link via email'
 :limits:
-  :create_secret: 100
-  :create_account: 3
-  :update_account: 5
-  :email_recipient: 10
-  :send_feedback: 3
+  :create_secret: 250
+  :create_account: 10
+  :update_account: 10
+  :email_recipient: 50
+  :send_feedback: 10
   :authenticate_session: 5
-  :homepage: 100
-  :dashboard: 100
+  :homepage: 500
+  :dashboard: 1000
   :failed_passphrase: 5
-  :show_metadata: 200
-  :show_secret: 100
-  :burn_secret: 100
+  :show_metadata: 1000
+  :show_secret: 1000
+  :burn_secret: 1000
 #:split_tests:
 #  :initial_pricing:
 #    - - basic_v1
