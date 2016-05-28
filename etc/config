@@ -8,6 +8,8 @@
   :uri: 'redis://user:CHANGEME@127.0.0.1:7179/0?timeout=10&thread_safe=false&logging=false'
   :config: /etc/onetime/redis.conf
 :colonels:
+  # Accounts created with the following email addresses
+  # are automatically considered admins of the system.
   - CHANGEME@EXAMPLE.com
 :emailer:
   :mode: :sendgrid
@@ -17,7 +19,12 @@
   :fromname: CHANGEME
   :bcc:
 :incoming:
-  :enabled: true
+  # Intended for use by IT support teams who need someone to send them
+  * sensitive info. The email address is where the secret
+  # link is sent. Passphrase is used to protect the secret.
+  # The regex used to ensure the ticket number is valid.
+  # See: https://onetimesecret.com/incoming
+  :enabled: false
   :email: example@onetimesecret.com
   :passphrase: CHANGEME
   :regex: \A[a-zA-Z0-9]{6}\z
