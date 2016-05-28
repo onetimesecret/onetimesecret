@@ -5,7 +5,7 @@
     {{#show_secret_link}}
     <div class="uri">
       <span class="pretext">{{i18n.page.pretext}}</span><br/>
-      <input id="secreturi" class="selectable" value="{{share_uri}}" />
+      <input id="secreturi" class="selectable" value="{{share_uri}}" readonly="readonly" />
       {{#has_passphrase}}
       <p><strong>{{i18n.page.requires_passphrase}}</strong></p>
       {{/has_passphrase}}
