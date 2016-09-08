@@ -78,7 +78,7 @@
     :reply_with_secret: "Ответить другой тайной"
   :dashboard:
     :title_received: "Получено"
-    :title_not_received: "Не получено
+    :title_not_received: "Не получено"
     :title_no_recent_secrets: "Нет недавних тайн"
   :login:
     :need_an_account: "Нужна учётная запись"
