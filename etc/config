@@ -20,7 +20,7 @@
   :bcc:
 :incoming:
   # Intended for use by IT support teams who need someone to send them
-  * sensitive info. The email address is where the secret
+  # sensitive info. The email address is where the secret
   # link is sent. Passphrase is used to protect the secret.
   # The regex used to ensure the ticket number is valid.
   # See: https://onetimesecret.com/incoming
