@@ -48,5 +48,8 @@ else
   apps.each_pair do |path,app|
     map(path) { run app }
   end
+  ['img', 'css', 'js'].each do |s|
+    map("/"+s+"/") { run Rack::File.new("#{PUBLIC_DIR}/"+s) }
+  end
   #$SAFE = 1  # http://www.rubycentral.com/pickaxe/taint.html
 end
