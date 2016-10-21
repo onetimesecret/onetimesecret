@@ -19,7 +19,7 @@ GEM
     docile (1.1.0)
     drydock (0.6.9)
     encryptor (1.1.3)
-    eventmachine (1.0.3)
+    eventmachine (1.2.0.1)
     familia (0.7.1)
       gibbler (>= 0.8.6)
       multi_json (>= 0.0.5)
@@ -109,4 +109,4 @@ DEPENDENCIES
   yajl-ruby (= 1.1.0)
 
 BUNDLED WITH
-   1.10.2
+   1.13.5
