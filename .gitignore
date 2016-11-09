@@ -2,5 +2,6 @@
 log
 tmp
 .rudy
+.ruby-version
 
 .DS_Store

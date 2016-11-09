@@ -3,9 +3,9 @@
   :domain: localhost
   :ssl: false
   # NOTE Once the secret is set, do not change it (keep a backup offsite)
-  :secret: CHANGEME
+  :secret: 123123123123123123
 :redis:
-  :uri: 'redis://user:CHANGEME@127.0.0.1:7179/0?timeout=10&thread_safe=false&logging=false'
+  :uri: 'redis://127.0.0.1:6379/0?timeout=10&thread_safe=false&logging=false'
   :config: /etc/onetime/redis.conf
 :colonels:
   # Accounts created with the following email addresses
