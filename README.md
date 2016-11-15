@@ -12,6 +12,7 @@ A one-time secret is a link that can be viewed only one time. A single-use URI.
 
 When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
+<!--
 ## What is a One-Time Secret Chat (ALPHA)? ##
 
 Chat is a long-awaited extension to One-Time Secret that provides a two-way conversion with the same safety as single-use, secret URIs. It works just like the messaging apps you know and love with one major exception: only the most recent message from each person is displayed. Once it's gone, it's gone.
@@ -19,7 +20,7 @@ Chat is a long-awaited extension to One-Time Secret that provides a two-way conv
 This feature is new in 0.10.0 and will stay in ALPHA (i.e experimental) mode while we work out the quirks.
 
 <a class="msg" href="https://onetimesecret.com/chat">Start a conversation!</a>
-
+-->
 
 ## Dependencies
 
