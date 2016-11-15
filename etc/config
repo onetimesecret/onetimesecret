@@ -18,6 +18,17 @@
   :from: CHANGEME@example.com
   :fromname: CHANGEME
   :bcc:
+# Use the following email config to enable SMTP
+# support and remove the :emailer config above.
+#:emailer:
+  #  :mode: :smtp
+  #  :from: delano@onetimesecret.com
+  #  :host: localhost
+  #  :port: 587
+  #  :tls: false
+  #  :user:
+  #  :pass:
+  #  :auth:
 :incoming:
   # Intended for use by IT support teams who need someone to send them
   # sensitive info. The email address is where the secret
@@ -39,15 +50,6 @@
   - pt
   - jp
   - pt
-#:emailer:
-#  :mode: :smtp
-#  :from: delano@onetimesecret.com
-#  :host: localhost
-#  :port: 587
-#  :tls: false
-#  :user:
-#  :pass:
-#  :auth:
 :stathat:
   :enabled: false
   :apikey: CHANGEME
