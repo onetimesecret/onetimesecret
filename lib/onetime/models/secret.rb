@@ -77,16 +77,20 @@ module Onetime
       self.value = storable_value.encrypt opts.merge(:key => encryption_key)
     end
     def decrypted_value opts={}
-      case value_encryption.to_i
+      v_encrypted = self.value
+      v_encrypted.force_encoding("utf-8")
+      v_decrypted = case value_encryption.to_i
       when 0
-        self.value
+        v_encrypted
       when 1
-        self.value.decrypt opts.merge(:key => encryption_key_v1)
+        v_encrypted.decrypt opts.merge(:key => encryption_key_v1)
       when 2
-        self.value.decrypt opts.merge(:key => encryption_key_v2)
+        v_encrypted.decrypt opts.merge(:key => encryption_key_v2)
       else
         raise RuntimeError, "Unknown encryption mode: #{value_encryption}"
       end
+      v_decrypted.force_encoding("utf-8") # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
+      v_decrypted
     end
     def can_decrypt?
       !value.to_s.empty?  && (passphrase.to_s.empty? || !passphrase_temp.to_s.empty?)
