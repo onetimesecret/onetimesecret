@@ -40,9 +40,6 @@ if Otto.env?(:dev)
       run app
     }
   end
-  map("/app/")      { run Rack::File.new("#{PUBLIC_DIR}/app") }
-  map("/etc/")      { run Rack::File.new("#{PUBLIC_DIR}/etc") }
-  map("/img/")      { run Rack::File.new("#{PUBLIC_DIR}/img") }
 else
   # PROD: run barebones webapps
   apps.each_pair do |path,app|
