@@ -45,11 +45,11 @@
   - de
   - nl
   - ru
+  - cs
 :unsupported_locales:
   - fr
   - pt
   - jp
-  - pt
 :stathat:
   :enabled: false
   :apikey: CHANGEME
