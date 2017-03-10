@@ -39,6 +39,10 @@
   font-weight: bolder;
 }
 
+#banner .broadcast a {
+  text-decoration: underline;
+}
+
 #createSecret {
   text-align: left;
 }
