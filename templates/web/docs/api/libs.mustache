@@ -153,6 +153,29 @@ class Test
 }
       </pre>
 
+      <h3 class="cufon docTitle dotted">PowerShell</h3>
+
+      <a href="https://github.com/chelnak/OneTimeSecret" title="PowerShell Module - OneTimeSecret"><strong>Download OneTimeSecret</strong></a><br/>
+      <em>by <a href="https://www.helloitscraig.co.uk">Craig Gumbley</a> (added 2016-12-17)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+# Install from the PowerShell gallery
+Install-Module -Name OneTimeSecret
+
+# Set connection information
+Set-OTSConnectionInformation -Username user@mail.com -APIKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Generate a new shared secret
+New-OTSSharedSecret -Secret "Very Secret" -Passphrase 1234 -Recipient user@mail.com
+
+# Retrieve a secret
+Get-OTSSecret -SecretKey qqevnp70b4uoiax4knzhwlhros6ne7x -Passphrase 1234
+
+# View all functions that are available
+Get-Command -Module OneTimeSecret | Select Name
+      </pre>
+
       <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
     </div>
   </div>
