@@ -68,7 +68,7 @@
     :pretext: "Partager ce lien:"
     :requires_passphrase: "Demande une phrase de passe."
     :this_msg_is_encrypted: "Ce message est chiffré avec votre phrase de passe."
-    :only_see_once: "vous ça verrez seulement une fois.
+    :only_see_once: "vous ça verrez seulement une fois."
   :shared:
     :requires_passphrase: "Ce message demande une phrase de passe :"
     :viewed_own_secret: "Vous avez vu votre propre secret. Il n'est plus disponible pour quelqu'un d'autre."
