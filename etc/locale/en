@@ -59,7 +59,7 @@
     :secret_hint: "* A secret link only works once and then disappears forever."
     :secret_form_more_text1: "Sign up for a"
     :secret_form_more_text2: "free account"
-    :secret_form_more_text3: "to set passphrases for extra security along with additional privacy options. We'll even email the link for you if you want."
+    :secret_form_more_text3: "and be able to send the secret by email."
     :anon_info1: "Stay anonymous!"
     :anon_info2: "Create an account using a "
     :anon_info3: "temporary email address"
