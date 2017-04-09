@@ -105,8 +105,8 @@
     :body1: "Tenim un secret per a tu de la part de"
     :body_tagline: "Si no coneixes l'expedidor o creus que és correu porqueria, envia'ns-en els detalls aquí:"
   :welcome:
-    :subject: "Verify your One-time Secret account"
-    :body1: "Welcome to One-Time Secret. We have a secret for you!"
-    :please_verify: "Please verify your account:"
-    :postscript1: "This email was sent to"
-    :postscript2: "If you didn't create this account, delete this message and we won't contact you again."
+    :subject: "Verifiqueu el vostre compte secret d'un sol ús"
+    :body1: "Benvingut al compte secret d'un sol ús. Tenim un secret per a vós!"
+    :please_verify: "Verifiqueu el vostre compte:"
+    :postscript1: "Aquest correu electrònic s'ha enviat a"
+    :postscript2: "Si no heu creat aquest compte, esborra aquest missatge i ja no us escriurem pas més."
