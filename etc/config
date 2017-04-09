@@ -48,9 +48,13 @@
   - cs
   - fr
   - bg
+  - tr
+  - ca_ES
 :unsupported_locales:
   - pt
   - jp
+  - cn
+  - it
 :stathat:
   :enabled: false
   :apikey: CHANGEME
