@@ -99,19 +99,21 @@ class Onetime::App
       end
     end
 
-    # def burn_secret
-    #   authorized(true) do
-    #     req.params[:continue] = 'true'
-    #     logic = OT::Logic::BurnSecret.new sess, cust, req.params, locale
-    #     logic.raise_concerns
-    #     logic.process
-    #     if logic.burn_secret
-    #       json :state => logic.metadata, :secret_shortkey => logic.metadata.secret_shortkey
-    #     else
-    #       # TODO
-    #     end
-    #   end
-    # end
+    # curl -X POST -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:7143/api/v1/private/:key/burn
+    def burn_secret
+      authorized(true) do
+        req.params[:continue] = 'true'
+        logic = OT::Logic::BurnSecret.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        if logic.burn_secret
+          json :state           => metadata_hsh(logic.metadata),
+               :secret_shortkey => logic.metadata.secret_shortkey
+        else
+          secret_not_found_response
+        end
+      end
+    end
 
     private
     def metadata_hsh md, opts={}
