@@ -139,7 +139,7 @@ module Onetime
     rescue => ex
       SYSLOG.err ex.message
       msg = path =~ /locale/ ?
-        "Error loading locale: #{path} (if upgrading to 0.9, you need to copy ./etc/locale to #{dirname}/)"
+        "Error loading locale: #{path} (#{ex.message})"
         : "Error loading config: #{path}"
       Onetime.info msg
       Kernel.exit(1)
