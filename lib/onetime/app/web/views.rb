@@ -210,7 +210,7 @@ module Onetime
         def init *args
           self[:title] = "Share a secret"
           self[:monitored_link] = !self[:is_subdomain]
-          self[:with_analytics] = true
+          self[:with_analytics] = false
         end
       end
       class Incoming < Onetime::App::View
@@ -218,7 +218,7 @@ module Onetime
         def init *args
           self[:title] = "Share a secret"
           self[:monitored_link] = !self[:is_subdomain]
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           self[:incoming_recipient] = OT.conf[:incoming][:email]
           self[:display_feedback] = self[:display_icons] = false
           self[:display_masthead] = self[:display_links] = false
@@ -230,7 +230,7 @@ module Onetime
             self[:title] = "API Docs"
             self[:subtitle] = "OTS Developers"
             self[:monitored_link] = !self[:is_subdomain]
-            self[:with_analytics] = true
+            self[:with_analytics] = false
             self[:css] << '/css/docs.css'
           end
           def baseuri_httpauth
@@ -250,21 +250,21 @@ module Onetime
           def init *args
             self[:title] = "Privacy Policy"
             self[:monitored_link] = true
-            self[:with_analytics] = true
+            self[:with_analytics] = false
           end
         end
          class Security < Onetime::App::View
           def init *args
             self[:title] = "Security Policy"
             self[:monitored_link] = true
-            self[:with_analytics] = true
+            self[:with_analytics] = false
           end
         end
         class Terms < Onetime::App::View
           def init *args
             self[:title] = "Terms and Conditions"
             self[:monitored_link] = true
-            self[:with_analytics] = true
+            self[:with_analytics] = false
           end
         end
       end
@@ -410,7 +410,7 @@ module Onetime
           self[:title] = "Forgotten Password"
           self[:body_class] = :login
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
         end
       end
       class Login < Onetime::App::View
@@ -418,7 +418,7 @@ module Onetime
           self[:title] = "Login"
           self[:body_class] = :login
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           if req.params[:custid]
             add_form_fields :custid => req.params[:custid]
           end
@@ -432,7 +432,7 @@ module Onetime
           self[:title] = "Create an account"
           self[:body_class] = :signup
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           if OT::Plan.plan?(req.params[:planid])
             self[:planid] = req.params[:planid]
             plan = OT::Plan.plan(req.params[:planid])
@@ -458,7 +458,7 @@ module Onetime
           self[:title] = "Create an Account"
           self[:body_class] = :pricing
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           setup_plan_variables
         end
         def plan1;  self[@plans[0].to_s]; end
@@ -499,7 +499,7 @@ module Onetime
           self[:title] = "Your Account"
           self[:body_class] = :account
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           self[:price] = plan.calculated_price
           self[:is_paid] = plan.paid?
           self[:customer_since] = epochdom(cust.created)
@@ -533,7 +533,7 @@ module Onetime
           self[:title] = "About Us"
           self[:body_class] = :info
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           setup_plan_variables
         end
       end
@@ -542,7 +542,7 @@ module Onetime
           self[:title] = "Help us translate"
           self[:body_class] = :info
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
         end
       end
       class Logo < Onetime::App::View
@@ -550,7 +550,7 @@ module Onetime
           self[:title] = "Contest: Help us get a logo"
           self[:body_class] = :info
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           self[:with_broadcast] = false
         end
       end
@@ -559,7 +559,7 @@ module Onetime
           self[:title] = "Page not found"
           self[:body_class] = :info
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
         end
       end
       class Feedback < Onetime::App::View
@@ -567,7 +567,7 @@ module Onetime
           self[:title] = "Your Feedback"
           self[:body_class] = :info
           self[:monitored_link] = true
-          self[:with_analytics] = true
+          self[:with_analytics] = false
           self[:display_feedback] = false
           #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
           #  {:msg => k, :stamp => natural_time(v) }
