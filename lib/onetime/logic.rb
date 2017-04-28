@@ -416,7 +416,9 @@ module Onetime
         @ttl = params[:ttl].to_i
         @ttl = 7.days if @ttl <= 0
         @ttl = 5.minutes if @ttl < 1.minutes
-        @ttl = plan.options[:ttl] if plan.options[:ttl] > @ttl
+        unless params[:ttl]
+          @ttl = plan.options[:ttl] if plan.options[:ttl] > @ttl
+        end
         @maxviews = params[:maxviews].to_i
         @maxviews = 1 if @maxviews < 1
         @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
