@@ -312,7 +312,10 @@ module Onetime
           self[:recipients] = metadata.recipients
           self[:display_feedback] = false
           self[:no_cache] = true
-          ttl = metadata.ttl.to_i  # the real ttl is always a whole number
+          # Metadata now lives twice as long as the original secret.
+          # Prior to the change they had the same value so we can
+          # default to using the metadata ttl.
+          ttl = (metadata.secret_ttl || metadata.ttl).to_i
           self[:created_date_utc] = epochformat(metadata.created.to_i)
           self[:expiration_stamp] = if ttl <= 1.minute
             '%d seconds' % ttl
