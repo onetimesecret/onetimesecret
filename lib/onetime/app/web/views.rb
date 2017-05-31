@@ -189,10 +189,10 @@ module Onetime
                   { :value => 60.days, :name => "2 months"}
                 ]
               end
-              if plan.options[:ttl] == 30.days
+              if plan.options[:ttl] >= 30.days
                 @expiration_options << { :value => 30.days, :name => "30 days"}
               end
-              if plan.options[:ttl] == 14.days
+              if plan.options[:ttl] >= 14.days
                 @expiration_options << { :value => 14.days, :name => "14 days"}
               end
             end
