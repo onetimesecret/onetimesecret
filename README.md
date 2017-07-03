@@ -43,12 +43,12 @@ When you send people sensitive info like passwords and private links via email o
     $ sudo gem install bundler
 
 
-## Install Redis 2.6
+## Install Redis 3.2
 
     $ cd ~/sources
-    $ curl -O http://download.redis.io/releases/redis-2.6.17.tar.gz
-    $ tar zxf redis-2.6.17.tar.gz
-    $ cd redis-2.6.17
+    $ curl -O https://github.com/antirez/redis/archive/3.2.9.tar.gz
+    $ tar zxf redis-3.2.9.tar.gz
+    $ cd redis-3.2.9
     $ make
     $ sudo make install
 
