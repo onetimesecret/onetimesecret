@@ -36,7 +36,7 @@ When you send people sensitive info like passwords and private links via email o
 
     $ cd ~/sources
     $ curl -O https://cache.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p362.tar.bz2
-    $ tar zxf ruby-1.9.3-p362.tar.gz
+    $ tar xjf ruby-1.9.3-p362.tar.gz
     $ cd ruby-1.9.3-p362
     $ ./configure && make
     $ sudo make install
