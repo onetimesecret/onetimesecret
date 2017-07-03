@@ -35,8 +35,8 @@ When you send people sensitive info like passwords and private links via email o
 ## Install Ruby 1.9
 
     $ cd ~/sources
-    $ curl -O ftp://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p362.tar.gz
-    $ tar zxf ruby-1.9.3-p362.tar.gz
+    $ curl -O https://cache.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p362.tar.bz2
+    $ tar xjf ruby-1.9.3-p362.tar.bz2
     $ cd ruby-1.9.3-p362
     $ ./configure && make
     $ sudo make install
