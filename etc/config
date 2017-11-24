@@ -52,11 +52,10 @@
   - ca_ES
   - pt_BR
   - pl
+  - it_IT
 :unsupported_locales:
-  - pt
   - jp
   - cn
-  - it
 :stathat:
   :enabled: false
   :apikey: CHANGEME
