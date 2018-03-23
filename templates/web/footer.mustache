@@ -2,15 +2,6 @@
   <hr/>
 
   <div id="footer">
-    {{#display_feedback}}
-    <form class="form form-inline" action="/feedback" method="post">
-      {{{add_shrimp}}}
-      <div class="input-append">
-        <input class="span6" name="msg" id="appendedInputButton" type="text" placeholder="{{i18n.COMMON.feedback_text}}">
-        <button class="btn" type="submit">{{i18n.COMMON.button_send_feedback}}</button>
-      </div>
-    </form>
-    {{/display_feedback}}
     {{#display_links}}
     <p class="footerNav">
       <a href="{{baseotsuri}}/about">About</a> |

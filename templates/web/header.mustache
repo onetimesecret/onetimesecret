@@ -131,30 +131,6 @@
 
   <div class="masthead">
     <div class="nav pull-right">
-    {{#display_masthead}}
-
-      {{^authenticated}}
-        {{#is_subdomain}}
-        <a href="{{baseotsuri}}/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
-        {{/is_subdomain}}
-        {{^is_subdomain}}
-        <a href="{{baseotsuri}}/signup" title="Signup - Individual and Business plans" class="active">{{i18n.COMMON.header_create_account}}</a> |
-        <a href="{{baseotsuri}}/about" title="About One-Time Secret">{{i18n.COMMON.header_about}}</a> |
-        <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">{{i18n.COMMON.header_sign_in}}</a>
-        {{/is_subdomain}}
-      {{/authenticated}}
-
-      {{#authenticated}}
-        <a href="/" class="home">{{cust.custid}}</a> {{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} |
-        <a href="{{baseotsuri}}/account" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> |
-        <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
-      {{/authenticated}}
-
-      {{^is_default_locale}}
-      | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a>
-      {{/is_default_locale}}
-
-    {{/display_masthead}}
 
     </div>
     <a href="/"><h3 id="logo"></h3></a>
