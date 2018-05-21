@@ -64,7 +64,36 @@
       <div class="pretext">{{i18n.page.this_message_for_you}}</div>
       {{/verification}}
 
-      <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
+      <textarea id="source" class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
+      <br>
+    <button type="button" class="generate btn btn-large btn-block cufon" id="save" title="Save as text file">Download as secret file</button>
+
+    <script type="text/javascript">
+        // when document is ready
+            document.getElementById("save").onclick = function() {
+            // when clicked the button
+            var content = document.getElementById('source').value;
+            // a [save as] dialog will be shown
+            // window.open("data:application/txt," + encodeURIComponent(content), "_self");
+            var filename = ""
+            if (content.includes("filename:") ){
+              var start_ind = content.indexOf("filename:") + 9
+              filename = content.substring(start_ind, content.length)
+              content = content.substring(0, content.indexOf("filename:"))
+            }
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+
+            element.setAttribute('download', filename);
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+            }
+    </script>
 
       {{^verification}}
       <p class="lighter">({{i18n.COMMON.careful_only_see_once}})</p>
