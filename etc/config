@@ -53,9 +53,9 @@
   - pt_BR
   - pl
   - it_IT
+  - cn
 :unsupported_locales:
   - jp
-  - cn
 :stathat:
   :enabled: false
   :apikey: CHANGEME
