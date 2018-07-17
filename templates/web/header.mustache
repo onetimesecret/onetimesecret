@@ -133,7 +133,7 @@
     <div class="nav pull-right">
     {{#display_masthead}}
 
-      {{^authenticated}}
+ <!--     {{^authenticated}}
         {{#is_subdomain}}
         <a href="{{baseotsuri}}/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
         {{/is_subdomain}}
@@ -149,7 +149,7 @@
         <a href="{{baseotsuri}}/account" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> |
         <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
       {{/authenticated}}
-
+-->
       {{^is_default_locale}}
       | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a>
       {{/is_default_locale}}
