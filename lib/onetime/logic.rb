@@ -39,7 +39,7 @@ module Onetime
     class Base
       unless defined?(Onetime::Logic::Base::MOBILE_REGEX)
         MOBILE_REGEX = /^\+?\d{9,16}$/
-        EMAIL_REGEX = %r{^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,12})$}i
+        EMAIL_REGEX = %r{^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@appdirect.com$}i
       end
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
       def initialize(sess, cust, params=nil, locale=nil)
@@ -115,7 +115,7 @@ module Onetime
         limit_action :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
-        raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
+        raise_form_error "Is that a valid appdirect email address?"  unless valid_email?(custid)
         raise_form_error "Passwords do not match" unless password == password2
         raise_form_error "Password is too short" unless password.size >= 6
         raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
@@ -250,8 +250,8 @@ module Onetime
       end
       def raise_concerns
         #limit_action :update_account
-        raise_form_error "Not a valid email address" unless valid_email?(@custid)
-        raise_form_error "Not a valid email address" unless OT::Customer.exists?(@custid)
+        raise_form_error "Not a valid AppDirect email address" unless valid_email?(@custid)
+        raise_form_error "Not a valid AppDirect email address" unless OT::Customer.exists?(@custid)
       end
       def process
         cust = OT::Customer.load @custid

@@ -2,7 +2,7 @@
 log
 tmp
 .rudy
-
+.gitignore
 .ruby-version
 
 .DS_Store

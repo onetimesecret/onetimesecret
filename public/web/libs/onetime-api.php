@@ -1,7 +1,7 @@
 <?php
 
 /**
- * One-Time Secret API v1. This requires an account and API key on https://onetimesecret.com/ to use. 
+ * One-Time Secret API v1. This requires an account and API key on https://ots.appdirect.com/ to use. 
  *
  * @package OneTimeSecret
  */
@@ -9,9 +9,9 @@
 class OneTimeSecret {
 
     var $APIToken;
-    var $theHostname = 'onetimesecret.com';
+    var $theHostname = 'ots.appdirect.com';
     var $APIVersion = 'v1';
-    var $APIURI = 'https://onetimesecret.com/api/v1/';
+    var $APIURI = 'https://ots.appdirect.com/api/v1/';
     var $customerID;
     var $privateKey;
     var $secretKey;
@@ -129,7 +129,7 @@ class OneTimeSecret {
     /**
      * Set the customerid value. This is part of the required authentication for
      * API access. The customerid is usually the email address you used to sign up
-     * and use to login to https://onetimesecret.com/
+     * and use to login to https://ots.appdirect.com/
      * 
      * @access public
      * @param string $customerID The customerid 
@@ -147,7 +147,7 @@ class OneTimeSecret {
 
     /**
      * Set the api token value. This is part of the required authentication for
-     * API access. To get your token, login to https://onetimesecret.com/ and 
+     * API access. To get your token, login to https://ots.appdirect.com/ and 
      * go to the account page. At the bottom of the page is a button to generate 
      * your API token. 
      * 

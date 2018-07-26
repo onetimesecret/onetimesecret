@@ -132,14 +132,12 @@
   <div class="masthead">
     <div class="nav pull-right">
     {{#display_masthead}}
-
       {{^authenticated}}
         {{#is_subdomain}}
         <a href="{{baseotsuri}}/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
         {{/is_subdomain}}
         {{^is_subdomain}}
         <a href="{{baseotsuri}}/signup" title="Signup - Individual and Business plans" class="active">{{i18n.COMMON.header_create_account}}</a> |
-        <a href="{{baseotsuri}}/about" title="About One-Time Secret">{{i18n.COMMON.header_about}}</a> |
         <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">{{i18n.COMMON.header_sign_in}}</a>
         {{/is_subdomain}}
       {{/authenticated}}
