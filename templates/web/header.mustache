@@ -144,13 +144,13 @@
         <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">{{i18n.COMMON.header_sign_in}}</a>
         {{/is_subdomain}}
       {{/authenticated}}
--->
 
       {{#authenticated}}
         <a href="/" class="home">{{cust.custid}}</a> {{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} |
         <a href="{{baseotsuri}}/account" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> |
         <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
       {{/authenticated}}
+-->
 
       {{^is_default_locale}}
       | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a>
