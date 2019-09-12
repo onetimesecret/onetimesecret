@@ -133,6 +133,7 @@
     <div class="nav pull-right">
     {{#display_masthead}}
 
+<!--
       {{^authenticated}}
         {{#is_subdomain}}
         <a href="{{baseotsuri}}/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
@@ -143,6 +144,7 @@
         <a href="{{baseotsuri}}/login" title="Log in to One-Time Secret">{{i18n.COMMON.header_sign_in}}</a>
         {{/is_subdomain}}
       {{/authenticated}}
+-->
 
       {{#authenticated}}
         <a href="/" class="home">{{cust.custid}}</a> {{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} |
