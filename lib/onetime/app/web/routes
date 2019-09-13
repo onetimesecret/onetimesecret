@@ -2,11 +2,11 @@
 GET   /                                          Onetime::App#index
 POST  /                                          Onetime::App#create_secret
 
-GET   /incoming                                  Onetime::App#incoming
-POST  /incoming                                  Onetime::App#create_incoming
+#GET   /incoming                                  Onetime::App#incoming
+#POST  /incoming                                  Onetime::App#create_incoming
 
-GET   /feedback                                  Onetime::App#feedback
-POST  /feedback                                  Onetime::App#receive_feedback
+#GET   /feedback                                  Onetime::App#feedback
+#POST  /feedback                                  Onetime::App#receive_feedback
 
 GET   /about                                     Onetime::App#about
 GET   /logo                                      Onetime::App#logo
@@ -28,33 +28,33 @@ GET   /info/privacy                              Onetime::App::Info#privacy
 GET   /info/security                             Onetime::App::Info#security
 GET   /info/terms                                Onetime::App::Info#terms
 
-GET   /pricing                                   Onetime::App#pricing
+#GET   /pricing                                   Onetime::App#pricing
 #GET   /business                                  Onetime::App#business_pricing
-GET   /signup                                    Onetime::App#signup
-GET   /signup/:planid                            Onetime::App#signup
-POST  /signup                                    Onetime::App#create_account
-GET   /login                                     Onetime::App#login
-POST  /login                                     Onetime::App#authenticate
-GET   /logout                                    Onetime::App#logout
+#GET   /signup                                    Onetime::App#signup
+#GET   /signup/:planid                            Onetime::App#signup
+#POST  /signup                                    Onetime::App#create_account
+#GET   /login                                     Onetime::App#login
+#POST  /login                                     Onetime::App#authenticate
+#GET   /logout                                    Onetime::App#logout
 
-GET   /forgot                                    Onetime::App#forgot
-GET   /forgot/:key                               Onetime::App#forgot
-POST  /forgot                                    Onetime::App#request_reset
-POST  /forgot/:key                               Onetime::App#request_reset
+#GET   /forgot                                    Onetime::App#forgot
+#GET   /forgot/:key                               Onetime::App#forgot
+#POST  /forgot                                    Onetime::App#request_reset
+#POST  /forgot/:key                               Onetime::App#request_reset
 
 GET   /dashboard                                 Onetime::App#dashboard
 POST  /dashboard                                 Onetime::App#create_secret
 
-GET   /account                                   Onetime::App#account
-POST  /account                                   Onetime::App#update_account
-POST  /account/passgen                           Onetime::App#update_account
-POST  /account/apikey                            Onetime::App#generate_apikey
-POST  /account/subdomain                         Onetime::App#update_subdomain
+#GET   /account                                   Onetime::App#account
+#POST  /account                                   Onetime::App#update_account
+#POST  /account/passgen                           Onetime::App#update_account
+#POST  /account/apikey                            Onetime::App#generate_apikey
+#POST  /account/subdomain                         Onetime::App#update_subdomain
 
-GET   /contributor                               Onetime::App#contributors
-POST  /contributor                               Onetime::App#contributors
+#GET   /contributor                               Onetime::App#contributors
+#POST  /contributor                               Onetime::App#contributors
 
-GET   /translations                              Onetime::App#translations
+#GET   /translations                              Onetime::App#translations
 
 #GET   /email                                     Onetime::App#test_send_email
 
