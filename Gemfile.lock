@@ -83,7 +83,7 @@ GEM
       polyglot (>= 0.3.1)
     uri-redis (0.4.2)
     xml-simple (1.1.5)
-    yajl-ruby (1.1.0)
+    yajl-ruby (1.3.1)
 
 PLATFORMS
   ruby
@@ -106,7 +106,7 @@ DEPENDENCIES
   storable (= 0.8.9)
   sysinfo (= 0.7.3)
   thin (= 1.5.0)
-  yajl-ruby (= 1.1.0)
+  yajl-ruby (= 1.3.1)
 
 BUNDLED WITH
    1.12.5
