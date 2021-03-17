@@ -31,7 +31,7 @@ GEM
     httparty (0.10.0)
       multi_json (~> 1.0)
       multi_xml
-    mail (2.5.4)
+    mail (2.5.5)
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     mime-types (1.25.1)
@@ -97,7 +97,7 @@ DEPENDENCIES
   familia (= 0.7.1)
   gibbler (= 0.8.9)
   httparty (= 0.10.0)
-  mail (= 2.5.4)
+  mail (= 2.5.5)
   mustache (= 0.99.3)
   otto (= 0.4.1)
   rack (= 2.1.4)
