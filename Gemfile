@@ -26,7 +26,7 @@ gem 'sysinfo', '0.7.3'
 gem 'annoy', '0.5.6'
 #gem 'rye', '0.9.4'
 
-gem 'httparty', '0.7.7'
+gem 'httparty', '0.10.0'
 
 gem 'mail', '2.5.4'
 
