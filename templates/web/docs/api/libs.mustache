@@ -176,6 +176,81 @@ Get-OTSSecret -SecretKey qqevnp70b4uoiax4knzhwlhros6ne7x -Passphrase 1234
 Get-Command -Module OneTimeSecret | Select Name
       </pre>
 
+      <h3 class="cufon docTitle dotted">Bash</h3>
+
+      <a href="https://github.com/eengstrom/onetimesecret-bash" title="Bash API and CLI - OneTimeSecret"><strong>Download OneTimeSecret-bash</strong></a><br/>
+      <em>by <a href="https://eengstrom.github.io/">Eric Engstrom</a> (updated 2018-12-19)</em>
+
+      <h4>Usage Example as Scripting API</h4>
+      <pre class="colourize">
+# source for use anonymously (secrets created anonymously)
+source ots.bash
+
+# or, source with specific auth credentials
+APIUSER="USERNAME"
+APIKEY="APIKEY"
+source ots.bash -u $APIUSER -k $APIKEY
+
+# check status of server
+ots_status
+
+# create a secret and get back the URL
+URL=$(echo "secret" | ots_share)
+
+# share a multi line secret via HEREDOC.
+URL=$(ots_share <<-EOF
+	This is a Secret
+    ... on multiple lines
+EOF
+)
+
+# pass options to share or generate.
+URL=$(ots_share ttl=600 \
+                passphrase="shared-secret" \
+                recipient="someone@somewhere.com" <<< "SECRET")
+
+# fetch the secret data
+local DATA="$(ots_retrieve "$URL")"
+
+# share/generate a new secret, and get back the private metadata key
+local KEY=$(ots_metashare <<< "SECRET")
+local KEY=$(ots_metagenerate)
+
+# get a list of private metadata keys recently created.
+# note that this requires valid autnentication credentials
+local -a RECENT=( $(ots_recent) )
+
+# check on the current state of a secret, given the private key
+ots_state $KEY
+
+# burn a secret, given the private key
+ots_burn $KEY
+      </pre>
+
+      <h4>Usage Example as CLI</h4>
+      <pre class="colourize">
+# Share a secret (from stdin
+./ots share
+SECRET
+^D
+
+# Share a secret (via HEREDOC)
+./ots share <<-EOF
+    This is a mulit-line secret via HEREDOC.
+    Somthing else goes here.
+EOF
+
+# Get/Retrieve a secret:
+./ots get <key|url>
+./ots retrieve <key|url>
+
+# Burn a secret:
+./ots burn <key|url>
+
+# Use --help for complete list of command line actions and known options:
+./ots --help
+      </pre>
+
       <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
     </div>
   </div>
