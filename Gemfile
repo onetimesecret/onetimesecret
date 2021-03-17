@@ -4,7 +4,7 @@ source "https://rubygems.org/"
 # PRODUCTION: bundle install --deployment --without dev
 
 gem 'addressable', '2.2.6'
-gem 'rack', '1.4.5'
+gem 'rack', '2.1.4'
 gem 'yajl-ruby', '1.4.1'
 gem 'thin', '1.5.0'
 
@@ -26,7 +26,7 @@ gem 'sysinfo', '0.7.3'
 gem 'annoy', '0.5.6'
 #gem 'rye', '0.9.4'
 
-gem 'httparty', '0.7.7'
+gem 'httparty', '0.10.0'
 
 gem 'mail', '2.5.4'
 
