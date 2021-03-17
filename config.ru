@@ -5,6 +5,8 @@
 #     $ thin -e dev -R config.ru -p 7143 start
 #     $ tail -f /var/log/system.log
 
+$stdout.sync = true
+
 ENV['RACK_ENV'] ||= 'prod'
 ENV['APP_ROOT'] = ::File.expand_path(::File.join(::File.dirname(__FILE__)))
 $:.unshift(::File.join(ENV['APP_ROOT']))
@@ -43,6 +45,7 @@ if Otto.env?(:dev)
 else
   # PROD: run barebones webapps
   apps.each_pair do |path,app|
+    app.option[:public] = PUBLIC_DIR
     map(path) { run app }
   end
   #$SAFE = 1  # http://www.rubycentral.com/pickaxe/taint.html
