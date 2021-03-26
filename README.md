@@ -60,10 +60,20 @@ When you send people sensitive info like passwords and private links via email o
 ### Update the configuration
 
 1. `/etc/onetime/config`
-  * Update your secret key (and stored it in your password manager because it's included in the secret encryption)
+  * Update your secret key
+    * Store it in your password manager because it's included in the secret encryption
+  * Add or remove locales
+  * Update the SMTP or SendGrid credentials
+  * Update the from address
+    * it's used for all sent emails
+  * Update the the limits at the bottom of the file
+    * These numbers refer to the number of times each action can occur for unauthenticated users.
+    * If you would like to increase the limits for authenticated users too, see (lib/onetime.rb](https://github.com/onetimesecret/onetimesecret/blob/main/lib/onetime.rb#L261-L279)
 1. `/etc/onetime/redis.conf`
   * The host, port, and password need to match
-1.
+1. `/etc/onetime/locale/*`
+  * Optionally you can customize the text used throughout the site and emails
+  * You can also edit the `:broadcast` string to display a brief message at the top of every page
 
 ### Running
 
