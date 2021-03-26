@@ -2,7 +2,7 @@ require 'securerandom'
 
 class Onetime::RateLimit < Familia::String
   DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
-  ttl 10.minutes
+  ttl 20.minutes
   def initialize identifier, event
     #super [Familia.apiversion, :limiter, identifier, event, self.class.eventstamp]
     super [:limiter, identifier, event, self.class.eventstamp], :db => 2
@@ -14,7 +14,7 @@ class Onetime::RateLimit < Familia::String
       lmtr = new identifier, event
       count = lmtr.increment
       lmtr.update_expiration
-      OT.ld [:limit, event, identifier, count].inspect
+      OT.le [:limit, event, identifier, count].inspect
       raise OT::LimitExceeded.new(identifier, event, count) if exceeded?(event, count)
       count
     end
