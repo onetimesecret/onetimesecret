@@ -47,9 +47,10 @@ module Onetime
         emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
         @emailer = SendGrid.new *emailer_opts
       else
+        OT.ld "[mail-smtp-from] #{OT.conf[:emailer][:from]}"
         @emailer = OT::SMTP.new OT.conf[:emailer][:from]
       end
-      OT.ld "[emailer] #{@emailer} (#{@mode})"
+      OT.le "[emailer] #{@emailer} (#{@mode})"
       init *args if respond_to? :init
     end
     def i18n
@@ -62,10 +63,19 @@ module Onetime
       }
     end
     def deliver_email
-      OT.ld "Emailing #{self[:email_address]} [#{self.class}]"
-      ret = emailer.send self[:email_address], subject, render
-    rescue SocketError => ex
-      OT.ld "Cannot send mail: #{ex.message}"
+      errmsg = "Your message wasn't sent because we have an email problem"
+      begin
+        email_address_obscured = OT::Utils.obscure_email self[:email_address]
+        OT.info "Emailing #{email_address_obscured} [#{self.class}]"
+        ret = emailer.send self[:email_address], subject, render
+      rescue SocketError => ex
+        OT.le "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+        raise OT::Problem, errmsg
+      rescue Exception => ex
+        OT.le "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+        OT.le errmsg
+        raise OT::Problem, errmsg
+      end
     end
     class Welcome < OT::Email
       def init secret

@@ -260,12 +260,13 @@ module Onetime
         secret.verification = true
         view = OT::Email::PasswordRequest.new cust, locale, secret
         ret = view.deliver_email
-        sess.set_info_message "We sent instructions to #{cust.custid}"
-        #if ret.code == 200
-        #  sess.set_info_message "We sent instructions to #{cust.custid}"
-        #else
-        #  sess.set_info_message "Couldn't send the notification. Let Delano know."
-        #end
+        # sess.set_info_message "We sent instructions to #{cust.custid}"
+        if ret.code == 200
+          sess.set_info_message "We sent instructions to #{cust.custid}"
+        else
+          errmsg = "Couldn't send the notification email. Let know below."
+          sess.set_info_message errmsg
+        end
       end
     end
 
