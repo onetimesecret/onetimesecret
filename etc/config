@@ -1,16 +1,16 @@
 :site:
-  :host: localhost:7143
+  :host: <%= ENV['ONETIMESECRET_HOST'] || 'localhost:7143' %>
   :domain: localhost
-  :ssl: false
+  :ssl: <%= ENV['ONETIMESECRET_SSL'] == 'true' %>
   # NOTE Once the secret is set, do not change it (keep a backup offsite)
-  :secret: CHANGEME
+  :secret: <%= ENV['ONETIMESECRET_SECRET'] || 'CHANGEME' %>
 :redis:
-  :uri: 'redis://user:CHANGEME@127.0.0.1:7179/0?timeout=10&thread_safe=false&logging=false'
+  :uri: <%= (ENV['ONETIMESECRET_REDIS_URL'] || 'redis://user:CHANGEME@127.0.0.1:7179/0') + '?timeout=10&thread_safe=false&logging=false' %>
   :config: /etc/onetime/redis.conf
 :colonels:
   # Accounts created with the following email addresses
   # are automatically considered admins of the system.
-  - CHANGEME@EXAMPLE.com
+  - <%= ENV['ONETIMESECRET_COLONEL'] || 'CHANGEME@EXAMPLE.com' %>
 :emailer:
   :mode: :sendgrid
   :account: CHANGEME
@@ -54,6 +54,8 @@
   - pl
   - it_IT
   - cn
+  - el_GR
+  - sl_SI
 :unsupported_locales:
   - jp
 :stathat:

@@ -9,7 +9,7 @@
     :secret_passphrase: "Passphrase"
     :secret_passphrase_hint: "Ein Wort oder eine Phrase, die schwierig zu erraten ist"
     :secret_recipient_address: "Empfänger-Adresse"
-    :secret_placeholder: "Der geheimer Inhalt kommt hier hin..."
+    :secret_placeholder: "Der geheime Inhalt kommt hier hin..."
     :header_create_account: "Account erstellen"
     :header_about: "Über"
     :header_sign_in: "Einloggen"

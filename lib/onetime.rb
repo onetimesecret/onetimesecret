@@ -4,6 +4,7 @@ require 'bundler/setup'
 
 require 'onetime/core_ext'
 
+require 'erb'
 require 'syslog'
 
 require 'encryptor'
@@ -135,7 +136,7 @@ module Onetime
     attr_reader :env, :base, :bootstrap
     def load path=self.path
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
-      YAML.load_file path
+      YAML.load(ERB.new(File.read(path)).result)
     rescue => ex
       SYSLOG.err ex.message
       msg = path =~ /locale/ ?
