@@ -113,26 +113,25 @@ module Onetime
       File.chmod(chmod, filename)
     end
     def info(*msg)
-      #prefix = "I(#{Time.now.to_i}):  "
-      #msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      msg = msg.join($/)
+      prefix = "E(#{Time.now.to_i}):  "
+      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       if (mode?(:app) || mode?(:cli))
         STDERR.puts(msg) if STDOUT.tty?
-        SYSLOG.info msg
+        SYSLOG.log(Syslog::LOG_INFO, msg)
       end
     end
     def le(*msg)
       prefix = "E(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       STDERR.puts(msg) if STDOUT.tty?
-      SYSLOG.error msg
+      SYSLOG.log(Syslog::LOG_ERR, msg)
     end
     def ld(*msg)
       return unless Onetime.debug
       prefix = "D(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       STDERR.puts(msg) if STDOUT.tty?
-      SYSLOG.crit msg
+      SYSLOG.log(Syslog::LOG_DEBUG, msg)
     end
   end
   module Config
@@ -144,7 +143,7 @@ module Onetime
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
       YAML.load(ERB.new(File.read(path)).result)
     rescue => ex
-      SYSLOG.err ex.message
+      SYSLOG.log(Sysinfo::LOG_ERR, ex.message)
       msg = path =~ /locale/ ?
         "Error loading locale: #{path} (#{ex.message})"
         : "Error loading config: #{path}"

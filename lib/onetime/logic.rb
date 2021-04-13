@@ -186,8 +186,9 @@ module Onetime
 
       def process
         if success?
-          OT.info "[login-success] #{cust.custid} #{cust.role}"
-          #TODO: get rid of the unauthenticated session ID
+          idstr = OT::Utils.obscure_email(cust.custid)
+          OT.info "[login-success] #{idstr} #{cust.role}"
+          # TODO: get rid of the unauthenticated session ID
           sess.update_fields :custid => cust.custid, :authenticated => 'true'
           sess.ttl = session_ttl if @stay
           sess.save

@@ -16,12 +16,19 @@ module Onetime
         content_type 'text/html; charset=UTF-8'
         body content
       end
-      mail.deliver
+      errmsg = "Your message wasn't sent because we have an email problem"
+      begin
+        mail.deliver
+      rescue Exception => ex
+        OT.le "Cannot send by smtp: #{ex.message}\n#{ex.backtrace}"
+        OT.le errmsg
+        raise OT::Problem, errmsg
+      end
     end
     def self.setup
       Mail.defaults do
         opts = { :address   => OT.conf[:emailer][:host] || 'localhost',
-                 :port      => OT.conf[:emailer][:port] || 587  ,
+                 :port      => OT.conf[:emailer][:port] || 587,
                  :domain    => OT.conf[:site][:domain],
                  :user_name => OT.conf[:emailer][:user],
                  :password  => OT.conf[:emailer][:pass],
