@@ -14,7 +14,7 @@ require 'sysinfo'
 require 'gibbler'
 require 'familia'
 require 'storable'
-require 'thirdparty/sendgrid'
+#require 'thirdparty/sendgrid'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 Familia.apiversion = nil
@@ -117,21 +117,21 @@ module Onetime
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       if (mode?(:app) || mode?(:cli))
         STDERR.puts(msg) if STDOUT.tty?
-        SYSLOG.log(Syslog::LOG_INFO, msg)
+        SYSLOG.log Syslog::LOG_INFO, msg
       end
     end
     def le(*msg)
       prefix = "E(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       STDERR.puts(msg) if STDOUT.tty?
-      SYSLOG.log(Syslog::LOG_ERR, msg)
+      SYSLOG.log Syslog::LOG_ERR, msg
     end
     def ld(*msg)
       return unless Onetime.debug
       prefix = "D(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       STDERR.puts(msg) if STDOUT.tty?
-      SYSLOG.log(Syslog::LOG_DEBUG, msg)
+      SYSLOG.log Syslog::LOG_DEBUG, msg
     end
   end
   module Config
@@ -143,7 +143,7 @@ module Onetime
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
       YAML.load(ERB.new(File.read(path)).result)
     rescue => ex
-      SYSLOG.log(Sysinfo::LOG_ERR, ex.message)
+      SYSLOG.puts ex.message
       msg = path =~ /locale/ ?
         "Error loading locale: #{path} (#{ex.message})"
         : "Error loading config: #{path}"

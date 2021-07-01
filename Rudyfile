@@ -1,4 +1,19 @@
+defaults do
+  user :ots
+  role :fe
+  env :staging
+end
 
+machines do
+
+  env :prod do
+    role :fe do
+      hostname 'onetimesecret.com'
+      user :ots
+    end
+  end
+
+end
 
 # ---------------------------------------------------- COMMON ROUTINES --------
 # The routines block describes the repeatable processes for each machine group.

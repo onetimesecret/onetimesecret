@@ -1,29 +1,50 @@
 require 'mustache'
 require 'mail'
+require 'time'
+require 'sendgrid-ruby'
+include SendGrid
 
 module Onetime
   class SMTP
     attr_accessor :from, :fromname
     def initialize from, fromname=nil
       @from, @fromname = from, fromname
+      OT.info "[initialize]"
+      @sendgrid = SendGrid::API.new(api_key: OT.conf[:emailer][:pass])
     end
+
     def send to_address, subject, content
-      mail = Mail.new
-      mail.to to_address
-      mail.from self.from
-      mail.subject subject
-      mail.html_part do
-        content_type 'text/html; charset=UTF-8'
-        body content
-      end
-      errmsg = "Your message wasn't sent because we have an email problem"
       begin
-        mail.deliver
-      rescue Exception => ex
-        OT.le "Cannot send by smtp: #{ex.message}\n#{ex.backtrace}"
-        OT.le errmsg
-        raise OT::Problem, errmsg
+        obscured_address = OT::Utils.obscure_email to_address
+        OT.ld "> [send-start] #{obscured_address}"
+
+        to_email = SendGrid::Email.new(email: to_address)
+        from_email = SendGrid::Email.new(email: self.from, name: self.fromname)
+
+        prepared_content = SendGrid::Content.new(
+          type: 'text/html',
+          value: content,
+        )
+
+      rescue => ex
+        OT.info "> [send-exception1] #{obscured_address}"
+        OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+        return
       end
+
+      begin
+        mail = SendGrid::Mail.new(from_email, subject, to_email, prepared_content)
+        response = @sendgrid.client.mail._('send').post(request_body: mail.to_json)
+        OT.ld response.status_code
+        OT.ld response.body
+        #OT.ld response.parsed_body
+        OT.ld response.headers
+
+      rescue => ex
+        OT.info "> [send-exception2] #{obscured_address}"
+        OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+      end
+
     end
     def self.setup
       Mail.defaults do
@@ -45,14 +66,13 @@ module Onetime
     self.template_path = './templates/email'
     self.view_namespace = Onetime::Email
     self.view_path = './onetime/email'
-    attr_reader :cust, :locale, :emailer, :mode
+    attr_reader :cust, :locale, :emailer, :mode, :from, :to
     def initialize cust, locale, *args
       @cust, @locale = cust, locale
-      OT.ld "#{self.class} locale is: #{locale.to_s}"
+      OT.le "#{self.class} locale is: #{locale.to_s}"
       @mode = OT.conf[:emailer][:mode]
       if @mode == :sendgrid
-        emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
-        @emailer = SendGrid.new *emailer_opts
+        @emailer = OT::SMTP.new OT.conf[:emailer][:from], OT.conf[:emailer][:fromname]
       else
         OT.ld "[mail-smtp-from] #{OT.conf[:emailer][:from]}"
         @emailer = OT::SMTP.new OT.conf[:emailer][:from]
@@ -73,17 +93,21 @@ module Onetime
       errmsg = "Your message wasn't sent because we have an email problem"
       begin
         email_address_obscured = OT::Utils.obscure_email self[:email_address]
-        OT.info "Emailing #{email_address_obscured} [#{self.class}]"
-        ret = emailer.send self[:email_address], subject, render
+       # OT.info "Emailing #{email_address_obscured} [#{self.class}]"
+        email_content = render
+        #OT.info '+' * 200
+        #OT.info email_content
+        #OT.info '+' * 200
+        ret = @emailer.send  self[:email_address], subject, email_content
       rescue SocketError => ex
-        OT.le "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+        OT.ld "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
         raise OT::Problem, errmsg
       rescue Exception => ex
-        OT.le "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
-        OT.le errmsg
+        OT.ld "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+        OT.ld errmsg
         raise OT::Problem, errmsg
       end
-    end
+    end    
     class Welcome < OT::Email
       def init secret
         self[:secret] = secret
@@ -106,12 +130,12 @@ module Onetime
           self[:from_name] = subdomain['contact']
           self[:from] = subdomain['email']
           self[:signature_link] = subdomain['homepage']
-          emailer.from = self[:from]
-          emailer.fromname = self[:from_name]
+          #emailer.from = self[:from]
+          #emailer.fromname = self[:from_name]
         else
           self[:from_name] = 'Delano'
           self[:signature_link] = 'https://onetimesecret.com/'
-          emailer.fromname = 'One-Time Secret'
+          #emailer.name = 'One-Time Secret'
           self[:from] = cust.custid
         end
       end
@@ -119,6 +143,7 @@ module Onetime
         i18n[:email][:subject] % [self[:from]]
       end
       def verify_uri
+        OT.ld "#{self[:secret]}:#{self}"
         secret_uri self[:secret]
       end
     end

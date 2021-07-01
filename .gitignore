@@ -6,3 +6,4 @@ tmp
 .ruby-version
 
 .DS_Store
+sendgrid.env

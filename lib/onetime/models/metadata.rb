@@ -47,6 +47,8 @@ module Onetime
     def deliver_by_email cust, locale, secret, eaddrs, template=OT::Email::SecretLink, ticketno=null
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] No addresses specified"
+      else
+	OT.info "[delivery-by-email] Entered method"
       end
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
       eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
@@ -55,11 +57,13 @@ module Onetime
       eaddrs.each do |email_address|
         view = template.new cust, locale, secret, email_address
         view.ticketno = ticketno if (ticketno)
-        view.emailer.from = cust.custid
-        view.emailer.fromname = ''
+        #view.emailer.from = cust.custid
+        #view.emailer.fromname = ''
         ret = view.deliver_email
         break # force just a single recipient
       end
+      OT.info "[delivery-by-email] aaand we're out"
+      ret
     end
     def older_than? seconds
       age > seconds

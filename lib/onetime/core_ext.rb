@@ -1,6 +1,18 @@
 #encoding: utf-8
 $KCODE = "u" if RUBY_VERSION =~ /^1.8/
 
+# via: https://stackoverflow.com/questions/25571618/why-doesnt-thin-log-timestamps
+# monkey patch thin to add timestamps to logging
+module Thin
+  module Logging
+    class SimpleFormatter < Logger::Formatter
+      def call(severity, timestamp, progname, msg)
+        "#{timestamp} #{String === msg ? msg : msg.inspect}\n"
+      end
+    end
+  end
+end
+
 module QuantizeTime
   def quantize quantum
     stamp = self === Integer ? self : to_i

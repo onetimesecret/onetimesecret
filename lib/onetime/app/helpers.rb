@@ -158,8 +158,11 @@ class Onetime::App
 
     def err *msg
       prefix = "D(#{Time.now.to_i}):  "
-      msg = "#{prefix} #{msg}"
-      STDERR.puts msg
+      #msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      #msg = "#{prefix} #{msg}"
+      #SYSLOG.log Syslog::LOG_ERR, "#{prefix} #{msg}"
+      #SYSLOG.log Syslog::LOG_ERR, msg
+      STDERR.puts "#{prefix} #{msg}"
     end
 
     def deny_agents! *agents
