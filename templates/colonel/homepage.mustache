@@ -15,13 +15,30 @@
 
         <p>Sessions: {{session_count}} (active in the past 5 minutes)</p>
 
-        <h3>Secrets ({{secret_count}})</h3>
+        <h3>Secrets ({{secret_count}})</h3>>
 
-        <script src="https://www.stathat.com/javascripts/embed.js"></script>
-        <script>StatHatEmbed.render({s1: '{{stathat_chart}}', w: 760, h: 235});</script>
+        <script src="//www.stathat.com/js/embed.js"></script>
+        <script>StatHatEmbed.render({s1: 'undefined', w: 760, h: 235});</script>
+        <a href="https://www.stathat.com/v/stats/HYyd">Analyze on StatHat</a>
 
         <p><a href="/colonel/metadata">Metadata</a>/<a href="/colonel/secrets">Secrets</a>: {{metadata_count}}/{{secret_count}} ({{secrets_created}}/{{secrets_shared}}/{{emails_sent}} total)</p>
 
+      </div>
+
+      <div id="customers">
+        <h3>Secret lovers - past 7 days ({{recent_customer_count}} of {{customer_count}})</h3>
+        <ul class="smaller">
+        {{#recent_customers}}
+          <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} {{secrets_created}}/{{secrets_shared}}/{{emails_sent}} [{{planid}}] <em class="lighter">{{stamp}}</em></li>
+        {{/recent_customers}}
+        </ul>
+
+        <h3>Legacy Subdomains ({{subdomain_count}})</h3>
+        <ul class="smaller">
+          {{#subdomains}}
+          <li><a href="//{{fulldomain}}">{{cname}}</a> {{custid}}</li>
+          {{/subdomains}}
+        </ul>
       </div>
 
       <div id="feedback">
@@ -54,25 +71,7 @@
         </ul>
       </div>
 
-      <div id="customers">
-        <h3>Subdomains ({{subdomain_count}})</h3>
-
-        <ul class="smaller">
-          {{#subdomains}}
-          <li><a href="//{{fulldomain}}">{{cname}}</a> {{custid}}</li>
-          {{/subdomains}}
-        </ul>
-
-        <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
-        <ul class="smaller">
-        {{#recent_customers}}
-          <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} {{secrets_created}}/{{secrets_shared}}/{{emails_sent}} [{{planid}}] <em class="lighter">{{stamp}}</em></li>
-        {{/recent_customers}}
-        </ul>
-      </div>
-
       <div id="misc">
-
         <h3>Entropy</h3>
 
         <p>{{entropy_count}} values. <a href="/colonel/entropy/generate" class="entropy-generate" alt="Generating...">Generate more</a></p>

@@ -10,7 +10,7 @@ class Onetime::Customer < Familia::HashKey
     def all
       self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
     end
-    def recent duration=30.days, epoint=OT.now.to_i
+    def recent duration=7.days, epoint=OT.now.to_i
       spoint = OT.now.to_i-duration
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end

@@ -161,12 +161,13 @@ module Onetime
     class << self
       attr_reader :values
       def add msg
+        ttl = (31 * 6).days  # keep feedback for 6 months
         self.values.add OT.now.to_i, msg
-        self.values.remrangebyscore 0, OT.now.to_i-30.days
+        self.values.remrangebyscore 0, OT.now.to_i-ttl
       end
-      # Returns a Hash like: {"msg1"=>"1322644672", "msg2"=>"1322644668"}
       def all
         ret = self.values.revrangeraw(0, -1, :with_scores => true)
+        # e.g. `{msg1"=>"1322644672", "msg2"=>"1322644668"}`
         Hash[*ret]
       end
       def recent duration=30.days, epoint=OT.now.to_i

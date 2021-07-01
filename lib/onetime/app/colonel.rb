@@ -36,8 +36,9 @@ class Onetime::App
 
     def generate_entropy
       colonels do
-        Onetime::Entropy.generate 5000
-        sess.set_info_message "Added 5000 elements to entropy"
+        count = 25000
+        Onetime::Entropy.generate count
+        sess.set_info_message "Added #{count} elements to entropy"
         res.redirect '/colonel' unless req.ajax?
       end
     end
@@ -51,24 +52,24 @@ class Onetime::App
       self.view_path = './lib/onetime/app/colonel/views'
       def initialize *args
         super
-        self[:subtitle] = "Colonel"
+        self[:subtitle] = 'Colonel'
       end
     end
 
     module Views
       class Homepage < OT::App::Colonel::View
         def init *args
-          self[:title] = "Home"
+          self[:title] = 'Home'
           self[:stathat_chart] = OT.conf[:stathat][:default_chart]
           self[:body_class] = :colonel
-          self[:session_count] = OT::Session.recent(5.minutes).size
+          self[:session_count] = OT::Session.recent(20.minutes).size
           self[:today_feedback] = OT::Feedback.recent(24.hours, OT.now.to_i).collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
           end.reverse
           self[:yesterday_feedback] = OT::Feedback.recent(48.hours, OT.now.to_i-24.hours).collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
           end.reverse
-          self[:older_feedback] = OT::Feedback.recent(14.days, OT.now.to_i-48.hours).collect do |k,v|
+          self[:older_feedback] = OT::Feedback.recent(90.days, OT.now.to_i-48.hours).collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
           end.reverse
           self[:subdomain_count] = OT::Subdomain.values.size
@@ -79,9 +80,9 @@ class Onetime::App
           self[:today_feedback_count] = self[:today_feedback].size
           self[:yesterday_feedback_count] = self[:yesterday_feedback].size
           self[:older_feedback_count] = self[:older_feedback].size
-          self[:recent_customers] = OT::Customer.recent.collect do |this_cust|
+          self[:recent_customers] = OT::Customer.recent(7.days).collect do |this_cust|
             next if this_cust.nil?
-            { :custid => this_cust.custid,
+            { :custid => OT::Utils.obscure_email(this_cust.custid),
               :planid => this_cust.planid,
               :colonel => this_cust.role?(:colonel),
               :secrets_created => this_cust.secrets_created,
