@@ -117,21 +117,21 @@ module Onetime
       msg = msg.join($/)
       if (mode?(:app) || mode?(:cli))
         STDERR.puts(msg) if STDOUT.tty?
-        SYSLOG.info msg
+        SYSLOG.log Syslog::LOG_INFO, msg
       end
     end
     def le(*msg)
       prefix = "E(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       STDERR.puts(msg) if STDOUT.tty?
-      SYSLOG.err msg
+      SYSLOG.log Syslog::LOG_ERR, msg
     end
     def ld(*msg)
       return unless Onetime.debug
       prefix = "D(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       STDERR.puts(msg) if STDOUT.tty?
-      SYSLOG.crit msg
+      SYSLOG.log Syslog::LOG_DEBUG, msg
     end
   end
   module Config
@@ -143,7 +143,7 @@ module Onetime
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
       YAML.load_file path
     rescue => ex
-      SYSLOG.err ex.message
+      SYSLOG.puts ex.message
       msg = path =~ /locale/ ?
         "Error loading locale: #{path} (#{ex.message})"
         : "Error loading config: #{path}"

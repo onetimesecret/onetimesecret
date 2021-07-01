@@ -7,6 +7,7 @@ module Onetime
     def initialize from, fromname=nil
       @from, @fromname = from, fromname
     end
+
     def send to_address, subject, content
       mail = Mail.new
       mail.to to_address
@@ -113,6 +114,7 @@ module Onetime
         i18n[:email][:subject] % [self[:from]]
       end
       def verify_uri
+        OT.ld "#{self[:secret]}:#{self}"
         secret_uri self[:secret]
       end
     end
