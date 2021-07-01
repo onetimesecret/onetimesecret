@@ -1,4 +1,5 @@
 require 'stathat'
+require 'timeout'
 
 module Onetime
   module Logic
@@ -14,7 +15,7 @@ module Onetime
       def stathat_count name, count, wait=0.500
         return false if ! stathat_enabled
         begin
-          timeout(wait) do
+          Timeout.timeout(wait) do
             StatHat::API.ez_post_count(name, stathat_apikey, count)
           end
         rescue SocketError => ex
@@ -26,7 +27,7 @@ module Onetime
       def stathat_value name, value, wait=0.500
         return false if ! stathat_enabled
         begin
-          timeout(wait) do
+          Timeout.timeout(wait) do
             StatHat::API.ez_post_value(name, stathat_apikey, value)
           end
         rescue SocketError => ex
