@@ -13,7 +13,7 @@ require 'sysinfo'
 require 'gibbler'
 require 'familia'
 require 'storable'
-require 'thirdparty/sendgrid'
+#require 'thirdparty/sendgrid'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 Familia.apiversion = nil

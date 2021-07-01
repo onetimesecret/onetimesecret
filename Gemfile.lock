@@ -12,11 +12,11 @@ GEM
       mime-types
       xml-simple
     bcrypt-ruby (3.0.0)
-    builder (3.2.2)
+    builder (3.2.4)
     caesars (0.7.4)
     crack (0.1.8)
     daemons (1.3.1)
-    docile (1.1.5)
+    docile (1.3.5)
     drydock (0.6.9)
     encryptor (1.1.3)
     eventmachine (1.2.7)
@@ -28,18 +28,18 @@ GEM
       uri-redis (>= 0.4.2)
     gibbler (0.8.9)
       attic (>= 0.4.0)
-    highline (1.7.8)
+    highline (2.0.3)
     httparty (0.7.7)
       crack (= 0.1.8)
     mail (2.5.4)
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     mime-types (1.25.1)
-    multi_json (1.12.1)
+    multi_json (1.15.0)
     mustache (0.99.3)
-    net-scp (1.2.1)
-      net-ssh (>= 2.6.5)
-    net-ssh (3.2.0)
+    net-scp (3.0.0)
+      net-ssh (>= 2.6.5, < 7.0.0)
+    net-ssh (6.1.0)
     otto (0.4.1)
       addressable (>= 2.2.6)
       rack (>= 1.2.1)
@@ -51,6 +51,7 @@ GEM
       redis (>= 2.0)
       uri-redis (>= 0.4.0)
       yajl-ruby (>= 0.1)
+    ruby_http_client (3.5.2)
     rudy (0.9.8.020)
       amazon-ec2 (>= 0.9.10)
       annoy (>= 0.5.6)
@@ -70,6 +71,8 @@ GEM
       net-scp (>= 1.0.2)
       net-ssh (>= 2.0.13)
       sysinfo (>= 0.7.3)
+    sendgrid-ruby (6.4.0)
+      ruby_http_client (~> 3.4)
     storable (0.8.9)
     sysinfo (0.7.3)
       drydock
@@ -82,11 +85,11 @@ GEM
       polyglot
       polyglot (>= 0.3.1)
     uri-redis (0.4.2)
-    xml-simple (1.1.5)
-    yajl-ruby (1.1.0)
+    xml-simple (1.1.8)
+    yajl-ruby (1.4.1)
 
 PLATFORMS
-  ruby
+  x86_64-linux
 
 DEPENDENCIES
   addressable (= 2.2.6)
@@ -103,10 +106,11 @@ DEPENDENCIES
   redis (= 2.2.2)
   redis-dump (= 0.3.2)
   rudy (= 0.9.8.020)
+  sendgrid-ruby
   storable (= 0.8.9)
   sysinfo (= 0.7.3)
   thin (= 1.8.0)
-  yajl-ruby (= 1.1.0)
+  yajl-ruby
 
 BUNDLED WITH
-   1.13.6
+   2.2.15
