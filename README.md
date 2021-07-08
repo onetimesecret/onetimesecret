@@ -46,7 +46,7 @@ sudo mkdir /etc/onetime
 sudo chown ots /etc/onetime
 
 sudo su - ots
-git clone git@github.com:onetimesecret/onetimesecret.git
+git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
 bundle install --frozen
 bin/ots init
