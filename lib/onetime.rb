@@ -4,17 +4,17 @@ require 'bundler/setup'
 
 require 'onetime/core_ext'
 
+require 'bcrypt'
+require 'encryptor'
 require 'erb'
 require 'syslog'
-
-require 'encryptor'
-require 'bcrypt'
 
 require 'sysinfo'
 require 'gibbler'
 require 'familia'
 require 'storable'
-#require 'thirdparty/sendgrid'
+
+Redis.exists_returns_integer = false
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 Familia.apiversion = nil
@@ -109,7 +109,7 @@ module Onetime
       f = File.open(filename,mode)
       f.puts content
       f.close
-      raise "Provided chmod is not a Fixnum (#{chmod})" unless chmod.is_a?(Fixnum)
+      raise "Provided chmod is not a Integer (#{chmod})" unless chmod.is_a?(Integer)
       File.chmod(chmod, filename)
     end
     def info(*msg)

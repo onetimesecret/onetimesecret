@@ -39,9 +39,6 @@ end
 class Integer
   include QuantizeInteger
 end
-class Fixnum
-  include QuantizeInteger
-end
 
 
 unless defined?(Time::Units)
@@ -128,17 +125,16 @@ unless defined?(Time::Units)
       (self*1000.to_f)
     end
 
-    # TODO: Use 1024?
     def to_bytes
-      args = case self.abs.to_i
-      when (1000)..(1000**2)
-        '%3d%s' % [(self / 1000.to_f), 'KB']
-      when (1000**2)..(1000**3)
-        '%3df%s' % [(self / (1000**2).to_f), 'MB']
-      when (1000**3)..(1000**4)
-        '%3d%s' % [(self / (1000**3).to_f), 'GB']
-      when (1000**4)..(1000**6)
-        '%3d%s' % [(self / (1000**4).to_f), 'TB']
+      case self.abs.to_i
+      when (1024)..(1024**2)
+        '%3d%s' % [(self / 1024.to_f), 'KB']
+      when (1024**2)..(1024**3)
+        '%3df%s' % [(self / (1024**2).to_f), 'MB']
+      when (1024**3)..(1024**4)
+        '%3d%s' % [(self / (1024**3).to_f), 'GB']
+      when (1024**4)..(1024**6)
+        '%3d%s' % [(self / (1024**4).to_f), 'TB']
       else
         [self.to_i, 'B'].join
       end
