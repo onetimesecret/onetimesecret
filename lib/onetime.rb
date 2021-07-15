@@ -125,7 +125,7 @@ module Onetime
       prefix = "E(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
       STDERR.puts(msg) if STDOUT.tty?
-      SYSLOG.error msg
+      SYSLOG.err msg
     end
     def ld(*msg)
       return unless Onetime.debug
