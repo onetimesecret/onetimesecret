@@ -1,0 +1,67 @@
+#
+# ONETIMESECRET - DOCKER CONFIG (2021-07-01)
+#
+# e.g.
+#     $ docker-compose up --build onetime
+#
+#       OR
+#
+#     $ docker-compose up -d onetime
+#
+
+version: '3.8'
+
+networks:
+  frontend:
+  backend:
+
+x-common_defaults: &common_service_defaults
+    restart: always
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+x-web_defaults: &web_service_defaults
+    <<: *common_service_defaults
+    networks:
+      - frontend
+      - backend
+    # Needed for interactive PDB debugging.
+    # Connect to the TTY via: `docker attach onetime`
+    stdin_open: true
+    tty: true
+
+services:
+    onetimedb:
+        <<: *common_service_defaults
+        image: redis:6.4-buster
+        container_name: onetimedb
+        environment:
+          - ONETIME_ENV=${ONETIME_ENV}
+        networks:
+          - backend
+        volumes:
+          - ./datavol:/var
+          - ./etc/redis.conf:/etc/redis.conf
+        ports:
+            - "127.0.0.1:6379:7179"
+
+    onetime:
+        <<: *web_service_defaults
+        build:
+          context: ./contexts/qc-response
+        image: onetime
+        container_name: onetime
+        depends_on:
+          - onetimedb
+        entrypoint: ["./docker-entrypoint.sh"]
+        # NOTE: this command is passed to bundle exec in the entrypoint script.
+        # Supply a list of command tokens starting with the executable.
+        command: ["rackup", "-o", "0.0.0.0", "-p", "3003"]
+        environment:
+          - ONETIME_ENV=${ONETIME_ENV}
+        volumes:
+          - ./etc/config:/etc/onetime/config
+        ports:
+          - "127.0.0.1:3003:3003"

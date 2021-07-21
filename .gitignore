@@ -1,9 +1,12 @@
-.bundle
-log
-tmp
+
+data/
+log/
+tmp/
+
 .rudy
-
 .ruby-version
+*.env
+*.log
+*.csv
+*.txt
 
-.DS_Store
-sendgrid.env
