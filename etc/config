@@ -21,14 +21,14 @@
 # Use the following email config to enable SMTP
 # support and remove the :emailer config above.
 #:emailer:
-  #  :mode: :smtp
-  #  :from: delano@onetimesecret.com
-  #  :host: localhost
-  #  :port: 587
-  #  :tls: false
-  #  :user:
-  #  :pass:
-  #  :auth:
+#   :mode: :smtp
+#   :from: CHANGEME@example.com
+#   :host: localhost
+#   :port: 587
+#   :tls: false
+#   :user:
+#   :pass:
+#   :auth:
 :incoming:
   # Intended for use by IT support teams who need someone to send them
   # sensitive info. The email address is where the secret
@@ -40,22 +40,26 @@
   :passphrase: CHANGEME
   :regex: \A[a-zA-Z0-9]{6}\z
 :locales:
+  - ar
+  - bg
+  - ca_ES
+  - cn
+  - cs
+  - da_DK
+  - de
+  - el_GR
   - en
   - es
-  - de
-  - nl
-  - ru
-  - cs
   - fr
-  - bg
-  - tr
-  - ca_ES
-  - pt_BR
-  - pl
+  - fr_FR
   - it_IT
-  - cn
-  - el_GR
+  - nl
+  - pl
+  - pt_BR
+  - ru
   - sl_SI
+  - sv_SE
+  - tr
 :unsupported_locales:
   - jp
 :stathat:
@@ -78,14 +82,3 @@
   :show_metadata: 1000
   :show_secret: 1000
   :burn_secret: 1000
-#:split_tests:
-#  :initial_pricing:
-#    - - basic_v1
-#      - professional_v1
-#      - agency_v1
-#    - - basic_v1
-#      - professional_v2
-#      - agency_v1
-#    - - basic_v1
-#      - professional_v2
-#      - agency_v2

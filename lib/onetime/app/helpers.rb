@@ -58,7 +58,8 @@ class Onetime::App
     rescue OT::LimitExceeded => ex
       err "[limit-exceeded] #{cust.custid}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
       err req.current_absolute_uri
-      error_response "Apologies dear citizen! You have been rate limited."
+      err ex.backtrace
+      error_response "Cripes! You have been rate limited."
 
     rescue Familia::NotConnected, Familia::Problem => ex
       err "#{ex.class}: #{ex.message}"
@@ -67,14 +68,14 @@ class Onetime::App
 
     rescue Errno::ECONNREFUSED => ex
       OT.info ex.message
-      OT.ld ex.backtrace
+      OT.le ex.backtrace
       error_response "We'll be back shortly!"
 
     rescue => ex
       err "#{ex.class}: #{ex.message}"
       err req.current_absolute_uri
       err ex.backtrace.join("\n")
-      error_response "An error occurred :["
+      error_response "An unexpected error occurred :["
 
     ensure
       @sess ||= OT::Session.new :failover
@@ -157,8 +158,10 @@ class Onetime::App
     end
 
     def err *args
-      #SYSLOG.err *args
-      STDERR.puts *args
+      prefix = "D(#{Time.now.to_i}):  "
+      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      SYSLOG.err msg
+      STDERR.puts msg
     end
 
     def deny_agents! *agents
