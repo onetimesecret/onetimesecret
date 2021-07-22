@@ -49,7 +49,7 @@
     :word_burned: "destrueret"
     :word_received: "modtaget"
     :word_confirm: "Bekræft"
-      :word_cancel: "Annuller"
+    :word_cancel: "Annuller"
     :feedback_text: "Spørgsmål eller kommentarer?"
     :button_send_feedback: "Send tilbagemelding"
     :verification_sent_to: "En bekræftelse blev sendt til"
