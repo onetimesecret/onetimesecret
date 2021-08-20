@@ -176,6 +176,29 @@ Get-OTSSecret -SecretKey qqevnp70b4uoiax4knzhwlhros6ne7x -Passphrase 1234
 Get-Command -Module OneTimeSecret | Select Name
       </pre>
 
+      <h3 class="cufon docTitle dotted">Go</h3>
+
+      <a href="https://github.com/chelnak/onetimesecret-go" title="Onetimesecret Go Client"><strong>Download OneTimeSecret-Go</strong></a><br/>
+      <em>by <a href="https://www.helloitscraig.co.uk">Craig Gumbley</a> (updated 2020-08-20)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+// Build a new client
+client := ots.NewClient(
+      WithUsername("otsuser@domain.com"),
+      WithApiKey("xxxxxxxx"),
+)
+
+// Send a request with context
+ctx := context.Background()
+response, err := clent.GetStatus(ctx)
+if err != nil {
+      panic(err)
+}
+
+fmt.Println(response.Status)
+      </pre>
+
       <h3 class="cufon docTitle dotted">Bash</h3>
 
       <a href="https://github.com/eengstrom/onetimesecret-bash" title="Bash API and CLI - OneTimeSecret"><strong>Download OneTimeSecret-bash</strong></a><br/>
