@@ -10,16 +10,27 @@ orbs:
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  build:
+  ots-deploy:
+    circleci_ip_ranges: true
     docker:
       - image: circleci/ruby:2.6.3-stretch-node
     executor: ruby/default
     steps:
       - checkout
       - run:
-          name: Which bundler?
-          command: bundle -v
-      - ruby/bundle-install
+          name: Bundler OTS Deploy
+          command: |
+            EC2_USERNAME=admin
+            EC2_PUBLIC_DNS=3.224.165.46
+            chmod 400 /home/circleci/.ssh/id_rsa_2fdc3ce54b9f64b75f07199c61e0d124
+            ssh -o StrictHostKeyChecking=no -i "/home/circleci/.ssh/id_rsa_2fdc3ce54b9f64b75f07199c61e0d124" -t -t $EC2_USERNAME@$EC2_PUBLIC_DNS \
+            'cd /home/admin/onetimesecret && \
+            git pull origin main && \
+            docker build -t ots . && \
+            docker run -t -p 3000:3000 -d ots \
+             -e ONETIMESECRET_REDIS_URL="redis://127.0.0.1:6379/0" \
+             onetimesecret';'exit'
+       - ruby/bundle-install
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -27,4 +38,6 @@ workflows:
   sample: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - build
+      - ots-deploy:
+        only:
+          - main
