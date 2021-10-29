@@ -27,12 +27,10 @@ jobs:
             'cd /home/admin/onetimesecret && \
             git pull origin main && \
             docker build -t ots . && \
-            docker run -t -p 3000:3000 -d ots';'exit'
-      #       -e ONETIMESECRET_REDIS_URL="redis://user:password@host:port/0" \
-      #       -e ONETIMESECRET_SSL=true -e ONETIMESECRET_HOST=example.com \
-      #       -e ONETIMESECRET_SECRET="<put your own secret here>" \
-      #       onetimesecret';'exit'
-      # - ruby/bundle-install
+            docker run -t -p 3000:3000 -d ots \
+             -e ONETIMESECRET_REDIS_URL="redis://127.0.0.1:6379/0" \
+             onetimesecret';'exit'
+       - ruby/bundle-install
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
