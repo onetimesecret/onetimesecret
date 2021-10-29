@@ -16,6 +16,9 @@ jobs:
       - image: circleci/ruby:2.6.3-stretch-node
     executor: ruby/default
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "2f:dc:3c:e5:4b:9f:64:b7:5f:07:19:9c:61:e0:d1:24"
       - checkout
       - run:
           name: Bundler OTS Deploy
