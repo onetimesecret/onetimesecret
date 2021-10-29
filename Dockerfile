@@ -33,7 +33,7 @@ FROM ruby:2.3
 
 WORKDIR /usr/src/app
 COPY Gemfile Gemfile.lock ./
-RUN bundle install --frozen --deployment --without=dev
+#RUN bundle install --frozen --deployment --without=dev
 COPY . .
 CMD ["bundle", "exec", "thin", "-R", "config.ru", "start"]
 
