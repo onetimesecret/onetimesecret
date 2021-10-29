@@ -13,7 +13,7 @@ jobs:
   ots-deploy:
     circleci_ip_ranges: true
     docker:
-      - image: circleci/ruby:2.6.3-stretch-node
+      - image: ruby:2.3 #circleci/ruby:2.6.3-stretch-node
     #executor: ruby/default
     steps:
       - add_ssh_keys:
