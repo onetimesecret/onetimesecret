@@ -30,7 +30,6 @@ jobs:
             docker run -t -p 3000:3000 -d ots \
              -e ONETIMESECRET_REDIS_URL="redis://127.0.0.1:6379/0" \
              onetimesecret';'exit'
-       - ruby/bundle-install
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
