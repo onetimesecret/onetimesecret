@@ -13,7 +13,7 @@ jobs:
   ots-deploy:
     circleci_ip_ranges: true
     docker:
-      - image: ruby:2.3 #circleci/ruby:2.6.3-stretch-node
+      - image: circleci/ruby:2.6.3-stretch-node
     #executor: ruby/default
     steps:
       - add_ssh_keys:
@@ -30,7 +30,7 @@ jobs:
             'cd /home/admin/onetimesecret && \
             git pull origin main && \
             docker build -t ots . && \
-            docker run -t -p 3000:3000 -d ots \
+            docker run -t -p 3000:3000 -d ots\
              -e ONETIMESECRET_REDIS_URL="redis://127.0.0.1:6379/0" \
              onetimesecret';'exit'
 
