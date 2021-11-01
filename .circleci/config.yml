@@ -5,7 +5,7 @@ version: 2.1
 # Orbs are reusable packages of CircleCI configuration that you may share across projects, enabling you to create encapsulated, parameterized commands, jobs, and executors that can be used across multiple projects.
 # See: https://circleci.com/docs/2.0/orb-intro/
 orbs:
-  ruby: circleci/ruby@0.1.2
+  ruby: cimg/ruby:2.6.5-node
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
@@ -27,12 +27,11 @@ jobs:
             EC2_PUBLIC_DNS=3.224.165.46
             chmod 400 /home/circleci/.ssh/id_rsa_2fdc3ce54b9f64b75f07199c61e0d124
             ssh -o StrictHostKeyChecking=no -i "/home/circleci/.ssh/id_rsa_2fdc3ce54b9f64b75f07199c61e0d124" -t -t $EC2_USERNAME@$EC2_PUBLIC_DNS \
-            'cd /home/admin/onetimesecret && \
+            "cd /home/admin/onetimesecret && \
             git pull origin main && \
             docker build -t ots . && \
             docker run -t -p 3000:3000 -d ots\
-             -e ONETIMESECRET_REDIS_URL="redis://127.0.0.1:6379/0" \
-             onetimesecret';'exit'
+             -e ONETIMESECRET_REDIS_URL='redis://127.0.0.1:6379/0'";"exit"
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
