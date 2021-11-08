@@ -18,15 +18,15 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "2f:dc:3c:e5:4b:9f:64:b7:5f:07:19:9c:61:e0:d1:24"
+            - "07:d4:1e:b8:11:af:e9:9f:b3:15:87:c7:2e:ea:48:7f"
       - checkout
       - run:
           name: OTS Deploy
           command: |
             EC2_USERNAME=admin
             EC2_PUBLIC_DNS=3.224.165.46
-            chmod 400 /home/circleci/.ssh/id_rsa_2fdc3ce54b9f64b75f07199c61e0d124
-            ssh -o StrictHostKeyChecking=no -i "/home/circleci/.ssh/id_rsa_2fdc3ce54b9f64b75f07199c61e0d124" -t -t $EC2_USERNAME@$EC2_PUBLIC_DNS \
+            chmod 400 /home/circleci/.ssh/id_rsa_07d41eb811afe99fb31587c72eea487f
+            ssh -o StrictHostKeyChecking=no -i "/home/circleci/.ssh/id_rsa_07d41eb811afe99fb31587c72eea487f" -t -t $EC2_USERNAME@$EC2_PUBLIC_DNS \
             "cd /home/admin/onetimesecret && \
             git pull origin main && \
             docker run -d --name redis redis
