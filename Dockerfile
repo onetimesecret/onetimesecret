@@ -1,47 +1,25 @@
-# To use this image, you need a Redis database with persistence enabled.
-# You can start one with Docker using i.e.:
-#
-# $ docker run -p 6379:6379 -d redis
-#
-# Then start this image, specifying the URL of the redis database:
-#
-# $ docker run -p 3000:3000 -d \
-#     -e ONETIMESECRET_REDIS_URL="redis://172.17.0.1:6379/0" \
-#     onetimesecret
-#
-# It will be accessible on http://localhost:3000.
-#
-# Production deployment
-# ---------------------
-#
-# When deploying to production, you should protect your Redis instance
-# with authentication or Redis networks. You should also enable
-# persistence and save the data somewhere, to make sure it doesn't get
-# lost when the server restarts.
-#
-# You should also change the secret to something else, and specify the
-# domain it will be deployed on.
-# For instance, if OTS will be accessible from https://example.com:
-#
-# $ docker run -p 3000:3000 -d \
-#     -e ONETIMESECRET_REDIS_URL="redis://user:password@host:port/0" \
-#     -e ONETIMESECRET_SSL=true -e ONETIMESECRET_HOST=example.com \
-#     -e ONETIMESECRET_SECRET="<put your own secret here>" \
-#     onetimesecret
+FROM ruby:2.6-alpine
 
-FROM ruby:2.3
+COPY . /var/lib/onetime/
 
-WORKDIR /usr/src/app
-COPY Gemfile Gemfile.lock ./
-RUN gem install bundler
-RUN bundle install --frozen --deployment --without=dev
-COPY . .
-CMD ["bundle", "exec", "thin", "-R", "config.ru", "start"]
+WORKDIR /var/lib/onetime
+
+RUN adduser ots -h /var/lib/onetime -D && \
+	mkdir -p /var/log/onetime /var/run/onetime /etc/onetime && \
+	chown ots /var/log/onetime /var/run/onetime /var/lib/onetime /etc/onetime && \
+	cp -R etc/* /etc/onetime/ && \
+	chown ots: /var/lib/onetime/* -R
+
+
+RUN apk --no-cache --virtual .build-deps add build-base && \
+    bundle update && \
+	bundle install --frozen --deployment --without=dev && \
+	bin/ots init && \
+	apk del .build-deps
+
+ADD config/config /etc/onetime/config
+ADD config/fortunes /etc/onetime/fortunes
 
 EXPOSE 3000
-ENV RACK_ENV prod
-ENV ONETIMESECRET_SSL=false \
-    ONETIMESECRET_HOST=localhost:3000 \
-    ONETIMESECRET_SECRET=CHANGEME \
-    ONETIMESECRET_REDIS_URL= \
-    ONETIMESECRET_COLONEL=
+
+ENTRYPOINT ["su", "ots", "-c", "bundle exec thin -e dev -R config.ru -p 3000 start"]

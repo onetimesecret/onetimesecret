@@ -1,0 +1,91 @@
+:site:
+  :host: localhost:3000
+  :domain: localhost
+  :ssl: false
+  # NOTE Once the secret is set, do not change it (keep a backup offsite)
+  :secret: CHANGEME
+:redis:
+  :uri: 'redis://redis:6379/0?timeout=10&thread_safe=false&logging=false'
+  # :uri: 'redis://user:CHANGEME@127.0.0.1:7179/0?timeout=10&thread_safe=false&logging=false'
+  :config: /etc/onetime/redis.conf
+:colonels:
+  # Accounts created with the following email addresses
+  # are automatically considered admins of the system.
+  - CHANGEME@EXAMPLE.com
+:emailer:
+  :mode: :sendgrid
+  :account: CHANGEME
+  :password: CHANGEME
+  :from: CHANGEME@example.com
+  :fromname: CHANGEME
+  :bcc:
+# Use the following email config to enable SMTP
+# support and remove the :emailer config above.
+#:emailer:
+  #  :mode: :smtp
+  #  :from: delano@onetimesecret.com
+  #  :host: localhost
+  #  :port: 587
+  #  :tls: false
+  #  :user:
+  #  :pass:
+  #  :auth:
+:incoming:
+  # Intended for use by IT support teams who need someone to send them
+  # sensitive info. The email address is where the secret
+  # link is sent. Passphrase is used to protect the secret.
+  # The regex used to ensure the ticket number is valid.
+  # See: https://onetimesecret.com/incoming
+  :enabled: false
+  :email: example@onetimesecret.com
+  :passphrase: CHANGEME
+  :regex: \A[a-zA-Z0-9]{6}\z
+:locales:
+  - en
+  - es
+  - de
+  - nl
+  - ru
+  - cs
+  - fr
+  - bg
+  - tr
+  - ca_ES
+  - pt_BR
+  - pl
+:unsupported_locales:
+  - pt
+  - jp
+  - cn
+  - it
+:stathat:
+  :enabled: false
+  :apikey: CHANGEME
+  :default_chart: CHANGEME
+:text:
+  :nonpaid_recipient_text: 'You need to create an account!'
+  :paid_recipient_text: 'Send the secret link via email'
+:limits:
+  :create_secret: 250
+  :create_account: 10
+  :update_account: 10
+  :email_recipient: 50
+  :send_feedback: 10
+  :authenticate_session: 5
+  :homepage: 500
+  :dashboard: 1000
+  :failed_passphrase: 5
+  :show_metadata: 1000
+  :show_secret: 1000
+  :burn_secret: 1000
+#:split_tests:
+#  :initial_pricing:
+#    - - basic_v1
+#      - professional_v1
+#      - agency_v1
+#    - - basic_v1
+#      - professional_v2
+#      - agency_v1
+#    - - basic_v1
+#      - professional_v2
+#      - agency_v2
