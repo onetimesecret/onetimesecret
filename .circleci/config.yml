@@ -13,7 +13,7 @@ jobs:
   ots-deploy:
     circleci_ip_ranges: true
     docker:
-      - image: 'cimg/ruby:2.7-node'
+      - image: 'cimg/ruby:2.6.8'
     executor: ruby/default
     steps:
       - add_ssh_keys:
@@ -21,7 +21,7 @@ jobs:
             - "2f:dc:3c:e5:4b:9f:64:b7:5f:07:19:9c:61:e0:d1:24"
       - checkout
       - run:
-          name: Bundler OTS Deploy
+          name: OTS Deploy
           command: |
             EC2_USERNAME=admin
             EC2_PUBLIC_DNS=3.224.165.46
@@ -29,9 +29,9 @@ jobs:
             ssh -o StrictHostKeyChecking=no -i "/home/circleci/.ssh/id_rsa_2fdc3ce54b9f64b75f07199c61e0d124" -t -t $EC2_USERNAME@$EC2_PUBLIC_DNS \
             "cd /home/admin/onetimesecret && \
             git pull origin main && \
-            docker build -t ots . && \
-            docker run -t -p 3000:3000 -d ots\
-             -e ONETIMESECRET_REDIS_URL='redis://127.0.0.1:6379/0'";"exit"
+            docker run -d --name redis redis
+            docker build -t onetimesecret . && \
+            docker run -p 3000:3000 --link redis:redis -t -d onetimesecret
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
