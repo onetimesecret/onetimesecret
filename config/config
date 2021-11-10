@@ -1,6 +1,6 @@
 :site:
-  :host: localhost:3000
-  :domain: localhost
+  :host: ots.data.infopriceti.com.br
+  :domain: ots.data.infopriceti.com.br
   :ssl: false
   # NOTE Once the secret is set, do not change it (keep a backup offsite)
   :secret: CHANGEME
