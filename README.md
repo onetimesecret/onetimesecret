@@ -26,7 +26,7 @@ When you send people sensitive info like passwords and private links via email o
   sudo apt-get update
   sudo apt-get install build-essential
   sudo apt-get install ntp libyaml-dev libevent-dev zlib1g zlib1g-dev openssl libssl-dev libxml2 libreadline-gplv2-dev
-  sudo apt-get install ruby redis
+  sudo apt-get install ruby redis ruby-bundler ruby-dev
   mkdir ~/sources
 ```
 
