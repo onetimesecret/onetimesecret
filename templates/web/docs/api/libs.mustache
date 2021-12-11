@@ -153,6 +153,51 @@ class Test
 }
       </pre>
 
+      <h3 class="cufon docTitle dotted">Go</h3>
+
+      <a href="https://github.com/corbaltcode/go-onetimesecret" title="Go library - One-Time Secret"><strong>Download onetimesecret</strong></a><br/>
+      <em>by <a href="https://github.com/corbaltcode/">Corbalt</a> (added 2021-12-10)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+import ots "github.com/corbaltcode/go-onetimesecret"
+
+client := ots.Client{
+  Username: "user@example.com",
+  Key: "my api key",
+}
+
+metadata, err := client.Put("the launch codes", "passphrase", 0, "")
+if err != nil {
+  // handle error
+}
+
+secret, err := client.Get(metadata.SecretKey, "passphrase")
+if err != nil {
+  // handle error
+}
+
+// prints "the launch codes"
+print(secret)
+      </pre>
+
+      <h4>Usage Example as CLI</h4>
+      <pre class="colourize">
+$ go install github.com/corbaltcode/go-onetimesecret/cmd/ots@latest
+
+$ ots put 'what is essential is invisible to the eye'
+hdjk6p0ozf61o7n6pbaxy4in8zuq7sm ifipvdpeo8oy6r8ryjbu8y7rhm9kty9
+
+$ ots get hdjk6p0ozf61o7n6pbaxy4in8zuq7sm
+what is essential is invisible to the eye
+
+$ ots gen
+rVjbS$twCJkS 4nwhy7v4fnabayqc5auv4ogh0nfr20 flsdlaun6hwczqu9utmc0vts5xj9xu1
+
+$ ots burn flsdlaun6hwczqu9utmc0vts5xj9xu1
+flsdlaun6hwczqu9utmc0vts5xj9xu1
+      </pre>
+
       <h3 class="cufon docTitle dotted">PowerShell</h3>
 
       <a href="https://github.com/chelnak/OneTimeSecret" title="PowerShell Module - OneTimeSecret"><strong>Download OneTimeSecret</strong></a><br/>
