@@ -1,4 +1,4 @@
-# ONE-TIME SECRET - v0.11-RC1 (2021-03-26)
+# ONE-TIME SECRET - v0.11-RC2 (2022-03-12)
 
 *Keep sensitive info out of your email & chat logs.*
 
