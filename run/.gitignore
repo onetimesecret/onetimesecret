@@ -1,0 +1,3 @@
+# Ignore files in this run-time directory.
+docker-compose.y*ml
+docker-compose.y*ml-*

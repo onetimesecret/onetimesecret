@@ -1,0 +1,82 @@
+##
+# ONETIME DOCKER COMPOSE - BASE CONFIG -- 2022-06-27
+#
+# These base configurations are meant to be extended by the
+# services defined in the actual docker-compose.yml.
+#
+# Usage:
+#
+#   Enable interactive debugging (should not be used in production).
+#
+#   After adding these 2 settings and restarting, you can access
+#   the TTY with the command `docker attach CONTAINERNAME`:
+#
+#     services:
+#       onetime:
+#         container_name: onetime
+#         stdin_open: true
+#         tty: true
+#
+
+services:
+
+  # System settings for all containers
+  base-config:
+    shm_size: "128m"
+    stdin_open: true
+    tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "60m"
+        max-file: "3"
+
+    # These hosts are available to all containers (e.g. /etc/hosts).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "db-01:127.0.0.1"
+
+    # The containers use a named network for clarity.
+    networks:
+      - orchesta_net
+
+    # Don't add an env_file; containers get only the env
+    # vars set in this `environment`. The vars set here
+    # will be available in all containers. Only enter
+    # values here if you want to override the .env.
+    environment:
+      CODE_ROOT:
+      ONETIMIE_WEB_PORT:
+      DB_HOST:
+      DB_URL: postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME
+      POSTGRES_DB:
+      DB_PASS:
+      DB_USER:
+
+  db-config:
+    extends: base-config
+    restart: "always"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?No DB name}
+      DB_PASS: ${DB_PASS:?No DB password}
+      DB_USER: ${DB_USER:?No DB user}
+
+  onetime-config:
+    extends: base-config
+    build:
+      context: ../container
+
+    # We don't automatically restart in dev so that we
+    # have an opportunity to debug any issues.
+    restart: "always"
+
+    # All container services need to use the same
+    # path for the entrypoint script.
+    entrypoint: ["./bin/entrypoint.sh"]
+
+    environment:
+      ONETIME_HOME: ${ONETIME_HOME:?No ONETIME_HOME}
+      ONETIME_CURRENT_IMAGE: ${ONETIME_CURRENT_IMAGE:?No ONETIME_CURRENT_IMAGE}
+      ONETIME_POSTGRES_DB: ${POSTGRES_DB:?No DB name}
+      ONETIME_DB_PASS: ${DB_PASS:?No DB password}
+      ONETIME_DB_USER: ${DB_USER:?No DB user}
