@@ -29,11 +29,12 @@
 #     -e ONETIMESECRET_SECRET="<put your own secret here>" \
 #     onetimesecret
 
-FROM ruby:2.3
+FROM ruby:2.6
 
 WORKDIR /usr/src/app
-COPY Gemfile Gemfile.lock ./
-RUN bundle install --frozen --deployment --without=dev
+COPY Gemfile ./
+
+RUN bundle install
 COPY . .
 CMD ["bundle", "exec", "thin", "-R", "config.ru", "start"]
 

@@ -8,3 +8,5 @@ tmp
 .ruby-version
 
 .DS_Store
+
+tmp/
