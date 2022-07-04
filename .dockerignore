@@ -1,12 +1,8 @@
-.git
 
 .bundle
-log
-tmp
-.rudy
-
-.ruby-version
-
 .DS_Store
-
-tmp/
+.git
+.ruby-version
+.rudy
+log/?
+tmp/?
