@@ -131,8 +131,11 @@ module Onetime
       return unless Onetime.debug
       prefix = "D(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      STDERR.puts(msg) if STDOUT.tty?
-      SYSLOG.crit msg
+      if STDOUT.tty?
+         STDERR.puts(msg) 
+      else
+        SYSLOG.crit msg
+      end 
     end
   end
   module Config
@@ -333,5 +336,3 @@ OT = Onetime
 require 'onetime/models'
 require 'onetime/logic'
 require 'onetime/email'
-
-
