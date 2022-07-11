@@ -116,6 +116,13 @@ There are many way to run the webapp, just like any Rack-based app. The default 
   bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 restart
 ```
 
+**To run with docker:**
+
+```bash
+  docker compose up
+  open http://localhost:3000/
+```
+
 ## Generating a global secret
 
 We include a global secret in the encryption key so it needs to be long and secure. One approach for generating a secret:
@@ -123,4 +130,3 @@ We include a global secret in the encryption key so it needs to be long and secu
 ```bash
   dd if=/dev/urandom bs=20 count=1 | openssl sha256
 ```
-
