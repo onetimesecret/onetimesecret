@@ -1,11 +1,12 @@
 source "https://rubygems.org/"
 
 # DEVMACHINE: bundle install
-# PRODUCTION: bundle install --deployment --without dev
+# PRODUCTION: bundle install --frozen --deployment --without dev
 
+gem 'bundler', '2.3.17'
 gem 'addressable', '2.2.6'
 gem 'rack', '2.1.4.1'
-gem 'yajl-ruby', '1.4.3'
+gem 'yajl-ruby', '1.4.2'
 gem 'thin', '1.8.0'
 
 gem 'mustache', '0.99.3'
@@ -24,13 +25,12 @@ gem 'redis-dump', '0.3.2'
 
 gem 'sysinfo', '0.7.3'
 gem 'annoy', '0.5.6'
-#gem 'rye', '0.9.4'
 
 gem 'httparty', '0.10.0'
 
 gem 'mail', '2.5.5'
 
-# bundle install --frozen --deployment --without=dev
 group :dev do
   gem 'rudy', '0.9.8.020'
+  gem 'byebug', '1.0.1'
 end
