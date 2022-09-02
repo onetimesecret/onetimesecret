@@ -3,7 +3,7 @@ source "https://rubygems.org/"
 # DEVMACHINE: bundle install
 # PRODUCTION: bundle install --frozen --deployment --without dev
 
-gem 'bundler', '2.3.17',
+gem 'bundler', '2.3.17'
 gem 'addressable', '2.2.6'
 gem 'rack', '2.1.4.1'
 gem 'yajl-ruby', '1.4.2'
