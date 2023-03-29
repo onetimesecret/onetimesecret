@@ -17,7 +17,7 @@ gem 'familia', '0.7.1'
 gem 'storable', '0.8.9'
 
 gem 'encryptor', '1.1.3'
-gem 'bcrypt', '3.0.0'
+gem 'bcrypt', '3.1.17'
 
 gem 'otto', '0.4.1'
 
