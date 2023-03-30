@@ -45,6 +45,7 @@ module Onetime
       name.gibbler.short
     end
 
+
     def now
       Time.now.utc
     end
@@ -398,5 +399,3 @@ OT = Onetime
 require 'onetime/models'
 require 'onetime/logic'
 require 'onetime/email'
-
-# rubocop:enable Metrics/ModuleLength

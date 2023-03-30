@@ -3,8 +3,9 @@
 log/
 tmp/
 .rudy/
+.history/
+.devcontainer/
 *.env
 *.log
 *.txt
 .ruby-version
-

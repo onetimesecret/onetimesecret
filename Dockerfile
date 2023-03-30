@@ -29,20 +29,39 @@
 #     -e ONETIMESECRET_SECRET="<put your own secret here>" \
 #     onetimesecret
 
-FROM ruby:2.6
+FROM ruby:2.6-buster
 
 WORKDIR /usr/src/app
 COPY Gemfile ./
 
+RUN gem install bundler -v 2.3.17
+
+# TODO: Move bundle config to separate Dockerfile.
+# This code makes sure that the gems are installed in the
+# local directory and not in the global gem path.
+# RUN bundle config set deployment 'true'
+#
+# The gems from the development and test groups will be
+# excluded while installing the gems with bundler. This
+# is done to optimize the gem installation process and
+# to save disk space as well.
+# RUN bundle config set without 'development test'
+
 RUN gem install bundler:2.3.17
 RUN bundle install
 COPY . .
-CMD ["bundle", "exec", "thin", "-R", "config.ru", "start"]
 
-EXPOSE 3000
-ENV RACK_ENV prod
-ENV ONETIMESECRET_SSL=false \
-    ONETIMESECRET_HOST=localhost:3000 \
-    ONETIMESECRET_SECRET=CHANGEME \
-    ONETIMESECRET_REDIS_URL= \
-    ONETIMESECRET_COLONEL=
+#CMD ["bundle", "exec", "thin", "-R", "config.ru", "start"]
+
+#
+
+# EXPOSE 3000
+# ENV RACK_ENV prod
+# ENV ONETIMESECRET_SSL=false \
+#     ONETIMESECRET_HOST=localhost:3000 \
+#     ONETIMESECRET_SECRET=CHANGEME \
+#     ONETIMESECRET_REDIS_URL= \
+#     ONETIMESECRET_COLONEL=
+
+# Start the app via config.ru
+CMD ["rackup", "--host", "0.0.0.0", "-p", "8080", "config.ru"]
