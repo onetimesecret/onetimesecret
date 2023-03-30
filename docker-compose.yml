@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    depends_on:
+      - redis
+    environment:
+      ONETIMESECRET_REDIS_URL: redis://redis:6379
+      ONETIMESECRET_SSL: false
+      ONETIMESECRET_SECRET: CHANGEME
+      ONETIMESECRET_HOST: localhost:3000
+    ports:
+      - 3000:3000
+
+  redis:
+    image: redis:7.0-alpine

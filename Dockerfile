@@ -104,6 +104,12 @@ RUN bundle install
 # the docker-compose also mounts a volume to the same
 # location the volume is what is available inside of
 # the container once it's up and running.
+FROM ruby:2.6
+
+WORKDIR /usr/src/app
+COPY Gemfile ./
+
+RUN bundle install
 COPY . .
 RUN mv .env.empty .env
 

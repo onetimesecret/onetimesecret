@@ -159,7 +159,7 @@ class Onetime::App
 
     def err *args
       prefix = "D(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      msg = "#{prefix}" << args.join() # msg.join("#{$/}#{prefix}")
       SYSLOG.err msg
       STDERR.puts msg
     end

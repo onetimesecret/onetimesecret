@@ -7,7 +7,7 @@ gem 'bundler', '2.3.17'
 gem 'addressable', '2.2.6'
 gem 'rack', '2.1.4.1'
 gem 'yajl-ruby', '1.4.2'
-gem 'thin', '1.8.0'
+gem 'thin', '1.8.1'
 
 gem 'mustache', '0.99.3'
 
@@ -17,7 +17,7 @@ gem 'familia', '0.7.1'
 gem 'storable', '0.8.9'
 
 gem 'encryptor', '1.1.3'
-gem 'bcrypt-ruby', '3.0.0'
+gem 'bcrypt', '3.1.17'
 
 gem 'otto', '0.4.1'
 
@@ -33,4 +33,5 @@ gem 'mail', '2.5.5'
 group :dev do
   gem 'rudy', '0.9.8.020'
   gem 'byebug', '1.0.1'
+  gem 'byebug-dap'
 end
