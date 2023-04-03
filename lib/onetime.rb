@@ -144,8 +144,11 @@ module Onetime
 
       prefix = "D(#{Time.now.to_i}):  "
       msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      warn(msg) if STDOUT.tty?
-      SYSLOG.crit msg
+      if STDOUT.tty?
+         warn(msg)
+      else
+        SYSLOG.crit msg
+      end 
     end
   end
   module Config

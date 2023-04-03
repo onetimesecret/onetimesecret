@@ -1,4 +1,3 @@
-
 .bundle
 .DS_Store
 .en*
@@ -6,5 +5,8 @@
 .git
 .ruby-version
 .rudy
+.history/
+.vscode/
+.dev-container/
 log/?
 tmp/?
