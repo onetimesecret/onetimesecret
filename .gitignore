@@ -7,4 +7,4 @@ tmp/
 *.log
 *.txt
 .ruby-version
-
+.vscode/
