@@ -1,4 +1,6 @@
-# Onetime Rackup
+# frozen_string_literal: true
+
+#
 #
 # Usage:
 #
@@ -9,9 +11,9 @@ $stdout.sync = true
 
 ENV['RACK_ENV'] ||= 'prod'
 ENV['APP_ROOT'] = ::File.expand_path(::File.join(::File.dirname(__FILE__)))
-$:.unshift(::File.join(ENV['APP_ROOT']))
-$:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
-$:.unshift(::File.join(ENV['APP_ROOT'], 'app'))
+$LOAD_PATH.unshift(::File.join(ENV['APP_ROOT']))
+$LOAD_PATH.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
+$LOAD_PATH.unshift(::File.join(ENV['APP_ROOT'], 'app'))
 
 require 'otto'
 require 'onetime/app/web'
@@ -31,22 +33,22 @@ Onetime.load! :app
 
 if Otto.env?(:dev)
   # DEV: Run web apps with extra logging and reloading
-  apps.each_pair do |path,app|
-    map(path) {
+  apps.each_pair do |path, app|
+    map(path) do
       use Rack::CommonLogger
       use Rack::Reloader, 1
       app.option[:public] = PUBLIC_DIR
       app.add_static_path '/favicon.ico'
       # TODO: Otto should check for not_found method instead of settign it here.
-      #otto.not_found = [404, {'Content-Type'=>'text/plain'}, ["Server error2"]]
+      # otto.not_found = [404, {'Content-Type'=>'text/plain'}, ["Server error2"]]
       run app
-    }
+    end
   end
 else
   # PROD: run barebones webapps
-  apps.each_pair do |path,app|
+  apps.each_pair do |path, app|
     app.option[:public] = PUBLIC_DIR
     map(path) { run app }
   end
-  #$SAFE = 1  # http://www.rubycentral.com/pickaxe/taint.html
+  # $SAFE = 1  # http://www.rubycentral.com/pickaxe/taint.html
 end

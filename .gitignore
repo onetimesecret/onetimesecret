@@ -3,8 +3,10 @@
 log/
 tmp/
 .rudy/
+.history/
+.devcontainer/
+.vscode/
 *.env
 *.log
 *.txt
 .ruby-version
-.vscode/

@@ -1,0 +1,9 @@
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Layout/HashAlignment:
+  Enabled: false
+
+Lint/Void:
+  Enabled: false
