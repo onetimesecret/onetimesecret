@@ -31,7 +31,6 @@ gem 'httparty', '0.10.0'
 gem 'mail', '2.5.5'
 
 group :dev do
-  gem 'rudy', '0.9.8.020'
-  gem 'byebug', '1.0.1'
   gem 'byebug-dap'
+  gem 'byebug', '11.1'
 end
