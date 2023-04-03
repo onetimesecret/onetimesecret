@@ -5,6 +5,7 @@ tmp/
 .rudy/
 .history/
 .devcontainer/
+.vscode/
 *.env
 *.log
 *.txt
