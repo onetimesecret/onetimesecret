@@ -61,19 +61,15 @@ FROM ruby:2.6-slim AS builder
 # TODO: Use psycopg2-binary and remove psycopg2.
 ARG PACKAGES="build-essential autoconf m4 sudo"
 
-# Limit to packages necessary for onetime and operational tasks
-ARG ADDITIONAL_PACKAGES="curl netcat vim-tiny less redis-tools iproute2 iputils-ping iftop pktstat pcp iptraf"
-
 # Fast fail on errors while installing system packages
 RUN set -eux && \
     apt-get update && \
-    apt-get install -y $PACKAGES && \
-    apt-get install -y $ADDITIONAL_PACKAGES
+    apt-get install -y $PACKAGES
 
 COPY Gemfile ./
 
 # Run the most recent version of bundler to avoid complaints
-RUN gem install bundler
+RUN gem install bundler -v ">=2.3.26, <2.4"
 
 # Install the dependencies into the base image
 RUN bundle install
@@ -88,6 +84,14 @@ ARG CODE_ROOT
 ARG ONETIME_HOME
 
 LABEL Name=onetimesecret Version=0.11.0
+
+# Limit to packages necessary for onetime and operational tasks
+ARG PACKAGES="curl netcat vim-tiny less redis-tools iproute2 iputils-ping iftop pktstat pcp iptraf"
+
+# Fast fail on errors while installing system packages
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y $PACKAGES
 
 # Create the directories that we need in the following image
 RUN echo "Creating directories"
@@ -104,14 +108,13 @@ RUN bundle install
 # the docker-compose also mounts a volume to the same
 # location the volume is what is available inside of
 # the container once it's up and running.
-FROM ruby:2.6-buster
+FROM container
 
 WORKDIR /usr/src/app
-COPY Gemfile ./
+
+COPY . .
 
 RUN bundle install
-COPY . .
-RUN mv .env.empty .env
 
 #
 # NOTE: see docker-compose.yaml for this container,
