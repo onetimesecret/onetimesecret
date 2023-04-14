@@ -6,11 +6,17 @@ services:
     container_name: onetime
     depends_on:
       - redis
-    environment:
-      ONETIMESECRET_REDIS_URL: redis://redis:6379
-      ONETIMESECRET_SSL: false
-      ONETIMESECRET_SECRET: CHANGEME
-      ONETIMESECRET_HOST: localhost:3000
+    env_file:
+      - .env
+    entrypoint: ["./bin/entrypoint.sh"]
+    stdin_open: true
+    tty: true
+    command: ["rackup", "-o", "0.0.0.0", "-p", "3000"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "60m"
+        max-file: "3"
     ports:
       - 3000:3000
     volumes:
@@ -20,8 +26,11 @@ services:
   redis:
     image: redis:7.0-alpine
     container_name: onetime-redis
+    ports:
+      - 6379:7179
     volumes:
       - redis-data:/data
+      - ./etc/redis.conf:/usr/local/etc/redis/redis.conf
 
 volumes:
   redis-data:

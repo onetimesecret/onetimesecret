@@ -2,7 +2,6 @@
 .bundle/
 log/
 tmp/
-.rudy/
 .history/
 .devcontainer/
 .vscode/
@@ -10,3 +9,5 @@ tmp/
 *.log
 *.txt
 .ruby-version
+etc/config
+

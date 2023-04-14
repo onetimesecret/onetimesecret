@@ -35,4 +35,4 @@ unset datestamp location basename
 
 # Run the command configured for the docker compose service
 # in the docker-compose.yaml file.
-exec $@
+exec bundle exec $@
