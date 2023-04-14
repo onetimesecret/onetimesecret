@@ -68,9 +68,6 @@ RUN set -eux && \
 
 COPY Gemfile ./
 
-# Run the most recent version of bundler to avoid complaints
-RUN gem install bundler -v ">=2.3.26, <2.4"
-
 # Install the dependencies into the base image
 RUN bundle install
 

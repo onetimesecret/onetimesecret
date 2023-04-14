@@ -67,7 +67,7 @@ DEPENDENCIES
   addressable (= 2.2.6)
   annoy (= 0.5.6)
   bcrypt (= 3.1.17)
-  bundler (= 2.3.17)
+  bundler (= 2.3.26)
   byebug (= 11.1)
   byebug-dap
   encryptor (= 1.1.3)
@@ -86,4 +86,4 @@ DEPENDENCIES
   yajl-ruby (= 1.4.2)
 
 BUNDLED WITH
-   2.3.17
+   2.3.26
