@@ -3,6 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
+    container_name: onetime
     depends_on:
       - redis
     environment:
@@ -12,6 +13,15 @@ services:
       ONETIMESECRET_HOST: localhost:3000
     ports:
       - 3000:3000
+    volumes:
+      - .:/usr/src/app
+
 
   redis:
     image: redis:7.0-alpine
+    container_name: onetime-redis
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
