@@ -2,8 +2,10 @@ version: '3.8'
 
 services:
   app:
-    build: .
-    container_name: onetime
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onetime-app
     depends_on:
       - redis
     env_file:
@@ -11,7 +13,7 @@ services:
     entrypoint: ["./bin/entrypoint.sh"]
     stdin_open: true
     tty: true
-    command: ["rackup", "-o", "0.0.0.0", "-p", "3000"]
+    command: ["bundle", "exec", "thin", "-R", "config.ru",  "start"]
     logging:
       driver: "json-file"
       options:
@@ -20,14 +22,13 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - .:/usr/src/app
-
+      - .:/app
 
   redis:
     image: redis:7.0-alpine
     container_name: onetime-redis
     ports:
-      - 6379:7179
+      - 6379:6379
     volumes:
       - redis-data:/data
       - ./etc/redis.conf:/usr/local/etc/redis/redis.conf
