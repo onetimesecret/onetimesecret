@@ -66,12 +66,10 @@ RUN set -eux && \
     apt-get update && \
     apt-get install -y $PACKAGES
 
-COPY Gemfile ./
+RUN gem update --system
+RUN gem install bundler
 
-# Install the dependencies into the base image
-RUN bundle install
-
-# Instell the entrypoint script
+# Instll the entrypoint script
 COPY ./bin .
 
 
@@ -92,13 +90,17 @@ RUN set -eux && \
 
 # Create the directories that we need in the following image
 RUN echo "Creating directories"
-RUN mkdir -p "$CODE_ROOT" "$ONETIME_HOME"
+RUN mkdir -p "$CODE_ROOT"
+RUN mkdir -p "$ONETIME_HOME/{log,tmp}"
 
 WORKDIR $CODE_ROOT
 
-# Run bundler again so that new dependencies added to the
-# Gemfile are installed at run time (i.e. avoiding a build)
+COPY Gemfile ./
+
+# Install the dependencies into the base image
 RUN bundle install
+RUN bundle update --bundler
+
 
 # Include the entire context with the image. This is how
 # the container runs in production. In development, if
@@ -107,11 +109,9 @@ RUN bundle install
 # the container once it's up and running.
 FROM container
 
-WORKDIR /usr/src/app
+WORKDIR $CODE_ROOT
 
 COPY . .
-
-RUN bundle install
 
 #
 # NOTE: see docker-compose.yaml for this container,

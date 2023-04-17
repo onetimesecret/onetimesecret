@@ -33,6 +33,10 @@ basename=$(basename "${location}")
 # Leave nothing but footprints
 unset datestamp location basename
 
+# Run bundler again so that new dependencies added to the
+# Gemfile are installed at up time (i.e. avoids a rebuild).
+>&2 bundle install
+
 # Run the command configured for the docker compose service
 # in the docker-compose.yaml file.
 exec bundle exec $@
