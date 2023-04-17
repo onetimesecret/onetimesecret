@@ -7,6 +7,7 @@
 *.log
 *.txt
 .ruby-version
+Gemfile.lock
 etc/config
 log
 tmp
