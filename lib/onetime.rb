@@ -17,7 +17,7 @@ require 'sysinfo'
 require 'gibbler'
 require 'familia'
 require 'storable'
-require 'thirdparty/sendgrid'
+require 'sendgrid-ruby'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 Familia.apiversion = nil
@@ -148,7 +148,7 @@ module Onetime
          warn(msg)
       else
         SYSLOG.crit msg
-      end 
+      end
     end
   end
   module Config

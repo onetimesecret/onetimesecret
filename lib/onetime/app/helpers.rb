@@ -34,7 +34,11 @@ class Onetime::App
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.
       redirect = '/error' if req.get? && redirect.to_s == req.request_path
-      res.header['Content-Language'] = req.env['ots.locale'] unless res.header['Content-Language']
+
+      unless res.header['Content-Language']
+        res.header['Content-Language'] = req.env['ots.locale'] || req.env['rack.locale'] || OT.conf[:locales].first
+      end
+
       res.header['Content-Type'] ||= "text/html; charset=utf-8"
       yield
 
@@ -95,7 +99,8 @@ class Onetime::App
       locales = req.env['rack.locale'] || []                          # Requested list
       locales.unshift locale.split('-').first if locale.is_a?(String) # Support both en and en-US
       locales << OT.conf[:locales].first                              # Ensure at least one configured locale is available
-      locales = locales.uniq.reject { |l| !OT.locales.has_key?(l) }.compact
+      locales.uniq!
+      locales = locales.reject { |l| !OT.locales.has_key?(l) }.compact
       locale = locales.first if !OT.locales.has_key?(locale)           # Default to the first available
       OT.ld [:locale, locale, locales, req.env['rack.locale'], OT.locales.keys].inspect
       req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
