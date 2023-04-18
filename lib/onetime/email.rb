@@ -4,6 +4,11 @@ require 'sendgrid-ruby'
 include SendGrid
 
 module Onetime
+   MAIL_ERROR = """
+    We're experiencing an email delivery issues. You can
+    <a href='mailto:problems@onetimesecret.com'>let us know.</a>
+    """
+
   class SMTP
     attr_accessor :from, :fromname
     def initialize from, fromname=nil
@@ -13,6 +18,7 @@ module Onetime
     end
 
     def send to_address, subject, content
+      OT.info '[email-send-start]'
       begin
         obscured_address = OT::Utils.obscure_email to_address
         OT.ld "> [send-start] #{obscured_address}"
@@ -26,23 +32,25 @@ module Onetime
         )
 
       rescue => ex
-        OT.info "> [send-exception1] #{obscured_address}"
-        OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
-        return
+        OT.info "> [send-exception-preparing] #{obscured_address}"
+        OT.info content  # this is our template with only the secret link
+        OT.le ex.message
+        OT.ld ex.backtrace
+        raise OT::MailError, MAIL_ERROR
       end
 
       begin
         mail = SendGrid::Mail.new(from_email, subject, to_email, prepared_content)
-        OT.ld :maaaaiiiillll
         OT.ld mail
         response = @sendgrid.client.mail._('send').post(request_body: mail.to_json)
+        OT.info '[email-sent]'
         OT.ld response.status_code
         OT.ld response.body
         OT.ld response.parsed_body
         OT.ld response.headers
 
       rescue => ex
-        OT.info "> [send-exception2] #{obscured_address}"
+        OT.info "> [send-exception-sending] #{obscured_address}"
         OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
       end
 
