@@ -1,4 +1,4 @@
-# ONETIME SECRET - v0.11-RC2 (2023-03-31)
+# ONETIME SECRET - v0.11.0 (2023-04-17)
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
@@ -12,13 +12,25 @@ A one-time secret is a link that can be viewed only once. A single-use URL.
 
 When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
-## Dependencies
+## How to install
 
-* Any recent Linux (we use Debian, Ubuntu, and CentOS)
-* Ruby 2.2+, 1.9.1+
+### System Requirements
+* Ruby >=1.9.1+, <= 2.6.6
 * Redis 2.6+
+* One of:
+  * Docker Compose 2+
+  * Any recent Linux (we use Debian, Ubuntu, Alpine, Mint, etc)
 
-## Install Dependencies
+### Installation - Docker Compose
+
+```bash
+  docker compose build app
+  docker compose up
+
+  open http://localhost:7143/
+```
+
+### Installation - Manual
 
 *Debian*
 
@@ -30,7 +42,7 @@ When you send people sensitive info like passwords and private links via email o
   mkdir ~/sources
 ```
 
-*CENTOS*
+*CentOS*
 
 ```bash
   sudo yum install gcc gcc-c++ make libtool git ntp
@@ -38,7 +50,7 @@ When you send people sensitive info like passwords and private links via email o
   mkdir ~/sources
 ```
 
-## Install One-Time Secret
+#### Install Onetime Secret
 
 ```bash
   sudo adduser ots
@@ -58,6 +70,7 @@ When you send people sensitive info like passwords and private links via email o
   chmod -R o-rwx /etc/onetime /var/lib/onetime
 ```
 
+## Development
 ### About git cloning
 
 The instructions above suggest cloning via the `https` URI. You can also clone using the SSH URI if you have a github account (which is generally more convenient, but specific to github).
