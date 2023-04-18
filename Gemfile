@@ -25,7 +25,7 @@ gem 'redis-dump', '0.3.2'
 gem 'sysinfo', '0.8.1'
 gem 'annoy', '0.5.6'
 
-gem 'httparty', '0.10.0'
+gem 'httparty', '0.21.0'
 gem 'sendgrid-ruby', '6.6.2'
 
 gem 'mail', '2.5.5'
