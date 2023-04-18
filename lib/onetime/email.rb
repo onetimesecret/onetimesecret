@@ -1,27 +1,56 @@
 require 'mustache'
 require 'mail'
+require 'sendgrid-ruby'
+include SendGrid
 
 module Onetime
   class SMTP
     attr_accessor :from, :fromname
     def initialize from, fromname=nil
       @from, @fromname = from, fromname
+      OT.info "[initialize]"
+      @sendgrid = SendGrid::API.new(api_key: OT.conf[:emailer][:pass])
     end
+
     def send to_address, subject, content
-      mail = Mail.new
-      mail.to to_address
-      mail.from self.from
-      mail.subject subject
-      mail.html_part do
-        content_type 'text/html; charset=UTF-8'
-        body content
+      begin
+        obscured_address = OT::Utils.obscure_email to_address
+        OT.ld "> [send-start] #{obscured_address}"
+
+        to_email = SendGrid::Email.new(email: to_address)
+        from_email = SendGrid::Email.new(email: self.from, name: self.fromname)
+
+        prepared_content = SendGrid::Content.new(
+          type: 'text/html',
+          value: content,
+        )
+
+      rescue => ex
+        OT.info "> [send-exception1] #{obscured_address}"
+        OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+        return
       end
-      mail.deliver
+
+      begin
+        mail = SendGrid::Mail.new(from_email, subject, to_email, prepared_content)
+        OT.ld :maaaaiiiillll
+        OT.ld mail
+        response = @sendgrid.client.mail._('send').post(request_body: mail.to_json)
+        OT.ld response.status_code
+        OT.ld response.body
+        OT.ld response.parsed_body
+        OT.ld response.headers
+
+      rescue => ex
+        OT.info "> [send-exception2] #{obscured_address}"
+        OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+      end
+
     end
     def self.setup
       Mail.defaults do
         opts = { :address   => OT.conf[:emailer][:host] || 'localhost',
-                 :port      => OT.conf[:emailer][:port] || 587  ,
+                 :port      => OT.conf[:emailer][:port] || 587,
                  :domain    => OT.conf[:site][:domain],
                  :user_name => OT.conf[:emailer][:user],
                  :password  => OT.conf[:emailer][:pass],
@@ -38,14 +67,13 @@ module Onetime
     self.template_path = './templates/email'
     self.view_namespace = Onetime::Email
     self.view_path = './onetime/email'
-    attr_reader :cust, :locale, :emailer, :mode
+    attr_reader :cust, :locale, :emailer, :mode, :from, :to
     def initialize cust, locale, *args
       @cust, @locale = cust, locale
-      OT.ld "#{self.class} locale is: #{locale.to_s}"
+      OT.le "#{self.class} locale is: #{locale.to_s}"
       @mode = OT.conf[:emailer][:mode]
       if @mode == :sendgrid
-        emailer_opts = OT.conf[:emailer].values_at :account, :password, :from, :fromname, :bcc
-        @emailer = SendGrid.new *emailer_opts
+        @emailer = OT::SMTP.new OT.conf[:emailer][:from], OT.conf[:emailer][:fromname]
       else
         OT.ld "[mail-smtp-from] #{OT.conf[:emailer][:from]}"
         @emailer = OT::SMTP.new OT.conf[:emailer][:from]

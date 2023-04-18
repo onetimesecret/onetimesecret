@@ -61,24 +61,15 @@ FROM ruby:2.6-slim AS builder
 # TODO: Use psycopg2-binary and remove psycopg2.
 ARG PACKAGES="build-essential autoconf m4 sudo"
 
-# Limit to packages necessary for onetime and operational tasks
-ARG ADDITIONAL_PACKAGES="curl netcat vim-tiny less redis-tools iproute2 iputils-ping iftop pktstat pcp iptraf"
-
 # Fast fail on errors while installing system packages
 RUN set -eux && \
     apt-get update && \
-    apt-get install -y $PACKAGES && \
-    apt-get install -y $ADDITIONAL_PACKAGES
+    apt-get install -y $PACKAGES
 
-COPY Gemfile ./
-
-# Run the most recent version of bundler to avoid complaints
+RUN gem update --system
 RUN gem install bundler
 
-# Install the dependencies into the base image
-RUN bundle install
-
-# Instell the entrypoint script
+# Instll the entrypoint script
 COPY ./bin .
 
 
@@ -89,29 +80,38 @@ ARG ONETIME_HOME
 
 LABEL Name=onetimesecret Version=0.11.0
 
+# Limit to packages necessary for onetime and operational tasks
+ARG PACKAGES="curl netcat vim-tiny less redis-tools iproute2 iputils-ping iftop pktstat pcp iptraf"
+
+# Fast fail on errors while installing system packages
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y $PACKAGES
+
 # Create the directories that we need in the following image
 RUN echo "Creating directories"
-RUN mkdir -p "$CODE_ROOT" "$ONETIME_HOME"
+RUN mkdir -p "$CODE_ROOT"
+RUN mkdir -p "$ONETIME_HOME/{log,tmp}"
 
 WORKDIR $CODE_ROOT
 
-# Run bundler again so that new dependencies added to the
-# Gemfile are installed at run time (i.e. avoiding a build)
+COPY Gemfile ./
+
+# Install the dependencies into the base image
 RUN bundle install
+RUN bundle update --bundler
+
 
 # Include the entire context with the image. This is how
 # the container runs in production. In development, if
 # the docker-compose also mounts a volume to the same
 # location the volume is what is available inside of
 # the container once it's up and running.
-FROM ruby:2.6-buster
+FROM container
 
-WORKDIR /usr/src/app
-COPY Gemfile ./
+WORKDIR $CODE_ROOT
 
-RUN bundle install
 COPY . .
-RUN mv .env.empty .env
 
 #
 # NOTE: see docker-compose.yaml for this container,
