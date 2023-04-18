@@ -15,14 +15,14 @@ gem 'redis', '2.2.2'
 gem 'familia', '0.7.1'
 gem 'storable', '0.8.9'
 
-gem 'encryptor', '1.1.3'
+gem 'encryptor', '3.0.0'
 gem 'bcrypt', '3.1.17'
 
 gem 'otto', '0.4.1'
 
 gem 'redis-dump', '0.3.2'
 
-gem 'sysinfo', '0.7.3'
+gem 'sysinfo', '0.8.1'
 gem 'annoy', '0.5.6'
 
 gem 'httparty', '0.10.0'
