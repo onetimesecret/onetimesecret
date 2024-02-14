@@ -53,7 +53,7 @@
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
-FROM ruby:2.6-slim AS builder
+FROM ruby:3.3-slim-bookworm AS builder
 
 # Limit to packages needed for the system itself
 # NOTE: We only need the build tools installed if we need
@@ -81,7 +81,7 @@ ARG ONETIME_HOME
 LABEL Name=onetimesecret Version=0.11.0
 
 # Limit to packages necessary for onetime and operational tasks
-ARG PACKAGES="curl netcat vim-tiny less redis-tools iproute2 iputils-ping iftop pktstat pcp iptraf"
+ARG PACKAGES="curl netcat-traditional vim-tiny less redis-tools iproute2 iputils-ping iftop pktstat pcp iptraf"
 
 # Fast fail on errors while installing system packages
 RUN set -eux && \
