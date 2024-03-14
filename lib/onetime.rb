@@ -100,8 +100,10 @@ module Onetime
         conf = OT::Config.load format('%s/locale/%s', OT::Config.dirname, locale)
         [locale, conf]
       end
-      locales = Hash[confs] # convert zipped array to hash
-      default_locale = locales[OT.conf[:locales].first] # default locale is the first
+      # Convert the zipped array to a hash
+      locales = Hash[confs]
+      # Make sure the default locale is first
+      default_locale = locales[ OT.conf[:locales].first ]
       # Here we overlay each locale on top of the default just
       # in case there are keys that haven't been translated.
       # That way, at least the default language will display.
@@ -116,38 +118,34 @@ module Onetime
       f = File.open(filename, mode)
       f.puts content
       f.close
-      raise "Provided chmod is not a Fixnum (#{chmod})" unless chmod.is_a?(Integer)
+
+      unless chmod.is_a?(Integer)
+        raise OT::Problem("Provided chmod is not an Integer (#{chmod})")
+      end
 
       File.chmod(chmod, filename)
     end
 
-    def info(*msg)
-      # prefix = "I(#{Time.now.to_i}):  "
-      # msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      msg = msg.join($/)
-      return unless mode?(:app) || mode?(:cli)
+    def _logger(logger, *args)
+      # Make sure a timestamp is encluded regardless of where we're logging to
+      timestamp = "I(#{Time.now.to_i}):"
+      msg = "#{timestamp} " << msg.join($/)
 
-      warn(msg) if STDOUT.tty?
-      SYSLOG.info msg
+      # Visual feedback on the interactive command-line
+      STDERR.puts(msg) if STDOUT.tty?
+
+      # In all cases, write to the given logger
+      logger msg
     end
-
-    def le(*msg)
-      prefix = "E(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      warn(msg) if STDOUT.tty?
-      SYSLOG.err msg
+    def info(level, *args)
+      self._logger SYSLOG.info, *args
     end
-
+    def le(level, *args)
+      self._logger SYSLOG.error, *args
+    end
     def ld(*msg)
       return unless Onetime.debug
-
-      prefix = "D(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      if STDOUT.tty?
-         warn(msg)
-      else
-        SYSLOG.crit msg
-      end
+      self._logger SYSLOG.crit, *args
     end
   end
   module Config
@@ -357,9 +355,6 @@ module Onetime
   end
 
   class MissingSecret < Problem
-  end
-
-  class UnknownKind < Problem
   end
 
   class FormError < Problem

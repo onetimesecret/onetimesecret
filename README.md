@@ -71,6 +71,27 @@ When you send people sensitive info like passwords and private links via email o
 ```
 
 ## Development
+
+### Setup
+
+```bash
+  git clone git@github.com:onetimesecret/onetimesecret.git
+  cd onetimesecret
+
+  # Create and update your local config files
+  cp -p etc/config.example etc/config
+  cp -p etc/redis.conf.example etc/redis.conf
+  cp -p .env.example .env
+
+  bundle install
+  bin/ots init
+
+  # Start the redis server and then start the app
+  ONETIME_DEBUG=true bundle exec thin -e dev start
+```
+
+If you have any issues, check the Dockerfile for clues or please let us know by [opening an issue](https://github.com/onetimesecret/onetimesecret/issues/new).
+
 ### About git cloning
 
 The instructions above suggest cloning via the `https` URI. You can also clone using the SSH URI if you have a github account (which is generally more convenient, but specific to github).
@@ -133,7 +154,7 @@ There are many way to run the webapp, just like any Rack-based app. The default 
 
 ```bash
   docker compose up
-  open http://localhost:3000/
+  open http://localhost:7143
 ```
 
 ## Generating a global secret
