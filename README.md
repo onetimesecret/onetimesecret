@@ -53,21 +53,22 @@ When you send people sensitive info like passwords and private links via email o
 #### Install Onetime Secret
 
 ```bash
-  sudo adduser ots
-  sudo mkdir /etc/onetime
-  sudo chown ots /etc/onetime
+  export user=CHANGEME
+  #
+  # Or use your current username:
+  #   export user=$USER
+  #
+  sudo adduser $user
 
-  sudo su - ots
+  sudo su - $user
   git clone https://github.com/onetimesecret/onetimesecret.git
   cd onetimesecret
   bundle install --frozen
   bin/ots init
-  sudo mkdir /var/log/onetime /var/run/onetime /var/lib/onetime
-  sudo chown ots /var/log/onetime /var/run/onetime /var/lib/onetime
-  mkdir /etc/onetime
-  cp -rp etc/* /etc/onetime/
-  chown -R ots /etc/onetime /var/lib/onetime
+  sudo mkdir /etc/onetime /var/log/onetime /var/run/onetime /var/lib/onetime
+  sudo chown $user /etc/onetime /var/log/onetime /var/run/onetime /var/lib/onetime
   chmod -R o-rwx /etc/onetime /var/lib/onetime
+  cp -rp etc/* /etc/onetime/
 ```
 
 ## Development
