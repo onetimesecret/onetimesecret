@@ -19,6 +19,8 @@ gem 'otto', '0.4.1'
 
 gem 'redis-dump', '0.3.2'
 
+# https://github.com/delano/attic/pull/2
+gem 'attic', '0.5.3'
 gem 'sysinfo', '0.8.1'
 gem 'annoy', '0.5.6'
 
