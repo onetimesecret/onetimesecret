@@ -24,10 +24,8 @@ end
 class Time
   include QuantizeTime
 end
+
 class Integer
-  include QuantizeInteger
-end
-class Fixnum
   include QuantizeInteger
 end
 
