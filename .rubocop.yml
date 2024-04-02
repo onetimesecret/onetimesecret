@@ -7,3 +7,12 @@ Layout/HashAlignment:
 
 Lint/Void:
   Enabled: false
+
+Gemspec/DeprecatedAttributeAssignment:
+  Enabled: true
+
+Gemspec/DevelopmentDependencies:
+  Enabled: true
+
+AllCops:
+  NewCops: enable
