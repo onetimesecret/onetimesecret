@@ -1,7 +1,9 @@
+require 'byebug'
+
 require 'mustache'
 require 'mail'
 require 'sendgrid-ruby'
-include SendGrid
+
 
 module Onetime
    MAIL_ERROR = """
@@ -9,16 +11,28 @@ module Onetime
     <a href='mailto:problems@onetimesecret.com'>let us know.</a>
     """
 
-  class SMTP
+  class BaseEmailer
     attr_accessor :from, :fromname
     def initialize from, fromname=nil
       @from, @fromname = from, fromname
       OT.info "[initialize]"
-      @sendgrid = SendGrid::API.new(api_key: OT.conf[:emailer][:pass])
     end
 
-    def send to_address, subject, content
+    def send_email to_address, subject, content
+      raise NotImplementedError
+    end
+
+    def self.setup
+      raise NotImplementedError
+    end
+  end
+
+  class SendGridEmailer < BaseEmailer
+    include SendGrid
+    def send_email to_address, subject, content
       OT.info '[email-send-start]'
+      mailer_response= nil
+
       begin
         obscured_address = OT::Utils.obscure_email to_address
         OT.ld "> [send-start] #{obscured_address}"
@@ -40,18 +54,65 @@ module Onetime
       end
 
       begin
-        mail = SendGrid::Mail.new(from_email, subject, to_email, prepared_content)
+        mailer = SendGrid::Mail.new(from_email, subject, to_email, prepared_content)
         OT.ld mail
-        response = @sendgrid.client.mail._('send').post(request_body: mail.to_json)
+
+        mailer_response = @sendgrid.client.mail._('send').post(request_body: mailer.to_json)
         OT.info '[email-sent]'
-        OT.ld response.status_code
-        OT.ld response.body
-        OT.ld response.parsed_body
-        OT.ld response.headers
+        OT.ld mailer_response.status_code
+        OT.ld mailer_response.body
+        OT.ld mailer_response.parsed_body
+        OT.ld mailer_response.headers
 
       rescue => ex
         OT.info "> [send-exception-sending] #{obscured_address}"
         OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+      end
+
+      mailer_response
+    end
+    def self.setup
+      @sendgrid = SendGrid::API.new(api_key: OT.conf[:emailer][:pass])
+    end
+  end
+  class SMTPEmailer < BaseEmailer
+    def send_email to_address, subject, content
+      OT.info '[email-send-start]'
+      mailer_response = nil
+
+      obscured_address = OT::Utils.obscure_email to_address
+      OT.ld "> [send-start] #{obscured_address}"
+
+      from_email = "#{self.fromname} <#{self.from}>"
+      to_email = to_address
+
+      begin
+        mailer_response = Mail.deliver do
+          from     from_email
+          to       to_email
+          subject  subject
+          body     content
+        end
+
+      rescue => ex
+        OT.info "> [send-exception-sending] #{obscured_address}"
+        OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+      end
+
+      # Log the details
+      OT.ld "From: #{mailer_response.from}"
+      OT.ld "To: #{mailer_response.to}"
+      OT.ld "Subject: #{mailer_response.subject}"
+      OT.ld "Body: #{mailer_response.body.decoded}"
+
+      # Log the headers
+      mailer_response.header.fields.each do |field|
+        OT.ld "#{field.name}: #{field.value}"
+      end
+
+      # Log the delivery status if available
+      if mailer_response.delivery_method.respond_to?(:response_code)
+        OT.ld "SMTP Response: #{mailer_response.delivery_method.response_code}"
       end
 
     end
@@ -81,10 +142,11 @@ module Onetime
       OT.le "#{self.class} locale is: #{locale.to_s}"
       @mode = OT.conf[:emailer][:mode]
       if @mode == :sendgrid
-        @emailer = OT::SMTP.new OT.conf[:emailer][:from], OT.conf[:emailer][:fromname]
+        OT.ld "[mail-sendgrid-from] #{OT.conf[:emailer][:from]}"
+        @emailer = OT::SendGridEmail.new OT.conf[:emailer][:from], OT.conf[:emailer][:fromname]
       else
         OT.ld "[mail-smtp-from] #{OT.conf[:emailer][:from]}"
-        @emailer = OT::SMTP.new OT.conf[:emailer][:from]
+        @emailer = OT::SMTPEmailer.new OT.conf[:emailer][:from]
       end
       OT.le "[emailer] #{@emailer} (#{@mode})"
       init *args if respond_to? :init
@@ -95,15 +157,16 @@ module Onetime
       @i18n ||= {
         locale: locale,
         email: OT.locales[locale][:email][pagename],
-        COMMON: OT.locales[locale][:email][:COMMON]
+        COMMON: OT.locales[locale][:web][:COMMON]
       }
     end
     def deliver_email
       errmsg = "Your message wasn't sent because we have an email problem"
+
       begin
         email_address_obscured = OT::Utils.obscure_email self[:email_address]
         OT.info "Emailing #{email_address_obscured} [#{self.class}]"
-        ret = emailer.send self[:email_address], subject, render
+        ret = emailer.send_email self[:email_address], subject, render
       rescue SocketError => ex
         OT.le "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
         raise OT::Problem, errmsg

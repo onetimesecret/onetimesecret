@@ -19,6 +19,8 @@ require 'storable'
 require 'sendgrid-ruby'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+
+
 Familia.apiversion = nil
 
 module Onetime
@@ -59,7 +61,7 @@ module Onetime
       @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
-      OT::SMTP.setup
+      OT::SMTPEmailer.setup
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
       Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
       Familia.uri = OT.conf[:redis][:uri]
