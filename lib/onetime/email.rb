@@ -91,7 +91,15 @@ module Onetime
           from     from_email
           to       to_email
           subject  subject
-          body     content
+
+          text_part do
+            body         content
+          end
+
+          html_part do
+            content_type 'text/html; charset=UTF-8'
+            body         content
+          end
         end
 
       rescue => ex
