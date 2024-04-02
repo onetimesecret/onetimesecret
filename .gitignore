@@ -1,5 +1,6 @@
 .DS_Store
 .bundle
+.byebug*
 .history
 .devcontainer
 .vscode
@@ -7,6 +8,7 @@
 *.log
 *.txt
 .ruby-version
+appendonlydir
 Gemfile.lock
 etc/config
 log
