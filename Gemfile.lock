@@ -92,7 +92,7 @@ PLATFORMS
 DEPENDENCIES
   addressable (= 2.2.6)
   annoy (= 0.5.6)
-  attic (= 0.5.3)
+  attic!
   bcrypt (= 3.1.17)
   byebug (= 11.1)
   byebug-dap
