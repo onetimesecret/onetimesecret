@@ -30,12 +30,12 @@ class Onetime::SplitTest < Familia::HashKey
       test
     end
     def exists? objid
-      obj = new 
+      obj = new
       obj.testname = objid
       obj.exists?
     end
     def load objid
-      obj = new 
+      obj = new
       obj.testname = objid
       obj.exists? ? obj : nil
     end

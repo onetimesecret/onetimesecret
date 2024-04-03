@@ -38,4 +38,3 @@ Onetime::Config.path
 OT.load! :tryouts
 [OT.mode, OT.conf.class]
 #=> [:tryouts, Hash]
-

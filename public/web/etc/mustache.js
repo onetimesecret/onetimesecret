@@ -269,7 +269,7 @@ var Mustache = function() {
       }
 
       var value;
-      
+
       // check for dot notation eg. foo.bar
       if(name.match(/([a-z_]+)\./ig)){
         var childValue = this.walk_context(name, context);

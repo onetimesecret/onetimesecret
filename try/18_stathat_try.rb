@@ -52,5 +52,3 @@ OT::Logic.stathat_count("OTS TEST 3 (count)", 1)
 ## Logic won't set a value when disabled
 OT::Logic.stathat_value("OTS TEST 3 (value)", rand*1000)
 #=> false
-
-
