@@ -53,6 +53,18 @@ puts ret['secret_key']
 
       <h3 class="cufon docTitle dotted">Python</h3>
 
+      <a href="https://github.com/slashpass/onetimesecret-cli" title="Python library - OneTimeSecretCli"><strong>Github</strong></a><br/>
+      <em>by <a href="https://github.com/slashpass">slashpass</a> (added 2021-07-08)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+from onetimesecret import OneTimeSecretCli
+
+cli = OneTimeSecretCli(ONETIMESECRET_USER, ONETIMESECRET_KEY)
+cli.create_link("secret") # return a link like https://onetimesecret.com/secret/xxxxxxxxxxx
+      </pre>
+
+
       <a href="https://github.com/utter-step/py_onetimesecret" title="Python library - One-Time Secret"><strong>Download onetimesecret.py</strong></a><br/>
       <em>by <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added 2012-06-26)</em>
 
