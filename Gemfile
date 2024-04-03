@@ -1,39 +1,42 @@
+ruby '3.2.0'
+plugin 'bundler-graph'
+
 source 'https://rubygems.org/'
 
-gem 'addressable', '2.2.6'
+gem 'addressable'
 
-gem 'rack', '2.2.8.1'
+gem 'rack'
 
-gem 'thin', '1.8.1'
-gem 'yajl-ruby', '1.4.3'
+gem 'thin'
+gem 'yajl-ruby'
 
-gem 'mustache', '0.99.3'
+gem 'mustache'
 
-gem 'familia', '0.7.1'
-gem 'gibbler', '0.8.9'
-gem 'redis', '2.2.2'
-gem 'storable', '0.8.9'
+gem 'familia'
+gem 'gibbler'
+gem 'redis'
+gem 'storable'
 
-gem 'bcrypt', '3.1.17'
-gem 'encryptor', '1.1.3'
+gem 'bcrypt'
+gem 'encryptor'
 
-gem 'otto', '0.4.1'
+gem 'otto'
 
-gem 'redis-dump', '0.3.2'
+gem 'redis-dump'
 
 # https://github.com/delano/attic/pull/2
-gem 'attic', '0.5.3'
+gem 'attic'
 
-gem 'annoy', '0.5.6'
-gem 'sysinfo', '0.8.1'
+gem 'annoy'
+gem 'sysinfo'
 
-gem 'httparty', '0.21.0'
-gem 'sendgrid-ruby', '6.6.2'
+gem 'httparty'
+gem 'sendgrid-ruby'
 
-gem 'mail', '2.5.5'
+gem 'mail'
 
 group :dev do
-  gem 'byebug', '11.1'
+  gem 'byebug'
   gem 'byebug-dap'
   gem 'rubocop'
 end

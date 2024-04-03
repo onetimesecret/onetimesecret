@@ -1,19 +1,22 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.2.6)
+    addressable (2.8.6)
+      public_suffix (>= 2.0.2, < 6.0)
     annoy (0.5.6)
       highline (>= 1.5.0)
     ast (2.4.2)
     attic (0.5.3)
-    bcrypt (3.1.17)
-    byebug (11.1.0)
+    bcrypt (3.1.20)
+    byebug (11.1.3)
     byebug-dap (0.1.4)
       byebug (~> 11.1)
       ruby-dap (~> 0.1.2)
+    connection_pool (2.4.1)
     daemons (1.4.1)
+    date (3.3.4)
     drydock (0.6.9)
-    encryptor (1.1.3)
+    encryptor (3.0.0)
     eventmachine (1.2.7)
     familia (0.7.1)
       gibbler (>= 0.8.6)
@@ -21,21 +24,31 @@ GEM
       redis (>= 2.1.0)
       storable (>= 0.8.6)
       uri-redis (>= 0.4.2)
-    gibbler (0.8.9)
-      attic (>= 0.4.0)
-    highline (2.1.0)
+    gibbler (0.9.0)
+    highline (3.0.1)
     httparty (0.21.0)
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
     json (2.7.1)
-    mail (2.5.5)
-      mime-types (~> 1.16)
-      treetop (~> 1.4.8)
-    mime-types (1.25.1)
+    language_server-protocol (3.17.0.3)
+    mail (2.8.1)
+      mini_mime (>= 0.1.1)
+      net-imap
+      net-pop
+      net-smtp
     mini_mime (1.1.5)
     multi_json (1.15.0)
     multi_xml (0.6.0)
-    mustache (0.99.3)
+    mustache (1.1.1)
+    net-imap (0.4.10)
+      date
+      net-protocol
+    net-pop (0.1.2)
+      net-protocol
+    net-protocol (0.2.2)
+      timeout
+    net-smtp (0.5.0)
+      net-protocol
     otto (0.4.1)
       addressable (>= 2.2.6)
       rack (>= 1.2.1)
@@ -43,46 +56,48 @@ GEM
     parser (3.3.0.5)
       ast (~> 2.4.1)
       racc
-    polyglot (0.3.5)
+    public_suffix (5.0.5)
     racc (1.7.3)
-    rack (2.2.8.1)
+    rack (2.2.9)
     rainbow (3.1.1)
-    redis (2.2.2)
-    redis-dump (0.3.2)
+    redis (5.1.0)
+      redis-client (>= 0.17.0)
+    redis-client (0.21.1)
+      connection_pool
+    redis-dump (0.4.0)
       drydock (>= 0.6.9)
-      redis (>= 2.0)
+      redis (>= 4.0)
       uri-redis (>= 0.4.0)
       yajl-ruby (>= 0.1)
     regexp_parser (2.9.0)
     rexml (3.2.6)
-    rubocop (1.50.2)
+    rubocop (1.62.1)
       json (~> 2.3)
+      language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
-      parser (>= 3.2.0.0)
+      parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml (>= 3.2.5, < 4.0)
-      rubocop-ast (>= 1.28.0, < 2.0)
+      rubocop-ast (>= 1.31.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.30.0)
-      parser (>= 3.2.1.0)
+    rubocop-ast (1.31.2)
+      parser (>= 3.3.0.4)
     ruby-dap (0.1.3)
     ruby-progressbar (1.13.0)
     ruby_http_client (3.5.5)
-    sendgrid-ruby (6.6.2)
+    sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
     storable (0.8.9)
     sysinfo (0.8.1)
       drydock
       storable
-    thin (1.8.1)
+    thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    treetop (1.4.15)
-      polyglot
-      polyglot (>= 0.3.1)
+    timeout (0.4.1)
     unicode-display_width (2.5.0)
     uri-redis (0.4.2)
     yajl-ruby (1.4.3)
@@ -91,28 +106,31 @@ PLATFORMS
   arm64-darwin-22
 
 DEPENDENCIES
-  addressable (= 2.2.6)
-  annoy (= 0.5.6)
-  attic (= 0.5.3)
-  bcrypt (= 3.1.17)
-  byebug (= 11.1)
+  addressable
+  annoy
+  attic
+  bcrypt
+  byebug
   byebug-dap
-  encryptor (= 1.1.3)
-  familia (= 0.7.1)
-  gibbler (= 0.8.9)
-  httparty (= 0.21.0)
-  mail (= 2.5.5)
-  mustache (= 0.99.3)
-  otto (= 0.4.1)
-  rack (= 2.2.8.1)
-  redis (= 2.2.2)
-  redis-dump (= 0.3.2)
+  encryptor
+  familia
+  gibbler
+  httparty
+  mail
+  mustache
+  otto
+  rack
+  redis
+  redis-dump
   rubocop
-  sendgrid-ruby (= 6.6.2)
-  storable (= 0.8.9)
-  sysinfo (= 0.8.1)
-  thin (= 1.8.1)
-  yajl-ruby (= 1.4.3)
+  sendgrid-ruby
+  storable
+  sysinfo
+  thin
+  yajl-ruby
+
+RUBY VERSION
+   ruby 3.2.0p0
 
 BUNDLED WITH
    2.4.12
