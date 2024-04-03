@@ -53,7 +53,7 @@
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
-FROM ruby:2.6-slim AS builder
+FROM ruby:3.1-slim AS builder
 
 # Limit to packages needed for the system itself
 # NOTE: We only need the build tools installed if we need
