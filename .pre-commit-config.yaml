@@ -1,0 +1,60 @@
+#
+# Pre-Commit Configruatioon
+#
+# Initial setup:
+#
+#   0. Install the pre-commit framework (if it isn't already on your system):
+#
+#       pip install pre-commit
+#
+#   1. Install the git hook:
+#
+#       pre-commit install
+#
+#
+# Other commands:
+#
+#   Run it on all the files in this repo:
+#     pre-commit run --all-files
+#
+#   Updating plugin repositories:
+#     pre-commit autoupdate
+#
+# See also:
+#   - https://pre-commit.com for more information
+#   - https://pre-commit.com/hooks.html for more hooks
+#
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: detect-private-key
+      - id: mixed-line-ending
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: no-commit-to-branch
+        args: ["--branch", "develop", "--branch", "rel/.*"]
+      - id: check-merge-conflict
+      - id: forbid-submodules
+
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
+    rev: v0.0.9
+    hooks:
+      - id: add-msg-issue-prefix
+        name: Link commit to Github issue
+        args:
+          - "--default=[NOJIRA]"
+          - "--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}"
+          - "--template=[#{}]"
+          - "--insert-after"
+          - "^feat.?:|^fix.?:"
