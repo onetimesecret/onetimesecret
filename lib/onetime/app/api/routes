@@ -1,0 +1,19 @@
+
+## API v1
+GET    /v1/status                               Onetime::App::API#status
+
+POST   /v1/share                                Onetime::App::API#share
+POST   /v1/create                               Onetime::App::API#share
+POST   /v1/generate                             Onetime::App::API#generate
+
+POST   /v1/secret/:key                          Onetime::App::API#show_secret
+
+GET    /v1/private/recent                       Onetime::App::API#show_metadata_recent
+GET    /v1/metadata/recent                      Onetime::App::API#show_metadata_recent
+
+GET    /v1/private/:key                         Onetime::App::API#show_metadata
+POST   /v1/private/:key                         Onetime::App::API#show_metadata
+GET    /v1/metadata/:key                        Onetime::App::API#show_metadata
+POST   /v1/metadata/:key                        Onetime::App::API#show_metadata
+
+POST   /v1/private/:key/burn                    Onetime::App::API#burn_secret

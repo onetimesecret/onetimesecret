@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  {{#no_cache}}
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="expires" content="-1">
+  {{/no_cache}}
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>{{title}} - {{subtitle}}</title>
+  <meta name="description" content="{{description}}">
+  <meta name="keywords" content="{{keywords}}">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <style type="text/css">
+    body {
+      padding-top: 0px;
+      padding-bottom: 10px;
+      font-family: georgia,serif;
+    }
+    /* Custom container */
+    .container-narrow {
+      margin: 0 auto;
+      max-width: 640px;
+    }
+    .container-narrow > hr {
+      margin: 30px 0;
+    }
+    .masthead {
+      color: #ccc;
+    }
+    .masthead .nav {
+      margin-top: 24px;
+      padding: 0px;
+    }
+    /* Main marketing message and sign up button */
+    .jumbotron {
+      margin: 10px 0;
+      text-align: center;
+      color: #999;
+      font-size: 16px;
+    }
+    .jumbotron h1 {
+      font-size: 22px;
+      font-weight: normal;
+      line-height: 1;
+      margin-top: 0px;
+      margin-bottom: 6px;
+      color: #333;
+    }
+    .jumbotron .lead {
+      color: #999;
+      line-height: 1;
+      font-size: 16px;
+    }
+    .jumbotron .btn {
+      padding: 14px 24px;
+    }
+    .jumbotron .hint {
+      font-style: italic;
+    }
+    .jumbotron .more {
+    }
+    .jumbotron .more a {
+      color: #111;
+    }
+    /* Supporting marketing content */
+    .marketing {
+      margin: 20px 0;
+    }
+    #logo {
+      background-image: url('/img/logo-48-2.png');
+      display: inline-block;
+      width: 48px;
+      height: 48px;
+    }
+    /* Landscape phones and down */
+    @media (max-width: 480px) {
+      #logo {
+        background-image: url('/img/logo-36.png');
+        display: inline-block;
+        width: 36px;
+        height: 36px;
+      }
+      .masthead .nav {
+        margin-top: 18px;
+        padding: 0px;
+      }
+      .jumbotron {
+        margin: 0px 0;
+      }
+      .jumbotron h1 {
+        letter-spacing: -1px;
+        display: none;
+      }
+    }
+  </style>
+  <script src="/js/vendor/cufon-yui.js" type="text/javascript"></script>
+  <script src="/js/vendor/officina.font.js" type="text/javascript"></script>
+  <link href="/css/bootstrap-responsive.min.css" rel="stylesheet" >
+  <link href="/etc/alertify.css" rel="stylesheet">
+  <link href="/css/common.css?{{ot_version_id}}" rel="stylesheet" />
+  <link href="/css/main.css?{{ot_version_id}}" rel="stylesheet">
+  {{#css}}
+  <link href="{{to_s}}" media="screen" rel="Stylesheet" type="text/css" />
+  {{/css}}
+  <script type="text/javascript">
+  {{#jsvars}}
+    var {{name}} = {{{value}}};
+  {{/jsvars}}
+  </script>
+  <script src="/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+</head>
+<body id="{{body_class}}">
+<div id="banner"><div class="broadcast"><!-- nothing to report --></div></div>
+<div class="container-narrow">
+
+  <div class="masthead">
+    <div class="nav pull-right">
+
+      {{^authenticated}}
+        {{#is_subdomain}}
+        <a href="{{baseotsuri}}/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
+        {{/is_subdomain}}
+        {{^is_subdomain}}
+        <a href="#" class="active">Create an account</a> |
+        <a href="#">Blog</a> |
+        <a href="#">Sign In</a>
+        {{/is_subdomain}}
+      {{/authenticated}}
+
+      {{#authenticated}}
+        <span class="lighter">{{cust.custid}}</span>{{#colonel}}<a href="{{baseotsuri}}/colonel/" title="" class="nounderline">*</a>{{/colonel}} -
+        <a href="{{baseotsuri}}/dashboard" title="Your Dashboard">Dashboard</a> |
+        <a href="{{baseotsuri}}/account" title="Your Account">Account</a> |
+        <a href="{{baseotsuri}}/logout" title="Log out of One-Time Secret">Logout</a>
+      {{/authenticated}}
+
+    </div>
+    <a href="http://www.youtube.com/watch?v=1V6T0lJc3dU" title="Release {{ot_version}}" class="release">&nbsp;</a>
+    <a href="/"><h3 id="logo"></h3></a>
+  </div>
+
+  <div class="jumbotron">
+    <h1 class="">Paste a password, secret phrase, or private link below</h1>
+    <p class="lead">Keep sensitive info out of your email and chat logs.</p>
+    <form id="createSecret">
+      <fieldset>
+        <textarea autofocus rows="7" class="btn-block" placeholder=""></textarea>
+        <button class="btn btn-large btn-block btn-custom cufon" type="submit">Create a secret link*</button>
+      </fieldset>
+    </form>
+
+    <form id="createSecret">
+      <fieldset>
+        <button class="btn btn-block cufon" type="submit">Or generate a random password</button>
+      </fieldset>
+    </form>
+
+    <hr/>
+    <p class="hint">* A secret link only works once and then disappears forever.</p>
+    <p class="more">Sign up for a <a href="#">free account</a> to set passphrases for extra security along with additional privacy options. We'll even email the secret for you if you want.</p>
+    <hr/>
+  </div>
+
+
+  <div class="row-fluid marketing">
+    <div class="span4">
+      <h4>Screencast</h4>
+      <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+    </div>
+
+    <div class="span4">
+      <h4>Get the App</h4>
+      <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+    </div>
+
+    <div class="span4">
+      <h4>F.A.Q.</h4>
+      <p>Donec id elit non mi porta gravida at eget metus. Maecenas faucibus mollis interdum.</p>
+    </div>
+  </div>
+
+  <hr/>
+
+  <div id="footer" class="dotted">
+    {{#display_feedback}}
+    <form class="form form-inline" action="/feedback" method="post">
+      {{{add_shrimp}}}
+      <div class="input-append">
+        <input class="span6" id="appendedInputButton" type="text" placeholder="{{feedback_text}}">
+        <button class="btn" type="button">Send Feedback</button>
+      </div>
+    </form>
+    {{/display_feedback}}
+    <p>
+      <a href="{{baseotsuri}}/about">About</a> |
+      <a href="{{baseotsuri}}/docs/api">API</a> |
+      <a href="https://github.com/onetimesecret/onetimesecret">Code</a> |
+      <a href="https://github.com/onetimesecret/onetimesecret/issues" title="Issue Tracker">Issues</a> |
+      <a href="http://blog.onetimesecret.com/">Blog</a>
+    </p>
+    <p>
+      <a href="{{baseotsuri}}/info/privacy">Privacy</a> |
+      <a href="{{baseotsuri}}/info/terms">Terms &amp; Conditions</a> |
+      <a href="{{baseotsuri}}/info/security">Security</a>
+    </p>
+    {{#display_icons}}
+    <div class="tagline">
+      Follow our latest news:
+      <p>
+        <a href="http://www.facebook.com/pages/One-Time-Secret/284990691536190" title="Join us on Facebook"><img class="socialicon" src="/img/facebook.png" height="16" width="16" alt="facebook icon" /></a>
+        <a href="http://twitter.com/onetimesecret" title="Join us on Twitter"><img class="socialicon" src="/img/twitter.png" height="16" width="16" alt="twitter icon" /></a>
+      </p>
+    </div>
+    {{/display_icons}}
+
+    {{#monitored_link}}
+    <hr class="clear"/>
+    <p>Uptime monitoring by <a href="https://www.blamestella.com/" title="Responsive web monitoring -- The Blamey &amp; Stella Information Company">Stella</a>.</p>
+    {{/monitored_link}}
+  </div>
+
+</div> <!-- /container -->
+
+<script src="/js/vendor/jquery-3.6.0.min.js"></script>
+
+<script src="js/vendor/bootstrap.min.js"></script>
+
+<script src="js/plugins.js?{{ot_version_id}}"></script>
+<script src="js/main.js?{{ot_version_id}}"></script>
+{{#js}}
+<script src="{{to_s}}" type="text/javascript"></script>
+{{/js}}
+<script type="text/javascript">
+  //$('.jumbotron h1').removeClass('temp-kerning');
+  //Cufon.refresh();
+</script>
+
+{{#with_analytics}}
+<!-- No analytics enabled by default (or on onetimesecret.com). -->
+{{/with_analytics}}
+
+</body>
+</html>

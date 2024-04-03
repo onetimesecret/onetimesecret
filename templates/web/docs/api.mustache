@@ -1,0 +1,75 @@
+{{>header}}
+
+<div id="content">
+  <div id="documentation">
+    <h2 class="intro">API Overview</h2>
+
+    <ul id="docnav">
+      <li class="selected"><a href="/docs/api" title="">Overview</a></li>
+      <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
+      <li class=""><a href="/docs/api/libs" title="">Client Libraries</a></li>
+    </ul>
+
+    <p class="centre"><em class="larger">BETA API - updated 2017-04-27 (<a href="#feedback">Have a question?</a>)</em></p>
+
+    <div id="topicContent">
+
+      <h3 class="cufon docTitle dotted">Base URI</h3>
+      <span class="docSubtext">{{baseuri}}/api</span>
+
+      <p>
+        All API access is over HTTPS and starts with <tt>/api</tt>. All responses are JSON.
+        <!-- The following parameters and attributes are common across the API. -->
+      </p>
+
+      <!--
+      <div class="options">
+        <strong>Query Params</strong>
+        <ul>
+          <li><span class="name">field</span> (optional): if specified, returns the content for this field only.</li>
+        </ul>
+      </div>
+      -->
+
+      <h4 class="cufon docTitle dotted">Authentication</h4>
+      <span class="docSubtext">{{baseuri_httpauth}}/api</span>
+
+      <p>
+        We use HTTP Basic Authentication for all requests and require a username and password.
+        <ul>
+          <li>The username is the same as your Stella account login.</li>
+          <li>The password is the API token which you can find on your account page.</li>
+        </ul>
+      </p>
+
+      <h3 class="cufon docTitle dotted">System Status</h3>
+      <span class="docSubtext">GET {{baseuri}}/api/v1/status</span>
+
+      <p>Current status of the system.</p>
+
+      <div class="options">
+        <strong>Parameters</strong><br/>
+        <em>None</em>
+      </div>
+
+      <pre class="colourize">$ curl -u 'USERNAME:APITOKEN' {{baseuri}}/api/v1/status</pre>
+
+      <pre class="colourize">{<span class="ke"><span class="dl">&quot;</span><span class="k">status</span><span class="dl">&quot;</span></span>:<span class="s"><span class="dl">&quot;</span><span class="k">nominal</span><span class="dl">&quot;</span></span>}</pre>
+      <p></p>
+
+      <div class="options">
+        <strong>Attributes</strong>
+        <ul>
+          <li><span class="name">status</span>: The current system status. One of: nominal, offline.</li>
+        </ul>
+      </div>
+
+
+      <p></p>
+
+      <br/><br/><br/>
+    </div>
+  </div>
+</div>
+
+{{>footer}}

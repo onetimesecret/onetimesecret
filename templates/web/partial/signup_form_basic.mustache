@@ -1,0 +1,33 @@
+<form action="/signup" method="post" class="form-horizontal well">
+  {{{add_shrimp}}}
+  <input type="hidden" name="planid" value="{{planid}}" />
+  <fieldset>
+    <!--<legend>Legend</legend>-->
+    <div class="control-group">
+      <label class="control-label" for="custidField">{{i18n.COMMON.field_email}}</label>
+      <div class="controls">
+        <input type="text" name="u" id="custidField" class="input-xlarge" value="{{form_fields.custid}}" placeholder="" />
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="passField">{{i18n.COMMON.field_password}}</label>
+      <div class="controls">
+        <input type="password" name="p" id="passField" class="input-medium" value="" placeholder="" />
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="pass2Field">{{i18n.COMMON.field_password2}}</label>
+      <div class="controls">
+        <input type="password" name="p2" id="pass2Field" class="input-medium" value="" placeholder="" />
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" class="btn btn-large btn-custom cufon">{{i18n.COMMON.button_create_account}}</button>
+      </div>
+    </div>
+  </fieldset>
+  <script type="text/javascript">
+    $('#custidField').focus();
+  </script>
+</form>

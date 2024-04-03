@@ -1,0 +1,63 @@
+
+  <hr/>
+
+  <div id="footer">
+    {{#display_feedback}}
+    <form class="form form-inline" action="/feedback" method="post">
+      {{{add_shrimp}}}
+      <div class="input-append">
+        <input class="span6" name="msg" id="appendedInputButton" type="text" placeholder="{{i18n.COMMON.feedback_text}}">
+        <button class="btn" type="submit">{{i18n.COMMON.button_send_feedback}}</button>
+      </div>
+    </form>
+    {{/display_feedback}}
+    {{#display_links}}
+    <p class="footerNav">
+      <a href="{{baseotsuri}}/about">About</a> |
+      <a href="{{baseotsuri}}/translations">Help Translate</a> |
+      <a href="{{baseotsuri}}/docs/api">API</a> |
+      <a href="https://github.com/onetimesecret/onetimesecret">Code</a> |
+      <a href="https://github.com/onetimesecret/onetimesecret/issues" title="Issue Tracker">Issues</a>
+    </p>
+    <p class="footerNav">
+      <a href="{{baseotsuri}}/info/privacy">Privacy</a> |
+      <a href="{{baseotsuri}}/info/terms">Terms &amp; Conditions</a> |
+      <a href="{{baseotsuri}}/contributor">Contributors</a> |
+      <a href="{{baseotsuri}}/info/security">Security</a>
+    </p>
+    {{/display_links}}
+    {{#display_icons}}
+    <div class="tagline">
+      Follow our latest news:
+      <p>
+        <a href="https://www.facebook.com/pages/One-Time-Secret/284990691536190" title="Join us on Facebook"><img class="socialicon" src="/img/icon-facebook.png" height="16" width="16" alt="facebook icon" /></a>
+        <a href="https://twitter.com/onetimesecret" title="Join us on Twitter"><img class="socialicon" src="/img/icon-twitter.png" height="16" width="16" alt="twitter icon" /></a>
+      </p>
+      <p class="release">{{ot_version}}-{{ot_version_id}}-{{locale}}</p>
+    </div>
+    {{/display_icons}}
+
+  </div>
+
+</div> <!-- /container -->
+
+<script src="/js/vendor/bootstrap.min.js"></script>
+
+<script src="/js/plugins.js?{{ot_version_id}}"></script>
+<script src="/js/main.js?{{ot_version_id}}"></script>
+{{#js}}
+<script src="{{to_s}}" type="text/javascript"></script>
+{{/js}}
+<script type="text/javascript">
+  //$('.jumbotron h1').removeClass('temp-kerning');
+  //Cufon.refresh();
+</script>
+
+{{#with_analytics}}
+<!-- No analytics enabled by default (or on onetimesecret.com). -->
+{{/with_analytics}}
+
+<!-- {{via_hn}}:{{via_test}}:{{via_reddit}} -->
+</body>
+</html>
+

@@ -1,0 +1,285 @@
+
+
+
+/* ==========================================================================
+   Custom styles
+   ========================================================================== */
+
+
+.masthead .nav a {
+  color: black;
+  text-decoration: underline;
+}
+.masthead .nav a.home {
+  color: #999;
+  text-decoration: none;
+}
+
+.nav a.active, .footerNav a.active {
+  font-weight: bolder;
+}
+
+#logo {
+  padding: 0px;
+  margin-top: 10px;
+}
+
+#banner {
+  width: 100%;
+  background-color: #f0f0f0;
+  margin: 0px;
+  padding: 0px;
+  margin-bottom: 0px;
+  border-bottom: 4px solid red; /* dd4a22, d22000, b04420 */
+}
+
+#banner .broadcast {
+  text-align: center;
+  color: #000;
+  font-weight: bolder;
+}
+
+#banner .broadcast a {
+  text-decoration: underline;
+}
+
+#createSecret {
+  text-align: left;
+}
+
+#createSecret textarea, #createSecret input {
+  background-color: #f9f9f9;
+  padding: 6px;
+}
+
+.btn-custom {
+  -webkit-font-smoothing: antialiased;
+  background-color: #dd4a22!important;
+  background-repeat: repeat-x;
+  background-image: none;
+  color: #fff!important;
+  border-color: #b04420 #b04420 hsl(15,69%,41%);
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.00);
+  font-weight: bold;
+  font-size: 20px;
+}
+.btn-custom:hover {
+  background-color: #d22000 !important;
+  text-shadow: 1px 1px 0 #740500;
+}
+
+
+
+
+#footer {
+
+  text-align: center;
+  font-size: 80%;
+  line-height: 80%;
+  padding: 0px;
+  color: #999;
+}
+
+#footer a {
+  color: #000;
+}
+
+#footer p {
+  margin: 0px;
+  padding: 4px;
+}
+
+#footer .intro {
+  color: #000; float: left; padding-left: 8px; font-style: italic;
+}
+
+
+#info a {
+  text-decoration: underline;
+}
+
+hr.clear {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1em;border:none;margin:4px;}
+
+.tagline { width: 100%; text-align: center; font-style: italic; color: #999; margin-top: 20px; }
+
+.lighter { color: #999; }
+
+.release {text-decoration: none; color: #dddddd; }
+
+
+
+
+a {
+  color: #000;
+}
+
+a.keepgoing {
+  font-size: 120%;
+  font-weight: bolder;
+  padding: 10px;
+}
+
+.private .hint {
+  font-style: italic;
+  color: #999;
+  font-size: 16px;
+  text-align: center;
+}
+
+#faq {
+  margin-top: 60px;
+  color: #444;
+}
+
+.nav li.primary {line-height: 26px; font-size: 20px;}
+.nav li.secondary {font-size:16px; line-height: 16px}
+.nav li.alt {font-size:24px; line-height: 24px}
+
+.inputform li.primary {line-height: 26px; font-size: 20px;}
+.inputform li.secondary {font-size:16px; line-height: 16px}
+.inputform li.alt {font-size:24px; line-height: 24px}
+
+.inputform li {list-style-type: none;}
+
+.nav li.or {
+  color: #999;
+  font-size: 16px;
+  line-height: 16px;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+.nav em { font-style: normal; text-decoration: underline; }
+
+
+div.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
+.shared{ margin-top: 20px;}
+#generate .secret input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; margin: 6px 0px 6px 0px;}
+.private .secret input, .private .secret textarea { background-color: #eee; color: #666; padding: 10px; width: 100%;}
+.private .secret input[disabled] { background-color: #eee; color: #fff;}
+.shared .secret input, .shared .secret textarea {
+  border: 8px solid #eee; font-size: 14px; line-height: 14px; background-color: #fafafa; color: #000; -padding: 10px; width: 100%; margin-top: 20px
+}
+.uri input {width: 620px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #ff0;}
+.uri input.private {background-color: #eee;}
+.uri p {padding: 6px; font-size: 80%; margin: 0px; color: #999;}
+.passphrase { margin-bottom: 30px; }
+.passphrase input {width: 320px; font-size: 16px; line-height: 16px; padding: 6px; border: 0px; background-color: #eee; color: #000;}
+
+.secret {margin-bottom: 20px}
+.uri{margin-bottom: 10px}
+.pretext {
+  line-height: 24px;
+  font-size: 24px;
+}
+.passphrase . text {
+  line-height: 18px;
+  font-size: 18px;
+}
+
+
+#brandedlogo {
+  height: 80px;
+  width: 600px;
+  margin: 10px 0px;
+  background: #ffffff;
+  background-repeat: no-repeat;
+}
+
+.dotted{border-top:1px dotted #666;}
+.nounderline {
+  text-decoration: none !important;
+}
+.underline {
+  text-decoration: underline;
+}
+.strikethrough {
+  text-decoration: line-through;
+}
+.smaller { font-size: 85%; }
+.larger { font-size: 120%; }
+.centre { text-align: center }
+.italic { font-style: italic }
+.socialicon {
+  padding-right: 8px;
+}
+
+.hilite {background:#ff0;}
+.hilite2 {background:#6ff;}
+
+
+.err, .msg { font-weight: bold; padding: 8px; line-height: 32px; width: 100%; }
+.err { background-color: red; color: #fff }
+.msg { background-color: #ff0; }
+.warning-text { color: red;}
+
+.lightest {
+  color: #ccc;
+}
+
+
+.text-input {
+  padding-bottom: 6px;
+}
+.chars-display {
+  position: relative; display: block; float: right; margin-top: -24px; margin-right: 24px;
+}
+
+.address { margin-left: 150px; font-size: 24px; line-height: 24px; }
+
+
+#primaryTabs {
+  background: transparent;
+  border: none;
+  font-family: georgia;
+}
+#primaryTabs .ui-widget-header {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #c0c0c0;
+}
+#primaryTabs .ui-state-default {
+  background: transparent;
+  border: none;
+}
+#primaryTabs .ui-state-active {
+  background: transparent url(/img/uiTabsArrow.png) no-repeat bottom center;
+  border: none;
+}
+#primaryTabs .ui-state-default a {
+  color: #000;
+}
+
+#primaryTabs .ui-state-active a {
+  color: #999;
+}
+
+.options-box {
+  position: relative;
+  margin: 15px 0;
+  padding: 39px 19px 14px;
+  *padding-top: 19px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 4px;
+     -moz-border-radius: 4px;
+          border-radius: 4px;
+}
+
+.options-box .title {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: bold;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #9da0a4;
+  -webkit-border-radius: 4px 0 4px 0;
+     -moz-border-radius: 4px 0 4px 0;
+          border-radius: 4px 0 4px 0;
+}
+
+.alert a {
+  text-decoration: underline;
+}

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: onetime-app
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    entrypoint: ["./bin/entrypoint.sh"]
+    stdin_open: true
+    tty: true
+    command: ["bundle", "exec", "thin", "-R", "config.ru", "-a", "0.0.0.0", "-p", "7143", "start"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "60m"
+        max-file: "3"
+    ports:
+      - 7143:7143
+      - 3000:3000
+    volumes:
+      - .:/app
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: onetime-redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+      - ./etc/redis.conf:/usr/local/etc/redis/redis.conf
+
+volumes:
+  redis-data:

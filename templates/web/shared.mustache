@@ -1,0 +1,100 @@
+{{>header}}
+
+  {{^verification}}
+  {{#is_owner}}
+    {{^show_secret}}
+    <div class="alert alert-warning">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.you_created_this_secret}}
+    </div>
+    {{/show_secret}}
+    {{#show_secret}}
+    <div class="alert alert-info">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      {{i18n.page.viewed_own_secret}}
+    </div>
+    {{/show_secret}}
+  {{/is_owner}}
+  {{/verification}}
+
+  <div class="shared">
+    {{^show_secret}}
+    {{^has_passphrase}}
+    {{#verification}}
+    <span class="pretext cufon">{{i18n.COMMON.click_to_verify}}</span><br/>
+    {{/verification}}
+    {{^verification}}
+    <span class="pretext cufon">{{i18n.COMMON.click_to_continue}}</span><br/>
+    {{/verification}}
+    {{/has_passphrase}}
+    {{#has_passphrase}}
+    <h2 class="intro cufon">{{i18n.page.requires_passphrase}}</h2>
+    {{/has_passphrase}}
+    {{>partial/session_messages}}
+    <div class="passphrase">
+      <form method="POST">
+        {{{add_shrimp}}}
+        <input name="continue" type="hidden" value="true" />
+        <fieldset>
+          <!--<legend>Legend</legend>-->
+          <div class="control-group">
+            {{#has_passphrase}}
+            <div class="controls">
+              <input type="password" name="passphrase" id="passField" class="input-large" value="" placeholder="{{i18n.COMMON.enter_passphrase_here}}" />
+            </div>
+            {{/has_passphrase}}
+          </div>
+        <div class="control-group">
+          <div class="controls">
+            <button type="submit" class="btn btn-large btn-block btn-custom cufon">{{i18n.COMMON.view_secret}}</button>
+          </div>
+        </div>
+      </form>
+      {{^verification}}
+      <p class="lighter">({{i18n.COMMON.careful_only_see_once}})</p>
+      {{/verification}}
+    </div>
+    {{/show_secret}}
+    {{#show_secret}}
+    <div class="secret">
+      {{#verification}}
+      <span class="pretext">{{i18n.page.your_secret_message}}</span><br/>
+      {{/verification}}
+      {{^verification}}
+      <div class="pretext">{{i18n.page.this_message_for_you}}</div>
+      {{/verification}}
+
+      <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
+
+      {{^verification}}
+      <p class="lighter">({{i18n.COMMON.careful_only_see_once}})</p>
+      {{/verification}}
+
+      {{#truncated}}
+      <div class="alert alert-info smaller">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.secret_was_truncated}} {{secret_value.size.to_bytes}}.
+        {{^authenticated}}<a href="/signup">{{i18n.COMMON.signup_for_more}}</a>.{{/authenticated}}
+      </div>
+      {{/truncated}}
+
+    </div>
+    <ul class="nav">
+      <li class="alt">
+        {{^verification}}
+        {{^is_subdomain}}
+        <a class="btn btn-large btn-block cufon" href="/" class="">{{i18n.page.reply_with_secret}}</a>
+        {{/is_subdomain}}
+        {{#is_subdomain}}
+        <a href="{{subdomain.homepage}}">Return to {{subdomain.company_domain}}</a>
+        {{/is_subdomain}}
+        {{/verification}}
+        {{#verification}}
+        <a class="btn btn-large btn-block cufon" href="/login" class="">{{i18n.COMMON.login_to_your_account}}</a>
+        {{/verification}}
+      </li>
+    </ul>
+    {{/show_secret}}
+  </div>
+
+{{>footer}}

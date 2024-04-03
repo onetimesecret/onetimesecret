@@ -1,0 +1,45 @@
+
+{{>header}}
+
+  <div id="content">
+
+    <h2 class="intro">About Us</h2>
+
+    <p>I'm <a href="http://delanotes.com/" title="Delano Mandelbaum">Delano</a> and I built One-Time Secret as a way to share sensitive information that's both simple and secure. Originally, the idea was to share passwords but since launching the service in 2012 we've heard from people all over the world who use it in ways we never imagined. We help people share over 50,000 secrets a month. All of <a href="https://github.com/onetimesecret/onetimesecret" title="Fork us on GitHub">the code is open-source</a> and available on Github.</p>
+
+    <p>If you have any questions, there is a feedback form at the bottom of (almost) every page.</p>
+
+    <p>Happy sharing,<br/>Delano</p>
+
+    <p style="margin-left: 40%; margin-right: 40%">
+      <a href="http://delanotes.com/" title="Delano Mandelbaum"><img src="/img/delano-g.png" width="95" height="120" border="0" /></a>
+    </p>
+
+    <h3>F.A.Q.</h3>
+
+    <h4>Why would I use this?</h4>
+    <p>When you send people passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.</p>
+
+    <h4>Why can't I send pictures or other kinds of files?</h4>
+    <p>The challenge with sending files, images in particular, is that there's no way to absolutely guarantee it wasn't copied or shared with other people. In order to ensure that no one's private information is unknowingly shared, we decided to err on the side of simplicity.</p>
+
+    <h4>But I can copy the secret text. What's the difference?</h4>
+    <p>True but all you have is text. With images and other files types, they can contain metadata and other potentially revealing information about who the sender or recipient. Again, this is simply to ensure that no private information is shared outside of the intended recipient.</p>
+
+    <h4>Can I retrieve a secret that has already been shared?</h4>
+    <p>Nope. We display it once and then delete it. After that it's gone forever.</p>
+
+    <h4>How long do you keep non-viewed secrets?</h4>
+    <p>We keep secrets for up to {{anonymous.ttl}} days for anonymous users and up to {{default_plan.ttl}} days for <a href="/signup">free accounts</a>. After that they are deleted automatically and gone forever. (Note: by the time you read a secret, it's already deleted from our servers.)</p>
+
+    <h4>What is the maximum message size?</h4>
+    <p>The maximum size is {{anonymous.size.to_bytes}} for anonymous users, {{default_plan.size.to_bytes}} for <a href="/signup">free accounts</a>, and more for paid.</p>
+
+    <h4>Why should I trust you?</h4>
+    <p>General we can't do anything with your information even if we wanted to (which we don't). If it's a password for example, we don't know the username or even the application that the credentials are for.</p>
+    <p>If you include a passphrase (available under "Privacy Options"), we use it to encrypt the secret. We don't store the passphrase (only a bcrypted hash) so we can never know what the secret is because we can't decrypt it.</p>
+    <p>Beside all that, the code is <a href="https://github.com/onetimesecret/onetimesecret">opensource</a> so you can review the code and/or run your own instance.</p>
+
+  </div>
+
+{{>footer}}

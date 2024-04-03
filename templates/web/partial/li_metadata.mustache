@@ -1,0 +1,21 @@
+<li>
+  <a href="{{uri}}"
+     class="{{#is_destroyed}}strikethrough italic lighter{{/is_destroyed}} {{^is_destroyed}}nounderline{{/is_destroyed}}"
+     title="{{^is_destroyed}}NOT {{/is_destroyed}}RECEIVED">
+  {{#secret_shortkey}}
+  {{secret_shortkey}}
+  {{/secret_shortkey}}
+  {{^secret_shortkey}}
+  m:{{shortkey}}
+  {{/secret_shortkey}}
+  {{#recipients}}({{i18n.COMMON.sent_to}} {{to_s}}){{/recipients}}
+  </a>
+  - <em class="lighter" title="{{updated}}">
+    {{#is_received}}{{i18n.COMMON.word_received}}{{/is_received}}
+    {{#is_burned}}{{i18n.COMMON.word_burned}}{{/is_burned}}  {{stamp}}
+    </em>
+
+  {{^is_destroyed}}
+  <a href="{{uri}}/burn" class="burn-secret" title="{{i18n.COMMON.burn_this_secret}}"><i class="icon-fire"></i></a>
+  {{/is_destroyed}}
+</li>

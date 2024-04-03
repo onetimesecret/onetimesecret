@@ -1,0 +1,128 @@
+{{>header}}
+
+  <div class="private">
+
+    {{#show_secret_link}}
+    <div class="uri">
+      <span class="pretext">{{i18n.page.pretext}}</span><br/>
+      <input id="secreturi" class="selectable" value="{{share_uri}}" readonly="readonly" />
+      {{#has_passphrase}}
+      <p><strong>{{i18n.page.requires_passphrase}}</strong></p>
+      {{/has_passphrase}}
+    </div>
+    {{/show_secret_link}}
+
+    {{#show_metadata}}
+    {{#recipients}}
+    <h3>{{i18n.COMMON.sent_to}} {{to_s}}</h3>
+    {{/recipients}}
+    {{/show_metadata}}
+
+    {{#show_secret}}
+    <div class="secret">
+      {{^can_decrypt}}
+      <em>{{i18n.COMMON.secret}} ({{secret_shortkey}}):</em><br/>
+      <input class="selectable" id="displayedsecret" value="{{i18n.page.this_msg_is_encrypted}}" />
+      {{/can_decrypt}}
+      {{#can_decrypt}}
+
+      {{#truncated}}
+      <div class="alert alert-info smaller">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.secret_was_truncated}} {{secret_value.size.to_bytes}}.
+        {{^authenticated}}<a href="/signup">{{i18n.COMMON.signup_for_more}}</a>{{/authenticated}}.
+      </div>
+      {{/truncated}}
+
+      <em>{{i18n.COMMON.secret}} ({{secret_shortkey}}):</em> <span class="smaller lighter">({{i18n.page.only_see_once}})</span><br/>
+      <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
+
+      {{/can_decrypt}}
+    </div>
+    {{/show_secret}}
+
+    {{^show_secret}}
+    <div class="secret">
+      <span class="pretext">{{i18n.COMMON.secret}} ({{secret_shortkey}}):</span> <br/>
+      <input value="*******************" disabled="disabled" />
+    </div>
+    {{/show_secret}}
+
+    <p>
+      {{#is_received}}
+      <em>{{i18n.COMMON.received}} {{received_date}}.</em>
+      <span class="smaller lighter">({{received_date_utc}})</span>
+      {{/is_received}}
+
+      {{#is_burned}}
+      <em>{{i18n.COMMON.burned}} {{burned_date}}.</em>
+      <span class="smaller lighter">({{burned_date_utc}})</span>
+      {{/is_burned}}
+
+      {{^is_destroyed}}
+      <strong>{{i18n.COMMON.expires_in}} {{expiration_stamp}}</strong>.
+      <span class="smaller lighter">({{created_date_utc}})</span>
+      {{/is_destroyed}}
+    </p>
+
+    <hr/>
+    {{^is_destroyed}}
+    <a class="btn btn-block btn-large" href="{{burn_uri}}"><i class="icon-fire"></i> {{i18n.COMMON.burn_this_secret}}*</a>
+
+    <hr/>
+    <p class="hint">* {{i18n.COMMON.burn_this_secret_hint}}.</p>
+    {{/is_destroyed}}
+
+    <hr/>
+    <p class=""><a class="btn btn-block btn-large btn-custom" href="/">Create another secret</a></p>
+
+    {{#show_metadata_link}}
+    <!--
+    <div class="alert alert-info">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <strong>Remember this page to find out when the secret was viewed..
+    </div>
+    -->
+    {{/show_metadata_link}}
+
+    {{#show_secret}}
+    <div id="faq" class="smaller">
+      <h3>F.A.Q.</h3>
+      {{#has_passphrase}}
+      <h4>Why can't I see my passphrase?</h4>
+      <p>We can't show it to you because we don't know what it is. When you create a secret with a passphrase, we immediately hash it with <a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>. Since we don't store the passphrase, we have no way to show it to you. That also means when you include a passphrase, we have no way to decrypt your secret. </p>
+
+      <h4>Why can't I see the secret value?</h4>
+      <p>We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
+      {{/has_passphrase}}
+
+      <h4>What happens when I burn a secret?</h4>
+      <p>Burning a secret will delete it before it has been read. If you send someone a secret link and burn the secret before they view it, they will not be able to read it. In fact, it will look to them like the secret never existed at all.</p>
+
+      <h4>Why can I only see the secret value once?</h4>
+      <p>We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
+
+      <h4>How long will the secret be available?</h4>
+      <p>The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
+    </div>
+
+    {{/show_secret}}
+
+    {{^show_secret}}
+    <div id="faq" class="smaller">
+      <h3>F.A.Q.</h3>
+      {{^show_secret_link}}
+      <h4>What if I forgot to copy the shared link?</h4>
+      <p>You need to create a new secret. We can't retrieve it for you.</p>
+      {{/show_secret_link}}
+
+      <h4>How long will the secret be available?</h4>
+      <p>The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
+
+      <h4>What happens when I burn a secret?</h4>
+      <p>Burning a secret will delete it before it has been read. If you send someone a secret link and burn the secret before they view it, they will not be able to read it. In fact, it will look to them like the secret never existed at all.</p>
+    </div>
+    {{/show_secret}}
+  </div>
+
+{{>footer}}

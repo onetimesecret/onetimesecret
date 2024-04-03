@@ -1,0 +1,63 @@
+{{>header}}
+
+  <div class="row-fluid">
+    <div class="span8">
+      <h3 class="cufon">Reset your password</h3>
+
+      {{>partial/session_messages}}
+
+      <form method="post" class="form-horiz2ontal well">
+        {{{add_shrimp}}}
+
+        {{^verified}}
+        <fieldset>
+          <!--<legend>Legend</legend>-->
+          <div class="control-group">
+            <label class="control-label" for="custidField">Email address</label>
+            <div class="controls">
+              <input type="text" name="u" id="custidField" class="input-xlarge" value="{{form_fields.custid}}" placeholder="" />
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn btn-custom cufon">Request</button>
+            </div>
+          </div>
+        </fieldset>
+        <script type="text/javascript">
+          $('#custidField').focus();
+        </script>
+      </form>
+      {{/verified}}
+
+      {{#verified}}
+      <form method="post" class="well">
+        {{{add_shrimp}}}
+        <fieldset>
+          <!--<legend>Legend</legend>-->
+          <div class="control-group">
+            <label class="control-label" for="passField">New password</label>
+            <div class="controls">
+              <input type="password" name="newp" id="passField" class="input-large" value="" placeholder="" />
+            </div>
+            <label class="control-label" for="pass2Field">Confirm password</label>
+            <div class="controls">
+              <input type="password" name="newp2" id="pass2Field" class="input-large" value="" placeholder="" />
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn btn-custom cufon">Update Password</button>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+      {{/verified}}
+    </div>
+
+    <ul class="unstyled">
+    </ul>
+  </div>
+
+
+{{>footer}}

@@ -1,0 +1,327 @@
+{{>header}}
+
+<div id="content">
+  <div id="documentation">
+    <h2 class="intro">Client Libraries</h2>
+
+    <ul id="docnav">
+      <li class=""><a href="/docs/api" title="">Overview</a></li>
+      <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
+      <li class="selected"><a href="/docs/api/libs" title="">Client Libraries</a></li>
+    </ul>
+
+    <p class="centre"><em class="larger">BETA API - updated 2017-04-27 (<a href="/feedback">Have a question?</a>)</em></p>
+
+    <div id="topicContent">
+
+      <h3 class="cufon docTitle dotted">PHP</h3>
+
+      <a href="/libs/onetime-api.php" title="PHP library - One-Time Secret"><strong>Download onetime-api.php</strong></a><br/>
+      <em>by <a href="http://christopher.murtagh.name/">Christopher Murtagh</a> (added 2011-12-21)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+&lt;?php
+  include('onetime-api.php');
+  $myOnetime = new OneTimeSecret;
+  $myOnetime->setCustomerID('YOUR_EMAIL');
+  $myOnetime->setToken('YOUR_OTS_APIKEY');
+  $myOnetime->setRecipient('delano@onetimesecret.com');
+  $myOnetime->setTTL(7200);
+  $myResult = $myOnetime->shareSecret('Jazz, jazz and more jazz.', 'thepassword');
+  print $myOnetime->getSecretURI($myResult);
+?&gt;
+      </pre>
+
+      <h3 class="cufon docTitle dotted">Ruby</h3>
+
+      <a href="https://github.com/onetimesecret/onetime-ruby" title="Ruby library - One-Time Secret"><strong>Download onetime-api.rb</strong></a><br/>
+      <em>by <a href="http://delanotes.com/">Delano Mandelbaum</a> (added 2011-12-21)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+require 'onetime/api'
+api = Onetime::API.new 'YOUR_EMAIL', 'YOUR_OTS_APIKEY'
+options = {
+  :secret => 'Jazz, jazz and more jazz.',
+  :recipient => 'delano@onetimesecret.com',
+  :ttl => 7200
+}
+ret = api.post '/share', options
+puts ret['secret_key']
+      </pre>
+
+      <h3 class="cufon docTitle dotted">Python</h3>
+
+      <a href="https://github.com/utter-step/py_onetimesecret" title="Python library - One-Time Secret"><strong>Download onetimesecret.py</strong></a><br/>
+      <em>by <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added 2012-06-26)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+from onetimesecret import OneTimeSecret
+
+o = OneTimeSecret("YOUR_EMAIL", "YOUR_OTS_APIKEY")
+secret = o.share(u"test")
+
+print o.retrieve_secret(secret["secret_key"])
+# {u'secret_key': u'dtr7ixukiolpx1i4i87kahmhyoy2q65',
+# u'value': u'test'}
+      </pre>
+
+
+      <h3 class="cufon docTitle dotted">Perl</h3>
+
+      <a href="http://search.cpan.org/~kyled/Net-OneTimeSecret/lib/Net/OneTimeSecret.pm" title="Perl library - One-Time Secret"><strong>Download Net::OneTimeSecret</strong></a><br/>
+      <em>by <a href="http://www.shoffle.com/">Kyle Dawkins</a> (added 2012-01-06)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+#!/usr/bin/env perl
+
+use Net::OneTimeSecret;
+
+# Note: replace these with yours in order for this to work!
+my $customerId  = 'YOUR_EMAIL';
+my $testApiKey  = 'YOUR_OTS_APIKEY';
+
+my $api = Net::OneTimeSecret->new( $customerId, $testApiKey );
+my $result = $api->shareSecret( 'Jazz, jazz and more jazz.',
+                   passphrase => 'thepassword',
+                   recipient => 'kyle@shoffle.com',
+                   ttl => 7200,
+                 );
+printf( "%s\n", $result->{secret_key} );
+
+my $secret = $api->retrieveSecret( $result->{secret_key}, passphrase => "thepassword" );
+printf( "%s\n", $secret->{value} );
+      </pre>
+
+      <h3 class="cufon docTitle dotted">Java</h3>
+
+      <a href="https://github.com/mpawlowski/onetime-java" title="Java library - One-Time Secret"><strong>Download onetime-java</strong></a><br/>
+      <em>by <a href="https://github.com/mpawlowski">Marcin Pawlowski</a> (added 2014-05-22)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+OneTimeSecret ots = new OneTimeSecretRestImpl(
+    "https://path/to/ots/instance",
+    "ots-username",
+    "ots-apikey");
+
+GenerateResponse generateResponse = ots.generate(
+                new GenerateRequest.Builder()
+                        .withPassphrase("supersecret")
+                        .build());
+
+RetrieveResponse retrieveResponse = ots.retrieve(
+                new RetrieveRequest.Builder()
+                        .withSecretKey(shareResponse.getSecretKey())
+                        .withPassphrase("supersecret")
+                        .build());
+
+assertEquals(generateResponse.getValue(), retrieveResponse.getValue());
+      </pre>
+
+      <h3 class="cufon docTitle dotted">C#</h3>
+
+      <a href="https://github.com/utter-step/OneTimeSharp" title="C# library - One-Time Secret"><strong>Download OneTimeSharp</strong></a><br/>
+      <em>by <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added 2014-05-29)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+# You can use OneTimeSharp in any of your projects which are compatible with .NET (4.0+) or Mono (2.10.8+).
+using VStepanov.OneTimeSharp;
+
+class Test
+{
+    static void Main(string[] args)
+    {
+        var ots = new OneTimeSecret("YOUR_EMAIL", "YOUR_OTS_APIKEY");
+
+        var generated = ots.GenerateSecret();
+
+        Console.WriteLine(generated.Value); // LR*?us*A(UT*
+
+        Console.WriteLine(generated.SecretKey); // ikzx3m77j5by8411cg5lk5fvfylvl0i
+        Console.WriteLine(ots.GetSecretLink(generated)); // https://onetimesecret.com/secret/ikzx3m77j5by8411cg5lk5fvfylvl0i
+
+        var shared = ots.ShareSecret("Hello, OTS!");
+
+        Console.WriteLine(shared.MetadataKey); // kd6rgsucl98qbgu9eavjq4k5sdxsom0
+        Console.WriteLine(ots.GetMetadataLink(shared)); // https://onetimesecret.com/private/kd6rgsucl98qbgu9eavjq4k5sdxsom0
+    }
+}
+      </pre>
+
+      <h3 class="cufon docTitle dotted">Go</h3>
+
+      <a href="https://github.com/corbaltcode/go-onetimesecret" title="Go library - One-Time Secret"><strong>Download onetimesecret</strong></a><br/>
+      <em>by <a href="https://github.com/corbaltcode/">Corbalt</a> (added 2021-12-10)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+import ots "github.com/corbaltcode/go-onetimesecret"
+
+client := ots.Client{
+  Username: "user@example.com",
+  Key: "my api key",
+}
+
+metadata, err := client.Put("the launch codes", "passphrase", 0, "")
+if err != nil {
+  // handle error
+}
+
+secret, err := client.Get(metadata.SecretKey, "passphrase")
+if err != nil {
+  // handle error
+}
+
+// prints "the launch codes"
+print(secret)
+      </pre>
+
+      <h4>Usage Example as CLI</h4>
+      <pre class="colourize">
+$ go install github.com/corbaltcode/go-onetimesecret/cmd/ots@latest
+
+$ ots put 'what is essential is invisible to the eye'
+hdjk6p0ozf61o7n6pbaxy4in8zuq7sm ifipvdpeo8oy6r8ryjbu8y7rhm9kty9
+
+$ ots get hdjk6p0ozf61o7n6pbaxy4in8zuq7sm
+what is essential is invisible to the eye
+
+$ ots gen
+rVjbS$twCJkS 4nwhy7v4fnabayqc5auv4ogh0nfr20 flsdlaun6hwczqu9utmc0vts5xj9xu1
+
+$ ots burn flsdlaun6hwczqu9utmc0vts5xj9xu1
+flsdlaun6hwczqu9utmc0vts5xj9xu1
+      </pre>
+
+      <h3 class="cufon docTitle dotted">PowerShell</h3>
+
+      <a href="https://github.com/chelnak/OneTimeSecret" title="PowerShell Module - OneTimeSecret"><strong>Download OneTimeSecret</strong></a><br/>
+      <em>by <a href="https://www.helloitscraig.co.uk">Craig Gumbley</a> (updated 2017-04-28)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+# Install from the PowerShell gallery
+Install-Module -Name OneTimeSecret -Scope CurrentUser
+
+# Set connection information
+Set-OTSAuthorizationToken -Username user@mail.com -APIKey xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Generate a new shared secret
+New-OTSSharedSecret -Secret "Very Secret" -Passphrase 1234 -Recipient user@mail.com
+
+# Retrieve a secret
+Get-OTSSecret -SecretKey qqevnp70b4uoiax4knzhwlhros6ne7x -Passphrase 1234
+
+# View all functions that are available
+Get-Command -Module OneTimeSecret | Select Name
+      </pre>
+
+      <h3 class="cufon docTitle dotted">Go</h3>
+
+      <a href="https://github.com/chelnak/onetimesecret-go" title="Onetimesecret Go Client"><strong>Download OneTimeSecret-Go</strong></a><br/>
+      <em>by <a href="https://www.helloitscraig.co.uk">Craig Gumbley</a> (updated 2020-08-20)</em>
+
+      <h4>Usage Example</h4>
+      <pre class="colourize">
+// Build a new client
+client := ots.NewClient(
+      WithUsername("otsuser@domain.com"),
+      WithApiKey("xxxxxxxx"),
+)
+
+// Send a request with context
+ctx := context.Background()
+response, err := client.GetStatus(ctx)
+if err != nil {
+      panic(err)
+}
+
+fmt.Println(response.Status)
+      </pre>
+
+      <h3 class="cufon docTitle dotted">Bash</h3>
+
+      <a href="https://github.com/eengstrom/onetimesecret-bash" title="Bash API and CLI - OneTimeSecret"><strong>Download OneTimeSecret-bash</strong></a><br/>
+      <em>by <a href="https://eengstrom.github.io/">Eric Engstrom</a> (updated 2018-12-19)</em>
+
+      <h4>Usage Example as Scripting API</h4>
+      <pre class="colourize">
+# source for use anonymously (secrets created anonymously)
+source ots.bash
+
+# or, source with specific auth credentials
+APIUSER="USERNAME"
+APIKEY="APIKEY"
+source ots.bash -u $APIUSER -k $APIKEY
+
+# check status of server
+ots_status
+
+# create a secret and get back the URL
+URL=$(echo "secret" | ots_share)
+
+# share a multi line secret via HEREDOC.
+URL=$(ots_share <<-EOF
+	This is a Secret
+    ... on multiple lines
+EOF
+)
+
+# pass options to share or generate.
+URL=$(ots_share ttl=600 \
+                passphrase="shared-secret" \
+                recipient="someone@somewhere.com" <<< "SECRET")
+
+# fetch the secret data
+local DATA="$(ots_retrieve "$URL")"
+
+# share/generate a new secret, and get back the private metadata key
+local KEY=$(ots_metashare <<< "SECRET")
+local KEY=$(ots_metagenerate)
+
+# get a list of private metadata keys recently created.
+# note that this requires valid autnentication credentials
+local -a RECENT=( $(ots_recent) )
+
+# check on the current state of a secret, given the private key
+ots_state $KEY
+
+# burn a secret, given the private key
+ots_burn $KEY
+      </pre>
+
+      <h4>Usage Example as CLI</h4>
+      <pre class="colourize">
+# Share a secret (from stdin
+./ots share
+SECRET
+^D
+
+# Share a secret (via HEREDOC)
+./ots share <<-EOF
+    This is a mulit-line secret via HEREDOC.
+    Somthing else goes here.
+EOF
+
+# Get/Retrieve a secret:
+./ots get <key|url>
+./ots retrieve <key|url>
+
+# Burn a secret:
+./ots burn <key|url>
+
+# Use --help for complete list of command line actions and known options:
+./ots --help
+      </pre>
+
+      <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
+    </div>
+  </div>
+</div>
+
+{{>footer}}

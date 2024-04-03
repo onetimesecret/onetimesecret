@@ -1,0 +1,97 @@
+{{>header}}
+
+  <div id="content">
+
+    <div id="primaryTabs">
+      <ul>
+        <li><a href="#stats"><strong>Stats</strong></a></li>
+        <li><a href="#customers"><strong>Customers ({{recent_customer_count}})</strong></a></li>
+        <li><a href="#feedback"><strong>Feedback ({{today_feedback_count}})</strong></a></li>
+        <li><a href="#misc"><strong>Misc</strong></a></li>
+      </ul>
+      <div id="stats">
+
+        {{>partial/session_messages}}
+
+        <p>Sessions: {{session_count}} (active in the past 5 minutes)</p>
+
+        <h3>Secrets ({{secret_count}})</h3>
+
+        <script src="https://www.stathat.com/javascripts/embed.js"></script>
+        <script>StatHatEmbed.render({s1: '{{stathat_chart}}', w: 760, h: 235});</script>
+
+        <p><a href="/colonel/metadata">Metadata</a>/<a href="/colonel/secrets">Secrets</a>: {{metadata_count}}/{{secret_count}} ({{secrets_created}}/{{secrets_shared}}/{{emails_sent}} total)</p>
+
+      </div>
+
+      <div id="feedback">
+        Total: {{feedback_count}}
+
+        <ul class="smaller">
+          <li>Most recent ({{today_feedback_count}})
+          <ul>
+          {{#today_feedback}}
+            <li><strong>{{msg}}</strong> <em class="lighter">{{stamp}}</em></li>
+          {{/today_feedback}}
+          </ul>
+          </li>
+
+          <li>Yesterday ({{yesterday_feedback_count}})
+          <ul>
+          {{#yesterday_feedback}}
+            <li><strong>{{msg}}</strong> <em class="lighter">{{stamp}}</em></li>
+          {{/yesterday_feedback}}
+          </ul>
+          </li>
+
+          <li>Past 14 days ({{older_feedback_count}})
+          <ul>
+          {{#older_feedback}}
+            <li><strong>{{msg}}</strong> <em class="lighter">{{stamp}}</em></li>
+          {{/older_feedback}}
+          </ul>
+          </li>
+        </ul>
+      </div>
+
+      <div id="customers">
+        <h3>Subdomains ({{subdomain_count}})</h3>
+
+        <ul class="smaller">
+          {{#subdomains}}
+          <li><a href="//{{fulldomain}}">{{cname}}</a> {{custid}}</li>
+          {{/subdomains}}
+        </ul>
+
+        <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
+        <ul class="smaller">
+        {{#recent_customers}}
+          <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} {{secrets_created}}/{{secrets_shared}}/{{emails_sent}} [{{planid}}] <em class="lighter">{{stamp}}</em></li>
+        {{/recent_customers}}
+        </ul>
+      </div>
+
+      <div id="misc">
+
+        <h3>Entropy</h3>
+
+        <p>{{entropy_count}} values. <a href="/colonel/entropy/generate" class="entropy-generate" alt="Generating...">Generate more</a></p>
+
+        {{#has_split_tests}}
+        <h3>Split tests</h3>
+        <ul>
+        {{#split_tests}}
+          <li>{{name}} {{samples}} {{scores}}</li>
+        {{/split_tests}}
+        </ul>
+        {{/has_split_tests}}
+
+        <h3>Redis Info</h3>
+
+        <pre>{{redis_info}}</pre>
+      </div>
+
+    </div>
+  </div>
+
+{{>footer}}

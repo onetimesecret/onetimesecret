@@ -1,0 +1,15 @@
+#!/usr/bin/ruby
+
+# Show redis db info
+# Usage:
+# 
+#     $ ruby support/redis-info
+#
+#
+
+ENV['APP_ROOT'] = ::File.expand_path(::File.join(::File.dirname(__FILE__), '..'))
+$:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
+
+require 'onetime'
+require 'yajl'
+y OT::Secret.redis.info
