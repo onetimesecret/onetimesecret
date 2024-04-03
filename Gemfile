@@ -12,23 +12,15 @@ gem 'yajl-ruby'
 
 gem 'mustache'
 
+gem 'drydock'
 gem 'familia'
 gem 'gibbler'
+gem 'otto'
 gem 'redis'
 gem 'storable'
 
 gem 'bcrypt'
 gem 'encryptor'
-
-gem 'otto'
-
-gem 'redis-dump'
-
-# https://github.com/delano/attic/pull/2
-gem 'attic'
-
-gem 'annoy'
-gem 'sysinfo'
 
 gem 'httparty'
 gem 'sendgrid-ruby'
