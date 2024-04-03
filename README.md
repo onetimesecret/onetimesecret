@@ -1,4 +1,8 @@
-# ONETIME SECRET - v0.11.0 (2023-04-17)
+# ONETIME SECRET - v0.12.0 (2024-04-02)
+
+
+**NOTE: [v0.12.0](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.0) is the last release running on 2.6. The next release will be on 3.1+. **
+
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
