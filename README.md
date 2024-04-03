@@ -1,7 +1,7 @@
-# ONETIME SECRET - v0.12.0 (2024-04-02)
+# ONETIME SECRET - v0.13.0-alpha (2024-04-02)
 
 
-**NOTE: [v0.12.0](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.0) is the last release running on 2.6. The next release will be on 3.1+. **
+**NOTE: This is an alpha branch for introducing Ruby 3.1+ support. See the [v0.12.0 release](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.0) and related branch for running with Ruby 2.6.**
 
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
@@ -19,42 +19,16 @@ When you send people sensitive info like passwords and private links via email o
 ## How to install
 
 ### System Requirements
-* Ruby >=1.9.1+, <= 2.6.6
-* Redis 2.6+
-* One of:
-  * Docker Compose 2+
-  * Any recent Linux (we use Debian, Ubuntu, Alpine, Mint, etc)
+
+_tbd_
 
 ### Installation - Docker Compose
 
-```bash
-  docker compose build app
-  docker compose up
-
-  open http://localhost:7143/
-```
-
 ### Installation - Manual
 
-*Debian*
 
-```bash
-  sudo apt-get update
-  sudo apt-get install build-essential
-  sudo apt-get install ntp libyaml-dev libevent-dev zlib1g zlib1g-dev openssl libssl-dev libxml2 libreadline-gplv2-dev
-  sudo apt-get install ruby redis ruby-bundler ruby-dev
-  mkdir ~/sources
-```
 
-*CentOS*
-
-```bash
-  sudo yum install gcc gcc-c++ make libtool git ntp
-  sudo yum install openssl-devel readline-devel libevent-devel libyaml-devel zlib-devel
-  mkdir ~/sources
-```
-
-#### Install Onetime Secret
+#### Setup Onetime Secret
 
 ```bash
   export user=CHANGEME
