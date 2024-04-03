@@ -1,4 +1,3 @@
-
 # rubocop:disable Metrics/ModuleLength
 # https://github.com/shuber/encryptor
 
@@ -20,7 +19,6 @@ require 'sendgrid-ruby'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
-
 Familia.apiversion = nil
 
 module Onetime
@@ -35,7 +33,7 @@ module Onetime
     attr_writer :debug
 
     def debug
-      @debug || (@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true' || ENV['ONETIME_DEBUG'].to_i == 1)
+      @debug || ((@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true') || ENV['ONETIME_DEBUG'].to_i == 1)
     end
 
     def mode?(guess)
@@ -45,7 +43,6 @@ module Onetime
     def errno(name)
       name.gibbler.short
     end
-
 
     def now
       Time.now.utc
@@ -103,9 +100,9 @@ module Onetime
         [locale, conf]
       end
       # Convert the zipped array to a hash
-      locales = Hash[confs]
+      locales = confs.to_h
       # Make sure the default locale is first
-      default_locale = locales[ OT.conf[:locales].first ]
+      default_locale = locales[OT.conf[:locales].first]
       # Here we overlay each locale on top of the default just
       # in case there are keys that haven't been translated.
       # That way, at least the default language will display.
@@ -121,33 +118,38 @@ module Onetime
       f.puts content
       f.close
 
-      unless chmod.is_a?(Integer)
-        raise OT::Problem("Provided chmod is not an Integer (#{chmod})")
-      end
+      raise OT::Problem("Provided chmod is not an Integer (#{chmod})") unless chmod.is_a?(Integer)
 
       File.chmod(chmod, filename)
     end
 
-    def _logger(logger, *args)
-      # Make sure a timestamp is encluded regardless of where we're logging to
-      timestamp = "I(#{Time.now.to_i}):"
-      msg = "#{timestamp} " << msg.join($/)
+    def info(*msg)
+      # prefix = "I(#{Time.now.to_i}):  "
+      # msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      msg = msg.join($/)
+      return unless mode?(:app) || mode?(:cli)
 
-      # Visual feedback on the interactive command-line
-      STDERR.puts(msg) if STDOUT.tty?
+      warn(msg) if STDOUT.tty?
+      SYSLOG.info msg
+    end
 
-      # In all cases, write to the given logger
-      logger msg
+    def le(*msg)
+      prefix = "E(#{Time.now.to_i}):  "
+      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      warn(msg) if STDOUT.tty?
+      SYSLOG.err msg
     end
-    def info(level, *args)
-      self._logger SYSLOG.info, *args
-    end
-    def le(level, *args)
-      self._logger SYSLOG.error, *args
-    end
+
     def ld(*msg)
       return unless Onetime.debug
-      self._logger SYSLOG.crit, *args
+
+      prefix = "D(#{Time.now.to_i}):  "
+      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
+      if STDOUT.tty?
+        warn(msg)
+      else
+        SYSLOG.crit msg
+      end
     end
   end
   module Config
