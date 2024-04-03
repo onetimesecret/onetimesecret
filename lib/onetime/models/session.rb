@@ -30,12 +30,12 @@ class Onetime::Session < Familia::HashKey
   end
   class << self
     def exists? sessid
-      sess = new 
+      sess = new
       sess.sessid = sessid
       sess.exists?
     end
     def load sessid
-      sess = new 
+      sess = new
       sess.sessid = sessid
       sess.exists? ? (add(sess); sess) : nil
     end
@@ -73,7 +73,7 @@ class Onetime::Session < Familia::HashKey
   end
   # Used by the limiter to estimate a unique client. We can't use
   # the session ID b/c they can choose to not send the cookie.
-  def external_identifier  
+  def external_identifier
     elements = []
     elements << ipaddress || 'UNKNOWNIP'
     elements << custid || 'anon'
@@ -97,7 +97,7 @@ class Onetime::Session < Familia::HashKey
     rename name(newid) if exists?
     @sessid = newid
     # This update is important b/c it ensures that the
-    # data gets written to redis. 
+    # data gets written to redis.
     update_fields :stale => false
     sessid
   end
@@ -108,7 +108,7 @@ class Onetime::Session < Familia::HashKey
   def add_shrimp
     ret = self.shrimp
     if ret.to_s.empty?
-      ret = self.shrimp = self.class.generate_id(sessid, custid, :shrimp) 
+      ret = self.shrimp = self.class.generate_id(sessid, custid, :shrimp)
     end
     ret
   end
@@ -124,7 +124,7 @@ class Onetime::Session < Familia::HashKey
   end
   def load_customer
     return OT::Customer.anonymous if anonymous?
-    cust = OT::Customer.load custid 
+    cust = OT::Customer.load custid
     cust.nil? ? OT::Customer.anonymous : cust
   end
   def set_error_message msg
@@ -151,7 +151,7 @@ class Onetime::Session < Familia::HashKey
   def yandex?()           @agent.to_s  =~ /yandex/i                     end
   def baidu?()            @agent.to_s  =~ /baidu/i                      end
   def stella?()           @agent.to_s  =~ /stella/i                     end
-  def searchengine?()     
+  def searchengine?()
     @agent.to_s  =~ /\b(Baidu|Gigabot|Googlebot|libwww-perl|lwp-trivial|msnbot|SiteUptime|Slurp|WordPress|ZIBB|ZyBorg|Yahoo|bing|superfeedr)\b/i
   end
   def clitool?()          @agent.to_s  =~ /curl|wget/i  || stella?      end

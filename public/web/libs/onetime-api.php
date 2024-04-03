@@ -1,7 +1,7 @@
 <?php
 
 /**
- * One-Time Secret API v1. This requires an account and API key on https://onetimesecret.com/ to use. 
+ * One-Time Secret API v1. This requires an account and API key on https://onetimesecret.com/ to use.
  *
  * @package OneTimeSecret
  */
@@ -20,7 +20,7 @@ class OneTimeSecret {
 
     /**
      * Validate email addresses
-     * 
+     *
      * @access private
      * @param string $emailAddress an email address to be validated
      * @return true if the email address is valid, false otherwise
@@ -33,15 +33,15 @@ class OneTimeSecret {
     }
 
     /**
-     * Make the actual REST API call 
-     * 
+     * Make the actual REST API call
+     *
      * @access private
      * @param array $postdata Parameters required for the given API call
      * @return JSON formatted response code
      */
     private function APIRequest ($postdata) {
 
-        $postdata = http_build_query($postdata);    
+        $postdata = http_build_query($postdata);
 
         $options = array('http' => array(
                                 'method' => 'POST',
@@ -57,11 +57,11 @@ class OneTimeSecret {
     }
 
     /**
-     * Set the URI for the REST API call. 
-     * 
+     * Set the URI for the REST API call.
+     *
      * @access private
      * @param string $uri The REST API method to be called ('share' or 'generate' for now)
-     * @return true 
+     * @return true
      */
     private function setURI ($method) {
 
@@ -76,10 +76,10 @@ class OneTimeSecret {
 
 
     /**
-     * Set the hostname for the API call. 
-     * 
+     * Set the hostname for the API call.
+     *
      * @access public
-     * @param string $theHostname The FQDN for the REST API 
+     * @param string $theHostname The FQDN for the REST API
      * @return true if it's a valid hostname.
      */
     public function setHostname ($theHostname) {
@@ -95,8 +95,8 @@ class OneTimeSecret {
     }
 
     /**
-     * Set the recipient value. 
-     * 
+     * Set the recipient value.
+     *
      * @access public
      * @param string $emailAddress The email address of the recipient
      * @return true if it's a valid email address.
@@ -115,7 +115,7 @@ class OneTimeSecret {
     /**
      * Set the TTL value. Won't allow any value less than 3600, which is the minimum.
      * This is how much time, in seconds, the secret URI will be valid for.
-     * 
+     *
      * @access public
      * @param string $ttl The desired TTL
      * @return void
@@ -130,9 +130,9 @@ class OneTimeSecret {
      * Set the customerid value. This is part of the required authentication for
      * API access. The customerid is usually the email address you used to sign up
      * and use to login to https://onetimesecret.com/
-     * 
+     *
      * @access public
-     * @param string $customerID The customerid 
+     * @param string $customerID The customerid
      * @return true if it's a valid email address.
      */
     public function setCustomerID ($customerID) {
@@ -147,12 +147,12 @@ class OneTimeSecret {
 
     /**
      * Set the api token value. This is part of the required authentication for
-     * API access. To get your token, login to https://onetimesecret.com/ and 
-     * go to the account page. At the bottom of the page is a button to generate 
-     * your API token. 
-     * 
+     * API access. To get your token, login to https://onetimesecret.com/ and
+     * go to the account page. At the bottom of the page is a button to generate
+     * your API token.
+     *
      * @access public
-     * @param string $token The api token 
+     * @param string $token The api token
      * @return true if it only contains a-f, 0-9
      */
     public function setToken ($token) {
@@ -166,28 +166,28 @@ class OneTimeSecret {
     }
 
     /**
-     * Share a secret by using the 'share' REST API call. 
-     * 
+     * Share a secret by using the 'share' REST API call.
+     *
      * @access public
-     * @param string $secret The secret to be shared 
+     * @param string $secret The secret to be shared
      * @param string $passphrase An optional passphrase
      * @return string returns the JSON response from the server
      */
     public function shareSecret($secret, $passphrase = '') {
 
-        $postdata = array ('secret'     => $secret, 
+        $postdata = array ('secret'     => $secret,
                            'passphrase' => $passphrase,
                            'ttl'        => $this->secretTTL,
                            'recipient'  => $this->theRecipient);
 
         $this->setURI('share');
         return $this->APIRequest($postdata);
-    
+
     }
 
     /**
-     * Share a generated secret by using the 'generate' REST API call. 
-     * 
+     * Share a generated secret by using the 'generate' REST API call.
+     *
      * @access public
      * @param string $passphrase An optional passphrase
      * @return string returns the JSON response from the server
@@ -200,7 +200,7 @@ class OneTimeSecret {
 
         $this->setURI('generate');
         return $this->APIRequest($postdata);
-    
+
     }
 
     /**
@@ -212,7 +212,7 @@ class OneTimeSecret {
     public function getPrivateURI ($jsonResult) {
 
         $myResult = json_decode($jsonResult, true);
-        return 'https://'.$this->theHostname.'/private/'.$myResult['metadata_key']; 
+        return 'https://'.$this->theHostname.'/private/'.$myResult['metadata_key'];
 
     }
 
@@ -225,7 +225,7 @@ class OneTimeSecret {
     public function getSecretURI ($jsonResult) {
 
         $myResult = json_decode($jsonResult, true);
-        return 'https://'.$this->theHostname.'/secret/'.$myResult['secret_key']; 
+        return 'https://'.$this->theHostname.'/secret/'.$myResult['secret_key'];
 
     }
 }

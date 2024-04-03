@@ -228,7 +228,7 @@ var passgenTemplate = (function(){
                 0xf746ce76, 0x77afa1c5, 0x20756060, 0x85cbfe4e, 0x8ae88dd8,
                 0x7aaaf9b0, 0x4cf9aa7e, 0x1948c25c, 0x02fb8a8c, 0x01c36ae4,
                 0xd6ebe1f9, 0x90d4f869, 0xa65cdea0, 0x3f09252d, 0xc208e69f,
-                0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6]    
+                0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6]
     };
     var make_key = function (args) {
       me = {};
@@ -465,12 +465,12 @@ var passgenTemplate = (function(){
           passwordb.push(this.getByte(password[r]));
         }
         passwordb.push(0);
-        return bCrypt.encode_base64(bCrypt.crypt_raw(passwordb, 
-          bCrypt.decode_base64(salt, constants.BCRYPT_SALT_LEN), rounds), 
+        return bCrypt.encode_base64(bCrypt.crypt_raw(passwordb,
+          bCrypt.decode_base64(salt, constants.BCRYPT_SALT_LEN), rounds),
           constants.bf_crypt_ciphertext.length * 4 - 1);
       }
     };
-    
+
     var host = document.getElementById('JSBCMasterHost').value;
     var master = document.getElementById('JSBCMasterPassword').value;
     var c = 0;
@@ -499,7 +499,7 @@ var passgenTemplate = (function(){
                 }
             }
         }
-        
+
         if (c != 1) {
           if (typeof(passField) == 'undefined') {
             prompt('The generated password is:', p);
@@ -518,7 +518,7 @@ var passgenTemplate = (function(){
   } catch (Exception) {
       host = "none";
   };
-  
+
   if (document.activeElement.tagName == 'INPUT' && document.activeElement.getAttribute('type') == 'password') {
     passField = document.activeElement;
   } else {

@@ -78,4 +78,3 @@ $(function() {
     $(this).tab('show');
   });
 });
-

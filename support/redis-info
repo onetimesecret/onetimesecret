@@ -2,7 +2,7 @@
 
 # Show redis db info
 # Usage:
-# 
+#
 #     $ ruby support/redis-info
 #
 #
