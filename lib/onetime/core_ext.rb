@@ -1,5 +1,5 @@
-#encoding: utf-8
-$KCODE = "u" if RUBY_VERSION =~ /^1.8/
+# rubocop:disable all
+
 
 module QuantizeTime
   def quantize quantum
@@ -80,20 +80,6 @@ unless defined?(Time::Units)
           self
         end
       end
-
-
-      ## JRuby doesn't like using instance_methods.select here.
-      ## It could be a bug or something quirky with Attic
-      ## (although it works in 1.8 and 1.9). The error:
-      ##
-      ##  lib/attic.rb:32:in `select': yield called out of block (LocalJumpError)
-      ##  lib/stella/mixins/numeric.rb:24
-      ##
-      ## Create singular methods, like hour and day.
-      # instance_methods.select.each do |plural|
-      #   singular = plural.to_s.chop
-      #   alias_method singular, plural
-      # end
 
       alias_method :ms, :milliseconds
       alias_method :'μs', :microseconds
@@ -199,37 +185,5 @@ class Array
   end
   def percentile_index(perc)
     (perc * self.length).ceil - 1
-  end
-end
-
-
-
-
-# Since rack 1.4, Rack::Reloader doesn't actually reload.
-# A new instance is created for every request, so the cached
-# modified times are reset every time.
-# This patch uses a class variable for the @mtimes hash
-# instead of an instance variable.
-module Rack
-  class Reloader
-    @mtimes = {}
-    class << self
-      attr_reader :mtimes
-    end
-    def reload!(stderr = $stderr)
-      rotation do |file, mtime|
-        previous_mtime = self.class.mtimes[file] ||= mtime
-        safe_load(file, mtime, stderr) if mtime > previous_mtime
-      end
-    end
-    def safe_load(file, mtime, stderr = $stderr)
-      load(file)
-      stderr.puts "#{self.class}: reloaded `#{file}'"
-      file
-    rescue LoadError, SyntaxError => ex
-      stderr.puts ex
-    ensure
-      self.class.mtimes[file] = mtime
-    end
   end
 end
