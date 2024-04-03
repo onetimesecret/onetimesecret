@@ -470,7 +470,7 @@ module Onetime
           end
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, locale, secret, recipient.first
+            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::Email::SecretLink
           end
           OT::Logic.stathat_count("Secrets", 1)
         else

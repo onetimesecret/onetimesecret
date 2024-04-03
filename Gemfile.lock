@@ -21,7 +21,8 @@ GEM
       redis (>= 2.1.0)
       storable (>= 0.8.6)
       uri-redis (>= 0.4.2)
-    gibbler (0.9.0)
+    gibbler (0.8.9)
+      attic (>= 0.4.0)
     highline (2.1.0)
     httparty (0.21.0)
       mini_mime (>= 1.0.0)
@@ -98,7 +99,7 @@ DEPENDENCIES
   byebug-dap
   encryptor (= 1.1.3)
   familia (= 0.7.1)
-  gibbler (= 0.9.0)
+  gibbler (= 0.8.9)
   httparty (= 0.21.0)
   mail (= 2.5.5)
   mustache (= 0.99.3)
