@@ -1,5 +1,27 @@
 name: Ruby CI
 
+# This GitHub Actions workflow is named "Ruby CI" and is
+# triggered by push events on branches starting with "fix/" or
+# "rel/", pull requests on the
+#
+# The workflow has a single job named "build" that runs on the
+# latest version of Ubuntu. It uses a strategy matrix to run
+# the job with different
+#
+# The steps in the job are as follows:
+# 1. Checkout code using the actions/checkout@v4 action.
+# 2. Set up the specified version of Ruby using the
+#     ruby/setup-ruby@v1 action.
+# 3. Install dependencies using Bundler. The Bundler version
+#     is determined by the matrix variable.
+# 4. Run the "try" command using bundle exec try. The
+#     continue-on-error flag is set to true, allowing the
+#     workflow to continue even if this step
+#
+# This workflow is designed for continuous integration of a
+# Ruby project, ensuring that the code builds and dependencies
+# are installed correctly.
+
 on:
   push:
     branches:
@@ -28,8 +50,6 @@ jobs:
             bundler: '2.4.22'
           - ruby: '2.6'
             bundler: '2.4.22'
-
-
 
     steps:
       - name: Checkout code
