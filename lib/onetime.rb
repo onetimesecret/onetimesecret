@@ -199,7 +199,7 @@ module Onetime
   module VERSION
     def self.to_a
       load_config
-      [@version[:MAJOR], @version[:MINOR], @version[:PATCH], @version[:BUILD]]
+      [@version[:MAJOR], @version[:MINOR], @version[:PATCH]]
     end
 
     def self.to_s
