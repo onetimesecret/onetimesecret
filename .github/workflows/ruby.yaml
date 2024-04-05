@@ -17,7 +17,19 @@ jobs:
 
     strategy:
       matrix:
-        ruby: ['3.2.0', '3.1.4', '3.0', '2.7', '2.6']
+        include:
+          - ruby: '3.2.0'
+            bundler: '3.0.0'
+          - ruby: '3.1.4'
+            bundler: '3.0.0'
+          - ruby: '3.0'
+            bundler: '2.4.22'
+          - ruby: '2.7'
+            bundler: '2.4.22'
+          - ruby: '2.6'
+            bundler: '2.4.22'
+
+
 
     steps:
       - name: Checkout code
@@ -28,12 +40,12 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
 
-      - name: Install dependencies
+      - name: Install dependencies (bundler ${{ matrix.bundler }})
         run: |
-          gem install bundler
+          gem install bundler --version ${{ matrix.bundler }}
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
 
       - name: Run tryouts
-        run: bundle exec try -v
+        run: bundle exec try
         continue-on-error: true
