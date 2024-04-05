@@ -13,11 +13,12 @@ gem 'yajl-ruby'
 gem 'mustache'
 
 gem 'drydock'
-gem 'familia'
+gem 'familia', '~> 0.9.1'
 gem 'gibbler'
 gem 'otto'
 gem 'redis'
 gem 'storable'
+gem 'sysinfo'
 
 gem 'bcrypt'
 gem 'encryptor'

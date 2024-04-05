@@ -4,6 +4,8 @@ GEM
     addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
     ast (2.4.2)
+    attic (1.0.0)
+      rake (~> 13.0.6)
     bcrypt (3.1.20)
     byebug (11.1.3)
     byebug-dap (0.1.4)
@@ -15,13 +17,14 @@ GEM
     drydock (0.6.9)
     encryptor (3.0.0)
     eventmachine (1.2.7)
-    familia (0.7.1)
-      gibbler (>= 0.8.6)
-      multi_json (>= 0.0.5)
-      redis (>= 2.1.0)
-      storable (>= 0.8.6)
+    familia (0.9.1)
+      gibbler (~> 1.0.0)
+      multi_json (~> 1.15)
+      redis (~> 5.1.0)
+      storable (~> 0.10.0)
       uri-redis (>= 0.4.2)
-    gibbler (0.10.0)
+    gibbler (1.0.0)
+      attic (~> 1.0)
       rake (~> 13.0)
     httparty (0.21.0)
       mini_mime (>= 1.0.0)
@@ -57,7 +60,7 @@ GEM
     racc (1.7.3)
     rack (2.2.9)
     rainbow (3.1.1)
-    rake (13.2.0)
+    rake (13.0.6)
     redis (5.1.0)
       redis-client (>= 0.17.0)
     redis-client (0.21.1)
@@ -83,6 +86,9 @@ GEM
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
     storable (0.10.0)
+    sysinfo (0.10.0)
+      drydock (< 1.0)
+      storable (~> 0.10)
     thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -103,7 +109,7 @@ DEPENDENCIES
   byebug-dap
   drydock
   encryptor
-  familia
+  familia (~> 0.9.1)
   gibbler
   httparty
   mail
@@ -114,6 +120,7 @@ DEPENDENCIES
   rubocop
   sendgrid-ruby
   storable
+  sysinfo
   thin
   yajl-ruby
 
