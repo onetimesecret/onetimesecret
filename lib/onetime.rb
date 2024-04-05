@@ -12,7 +12,7 @@ require 'encryptor'
 require 'bcrypt'
 
 require 'sysinfo'
-require 'gibbler'
+require 'gibbler/mixins'
 require 'familia'
 require 'storable'
 require 'sendgrid-ruby'
@@ -58,6 +58,7 @@ module Onetime
       @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
+      @emailer = OT::SMTPEmailer
       OT::SMTPEmailer.setup
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
       Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
