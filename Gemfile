@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-ruby '3.2.0'
+ruby '>= 2.6.8'
+
 plugin 'bundler-graph'
 
 source 'https://rubygems.org/'
