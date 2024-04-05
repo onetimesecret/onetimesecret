@@ -21,11 +21,12 @@ GEM
       redis (>= 2.1.0)
       storable (>= 0.8.6)
       uri-redis (>= 0.4.2)
-    gibbler (0.9.0)
+    gibbler (0.10.0)
+      rake (~> 13.0)
     httparty (0.21.0)
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
-    json (2.7.1)
+    json (2.7.2)
     language_server-protocol (3.17.0.3)
     mail (2.8.1)
       mini_mime (>= 0.1.1)
@@ -56,6 +57,7 @@ GEM
     racc (1.7.3)
     rack (2.2.9)
     rainbow (3.1.1)
+    rake (13.2.0)
     redis (5.1.0)
       redis-client (>= 0.17.0)
     redis-client (0.21.1)
@@ -80,7 +82,7 @@ GEM
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
-    storable (0.8.9)
+    storable (0.10.0)
     thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -92,6 +94,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
+  ruby
 
 DEPENDENCIES
   addressable
@@ -118,4 +121,4 @@ RUBY VERSION
    ruby 3.2.0p0
 
 BUNDLED WITH
-   2.4.12
+   2.5.7
