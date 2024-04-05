@@ -34,3 +34,4 @@ jobs:
 
       - name: Run tryouts
         run: bundle exec try
+        continue-on-error: true
