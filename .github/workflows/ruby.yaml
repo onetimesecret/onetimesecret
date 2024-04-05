@@ -3,10 +3,12 @@ name: Ruby CI
 on:
   push:
     branches:
-      - main
+      - fix/*
+      - rel/*
   pull_request:
     branches:
       - main
+      - develop
   workflow_dispatch: # Allow manual runs
 
 jobs:

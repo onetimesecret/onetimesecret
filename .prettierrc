@@ -1,14 +1,5 @@
 {
-    "overrides": [
-      {
-        "files": "*.yaml",
-        "options": {
-          "tabWidth": 4,
-          "useTabs": false,
-          "singleQuote": false,
-          "printWidth": 80,
-          "trailingComma": "none"
-        }
-      }
-    ]
-  }
+  "tabWidth": 2,
+  "useTabs": false,
+  "endOfLine": "lf"
+}
