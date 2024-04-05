@@ -45,7 +45,7 @@ repos:
 
   - repo: https://github.com/rubocop/rubocop
     rev: v1.62.1  # Use the ref you want to point at
-    enabled: false
+    enable: false
     hooks:
       - id: rubocop
         language_version: 3.1.4
