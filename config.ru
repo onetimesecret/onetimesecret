@@ -10,18 +10,18 @@
 $stdout.sync = true
 
 ENV['RACK_ENV'] ||= 'prod'
-ENV['APP_ROOT'] = ::File.expand_path(::File.join(::File.dirname(__FILE__)))
-$LOAD_PATH.unshift(::File.join(ENV['APP_ROOT']))
-$LOAD_PATH.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
-$LOAD_PATH.unshift(::File.join(ENV['APP_ROOT'], 'app'))
+ENV['APP_ROOT'] = File.expand_path(File.join(File.dirname(__FILE__)))
+$LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
+$LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
+$LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
 require 'otto'
 require 'onetime/app/web'
 require 'onetime/app/api'
 require 'onetime/app/colonel'
 
-PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/web"
-APP_DIR = "#{ENV['APP_ROOT']}/lib/onetime/app"
+PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze
+APP_DIR = "#{ENV.fetch('APP_ROOT', nil)}/lib/onetime/app".freeze
 
 apps = {
   '/'           => Otto.new("#{APP_DIR}/web/routes"),

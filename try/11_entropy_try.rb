@@ -1,4 +1,4 @@
-require 'onetime'
+require_relative '../lib/onetime'
 
 OT.load! :cli
 

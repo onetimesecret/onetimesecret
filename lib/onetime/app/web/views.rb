@@ -36,7 +36,7 @@ module Onetime
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
-        self[:ot_version_id] = self[:ot_version].gibbler.short
+        self[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
         self[:authenticated] = sess.authenticated? if sess
         self[:display_promo] = false
         self[:display_feedback] = true

@@ -12,7 +12,7 @@ require 'encryptor'
 require 'bcrypt'
 
 require 'sysinfo'
-require 'gibbler'
+require 'gibbler/mixins'
 require 'familia'
 require 'storable'
 require 'sendgrid-ruby'
@@ -58,6 +58,7 @@ module Onetime
       @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
+      @emailer = OT::SMTPEmailer
       OT::SMTPEmailer.setup
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
       Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
@@ -198,7 +199,7 @@ module Onetime
   module VERSION
     def self.to_a
       load_config
-      [@version[:MAJOR], @version[:MINOR], @version[:PATCH], @version[:BUILD]]
+      [@version[:MAJOR], @version[:MINOR], @version[:PATCH]]
     end
 
     def self.to_s
@@ -289,9 +290,9 @@ module Onetime
     class << self
       attr_reader :plans
 
-      def add_plan planid, *args
+      def add_plan(planid, *args)
         @plans ||= {}
-        new_plan = new planid, *args
+        new_plan = new(planid, *args)
         plans[new_plan.planid] = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end

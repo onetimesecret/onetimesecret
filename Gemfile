@@ -1,4 +1,7 @@
-ruby '3.2.0'
+# frozen_string_literal: true
+
+ruby '>= 2.6.8'
+
 plugin 'bundler-graph'
 
 source 'https://rubygems.org/'
@@ -12,23 +15,17 @@ gem 'yajl-ruby'
 
 gem 'mustache'
 
-gem 'familia'
+gem 'drydock'
+gem 'familia', '~> 0.9'
 gem 'gibbler'
-gem 'redis'
+gem 'otto', '~> 1.0', '>= 1.0'
+gem 'redis', '~> 4.8'
 gem 'storable'
+gem 'sysinfo'
+gem 'uri-redis', '~> 1.1.1'
 
 gem 'bcrypt'
-gem 'encryptor'
-
-gem 'otto'
-
-gem 'redis-dump'
-
-# https://github.com/delano/attic/pull/2
-gem 'attic'
-
-gem 'annoy'
-gem 'sysinfo'
+gem 'encryptor', '= 1.1.3'
 
 gem 'httparty'
 gem 'sendgrid-ruby'
@@ -38,5 +35,8 @@ gem 'mail'
 group :dev do
   gem 'byebug'
   gem 'byebug-dap'
+  gem 'pry'
+  gem 'pry-byebug'
   gem 'rubocop'
+  gem 'tryouts'
 end

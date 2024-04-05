@@ -16,3 +16,4 @@ Gemspec/DevelopmentDependencies:
 
 AllCops:
   NewCops: enable
+  TargetRubyVersion: 3.2
