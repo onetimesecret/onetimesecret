@@ -11,6 +11,7 @@ require 'syslog'
 require 'encryptor'
 require 'bcrypt'
 
+require 'sysinfo'
 require 'gibbler'
 require 'familia'
 require 'storable'
@@ -28,7 +29,7 @@ module Onetime
   @mode = :app
   class << self
     attr_accessor :mode
-    attr_reader :conf, :locales, :instance, :emailer, :global_secret
+    attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret
     attr_writer :debug
 
     def debug
@@ -55,8 +56,8 @@ module Onetime
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load # load config before anything else.
       @locales = OT.load_locales
-      @current_user = ENV.fetch('USER')
-      @instance ||= [@current_user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
+      @sysinfo ||= SysInfo.new.freeze
+      @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
       OT::SMTPEmailer.setup
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
       Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
@@ -212,6 +213,7 @@ module Onetime
       load_config
       @version[:BUILD] = (@version[:BUILD] || '000').to_s.succ!.to_s
       @version[:STAMP] = Time.now.utc.to_i
+      @version[:OWNER] = OT.sysinfo.user
       @version[:STORY] = msg || '[no message]'
       OT.to_file @version.to_yaml, File.join(OT::HOME, 'BUILD.yml'), 'w'
       @version

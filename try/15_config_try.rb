@@ -14,7 +14,7 @@ Onetime::Config.find_configs
 ## Available config paths in cli mode
 OT.mode = :cli
 Onetime::Config.find_configs
-#=> [File.join(__dir__, ".onetime/config"), "/etc/onetime/config", File.join(OT::HOME, "etc/config")]
+#=> [File.join(OT.sysinfo.home, ".onetime/config"), "/etc/onetime/config", File.join(OT::HOME, "etc/config")]
 
 ## Available config paths in app mode
 OT.mode = :app
