@@ -15,7 +15,7 @@ module Onetime
       def stathat_count name, count, wait=0.500
         return false if ! stathat_enabled
         begin
-          timeout(wait) do
+          Timeout.timeout(wait) do
             StatHat::API.ez_post_count(name, stathat_apikey, count)
           end
         rescue SocketError => ex
