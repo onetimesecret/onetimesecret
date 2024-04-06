@@ -1,7 +1,10 @@
-# ONETIME SECRET - v0.13.0-alpha (2024-04-02)
+# ONETIME SECRET - v0.13.0-RC1 (2024-04-05)
 
+### **Initial release candidate with Ruby 3+ support: [v0.13.0-RC1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC1).**
 
-**NOTE: This is an alpha branch for introducing Ruby 3.1+ support. See the [v0.12.0 release](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.0) and related branch for running with Ruby 2.6.**
+_See the [v0.12.0](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.0) for the final release with Ruby 2.6.8._
+
+---
 
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
