@@ -204,7 +204,7 @@ module Onetime
       end
 
       def success?
-        !cust.nil? && !cust.anonymous? && (cust.passphrase?(@passwd) || (!@colonel.nil? && @colonel.passphrase?(@passwd)))
+        !cust&.anonymous? && (cust.passphrase?(@passwd) || @colonel&.passphrase?(@passwd))
       end
 
       private
