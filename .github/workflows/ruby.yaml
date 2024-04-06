@@ -67,5 +67,5 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       - name: Run tryouts
-        run: bundle exec try
+        run: bundle exec try -v
         continue-on-error: true
