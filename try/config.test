@@ -1,0 +1,51 @@
+:site:
+  :host: '127.0.0.1:7143'
+  :domain: 127.0.0.1
+  :ssl: true
+  :secret: SuP0r_53cRU7
+:redis:
+  :uri: 'redis://CHANGEME@redis:6379/0?timeout=10'
+  :config: ./try/redis.conf
+:colonels:
+  - 'CHANGEME@EXAMPLE.com'
+:locales:
+  - en
+  - ar
+  - bg
+  - ca_ES
+  - cn
+  - cs
+  - da_DK
+  - de
+  - el_GR
+  - en
+  - es
+  - fr
+  - fr_FR
+  - he
+  - hu
+  - it_IT
+  - nl
+  - pl
+  - pt_BR
+  - ru
+  - sl_SI
+  - sv_SE
+  - tr
+  - vi
+:text:
+  :nonpaid_recipient_text: 'You need to create an account!'
+  :paid_recipient_text: 'Send the secret link via email'
+:limits:
+  :create_secret: 250
+  :create_account: 10
+  :update_account: 10
+  :email_recipient: 50
+  :send_feedback: 10
+  :authenticate_session: 5
+  :homepage: 500
+  :dashboard: 1000
+  :failed_passphrase: 5
+  :show_metadata: 1000
+  :show_secret: 1000
+  :burn_secret: 1000
