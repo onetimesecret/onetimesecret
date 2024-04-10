@@ -31,7 +31,7 @@ module Onetime
     include SendGrid
     def send_email to_address, subject, content
       OT.info '[email-send-start]'
-      mailer_response= nil
+      mailer_response = nil
 
       begin
         obscured_address = OT::Utils.obscure_email to_address
@@ -85,13 +85,33 @@ module Onetime
 
       from_email = "#{self.fromname} <#{self.from}>"
       to_email = to_address
+      OT.ld "[send-from] #{from_email}: #{fromname} #{from}"
+
+      if from_email.nil? || from_email.empty?
+        OT.info "> [send-exception-no-from-email] #{obscured_address}"
+        return
+      end
 
       begin
         mailer_response = Mail.deliver do
-          from     from_email
-          to       to_email
-          subject  subject
+          # Send emails from a known address that we control. This
+          # is important for delivery reliability and some service
+          # providers like Amazon SES require it. They'll return
+          # "554 Message rejected" response otherwise.
+          from      OT.conf[:emailer][:from]
 
+          # But set the reply to address as the customer's so that
+          # when people reply to the mail (even though it came from
+          # our address), it'll go to the intended recipient.
+          reply_to  from_email
+
+          to        to_email
+          subject   subject
+
+          # We sending the same HTML content as the content for the
+          # plain-text part of the email. There number of folks not
+          # viewing their emails as HTML is very low, but we should
+          # really get back around to adding text template as well.
           text_part do
             body         content
           end
@@ -102,6 +122,9 @@ module Onetime
           end
         end
 
+      rescue Net::SMTPFatalError => ex
+        OT.info "> [send-exception-smtperror] #{obscured_address}"
+        OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
       rescue => ex
         OT.info "> [send-exception-sending] #{obscured_address}"
         OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
@@ -209,10 +232,10 @@ module Onetime
           emailer.from = self[:from]
           emailer.fromname = self[:from_name]
         else
-          self[:from_name] = 'Delano'
+          self[:from_name] = OT.conf[:emailer][:fromname]
+          self[:from] = OT.conf[:emailer][:from]
           self[:signature_link] = 'https://onetimesecret.com/'
-          emailer.fromname = 'One-Time Secret'
-          self[:from] = cust.custid
+          emailer.fromname = 'Onetime Secret'
         end
       end
       def subject
