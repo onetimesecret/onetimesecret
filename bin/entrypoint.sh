@@ -38,7 +38,8 @@ unset datestamp location basename
 >&2 bundle install
 
 # Run the command configured for the docker compose service
-# in the docker-compose.yaml file, or a default if none is provided.
+# in the docker-compose.yaml file, or a default if none is 
+# provided. See Dockerfile for more details.
 if [ -z "$@" ]; then
   exec bundle exec thin -R config.ru -p 3000 start
 else
