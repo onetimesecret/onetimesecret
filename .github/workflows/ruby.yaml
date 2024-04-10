@@ -60,13 +60,17 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
 
-      - name: Install dependencies (bundler ${{ matrix.bundler }})
+      - name: Update Rubygems (ruby 2.6, 2.7 only)
+        if: matrix.ruby == '2.6' || matrix.ruby == '2.7'
         run: |
           # Your RubyGems version (3.0.3.1) has a bug that prevents `required_ruby_version`
           # from working for Bundler. Any scripts that use `gem install bundler` will
           # break as soon as Bundler drops support for your Ruby version. Please upgrade
           # RubyGems to avoid future breakage and silence this warning by running:
           gem update --system 3.2.3
+
+      - name: Install dependencies (bundler ${{ matrix.bundler }})
+        run: |
           gem install bundler --version ${{ matrix.bundler }}
 
           bundle config path vendor/bundle
