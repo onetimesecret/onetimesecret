@@ -26,7 +26,8 @@ module Onetime
       publically do
         OT.info "test_send_email"
         view = OT::Email::TestEmail.new cust, locale
-        view.emailer.from = cust.custid
+        view.emailer.from = OT.conf[:emailer][:from]
+        view.emailer.reply_to = cust.custid
         view.emailer.fromname = ''
         ret = view.deliver_email
         res.body = view.i18n[:COMMON][:msg_check_email]
