@@ -8,6 +8,15 @@
   :config: ./try/redis.conf
 :colonels:
   - 'CHANGEME@EXAMPLE.com'
+:emailer:
+  :mode: :smtp
+  :from: CHANGEME@example.com
+  :fromname: Jan
+  :host: localhost
+  :port: 587
+  :tls: true
+  :user:
+  :pass:
 :locales:
   - en
   - ar
