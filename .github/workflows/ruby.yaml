@@ -57,6 +57,17 @@ jobs:
           - ruby: '2.6'
             bundler: '2.4.22'
 
+    # Make redis available for running the tryouts
+    services:
+      redis:
+        image: redis:bookworm
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 3s
+          --health-retries 5
+
     steps:
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -92,6 +103,6 @@ jobs:
         continue-on-error: true
         run: |
           # Use the default config settings for the tests
-          cp -p ./etc/config.example ./etc/config
+          cp -p ./try/config.test ./etc/config
 
           bundle exec try -v
