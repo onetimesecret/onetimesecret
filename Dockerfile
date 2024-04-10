@@ -1,55 +1,71 @@
 # syntax=docker/dockerfile:experimental
 
 ##
-# ONETIME - DOCKER IMAGE - 2022-07-09
+# ONETIME - DOCKER IMAGE - 2024-04-10
 #
-# To use this image, you need a Redis database with persistence enabled.
-# You can start one with Docker using i.e.:
 #
-# Usage (Docker Compose):
+# To build and use this image, you need to copy the example
+# configuration files into place:
 #
-#   When bringing up a frontend container for the first time, makes
-#   sure the database container is already running and attached.
+#     $ cp --preserve --no-clobber ./etc/config.example ./etc/config
+#
+#           - and -
+#
+#     $ cp --preserve --no-clobber .env.example .env
+#
+# The default values work as-is but it's a good practice to have
+# a look and customize as you like (partcularly the mast secret
+# `ONETIMESECRET_SECRET` and redis password in `ONETIMESECRET_REDIS_URL`).
+#
+#
+# USAGE (Docker):
+#
+# First, start a Redis database with persistence enabled:
+#
+#     $ docker run -p 6379:6379 --name redis -d redis
+#
+# Then build and run this image, specifying the redis URL:
+#
+#     $ docker run -p 3000:3000 -d --name onetimesecret \
+#       -e ONETIMESECRET_REDIS_URL="redis://172.17.0.1:6379/0" \
+#       onetimesecret
+#
+# It will be accessible on http://localhost:3000.
+#
+#
+# USAGE (Docker Compose):
+#
+# When bringing up a frontend container for the first time, makes
+# sure the database container is already running and attached.
+#
+#     $ docker-compose up -d redis
 #
 #     $ docker-compose up --attach-dependencies --build onetime
 #
-#   If you ever need to force rebuild a container:
+# If you ever need to force rebuild a container:
 #
 #     $ docker-compose build --no-cache onetime
-#
-#
-# Usage (Docker):
-#
-# $ docker run -p 6379:6379 -d redis
-#
-# Then start this image, specifying the URL of the redis database:
-#
-# $ docker run -p 3000:3000 -d \
-#     -e ONETIMESECRET_REDIS_URL="redis://172.17.0.1:6379/0" \
-#     onetimesecret
-#
-# It will be accessible on http://localhost:3000.
 #
 # Production deployment
 # ---------------------
 #
-# When deploying to production, you should protect your Redis instance
-# with authentication or Redis networks. You should also enable
-# persistence and save the data somewhere, to make sure it doesn't get
-# lost when the server restarts.
+# When deploying to production, you should protect your Redis instance with
+# authentication or Redis networks. You should also enable persistence and
+# save the data somewhere, to make sure it doesn't get lost when the
+# server restarts.
 #
 # You should also change the secret to something else, and specify the
-# domain it will be deployed on.
-# For instance, if OTS will be accessible from https://example.com:
+# domain it will be deployed on. For instance, if OTS will be accessible
+# from https://example.com:
 #
-# $ docker run -p 3000:3000 -d \
+#   $ docker run -p 3000:3000 -d \
 #     -e ONETIMESECRET_REDIS_URL="redis://user:password@host:port/0" \
 #     -e ONETIMESECRET_SSL=true -e ONETIMESECRET_HOST=example.com \
 #     -e ONETIMESECRET_SECRET="<put your own secret here>" \
 #     onetimesecret
 #
 
-# Grab this from the docker compose environment (e.g. the dotenv)
+
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
@@ -81,7 +97,7 @@ ARG ONETIME_HOME
 LABEL Name=onetimesecret Version=0.13.0-beta
 
 # Limit to packages necessary for onetime and operational tasks
-ARG PACKAGES="curl netcat-openbsd vim-tiny less redis-tools iproute2 iputils-ping iftop pktstat pcp iptraf"
+ARG PACKAGES="curl netcat-openbsd vim-tiny less redis-tools"
 
 # Fast fail on errors while installing system packages
 RUN set -eux && \
@@ -102,6 +118,9 @@ RUN bundle install
 RUN bundle update --bundler
 
 
+##
+# Container
+#
 # Include the entire context with the image. This is how
 # the container runs in production. In development, if
 # the docker-compose also mounts a volume to the same
@@ -113,7 +132,17 @@ WORKDIR $CODE_ROOT
 
 COPY . .
 
+# About the interplay between the Dockerfile CMD instruction
+# and the Docker Compose command setting:
 #
-# NOTE: see docker-compose.yaml for this container,
-# specifically the `command` setting.
+# 1. The CMD instruction in the Dockerfile sets the default command to
+# be executed when the container is started.
 #
+# 2. The command setting in the Docker Compose configuration overrides
+# the CMD instruction in the Dockerfile.
+#
+# 3. Using the CMD instruction in the Dockerfile provides a fallback
+# command, which can be useful if no specific command is set in the
+# Docker Compose configuration.
+
+CMD ["bin/entrypoint.sh"]

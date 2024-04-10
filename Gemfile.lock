@@ -104,6 +104,7 @@ GEM
     yajl-ruby (1.4.3)
 
 PLATFORMS
+  aarch64-linux
   arm64-darwin-22
 
 DEPENDENCIES
@@ -136,5 +137,4 @@ RUBY VERSION
    ruby 2.6.8p205
 
 BUNDLED WITH
-   2.4.22
    2.5.7
