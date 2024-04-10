@@ -31,7 +31,13 @@ on:
     branches:
       - main
       - develop
-  workflow_dispatch: # Allow manual runs
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
 
 jobs:
   build:
@@ -52,6 +58,12 @@ jobs:
             bundler: '2.4.22'
 
     steps:
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          detached: true
+
       - name: Checkout code
         uses: actions/checkout@v4
 
