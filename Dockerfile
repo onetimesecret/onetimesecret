@@ -64,7 +64,10 @@ ARG PACKAGES="build-essential autoconf m4 sudo"
 # Fast fail on errors while installing system packages
 RUN set -eux && \
     apt-get update && \
-    apt-get install -y $PACKAGES
+    apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" && \
+    apt-get install -y $PACKAGES && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN gem update --system
 RUN gem install bundler
