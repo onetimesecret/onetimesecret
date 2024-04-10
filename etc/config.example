@@ -11,24 +11,24 @@
   # Accounts created with the following email addresses
   # are automatically considered admins of the system.
   - <%= ENV['ONETIMESECRET_COLONEL'] || 'CHANGEME@EXAMPLE.com' %>
-:emailer:
-  :mode: :sendgrid
-  :account: CHANGEME
-  :password: CHANGEME
-  :from: CHANGEME@example.com
-  :fromname: CHANGEME
-  :bcc:
+# :emailer:
+#   :mode: :sendgrid
+#   :account: CHANGEME
+#   :password: CHANGEME
+#   :from: CHANGEME@example.com
+#   :fromname: CHANGEME
+#   :bcc:
 # Use the following email config to enable SMTP
 # support and remove the :emailer config above.
-#:emailer:
-#   :mode: :smtp
-#   :from: CHANGEME@example.com
-#   :host: localhost
-#   :port: 587
-#   :tls: false
-#   :user:
-#   :pass:
-#   :auth:
+:emailer:
+  :mode: :smtp
+  :from: CHANGEME@example.com
+  :fromname: Jan
+  :host: localhost
+  :port: 587
+  :tls: true
+  :user:
+  :pass:
 :incoming:
   # Intended for use by IT support teams who need someone to send them
   # sensitive info. The email address is where the secret
