@@ -60,7 +60,8 @@ class Onetime::App
       secret_not_found_response
 
     rescue OT::LimitExceeded => ex
-      err "[limit-exceeded] #{cust.custid}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
+      obscured = OT::Utils.obscure_email(cust.custid)
+      err "[limit-exceeded] #{obscured}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
       err req.current_absolute_uri
       err ex.backtrace
       error_response "Cripes! You have been rate limited."
@@ -102,7 +103,6 @@ class Onetime::App
       locales.uniq!
       locales = locales.reject { |l| !OT.locales.has_key?(l) }.compact
       locale = locales.first if !OT.locales.has_key?(locale)           # Default to the first available
-      OT.ld [:locale, locale, locales, req.env['rack.locale'], OT.locales.keys].inspect
       req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
     end
 

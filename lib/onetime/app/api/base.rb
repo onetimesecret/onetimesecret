@@ -49,10 +49,14 @@ class Onetime::App
         end
       end
 
-      # Find the locale of the request based on req.env['rack.locale']
+      # Find the locale of the request based on req.env['rack.locale'],
       # which is set automatically by Otto v0.4.0 and greater.
-      # If `locale` is specifies it will override if available.
+      #
+      # If `locale` is specified, it will override if available.
       # If the `local` query param is set, it will override.
+      #
+      # @param locale [String] the locale to use, defaults to nil
+      # @return [void]
       def check_locale! locale=nil
         unless req.params[:locale].to_s.empty?
           locale = req.params[:locale]                                 # Use query param
@@ -63,7 +67,6 @@ class Onetime::App
         locales << OT.conf[:locales].first                              # Ensure at least one configured locale is available
         locales = locales.uniq.reject { |l| !OT.locales.has_key?(l) }.compact
         locale = locales.first if !OT.locales.has_key?(locale)           # Default to the first available
-        OT.ld [:locale, locale, locales, req.env['rack.locale'], OT.locales.keys].inspect
         req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
       end
 
