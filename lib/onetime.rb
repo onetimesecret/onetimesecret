@@ -66,9 +66,9 @@ module Onetime
       OT::RateLimit.register_events OT.conf[:limits]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
-      ld "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
-      ld "Config: #{OT::Config.path}"
-      # ld "Redis:  #{Familia.uri.serverid}" # don't print the password
+      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
+      info "Config: #{OT::Config.path}"
+      ld "Redis:  #{Familia.uri.serverid}" # don't print the password
       ld "Limits: #{OT::RateLimit.events}"
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
@@ -158,6 +158,7 @@ module Onetime
     SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
     UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
     attr_reader :env, :base, :bootstrap
+    require 'byebug'
 
     def load(path = self.path)
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)

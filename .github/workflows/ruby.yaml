@@ -89,5 +89,9 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       - name: Run tryouts
-        run: bundle exec try -v
         continue-on-error: true
+        run: |
+          # Use the default config settings for the tests
+          cp -p ./etc/config.example ./etc/config
+
+          bundle exec try -v
