@@ -47,15 +47,24 @@ jobs:
       matrix:
         include:
           - ruby: '3.2.0'
-            bundler: '2.5'
+            bundler: latest
+            rubygems: latest
+
           - ruby: '3.1.4'
-            bundler: '2.5'
+            bundler: latest
+            rubygems: latest
+
           - ruby: '3.0'
-            bundler: '2.5'
+            bundler: latest
+            rubygems: latest
+
           - ruby: '2.7'
             bundler: '2.4.22'
+            rubygems: '3.2.3'
+
           - ruby: '2.6'
             bundler: '2.4.22'
+            rubygems: '3.2.3'
 
     # Make redis available for running the tryouts
     services:
@@ -69,6 +78,12 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          detached: true
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -76,28 +91,15 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-
-      - name: Update Rubygems (ruby 2.6, 2.7 only)
-        if: matrix.ruby == '2.6' || matrix.ruby == '2.7'
-        run: |
-          # Your RubyGems version (3.0.3.1) has a bug that prevents `required_ruby_version`
-          # from working for Bundler. Any scripts that use `gem install bundler` will
-          # break as soon as Bundler drops support for your Ruby version. Please upgrade
-          # RubyGems to avoid future breakage and silence this warning by running:
-          gem update --system 3.2.3
+          rubygems: ${{ matrix.rubygems }}
+          bundler: ${{ matrix.bundler }}
+          # Run "bundle install", and cache the result automatically:
+          bundler-cache: true
 
       - name: Install dependencies (bundler ${{ matrix.bundler }})
         run: |
-          gem install bundler --version ${{ matrix.bundler }}
-
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        with:
-          detached: true
 
       - name: Run tryouts
         continue-on-error: true
@@ -106,3 +108,6 @@ jobs:
           cp -p ./try/config.test ./etc/config
 
           bundle exec try -v
+
+          # Cleanup the evidence
+          rm ./etc/config
