@@ -45,7 +45,7 @@ See the instructions in the [Docker Compose config file](./docker-compose.yml).
 
 Get the code, one of:
 
-* Download the [latest release](https://github.com/onetimesecret/onetimesecret/refs/tags/latest.tar.gz)
+* Download the [latest release](https://github.com/onetimesecret/onetimesecret/archive/refs/tags/latest.tar.gz)
 * Clone this repo: `git clone https://github.com/onetimesecret/onetimesecret.git`
    
 #### 1. Copy the configuration files into place and modify as neededf:
