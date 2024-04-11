@@ -39,12 +39,12 @@
 # sure the database container is already running and attached.
 #
 #     $ docker-compose up -d redis
-#
 #     $ docker-compose up --attach-dependencies --build onetime
 #
 # If you ever need to force rebuild a container:
 #
 #     $ docker-compose build --no-cache onetime
+#
 #
 # Production deployment
 # ---------------------

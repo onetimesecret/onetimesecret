@@ -1,82 +1,122 @@
-# ONETIME SECRET - v0.13.0-RC1 (2024-04-05)
+# Onetime Secret - v0.13.0
 
-### **Initial release candidate with Ruby 3+ support: [v0.13.0-RC1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC1).**
+*Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
-_See the [v0.12.0](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.0) for the final release with Ruby 2.6.8._
+### Latest releases 
+
+* **Ruby 3+: [v0.13.0-RC2](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC2)**
+* Ruby 2.6, 2.7: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
 
 
-*Keep passwords and other sensitive information out of your inboxes and chat logs.*
-
-## What is a Onetime Secret? ##
+## What is a Onetime Secret?
 
 A one-time secret is a link that can be viewed only once. A single-use URL.
 
-<a class="msg" href="https://onetimesecret.com/">Give it a try!</a>
+Try it out on <a class="msg" href="https://onetimesecret.com/">OnetimeSecret.com</a>!
 
-## Why would I want to use it? ##
+
+## Why would I want to use it?
 
 When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
-## How to install
+
+## Installation
 
 ### System Requirements
 
-_tbd_
+* Any recent linux distor (we use debian) or *BSD
+* System dependencies:
+  * Ruby 3.0, 3.1, 3.2
+  * Redis server 5+
+* Specs:
+  * 2 core CPU (or equivalent)
+  * 1GB+ memory
+  * 32+ GB disk
 
-### Installation - Docker Compose
 
-### Installation - Manual
+### Docker Compose
+
+See the instructions in the [Docker Compose config file](./docker-compose.yml). 
 
 
+### Manually
 
-#### Setup Onetime Secret
+Get the code, one of:
 
-```bash
-  export user=CHANGEME
-  #
-  # Or use your current username:
-  #   export user=$USER
-  #
-  sudo adduser $user
-
-  sudo su - $user
-  git clone https://github.com/onetimesecret/onetimesecret.git
-  cd onetimesecret
-  bundle install --frozen
-  bin/ots init
-  sudo mkdir /etc/onetime /var/log/onetime /var/run/onetime /var/lib/onetime
-  sudo chown $user /etc/onetime /var/log/onetime /var/run/onetime /var/lib/onetime
-  chmod -R o-rwx /etc/onetime /var/lib/onetime
-  cp -rp etc/* /etc/onetime/
-```
-
-## Development
-
-### Setup
+* Download the [latest release](https://github.com/onetimesecret/onetimesecret/refs/tags/latest.tar.gz)
+* Clone this repo: `git clone https://github.com/onetimesecret/onetimesecret.git`
+   
+#### 1. Copy the configuration files into place and modify as neededf:
 
 ```bash
-  git clone git@github.com:onetimesecret/onetimesecret.git
-  cd onetimesecret
+  $ cd onetimesecret
 
-  # Create and update your local config files
-  cp -p etc/config.example etc/config
-  cp -p etc/redis.conf.example etc/redis.conf
-  cp -p .env.example .env
-
-  bundle install
-  bin/ots init
-
-  # Start the redis server and then start the app
-  ONETIME_DEBUG=true bundle exec thin -e dev start
+  $ cp --preserve --no-clobber ./etc/config.example ./etc/config
+  $ cp --preserve --no-clobber .env.example .env
 ```
 
-If you have any issues, check the Dockerfile for clues or please let us know by [opening an issue](https://github.com/onetimesecret/onetimesecret/issues/new).
+#### 2. Install system dependencies
 
-### About git cloning
+For Debian / Ubuntu:
 
-The instructions above suggest cloning via the `https` URI. You can also clone using the SSH URI if you have a github account (which is generally more convenient, but specific to github).
+```bash
+
+  # Install packages for build environment
+  $ sudo apt-get update
+  $ sudo apt-get install -y build-essential autoconf m4 sudo curl gnupg2 ca-certificates lsb-release
+
+  # Install Ruby 3+
+  $ curl -sSL https://pkg.ruby-lang.org/gpg/ruby-apt.gpg | sudo apt-key add -  
+  $ echo "deb https://pkg.ruby-lang.org/bookworm/ $(lsb_release -sc) main" | \
+                  sudo tee /etc/apt/sources.list.d/ruby-lang.list
+
+  $ sudo apt-get update
+  $ sudo apt-get install -y ruby3.2
+
+  # Install Redis
+  $ sudo apt-get install redis-server
+
+  # Update Rubygems and setup bundler
+  $ sudo gem update --system
+  $ sudo gem install bundler 
+
+```
+
+NOTE: The redis-server service should start automatically after installing it. You can check that it's up by running: `sudo system redis-server status`.
+
+
+#### 3. Install ruby dependencies
+
+```bash
+  $ bundle install
+```
+
+#### 4. Run the webapp
+
+```bash
+  $ bundle exec thin -R config.ru -p 3000 start
+
+  ---  ONETIME app v0.13  -----------------------------------
+  Config: /Users/d/Projects/opensource/onetimesecret/etc/config
+  2024-04-10 22:39:15 -0700 Thin web server (v1.8.2 codename Ruby Razor)
+  2024-04-10 22:39:15 -0700 Maximum connections set to 1024
+  2024-04-10 22:39:15 -0700 Listening on 0.0.0.0:3000, CTRL+C to stop
+```
+
+See the [Ruby CI workflow](.github/workflows/ruby.yaml) for another example of the steps. 
+
+
+## Debugging
+
+To run in debug mode set `ONETIME_DEBUG=true`. 
+
+```bash
+  $ ONETIME_DEBUG=true bundle exec thin -e dev start`
+```
+
+If you're having trouble cloning via SSH, you can double check your SSH config like this:
 
 **With a github account**
 ```bash
@@ -98,19 +138,17 @@ The instructions above suggest cloning via the `https` URI. You can also clone u
   chmod -R o-rwx ./etc
 ```
 
-### Update the configuration
+### Configuration
 
-1. `/etc/onetime/config`
+1. `./etc/config`
   * Update your secret key
-    * Store it in your password manager because it's included in the secret encryption
-  * Add or remove locales
-  * Update the SMTP or SendGrid credentials
-  * Update the from address
-    * it's used for all sent emails
-  * Update the the limits at the bottom of the file
-    * These numbers refer to the number of times each action can occur for unauthenticated users.
-    * If you would like to increase the limits for authenticated users too, see (lib/onetime.rb](https://github.com/onetimesecret/onetimesecret/blob/main/lib/onetime.rb#L261-L279)
-1. `/etc/onetime/redis.conf`
+    * Back up your secret key (e.g. in your password manager). If you lose it, you won't be able to decrypt any existing secrets.
+  * Update the SMTP or SendGrid credentials for email sending
+    * Update the from address (it's used for all sent emails)
+  * Update the rate limits at the bottom of the file
+    * The numbers refer to the number of times each action can occur for unauthenticated users.
+  * Enable or disable the available locales.
+1. `./etc/redis.conf`
   * The host, port, and password need to match
 1. `/etc/onetime/locale/*`
   * Optionally you can customize the text used throughout the site and emails
@@ -118,7 +156,7 @@ The instructions above suggest cloning via the `https` URI. You can also clone u
 
 ### Running
 
-There are many way to run the webapp, just like any Rack-based app. The default web server we use is [thin](https://github.com/macournoyer/thin).
+There are many ways to run the webapp. The default web server we use is [thin](https://github.com/macournoyer/thin). It's a Rack app so any server in the ruby ecosystem that supports Rack apps will work.
 
 **To run locally:**
 
@@ -132,12 +170,6 @@ There are many way to run the webapp, just like any Rack-based app. The default 
   bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 restart
 ```
 
-**To run with docker:**
-
-```bash
-  docker compose up
-  open http://localhost:7143
-```
 
 ## Generating a global secret
 

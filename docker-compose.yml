@@ -1,3 +1,31 @@
+##
+# ONETIME - DOCKER COMPOSE CONFIG - 2024-04-10
+#
+# Usage:
+#
+#     $ docker-compose up -d redis
+#     $ docker-compose up --build onetime
+#
+#         - or simply -
+#
+#     $ docker-compose up
+#
+#
+# Initial setup:
+#
+# Before running any docker-compose commands, copy the example
+# configuration files into place on the host machine (the system
+# that's running the docker daemon):
+#
+#     $ cp --preserve --no-clobber ./etc/config.example ./etc/config
+#     $ cp --preserve --no-clobber .env.example .env
+#
+# Modify each file as needed. They're both mounted inside the
+# onetime-app container so any changes you make "locally" on
+# the host are reflected inside the container immediately
+# without having to re-build.
+#
+
 version: '3.8'
 
 services:
@@ -13,7 +41,15 @@ services:
     entrypoint: ["./bin/entrypoint.sh"]
     stdin_open: true
     tty: true
-    # command: ["bundle", "exec", "thin", "-R", "config.ru", "-a", "0.0.0.0", "-p", "3000", "start"]
+
+    # The bin/entrypoint.sh script launches the webapp by default. If
+    # you want to customize the runtime config for your environment
+    # you can do so easily by uncommenting the command setting below.
+    #
+    # e.g.
+    #
+    # command: ["bundle", "exec", "thin", "-R", "config.ru", "-p", "4321", "start"]
+
     logging:
       driver: "json-file"
       options:

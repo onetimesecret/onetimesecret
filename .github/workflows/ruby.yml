@@ -93,11 +93,8 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           rubygems: ${{ matrix.rubygems }}
           bundler: ${{ matrix.bundler }}
-          # When the following is true, also run "bundle install",
-          # and cache the result automatically. Ran into an issue
-          # with the caching and multiple ruby version? See commit
-          # message for this change.
-          bundler-cache: false
+          # Run "bundle install", and cache the result automatically:
+          bundler-cache: true
 
       - name: Install dependencies (bundler ${{ matrix.bundler }})
         run: |
