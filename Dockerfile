@@ -27,7 +27,7 @@
 # Then build and run this image, specifying the redis URL:
 #
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
-#       -e ONETIMESECRET_REDIS_URL="redis://172.17.0.1:6379/0" \
+#       -e ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0" \
 #       onetimesecret
 #
 # It will be accessible on http://localhost:3000.
@@ -69,7 +69,7 @@
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
-FROM ruby:3.2-bookworm AS builder
+FROM ruby:3.2-slim-bookworm AS builder
 
 # Limit to packages needed for the system itself
 # NOTE: We only need the build tools installed if we need
