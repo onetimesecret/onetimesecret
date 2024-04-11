@@ -1,0 +1,116 @@
+name: Ruby CI
+
+# This GitHub Actions workflow is named "Ruby CI" and is
+# triggered by push events on branches starting with "fix/" or
+# "rel/", pull requests on the
+#
+# The workflow has a single job named "build" that runs on the
+# latest version of Ubuntu. It uses a strategy matrix to run
+# the job with different
+#
+# The steps in the job are as follows:
+# 1. Checkout code using the actions/checkout@v4 action.
+# 2. Set up the specified version of Ruby using the
+#     ruby/setup-ruby@v1 action.
+# 3. Install dependencies using Bundler. The Bundler version
+#     is determined by the matrix variable.
+# 4. Run the "try" command using bundle exec try. The
+#     continue-on-error flag is set to true, allowing the
+#     workflow to continue even if this step
+#
+# This workflow is designed for continuous integration of a
+# Ruby project, ensuring that the code builds and dependencies
+# are installed correctly.
+
+on:
+  push:
+    branches:
+      - fix/*
+      - rel/*
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - ruby: '3.2.0'
+            bundler: latest
+            rubygems: latest
+
+          - ruby: '3.1.4'
+            bundler: latest
+            rubygems: latest
+
+          - ruby: '3.0'
+            bundler: latest
+            rubygems: latest
+
+          - ruby: '2.7'
+            bundler: '2.4.22'
+            rubygems: '3.2.3'
+
+          - ruby: '2.6'
+            bundler: '2.4.22'
+            rubygems: '3.2.3'
+
+    # Make redis available for running the tryouts
+    services:
+      redis:
+        image: redis:bookworm
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          detached: true
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby ${{ matrix.ruby }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          rubygems: ${{ matrix.rubygems }}
+          bundler: ${{ matrix.bundler }}
+          # When the following is true, also run "bundle install",
+          # and cache the result automatically. Ran into an issue
+          # with the caching and multiple ruby version? See commit
+          # message for this change.
+          bundler-cache: false
+
+      - name: Install dependencies (bundler ${{ matrix.bundler }})
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: Run tryouts
+        continue-on-error: true
+        run: |
+          # Use the default config settings for the tests
+          cp -p ./try/config.test ./etc/config
+
+          bundle exec try -v
+
+          # Cleanup the evidence
+          rm ./etc/config
