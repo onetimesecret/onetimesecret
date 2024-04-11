@@ -2,7 +2,7 @@
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
-### Latest releases 
+### Latest releases
 
 * **Ruby 3+: [v0.13.0-RC2](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC2)**
 * Ruby 2.6, 2.7: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
@@ -17,7 +17,7 @@ A one-time secret is a link that can be viewed only once. A single-use URL.
 Try it out on <a class="msg" href="https://onetimesecret.com/">OnetimeSecret.com</a>!
 
 
-## Why would I want to use it?
+### Why would I want to use it?
 
 When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
@@ -36,9 +36,22 @@ When you send people sensitive info like passwords and private links via email o
   * 32+ GB disk
 
 
+### Dockerhub
+
+```bash
+  $ docker run -p 6379:6379 --name redis -d redis
+  $ ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0"
+
+  $ docker pull onetimesecret/onetimesecret:next
+  $ docker run -p 3000:3000 -d --name onetimesecret \
+    -e ONETIMESECRET_REDIS_URL=$ONETIMESECRET_REDIS_URL \
+    onetimesecret/onetimesecret:next
+```
+
+
 ### Docker Compose
 
-See the instructions in the [Docker Compose config file](./docker-compose.yml). 
+See the instructions in the [Docker Compose config file](./docker-compose.yml).
 
 
 ### Manually
@@ -47,7 +60,7 @@ Get the code, one of:
 
 * Download the [latest release](https://github.com/onetimesecret/onetimesecret/refs/tags/latest.tar.gz)
 * Clone this repo: `git clone https://github.com/onetimesecret/onetimesecret.git`
-   
+
 #### 1. Copy the configuration files into place and modify as neededf:
 
 ```bash
@@ -68,7 +81,7 @@ For Debian / Ubuntu:
   $ sudo apt-get install -y build-essential autoconf m4 sudo curl gnupg2 ca-certificates lsb-release
 
   # Install Ruby 3+
-  $ curl -sSL https://pkg.ruby-lang.org/gpg/ruby-apt.gpg | sudo apt-key add -  
+  $ curl -sSL https://pkg.ruby-lang.org/gpg/ruby-apt.gpg | sudo apt-key add -
   $ echo "deb https://pkg.ruby-lang.org/bookworm/ $(lsb_release -sc) main" | \
                   sudo tee /etc/apt/sources.list.d/ruby-lang.list
 
@@ -80,7 +93,7 @@ For Debian / Ubuntu:
 
   # Update Rubygems and setup bundler
   $ sudo gem update --system
-  $ sudo gem install bundler 
+  $ sudo gem install bundler
 
 ```
 
@@ -105,12 +118,12 @@ NOTE: The redis-server service should start automatically after installing it. Y
   2024-04-10 22:39:15 -0700 Listening on 0.0.0.0:3000, CTRL+C to stop
 ```
 
-See the [Ruby CI workflow](.github/workflows/ruby.yaml) for another example of the steps. 
+See the [Ruby CI workflow](.github/workflows/ruby.yaml) for another example of the steps.
 
 
 ## Debugging
 
-To run in debug mode set `ONETIME_DEBUG=true`. 
+To run in debug mode set `ONETIME_DEBUG=true`.
 
 ```bash
   $ ONETIME_DEBUG=true bundle exec thin -e dev start`
