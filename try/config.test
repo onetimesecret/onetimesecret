@@ -42,15 +42,6 @@
   - sv_SE
   - tr
   - vi
-:text:
-  :nonpaid_recipient_text: 'You need to create an account!'
-  :paid_recipient_text: 'Send the secret link via email'
-:unsupported_locales:
-  - gnarly
-:stathat:
-  :enabled: false
-  :apikey: CHANGEME
-  :default_chart: CHANGEME
 :limits:
   :create_secret: 250
   :create_account: 10

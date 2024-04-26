@@ -54,9 +54,6 @@
   - sv_SE
   - tr
   - vi
-:text:
-  :nonpaid_recipient_text: 'You need to create an account!'
-  :paid_recipient_text: 'Send the secret link via email'
 :limits:
   # This section defines rate limits for various events per user
   # per a rolling 20 minute period. Each key is an event name

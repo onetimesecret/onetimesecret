@@ -435,10 +435,6 @@ module Onetime
         r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
         @recipient = params[:recipient].collect { |email_address|
           next if email_address.to_s.empty?
-          next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
-          #unless valid_email?(email_address) #|| valid_mobile?(email_address)
-          #  raise_form_error "Recipient must be an email address."
-          #end
           email_address.scan(r).uniq.first
         }.compact.uniq
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
@@ -501,10 +497,7 @@ module Onetime
         r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
         @recipient = params[:recipient].collect { |email_address|
           next if email_address.to_s.empty?
-          next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
-          #unless valid_email?(email_address) #|| valid_mobile?(email_address)
-          #  raise_form_error "Recipient must be an email address."
-          #end
+
           email_address.scan(r).uniq.first
         }.compact.uniq
       end

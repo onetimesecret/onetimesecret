@@ -31,7 +31,6 @@ module Onetime
         self[:js], self[:css] = [], []
         self[:is_default_locale] = OT.conf[:locales].first.to_s == locale
         self[:supported_locales] = OT.conf[:locales]
-        self[:unsupported_locales] = OT.conf[:unsupported_locales]
         self[:monitored_link] = false
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
@@ -42,8 +41,6 @@ module Onetime
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
         self[:feedback_text] = OT.conf[:text][:feedback]
-        self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
-        self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
         self[:base_domain] = OT.conf[:site][:domain]
         self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
         self[:no_cache] = false
