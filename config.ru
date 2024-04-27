@@ -4,7 +4,7 @@
 #
 # Usage:
 #
-#     $ thin -e dev -R config.ru -p 7143 start
+#     $ thin -e dev -R config.ru -p 3000 start
 #     $ tail -f /var/log/system.log
 
 $stdout.sync = true

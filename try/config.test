@@ -1,5 +1,5 @@
 :site:
-  :host: '127.0.0.1:7143'
+  :host: '127.0.0.1:3000'
   :domain: 127.0.0.1
   :ssl: true
   :secret: SuP0r_53cRU7

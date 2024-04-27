@@ -174,7 +174,7 @@ There are many ways to run the webapp. The default web server we use is [thin](h
 **To run locally:**
 
 ```bash
-  bundle exec thin -e dev -R config.ru -p 7143 start
+  bundle exec thin -e dev -R config.ru -p 3000 start
 ```
 
 **To run on a server:**
