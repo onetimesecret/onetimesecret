@@ -4,7 +4,7 @@
 
 ### Latest releases
 
-* **Ruby 3+: [v0.13.0-RC2](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC2)**
+* **Ruby 3+: [v0.13.0-RC3](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC3)**
 * Ruby 2.6, 2.7: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
@@ -36,18 +36,32 @@ When you send people sensitive info like passwords and private links via email o
   * 32+ GB disk
 
 
-### Dockerhub
+### Container repositories
+
+
+#### [GitHub Container Registry](https://ghcr.io/onetimesecret/onetimesecret)
 
 ```bash
   $ docker run -p 6379:6379 --name redis -d redis
   $ ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0"
 
-  $ docker pull onetimesecret/onetimesecret:next
+  $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
   $ docker run -p 3000:3000 -d --name onetimesecret \
     -e ONETIMESECRET_REDIS_URL=$ONETIMESECRET_REDIS_URL \
-    onetimesecret/onetimesecret:next
+    ghcr.io/onetimesecret/onetimesecret:latest
 ```
 
+#### [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)
+
+```bash
+  $ docker run -p 6379:6379 --name redis -d redis
+  $ ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0"
+
+  $ docker pull onetimesecret/onetimesecret:latest
+  $ docker run -p 3000:3000 -d --name onetimesecret \
+    -e ONETIMESECRET_REDIS_URL=$ONETIMESECRET_REDIS_URL \
+    onetimesecret/onetimesecret:latest
+```
 
 ### Docker Compose
 
