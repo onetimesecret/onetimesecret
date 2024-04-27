@@ -36,10 +36,50 @@ When you send people sensitive info like passwords and private links via email o
   * 32+ GB disk
 
 
-### Container repositories
+### Docker
+
+Building and running locally.
+
+```bash
+
+  # Create or update the image tagged 'onetimesecret'
+  $ docker build -t onetimesecret .
+  ...
+
+  # Start redis container
+  $ docker run -p 6379:6379 -d redis:bookworm
+
+  # Set essential environment variables
+  HOST=localhost:3000
+  SSL=false
+  COLONEL=admin@example.com
+  REDIS_URL=redis://host.docker.internal:6379/0
+
+  # Create and run a container named `onetimesecret`
+  $ docker run -p 3000:3000 -d --name onetimesecret \
+      -e REDIS_URL=$REDIS_URL \
+      -e COLONEL=$COLONEL \
+      -e HOST=$HOST \
+      -e SSL=$SSL \
+      onetimesecret
+
+#### "The container name "/onetimesecret" is already in use"
 
 
-#### [GitHub Container Registry](https://ghcr.io/onetimesecret/onetimesecret)
+```bash
+  # If the container already exists, you can simply start it again:
+  $ docker start onetimesecret
+
+  # OR, remove the existing container
+
+```
+
+
+
+#### Container repositories
+
+
+##### [GitHub Container Registry](https://ghcr.io/onetimesecret/onetimesecret)
 
 ```bash
   $ docker run -p 6379:6379 --name redis -d redis
@@ -51,7 +91,7 @@ When you send people sensitive info like passwords and private links via email o
     ghcr.io/onetimesecret/onetimesecret:latest
 ```
 
-#### [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)
+##### [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)
 
 ```bash
   $ docker run -p 6379:6379 --name redis -d redis
