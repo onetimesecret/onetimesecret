@@ -40,7 +40,7 @@ module Onetime
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
-        self[:feedback_text] = OT.conf[:text][:feedback]
+        self[:feedback_text] = i18n[:COMMON][:feedback_text]
         self[:base_domain] = OT.conf[:site][:domain]
         self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
         self[:no_cache] = false
@@ -50,7 +50,7 @@ module Onetime
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:email, cust.email)
         self[:display_links] = true
-        self[:display_options] = true# sess.authenticated?
+        self[:display_options] = true # sess.authenticated?
         self[:display_recipients] = sess.authenticated?
         self[:display_masthead] = true
         if self[:is_subdomain]

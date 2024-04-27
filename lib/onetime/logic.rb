@@ -9,6 +9,7 @@ module Onetime
         @stathat_apikey ||= Onetime.conf[:stathat][:apikey]
       end
       def stathat_enabled
+        return unless Onetime.conf.has_key?(:stathat)
         @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
         @stathat_enabled
       end
@@ -91,7 +92,7 @@ module Onetime
 
       def raise_concerns
         limit_action :send_feedback
-        if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:text][:feedback])}/
+        if @msg.empty? || @msg =~ /#{Regexp.escape("question or comment")}/
           raise_form_error "You can be more original than that!"
         end
       end
