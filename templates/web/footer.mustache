@@ -26,32 +26,16 @@
       <a href="{{baseotsuri}}/info/security">Security</a>
     </p>
     {{/display_links}}
-    {{#display_icons}}
-    <div class="tagline">
-      Follow our latest news:
-      <p>
-        <a href="https://www.facebook.com/pages/One-Time-Secret/284990691536190" title="Join us on Facebook"><img class="socialicon" src="/img/icon-facebook.png" height="16" width="16" alt="facebook icon" /></a>
-        <a href="https://twitter.com/onetimesecret" title="Join us on Twitter"><img class="socialicon" src="/img/icon-twitter.png" height="16" width="16" alt="twitter icon" /></a>
-      </p>
-      <p class="release">{{ot_version}}-{{ruby_version}}-{{locale}}</p>
-    </div>
-    {{/display_icons}}
-
   </div>
 
 </div> <!-- /container -->
 
 <script src="/js/vendor/bootstrap.min.js"></script>
-
 <script src="/js/plugins.js?{{ruby_version}}"></script>
 <script src="/js/main.js?{{ruby_version}}"></script>
 {{#js}}
 <script src="{{to_s}}" type="text/javascript"></script>
 {{/js}}
-<script type="text/javascript">
-  //$('.jumbotron h1').removeClass('temp-kerning');
-  //Cufon.refresh();
-</script>
 
 {{#with_analytics}}
 <!-- No analytics enabled by default (or on onetimesecret.com). -->
