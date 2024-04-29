@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
-ruby '>= 2.6.8'
+# Ruby 3.2
+# status: normal maintenance
+# release date: 2022-12-25
+# normal maintenance until: TBD
+# EOL: 2026-03-31 (expected)
+ruby '>= 3.2'
 
 plugin 'bundler-graph'
 
