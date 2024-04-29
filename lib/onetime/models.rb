@@ -195,10 +195,10 @@ module Onetime
         stack = caller
         randval = SecureRandom.hex
         newvalues = []
-        values.redis.pipelined do
+        values.redis.multi do |pipeline|
           newvalues = (0...count).to_a.collect do |idx|
             val = [OT.instance, stack, randval, Time.now.to_f, idx].gibbler.shorten(12)
-            values.add val
+            pipeline.sadd? values.rediskey, val
           end
         end
         newvalues.size
