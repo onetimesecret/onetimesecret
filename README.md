@@ -4,7 +4,7 @@
 
 ### Latest releases
 
-* **Ruby 3+: [v0.13.0-RC3](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC3)**
+* **Ruby 3+: [v0.13.0-RC4](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC4)**
 * Ruby 2.6, 2.7: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
@@ -12,7 +12,7 @@
 
 ## What is a Onetime Secret?
 
-A one-time secret is a link that can be viewed only once. A single-use URL.
+A onetime secret is a link that can be viewed only once. A single-use URL.
 
 Try it out on <a class="msg" href="https://onetimesecret.com/">OnetimeSecret.com</a>!
 
