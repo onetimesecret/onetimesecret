@@ -85,8 +85,8 @@ RUN set -eux && \
 RUN gem update --system
 RUN gem install bundler
 
-# Instll the entrypoint script
-COPY ./bin .
+# Install the entrypoint script
+COPY ./bin/entrypoint.sh .
 
 
 # Using that as a base image, finish the installation
