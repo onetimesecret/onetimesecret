@@ -128,6 +128,9 @@ RUN bundle update --bundler
 # the container once it's up and running.
 FROM container
 
+# See: https://fly.io/docs/rails/cookbooks/deploy/
+ENV RUBY_YJIT_ENABLE=1
+
 WORKDIR $CODE_ROOT
 
 COPY . .
