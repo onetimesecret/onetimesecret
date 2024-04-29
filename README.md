@@ -30,10 +30,10 @@ When you send people sensitive info like passwords and private links via email o
 * System dependencies:
   * Ruby 3.0, 3.1, 3.2
   * Redis server 5+
-* Specs:
+* Minimum specs:
   * 2 core CPU (or equivalent)
-  * 1GB+ memory
-  * 32+ GB disk
+  * 1GB memory
+  * 4GB disk
 
 
 ### Docker
@@ -41,7 +41,6 @@ When you send people sensitive info like passwords and private links via email o
 Building and running locally.
 
 ```bash
-
   # Create or update the image tagged 'onetimesecret'
   $ docker build -t onetimesecret .
   ...
@@ -62,18 +61,27 @@ Building and running locally.
       -e HOST=$HOST \
       -e SSL=$SSL \
       onetimesecret
+```
+
+#### Multi-platform builds
+
+Docker's buildx command is a powerful tool that allows you to create Docker images for multiple platforms simultaneously. Use buildx to build a Docker image that can run on both amd64 (standard Intel/AMD CPUs) and arm64 (ARM CPUs, like those in the Apple M1 chip) platforms.
+
+```bash
+  $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret:latest
+```
 
 #### "The container name "/onetimesecret" is already in use"
-
 
 ```bash
   # If the container already exists, you can simply start it again:
   $ docker start onetimesecret
 
   # OR, remove the existing container
-
+  $ docker rm onetimesecret
 ```
 
+After the container has been removed, the regular `docker run` command will work again.
 
 
 #### Container repositories
@@ -83,11 +91,11 @@ Building and running locally.
 
 ```bash
   $ docker run -p 6379:6379 --name redis -d redis
-  $ ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0"
+  $ REDIS_URL="redis://172.17.0.2:6379/0"
 
   $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
   $ docker run -p 3000:3000 -d --name onetimesecret \
-    -e ONETIMESECRET_REDIS_URL=$ONETIMESECRET_REDIS_URL \
+    -e REDIS_URL=$REDIS_URL \
     ghcr.io/onetimesecret/onetimesecret:latest
 ```
 
@@ -95,11 +103,11 @@ Building and running locally.
 
 ```bash
   $ docker run -p 6379:6379 --name redis -d redis
-  $ ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0"
+  $ REDIS_URL="redis://172.17.0.2:6379/0"
 
   $ docker pull onetimesecret/onetimesecret:latest
   $ docker run -p 3000:3000 -d --name onetimesecret \
-    -e ONETIMESECRET_REDIS_URL=$ONETIMESECRET_REDIS_URL \
+    -e REDIS_URL=$REDIS_URL \
     onetimesecret/onetimesecret:latest
 ```
 

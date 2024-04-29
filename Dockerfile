@@ -94,7 +94,7 @@ FROM builder AS container
 ARG CODE_ROOT
 ARG ONETIME_HOME
 
-LABEL Name=onetimesecret Version=0.13.0-beta
+LABEL Name=onetimesecret Version=0.13.0
 
 # Limit to packages necessary for onetime and operational tasks
 ARG PACKAGES="curl netcat-openbsd vim-tiny less redis-tools"
