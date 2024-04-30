@@ -65,9 +65,8 @@ class Onetime::App
                  else
                    OT::Utils.obscure_email(cust.custid)
                  end
-      err "[limit-exceeded] #{obscured}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
-      err req.current_absolute_uri
-      err ex.backtrace
+      OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+
       error_response "Cripes! You have been rate limited."
 
     rescue Familia::NotConnected, Familia::Problem => ex
