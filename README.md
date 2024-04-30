@@ -4,7 +4,7 @@
 
 ### Latest releases
 
-* **Ruby 3+: [v0.13.0-RC4](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC4)**
+* **Ruby 3+: [v0.13.0-RC6](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC6)**
 * Ruby 2.6, 2.7: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
