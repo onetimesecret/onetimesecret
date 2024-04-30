@@ -1,25 +1,18 @@
 :site:
-  :host: <%= ENV['ONETIMESECRET_HOST'] || 'localhost:7143' %>
+  :host: <%= ENV['HOST'] || 'localhost:3000' %>
   :domain: localhost
-  :ssl: <%= ENV['ONETIMESECRET_SSL'] == 'true' %>
-  # NOTE Once the secret is set, do not change it (keep a backup offsite)
-  :secret: <%= ENV['ONETIMESECRET_SECRET'] || 'CHANGEME' %>
+  :ssl: <%= ENV['SSL'] == 'true' %>
+  # IMPORTANT: After setting the secret, it should not be changed.
+  # Ensure to create and store a backup in a secure offsite
+  # location. Changing the secret can lead to unforeseen issues.
+  :secret: <%= ENV['SECRET'] || 'CHANGEME' %>
 :redis:
-  :uri: <%= ENV['ONETIMESECRET_REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0?timeout=10' %>
-  :config: /etc/onetime/redis.conf
+  :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0?timeout=10' %>
 :colonels:
-  # Accounts created with the following email addresses
-  # are automatically considered admins of the system.
-  - <%= ENV['ONETIMESECRET_COLONEL'] || 'CHANGEME@EXAMPLE.com' %>
-# :emailer:
-#   :mode: :sendgrid
-#   :account: CHANGEME
-#   :password: CHANGEME
-#   :from: CHANGEME@example.com
-#   :fromname: CHANGEME
-#   :bcc:
-# Use the following email config to enable SMTP
-# support and remove the :emailer config above.
+  # Email addresses listed below will be granted automatic
+  # administrative privileges upon account creation. These
+  # accounts will have full control over the system.
+  - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
 :emailer:
   :mode: :smtp
   :from: CHANGEME@example.com
@@ -29,17 +22,14 @@
   :tls: true
   :user:
   :pass:
-:incoming:
-  # Intended for use by IT support teams who need someone to send them
-  # sensitive info. The email address is where the secret
-  # link is sent. Passphrase is used to protect the secret.
-  # The regex used to ensure the ticket number is valid.
-  # See: https://onetimesecret.com/incoming
-  :enabled: false
-  :email: example@onetimesecret.com
-  :passphrase: CHANGEME
-  :regex: \A[a-zA-Z0-9]{6}\z
 :locales:
+  # A list of ISO language codes (e.g., 'en' for English, 'es'
+  # for Spanish, etc.). There is a corresponding file in etc/locales
+  # with the same name containing the translated text. If it's not
+  # selected automatically, users are able to select their preferred
+  # language by using the links on the translations page.
+  #
+  # NOTE: The default locale is the first item.
   - en
   - ar
   - bg
@@ -64,23 +54,18 @@
   - sv_SE
   - tr
   - vi
-:unsupported_locales:
-  - jp
-:stathat:
-  :enabled: false
-  :apikey: CHANGEME
-  :default_chart: CHANGEME
-:text:
-  :nonpaid_recipient_text: 'You need to create an account!'
-  :paid_recipient_text: 'Send the secret link via email'
 :limits:
-  :create_secret: 250
+  # This section defines rate limits for various events per user
+  # per a rolling 20 minute period. Each key is an event name
+  # and the value is the max count allowed. Changes require
+  # restart of the app.
+  :create_secret: 1000
   :create_account: 10
   :update_account: 10
   :email_recipient: 50
   :send_feedback: 10
   :authenticate_session: 5
-  :homepage: 500
+  :homepage: 1000
   :dashboard: 1000
   :failed_passphrase: 5
   :show_metadata: 1000

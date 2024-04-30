@@ -1,4 +1,5 @@
-#
+# frozen_string_literal: true
+
 # Basic SMTP checker
 #
 # Update the .env file in the root project directory as

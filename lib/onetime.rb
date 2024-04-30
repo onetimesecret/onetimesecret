@@ -67,8 +67,9 @@ module Onetime
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
       info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
+      info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
       info "Config: #{OT::Config.path}"
-      ld "Redis:  #{Familia.uri.serverid}" # don't print the password
+      ld "Redis:  #{Familia.uri.serverid}" # doesn't print the password
       ld "Limits: #{OT::RateLimit.events}"
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
@@ -78,18 +79,23 @@ module Onetime
       Digest::SHA512
       # Seed the random number generator
       Kernel.srand
-      # Need to connect to all redis DBs so we can increase $SAFE level.
       begin
+        # Need to connect to all redis DBs so we can increase $SAFE level.
         16.times { |idx| OT.ld format('Connecting to %s (%s)', Familia.redis(idx).uri, Familia.redis(idx).ping) }
+
         OT::SplitTest.from_config OT.conf[:split_tests]
-        if OT::Entropy.count < 5_000
+        # if OT::Entropy.count < 5_000
           info "Entropy is low (#{OT::Entropy.count}). Generating..."
           OT::Entropy.generate
-        end
-      rescue StandardError => e
-        raise e unless mode?(:cli)
+        # end
 
-        OT.info "Cannot connect to redis #{Familia.uri}"
+      rescue Redis::CannotConnectError => e
+        OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
+        exit 1
+
+      rescue StandardError => e
+        OT.le "Unexpected error `#{e}` (#{e.class})"
+        exit 99
       end
       @conf
     end

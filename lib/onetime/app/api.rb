@@ -99,7 +99,7 @@ class Onetime::App
       end
     end
 
-    # curl -X POST -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:7143/api/v1/private/:key/burn
+    # curl -X POST -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:3000/api/v1/private/:key/burn
     def burn_secret
       authorized(true) do
         req.params[:continue] = 'true'

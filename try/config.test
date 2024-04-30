@@ -1,5 +1,5 @@
 :site:
-  :host: '127.0.0.1:7143'
+  :host: '127.0.0.1:3000'
   :domain: 127.0.0.1
   :ssl: true
   :secret: SuP0r_53cRU7
@@ -42,15 +42,6 @@
   - sv_SE
   - tr
   - vi
-:text:
-  :nonpaid_recipient_text: 'You need to create an account!'
-  :paid_recipient_text: 'Send the secret link via email'
-:unsupported_locales:
-  - gnarly
-:stathat:
-  :enabled: false
-  :apikey: CHANGEME
-  :default_chart: CHANGEME
 :limits:
   :create_secret: 250
   :create_account: 10

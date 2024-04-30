@@ -12,7 +12,7 @@ class Onetime::App
         end
       end
 
-      # curl -F 'ttl=7200' -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:7143/api/v1/generate
+      # curl -F 'ttl=7200' -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:3000/api/v1/generate
       def authorized allow_anonymous=false
         carefully do
           success = false

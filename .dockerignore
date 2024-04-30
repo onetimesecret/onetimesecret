@@ -22,13 +22,15 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 .DS_Store
+fly.toml
 LICENSE
 README.md
+!.env.empty
+!.env.example
 
 # Project specific
 **/log
 **/tmp
-!.env.empty
 .bundle
 .ruby-version
 .history

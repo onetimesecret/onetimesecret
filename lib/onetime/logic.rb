@@ -9,6 +9,7 @@ module Onetime
         @stathat_apikey ||= Onetime.conf[:stathat][:apikey]
       end
       def stathat_enabled
+        return unless Onetime.conf.has_key?(:stathat)
         @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
         @stathat_enabled
       end
@@ -91,7 +92,7 @@ module Onetime
 
       def raise_concerns
         limit_action :send_feedback
-        if @msg.empty? || @msg =~ /#{Regexp.escape(OT.conf[:text][:feedback])}/
+        if @msg.empty? || @msg =~ /#{Regexp.escape("question or comment")}/
           raise_form_error "You can be more original than that!"
         end
       end
@@ -435,10 +436,6 @@ module Onetime
         r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
         @recipient = params[:recipient].collect { |email_address|
           next if email_address.to_s.empty?
-          next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
-          #unless valid_email?(email_address) #|| valid_mobile?(email_address)
-          #  raise_form_error "Recipient must be an email address."
-          #end
           email_address.scan(r).uniq.first
         }.compact.uniq
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
@@ -501,10 +498,7 @@ module Onetime
         r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
         @recipient = params[:recipient].collect { |email_address|
           next if email_address.to_s.empty?
-          next if email_address =~ /#{Regexp.escape(OT.conf[:text][:paid_recipient_text])}/
-          #unless valid_email?(email_address) #|| valid_mobile?(email_address)
-          #  raise_form_error "Recipient must be an email address."
-          #end
+
           email_address.scan(r).uniq.first
         }.compact.uniq
       end

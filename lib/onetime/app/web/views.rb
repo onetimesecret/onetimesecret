@@ -31,8 +31,6 @@ module Onetime
         self[:js], self[:css] = [], []
         self[:is_default_locale] = OT.conf[:locales].first.to_s == locale
         self[:supported_locales] = OT.conf[:locales]
-        self[:unsupported_locales] = OT.conf[:unsupported_locales]
-        self[:monitored_link] = false
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
@@ -41,9 +39,7 @@ module Onetime
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
-        self[:feedback_text] = OT.conf[:text][:feedback]
-        self[:nonpaid_recipient_text] = OT.conf[:text][:nonpaid_recipient_text]
-        self[:paid_recipient_text] = OT.conf[:text][:paid_recipient_text]
+        self[:feedback_text] = i18n[:COMMON][:feedback_text]
         self[:base_domain] = OT.conf[:site][:domain]
         self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
         self[:no_cache] = false
@@ -53,7 +49,7 @@ module Onetime
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:email, cust.email)
         self[:display_links] = true
-        self[:display_options] = true# sess.authenticated?
+        self[:display_options] = true # sess.authenticated?
         self[:display_recipients] = sess.authenticated?
         self[:display_masthead] = true
         if self[:is_subdomain]
@@ -63,7 +59,6 @@ module Onetime
           self[:subdomain]['company'] = "One-Time Secret"
           self[:subtitle] = self[:subdomain]['company'] || self[:subdomain]['company_domain']
           self[:display_feedback] = sess.authenticated?
-          self[:display_icons] = sess.authenticated?
           self[:display_faq] = false
           self[:actionable_visitor] = sess.authenticated?
           self[:override_styles] = true
@@ -76,7 +71,6 @@ module Onetime
         else
           self[:subtitle] = "One Time"
           self[:display_faq] = true
-          self[:display_icons] = true
           self[:display_otslogo] = true
           self[:actionable_visitor] = true
           # NOTE: uncomment the following line to show the broadcast
@@ -214,7 +208,6 @@ module Onetime
         include CreateSecretElements
         def init *args
           self[:title] = "Share a secret"
-          self[:monitored_link] = !self[:is_subdomain]
           self[:with_analytics] = false
         end
       end
@@ -222,10 +215,9 @@ module Onetime
         include CreateSecretElements
         def init *args
           self[:title] = "Share a secret"
-          self[:monitored_link] = !self[:is_subdomain]
           self[:with_analytics] = false
           self[:incoming_recipient] = OT.conf[:incoming][:email]
-          self[:display_feedback] = self[:display_icons] = false
+          self[:display_feedback] = false
           self[:display_masthead] = self[:display_links] = false
         end
       end
@@ -234,7 +226,6 @@ module Onetime
           def init *args
             self[:title] = "API Docs"
             self[:subtitle] = "OTS Developers"
-            self[:monitored_link] = !self[:is_subdomain]
             self[:with_analytics] = false
             self[:css] << '/css/docs.css'
           end
@@ -254,21 +245,18 @@ module Onetime
         class Privacy < Onetime::App::View
           def init *args
             self[:title] = "Privacy Policy"
-            self[:monitored_link] = true
             self[:with_analytics] = false
           end
         end
          class Security < Onetime::App::View
           def init *args
             self[:title] = "Security Policy"
-            self[:monitored_link] = true
             self[:with_analytics] = false
           end
         end
         class Terms < Onetime::App::View
           def init *args
             self[:title] = "Terms and Conditions"
-            self[:monitored_link] = true
             self[:with_analytics] = false
           end
         end
@@ -286,8 +274,6 @@ module Onetime
           self[:display_feedback] = false
           self[:display_sitenav] = false
           self[:display_links] = false
-          self[:display_icons] = false
-          self[:monitored_link] = false
           self[:display_masthead] = false
           self[:no_cache] = true
         end
@@ -417,7 +403,6 @@ module Onetime
         def init
           self[:title] = "Forgotten Password"
           self[:body_class] = :login
-          self[:monitored_link] = true
           self[:with_analytics] = false
         end
       end
@@ -425,7 +410,6 @@ module Onetime
         def init
           self[:title] = "Login"
           self[:body_class] = :login
-          self[:monitored_link] = true
           self[:with_analytics] = false
           if req.params[:custid]
             add_form_fields :custid => req.params[:custid]
@@ -439,7 +423,6 @@ module Onetime
         def init
           self[:title] = "Create an account"
           self[:body_class] = :signup
-          self[:monitored_link] = true
           self[:with_analytics] = false
           if OT::Plan.plan?(req.params[:planid])
             self[:planid] = req.params[:planid]
@@ -465,7 +448,6 @@ module Onetime
         def init
           self[:title] = "Create an Account"
           self[:body_class] = :pricing
-          self[:monitored_link] = true
           self[:with_analytics] = false
           setup_plan_variables
         end
@@ -479,7 +461,6 @@ module Onetime
         def init
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
-          self[:monitored_link] = true
           self[:with_analytics] = false
           self[:metadata] = cust.metadata.collect do |m|
             { :uri => private_uri(m),
@@ -506,7 +487,6 @@ module Onetime
         def init
           self[:title] = "Your Account"
           self[:body_class] = :account
-          self[:monitored_link] = true
           self[:with_analytics] = false
           self[:price] = plan.calculated_price
           self[:is_paid] = plan.paid?
@@ -540,7 +520,6 @@ module Onetime
         def init *args
           self[:title] = "About Us"
           self[:body_class] = :info
-          self[:monitored_link] = true
           self[:with_analytics] = false
           setup_plan_variables
         end
@@ -549,7 +528,6 @@ module Onetime
         def init *args
           self[:title] = "Help us translate"
           self[:body_class] = :info
-          self[:monitored_link] = true
           self[:with_analytics] = false
         end
       end
@@ -557,7 +535,6 @@ module Onetime
         def init *args
           self[:title] = "Contest: Help us get a logo"
           self[:body_class] = :info
-          self[:monitored_link] = true
           self[:with_analytics] = false
           self[:with_broadcast] = false
         end
@@ -566,7 +543,6 @@ module Onetime
         def init *args
           self[:title] = "Page not found"
           self[:body_class] = :info
-          self[:monitored_link] = true
           self[:with_analytics] = false
         end
       end
@@ -574,7 +550,6 @@ module Onetime
         def init *args
           self[:title] = "Your Feedback"
           self[:body_class] = :info
-          self[:monitored_link] = true
           self[:with_analytics] = false
           self[:display_feedback] = false
           #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|

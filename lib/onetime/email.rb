@@ -125,9 +125,11 @@ module Onetime
       rescue Net::SMTPFatalError => ex
         OT.info "> [send-exception-smtperror] #{obscured_address}"
         OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+        return
       rescue => ex
         OT.info "> [send-exception-sending] #{obscured_address}"
         OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+        return
       end
 
       # Log the details

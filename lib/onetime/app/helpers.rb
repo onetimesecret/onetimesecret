@@ -60,7 +60,11 @@ class Onetime::App
       secret_not_found_response
 
     rescue OT::LimitExceeded => ex
-      obscured = OT::Utils.obscure_email(cust.custid)
+      obscured = if cust.anonymous?
+                   'anonymous'
+                 else
+                   OT::Utils.obscure_email(cust.custid)
+                 end
       err "[limit-exceeded] #{obscured}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
       err req.current_absolute_uri
       err ex.backtrace

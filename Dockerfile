@@ -85,8 +85,8 @@ RUN set -eux && \
 RUN gem update --system
 RUN gem install bundler
 
-# Instll the entrypoint script
-COPY ./bin .
+# Install the entrypoint script
+COPY ./bin/entrypoint.sh .
 
 
 # Using that as a base image, finish the installation
@@ -94,7 +94,7 @@ FROM builder AS container
 ARG CODE_ROOT
 ARG ONETIME_HOME
 
-LABEL Name=onetimesecret Version=0.13.0-beta
+LABEL Name=onetimesecret Version=0.13.0
 
 # Limit to packages necessary for onetime and operational tasks
 ARG PACKAGES="curl netcat-openbsd vim-tiny less redis-tools"
@@ -127,6 +127,9 @@ RUN bundle update --bundler
 # location the volume is what is available inside of
 # the container once it's up and running.
 FROM container
+
+# See: https://fly.io/docs/rails/cookbooks/deploy/
+ENV RUBY_YJIT_ENABLE=1
 
 WORKDIR $CODE_ROOT
 

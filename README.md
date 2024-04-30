@@ -4,7 +4,7 @@
 
 ### Latest releases
 
-* **Ruby 3+: [v0.13.0-RC2](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC2)**
+* **Ruby 3+: [v0.13.0-RC4](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC4)**
 * Ruby 2.6, 2.7: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
@@ -12,7 +12,7 @@
 
 ## What is a Onetime Secret?
 
-A one-time secret is a link that can be viewed only once. A single-use URL.
+A onetime secret is a link that can be viewed only once. A single-use URL.
 
 Try it out on <a class="msg" href="https://onetimesecret.com/">OnetimeSecret.com</a>!
 
@@ -30,24 +30,86 @@ When you send people sensitive info like passwords and private links via email o
 * System dependencies:
   * Ruby 3.0, 3.1, 3.2
   * Redis server 5+
-* Specs:
+* Minimum specs:
   * 2 core CPU (or equivalent)
-  * 1GB+ memory
-  * 32+ GB disk
+  * 1GB memory
+  * 4GB disk
 
 
-### Dockerhub
+### Docker
+
+Building and running locally.
+
+```bash
+  # Create or update the image tagged 'onetimesecret'
+  $ docker build -t onetimesecret .
+  ...
+
+  # Start redis container
+  $ docker run -p 6379:6379 -d redis:bookworm
+
+  # Set essential environment variables
+  HOST=localhost:3000
+  SSL=false
+  COLONEL=admin@example.com
+  REDIS_URL=redis://host.docker.internal:6379/0
+
+  # Create and run a container named `onetimesecret`
+  $ docker run -p 3000:3000 -d --name onetimesecret \
+      -e REDIS_URL=$REDIS_URL \
+      -e COLONEL=$COLONEL \
+      -e HOST=$HOST \
+      -e SSL=$SSL \
+      onetimesecret
+```
+
+#### Multi-platform builds
+
+Docker's buildx command is a powerful tool that allows you to create Docker images for multiple platforms simultaneously. Use buildx to build a Docker image that can run on both amd64 (standard Intel/AMD CPUs) and arm64 (ARM CPUs, like those in the Apple M1 chip) platforms.
+
+```bash
+  $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret:latest
+```
+
+#### "The container name "/onetimesecret" is already in use"
+
+```bash
+  # If the container already exists, you can simply start it again:
+  $ docker start onetimesecret
+
+  # OR, remove the existing container
+  $ docker rm onetimesecret
+```
+
+After the container has been removed, the regular `docker run` command will work again.
+
+
+#### Container repositories
+
+
+##### [GitHub Container Registry](https://ghcr.io/onetimesecret/onetimesecret)
 
 ```bash
   $ docker run -p 6379:6379 --name redis -d redis
-  $ ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0"
+  $ REDIS_URL="redis://172.17.0.2:6379/0"
 
-  $ docker pull onetimesecret/onetimesecret:next
+  $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
   $ docker run -p 3000:3000 -d --name onetimesecret \
-    -e ONETIMESECRET_REDIS_URL=$ONETIMESECRET_REDIS_URL \
-    onetimesecret/onetimesecret:next
+    -e REDIS_URL=$REDIS_URL \
+    ghcr.io/onetimesecret/onetimesecret:latest
 ```
 
+##### [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)
+
+```bash
+  $ docker run -p 6379:6379 --name redis -d redis
+  $ REDIS_URL="redis://172.17.0.2:6379/0"
+
+  $ docker pull onetimesecret/onetimesecret:latest
+  $ docker run -p 3000:3000 -d --name onetimesecret \
+    -e REDIS_URL=$REDIS_URL \
+    onetimesecret/onetimesecret:latest
+```
 
 ### Docker Compose
 
@@ -174,7 +236,7 @@ There are many ways to run the webapp. The default web server we use is [thin](h
 **To run locally:**
 
 ```bash
-  bundle exec thin -e dev -R config.ru -p 7143 start
+  bundle exec thin -e dev -R config.ru -p 3000 start
 ```
 
 **To run on a server:**
