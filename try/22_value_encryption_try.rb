@@ -1,4 +1,6 @@
-require 'onetime'
+# frozen_string_literal: true
+
+require_relative '../lib/onetime'
 
 OT.load! :app
 
@@ -25,7 +27,7 @@ s.value.gibbler
 
 ## Can decrypt a value
 s = Onetime::Secret.new :shared
-s.encrypt_value 'poop', :key => 'tryouts'
+s.encrypt_value 'poop', key: 'tryouts'
 s.decrypted_value
 #=> 'poop'
 
@@ -34,6 +36,17 @@ s = Onetime::Secret.new :shared2
 s.value = 'poop'
 s.decrypted_value
 #=> 'poop'
+
+## Cannot decrypt after changing global secret
+s = Onetime::Secret.new :shared
+s.encrypt_value 'poop', key: 'tryouts'
+Onetime.instance_variable_set(:@global_secret, 'NEWVALUE')
+begin
+  s.decrypted_value
+rescue => ex
+  ex.class
+end
+#=> OpenSSL::Cipher::CipherError
 
 
 Onetime::Secret.new(:shared).destroy!
