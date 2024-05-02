@@ -1,5 +1,14 @@
 require 'onetime'
 
+OT.load! :app
+
+## Has global secret
+Onetime.global_secret.nil?
+#=> false
+
+## Has default global secret
+Onetime.global_secret
+#=> 'CHANGEME'
 
 ## Can store a value
 s = Onetime::Secret.new :shared
