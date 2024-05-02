@@ -128,6 +128,9 @@ RUN bundle update --bundler
 # the container once it's up and running.
 FROM container
 
+LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
+LABEL org.opencontainers.image.description "One-Time Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
+
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
 
