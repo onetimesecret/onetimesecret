@@ -7,11 +7,11 @@
 # normal maintenance until: TBD
 # EOL: 2026-03-31 (expected)
 #
-# We maintain Ruby 2.6+ support for the time being for
+# We maintain Ruby 2.7+ support for the time being for
 # anyone wanting to run the latest code but are not
 # able to update the system to Ruby 3 just yet (not
 # uncommon in legacy environments).
-ruby '>= 2.6.8'
+ruby '>= 2.7.8'
 
 plugin 'bundler-graph'
 
