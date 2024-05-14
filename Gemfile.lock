@@ -99,7 +99,7 @@ GEM
     tryouts (2.2.0)
       sysinfo (~> 0.10)
     unicode-display_width (2.5.0)
-    uri-redis (1.1.1)
+    uri-redis (1.1.2)
       redis (~> 4.1, >= 4.1.0)
     yajl-ruby (1.4.3)
 
@@ -131,7 +131,7 @@ DEPENDENCIES
   sysinfo
   thin
   tryouts
-  uri-redis (~> 1.1.1)
+  uri-redis (~> 1.1.2)
   yajl-ruby
 
 RUBY VERSION
