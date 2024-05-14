@@ -4,8 +4,8 @@
 
 ### Latest releases
 
-* **Ruby 3+: [v0.13.0-RC6](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC6)**
-* Ruby 2.6, 2.7: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
+* **Ruby 3+ (recommended), 2.7.8: [v0.13.0-RC7](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC7)**
+* Ruby 2.7, 2.6: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
 
@@ -26,9 +26,9 @@ When you send people sensitive info like passwords and private links via email o
 
 ### System Requirements
 
-* Any recent linux distor (we use debian) or *BSD
+* Any recent linux disto (we use debian) or *BSD
 * System dependencies:
-  * Ruby 3.0, 3.1, 3.2
+  * Ruby 3.2, 3.1, 3.0, 2.7.8
   * Redis server 5+
 * Minimum specs:
   * 2 core CPU (or equivalent)
