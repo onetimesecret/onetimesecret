@@ -15,7 +15,7 @@
 #
 # The default values work as-is but it's a good practice to have
 # a look and customize as you like (partcularly the mast secret
-# `ONETIMESECRET_SECRET` and redis password in `ONETIMESECRET_REDIS_URL`).
+# `SECRET` and redis password in `REDIS_URL`).
 #
 #
 # USAGE (Docker):
@@ -27,7 +27,7 @@
 # Then build and run this image, specifying the redis URL:
 #
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
-#       -e ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0" \
+#       -e REDIS_URL="redis://172.17.0.2:6379/0" \
 #       onetimesecret
 #
 # It will be accessible on http://localhost:3000.
@@ -59,9 +59,9 @@
 # from https://example.com:
 #
 #   $ docker run -p 3000:3000 -d \
-#     -e ONETIMESECRET_REDIS_URL="redis://user:password@host:port/0" \
-#     -e ONETIMESECRET_SSL=true -e ONETIMESECRET_HOST=example.com \
-#     -e ONETIMESECRET_SECRET="<put your own secret here>" \
+#     -e REDIS_URL="redis://user:password@host:port/0" \
+#     -e SSL=true -e HOST=example.com \
+#     -e SECRET="<put your own secret here>" \
 #     onetimesecret
 #
 
