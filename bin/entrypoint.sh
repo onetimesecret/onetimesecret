@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# ONETIME ENTRYPOINT SCRIPT - 2022-07-09
+# ONETIME ENTRYPOINT SCRIPT - 2024-05-18
 #
 #   Usage:
 #
@@ -19,6 +19,12 @@
 
 # Stop at the first sign of trouble
 set -e
+
+if [ "$ONETIME_DEBUG" = "true" ] || [ "$ONETIME_DEBUG" = "1" ]; then
+  # Prints commands and their arguments as they are executed. This allows
+  # for more verbose output, helping with debugging and troubleshooting.
+  set -x
+fi
 
 # Get the time in UTC, with macos compatibility
 datestamp=`date -u`
