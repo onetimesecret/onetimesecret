@@ -65,7 +65,7 @@ jobs:
     # Make redis available for running the tryouts
     services:
       redis:
-        image: redis:bookworm
+        image: redis:bookworm@sha256:7698c87214812f17054ca55cfc66d4c59fa762c801ba6193d87c4da73214b3c3
         # Set health checks to wait until redis has started
         options: >-
           --health-cmd "redis-cli ping"
@@ -75,13 +75,13 @@ jobs:
 
     steps:
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@a283f9441d2d96eb62436dc46d7014f5d357ac22 # v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         with:
           detached: true
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
 
       - name: Set up Ruby ${{ matrix.ruby }}
         uses: ruby/setup-ruby@v1
