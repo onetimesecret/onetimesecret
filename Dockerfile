@@ -65,7 +65,13 @@
 #     onetimesecret
 #
 
-
+##
+# BASE LAYER
+#
+# Installs system packages, updates RubyGems, and prepares the
+# application's package management dependencies using a Debian
+# Ruby 3.2 base image.
+#
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
@@ -89,8 +95,14 @@ RUN gem install bundler
 COPY ./bin/entrypoint.sh .
 
 
-# Using that as a base image, finish the installation
-FROM builder AS container
+##
+# ENVIRONMENT LAYER
+#
+# Sets up the necessary directories, installs additional
+# system packages for userland, and installs the application's
+# dependencies using the Base Layer as a starting point.
+#
+FROM builder AS app_env
 ARG CODE_ROOT
 ARG ONETIME_HOME
 
@@ -119,14 +131,12 @@ RUN bundle update --bundler
 
 
 ##
-# Container
+# APPLICATION LAYER
 #
-# Include the entire context with the image. This is how
-# the container runs in production. In development, if
-# the docker-compose also mounts a volume to the same
-# location the volume is what is available inside of
-# the container once it's up and running.
-FROM container
+# Contains the entire application context, including the code,
+# configuration files, and all other files needed at run-time.
+#
+FROM app_env
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
