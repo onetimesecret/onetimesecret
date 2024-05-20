@@ -26,8 +26,6 @@
 # without having to re-build.
 #
 
-version: '3.8'
-
 services:
   app:
     build:
@@ -39,16 +37,19 @@ services:
     env_file:
       - .env
     entrypoint: ["./bin/entrypoint.sh"]
+
+    # Makes it possible to interact with the container inside a shell.
     stdin_open: true
     tty: true
 
-    # The bin/entrypoint.sh script launches the webapp by default. If
-    # you want to customize the runtime config for your environment
-    # you can do so easily by uncommenting the command setting below.
+    # The bin/entrypoint.sh script already launches the webapp by
+    # default but the command can be customized by including one
+    # here. When supplied as a list, each string will be properly
+    # escaped to avoid shell injection vulnerabilities.
     #
-    # e.g.
+    #   e.g.
     #
-    # command: ["bundle", "exec", "thin", "-R", "config.ru", "-p", "4321", "start"]
+    #     command: ["bundle", "exec", "thin", "-R", "config.ru", "start"]
 
     logging:
       driver: "json-file"
@@ -57,9 +58,13 @@ services:
         max-file: "3"
     ports:
       - 3000:3000
+
+    # Mounts the current working directory (.) into /app inside
+    # the container, which is where the webapp lives. This is a
+    # convenient way to develop in place without having to rebuild
+    # the image each time you make a change.
     volumes:
       - .:/app
-      - ./etc/config:/etc/config
 
   redis:
     image: redis:bookworm
