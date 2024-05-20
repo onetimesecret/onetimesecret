@@ -43,8 +43,14 @@ unset datestamp location basename
 # Gemfile are installed at up time (i.e. avoids a rebuild).
 >&2 bundle install
 
+if [ -d "/mnt/public" ]; then
+  # By default the static web assets are available at /mnt/public/web
+  # in the container and /var/www/public on the host.
+  cp -r public/web /mnt/public/
+fi
+
 # Run the command configured for the docker compose service
-# in the docker-compose.yaml file, or a default if none is 
+# in the docker-compose.yaml file, or a default if none is
 # provided. See Dockerfile for more details.
 if [ -z "$@" ]; then
   exec bundle exec thin -R config.ru -p 3000 start
