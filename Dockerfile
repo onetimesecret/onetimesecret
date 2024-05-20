@@ -145,6 +145,14 @@ WORKDIR $CODE_ROOT
 
 COPY . .
 
+# Copy the default config file into place if it doesn't
+# already exist. If it does exist, nothing happens. For
+# example, if the config file has been previously copied
+# (and modified) the "--no-clobber" argument prevents
+# those changes from being overwritten.
+RUN cp --preserve --no-clobber \
+ etc/config.example etc/config
+
 # About the interplay between the Dockerfile CMD instruction
 # and the Docker Compose command setting:
 #
