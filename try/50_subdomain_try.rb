@@ -39,15 +39,15 @@ Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
 
 ## Has a mapping to custid
 OT::Subdomain.map 'bignameco'
-#=> 'tryouts@onetimesecret.com'
+##=> 'tryouts@onetimesecret.com'
 
 ## Knows it's mapped
 OT::Subdomain.mapped? 'bignameco'
-#=> true
+##=> true
 
 ## Mapping knows the owner
 OT::Subdomain.owned_by? 'bignameco', 'tryouts@onetimesecret.com'
-#=> true
+##=> true
 
 ## Destroy subdomain
 @subdomain.destroy!
