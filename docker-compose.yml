@@ -67,7 +67,7 @@ services:
       - .:/app
 
   redis:
-    image: redis:bookworm
+    image: redis:bookworm@sha256:7698c87214812f17054ca55cfc66d4c59fa762c801ba6193d87c4da73214b3c3
     container_name: onetime-redis
     ports:
       - 6379:6379
