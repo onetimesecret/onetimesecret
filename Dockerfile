@@ -76,7 +76,7 @@
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
-FROM ruby:3.2-slim-bookworm@sha256:46af94ae9b84869d23510765fceb8176183c3118db82d73d54739e6b019b72df AS builder
+FROM ruby:3.3-slim-bookworm@sha256:25ee093f9d3405b4eb6c94b760160293314355c5255ef7974027d1d3d5a33e5f AS builder
 
 # Limit to packages needed for the system itself
 # NOTE: We only need the build tools installed if we need
