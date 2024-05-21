@@ -107,10 +107,4 @@ jobs:
       - name: Run tryouts
         continue-on-error: false
         run: |
-          # Use the default config settings for the tests
-          cp -p --no-clobber ./etc/config.test ./etc/config
-
           bundle exec try -v
-
-          # Cleanup the evidence
-          rm ./etc/config
