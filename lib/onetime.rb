@@ -161,6 +161,7 @@ module Onetime
   end
   module Config
     extend self
+    attr_writer :path
     SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
     UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
     attr_reader :env, :base, :bootstrap
