@@ -27,9 +27,9 @@ true
 ## Understands locale in english
 view = OT::Email::SecretLink.new @cust, 'en', @secret, 'tryouts@onetime.com'
 view.subject
-#=> 'tryouts sent you a secret'
+#=> 'CHANGEME@example.com sent you a secret'
 
 ## Understands locale in spanish
 view = OT::Email::SecretLink.new @cust, 'es', @secret, 'tryouts@onetime.com'
 view.subject
-#=> 'tryouts le ha enviado un secreto'
+#=> 'CHANGEME@example.com le ha enviado un secreto'
