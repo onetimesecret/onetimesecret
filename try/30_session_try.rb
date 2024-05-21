@@ -1,4 +1,6 @@
-require 'onetime'
+# frozen_string_literal: true
+
+require_relative '../lib/onetime'
 
 # Sessions don't have unique IDs by default
 s1, s2 = OT::Session.new, OT::Session.new

@@ -1,4 +1,6 @@
-require 'onetime'
+# frozen_string_literal: true
+
+require_relative '../lib/onetime'
 
 
 ## Can store a passphrase

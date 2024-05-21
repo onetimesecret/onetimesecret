@@ -1,5 +1,9 @@
-require 'onetime'
+# frozen_string_literal: true
 
+require_relative '../lib/onetime'
+
+# Use the default config file for tests
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.example')
 OT.load! :cli
 
 # sudo mkdir /etc/onetime
@@ -22,8 +26,9 @@ Onetime::Config.find_configs
 #=> ["/etc/onetime/config", File.join(OT::HOME, "etc/config")]
 
 ## Finds a config path
-Onetime::Config.path
-#=> "/etc/onetime/config"
+relative_path = Onetime::Config.path.gsub("#{__dir__}/", '')
+relative_path
+#=> "../etc/config.example"
 
 ## Can load config
 @config = Onetime::Config.load
