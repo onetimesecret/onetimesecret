@@ -65,6 +65,10 @@
 #     onetimesecret
 #
 
+LABEL Name=onetimesecret Version=0.13.0
+LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
+LABEL org.opencontainers.image.description "One-Time Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
+
 
 ##
 # BASE LAYER
@@ -106,8 +110,6 @@ COPY ./bin/entrypoint.sh .
 FROM builder AS app_env
 ARG CODE_ROOT
 ARG ONETIME_HOME
-
-LABEL Name=onetimesecret Version=0.13.0
 
 # Limit to packages necessary for onetime and operational tasks
 ARG PACKAGES="curl netcat-openbsd vim-tiny less redis-tools"
