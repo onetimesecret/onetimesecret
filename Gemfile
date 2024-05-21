@@ -33,7 +33,7 @@ gem 'otto', '~> 1.0', '>= 1.0'
 gem 'redis', '~> 4.8'
 gem 'storable'
 gem 'sysinfo'
-gem 'uri-redis', '~> 1.1.2'
+gem 'uri-redis', '~> 1.2'
 
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'
