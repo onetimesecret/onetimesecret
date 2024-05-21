@@ -108,7 +108,7 @@ jobs:
         continue-on-error: false
         run: |
           # Use the default config settings for the tests
-          cp -p ./try/config.test ./etc/config
+          cp -p --no-clobber ./etc/config.test ./etc/config
 
           bundle exec try -v
 

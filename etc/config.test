@@ -5,7 +5,7 @@
   :secret: SuP0r_53cRU7
 :redis:
   :uri: 'redis://CHANGEME@redis:6379/0?timeout=10'
-  :config: ./redis.conf
+  :config: ./try/redis.conf
 :colonels:
   - 'CHANGEME@EXAMPLE.com'
 :emailer:
