@@ -65,10 +65,6 @@
 #     onetimesecret
 #
 
-LABEL Name=onetimesecret Version=0.13.0
-LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
-LABEL org.opencontainers.image.description "One-Time Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
-
 
 ##
 # BASE LAYER
@@ -140,6 +136,10 @@ RUN bundle update --bundler
 # configuration files, and all other files needed at run-time.
 #
 FROM app_env
+
+LABEL Name=onetimesecret Version=0.13.0
+LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
+LABEL org.opencontainers.image.description "One-Time Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
