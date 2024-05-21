@@ -105,7 +105,7 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       - name: Run tryouts
-        continue-on-error: true
+        continue-on-error: false
         run: |
           # Use the default config settings for the tests
           cp -p ./try/config.test ./etc/config
