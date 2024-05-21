@@ -39,7 +39,6 @@
     :sent_to: "Enviar a: "
     :field_email: "Email"
     :field_password: "Contraseña"
-    :field_password: "Contraseñ"
     :field_password2: "Confirmar Contraseñ"
     :button_create_account: "Crear Cuenta"
     :share_a_secret: "Compartir un secreto"
@@ -102,7 +101,7 @@
     :subject: "[Ticket: %s]"
     :body1: "A customer has sent the following info"
   :secretlink:
-    :subject: "le ha enviado un secreto"
+    :subject: "%s le ha enviado un secreto"
     :body1: "Tenemos un secreto para usted desde"
     :body_tagline: "Si no conoce al remitente o cree que este sea un correo no deseado, envíenos los detalles aquí:"
   :welcome:
