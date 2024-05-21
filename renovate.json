@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests",
+    ":pinDevDependencies"
+  ],
+  "separateMinorPatch": true,
+  "separateMultipleMajor": true,
+  "separateMultipleMinor": true,
+  "labels": [
+    "auto-update"
+  ],
+  "recreateWhen": "always",
+  "forkProcessing": "enabled",
+  "timezone": "America/Los_Angeles",
+  "schedule": [
+    "before 6am"
+  ]
+}
