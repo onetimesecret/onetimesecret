@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:experimental
+# syntax=docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
 
 ##
 # ONETIME - DOCKER IMAGE - 2024-04-10
@@ -66,10 +66,17 @@
 #
 
 
+##
+# BASE LAYER
+#
+# Installs system packages, updates RubyGems, and prepares the
+# application's package management dependencies using a Debian
+# Ruby 3.2 base image.
+#
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
-FROM ruby:3.2-slim-bookworm AS builder
+FROM ruby:3.3-slim-bookworm@sha256:25ee093f9d3405b4eb6c94b760160293314355c5255ef7974027d1d3d5a33e5f AS builder
 
 # Limit to packages needed for the system itself
 # NOTE: We only need the build tools installed if we need
@@ -89,8 +96,14 @@ RUN gem install bundler
 COPY ./bin/entrypoint.sh .
 
 
-# Using that as a base image, finish the installation
-FROM builder AS container
+##
+# ENVIRONMENT LAYER
+#
+# Sets up the necessary directories, installs additional
+# system packages for userland, and installs the application's
+# dependencies using the Base Layer as a starting point.
+#
+FROM builder AS app_env
 ARG CODE_ROOT
 ARG ONETIME_HOME
 
@@ -119,14 +132,12 @@ RUN bundle update --bundler
 
 
 ##
-# Container
+# APPLICATION LAYER
 #
-# Include the entire context with the image. This is how
-# the container runs in production. In development, if
-# the docker-compose also mounts a volume to the same
-# location the volume is what is available inside of
-# the container once it's up and running.
-FROM container
+# Contains the entire application context, including the code,
+# configuration files, and all other files needed at run-time.
+#
+FROM app_env
 
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "One-Time Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
@@ -137,6 +148,14 @@ ENV RUBY_YJIT_ENABLE=1
 WORKDIR $CODE_ROOT
 
 COPY . .
+
+# Copy the default config file into place if it doesn't
+# already exist. If it does exist, nothing happens. For
+# example, if the config file has been previously copied
+# (and modified) the "--no-clobber" argument prevents
+# those changes from being overwritten.
+RUN cp --preserve --no-clobber \
+ etc/config.example etc/config
 
 # About the interplay between the Dockerfile CMD instruction
 # and the Docker Compose command setting:

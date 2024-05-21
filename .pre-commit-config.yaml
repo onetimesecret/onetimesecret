@@ -1,33 +1,52 @@
-#
-# Pre-Commit Configruatioon
+##
+# Pre-Commit Configuration
 #
 # Initial setup:
 #
 #   0. Install the pre-commit framework (if it isn't already on your system):
-#
-#       pip install pre-commit
+
+#         $ pip install pre-commit
 #
 #   1. Install the git hook:
 #
-#       pre-commit install
+#         $ pre-commit install
 #
 #
 # Other commands:
 #
 #   Run it on all the files in this repo:
-#     pre-commit run --all-files
+#     $ pre-commit run --all-files
 #
 #   Updating plugin repositories:
-#     pre-commit autoupdate
+#     $ pre-commit autoupdate
+#
+#   Automatically enable pre-commit on repositories
+#     $ git config --global init.templateDir ~/.git-template
+#     $ pre-commit init-templatedir ~/.git-template
 #
 # See also:
 #   - https://pre-commit.com for more information
 #   - https://pre-commit.com/hooks.html for more hooks
 #
 
+default_install_hook_types:
+  - pre-commit
+  - prepare-commit-msg
+# default_stages:
+#   - pre-commit
+#   - prepare-commit-msg
+
+fail_fast: true
+
 repos:
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+      - id: identity
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -41,7 +60,7 @@ repos:
       - id: check-merge-conflict
       - id: forbid-submodules
 
-  # NOTE: Don't able until after getting codebase up to speed.
+  # NOTE: Don't enable until after getting codebase up to speed.
   # - repo: https://github.com/rubocop/rubocop
   #   rev: v1.62.1  # Use the ref you want to point at
   #   enable: false
@@ -53,10 +72,9 @@ repos:
     rev: v0.0.11
     hooks:
       - id: add-msg-issue-prefix
+        stages: [prepare-commit-msg]
         name: Link commit to Github issue
         args:
           - "--default=[NOJIRA]"
           - "--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}"
           - "--template=[#{}]"
-          - "--insert-after"
-          - "^feat.?:|^fix.?:"
