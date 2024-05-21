@@ -46,11 +46,15 @@ jobs:
     strategy:
       matrix:
         include:
-          - ruby: '3.2.0'
+          - ruby: '3.3'
             bundler: latest
             rubygems: latest
 
-          - ruby: '3.1.4'
+          - ruby: '3.2'
+            bundler: latest
+            rubygems: latest
+
+          - ruby: '3.1'
             bundler: latest
             rubygems: latest
 

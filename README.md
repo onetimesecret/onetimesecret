@@ -60,7 +60,7 @@ Building and running locally.
       -e COLONEL=$COLONEL \
       -e HOST=$HOST \
       -e SSL=$SSL \
-      onetimesecret
+      onetimesecret/onetimesecret:latest
 ```
 
 #### Multi-platform builds

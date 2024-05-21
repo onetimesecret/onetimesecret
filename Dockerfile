@@ -15,7 +15,7 @@
 #
 # The default values work as-is but it's a good practice to have
 # a look and customize as you like (partcularly the mast secret
-# `ONETIMESECRET_SECRET` and redis password in `ONETIMESECRET_REDIS_URL`).
+# `SECRET` and redis password in `REDIS_URL`).
 #
 #
 # USAGE (Docker):
@@ -27,7 +27,7 @@
 # Then build and run this image, specifying the redis URL:
 #
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
-#       -e ONETIMESECRET_REDIS_URL="redis://172.17.0.2:6379/0" \
+#       -e REDIS_URL="redis://172.17.0.2:6379/0" \
 #       onetimesecret
 #
 # It will be accessible on http://localhost:3000.
@@ -59,13 +59,20 @@
 # from https://example.com:
 #
 #   $ docker run -p 3000:3000 -d \
-#     -e ONETIMESECRET_REDIS_URL="redis://user:password@host:port/0" \
-#     -e ONETIMESECRET_SSL=true -e ONETIMESECRET_HOST=example.com \
-#     -e ONETIMESECRET_SECRET="<put your own secret here>" \
+#     -e REDIS_URL="redis://user:password@host:port/0" \
+#     -e SSL=true -e HOST=example.com \
+#     -e SECRET="<put your own secret here>" \
 #     onetimesecret
 #
 
 
+##
+# BASE LAYER
+#
+# Installs system packages, updates RubyGems, and prepares the
+# application's package management dependencies using a Debian
+# Ruby 3.2 base image.
+#
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
@@ -89,8 +96,14 @@ RUN gem install bundler
 COPY ./bin/entrypoint.sh .
 
 
-# Using that as a base image, finish the installation
-FROM builder AS container
+##
+# ENVIRONMENT LAYER
+#
+# Sets up the necessary directories, installs additional
+# system packages for userland, and installs the application's
+# dependencies using the Base Layer as a starting point.
+#
+FROM builder AS app_env
 ARG CODE_ROOT
 ARG ONETIME_HOME
 
@@ -119,14 +132,12 @@ RUN bundle update --bundler
 
 
 ##
-# Container
+# APPLICATION LAYER
 #
-# Include the entire context with the image. This is how
-# the container runs in production. In development, if
-# the docker-compose also mounts a volume to the same
-# location the volume is what is available inside of
-# the container once it's up and running.
-FROM container
+# Contains the entire application context, including the code,
+# configuration files, and all other files needed at run-time.
+#
+FROM app_env
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
@@ -134,6 +145,14 @@ ENV RUBY_YJIT_ENABLE=1
 WORKDIR $CODE_ROOT
 
 COPY . .
+
+# Copy the default config file into place if it doesn't
+# already exist. If it does exist, nothing happens. For
+# example, if the config file has been previously copied
+# (and modified) the "--no-clobber" argument prevents
+# those changes from being overwritten.
+RUN cp --preserve --no-clobber \
+ etc/config.example etc/config
 
 # About the interplay between the Dockerfile CMD instruction
 # and the Docker Compose command setting:
