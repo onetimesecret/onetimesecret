@@ -51,7 +51,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            ${{ env.DOCKERHUB_IMAGE_NAME }}/${{ env.DOCKERHUB_IMAGE_NAME }}
+            ${{ env.DOCKERHUB_IMAGE_NAME }}
 
       - name: Build and push Docker image
         id: build-and-push
