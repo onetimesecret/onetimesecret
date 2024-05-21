@@ -10,12 +10,12 @@ OT.load!
 ## Keys are consistent for Metadata
 @metadata = Onetime::Metadata.new :metadata, :entropy
 [@metadata.rediskey, @metadata.db, @metadata.secret_key, @metadata.all]
-#=> ['metadata:8ny214nkhk6z0dvn28i9aan0wu175ju:object', 7, nil, {}]
+#=> ['metadata:ivfn09cpriklqii1zagw6fc96suh8bp:object', 7, nil, {}]
 
 ## Keys don't change with values
 @metadata.secret_key = :hihi
 [@metadata.rediskey, @metadata.secret_key, @metadata.all]
-#=> ['metadata:8ny214nkhk6z0dvn28i9aan0wu175ju:object', :hihi, {"secret_key"=>"hihi"}]
+#=> ['metadata:ivfn09cpriklqii1zagw6fc96suh8bp:object', :hihi, {"secret_key"=>"hihi"}]
 
 ## Doesn't exist yet
 @metadata2 = Onetime::Metadata.new :metadata, [OT.instance, Time.now.to_f, OT.entropy]

@@ -6,14 +6,6 @@ require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.load! :app
 
-## Has global secret
-Onetime.global_secret.nil?
-#=> false
-
-## Has default global secret
-Onetime.global_secret
-#=> 'CHANGEME'
-
 ## Can store a value
 s = Onetime::Secret.new :shared
 s.value = 'poop'
@@ -25,7 +17,7 @@ s = Onetime::Secret.new :shared
 s.encrypt_value 'poop', key: 'tryouts'
 puts "These values should match character for character. Not sure why they don't :-?"
 s.value.gibbler
-#=> 'cf45ffd1d3f709719411ed2d4b185fa09056fb83'
+#=> '0bed39f588f66da4d40636d64b830871d8816cbc'
 
 ## Can decrypt a value
 s = Onetime::Secret.new :shared

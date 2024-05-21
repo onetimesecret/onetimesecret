@@ -10,7 +10,7 @@ OT.load! :cli
 ## Finds a config path
 relative_path = Onetime::Config.path.gsub("#{__dir__}/", '')
 relative_path
-#=> "../etc/config.example"
+#=> "../etc/config.test"
 
 ## Can load config
 @config = Onetime::Config.load
@@ -25,3 +25,11 @@ relative_path
 OT.load! :tryouts
 [OT.mode, OT.conf.class]
 #=> [:tryouts, Hash]
+
+## Has global secret
+Onetime.global_secret.nil?
+#=> false
+
+## Has default global secret
+Onetime.global_secret
+#=> 'SuP0r_53cRU7'
