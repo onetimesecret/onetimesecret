@@ -39,7 +39,7 @@ on:
         required: false
         default: false
 env:
-  - REDIS_URL: 'redis://@127.0.0.1:6379/0?timeout=10'
+  REDIS_URL: 'redis://@127.0.0.1:6379/0?timeout=10'
 
 jobs:
   build:
