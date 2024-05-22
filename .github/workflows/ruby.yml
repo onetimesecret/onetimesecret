@@ -38,8 +38,6 @@ on:
         description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
         default: false
-env:
-  REDIS_URL: 'redis://@127.0.0.1:6379/0?timeout=10'
 
 jobs:
   build:
@@ -115,8 +113,3 @@ jobs:
         continue-on-error: false
         run: |
           bundle exec try -v
-        env:
-          # The hostname used to communicate with the Redis service container
-          REDIS_HOST: localhost
-          # The default Redis port
-          REDIS_PORT: 6379
