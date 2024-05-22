@@ -94,16 +94,16 @@ jobs:
           # message for this change.
           bundler-cache: false
 
-      - name: Install dependencies (bundler ${{ matrix.bundler }})
-        run: |
-          bundle config path vendor/bundle
-          bundle install --jobs 4 --retry 3
-
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@a283f9441d2d96eb62436dc46d7014f5d357ac22 # v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         with:
           detached: true
+
+      - name: Install dependencies (bundler ${{ matrix.bundler }})
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
 
       - name: Run tryouts
         continue-on-error: false
