@@ -6,9 +6,15 @@ require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.load! :cli
 
+
 ## Clear values
+OT::Entropy.generate 2
 OT::Entropy.values.clear
 #=> 1
+
+## Try to clear values when there are none
+OT::Entropy.values.clear
+#=> 0
 
 ## Knows the count
 OT::Entropy.count
