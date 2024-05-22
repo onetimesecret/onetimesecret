@@ -76,13 +76,12 @@ jobs:
           --health-interval 10s
           --health-timeout 3s
           --health-retries 5
+        ports:
+          # https://docs.github.com/en/actions/using-containerized-services/creating-redis-service-containers#running-jobs-in-containers
+          # Maps port 6379 on service container to the host
+          - 6379:6379
 
     steps:
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@a283f9441d2d96eb62436dc46d7014f5d357ac22 # v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        with:
-          detached: true
 
       - name: Checkout code
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
@@ -99,18 +98,18 @@ jobs:
           # message for this change.
           bundler-cache: false
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@a283f9441d2d96eb62436dc46d7014f5d357ac22 # v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          detached: true
+
       - name: Install dependencies (bundler ${{ matrix.bundler }})
         run: |
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
 
       - name: Run tryouts
-        continue-on-error: true
+        continue-on-error: false
         run: |
-          # Use the default config settings for the tests
-          cp -p ./try/config.test ./etc/config
-
           bundle exec try -v
-
-          # Cleanup the evidence
-          rm ./etc/config

@@ -1,4 +1,10 @@
-require 'onetime'
+# frozen_string_literal: true
+
+require_relative '../lib/onetime'
+
+# Use the default config file for tests
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT.load!
 
 # Sessions don't have unique IDs by default
 s1, s2 = OT::Session.new, OT::Session.new

@@ -83,12 +83,6 @@ module Onetime
         # Need to connect to all redis DBs so we can increase $SAFE level.
         16.times { |idx| OT.ld format('Connecting to %s (%s)', Familia.redis(idx).uri, Familia.redis(idx).ping) }
 
-        OT::SplitTest.from_config OT.conf[:split_tests]
-        # if OT::Entropy.count < 5_000
-          info "Entropy is low (#{OT::Entropy.count}). Generating..."
-          OT::Entropy.generate
-        # end
-
       rescue Redis::CannotConnectError => e
         OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
         exit 1
@@ -161,6 +155,7 @@ module Onetime
   end
   module Config
     extend self
+    attr_writer :path
     SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
     UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
     attr_reader :env, :base, :bootstrap

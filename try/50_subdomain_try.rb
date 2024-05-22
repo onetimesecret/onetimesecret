@@ -1,5 +1,9 @@
-require 'onetime'
+# frozen_string_literal: true
 
+require_relative '../lib/onetime'
+
+# Use the default config file for tests
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.load! :app
 
 ## Can create Subdomain instance
@@ -35,15 +39,15 @@ Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
 
 ## Has a mapping to custid
 OT::Subdomain.map 'bignameco'
-#=> 'tryouts@onetimesecret.com'
+##=> 'tryouts@onetimesecret.com'
 
 ## Knows it's mapped
 OT::Subdomain.mapped? 'bignameco'
-#=> true
+##=> true
 
 ## Mapping knows the owner
 OT::Subdomain.owned_by? 'bignameco', 'tryouts@onetimesecret.com'
-#=> true
+##=> true
 
 ## Destroy subdomain
 @subdomain.destroy!

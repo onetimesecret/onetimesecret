@@ -1,5 +1,10 @@
-require 'onetime'
+# frozen_string_literal: true
 
+require_relative '../lib/onetime'
+
+# Use the default config file for tests
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT.load!
 
 ## Can store a passphrase
 s = Onetime::Secret.new :shared

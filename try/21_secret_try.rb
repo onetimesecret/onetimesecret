@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+#
 require_relative '../lib/onetime'
 
+# Use the default config file for tests
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.load! :app
 
 ## Can create Secret
@@ -10,18 +14,18 @@ s.class
 ## Keys are consistent for Metadata
 s = Onetime::Metadata.new :metadata, :entropy
 s.rediskey
-#=> 'metadata:8o719hhgf2t8eh15bdabkm6n98pmd97:object'
+#=> 'metadata:ivfn09cpriklqii1zagw6fc96suh8bp:object'
 
 ## Keys are consistent for Secrets
 s = Onetime::Secret.new :shared, :entropy
 p s.name
 s.rediskey
-#=> 'secret:q6luo3pn9e8vzcl9v21uw5d084rlh6n:object'
+#=> 'secret:l6vqq07wykrr54srddgnhcqxl2m1mgo:object'
 
 ## But can be modified with entropy
 s = Onetime::Secret.new :shared, [:some, :fixed, :values]
 s.rediskey
-#=> 'secret:6genol59u9is7nuh8wr9gvokaply5h3:object'
+#=> 'secret:hqwly8r21k2wf1kv28y7mjaid0s2u8p:object'
 
 ## Generate a pair
 @metadata, @secret = Onetime::Secret.spawn_pair :anon, :tryouts
