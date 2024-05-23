@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  onetimesecrets:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2024-05-23T15:56:16.405244759+05:30"
+    description: A Helm chart for Kubernetes
+    digest: 8b1bfca7a541b22d7259c24457ce35b906376bb7542752b0ca0da51430c30c17
+    name: onetimesecrets
+    type: application
+    urls:
+    - onetimesecrets-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-05-23T15:56:16.40490825+05:30"
