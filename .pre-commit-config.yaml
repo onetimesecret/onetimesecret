@@ -4,7 +4,7 @@
 # Initial setup:
 #
 #   0. Install the pre-commit framework (if it isn't already on your system):
-
+#
 #         $ pip install pre-commit
 #
 #   1. Install the git hook:
