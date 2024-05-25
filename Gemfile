@@ -43,11 +43,12 @@ gem 'sendgrid-ruby'
 
 gem 'mail'
 
+gem 'rubocop'
+
 group :dev do
   gem 'byebug'
   gem 'byebug-dap'
   gem 'pry'
   gem 'pry-byebug'
-  gem 'rubocop'
   gem 'tryouts'
 end

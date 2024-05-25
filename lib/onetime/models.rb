@@ -172,7 +172,7 @@ module Onetime
       def recent duration=30.days, epoint=OT.now.to_i
         spoint = OT.now.to_i-duration
         ret = self.values.rangebyscoreraw(spoint, epoint, :with_scores => true)
-        Hash[*ret]
+        Hash[ret.each_slice(2).to_a]
       end
     end
   end
