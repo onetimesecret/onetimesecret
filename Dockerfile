@@ -136,6 +136,7 @@ RUN bundle update --bundler
 # configuration files, and all other files needed at run-time.
 #
 FROM app_env
+ARG CODE_ROOT
 
 LABEL Name=onetimesecret Version=0.13.0
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
