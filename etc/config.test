@@ -4,7 +4,7 @@
   :ssl: true
   :secret: SuP0r_53cRU7
 :redis:
-  :uri: 'redis://CHANGEME@127.0.0.1:6379/0?timeout=10'
+  :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
   :config: ./try/redis.conf
 :colonels:
   - 'CHANGEME@EXAMPLE.com'
