@@ -4,7 +4,7 @@
 
 ### Latest releases
 
-* **Ruby 3+ (recommended), 2.7.8: [v0.13.0-RC7](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.13.0-RC7)**
+* **Ruby 3+ (recommended), 2.7.8: [latest](https://github.com/onetimesecret/onetimesecret/releases/tag/latest)**
 * Ruby 2.7, 2.6: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
