@@ -36,7 +36,7 @@ gem 'sysinfo'
 gem 'uri-redis', '~> 1.2'
 
 gem 'bcrypt'
-gem 'encryptor', '= 1.1.3'
+gem 'encryptor', '= 2.0.0'
 
 gem 'httparty'
 gem 'sendgrid-ruby'
