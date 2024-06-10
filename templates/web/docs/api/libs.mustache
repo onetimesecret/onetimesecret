@@ -350,20 +350,20 @@ fmt.Println(response.Status)
 
       <h4>Usage Example</h4>
       <pre class="colourize">
-            $ ots share -h
-            Share or generate a random secret
+$ ots share -h
+Share or generate a random secret
 
-            Usage:
-              ots share [flags]
+Usage:
+      ots share [flags]
 
-            Flags:
-              -f, --from-stdin          Read from stdin
-              -g, --generate            Generate a short, unique secret. This is useful for temporary passwords, one-time pads, salts, etc.
-              -h, --help                help for share
-              -p, --passphrase string   a string that the recipient must know to view the secret. This value is also used to encrypt the secret and is bcrypted before being stored so we only have this value in transit.
-              -r, --recipient string    an email address. We will send a friendly email containing the secret link (NOT the secret itself).
-              -s, --secret string       the secret value which is encrypted before being stored. There is a maximum length based on your plan that is enforced (1k-10k)
-              -t, --ttl int             the maximum amount of time, in seconds, that the secret should survive (i.e. time-to-live). Once this time expires, the secret will be deleted and not recoverable. (default 604800)
+Flags:
+      -f, --from-stdin          Read from stdin
+      -g, --generate            Generate a short, unique secret. This is useful for temporary passwords, one-time pads, salts, etc.
+      -h, --help                help for share
+      -p, --passphrase string   a string that the recipient must know to view the secret. This value is also used to encrypt the secret and is bcrypted before being stored so we only have this value in transit.
+      -r, --recipient string    an email address. We will send a friendly email containing the secret link (NOT the secret itself).
+      -s, --secret string       the secret value which is encrypted before being stored. There is a maximum length based on your plan that is enforced (1k-10k)
+      -t, --ttl int             the maximum amount of time, in seconds, that the secret should survive (i.e. time-to-live). Once this time expires, the secret will be deleted and not recoverable. (default 604800)
 
       </pre>
       <h3 class="cufon docTitle dotted">Bash</h3>
