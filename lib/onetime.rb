@@ -215,8 +215,6 @@ module Onetime
       load_config
       @version[:BUILD] = (@version[:BUILD] || '000').to_s.succ!.to_s
       @version[:STAMP] = Time.now.utc.to_i
-      @version[:OWNER] = OT.sysinfo.user
-      @version[:STORY] = msg || '[no message]'
       OT.to_file @version.to_yaml, File.join(OT::HOME, 'BUILD.yml'), 'w'
       @version
     end

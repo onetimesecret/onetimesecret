@@ -55,8 +55,9 @@ module Onetime
         if self[:is_subdomain]
           tmp = req.env['ots.subdomain']
           self[:subdomain] = tmp.to_hash
-          self[:subdomain]['company_domain'] = tmp.company_domain || 'One-Time Secret'
-          self[:subdomain]['company'] = "One-Time Secret"
+          self[:subdomain]['homepage'] = '/'
+          self[:subdomain]['company_domain'] = tmp.company_domain || 'onetimesecret.com'
+          self[:subdomain]['company'] = "Onetime Secret"
           self[:subtitle] = self[:subdomain]['company'] || self[:subdomain]['company_domain']
           self[:display_feedback] = sess.authenticated?
           self[:display_faq] = false
