@@ -39,7 +39,7 @@ GEM
       net-imap
       net-pop
       net-smtp
-    method_source (1.0.0)
+    method_source (1.1.0)
     mini_mime (1.1.5)
     multi_json (1.15.0)
     multi_xml (0.7.1)
@@ -64,9 +64,9 @@ GEM
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    pry-byebug (3.8.0)
+    pry-byebug (3.10.1)
       byebug (~> 11.0)
-      pry (~> 0.10)
+      pry (>= 0.13, < 0.15)
     public_suffix (5.0.5)
     racc (1.8.0)
     rack (2.2.9)
