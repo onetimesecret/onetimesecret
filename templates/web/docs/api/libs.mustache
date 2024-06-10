@@ -22,33 +22,37 @@
       <h4>Usage Example</h4>
       <pre class="colourize">
 &lt;?php
-  include('onetime-api.php');
-  $myOnetime = new OneTimeSecret;
+  include 'onetime-api.php';
+
+  $myOnetime = new OneTimeSecret();
   $myOnetime->setCustomerID('YOUR_EMAIL');
   $myOnetime->setToken('YOUR_OTS_APIKEY');
   $myOnetime->setRecipient('delano@onetimesecret.com');
   $myOnetime->setTTL(7200);
   $myResult = $myOnetime->shareSecret('Jazz, jazz and more jazz.', 'thepassword');
-  print $myOnetime->getSecretURI($myResult);
+  echo $myOnetime->getSecretURI($myResult);
 ?&gt;
       </pre>
 
       <h3 class="cufon docTitle dotted">Ruby</h3>
 
       <a href="https://github.com/onetimesecret/onetime-ruby" title="Ruby library - One-Time Secret"><strong>Download onetime-api.rb</strong></a><br/>
-      <em>by <a href="http://delanotes.com/">Delano Mandelbaum</a> (added 2011-12-21)</em>
+      <em>by <a href="http://delanotes.com/">Delano Mandelbaum</a> (updated 2024-06-09)</em>
 
       <h4>Usage Example</h4>
       <pre class="colourize">
 require 'onetime/api'
-api = Onetime::API.new 'YOUR_EMAIL', 'YOUR_OTS_APIKEY'
+
+api = Onetime::API.new('YOUR_EMAIL', 'YOUR_OTS_APIKEY')
 options = {
-  :secret => 'Jazz, jazz and more jazz.',
-  :recipient => 'delano@onetimesecret.com',
-  :ttl => 7200
+  secret: 'Jazz, jazz and more jazz.',
+  recipient: 'delano@onetimesecret.com',
+  ttl: 7200
 }
-ret = api.post '/share', options
+
+ret = api.post('/share', options)
 puts ret['secret_key']
+
       </pre>
 
       <h3 class="cufon docTitle dotted">Python</h3>
@@ -279,7 +283,7 @@ URL=$(echo "secret" | ots_share)
 
 # share a multi line secret via HEREDOC.
 URL=$(ots_share <<-EOF
-	This is a Secret
+      This is a Secret
     ... on multiple lines
 EOF
 )
