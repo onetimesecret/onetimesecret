@@ -71,6 +71,7 @@ module Onetime
       info "Config: #{OT::Config.path}"
       ld "Redis:  #{Familia.uri.serverid}" # doesn't print the password
       ld "Limits: #{OT::RateLimit.events}"
+      ld "Colonels: #{OT.conf[:colonels]}"
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
       # are loaded so we can increase the $SAFE level.
@@ -215,8 +216,6 @@ module Onetime
       load_config
       @version[:BUILD] = (@version[:BUILD] || '000').to_s.succ!.to_s
       @version[:STAMP] = Time.now.utc.to_i
-      @version[:OWNER] = OT.sysinfo.user
-      @version[:STORY] = msg || '[no message]'
       OT.to_file @version.to_yaml, File.join(OT::HOME, 'BUILD.yml'), 'w'
       @version
     end
