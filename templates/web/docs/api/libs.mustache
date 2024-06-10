@@ -7,17 +7,29 @@
     <ul id="docnav">
       <li class=""><a href="/docs/api" title="">Overview</a></li>
       <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
-      <li class="selected"><a href="/docs/api/libs" title="">Client Libraries</a></li>
+      <li class="selected">
+        <a href="/docs/api/libs" title="">Client Libraries</a>
+      </li>
     </ul>
 
-    <p class="centre"><em class="larger">BETA API - updated 2017-04-27 (<a href="/feedback">Have a question?</a>)</em></p>
+    <p class="centre">
+      <em class="larger"
+        >BETA API - updated 2017-04-27 (<a href="/feedback">Have a question?</a
+        >)</em
+      >
+    </p>
 
     <div id="topicContent">
-
       <h3 class="cufon docTitle dotted">PHP</h3>
 
-      <a href="/libs/onetime-api.php" title="PHP library - One-Time Secret"><strong>Download onetime-api.php</strong></a><br/>
-      <em>by <a href="http://christopher.murtagh.name/">Christopher Murtagh</a> (added 2011-12-21)</em>
+      <a href="/libs/onetime-api.php" title="PHP library - One-Time Secret"
+        ><strong>Download onetime-api.php</strong></a
+      ><br />
+      <em
+        >by
+        <a href="http://christopher.murtagh.name/">Christopher Murtagh</a>
+        (added 2011-12-21)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -36,8 +48,15 @@
 
       <h3 class="cufon docTitle dotted">Ruby</h3>
 
-      <a href="https://github.com/onetimesecret/onetime-ruby" title="Ruby library - One-Time Secret"><strong>Download onetime-api.rb</strong></a><br/>
-      <em>by <a href="http://delanotes.com/">Delano Mandelbaum</a> (updated 2024-06-09)</em>
+      <a
+        href="https://github.com/onetimesecret/onetime-ruby"
+        title="Ruby library - One-Time Secret"
+        ><strong>Download onetime-api.rb</strong></a
+      ><br />
+      <em
+        >by <a href="http://delanotes.com/">Delano Mandelbaum</a> (updated
+        2024-06-09)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -57,8 +76,15 @@ puts ret['secret_key']
 
       <h3 class="cufon docTitle dotted">Python</h3>
 
-      <a href="https://github.com/slashpass/onetimesecret-cli" title="Python library - OneTimeSecretCli"><strong>Github</strong></a><br/>
-      <em>by <a href="https://github.com/slashpass">slashpass</a> (added 2021-07-08)</em>
+      <a
+        href="https://github.com/slashpass/onetimesecret-cli"
+        title="Python library - OneTimeSecretCli"
+        ><strong>Github</strong></a
+      ><br />
+      <em
+        >by <a href="https://github.com/slashpass">slashpass</a> (added
+        2021-07-08)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -68,9 +94,16 @@ cli = OneTimeSecretCli(ONETIMESECRET_USER, ONETIMESECRET_KEY)
 cli.create_link("secret") # return a link like https://onetimesecret.com/secret/xxxxxxxxxxx
       </pre>
 
-
-      <a href="https://github.com/utter-step/py_onetimesecret" title="Python library - One-Time Secret"><strong>Download onetimesecret.py</strong></a><br/>
-      <em>by <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added 2012-06-26)</em>
+      <a
+        href="https://github.com/utter-step/py_onetimesecret"
+        title="Python library - One-Time Secret"
+        ><strong>Download onetimesecret.py</strong></a
+      ><br />
+      <em
+        >by
+        <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added
+        2012-06-26)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -84,11 +117,17 @@ print o.retrieve_secret(secret["secret_key"])
 # u'value': u'test'}
       </pre>
 
-
       <h3 class="cufon docTitle dotted">Perl</h3>
 
-      <a href="http://search.cpan.org/~kyled/Net-OneTimeSecret/lib/Net/OneTimeSecret.pm" title="Perl library - One-Time Secret"><strong>Download Net::OneTimeSecret</strong></a><br/>
-      <em>by <a href="http://www.shoffle.com/">Kyle Dawkins</a> (added 2012-01-06)</em>
+      <a
+        href="http://search.cpan.org/~kyled/Net-OneTimeSecret/lib/Net/OneTimeSecret.pm"
+        title="Perl library - One-Time Secret"
+        ><strong>Download Net::OneTimeSecret</strong></a
+      ><br />
+      <em
+        >by <a href="http://www.shoffle.com/">Kyle Dawkins</a> (added
+        2012-01-06)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -114,8 +153,15 @@ printf( "%s\n", $secret->{value} );
 
       <h3 class="cufon docTitle dotted">Java</h3>
 
-      <a href="https://github.com/mpawlowski/onetime-java" title="Java library - One-Time Secret"><strong>Download onetime-java</strong></a><br/>
-      <em>by <a href="https://github.com/mpawlowski">Marcin Pawlowski</a> (added 2014-05-22)</em>
+      <a
+        href="https://github.com/mpawlowski/onetime-java"
+        title="Java library - One-Time Secret"
+        ><strong>Download onetime-java</strong></a
+      ><br />
+      <em
+        >by <a href="https://github.com/mpawlowski">Marcin Pawlowski</a> (added
+        2014-05-22)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -140,8 +186,16 @@ assertEquals(generateResponse.getValue(), retrieveResponse.getValue());
 
       <h3 class="cufon docTitle dotted">C#</h3>
 
-      <a href="https://github.com/utter-step/OneTimeSharp" title="C# library - One-Time Secret"><strong>Download OneTimeSharp</strong></a><br/>
-      <em>by <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added 2014-05-29)</em>
+      <a
+        href="https://github.com/utter-step/OneTimeSharp"
+        title="C# library - One-Time Secret"
+        ><strong>Download OneTimeSharp</strong></a
+      ><br />
+      <em
+        >by
+        <a href="https://github.com/utter-step/">Vladislav Stepanov</a> (added
+        2014-05-29)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -171,8 +225,15 @@ class Test
 
       <h3 class="cufon docTitle dotted">Go</h3>
 
-      <a href="https://github.com/corbaltcode/go-onetimesecret" title="Go library - One-Time Secret"><strong>Download onetimesecret</strong></a><br/>
-      <em>by <a href="https://github.com/corbaltcode/">Corbalt</a> (added 2021-12-10)</em>
+      <a
+        href="https://github.com/corbaltcode/go-onetimesecret"
+        title="Go library - One-Time Secret"
+        ><strong>Download onetimesecret</strong></a
+      ><br />
+      <em
+        >by <a href="https://github.com/corbaltcode/">Corbalt</a> (added
+        2021-12-10)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -216,8 +277,15 @@ flsdlaun6hwczqu9utmc0vts5xj9xu1
 
       <h3 class="cufon docTitle dotted">PowerShell</h3>
 
-      <a href="https://github.com/chelnak/OneTimeSecret" title="PowerShell Module - OneTimeSecret"><strong>Download OneTimeSecret</strong></a><br/>
-      <em>by <a href="https://www.helloitscraig.co.uk">Craig Gumbley</a> (updated 2017-04-28)</em>
+      <a
+        href="https://github.com/chelnak/OneTimeSecret"
+        title="PowerShell Module - OneTimeSecret"
+        ><strong>Download OneTimeSecret</strong></a
+      ><br />
+      <em
+        >by <a href="https://www.helloitscraig.co.uk">Craig Gumbley</a> (updated
+        2017-04-28)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -239,8 +307,15 @@ Get-Command -Module OneTimeSecret | Select Name
 
       <h3 class="cufon docTitle dotted">Go</h3>
 
-      <a href="https://github.com/chelnak/onetimesecret-go" title="Onetimesecret Go Client"><strong>Download OneTimeSecret-Go</strong></a><br/>
-      <em>by <a href="https://www.helloitscraig.co.uk">Craig Gumbley</a> (updated 2020-08-20)</em>
+      <a
+        href="https://github.com/chelnak/onetimesecret-go"
+        title="Onetimesecret Go Client"
+        ><strong>Download OneTimeSecret-Go</strong></a
+      ><br />
+      <em
+        >by <a href="https://www.helloitscraig.co.uk">Craig Gumbley</a> (updated
+        2020-08-20)</em
+      >
 
       <h4>Usage Example</h4>
       <pre class="colourize">
@@ -262,8 +337,15 @@ fmt.Println(response.Status)
 
       <h3 class="cufon docTitle dotted">Bash</h3>
 
-      <a href="https://github.com/eengstrom/onetimesecret-bash" title="Bash API and CLI - OneTimeSecret"><strong>Download OneTimeSecret-bash</strong></a><br/>
-      <em>by <a href="https://eengstrom.github.io/">Eric Engstrom</a> (updated 2018-12-19)</em>
+      <a
+        href="https://github.com/eengstrom/onetimesecret-bash"
+        title="Bash API and CLI - OneTimeSecret"
+        ><strong>Download OneTimeSecret-bash</strong></a
+      ><br />
+      <em
+        >by <a href="https://eengstrom.github.io/">Eric Engstrom</a> (updated
+        2018-12-19)</em
+      >
 
       <h4>Usage Example as Scripting API</h4>
       <pre class="colourize">
@@ -319,23 +401,28 @@ SECRET
 ^D
 
 # Share a secret (via HEREDOC)
-./ots share <<-EOF
-    This is a mulit-line secret via HEREDOC.
-    Somthing else goes here.
+./ots share &lt;&lt;-EOF
+      This is a mulit-line secret via HEREDOC.
+      Somthing else goes here.
 EOF
 
 # Get/Retrieve a secret:
-./ots get <key|url>
-./ots retrieve <key|url>
+./ots get &lt;key|url&gt;
+./ots retrieve &lt;key|url&gt;
 
 # Burn a secret:
-./ots burn <key|url>
+./ots burn &lt;key|url&gt;
 
 # Use --help for complete list of command line actions and known options:
 ./ots --help
       </pre>
 
-      <p><em class="msg">If you implement another language, let us know and we'll add it here!</em></p>
+      <p>
+        <em class="msg"
+          >If you implement another language, let us know and we'll add it
+          here!</em
+        >
+      </p>
     </div>
   </div>
 </div>
