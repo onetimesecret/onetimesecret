@@ -71,6 +71,7 @@ module Onetime
       info "Config: #{OT::Config.path}"
       ld "Redis:  #{Familia.uri.serverid}" # doesn't print the password
       ld "Limits: #{OT::RateLimit.events}"
+      ld "Colonels: #{OT.conf[:colonels]}"
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
       # are loaded so we can increase the $SAFE level.

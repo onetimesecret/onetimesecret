@@ -59,7 +59,9 @@ class Onetime::App
       class Homepage < OT::App::Colonel::View
         def init *args
           self[:title] = "Home"
-          self[:stathat_chart] = OT.conf[:stathat][:default_chart]
+          if OT.conf[:stathat]
+            self[:stathat_chart] = OT.conf[:stathat][:default_chart]
+          end
           self[:body_class] = :colonel
           self[:session_count] = OT::Session.recent(5.minutes).size
           self[:today_feedback] = OT::Feedback.recent(24.hours, OT.now.to_i).collect do |k,v|
