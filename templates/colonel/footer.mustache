@@ -12,17 +12,17 @@
     </form>
     {{/display_feedback}}
     <p>
-      <a href="{{baseotsuri}}/about">About</a> |
-      <a href="{{baseotsuri}}/translations">Help Translate</a> |
-      <a href="{{baseotsuri}}/docs/api">API</a> |
+      <a href="/about">About</a> |
+      <a href="/translations">Help Translate</a> |
+      <a href="/docs/api">API</a> |
       <a href="https://github.com/onetimesecret/onetimesecret">Code</a> |
       <a href="https://github.com/onetimesecret/onetimesecret/issues" title="Issue Tracker">Issues</a> |
       <a href="http://blog.onetimesecret.com/">Blog</a>
     </p>
     <p>
-      <a href="{{baseotsuri}}/info/privacy">Privacy</a> |
-      <a href="{{baseotsuri}}/info/terms">Terms &amp; Conditions</a> |
-      <a href="{{baseotsuri}}/info/security">Security</a>
+      <a href="/info/privacy">Privacy</a> |
+      <a href="/info/terms">Terms &amp; Conditions</a> |
+      <a href="/info/security">Security</a>
     </p>
     <div class="tagline">
       <p class="release">v{{ot_version}}</p>
@@ -32,16 +32,12 @@
 </div> <!-- /container -->
 
 <script src="/js/vendor/bootstrap.min.js"></script>
-
 <script src="/js/plugins.js?{{ruby_version}}"></script>
 <script src="/js/main.js?{{ruby_version}}"></script>
 {{#js}}
 <script src="{{to_s}}" type="text/javascript"></script>
 {{/js}}
 <script type="text/javascript">
-  //$('.jumbotron h1').removeClass('temp-kerning');
-  //Cufon.refresh();
-</script>
 
 {{#with_analytics}}
 <!-- No analytics enabled by default (or on onetimesecret.com). -->
