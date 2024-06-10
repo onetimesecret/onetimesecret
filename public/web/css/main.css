@@ -68,6 +68,22 @@
   text-shadow: 1px 1px 0 #740500;
 }
 
+.btn-secondary {
+  -webkit-font-smoothing: antialiased;
+  width: 74%;
+  margin-left: 13%;
+  margin-right: 10%;
+  background-repeat: repeat-x;
+  background-image: none;
+  color: #444!important;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.00);
+}
+.btn-secondary:hover {
+  background-color: buttonface !important;
+  text-shadow: 0px 1px 0 #fff;
+}
+
+
 
 
 
