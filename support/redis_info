@@ -3,7 +3,7 @@
 # Show redis db info
 # Usage:
 #
-#     $ ruby support/redis-info
+#     $ ruby support/redis_info
 #
 #
 
