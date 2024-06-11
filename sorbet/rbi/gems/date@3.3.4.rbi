@@ -8,7 +8,6 @@
 # source://date//lib/date.rb#6
 class Date
   include ::Comparable
-  include ::Gibbler::Object
 
   # call-seq:
   #   infinite? -> false

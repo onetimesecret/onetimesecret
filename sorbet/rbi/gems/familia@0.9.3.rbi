@@ -8,7 +8,6 @@
 # source://familia//lib/familia/core_ext.rb#20
 class Array
   include ::Enumerable
-  include ::Gibbler::Object
 end
 
 # source://familia//lib/familia.rb#2
@@ -1455,22 +1454,6 @@ class Familia::String < ::Familia::RedisObject
   def value=(v); end
 end
 
-# source://familia//lib/familia/tools.rb#3
-module Familia::Tools
-  extend ::Familia::Tools
-
-  # source://familia//lib/familia/tools.rb#49
-  def get_any(keyname, uri = T.unsafe(nil)); end
-
-  # source://familia//lib/familia/tools.rb#5
-  def move_keys(filter, source_uri, target_uri, &each_key); end
-
-  # Use the return value from each_key as the new key name
-  #
-  # source://familia//lib/familia/tools.rb#34
-  def rename(filter, source_uri, target_uri = T.unsafe(nil), &each_key); end
-end
-
 # source://familia//lib/familia.rb#9
 module Familia::VERSION
   def inspect; end
@@ -1487,7 +1470,6 @@ end
 # source://familia//lib/familia/core_ext.rb#10
 class Hash
   include ::Enumerable
-  include ::Gibbler::Object
 end
 
 # source://familia//lib/familia/core_ext.rb#117
@@ -1509,7 +1491,6 @@ end
 # source://familia//lib/familia/core_ext.rb#32
 class String
   include ::Comparable
-  include ::Gibbler::Object
 
   # source://familia//lib/familia/core_ext.rb#33
   def in_seconds; end
@@ -1518,7 +1499,6 @@ end
 # source://familia//lib/familia/core_ext.rb#42
 class Time
   include ::Comparable
-  include ::Gibbler::Object
 end
 
 # source://familia//lib/familia/core_ext.rb#43

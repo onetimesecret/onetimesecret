@@ -829,7 +829,6 @@ end
 # source://drydock//lib/drydock/mixins/string.rb#2
 class String
   include ::Comparable
-  include ::Gibbler::Object
 
   # See colour
   #

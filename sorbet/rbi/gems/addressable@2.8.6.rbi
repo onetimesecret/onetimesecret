@@ -776,8 +776,6 @@ Addressable::Template::VARSPEC = T.let(T.unsafe(nil), Regexp)
 #
 # source://addressable//lib/addressable/uri.rb#31
 class Addressable::URI
-  include ::Gibbler::Object
-
   # Creates a new uri object from component parts.
   #
   # @option [String,
@@ -832,9 +830,6 @@ class Addressable::URI
   #
   # source://addressable//lib/addressable/uri.rb#1879
   def absolute?; end
-
-  # source://attic/1.0.1/lib/attic.rb#156
-  def all_instance_variables; end
 
   # The authority component for this URI.
   # Combines the user, password, host, and port components.
@@ -1009,9 +1004,6 @@ class Addressable::URI
   #
   # source://addressable//lib/addressable/uri.rb#2384
   def inspect; end
-
-  # source://attic/1.0.1/lib/attic.rb#151
-  def instance_variables; end
 
   # Determines if the scheme indicates an IP-based protocol.
   #
@@ -1650,9 +1642,6 @@ class Addressable::URI
     #
     # source://addressable//lib/addressable/uri.rb#191
     def heuristic_parse(uri, hints = T.unsafe(nil)); end
-
-    # source://attic/1.0.1/lib/attic.rb#144
-    def inherited(klass); end
 
     # Returns an array of known ip-based schemes. These schemes typically
     # use a similar URI form:
