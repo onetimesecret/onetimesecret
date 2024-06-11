@@ -28,7 +28,7 @@ module OT::HOME; end
 module OT::LimitExceeded; end
 module OT::Logic; end
 module OT::Logic::AuthenticateSession; end
-class OT::Logic::Base; end
+# class OT::Logic::Base; end
 module OT::Logic::BurnSecret; end
 module OT::Logic::CreateAccount; end
 module OT::Logic::CreateIncoming; end

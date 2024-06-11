@@ -108,4 +108,5 @@ Encryptor::Version::PATCH = T.let(T.unsafe(nil), Integer)
 class String
   include ::Comparable
   include ::Encryptor::String
+  include ::Gibbler::Object
 end

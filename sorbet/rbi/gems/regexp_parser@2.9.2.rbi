@@ -5,6 +5,11 @@
 # Please instead update this file by running `bin/tapioca gem regexp_parser`.
 
 
+# source://regexp_parser//lib/regexp_parser/version.rb#1
+class Regexp
+  include ::Gibbler::Object
+end
+
 # source://regexp_parser//lib/regexp_parser/expression/shared.rb#1
 module Regexp::Expression; end
 

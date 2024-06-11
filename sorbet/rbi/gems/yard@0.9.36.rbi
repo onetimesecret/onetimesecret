@@ -14,6 +14,7 @@
 # source://yard//lib/yard/core_ext/array.rb#2
 class Array
   include ::Enumerable
+  include ::Gibbler::Object
 
   # Places values before or after another object (by value) in
   # an array. This is used in tandem with the before and after
@@ -34,6 +35,8 @@ end
 
 # source://yard//lib/yard/core_ext/file.rb#4
 class File < ::IO
+  include ::Gibbler::Object
+
   class << self
     # Cleans a path by removing extraneous '..', '.' and '/' characters
     #
@@ -535,6 +538,7 @@ end
 # source://yard//lib/yard/core_ext/string.rb#2
 class String
   include ::Comparable
+  include ::Gibbler::Object
 
   # Splits text into tokens the way a shell would, handling quoted
   # text as a single token. Use '\"' and "\'" to escape quotes and

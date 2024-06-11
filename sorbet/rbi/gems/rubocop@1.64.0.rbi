@@ -58034,6 +58034,7 @@ end
 # source://rubocop//lib/rubocop/core_ext/string.rb#4
 class String
   include ::Comparable
+  include ::Gibbler::Object
 
   # Checks whether a string is blank. A string is considered blank if it
   # is either empty or contains only whitespace characters.

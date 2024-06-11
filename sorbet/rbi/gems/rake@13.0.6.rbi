@@ -945,6 +945,9 @@ class Rake::FileList
   # source://rake//lib/rake/file_list.rb#77
   def []=(*args, &block); end
 
+  # source://rake//lib/rake/file_list.rb#77
+  def __gibbler(*args, &block); end
+
   # Add file names defined by glob patterns to the file list.  If an array
   # is given, add each element of the array.
   #
@@ -959,6 +962,9 @@ class Rake::FileList
   def all?(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
+  def all_instance_variables(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
   def any?(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
@@ -969,6 +975,24 @@ class Rake::FileList
 
   # source://rake//lib/rake/file_list.rb#77
   def at(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def attic(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def attic?(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def attic_variable?(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def attic_variable_get(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def attic_variable_set(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def attic_variables(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#77
   def bsearch(*args, &block); end
@@ -1178,6 +1202,24 @@ class Rake::FileList
 
   # source://rake//lib/rake/file_list.rb#77
   def flatten!(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def gibbled?(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def gibbler(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def gibbler_cache(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def gibbler_cache=(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def gibbler_debug(*args, &block); end
+
+  # source://rake//lib/rake/file_list.rb#77
+  def gibbler_fields(*args, &block); end
 
   # source://rake//lib/rake/file_list.rb#68
   def grep(*args, &block); end
@@ -3005,6 +3047,7 @@ RakeFileUtils = Rake::FileUtilsExt
 # source://rake//lib/rake/ext/string.rb#4
 class String
   include ::Comparable
+  include ::Gibbler::Object
 
   # source://rake//lib/rake/ext/string.rb#14
   def ext(newext = T.unsafe(nil)); end
