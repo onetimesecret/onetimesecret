@@ -14,6 +14,7 @@ module Onetime
 
       def raise_concerns
         limit_action :send_feedback
+        raise_form_error "You need an account to do that" if cust.anonymous?
         if @msg.empty? || @msg =~ /#{Regexp.escape("question or comment")}/
           raise_form_error "You can be more original than that!"
         end

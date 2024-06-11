@@ -11,9 +11,9 @@ module Onetime
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
       def initialize(sess, cust, params=nil, locale=nil)
         @sess, @cust, @params, @locale = sess, cust, params, locale
-        @processed_params ||= {}
+        @processed_params ||= {}  # TODO: Remove
         process_params if respond_to?(:process_params) && @params
-        process_generic_params if @params
+        process_generic_params if @params  # TODO: Remove
       end
 
       protected
