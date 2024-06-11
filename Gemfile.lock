@@ -18,6 +18,7 @@ GEM
     date (3.3.4)
     drydock (0.6.9)
     encryptor (1.1.3)
+    erubi (1.12.0)
     eventmachine (1.2.7)
     familia (0.9.3)
       gibbler (~> 1.0.0)
@@ -54,6 +55,7 @@ GEM
       timeout
     net-smtp (0.5.0)
       net-protocol
+    netrc (0.11.0)
     otto (1.0.1)
       addressable (>= 2.2.6)
       rack (>= 1.2.1)
@@ -61,6 +63,7 @@ GEM
     parser (3.3.1.0)
       ast (~> 2.4.1)
       racc
+    prism (0.30.0)
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -72,6 +75,9 @@ GEM
     rack (2.2.9)
     rainbow (3.1.1)
     rake (13.0.6)
+    rbi (0.1.13)
+      prism (>= 0.18.0, < 1.0.0)
+      sorbet-runtime (>= 0.5.9204)
     redis (4.8.1)
     regexp_parser (2.9.2)
     rexml (3.2.8)
@@ -94,21 +100,49 @@ GEM
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
+    sorbet (0.5.11428)
+      sorbet-static (= 0.5.11428)
+    sorbet-runtime (0.5.11428)
+    sorbet-static (0.5.11428-aarch64-linux)
+    sorbet-static (0.5.11428-universal-darwin)
+    sorbet-static (0.5.11428-x86_64-linux)
+    sorbet-static-and-runtime (0.5.11428)
+      sorbet (= 0.5.11428)
+      sorbet-runtime (= 0.5.11428)
+    spoom (1.3.2)
+      erubi (>= 1.10.0)
+      prism (>= 0.19.0)
+      sorbet-static-and-runtime (>= 0.5.10187)
+      thor (>= 0.19.2)
     storable (0.10.0)
     strscan (3.1.0)
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
+    tapioca (0.14.3)
+      bundler (>= 2.2.25)
+      netrc (>= 0.11.0)
+      parallel (>= 1.21.0)
+      rbi (>= 0.1.4, < 0.2)
+      sorbet-static-and-runtime (>= 0.5.11087)
+      spoom (>= 1.2.0)
+      thor (>= 1.2.0)
+      yard-sorbet
     thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
+    thor (1.3.1)
     timeout (0.4.1)
     tryouts (2.2.0)
       sysinfo (~> 0.10)
     unicode-display_width (2.5.0)
     uri-redis (1.2.0)
     yajl-ruby (1.4.3)
+    yard (0.9.36)
+    yard-sorbet (0.8.1)
+      sorbet-runtime (>= 0.5)
+      yard (>= 0.9)
 
 PLATFORMS
   aarch64-linux
@@ -135,8 +169,10 @@ DEPENDENCIES
   redis (~> 4.8)
   rubocop
   sendgrid-ruby
+  sorbet
   storable
   sysinfo
+  tapioca
   thin
   tryouts
   uri-redis (~> 1.2)

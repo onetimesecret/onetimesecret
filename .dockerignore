@@ -21,10 +21,9 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+sorbet/
 .DS_Store
 fly.toml
-LICENSE
-README.md
 !.env.empty
 !.env.example
 
@@ -36,4 +35,3 @@ README.md
 .history
 .vscode
 .dev-container
-Gemfile.lock
