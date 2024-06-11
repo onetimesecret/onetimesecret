@@ -9,11 +9,12 @@ OT.load! :app
 # Setup some variables for these tryouts
 @now = DateTime.now
 @model_class = OT::Feedback
+@email_address = "tryouts+#{@now}@onetimesecret.com"
 @sess = OT::Session.new
-@cust = OT::Customer.new "tryouts+#{@now}@onetimesecret.com"
+@cust = OT::Customer.new @email_address
 @sess.event_clear! :send_feedback
 @params = {
-  msg: "This is a test feedback"
+  msg: 'This is a test feedback'
 }
 @locale = 'en'
 puts 'before2'
@@ -52,7 +53,7 @@ end
 ## Concerns are not raised when a message is given
 obj = OT::Logic::ReceiveFeedback.new @sess, @cust, @params
 obj.raise_concerns
-#=> [Onetime::FormError, "You can be more original than that!"]
+#=> nil
 
 ## Sending feedback provides a UI message
 obj = OT::Logic::ReceiveFeedback.new @sess, @cust, @params
@@ -60,15 +61,27 @@ obj.process
 @sess.info_message
 #=> 'Message received. Send as much as you like!'
 
-## Sending populates the Feedback model's sorted set key in redis
+## Sending the same feedback from the same customer does not
+## increment the count. A feature of using a redis set.
 count_before = @model_class.recent.count
 obj = OT::Logic::ReceiveFeedback.new @sess, @cust, @params
-count_after = @model_class.recent.count
 obj.process
-[count_after, count_before]
+count_after = @model_class.recent.count
+count_after - count_before
+#=> 0
+
+## Sending populates the Feedback model's sorted set key in redis
+count_before = @model_class.recent.count
+email_address = "tryouts2+#{@now}@onetimesecret.com"
+sess = OT::Session.new
+cust = OT::Customer.new email_address
+obj = OT::Logic::ReceiveFeedback.new sess, cust, {msg: 'Some feedback'}
+obj.process
+count_after = @model_class.recent.count
+count_after - count_before
 #=> 1
 
-## Sending feedback provides a UI message
+## Sending feedback as an anonymous user raises a concern
 cust = OT::Customer.anonymous
 sess = OT::Session.new 'id123', 'tryouts', cust
 params = {msg: 'This is a test feedback'}
@@ -81,6 +94,17 @@ rescue Onetime::FormError => e
 end
 #=> [Onetime::FormError, "You need an account to do that"]
 
+## Feedback model exposes a recent method
+recent_feedback = @model_class.recent
+most_recent_pair = recent_feedback.to_a.last  # as an array [key, value]
+most_recent_pair[0]
+#=> "#{@params[:msg]} [#{@email_address}]"
+
+## Feedback model exposes an all method
+all_feedback = @model_class.recent
+most_recent_pair = all_feedback.to_a.last
+most_recent_pair[0]
+#=> "#{@params[:msg]} [#{@email_address}]"
 
 # Cleanup
 puts 'clearing limiters'
