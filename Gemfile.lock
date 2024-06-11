@@ -169,6 +169,7 @@ DEPENDENCIES
   redis (~> 4.8)
   rubocop
   sendgrid-ruby
+  sorbet
   storable
   sysinfo
   tapioca
