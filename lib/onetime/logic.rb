@@ -1,88 +1,10 @@
 require 'stathat'
 require 'timeout'
 
+require_relative 'logic/base'
+
 module Onetime
   module Logic
-    class << self
-      attr_writer :stathat_apikey, :stathat_enabled
-      def stathat_apikey
-        @stathat_apikey ||= Onetime.conf[:stathat][:apikey]
-      end
-      def stathat_enabled
-        return unless Onetime.conf.has_key?(:stathat)
-        @stathat_enabled = Onetime.conf[:stathat][:enabled] if @stathat_enabled.nil?
-        @stathat_enabled
-      end
-      def stathat_count name, count, wait=0.500
-        return false if ! stathat_enabled
-        begin
-          Timeout.timeout(wait) do
-            StatHat::API.ez_post_count(name, stathat_apikey, count)
-          end
-        rescue SocketError => ex
-          OT.info "Cannot connect to StatHat: #{ex.message}"
-        rescue Timeout::Error
-          OT.info "timeout calling stathat"
-        end
-      end
-      def stathat_value name, value, wait=0.500
-        return false if ! stathat_enabled
-        begin
-          Timeout.timeout(wait) do
-            StatHat::API.ez_post_value(name, stathat_apikey, value)
-          end
-        rescue SocketError => ex
-          OT.info "Cannot connect to StatHat: #{ex.message}"
-        rescue Timeout::Error
-          OT.info "timeout calling stathat"
-        end
-      end
-    end
-    class Base
-      unless defined?(Onetime::Logic::Base::MOBILE_REGEX)
-        MOBILE_REGEX = /^\+?\d{9,16}$/
-        EMAIL_REGEX = %r{^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,12})$}i
-      end
-      attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
-      def initialize(sess, cust, params=nil, locale=nil)
-        @sess, @cust, @params, @locale = sess, cust, params, locale
-        @processed_params ||= {}
-        process_params if respond_to?(:process_params) && @params
-        process_generic_params if @params
-      end
-      protected
-
-      # Generic params that can appear anywhere are processed here.
-      # This is called in initialize AFTER process_params so that
-      # values set here don't overwrite values that already exist.
-      def process_generic_params
-        # remember to set with ||=
-      end
-      def form_fields
-        OT.ld "No form_fields method for #{self.class}"
-        {}
-      end
-      def raise_form_error msg
-        ex = OT::FormError.new
-        ex.message = msg
-        ex.form_fields = form_fields
-        raise ex
-      end
-      def plan
-        @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
-        @plan ||= Onetime::Plan.plan('anonymous')
-      end
-      def limit_action event
-        return if plan.paid?
-        sess.event_incr! event
-      end
-      def valid_email?(guess)
-        !guess.to_s.match(EMAIL_REGEX).nil?
-      end
-      def valid_mobile?(guess)
-        !guess.to_s.tr('-.','').match(MOBILE_REGEX).nil?
-      end
-    end
 
     class ReceiveFeedback < OT::Logic::Base
       attr_reader :msg
@@ -92,6 +14,7 @@ module Onetime
 
       def raise_concerns
         limit_action :send_feedback
+        raise_form_error "You need an account to do that" if cust.anonymous?
         if @msg.empty? || @msg =~ /#{Regexp.escape("question or comment")}/
           raise_form_error "You can be more original than that!"
         end
@@ -99,6 +22,7 @@ module Onetime
 
       def process
         @msg = "#{msg} [%s]" % [cust.anonymous? ? sess.ipaddress : cust.custid]
+        OT.ld [:receive_feedback, msg].inspect
         OT::Feedback.add @msg
         sess.set_info_message "Message received. Send as much as you like!"
       end
