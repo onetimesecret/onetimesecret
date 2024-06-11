@@ -21,6 +21,7 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+sorbet/
 .DS_Store
 fly.toml
 LICENSE
