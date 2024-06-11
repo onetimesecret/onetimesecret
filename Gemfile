@@ -43,12 +43,10 @@ gem 'sendgrid-ruby'
 
 gem 'mail'
 
-gem 'rubocop'
-
-group :dev do
-  gem 'byebug'
-  gem 'byebug-dap'
-  gem 'pry'
-  gem 'pry-byebug'
-  gem 'tryouts'
-end
+gem 'byebug', require: false, group: :development
+gem 'byebug-dap', require: false, group: :development
+gem 'pry', require: false, group: :development
+gem 'pry-byebug', require: false, group: :development
+gem 'rubocop', require: false, group: :development
+gem 'tapioca', require: false, group: :development
+gem 'tryouts', require: false, group: :development
