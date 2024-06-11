@@ -9,6 +9,7 @@
 *.txt
 .ruby-version
 appendonlydir
+spoom_*
 Gemfile.lock
 etc/config
 log
