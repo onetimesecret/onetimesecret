@@ -170,6 +170,8 @@ DEPENDENCIES
   rubocop
   sendgrid-ruby
   sorbet
+  sorbet-runtime
+  spoom
   storable
   sysinfo
   tapioca

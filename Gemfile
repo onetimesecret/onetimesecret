@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 # typed: false
+
 #
 # Recommended: Ruby 3.2
 #
@@ -50,5 +51,8 @@ gem 'pry', require: false, group: :development
 gem 'pry-byebug', require: false, group: :development
 gem 'rubocop', require: false, group: :development
 gem 'sorbet', require: false, group: :development
+gem 'sorbet-runtime'
 gem 'tapioca', require: false, group: :development
 gem 'tryouts', require: false, group: :development
+
+gem 'spoom', require: false, group: :development

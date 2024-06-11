@@ -1,4 +1,10 @@
+# https://raw.githubusercontent.com/Shopify/ruby-lsp/main/sorbet/config
+
 --dir
 .
---ignore=tmp/
 --ignore=vendor/
+--ignore=tmp/
+--ignore=try/
+--ignore=test/fixtures/
+--ignore=test/expectations/
+--enable-experimental-requires-ancestor
