@@ -21,6 +21,10 @@ SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
 Familia.apiversion = nil
 
+# Onetime is the core of the One-Time Secret application.
+# It contains the core classes and modules that make up
+# the app. It is the main namespace for the application.
+#
 module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
@@ -52,7 +56,7 @@ module Onetime
       SecureRandom.hex
     end
 
-    def load!(mode = nil, _base = Onetime::HOME)
+    def boot!(mode = nil, _base = Onetime::HOME)
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load # load config before anything else.
       @locales = OT.load_locales
@@ -81,13 +85,12 @@ module Onetime
       # Seed the random number generator
       Kernel.srand
       begin
-        # Need to connect to all redis DBs so we can increase $SAFE level.
+        # Make sure we're able to connect to separate Redis databases.
+        # Some services like Upstash provide only db 0.
         16.times { |idx| OT.ld format('Connecting to %s (%s)', Familia.redis(idx).uri, Familia.redis(idx).ping) }
-
       rescue Redis::CannotConnectError => e
         OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
         exit 1
-
       rescue StandardError => e
         OT.le "Unexpected error `#{e}` (#{e.class})"
         exit 99
@@ -157,6 +160,7 @@ module Onetime
   module Config
     extend self
     attr_writer :path
+
     SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
     UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
     attr_reader :env, :base, :bootstrap
@@ -290,9 +294,9 @@ module Onetime
     class << self
       attr_reader :plans
 
-      def add_plan(planid, *args)
+      def add_plan(planid, *)
         @plans ||= {}
-        new_plan = new(planid, *args)
+        new_plan = new(planid, *)
         plans[new_plan.planid] = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end

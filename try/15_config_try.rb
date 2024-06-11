@@ -4,8 +4,7 @@ require_relative '../lib/onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load! :cli
-
+OT.boot! :cli
 
 ## Finds a config path
 relative_path = Onetime::Config.path.gsub("#{__dir__}/", '')
@@ -21,8 +20,8 @@ relative_path
 [@config[:site].class, @config[:redis].class]
 #=> [Hash, Hash]
 
-## OT.load!
-OT.load! :tryouts
+## OT.boot!
+OT.boot! :tryouts
 [OT.mode, OT.conf.class]
 #=> [:tryouts, Hash]
 

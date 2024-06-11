@@ -4,7 +4,7 @@ require_relative '../lib/onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load! :app
+OT.boot! :app
 
 ## Can store a value
 s = Onetime::Secret.new :shared
@@ -37,10 +37,9 @@ s.encrypt_value 'poop', key: 'tryouts'
 Onetime.instance_variable_set(:@global_secret, 'NEWVALUE')
 begin
   s.decrypted_value
-rescue => ex
-  ex.class
+rescue StandardError => e
+  e.class
 end
 #=> OpenSSL::Cipher::CipherError
-
 
 Onetime::Secret.new(:shared).destroy!

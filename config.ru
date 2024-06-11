@@ -29,7 +29,7 @@ apps = {
   '/colonel'    => Otto.new("#{APP_DIR}/colonel/routes")
 }
 
-Onetime.load! :app
+Onetime.boot! :app
 
 if Otto.env?(:dev)
   # DEV: Run web apps with extra logging and reloading

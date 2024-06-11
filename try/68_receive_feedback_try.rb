@@ -4,7 +4,7 @@ require_relative '../lib/onetime'
 
 # Load the app
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load! :app
+OT.boot! :app
 
 # Setup some variables for these tryouts
 @now = DateTime.now
@@ -75,7 +75,7 @@ count_before = @model_class.recent.count
 email_address = "tryouts2+#{@now}@onetimesecret.com"
 sess = OT::Session.new
 cust = OT::Customer.new email_address
-obj = OT::Logic::ReceiveFeedback.new sess, cust, {msg: 'Some feedback'}
+obj = OT::Logic::ReceiveFeedback.new sess, cust, { msg: 'Some feedback' }
 obj.process
 count_after = @model_class.recent.count
 count_after - count_before
@@ -84,7 +84,7 @@ count_after - count_before
 ## Sending feedback as an anonymous user raises a concern
 cust = OT::Customer.anonymous
 sess = OT::Session.new 'id123', 'tryouts', cust
-params = {msg: 'This is a test feedback'}
+params = { msg: 'This is a test feedback' }
 obj = OT::Logic::ReceiveFeedback.new sess, cust, params
 sess.event_clear! :send_feedback
 begin
@@ -96,7 +96,7 @@ end
 
 ## Feedback model exposes a recent method
 recent_feedback = @model_class.recent
-most_recent_pair = recent_feedback.to_a.last  # as an array [key, value]
+most_recent_pair = recent_feedback.to_a.last # as an array [key, value]
 most_recent_pair[0]
 #=> "#{@params[:msg]} [#{@email_address}]"
 

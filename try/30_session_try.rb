@@ -4,16 +4,17 @@ require_relative '../lib/onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load!
+OT.boot!
 
 # Sessions don't have unique IDs by default
-s1, s2 = OT::Session.new, OT::Session.new
+s1 = OT::Session.new
+s2 = OT::Session.new
 s1.sessid == s2.sessid
 #=> true
 
 # Can set form fields
 @sess = OT::Session.new
-ret = @sess.set_form_fields :custid => 'tryouts', :planid => :testing
+ret = @sess.set_form_fields custid: 'tryouts', planid: :testing
 ret.class
 #=> String
 
