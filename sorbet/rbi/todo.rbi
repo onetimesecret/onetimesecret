@@ -4,19 +4,18 @@
 
 # typed: false
 
-module ::Dotenv; end
 module ::GraphViz; end
 module Familia::Tools; end
 module OT::App::Base; end
-module OT::App::Colonel::View; end
+class OT::App::Colonel::View; end
 module OT::App::Helpers; end
 module OT::App::Unauthorized; end
-module OT::App::View; end
+class OT::App::View; end
 module OT::BadShrimp; end
 module OT::Config; end
 module OT::Customer; end
 module OT::ERRNO; end
-module OT::Email; end
+class OT::Email; end
 module OT::Email::IncomingSupport; end
 module OT::Email::PasswordRequest; end
 module OT::Email::SecretLink; end
@@ -29,7 +28,7 @@ module OT::HOME; end
 module OT::LimitExceeded; end
 module OT::Logic; end
 module OT::Logic::AuthenticateSession; end
-module OT::Logic::Base; end
+class OT::Logic::Base; end
 module OT::Logic::BurnSecret; end
 module OT::Logic::CreateAccount; end
 module OT::Logic::CreateIncoming; end
