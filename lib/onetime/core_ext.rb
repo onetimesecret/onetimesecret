@@ -129,8 +129,13 @@ class String
 end
 
 module Rack
-  class File
+  class Files
     # from: rack 1.2.1
+    #
+    # Rack::File and Rack::Files are equivalent. Sorbet
+    # complains about the constant redefinition for
+    # Rack::File.
+    #
     # don't print out the literal filename for 404s
     def not_found
       body = "File not found\n"

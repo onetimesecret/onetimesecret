@@ -13,6 +13,7 @@ gem:
     - tapioca
     - spoom
     - mail
+    - rbi
   doc: true
   workers: 10
 dsl:
