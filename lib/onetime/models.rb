@@ -19,6 +19,12 @@ class Onetime::RateLimit < Familia::String
       count
     end
     alias_method :increment!, :incr!
+    def clear! identifier, event
+      lmtr = new identifier, event
+      ret = lmtr.clear
+      OT.ld [:clear, event, identifier, ret].inspect
+      ret
+    end
     def exceeded? event, count
       (count) > (events[event] || DEFAULT_LIMIT)
     end
@@ -60,7 +66,12 @@ module Onetime::Models
   end
   module RateLimited
     def event_incr! event
+      # Uses the external identifier of the implementing class to keep
+      # track of the event count. e.g. sess.external_identifier.
       OT::RateLimit.incr! external_identifier, event
+    end
+    def event_clear! event
+      OT::RateLimit.clear! external_identifier, event
     end
     def external_identifier
       raise RuntimeError, "TODO: #{self.class}.external_identifier"
