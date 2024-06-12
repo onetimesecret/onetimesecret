@@ -314,9 +314,9 @@ module Onetime
     class << self
       attr_reader :plans
 
-      def add_plan(planid, *)
+      def add_plan(planid, *args)
         @plans ||= {}
-        new_plan = new(planid, *)
+        new_plan = new(planid, *args)
         plans[new_plan.planid] = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end
@@ -420,7 +420,6 @@ module Onetime
     end
   end
 end
-
 
 require_relative 'onetime/alias'
 require_relative 'onetime/models'
