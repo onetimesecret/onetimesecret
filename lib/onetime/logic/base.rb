@@ -6,17 +6,9 @@ module Onetime
       unless defined?(Onetime::Logic::Base::MOBILE_REGEX)
         MOBILE_REGEX = /^\+?\d{9,16}$/
         EMAIL_REGEX = /^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,12})$/i
-        EMAIL_REGEX = /^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,12})$/i
       end
 
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
-
-      def initialize(sess, cust, params = nil, locale = nil)
-        @sess = sess
-        @cust = cust
-        @params = params
-        @locale = locale
-        @processed_params ||= {} # TODO: Remove
 
       def initialize(sess, cust, params = nil, locale = nil)
         @sess = sess
