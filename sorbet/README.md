@@ -8,6 +8,15 @@ Sorbet is a fast, powerful type checker designed for Ruby, providing gradual sta
 
 > RBI files are purely annotations files, separate from Ruby source code. While tapioca init can automatically create these files, it’s not a perfect process. To eliminate constant errors, sometimes Sorbet requires hand-written RBI files. -- https://sorbet.org/docs/adopting#step-4-fix-constant-resolution-errors
 
+#### Checking for missing RBI files
+
+```bash
+  $ bin/tapioca gem --verify
+```
+
+Followed by `bundle exec srb tc` for a thorough type checking.
+
+
 #### A note about vendoring RBIs
 
 > **You might have noticed that we** vendor all gems’ RBI files into the current directory, and **commit them to version control**. Why? When developing RBI files for Sorbet, we referenced the prior art that Flow developed. Our reasoning is the same as theirs:
