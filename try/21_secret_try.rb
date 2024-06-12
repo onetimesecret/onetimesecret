@@ -1,10 +1,11 @@
 # frozen_string_literal: true
+
 #
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load! :app
+OT.boot! :app
 
 ## Can create Secret
 s = Onetime::Secret.new :private
@@ -23,7 +24,7 @@ s.rediskey
 #=> 'secret:l6vqq07wykrr54srddgnhcqxl2m1mgo:object'
 
 ## But can be modified with entropy
-s = Onetime::Secret.new :shared, [:some, :fixed, :values]
+s = Onetime::Secret.new :shared, %i[some fixed values]
 s.rediskey
 #=> 'secret:hqwly8r21k2wf1kv28y7mjaid0s2u8p:object'
 

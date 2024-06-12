@@ -4,8 +4,7 @@ require_relative '../lib/onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load!
-
+OT.boot!
 
 ## Keys are consistent for Metadata
 @metadata = Onetime::Metadata.new :metadata, :entropy
@@ -27,7 +26,6 @@ OT.load!
 p @metadata2.all
 @metadata2.exists?
 #=> true
-
 
 @metadata.destroy!
 @metadata2.destroy!

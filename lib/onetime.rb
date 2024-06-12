@@ -17,10 +17,16 @@ require 'familia'
 require 'storable'
 require 'sendgrid-ruby'
 
+require 'truemail'
+
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
 Familia.apiversion = nil
 
+# Onetime is the core of the One-Time Secret application.
+# It contains the core classes and modules that make up
+# the app. It is the main namespace for the application.
+#
 module Onetime
   unless defined?(Onetime::HOME)
     HOME = File.expand_path(File.join(File.dirname(__FILE__), '..'))
@@ -52,9 +58,12 @@ module Onetime
       SecureRandom.hex
     end
 
-    def load!(mode = nil, _base = Onetime::HOME)
+    def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load # load config before anything else.
+
+      OT::Config.after_load
+
       @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
@@ -81,13 +90,12 @@ module Onetime
       # Seed the random number generator
       Kernel.srand
       begin
-        # Need to connect to all redis DBs so we can increase $SAFE level.
+        # Make sure we're able to connect to separate Redis databases.
+        # Some services like Upstash provide only db 0.
         16.times { |idx| OT.ld format('Connecting to %s (%s)', Familia.redis(idx).uri, Familia.redis(idx).ping) }
-
       rescue Redis::CannotConnectError => e
         OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
         exit 1
-
       rescue StandardError => e
         OT.le "Unexpected error `#{e}` (#{e.class})"
         exit 99
@@ -157,6 +165,7 @@ module Onetime
   module Config
     extend self
     attr_writer :path
+
     SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
     UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
     attr_reader :env, :base, :bootstrap
@@ -174,6 +183,19 @@ module Onetime
             end
       Onetime.info msg
       Kernel.exit(1)
+    end
+
+    def after_load(email_address = nil)
+      email_address ||= OT.conf[:emailer][:from]
+      OT.info "Setting TrueMail verifier email to #{email_address}"
+
+      Truemail.configure do |config|
+        config.verifier_email = email_address
+        # config.connection_timeout = 2 # Set the timeout to 2 seconds
+        config.smtp_fail_fast = true
+        config.not_rfc_mx_lookup_flow = true
+        config.dns = %w[208.67.222.222 8.8.8.8 8.8.4.4 208.67.220.220]
+      end
     end
 
     def exists?
