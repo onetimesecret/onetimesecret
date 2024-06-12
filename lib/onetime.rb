@@ -56,9 +56,12 @@ module Onetime
       SecureRandom.hex
     end
 
-    def boot!(mode = nil, _base = Onetime::HOME)
+    def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load # load config before anything else.
+
+      OT::Config.after_load
+
       @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
@@ -178,6 +181,15 @@ module Onetime
             end
       Onetime.info msg
       Kernel.exit(1)
+    end
+
+    def after_load(email_address = nil)
+      email_address ||= OT.conf[:emailer][:from]
+      OT.info "Setting TrueMail verifier email to #{email_address}"
+
+      Truemail.configure do |config|
+        config.verifier_email = email_address
+      end
     end
 
     def exists?
