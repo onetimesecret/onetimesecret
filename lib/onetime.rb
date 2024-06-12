@@ -1,3 +1,5 @@
+# typed: false
+
 # rubocop:disable Metrics/ModuleLength
 # https://github.com/shuber/encryptor
 
@@ -418,8 +420,8 @@ module Onetime
     end
   end
 end
-OT = Onetime
 
-require 'onetime/models'
-require 'onetime/logic'
-require 'onetime/email'
+require_relative 'onetime/alias'
+require_relative 'onetime/models'
+require_relative 'onetime/logic'
+require_relative 'onetime/email'

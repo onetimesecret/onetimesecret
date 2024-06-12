@@ -1,5 +1,7 @@
 # frozen_string_literal: true
+# typed: false
 
+#
 # Recommended: Ruby 3.2
 #
 # status: normal maintenance
@@ -45,12 +47,13 @@ gem 'sendgrid-ruby'
 
 gem 'mail'
 
-gem 'rubocop'
-
-group :dev do
-  gem 'byebug'
-  gem 'byebug-dap'
-  gem 'pry'
-  gem 'pry-byebug'
-  gem 'tryouts'
-end
+gem 'byebug', require: false, group: :development
+gem 'byebug-dap', require: false, group: :development
+gem 'pry', require: false, group: :development
+gem 'pry-byebug', require: false, group: :development
+gem 'rubocop', require: false, group: :development
+gem 'sorbet', require: false, group: :development
+gem 'sorbet-runtime'
+gem 'spoom', require: false, group: :development
+gem 'tapioca', require: false, group: :development
+gem 'tryouts', require: false, group: :development
