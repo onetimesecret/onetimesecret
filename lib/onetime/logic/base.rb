@@ -13,7 +13,6 @@ module Onetime
         @locale = locale
         @processed_params ||= {} # TODO: Remove
         process_params if respond_to?(:process_params) && @params
-        process_generic_params if @params # TODO: Remove
       end
 
       def valid_email?(guess)
@@ -25,13 +24,6 @@ module Onetime
 
       def process_params
         raise NotImplementedError, 'process_params not implemented'
-      end
-
-      # Generic params that can appear anywhere are processed here.
-      # This is called in initialize AFTER process_params so that
-      # values set here don't overwrite values that already exist.
-      def process_generic_params
-        raise NotImplementedError, 'process_generic_params not implemented'
       end
 
       def form_fields
