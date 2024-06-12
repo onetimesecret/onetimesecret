@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'pry'
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
@@ -32,3 +33,30 @@ Onetime.global_secret.nil?
 ## Has default global secret
 Onetime.global_secret
 #=> 'SuP0r_53cRU7'
+
+## Sets the Truemail verifier email address
+Truemail.configuration.verifier_email.nil?
+#=> false
+
+## Sets the Truemail verifier email address to the default from address
+Truemail.configuration.verifier_email
+#=> 'changeme@example.com'
+
+## Truemail knows an invalid email address
+Truemail.valid?(Onetime.global_secret)
+#=> false
+
+## Truemail knows a valid email address
+validator = Truemail.validate('test@onetimesecret.com', with: :regex)
+validator.result.valid?
+#=> true
+
+## Truemail knows another invalid email address
+validator = Truemail.validate('-_test@onetimesecret.com', with: :regex)
+validator.result.valid?
+#=> false
+
+## Truemail knows yet another invalid email address
+validator = Truemail.validate('test@onetimesecret.c.n', with: :regex)
+validator.result.valid?
+#=> false
