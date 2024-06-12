@@ -6,7 +6,7 @@ require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot! :cli
 
-@email_address ||= OT.conf[:emailer][:from]
+@email_address = OT.conf[:emailer][:from]
 
 @truemail_test_config = Truemail::Configuration.new do |config|
   config.verifier_email = @email_address
