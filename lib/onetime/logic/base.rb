@@ -1,12 +1,22 @@
+# typed: false
+
 module Onetime
   module Logic
     class Base
       unless defined?(Onetime::Logic::Base::MOBILE_REGEX)
         MOBILE_REGEX = /^\+?\d{9,16}$/
         EMAIL_REGEX = /^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,12})$/i
+        EMAIL_REGEX = /^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,12})$/i
       end
 
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
+
+      def initialize(sess, cust, params = nil, locale = nil)
+        @sess = sess
+        @cust = cust
+        @params = params
+        @locale = locale
+        @processed_params ||= {} # TODO: Remove
 
       def initialize(sess, cust, params = nil, locale = nil)
         @sess = sess
@@ -25,11 +35,15 @@ module Onetime
 
       protected
 
+      def process_params
+        raise NotImplementedError, 'process_params not implemented'
+      end
+
       # Generic params that can appear anywhere are processed here.
       # This is called in initialize AFTER process_params so that
       # values set here don't overwrite values that already exist.
       def process_generic_params
-        # remember to set with ||=
+        raise NotImplementedError, 'process_generic_params not implemented'
       end
 
       def form_fields

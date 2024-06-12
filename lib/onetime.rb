@@ -1,3 +1,5 @@
+# typed: false
+
 # rubocop:disable Metrics/ModuleLength
 # https://github.com/shuber/encryptor
 
@@ -312,9 +314,9 @@ module Onetime
     class << self
       attr_reader :plans
 
-      def add_plan(planid, *args)
+      def add_plan(planid, *)
         @plans ||= {}
-        new_plan = new(planid, *args)
+        new_plan = new(planid, *)
         plans[new_plan.planid] = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end
@@ -418,7 +420,18 @@ module Onetime
     end
   end
 end
-OT = Onetime
+
+module OT
+  # A convenient shorthand for Onetime
+  #
+  # `OT = Onetime` is also valid Ruby syntax but it's not
+  # allowed in Sorbet.
+  #
+  # 4022 Cannot initialize a class or module by constant assignment
+  # https://sorbet.org/docs/error-reference#4022
+  #
+  include Onetime
+end
 
 require 'onetime/models'
 require 'onetime/logic'

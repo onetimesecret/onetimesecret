@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+# typed: false
 
 # Basic SMTP checker
 #
@@ -8,7 +9,7 @@
 #
 #     $ vi .env
 #     [...]
-#     $ ruby bin/smtp_test.rb
+#     $ ruby support/smtp_test
 #
 
 require 'net/smtp'

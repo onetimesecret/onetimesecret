@@ -23,17 +23,18 @@
 **/values.dev.yaml
 .DS_Store
 fly.toml
-LICENSE
-README.md
-!.env.empty
-!.env.example
+
 
 # Project specific
+!.env.empty
+!.env.example
 **/log
 **/tmp
+sorbet/
+spoom_data/
+spoom_*
 .bundle
 .ruby-version
 .history
 .vscode
 .dev-container
-Gemfile.lock

@@ -1,0 +1,24 @@
+gem:
+  # Add your `gem` command parameters here:
+  #
+  exclude:
+    - byebug
+    - byebug-dap
+    - pry
+    - pry-byebug
+    - rubocop
+    - prism
+    - rubocop-ast
+    - sorbet
+    - tapioca
+    - spoom
+    - mail
+    - rbi
+  doc: true
+  workers: 10
+dsl:
+  # Add your `dsl` command parameters here:
+  #
+  # exclude:
+  # - SomeGeneratorName
+  # workers: 5
