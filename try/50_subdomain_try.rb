@@ -4,7 +4,7 @@ require_relative '../lib/onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load! :app
+OT.boot! :app
 
 ## Can create Subdomain instance
 s = Onetime::Subdomain.new 'tryouts@onetimesecret.com'

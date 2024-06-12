@@ -6,6 +6,7 @@ module Onetime
       unless defined?(Onetime::Logic::Base::MOBILE_REGEX)
         MOBILE_REGEX = /^\+?\d{9,16}$/
         EMAIL_REGEX = /^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,12})$/i
+        EMAIL_REGEX = /^(?:[_a-z0-9-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-zA-Z0-9\-\.]+)*(\.[a-z]{2,12})$/i
       end
 
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
@@ -16,8 +17,20 @@ module Onetime
         @params = params
         @locale = locale
         @processed_params ||= {} # TODO: Remove
+
+      def initialize(sess, cust, params = nil, locale = nil)
+        @sess = sess
+        @cust = cust
+        @params = params
+        @locale = locale
+        @processed_params ||= {} # TODO: Remove
         process_params if respond_to?(:process_params) && @params
         process_generic_params if @params # TODO: Remove
+      end
+
+      def valid_email?(guess)
+        OT.ld "[valid_email?] Guess: #{guess}"
+        Truemail.validate(guess, with: :regex).result.valid?
       end
 
       protected
@@ -54,14 +67,6 @@ module Onetime
         return if plan.paid?
 
         sess.event_incr! event
-      end
-
-      def valid_email?(guess)
-        !guess.to_s.match(EMAIL_REGEX).nil?
-      end
-
-      def valid_mobile?(guess)
-        !guess.to_s.tr('-.', '').match(MOBILE_REGEX).nil?
       end
     end
 

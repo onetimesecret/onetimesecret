@@ -4,7 +4,7 @@ require_relative '../lib/onetime'
 
 # Load the app
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load! :app
+OT.boot! :app
 
 # Setup some variables for these tryouts
 @now = DateTime.now

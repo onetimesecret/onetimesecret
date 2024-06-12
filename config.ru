@@ -29,9 +29,10 @@ apps = {
   '/colonel'    => Otto.new("#{APP_DIR}/colonel/routes")
 }
 
-Onetime.load! :app
+Onetime.boot! :app
 
 if Otto.env?(:dev)
+
   # DEV: Run web apps with extra logging and reloading
   apps.each_pair do |path, app|
     map(path) do
@@ -45,10 +46,10 @@ if Otto.env?(:dev)
     end
   end
 else
+
   # PROD: run barebones webapps
   apps.each_pair do |path, app|
     app.option[:public] = PUBLIC_DIR
     map(path) { run app }
   end
-  # $SAFE = 1  # http://www.rubycentral.com/pickaxe/taint.html
 end

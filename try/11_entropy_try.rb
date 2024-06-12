@@ -4,8 +4,7 @@ require_relative '../lib/onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load! :cli
-
+OT.boot! :cli
 
 ## Clear values
 OT::Entropy.generate 2
