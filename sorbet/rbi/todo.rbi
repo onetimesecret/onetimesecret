@@ -5,6 +5,19 @@
 # typed: false
 
 module ::GraphViz; end
+module ::Prism::AssocNode; end
+module ::Prism::CallNode; end
+module ::Prism::ClassNode; end
+module ::Prism::Comment; end
+module ::Prism::ConstantPathWriteNode; end
+module ::Prism::ConstantWriteNode; end
+module ::Prism::DefNode; end
+module ::Prism::Location; end
+module ::Prism::ModuleNode; end
+module ::Prism::Node; end
+module ::Prism::ProgramNode; end
+module ::Prism::SingletonClassNode; end
+module ::Prism::Visitor; end
 module Familia::Tools; end
 module OT::App::Base; end
 class OT::App::Colonel::View; end
@@ -59,3 +72,5 @@ module OT::SplitTest; end
 module OT::Subdomain; end
 module OT::Utils; end
 module OT::VERSION; end
+module Onetime::SMTPEmailer::Mail; end
+module RBI::TypedParam; end

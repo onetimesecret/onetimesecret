@@ -1,3 +1,5 @@
+# typed: false
+
 # rubocop:disable Metrics/ModuleLength
 # https://github.com/shuber/encryptor
 
@@ -83,11 +85,9 @@ module Onetime
       begin
         # Need to connect to all redis DBs so we can increase $SAFE level.
         16.times { |idx| OT.ld format('Connecting to %s (%s)', Familia.redis(idx).uri, Familia.redis(idx).ping) }
-
       rescue Redis::CannotConnectError => e
         OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
         exit 1
-
       rescue StandardError => e
         OT.le "Unexpected error `#{e}` (#{e.class})"
         exit 99
@@ -157,6 +157,7 @@ module Onetime
   module Config
     extend self
     attr_writer :path
+
     SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
     UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
     attr_reader :env, :base, :bootstrap
@@ -290,9 +291,9 @@ module Onetime
     class << self
       attr_reader :plans
 
-      def add_plan(planid, *args)
+      def add_plan(planid, *)
         @plans ||= {}
-        new_plan = new(planid, *args)
+        new_plan = new(planid, *)
         plans[new_plan.planid] = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end

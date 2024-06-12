@@ -1,4 +1,4 @@
-# typed: true
+# typed: false
 
 module Onetime
   module Logic
@@ -22,11 +22,15 @@ module Onetime
 
       protected
 
+      def process_params
+        raise NotImplementedError, 'process_params not implemented'
+      end
+
       # Generic params that can appear anywhere are processed here.
       # This is called in initialize AFTER process_params so that
       # values set here don't overwrite values that already exist.
       def process_generic_params
-        # remember to set with ||=
+        raise NotImplementedError, 'process_generic_params not implemented'
       end
 
       def form_fields
