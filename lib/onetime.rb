@@ -421,20 +421,8 @@ module Onetime
   end
 end
 
-OT = Onetime
 
-# module OT
-#   # A convenient shorthand for Onetime
-#   #
-#   # `OT = Onetime` is also valid Ruby syntax but it's not
-#   # allowed in Sorbet.
-#   #
-#   # 4022 Cannot initialize a class or module by constant assignment
-#   # https://sorbet.org/docs/error-reference#4022
-#   #
-#   include Onetime
-# end
-
-require 'onetime/models'
-require 'onetime/logic'
-require 'onetime/email'
+require_relative 'onetime/alias'
+require_relative 'onetime/models'
+require_relative 'onetime/logic'
+require_relative 'onetime/email'
