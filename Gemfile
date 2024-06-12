@@ -17,6 +17,8 @@ plugin 'bundler-graph'
 
 source 'https://rubygems.org/'
 
+gem 'truemail'
+
 gem 'addressable'
 
 gem 'rack'

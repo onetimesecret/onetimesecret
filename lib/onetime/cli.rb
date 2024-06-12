@@ -6,7 +6,7 @@ require 'familia/tools'
 
 class OT::CLI < Drydock::Command
   def init
-    OT.load! :cli
+    OT.boot! :cli
   end
 
   def register_build

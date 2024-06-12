@@ -4,7 +4,7 @@ require_relative '../lib/onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.load!
+OT.boot!
 
 @cust = OT::Customer.new :tryouts
 @secret = OT::Secret.new :tryouts
