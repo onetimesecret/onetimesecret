@@ -8,6 +8,15 @@ Sorbet is a fast, powerful type checker designed for Ruby, providing gradual sta
 
 > RBI files are purely annotations files, separate from Ruby source code. While tapioca init can automatically create these files, it’s not a perfect process. To eliminate constant errors, sometimes Sorbet requires hand-written RBI files. -- https://sorbet.org/docs/adopting#step-4-fix-constant-resolution-errors
 
+#### Checking for missing RBI files
+
+```bash
+  $ bin/tapioca gem --verify
+```
+
+Followed by `bundle exec srb tc` for a thorough type checking.
+
+
 #### A note about vendoring RBIs
 
 > **You might have noticed that we** vendor all gems’ RBI files into the current directory, and **commit them to version control**. Why? When developing RBI files for Sorbet, we referenced the prior art that Flow developed. Our reasoning is the same as theirs:
@@ -92,3 +101,37 @@ We recommend skimming these docs to get a feel for how to use Sorbet:
 - [Adopting Sorbet in an Existing Codebase](https://sorbet.org/docs/adopting)
 - [Playground for Sorbet Type Checker](https://sorbet.run/#%23%20typed%3A%20true%0Amodule%20A%3B%20end%0Amodule%20B%3B%20end%0A%20%20%0Adef%20x%0A%20%20rand.round%20%3D%3D%200%20%3F%20A%20%3A%20B%0Aend%0A%20%20%0Aclass%20Main%0A%20%20include%20x%0Aend)
 -
+
+## Hacks
+
+### Updating RBI files for new gems
+
+Run `bin/tapioca gem` to create and/or update RBI files for new ruby dependencies. If there no missing RBI files, the command fast-exits. If there are and it continues to load the require.rb file you may encounter a `LoadError: cannot load such file -- onetime` error. To fix this, add the following code to the top of the require.rb file:
+
+```ruby
+# Add the lib directory to the $LOAD_PATH explicitly using a relative path
+lib_path = File.expand_path('../../../lib', __FILE__)
+$LOAD_PATH.unshift(lib_path)
+
+# Debugging output to verify $LOAD_PATH
+puts "Current $LOAD_PATH:"
+puts $LOAD_PATH[0..2], '...'
+```
+
+**Error example**
+```
+ ❯ bundle exec tapioca gem
+Removing RBI files of gems that have been removed:
+
+  Nothing to do.
+
+Generating RBI files of gems that are added or updated:
+
+Requiring all gems to prepare for compiling...
+
+LoadError: cannot load such file -- onetime
+
+Tapioca could not load all the gems required by your application.
+If you populated sorbet/tapioca/require.rb with `bin/tapioca require`
+you should probably review it and remove the faulty line.
+```

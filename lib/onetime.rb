@@ -314,9 +314,9 @@ module Onetime
     class << self
       attr_reader :plans
 
-      def add_plan(planid, *)
+      def add_plan(planid, *args)
         @plans ||= {}
-        new_plan = new(planid, *)
+        new_plan = new(planid, *args)
         plans[new_plan.planid] = new_plan
         plans[new_plan.planid.gibbler.short] = new_plan
       end
@@ -421,18 +421,7 @@ module Onetime
   end
 end
 
-module OT
-  # A convenient shorthand for Onetime
-  #
-  # `OT = Onetime` is also valid Ruby syntax but it's not
-  # allowed in Sorbet.
-  #
-  # 4022 Cannot initialize a class or module by constant assignment
-  # https://sorbet.org/docs/error-reference#4022
-  #
-  include Onetime
-end
-
-require 'onetime/models'
-require 'onetime/logic'
-require 'onetime/email'
+require_relative 'onetime/alias'
+require_relative 'onetime/models'
+require_relative 'onetime/logic'
+require_relative 'onetime/email'
