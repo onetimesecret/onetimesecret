@@ -191,6 +191,10 @@ module Onetime
 
       Truemail.configure do |config|
         config.verifier_email = email_address
+        # config.connection_timeout = 2 # Set the timeout to 2 seconds
+        config.smtp_fail_fast = true
+        config.not_rfc_mx_lookup_flow = true
+        config.dns = %w[208.67.222.222 8.8.8.8 8.8.4.4 208.67.220.220]
       end
     end
 

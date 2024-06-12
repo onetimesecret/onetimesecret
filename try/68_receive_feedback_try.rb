@@ -17,7 +17,6 @@ OT.boot! :app
   msg: 'This is a test feedback'
 }
 @locale = 'en'
-puts 'before2'
 
 # TRYOUTS
 

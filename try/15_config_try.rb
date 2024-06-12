@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry'
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
