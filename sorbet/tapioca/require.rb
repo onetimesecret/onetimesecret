@@ -1,6 +1,14 @@
 # typed: true
 # frozen_string_literal: true
 
+# Add the lib directory to the $LOAD_PATH explicitly using a relative path
+lib_path = File.expand_path('../../../lib', __FILE__)
+$LOAD_PATH.unshift(lib_path)
+
+# Debugging output to verify $LOAD_PATH
+puts "Current $LOAD_PATH:"
+puts $LOAD_PATH[0..2], '...'
+
 require "bcrypt"
 require "bundler/setup"
 require "drydock"
@@ -12,7 +20,8 @@ require "gibbler/mixins"
 require "mail"
 require "mustache"
 require "net/http"
-require "onetime/app/api/base"
+require "onetime"
+require "onetime/app/api/base"  # Ensure this file exists
 require "onetime/app/helpers"
 require "onetime/app/web/account"
 require "onetime/app/web/base"
@@ -35,5 +44,6 @@ require "storable"
 require "sysinfo"
 require "syslog"
 require "timeout"
+require "truemail"
 require "uri"
 require "yaml"
