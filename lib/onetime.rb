@@ -17,6 +17,8 @@ require 'familia'
 require 'storable'
 require 'sendgrid-ruby'
 
+require 'truemail'
+
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
 Familia.apiversion = nil

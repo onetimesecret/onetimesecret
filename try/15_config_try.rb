@@ -7,6 +7,21 @@ require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot! :cli
 
+@email_address ||= OT.conf[:emailer][:from]
+
+@truemail_test_config = Truemail::Configuration.new do |config|
+  config.verifier_email = @email_address
+
+  config.whitelisted_emails = [
+    'tryouts+test1@onetimesecret.com',
+    'tryouts+test2@onetimesecret.com'
+  ]
+  config.blacklisted_emails = [
+    'tryouts+test3@onetimesecret.com',
+    'tryouts+test4@onetimesecret.com'
+  ]
+end
+
 ## Finds a config path
 relative_path = Onetime::Config.path.gsub("#{__dir__}/", '')
 relative_path
@@ -58,5 +73,23 @@ validator.result.valid?
 
 ## Truemail knows yet another invalid email address
 validator = Truemail.validate('test@onetimesecret.c.n', with: :regex)
+validator.result.valid?
+#=> false
+
+## Truemail knows an allow listed email
+validator = Truemail.validate(
+  'tryouts+test1@onetimesecret.com',
+  #   with: :regex,
+  custom_configuration: @truemail_test_config
+)
+validator.result.valid?
+#=> true
+
+## Truemail knows a deny listed email
+validator = Truemail.validate(
+  'tryouts+test3@onetimesecret.com',
+  #   with: :regex,
+  custom_configuration: @truemail_test_config
+)
 validator.result.valid?
 #=> false
