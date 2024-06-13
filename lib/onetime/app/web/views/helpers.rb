@@ -36,7 +36,7 @@ module Onetime
                   else
                     value
                   end
-          { name:, value: }
+          { name: name, value: value }
         end
 
         def server_port
