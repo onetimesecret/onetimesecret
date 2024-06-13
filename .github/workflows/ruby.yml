@@ -113,3 +113,13 @@ jobs:
         continue-on-error: false
         run: |
           bundle exec try -v
+
+      - name: Typecheck with Sorbet
+        continue-on-error: true
+        run: |
+          bundle exec srb tc
+
+      - name: Rubocop
+        continue-on-error: true
+        run: |
+          bundle exec rubocop --config .rubocop.yml --format json --fail-level warning

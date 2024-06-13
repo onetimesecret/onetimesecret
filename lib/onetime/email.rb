@@ -75,7 +75,7 @@ module Onetime
     end
   end
   class SMTPEmailer < BaseEmailer
-    def send_email to_address, subject, content
+    def send_email to_address, subject, content # rubocop:disable Metrics/MethodLength
       OT.info '[email-send-start]'
       mailer_response = nil
 

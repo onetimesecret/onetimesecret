@@ -9,6 +9,12 @@
   "separateMinorPatch": true,
   "separateMultipleMajor": true,
   "separateMultipleMinor": true,
+  "packageRules": [
+    {
+      "matchPackageNames": ["encryptor"],
+      "recreateWhen": "never"
+    }
+  ],
   "labels": [
     "auto-update"
   ],
