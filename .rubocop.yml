@@ -6,7 +6,7 @@ Layout/HashAlignment:
   Enabled: false
 
 Lint/Void:
-  Enabled: false
+  Enabled: true
 
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
@@ -16,4 +16,16 @@ Gemspec/DevelopmentDependencies:
 
 AllCops:
   NewCops: enable
-  TargetRubyVersion: 3.2
+  UseCache: true
+  MaxFilesInCache: 100
+  TargetRubyVersion: 3.0
+
+Metrics/ModuleLength:
+    Enabled: true
+    Max: 250
+    CountAsOne: ['method_call']
+
+Metrics/MethodLength:
+  Enabled: true
+  Max: 30
+  CountAsOne: ['method_call']
