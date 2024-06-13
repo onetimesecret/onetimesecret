@@ -79,10 +79,10 @@ module Onetime
         end
         unless sess.nil?
           self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
-          if sess.referrer
-            self[:via_hn] = !sess.referrer.match(/news.ycombinator.com/).nil?
-            self[:via_reddit] = !sess.referrer.match(/www.reddit.com/).nil?
-            self[:via_test] = !sess.referrer.match(/ot.com/).nil?
+          unless sess.referrer.nil?
+            self[:via_hn] = !sess.referrer.match(/^(https:\/\/)?news\.ycombinator\.com/).nil?
+            self[:via_reddit] = !sess.referrer.match(/^(https:\/\/)?((www|old)\.)?reddit\.com/).nil?
+            self[:via_github] = !sess.referrer.match(/^(https:\/\/)?github\.com/).nil?
           end
           if cust.has_key?(:verified) && cust.verified.to_s != 'true' && self.class != Onetime::App::Views::Shared
             add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
