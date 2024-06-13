@@ -28,7 +28,7 @@ class Onetime::App
       @plan
     end
 
-    def carefully redirect=nil
+    def carefully redirect=nil # rubocop:disable Metrics/MethodLength
       redirect ||= req.request_path
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.

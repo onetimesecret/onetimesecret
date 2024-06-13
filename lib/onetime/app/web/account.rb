@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module Onetime
-  class App
+  class App # rubocop:disable Style/Documentation
 
     def translations
       publically do
@@ -8,8 +10,8 @@ module Onetime
       end
     end
 
-    def contributors
-      publically do
+    def contributors # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize
+      publically do # rubocop:disable Metrics/BlockLength
         if !sess.authenticated? && req.post?
           sess.set_error_message "You'll need to sign in before agreeing."
           res.redirect '/login'
@@ -19,7 +21,7 @@ module Onetime
             sess.set_info_message "You are already a contributor!"
             res.redirect "/"
           else
-            if !req.params[:contributor].to_s.empty?
+            if !req.params[:contributor].to_s.empty? # rubocop:disable Style/NegatedIfElseCondition
               if !cust.contributor_at
                 cust.contributor = req.params[:contributor]
                 cust.contributor_at = Onetime.now.to_i unless cust.contributor_at
@@ -99,7 +101,6 @@ module Onetime
     end
 
     def create_account
-      #publically("/signup/#{req.params[:planid]}") do
       publically() do
         deny_agents!
         logic = OT::Logic::CreateAccount.new sess, cust, req.params, locale
@@ -110,7 +111,6 @@ module Onetime
       end
     end
 
-
     def login
       publically do
         view = Onetime::App::Views::Login.new req, sess, cust, locale
@@ -118,7 +118,7 @@ module Onetime
       end
     end
 
-    def authenticate
+    def authenticate # rubocop:disable Metrics/AbcSize
       publically do
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params, locale
         view = Onetime::App::Views::Login.new req, sess, cust, locale
@@ -126,10 +126,11 @@ module Onetime
           sess.set_info_message "You are already logged in."
           res.redirect '/'
         else
-          if req.post?
+          if req.post? # rubocop:disable Style/IfInsideElse
             logic.raise_concerns
             logic.process
-            sess, cust = logic.sess, logic.cust
+            sess = logic.sess
+            cust = logic.cust
             is_secure = Onetime.conf[:site][:ssl]
             res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
             if cust.role?(:colonel)

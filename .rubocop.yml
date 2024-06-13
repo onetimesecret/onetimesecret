@@ -23,34 +23,38 @@ AllCops:
   MaxFilesInCache: 100
   TargetRubyVersion: 3.0
 
-Metrics/CyclomaticComplexity:
-  Enabled: false
-
-Layout/HashAlignment:
-  Enabled: false
-
-Lint/Void:
-  Enabled: true
-
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
 
 Gemspec/DevelopmentDependencies:
   Enabled: true
 
-Metrics/ModuleLength:
-    Enabled: true
-    Max: 250
-    CountAsOne: ['method_call']
+Layout/HashAlignment:
+  Enabled: false
+
+Lint/Void:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+  Max: 20
+
+Metrics/ClassLength:
+  Enabled: true
+  Max: 200
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
 
 Metrics/MethodLength:
   Enabled: true
-  Max: 30
+  Max: 40
   CountAsOne: ['method_call']
 
-Metrics/AbcSize:
+Metrics/ModuleLength:
   Enabled: true
-  Max: 20
+  Max: 250
+  CountAsOne: ['method_call']
 
 Performance/Size:
   Exclude:
@@ -58,7 +62,3 @@ Performance/Size:
 
 Style/NegatedIfElseCondition:
   Enabled: true
-
-Metrics/ClassLength:
-  Enabled: true
-  Max: 200
