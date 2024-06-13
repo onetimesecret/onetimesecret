@@ -24,7 +24,7 @@ module Onetime
       self.view_path = './app/web/views'
       attr_reader :req, :plan, :is_paid
       attr_accessor :sess, :cust, :locale, :messages, :form_fields
-      def initialize req=nil, sess=nil, cust=nil, locale=nil, *args
+      def initialize req=nil, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
         @messages = { :info => [], :error => [] }

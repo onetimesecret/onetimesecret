@@ -60,13 +60,20 @@ repos:
       - id: check-merge-conflict
       - id: forbid-submodules
 
-  # NOTE: Don't enable until after getting codebase up to speed.
-  # - repo: https://github.com/rubocop/rubocop
-  #   rev: v1.62.1  # Use the ref you want to point at
-  #   enable: false
-  #   hooks:
-  #     - id: rubocop
-  #       language_version: 3.1.4
+  # Based on Rubocop's own pre-commit hook YAML configuration
+  # https://github.com/rubocop/rubocop/blob/d5d8828/.pre-commit-hooks.yaml
+  # NOTE: Don't enable '--autocorrect' until codebase is clean
+  - repo: https://github.com/rubocop/rubocop
+    rev: v1.64.1  # Use the ref you want to point at
+    hooks:
+      - id: rubocop
+        name: rubocop
+        description: Enforce the community Ruby Style Guide with RuboCop
+        entry: bundle exec rubocop --config .rubocop.yml --format json --fail-level warning
+        types: ['ruby']
+        # language: ruby
+        # language_version: 3.2.4
+        # args: ['--force-exclusion']
 
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
     rev: v0.0.11
@@ -75,6 +82,6 @@ repos:
         stages: [prepare-commit-msg]
         name: Link commit to Github issue
         args:
-          - "--default=[NOJIRA]"
+          - "--default=[UNTRACKED]"
           - "--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}"
           - "--template=[#{}]"
