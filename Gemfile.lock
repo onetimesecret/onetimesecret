@@ -98,6 +98,8 @@ GEM
     rubocop-performance (1.21.0)
       rubocop (>= 1.48.1, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
+    rubocop-thread_safety (0.5.1)
+      rubocop (>= 0.90.0)
     ruby-dap (0.1.3)
     ruby-progressbar (1.13.0)
     ruby_http_client (3.5.5)
@@ -175,6 +177,7 @@ DEPENDENCIES
   redis (~> 4.8)
   rubocop
   rubocop-performance
+  rubocop-thread_safety
   sendgrid-ruby
   sorbet
   sorbet-runtime
