@@ -113,3 +113,8 @@ jobs:
         continue-on-error: false
         run: |
           bundle exec try -v
+
+      - name: Typecheck with Sorbet
+        continue-on-error: true
+        run: |
+          bundle exec srb tc
