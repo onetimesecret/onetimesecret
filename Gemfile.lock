@@ -156,6 +156,7 @@ PLATFORMS
   aarch64-linux
   arm64-darwin-22
   arm64-darwin-23
+  arm64-darwin-24
   x86_64-linux
 
 DEPENDENCIES
@@ -192,7 +193,7 @@ DEPENDENCIES
   yajl-ruby
 
 RUBY VERSION
-   ruby 3.1.4p223
+   ruby 3.2.4p170
 
 BUNDLED WITH
-   2.4.12
+   2.4.19
