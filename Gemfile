@@ -13,9 +13,8 @@
 # anyone wanting to run the latest code but are not
 # able to update the system to Ruby 3 just yet (not
 # uncommon in legacy environments).
+#
 ruby '>= 2.7.8'
-
-plugin 'bundler-graph'
 
 source 'https://rubygems.org/'
 
@@ -52,6 +51,7 @@ gem 'byebug-dap', require: false, group: :development
 gem 'pry', require: false, group: :development
 gem 'pry-byebug', require: false, group: :development
 gem 'rubocop', require: false, group: :development
+gem 'rubocop-performance', require: false, group: :development
 gem 'sorbet', require: false, group: :development
 gem 'sorbet-runtime'
 gem 'spoom', require: false, group: :development
