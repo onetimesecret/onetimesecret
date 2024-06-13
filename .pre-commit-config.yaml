@@ -69,11 +69,11 @@ repos:
       - id: rubocop
         name: rubocop
         description: Enforce the community Ruby Style Guide with RuboCop
-        entry: rubocop
-        language: ruby
-        language_version: 3.0.0
+        entry: bundle exec rubocop --config .rubocop.yml --format json --fail-level warning
         types: ['ruby']
-        args: ['--force-exclusion']
+        # language: ruby
+        # language_version: 3.2.4
+        # args: ['--force-exclusion']
 
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
     rev: v0.0.11

@@ -120,6 +120,7 @@ GEM
       prism (>= 0.19.0)
       sorbet-static-and-runtime (>= 0.5.10187)
       thor (>= 0.19.2)
+    stackprof (0.2.26)
     storable (0.10.0)
     strscan (3.1.0)
     sysinfo (0.10.0)
@@ -183,6 +184,7 @@ DEPENDENCIES
   sorbet
   sorbet-runtime
   spoom
+  stackprof
   storable
   sysinfo
   tapioca

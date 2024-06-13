@@ -118,3 +118,8 @@ jobs:
         continue-on-error: true
         run: |
           bundle exec srb tc
+
+      - name: Rubocop
+        continue-on-error: true
+        run: |
+          rubocop --config .rubocop.yml --format json --fail-level warning
