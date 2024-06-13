@@ -6,9 +6,7 @@ on:
     tags: [ "rel/*" ]
   pull_request:
     branches: [ "rel/*", "feature/*" ]
-  workflow_call:
   workflow_dispatch:
-  workflow_run:
 
 env:
   REGISTRY: ghcr.io
