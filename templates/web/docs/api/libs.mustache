@@ -39,7 +39,7 @@
   $myOnetime = new OneTimeSecret();
   $myOnetime->setCustomerID('YOUR_EMAIL');
   $myOnetime->setToken('YOUR_OTS_APIKEY');
-  $myOnetime->setRecipient('delano@onetimesecret.com');
+  $myOnetime->setRecipient('example@onetimesecret.com');
   $myOnetime->setTTL(7200);
   $myResult = $myOnetime->shareSecret('Jazz, jazz and more jazz.', 'thepassword');
   echo $myOnetime->getSecretURI($myResult);
@@ -65,7 +65,7 @@ require 'onetime/api'
 api = Onetime::API.new('YOUR_EMAIL', 'YOUR_OTS_APIKEY')
 options = {
   secret: 'Jazz, jazz and more jazz.',
-  recipient: 'delano@onetimesecret.com',
+  recipient: 'example@onetimesecret.com',
   ttl: 7200
 }
 

@@ -90,8 +90,7 @@
 #footer {
 
   text-align: center;
-  font-size: 80%;
-  line-height: 80%;
+  line-height: 90%;
   padding: 0px;
   color: #999;
 }
@@ -124,9 +123,13 @@ hr.clear {background:#fff;color:#fff;clear:both;float:none;width:100%;height:.1e
 
 
 
-
 a {
   color: #000;
+  text-decoration: underline;
+}
+
+body {
+  font-size: unset;
 }
 
 a.keepgoing {
