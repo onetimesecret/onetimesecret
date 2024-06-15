@@ -83,58 +83,58 @@ module Onetime
         protected
 
         def epochdate(time_in_s)
-          t = Time.at time_in_s.to_i
-          dformat t.utc
+          time_parsed = Time.at time_in_s.to_i
+          dformat time_parsed.utc
         end
 
         def epochtime(time_in_s)
-          t = Time.at time_in_s.to_i
-          tformat t.utc
+          time_parsed = Time.at time_in_s.to_i
+          tformat time_parsed.utc
         end
 
         def epochformat(time_in_s)
-          t = Time.at time_in_s.to_i
-          dtformat t.utc
+          time_parsed = Time.at time_in_s.to_i
+          dtformat time_parsed.utc
         end
 
         def epochformat2(time_in_s)
-          t = Time.at time_in_s.to_i
-          dtformat2 t.utc
+          time_parsed = Time.at time_in_s.to_i
+          dtformat2 time_parsed.utc
         end
 
         def epochdom(time_in_s)
-          t = Time.at time_in_s.to_i
-          t.utc.strftime('%b %d, %Y')
+          time_parsed = Time.at time_in_s.to_i
+          time_parsed.utc.strftime('%b %d, %Y')
         end
 
         def epochtod(time_in_s)
-          t = Time.at time_in_s.to_i
-          t.utc.strftime('%I:%M%p').gsub(/^0/, '').downcase
+          time_parsed = Time.at time_in_s.to_i
+          time_parsed.utc.strftime('%I:%M%p').gsub(/^0/, '').downcase
         end
 
         def epochcsvformat(time_in_s)
-          t = Time.at time_in_s.to_i
-          t.utc.strftime('%Y/%m/%d %H:%M:%S')
+          time_parsed = Time.at time_in_s.to_i
+          time_parsed.utc.strftime('%Y/%m/%d %H:%M:%S')
         end
 
         def dtformat(time_in_s)
-          time_parsed = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
-          time_parsed.strftime('%Y-%m-%d@%H:%M:%S UTC')
+          time_in_s = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
+          time_in_s.strftime('%Y-%m-%d@%H:%M:%S UTC')
         end
 
         def dtformat2(time_in_s)
-          time_parsed = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
-          time_parsed.strftime('%Y-%m-%d@%H:%M UTC')
+          time_in_s = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
+          time_in_s.strftime('%Y-%m-%d@%H:%M UTC')
         end
 
         def dformat(time_in_s)
-          time_parsed = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
-          time_parsed.strftime('%Y-%m-%d')
+          time_in_s = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
+          time_in_s.strftime('%Y-%m-%d')
         end
 
         def tformat(time_in_s)
-          time_parsed = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
-          time_parsed.strftime('%H:%M:%S')
+          time_in_s = DateTime.parse time_in_s unless time_in_s.is_a?(Time)
+          time_in_s.strftime('%H:%M:%S')
         end
 
         # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize

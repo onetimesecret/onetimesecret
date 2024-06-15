@@ -1,9 +1,4 @@
 
-/* NOTE: Disable cufon to resolve issues displaying utf-8 characters
-// Font Replacement
-// Cufon.replace('.cufon');
-*/
-
 $(function() {
   $.fn.deobfuscate = function() {
     $(this).each(function(i, el) {
@@ -63,13 +58,6 @@ $(function() {
     this.select();
   });
   $('.email').deobfuscate();
-  //$('#optionsToggle').click(function(){
-  //  $('#options').toggle();
-  //  $.cookie("display_options", $('#options').css('display') == 'block');
-  //});
-  // if ($.cookie("display_options") == "true") {
-  //   $('#options').toggle();
-  // }
 
   $('#contentTab a').click(function (e) {
     e.preventDefault();
