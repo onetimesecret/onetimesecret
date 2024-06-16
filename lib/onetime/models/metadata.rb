@@ -77,13 +77,13 @@ module Onetime
       # Make sure we don't go from :shared to :viewed
       return unless state?(:new) || state?(:viewed)
       @state = :received
-      update_fields :state => :received, :received => Time.now.utc.to_i, :secret_key => nil
+      update_fields :state => :received, :received => Time.now.utc.to_i, :secret_key => ""
     end
     def burned!
       # Make sure we don't go from :shared to :viewed
       return unless state?(:new) || state?(:viewed)
       @state = :burned
-      update_fields :state => :burned, :burned => Time.now.utc.to_i, :secret_key => nil
+      update_fields :state => :burned, :burned => Time.now.utc.to_i, :secret_key => ""
     end
     def state? guess
       state.to_s == guess.to_s

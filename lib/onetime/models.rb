@@ -149,7 +149,7 @@ module Onetime::Models
       refresh_cache unless !instance_value.nil? || self.cache.has_key?(field)
       ret = case last_char
       when '='
-        self[field] = self.cache[field] = args.first
+        self[field] = self.cache[field] = args.first.to_s
       when '!'
         self.delete(field) and self.cache.delete(field) # Hash#delete returns the value
       when '?'
