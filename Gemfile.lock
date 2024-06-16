@@ -13,19 +13,15 @@ GEM
       byebug (~> 11.1)
       ruby-dap (~> 0.1.2)
     coderay (1.1.3)
-    csv (0.1.0)
+    connection_pool (2.4.1)
+    csv (3.2.6)
     daemons (1.4.1)
     date (3.3.4)
     drydock (0.6.9)
     encryptor (1.1.3)
     erubi (1.12.0)
     eventmachine (1.2.7)
-    familia (0.9.3)
-      gibbler (~> 1.0.0)
-      multi_json (~> 1.15)
-      redis (>= 4.8, < 7)
-      storable (~> 0.10.0)
-      uri-redis (>= 1.0.0)
+    familia (0.10.0)
     gibbler (1.0.0)
       attic (~> 1.0)
       rake (~> 13.0)
@@ -78,7 +74,10 @@ GEM
     rbi (0.1.13)
       prism (>= 0.18.0, < 1.0.0)
       sorbet-runtime (>= 0.5.9204)
-    redis (4.8.1)
+    redis (5.2.0)
+      redis-client (>= 0.22.0)
+    redis-client (0.22.2)
+      connection_pool
     regexp_parser (2.9.2)
     rexml (3.2.9)
       strscan
@@ -109,9 +108,7 @@ GEM
     sorbet (0.5.11428)
       sorbet-static (= 0.5.11428)
     sorbet-runtime (0.5.11428)
-    sorbet-static (0.5.11428-aarch64-linux)
     sorbet-static (0.5.11428-universal-darwin)
-    sorbet-static (0.5.11428-x86_64-linux)
     sorbet-static-and-runtime (0.5.11428)
       sorbet (= 0.5.11428)
       sorbet-runtime (= 0.5.11428)
@@ -154,11 +151,7 @@ GEM
       yard (>= 0.9)
 
 PLATFORMS
-  aarch64-linux
-  arm64-darwin-22
-  arm64-darwin-23
-  arm64-darwin-24
-  x86_64-linux
+  universal-darwin
 
 DEPENDENCIES
   addressable
@@ -167,16 +160,17 @@ DEPENDENCIES
   byebug-dap
   drydock
   encryptor (= 1.1.3)
-  familia (~> 0.9)
+  familia (>= 0.10.0)
   gibbler
   httparty
   mail
+  multi_json
   mustache
-  otto (~> 1.0, >= 1.0)
+  otto (~> 1.0.1)
   pry
   pry-byebug
   rack
-  redis (~> 4.8)
+  redis (~> 5.2.0)
   rubocop
   rubocop-performance
   rubocop-thread_safety
@@ -191,11 +185,11 @@ DEPENDENCIES
   thin
   truemail
   tryouts
-  uri-redis (~> 1.2)
+  uri-redis (~> 1.3.0)
   yajl-ruby
 
 RUBY VERSION
    ruby 3.2.4p170
 
 BUNDLED WITH
-   2.4.19
+   2.5.9
