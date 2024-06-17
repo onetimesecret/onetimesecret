@@ -24,19 +24,20 @@ gem 'addressable'
 
 gem 'rack'
 
+gem 'multi_json'
 gem 'thin'
 gem 'yajl-ruby'
 
 gem 'mustache'
 
 gem 'drydock'
-gem 'familia', '~> 0.9'
+gem 'familia', '>= 0.10.1'
 gem 'gibbler'
-gem 'otto', '~> 1.0', '>= 1.0'
-gem 'redis', '~> 4.8'
+gem 'otto', '~> 1.0.1'
+gem 'redis', '~> 5.2.0'
 gem 'storable'
 gem 'sysinfo'
-gem 'uri-redis', '~> 1.2'
+gem 'uri-redis', '~> 1.3.0'
 
 gem 'bcrypt'
 gem 'encryptor', '= 1.1.3'
