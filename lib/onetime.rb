@@ -94,9 +94,13 @@ module Onetime
       begin
         # Make sure we're able to connect to separate Redis databases.
         # Some services like Upstash provide only db 0.
-        16.times { |idx| OT.ld format('Connecting to %s (%s)', Familia.redis(idx).uri, Familia.redis(idx).ping) }
+        16.times { |idx|
+          uri = Familia.redis.id
+          ping_result = Familia.redis(idx).ping
+          OT.ld format('Connecting to %s (%s)', uri, ping_result)
+        }
       rescue Redis::CannotConnectError => e
-        OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
+        OT.le "Cannot connect to redis #{Familia.id} (#{e.class})"
         exit 1
       rescue StandardError => e
         OT.le "Unexpected error `#{e}` (#{e.class})"
