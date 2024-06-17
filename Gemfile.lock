@@ -18,7 +18,7 @@ GEM
     daemons (1.4.1)
     date (3.3.4)
     drydock (0.6.9)
-    encryptor (1.1.3)
+    encryptor (3.0.0)
     erubi (1.13.0)
     eventmachine (1.2.7)
     familia (0.10.1)
@@ -109,6 +109,7 @@ GEM
       sorbet-static (= 0.5.11435)
     sorbet-runtime (0.5.11435)
     sorbet-static (0.5.11435-universal-darwin)
+    sorbet-static (0.5.11435-x86_64-linux)
     sorbet-static-and-runtime (0.5.11435)
       sorbet (= 0.5.11435)
       sorbet-runtime (= 0.5.11435)
@@ -152,6 +153,7 @@ GEM
 
 PLATFORMS
   universal-darwin
+  x86_64-linux
 
 DEPENDENCIES
   addressable
@@ -159,7 +161,7 @@ DEPENDENCIES
   byebug
   byebug-dap
   drydock
-  encryptor (= 1.1.3)
+  encryptor (= 3.0.0)
   familia (>= 0.10.1)
   gibbler
   httparty
