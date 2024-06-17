@@ -14,14 +14,14 @@ GEM
       ruby-dap (~> 0.1.2)
     coderay (1.1.3)
     connection_pool (2.4.1)
-    csv (3.2.6)
+    csv (3.3.0)
     daemons (1.4.1)
     date (3.3.4)
     drydock (0.6.9)
     encryptor (1.1.3)
-    erubi (1.12.0)
+    erubi (1.13.0)
     eventmachine (1.2.7)
-    familia (0.10.0)
+    familia (0.10.1)
     gibbler (1.0.0)
       attic (~> 1.0)
       rake (~> 13.0)
@@ -42,7 +42,7 @@ GEM
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
     mustache (1.1.1)
-    net-imap (0.3.7)
+    net-imap (0.4.13)
       date
       net-protocol
     net-pop (0.1.2)
@@ -55,7 +55,7 @@ GEM
     otto (1.0.1)
       addressable (>= 2.2.6)
       rack (>= 1.2.1)
-    parallel (1.24.0)
+    parallel (1.25.1)
     parser (3.3.3.0)
       ast (~> 2.4.1)
       racc
@@ -66,7 +66,7 @@ GEM
     pry-byebug (3.10.1)
       byebug (~> 11.0)
       pry (>= 0.13, < 0.15)
-    public_suffix (5.0.5)
+    public_suffix (5.1.0)
     racc (1.8.0)
     rack (2.2.9)
     rainbow (3.1.1)
@@ -79,7 +79,7 @@ GEM
     redis-client (0.22.2)
       connection_pool
     regexp_parser (2.9.2)
-    rexml (3.2.9)
+    rexml (3.3.0)
       strscan
     rubocop (1.64.1)
       json (~> 2.3)
@@ -105,13 +105,13 @@ GEM
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
     simpleidn (0.2.3)
-    sorbet (0.5.11428)
-      sorbet-static (= 0.5.11428)
-    sorbet-runtime (0.5.11428)
-    sorbet-static (0.5.11428-universal-darwin)
-    sorbet-static-and-runtime (0.5.11428)
-      sorbet (= 0.5.11428)
-      sorbet-runtime (= 0.5.11428)
+    sorbet (0.5.11435)
+      sorbet-static (= 0.5.11435)
+    sorbet-runtime (0.5.11435)
+    sorbet-static (0.5.11435-universal-darwin)
+    sorbet-static-and-runtime (0.5.11435)
+      sorbet (= 0.5.11435)
+      sorbet-runtime (= 0.5.11435)
     spoom (1.3.2)
       erubi (>= 1.10.0)
       prism (>= 0.19.0)
@@ -160,7 +160,7 @@ DEPENDENCIES
   byebug-dap
   drydock
   encryptor (= 1.1.3)
-  familia (>= 0.10.0)
+  familia (>= 0.10.1)
   gibbler
   httparty
   mail
@@ -192,4 +192,4 @@ RUBY VERSION
    ruby 3.2.4p170
 
 BUNDLED WITH
-   2.5.9
+   2.4.12
