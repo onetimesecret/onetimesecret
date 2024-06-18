@@ -113,7 +113,7 @@ After the container has been removed, the regular `docker run` command will work
 
 ### Docker Compose
 
-See the instructions in the [Docker Compose config file](./docker-compose.yml).
+See the dedicated [Docker Compose repo](https://github.com/onetimesecret/docker-compose/).
 
 
 ### Manually
