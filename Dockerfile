@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
 
 ##
-# ONETIME - DOCKER IMAGE - 2024-04-10
+# ONETIME SECRET - DOCKER IMAGE - 2024-04-10
 #
 #
 # To build and use this image, you need to copy the example
@@ -45,9 +45,16 @@
 #
 #     $ docker-compose build --no-cache onetime
 #
+# ----------------------------------------------------------------
+#   NOTE: All Docker Compose configuration (including the service
+#         definitions in docker-compose.yml) have moved to a
+#         dedicated repo:
 #
-# Production deployment
-# ---------------------
+#         https://github.com/onetimesecret/docker-compose
+# ----------------------------------------------------------------
+#
+#
+# PRODUCTION DEPLOYMENT:
 #
 # When deploying to production, you should protect your Redis instance with
 # authentication or Redis networks. You should also enable persistence and
@@ -157,8 +164,8 @@ COPY . .
 RUN cp --preserve --no-clobber \
  etc/config.example etc/config
 
-# About the interplay between the Dockerfile CMD instruction
-# and the Docker Compose command setting:
+# About the interplay between the Dockerfile CMD, ENTRYPOINT,
+# and the Docker Compose command settings:
 #
 # 1. The CMD instruction in the Dockerfile sets the default command to
 # be executed when the container is started.
@@ -169,5 +176,7 @@ RUN cp --preserve --no-clobber \
 # 3. Using the CMD instruction in the Dockerfile provides a fallback
 # command, which can be useful if no specific command is set in the
 # Docker Compose configuration.
+
+# TODO: Add ENTRYPOINT for max flexibility?
 
 CMD ["bin/entrypoint.sh"]
