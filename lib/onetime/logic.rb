@@ -318,6 +318,56 @@ module Onetime
       end
     end
 
+    class DestroyAccount < OT::Logic::Base
+      attr_reader :modified
+
+      def process_params
+        @currentp = params[:currentp].to_s.strip.slice(0,60)
+      end
+      def raise_concerns
+        limit_action :destroy_account
+        if @currentp.empty?
+          raise_form_error "Password confirmation is required"
+        else
+          OT.info "[destroy-account] Passphrase check attempt #{cust.custid} #{cust.role}"
+          raise_form_error "Password does not match" unless cust.passphrase?(@currentp)
+        end
+      end
+      def process
+        if cust.passphrase?(@currentp)
+
+          OT.info "[destroy-account] Passphrase confirmation successful. Account destroyed. #{cust.custid} #{cust.role}"
+
+          # NOTE: we don't use cust.destroy! here.
+          #
+          # Auto-expire customer record out of redis after
+          # a grace period for the system to take care of any
+          # remaining business to do with the account.
+          # #
+          cust.ttl = 24.hours  # auto expire custome
+
+          cust.passphrase = ''
+          cust.regenerate_apitoken
+          cust.verified = false
+          cust.role = 'user_deleted_customer'
+
+          cust.save
+          sess.replace!
+          sess.set_info_message "Account deleted"
+        else
+          sess.set_error_message "Nothing changed"
+
+        end
+        sess.set_form_fields form_fields # for tabindex
+      end
+      def modified? guess
+        modified.member? guess
+      end
+      private
+      def form_fields
+        { :tabindex => params[:tabindex] }
+      end
+    end
     class GenerateAPIkey < OT::Logic::Base
       attr_reader :apikey
       def process_params
