@@ -55,12 +55,13 @@ module Onetime::Models
     end
     def passphrase? guess
       begin
-        ret = !has_passphrase? || BCrypt::Password.new(passphrase) == guess
+        ret = BCrypt::Password.new(passphrase) == guess
         @passphrase_temp = guess if ret  # used to decrypt the value
         ret
       rescue BCrypt::Errors::InvalidHash => ex
-        msg = "[old-passphrase]"
-        !has_passphrase? || (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
+        prefix = "[old-passphrase]"
+        OT.ld "#{prefix} Invalid passphrase hash: #{ex.message}"
+        (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
       end
     end
   end
