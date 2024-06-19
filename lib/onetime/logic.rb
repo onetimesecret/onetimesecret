@@ -328,16 +328,18 @@ module Onetime
       def raise_concerns
         limit_action :destroy_account
         if @currentp.empty?
-          raise_form_error "Password confirmation is required"
+          raise_form_error "Password confirmation is required."
         else
-          OT.info "[destroy-account] Passphrase check attempt #{cust.custid} #{cust.role}"
-          raise_form_error "Password does not match" unless cust.passphrase?(@currentp)
+          OT.info "[destroy-account] Passphrase check attempt #{cust.custid} #{cust.role} #{sess.ipaddress}"
+
+          unless cust.passphrase?(@currentp)
+            sess.set_info_message "Nothing changed"
+            raise_form_error "Password does not match"
+          end
         end
       end
       def process
         if cust.passphrase?(@currentp)
-
-          OT.info "[destroy-account] Passphrase confirmation successful. Account destroyed. #{cust.custid} #{cust.role}"
 
           # NOTE: we don't use cust.destroy! here.
           #
@@ -353,9 +355,17 @@ module Onetime
           cust.role = 'user_deleted_customer'
 
           cust.save
+
+          # Log the event immediately after saving the change to
+          # to minimize the chance of the event not being logged.
+          OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{sess.ipaddress}"
+
           sess.replace!
           sess.set_info_message "Account deleted"
+
         else
+          # In theory we should never get here since raise_concerns
+          # should have caught an incorrect password.
           sess.set_error_message "Nothing changed"
 
         end
