@@ -143,6 +143,7 @@ module Onetime
       end
       def raise_concerns
         limit_action :destroy_session
+        OT.info "[destroy-session] #{@custid} #{@sess.ipaddress}"
       end
       def process
         sess.destroy!
