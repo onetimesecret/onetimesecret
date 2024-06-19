@@ -166,7 +166,7 @@ module Onetime
     end
 
     def update_account
-      authenticated do
+      authenticated('/account') do
         logic = OT::Logic::UpdateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
@@ -175,7 +175,7 @@ module Onetime
     end
 
     def destroy_account
-      authenticated do
+      authenticated('/account') do
         logic = OT::Logic::DestroyAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
