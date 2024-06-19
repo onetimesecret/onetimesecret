@@ -276,7 +276,7 @@ module Onetime
     end
 
     class UpdateAccount < OT::Logic::Base
-      attr_reader :modified, :subdomain
+      attr_reader :modified
       def process_params
         @currentp = params[:currentp].to_s.strip.slice(0,60)
         @newp = params[:newp].to_s.strip.slice(0,60)
