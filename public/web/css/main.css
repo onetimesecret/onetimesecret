@@ -85,10 +85,7 @@
 
 
 
-
-
 #footer {
-
   text-align: center;
   line-height: 90%;
   padding: 0px;
@@ -214,6 +211,8 @@ div.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
 .strikethrough {
   text-decoration: line-through;
 }
+.roomier { padding: 5px; }
+.small { font-size: 90%; }
 .smaller { font-size: 85%; }
 .larger { font-size: 120%; }
 .centre { text-align: center }
@@ -225,6 +224,9 @@ div.private{font-size: 18px; line-height: 18px; margin-top: 20px;}
 .hilite {background:#ff0;}
 .hilite2 {background:#6ff;}
 
+.modal-danger {
+  border: 5px solid #d9534f;
+}
 
 .err, .msg { font-weight: bold; padding: 8px; line-height: 32px; width: 100%; }
 .err { background-color: red; color: #fff }
