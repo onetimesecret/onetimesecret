@@ -287,10 +287,10 @@ module Onetime
         @modified ||= []
         limit_action :update_account
         if ! @currentp.empty?
-          raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
-          raise_form_error "New passwords do not match" unless @newp == @newp2
+          raise_form_error "Current password is incorrect" unless cust.passphrase?(@currentp)
+          raise_form_error "New password cannot be the same as current password" if @newp == @currentp
           raise_form_error "New password is too short" unless @newp.size >= 6
-          raise_form_error "New password cannot match current password" if @newp == @currentp
+          raise_form_error "New passwords do not match" unless @newp == @newp2
         end
         if ! @passgen_token.empty?
           raise_form_error "Token is too short" if @passgen_token.size < 6
