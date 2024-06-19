@@ -12,9 +12,9 @@ OT.boot!
 #=> ['metadata:ivfn09cpriklqii1zagw6fc96suh8bp:object', 7, nil, {}]
 
 ## Keys don't change with values
-@metadata.secret_key = :hihi
+@metadata.secret_key = "hihi"
 [@metadata.rediskey, @metadata.secret_key, @metadata.all]
-#=> ['metadata:ivfn09cpriklqii1zagw6fc96suh8bp:object', :hihi, {"secret_key"=>"hihi"}]
+#=> ['metadata:ivfn09cpriklqii1zagw6fc96suh8bp:object', "hihi", {"secret_key"=>"hihi"}]
 
 ## Doesn't exist yet
 @metadata2 = Onetime::Metadata.new :metadata, [OT.instance, Time.now.to_f, OT.entropy]
