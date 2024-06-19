@@ -51,7 +51,68 @@
           </form>
           </div>
 
-          <p class="lighter"><em>Created <strong>{{cust.secrets_created}}</strong> secrets since <strong>{{customer_since}}</strong>.</em></p>
+        <hr>
+
+        <div class="well well-large well-danger options-box">
+          <div class="title primary">Delete Account</div>
+
+          <div class="control-group">
+            <p class="small">
+              Please be advised:
+              <ul class="small">
+                <li><strong>Secrets will remain active until they expire.</strong> </li>
+                <li>Any secrets you wish to remove, <span class="underline">burn them before continuing.</span></li>
+                <li>Deleting your account is <em>permanent and non-reversable</em>.</li>
+              </ul>
+            </p>
+
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <button type data-toggle="modal" data-target="#yourInModalDanger" class="btn btn-danger">
+                Permanently Delete Account
+              </button>
+              <p class="lighter roomier small">
+                <em>Deleting {{ cust.custid }}</em>
+              </p>
+            </div>
+          </div>
+
+        </div>
+        <!-- Modal: Delete Account -->
+        <div id="yourInModalDanger" class="modal modal-danger hide fade" tabindex="-1" role="dialog"
+          aria-labelledby="yourInModalDangerLabel" aria-hidden="true">
+          <form action="/account/destroy" method="post" class>
+            {{{add_shrimp}}}
+            <input type="hidden" name="tabindex" value="destroy" />
+            <fieldset>
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 id="yourInModalDangerLabel">Delete Account</h3>
+              </div>
+              <div class="modal-body">
+                <p>Yes I do indeed concur, wholeheartedly.</p>
+                <div class="controls">
+                  <input
+                    type="password"
+                    name="currentp"
+                    id="custidField"
+                    class="input-medium"
+                    placeholder="Password" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                <button class="btn btn-danger">Delete Account</button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+
+        <p class="lighter">
+          <em>Created <strong>{{ cust.secrets_created }}</strong> secrets since
+            <strong>{{ customer_since }}</strong>.</em>
+        </p>
 
           {{#contributor}}
           <p class="lighter"><em>You became a <a href="/contributor">contributor</a> on <strong>{{contributor_since}}</strong>.</em></p>
