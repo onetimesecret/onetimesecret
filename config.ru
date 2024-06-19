@@ -33,6 +33,11 @@ Onetime.boot! :app
 
 if Otto.env?(:dev)
 
+  if Onetime.debug
+    require 'pry-byebug'
+    Otto.debug = true
+  end
+
   # DEV: Run web apps with extra logging and reloading
   apps.each_pair do |path, app|
     map(path) do
@@ -45,8 +50,8 @@ if Otto.env?(:dev)
       run app
     end
   end
-else
 
+else
   # PROD: run barebones webapps
   apps.each_pair do |path, app|
     app.option[:public] = PUBLIC_DIR
