@@ -46,7 +46,7 @@ module Onetime::Models
   module Passphrase
     attr_accessor :passphrase_temp
     def update_passphrase v
-      self.passphrase_encryption = 1
+      self.passphrase_encryption = "1"
       @passphrase_temp = v
       self.passphrase = BCrypt::Password.create(v, :cost => 12).to_s
     end

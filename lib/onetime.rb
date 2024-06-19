@@ -100,7 +100,7 @@ module Onetime
           OT.ld format('Connecting to %s (%s)', uri, ping_result)
         }
       rescue Redis::CannotConnectError => e
-        OT.le "Cannot connect to redis #{Familia.id} (#{e.class})"
+        OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
         exit 1
       rescue StandardError => e
         OT.le "Unexpected error `#{e}` (#{e.class})"
