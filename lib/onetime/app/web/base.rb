@@ -48,7 +48,9 @@ module Onetime
       def check_referrer!
         return if @check_referrer_ran
         @check_referrer_ran = true
-        OT.ld  "[check-referrer] #{req.referrer} (#{req.referrer.class}) - #{req.path}"
+        unless req.referrer.nil?
+          OT.ld("[check-referrer] #{req.referrer} (#{req.referrer.class}) - #{req.path}")
+        end
         return if req.referrer.nil? || req.referrer.match(Onetime.conf[:site][:host])
         sess.referrer ||= req.referrer
       end
