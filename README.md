@@ -1,10 +1,10 @@
-# Onetime Secret - v0.13.0
+# Onetime Secret - v0.14.0
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
 ### Latest releases
 
-* **Ruby 3+ (recommended), 2.7.8: [latest](https://github.com/onetimesecret/onetimesecret/releases/tag/latest)**
+* **Ruby 3+ (recommended): [latest](https://github.com/onetimesecret/onetimesecret/releases/latest)**
 * Ruby 2.7, 2.6: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
