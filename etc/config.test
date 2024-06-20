@@ -55,3 +55,4 @@
   :show_metadata: 1000
   :show_secret: 1000
   :burn_secret: 1000
+  :destroy_account: 5

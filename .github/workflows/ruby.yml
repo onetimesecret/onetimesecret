@@ -41,6 +41,14 @@ on:
 
 jobs:
   build:
+    # Can also be set to `self-hosted` if worker is running. Possible
+    # issue when switching (or trying to run a mix of github-hosted
+    # and self-hosted). All workflows in the repo stopped being queued
+    # up after having a self-hosted worker registered and available
+    # and then manually shutdown and removed. To the extent that open
+    # PRs showed 0 checks at all (as though there were no workflow
+    # yaml files at all). Adding a new workflow in a test branch
+    # seemed to wake up the dragon and all was well in the world.
     runs-on: ubuntu-latest
 
     strategy:

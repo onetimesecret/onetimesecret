@@ -1,5 +1,7 @@
 {
+  "parser": "vue",
   "tabWidth": 2,
   "useTabs": false,
+  "bracketSameLine": true,
   "endOfLine": "lf"
 }

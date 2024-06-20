@@ -78,26 +78,26 @@ module Onetime
       attr_reader :custid, :stay
       attr_reader :session_ttl
       def process_params
-        @custid = params[:u].to_s.downcase.strip
+        @potential_custid = params[:u].to_s.downcase.strip
         @passwd = params[:p]
         #@stay = params[:stay].to_s == "true"
         @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
-        if @custid.to_s.index(':as:')
-          @colonelname, @custid = *@custid.downcase.split(':as:')
+        if @potential_custid.to_s.index(':as:')
+          @colonelname, @potential_custid = *@potential_custid.downcase.split(':as:')
         else
-          @custid = @custid.downcase if @custid
+          @potential_custid = @potential_custid.downcase if @potential_custid
         end
         if @passwd.to_s.empty?
           @cust = nil
-        elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@custid)
-          OT.info "[login-as-attempt] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
+        elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@potential_custid)
+          OT.info "[login-as-attempt] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
           potential = OT::Customer.load @colonelname
           @colonel = potential if potential.passphrase?(@passwd)
-          @cust = OT::Customer.load @custid if @colonel.role?(:colonel)
+          @cust = OT::Customer.load @potential_custid if @colonel.role?(:colonel)
           sess['authenticated_by'] = @colonel.custid
-          OT.info "[login-as-success] #{@colonelname} as #{@custid} #{@sess.ipaddress}"
-        elsif (potential = OT::Customer.load(@custid))
+          OT.info "[login-as-success] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
+        elsif (potential = OT::Customer.load(@potential_custid))
           @cust = potential if potential.passphrase?(@passwd)
         end
       end
@@ -143,6 +143,7 @@ module Onetime
       end
       def raise_concerns
         limit_action :destroy_session
+        OT.info "[destroy-session] #{@custid} #{@sess.ipaddress}"
       end
       def process
         sess.destroy!
@@ -275,7 +276,7 @@ module Onetime
     end
 
     class UpdateAccount < OT::Logic::Base
-      attr_reader :modified, :subdomain
+      attr_reader :modified
       def process_params
         @currentp = params[:currentp].to_s.strip.slice(0,60)
         @newp = params[:newp].to_s.strip.slice(0,60)
@@ -286,10 +287,10 @@ module Onetime
         @modified ||= []
         limit_action :update_account
         if ! @currentp.empty?
-          raise_form_error "Current password does not match" unless cust.passphrase?(@currentp)
-          raise_form_error "New passwords do not match" unless @newp == @newp2
+          raise_form_error "Current password is incorrect" unless cust.passphrase?(@currentp)
+          raise_form_error "New password cannot be the same as current password" if @newp == @currentp
           raise_form_error "New password is too short" unless @newp.size >= 6
-          raise_form_error "New password cannot match current password" if @newp == @currentp
+          raise_form_error "New passwords do not match" unless @newp == @newp2
         end
         if ! @passgen_token.empty?
           raise_form_error "Token is too short" if @passgen_token.size < 6
@@ -318,6 +319,82 @@ module Onetime
       end
     end
 
+    class DestroyAccount < OT::Logic::Base
+      attr_reader :raised_concerns_was_called
+
+      def process_params
+        unless params.nil?
+          @currentp = params[:currentp].to_s.strip.slice(0,60)
+        end
+      end
+      def raise_concerns
+        @raised_concerns_was_called = true
+
+        # It's vitally important for the limiter to run prior to any
+        # other concerns. This prevents a malicious user from
+        # attempting to brute force the password.
+        #
+        limit_action :destroy_account
+        if @currentp && @currentp.empty?
+          raise_form_error "Password confirmation is required."
+        else
+          OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
+
+          unless cust.passphrase?(@currentp)
+            sess.set_info_message "Nothing changed"
+            raise_form_error "Password does not match."
+          end
+        end
+      end
+
+      def process
+        # This is very defensive programming. When it comes to
+        # destroying things though, let's pull out all the stops.
+        unless raised_concerns_was_called
+          raise_form_error "We have concerns about that request."
+        end
+
+        if cust.passphrase?(@currentp)
+          # NOTE: we don't use cust.destroy! here.
+          #
+          # Auto-expire customer record out of redis after
+          # a grace period for the system to take care of any
+          # remaining business to do with the account.
+          #
+          cust.ttl = 24.hours  # auto expire custome
+
+          cust.passphrase = ''
+          cust.regenerate_apitoken
+          cust.verified = false
+          cust.role = 'user_deleted_customer'
+
+          cust.save
+
+          # Log the event immediately after saving the change to
+          # to minimize the chance of the event not being logged.
+          OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{sess.ipaddress}"
+
+          sess.replace!
+          sess.set_info_message 'Account deleted'
+
+        else
+
+          # In theory we should never get here since raise_concerns
+          # should have caught an incorrect password.
+          sess.set_error_message 'Nothing changed'
+
+        end
+
+        sess.set_form_fields form_fields  # for tabindex
+      end
+      def modified? guess
+        modified.member? guess
+      end
+      private
+      def form_fields
+        { :tabindex => params[:tabindex] } unless params.nil?
+      end
+    end
     class GenerateAPIkey < OT::Logic::Base
       attr_reader :apikey
       def process_params
@@ -351,7 +428,7 @@ module Onetime
         @maxviews = params[:maxviews].to_i
         @maxviews = 1 if @maxviews < 1
         @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
-         if ['share', 'generate'].member?(params[:kind].to_s)
+        if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym
         end
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)

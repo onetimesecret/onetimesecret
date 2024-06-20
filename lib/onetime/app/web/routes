@@ -29,7 +29,6 @@ GET   /info/security                             Onetime::App::Info#security
 GET   /info/terms                                Onetime::App::Info#terms
 
 GET   /pricing                                   Onetime::App#pricing
-#GET   /business                                  Onetime::App#business_pricing
 GET   /signup                                    Onetime::App#signup
 GET   /signup/:planid                            Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account
@@ -46,7 +45,8 @@ GET   /dashboard                                 Onetime::App#dashboard
 POST  /dashboard                                 Onetime::App#create_secret
 
 GET   /account                                   Onetime::App#account
-POST  /account                                   Onetime::App#update_account
+POST  /account/change_password                   Onetime::App#update_account
+POST  /account/destroy                           Onetime::App#destroy_account
 POST  /account/passgen                           Onetime::App#update_account
 POST  /account/apikey                            Onetime::App#generate_apikey
 POST  /account/subdomain                         Onetime::App#update_subdomain
