@@ -132,7 +132,7 @@ class Onetime::App
       if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
         @sess = OT::Session.load req.cookie(:sess)
       else
-        @sess = OT::Session.create req.client_ipaddress, req.user_agent
+        @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
       end
       if sess
         sess.update_fields  # calls update_time!

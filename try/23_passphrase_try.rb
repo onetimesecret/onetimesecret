@@ -16,4 +16,4 @@ s.passphrase
 s = Onetime::Secret.new :shared
 s.update_passphrase 'poop'
 [s.passphrase_encryption, s.passphrase?('poop')]
-#=> [1, true]
+#=> ["1", true]
