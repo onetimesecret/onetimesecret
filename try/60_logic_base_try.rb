@@ -2,10 +2,6 @@
 
 require_relative '../lib/onetime'
 
-# frozen_string_literal: true
-
-require_relative '../lib/onetime'
-
 # Load the app
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot! :app
