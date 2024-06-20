@@ -72,7 +72,8 @@ class Onetime::Session < Familia::HashKey
     @sessid  # Don't call the method
   end
   # Used by the limiter to estimate a unique client. We can't use
-  # the session ID b/c they can choose to not send the cookie.
+  # the session ID b/c the request agent can choose to not send
+  # the cookie (which hash the session ID).
   def external_identifier
     elements = []
     elements << ipaddress || 'UNKNOWNIP'
@@ -82,7 +83,7 @@ class Onetime::Session < Familia::HashKey
     @external_identifier
   end
   def stale?
-    self[:stale].to_s == "true"
+    self[:stale].to_s == 'true'
   end
   def update_fields hsh={}
     hsh[:sessid] ||= sessid
@@ -98,7 +99,7 @@ class Onetime::Session < Familia::HashKey
     @sessid = newid
     # This update is important b/c it ensures that the
     # data gets written to redis.
-    update_fields :stale => false
+    update_fields :stale => 'false'
     sessid
   end
   def shrimp? guess

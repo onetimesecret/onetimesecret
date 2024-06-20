@@ -320,33 +320,47 @@ module Onetime
     end
 
     class DestroyAccount < OT::Logic::Base
-      attr_reader :modified
+      attr_reader :raised_concerns_was_called
 
       def process_params
-        @currentp = params[:currentp].to_s.strip.slice(0,60)
+        unless params.nil?
+          @currentp = params[:currentp].to_s.strip.slice(0,60)
+        end
       end
       def raise_concerns
+        @raised_concerns_was_called = true
+
+        # It's vitally important for the limiter to run prior to any
+        # other concerns. This prevents a malicious user from
+        # attempting to brute force the password.
+        #
         limit_action :destroy_account
-        if @currentp.empty?
+        if @currentp && @currentp.empty?
           raise_form_error "Password confirmation is required."
         else
-          OT.info "[destroy-account] Passphrase check attempt #{cust.custid} #{cust.role} #{sess.ipaddress}"
+          OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
 
           unless cust.passphrase?(@currentp)
             sess.set_info_message "Nothing changed"
-            raise_form_error "Password does not match"
+            raise_form_error "Password does not match."
           end
         end
       end
-      def process
-        if cust.passphrase?(@currentp)
 
+      def process
+        # This is very defensive programming. When it comes to
+        # destroying things though, let's pull out all the stops.
+        unless raised_concerns_was_called
+          raise_form_error "We have concerns about that request."
+        end
+
+        if cust.passphrase?(@currentp)
           # NOTE: we don't use cust.destroy! here.
           #
           # Auto-expire customer record out of redis after
           # a grace period for the system to take care of any
           # remaining business to do with the account.
-          # #
+          #
           cust.ttl = 24.hours  # auto expire custome
 
           cust.passphrase = ''
@@ -361,22 +375,24 @@ module Onetime
           OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{sess.ipaddress}"
 
           sess.replace!
-          sess.set_info_message "Account deleted"
+          sess.set_info_message 'Account deleted'
 
         else
+
           # In theory we should never get here since raise_concerns
           # should have caught an incorrect password.
-          sess.set_error_message "Nothing changed"
+          sess.set_error_message 'Nothing changed'
 
         end
-        sess.set_form_fields form_fields # for tabindex
+
+        sess.set_form_fields form_fields  # for tabindex
       end
       def modified? guess
         modified.member? guess
       end
       private
       def form_fields
-        { :tabindex => params[:tabindex] }
+        { :tabindex => params[:tabindex] } unless params.nil?
       end
     end
     class GenerateAPIkey < OT::Logic::Base
@@ -412,7 +428,7 @@ module Onetime
         @maxviews = params[:maxviews].to_i
         @maxviews = 1 if @maxviews < 1
         @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
-         if ['share', 'generate'].member?(params[:kind].to_s)
+        if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym
         end
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
