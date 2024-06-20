@@ -422,6 +422,10 @@ module Onetime
       @event = event
       @count = count
     end
+
+    def message
+      "[limit-exceeded] #{identifier} for #{event} (#{count})"
+    end
   end
 end
 
