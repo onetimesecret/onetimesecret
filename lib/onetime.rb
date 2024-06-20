@@ -35,7 +35,7 @@ module Onetime
     ERRNO = {}
   end
   @mode = :app
-  class ClassMethods
+  module ClassMethods
     attr_accessor :mode
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret
     attr_writer :debug
