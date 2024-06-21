@@ -41,7 +41,7 @@ module Onetime
         limit_action :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
-        raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
+        raise_form_error "Is that a valid email address?" unless valid_email?(custid)
         raise_form_error "Passwords do not match" unless password == password2
         raise_form_error "Password is too short" unless password.size >= 6
         raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
@@ -62,9 +62,9 @@ module Onetime
         view = OT::Email::Welcome.new cust, locale, secret
         view.deliver_email
         if OT.conf[:colonels].member?(cust.custid)
-          cust.role = :colonel
+          cust.role = 'colonel'
         else
-          cust.role = :customer unless cust.role?(:customer)
+          cust.role = 'customer'
         end
         OT::Logic.stathat_count("New Customers (OTS)", 1)
       end
@@ -355,20 +355,9 @@ module Onetime
         end
 
         if cust.passphrase?(@currentp)
-          # NOTE: we don't use cust.destroy! here.
-          #
-          # Auto-expire customer record out of redis after
-          # a grace period for the system to take care of any
-          # remaining business to do with the account.
-          #
-          cust.ttl = 24.hours  # auto expire custome
 
-          cust.passphrase = ''
-          cust.regenerate_apitoken
-          cust.verified = false
-          cust.role = 'user_deleted_customer'
-
-          cust.save
+          # Process the customer's request to destroy their account.
+          cust.destroy_requested!
 
           # Log the event immediately after saving the change to
           # to minimize the chance of the event not being logged.

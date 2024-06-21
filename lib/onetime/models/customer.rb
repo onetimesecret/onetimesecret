@@ -52,11 +52,11 @@ class Onetime::Customer < Familia::HashKey
       raise OT::Problem, "Anonymous customer has no external identifier"
     end
     elements = [custid]
-    @external_identifier ||= elements.gibbler #.base(36)
+    @external_identifier ||= elements.gibbler
     @external_identifier
   end
   def anonymous?
-    custid.to_s == 'anon'
+    custid.to_s.eql?('anon')
   end
   def email
     @custid
@@ -65,16 +65,27 @@ class Onetime::Customer < Familia::HashKey
     self.get_value(:role) || 'customer'
   end
   def role? guess
-    role.to_s == guess.to_s
+    role.to_s.eql?(guess.to_s)
   end
   def verified?
-    verified.to_s == "verified"
+    !anonymous? && verified.to_s.eql?('true')
+  end
+  def active?
+    # We modify the role when destroying so if a customer is verified
+    # and has a role of 'customer' then they are active.
+    verified? && role?('customer')
+  end
+  def pending?
+    # A customer is considered pending if they are not anonymous, not verified,
+    # and have a role of 'customer'. If any one of these conditions is changes
+    # then the customer is no longer pending.
+    !anonymous? && !verified? && role?('customer')  # we modify the role when destroying
   end
   def load_session
-    sess = OT::Session.load sessid unless sessid.to_s.empty?
+    OT::Session.load sessid unless sessid.to_s.empty?
   end
   def load_subdomain
-    subdom = OT::Subdomain.load custid unless custid.to_s.empty?
+    OT::Subdomain.load custid unless custid.to_s.empty?
   end
   def metadata_list
     if @metadata_list.nil?
@@ -99,6 +110,24 @@ class Onetime::Customer < Familia::HashKey
   def encryption_key
     OT::Secret.encryption_key OT.global_secret, custid
   end
+  def destroy_requested!
+    # NOTE: we don't use cust.destroy! here since we want to keep the
+    # customer record around for a grace period to take care of any
+    # remaining business to do with the account.
+    #
+    # We do however auto-expire the customer record after
+    # the grace period.
+    #
+    # For example if we need to send a pro-rated refund
+    # or if we need to send a notification to the customer
+    # to confirm the account deletion.
+    self.ttl = 7.days
+    self.regenerate_apitoken
+    self.passphrase = ''
+    self.verified = 'false'
+    self.role = 'user_deleted_self'
+    save
+  end
   class << self
     def anonymous
       cust = new
@@ -115,6 +144,7 @@ class Onetime::Customer < Familia::HashKey
       cust = new custid
       # force the storing of the fields to redis
       cust.custid = custid
+      cust.role = 'customer'
       cust.save
       add cust
       cust

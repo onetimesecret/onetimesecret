@@ -70,13 +70,13 @@ module Onetime
             self[:via_reddit] = !sess.referrer.match(/^(https:\/\/)?((www|old)\.)?reddit\.com/).nil?
             self[:via_github] = !sess.referrer.match(/^(https:\/\/)?github\.com/).nil?
           end
-          # binding.pry
-          p 1
-          if cust.has_key?(:verified) && !cust.verified? && self.class != Onetime::App::Views::Shared
+
+          if cust.pending? && self.class != Onetime::App::Views::Shared
             add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
           else
             add_error sess.error_message!
           end
+
           add_message sess.info_message!
           add_form_fields sess.get_form_fields!
         end
