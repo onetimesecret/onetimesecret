@@ -1,6 +1,6 @@
 
 GET   /                                          Onetime::App#index
-POST  /                                          Onetime::App#create_secret
+POST  /share                                     Onetime::App#create_secret
 
 GET   /incoming                                  Onetime::App#incoming
 POST  /incoming                                  Onetime::App#create_incoming
