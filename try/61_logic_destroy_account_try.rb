@@ -132,7 +132,7 @@ cust.update_passphrase @params[:currentp]
 obj.raise_concerns
 obj.process
 [cust.role, cust.verified, cust.passphrase]
-#=> ['user_deleted_customer', 'false', '']
+#=> ['user_deleted_self', 'false', '']
 
 ## Destroyed account gets a new api key
 cust = OT::Customer.new generate_random_email
