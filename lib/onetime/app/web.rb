@@ -29,7 +29,7 @@ module Onetime
         view.emailer.from = OT.conf[:emailer][:from]
         view.emailer.reply_to = cust.custid
         view.emailer.fromname = ''
-        ret = view.deliver_email
+        ret = view.deliver_email token=true
         res.body = view.i18n[:COMMON][:msg_check_email]
       end
     end

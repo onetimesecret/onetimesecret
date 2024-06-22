@@ -12,10 +12,14 @@ module Onetime
     #field :passphrase
     #field :viewed => Integer
     #field :shared => Integer
-    attr_reader :entropy
+    attr_reader :entropy, :token
     gibbler :custid, :secret_key, :entropy
-    def initialize custid=nil, entropy=[]
-      @custid, @entropy, @state = custid, entropy, :new
+    def initialize custid=nil, entropy=[], token=nil
+      @custid = custid
+      @entropy = entropy
+      @token = token
+
+      @state = :new
       @key = gibbler.base(36)
       super name, :db => 7, :ttl => 7.days
     end
@@ -48,6 +52,7 @@ module Onetime
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] No addresses specified"
       end
+      OT.info "[deliver-by-email] Has token=(#{self.token})"
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
       eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
       self.recipients = eaddrs_safe.join(', ')
@@ -57,7 +62,7 @@ module Onetime
         view.ticketno = ticketno if (ticketno)
         view.emailer.from = cust.custid
         view.emailer.fromname = ''
-        ret = view.deliver_email
+        ret = view.deliver_email self.token  # pass the token from spawn_pair through
         break # force just a single recipient
       end
     end

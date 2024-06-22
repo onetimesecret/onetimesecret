@@ -4,10 +4,15 @@ module Onetime
     include Onetime::Models::RedisHash
     include Onetime::Models::Passphrase
     include Gibbler::Complex
-    attr_reader :entropy
+    attr_reader :entropy, :token
     gibbler :custid, :passphrase_temp, :entropy
-    def initialize custid=nil, entropy=nil
-      @custid, @entropy, @state = custid, entropy, :new
+    def initialize custid=nil, entropy=nil, token=nil
+      @custid = custid
+      @entropy = entropy
+      @token = token
+
+      # Sets the instance variable `@state` to the symbol :new, indicating a new state
+      @state = :new
       @key = gibbler.base(36)
       super name, :db => 8, :ttl => 7.days
     end
@@ -164,9 +169,10 @@ module Onetime
         obj.update_fields :custid => custid # calls update_time!
         obj
       end
-      def spawn_pair custid, extra_entropy
+      def spawn_pair custid, extra_entropy, token=nil
         entropy = [OT.instance, Time.now.to_f, OT.entropy, extra_entropy].flatten
-        metadata, secret = OT::Metadata.new(custid, entropy), OT::Secret.new(custid, entropy)
+        metadata = OT::Metadata.new(custid, entropy, token)
+        secret = OT::Secret.new(custid, entropy, token)
         metadata.secret_key, secret.metadata_key = secret.key, metadata.key
         [metadata, secret]
       end

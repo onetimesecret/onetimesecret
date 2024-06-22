@@ -115,6 +115,25 @@ class Onetime::App
       end
     end
 
+    def create
+      authorized(true) do
+        req.params[:kind] = :share
+        logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
+        logic.token = ''.class.eql?(String)
+        logic.raise_concerns
+        logic.process
+        if req.get?
+          res.redirect app_path(logic.redirect_uri)
+        else
+          secret = logic.secret
+          json metadata_hsh(logic.metadata,
+                              :secret_ttl => secret.realttl,
+                              :passphrase_required => secret && secret.has_passphrase?)
+        end
+      end
+    end
+
+
     private
     def metadata_hsh md, opts={}
       hsh = md.all

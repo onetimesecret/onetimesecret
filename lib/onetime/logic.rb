@@ -31,6 +31,7 @@ module Onetime
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
       attr_reader :planid, :custid, :password, :password2
+      attr_accessor :token
       def process_params
         @planid = params[:planid].to_s
         @custid = params[:u].to_s.downcase.strip
@@ -52,7 +53,7 @@ module Onetime
         cust.update_passphrase password
         sess.update_fields :custid => cust.custid #, :authenticated => 'true'
         cust.update_fields :planid => @plan.planid, :verified => "false"
-        metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
+        metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
         msg = "Thanks for verifying your account. "
         msg << %Q{We got you a secret fortune cookie!\n\n"%s"} % OT::Utils.random_fortune
         secret.encrypt_value msg
@@ -60,7 +61,7 @@ module Onetime
         secret.custid = cust.custid
         secret.save
         view = OT::Email::Welcome.new cust, locale, secret
-        view.deliver_email
+        view.deliver_email self.token
         if OT.conf[:colonels].member?(cust.custid)
           cust.role = 'colonel'
         else
@@ -172,6 +173,7 @@ module Onetime
 
     class ResetPasswordRequest < OT::Logic::Base
       attr_reader :custid
+      attr_accessor :token
       def process_params
         @custid = params[:u].to_s.downcase
       end
@@ -190,7 +192,8 @@ module Onetime
         view.emailer.fromname = OT.conf[:emailer][:fromname]
 
         begin
-          view.deliver_email
+          OT.ld "Calling deliver_email with token=(#{self.token})"
+          view.deliver_email self.token
         rescue => ex
           errmsg = "Couldn't send the notification email. Let know below."
           sess.set_info_message errmsg
@@ -409,6 +412,7 @@ module Onetime
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :maxviews
       attr_reader :metadata, :secret
+      attr_accessor :token
       def process_params
         @ttl = params[:ttl].to_i
         @ttl = plan.options[:ttl] if @ttl <= 0
@@ -442,7 +446,7 @@ module Onetime
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
@@ -479,6 +483,7 @@ module Onetime
     class CreateIncoming < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :ticketno
       attr_reader :metadata, :secret, :recipient, :ttl
+      attr_accessor :token
       def process_params
         @ttl = 7.days
         @secret_value = params[:secret]
@@ -504,7 +509,7 @@ module Onetime
         end
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
