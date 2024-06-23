@@ -22,6 +22,15 @@ module Onetime
       end
     end
 
+    def robots_txt
+      publically do
+        view = Onetime::App::Views::Meta::Robot.new req, sess, cust, locale
+          sess.event_incr! :robots_txt
+          res.header['Content-Type'] = 'text/plain'
+          res.body = view.render
+      end
+    end
+
     def test_send_email
       publically do
         OT.info "test_send_email"

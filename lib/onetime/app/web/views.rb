@@ -59,6 +59,13 @@ module Onetime
           end
         end
       end
+
+      module Meta
+        # The robots.txt file
+        class Robot < Onetime::App::View
+        end
+      end
+
       module Info
         class Privacy < Onetime::App::View
           def init *args
