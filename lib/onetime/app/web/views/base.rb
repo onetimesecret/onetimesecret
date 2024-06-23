@@ -65,11 +65,6 @@ module Onetime
         end
         unless sess.nil?
           self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
-          unless sess.referrer.nil?
-            self[:via_hn] = !sess.referrer.match(/^(https:\/\/)?news\.ycombinator\.com/).nil?
-            self[:via_reddit] = !sess.referrer.match(/^(https:\/\/)?((www|old)\.)?reddit\.com/).nil?
-            self[:via_github] = !sess.referrer.match(/^(https:\/\/)?github\.com/).nil?
-          end
 
           if cust.pending? && self.class != Onetime::App::Views::Shared
             add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
@@ -107,13 +102,9 @@ module Onetime
           }
           self[plan.planid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
         end
-        @plans = if self[:via_test] || self[:via_hn]
-          [:personal_hn, :professional_v1, :agency_v1]
-        elsif self[:via_reddit]
-          [:personal_reddit, :professional_v1, :agency_v1]
-        else
-          [:individual_v1, :professional_v1, :agency_v1]
-        end
+
+        @plans = [:individual_v1, :professional_v1, :agency_v1]
+
         unless cust.anonymous?
           plan_idx = case cust.planid
           when /personal/
