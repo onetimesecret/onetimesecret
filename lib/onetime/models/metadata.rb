@@ -20,7 +20,7 @@ module Onetime
       super name, :db => 7, :ttl => 7.days
     end
     def update_fields hsh={}
-      hsh[:custid] ||= custid
+      hsh[:custid] ||= custid || ''  # anything but nil, see #441
       super hsh
     end
     def identifier

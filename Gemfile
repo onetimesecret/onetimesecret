@@ -31,7 +31,7 @@ gem 'yajl-ruby'
 gem 'mustache'
 
 gem 'drydock'
-gem 'familia', '>= 0.10.1'
+gem 'familia', '~> 0.10.2'
 gem 'gibbler'
 gem 'otto', '~> 1.0.1'
 gem 'redis', '~> 5.2.0'
