@@ -153,14 +153,14 @@ For Debian / Ubuntu:
 
 NOTE: The redis-server service should start automatically after installing it. You can check that it's up by running: `service redis-server status`. If it's not running, you can start it with `service redis-server start`.
 
-#### 1. Clone the repo
+#### 1. Now get the code via git:
 
 ```bash
   $ git clone https://github.com/onetimesecret/onetimesecret.git
 ```
 
 
-#### 2. Copy the configuration files into place and modify as neededf:
+#### 2. Copy the configuration files into place and modify as needed:
 
 ```bash
   $ cd onetimesecret
