@@ -121,9 +121,46 @@ See the dedicated [Docker Compose repo](https://github.com/onetimesecret/docker-
 Get the code, one of:
 
 * Download the [latest release](https://github.com/onetimesecret/onetimesecret/archive/refs/tags/latest.tar.gz)
-* Clone this repo: `git clone https://github.com/onetimesecret/onetimesecret.git`
 
-#### 1. Copy the configuration files into place and modify as neededf:
+* Clone this repo:
+
+```bash
+  $ git clone https://github.com/onetimesecret/onetimesecret.git
+```
+
+### For a fresh install
+
+If you're installing on a fresh system, you'll need to install a few system dependencies before you can run the webapp.
+
+#### 0. Install system dependencies
+
+The official Ruby docs have a great guide on [installing Ruby](https://www.ruby-lang.org/en/documentation/installation/). Here's a quick guide for Debian/Ubuntu:
+
+
+For Debian / Ubuntu:
+
+```bash
+
+  # Make sure you have the latest packages (even if you're on a fresh install)
+  $ sudo apt update
+
+  # Install the basic tools of life
+  $ sudo apt install -y git curl sudo
+
+  # Install Ruby (3) and Redis
+  $ sudo apt install -y ruby-full redis-server
+```
+
+NOTE: The redis-server service should start automatically after installing it. You can check that it's up by running: `service redis-server status`. If it's not running, you can start it with `service redis-server start`.
+
+#### 1. Now get the code via git:
+
+```bash
+  $ git clone https://github.com/onetimesecret/onetimesecret.git
+```
+
+
+#### 2. Copy the configuration files into place and modify as needed:
 
 ```bash
   $ cd onetimesecret
@@ -132,39 +169,15 @@ Get the code, one of:
   $ cp --preserve --no-clobber .env.example .env
 ```
 
-#### 2. Install system dependencies
-
-For Debian / Ubuntu:
-
-```bash
-
-  # Install packages for build environment
-  $ sudo apt-get update
-  $ sudo apt-get install -y build-essential autoconf m4 sudo curl gnupg2 ca-certificates lsb-release
-
-  # Install Ruby 3+
-  $ curl -sSL https://pkg.ruby-lang.org/gpg/ruby-apt.gpg | sudo apt-key add -
-  $ echo "deb https://pkg.ruby-lang.org/bookworm/ $(lsb_release -sc) main" | \
-                  sudo tee /etc/apt/sources.list.d/ruby-lang.list
-
-  $ sudo apt-get update
-  $ sudo apt-get install -y ruby3.2
-
-  # Install Redis
-  $ sudo apt-get install redis-server
-
-  # Update Rubygems and setup bundler
-  $ sudo gem update --system
-  $ sudo gem install bundler
-
-```
-
-NOTE: The redis-server service should start automatically after installing it. You can check that it's up by running: `sudo system redis-server status`.
-
 
 #### 3. Install ruby dependencies
 
 ```bash
+
+  # We use bundler manage the rest of the ruby dependencies
+  $ sudo gem install bundler
+
+  # Install the rubygems listing inthe Gemfile
   $ bundle install
 ```
 
