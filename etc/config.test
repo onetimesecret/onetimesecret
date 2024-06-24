@@ -3,6 +3,8 @@
   :domain: 127.0.0.1
   :ssl: true
   :secret: SuP0r_53cRU7
+  :registration:
+    :enabled: true
 :redis:
   :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
   :config: ./try/redis.conf

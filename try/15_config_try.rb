@@ -45,9 +45,27 @@ Onetime::Config.mapped_key(:every_developer_a_key)
 
 ## Config.find_configs returns an array of paths
 paths = Onetime::Config.find_configs('config.test')
-paths.contains?(File.join(__dir__, '..', 'etc', 'config.test'))
+path = File.expand_path(File.join(__dir__, '..', 'etc', 'config.test'))
+$stderr.puts path, paths
+paths.include?(path)
 #=> true
 
 ## Config.exists? knows if the config file exists
-Config.exists?
+OT::Config.exists?
 #=> true
+
+## Site has options for registration
+OT.conf[:site].key? :registration
+#=> true
+
+## Registration has options for enabled
+OT.conf[:site][:registration].key? :enabled
+#=> true
+
+## Registration is enabled by default
+OT.conf[:site][:registration][:enabled]
+#=> true
+
+## Option for emailer
+OT.conf[:emailer][:from]
+#=> "CHANGEME@example.com"
