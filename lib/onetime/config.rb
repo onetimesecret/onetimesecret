@@ -25,13 +25,17 @@ module Onetime
 
     def after_load(conf = nil)
       conf ||= {}
-      return unless conf.has_key?(:mail)
+      unless conf.has_key?(:mail)
+        OT.le "Mail configuration is missing"
+        return
+      end
       mtc = conf[:mail][:truemail]
       OT.info "Setting TrueMail config from #{path}"
 
       # Iterate over the keys in the mail/truemail config
       # and set the corresponding key in the Truemail config.
       Truemail.configure do |config|
+        return unless mtc
         mtc.each do |key, value|
           actual_key = mapped_key(key)
           unless config.respond_to?("#{actual_key}=")
