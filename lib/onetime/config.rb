@@ -44,7 +44,7 @@ module Onetime
     end
 
     def exists?
-      !config_path.nil?
+      !path.nil?
     end
 
     def dirname
@@ -61,10 +61,11 @@ module Onetime
       KEY_MAP[key] || key
     end
 
-    def find_configs
+    def find_configs(filename = nil)
+      filename ||= 'config'
       paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
       paths.collect do |f|
-        f = File.join File.expand_path(f), 'config'
+        f = File.join File.expand_path(f), filename
         Onetime.ld "Looking for #{f}"
         f if File.exist?(f)
       end.compact
@@ -80,6 +81,9 @@ module Onetime
     blocked_emails: :blacklisted_emails,
     allowed_domains: :whitelisted_domains,
     blocked_domains: :blacklisted_domains,
-    blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses
+    blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses,
+
+    # An example mapping for testing.
+    example_internal_key: :example_external_key
   }
 end
