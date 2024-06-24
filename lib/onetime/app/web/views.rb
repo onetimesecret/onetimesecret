@@ -31,6 +31,7 @@ module Onetime
         self[:js], self[:css] = [], []
         self[:is_default_locale] = OT.conf[:locales].first.to_s == locale
         self[:supported_locales] = OT.conf[:locales]
+        self[:authentication] = OT.conf[:site][:authentication]
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect

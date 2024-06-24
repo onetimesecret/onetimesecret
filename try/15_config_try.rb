@@ -46,7 +46,6 @@ Onetime::Config.mapped_key(:every_developer_a_key)
 ## Config.find_configs returns an array of paths
 paths = Onetime::Config.find_configs('config.test')
 path = File.expand_path(File.join(__dir__, '..', 'etc', 'config.test'))
-$stderr.puts path, paths
 paths.include?(path)
 #=> true
 
@@ -54,16 +53,16 @@ paths.include?(path)
 OT::Config.exists?
 #=> true
 
-## Site has options for registration
-OT.conf[:site].key? :registration
+## Site has options for authentication
+OT.conf[:site].key? :authentication
 #=> true
 
-## Registration has options for enabled
-OT.conf[:site][:registration].key? :enabled
+## Authentication has options for enabled
+OT.conf[:site][:authentication].key? :enabled
 #=> true
 
-## Registration is enabled by default
-OT.conf[:site][:registration][:enabled]
+## Authentication is enabled by default
+OT.conf[:site][:authentication][:enabled]
 #=> true
 
 ## Option for emailer
