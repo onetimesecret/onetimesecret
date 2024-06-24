@@ -93,12 +93,12 @@
   </style>
 </head>
 
-<body style="margin:0; padding:0;" bgcolor="#F0F0F0" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<body style="margin:0; padding:0;" bgcolor="#ffffff" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
 
 <!-- 100% background wrapper (grey background) -->
-<table border="0" width="100%" height="100%" cellpadding="0" cellspacing="0" bgcolor="#F0F0F0">
+<table border="0" width="100%" height="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff">
   <tr>
-    <td align="center" valign="top" bgcolor="#F0F0F0" style="background-color: #F0F0F0;">
+    <td align="center" valign="top" bgcolor="#ffffff" style="background-color: #ffffff;">
 
       <br>
 
@@ -111,23 +111,26 @@
           </td>
         </tr>
         <tr>
-          <td class="container-padding content" align="left" style="-padding-left:24px;padd-ing-right:24px;paddi-ng-top:12px;paddi-ng-bottom:12px;background-color:#ffffff"><img
-            alt="Onetimesecret.com"
+          <td class="container-padding content" align="left" style="padding-left:24px;padding-right:24px;padding-top:12px;padding-bottom:12px;background-color:#ffffff">
+
+            <img
+            alt="Onetime Secret"
             src="https://onetimesecret.com/v3/img/onetime-logo-v3-sm.png"
             style="
               border: 0;
               display: block;
               outline: 0;
-              margin: 0 auto;
+              margin: 0 auto 42px 0;
               padding: 0;
               text-decoration: none;
-              height: auto;
-              width: auto;
+              height: 60px;
+              width: 60px;
               font-size: 13px;
               text-align: center;
+              background-color: #DC4A22;
             "
-            width="200"
-            height="auto"
+            width="160px"
+            height="160px"
           />
 
             <div class="title" style="font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:600;color:#374550"><p>{{i18n.email.body1}}</p></div>
@@ -143,23 +146,21 @@
               <p>Delano<br/>
               {{baseuri}}</p>
 
-              <p>P.S. </p>
-              <br><br>
+              <p>P.S. {{i18n.email.postscript1}} {{email_address}}. {{i18n.email.postscript2}}</p>
+              <br>
 
             </div>
 
           </td>
         </tr>
         <tr>
-          <td class="container-padding footer-text" align="left" style="font-family:Helvetica, Arial, sans-serif;font-size:12px;line-height:16px;color:#aaaaaa;padding-left:24px;padding-right:24px">
-            <br><br>
-            OneTimeSecret.com: © 2011-2024
+          <td class="container-padding footer-text" align="left" style="font-family:Helvetica, Arial, sans-serif;font-size:12px;line-height:16px;color:#a0a0a0;padding-left:24px;padding-right:24px">
+
+            <br>
+            <a href="{{baseuri}}/{{verify_uri}}/unsubscribe" style="color:#aaaaaa">Unsubscribe</a> from all future emails.
             <br><br>
 
-            <div class="footer-text">{{i18n.email.postscript1}} {{email_address}}. {{i18n.email.postscript2}}</div>
-            <br><br>
-            <br><br>
-
+            <div class="footer-text"></div>
           </td>
         </tr>
       </table>
