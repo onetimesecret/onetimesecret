@@ -25,6 +25,7 @@ OT.boot! :app
 @invalid_bad_syntax = '$tryouts@onetimesecret.com'
 @invalid_no_domain = 'tryouts@'
 @invalid_no_user = '@onetimesecret.com'
+@invalid_no_tld = 'tryouts@onetimesecret'
 
 @unknown_tld = 'tryouts@onetimesecret.p.bs'
 @unknown_domain = 'tryouts@1800dotsup3rbogusd0main.net'
@@ -101,3 +102,31 @@ Truemail.validate(@user_does_not_exist, with: :smtp).result.valid?
 ## Knowns a text message email address is valid
 Truemail.validate(@sms_email, with: :smtp).result.valid?
 #=> true
+
+## Truemail knows a valid email address (via regex)
+Truemail.validate(@valid_exists, with: :regex).result.valid?
+#=> true
+
+## Truemail knows a valid email address (via mx)
+Truemail.validate(@valid_exists, with: :mx).result.valid?
+#=> true
+
+## Truemail knows a valid email address (via smtp)
+Truemail.validate(@valid_exists, with: :smtp).result.valid?
+#=> true
+
+## Truemail knows an invalid email address (via regex)
+Truemail.validate(@invalid_no_domain, with: :regex).result.valid?
+#=> false
+
+## Truemail knows an invalid email address (via mx)
+Truemail.validate(@invalid_no_tld, with: mx).result.valid?
+#=> false
+
+## Truemail knows an invalid email address (via smtp)
+Truemail.validate(@invalid_no_tld, with: :smtp).result.valid?
+#=> false
+
+## Truemail knows an invalid email address (via smtp)
+Truemail.validate(@invalid_no_tld).result.valid?
+#=> false
