@@ -14,7 +14,6 @@ module Onetime
     attr_accessor :from, :fromname
     def initialize from, fromname=nil
       @from, @fromname = from, fromname
-      OT.info "[initialize]"
     end
 
     def send_email to_address, subject, content
