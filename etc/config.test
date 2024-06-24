@@ -20,13 +20,13 @@
 :mail:
   :truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
-    :default_validation_type: :regex
+    :default_validation_type: :mx
     # Required for :smtp validation
     :verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
     :verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
-    #:connection_timeout: 2
-    #:response_timeout: 2
-    #:connection_attempts: 3
+    :connection_timeout: 1
+    :response_timeout: 1
+    :connection_attempts: 1
     :validation_type_for:
       'example.com': :regex
     # Truemail will only validate email addresses that match the
@@ -59,7 +59,7 @@
     # End smtp validation after the first invalid response rather than
     # retrying, followed by trying the next server. Can reduce the time
     # time to validate an email address, but may not catch all issues.
-    :smtp_fail_fast: false
+    :smtp_fail_fast: true
     #
     # Parse the content of the SMTP error message to determine if the
     # email address is valid. This can be useful for some SMTP servers
@@ -81,7 +81,7 @@
     :logger:
       # One of: :error (default), :unrecognized_error,
       # :recognized_error, :all.
-      tracking_event: :error
+      tracking_event: :unrecognized_error
       stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
 :locales:

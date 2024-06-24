@@ -1,23 +1,38 @@
 # frozen_string_literal: true
 
+require 'digest'
+
 require 'dotenv'
 Dotenv.load('.env')
-
-# OT.ld "11111111 #{ENV.keys.sort}"
 
 # Relys on environment variables:
 # - VERIFIER_EMAIL
 # - VERIFIER_DOMAIN
 #
-# e.g. run `source .env` before running this tryout
+# e.g. Make sure to set these in your .env file:
 
 require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot! :app
 
 @now = DateTime.now
+@unique_random_inbox = Digest::SHA2.hexdigest(@now.to_s)
+
 @from_address = OT.conf[:emailer][:from]
-@email_address = 'tryouts@onetimesecret.com'
+@valid_exists = 'tryouts@onetimesecret.com'
+@user_does_not_exist = "#{@unique_random_inbox}@yahoo.com"
+
+@invalid_bad_syntax = '$tryouts@onetimesecret.com'
+@invalid_no_domain = 'tryouts@'
+@invalid_no_user = '@onetimesecret.com'
+
+@unknown_tld = 'tryouts@onetimesecret.p.bs'
+@unknown_domain = 'tryouts@1800dotsup3rbogusd0main.net'
+
+@sms_email = '5551234567@txt.att.net'
+
+
+# TRYOUTS
 
 ## Sets the Truemail verifier email address
 Truemail.configuration.verifier_email.nil?
@@ -33,65 +48,56 @@ Truemail.configuration.verifier_domain
 
 ## Truemail connection_timeout
 Truemail.configuration.connection_timeout
-#=> 2
+#=> 1
 
-## Truemail knows an invalid email address
-Truemail.valid?(Onetime.global_secret)
+## Truemail connection_attempts
+Truemail.configuration.connection_attempts
+#=> 1
+
+## Knows an email address needs a domain
+Truemail.valid?(@invalid_no_domain)
 #=> false
 
-## Truemail knows a valid email address
-validator = Truemail.validate('test@onetimesecret.com', with: :regex)
-validator.result.valid?
+## Knows an email address needs a user
+Truemail.valid?(@invalid_no_user)
+#=> false
+
+## Knows a valid email address
+Truemail.validate(@valid_exists, with: :regex).result.valid?
 #=> true
 
-## Truemail knows another invalid email address
-validator = Truemail.validate('-_test@onetimesecret.com', with: :regex)
-validator.result.valid?
+## Knows another invalid email address
+Truemail.validate(@invalid_bad_syntax, with: :regex).result.valid?
 #=> false
 
-## Truemail knows yet another invalid email address
-validator = Truemail.validate('test@onetimesecret.c.n', with: :regex)
-validator.result.valid?
-#=> false
-
-## Truemail knows an allow listed email
-validator = Truemail.validate(
-  'tryouts+test1@onetimesecret.com',
-  #   with: :regex,
-  custom_configuration: @truemail_test_config
-)
-validator.result.valid?
+## Knows a valid email address with an invalid TLD, _looks_ valid
+Truemail.validate(@unknown_tld, with: :regex).result.valid?
 #=> true
 
-## Truemail knows a deny listed email
-validator = Truemail.validate(
-  'tryouts+test3@onetimesecret.com',
-  #   with: :regex,
-  custom_configuration: @truemail_test_config
-)
-validator.result.valid?
+## Knows a valid email address with an invalid TLD, is not actually valid
+Truemail.validate(@unknown_tld, with: :mx).result.valid?
 #=> false
-#
-## Truemail knows a valid email address (via regex)
-Truemail.validate(@email_address, with: :regex).result.valid?
+
+## Knows a valid email address with a domain that doesn't exist, _looks_ valid
+Truemail.validate(@unknown_domain, with: :regex).result.valid?
 #=> true
 
-## Truemail knows a valid email address (via mx)
-Truemail.validate(@email_address, with: :mx).result.valid?
+## Knows a valid email address with a domain that doesn't exist, _looks_ valid
+Truemail.validate(@unknown_domain, with: :mx).result.valid?
+#=> false
+
+## Knows a valid email address syntax, but fake user is technically correct
+Truemail.validate(@user_does_not_exist, with: :regex).result.valid?
 #=> true
 
-## Truemail knows a valid email address (via smtp)
-Truemail.validate(@email_address, with: :smtp).result.valid?
+### Knows a valid email address syntax, but fake user is still a pass according to DNS
+Truemail.validate(@user_does_not_exist, with: :mx).result.valid?
 #=> true
 
-## Truemail knows an invalid email address (via regex)
-Truemail.validate('tryouts@onetimesecret').result.valid?
-#=> false
+## Knows a valid email address syntax, but fake user is a pass (why doesn't the smtp server say it doesn't know the user?)
+Truemail.validate(@user_does_not_exist, with: :smtp).result.valid?
+#=> true
 
-## Truemail knows an invalid email address (via mx)
-Truemail.validate('tryouts@onetimesecret').result.valid?
-#=> false
-
-## Truemail knows an invalid email address (via smtp)
-Truemail.validate('tryouts@onetimesecret').result.valid?
-#=> false
+## Knowns a text message email address is valid
+Truemail.validate(@sms_email, with: :smtp).result.valid?
+#=> true
