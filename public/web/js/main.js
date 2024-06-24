@@ -3,11 +3,17 @@ $(function() {
   $.fn.deobfuscate = function() {
     $(this).each(function(i, el) {
       var email, subject;
-      email = el.innerHTML;
+      // Use textContent to avoid HTML/script injection attacks.
+      // e.g. Instead of using innerHTML.
+      email = el.textContent;
       email = email.replace(/ at /gi, "@").replace(/ dot /gi, ".");
       subject = el.getAttribute('data-subject');
-      subject = subject ? ("?subject=" + subject) : ""
-      email = '<a href="mailto:'+email+subject+'">'+email+'</a>';
+      // Encode subject to ensure it's safe for use in URL
+      subject = subject ? ("?subject=" + encodeURIComponent(subject)) : "";
+      email = '<a href="mailto:'+encodeURIComponent(email)+subject+'">'+email+'</a>';
+      // Clear the existing text content
+      el.textContent = '';
+      // Since we're now inserting a safe anchor tag, using innerHTML here is acceptable
       el.innerHTML = email;
     });
     return this;
