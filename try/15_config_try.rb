@@ -8,22 +8,9 @@ OT.boot! :cli
 
 @email_address = OT.conf[:emailer][:from]
 
-@truemail_test_config = Truemail::Configuration.new do |config|
-  config.verifier_email = @email_address
-
-  config.whitelisted_emails = [
-    'tryouts+test1@onetimesecret.com',
-    'tryouts+test2@onetimesecret.com'
-  ]
-  config.blacklisted_emails = [
-    'tryouts+test3@onetimesecret.com',
-    'tryouts+test4@onetimesecret.com'
-  ]
-end
 
 ## Finds a config path
-relative_path = Onetime::Config.path.gsub("#{__dir__}/", '')
-relative_path
+Onetime::Config.path.gsub("#{__dir__}/", '')
 #=> "../etc/config.test"
 
 ## Can load config
@@ -48,47 +35,19 @@ Onetime.global_secret.nil?
 Onetime.global_secret
 #=> 'SuP0r_53cRU7'
 
-## Sets the Truemail verifier email address
-Truemail.configuration.verifier_email.nil?
-#=> false
+## Config.mapped_key takens an internal key and returns the corresponding external key
+Onetime::Config.mapped_key(:example_internal_key)
+#=> :example_external_key
 
-## Sets the Truemail verifier email address to the default from address
-Truemail.configuration.verifier_email
-#=> 'changeme@example.com'
+## Config.mapped_key returns the key itself if it is not in the KEY_MAP
+Onetime::Config.mapped_key(:every_developer_a_key)
+#=> :every_developer_a_key
 
-## Truemail knows an invalid email address
-Truemail.valid?(Onetime.global_secret)
-#=> false
-
-## Truemail knows a valid email address
-validator = Truemail.validate('test@onetimesecret.com', with: :regex)
-validator.result.valid?
+## Config.find_configs returns an array of paths
+paths = Onetime::Config.find_configs('config.test')
+paths.contains?(File.join(__dir__, '..', 'etc', 'config.test'))
 #=> true
 
-## Truemail knows another invalid email address
-validator = Truemail.validate('-_test@onetimesecret.com', with: :regex)
-validator.result.valid?
-#=> false
-
-## Truemail knows yet another invalid email address
-validator = Truemail.validate('test@onetimesecret.c.n', with: :regex)
-validator.result.valid?
-#=> false
-
-## Truemail knows an allow listed email
-validator = Truemail.validate(
-  'tryouts+test1@onetimesecret.com',
-  #   with: :regex,
-  custom_configuration: @truemail_test_config
-)
-validator.result.valid?
+## Config.exists? knows if the config file exists
+Config.exists?
 #=> true
-
-## Truemail knows a deny listed email
-validator = Truemail.validate(
-  'tryouts+test3@onetimesecret.com',
-  #   with: :regex,
-  custom_configuration: @truemail_test_config
-)
-validator.result.valid?
-#=> false

@@ -64,7 +64,7 @@ module Onetime
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load # load config before anything else.
 
-      OT::Config.after_load
+      OT::Config.after_load(@conf)
 
       @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze

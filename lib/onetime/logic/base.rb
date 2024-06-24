@@ -17,7 +17,12 @@ module Onetime
 
       def valid_email?(guess)
         OT.ld "[valid_email?] Guess: #{guess}"
-        Truemail.validate(guess, with: :regex).result.valid?
+        begin
+          Truemail.validate(guess).result.valid?
+        rescue => e
+          OT.le "Email validation error: #{e.message}"
+          false
+        end
       end
 
       protected
