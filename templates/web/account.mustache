@@ -10,9 +10,6 @@
       {{#plan.options.api}}
       <li><a href="#apikey">API Key</a></li>
       {{/plan.options.api}}
-      {{#colonel}}
-      <li><a href="#labs">Labs</a></li>
-      {{/colonel}}
     </ul>
 
     <div class="tab-content">
@@ -30,14 +27,14 @@
             <input type="hidden" name="tabindex" value="account" />
             <fieldset>
               <div class="control-group">
-                <label class="control-label" for="custidField">Current Password</label>
+                <label class="control-label" for="curFieldA">Current Password</label>
                 <div class="controls">
                   <input
                     type="password"
                     name="currentp"
-                    id="custidField"
+                    id="curFieldA"
                     class="input-medium"
-                    value
+                    autocomplete="current-password"
                     placeholder />
                 </div>
                 <label class="control-label" for="passField">New Password</label>
@@ -47,7 +44,7 @@
                     name="newp"
                     id="passField"
                     class="input-large"
-                    value
+                    autocomplete="new-password"
                     placeholder />
                 </div>
                 <label class="control-label" for="pass2Field">Confirm</label>
@@ -57,7 +54,7 @@
                     name="newp2"
                     id="pass2Field"
                     class="input-large"
-                    value
+                    autocomplete="new-password"
                     placeholder />
                 </div>
               </div>
@@ -117,8 +114,8 @@
                   <input
                     type="password"
                     name="currentp"
-                    id="custidField"
                     class="input-medium"
+                    autocomplete="off"
                     placeholder="Password" />
                 </div>
               </div>
