@@ -23,16 +23,23 @@ module Onetime
       Kernel.exit(1)
     end
 
-    def after_load(email_address = nil)
-      email_address ||= OT.conf[:emailer][:from]
-      OT.info "Setting TrueMail verifier email to #{email_address}"
+    def after_load(conf = nil)
+      conf ||= {}
+      return unless conf.has_key?(:mail)
+      mtc = conf[:mail][:truemail]
+      OT.info "Setting TrueMail config from #{path}"
 
+      # Iterate over the keys in the mail/truemail config
+      # and set the corresponding key in the Truemail config.
       Truemail.configure do |config|
-        config.verifier_email = email_address
-        # config.connection_timeout = 2 # Set the timeout to 2 seconds
-        config.smtp_fail_fast = true
-        config.not_rfc_mx_lookup_flow = true
-        config.dns = %w[208.67.222.222 8.8.8.8 8.8.4.4 208.67.220.220]
+        mtc.each do |key, value|
+          actual_key = mapped_key(key)
+          unless config.respond_to?("#{actual_key}=")
+            OT.le "config.#{actual_key} does not exist"
+          end
+          OT.ld "Setting Truemail config key #{actual_key} to #{value}"
+          config.send("#{actual_key}=", value)
+        end
       end
     end
 
@@ -48,6 +55,12 @@ module Onetime
       @path ||= find_configs.first
     end
 
+    def mapped_key(key)
+      # `key` is a symbol. Returns a symbol.
+      # If the key is not in the KEY_MAP, return the key itself.
+      KEY_MAP[key] || key
+    end
+
     def find_configs
       paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
       paths.collect do |f|
@@ -57,4 +70,16 @@ module Onetime
       end.compact
     end
   end
+
+  # A simple map of our config options using our naming conventions
+  # to the names that are used by other libraries. This makes it easier
+  # for us to have our own consistent naming conventions.
+  KEY_MAP = {
+    allowed_domains_only: :whitelist_validation,
+    allowed_emails: :whitelisted_emails,
+    blocked_emails: :blacklisted_emails,
+    allowed_domains: :whitelisted_domains,
+    blocked_domains: :blacklisted_domains,
+    blocked_mx_ip_addresses: :blacklisted_mx_ip_addresses
+  }
 end
