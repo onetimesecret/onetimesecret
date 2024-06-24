@@ -20,41 +20,16 @@
     </p>
 
     <div id="topicContent">
-      <h3 class="cufon docTitle dotted">PHP</h3>
-
-      <a href="/libs/onetime-api.php" title="PHP library - One-Time Secret"
-        ><strong>Download onetime-api.php</strong></a
-      ><br />
-      <em
-        >by
-        <a href="http://christopher.murtagh.name/">Christopher Murtagh</a>
-        (added 2011-12-21)</em
-      >
-
-      <h4>Usage Example</h4>
-      <pre class="colourize">
-&lt;?php
-  include 'onetime-api.php';
-
-  $myOnetime = new OneTimeSecret();
-  $myOnetime->setCustomerID('YOUR_EMAIL');
-  $myOnetime->setToken('YOUR_OTS_APIKEY');
-  $myOnetime->setRecipient('example@onetimesecret.com');
-  $myOnetime->setTTL(7200);
-  $myResult = $myOnetime->shareSecret('Jazz, jazz and more jazz.', 'thepassword');
-  echo $myOnetime->getSecretURI($myResult);
-?&gt;
-      </pre>
 
       <h3 class="cufon docTitle dotted">Ruby</h3>
 
       <a
         href="https://github.com/onetimesecret/onetime-ruby"
         title="Ruby library - One-Time Secret"
-        ><strong>Download onetime-api.rb</strong></a
+        ><strong>Github page onetime-ruby</strong></a
       ><br />
       <em
-        >by <a href="http://delanotes.com/">Delano Mandelbaum</a> (updated
+        >by <a href="https://delanotes.com/">Delano</a> (updated
         2024-06-09)</em
       >
 
