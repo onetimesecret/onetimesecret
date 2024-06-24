@@ -19,6 +19,9 @@ OT.boot! :app
 @from_address = OT.conf[:emailer][:from]
 @email_address = 'tryouts@onetimesecret.com'
 
+## Sets the Truemail verifier email address
+Truemail.configuration.verifier_email.nil?
+#=> false
 
 ## Truemail has the configured verifier email
 Truemail.configuration.verifier_email
@@ -32,6 +35,43 @@ Truemail.configuration.verifier_domain
 Truemail.configuration.connection_timeout
 #=> 2
 
+## Truemail knows an invalid email address
+Truemail.valid?(Onetime.global_secret)
+#=> false
+
+## Truemail knows a valid email address
+validator = Truemail.validate('test@onetimesecret.com', with: :regex)
+validator.result.valid?
+#=> true
+
+## Truemail knows another invalid email address
+validator = Truemail.validate('-_test@onetimesecret.com', with: :regex)
+validator.result.valid?
+#=> false
+
+## Truemail knows yet another invalid email address
+validator = Truemail.validate('test@onetimesecret.c.n', with: :regex)
+validator.result.valid?
+#=> false
+
+## Truemail knows an allow listed email
+validator = Truemail.validate(
+  'tryouts+test1@onetimesecret.com',
+  #   with: :regex,
+  custom_configuration: @truemail_test_config
+)
+validator.result.valid?
+#=> true
+
+## Truemail knows a deny listed email
+validator = Truemail.validate(
+  'tryouts+test3@onetimesecret.com',
+  #   with: :regex,
+  custom_configuration: @truemail_test_config
+)
+validator.result.valid?
+#=> false
+#
 ## Truemail knows a valid email address (via regex)
 Truemail.validate(@email_address, with: :regex).result.valid?
 #=> true
