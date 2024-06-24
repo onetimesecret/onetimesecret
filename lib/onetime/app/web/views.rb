@@ -506,9 +506,6 @@ module Onetime
               cust.update_passgen_token sess.sessid.gibbler
             end
             self[:token] = cust.passgen_token
-            self[:js] << '/etc/packer/base2.js'
-            self[:js] << '/etc/packer/packer.js'
-            self[:js] << '/etc/packer/words.js'
           end
         end
       end

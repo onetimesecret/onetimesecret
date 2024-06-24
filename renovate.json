@@ -13,6 +13,10 @@
     {
       "matchPackageNames": ["encryptor"],
       "recreateWhen": "never"
+    },
+    {
+      "matchPackageNames": ["rack"],
+      "recreateWhen": "never"
     }
   ],
   "labels": [
