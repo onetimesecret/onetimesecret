@@ -12,11 +12,11 @@ module Onetime
 
     def index
       publically do
-        if authenticated?
-          OT.ld "[homepage-dashboard] #{authenticated?}"
+        if sess.authenticated?
+          OT.ld "[homepage-dashboard] #{sess.authenticated?}"
           dashboard  # continues request inside dashboard>authenticated method
         else
-          OT.ld "[homepage] #{authenticated?}"
+          OT.ld "[homepage] #{sess.authenticated?}"
           view = Onetime::App::Views::Homepage.new req, sess, cust, locale
           sess.event_incr! :homepage
           res.body = view.render

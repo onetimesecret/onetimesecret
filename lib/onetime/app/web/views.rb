@@ -50,7 +50,7 @@ module Onetime
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:email, cust.email)
         self[:display_links] = true
-        self[:display_options] = true # sess.authenticated?
+        self[:display_options] = true
         self[:display_recipients] = sess.authenticated?
         self[:display_masthead] = true
         if self[:is_subdomain]

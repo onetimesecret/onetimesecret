@@ -23,7 +23,7 @@ module Onetime
           check_locale!      # 2. Check the request for the desired locale
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           check_subdomain!   # 4. Check if we're running as a subdomain
-          authenticated? ? yield : res.redirect(('/'))
+          sess.authenticated? ? yield : res.redirect(('/'))
         end
       end
 
@@ -32,7 +32,7 @@ module Onetime
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
+          sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
         end
       end
 
