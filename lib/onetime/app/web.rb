@@ -24,6 +24,27 @@ module Onetime
       end
     end
 
+    def robots_txt
+      publically do
+        view = Onetime::App::Views::Meta::Robot.new req, sess, cust, locale
+          sess.event_incr! :robots_txt
+          res.header['Content-Type'] = 'text/plain'
+          res.body = view.render
+      end
+    end
+
+    def test_send_email
+      publically do
+        OT.info "test_send_email"
+        view = OT::Email::TestEmail.new cust, locale
+        view.emailer.from = OT.conf[:emailer][:from]
+        view.emailer.reply_to = cust.custid
+        view.emailer.fromname = ''
+        ret = view.deliver_email token=true
+        res.body = view.i18n[:COMMON][:msg_check_email]
+      end
+    end
+
     def dashboard
       authenticated do
         logic = OT::Logic::Dashboard.new sess, cust, req.params, locale

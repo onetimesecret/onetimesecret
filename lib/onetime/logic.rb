@@ -31,6 +31,7 @@ module Onetime
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
       attr_reader :planid, :custid, :password, :password2
+      attr_accessor :token
       def process_params
         @planid = params[:planid].to_s
         @custid = params[:u].to_s.downcase.strip
@@ -41,7 +42,7 @@ module Onetime
         limit_action :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
         raise_form_error "Username not available" if OT::Customer.exists?(custid)
-        raise_form_error "Is that a valid email address?"  unless valid_email?(custid)
+        raise_form_error "Is that a valid email address?" unless valid_email?(custid)
         raise_form_error "Passwords do not match" unless password == password2
         raise_form_error "Password is too short" unless password.size >= 6
         raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
@@ -50,21 +51,20 @@ module Onetime
         @plan = OT::Plan.plan(planid)
         @cust = OT::Customer.create custid
         cust.update_passphrase password
-        sess.update_fields :custid => cust.custid #, :authenticated => 'true'
+        sess.update_fields :custid => cust.custid
         cust.update_fields :planid => @plan.planid, :verified => "false"
-        metadata, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
-        msg = "Thanks for verifying your account. "
-        msg << %Q{We got you a secret fortune cookie!\n\n"%s"} % OT::Utils.random_fortune
+        _, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
+        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
         secret.encrypt_value msg
         secret.verification = true
         secret.custid = cust.custid
         secret.save
         view = OT::Email::Welcome.new cust, locale, secret
-        view.deliver_email
+        view.deliver_email self.token
         if OT.conf[:colonels].member?(cust.custid)
-          cust.role = :colonel
+          cust.role = 'colonel'
         else
-          cust.role = :customer unless cust.role?(:customer)
+          cust.role = 'customer'
         end
         OT::Logic.stathat_count("New Customers (OTS)", 1)
       end
@@ -172,11 +172,12 @@ module Onetime
 
     class ResetPasswordRequest < OT::Logic::Base
       attr_reader :custid
+      attr_accessor :token
       def process_params
         @custid = params[:u].to_s.downcase
       end
       def raise_concerns
-        #limit_action :update_account
+        limit_action :forgot_password_request
         raise_form_error "Not a valid email address" unless valid_email?(@custid)
         raise_form_error "Not a valid email address" unless OT::Customer.exists?(@custid)
       end
@@ -190,7 +191,8 @@ module Onetime
         view.emailer.fromname = OT.conf[:emailer][:fromname]
 
         begin
-          view.deliver_email
+          OT.ld "Calling deliver_email with token=(#{self.token})"
+          view.deliver_email self.token
         rescue => ex
           errmsg = "Couldn't send the notification email. Let know below."
           sess.set_info_message errmsg
@@ -211,7 +213,7 @@ module Onetime
       def raise_concerns
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
-        limit_action :update_account
+        limit_action :forgot_password_reset
         raise_form_error "New passwords do not match" unless @newp == @newp2
         raise_form_error "New password is too short" unless @newp.size >= 6
         raise_form_error "New password cannot match current password" if @newp == @currentp
@@ -355,20 +357,9 @@ module Onetime
         end
 
         if cust.passphrase?(@currentp)
-          # NOTE: we don't use cust.destroy! here.
-          #
-          # Auto-expire customer record out of redis after
-          # a grace period for the system to take care of any
-          # remaining business to do with the account.
-          #
-          cust.ttl = 24.hours  # auto expire custome
 
-          cust.passphrase = ''
-          cust.regenerate_apitoken
-          cust.verified = false
-          cust.role = 'user_deleted_customer'
-
-          cust.save
+          # Process the customer's request to destroy their account.
+          cust.destroy_requested!
 
           # Log the event immediately after saving the change to
           # to minimize the chance of the event not being logged.
@@ -420,6 +411,7 @@ module Onetime
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :maxviews
       attr_reader :metadata, :secret
+      attr_accessor :token
       def process_params
         @ttl = params[:ttl].to_i
         @ttl = plan.options[:ttl] if @ttl <= 0
@@ -453,7 +445,7 @@ module Onetime
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
@@ -490,6 +482,7 @@ module Onetime
     class CreateIncoming < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :ticketno
       attr_reader :metadata, :secret, :recipient, :ttl
+      attr_accessor :token
       def process_params
         @ttl = 7.days
         @secret_value = params[:secret]
@@ -515,7 +508,7 @@ module Onetime
         end
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier]
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase

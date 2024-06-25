@@ -2,23 +2,22 @@
   {{{add_shrimp}}}
   <input type="hidden" name="planid" value="{{planid}}" />
   <fieldset>
-    <!--<legend>Legend</legend>-->
     <div class="control-group">
       <label class="control-label" for="custidField">{{i18n.COMMON.field_email}}</label>
       <div class="controls">
-        <input type="text" name="u" id="custidField" class="input-xlarge" value="{{form_fields.custid}}" placeholder="" />
+        <input type="text" name="u" id="custidField" class="input-xlarge" value="{{form_fields.custid}}" placeholder="" autocomplete="username" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="passField">{{i18n.COMMON.field_password}}</label>
       <div class="controls">
-        <input type="password" name="p" id="passField" class="input-medium" value="" placeholder="" />
+        <input type="password" name="p" id="passField" class="input-medium" value="" placeholder="" autocomplete="new-password"/>
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="pass2Field">{{i18n.COMMON.field_password2}}</label>
       <div class="controls">
-        <input type="password" name="p2" id="pass2Field" class="input-medium" value="" placeholder="" />
+        <input type="password" name="p2" id="pass2Field" class="input-medium" value="" placeholder="" autocomplete="new-password" />
       </div>
     </div>
     <div class="control-group">

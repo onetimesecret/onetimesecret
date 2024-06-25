@@ -81,12 +81,15 @@ module Onetime
 
     def signup
       publically do
-        if OT::Plan.plan?(req.params[:planid])  # Specific Plan is selected
+        # If a plan has been selected, the next onboarding step is the actual signup
+        if OT::Plan.plan?(req.params[:planid])
           sess.set_error_message "You're already signed up" if sess.authenticated?
           view = Onetime::App::Views::Signup.new req, sess, cust, locale
           res.body = view.render
-        else                                    # Default signup page
-          view = Onetime::App::Views::Plans.new req, sess, cust, locale
+
+        # Otherwise we default to showing the various account plans available
+        else
+          view = Onetime::App::Views::Signup.new req, sess, cust, locale
           res.body = view.render
         end
       end

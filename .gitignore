@@ -16,3 +16,4 @@ log
 tmp
 vendor
 *.rdb
+data/

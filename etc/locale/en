@@ -108,4 +108,4 @@
     :body1: "Welcome to One-Time Secret. We have a secret for you!"
     :please_verify: "Please verify your account:"
     :postscript1: "This email was sent to"
-    :postscript2: "If you didn't create this account, delete this message and we won't contact you again."
+    :postscript2: "If you did not make this request, you can safely ignore this email."

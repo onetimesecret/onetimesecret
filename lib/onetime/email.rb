@@ -8,6 +8,7 @@ module Onetime
    MAIL_ERROR = """
     We're experiencing an email delivery issues. You can
     <a href='mailto:problems@onetimesecret.com'>let us know.</a>
+
     """
 
   class BaseEmailer
@@ -168,6 +169,7 @@ module Onetime
     self.view_namespace = Onetime::Email
     self.view_path = './onetime/email'
     attr_reader :cust, :locale, :emailer, :mode, :from, :to
+    attr_accessor :token
     def initialize cust, locale, *args
       @cust, @locale = cust, locale
       OT.le "#{self.class} locale is: #{locale.to_s}"
@@ -191,13 +193,17 @@ module Onetime
         COMMON: OT.locales[locale][:web][:COMMON]
       }
     end
-    def deliver_email
+    def deliver_email token=nil
       errmsg = "Your message wasn't sent because we have an email problem"
-
+      OT.info "[deliver-email] with token:(#{token})"
       begin
         email_address_obscured = OT::Utils.obscure_email self[:email_address]
-        OT.info "Emailing #{email_address_obscured} [#{self.class}]"
-        ret = emailer.send_email self[:email_address], subject, render
+        OT.info "Emailing/#{self.token} #{email_address_obscured} [#{self.class}]"
+
+        unless token
+          emailer.send_email self[:email_address], subject, render
+        end
+
       rescue SocketError => ex
         OT.le "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
         raise OT::Problem, errmsg
