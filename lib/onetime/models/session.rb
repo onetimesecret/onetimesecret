@@ -20,12 +20,26 @@ class Onetime::Session < Familia::HashKey
   end
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
+
   attr_reader :entropy
+
+  # When set to true, the session reports itself as not authenticated
+  # regardless of the value of the authenticated field. This allows
+  # the site to disable authentication without affecting the session
+  # data. For example, if we want to disable authenticated features
+  # temporarily (in case of abuse, etc.) we can set this to true so
+  # the user will remain signed in after we enable authentication again.
+  #
+  # During the time that authentication is disabled, the session will
+  # be anonymous and the customer will be anonymous.
+  attr_accessor :disable_auth
+
   def initialize ipaddress=nil, useragent=nil, custid=nil
     @ipaddress, @custid, @useragent = ipaddress, custid, useragent  # must be nil or have values!
     @entropy = [ipaddress, custid, useragent]
     # TODO: This calls Entropy every time
     @sessid = "anon"
+    @disable_auth = false
     super name, :db => 1, :ttl => 20.minutes
   end
   class << self
@@ -71,6 +85,9 @@ class Onetime::Session < Familia::HashKey
   def identifier
     @sessid  # Don't call the method
   end
+  def short_identifier
+    identifier[0,12]
+  end
   # Used by the limiter to estimate a unique client. We can't use
   # the session ID b/c the request agent can choose to not send
   # the cookie (which hash the session ID).
@@ -95,11 +112,16 @@ class Onetime::Session < Familia::HashKey
   def replace!
     @custid ||= self[:custid]
     newid = self.class.generate_id @entropy
+
+    # Rename the existing key in redis if necessary
     rename name(newid) if exists?
-    @sessid = newid
+    self.sessid = newid
+
+    clear_cache
+
     # This update is important b/c it ensures that the
     # data gets written to redis.
-    update_fields :stale => 'false'
+    update_fields :stale => 'false', :sessid => newid
     sessid
   end
   def shrimp? guess
@@ -118,10 +140,10 @@ class Onetime::Session < Familia::HashKey
     nil
   end
   def authenticated?
-    self.authenticated.to_s == 'true'
+    !disable_auth && authenticated.to_s == 'true'
   end
   def anonymous?
-    sessid.to_s == 'anon' || sessid.to_s.empty?
+    disable_auth || sessid.to_s == 'anon' || sessid.to_s.empty?
   end
   def load_customer
     return OT::Customer.anonymous if anonymous?

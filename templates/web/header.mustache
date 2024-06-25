@@ -143,9 +143,24 @@
         <a href="/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
         {{/is_subdomain}}
         {{^is_subdomain}}
-        <a href="/signup" title="Signup - Individual and Business plans" class="active">{{i18n.COMMON.header_create_account}}</a> |
-        <a href="/about" title="About One-Time Secret">{{i18n.COMMON.header_about}}</a> |
-        <a href="/login" title="Log in to One-Time Secret">{{i18n.COMMON.header_sign_in}}</a>
+
+          {{#authentication.enabled}}
+
+            {{#authentication.signup}}
+            <a href="/signup" title="Signup - Individual and Business plans" class="active">{{i18n.COMMON.header_create_account}}</a> |
+            {{/authentication.signup}}
+
+            <a href="/about" title="About One-Time Secret">{{i18n.COMMON.header_about}}</a> |
+
+            {{#authentication.signin}}
+              <a href="/login" title="Log in to One-Time Secret">{{i18n.COMMON.header_sign_in}}</a>
+            {{/authentication.signin}}
+          {{/authentication.enabled}}
+
+          {{^authentication.enabled}}
+            <a href="/about" title="About One-Time Secret">{{i18n.COMMON.header_about}}</a>
+          {{/authentication.enabled}}
+
         {{/is_subdomain}}
       {{/authenticated}}
 

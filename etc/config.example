@@ -6,6 +6,19 @@
   # Ensure to create and store a backup in a secure offsite
   # location. Changing the secret can lead to unforeseen issues.
   :secret: <%= ENV['SECRET'] || 'CHANGEME' %>
+  # Registration and Authentication settings
+  :authentication:
+    # Can be disabled altogether, including API authentication.
+    :enabled: true
+    # Allow users to create accounts. This can be disabled if you plan
+    # to create accounts manually or enable during setup when accounts
+    # can be created and then disabled to prevent any new users from
+    # creating accounts.
+    :signup: true
+    # Generally if you allow registration, you allow signin. But there
+    # are circumstances where it's helpful to turn off authentication
+    # temporarily.
+    :signin: true
 :redis:
   :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
 :colonels:
@@ -27,7 +40,7 @@
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
     :default_validation_type: :regex
     # Required for :smtp validation
-    #:verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
+    :verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
     #:verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
     #:connection_timeout: 2
     #:response_timeout: 2

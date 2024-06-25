@@ -40,6 +40,7 @@ module Onetime::Models
     end
     def update_time!
       check_identifier!
+      OT.ld "[#{self.class}] Updating time for #{self.identifier}"
       self.put :updated, OT.now.to_i
     end
     def cache
