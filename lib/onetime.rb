@@ -83,6 +83,9 @@ module Onetime
       ld "Redis:  #{Familia.uri.serverid}" # doesn't print the password
       ld "Limits: #{OT::RateLimit.events}"
       ld "Colonels: #{OT.conf[:colonels]}"
+      if OT.conf[:site].key?(:authentication)
+        ld "Authentication: #{OT.conf[:site][:authentication]}"
+      end
       OT::Plan.load_plans!
       # Digest lazy-loads classes. We need to make sure these
       # are loaded so we can increase the $SAFE level.
