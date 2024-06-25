@@ -29,6 +29,9 @@ class Onetime::Session < Familia::HashKey
   # data. For example, if we want to disable authenticated features
   # temporarily (in case of abuse, etc.) we can set this to true so
   # the user will remain signed in after we enable authentication again.
+  #
+  # During the time that authentication is disabled, the session will
+  # be anonymous and the customer will be anonymous.
   attr_accessor :disable_auth
 
   def initialize ipaddress=nil, useragent=nil, custid=nil
@@ -109,11 +112,16 @@ class Onetime::Session < Familia::HashKey
   def replace!
     @custid ||= self[:custid]
     newid = self.class.generate_id @entropy
+
+    # Rename the existing key in redis if necessary
     rename name(newid) if exists?
-    @sessid = newid
+    self.sessid = newid
+
+    clear_cache
+
     # This update is important b/c it ensures that the
     # data gets written to redis.
-    update_fields :stale => 'false'
+    update_fields :stale => 'false', :sessid => newid
     sessid
   end
   def shrimp? guess
