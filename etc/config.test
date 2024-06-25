@@ -136,3 +136,5 @@
   :show_secret: 1000
   :burn_secret: 1000
   :destroy_account: 5
+  :forgot_password_request: 2
+  :forgot_password_reset: 3

@@ -177,7 +177,7 @@ module Onetime
         @custid = params[:u].to_s.downcase
       end
       def raise_concerns
-        #limit_action :update_account
+        limit_action :forgot_password_request
         raise_form_error "Not a valid email address" unless valid_email?(@custid)
         raise_form_error "Not a valid email address" unless OT::Customer.exists?(@custid)
       end
@@ -213,7 +213,7 @@ module Onetime
       def raise_concerns
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
-        limit_action :update_account
+        limit_action :forgot_password_reset
         raise_form_error "New passwords do not match" unless @newp == @newp2
         raise_form_error "New password is too short" unless @newp.size >= 6
         raise_form_error "New password cannot match current password" if @newp == @currentp

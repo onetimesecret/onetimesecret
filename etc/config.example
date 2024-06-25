@@ -152,3 +152,6 @@
   :show_metadata: 1000
   :show_secret: 1000
   :burn_secret: 1000
+  :destroy_account: 2
+  :forgot_password_request: 2
+  :forgot_password_reset: 3
