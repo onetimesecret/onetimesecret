@@ -249,24 +249,23 @@ module Onetime
           self[:title] = "Create an account"
           self[:body_class] = :signup
           self[:with_analytics] = false
-          if OT::Plan.plan?(req.params[:planid])
-            self[:planid] = req.params[:planid]
-            plan = OT::Plan.plan(req.params[:planid])
-            self[:plan] = {
-              :price => plan.price.zero? ? 'Free' : plan.calculated_price,
-              :original_price => plan.price.to_i,
-              :ttl => plan.options[:ttl].in_days.to_i,
-              :size => plan.options[:size].to_bytes.to_i,
-              :api => plan.options[:api].to_s == 'true',
-              :name => plan.options[:name],
-              :private => plan.options[:private].to_s == 'true',
-              :cname => plan.options[:cname].to_s == 'true',
-              :is_paid => plan.paid?,
-              :planid => req.params[:planid]
-            }
-          else
-            add_error "Unknown plan"
-          end
+          planid = req.params[:planid]
+          planid = 'individual_v1' unless OT::Plan.plan?(planid)
+          self[:planid] = planid
+          plan = OT::Plan.plan(self[:planid])
+          self[:plan] = {
+            :price => plan.price.zero? ? 'Free' : plan.calculated_price,
+            :original_price => plan.price.to_i,
+            :ttl => plan.options[:ttl].in_days.to_i,
+            :size => plan.options[:size].to_bytes.to_i,
+            :api => plan.options[:api].to_s == 'true',
+            :name => plan.options[:name],
+            :private => plan.options[:private].to_s == 'true',
+            :cname => plan.options[:cname].to_s == 'true',
+            :is_paid => plan.paid?,
+            :planid => self[:planid]
+          }
+
         end
       end
       class Plans < Onetime::App::View

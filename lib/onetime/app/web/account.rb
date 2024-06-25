@@ -89,7 +89,7 @@ module Onetime
 
         # Otherwise we default to showing the various account plans available
         else
-          view = Onetime::App::Views::Plans.new req, sess, cust, locale
+          view = Onetime::App::Views::Signup.new req, sess, cust, locale
           res.body = view.render
         end
       end
