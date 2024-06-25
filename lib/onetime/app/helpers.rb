@@ -30,6 +30,7 @@ class Onetime::App
 
     def carefully redirect=nil # rubocop:disable Metrics/MethodLength
       redirect ||= req.request_path
+
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.
@@ -115,6 +116,7 @@ class Onetime::App
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete?
       attempted_shrimp = req.params[:shrimp]
+
       ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
       ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
       unless sess.shrimp?(attempted_shrimp) || ignoreshrimp
@@ -137,45 +139,39 @@ class Onetime::App
         @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
       end
 
-      if sess
-        sess.update_fields  # calls update_time!
-        # Only set the cookie after session is saved to redis
-        is_secure = Onetime.conf[:site][:ssl]
-        res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
-        @cust = sess.load_customer
-      end
+      # Immediately check the the auth status of the session. If the site
+      # configuration changes to disable authentication, the session will
+      # report as not authenticated regardless of the session data.
+      #
+      # NOTE: The session keys have their own dedicated Redis DB, so they
+      # can be flushed to force everyone to logout without affecting the
+      # rest of the data. This is a security feature.
+      sess.disable_auth = !authentication_enabled?
 
-      @sess ||= OT::Session.new :check_session
+      # Update the session fields in redis
+      sess.update_fields  # calls update_time!
 
-      @cust ||= OT::Customer.anonymous
+      # Only set the cookie after session is for sure saved to redis
+      is_secure = Onetime.conf[:site][:ssl]
+
+      # Update the session cookie
+      res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+
+      # Re-hydrate the customer object
+      @cust = sess.load_customer || OT::Customer.anonymous
+
+      # We also force the session to be unauthenticated based on
+      # the customer object.
       if cust.anonymous?
         sess.authenticated = false
       elsif cust.verified.to_s != 'true' && !sess['authenticated_by']
         sess.authenticated = false
       end
 
-      # Set an authenticated flag in the request environment so that all of
-      # the code handling the request has access to it. The authenticated?
-      # method uses the session and the site configuration to determine if
-      # the request is authenticated. This is a security feature. It allows
-      # us to turn all authentication off (and on) with a single config change.
-      #
-      # The rest of the application should use this flag to determine if the
-      # request is authenticated.
-      req.env['onetime.authenticated'] = authenticated?
+      # Should always report false and false when disabled.
+      OT.info "[sess] #{sess.short_identifier} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?})"
+      OT.ld "[sessid] #{sess.short_identifier} #{cust.custid}"
 
-      OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
-    end
-
-    def authenticated?
-      # NOTE: The sessioon keys have their own dedicated Redis DB, so they
-      # can be flushed to force everyone to logout without affecting the
-      # rest of the data. This is a security feature.
-      is_authenticated = authentication_enabled? && sess.authenticated?
-
-      OT.ld "[authenticated?] #{is_authenticated} (#{authentication_enabled?}, #{sess.authenticated?})"
-
-      is_authenticated
     end
 
     def authentication_enabled?
