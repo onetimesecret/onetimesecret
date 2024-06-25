@@ -10,7 +10,7 @@ class Onetime::App
   end
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    LOCAL_HOSTS = ['localhost', '127.0.0.1', 'www.ot.com', 'www.ots.com'].freeze
+    LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
   end
 
   module Helpers
@@ -129,26 +129,71 @@ class Onetime::App
     def check_session!
       return if @check_session_ran
       @check_session_ran = true
+
+      # Load from redis or create the session
       if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
         @sess = OT::Session.load req.cookie(:sess)
       else
         @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
       end
+
       if sess
         sess.update_fields  # calls update_time!
-        # Only set the cookie after it's been saved
+        # Only set the cookie after session is saved to redis
         is_secure = Onetime.conf[:site][:ssl]
         res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
         @cust = sess.load_customer
       end
+
       @sess ||= OT::Session.new :check_session
+
       @cust ||= OT::Customer.anonymous
       if cust.anonymous?
         sess.authenticated = false
       elsif cust.verified.to_s != 'true' && !sess['authenticated_by']
         sess.authenticated = false
       end
+
+      # Set an authenticated flag in the request environment so that all of
+      # the code handling the request has access to it. The authenticated?
+      # method uses the session and the site configuration to determine if
+      # the request is authenticated. This is a security feature. It allows
+      # us to turn all authentication off (and on) with a single config change.
+      #
+      # The rest of the application should use this flag to determine if the
+      # request is authenticated.
+      req.env['onetime.authenticated'] = authenticated?
+
       OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
+    end
+
+    def authenticated?
+      # NOTE: The sessioon keys have their own dedicated Redis DB, so they
+      # can be flushed to force everyone to logout without affecting the
+      # rest of the data. This is a security feature.
+      is_authenticated = authentication_enabled? && sess.authenticated?
+
+      OT.ld "[authenticated?] #{is_authenticated} (#{authentication_enabled?}, #{sess.authenticated?})"
+
+      is_authenticated
+    end
+
+    def authentication_enabled?
+      # NOTE: Defaulting to disabled is the Right Thing to Do™. If the site
+      #      configuration is missing, we should assume that authentication
+      #      is disabled. This is a security feature. Even though it will be
+      #      annoying for anyone upgrading to 0.15 that hasn't had a chance
+      #      to update their existing configuration yet.
+      authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
+      signin_enabled = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
+
+      # The only condition that allows a request to be authenticated is if
+      # the site has authentication enabled, and the user is signed in. If a
+      # user is signed in and the site configuration changes to disable it,
+      # the user will be signed out temporarily. If the setting is restored
+      # before the session key expires in Redis, that user will be signed in
+      # again. This is a security feature.
+      authentication_enabled && signin_enabled
     end
 
     def secure_request?
