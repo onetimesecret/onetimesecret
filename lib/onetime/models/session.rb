@@ -135,7 +135,7 @@ class Onetime::Session < Familia::HashKey
     !disable_auth && authenticated.to_s == 'true'
   end
   def anonymous?
-    sessid.to_s == 'anon' || sessid.to_s.empty?
+    disable_auth || sessid.to_s == 'anon' || sessid.to_s.empty?
   end
   def load_customer
     return OT::Customer.anonymous if anonymous?
