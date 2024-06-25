@@ -35,7 +35,7 @@ module Onetime
       # Iterate over the keys in the mail/truemail config
       # and set the corresponding key in the Truemail config.
       Truemail.configure do |config|
-        return unless mtc
+        break unless mtc
         mtc.each do |key, value|
           actual_key = mapped_key(key)
           unless config.respond_to?("#{actual_key}=")
@@ -90,4 +90,6 @@ module Onetime
     # An example mapping for testing.
     example_internal_key: :example_external_key
   }
+
+
 end

@@ -70,27 +70,37 @@ module Onetime
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
       @emailer = OT::SMTPEmailer
+
       OT::SMTPEmailer.setup
+
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
       Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
       Familia.uri = OT.conf[:redis][:uri]
       OT::RateLimit.register_events OT.conf[:limits]
       OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+
       info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
       info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
       info "Config: #{OT::Config.path}"
       ld "Redis:  #{Familia.uri.serverid}" # doesn't print the password
       ld "Limits: #{OT::RateLimit.events}"
       ld "Colonels: #{OT.conf[:colonels]}"
+      if OT.conf[:site].key?(:authentication)
+        ld "Authentication: #{OT.conf[:site][:authentication]}"
+      end
+
       OT::Plan.load_plans!
+
       # Digest lazy-loads classes. We need to make sure these
       # are loaded so we can increase the $SAFE level.
       Digest::SHA256
       Digest::SHA384
       Digest::SHA512
+
       # Seed the random number generator
       Kernel.srand
+
       begin
         # Make sure we're able to connect to separate Redis databases.
         # Some services like Upstash provide only db 0.

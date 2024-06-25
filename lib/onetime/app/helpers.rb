@@ -10,7 +10,7 @@ class Onetime::App
   end
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    LOCAL_HOSTS = ['localhost', '127.0.0.1', 'www.ot.com', 'www.ots.com'].freeze
+    LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
   end
 
   module Helpers
@@ -30,6 +30,7 @@ class Onetime::App
 
     def carefully redirect=nil # rubocop:disable Metrics/MethodLength
       redirect ||= req.request_path
+
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.
@@ -115,6 +116,7 @@ class Onetime::App
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete?
       attempted_shrimp = req.params[:shrimp]
+
       ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
       ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
       unless sess.shrimp?(attempted_shrimp) || ignoreshrimp
@@ -129,26 +131,65 @@ class Onetime::App
     def check_session!
       return if @check_session_ran
       @check_session_ran = true
+
+      # Load from redis or create the session
       if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
         @sess = OT::Session.load req.cookie(:sess)
       else
         @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
       end
-      if sess
-        sess.update_fields  # calls update_time!
-        # Only set the cookie after it's been saved
-        is_secure = Onetime.conf[:site][:ssl]
-        res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
-        @cust = sess.load_customer
-      end
-      @sess ||= OT::Session.new :check_session
-      @cust ||= OT::Customer.anonymous
+
+      # Immediately check the the auth status of the session. If the site
+      # configuration changes to disable authentication, the session will
+      # report as not authenticated regardless of the session data.
+      #
+      # NOTE: The session keys have their own dedicated Redis DB, so they
+      # can be flushed to force everyone to logout without affecting the
+      # rest of the data. This is a security feature.
+      sess.disable_auth = !authentication_enabled?
+
+      # Update the session fields in redis
+      sess.update_fields  # calls update_time!
+
+      # Only set the cookie after session is for sure saved to redis
+      is_secure = Onetime.conf[:site][:ssl]
+
+      # Update the session cookie
+      res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+
+      # Re-hydrate the customer object
+      @cust = sess.load_customer || OT::Customer.anonymous
+
+      # We also force the session to be unauthenticated based on
+      # the customer object.
       if cust.anonymous?
         sess.authenticated = false
       elsif cust.verified.to_s != 'true' && !sess['authenticated_by']
         sess.authenticated = false
       end
-      OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
+
+      # Should always report false and false when disabled.
+      OT.info "[sess] #{sess.short_identifier} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?})"
+      OT.ld "[sessid] #{sess.short_identifier} #{cust.custid}"
+
+    end
+
+    def authentication_enabled?
+      # NOTE: Defaulting to disabled is the Right Thing to Do™. If the site
+      #      configuration is missing, we should assume that authentication
+      #      is disabled. This is a security feature. Even though it will be
+      #      annoying for anyone upgrading to 0.15 that hasn't had a chance
+      #      to update their existing configuration yet.
+      authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
+      signin_enabled = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
+
+      # The only condition that allows a request to be authenticated is if
+      # the site has authentication enabled, and the user is signed in. If a
+      # user is signed in and the site configuration changes to disable it,
+      # the user will be signed out temporarily. If the setting is restored
+      # before the session key expires in Redis, that user will be signed in
+      # again. This is a security feature.
+      authentication_enabled && signin_enabled
     end
 
     def secure_request?

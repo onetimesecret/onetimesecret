@@ -3,6 +3,19 @@
   :domain: 127.0.0.1
   :ssl: true
   :secret: SuP0r_53cRU7
+  # Registration and Authentication settings
+  :authentication:
+    # Can be disabled altogether, including API authentication.
+    :enabled: true
+    # Allow users to create accounts. This can be disabled if you plan
+    # to create accounts manually or enable during setup when accounts
+    # can be created and then disabled to prevent any new users from
+    # creating accounts.
+    :signup: true
+    # Generally if you allow registration, you allow signin. But there
+    # are circumstances where it's helpful to turn off authentication
+    # temporarily.
+    :signin: true
 :redis:
   :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
   :config: ./try/redis.conf
