@@ -74,7 +74,7 @@ module Onetime
             self[:with_analytics] = false
           end
         end
-         class Security < Onetime::App::View
+        class Security < Onetime::App::View
           def init *args
             self[:title] = "Security Policy"
             self[:with_analytics] = false
