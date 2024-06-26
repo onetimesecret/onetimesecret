@@ -1,4 +1,4 @@
-require 'onetime/app/web/base'
+require_relative 'web/base'
 
 class Onetime::App
   class Colonel

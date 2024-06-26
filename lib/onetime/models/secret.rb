@@ -13,8 +13,8 @@ module Onetime
 
       # Sets the instance variable `@state` to the symbol :new, indicating a new state
       @state = :new
-      @key = gibbler.base(36)
-      super name, :db => 8, :ttl => 7.days
+      @key = gibbler.base(36)  # fobjid
+      super name, db: 8, ttl: 7.days
     end
     def update_fields hsh={}
       hsh[:custid] ||= custid
@@ -23,8 +23,8 @@ module Onetime
     def identifier
       @key
     end
-    def key= objid
-      @key = objid
+    def key= fobjid
+      @key = fobjid
       @name = name
       @key
     end

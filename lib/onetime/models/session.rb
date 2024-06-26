@@ -1,11 +1,9 @@
 
-
 class Onetime::Session < Familia::HashKey
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 1
+  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 1
 
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
-
 
   attr_reader :entropy
 
@@ -26,7 +24,7 @@ class Onetime::Session < Familia::HashKey
     # TODO: This calls Entropy every time
     @sessid = "anon"
     @disable_auth = false
-    super name, :db => 1, :ttl => 20.minutes
+    super name, db: 1, ttl: 20.minutes
   end
 
   def sessid= sid
@@ -49,9 +47,6 @@ class Onetime::Session < Familia::HashKey
     @sessid  # Don't call the method
   end
 
-  def short_identifier
-    identifier[0,12]
-  end
   # Used by the limiter to estimate a unique client. We can't use
   # the session ID b/c the request agent can choose to not send
   # the cookie (which hash the session ID).
@@ -180,7 +175,7 @@ class Onetime::Session < Familia::HashKey
     def load sessid
       sess = new
       sess.sessid = sessid
-      sess.exists? ? (add(sess); sess) : nil
+      sess.exists? ? (add(sess); sess) : nil  # make sure this sess is in the values set
     end
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress, custid, useragent
@@ -188,7 +183,7 @@ class Onetime::Session < Familia::HashKey
       sess.update_sessid
       sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
       sess.save
-      add sess
+      add sess # to the @values sorted set
       sess
     end
     def generate_id *entropy

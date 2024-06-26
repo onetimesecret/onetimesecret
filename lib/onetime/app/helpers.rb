@@ -1,13 +1,6 @@
 
 class Onetime::App
-  class Unauthorized < RuntimeError
-  end
-  class Redirect < RuntimeError
-    attr_reader :location, :status
-    def initialize l, s=302
-      @location, @status = l, s
-    end
-  end
+
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
@@ -43,7 +36,8 @@ class Onetime::App
       res.header['Content-Type'] ||= "text/html; charset=utf-8"
       yield
 
-    rescue Redirect => ex
+    rescue OT::Redirect => ex
+      OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
       res.redirect ex.location, ex.status
 
     rescue OT::App::Unauthorized => ex
@@ -80,7 +74,7 @@ class Onetime::App
       OT.le ex.backtrace
       error_response "We'll be back shortly!"
 
-    rescue => ex
+    rescue StandardError => ex
       err "#{ex.class}: #{ex.message}"
       err req.current_absolute_uri
       err ex.backtrace.join("\n")
@@ -168,9 +162,12 @@ class Onetime::App
         sess.authenticated = false
       end
 
+      custref = cust.obscure_email
+
       # Should always report false and false when disabled.
-      OT.info "[sess] #{sess.short_identifier} authenabled=#{authentication_enabled?}, sess=#{sess.authenticated?})"
-      OT.ld "[sessid] #{sess.short_identifier} #{cust.custid}"
+      templ = '[sess.check_session] %s %s authenabled=%s, sess=%s'
+      margs = [sess.short_identifier, custref, authentication_enabled?, sess.authenticated?]
+      OT.info format(templ, *margs)
 
     end
 

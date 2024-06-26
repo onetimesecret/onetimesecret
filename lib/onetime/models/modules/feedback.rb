@@ -2,7 +2,7 @@
 
 module Onetime
   module Feedback
-    @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 11
+    @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 11
     class << self
       attr_reader :values
       def add msg

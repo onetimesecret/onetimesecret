@@ -1,8 +1,6 @@
 
-require 'onetime'  # must be required before
-require 'onetime/app/web/base'
-require 'onetime/app/web/views'
-require 'timeout'
+require_relative 'web/base'
+require_relative 'web/views'
 
 module Onetime
   class App
@@ -13,10 +11,10 @@ module Onetime
     def index
       publically do
         if sess.authenticated?
-          OT.ld "[homepage-dashboard] #{sess.authenticated?}"
+          OT.ld "[homepage-dashboard] authenticated? #{sess.authenticated?}"
           dashboard  # continues request inside dashboard>authenticated method
         else
-          OT.ld "[homepage] #{sess.authenticated?}"
+          OT.ld "[homepage] authenticated? #{sess.authenticated?}"
           view = Onetime::App::Views::Homepage.new req, sess, cust, locale
           sess.event_incr! :homepage
           res.body = view.render
@@ -30,18 +28,6 @@ module Onetime
           sess.event_incr! :robots_txt
           res.header['Content-Type'] = 'text/plain'
           res.body = view.render
-      end
-    end
-
-    def test_send_email
-      publically do
-        OT.info "test_send_email"
-        view = OT::Email::TestEmail.new cust, locale
-        view.emailer.from = OT.conf[:emailer][:from]
-        view.emailer.reply_to = cust.custid
-        view.emailer.fromname = ''
-        ret = view.deliver_email token=true
-        res.body = view.i18n[:COMMON][:msg_check_email]
       end
     end
 
@@ -202,7 +188,7 @@ module Onetime
         view.emailer.from = OT.conf[:emailer][:from]
         view.emailer.reply_to = cust.custid
         view.emailer.fromname = ''
-        view.deliver_email
+        view.deliver_email token=true
         res.body = view.i18n[:COMMON][:msg_check_email]
       end
     end

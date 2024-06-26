@@ -30,13 +30,14 @@ module Onetime
 
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
-      attr_reader :planid, :custid, :password, :password2
+      attr_reader :planid, :custid, :password, :password2, :skill
       attr_accessor :token
       def process_params
         @planid = params[:planid].to_s
         @custid = params[:u].to_s.downcase.strip
         @password = params[:p].to_s
         @password2 = params[:p2].to_s
+        @skill = params[:skill].to_s # Hidden field, shouldn't have a value
       end
       def raise_concerns
         limit_action :create_account
@@ -46,6 +47,13 @@ module Onetime
         raise_form_error "Passwords do not match" unless password == password2
         raise_form_error "Password is too short" unless password.size >= 6
         raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
+
+        # This is a hidden field, so it should be empty. If it has a value, it's
+        # a simple bot trying to submit the form or similar chicanery. We just
+        # quietly redirect to the home page to mimic a successful response.
+        unless skill.empty?
+          raise Redirect.new('/?s=1') # the query string is just an arbitrary value for the logs
+        end
       end
       def process
         @plan = OT::Plan.plan(planid)
@@ -59,7 +67,7 @@ module Onetime
         secret.verification = true
         secret.custid = cust.custid
         secret.save
-        view = OT::Email::Welcome.new cust, locale, secret
+        view = OT::App::Mail::Welcome.new cust, locale, secret
         view.deliver_email self.token
         if OT.conf[:colonels].member?(cust.custid)
           cust.role = 'colonel'
@@ -179,27 +187,34 @@ module Onetime
       def raise_concerns
         limit_action :forgot_password_request
         raise_form_error "Not a valid email address" unless valid_email?(@custid)
-        raise_form_error "Not a valid email address" unless OT::Customer.exists?(@custid)
+        raise_form_error "No account found" unless OT::Customer.exists?(@custid)
       end
       def process
         cust = OT::Customer.load @custid
         secret = OT::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
         secret.verification = true
-        view = OT::Email::PasswordRequest.new cust, locale, secret
+
+        view = OT::App::Mail::PasswordRequest.new cust, locale, secret
         view.emailer.from = OT.conf[:emailer][:from]
         view.emailer.fromname = OT.conf[:emailer][:fromname]
 
+        OT.ld "Calling deliver_email with token=(#{self.token})"
+
         begin
-          OT.ld "Calling deliver_email with token=(#{self.token})"
           view.deliver_email self.token
-        rescue => ex
+
+        rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
+          OT.le "Error sending password reset email: #{ex.message}"
           sess.set_info_message errmsg
         else
           sess.set_info_message "We sent instructions to #{cust.custid}"
         end
 
+      end
+
+      def form_fields
       end
     end
 
@@ -437,7 +452,7 @@ module Onetime
         limit_action :create_secret
         limit_action :email_recipient unless recipient.empty?
         if kind == :share && secret_value.to_s.empty?
-          raise_form_error "You did not provide anything to share"
+          raise_form_error "You did not provide anything to share" #
         end
         if cust.anonymous? && !@recipient.empty?
           raise_form_error "An account is required to send emails. Signup here: http://#{OT.conf[:site][:host]}"
@@ -464,7 +479,8 @@ module Onetime
           end
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::Email::SecretLink
+            klass = OT::App::Mail::SecretLink
+            metadata.deliver_by_email cust, locale, secret, recipient.first, klass
           end
           OT::Logic.stathat_count("Secrets", 1)
         else
@@ -525,7 +541,7 @@ module Onetime
           end
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::Email::IncomingSupport, ticketno
+            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::App::Mail::IncomingSupport, ticketno
           end
           OT::Logic.stathat_count("Secrets", 1)
         else

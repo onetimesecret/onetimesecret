@@ -1,11 +1,9 @@
 # typed: false
 
-# rubocop:disable Metrics/ModuleLength
-# https://github.com/shuber/encryptor
-
 require 'bundler/setup'
+require 'securerandom'
 
-require 'onetime/core_ext'
+require 'truemail'
 
 require 'erb'
 require 'syslog'
@@ -13,13 +11,14 @@ require 'syslog'
 require 'encryptor'
 require 'bcrypt'
 
+require 'sendgrid-ruby'
+
 require 'sysinfo'
 require 'gibbler/mixins'
 require 'familia'
 require 'storable'
-require 'sendgrid-ruby'
 
-require 'truemail'
+require_relative 'onetime/core_ext'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
@@ -35,6 +34,7 @@ module Onetime
     ERRNO = {}
   end
   @mode = :app
+
   module ClassMethods
     attr_accessor :mode
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret
@@ -69,9 +69,9 @@ module Onetime
       @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
-      @emailer = OT::SMTPEmailer
+      @emailer = Onetime::App::Mail::SMTPMailer
 
-      OT::SMTPEmailer.setup
+      @emailer.setup
 
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
       Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
@@ -91,15 +91,6 @@ module Onetime
       end
 
       OT::Plan.load_plans!
-
-      # Digest lazy-loads classes. We need to make sure these
-      # are loaded so we can increase the $SAFE level.
-      Digest::SHA256
-      Digest::SHA384
-      Digest::SHA512
-
-      # Seed the random number generator
-      Kernel.srand
 
       begin
         # Make sure we're able to connect to separate Redis databases.
@@ -187,8 +178,7 @@ require_relative 'onetime/version'
 require_relative 'onetime/config'
 require_relative 'onetime/errors'
 require_relative 'onetime/plan'
-
 require_relative 'onetime/alias'
 require_relative 'onetime/models'
 require_relative 'onetime/logic'
-require_relative 'onetime/email'
+require_relative 'onetime/app'

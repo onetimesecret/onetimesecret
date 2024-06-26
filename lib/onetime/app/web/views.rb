@@ -3,6 +3,7 @@
 # warn_indent: true
 
 require 'mustache'
+
 class Mustache
   def self.partial(name)
     path = "#{template_path}/#{name}.#{template_extension}"
@@ -73,7 +74,7 @@ module Onetime
             self[:with_analytics] = false
           end
         end
-         class Security < Onetime::App::View
+        class Security < Onetime::App::View
           def init *args
             self[:title] = "Security Policy"
             self[:with_analytics] = false
@@ -390,5 +391,4 @@ module Onetime
       end
     end
   end
-
 end

@@ -4,7 +4,7 @@ class Onetime::RateLimit < Familia::String
   DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
   ttl 20.minutes
   def initialize identifier, event
-    super [:limiter, identifier, event, self.class.eventstamp], :db => 2
+    super [:limiter, identifier, event, self.class.eventstamp], db: 2
   end
   alias_method :count, :to_i
   class << self

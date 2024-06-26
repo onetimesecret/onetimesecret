@@ -1,5 +1,7 @@
 # typed: false
 
+require 'timeout'
+
 module Onetime
   module Logic
     class Base
@@ -17,11 +19,19 @@ module Onetime
 
       def valid_email?(guess)
         OT.ld "[valid_email?] Guess: #{guess}"
+
         begin
-          Truemail.validate(guess).result.valid?
-        rescue => e
+          validator = Truemail.validate(guess)
+
+        rescue StandardError => e
           OT.le "Email validation error: #{e.message}"
+          OT.le e.backtrace
           false
+        else
+          valid = validator.result.valid?
+          validation_str = validator.as_json
+          OT.info "[valid_email?] Validator (#{valid}): #{validation_str}"
+          valid
         end
       end
 
@@ -55,7 +65,7 @@ module Onetime
       end
     end
 
-    class << self
+    module ClassMethods
       attr_writer :stathat_apikey, :stathat_enabled
 
       def stathat_apikey
@@ -97,5 +107,7 @@ module Onetime
         end
       end
     end
+
+    extend ClassMethods
   end
 end
