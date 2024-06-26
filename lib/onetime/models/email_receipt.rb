@@ -2,14 +2,14 @@
 class Onetime::EmailReceipt < Familia::HashKey
   include Onetime::Models::RedisHash
 
-  @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 10
+  @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 10
 
   attr_accessor :values
 
   def initialize custid=nil, cname=nil
     @prefix, @suffix = :customer, :subdomain
     @cname, @custid = OT::Subdomain.normalize_cname(cname), custid
-    super name, :db => 10
+    super name, db: 10
   end
   def identifier
     @custid  # Don't call the method

@@ -1,7 +1,7 @@
 
 
 class Onetime::Session < Familia::HashKey
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 1
+  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 1
 
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
@@ -25,7 +25,7 @@ class Onetime::Session < Familia::HashKey
     # TODO: This calls Entropy every time
     @sessid = "anon"
     @disable_auth = false
-    super name, :db => 1, :ttl => 20.minutes
+    super name, db: 1, ttl: 20.minutes
   end
 
   def sessid= sid

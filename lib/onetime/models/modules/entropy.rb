@@ -2,7 +2,7 @@
 
 module Onetime
   module Entropy
-    @values = Familia::Set.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 11
+    @values = Familia::Set.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 11
     class << self
       attr_reader :values
       def count

@@ -21,7 +21,7 @@ module Onetime
 
       @state = :new
       @key = gibbler.base(36)
-      super name, :db => 7, :ttl => 7.days
+      super name, db: 7, ttl: 7.days
     end
     def update_fields hsh={}
       hsh[:custid] ||= custid || ''  # anything but nil, see #441

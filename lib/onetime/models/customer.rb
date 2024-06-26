@@ -1,14 +1,14 @@
 
 
 class Onetime::Customer < Familia::HashKey
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 6
+  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 6
 
   include Onetime::Models::RedisHash
   include Onetime::Models::Passphrase
 
   def initialize custid=:anon
     @custid = custid  # if we use accessor methods it will sync to redis.
-    super name, :db => 6
+    super name, db: 6
   end
 
   def identifier

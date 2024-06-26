@@ -9,7 +9,7 @@ class Onetime::SplitTest < Familia::HashKey
 
   def initialize testname=nil
     @testname = testname
-    super name, :db => 1, :ttl => 30.days
+    super name, db: 1, ttl: 30.days
   end
 
   def register_visitor!
