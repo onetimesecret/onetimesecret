@@ -40,7 +40,7 @@ class Onetime::App
         end
       end
       def subject
-        i18n[:email][:subject] % [self[:custid]] # e.g. ABC sent you a secret
+        i18n[:email][:subject] % [self[:custid]] # e.g. "ABC" sent you a secret
       end
       def verify_uri
         secret_uri self[:secret]
@@ -69,7 +69,6 @@ class Onetime::App
         self.subdomain = cust.load_subdomain if cust.has_key?(:cname)
       end
       def subject
-        puts [self[:ticketno], i18n[:email]]
         i18n[:email][:subject] % [self[:ticketno]]
       end
       def verify_uri

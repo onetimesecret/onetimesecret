@@ -6,7 +6,7 @@ class Onetime::App
 
     class Base < Mustache
       include Onetime::App::Views::Helpers
-      self.template_path = './templates/email'
+      self.template_path = './templates/mail'
       self.view_namespace = Onetime::App::Mail
       self.view_path = './onetime/email'
       attr_reader :cust, :locale, :emailer, :mode, :from, :to
