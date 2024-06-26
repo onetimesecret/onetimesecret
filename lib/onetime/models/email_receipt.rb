@@ -1,20 +1,24 @@
 
 class Onetime::EmailReceipt < Familia::HashKey
+  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 8
+
   include Onetime::Models::RedisHash
+
+  attr_accessor :values
 
   # e.g.
   #
   #  secret:1234567890:email
   #
-  @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 10
-
-  attr_accessor :values
-
-  def initialize custid=nil, sessid=nil, secretid=nil
+  def initialize custid=nil, secretid=nil, message_response=nil
     @prefix = :secret
     @suffix = :email
-    @custid, @sessid, @secretid = custid.to_s, sessid.to_s, secretid.to_s
-    super name, db: 10
+    @custid = custid
+    @secretid = secretid
+    @custid = custid.identifier if custid.is_a?(Familia::RedisObject)
+    @secretid = secretid.identifier if secretid.is_a?(Familia::RedisObject)
+    @message_response = message_response
+    super name, db: 8, ttl: 30.days
   end
 
   def identifier
@@ -53,10 +57,12 @@ class Onetime::EmailReceipt < Familia::HashKey
       fobj.exists? ? fobj : nil
     end
 
-    def create(custid, sessid, secretid)
-      fobj = new custid, sessid, secretid
-      raise ArgumentError, "#{name} record exists for secret #{secretid}" if fobj.exists?
-      fobj.update_fields custid: custid, sessid: sessid, secret: secretid
+    def create(custid, secretid, message_response=nil)
+      fobj = new custid, secretid, message_response
+      OT.ld "[EmailReceipt.create] #{custid} #{secretid} #{message_response}"
+      raise ArgumentError, "#{name} record exists #{rediskey}" if fobj.exists?
+
+      fobj.update_fields custid: custid, secretid: secretid, message_response: message_response
       add fobj # to the @values sorted set
       fobj
     end

@@ -7,19 +7,20 @@ class Onetime::App
   module Mail
 
     class SMTPMailer < BaseMailer
+
       def send_email to_address, subject, content # rubocop:disable Metrics/MethodLength
-        OT.info '[email-send-start]'
         mailer_response = nil
 
         obscured_address = OT::Utils.obscure_email to_address
-        OT.ld "> [send-start] #{obscured_address}"
+        OT.info "> [send-start] #{obscured_address}"
 
         from_email = "#{self.fromname} <#{self.from}>"
         to_email = to_address
+
         OT.ld "[send-from] #{from_email}: #{fromname} #{from}"
 
         if from_email.nil? || from_email.empty?
-          OT.info "> [send-exception-no-from-email] #{obscured_address}"
+          OT.info "> [send-exception] No from address #{obscured_address}"
           return
         end
 
@@ -56,12 +57,13 @@ class Onetime::App
         rescue Net::SMTPFatalError => ex
           OT.info "> [send-exception-smtperror] #{obscured_address}"
           OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
-          return
+
         rescue => ex
           OT.info "> [send-exception-sending] #{obscured_address}"
           OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
-          return
         end
+
+        return unless mailer_response
 
         # Log the details
         OT.ld "From: #{mailer_response.from}"
@@ -79,7 +81,9 @@ class Onetime::App
           OT.ld "SMTP Response: #{mailer_response.delivery_method.response_code}"
         end
 
+        mailer_response
       end
+
       def self.setup
         ::Mail.defaults do
           opts = { :address   => OT.conf[:emailer][:host] || 'localhost',
