@@ -44,6 +44,7 @@ class Onetime::App
       yield
 
     rescue Redirect => ex
+      OT.ld "[carefully] Redirecting to #{ex.location} (#{ex.status})"
       res.redirect ex.location, ex.status
 
     rescue OT::App::Unauthorized => ex
@@ -80,7 +81,7 @@ class Onetime::App
       OT.le ex.backtrace
       error_response "We'll be back shortly!"
 
-    rescue => ex
+    rescue StandardError => ex
       err "#{ex.class}: #{ex.message}"
       err req.current_absolute_uri
       err ex.backtrace.join("\n")

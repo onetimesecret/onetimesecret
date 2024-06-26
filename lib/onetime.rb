@@ -35,6 +35,7 @@ module Onetime
     ERRNO = {}
   end
   @mode = :app
+
   module ClassMethods
     attr_accessor :mode
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret
@@ -69,9 +70,9 @@ module Onetime
       @locales = OT.load_locales
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
-      @emailer = OT::SMTPEmailer
+      @emailer = Onetime::App::Mail::SMTPMailer
 
-      OT::SMTPEmailer.setup
+      @emailer.setup
 
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
       Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
@@ -191,4 +192,3 @@ require_relative 'onetime/plan'
 require_relative 'onetime/alias'
 require_relative 'onetime/models'
 require_relative 'onetime/logic'
-require_relative 'onetime/email'

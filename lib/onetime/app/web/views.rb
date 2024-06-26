@@ -3,6 +3,7 @@
 # warn_indent: true
 
 require 'mustache'
+
 class Mustache
   def self.partial(name)
     path = "#{template_path}/#{name}.#{template_extension}"
@@ -390,5 +391,4 @@ module Onetime
       end
     end
   end
-
 end

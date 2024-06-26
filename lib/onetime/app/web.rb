@@ -1,8 +1,10 @@
 
-require 'onetime'  # must be required before
-require 'onetime/app/web/base'
-require 'onetime/app/web/views'
 require 'timeout'
+
+require 'onetime'  # must be required before
+
+require_relative 'web/base'
+require_relative 'web/views'
 
 module Onetime
   class App

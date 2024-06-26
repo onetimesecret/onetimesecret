@@ -59,7 +59,7 @@ module Onetime
         secret.verification = true
         secret.custid = cust.custid
         secret.save
-        view = OT::Email::Welcome.new cust, locale, secret
+        view = OT::App::Mail::Welcome.new cust, locale, secret
         view.deliver_email self.token
         if OT.conf[:colonels].member?(cust.custid)
           cust.role = 'colonel'
@@ -186,7 +186,7 @@ module Onetime
         secret = OT::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
         secret.verification = true
-        view = OT::Email::PasswordRequest.new cust, locale, secret
+        view = OT::App::Mail::PasswordRequest.new cust, locale, secret
         view.emailer.from = OT.conf[:emailer][:from]
         view.emailer.fromname = OT.conf[:emailer][:fromname]
 
@@ -464,7 +464,8 @@ module Onetime
           end
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::Email::SecretLink
+            klass = OT::App::Mail::SecretLink
+            metadata.deliver_by_email cust, locale, secret, recipient.first, klass
           end
           OT::Logic.stathat_count("Secrets", 1)
         else
@@ -525,7 +526,7 @@ module Onetime
           end
           OT::Customer.global.incr :secrets_created
           unless recipient.nil? || recipient.empty?
-            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::Email::IncomingSupport, ticketno
+            metadata.deliver_by_email cust, locale, secret, recipient.first, OT::App::Mail::IncomingSupport, ticketno
           end
           OT::Logic.stathat_count("Secrets", 1)
         else
