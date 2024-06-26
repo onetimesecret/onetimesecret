@@ -2,7 +2,6 @@
 
 require 'securerandom'
 
-
 require_relative 'models/modules'
 require_relative 'models/mixins'
 require_relative 'models/metadata'

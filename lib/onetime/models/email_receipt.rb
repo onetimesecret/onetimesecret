@@ -1,8 +1,31 @@
 
 class Onetime::EmailReceipt < Familia::HashKey
   include Onetime::Models::RedisHash
+
   @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 10
-  class << self
+
+  attr_accessor :values
+
+  def initialize custid=nil, cname=nil
+    @prefix, @suffix = :customer, :subdomain
+    @cname, @custid = OT::Subdomain.normalize_cname(cname), custid
+    super name, :db => 10
+  end
+  def identifier
+    @custid  # Don't call the method
+  end
+  def update_cname cname
+    @cname = self.cname = OT::Subdomain.normalize_cname(cname)
+  end
+  def owner? cust
+    (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+  end
+  def destroy! *args
+    OT::Subdomain.values.rem @cname
+    super
+  end
+
+  module ClassMethods
     attr_reader :values
     def add cname, custid
       ret = self.values.put cname, custid
@@ -26,14 +49,7 @@ class Onetime::EmailReceipt < Familia::HashKey
     def load_by_cname cname
       load map(cname)
     end
-  end
-  attr_accessor :values
-  def initialize custid=nil, cname=nil
-    @prefix, @suffix = :customer, :subdomain
-    @cname, @custid = OT::Subdomain.normalize_cname(cname), custid
-    super name, :db => 10
-  end
-  class << self
+
     def exists? objid
       obj = new objid
       obj.exists?
@@ -51,24 +67,6 @@ class Onetime::EmailReceipt < Familia::HashKey
       cname.to_s.downcase.gsub(/[^a-z0-9\_]/, '')
     end
   end
-  def identifier
-    @custid  # Don't call the method
-  end
-  def update_cname cname
-    @cname = self.cname = OT::Subdomain.normalize_cname(cname)
-  end
-  def owner? cust
-    (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
-  end
-  def destroy! *args
-    OT::Subdomain.values.rem @cname
-    super
-  end
-  def fulldomain
-    '%s.%s' % [self['cname'], OT.conf[:site][:domain]]
-  end
-  def company_domain
-    return unless self['homepage']
-    URI.parse(self['homepage']).host
-  end
+
+  extend ClassMethods
 end
