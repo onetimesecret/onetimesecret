@@ -6,7 +6,6 @@ class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
 
-
   attr_reader :entropy
 
   # When set to true, the session reports itself as not authenticated
@@ -49,9 +48,6 @@ class Onetime::Session < Familia::HashKey
     @sessid  # Don't call the method
   end
 
-  def short_identifier
-    identifier[0,12]
-  end
   # Used by the limiter to estimate a unique client. We can't use
   # the session ID b/c the request agent can choose to not send
   # the cookie (which hash the session ID).
