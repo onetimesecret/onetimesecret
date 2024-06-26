@@ -138,7 +138,7 @@
 :services:
   :sentry:
     :dsn: <%= ENV['SENTRY_DSN'] || 'CHANGEME' %>
-    :enabled: <%= ENV['SENTRY_DSN'].present? %>
+    :enabled: <%= !ENV['SENTRY_DSN'].nil? %>
 :limits:
   # This section defines rate limits for various events per user
   # per a rolling 20 minute period. Each key is an event name

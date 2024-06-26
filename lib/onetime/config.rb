@@ -47,8 +47,10 @@ module Onetime
         end
       end
 
-      if Otto.env?(:dev) && conf[:sentry] && conf[:sentry][:enabled]
-        dsn = conf[:sentry][:dsn]
+      sentry = conf[:services][:sentry]
+      OT.ld "Setting up Sentry #{sentry}..."
+      if Otto.env?(:dev) && sentry && sentry[:enabled]
+        dsn = sentry[:dsn]
         OT.info "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
         Sentry.init do |config|
           config.dsn = conf[:sentry][:dsn]
