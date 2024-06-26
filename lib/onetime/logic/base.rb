@@ -30,7 +30,7 @@ module Onetime
         else
           valid = validator.result.valid?
           validation_str = validator.as_json
-          OT.info "[valid_email?] Validator (#{valid}): #{valadation_str}"
+          OT.info "[valid_email?] Validator (#{valid}): #{validation_str}"
           valid
         end
       end
