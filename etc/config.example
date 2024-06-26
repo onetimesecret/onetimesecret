@@ -27,14 +27,14 @@
   # accounts will have full control over the system.
   - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
 :emailer:
-  :mode: :smtp
-  :from: CHANGEME@example.com
-  :fromname: Jan
-  :host: localhost
-  :port: 587
-  :tls: true
-  :user:
-  :pass:
+  :mode: <%= ENV['EMAILER_MODE'] || :smtp %>
+  :from: <%= ENV['FROM'] || 'CHANGEME@example.com' %>
+  :fromname: <%= ENV['FROMNAME'] || 'Jan' %>
+  :host: <%= ENV['SMTP_HOST'] || 'localhost' %>
+  :port: <%= ENV['SMTP_PORT'] || 587 %>
+  :user: <%= ENV['SMTP_USERNAME'] || 'CHANGEME' %>
+  :pass: <%= ENV['SMTP_PASSWORD'] || 'CHANGEME' %>
+  :tls: <%= ENV['SMTP_TLS'] || true %>
 :mail:
   :truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
