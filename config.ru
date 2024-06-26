@@ -33,7 +33,7 @@ if Otto.env?(:dev)
 
   if Onetime.debug
     require 'pry-byebug'
-    Otto.debug = true
+    #Otto.debug = true
   end
 
   # DEV: Run web apps with extra logging and reloading

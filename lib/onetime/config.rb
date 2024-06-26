@@ -1,3 +1,4 @@
+require "sentry-ruby"
 
 module Onetime
   module Config
@@ -19,7 +20,8 @@ module Onetime
             else
               "Error loading config: #{path}"
             end
-      Onetime.info msg
+      OT.le msg
+      OT.le e.message, e.backtrace.join("\n")
       Kernel.exit(1)
     end
 
@@ -53,7 +55,7 @@ module Onetime
         dsn = sentry[:dsn]
         OT.info "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
         Sentry.init do |config|
-          config.dsn = conf[:sentry][:dsn]
+          config.dsn = sentry[:dsn]
 
           # Set traces_sample_rate to 1.0 to capture 100%
           # of transactions for performance monitoring.
