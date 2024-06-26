@@ -115,10 +115,12 @@ module Onetime
 
     def load_locales(locales = OT.conf[:locales] || ['en'])
       confs = locales.collect do |locale|
-        OT.ld 'Loading locale: %s' % locale
-        conf = OT::Config.load format('%s/locale/%s', OT::Config.dirname, locale)
+        path = File.join(OT::Config.dirname, 'locale', locale)
+        OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
+        conf = OT::Config.load(path)
         [locale, conf]
       end
+
       # Convert the zipped array to a hash
       locales = confs.to_h
       # Make sure the default locale is first

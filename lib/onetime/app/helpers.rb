@@ -175,9 +175,9 @@ class Onetime::App
       custref = cust.obscure_email
 
       # Should always report false and false when disabled.
-      templ = '[sess.check_session] %s %s authenabled=%s, sess=%s'
-      margs = [sess.short_identifier, custref, authentication_enabled?, sess.authenticated?]
-      OT.info format(templ, *margs) unless cust.anonymous?
+      unless cust.anonymous?
+        OT.info "[sess.check_session] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
+      end
 
     end
 

@@ -45,7 +45,7 @@ class OT::CLI < Drydock::Command
     target_uri.db = targetdb
     Familia::Tools.move_keys filter, source_uri, target_uri do |idx, type, key, ttl|
       if global.verbose > 0
-        puts format('%4d (%6s, %4d): %s', idx + 1, type, ttl, key)
+        puts "#{idx + 1.to_s.rjust(4)} (#{type.to_s.rjust(6)}, #{ttl.to_s.rjust(4)}): #{key}"
       else
         print "\rMoved #{idx + 1} keys"
       end

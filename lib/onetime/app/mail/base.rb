@@ -32,7 +32,6 @@ class Onetime::App
       def i18n
         locale = self.locale || 'en'
         pagename = self.class.name.split('::').last.downcase.to_sym
-        OT.ld "Pagename: #{pagename} (email template)"
         @i18n ||= {
           locale: locale,
           email: OT.locales[locale][:email][pagename],
