@@ -4,8 +4,9 @@
 # https://github.com/shuber/encryptor
 
 require 'bundler/setup'
+require 'securerandom'
 
-require 'onetime/core_ext'
+require 'truemail'
 
 require 'erb'
 require 'syslog'
@@ -13,13 +14,14 @@ require 'syslog'
 require 'encryptor'
 require 'bcrypt'
 
+require 'sendgrid-ruby'
+
 require 'sysinfo'
 require 'gibbler/mixins'
 require 'familia'
 require 'storable'
-require 'sendgrid-ruby'
 
-require 'truemail'
+require_relative 'core_ext'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
