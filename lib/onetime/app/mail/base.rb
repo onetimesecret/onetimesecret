@@ -25,7 +25,15 @@ class Onetime::App
           @emailer = OT::App::Mail::SMTPMailer.new OT.conf[:emailer][:from]
         end
 
-        OT.le "[emailer] #{@emailer} (#{@mode})"
+        safe_mail_config = {
+          from: OT.conf[:emailer][:from],
+          fromname: OT.conf[:emailer][:fromname],
+          host: OT.conf[:emailer][:host],
+          port: OT.conf[:emailer][:port],
+          user: OT.conf[:emailer][:user],
+          tls: OT.conf[:emailer][:tls]
+        }
+        OT.info "[mailer] #{@mode} #{safe_mail_config.to_json}"
         init(*args) if respond_to? :init
       end
 
@@ -41,7 +49,6 @@ class Onetime::App
 
       def deliver_email token=nil
         errmsg = "Your message wasn't sent because we have an email problem"
-        OT.info "[deliver-email] with token:(#{token})"
 
         email_address_obscured = OT::Utils.obscure_email self[:email_address]
         OT.info "Emailing/#{self.token} #{email_address_obscured} [#{self.class}]"
@@ -57,12 +64,18 @@ class Onetime::App
           end
 
         rescue SocketError => ex
-          OT.le "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+        internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+          OT.le internal_emsg
+
+          Onetime::EmailReceipt.create self[:cust].identifier, self[:secret].identifier, internal_emsg
           raise OT::Problem, errmsg
 
         rescue Exception => ex
-          OT.le "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+          internal_emsg = "Cannot send mail: #{ex.message}\n#{ex.backtrace}"
+          OT.le internal_emsg
           OT.le errmsg
+
+          Onetime::EmailReceipt.create self[:cust].identifier, self[:secret].identifier, internal_emsg.to_json
           raise OT::Problem, errmsg
         end
 

@@ -31,8 +31,9 @@ class Onetime::App
       @plan
     end
 
-    def carefully redirect=nil # rubocop:disable Metrics/MethodLength
+    def carefully(redirect=nil, content_type=nil) # rubocop:disable Metrics/MethodLength
       redirect ||= req.request_path
+      content_type ||= 'text/html; charset=utf-8'
 
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.
@@ -43,8 +44,17 @@ class Onetime::App
         res.header['Content-Language'] = req.env['ots.locale'] || req.env['rack.locale'] || OT.conf[:locales].first
       end
 
-      res.header['Content-Type'] ||= "text/html; charset=utf-8"
-      yield
+      res.header['Content-Type'] ||= content_type
+
+      return_value = yield
+
+      unless cust.anonymous?
+        reqstr = stringify_request_details(req)
+        custref = cust.obscure_email
+        OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      end
+
+      return_value
 
     rescue OT::Redirect => ex
       OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
@@ -85,8 +95,7 @@ class Onetime::App
       error_response "We'll be back shortly!"
 
     rescue StandardError => ex
-      err "#{ex.class}: #{ex.message}"
-      err req.current_absolute_uri
+      err "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri}"
       err ex.backtrace.join("\n")
       error_response "An unexpected error occurred :["
 
@@ -172,10 +181,9 @@ class Onetime::App
         sess.authenticated = false
       end
 
-      custref = cust.obscure_email
-
       # Should always report false and false when disabled.
       unless cust.anonymous?
+        custref = cust.obscure_email
         OT.info "[sess.check_session] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
       end
 
@@ -199,6 +207,27 @@ class Onetime::App
       authentication_enabled && signin_enabled
     end
 
+    def stringify_request_details(req)
+
+      details = [
+        req.ip,
+        "#{req.request_method} #{req.path_info}?#{req.query_string}",
+        collect_http_env_keys(req.env)
+      ]
+
+      # Convert the details array to a string for logging
+      details_str = details.join(", ")
+
+      OT.ld "[Request Details] #{details_str}"
+
+      details_str
+    end
+
+    def collect_http_env_keys(env=nil)
+      return [] unless env
+      env.keys.select { |key| key.start_with?('HTTP_') }.sort
+    end
+
     def secure_request?
       !local? || secure?
     end
@@ -214,8 +243,8 @@ class Onetime::App
     end
 
     def err *args
-      prefix = "D(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << args.join() # msg.join("#{$/}#{prefix}")
+      prefix = "EE(#{Time.now.to_i}):  "
+      msg = "#{prefix} #{args.join()}" # msg.join("#{$/}#{prefix}")
       SYSLOG.err msg
       STDERR.puts msg
     end

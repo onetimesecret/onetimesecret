@@ -14,10 +14,10 @@ class Onetime::App
         obscured_address = OT::Utils.obscure_email to_address
         OT.info "> [send-start] #{obscured_address}"
 
-        from_email = "#{self.fromname} <#{self.from}>"
+        from_email = "#{fromname} <#{self.from}>"
         to_email = to_address
 
-        OT.ld "[send-from] #{from_email}: #{fromname} #{from}"
+        #OT.ld "[send-from] #{from_email}: #{fromname} #{from}"
 
         if from_email.nil? || from_email.empty?
           OT.info "> [send-exception] No from address #{obscured_address}"
@@ -59,11 +59,12 @@ class Onetime::App
           OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
 
         rescue => ex
-          OT.info "> [send-exception-sending] #{obscured_address}"
-          OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+          OT.info "> [send-exception-sending] #{obscured_address} #{ex.class} #{ex.message}"
+          OT.ld "#{ex.backtrace}"
         end
 
         return unless mailer_response
+
         OT.info "> [send-success] Email sent successfully to #{obscured_address}"
         # Log the details
         OT.ld "From: #{mailer_response.from}"
