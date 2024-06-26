@@ -34,7 +34,7 @@ class Onetime::App
 
         begin
           mailer = SendGrid::Mail.new(from_email, subject, to_email, prepared_content)
-          OT.ld mail
+          OT.ld mailer
 
           mailer_response = @sendgrid.client.mail._('send').post(request_body: mailer.to_json)
           OT.info '[email-sent]'

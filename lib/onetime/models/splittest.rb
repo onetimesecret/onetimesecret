@@ -18,8 +18,8 @@ class Onetime::SplitTest < Familia::HashKey
   end
 
   def sample! group_idx
-    if group_idx > values.size
-      raise RuntimeError, "group_idx cannot be higher than number of groups"
+    if group_idx >= values.size || group_idx < 0
+      raise RuntimeError, "group_idx must be within the range of available groups"
     end
     counter_key = Familia.join :counter, OT.now.quantize(1.day).to_i, group_idx
     increment counter_key

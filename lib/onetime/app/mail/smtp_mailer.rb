@@ -64,7 +64,7 @@ class Onetime::App
         end
 
         return unless mailer_response
-
+        OT.info "> [send-success] Email sent successfully to #{obscured_address}"
         # Log the details
         OT.ld "From: #{mailer_response.from}"
         OT.ld "To: #{mailer_response.to}"

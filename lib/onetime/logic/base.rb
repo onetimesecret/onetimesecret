@@ -29,7 +29,7 @@ module Onetime
           false
         else
           valid = validator.result.valid?
-          valadation_str = validator.as_json
+          validation_str = validator.as_json
           OT.info "[valid_email?] Validator (#{valid}): #{valadation_str}"
           valid
         end
