@@ -14,7 +14,7 @@ class Onetime::App
 
       def initialize cust, locale, *args
         @cust, @locale = cust, locale
-        OT.le "#{self.class} locale is: #{locale.to_s}"
+        OT.ld "#{self.class} locale is: #{locale.to_s}"
         @mode = OT.conf[:emailer][:mode]
 
         if @mode == :sendgrid
@@ -32,6 +32,7 @@ class Onetime::App
       def i18n
         locale = self.locale || 'en'
         pagename = self.class.name.split('::').last.downcase.to_sym
+        OT.ld "Pagename: #{pagename} (email template)"
         @i18n ||= {
           locale: locale,
           email: OT.locales[locale][:email][pagename],
@@ -71,7 +72,7 @@ class Onetime::App
 
         Onetime::EmailReceipt.create self[:cust].identifier, self[:secret].identifier, mailer_response.to_json
 
-        OT.info "[email-sent] to #{email_address_obscured}"
+        OT.info "[email-sent] to #{email_address_obscured} #{self[:cust].identifier} #{self[:secret].identifier}"
         mailer_response
       end
     end
