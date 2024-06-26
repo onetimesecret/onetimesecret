@@ -45,6 +45,27 @@ module Onetime
           config.send("#{actual_key}=", value)
         end
       end
+
+      if Otto.env?(:dev) && conf[:sentry] && conf[:sentry][:enabled]
+        OT.info "[sentry-init] Initializing"
+        Sentry.init do |config|
+          config.dsn = conf[:sentry][:dsn]
+
+          # Set traces_sample_rate to 1.0 to capture 100%
+          # of transactions for performance monitoring.
+          # We recommend adjusting this value in production.
+          config.traces_sample_rate = 1.0
+          # or
+          config.traces_sampler = lambda do |context|
+            true
+          end
+          # Set profiles_sample_rate to profile 100%
+          # of sampled transactions.
+          # We recommend adjusting this value in production.
+          config.profiles_sample_rate = 1.0
+        end
+      end
+
     end
 
     def exists?
