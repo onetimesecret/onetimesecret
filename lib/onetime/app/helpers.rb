@@ -212,7 +212,7 @@ class Onetime::App
       details = [
         req.ip,
         "#{req.request_method} #{req.path_info}?#{req.query_string}",
-        collect_http_env_keys(req.env)
+        collect_http_env_details(req.env)
       ]
 
       # Convert the details array to a string for logging
@@ -221,6 +221,18 @@ class Onetime::App
       OT.ld "[Request Details] #{details_str}"
 
       details_str
+    end
+
+    def collect_http_env_details(env=nil)
+      env ||= {}
+      details = %w[
+        HTTP_FLY_REQUEST_ID
+        HTTP_VIA
+        HTTP_X_FORWARDED_PROTO
+        HTTP_X_FORWARDED_FOR
+        HTTP_X_FORWARDED_HOST
+        HTTP_X_FORWARDED_PORT
+      ].map { |key| "#{key}=#{env[key]}" }.join(", ")
     end
 
     def collect_http_env_keys(env=nil)
