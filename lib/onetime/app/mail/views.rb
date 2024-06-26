@@ -40,7 +40,7 @@ class Onetime::App
         end
       end
       def subject
-        i18n[:email][:subject] % [self[:from]]
+        i18n[:email][:subject] % [self[:custid]] # e.g. ABC sent you a secret
       end
       def verify_uri
         secret_uri self[:secret]
