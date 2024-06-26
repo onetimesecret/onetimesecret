@@ -1,8 +1,5 @@
 # typed: false
 
-# rubocop:disable Metrics/ModuleLength
-# https://github.com/shuber/encryptor
-
 require 'bundler/setup'
 require 'securerandom'
 
@@ -94,15 +91,6 @@ module Onetime
       end
 
       OT::Plan.load_plans!
-
-      # Digest lazy-loads classes. We need to make sure these
-      # are loaded so we can increase the $SAFE level.
-      Digest::SHA256
-      Digest::SHA384
-      Digest::SHA512
-
-      # Seed the random number generator
-      Kernel.srand
 
       begin
         # Make sure we're able to connect to separate Redis databases.
