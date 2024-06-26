@@ -1,13 +1,6 @@
 
 class Onetime::App
-  class Unauthorized < RuntimeError
-  end
-  class Redirect < RuntimeError
-    attr_reader :location, :status
-    def initialize l, s=302
-      @location, @status = l, s
-    end
-  end
+
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
@@ -43,8 +36,8 @@ class Onetime::App
       res.header['Content-Type'] ||= "text/html; charset=utf-8"
       yield
 
-    rescue Redirect => ex
-      OT.ld "[carefully] Redirecting to #{ex.location} (#{ex.status})"
+    rescue OT::Redirect => ex
+      OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
       res.redirect ex.location, ex.status
 
     rescue OT::App::Unauthorized => ex
