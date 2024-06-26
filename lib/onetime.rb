@@ -18,7 +18,7 @@ require 'gibbler/mixins'
 require 'familia'
 require 'storable'
 
-require_relative 'core_ext'
+require_relative 'onetime/core_ext'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
@@ -178,7 +178,7 @@ require_relative 'onetime/version'
 require_relative 'onetime/config'
 require_relative 'onetime/errors'
 require_relative 'onetime/plan'
-
 require_relative 'onetime/alias'
 require_relative 'onetime/models'
 require_relative 'onetime/logic'
+require_relative 'onetime/app'
