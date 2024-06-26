@@ -65,7 +65,7 @@ module Onetime
       end
     end
 
-    class << self
+    module ClassMethods
       attr_writer :stathat_apikey, :stathat_enabled
 
       def stathat_apikey
@@ -107,5 +107,7 @@ module Onetime
         end
       end
     end
+
+    extend ClassMethods
   end
 end
