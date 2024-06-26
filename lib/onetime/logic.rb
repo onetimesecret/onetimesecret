@@ -68,13 +68,24 @@ module Onetime
         secret.custid = cust.custid
         secret.save
         view = OT::App::Mail::Welcome.new cust, locale, secret
-        view.deliver_email self.token
-        if OT.conf[:colonels].member?(cust.custid)
-          cust.role = 'colonel'
+
+        begin
+          view.deliver_email self.token
+        rescue StandardError => ex
+          errmsg = "Couldn't send the verification email. Let us know below."
+          OT.le "Error sending verification email: #{ex.message}"
+          sess.set_info_message errmsg
         else
-          cust.role = 'customer'
+
+          if OT.conf[:colonels].member?(cust.custid)
+            cust.role = 'colonel'
+          else
+            cust.role = 'customer'
+          end
+          OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
+
+          OT::Logic.stathat_count("New Customers (OTS)", 1)
         end
-        OT::Logic.stathat_count("New Customers (OTS)", 1)
       end
       private
       def form_fields
