@@ -48,7 +48,8 @@ module Onetime
       end
 
       if Otto.env?(:dev) && conf[:sentry] && conf[:sentry][:enabled]
-        OT.info "[sentry-init] Initializing"
+        dsn = conf[:sentry][:dsn]
+        OT.info "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
         Sentry.init do |config|
           config.dsn = conf[:sentry][:dsn]
 
