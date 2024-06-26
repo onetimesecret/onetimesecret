@@ -40,7 +40,7 @@ class Onetime::App
       OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
       res.redirect ex.location, ex.status
 
-    rescue OT::App::Unauthorized => ex
+    rescue OT::Unauthorized => ex
       OT.info ex.message
       not_found_response "Not authorized"
 
@@ -213,7 +213,7 @@ class Onetime::App
     def deny_agents! *agents
       BADAGENTS.flatten.each do |agent|
         if req.user_agent =~ /#{agent}/i
-          raise Redirect.new('/')
+          raise OT::Redirect.new('/')
         end
       end
     end

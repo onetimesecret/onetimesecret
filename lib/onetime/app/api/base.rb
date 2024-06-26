@@ -21,11 +21,11 @@ class Onetime::App
           auth = req.env['otto.auth']
           #req.env['HTTP_X_ONETIME_CLIENT']
           if auth.provided?
-            raise Unauthorized unless auth.basic?
+            raise OT::Unauthorized unless auth.basic?
             custid, apitoken = *(auth.credentials || [])
-            raise Unauthorized if custid.to_s.empty? || apitoken.to_s.empty?
+            raise OT::Unauthorized if custid.to_s.empty? || apitoken.to_s.empty?
             possible = OT::Customer.load custid
-            raise Unauthorized if possible.nil?
+            raise OT::Unauthorized if possible.nil?
             @cust = possible if possible.apitoken?(apitoken)
             unless cust.nil? || @sess = cust.load_session
               @sess = OT::Session.create req.client_ipaddress, cust.custid
@@ -33,15 +33,15 @@ class Onetime::App
             sess.authenticated = true unless sess.nil?
           elsif req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
             #check_session!
-            raise Unauthorized, "No session support"
+            raise OT::Unauthorized, "No session support"
           elsif !allow_anonymous
-            raise Unauthorized, "No session or credentials"
+            raise OT::Unauthorized, "No session or credentials"
           else
             @cust = OT::Customer.anonymous
             @sess = OT::Session.new req.client_ipaddress, cust.custid
           end
           if cust.nil? || sess.nil? #|| cust.anonymous? && !sess.authenticated?
-            raise Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}"
+            raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}"
           else
             cust.sessid = sess.sessid unless cust.anonymous?
             yield

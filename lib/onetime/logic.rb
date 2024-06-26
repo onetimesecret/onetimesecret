@@ -52,7 +52,7 @@ module Onetime
         # a simple bot trying to submit the form or similar chicanery. We just
         # quietly redirect to the home page to mimic a successful response.
         unless skill.empty?
-          raise Redirect.new('/?s=1') # the query string is just an arbitrary value for the logs
+          raise OT::Redirect.new('/?s=1') # the query string is just an arbitrary value for the logs
         end
       end
       def process

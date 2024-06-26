@@ -173,10 +173,10 @@ module Onetime
   extend ClassMethods
 end
 
+require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'
 require_relative 'onetime/config'
-require_relative 'onetime/errors'
 require_relative 'onetime/plan'
 require_relative 'onetime/alias'
 require_relative 'onetime/models'
