@@ -119,7 +119,7 @@ class Onetime::App
       authorized(true) do
         req.params[:kind] = :share
         logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
-        logic.token = ''.class.eql?(String)
+        logic.token = ''.instance_of?(String).to_s  # lol a roundabout way to get to "true"
         logic.raise_concerns
         logic.process
         if req.get?

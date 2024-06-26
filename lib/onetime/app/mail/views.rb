@@ -5,7 +5,7 @@ require 'mustache'
 class Onetime::App
   module Mail
 
-    require_relative 'mail/base'
+    require_relative 'base'
 
     class Welcome < OT::App::Mail::Base
       def init secret
@@ -19,6 +19,7 @@ class Onetime::App
         secret_uri self[:secret]
       end
     end
+
     class SecretLink < OT::App::Mail::Base
       def init secret, recipient
         self[:secret] = secret
@@ -45,6 +46,7 @@ class Onetime::App
         secret_uri self[:secret]
       end
     end
+
     class PasswordRequest < OT::App::Mail::Base
       def init secret
         self[:secret] = secret
@@ -57,6 +59,7 @@ class Onetime::App
         '/forgot/%s' % self[:secret].key
       end
     end
+
     class IncomingSupport < OT::App::Mail::Base
       attr_accessor :ticketno
       def init secret, recipient
@@ -73,6 +76,7 @@ class Onetime::App
         secret_uri self[:secret]
       end
     end
+
     class TestEmail < OT::App::Mail::Base
       def init
         self[:email_address] = cust.email

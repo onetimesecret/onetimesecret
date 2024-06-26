@@ -7,6 +7,7 @@ class Onetime::App
 
     class SendGridMailer < BaseMailer
       include SendGrid
+
       def send_email to_address, subject, content
         OT.info '[email-send-start]'
         mailer_response = nil
@@ -49,6 +50,7 @@ class Onetime::App
 
         mailer_response
       end
+
       def self.setup
         @sendgrid = SendGrid::API.new(api_key: OT.conf[:emailer][:pass])
       end

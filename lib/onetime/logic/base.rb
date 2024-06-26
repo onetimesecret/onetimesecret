@@ -1,5 +1,7 @@
 # typed: false
 
+require 'timeout'
+
 module Onetime
   module Logic
     class Base
@@ -17,8 +19,10 @@ module Onetime
 
       def valid_email?(guess)
         OT.ld "[valid_email?] Guess: #{guess}"
+
         begin
           validator = Truemail.validate(guess)
+
         rescue StandardError => e
           OT.le "Email validation error: #{e.message}"
           OT.le e.backtrace

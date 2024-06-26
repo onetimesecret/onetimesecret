@@ -1,5 +1,4 @@
 
-
 class Onetime::Session < Familia::HashKey
   @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 1
 
