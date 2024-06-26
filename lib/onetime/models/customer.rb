@@ -48,6 +48,14 @@ class Onetime::Customer < Familia::HashKey
     custid.to_s.eql?('anon')
   end
 
+  def obscure_email
+    if anonymous?
+      'anon'
+    else
+      OT::Utils.obscure_email(custid)
+    end
+  end
+
   def email
     @custid
   end
