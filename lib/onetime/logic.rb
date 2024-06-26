@@ -30,13 +30,14 @@ module Onetime
 
     class CreateAccount < OT::Logic::Base
       attr_reader :cust
-      attr_reader :planid, :custid, :password, :password2
+      attr_reader :planid, :custid, :password, :password2, :skill
       attr_accessor :token
       def process_params
         @planid = params[:planid].to_s
         @custid = params[:u].to_s.downcase.strip
         @password = params[:p].to_s
         @password2 = params[:p2].to_s
+        @skill = params[:skill].to_s # Hidden field, shouldn't have a value
       end
       def raise_concerns
         limit_action :create_account
@@ -46,6 +47,13 @@ module Onetime
         raise_form_error "Passwords do not match" unless password == password2
         raise_form_error "Password is too short" unless password.size >= 6
         raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
+
+        # This is a hidden field, so it should be empty. If it has a value, it's
+        # a simple bot trying to submit the form or similar chicanery. We just
+        # quietly redirect to the home page to mimic a successful response.
+        unless skill.empty?
+          raise Redirect.new('/?s=1') # the query string is just an arbitrary value for the logs
+        end
       end
       def process
         @plan = OT::Plan.plan(planid)
