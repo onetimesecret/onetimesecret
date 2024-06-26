@@ -15,7 +15,7 @@ module Onetime::Models
 
     def check_identifier!
       if self.identifier.to_s.empty?
-        raise RuntimeError, "Suffix cannot be empty for #{self.class}"
+        raise RuntimeError, "Identifier cannot be empty for #{self.class}"
       end
     end
 

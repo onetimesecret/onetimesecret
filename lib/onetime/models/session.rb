@@ -176,7 +176,7 @@ class Onetime::Session < Familia::HashKey
     def load sessid
       sess = new
       sess.sessid = sessid
-      sess.exists? ? (add(sess); sess) : nil
+      sess.exists? ? (add(sess); sess) : nil  # make sure this sess is in the values set
     end
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress, custid, useragent
@@ -184,7 +184,7 @@ class Onetime::Session < Familia::HashKey
       sess.update_sessid
       sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
       sess.save
-      add sess
+      add sess # to the @values sorted set
       sess
     end
     def generate_id *entropy
