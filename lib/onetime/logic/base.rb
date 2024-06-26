@@ -18,10 +18,16 @@ module Onetime
       def valid_email?(guess)
         OT.ld "[valid_email?] Guess: #{guess}"
         begin
-          Truemail.validate(guess).result.valid?
-        rescue => e
+          validator = Truemail.validate(guess)
+        rescue StandardError => e
           OT.le "Email validation error: #{e.message}"
+          OT.le e.backtrace
           false
+        else
+          valid = validator.result.valid?
+          valadation_str = validator.as_json
+          OT.info "[valid_email?] Validator (#{valid}): #{valadation_str}"
+          valid
         end
       end
 
