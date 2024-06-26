@@ -167,7 +167,7 @@ class Onetime::App
       # Should always report false and false when disabled.
       templ = '[sess.check_session] %s %s authenabled=%s, sess=%s'
       margs = [sess.short_identifier, custref, authentication_enabled?, sess.authenticated?]
-      OT.info format(templ, *margs)
+      OT.info format(templ, *margs) unless cust.anonymous?
 
     end
 
