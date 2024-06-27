@@ -93,12 +93,12 @@ class Onetime::App
       error_response "Cripes! You have been rate limited."
 
     rescue Familia::NotConnected, Familia::Problem => ex
-      err "#{ex.class}: #{ex.message}"
-      err ex.backtrace
+      OT.le "#{ex.class}: #{ex.message}"
+      OT.le ex.backtrace
       error_response "An error occurred :["
 
     rescue Errno::ECONNREFUSED => ex
-      OT.info ex.message
+      OT.le ex.message
       OT.le ex.backtrace
       error_response "We'll be back shortly!"
 
@@ -262,13 +262,6 @@ class Onetime::App
 
     def local?
       (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
-    end
-
-    def err *args
-      prefix = "EE(#{Time.now.to_i}):  "
-      msg = "#{prefix} #{args.join()}" # msg.join("#{$/}#{prefix}")
-      SYSLOG.err msg
-      STDERR.puts msg
     end
 
     def deny_agents! *agents
