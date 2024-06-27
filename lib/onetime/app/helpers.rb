@@ -216,7 +216,7 @@ class Onetime::App
       ]
 
       # Convert the details array to a string for logging
-      details_str = details.join(", ")
+      details_str = details.join('; ')
 
       OT.ld "[Request Details] #{details_str}"
 
