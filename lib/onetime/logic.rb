@@ -466,7 +466,7 @@ module Onetime
           raise_form_error "You did not provide anything to share" #
         end
         if cust.anonymous? && !@recipient.empty?
-          raise_form_error "An account is required to send emails. Signup here: http://#{OT.conf[:site][:host]}"
+          raise_form_error "An account is required to send emails. Signup here: https://#{OT.conf[:site][:host]}"
         end
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end
