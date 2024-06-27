@@ -50,25 +50,19 @@ module Onetime
       end
 
       sentry = conf[:services][:sentry]
-      OT.ld "Setting up Sentry #{sentry}..."
       if Otto.env?(:dev) && sentry && sentry[:enabled]
+        OT.ld "Setting up Sentry #{sentry}..."
         dsn = sentry[:dsn]
         OT.info "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
         Sentry.init do |config|
           config.dsn = sentry[:dsn]
+          # Set traces_sample_rate to capture 10% of
+          # transactions for performance monitoring.
+          config.traces_sample_rate = 0.1
 
-          # Set traces_sample_rate to 1.0 to capture 100%
-          # of transactions for performance monitoring.
-          # We recommend adjusting this value in production.
-          config.traces_sample_rate = 1.0
-          # or
-          config.traces_sampler = lambda do |context|
-            true
-          end
-          # Set profiles_sample_rate to profile 100%
+          # Set profiles_sample_rate to profile 10%
           # of sampled transactions.
-          # We recommend adjusting this value in production.
-          config.profiles_sample_rate = 1.0
+          config.profiles_sample_rate = 0.1
         end
       end
 
