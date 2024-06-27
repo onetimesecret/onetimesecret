@@ -1,16 +1,6 @@
 
 class Onetime::App
 
-  # Temporarily adding this here to avoid a circular dependency
-  class Unauthorized < RuntimeError
-  end
-  class Redirect < RuntimeError
-    attr_reader :location, :status
-    def initialize l, s=302
-      @location, @status = l, s
-    end
-  end
-
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
