@@ -17,3 +17,5 @@ tmp
 vendor
 *.rdb
 data/
+*.toml
+!pr_agent.toml
