@@ -45,6 +45,7 @@ class Onetime::App
             # viewing their emails as HTML is very low, but we should
             # really get back around to adding text template as well.
             text_part do
+              content_type 'text/plain; charset=UTF-8'
               body         content
             end
 
