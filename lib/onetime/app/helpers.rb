@@ -24,7 +24,6 @@ class Onetime::App
     def carefully(redirect=nil, content_type=nil) # rubocop:disable Metrics/MethodLength
       redirect ||= req.request_path
       content_type ||= 'text/html; charset=utf-8'
-      counter = 0
 
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.
@@ -37,20 +36,20 @@ class Onetime::App
 
       res.header['Content-Type'] ||= content_type
 
-      counter += 1
+
       return_value = yield
-      counter += 1
+
 
       unless cust.anonymous?
-        counter += 1
+
         reqstr = stringify_request_details(req)
-        counter += 1
+
         custref = cust.obscure_email
-        counter += 1
+
         OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
       end
 
-      #OT.le "[carefully] #{counter} steps #{sess.short_identifier} #{cust.obscure_email} #{req.current_absolute_uri} #{return_value}"
+      #OT.le "[carefully] steps #{sess.short_identifier} #{cust.obscure_email} #{req.current_absolute_uri} #{return_value}"
 
       return_value
 
@@ -93,7 +92,7 @@ class Onetime::App
       error_response "We'll be back shortly!"
 
     rescue StandardError => ex
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{cust.custid} #{sess.short_identifier} #{counter} #{locale} #{content_type} #{redirect} "
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{cust.custid} #{sess.short_identifier} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
 
       error_response "An unexpected error occurred :["
