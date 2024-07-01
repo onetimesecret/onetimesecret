@@ -15,7 +15,6 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
-require 'otto'
 require 'onetime'
 
 PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze

@@ -1,4 +1,6 @@
-require "sentry-ruby"
+
+
+require 'sentry-ruby'
 
 module Onetime
   module Config
@@ -50,7 +52,7 @@ module Onetime
       end
 
       sentry = conf[:services][:sentry]
-      if Otto.env?(:dev) && sentry && sentry[:enabled]
+      if ::Otto.env?(:dev) && sentry && sentry[:enabled]
         OT.ld "Setting up Sentry #{sentry}..."
         dsn = sentry[:dsn]
         OT.info "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
