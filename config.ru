@@ -15,7 +15,6 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
-require 'otto'
 require 'onetime'
 
 PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze
@@ -33,7 +32,7 @@ if Otto.env?(:dev)
 
   if Onetime.debug
     require 'pry-byebug'
-    Otto.debug = true
+    #Otto.debug = true
   end
 
   # DEV: Run web apps with extra logging and reloading

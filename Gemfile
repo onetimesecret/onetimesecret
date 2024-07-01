@@ -33,7 +33,7 @@ gem 'mustache'
 gem 'drydock'
 gem 'familia', '~> 0.10.2'
 gem 'gibbler'
-gem 'otto', '~> 1.0.1'
+gem 'otto', '~> 1.0.2'
 gem 'redis', '~> 5.2.0'
 gem 'storable'
 gem 'sysinfo'
@@ -54,6 +54,7 @@ gem 'pry-byebug', require: false, group: :development
 gem 'rubocop', require: false, group: :development
 gem 'rubocop-performance', require: false, group: :development
 gem 'rubocop-thread_safety', require: false, group: :development
+gem "sentry-ruby", require: false, group: :development
 gem 'sorbet', require: false, group: :development
 gem 'sorbet-runtime'
 gem 'spoom', require: false, group: :development

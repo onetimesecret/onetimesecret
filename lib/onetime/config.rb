@@ -1,4 +1,7 @@
 
+
+require 'sentry-ruby'
+
 module Onetime
   module Config
     extend self
@@ -19,23 +22,25 @@ module Onetime
             else
               "Error loading config: #{path}"
             end
-      Onetime.info msg
+      OT.le msg
+      OT.le e.message, e.backtrace.join("\n")
       Kernel.exit(1)
     end
 
     def after_load(conf = nil)
       conf ||= {}
+
       unless conf.has_key?(:mail)
-        OT.le "Mail configuration is missing"
-        return
+        raise OT::Problem, "No :mail config found in #{path}"
       end
+
       mtc = conf[:mail][:truemail]
       OT.info "Setting TrueMail config from #{path}"
+      raise OT::Problem, "No TrueMail config found" unless mtc
 
       # Iterate over the keys in the mail/truemail config
       # and set the corresponding key in the Truemail config.
       Truemail.configure do |config|
-        break unless mtc
         mtc.each do |key, value|
           actual_key = mapped_key(key)
           unless config.respond_to?("#{actual_key}=")
@@ -45,6 +50,24 @@ module Onetime
           config.send("#{actual_key}=", value)
         end
       end
+
+      sentry = conf[:services][:sentry]
+      if ::Otto.env?(:dev) && sentry && sentry[:enabled]
+        OT.ld "Setting up Sentry #{sentry}..."
+        dsn = sentry[:dsn]
+        OT.info "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
+        Sentry.init do |config|
+          config.dsn = sentry[:dsn]
+          # Set traces_sample_rate to capture 10% of
+          # transactions for performance monitoring.
+          config.traces_sample_rate = 0.1
+
+          # Set profiles_sample_rate to profile 10%
+          # of sampled transactions.
+          config.profiles_sample_rate = 0.1
+        end
+      end
+
     end
 
     def exists?

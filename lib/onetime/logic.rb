@@ -52,7 +52,7 @@ module Onetime
         # a simple bot trying to submit the form or similar chicanery. We just
         # quietly redirect to the home page to mimic a successful response.
         unless skill.empty?
-          raise Redirect.new('/?s=1') # the query string is just an arbitrary value for the logs
+          raise OT::Redirect.new('/?s=1') # the query string is just an arbitrary value for the logs
         end
       end
       def process
@@ -68,13 +68,24 @@ module Onetime
         secret.custid = cust.custid
         secret.save
         view = OT::App::Mail::Welcome.new cust, locale, secret
-        view.deliver_email self.token
-        if OT.conf[:colonels].member?(cust.custid)
-          cust.role = 'colonel'
+
+        begin
+          view.deliver_email self.token
+        rescue StandardError => ex
+          errmsg = "Couldn't send the verification email. Let us know below."
+          OT.le "Error sending verification email: #{ex.message}"
+          sess.set_info_message errmsg
         else
-          cust.role = 'customer'
+
+          if OT.conf[:colonels].member?(cust.custid)
+            cust.role = 'colonel'
+          else
+            cust.role = 'customer'
+          end
+          OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
+
+          OT::Logic.stathat_count("New Customers (OTS)", 1)
         end
-        OT::Logic.stathat_count("New Customers (OTS)", 1)
       end
       private
       def form_fields
@@ -455,7 +466,7 @@ module Onetime
           raise_form_error "You did not provide anything to share" #
         end
         if cust.anonymous? && !@recipient.empty?
-          raise_form_error "An account is required to send emails. Signup here: http://#{OT.conf[:site][:host]}"
+          raise_form_error "An account is required to send emails. Signup here: https://#{OT.conf[:site][:host]}"
         end
         raise OT::Problem, "Unknown type of secret" if kind.nil?
       end

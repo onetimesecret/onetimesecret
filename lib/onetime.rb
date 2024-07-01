@@ -13,6 +13,8 @@ require 'bcrypt'
 
 require 'sendgrid-ruby'
 
+require 'rack'
+require 'otto'
 require 'sysinfo'
 require 'gibbler/mixins'
 require 'familia'
@@ -92,30 +94,35 @@ module Onetime
 
       OT::Plan.load_plans!
 
-      begin
-        # Make sure we're able to connect to separate Redis databases.
-        # Some services like Upstash provide only db 0.
-        16.times { |idx|
-          uri = Familia.redis.id
-          ping_result = Familia.redis(idx).ping
-          OT.ld format('Connecting to %s (%s)', uri, ping_result)
-        }
-      rescue Redis::CannotConnectError => e
-        OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
-        exit 1
-      rescue StandardError => e
-        OT.le "Unexpected error `#{e}` (#{e.class})"
-        exit 99
-      end
-      @conf
+      # Make sure we're able to connect to separate Redis databases.
+      # Some services like Upstash provide only db 0.
+      16.times { |idx|
+        uri = Familia.redis.id
+        ping_result = Familia.redis(idx).ping
+        OT.ld "Connecting to #{uri} (#{ping_result})"
+      }
+
+      @conf # return the config
+
+    rescue OT::Problem => e
+      OT.le "Problem booting: #{e.message}"
+      exit 1
+    rescue Redis::CannotConnectError => e
+      OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
+      exit 10
+    rescue StandardError => e
+      OT.le "Unexpected error `#{e}` (#{e.class})"
+      exit 99
     end
 
     def load_locales(locales = OT.conf[:locales] || ['en'])
       confs = locales.collect do |locale|
-        OT.ld 'Loading locale: %s' % locale
-        conf = OT::Config.load format('%s/locale/%s', OT::Config.dirname, locale)
+        path = File.join(OT::Config.dirname, 'locale', locale)
+        OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
+        conf = OT::Config.load(path)
         [locale, conf]
       end
+
       # Convert the zipped array to a hash
       locales = confs.to_h
       # Make sure the default locale is first
@@ -173,10 +180,10 @@ module Onetime
   extend ClassMethods
 end
 
+require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'
 require_relative 'onetime/config'
-require_relative 'onetime/errors'
 require_relative 'onetime/plan'
 require_relative 'onetime/alias'
 require_relative 'onetime/models'

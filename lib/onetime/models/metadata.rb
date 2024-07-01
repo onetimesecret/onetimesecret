@@ -50,9 +50,9 @@ module Onetime
     end
     def deliver_by_email cust, locale, secret, eaddrs, template=OT::Email::SecretLink, ticketno=null
       if eaddrs.nil? || eaddrs.empty?
-        OT.info "[deliver-by-email] No addresses specified"
+        OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} No addresses specified"
       end
-      OT.info "[deliver-by-email] Has token=(#{self.token})"
+      OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} (token/#{self.token})"
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
       eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
       self.recipients = eaddrs_safe.join(', ')

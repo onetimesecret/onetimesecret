@@ -122,6 +122,10 @@
   - sv_SE
   - tr
   - vi
+:services:
+  :sentry:
+    :dsn: <%= ENV['SENTRY_DSN'] || 'CHANGEME' %>
+    :enabled: <%= !ENV['SENTRY_DSN'].nil? %>
 :limits:
   :create_secret: 250
   :create_account: 10

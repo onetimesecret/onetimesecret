@@ -23,7 +23,7 @@ module Onetime
           check_locale!      # 2. Check the request for the desired locale
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           check_subdomain!   # 4. Check if we're running as a subdomain
-          sess.authenticated? ? yield : res.redirect('/')
+          sess.authenticated? ? yield : res.redirect(('/'))
         end
       end
 

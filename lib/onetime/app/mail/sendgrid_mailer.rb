@@ -44,8 +44,8 @@ class Onetime::App
           OT.ld mailer_response.headers
 
         rescue => ex
-          OT.info "> [send-exception-sending] #{obscured_address}"
-          OT.ld "#{ex.class} #{ex.message}\n#{ex.backtrace}"
+          OT.info "> [send-exception-sending] #{obscured_address} #{ex.class} #{ex.message}"
+          OT.ld "#{ex.backtrace}"
         end
 
         mailer_response

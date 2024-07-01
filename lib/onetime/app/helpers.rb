@@ -21,8 +21,9 @@ class Onetime::App
       @plan
     end
 
-    def carefully redirect=nil # rubocop:disable Metrics/MethodLength
+    def carefully(redirect=nil, content_type=nil) # rubocop:disable Metrics/MethodLength
       redirect ||= req.request_path
+      content_type ||= 'text/html; charset=utf-8'
 
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.
@@ -33,14 +34,30 @@ class Onetime::App
         res.header['Content-Language'] = req.env['ots.locale'] || req.env['rack.locale'] || OT.conf[:locales].first
       end
 
-      res.header['Content-Type'] ||= "text/html; charset=utf-8"
-      yield
+      res.header['Content-Type'] ||= content_type
+
+
+      return_value = yield
+
+
+      unless cust.anonymous?
+
+        reqstr = stringify_request_details(req)
+
+        custref = cust.obscure_email
+
+        OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      end
+
+      #OT.le "[carefully] steps #{sess.short_identifier} #{cust.obscure_email} #{req.current_absolute_uri} #{return_value}"
+
+      return_value
 
     rescue OT::Redirect => ex
       OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
       res.redirect ex.location, ex.status
 
-    rescue OT::App::Unauthorized => ex
+    rescue OT::Unauthorized => ex
       OT.info ex.message
       not_found_response "Not authorized"
 
@@ -65,19 +82,19 @@ class Onetime::App
       error_response "Cripes! You have been rate limited."
 
     rescue Familia::NotConnected, Familia::Problem => ex
-      err "#{ex.class}: #{ex.message}"
-      err ex.backtrace
+      OT.le "#{ex.class}: #{ex.message}"
+      OT.le ex.backtrace
       error_response "An error occurred :["
 
     rescue Errno::ECONNREFUSED => ex
-      OT.info ex.message
+      OT.le ex.message
       OT.le ex.backtrace
       error_response "We'll be back shortly!"
 
     rescue StandardError => ex
-      err "#{ex.class}: #{ex.message}"
-      err req.current_absolute_uri
-      err ex.backtrace.join("\n")
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{cust.custid} #{sess.short_identifier} #{locale} #{content_type} #{redirect} "
+      OT.le ex.backtrace.join("\n")
+
       error_response "An unexpected error occurred :["
 
     ensure
@@ -162,12 +179,11 @@ class Onetime::App
         sess.authenticated = false
       end
 
-      custref = cust.obscure_email
-
       # Should always report false and false when disabled.
-      templ = '[sess.check_session] %s %s authenabled=%s, sess=%s'
-      margs = [sess.short_identifier, custref, authentication_enabled?, sess.authenticated?]
-      OT.info format(templ, *margs)
+      unless cust.anonymous?
+        custref = cust.obscure_email
+        OT.info "[sess.check_session] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
+      end
 
     end
 
@@ -189,6 +205,40 @@ class Onetime::App
       authentication_enabled && signin_enabled
     end
 
+    def stringify_request_details(req)
+
+      details = [
+        req.ip,
+        "#{req.request_method} #{req.path_info}?#{req.query_string}",
+        collect_http_env_details(req.env, collect_http_env_keys(req.env))
+      ]
+
+      # Convert the details array to a string for logging
+      details_str = details.join('; ')
+
+      OT.ld "[Request Details] #{details_str}"
+
+      details_str
+    end
+
+    def collect_http_env_details(env=nil, keys=nil)
+      env ||= {}
+      keys ||= %w[
+        HTTP_FLY_REQUEST_ID
+        HTTP_VIA
+        HTTP_X_FORWARDED_PROTO
+        HTTP_X_FORWARDED_FOR
+        HTTP_X_FORWARDED_HOST
+        HTTP_X_FORWARDED_PORT
+      ]
+      keys.map { |key| "#{key}=#{env[key]}" }.join(" ")
+    end
+
+    def collect_http_env_keys(env=nil)
+      return [] unless env
+      env.keys.select { |key| key.start_with?('HTTP_') }.sort
+    end
+
     def secure_request?
       !local? || secure?
     end
@@ -203,17 +253,10 @@ class Onetime::App
       (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
     end
 
-    def err *args
-      prefix = "D(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << args.join() # msg.join("#{$/}#{prefix}")
-      SYSLOG.err msg
-      STDERR.puts msg
-    end
-
     def deny_agents! *agents
       BADAGENTS.flatten.each do |agent|
         if req.user_agent =~ /#{agent}/i
-          raise Redirect.new('/')
+          raise OT::Redirect.new('/')
         end
       end
     end
