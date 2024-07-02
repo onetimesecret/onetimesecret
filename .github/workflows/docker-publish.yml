@@ -2,10 +2,10 @@ name: Docker
 
 on:
   push:
-    branches: [ "develop", "rel/*", "feature/*" ]
-    tags: [ "rel/*" ]
+    tags: [ "v*" ]
   pull_request:
-    branches: [ "rel/*", "feature/*" ]
+    types: [closed]
+    branches: [ "develop", "feature/*", "rel/*" ]
   workflow_dispatch:
 
 env:
