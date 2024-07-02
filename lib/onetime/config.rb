@@ -16,7 +16,7 @@ module Onetime
 
       YAML.load(ERB.new(File.read(path)).result)
     rescue StandardError => e
-      SYSLOG.err e.message
+      OT.err e.message
       msg = if path =~ /locale/
               "Error loading locale: #{path} (#{e.message})"
             else

@@ -147,33 +147,34 @@ module Onetime
       File.chmod(chmod, filename)
     end
 
-    def info(*msg)
-      # prefix = "I(#{Time.now.to_i}):  "
-      # msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      msg = msg.join($/)
-      return unless mode?(:app) || mode?(:cli)
-
-      warn(msg) if STDOUT.tty?
-      SYSLOG.info msg
+    def info(*msgs)
+      return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
+      msg = msgs.join("#{$/}")
+      stdout("I", msg)
     end
 
-    def le(*msg)
-      prefix = "E(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      warn(msg) if STDOUT.tty?
-      SYSLOG.err msg
+    def le(*msgs)
+      msg = msgs.join("#{$/}")
+      stderr("E", msg)
     end
 
-    def ld(*msg)
+    def ld(*msgs)
       return unless Onetime.debug
+      msg = msgs.join("#{$/}")
+      stderr("D", msg)
+    end
 
-      prefix = "D(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      if STDOUT.tty?
-        warn(msg)
-      else
-        SYSLOG.crit msg
-      end
+    private
+    def stdout(prefix, msg)
+      stamp = Time.now.to_i
+      logline = "%s(%s): %s" % [prefix, stamp, msg]
+      STDOUT.puts(logline)
+    end
+
+    def stderr(prefix, msg)
+      stamp = Time.now.to_i
+      logline = "%s(%s): %s" % [prefix, stamp, msg]
+      STDERR.puts(logline)
     end
   end
 
