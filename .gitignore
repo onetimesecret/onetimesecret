@@ -19,3 +19,5 @@ vendor
 data/
 *.toml
 !pr_agent.toml
+.certs/
+Caddyfile

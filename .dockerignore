@@ -38,3 +38,4 @@ spoom_*
 .history
 .vscode
 .dev-container
+.certs/
