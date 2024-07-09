@@ -1,0 +1,197 @@
+# Default values for chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+app:
+  name: onetimesecret
+  
+ots:
+  site:
+    host: localhost:3000
+    domain: localhost
+    ssl: "true"
+    # NOTE Once the secret is set, do not change it (keep a backup offsite)
+    secret: ~
+  redis:
+    uri: redis://:REDIS_PASSWORD_REPLACED_AT_RUNTIME@REDIS_HOST_REPLACED_AT_RUNTIME:6379/0?timeout=10
+  colonels:
+  # Accounts created with the following email addresses are automatically considered admins of the system.
+  - CHANGEME@EXAMPLE.com
+  emailer:
+    mode: ":sendgrid"
+    account: ~
+    password: ~
+    from: ~
+    fromname: ~
+    bcc: ~
+    
+    host: ~
+    port: "587"
+    tls: "true"
+    user: ~
+    pass: ~
+    auth: plain
+  incoming:
+    # Intended for use by IT support teams who need someone to send them
+    # sensitive info. The email address is where the secret
+    # link is sent. Passphrase is used to protect the secret.
+    # The regex used to ensure the ticket number is valid.
+    # See: https://onetimesecret.com/incoming
+    enabled: "false"
+    email: ~
+    passphrase: ~
+    regex: "\\A[a-zA-Z0-9]{6}\\z"
+  locales:
+  - en
+  - es
+  - de
+  - nl
+  - ru
+  - cs
+  - fr
+  - bg
+  - tr
+  - ca_ES
+  - pt_BR
+  - pl
+  unsupported_locales:
+  - pt
+  - jp
+  - cn
+  - it
+  stathat:
+    enabled: "false"
+    apikey: ~
+    default_chart: ~
+  text:
+    nonpaid_recipient_text: ~
+    paid_recipient_text: ~
+  limits:
+    create_secret: 250
+    create_account: 10
+    update_account: 10
+    email_recipient: 50
+    send_feedback: 10
+    authenticate_session: 5
+    homepage: 500
+    dashboard: 1000
+    failed_passphrase: 5
+    show_metadata: 1000
+    show_secret: 1000
+    burn_secret: 1000
+    destroy_account: 2
+    forget_password_request: 3
+    forget_password_reset: 2
+  split_tests: ~
+    # Define the split_tests config as a YAML multi-lie string that will be injected as is. Eg:
+  # split_tests: |
+  #   :initial_pricing:
+  #     - - basic_v1
+  #       - professional_v1
+  #       - agency_v1
+  #     - - basic_v1
+  #       - professional_v2
+  #       - agency_v1
+  #     - - basic_v1
+  #       - professional_v2
+  #       - agency_v2#
+  email_templates:
+    incoming_support: |
+      <p>{{i18n.email.body1}} {{from}}:</p>
+      <p><strong style="font-size: 125%">{{baseuri}}{{verify_uri}}</strong></p>
+    password_request: |
+      <p>We received a request to reset your password for One-Time Secret<br/>
+      {{baseuri}}{{forgot_path}}</p>
+      <p>Let me know if you have any questions.</p>
+      <p>Admin<br/>
+      {{baseuri}}</p>
+      <p>P.S. This email was sent to {{email_address}}. If you did not make this request, you can ignore it and nothing will change.</p>
+    secret_link: |
+      <p>{{i18n.email.body1}} {{from}}:</p>
+      <p><strong style="font-size: 125%">{{baseuri}}{{verify_uri}}</strong></p>
+      <br/>
+      <br/>
+      <br/>
+      </p>{{i18n.email.body_tagline}}<br/>
+      <p>{{baseuri}}/feedback
+      </i></p>
+    test_email: |
+      <p>This email is a test from One-Time Secret!<br/></p>
+      <p>This is a test variable: {{test_variable}}</p>
+      <p>Admin<br/>
+      {{baseuri}}</p>
+    welcome: |
+      <p>{{i18n.email.body1}}</p>
+      <p>{{i18n.email.please_verify}}<br/>
+      <strong>{{baseuri}}{{verify_uri}}</strong></p>
+      <p>Admin<br/>
+      {{baseuri}}</p>
+      <p>P.S. {{i18n.email.postscript1}} {{email_address}}. {{i18n.email.postscript2}}</p>
+
+image:
+  repository: croixbleueqc/ots
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+extraEnvs:
+  # Use YAML syntax to add variables. Eg:
+  # - name: VAR1
+  #   value: value1
+  # - name: VAR2
+  #   value: value2
+  
+serviceAccount:
+  create: true
+  
+imagePullSecrets: []
+nameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: false
+  hosts: []
+  tls: []
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+redis:
+  global:
+    redis:
+      password: ~
+  architecture: standalone
+  replica:
+    replicaCount: 0
+  persistence: # Keep everything in memory by default for better security, at the risk of losing secrets when restarting the pod
+    enabled: false

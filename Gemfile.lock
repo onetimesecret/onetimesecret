@@ -119,6 +119,7 @@ GEM
     sorbet-runtime (0.5.11435)
     sorbet-static (0.5.11435-aarch64-linux)
     sorbet-static (0.5.11435-universal-darwin)
+    sorbet-static (0.5.11435-x86_64-linux)
     sorbet-static-and-runtime (0.5.11435)
       sorbet (= 0.5.11435)
       sorbet-runtime (= 0.5.11435)
@@ -163,6 +164,7 @@ GEM
 PLATFORMS
   aarch64-linux
   universal-darwin
+  x86_64-linux
 
 DEPENDENCIES
   addressable
@@ -204,4 +206,4 @@ RUBY VERSION
    ruby 3.2.4p170
 
 BUNDLED WITH
-   2.4.12
+   2.5.15

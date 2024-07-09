@@ -1,0 +1,154 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "chart.name" . }}-config
+data:
+  ots.config: |
+    :site:
+      :host: {{ .Values.ots.site.host }}
+      :domain: {{ .Values.ots.site.domain }}
+      :ssl: {{ .Values.ots.site.ssl }}
+      
+      {{- if .Values.ots.site.secret }}
+      :secret: {{ .Values.ots.site.secret }}
+      {{- else }}
+      {{/* we cannot use the helper here (ie, we cannot use: include "ots.secret" .) because that helper can use a random value (on first install).
+           So using the include here and in secret.yaml would result in two different random values */}}
+      :secret: OTS_SECRET_REPLACED_AT_RUNTIME
+      {{- end }}
+    :redis:
+      :uri: {{ .Values.ots.redis.uri }}
+    :colonels:
+      {{- range .Values.ots.colonels }}
+      - {{ . }}
+      {{- end }}
+    :emailer:
+      :mode: {{ .Values.ots.emailer.mode }}
+      :from: {{ .Values.ots.emailer.from }}
+      {{- if eq .Values.ots.emailer.mode ":sendgrid" }}
+      :account: {{ .Values.ots.emailer.account }}
+      :password: {{ .Values.ots.emailer.password }}
+      :fromname: {{ .Values.ots.emailer.fromname }}
+      :bcc: {{ .Values.ots.emailer.bcc }}
+      {{- else if eq .Values.ots.emailer.mode ":smtp" }}
+      :host: {{ .Values.ots.emailer.host }}
+      :port: {{ .Values.ots.emailer.port }}
+      :tls: {{ .Values.ots.emailer.tls }}
+      :user: {{ .Values.ots.emailer.user }}
+      :pass: {{ .Values.ots.emailer.pass }}
+      :auth: {{ .Values.ots.emailer.auth }}
+      {{- else }}
+      {{ toYaml .Values.ots.emailer.custom | indent 6 }}
+      {{- end }}
+    :mail:
+      :truemail:
+        # Available validation types: :regex, :mx, :mx_blacklist, :smtp
+        :default_validation_type: :regex
+        # Required for :smtp validation
+        :verifier_email: <%= ENV['VERIFIER_EMAIL'] || 'CHANGEME@example.com' %>
+        #:verifier_domain: <%= ENV['VERIFIER_DOMAIN'] || 'example.com' %>
+        #:connection_timeout: 2
+        #:response_timeout: 2
+        #:connection_attempts: 3
+        #:validation_type_for:
+        #  'example.com': :regex
+        #
+        # Truemail will only validate email addresses that match the
+        # domains listed in :allowed_domains. If the domain is not
+        # listed, the email address will always be considered invalid.
+        :allowed_domains_only: false
+        #
+        # Email addresses in this list will always be valid.
+        #:allowed_emails: []
+        #
+        # Email addresses in this list will always be invalid.
+        #:blocked_emails: []
+        #
+        # Addresses with these domains will always be valid
+        #:allowed_domains: []
+        #
+        # Addresses with these domains will always be invalid
+        #:blocked_domains: []
+        #
+        # Exclude these IP addresses from the MX lookup process.
+        #:blocked_mx_ip_addresses: []
+        #
+        # Name servers to use for MX et al record lookup.
+        # Default is Oracle/OpenDNS servers.
+        :dns:
+          - 208.67.222.222
+          - 208.67.220.220
+        #:smtp_port: 25
+        #
+        # End smtp validation after the first invalid response rather than
+        # retrying, followed by trying the next server. Can reduce the time
+        # time to validate an email address, but may not catch all issues.
+        :smtp_fail_fast: false
+        #
+        # Parse the content of the SMTP error message to determine if the
+        # email address is valid. This can be useful for some SMTP servers
+        # that don't return exact answers.
+        :smtp_safe_check: true
+        #
+        # Whether to disable the RFC MX lookup flow. When true, only DNS
+        # validation will be performed on MX and Null MX records.
+        :not_rfc_mx_lookup_flow: false
+        #
+        # Override default regular expression pattern for email addresses
+        # and/or the content in SMTP error messages.
+        #:email_pattern: /regex_pattern/
+        #:smtp_error_body_pattern: /regex_pattern/
+        #
+        # Log to the console, a file, or both. The ruby process must have
+        # write access to the log file. The log file will be created if it
+        # does not exist. Log file rotation is not handled by the app.
+        :logger:
+          # One of: :error (default), :unrecognized_error,
+          # :recognized_error, :all.
+          tracking_event: :error
+          stdout: true
+          # log_absolute_path: '/home/app/log/truemail.log'
+    :incoming:
+      :enabled: {{ .Values.ots.incoming.enabled }}
+      :email: {{ .Values.ots.incoming.email }}
+      :passphrase: {{ .Values.ots.incoming.passphrase }}
+      :regex: {{ .Values.ots.incoming.regex }}
+    :locales:
+    {{- range .Values.ots.locales }}
+    - {{ . }}
+    {{- end }}
+    :unsupported_locales:
+    {{- range .Values.ots.unsupported_locales }}
+    - {{ . }}
+    {{- end }}
+    :stathat:
+      :enabled: {{ .Values.ots.stathat.enabled }}
+      :apikey: {{ .Values.ots.stathat.apikey }}
+      :default_chart: {{ .Values.ots.stathat.default_chart }}
+    :text:
+      :nonpaid_recipient_text: {{ .Values.ots.text.nonpaid_recipient_text }}
+      :paid_recipient_text: {{ .Values.ots.text.paid_recipient_text }}
+    :services:
+      :sentry:
+        :dsn: <%= ENV['SENTRY_DSN'] || 'CHANGEME' %>
+        :enabled: <%= !ENV['SENTRY_DSN'].nil? %>
+    :limits:
+      :create_secret: {{ .Values.ots.limits.create_secret }}
+      :create_account: {{ .Values.ots.limits.create_account }}
+      :update_account: {{ .Values.ots.limits.update_account }}
+      :email_recipient: {{ .Values.ots.limits.email_recipient }}
+      :send_feedback: {{ .Values.ots.limits.send_feedback }}
+      :authenticate_session: {{ .Values.ots.limits.authenticate_session }}
+      :homepage: {{ .Values.ots.limits.homepage }}
+      :dashboard: {{ .Values.ots.limits.dashboard }}
+      :failed_passphrase: {{ .Values.ots.limits.failed_passphrase }}
+      :show_metadata: {{ .Values.ots.limits.show_metadata }}
+      :show_secret: {{ .Values.ots.limits.show_secret }}
+      :burn_secret: {{ .Values.ots.limits.burn_secret }}
+      :destroy_account: {{ .Values.ots.limits.destroy_account }}
+      :forgot_password_request: {{ .Values.ots.limits.forget_password_request }}
+      :forgot_password_reset: {{ .Values.ots.limits.forget_password_reset }}
+    {{ if .Values.ots.split_tests }}
+    :split_tests:
+      {{ toYaml .Values.ots.split_tests | indent 6 }}
+    {{- end }}
