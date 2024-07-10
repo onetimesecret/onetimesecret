@@ -83,32 +83,20 @@ Docker's buildx command is a powerful tool that allows you to create Docker imag
 
 After the container has been removed, the regular `docker run` command will work again.
 
+##### [Croix-Bleue Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)
 
-#### Container repositories
-
-
-##### [GitHub Container Registry](https://ghcr.io/onetimesecret/onetimesecret)
+```bash
+docker build -t croixbleueqc/ots -f devops/Dockerfile .
+````
 
 ```bash
   $ docker run -p 6379:6379 --name redis -d redis
   $ REDIS_URL="redis://172.17.0.2:6379/0"
 
-  $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
+  $ docker pull croixbleueqc/onetimesecret:latest
   $ docker run -p 3000:3000 -d --name onetimesecret \
     -e REDIS_URL=$REDIS_URL \
-    ghcr.io/onetimesecret/onetimesecret:latest
-```
-
-##### [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)
-
-```bash
-  $ docker run -p 6379:6379 --name redis -d redis
-  $ REDIS_URL="redis://172.17.0.2:6379/0"
-
-  $ docker pull onetimesecret/onetimesecret:latest
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-    -e REDIS_URL=$REDIS_URL \
-    onetimesecret/onetimesecret:latest
+    croixbleueqc/onetimesecret:latest
 ```
 
 ### Docker Compose

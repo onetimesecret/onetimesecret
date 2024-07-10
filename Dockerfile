@@ -129,11 +129,13 @@ RUN mkdir -p "$ONETIME_HOME/{log,tmp}"
 
 WORKDIR $CODE_ROOT
 
-COPY Gemfile ./
+COPY Gemfile Gemfile.lock ./
 
 # Install the dependencies into the base image
+RUN bundle config set without 'development test'
+RUN bundle config set deployment true
+#RUN bundle update --bundler
 RUN bundle install
-RUN bundle update --bundler
 
 
 ##
@@ -145,12 +147,14 @@ RUN bundle update --bundler
 FROM app_env
 ARG CODE_ROOT
 
-LABEL Name=onetimesecret Version=0.13.0
+LABEL Name=onetimesecret Version=0.15.0
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
+ENV BUNDLE_NO_PRUNE=true
+ENV RACK_ENV=prod
 
 WORKDIR $CODE_ROOT
 
@@ -161,8 +165,15 @@ COPY . .
 # example, if the config file has been previously copied
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
-RUN cp --preserve --no-clobber \
- etc/config.example etc/config
+#RUN cp --preserve --no-clobber \
+# etc/config.example etc/config
+
+# For k8s, we mount a config map with 'ots.config' into /mnt/config
+RUN mkdir -p /mnt/config && \
+    ln -s /mnt/config/ots.config etc/config
+
+# For k8s, we use a config map for config
+#RUN mkdir -p /etc/onetime/config && ln -s /mnt/config/ots.config /etc/onetime/config
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:

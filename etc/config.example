@@ -9,7 +9,7 @@
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.
-    :enabled: true
+    :enabled: false
     # Allow users to create accounts. This can be disabled if you plan
     # to create accounts manually or enable during setup when accounts
     # can be created and then disabled to prevent any new users from

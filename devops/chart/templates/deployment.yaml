@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "chart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "chart.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        # This reads the configmap and create the final config file in /mnt/config/ots.config with the secret in it
+        # The reason we go through a init container is to use this first container to have read-write access to the config file in
+        # order to edit it, and then mount it as read-only in the runtime container.
+        - name: inject-ots-secret-in-config
+          image: busybox:1.36
+          imagePullPolicy: Always
+          command: ['sh', '-c', "sed \"s|OTS_SECRET_REPLACED_AT_RUNTIME|$OTS_SECRET|;s|REDIS_PASSWORD_REPLACED_AT_RUNTIME|$REDIS_SECRET|;s|REDIS_HOST_REPLACED_AT_RUNTIME|$REDIS_HOST|\" /tmp/config/ots.config > /mnt/config/ots.config "]
+          env:
+          - name: OTS_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "chart.name" . }}-secret
+                key: ots-secret
+          - name: REDIS_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-redis
+                key: redis-password
+          - name: REDIS_HOST
+            value: {{ .Release.Name }}-redis-headless
+          volumeMounts:
+            - name: config-dir
+              mountPath: /mnt/config
+            - name: ost-config
+              mountPath: /tmp/config
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.extraEnvs }}
+          env:
+          {{- toYaml .Values.extraEnvs | nindent 10 }}
+          {{- end }}
+          ports:
+
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            #- name: tmp-mount
+            #  mountPath: /tmp
+            - name: config-dir
+              mountPath: /mnt/config
+              readOnly: true
+            - name: email-templates
+              mountPath: /var/lib/onetime/templates/email
+              readOnly: true
+            {{- range .Values.extraVolumeMounts }}
+            - {{ toYaml . | nindent 14 }}
+            {{- end }}
+      volumes:
+        #- name: tmp-mount
+        #  emptyDir: {}
+        - name: config-dir
+          emptyDir: {}
+        - name: ost-config
+          configMap:
+            name: {{ include "chart.name" . }}-config
+        - name: email-templates
+          configMap:
+            name: {{ include "chart.name" . }}-email-templates
+        {{- range .Values.extraVolumes }}
+        - {{ toYaml . | nindent 10 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

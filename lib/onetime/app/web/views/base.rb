@@ -24,7 +24,7 @@ module Onetime
         self[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
         self[:authenticated] = sess.authenticated? if sess
         self[:display_promo] = false
-        self[:display_feedback] = true
+        self[:display_feedback] = false
         self[:colonel] = cust.role?(:colonel) if cust
         self[:feedback_text] = i18n[:COMMON][:feedback_text]
         self[:base_domain] = OT.conf[:site][:domain]
@@ -35,7 +35,7 @@ module Onetime
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:email, cust.email)
-        self[:display_links] = true
+        self[:display_links] = false
         self[:display_options] = true
         self[:display_recipients] = sess.authenticated?
         self[:display_masthead] = true

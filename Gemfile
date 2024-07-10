@@ -47,6 +47,9 @@ gem 'sendgrid-ruby'
 
 gem 'mail'
 
+# Adding sentry-ruby to production build since it is required
+gem "sentry-ruby"
+
 gem 'byebug', require: false, group: :development
 gem 'byebug-dap', require: false, group: :development
 gem 'pry', require: false, group: :development
@@ -54,7 +57,7 @@ gem 'pry-byebug', require: false, group: :development
 gem 'rubocop', require: false, group: :development
 gem 'rubocop-performance', require: false, group: :development
 gem 'rubocop-thread_safety', require: false, group: :development
-gem "sentry-ruby", require: false, group: :development
+#gem "sentry-ruby", require: false, group: :development
 gem 'sorbet', require: false, group: :development
 gem 'sorbet-runtime'
 gem 'spoom', require: false, group: :development
