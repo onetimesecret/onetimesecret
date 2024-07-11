@@ -35,7 +35,7 @@ module Onetime
       end
 
       mtc = conf[:mail][:truemail]
-      OT.info "Setting TrueMail config from #{path}"
+      OT.ld "Setting TrueMail config from #{path}"
       raise OT::Problem, "No TrueMail config found" unless mtc
 
       # Iterate over the keys in the mail/truemail config
