@@ -22,7 +22,7 @@ require 'storable'
 
 require_relative 'onetime/core_ext'
 
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+
 
 Familia.apiversion = nil
 

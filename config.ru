@@ -28,6 +28,33 @@ apps = {
 
 Onetime.boot! :app
 
+SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+
+class HeaderLoggerMiddleware
+  def initialize(app)
+    @app = app
+    SYSLOG.info("HeaderLoggerMiddleware initialized")
+  end
+
+  def call(env)
+    log_headers(env)
+    @app.call(env)
+  end
+
+  private
+
+  def log_headers(env)
+    SYSLOG.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
+    env.each do |key, value|
+      if key.start_with?('HTTP_')
+        header_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+        SYSLOG.info("  #{header_name}: #{value}")
+      end
+    end
+    SYSLOG.info("\n")  # Add a blank line for readability between requests
+  end
+end
+
 if Otto.env?(:dev)
 
   if Onetime.debug
@@ -37,6 +64,7 @@ if Otto.env?(:dev)
 
   # DEV: Run web apps with extra logging and reloading
   apps.each_pair do |path, app|
+    use HeaderLoggerMiddleware
     map(path) do
       use Rack::CommonLogger
       use Rack::Reloader, 1
@@ -51,6 +79,7 @@ if Otto.env?(:dev)
 else
   # PROD: run barebones webapps
   apps.each_pair do |path, app|
+    use HeaderLoggerMiddleware
     app.option[:public] = PUBLIC_DIR
     map(path) { run app }
   end
