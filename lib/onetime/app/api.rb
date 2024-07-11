@@ -1,5 +1,5 @@
 
-require_relative 'api/base'
+require_relative 'api/v1/base'
 
 class Onetime::App
   class API

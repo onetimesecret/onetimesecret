@@ -1,4 +1,4 @@
-require 'onetime/app/helpers'
+require_relative '../../helpers'
 
 class Onetime::App
   class API
