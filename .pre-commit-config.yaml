@@ -69,7 +69,7 @@ repos:
       - id: rubocop
         name: rubocop
         description: Enforce the community Ruby Style Guide with RuboCop
-        entry: bundle exec rubocop --config .rubocop.yml --format json --fail-level warning | jq
+        entry: "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning"
         types: ['ruby']
         # language: ruby
         # language_version: 3.2.4
