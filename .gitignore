@@ -21,3 +21,5 @@ data/
 !pr_agent.toml
 .certs/
 Caddyfile
+.prompts/
+/etc/caddy
