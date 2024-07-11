@@ -15,7 +15,8 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
-require 'onetime'
+require_relative 'lib/onetime'
+require_relative 'lib/middleware/header_logger_middleware'
 
 PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze
 APP_DIR = "#{ENV.fetch('APP_ROOT', nil)}/lib/onetime/app".freeze
@@ -28,38 +29,10 @@ apps = {
 
 Onetime.boot! :app
 
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
-
-class HeaderLoggerMiddleware
-  def initialize(app)
-    @app = app
-    SYSLOG.info("HeaderLoggerMiddleware initialized")
-  end
-
-  def call(env)
-    log_headers(env)
-    @app.call(env)
-  end
-
-  private
-
-  def log_headers(env)
-    SYSLOG.info("Request Headers for #{env['REQUEST_METHOD']} #{env['PATH_INFO']}:")
-    env.each do |key, value|
-      if key.start_with?('HTTP_')
-        header_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
-        SYSLOG.info("  #{header_name}: #{value}")
-      end
-    end
-    SYSLOG.info("\n")  # Add a blank line for readability between requests
-  end
-end
-
 if Otto.env?(:dev)
 
   if Onetime.debug
     require 'pry-byebug'
-    #Otto.debug = true
   end
 
   # DEV: Run web apps with extra logging and reloading
@@ -77,6 +50,7 @@ if Otto.env?(:dev)
   end
 
 else
+
   # PROD: run barebones webapps
   apps.each_pair do |path, app|
     use HeaderLoggerMiddleware

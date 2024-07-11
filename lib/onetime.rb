@@ -15,7 +15,6 @@ require 'sendgrid-ruby'
 
 require 'rack'
 require 'otto'
-require 'sysinfo'
 require 'gibbler/mixins'
 require 'familia'
 require 'storable'
