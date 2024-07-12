@@ -7,42 +7,35 @@ require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot! :app
 
-# NOTE: ABOUT LAMBDAS: We wrap associative arrays in lambdas to
+# NOTE ABOUT LAMBDAS: We wrap associative arrays in lambdas to
 # ensure that identical values are used in each test. What you
 # see is what you get. There's no dark magic or any further
 # complications. It's just a robust way to keep things DRY.
 
 # URL-encoded data with multiple parameters.
-@env_url_encoded_multiple = lambda {
-                               {
-                                 'REQUEST_METHOD' => 'POST',
+@env_url_encoded_multiple = lambda {{
+  'REQUEST_METHOD' => 'POST',
   'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
   'rack.input' => StringIO.new('key1=value1%25&key2=value2%')
-                               }
-}
+}}
 
 # URL-encoded data with misplaced percent sign.
-@env_url_encoded_misplaced_percent = lambda {
-                                        {
-                                          'REQUEST_METHOD' => 'POST',
+@env_url_encoded_misplaced_percent = lambda {{
+  'REQUEST_METHOD' => 'POST',
   'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
   'rack.input' => StringIO.new('key=value%with%pe%rcent')
-                                        }
-}
+}}
 
 # JSON payload with percent sign
-@env_json = lambda {
-               {
-                 'REQUEST_METHOD' => 'POST',
+@env_json = lambda {{
+  'REQUEST_METHOD' => 'POST',
   'CONTENT_TYPE' => 'application/json',
   'rack.input' => StringIO.new('{"key":"value%with%pe%rcent"}')
-               }
-}
+}}
 
 # Multipart form-data with percent sign
-@env_multipart = lambda {
-                    {
-                      'REQUEST_METHOD' => 'POST',
+@env_multipart = lambda {{
+  'REQUEST_METHOD' => 'POST',
   'CONTENT_TYPE' => 'multipart/form-data; boundary=---------------------------abcdefg',
   'rack.input' => StringIO.new(
     "-----------------------------abcdefg\r\n" \
@@ -51,8 +44,7 @@ OT.boot! :app
     "value%with%pe%rcent\r\n" \
     "-----------------------------abcdefg--\r\n"
   )
-                    }
-}
+}}
 
 
 ## Can handle URL-encoded data with multiple parameters
