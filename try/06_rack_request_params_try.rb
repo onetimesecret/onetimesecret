@@ -1,16 +1,34 @@
 # frozen_string_literal: true
 
+# These tryouts replicate and test edge cases related to
+# Rack::Request parameter parsing, specifically focusing on scenarios involving
+# percent-encoding in different types of HTTP requests.
+#
+# We're replicating issues that can occur when handling POST requests with various
+# content types, including:
+# 1. application/x-www-form-urlencoded with invalid percent-encoding
+# 2. multipart/form-data containing percent signs
+# 3. application/json payloads with percent signs
+# 4. URL-encoded data with multiple parameters and percent signs
+# 5. Raw body access for requests containing percent signs
+#
+# These tests aim to uncover potential issues in Rack's handling of percent-encoded
+# characters in different contexts, which is crucial for correctly processing user
+# input in web applications, especially when dealing with special characters.
+#
+# The tryouts simulate different request environments and test Rack::Request's
+# behavior without needing to run an actual server, allowing for targeted testing
+# of these specific scenarios.
 
-require_relative '../lib/onetime'
-
-# Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
-OT.boot! :app
+require 'json'
+require 'rack'
+require_relative '../lib/middleware/handle_invalid_percent_encoding'
 
 # NOTE ABOUT LAMBDAS: We wrap associative arrays in lambdas to
 # ensure that identical values are used in each test. What you
 # see is what you get. There's no dark magic or any further
 # complications. It's just a robust way to keep things DRY.
+
 
 # URL-encoded data with multiple parameters.
 @env_url_encoded_multiple = lambda {{
@@ -45,6 +63,11 @@ OT.boot! :app
     "-----------------------------abcdefg--\r\n"
   )
 }}
+
+# Demonstrate how the HandleInvalidPercentEncoding
+# middleware can resolve these issues.
+@app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['OK']] }
+@middleware = Rack::HandleInvalidPercentEncoding.new(@app)
 
 
 ## Can handle URL-encoded data with multiple parameters
@@ -88,7 +111,6 @@ end
 #=> "{\"key\":\"value%with%pe%rcent\"}"
 
 
-
 ## Can handle multipart form-data with percent sign
 env = @env_multipart.call
 req = Rack::Request.new(env)
@@ -99,3 +121,61 @@ rescue ArgumentError => e
   nil # an exception isn't raised
 end
 #=> "Params: value%with%pe%rcent"
+
+
+## Middleware handles invalid percent-encoding in URL-encoded data
+env = @env_url_encoded_multiple.call
+status, headers, body = @middleware.call(env)
+"Status: #{status}, Body: #{body.first}"
+#=> "Status: 400, Body: {\"error\":\"Bad Request\",\"message\":\"invalid %-encoding (value2%)\"}"
+
+
+## Middleware handles invalid percent-encoding in misplaced percent sign
+env = @env_url_encoded_misplaced_percent.call
+status, headers, body = @middleware.call(env)
+"Status: #{status}, Body: #{body.first}"
+#=> "Status: 400, Body: {\"error\":\"Bad Request\",\"message\":\"invalid %-encoding (value%with%pe%rcent)\"}"
+
+
+## Middleware allows valid JSON payload with percent sign to pass through
+env = @env_json.call
+status, headers, body = @middleware.call(env)
+"Status: #{status}, Body: #{body.first}"
+#=> "Status: 200, Body: OK"
+
+
+## Middleware allows valid multipart form-data with percent sign to pass through
+env = @env_multipart.call
+status, headers, body = @middleware.call(env)
+"Status: #{status}, Body: #{body.first}"
+#=> "Status: 200, Body: OK"
+
+
+## Middleware sets correct content type in error response
+env = @env_url_encoded_multiple.call
+env['HTTP_ACCEPT'] = 'application/xml'
+status, headers, body = @middleware.call(env)
+"Content-Type: #{headers[:'Content-Type']}"
+#=> "Content-Type: application/xml; charset=utf-8"
+
+
+## Middleware logs error message
+io = StringIO.new
+middleware_with_custom_logger = Rack::HandleInvalidPercentEncoding.new(@app, io: io)
+env = @env_url_encoded_multiple.call
+middleware_with_custom_logger.call(env)
+io.rewind
+log_message = io.read
+log_message.include?("[handle-invalid-percent-encoding] `invalid %-encoding (value2%)` in one of the following params:")
+#=> true
+
+
+## Middleware allows requests without invalid percent-encoding to pass through
+env = {
+  'REQUEST_METHOD' => 'GET',
+  'QUERY_STRING' => 'key=value%25',  # Valid percent-encoding
+  'rack.input' => StringIO.new
+}
+status, headers, body = @middleware.call(env)
+"Status: #{status}, Body: #{body.first}"
+#=> "Status: 200, Body: OK"
