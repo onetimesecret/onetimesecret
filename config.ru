@@ -15,7 +15,8 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
-require 'onetime'
+require_relative 'lib/onetime'
+require_relative 'lib/middleware/handle_invalid_percent_encoding'
 
 PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze
 APP_DIR = "#{ENV.fetch('APP_ROOT', nil)}/lib/onetime/app".freeze
@@ -32,25 +33,28 @@ if Otto.env?(:dev)
 
   if Onetime.debug
     require 'pry-byebug'
-    #Otto.debug = true
   end
 
-  # DEV: Run web apps with extra logging and reloading
+  # DEV: Run webapps with extra logging and reloading
   apps.each_pair do |path, app|
     map(path) do
       use Rack::CommonLogger
       use Rack::Reloader, 1
+
+      use Rack::HandleInvalidPercentEncoding
+
       app.option[:public] = PUBLIC_DIR
       app.add_static_path '/favicon.ico'
-      # TODO: Otto should check for not_found method instead of setting it here.
-      # otto.not_found = [404, {'Content-Type'=>'text/plain'}, ["Server error2"]]
+
       run app
     end
   end
 
 else
-  # PROD: run barebones webapps
+  # PROD: run webapps the bare minimum additional middleware
   apps.each_pair do |path, app|
+    use Rack::HandleInvalidPercentEncoding
+
     app.option[:public] = PUBLIC_DIR
     map(path) { run app }
   end
