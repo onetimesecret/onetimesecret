@@ -22,6 +22,12 @@ AllCops:
   UseCache: true
   MaxFilesInCache: 100
   TargetRubyVersion: 3.0
+  Exclude:
+    - 'migrate/**/*.rb'
+    - 'migrate/*.rb'
+    - 'try/**/*'
+    - 'try/*.rb'
+    - 'vendor/**/*'
 
 Gemspec/DeprecatedAttributeAssignment:
   Enabled: true
