@@ -24,6 +24,9 @@ gem 'addressable'
 
 gem 'rack'
 
+# Part of fix for Fix invalid %-encoding in POST request handling #463
+gem 'rack-utf8_sanitizer'
+
 gem 'multi_json'
 gem 'thin'
 gem 'yajl-ruby'

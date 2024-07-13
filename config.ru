@@ -17,6 +17,7 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
 require_relative 'lib/onetime'
 require_relative 'lib/middleware/handle_invalid_percent_encoding'
+require_relative 'lib/middleware/handle_invalid_utf8'
 
 PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze
 APP_DIR = "#{ENV.fetch('APP_ROOT', nil)}/lib/onetime/app".freeze
@@ -41,7 +42,9 @@ if Otto.env?(:dev)
       use Rack::CommonLogger
       use Rack::Reloader, 1
 
+      # TODO: We actually only need to run this logic for the API app.
       use Rack::HandleInvalidPercentEncoding
+      use Rack::HandleInvalidUTF8
 
       app.option[:public] = PUBLIC_DIR
       app.add_static_path '/favicon.ico'
@@ -54,6 +57,7 @@ else
   # PROD: run webapps the bare minimum additional middleware
   apps.each_pair do |path, app|
     use Rack::HandleInvalidPercentEncoding
+    use Rack::HandleInvalidUTF8
 
     app.option[:public] = PUBLIC_DIR
     map(path) { run app }

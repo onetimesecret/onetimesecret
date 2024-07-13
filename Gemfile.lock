@@ -75,6 +75,8 @@ GEM
     public_suffix (5.1.0)
     racc (1.8.0)
     rack (2.2.9)
+    rack-utf8_sanitizer (1.9.1)
+      rack (>= 1.0, < 4.0)
     rainbow (3.1.1)
     rake (13.0.6)
     rbi (0.1.13)
@@ -181,6 +183,7 @@ DEPENDENCIES
   pry
   pry-byebug
   rack
+  rack-utf8_sanitizer
   redis (~> 5.2.0)
   rubocop
   rubocop-performance
