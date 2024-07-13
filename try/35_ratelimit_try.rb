@@ -1,5 +1,21 @@
 # frozen_string_literal: true
 
+# These tryouts test the rate limiting functionality in the OneTime application.
+# They cover various aspects of rate limiting, including:
+#
+# 1. Defining and registering rate limit events
+# 2. Creating and managing rate limiters
+# 3. Checking if limits are exceeded
+# 4. Handling exceptions when limits are exceeded
+#
+# These tests aim to verify the correct behavior of the OT::RateLimit class,
+# which is essential for preventing abuse and ensuring fair usage of the application.
+#
+# The tryouts simulate different rate limiting scenarios and test the OT::RateLimit class's
+# behavior without needing to run the full application, allowing for targeted testing
+# of these specific features.
+
+
 require_relative '../lib/onetime'
 
 # Use the default config file for tests

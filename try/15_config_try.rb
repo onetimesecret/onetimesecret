@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+# These tryouts test the configuration functionality of the Onetime application.
+# The Config module is responsible for loading and managing application settings.
+#
+# We're testing various aspects of the configuration, including:
+# 1. Loading and accessing config files
+# 2. Verifying basic configuration structure
+# 3. Checking specific configuration options (e.g., authentication, email settings)
+# 4. Testing utility methods for config key mapping and file existence
+#
+# These tests aim to ensure that the application can correctly load and use
+# its configuration, which is crucial for proper operation and customization.
+
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
