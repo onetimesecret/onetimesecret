@@ -87,6 +87,8 @@ class Rack::HandleInvalidPercentEncoding
 
   def handle_exception(env, exception)
     rack_input = env['rack.input']&.read || ''
+    env['rack.input'].rewind
+
     errmsg = exception.message
 
     logger.error "[handle-invalid-uri-encoding] #{errmsg} in #{env['REQUEST_URI']}"
