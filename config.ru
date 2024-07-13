@@ -61,6 +61,7 @@ else
 
   # PROD: run webapps the bare minimum additional middleware
   apps.each_pair do |path, app|
+    use Rack::CommonLogger
     use Rack::HandleInvalidUTF8
     use Rack::HandleInvalidPercentEncoding
 
