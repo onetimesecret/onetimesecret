@@ -18,6 +18,7 @@ require 'otto'
 require 'gibbler/mixins'
 require 'familia'
 require 'storable'
+require 'sysinfo'
 
 require_relative 'onetime/core_ext'
 

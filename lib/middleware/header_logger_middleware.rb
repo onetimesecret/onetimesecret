@@ -2,7 +2,9 @@ require 'syslog'
 
 SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 
-# HeaderLoggerMiddleware logs all HTTP headers for each request to the system log.
+# Rack::HeaderLoggerMiddleware
+#
+# Logs all HTTP headers for each request to the system log.
 # It is intended for use in development environments. It is not recommended for
 # production use, as it will log sensitive information such as cookies and
 # authorization headers. It's particularly helpful for debugging proxies and
@@ -17,10 +19,10 @@ SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
 #
 #     use HeaderLoggerMiddleware
 #
-class HeaderLoggerMiddleware
+class Rack::HeaderLoggerMiddleware
   def initialize(app)
     @app = app
-    SYSLOG.info("HeaderLoggerMiddleware initialized")
+    SYSLOG.debug("HeaderLoggerMiddleware initialized")
   end
 
   def call(env)
