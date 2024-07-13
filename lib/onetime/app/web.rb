@@ -1,9 +1,11 @@
 
 require_relative 'web/base'
 require_relative 'web/views'
+require_relative 'base'  # app/base.rb
 
 module Onetime
   class App
+    include AppSettings
     include Base
     require 'onetime/app/web/info'
     require 'onetime/app/web/account'
