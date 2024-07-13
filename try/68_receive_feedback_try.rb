@@ -1,5 +1,20 @@
 # frozen_string_literal: true
 
+# These tryouts test the feedback receiving functionality in the OneTime application.
+# They cover various aspects of handling user feedback, including:
+#
+# 1. Creating and processing feedback instances
+# 2. Validating feedback input
+# 3. Handling anonymous feedback attempts
+# 4. Storing and retrieving recent feedback
+# 5. Preventing duplicate feedback submissions
+#
+# These tests aim to ensure that user feedback is properly received, validated, and stored,
+# which is important for gathering user input and improving the application.
+#
+# The tryouts use the OT::Logic::ReceiveFeedback class to simulate different feedback submission
+# scenarios, allowing for targeted testing of this feature without affecting the actual feedback database.
+
 require_relative '../lib/onetime'
 
 # Load the app

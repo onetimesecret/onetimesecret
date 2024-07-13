@@ -63,6 +63,7 @@ Metrics/ModuleLength:
   CountAsOne: ['method_call']
 
 Performance/Size:
+  Enabled: true
   Exclude:
   #   - lib/example.rb
 

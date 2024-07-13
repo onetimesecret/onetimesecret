@@ -1,7 +1,22 @@
 # frozen_string_literal: true
 
+# These tryouts test the session management functionality in the OneTime application.
+# They cover various aspects of session handling, including:
+#
+# 1. Session creation and initialization
+# 2. Session identifiers and attributes
+# 3. Form field management within sessions
+# 4. Authentication status and auth disabling
+# 5. Session reloading and replacement
+#
+# These tests aim to verify the correct behavior of the OT::Session class,
+# which is crucial for maintaining user state and security in the application.
+#
+# The tryouts simulate different session scenarios and test the OT::Session class's
+# behavior without needing to run the full application, allowing for targeted testing
+# of these specific features.
+
 require_relative '../lib/onetime'
-require 'pry-byebug';
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')

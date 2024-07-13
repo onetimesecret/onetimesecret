@@ -1,5 +1,22 @@
 # frozen_string_literal: true
 
+# These tryouts test the customer model functionality in the OneTime application.
+# They cover various aspects of customer management, including:
+#
+# 1. Customer creation and initialization
+# 2. Customer attributes (planid, custid, role, etc.)
+# 3. Customer states (pending, verified, active)
+# 4. Timestamp handling (created, updated, last_login)
+# 5. Customer destruction process
+#
+# These tests aim to verify the correct behavior of the OT::Customer class,
+# which is essential for managing user accounts in the application.
+#
+# The tryouts simulate different customer scenarios and test the OT::Customer class's
+# behavior without needing to run the full application, allowing for targeted testing
+# of these specific scenarios.
+
+
 require_relative '../lib/onetime'
 
 # Load the app

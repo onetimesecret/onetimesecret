@@ -1,6 +1,7 @@
 
-require 'rack'
+require 'json'
 require 'logger'
+require 'rack'
 
 
 # Rack::HandleInvalidPercentEncoding
@@ -9,7 +10,7 @@ require 'logger'
 # data in HTTP requests. Instead of attempting to guess or fix invalid encodings,
 # which could lead to silent but deadly data corruption, it:
 #
-# 1. Detects invalid percent-encoding early in the request processing.
+# 1. Detects invalid uri-encoding early in the request processing.
 # 2. Returns a 400 Bad Request with a clear error message.
 # 3. Logs the error for debugging and monitoring.
 #
@@ -30,12 +31,20 @@ class Rack::HandleInvalidPercentEncoding
 
   attr_reader :logger
 
-  def initialize(app, io: $stdout)
+  def initialize(app, io: $stdout, check_enabled: nil)
     @app = app
     @logger = Logger.new(io)
+    @check_enabled = check_enabled
   end
 
   def call(env)
+    request_uri = env['REQUEST_URI']
+
+    logger.debug "[handle-invalid-uri-encoding] Checking #{request_uri}"
+
+    # If the route doesn't include the AppSettings module, we can't
+    # determine if the app wants to check for invalid percent encoding.
+    return @app.call(env) unless check_enabled?(@app)
 
     # The instantiated request object isn't available until later in the
     # middleware chain so we need to create our own instance here in order
@@ -53,24 +62,45 @@ class Rack::HandleInvalidPercentEncoding
 
     rescue ArgumentError => e
       raise e unless e.message =~ /invalid %-encoding/
-      rack_input = request.get_header('rack.input').read
 
-      message = "`#{e.message}` in one of the following params: #{rack_input}"
-      logger.info "[handle-invalid-percent-encoding] #{message}"
-      content_type = env['HTTP_ACCEPT'] || self.class.default_content_type
-      status = 400
-      body   = { error: 'Bad Request', message: e.message }.to_json
-      return [
-        status,
-        {
-          'Content-Type': "#{content_type}; charset=#{self.class.default_charset}",
-           'Content-Length': body.bytesize.to_s
-        },
-        [body]
-      ]
+      return handle_exception(env, e)
     else
 
       @app.call(env)
     end
+  end
+
+  # NOTE: This check is specific to Onetime and Otto apps. We'll want to
+  # find a more generic way to determine if the app/route level settings.
+  # One example would be to check in config.ru and not `use` middleware
+  # for apps that don't have the settings enabled.
+  #
+  def check_enabled?(app)
+    return true if @check_enabled
+    return false unless defined?(Otto) && app.is_a?(Otto)
+    name, route = app.route_definitions.first
+    has_settings = route.klass.include?(Onetime::App::AppSettings)
+    setting_enabled = route.klass.check_uri_encoding
+    logger.debug "[handle-invalid-uri-encoding] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
+    return has_settings && setting_enabled
+  end
+
+  def handle_exception(env, exception)
+    rack_input = env['rack.input']&.read || ''
+    errmsg = exception.message
+
+    message = "`#{errmsg}` in one of the following params: #{rack_input}"
+    logger.error "[handle-invalid-uri-encoding] #{message}"
+
+    status = 400
+    body   = { error: 'Bad Request', message: errmsg }.to_json
+
+    cls = self.class
+    headers = {
+      'Content-Type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
+      'Content-Length': body.bytesize.to_s
+    }
+
+    [status, headers, [body]]
   end
 end
