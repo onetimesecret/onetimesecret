@@ -42,7 +42,6 @@ if Otto.env?(:dev)
       use Rack::CommonLogger
       use Rack::Reloader, 1
 
-      # TODO: We actually only need to run this logic for the API app.
       use Rack::HandleInvalidPercentEncoding
       use Rack::HandleInvalidUTF8
 
