@@ -1,7 +1,9 @@
 require_relative 'web/base'
+require_relative 'base'  # app/base.rb
 
 class Onetime::App
   class Colonel
+    include AppSettings
     include OT::App::Base
 
     def index
