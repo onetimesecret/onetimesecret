@@ -19,6 +19,8 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
 require_relative 'lib/onetime'
+
+require_relative 'lib/middleware/header_logger_middleware'
 require_relative 'lib/middleware/handle_invalid_percent_encoding'
 require_relative 'lib/middleware/handle_invalid_utf8'
 
@@ -41,28 +43,31 @@ if Otto.env?(:dev)
 
   # DEV: Run webapps with extra logging and reloading
   apps.each_pair do |path, app|
-    map(path) do
-      OT.ld "[app] Attaching #{app} at #{path}"
-      use Rack::CommonLogger
-      use Rack::Reloader, 1
+    use Rack::CommonLogger
+    use Rack::Reloader, 1
 
-      use Rack::HandleInvalidUTF8
-      use Rack::HandleInvalidPercentEncoding
-
-      app.option[:public] = PUBLIC_DIR
-      app.add_static_path '/favicon.ico'
-
-      run app
-    end
-  end
-
-else
-  # PROD: run webapps the bare minimum additional middleware
-  apps.each_pair do |path, app|
+    use Rack::HeaderLoggerMiddleware
     use Rack::HandleInvalidUTF8
     use Rack::HandleInvalidPercentEncoding
 
     app.option[:public] = PUBLIC_DIR
+    app.add_static_path '/favicon.ico'
+
+    OT.info "[app] Attaching #{app} at #{path}"
+    map(path) { run app }
+  end
+
+else
+
+  # PROD: run webapps the bare minimum additional middleware
+  apps.each_pair do |path, app|
+    use Rack::CommonLogger
+    use Rack::HandleInvalidUTF8
+    use Rack::HandleInvalidPercentEncoding
+
+    app.option[:public] = PUBLIC_DIR
+
+    OT.info "[app] Attaching #{app} at #{path}"
     map(path) { run app }
   end
 end

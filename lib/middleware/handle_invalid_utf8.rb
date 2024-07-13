@@ -2,7 +2,6 @@
 require 'json'
 require 'logger'
 require 'rack'
-require 'rack/utf8_sanitizer'
 
 # Rack::HandleInvalidUTF8
 #

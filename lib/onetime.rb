@@ -15,14 +15,14 @@ require 'sendgrid-ruby'
 
 require 'rack'
 require 'otto'
-require 'sysinfo'
 require 'gibbler/mixins'
 require 'familia'
 require 'storable'
+require 'sysinfo'
 
 require_relative 'onetime/core_ext'
 
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+
 
 Familia.apiversion = nil
 
