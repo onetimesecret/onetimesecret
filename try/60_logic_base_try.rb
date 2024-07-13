@@ -1,5 +1,21 @@
 # frozen_string_literal: true
 
+# These tryouts test the base logic of the Onetime application,
+# specifically focusing on the CreateAccount functionality.
+#
+# We're testing various aspects of the CreateAccount logic, including:
+# 1. Instance creation
+# 2. Email validation
+#
+# These tests aim to ensure that the basic account creation logic
+# in the Onetime application works correctly, which is crucial for
+# user onboarding and management.
+#
+# The tryouts simulate different scenarios of using the CreateAccount
+# logic without needing to run the full application, allowing for
+# targeted testing of this specific functionality.
+
+
 require_relative '../lib/onetime'
 
 # Load the app

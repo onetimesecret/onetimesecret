@@ -1,5 +1,20 @@
 # frozen_string_literal: true
 
+# These tryouts test the account destruction functionality in the OneTime application.
+# They cover various aspects of the account destruction process, including:
+#
+# 1. Validating user input for account destruction
+# 2. Handling password confirmation
+# 3. Rate limiting destruction attempts
+# 4. Processing account destruction
+# 5. Verifying the state of destroyed accounts
+#
+# These tests aim to ensure that the account destruction process is secure, properly validated,
+# and correctly updates the user's account state.
+#
+# The tryouts use the OT::Logic::DestroyAccount class to simulate different account destruction
+# scenarios, allowing for targeted testing of this critical functionality without affecting real user accounts.
+
 require_relative '../lib/onetime'
 
 # Load the app

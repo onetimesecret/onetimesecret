@@ -1,5 +1,23 @@
 # frozen_string_literal: true
 
+# These tryouts test the encryption and decryption functionality
+# of the Onetime::Secret class.
+#
+# We're testing various aspects of secret handling, including:
+# 1. Storing a value
+# 2. Encrypting a value
+# 3. Decrypting a value
+# 4. Behavior when decrypting without prior encryption
+# 5. Behavior when the global secret is changed
+#
+# These tests aim to ensure that the secret handling mechanism
+# in the Onetime application works correctly and securely, which
+# is crucial for the core functionality of the service.
+#
+# The tryouts simulate different scenarios of secret handling
+# without needing to run the full application, allowing for
+# targeted testing of this specific functionality.
+
 require_relative '../lib/onetime'
 
 # Use the default config file for tests

@@ -1,5 +1,18 @@
 # frozen_string_literal: true
 
+# These tryouts test the email template functionality in the OneTime application.
+# They cover various aspects of email template handling, including:
+#
+# 1. Creating email views for different purposes (Welcome, SecretLink)
+# 2. Rendering email templates
+# 3. Handling different locales (English, Spanish)
+# 4. Verifying email subject lines
+#
+# These tests aim to ensure that email templates are correctly generated and localized,
+# which is crucial for effective communication with users in the application.
+#
+# The tryouts use the OT::Email classes
+
 require_relative '../lib/onetime'
 
 # Use the default config file for tests

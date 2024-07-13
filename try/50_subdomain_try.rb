@@ -1,5 +1,21 @@
 # frozen_string_literal: true
 
+# These tryouts test the subdomain functionality in the OneTime application.
+# They cover various aspects of subdomain management, including:
+#
+# 1. Creating and normalizing subdomains
+# 2. Checking subdomain existence and ownership
+# 3. Mapping subdomains to customer IDs
+# 4. Destroying subdomains
+#
+# These tests aim to verify the correct behavior of the Onetime::Subdomain class,
+# which is essential for managing custom subdomains in the application.
+#
+# The tryouts simulate different subdomain scenarios and test the Onetime::Subdomain class's
+# behavior without needing to interact with actual DNS, allowing for targeted testing
+# of these specific features.
+
+
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
