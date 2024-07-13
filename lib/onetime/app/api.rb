@@ -1,9 +1,14 @@
 
 require_relative 'api/base'
+require_relative 'base'  # app/base.rb
 
 class Onetime::App
   class API
+    include AppSettings
     include Onetime::App::API::Base
+
+    @check_utf8 = true
+    @check_uri_encoding = true
 
     def status
       authorized(true) do

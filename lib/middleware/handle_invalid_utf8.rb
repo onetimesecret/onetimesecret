@@ -38,19 +38,27 @@ class Rack::HandleInvalidUTF8
 
   attr_reader :logger
 
-  def initialize(app, io: $stdout)
+  def initialize(app, io: $stdout, check_enabled: nil)
     @app = app
     @logger = Logger.new(io)
+    @check_enabled = check_enabled  # override the check_enabled? method
   end
 
   def call(env)
-    shallow_copy = env.dup
+    request_uri = env['REQUEST_URI']
+
+    logger.debug "[handle-invalid-utf8] Checking #{request_uri}"
+
+    # If the route doesn't include the AppSettings module, we can't
+    # determine if the app wants to check for invalid percent encoding.
+    return @app.call(env) unless check_enabled?(@app)
 
     # We duplicate the environment to avoid modifying the original
     # since all we want to do is kick the tires and see what shakes
     # out. We don't want to change the environment and continue; we
     # want to raise an exception early so we can return a 400 Bad
     # Request and a descriptive error message.
+    shallow_copy = env.dup
     self.class.input_sources.each do |key|
       next unless shallow_copy.key?(key)
       check_and_raise_for_invalid_utf8(shallow_copy[key], key)
@@ -67,6 +75,21 @@ class Rack::HandleInvalidUTF8
   end
 
   private
+
+  # NOTE: This check is specific to Onetime and Otto apps. We'll want to
+  # find a more generic way to determine if the app/route level settings.
+  # One example would be to check in config.ru and not `use` middleware
+  # for apps that don't have the settings enabled.
+  #
+  def check_enabled?(app)
+    return true if @check_enabled
+    return false unless defined?(Otto) && app.is_a?(Otto)
+    name, route = app.route_definitions.first
+    has_settings = route.klass.include?(Onetime::App::AppSettings)
+    setting_enabled = route.klass.check_utf8
+    logger.debug "[handle-invalid-utf8] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
+    return has_settings && setting_enabled
+  end
 
   # Validates that the input is valid UTF-8 and raises an exception if it's not.
   #

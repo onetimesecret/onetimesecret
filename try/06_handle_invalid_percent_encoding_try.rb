@@ -25,11 +25,10 @@ require 'rack'
 
 require_relative '../lib/middleware/handle_invalid_percent_encoding'
 
-# NOTE ABOUT LAMBDAS: We wrap associative arrays in lambdas to
-# ensure that identical values are used in each test. What you
-# see is what you get. There's no dark magic or any further
+# NOTE: We wrap associative arrays in lambdas to ensure that
+# identical values are used in each test. What you see is
+# what you get. There's no dark magic or any further
 # complications. It's just a robust way to keep things DRY.
-
 
 # URL-encoded data with multiple parameters.
 @env_url_encoded_multiple = lambda {{
@@ -68,7 +67,7 @@ require_relative '../lib/middleware/handle_invalid_percent_encoding'
 # Demonstrate how the HandleInvalidPercentEncoding
 # middleware can resolve these issues.
 @app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['OK']] }
-@middleware = Rack::HandleInvalidPercentEncoding.new(@app)
+@middleware = Rack::HandleInvalidPercentEncoding.new(@app, check_enabled: true)
 
 
 ## Can handle URL-encoded data with multiple parameters
@@ -152,17 +151,17 @@ status, headers, body = @middleware.call(env)
 #=> "Status: 200, Body: OK"
 
 
-## Middleware sets correct content type in error response
+## Middleware sets correct content type in error response (always json)
 env = @env_url_encoded_multiple.call
 env['HTTP_ACCEPT'] = 'application/xml'
 status, headers, body = @middleware.call(env)
 "Content-Type: #{headers[:'Content-Type']}"
-#=> "Content-Type: application/xml; charset=utf-8"
+#=> "Content-Type: application/json; charset=utf-8"
 
 
 ## Middleware logs error message
 io = StringIO.new
-middleware_with_custom_logger = Rack::HandleInvalidPercentEncoding.new(@app, io: io)
+middleware_with_custom_logger = Rack::HandleInvalidPercentEncoding.new(@app, io: io, check_enabled: true)
 env = @env_url_encoded_multiple.call
 middleware_with_custom_logger.call(env)
 io.rewind

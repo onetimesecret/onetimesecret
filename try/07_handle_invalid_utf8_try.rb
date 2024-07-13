@@ -62,7 +62,7 @@ end
 
 # Set up the middleware
 @app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['OK']] }
-@middleware = Rack::HandleInvalidUTF8.new(@app)
+@middleware = Rack::HandleInvalidUTF8.new(@app, check_enabled: true)
 
 ## Middleware allows valid UTF-8 request to pass through
 env = @env_valid_utf8.call
