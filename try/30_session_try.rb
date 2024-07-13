@@ -16,9 +16,7 @@
 # behavior without needing to run the full application, allowing for targeted testing
 # of these specific features.
 
-
 require_relative '../lib/onetime'
-require 'pry-byebug';
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')

@@ -1,4 +1,4 @@
-require 'pry-byebug'
+
 require 'json'
 require 'logger'
 require 'rack'
