@@ -1,6 +1,7 @@
 
-require 'rack'
+require 'json'
 require 'logger'
+require 'rack'
 
 
 # Rack::HandleInvalidPercentEncoding
@@ -53,24 +54,30 @@ class Rack::HandleInvalidPercentEncoding
 
     rescue ArgumentError => e
       raise e unless e.message =~ /invalid %-encoding/
-      rack_input = request.get_header('rack.input').read
 
-      message = "`#{e.message}` in one of the following params: #{rack_input}"
-      logger.info "[handle-invalid-percent-encoding] #{message}"
-      content_type = env['HTTP_ACCEPT'] || self.class.default_content_type
-      status = 400
-      body   = { error: 'Bad Request', message: e.message }.to_json
-      return [
-        status,
-        {
-          'Content-Type': "#{content_type}; charset=#{self.class.default_charset}",
-           'Content-Length': body.bytesize.to_s
-        },
-        [body]
-      ]
+      return handle_exception(env, e)
     else
 
       @app.call(env)
     end
+  end
+
+  def handle_exception(env, exception)
+    rack_input = env['rack.input']&.read || ''
+    errmsg = exception.message
+
+    message = "`#{errmsg}` in one of the following params: #{rack_input}"
+    logger.info "[handle-invalid-percent-encoding] #{message}"
+
+    status = 400
+    body   = { error: 'Bad Request', message: errmsg }.to_json
+
+    cls = self.class
+    headers = {
+      'Content-Type': "#{cls.default_content_type}; charset=#{cls.default_charset}",
+      'Content-Length': body.bytesize.to_s
+    }
+
+    [status, headers, [body]]
   end
 end

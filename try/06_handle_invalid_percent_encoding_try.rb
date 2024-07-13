@@ -22,6 +22,7 @@
 
 require 'json'
 require 'rack'
+
 require_relative '../lib/middleware/handle_invalid_percent_encoding'
 
 # NOTE ABOUT LAMBDAS: We wrap associative arrays in lambdas to
