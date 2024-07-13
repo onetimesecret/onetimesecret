@@ -166,7 +166,7 @@ env = @env_url_encoded_multiple.call
 middleware_with_custom_logger.call(env)
 io.rewind
 log_message = io.read
-log_message.include?("[handle-invalid-percent-encoding] `invalid %-encoding (value2%)` in one of the following params:")
+log_message.include?("[handle-invalid-uri-encoding] `invalid %-encoding (value2%)` in one of the following params:")
 #=> true
 
 
