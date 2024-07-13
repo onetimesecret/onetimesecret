@@ -43,31 +43,33 @@ if Otto.env?(:dev)
 
   # DEV: Run webapps with extra logging and reloading
   apps.each_pair do |path, app|
-    use Rack::CommonLogger
-    use Rack::Reloader, 1
-
-    use Rack::HeaderLoggerMiddleware
-    use Rack::HandleInvalidUTF8
-    use Rack::HandleInvalidPercentEncoding
-
-    app.option[:public] = PUBLIC_DIR
-    app.add_static_path '/favicon.ico'
-
     OT.info "[app] Attaching #{app} at #{path}"
-    map(path) { run app }
+    map(path) {
+      use Rack::CommonLogger
+      use Rack::Reloader, 1
+
+      use Rack::HeaderLoggerMiddleware
+      use Rack::HandleInvalidUTF8
+      use Rack::HandleInvalidPercentEncoding
+
+      app.option[:public] = PUBLIC_DIR
+      app.add_static_path '/favicon.ico'
+      run app
+    }
   end
 
 else
-
   # PROD: run webapps the bare minimum additional middleware
   apps.each_pair do |path, app|
-    use Rack::CommonLogger
-    use Rack::HandleInvalidUTF8
-    use Rack::HandleInvalidPercentEncoding
-
-    app.option[:public] = PUBLIC_DIR
-
     OT.info "[app] Attaching #{app} at #{path}"
-    map(path) { run app }
+    map(path) {
+      use Rack::CommonLogger
+
+      use Rack::HandleInvalidUTF8
+      use Rack::HandleInvalidPercentEncoding
+
+      app.option[:public] = PUBLIC_DIR
+      run app
+    }
   end
 end
