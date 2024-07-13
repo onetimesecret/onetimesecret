@@ -1,4 +1,5 @@
-require_relative '../helpers'  # app/helpers.rb
+# Ensure no conflicts with Onetime::App::API::Base methods
+require_relative '../helpers'   # app/helpers.rb
 
 
 class Onetime::App
