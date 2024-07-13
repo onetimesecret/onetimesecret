@@ -1,5 +1,19 @@
 # frozen_string_literal: true
 
+# These tryouts test the Onetime::Metadata class functionality.
+# The Metadata class is responsible for managing metadata associated
+# with secrets in the Onetime application.
+#
+# We're testing various aspects of the Metadata class, including:
+# 1. Creation and initialization of Metadata objects
+# 2. Consistency of Redis keys and secret keys
+# 3. Saving and destroying Metadata objects
+# 4. Checking existence of Metadata in the database
+#
+# These tests aim to ensure that metadata can be correctly created,
+# stored, and managed, which is crucial for maintaining information
+# about secrets in the application.
+
 require_relative '../lib/onetime'
 
 # Use the default config file for tests

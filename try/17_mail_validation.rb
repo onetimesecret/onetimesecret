@@ -1,8 +1,21 @@
 # frozen_string_literal: true
 
-require 'digest'
+# These tryouts test the email validation functionality using the Truemail gem.
+# Email validation is crucial for ensuring that user-provided email addresses
+# are valid and potentially deliverable.
+#
+# We're testing various aspects of email validation, including:
+# 1. Configuration of Truemail settings
+# 2. Validation of various email formats (valid, invalid, edge cases)
+# 3. Different validation methods (regex, MX, SMTP)
+#
+# These tests aim to ensure that the application can accurately validate
+# email addresses, which is important for user registration and communication.
 
+require 'digest'
 require 'dotenv'
+require 'truemail'
+
 Dotenv.load('.env')
 
 # Relys on environment variables:

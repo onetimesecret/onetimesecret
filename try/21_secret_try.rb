@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
+# These tryouts test the Onetime::Secret class functionality.
+# The Secret class is responsible for managing secrets in the
+# Onetime application.
 #
+# We're testing various aspects of the Secret class, including:
+# 1. Creation of Secret objects
+# 2. Consistency of Redis keys
+# 3. Spawning secret pairs (metadata and secret)
+# 4. Saving, loading, and destroying secrets
+# 5. Managing secret states (viewed, received)
+#
+# These tests aim to ensure that secrets can be correctly created,
+# stored, and managed throughout their lifecycle in the application.
+
 require_relative '../lib/onetime'
 
 # Use the default config file for tests

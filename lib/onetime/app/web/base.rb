@@ -1,4 +1,4 @@
-require 'onetime/app/helpers'
+require_relative '../helpers'  # app/helpers.rb
 
 module Onetime
   class App
