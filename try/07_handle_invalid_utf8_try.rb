@@ -107,16 +107,11 @@ log_message.include?("[handle-invalid-utf8] Invalid UTF-8 or null byte detected:
 #=> true
 
 ## Middleware allows requests with valid UTF-8 to pass through
-output = []
-input_string = '{"key":"validValue🌈"}'.force_encoding('UTF-8')
-output << "Input encoding: #{input_string.encoding}"
 env = {
   'REQUEST_METHOD' => 'POST',
   'CONTENT_TYPE' => 'application/json',
-  'rack.input' => StringIO.new(input_string)
+  'rack.input' => StringIO.new('{"key":"validValue🌈"}')  # Valid UTF-8 with emoji
 }
-output << "StringIO encoding: #{env['rack.input'].string.encoding}"
 status, headers, body = @middleware.call(env)
-output << "Response: #{status}, #{body.first}, encoding: #{body.first.encoding}"
-"Status: #{status}, Body: #{body.first}, #{output.join('++++')}"
+"Status: #{status}, Body: #{body.first}"
 #=> "Status: 200, Body: OK"
