@@ -18,11 +18,10 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
-require_relative 'lib/onetime'
-
 require_relative 'lib/middleware/header_logger_middleware'
 require_relative 'lib/middleware/handle_invalid_percent_encoding'
 require_relative 'lib/middleware/handle_invalid_utf8'
+require_relative 'lib/onetime'
 
 PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze
 APP_DIR = "#{ENV.fetch('APP_ROOT', nil)}/lib/onetime/app".freeze
@@ -36,22 +35,16 @@ apps = {
 Onetime.boot! :app
 
 middlewares = if Otto.env?(:dev)
-  require 'pry-byebug' if Onetime.debug
-
   [
     [Rack::CommonLogger],
-
     [Rack::Reloader, 1],
     [Rack::HeaderLoggerMiddleware],
-
     [Rack::HandleInvalidUTF8],
     [Rack::HandleInvalidPercentEncoding]
   ]
-
 else
   [
     [Rack::CommonLogger],
-
     [Rack::HandleInvalidUTF8],
     [Rack::HandleInvalidPercentEncoding]
   ]
@@ -60,6 +53,7 @@ end
 apps.each_pair do |path, app|
   map(path) {
     OT.info "[app] Attaching #{app} at #{path}"
+
     middlewares.each do |klass, *args|
       OT.ld "[middleware] Attaching #{klass}"
       use klass, *args
