@@ -88,17 +88,6 @@ module Onetime
       exit 99
     end
 
-    def to_file(content, filename, mode, chmod = 0o744)
-      mode = mode == :append ? 'a' : 'w'
-      f = File.open(filename, mode)
-      f.puts content
-      f.close
-
-      raise OT::Problem("Provided chmod is not an Integer (#{chmod})") unless chmod.is_a?(Integer)
-
-      File.chmod(chmod, filename)
-    end
-
     def info(*msgs)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
       msg = msgs.join("#{$/}")
@@ -139,7 +128,7 @@ module Onetime
     end
 
     def print_banner
-      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
+      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  #{'---' * 12}"
       info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
       info "Config: #{OT::Config.path}"
       info "Redis:  #{Familia.uri.serverid}" # doesn't print the password
