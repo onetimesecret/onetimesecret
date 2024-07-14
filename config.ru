@@ -35,41 +35,36 @@ apps = {
 
 Onetime.boot! :app
 
-if Otto.env?(:dev)
+middlewares = if Otto.env?(:dev)
+  require 'pry-byebug' if Onetime.debug
 
-  if Onetime.debug
-    require 'pry-byebug'
-  end
+  [
+    [Rack::CommonLogger],
 
-  # DEV: Run webapps with extra logging and reloading
-  apps.each_pair do |path, app|
-    OT.info "[app] Attaching #{app} at #{path}"
-    map(path) {
-      use Rack::CommonLogger
-      use Rack::Reloader, 1
+    [Rack::Reloader, 1],
+    [Rack::HeaderLoggerMiddleware],
 
-      use Rack::HeaderLoggerMiddleware
-      use Rack::HandleInvalidUTF8
-      use Rack::HandleInvalidPercentEncoding
-
-      app.option[:public] = PUBLIC_DIR
-      app.add_static_path '/favicon.ico'
-      run app
-    }
-  end
+    [Rack::HandleInvalidUTF8],
+    [Rack::HandleInvalidPercentEncoding]
+  ]
 
 else
-  # PROD: run webapps the bare minimum additional middleware
-  apps.each_pair do |path, app|
+  [
+    [Rack::CommonLogger],
+
+    [Rack::HandleInvalidUTF8],
+    [Rack::HandleInvalidPercentEncoding]
+  ]
+end
+
+apps.each_pair do |path, app|
+  map(path) {
     OT.info "[app] Attaching #{app} at #{path}"
-    map(path) {
-      use Rack::CommonLogger
-
-      use Rack::HandleInvalidUTF8
-      use Rack::HandleInvalidPercentEncoding
-
-      app.option[:public] = PUBLIC_DIR
-      run app
-    }
-  end
+    middlewares.each do |klass, *args|
+      OT.ld "[middleware] Attaching #{klass}"
+      use klass, *args
+    end
+    app.option[:public] = PUBLIC_DIR
+    run app
+  }
 end
