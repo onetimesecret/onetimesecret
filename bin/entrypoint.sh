@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-#
+##
 # ONETIME ENTRYPOINT SCRIPT - 2024-05-18
 #
 #   Usage:
@@ -14,7 +14,6 @@
 #           onetime:
 #             extends: onetime-config
 #        -->  command: ["onetime", "-h", "0.0.0.0", "-p", "3000"]
-#
 #
 
 # Stop at the first sign of trouble
@@ -41,7 +40,13 @@ unset datestamp location basename
 
 # Run bundler again so that new dependencies added to the
 # Gemfile are installed at up time (i.e. avoids a rebuild).
->&2 bundle install
+# Check if BUNDLE_INSTALL is set to "true" (case-insensitive)
+if [[ "${BUNDLE_INSTALL,,}" == "true" ]]; then
+  >&2 echo "Running bundle install..."
+  >&2 bundle install
+else
+  >&2 echo "Skipping bundle install. Use BUNDLE_INSTALL=true to run it."
+fi
 
 if [ -d "/mnt/public" ]; then
   # By default the static web assets are available at /mnt/public/web
