@@ -60,26 +60,20 @@ module Onetime
     def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load # load config before anything else.
-
       OT::Config.after_load(@conf)
 
-      @locales = load_locales
+      Familia.uri = OT.conf[:redis][:uri]
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
-      @emailer = Onetime::App::Mail::SMTPMailer
 
-      @emailer.setup
-
-      @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
-      Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
-      Familia.uri = OT.conf[:redis][:uri]
-      OT::RateLimit.register_events OT.conf[:limits]
-      OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
-      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
-
-      print_banner
+      load_locales
+      set_global_secret
+      prepare_emailers
+      prepare_rate_limits
+      load_fortunes
       load_plans
       connect_databases
+      print_banner
 
       @conf # return the config
 
@@ -124,6 +118,26 @@ module Onetime
 
     private
 
+    def prepare_emailers
+      @emailer = Onetime::App::Mail::SMTPMailer
+      @emailer.setup
+    end
+
+    def set_global_secret
+      @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
+      unless Gibbler.secret && Gibbler.secret.frozen?
+        Gibbler.secret = global_secret.freeze
+      end
+    end
+
+    def prepare_rate_limits
+      OT::RateLimit.register_events OT.conf[:limits]
+    end
+
+    def load_fortunes
+      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+    end
+
     def print_banner
       info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
       info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
@@ -133,6 +147,7 @@ module Onetime
       if OT.conf[:site].key?(:authentication)
         info "Authentication: #{OT.conf[:site][:authentication]}"
       end
+      info "Loaded locales: #{@locales.keys.join(', ')}"
       info "Limits: #{OT::RateLimit.events}"
     end
 
@@ -157,7 +172,6 @@ module Onetime
         conf = OT::Config.load(path)
         [locale, conf]
       end
-      OT.info "Loaded locales: #{confs.map(&:first).join(', ')}"
 
       # Convert the zipped array to a hash
       locales = confs.to_h
@@ -169,7 +183,7 @@ module Onetime
       locales.each do |key, locale|
         locales[key] = OT::Utils.deep_merge(default_locale, locale) if default_locale != locale
       end
-      locales
+      @locales = locales
     end
 
     def stdout(prefix, msg)
