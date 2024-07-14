@@ -39,7 +39,7 @@ class Rack::HandleInvalidUTF8
 
   def initialize(app, io: $stdout, check_enabled: nil)
     @app = app
-    @logger = Logger.new(io)
+    @logger = Logger.new(io, level: :info)
     @check_enabled = check_enabled  # override the check_enabled? method
   end
 
@@ -126,7 +126,7 @@ class Rack::HandleInvalidUTF8
 
   def handle_exception(env, exception)
     message = "Invalid UTF-8 or null byte detected: #{exception.message}"
-    logger.info "[handle-invalid-utf8] #{message}"
+    logger.error "[handle-invalid-utf8] #{message}"
 
     status = 400
     body = { error: 'Bad Request', message: message }.to_json

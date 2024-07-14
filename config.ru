@@ -18,11 +18,10 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
-require_relative 'lib/onetime'
-
 require_relative 'lib/middleware/header_logger_middleware'
 require_relative 'lib/middleware/handle_invalid_percent_encoding'
 require_relative 'lib/middleware/handle_invalid_utf8'
+require_relative 'lib/onetime'
 
 PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze
 APP_DIR = "#{ENV.fetch('APP_ROOT', nil)}/lib/onetime/app".freeze
@@ -35,41 +34,31 @@ apps = {
 
 Onetime.boot! :app
 
-if Otto.env?(:dev)
-
-  if Onetime.debug
-    require 'pry-byebug'
-  end
-
-  # DEV: Run webapps with extra logging and reloading
-  apps.each_pair do |path, app|
-    OT.info "[app] Attaching #{app} at #{path}"
-    map(path) {
-      use Rack::CommonLogger
-      use Rack::Reloader, 1
-
-      use Rack::HeaderLoggerMiddleware
-      use Rack::HandleInvalidUTF8
-      use Rack::HandleInvalidPercentEncoding
-
-      app.option[:public] = PUBLIC_DIR
-      app.add_static_path '/favicon.ico'
-      run app
-    }
-  end
-
+middlewares = if Otto.env?(:dev)
+  [
+    [Rack::CommonLogger],
+    [Rack::Reloader, 1],
+    [Rack::HeaderLoggerMiddleware],
+    [Rack::HandleInvalidUTF8],
+    [Rack::HandleInvalidPercentEncoding]
+  ]
 else
-  # PROD: run webapps the bare minimum additional middleware
-  apps.each_pair do |path, app|
+  [
+    [Rack::CommonLogger],
+    [Rack::HandleInvalidUTF8],
+    [Rack::HandleInvalidPercentEncoding]
+  ]
+end
+
+apps.each_pair do |path, app|
+  map(path) {
     OT.info "[app] Attaching #{app} at #{path}"
-    map(path) {
-      use Rack::CommonLogger
 
-      use Rack::HandleInvalidUTF8
-      use Rack::HandleInvalidPercentEncoding
-
-      app.option[:public] = PUBLIC_DIR
-      run app
-    }
-  end
+    middlewares.each do |klass, *args|
+      OT.ld "[middleware] Attaching #{klass}"
+      use klass, *args
+    end
+    app.option[:public] = PUBLIC_DIR
+    run app
+  }
 end

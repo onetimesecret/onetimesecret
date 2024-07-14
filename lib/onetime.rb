@@ -23,7 +23,6 @@ require 'sysinfo'
 require_relative 'onetime/core_ext'
 
 
-
 Familia.apiversion = nil
 
 # Onetime is the core of the One-Time Secret application.
@@ -50,10 +49,6 @@ module Onetime
       @mode.to_s == guess.to_s
     end
 
-    def errno(name)
-      name.gibbler.short
-    end
-
     def now
       Time.now.utc
     end
@@ -65,42 +60,20 @@ module Onetime
     def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load # load config before anything else.
-
       OT::Config.after_load(@conf)
 
-      @locales = OT.load_locales
+      Familia.uri = OT.conf[:redis][:uri]
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
-      @emailer = Onetime::App::Mail::SMTPMailer
 
-      @emailer.setup
-
-      @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
-      Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
-      Familia.uri = OT.conf[:redis][:uri]
-      OT::RateLimit.register_events OT.conf[:limits]
-      OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
-      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
-
-      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
-      info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
-      info "Config: #{OT::Config.path}"
-      ld "Redis:  #{Familia.uri.serverid}" # doesn't print the password
-      ld "Limits: #{OT::RateLimit.events}"
-      ld "Colonels: #{OT.conf[:colonels]}"
-      if OT.conf[:site].key?(:authentication)
-        ld "Authentication: #{OT.conf[:site][:authentication]}"
-      end
-
-      OT::Plan.load_plans!
-
-      # Make sure we're able to connect to separate Redis databases.
-      # Some services like Upstash provide only db 0.
-      16.times { |idx|
-        uri = Familia.redis.id
-        ping_result = Familia.redis(idx).ping
-        OT.ld "Connecting to #{uri} (#{ping_result})"
-      }
+      load_locales
+      set_global_secret
+      prepare_emailers
+      prepare_rate_limits
+      load_fortunes
+      load_plans
+      connect_databases
+      print_banner
 
       @conf # return the config
 
@@ -113,38 +86,6 @@ module Onetime
     rescue StandardError => e
       OT.le "Unexpected error `#{e}` (#{e.class})"
       exit 99
-    end
-
-    def load_locales(locales = OT.conf[:locales] || ['en'])
-      confs = locales.collect do |locale|
-        path = File.join(OT::Config.dirname, 'locale', locale)
-        OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
-        conf = OT::Config.load(path)
-        [locale, conf]
-      end
-
-      # Convert the zipped array to a hash
-      locales = confs.to_h
-      # Make sure the default locale is first
-      default_locale = locales[OT.conf[:locales].first]
-      # Here we overlay each locale on top of the default just
-      # in case there are keys that haven't been translated.
-      # That way, at least the default language will display.
-      locales.each do |key, locale|
-        locales[key] = OT::Utils.deep_merge(default_locale, locale) if default_locale != locale
-      end
-      locales
-    end
-
-    def to_file(content, filename, mode, chmod = 0o744)
-      mode = mode == :append ? 'a' : 'w'
-      f = File.open(filename, mode)
-      f.puts content
-      f.close
-
-      raise OT::Problem("Provided chmod is not an Integer (#{chmod})") unless chmod.is_a?(Integer)
-
-      File.chmod(chmod, filename)
     end
 
     def info(*msgs)
@@ -165,6 +106,75 @@ module Onetime
     end
 
     private
+
+    def prepare_emailers
+      @emailer = Onetime::App::Mail::SMTPMailer
+      @emailer.setup
+    end
+
+    def set_global_secret
+      @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
+      unless Gibbler.secret && Gibbler.secret.frozen?
+        Gibbler.secret = global_secret.freeze
+      end
+    end
+
+    def prepare_rate_limits
+      OT::RateLimit.register_events OT.conf[:limits]
+    end
+
+    def load_fortunes
+      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+    end
+
+    def print_banner
+      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  #{'---' * 12}"
+      info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
+      info "Config: #{OT::Config.path}"
+      info "Redis:  #{Familia.uri.serverid}" # doesn't print the password
+      info "Colonels: #{OT.conf[:colonels]}"
+      if OT.conf[:site].key?(:authentication)
+        info "Authentication: #{OT.conf[:site][:authentication]}"
+      end
+      info "Loaded locales: #{@locales.keys.join(', ')}"
+      info "Limits: #{OT::RateLimit.events}"
+    end
+
+    def load_plans
+      OT::Plan.load_plans!
+    end
+
+    def connect_databases
+      # Make sure we're able to connect to separate Redis databases. Some
+      # services provide only db 0 and this is a good way to check early.
+      16.times { |idx|
+        uri = Familia.redis.id
+        ping_result = Familia.redis(idx).ping
+        OT.ld "Connecting to #{uri} (#{ping_result})"
+      }
+    end
+
+    def load_locales(locales = OT.conf[:locales] || ['en'])
+      confs = locales.collect do |locale|
+        path = File.join(OT::Config.dirname, 'locale', locale)
+        OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
+        conf = OT::Config.load(path)
+        [locale, conf]
+      end
+
+      # Convert the zipped array to a hash
+      locales = confs.to_h
+      # Make sure the default locale is first
+      default_locale = locales[OT.conf[:locales].first]
+      # Here we overlay each locale on top of the default just
+      # in case there are keys that haven't been translated.
+      # That way, at least the default language will display.
+      locales.each do |key, locale|
+        locales[key] = OT::Utils.deep_merge(default_locale, locale) if default_locale != locale
+      end
+      @locales = locales
+    end
+
     def stdout(prefix, msg)
       stamp = Time.now.to_i
       logline = "%s(%s): %s" % [prefix, stamp, msg]

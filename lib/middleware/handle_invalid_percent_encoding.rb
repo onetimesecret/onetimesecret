@@ -33,8 +33,8 @@ class Rack::HandleInvalidPercentEncoding
 
   def initialize(app, io: $stdout, check_enabled: nil)
     @app = app
-    @logger = Logger.new(io)
-    @check_enabled = check_enabled
+    @logger = Logger.new(io, level: :info)
+    @check_enabled = check_enabled  # override the check_enabled? method
   end
 
   def call(env)
