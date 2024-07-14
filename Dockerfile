@@ -99,9 +99,6 @@ RUN set -eux && \
 RUN gem update --system
 RUN gem install bundler
 
-# Install the entrypoint script
-COPY ./bin/entrypoint.sh .
-
 
 ##
 # ENVIRONMENT LAYER
@@ -129,9 +126,10 @@ RUN mkdir -p "$ONETIME_HOME/{log,tmp}"
 
 WORKDIR $CODE_ROOT
 
-COPY Gemfile ./
+COPY Gemfile Gemfile.lock ./
 
-# Install the dependencies into the base image
+# Install the dependencies into the environment image
+RUN bundle config set --local without 'development test'
 RUN bundle install
 RUN bundle update --bundler
 
@@ -145,7 +143,7 @@ RUN bundle update --bundler
 FROM app_env
 ARG CODE_ROOT
 
-LABEL Name=onetimesecret Version=0.13.0
+LABEL Name=onetimesecret Version=0.15.0
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
@@ -176,7 +174,5 @@ RUN cp --preserve --no-clobber \
 # 3. Using the CMD instruction in the Dockerfile provides a fallback
 # command, which can be useful if no specific command is set in the
 # Docker Compose configuration.
-
-# TODO: Add ENTRYPOINT for max flexibility?
 
 CMD ["bin/entrypoint.sh"]
