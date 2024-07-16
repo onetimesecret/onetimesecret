@@ -10,9 +10,11 @@
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
 # This is particularly useful in development and production environments where
 # timely log output is crucial for monitoring and debugging purposes.
-# Ensure immediate flushing of stdout to improve real-time logging visibility.
-# This is particularly useful in development and production environments where
-# timely log output is crucial for monitoring and debugging purposes.
+#
+# Note: This setting can have a performance impact in high-throughput environments.
+#
+# See: https://www.rubydoc.info/gems/rack/Rack/CommonLogger
+#
 $stdout.sync = true
 
 ENV['RACK_ENV'] ||= 'prod'
