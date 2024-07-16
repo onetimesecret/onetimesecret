@@ -16,6 +16,7 @@ spoom_*
 .appendonlydir/
 .bundle/
 data/
+dist/
 node_modules/
 vendor/
 log/
