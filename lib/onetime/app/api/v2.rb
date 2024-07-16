@@ -2,9 +2,9 @@ require_relative 'v2/base'
 require_relative '../base'  # app/base.rb
 
 class Onetime::App
-  class API2
+  class APIV2
     include AppSettings
-    include Onetime::App::API2::Base
+    include Onetime::App::APIV2::Base
 
     def status
       json status: :nominal, locale: locale

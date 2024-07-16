@@ -21,5 +21,5 @@ POST   /v1/private/:key/burn                    Onetime::App::API#burn_secret
 
 
 ## API v2
-GET     /v2/status                               Onetime::App::API2#status
-GET     /v2/version                              Onetime::App::API2#version
+GET     /v2/status                               Onetime::App::APIV2#status
+GET     /v2/version                              Onetime::App::APIV2#version
