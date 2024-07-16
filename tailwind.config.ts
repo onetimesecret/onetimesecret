@@ -1,10 +1,18 @@
+const defaultTheme = require('tailwindcss/defaultTheme')
+
 export default {
   content: [
     "./src/index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Zilla Slab', ...defaultTheme.fontFamily.serif],
+      }
+    }
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 };

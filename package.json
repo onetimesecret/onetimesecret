@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.7.0",
+    "@tailwindcss/typography": "^0.5.13",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^20.14.10",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
