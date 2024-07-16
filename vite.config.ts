@@ -15,5 +15,5 @@ export default defineConfig({
     outDir: '../public/web/v3/dist',
     emptyOutDir: true
   },
-  base: '/v3/'
+  base: '/v3/dist/'
 })
