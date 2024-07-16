@@ -1,5 +1,5 @@
 # Ensure no conflicts with Onetime::App::API::Base methods
-require_relative '../helpers'   # app/helpers.rb
+require_relative '../../helpers'   # app/helpers.rb
 
 
 class Onetime::App
@@ -55,8 +55,8 @@ class Onetime::App
       # Find the locale of the request based on req.env['rack.locale'],
       # which is set automatically by Otto v0.4.0 and greater.
       #
-      # If `locale` is specified, it will override if available.
-      # If the `local` query param is set, it will override.
+      # If `locale` is specified, it will override if the locale is supported.
+      # If the `locale` query param is set, it will override.
       #
       # @param locale [String] the locale to use, defaults to nil
       # @return [void]

@@ -272,9 +272,13 @@ There are many ways to run the webapp. The default web server we use is [thin](h
 **To run on a server:**
 
 ```bash
-  bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 restart
+  bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 start
 ```
 
+Graceful restart:
+```bash
+  bundle exec thin --onebyone -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 4 -D restart
+```
 
 ## Generating a global secret
 
