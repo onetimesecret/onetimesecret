@@ -63,6 +63,23 @@ Building and running locally.
       onetimesecret/onetimesecret:latest
 ```
 
+#### Optional Bundle Install
+
+By default, the `bundle install` command is not run when starting the container. If you want it to run at startup (e.g., to re-install new dependencies added to the Gemfile without rebuilding the image), you can set the `BUNDLE_INSTALL` environment variable to `true`. Here's how you can do this:
+
+```bash
+$ docker run -p 3000:3000 -d --name onetimesecret \
+    -e BUNDLE_INSTALL=true \
+    -e REDIS_URL=$REDIS_URL \
+    -e COLONEL=$COLONEL \
+    -e HOST=$HOST \
+    -e SSL=$SSL \
+    onetimesecret/onetimesecret:latest
+```
+
+This will cause the container to run bundle install each time it starts up. Note that this may increase the startup time of your container.
+
+
 #### Multi-platform builds
 
 Docker's buildx command is a powerful tool that allows you to create Docker images for multiple platforms simultaneously. Use buildx to build a Docker image that can run on both amd64 (standard Intel/AMD CPUs) and arm64 (ARM CPUs, like those in the Apple M1 chip) platforms.

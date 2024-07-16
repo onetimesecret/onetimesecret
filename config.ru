@@ -10,6 +10,9 @@
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
 # This is particularly useful in development and production environments where
 # timely log output is crucial for monitoring and debugging purposes.
+# Ensure immediate flushing of stdout to improve real-time logging visibility.
+# This is particularly useful in development and production environments where
+# timely log output is crucial for monitoring and debugging purposes.
 $stdout.sync = true
 
 ENV['RACK_ENV'] ||= 'prod'
@@ -35,39 +38,31 @@ apps = {
 
 Onetime.boot! :app
 
-if Otto.env?(:dev)
-
-  if Onetime.debug
-    require 'pry-byebug'
-  end
-
-  # DEV: Run webapps with extra logging and reloading
-  apps.each_pair do |path, app|
-    use Rack::CommonLogger
-    use Rack::Reloader, 1
-
-    use Rack::HeaderLoggerMiddleware
-    use Rack::HandleInvalidUTF8
-    use Rack::HandleInvalidPercentEncoding
-
-    app.option[:public] = PUBLIC_DIR
-    app.add_static_path '/favicon.ico'
-
-    OT.info "[app] Attaching #{app} at #{path}"
-    map(path) { run app }
-  end
-
+middlewares = if Otto.env?(:dev)
+  [
+    [Rack::CommonLogger],
+    [Rack::Reloader, 1],
+    [Rack::HeaderLoggerMiddleware],
+    [Rack::HandleInvalidUTF8],
+    [Rack::HandleInvalidPercentEncoding]
+  ]
 else
+  [
+    [Rack::CommonLogger],
+    [Rack::HandleInvalidUTF8],
+    [Rack::HandleInvalidPercentEncoding]
+  ]
+end
 
-  # PROD: run webapps the bare minimum additional middleware
-  apps.each_pair do |path, app|
-    use Rack::CommonLogger
-    use Rack::HandleInvalidUTF8
-    use Rack::HandleInvalidPercentEncoding
-
-    app.option[:public] = PUBLIC_DIR
-
+apps.each_pair do |path, app|
+  map(path) {
     OT.info "[app] Attaching #{app} at #{path}"
-    map(path) { run app }
-  end
+
+    middlewares.each do |klass, *args|
+      OT.ld "[middleware] Attaching #{klass}"
+      use klass, *args
+    end
+    app.option[:public] = PUBLIC_DIR
+    run app
+  }
 end

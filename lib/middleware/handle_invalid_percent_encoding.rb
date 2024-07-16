@@ -33,8 +33,8 @@ class Rack::HandleInvalidPercentEncoding
 
   def initialize(app, io: $stdout, check_enabled: nil)
     @app = app
-    @logger = Logger.new(io)
-    @check_enabled = check_enabled
+    @logger = Logger.new(io, level: :info)
+    @check_enabled = check_enabled  # override the check_enabled? method
   end
 
   def call(env)
@@ -80,9 +80,9 @@ class Rack::HandleInvalidPercentEncoding
     return false unless defined?(Otto) && app.is_a?(Otto)
     name, route = app.route_definitions.first
     has_settings = route.klass.include?(Onetime::App::AppSettings)
-    setting_enabled = route.klass.check_uri_encoding
+    setting_enabled = has_settings && route.klass.check_uri_encoding
     logger.debug "[handle-invalid-uri-encoding] #{name} has settings: #{has_settings}, enabled: #{setting_enabled}"
-    return has_settings && setting_enabled
+    return setting_enabled
   end
 
   def handle_exception(env, exception)

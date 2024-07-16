@@ -2,19 +2,10 @@ require 'drydock'
 require 'onetime'
 require 'familia/tools'
 
-# ::SCRIPT_LINES__ = {} unless defined? ::SCRIPT_LINES__
 
 class OT::CLI < Drydock::Command
   def init
     OT.boot! :cli
-  end
-
-  def register_build
-    Onetime::VERSION.increment! argv.first
-    puts Onetime::VERSION.inspect
-  rescue StandardError => e
-    puts e.message
-    exit 1
   end
 
   def entropy
@@ -59,7 +50,6 @@ class OT::CLI < Drydock::Command
 
   def require_sudo
     return if Process.uid.zero?
-
     raise 'Must run as root or with sudo'
   end
 end
