@@ -6,6 +6,7 @@ module Onetime
     class View < Mustache
       include Onetime::App::Views::Helpers
       self.template_path = './templates/web'
+      self.template_extension = 'html'
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
       attr_reader :req, :plan, :is_paid

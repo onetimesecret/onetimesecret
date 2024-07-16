@@ -5,6 +5,8 @@
 require 'mustache'
 
 class Mustache
+  self.template_extension = 'html'
+
   def self.partial(name)
     path = "#{template_path}/#{name}.#{template_extension}"
     if Otto.env?(:dev)
