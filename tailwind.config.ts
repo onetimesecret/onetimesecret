@@ -9,25 +9,25 @@ export default {
   ],
   theme: {
     fontFamily: {
-      serif: ['ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
-      sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif'],
+      serif: defaultTheme.fontFamily.serif,
+      sans: defaultTheme.fontFamily.sans,
       /* In CSS: font-family: theme('fontFamily.brand'); */
       brand: ['Zilla Slab', ...defaultTheme.fontFamily.serif],
     },
     extend: {
-
       colors: {
         brand: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8', // TODO: replace with actual
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50: '#fcf8f2',
+          100: '#fcf4e8',
+          200: '#f7dec3',
+          300: '#f0c39e',
+          400: '#e68b5e',
+          500: '#dc4a22',
+          600: '#c43d1b',
+          700: '#a32d12',
+          800: '#85200c',
+          900: '#631507',
+          950: '#400b03'
         },
       },
     }

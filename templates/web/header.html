@@ -31,7 +31,7 @@
   </head>
 
   <body class="font-serif bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100" id="{{body_class}}">
-    <div id="banner"><div class="broadcast">{{{i18n.COMMON.broadcast}}}</div></div>
+    <!-- {{{i18n.COMMON.broadcast}}} -->
 
     <div class="container mx-auto p-4 max-w-2xl">
       {{#display_masthead}}
@@ -76,7 +76,6 @@
         </div>
       </header>
 
-
       {{/display_masthead}}
 
       <nav class="mb-6">
@@ -86,12 +85,3 @@
                 class="bg-gray-200 dark:bg-gray-700 rounded-full px-2 text-sm">5</span></a></li>
         </ul>
       </nav>
-
-
-      <div id="app"></div>
-
-      <!-- if development -->
-      <script type="module" src="http://localhost:5173/v3/dist/main.ts"></script>
-
-      <!-- if production -->
-      <!-- write_a_helper_for_the(manifest.json) -->

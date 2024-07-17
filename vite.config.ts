@@ -56,6 +56,6 @@ export default defineConfig({
   },
 
   server: {
-    origin: 'http://localhost:7143/v3/dist/',
+    origin: 'https://dev.onetimesecret.com',
   },
 })
