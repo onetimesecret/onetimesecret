@@ -1,6 +1,8 @@
-const defaultTheme = require('tailwindcss/defaultTheme')
+import defaultTheme from 'tailwindcss/defaultTheme';
+import typography from '@tailwindcss/typography';
 
 export default {
+  darkMode: 'class',
   content: [
     "./src/index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
@@ -13,6 +15,6 @@ export default {
     }
   },
   plugins: [
-    require('@tailwindcss/typography'),
+    typography,
   ],
 };
