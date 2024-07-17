@@ -6,6 +6,8 @@ require 'mustache'
 
 class Mustache
   self.template_extension = 'html'
+  #self.end_tag = '}}'  # Incorrect. Mustache::Parser.otag and ctag
+  #self.start_tag = '{{'
 
   def self.partial(name)
     path = "#{template_path}/#{name}.#{template_extension}"

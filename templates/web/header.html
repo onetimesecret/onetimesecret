@@ -1,181 +1,166 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <meta name="referrer" content="no-referrer">
-  <link rel="shortcut icon" type="image/png" href="/img/favicon.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
-  <link rel="manifest" href="/site.webmanifest?v=3">
-  <link rel="mask-icon" href="/safari-pinned-tab.svg?v=3" color="#dc4a22">
-  <link rel="shortcut icon" href="/favicon.ico?v=3">
-  <meta name="apple-mobile-web-app-title" content="Onetime">
-  <meta name="application-name" content="Onetime">
-  <meta name="msapplication-TileColor" content="#da532c">
-  <meta name="theme-color" content="#dc4a22">
-  {{#no_cache}}
-  <meta http-equiv="pragma" content="no-cache">
-  <meta http-equiv="expires" content="-1">
-  {{/no_cache}}
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>{{title}} - {{subtitle}}</title>
-  <meta name="description" content="{{description}}">
-  <meta name="keywords" content="{{keywords}}">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <link rel="stylesheet" href="/css/bootstrap.min.css">
-  <style type="text/css">
-    body {
-      padding-top: 0px;
-      padding-bottom: 10px;
-      font-family: georgia,serif;
-    }
-    /* Custom container */
-    .container-narrow {
-      margin: 0 auto;
-      max-width: 640px;
-    }
-    .container-narrow > hr {
-      margin: 30px 0;
-    }
-    .masthead {
-      color: #ccc;
-    }
-    .masthead .nav {
-      margin-top: 24px;
-      padding: 0px;
-    }
-    /* Main marketing message and sign up button */
-    .jumbotron {
-      margin: 20px 0;
-      text-align: center;
-      color: #999;
-      font-size: 16px;
-    }
-    .jumbotron h1 {
-      font-size: 22px;
-      font-weight: normal;
-      line-height: 1;
-      margin-top: 0px;
-      margin-bottom: 6px;
-      color: #333;
-    }
-    .jumbotron .lead {
-      color: #999;
-      line-height: 1;
-      font-size: 16px;
-    }
-    .jumbotron .btn {
-      padding: 14px 24px;
-    }
-    .jumbotron .hint {
-      font-style: italic;
-    }
-    .jumbotron .more {
-    }
-    .jumbotron .more a {
-      color: #111;
-    }
-    /* Supporting marketing content */
-    .marketing {
-      margin: 20px 0;
-    }
-    #logo {
-      background-color: #DC4A22;
-      display: inline-block;
-      width: 48px;
-      height: 48px;
-    }
-    @media (min-width: 481px) {
-      #contentTab {
-        margin-top: 20px;
-      }
-    }
-    /* Landscape phones and down */
-    @media (max-width: 480px) {
-      body {
+<html lang="en" class="light">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="msapplication-TileColor" content="#dc4a22">
+    <meta name="theme-color" content="#dc4a22">
+    <link rel="icon" type="image/svg+xml" href="/v3/img/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico?v=3">
+    <title>Secret Sharing UI Demo</title>
+    <title>{{title}} - {{subtitle}}</title>
+    <meta name="description" content="{{description}}">
+    <meta name="keywords" content="{{keywords}}">
 
-      }
-      #logo {
-        background-color: #DC4A22;
-        display: inline-block;
-        width: 36px;
-        height: 36px;
-      }
-      .masthead .nav {
-        margin-top: 18px;
-        padding: 0px;
-      }
-      .jumbotron {
-        margin: 0px 0;
-      }
-      .jumbotron h1 {
-        letter-spacing: -1px;
-        display: none;
-      }
-    }
-  </style>
-  <link href="/css/bootstrap-responsive.min.css" rel="stylesheet" >
-  <link href="/css/main.css?{{ot_version}}" rel="stylesheet">
-  {{#css}}
-  <link href="{{to_s}}" media="screen" rel="Stylesheet" type="text/css" />
-  {{/css}}
-  <script type="text/javascript">
-  {{#jsvars}}
-    var {{name}} = {{{value}}};
-  {{/jsvars}}
-  </script>
-  <script src="/js/vendor/jquery-3.6.0.min.js"></script>
-</head>
-<body id="{{body_class}}">
-<div id="banner"><div class="broadcast">{{{i18n.COMMON.broadcast}}}</div></div>
-<div class="container-narrow">
+    {{#no_cache}}
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
+    {{/no_cache}}
 
-  <div class="masthead">
-    <div class="nav pull-right">
-    {{#display_masthead}}
+    <script type="text/javascript">
+    {{#jsvars}}
+      var {{name}} = {{{value}}};
+    {{/jsvars}}
+    </script>
+  </head>
 
-      {{^authenticated}}
-        {{#is_subdomain}}
-        <a href="/" title="Go to One-Time Secret">Go to onetimesecret.com</a>
-        {{/is_subdomain}}
-        {{^is_subdomain}}
+  <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100" id="{{body_class}}">
+    <div id="banner"><div class="broadcast">{{{i18n.COMMON.broadcast}}}</div></div>
 
-          {{#authentication.enabled}}
+    <div class="container mx-auto p-4 max-w-2xl">
+      {{#display_masthead}}
 
-            {{#authentication.signup}}
-            <a href="/signup" title="Signup - Individual and Business plans" class="active">{{i18n.COMMON.header_create_account}}</a> |
-            {{/authentication.signup}}
+      <header class="mb-6">
+        <div class="flex justify-between items-center">
+          <div class="text-2xl font-bold text-orange-600">S</div>
+          <div class="flex items-center space-x-4">
+            {{#authenticated}}
+              <span id="userEmail">delano@onetimesecret.com</span>
+              <a href="#" class="underline">Account</a>
+              <a href="#" class="underline">Logout</a>
+            {{/authenticated}}
+            {{^authenticated}}
+              <a href="#" class="underline">Login</a>
+              <a href="#" class="underline">Signup</a>
+            {{/authenticated}}
+          </div>
+        </div>
+      </header>
 
-            <a href="/about" title="About One-Time Secret">{{i18n.COMMON.header_about}}</a> |
+      <nav class="mb-6">
+        <ul class="flex space-x-4">
+          <li><a href="#" class="hover:underline">Home</a></li>
+          <li><a href="#" class="hover:underline">Recent Secrets <span
+                class="bg-gray-200 dark:bg-gray-700 rounded-full px-2 text-sm">5</span></a></li>
+        </ul>
+      </nav>
 
-            {{#authentication.signin}}
-              <a href="/login" title="Log in to One-Time Secret">{{i18n.COMMON.header_sign_in}}</a>
-            {{/authentication.signin}}
-          {{/authentication.enabled}}
+        {{^authenticated}}
 
-          {{^authentication.enabled}}
-            <a href="/about" title="About One-Time Secret">{{i18n.COMMON.header_about}}</a>
-          {{/authentication.enabled}}
+        {{/authenticated}}
 
-        {{/is_subdomain}}
-      {{/authenticated}}
 
-      {{#authenticated}}
-        <a href="/" class="home">{{cust.custid}}</a> {{#colonel}}<a href="/colonel/" title="" class="nounderline">*</a>{{/colonel}} |
-        <a href="/account" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> |
-        <a href="/logout" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
-      {{/authenticated}}
 
-      {{^is_default_locale}}
-      | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a>
-      {{/is_default_locale}}
+        {{/authenticated}}
 
-    {{/display_masthead}}
+        {{^is_default_locale}}
+          <!-- | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a> -->
+        {{/is_default_locale}}
 
+      {{/display_masthead}}
+
+
+
+      <div id="app"></div>
+      <script type="module" src="./main.ts"></script>
+
+      <main>
+        <textarea
+          class="w-full p-2 mb-4 border rounded dark:bg-gray-800 dark:border-gray-700"
+          rows="6"
+          placeholder="Secret content goes here..."
+          aria-label="Secret content"></textarea>
+
+        <div class="bg-gray-200 dark:bg-gray-800 p-4 rounded mb-4">
+          <h2 class="text-lg font-bold mb-2">Privacy Options</h2>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center">
+              <label for="passphrase" class="w-1/3">Passphrase:</label>
+              <input
+                type="text"
+                id="passphrase"
+                class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                placeholder="A word or phrase that's difficult to guess">
+            </div>
+            <div class="flex justify-between items-center">
+              <label for="recipient" class="w-1/3">Recipient Address:</label>
+              <input
+                type="email"
+                id="recipient"
+                class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                placeholder="example@onetimesecret.com">
+            </div>
+            <div class="flex justify-between items-center">
+              <label for="lifetime" class="w-1/3">Lifetime:</label>
+              <select
+                id="lifetime"
+                class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                <option>7 days</option>
+                <!-- Add more options as needed -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button
+          class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mb-4">
+          Create a secret link
+        </button>
+
+        <button
+          class="w-full bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded mb-4">
+          Or generate a random password
+        </button>
+
+        <div class="flex items-center space-x-2 mb-4">
+          <input
+            type="text"
+            class="flex-grow p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+            placeholder="Have a question or comment?">
+          <button
+            class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded">
+            Send Feedback
+          </button>
+        </div>
+      </main>
+
+      <footer class="text-sm text-center space-y-2">
+        <div>
+          <a href="#" class="hover:underline">About</a> |
+          <a href="#" class="hover:underline">Help Translate</a> |
+          <a href="#" class="hover:underline">API</a> |
+          <a href="#" class="hover:underline">Code</a> |
+          <a href="#" class="hover:underline">Issues</a>
+        </div>
+        <div>
+          <a href="#" class="hover:underline">Privacy</a> |
+          <a href="#" class="hover:underline">Terms & Conditions</a> |
+          <a href="#" class="hover:underline">Status</a> |
+          <a href="#" class="hover:underline">Security</a>
+        </div>
+        <div>v0.15.0</div>
+      </footer>
     </div>
-    <a href="/"><img id="logo" src="/v3/img/onetime-logo-v3-md.png"></a>
-  </div>
+
+    <script>
+    // Simple light/dark mode toggle
+    const htmlElement = document.documentElement;
+    const toggleDarkMode = () => {
+      htmlElement.classList.toggle('dark');
+    };
+
+    // You can add a button or other UI element to trigger this function
+  </script>
+  </body>
+</html>

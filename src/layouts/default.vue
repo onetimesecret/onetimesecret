@@ -1,5 +1,14 @@
+
+<script setup lang="ts">
+  //import { defineProps } from 'vue';
+  import GlobalBanner from '@/components/GlobalBanner.vue';
+  import ThemeToggle from '@/components/ThemeToggle.vue'
+  import SecretForm from '@/components/SecretForm.vue';
+</script>
+
+<template>
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="light">
   <head>
     <meta charset="UTF-8">
     <meta name="referrer" content="no-referrer">
@@ -9,29 +18,42 @@
     <link rel="icon" type="image/svg+xml" href="/v3/img/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico?v=3">
     <title>Secret Sharing UI Demo</title>
-    <title>{{title}} - {{subtitle}}</title>
-    <meta name="description" content="{{description}}">
-    <meta name="keywords" content="{{keywords}}">
+    <title>[[title]] - [[subtitle]]</title>
+    <meta name="description" content="[[description]]">
+    <meta name="keywords" content="[[keywords]]">
 
-    {{#no_cache}}
+    [[#no_cache]]
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="-1">
-    {{/no_cache}}
+    [[/no_cache]]
 
+    <script type="text/javascript">
+    [[#jsvars]]
+      var [[name]] = [[[value]]};
+    [[/jsvars]]
+    </script>
   </head>
-  <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+
+  <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100" id="[[body_class]]">
+    <GlobalBanner content="[[[i18n.COMMON.broadcast]]}" />
+
     <div class="container mx-auto p-4 max-w-2xl">
+      [[#display_masthead]]
+
       <header class="mb-6">
         <div class="flex justify-between items-center">
           <div class="text-2xl font-bold text-orange-600">S</div>
           <div class="flex items-center space-x-4">
-            <span id="userEmail">delano@onetimesecret.com</span>
-            <a href="#" class="underline">Account</a>
-            <a href="#" class="underline">Logout</a>
+            [[#authenticated]]
+              <span id="userEmail">delano@onetimesecret.com</span>
+              <a href="#" class="underline">Account</a>
+              <a href="#" class="underline">Logout</a>
+            [[/authenticated]]
+            [[^authenticated]]
+              <a href="#" class="underline">Login</a>
+              <a href="#" class="underline">Signup</a>
+            [[/authenticated]]
           </div>
-        </div>
-        <div class="mt-4 text-sm bg-red-100 dark:bg-red-900 p-2 rounded">
-          We've updated our privacy policy. Read <a href="#" class="underline">my post about it here</a> (June 2024).
         </div>
       </header>
 
@@ -43,9 +65,26 @@
         </ul>
       </nav>
 
+        [[^authenticated]]
+
+        [[/authenticated]]
+
+
+
+        [[/authenticated]]
+
+        [[^is_default_locale]]
+          <!-- | <a href="?locale=[[i18n.default]]" title="View site in [[i18n.default]]">[[i18n.default]]</a> -->
+        [[/is_default_locale]]
+
+      [[/display_masthead]]
+
+
+
       <div id="app"></div>
       <script type="module" src="./main.ts"></script>
 
+      <SecretForm />
 
       <footer class="text-sm text-center space-y-2">
         <div>
@@ -62,8 +101,9 @@
           <a href="#" class="hover:underline">Security</a>
         </div>
         <div>v0.15.0</div>
-        <ThemeToggle />
       </footer>
+
+      <div><ThemeToggle /></div>
     </div>
 
     <script>
@@ -77,3 +117,5 @@
   </script>
   </body>
 </html>
+
+</template>
