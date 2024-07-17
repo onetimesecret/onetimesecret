@@ -23,9 +23,14 @@
       var {{name}} = {{{value}}};
     {{/jsvars}}
     </script>
+
+    <!-- if development -->
+    <!-- https://vitejs.dev/guide/backend-integration.html#backend-integration -->
+    <script type="module" src="http://localhost:5173/v3/dist/@vite/client"></script>
+
   </head>
 
-  <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100" id="{{body_class}}">
+  <body class="font-serif bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100" id="{{body_class}}">
     <div id="banner"><div class="broadcast">{{{i18n.COMMON.broadcast}}}</div></div>
 
     <div class="container mx-auto p-4 max-w-2xl">
@@ -33,20 +38,46 @@
 
       <header class="mb-6">
         <div class="flex justify-between items-center">
-          <div class="text-2xl font-bold text-orange-600">S</div>
+          {{!<div class="text-2xl font-brand font-bold text-white">S</div>}}
+          <div class=""><a href="/"><img id="logo" src="/v3/img/onetime-logo-v3-xs.png" class=""></a></div>
           <div class="flex items-center space-x-4">
+
             {{#authenticated}}
-              <span id="userEmail">delano@onetimesecret.com</span>
-              <a href="#" class="underline">Account</a>
-              <a href="#" class="underline">Logout</a>
+              <a href="/" class="nounderline"><span id="userEmail">{{cust.custid}}</span></a>
+              {{#colonel}}<a href="/colonel/" title="" class="nounderline">*</a>{{/colonel}}
+              <a href="/account" class="underline" title="Your Account">{{i18n.COMMON.header_dashboard}}</a>
+              <a href="/logout" class="underline" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
             {{/authenticated}}
+
             {{^authenticated}}
-              <a href="#" class="underline">Login</a>
-              <a href="#" class="underline">Signup</a>
+              {{#authentication.enabled}}
+
+                {{#authentication.signup}}
+                <a href="/signup" title="Signup - Individual and Business plans" class="underline">{{i18n.COMMON.header_create_account}}</a>
+                {{/authentication.signup}}
+
+                {{#authentication.signin}}
+                  <a href="/login" title="Log in to One-Time Secret" class="underline">{{i18n.COMMON.header_sign_in}}</a>
+                {{/authentication.signin}}
+
+              {{/authentication.enabled}}
+
+              {{^authentication.enabled}}
+                <a href="/about" title="About One-Time Secret" class="underline">{{i18n.COMMON.header_about}}</a>
+              {{/authentication.enabled}}
+
             {{/authenticated}}
+
+            {{^is_default_locale}}
+              <!-- | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a> -->
+            {{/is_default_locale}}
+
           </div>
         </div>
       </header>
+
+
+      {{/display_masthead}}
 
       <nav class="mb-6">
         <ul class="flex space-x-4">
@@ -56,111 +87,11 @@
         </ul>
       </nav>
 
-        {{^authenticated}}
-
-        {{/authenticated}}
-
-
-
-        {{/authenticated}}
-
-        {{^is_default_locale}}
-          <!-- | <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a> -->
-        {{/is_default_locale}}
-
-      {{/display_masthead}}
-
-
 
       <div id="app"></div>
-      <script type="module" src="./main.ts"></script>
 
-      <main>
-        <textarea
-          class="w-full p-2 mb-4 border rounded dark:bg-gray-800 dark:border-gray-700"
-          rows="6"
-          placeholder="Secret content goes here..."
-          aria-label="Secret content"></textarea>
+      <!-- if development -->
+      <script type="module" src="http://localhost:5173/v3/dist/main.ts"></script>
 
-        <div class="bg-gray-200 dark:bg-gray-800 p-4 rounded mb-4">
-          <h2 class="text-lg font-bold mb-2">Privacy Options</h2>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <label for="passphrase" class="w-1/3">Passphrase:</label>
-              <input
-                type="text"
-                id="passphrase"
-                class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                placeholder="A word or phrase that's difficult to guess">
-            </div>
-            <div class="flex justify-between items-center">
-              <label for="recipient" class="w-1/3">Recipient Address:</label>
-              <input
-                type="email"
-                id="recipient"
-                class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                placeholder="example@onetimesecret.com">
-            </div>
-            <div class="flex justify-between items-center">
-              <label for="lifetime" class="w-1/3">Lifetime:</label>
-              <select
-                id="lifetime"
-                class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
-                <option>7 days</option>
-                <!-- Add more options as needed -->
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <button
-          class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mb-4">
-          Create a secret link
-        </button>
-
-        <button
-          class="w-full bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded mb-4">
-          Or generate a random password
-        </button>
-
-        <div class="flex items-center space-x-2 mb-4">
-          <input
-            type="text"
-            class="flex-grow p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-            placeholder="Have a question or comment?">
-          <button
-            class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded">
-            Send Feedback
-          </button>
-        </div>
-      </main>
-
-      <footer class="text-sm text-center space-y-2">
-        <div>
-          <a href="#" class="hover:underline">About</a> |
-          <a href="#" class="hover:underline">Help Translate</a> |
-          <a href="#" class="hover:underline">API</a> |
-          <a href="#" class="hover:underline">Code</a> |
-          <a href="#" class="hover:underline">Issues</a>
-        </div>
-        <div>
-          <a href="#" class="hover:underline">Privacy</a> |
-          <a href="#" class="hover:underline">Terms & Conditions</a> |
-          <a href="#" class="hover:underline">Status</a> |
-          <a href="#" class="hover:underline">Security</a>
-        </div>
-        <div>v0.15.0</div>
-      </footer>
-    </div>
-
-    <script>
-    // Simple light/dark mode toggle
-    const htmlElement = document.documentElement;
-    const toggleDarkMode = () => {
-      htmlElement.classList.toggle('dark');
-    };
-
-    // You can add a button or other UI element to trigger this function
-  </script>
-  </body>
-</html>
+      <!-- if production -->
+      <!-- write_a_helper_for_the(manifest.json) -->

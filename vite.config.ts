@@ -42,12 +42,20 @@ export default defineConfig({
   build: {
     outDir: '../public/web/v3/dist',
     emptyOutDir: true,
-    rollupOptions: {},
+
+    manifest: true,
+    rollupOptions: {
+      input: 'src/main.ts',
+    },
 
     // https://guybedford.com/es-module-preloading-integrity
     // https://github.com/vitejs/vite/issues/5120#issuecomment-971952210
     modulePreload: {
       polyfill: true,
     },
+  },
+
+  server: {
+    origin: 'http://localhost:7143/v3/dist/',
   },
 })
