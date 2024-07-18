@@ -1,10 +1,9 @@
 
 
-
   <footer class="text-sm text-center space-y-2">
     {{#display_feedback}}
     <div>
-      <form class="form form-inline" action="/feedback" method="post">
+      <form class="for2m form-2inline" action="/feedback" method="post">
         {{{add_shrimp}}}
         <div class="flex items-center space-x-2 mb-4">
           {{^authenticated}}
@@ -51,18 +50,16 @@
       <a href="https://status.onetimesecret.com/">Status</a> |
       <a href="/info/security">Security</a>
     </div>
-    <div>v{{ot_version}}</div>
+    <div>
+      v{{ot_version}}
+    </div>
     {{/display_links}}
+
+    <div class="flex justify-end items-center mt-2">
+      <span id="theme-toggle"></span>
+    </div>
   </footer>
 </div>
 
-<script>
-// Simple light/dark mode toggle
-const htmlElement = document.documentElement;
-const toggleDarkMode = () => {
-  htmlElement.classList.toggle('dark');
-};
-
-</script>
 </body>
 </html>

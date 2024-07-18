@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <main>
+  <div class="container mx-auto p-4">
     <textarea
       class="w-full p-2 mb-4 border rounded dark:bg-gray-800 dark:border-gray-700"
       rows="6"
@@ -49,5 +49,5 @@
       class="w-full bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded mb-4">
       Or generate a random password
     </button>
-  </main>
+  </div>
 </template>
