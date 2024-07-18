@@ -12,7 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "vue": "3"
+    "vue": "^3.4.32"
   },
   "devDependencies": {
     "@eslint/js": "^9.7.0",

@@ -10,7 +10,6 @@ export default {
 
   content: [
     /**
-    /**
      * `content` (Array): tells Tailwind CSS where to look for class
      * names to generate styles.
      *

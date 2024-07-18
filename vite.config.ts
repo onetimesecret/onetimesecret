@@ -5,8 +5,15 @@ import path from 'path'
 
 export default defineConfig({
   root: "./src",
+
   plugins: [
-    vue(),
+    vue({
+      template:{
+        compilerOptions: {
+
+        }
+      }
+    }),
     // TODO: Doesn't add the preload <link> to the output index.html
     //       but it does process the html b/c minify: true works.
     //       Might be handy for some use cases. Leaving for now.
@@ -54,6 +61,8 @@ export default defineConfig({
       polyfill: true,
     },
   },
+
+
 
   server: {
     origin: 'https://dev.onetimesecret.com',

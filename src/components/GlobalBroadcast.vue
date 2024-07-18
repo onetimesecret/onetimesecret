@@ -5,6 +5,36 @@
   `import GlobalBroadcast from '~/components/GlobalBroadcast.vue';` -- Correct ✅
 
 -->
+
+<script setup lang="ts">
+  // https://iconify.design/docs/icon-components/vue/
+  import { Icon } from '@iconify/vue';
+  import { withDefaults } from 'vue';
+
+
+  // TypeScript with Composition API
+  //
+  // Note that default values for mutable reference types (like arrays or
+  // objects) should be wrapped in functions to avoid accidental
+  // modification and external side effects. This ensures each component
+  // instance gets its own copy of the default value.
+  //
+  // See: https://vuejs.org/guide/typescript/composition-api.html#props-default-values
+
+
+  export interface Props {
+    content: string;
+    show: boolean;
+  }
+
+  const props = withDefaults(defineProps<Props>(), {
+    content: "Welcome to the Global Broadcast!",
+    show: false,
+  })
+
+  console.log(props);
+</script>
+
 <template>
 
   <div v-if="show"
@@ -46,32 +76,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-// https://iconify.design/docs/icon-components/vue/
-import { Icon } from '@iconify/vue';
-import { defineProps, withDefaults } from 'vue';
-
-
-// TypeScript with Composition API
-//
-// Note that default values for mutable reference types (like arrays or
-// objects) should be wrapped in functions to avoid accidental
-// modification and external side effects. This ensures each component
-// instance gets its own copy of the default value.
-//
-// See: https://vuejs.org/guide/typescript/composition-api.html#props-default-values
-
-
-export interface Props {
-  content: string;
-  show: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  content: "Welcome to the Global Broadcast!",
-  show: false,
-})
-
-console.log(props);
-</script>
