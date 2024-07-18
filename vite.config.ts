@@ -28,10 +28,10 @@ export default defineConfig({
     //  inject: {
     //    data: {
     //      preloadFonts: [
-    //        '/v3/dist/assets/ZillaSlab-Regular.woff2',
-    //        '/v3/dist/assets/ZillaSlab-Regular.woff',
-    //        '/v3/dist/assets/ZillaSlab-Bold.woff2',
-    //        '/v3/dist/assets/ZillaSlab-Bold.woff',
+    //        '/dist/assets/ZillaSlab-Regular.woff2',
+    //        '/dist/assets/ZillaSlab-Regular.woff',
+    //        '/dist/assets/ZillaSlab-Bold.woff2',
+    //        '/dist/assets/ZillaSlab-Bold.woff',
     //      ]
     //    }
     //  }
@@ -45,9 +45,9 @@ export default defineConfig({
   },
 
   assetsInclude: ['**/*.woff', '**/*.woff2'], // Include font files
-  base: '/v3/dist/',
+  base: '/dist/',
   build: {
-    outDir: '../public/web/v3/dist',
+    outDir: '../public/web/dist',
     emptyOutDir: true,
 
     manifest: true,
@@ -61,8 +61,6 @@ export default defineConfig({
       polyfill: true,
     },
   },
-
-
 
   server: {
     origin: 'https://dev.onetimesecret.com',

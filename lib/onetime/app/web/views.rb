@@ -357,14 +357,6 @@ module Onetime
           self[:with_analytics] = false
         end
       end
-      class Logo < Onetime::App::View
-        def init *args
-          self[:title] = "Contest: Help us get a logo"
-          self[:body_class] = :info
-          self[:with_analytics] = false
-          self[:with_broadcast] = false
-        end
-      end
       class NotFound < Onetime::App::View
         def init *args
           self[:title] = "Page not found"
@@ -381,16 +373,6 @@ module Onetime
           #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
           #  {:msg => k, :stamp => natural_time(v) }
           #end
-        end
-      end
-      class Contributor < Onetime::App::View
-        attr_accessor :secret
-        def init *args
-          self[:title] = "Contribute"
-          self[:contributor] = cust.contributor?
-          if self[:contributor]
-            self[:contributor_since] = epochdate(cust.contributor_at)
-          end
         end
       end
     end
