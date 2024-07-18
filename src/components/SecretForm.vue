@@ -3,16 +3,18 @@
 export interface Props {
   enabled?: boolean;
   shrimp: string | null;
+  withRecipient?: boolean;
+  withAsterisk?: boolean;
   showGenerate?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
   shrimp: null,
+  withRecipient: false,
+  withAsterisk: false,
   showGenerate: false,
 })
-
-
 
 
 </script>
@@ -40,7 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
                 aria-label="Secret content"></textarea>
 
       <div class="bg-gray-200 dark:bg-gray-800 p-4 rounded mb-4">
-        <h2 class="text-lg font-bold mb-2">Privacy Options</h2>
+        <h2 class="text-lg font-bold m-0 mb-4">Privacy Options</h2>
         <div class="space-y-4">
           <div class="flex justify-between items-center">
             <label for="passphrase"
@@ -51,7 +53,7 @@ const props = withDefaults(defineProps<Props>(), {
                    class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                    placeholder="A word or phrase that's difficult to guess">
           </div>
-          <div class="flex justify-between items-center">
+          <div v-if="props.withRecipient" class="flex justify-between items-center">
             <label for="recipient"
                    class="w-1/3">Recipient Address:</label>
             <input type="email"
@@ -76,7 +78,7 @@ const props = withDefaults(defineProps<Props>(), {
       <button type="submit"
               class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mb-4"
               name="kind" value="share">
-        Create a secret link
+        Create a secret link<span v-if="withAsterisk">*</span>
       </button>
 
       <button v-if="props.showGenerate"
