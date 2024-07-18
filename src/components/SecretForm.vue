@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="container mx-auto p-4">
+  <div class="">
     <textarea
       class="w-full p-2 mb-4 border rounded dark:bg-gray-800 dark:border-gray-700"
       rows="6"
