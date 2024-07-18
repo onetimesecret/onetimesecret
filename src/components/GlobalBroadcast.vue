@@ -9,8 +9,6 @@
 <script setup lang="ts">
   // https://iconify.design/docs/icon-components/vue/
   import { Icon } from '@iconify/vue';
-  import { withDefaults } from 'vue';
-
 
   // TypeScript with Composition API
   //

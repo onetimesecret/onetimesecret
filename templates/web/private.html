@@ -7,7 +7,7 @@
       <span class="pretext">{{i18n.page.pretext}}</span><br/>
       <input id="secreturi" class="selectable" value="{{share_uri}}" readonly="readonly" />
       {{#has_passphrase}}
-      <p><strong>{{i18n.page.requires_passphrase}}</strong></p>
+      <p class="prose"><strong>{{i18n.page.requires_passphrase}}</strong></p>
       {{/has_passphrase}}
     </div>
     {{/show_secret_link}}
@@ -48,7 +48,7 @@
     </div>
     {{/show_secret}}
 
-    <p>
+    <p class="prose">
       {{#is_received}}
       <em>{{i18n.COMMON.received}} {{received_date}}.</em>
       <span class="smaller lighter">({{received_date_utc}})</span>
@@ -90,20 +90,20 @@
       <h3>F.A.Q.</h3>
       {{#has_passphrase}}
       <h4>Why can't I see my passphrase?</h4>
-      <p>We can't show it to you because we don't know what it is. When you create a secret with a passphrase, we immediately hash it with <a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>. Since we don't store the passphrase, we have no way to show it to you. That also means when you include a passphrase, we have no way to decrypt your secret. </p>
+      <p class="prose">We can't show it to you because we don't know what it is. When you create a secret with a passphrase, we immediately hash it with <a href="http://en.wikipedia.org/wiki/Bcrypt">bcrypt</a>. Since we don't store the passphrase, we have no way to show it to you. That also means when you include a passphrase, we have no way to decrypt your secret. </p>
 
       <h4>Why can't I see the secret value?</h4>
-      <p>We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
+      <p class="prose">We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
       {{/has_passphrase}}
 
       <h4>What happens when I burn a secret?</h4>
-      <p>Burning a secret will delete it before it has been read. If you send someone a secret link and burn the secret before they view it, they will not be able to read it. In fact, it will look to them like the secret never existed at all.</p>
+      <p class="prose">Burning a secret will delete it before it has been read. If you send someone a secret link and burn the secret before they view it, they will not be able to read it. In fact, it will look to them like the secret never existed at all.</p>
 
       <h4>Why can I only see the secret value once?</h4>
-      <p>We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
+      <p class="prose">We display the value for you so that you can verify it but we do that once so that if someone gets this private page (in your browser history or if you accidentally send the private link instead of the secret one), they won't see the secret value.</p>
 
       <h4>How long will the secret be available?</h4>
-      <p>The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
+      <p class="prose">The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
     </div>
 
     {{/show_secret}}
@@ -113,14 +113,14 @@
       <h3>F.A.Q.</h3>
       {{^show_secret_link}}
       <h4>What if I forgot to copy the shared link?</h4>
-      <p>You need to create a new secret. We can't retrieve it for you.</p>
+      <p class="prose">You need to create a new secret. We can't retrieve it for you.</p>
       {{/show_secret_link}}
 
       <h4>How long will the secret be available?</h4>
-      <p>The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
+      <p class="prose">The secret link will be available for {{expiration_stamp}} or until it's viewed.</p>
 
       <h4>What happens when I burn a secret?</h4>
-      <p>Burning a secret will delete it before it has been read. If you send someone a secret link and burn the secret before they view it, they will not be able to read it. In fact, it will look to them like the secret never existed at all.</p>
+      <p class="prose">Burning a secret will delete it before it has been read. If you send someone a secret link and burn the secret before they view it, they will not be able to read it. In fact, it will look to them like the secret never existed at all.</p>
     </div>
     {{/show_secret}}
   </div>
