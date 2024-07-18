@@ -28,8 +28,10 @@ export default [
   },
   {
     rules: {
-        "no-unused-vars": "error",
-        "no-undef": "error"
+      "no-explicit-any": "off",
+      "ban-types": "off",
+      "no-unused-vars": "error",
+      "no-undef": "error"
     }
   },
   // Directly integrate what would have been an override
