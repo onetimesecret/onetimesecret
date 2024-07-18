@@ -141,6 +141,7 @@ module Onetime
           @plans[plan_idx] = cust.planid unless plan_idx.nil?
         end
         self[:default_plan] = self[@plans.first.to_s] || self['individual_v1']
+
         OT.ld self[:default_plan].to_json
         self[:planid] = self[:default_plan][:planid]
       end

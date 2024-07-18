@@ -270,7 +270,7 @@ module Onetime
             :is_paid => plan.paid?,
             :planid => self[:planid]
           }
-
+          setup_plan_variables
         end
       end
       class Plans < Onetime::App::View
