@@ -30,25 +30,27 @@
     {{/jsvars}}
     </script>
 
-    {{#frontend_host}}
+    {{^frontend_host}}
       <!-- if development -->
       <!-- an entry point for each page (main == homepage) -->
       <script type="module" src="{{ . }}/dist/main.ts"></script>
       <script type="module" src="{{ . }}/dist/@vite/client"></script>
     {{/frontend_host}}
 
-    {{^frontend_host}}
+    {{#frontend_host}}
       <!-- if production -->
       <!-- write_a_helper_for_the(manifest.json) -->
       <!-- https://vitejs.dev/guide/backend-integration.html#backend-integration -->
+      {{{vite_assets}}}
     {{/frontend_host}}
 
   </head>
 
-  <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 m-0 p-0" id="{{body_class}}">
+  <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" id="{{body_class}}">
+    <div class="w-full h-1 bg-brand-500 fixed top-0 left-0"></div>
     <div id="broadcast">{{{i18n.COMMON.broadcast}}}</div>
 
-    <div class="container mx-auto p-2 max-w-2xl">
+    <div class="container mx-auto mt-1 p-2 max-w-2xl">
       {{#display_masthead}}
 
       <header class="">
@@ -58,9 +60,9 @@
           <div class="flex items-center space-x-4">
 
             {{#authenticated}}
-              <a href="/" class="nounderline"><span id="userEmail">{{cust.custid}}</span></a>
-              {{#colonel}}<a href="/colonel/" title="" class="nounderline">*</a>{{/colonel}}
-              <a href="/account" class="underline" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> <span class="mx-0">|</span>
+              <a href="/" class="nounderline  text-gray-400"><span id="userEmail">{{cust.custid}}</span></a>
+              {{#colonel}}<a href="/colonel/" title="" class="nounderline">*</a>{{/colonel}}<span class="mx-0 text-gray-400">|</span>
+              <a href="/account" class="underline" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> <span class="mx-0 text-gray-400">|</span>
               <a href="/logout" class="underline" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
             {{/authenticated}}
 

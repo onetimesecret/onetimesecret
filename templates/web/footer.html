@@ -37,7 +37,7 @@
     </div>
     {{/display_feedback}}
     {{#display_links}}
-    <div class="prose dark:prose-invert text-base pt-4 my-8">
+    <div class="prose dark:prose-invert text-base pt-4">
       <a href="/about" aria-label="About One-Time Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a> |
       <a href="/translations" aria-label="Help translate One-Time Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Help Translate</a> |
       <a href="/docs/api" aria-label="API documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">API</a> |
@@ -51,15 +51,16 @@
       <a href="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Security</a>
     </div>
 
-    <div class="text-gray-400 dark:text-gray-500 mt-4">
+    <div class="text-gray-400 dark:text-gray-500 mt-4 pt-4">
       v{{ot_version}}
     </div>
     {{/display_links}}
 
-
-    <div class="flex justify-end items-center mt-2">
+    {{#authenticated}}
+    <div class="mt-2 text-slate-400">
       <span id="theme-toggle"></span>
     </div>
+    {{/authenticated}}
   </footer>
 </div>
 
