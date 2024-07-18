@@ -32,6 +32,7 @@ module Onetime
           self[:with_analytics] = false
         end
       end
+
       class Incoming < Onetime::App::View
         include CreateSecretElements
         def init *args
@@ -42,6 +43,7 @@ module Onetime
           self[:display_masthead] = self[:display_links] = false
         end
       end
+
       module Docs
         class Api < Onetime::App::View
           def init *args
@@ -76,12 +78,14 @@ module Onetime
             self[:with_analytics] = false
           end
         end
+
         class Security < Onetime::App::View
           def init *args
             self[:title] = "Security Policy"
             self[:with_analytics] = false
           end
         end
+
         class Terms < Onetime::App::View
           def init *args
             self[:title] = "Terms and Conditions"
@@ -89,12 +93,14 @@ module Onetime
           end
         end
       end
+
       class UnknownSecret < Onetime::App::View
         def init
           self[:title] = "No such secret"
           self[:display_feedback] = false
         end
       end
+
       class Shared < Onetime::App::View
         def init
           self[:title] = "You received a secret"
@@ -115,6 +121,7 @@ module Onetime
           v.scan(/\n/).size.zero?
         end
       end
+
       class Private < Onetime::App::View
         def init metadata
           self[:title] = "You saved a secret"
@@ -182,6 +189,7 @@ module Onetime
           self[:secret_value].to_s.scan(/\n/).size.zero?
         end
       end
+
       class Burn < Onetime::App::View
         def init metadata
           self[:title] = "You saved a secret"
@@ -227,6 +235,7 @@ module Onetime
           [baseuri, :private, self[:metadata_key]].join('/')
         end
       end
+
       class Forgot < Onetime::App::View
         def init
           self[:title] = "Forgotten Password"
@@ -247,6 +256,7 @@ module Onetime
           end
         end
       end
+
       class Signup < Onetime::App::View
         def init
           self[:title] = "Create an account"
@@ -283,6 +293,7 @@ module Onetime
         def plan3;  self[@plans[2].to_s]; end
         def plan4;  self[@plans[3].to_s]; end
       end
+
       class Dashboard < Onetime::App::View
         include CreateSecretElements
         def init
@@ -310,6 +321,14 @@ module Onetime
           self[:has_notreceived] = !self[:notreceived].empty?
         end
       end
+
+      class Recent < Onetime::App::Views::Dashboard
+        def init
+          self[:body_class] = :recent
+          super
+        end
+      end
+
       class Account < Onetime::App::View
         def init
           self[:title] = "Your Account"

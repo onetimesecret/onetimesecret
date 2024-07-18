@@ -2,6 +2,8 @@
 GET   /                                          Onetime::App#index
 POST  /share                                     Onetime::App#create_secret
 
+GET   /recent                                    Onetime::App#recent
+
 GET   /incoming                                  Onetime::App#incoming
 POST  /incoming                                  Onetime::App#create_incoming
 

@@ -43,6 +43,16 @@ module Onetime
       end
     end
 
+    def recent
+      authenticated do
+        logic = OT::Logic::Dashboard.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        view = Onetime::App::Views::Recent.new req, sess, cust, locale
+        res.body = view.render
+      end
+    end
+
     def show_docs
       publically do
         view = Onetime::App::Views::Docs::Api.new req, sess, cust, locale
