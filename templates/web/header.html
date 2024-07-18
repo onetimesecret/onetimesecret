@@ -24,15 +24,18 @@
     {{/jsvars}}
     </script>
 
+    {{#frontend_host}}
+      <!-- if development -->
+      <!-- an entry point for each page (main == homepage) -->
+      <script type="module" src="{{ . }}/dist/main.ts"></script>
+      <script type="module" src="{{ . }}/dist/@vite/client"></script>
+    {{/frontend_host}}
 
-    <!-- if development -->
-    <!-- an entry point for each page (main == homepage) -->
-    <script type="module" src="http://localhost:5173/dist/main.ts"></script>
-    <script type="module" src="http://localhost:5173/dist/@vite/client"></script>
-
-    <!-- if production -->
-    <!-- write_a_helper_for_the(manifest.json) -->
-    <!-- https://vitejs.dev/guide/backend-integration.html#backend-integration -->
+    {{^frontend_host}}
+      <!-- if production -->
+      <!-- write_a_helper_for_the(manifest.json) -->
+      <!-- https://vitejs.dev/guide/backend-integration.html#backend-integration -->
+    {{/frontend_host}}
 
   </head>
 

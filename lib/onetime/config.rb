@@ -27,6 +27,10 @@ module Onetime
     def after_load(conf = nil)
       conf ||= {}
 
+      unless conf.has_key?(:development)
+        raise OT::Problem, "No :development config found in #{path}"
+      end
+
       unless conf.has_key?(:mail)
         raise OT::Problem, "No :mail config found in #{path}"
       end
@@ -47,6 +51,10 @@ module Onetime
           config.send("#{actual_key}=", value)
         end
       end
+
+      development = conf[:development]
+      development[:enabled] ||= false
+      development[:frontend_host] ||= ''  # make sure this is set
 
       sentry = conf[:services][:sentry]
       if ::Otto.env?(:dev) && sentry && sentry[:enabled]

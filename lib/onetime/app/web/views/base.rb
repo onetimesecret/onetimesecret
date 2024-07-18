@@ -18,21 +18,31 @@ module Onetime
         @req, @sess, @cust, @locale = req, sess, cust, locale
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
         @messages = { :info => [], :error => [] }
+        is_default_locale = OT.conf[:locales].first.to_s == locale
+        is_subdomain = ! req.env['ots.subdomain'].nil?
+        base_domain = OT.conf[:site][:domain]
+
+        # If not set, the frontend_host is the same as the base_domain and we can
+        # leave the absolute path empty as-is without a host.
+        frontend_host = OT.conf[:development][:frontend_host] || ''
+
+        authenticated = sess && sess.authenticated? && ! cust.anonymous?
         self[:js], self[:css] = [], []
-        self[:is_default_locale] = OT.conf[:locales].first.to_s == locale
+        self[:is_default_locale] = is_default_locale
         self[:supported_locales] = OT.conf[:locales]
         self[:authentication] = OT.conf[:site][:authentication]
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
         self[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
-        self[:authenticated] = sess.authenticated? if sess
+        self[:authenticated] = authenticated
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
         self[:feedback_text] = i18n[:COMMON][:feedback_text]
-        self[:base_domain] = OT.conf[:site][:domain]
-        self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
+        self[:base_domain] = base_domain
+        self[:is_subdomain] = is_subdomain
+        self[:frontend_host] = frontend_host
         self[:no_cache] = false
         self[:display_sitenav] = true
         self[:jsvars] = []
@@ -40,6 +50,12 @@ module Onetime
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:email, cust.email)
         self[:jsvars] << jsvar(:vue_component_name, self.class.vue_component_name)
+        self[:jsvars] << jsvar(:locale, locale)
+        self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
+        self[:jsvars] << jsvar(:frontend_host, frontend_host)
+        self[:jsvars] << jsvar(:base_domain, base_domain)
+        self[:jsvars] << jsvar(:is_subdomain, is_subdomain)
+        self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:display_links] = true
         self[:display_options] = true
         self[:display_recipients] = sess.authenticated?
@@ -62,7 +78,7 @@ module Onetime
           self[:display_otslogo] = self[:banner_url].to_s.empty?
           self[:with_broadcast] = false
         else
-          self[:subtitle] = "One Time"
+          self[:subtitle] = "Onetime"
           self[:display_faq] = true
           self[:display_otslogo] = true
           self[:actionable_visitor] = true

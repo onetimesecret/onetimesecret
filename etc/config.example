@@ -1,5 +1,6 @@
 :site:
   :host: <%= ENV['HOST'] || 'localhost:3000' %>
+
   :domain: localhost
   :ssl: <%= ENV['SSL'] == 'true' %>
   # IMPORTANT: After setting the secret, it should not be changed.
@@ -159,3 +160,7 @@
   :destroy_account: 2
   :forgot_password_request: 2
   :forgot_password_reset: 3
+:development:
+  :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
+  :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
+  :frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
