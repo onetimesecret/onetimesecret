@@ -31,8 +31,8 @@ const componentMap: ComponentMap = {
   'Account': defineAsyncComponent(() => import('@/views/Account.vue')),
   'Shared': defineAsyncComponent(() => import('@/views/Shared.vue')),
   'Private': defineAsyncComponent(() => import('@/views/Private.vue')),
-  'Login': defineAsyncComponent(() => import('@/views/Login.vue')),
-  'Signup': defineAsyncComponent(() => import('@/views/Signup.vue')),
+  //'Login': defineAsyncComponent(() => import('@/views/Login.vue')),
+  //'Signup': defineAsyncComponent(() => import('@/views/Signup.vue')),
   'Feedback': defineAsyncComponent(() => import('@/views/Feedback.vue')),
   'Forgot': defineAsyncComponent(() => import('@/components/PasswordStrengthChecker.vue')),
 }
