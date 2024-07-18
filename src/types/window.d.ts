@@ -43,4 +43,7 @@
 interface Window {
   // Our CSRF token, to be used in POSTrequests to the backend
   shrimp?: string;
+  custid?: string;
+  email?: string;
+  vue_component_name?: string;
 }

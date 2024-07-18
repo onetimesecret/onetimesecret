@@ -5,12 +5,15 @@ module Onetime
   class App
     class View < Mustache
       include Onetime::App::Views::Helpers
+
       self.template_path = './templates/web'
       self.template_extension = 'html'
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
+
       attr_reader :req, :plan, :is_paid
       attr_accessor :sess, :cust, :locale, :messages, :form_fields
+
       def initialize req=nil, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
@@ -36,6 +39,7 @@ module Onetime
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:email, cust.email)
+        self[:jsvars] << jsvar(:vue_component_name, self.class.vue_component_name)
         self[:display_links] = true
         self[:display_options] = true
         self[:display_recipients] = sess.authenticated?
@@ -82,6 +86,7 @@ module Onetime
         @is_paid = plan.paid?
         init *args if respond_to? :init
       end
+
       def i18n
         pagename = self.class.name.split('::').last.downcase.to_sym
         @i18n ||= {
@@ -91,6 +96,7 @@ module Onetime
           COMMON: OT.locales[self.locale][:web][:COMMON]
         }
       end
+
       def setup_plan_variables
         Onetime::Plan.plans.each_pair do |planid,plan|
           self[plan.planid] = {
@@ -122,6 +128,7 @@ module Onetime
         OT.ld self[:default_plan].to_json
         self[:planid] = self[:default_plan][:planid]
       end
+
       def get_split_test_values testname
         varname = "#{testname}_group"
         if OT::SplitTest.test_running? testname
@@ -136,15 +143,30 @@ module Onetime
           @plans = yield # TODO: not tested
         end
       end
+
       def add_message msg
         messages[:info] << msg unless msg.to_s.empty?
       end
+
       def add_error msg
         messages[:error] << msg unless msg.to_s.empty?
       end
+
       def add_form_fields hsh
         (self.form_fields ||= {}).merge! hsh unless hsh.nil?
       end
+
+      class << self
+        # Each page has exactly one #app element and each view can have its
+        # own Vue component. This method allows setting the component name
+        # that is created and mounted in main.ts. If not set, the component
+        # name is derived from the view class name.
+        attr_writer :vue_component_name
+        def vue_component_name
+          @vue_component_name || self.name.split('::').last
+        end
+      end
+
     end
   end
 end
