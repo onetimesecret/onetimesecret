@@ -14,7 +14,7 @@
   }
 
   h1 {
-    @apply text-5xl font-bold text-gray-900 mb-3;
+    @apply text-4xl font-bold text-gray-900 mb-3;
   }
   h2 {
     @apply text-3xl font-bold text-gray-800 mb-3;

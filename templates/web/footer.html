@@ -37,24 +37,25 @@
     </div>
     {{/display_feedback}}
     {{#display_links}}
-    <div>
-      <a href="/about" aria-label="About One-Time Secret">About</a> |
-      <a href="/translations" aria-label="Help translate One-Time Secret">Help Translate</a> |
-      <a href="/docs/api" aria-label="API documentation">API</a> |
-      <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub">Code</a> |
-      <a href="https://github.com/onetimesecret/onetimesecret/issues" aria-label="View open issues on GitHub">Issues</a>
+    <div class="prose dark:prose-invert text-base pt-4 my-8">
+      <a href="/about" aria-label="About One-Time Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a> |
+      <a href="/translations" aria-label="Help translate One-Time Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Help Translate</a> |
+      <a href="/docs/api" aria-label="API documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">API</a> |
+      <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Code</a> |
+      <a href="https://github.com/onetimesecret/onetimesecret/issues" aria-label="View open issues on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Issues</a>
     </div>
-    <div>
-      <a href="/info/privacy" aria-label="Read our Privacy Policy">Privacy Policy</a> |
-      <a href="/info/terms" aria-label="Read our Terms and Conditions">Terms &amp; Conditions</a> |
-      <a href="https://status.onetimesecret.com/" aria-label="Check service status">Status</a> |
-      <a href="/info/security" aria-label="View security information">Security</a>
+    <div class="prose dark:prose-invert text-base">
+      <a href="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Privacy Policy</a> |
+      <a href="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Terms &amp; Conditions</a> |
+      <a href="https://status.onetimesecret.com/" aria-label="Check service status" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Status</a> |
+      <a href="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Security</a>
     </div>
 
-    <div>
+    <div class="text-gray-400 dark:text-gray-500 mt-4">
       v{{ot_version}}
     </div>
     {{/display_links}}
+
 
     <div class="flex justify-end items-center mt-2">
       <span id="theme-toggle"></span>

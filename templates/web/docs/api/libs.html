@@ -1,40 +1,38 @@
 {{>header}}
 
 <div class="container mx-auto p-4 max-w-2xl">
-  <div id="documentation">
-    <h2 class="intro">Client Libraries</h2>
+  <div class="space-y-6">
+    <h2 class="text-3xl font-bold text-brand dark:text-brand-100">Client Libraries</h2>
 
-    <ul id="docnav">
-      <li class=""><a href="/docs/api" title="">Overview</a></li>
-      <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
-      <li class="selected">
-        <a href="/docs/api/libs" title="">Client Libraries</a>
-      </li>
-    </ul>
+    <nav>
+      <ul class="flex space-x-4">
+        <li><a href="/docs/api" class="text-gray-600 hover:text-brand dark:text-gray-300 dark:hover:text-brand-100">Overview</a></li>
+        <li><a href="/docs/api/secrets" class="text-gray-600 hover:text-brand dark:text-gray-300 dark:hover:text-brand-100">Secrets</a></li>
+        <li><a href="/docs/api/libs" class="text-brand font-semibold dark:text-brand-100">Client Libraries</a></li>
+      </ul>
+    </nav>
 
-    <p class="centre">
-      <em class="larger"
-        >BETA API - updated 2017-04-27 (<a href="/feedback">Have a question?</a
-        >)</em
-      >
+    <p class="text-center">
+      <em class="text-lg">BETA API - updated 2022-01-14 (<a href="/feedback" class="text-brand hover:underline dark:text-brand-100">Have a question?</a>)</em>
     </p>
 
-    <div id="topicContent">
+    <div class="space-y-8">
+      <section>
+        <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">Ruby</h3>
 
-      <h3 class="docTitle dotted">Ruby</h3>
+        <a
+          href="https://github.com/onetimesecret/onetime-ruby"
+          class="text-brand hover:underline dark:text-brand-100 font-semibold"
+          title="Ruby library - One-Time Secret"
+        >
+          Github page onetime-ruby
+        </a>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          by <a href="https://delanotes.com/" class="hover:underline">Delano</a> (updated 2024-06-09)
+        </p>
 
-      <a
-        href="https://github.com/onetimesecret/onetime-ruby"
-        title="Ruby library - One-Time Secret"
-        ><strong>Github page onetime-ruby</strong></a
-      ><br />
-      <em
-        >by <a href="https://delanotes.com/">Delano</a> (updated
-        2024-06-09)</em
-      >
-
-      <h4>Usage Example</h4>
-      <pre class="colourize">
+        <h4 class="text-lg font-semibold mt-4 mb-2 text-gray-700 dark:text-gray-300">Usage Example</h4>
+        <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm">
 require 'onetime/api'
 
 api = Onetime::API.new('YOUR_EMAIL', 'YOUR_OTS_APIKEY')
@@ -46,8 +44,11 @@ options = {
 
 ret = api.post('/share', options)
 puts ret['secret_key']
+        </pre>
+      </section>
+    </div>
 
-      </pre>
+
 
       <h3 class="docTitle dotted">Python</h3>
 

@@ -1,73 +1,68 @@
 {{>header}}
 
 <div class="container mx-auto p-4 max-w-2xl">
-  <div id="documentation">
-    <h2 class="intro">API Overview</h2>
+  <div class="space-y-8">
+    <h2 class="text-3xl font-bold text-brand dark:text-brand-100">API Overview</h2>
 
-    <ul id="docnav">
-      <li class="selected"><a href="/docs/api" title="">Overview</a></li>
-      <li class=""><a href="/docs/api/secrets" title="">Secrets</a></li>
-      <li class=""><a href="/docs/api/libs" title="">Client Libraries</a></li>
-    </ul>
+    <nav>
+      <ul class="flex space-x-4">
+        <li><a href="/docs/api" class="text-brand font-semibold dark:text-brand-100">Overview</a></li>
+        <li><a href="/docs/api/secrets" class="text-gray-600 hover:text-brand dark:text-gray-300 dark:hover:text-brand-100">Secrets</a></li>
+        <li><a href="/docs/api/libs" class="text-gray-600 hover:text-brand dark:text-gray-300 dark:hover:text-brand-100">Client Libraries</a></li>
+      </ul>
+    </nav>
 
-    <p class="centre"><em class="larger">BETA API - updated 2017-04-27 (<a href="#feedback">Have a question?</a>)</em></p>
+    <p class="text-center">
+      <em class="text-lg">BETA API - updated 2022-01-14 (<a href="#feedback" class="text-brand hover:underline dark:text-brand-100">Have a question?</a>)</em>
+    </p>
 
-    <div id="topicContent">
+    <div class="space-y-8">
+      <section>
+        <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">Base URI</h3>
+        <span class="text-sm text-gray-600 dark:text-gray-400 block mb-2">{{baseuri}}/api</span>
 
-      <h3 class="docTitle dotted">Base URI</h3>
-      <span class="docSubtext">{{baseuri}}/api</span>
+        <p class="text-gray-800 dark:text-gray-200">
+          All API access is over HTTPS and starts with <code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded">/api</code>. All responses are JSON.
+        </p>
+      </section>
 
-      <p>
-        All API access is over HTTPS and starts with <tt>/api</tt>. All responses are JSON.
-        <!-- The following parameters and attributes are common across the API. -->
-      </p>
+      <section>
+        <h4 class="text-xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">Authentication</h4>
+        <span class="text-sm text-gray-600 dark:text-gray-400 block mb-2">{{baseuri_httpauth}}/api</span>
 
-      <!--
-      <div class="options">
-        <strong>Query Params</strong>
-        <ul>
-          <li><span class="name">field</span> (optional): if specified, returns the content for this field only.</li>
-        </ul>
-      </div>
-      -->
-
-      <h4 class="docTitle dotted">Authentication</h4>
-      <span class="docSubtext">{{baseuri_httpauth}}/api</span>
-
-      <p>
-        We use HTTP Basic Authentication for all requests and require a username and password.
-        <ul>
+        <p class="text-gray-800 dark:text-gray-200 mb-2">
+          We use HTTP Basic Authentication for all requests and require a username and password.
+        </p>
+        <ul class="list-disc pl-5 space-y-1 text-gray-800 dark:text-gray-200">
           <li>The username is the same as your Stella account login.</li>
           <li>The password is the API token which you can find on your account page.</li>
         </ul>
-      </p>
+      </section>
 
-      <h3 class="docTitle dotted">System Status</h3>
-      <span class="docSubtext">GET {{baseuri}}/api/v1/status</span>
+      <section>
+        <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">System Status</h3>
+        <span class="text-sm text-gray-600 dark:text-gray-400 block mb-2">GET {{baseuri}}/api/v1/status</span>
 
-      <p>Current status of the system.</p>
+        <p class="text-gray-800 dark:text-gray-200 mb-4">Current status of the system.</p>
 
-      <div class="options">
-        <strong>Parameters</strong><br/>
-        <em>None</em>
-      </div>
+        <div class="mb-4">
+          <strong class="block mb-2 font-semibold">Parameters</strong>
+          <em class="text-gray-600 dark:text-gray-400">None</em>
+        </div>
 
-      <pre class="colourize">$ curl -u 'USERNAME:APITOKEN' {{baseuri}}/api/v1/status</pre>
+        <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm mb-4">
+$ curl -u 'USERNAME:APITOKEN' {{baseuri}}/api/v1/status</pre>
 
-      <pre class="colourize">{<span class="ke"><span class="dl">&quot;</span><span class="k">status</span><span class="dl">&quot;</span></span>:<span class="s"><span class="dl">&quot;</span><span class="k">nominal</span><span class="dl">&quot;</span></span>}</pre>
-      <p></p>
+        <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm mb-4">
+{"status":"nominal"}</pre>
 
-      <div class="options">
-        <strong>Attributes</strong>
-        <ul>
-          <li><span class="name">status</span>: The current system status. One of: nominal, offline.</li>
-        </ul>
-      </div>
-
-
-      <p></p>
-
-      <br/><br/><br/>
+        <div>
+          <strong class="block mb-2 font-semibold">Attributes</strong>
+          <ul class="list-disc pl-5 space-y-1 text-gray-800 dark:text-gray-200">
+            <li><span class="font-medium">status</span>: The current system status. One of: nominal, offline.</li>
+          </ul>
+        </div>
+      </section>
     </div>
   </div>
 </div>
