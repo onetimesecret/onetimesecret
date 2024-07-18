@@ -36,30 +36,30 @@
     <p class="mb-4 text-gray-700 dark:text-gray-300">Please enter your new password below. Make sure it's at least 8 characters long and includes a mix of letters, numbers, and symbols.</p>
     <form method="post" id="passwordResetForm">
       {{{add_shrimp}}}
-      <div class="mb-4">
-        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="passField">
-          New password
-        </label>
-        <input type="password" name="newp" id="passField" required minlength="8"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          placeholder="••••••••" />
-      </div>
-      <div class="mb-6">
-        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="pass2Field">
-          Confirm password
-        </label>
-        <input type="password" name="newp2" id="pass2Field" required minlength="8"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          placeholder="••••••••" />
-      </div>
-      <div id="passwordStrength" class="mb-4"></div>
-      <div id="passwordMismatch" class="mb-4 text-red-500 dark:text-red-400 hidden">Passwords do not match</div>
-      <div class="flex items-center justify-between">
-        <button type="submit"
-          class="bg-brand-500 hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">
-          Update Password
-        </button>
-      </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="passField">
+            New password
+          </label>
+          <input type="password" name="newp" id="passField" required minlength="8"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="••••••••" />
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="pass2Field">
+            Confirm password
+          </label>
+          <input type="password" name="newp2" id="pass2Field" required minlength="8"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="••••••••" />
+        </div>
+        <div id="app"></div>
+        <div class="flex items-center justify-between">
+          <button type="submit"
+            class="bg-brand-500 hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">
+            Update Password
+          </button>
+        </div>
+
     </form>
   </div>
   {{/verified}}
@@ -70,51 +70,6 @@
 </div>
 
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-<script>
-  // Password strength checker
-  function checkPasswordStrength(password) {
-    const strengthMeter = document.getElementById('passwordStrength');
-    const strength = {
-      0: "Very Weak",
-      1: "Weak",
-      2: "Fair",
-      3: "Strong",
-      4: "Very Strong"
-    };
-    let score = 0;
-    if (password.length > 7) score++;
-    if (password.match(/[a-z]/) && password.match(/[A-Z]/)) score++;
-    if (password.match(/\d/)) score++;
-    if (password.match(/[^a-zA-Z\d]/)) score++;
-    strengthMeter.innerHTML = `Password Strength: <span class="font-bold">${strength[score]}</span>`;
-    strengthMeter.className = `mb-4 ${score > 2 ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`;
-  }
 
-  // Password match checker
-  function checkPasswordMatch() {
-    const pass1 = document.getElementById('passField').value;
-    const pass2 = document.getElementById('pass2Field').value;
-    const mismatchDiv = document.getElementById('passwordMismatch');
-    mismatchDiv.classList.toggle('hidden', pass1 === pass2);
-  }
-
-  // Event listeners
-  if (document.getElementById('passField')) {
-    document.getElementById('passField').addEventListener('input', (e) => checkPasswordStrength(e.target.value));
-    document.getElementById('pass2Field').addEventListener('input', checkPasswordMatch);
-  }
-
-  // Form validation
-  if (document.getElementById('passwordResetForm')) {
-    document.getElementById('passwordResetForm').addEventListener('submit', function(e) {
-      const pass1 = document.getElementById('passField').value;
-      const pass2 = document.getElementById('pass2Field').value;
-      if (pass1 !== pass2) {
-        e.preventDefault();
-        alert('Passwords do not match. Please try again.');
-      }
-    });
-  }
-</script>
 
 {{>footer}}

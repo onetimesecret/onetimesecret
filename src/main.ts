@@ -34,6 +34,7 @@ const componentMap: ComponentMap = {
   'Login': defineAsyncComponent(() => import('@/views/Login.vue')),
   'Signup': defineAsyncComponent(() => import('@/views/Signup.vue')),
   'Feedback': defineAsyncComponent(() => import('@/views/Feedback.vue')),
+  'Forgot': defineAsyncComponent(() => import('@/components/PasswordStrengthChecker.vue')),
 }
 
 if (window.vue_component_name && window.vue_component_name in componentMap) {
