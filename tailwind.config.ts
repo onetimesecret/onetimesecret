@@ -1,5 +1,6 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import typography from '@tailwindcss/typography';
+import forms from '@tailwindcss/forms';
 
 /**
  * Tailwind CSS Configuration
@@ -82,7 +83,8 @@ export default {
     }
   },
   plugins: [
-    typography,
+    forms(),
+    typography(),
 
     /* TODO: Check if we can use this in place of the fonts.css */
     //function({ addBase, theme }) {
