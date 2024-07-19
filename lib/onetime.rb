@@ -25,7 +25,7 @@ require_relative 'onetime/core_ext'
 
 Familia.apiversion = nil
 
-# Onetime is the core of the One-Time Secret application.
+# Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
 # the app. It is the main namespace for the application.
 #

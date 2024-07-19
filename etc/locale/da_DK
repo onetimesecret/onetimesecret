@@ -105,8 +105,8 @@
     :body1: "Vi har en hemmelighed til dig fra"
     :body_tagline: "Hvis du ikke kender afsenderen, eller mener det er spam, så send os detaljerne her:"
   :welcome:
-    :subject: "Bekræft din One-time Secret konto"
-    :body1: "Velkommen til One-Time Secret. Vi har en hemmelighed til dig!"
+    :subject: "Bekræft din Onetime Secret konto"
+    :body1: "Velkommen til Onetime Secret. Vi har en hemmelighed til dig!"
     :please_verify: "Bekræft venligst din konto:"
     :postscript1: "Denne e-mail blev sendt til"
     :postscript2: "Hvis du ikke har oprettet denne konto, så slet denne besked - og vi vil ikke kontakte dig igen."

@@ -105,8 +105,8 @@
     :body1: "Tenemos un secreto para usted desde"
     :body_tagline: "Si no conoce al remitente o cree que este sea un correo no deseado, envíenos los detalles aquí:"
   :welcome:
-    :subject: "Verifique su cuenta de One-time Secret"
-    :body1: "¡Bienvenido a One-Time Secret! ¡Tenemos un secreto para usted!"
+    :subject: "Verifique su cuenta de Onetime Secret"
+    :body1: "¡Bienvenido a Onetime Secret! ¡Tenemos un secreto para usted!"
     :please_verify: "Por favor verifique su cuenta:"
     :postscript1: "Este email se le envio a"
     :postscript2: "Si usted no ha creado esta cuenta, borre este mensaje y no lo contactaremos de nuevo."
