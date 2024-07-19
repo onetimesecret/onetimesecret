@@ -1,63 +1,86 @@
 {{>header}}
 
-<div class="container mx-auto p-4 max-w-2xl">
-  <div class="space-y-6">
-    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">API Overview</h2>
+<div class="container mx-auto px-4 max-w-2xl">
+  <article class="prose dark:prose-invert lg:prose-lg xl:prose-xl">
+    <h2 class="text-3xl font-bold mb-4 text-brand-500 dark:text-brand-400">Help us translate!</h2>
 
-    <ul class="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
-      <li class="border-b-2 border-brand-500"><a href="/docs/api" class="text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300">Overview</a></li>
-      <li><a href="/docs/api/secrets" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Secrets</a></li>
-      <li><a href="/docs/api/libs" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Client Libraries</a></li>
+    <p class="mb-4">
+      Since Onetime Secret launched in 2012, one of the most requested features has been to support
+      languages other than english. Many visitors -- in fact, most -- live in countries where
+      English is not the first or even second language.
+    </p>
+
+    <p class="mb-4">
+      One of the major goals of One-Time Secret is to simplify secure communication so that it can
+      help as many people as possible. Translating the site plays a big role in that. Since 2015 our
+      contributors have added over 20, plus corrections and other updates! But we still have a ways
+      to go.
+      <strong class="text-brand-500 dark:text-brand-400">
+        I need your help to add support for more languages.
+      </strong>
+      More details at the bottom of this page.
+    </p>
+
+    <hr class="my-8" />
+
+    <h3 class="text-2xl font-semibold mb-4">Translations</h3>
+    <p class="mb-4">
+      The following people have donated their time to help expand the reach of One-Time Secret:
+    </p>
+
+    {{#translations}}
+    <h4 class="text-xl font-semibold mb-2">
+      {{name}} (<a
+        href="/?locale={{code}}"
+        class="text-brand-500 dark:text-brand-400 hover:underline"
+        >switch</a
+      >)
+    </h4>
+    <ul class="list-disc pl-5 mb-4">
+      {{#translators}}
+      <li>
+        <a href="{{url}}" class="text-brand-500 dark:text-brand-400 hover:underline">{{name}}</a>
+        ({{date}})
+      </li>
+      {{/translators}}
+    </ul>
+    {{/translations}}
+
+    <hr class="my-8" />
+
+    <h4 class="text-xl font-semibold mb-4">Currently Supported Languages</h4>
+
+    <ul class="list-disc pl-5 mb-4">
+      {{#supported_locales}}
+      <li>
+        <a href="/?locale={{to_s}}" class="text-brand-500 dark:text-brand-400 hover:underline"
+          >{{to_s}}</a
+        >
+      </li>
+      {{/supported_locales}}
     </ul>
 
-    <p class="text-center italic text-lg text-gray-600 dark:text-gray-400">BETA API - updated 2017-04-27 (<a href="#feedback" class="text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300">Have a question?</a>)</p>
+    <p class="mb-4">
+      If you have a Github account, you can use the links above to create a new language file. If
+      not, you can copy the text from an existing lanaguage -- like
+      <a
+        href="https://github.com/onetimesecret/onetimesecret/blob/develop/etc/locale/en"
+        class="text-brand-500 dark:text-brand-400 hover:underline"
+        >english</a
+      >
+      -- and send a text file via email to
+      <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded"
+        >contribute AT onetimesecret dot com</code
+      >.
+    </p>
 
-    <div class="space-y-6">
-      <div>
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Base URI</h3>
-        <p class="text-gray-600 dark:text-gray-400">{{baseuri}}/api</p>
-        <p class="mt-2 text-gray-700 dark:text-gray-300">
-          All API access is over HTTPS and starts with <code class="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">/api</code>. All responses are JSON.
-        </p>
-      </div>
+    <p class="mb-4">
+      There is a feedback form at the bottom of the page if you have any questions. If you're not logged in, be sure to
+      include an email address so I can reply.
+    </p>
 
-      <div>
-        <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">Authentication</h4>
-        <p class="text-gray-600 dark:text-gray-400">{{baseuri_httpauth}}/api</p>
-        <p class="mt-2 text-gray-700 dark:text-gray-300">
-          We use HTTP Basic Authentication for all requests and require a username and password.
-        </p>
-        <ul class="list-disc list-inside mt-2 text-gray-700 dark:text-gray-300">
-          <li>The username is the same as your Stella account login.</li>
-          <li>The password is the API token which you can find on your account page.</li>
-        </ul>
-      </div>
-
-      <div>
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">System Status</h3>
-        <p class="text-gray-600 dark:text-gray-400">GET {{baseuri}}/api/v1/status</p>
-        <p class="mt-2 text-gray-700 dark:text-gray-300">Current status of the system.</p>
-
-        <div class="mt-4">
-          <strong class="text-gray-900 dark:text-gray-100">Parameters</strong><br/>
-          <em class="text-gray-600 dark:text-gray-400">None</em>
-        </div>
-
-        <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mt-4 overflow-x-auto">
-$ curl -u 'USERNAME:APITOKEN' {{baseuri}}/api/v1/status</pre>
-
-        <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mt-4 overflow-x-auto">
-{"status":"nominal"}</pre>
-
-        <div class="mt-4">
-          <strong class="text-gray-900 dark:text-gray-100">Attributes</strong>
-          <ul class="list-disc list-inside mt-2 text-gray-700 dark:text-gray-300">
-            <li><span class="font-semibold">status</span>: The current system status. One of: nominal, offline.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+    <p class="mb-4">Delano</p>
+  </article>
 </div>
 
 {{>footer}}

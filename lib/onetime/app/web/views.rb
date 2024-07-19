@@ -367,11 +367,19 @@ module Onetime
           setup_plan_variables
         end
       end
+      @translations = nil
       class Translations < Onetime::App::View
+        TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml')
+        class << self
+          attr_accessor :translations  # class instance variable
+        end
         def init *args
           self[:title] = "Help us translate"
           self[:body_class] = :info
           self[:with_analytics] = false
+          # Load translations YAML file from etc/translations.yaml
+          self.class.translations ||= OT::Config.load(TRANSLATIONS_PATH)
+          self[:translations] = self.class.translations
         end
       end
       class NotFound < Onetime::App::View
