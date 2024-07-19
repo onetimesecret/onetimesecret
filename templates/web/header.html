@@ -63,7 +63,7 @@
               <a href="/" class="nounderline  text-gray-400"><span id="userEmail">{{cust.custid}}</span></a>
               {{#colonel}}<a href="/colonel/" title="" class="nounderline">*</a>{{/colonel}}<span class="mx-0 text-gray-400">|</span>
               <a href="/account" class="underline" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> <span class="mx-0 text-gray-400">|</span>
-              <a href="/logout" class="underline" title="Log out of One-Time Secret">{{i18n.COMMON.header_logout}}</a>
+              <a href="/logout" class="underline" title="Log out of Onetime Secret">{{i18n.COMMON.header_logout}}</a>
             {{/authenticated}}
 
             {{^authenticated}}
@@ -74,13 +74,13 @@
                 {{/authentication.signup}}
 
                 {{#authentication.signin}}
-                  <a href="/login" title="Log in to One-Time Secret" class="underline">{{i18n.COMMON.header_sign_in}}</a>
+                  <a href="/login" title="Log in to Onetime Secret" class="underline">{{i18n.COMMON.header_sign_in}}</a>
                 {{/authentication.signin}}
 
               {{/authentication.enabled}}
 
               {{^authentication.enabled}}
-                <a href="/about" title="About One-Time Secret" class="underline">{{i18n.COMMON.header_about}}</a>
+                <a href="/about" title="About Onetime Secret" class="underline">{{i18n.COMMON.header_about}}</a>
               {{/authentication.enabled}}
 
             {{/authenticated}}

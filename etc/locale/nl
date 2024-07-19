@@ -105,8 +105,8 @@
     :body1: "We hebben een geheim voor u van"
     :body_tagline: "Als je de afzender niet kent of denkt dat het spam is, stuur ons de gegevens hier:"
   :welcome:
-    :subject: "Verifieer  uw One-time Secret account"
-    :body1: "Welkom bij One-Time Secret. We hebben een geheim voor u!"
+    :subject: "Verifieer  uw Onetime Secret account"
+    :body1: "Welkom bij Onetime Secret. We hebben een geheim voor u!"
     :please_verify: "Bevestig uw account alstublieft:"
     :postscript1: "Deze E-mail is verstuurd naar"
     :postscript2: "Als u dit account niet heeft aangemaakt negeer dit bericht, we zullen u niet meer lastig vallen."
