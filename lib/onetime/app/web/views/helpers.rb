@@ -67,7 +67,10 @@ module Onetime
 
         def vite_assets
           manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
-          return '' unless File.exist?(manifest_path)
+          unless File.exist?(manifest_path)
+            OT.le "Vite manifest not found at #{manifest_path}. Run `pnpm run build`"
+            return '<script>console.warn("Vite manifest not found. Run `pnpm run build`")</script>'
+          end
 
           manifest = JSON.parse(File.read(manifest_path))
 
@@ -97,6 +100,11 @@ module Onetime
             %(<link rel="modulepreload" href="/dist/#{manifest[import_file]['file']}">)
           end
           assets << preload_links
+
+          if assets.empty?
+            OT.le "No assets found in Vite manifest at #{manifest_path}"
+            return '<script>console.warn("No assets found in Vite manifest")</script>'
+          end
 
           assets.flatten.compact.join("\n")
         end
