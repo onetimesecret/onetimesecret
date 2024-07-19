@@ -64,3 +64,17 @@ broadcastApp.mount('#broadcast')
 
 const toggleApp = createApp(ThemeToggle)
 toggleApp.mount('#theme-toggle')
+
+
+function deobfuscateEmails(): void {
+  document.querySelectorAll<HTMLElement>('.email').forEach(el => {
+    const email = el.textContent?.replace(/ &#65;&#84; /g, "@").replace(/ AT /g, "@").replace(/ D0T /g, ".") || '';
+    const subject = el.getAttribute('data-subject');
+    const subjectParam = subject ? `?subject=${encodeURIComponent(subject)}` : '';
+    el.innerHTML = `<a href="mailto:${encodeURIComponent(email)}${subjectParam}">${email}</a>`;
+  });
+}
+
+// Call this function when the DOM is ready or after dynamic content is loaded
+document.addEventListener('DOMContentLoaded', deobfuscateEmails);
+window.deobfuscateEmails = deobfuscateEmails;

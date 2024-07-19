@@ -46,4 +46,5 @@ interface Window {
   custid?: string;
   email?: string;
   vue_component_name?: string;
+  deobfuscateEmails: () => void;
 }
