@@ -5,6 +5,8 @@
 require 'mustache'
 
 class Mustache
+  self.template_extension = 'html'
+
   def self.partial(name)
     path = "#{template_path}/#{name}.#{template_extension}"
     if Otto.env?(:dev)
@@ -30,6 +32,7 @@ module Onetime
           self[:with_analytics] = false
         end
       end
+
       class Incoming < Onetime::App::View
         include CreateSecretElements
         def init *args
@@ -40,6 +43,7 @@ module Onetime
           self[:display_masthead] = self[:display_links] = false
         end
       end
+
       module Docs
         class Api < Onetime::App::View
           def init *args
@@ -74,12 +78,14 @@ module Onetime
             self[:with_analytics] = false
           end
         end
+
         class Security < Onetime::App::View
           def init *args
             self[:title] = "Security Policy"
             self[:with_analytics] = false
           end
         end
+
         class Terms < Onetime::App::View
           def init *args
             self[:title] = "Terms and Conditions"
@@ -87,12 +93,14 @@ module Onetime
           end
         end
       end
+
       class UnknownSecret < Onetime::App::View
         def init
           self[:title] = "No such secret"
           self[:display_feedback] = false
         end
       end
+
       class Shared < Onetime::App::View
         def init
           self[:title] = "You received a secret"
@@ -113,6 +121,7 @@ module Onetime
           v.scan(/\n/).size.zero?
         end
       end
+
       class Private < Onetime::App::View
         def init metadata
           self[:title] = "You saved a secret"
@@ -180,6 +189,7 @@ module Onetime
           self[:secret_value].to_s.scan(/\n/).size.zero?
         end
       end
+
       class Burn < Onetime::App::View
         def init metadata
           self[:title] = "You saved a secret"
@@ -225,6 +235,7 @@ module Onetime
           [baseuri, :private, self[:metadata_key]].join('/')
         end
       end
+
       class Forgot < Onetime::App::View
         def init
           self[:title] = "Forgotten Password"
@@ -245,6 +256,7 @@ module Onetime
           end
         end
       end
+
       class Signup < Onetime::App::View
         def init
           self[:title] = "Create an account"
@@ -266,7 +278,7 @@ module Onetime
             :is_paid => plan.paid?,
             :planid => self[:planid]
           }
-
+          setup_plan_variables
         end
       end
       class Plans < Onetime::App::View
@@ -281,6 +293,7 @@ module Onetime
         def plan3;  self[@plans[2].to_s]; end
         def plan4;  self[@plans[3].to_s]; end
       end
+
       class Dashboard < Onetime::App::View
         include CreateSecretElements
         def init
@@ -308,6 +321,16 @@ module Onetime
           self[:has_notreceived] = !self[:notreceived].empty?
         end
       end
+
+      class Recent < Onetime::App::Views::Dashboard
+        # Use the same locale as the dashboard
+        self.pagename = :dashboard
+        def init
+          self[:body_class] = :recent
+          super
+        end
+      end
+
       class Account < Onetime::App::View
         def init
           self[:title] = "Your Account"
@@ -346,19 +369,19 @@ module Onetime
           setup_plan_variables
         end
       end
+      @translations = nil
       class Translations < Onetime::App::View
+        TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml')
+        class << self
+          attr_accessor :translations  # class instance variable
+        end
         def init *args
           self[:title] = "Help us translate"
           self[:body_class] = :info
           self[:with_analytics] = false
-        end
-      end
-      class Logo < Onetime::App::View
-        def init *args
-          self[:title] = "Contest: Help us get a logo"
-          self[:body_class] = :info
-          self[:with_analytics] = false
-          self[:with_broadcast] = false
+          # Load translations YAML file from etc/translations.yaml
+          self.class.translations ||= OT::Config.load(TRANSLATIONS_PATH)
+          self[:translations] = self.class.translations
         end
       end
       class NotFound < Onetime::App::View
@@ -377,16 +400,6 @@ module Onetime
           #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
           #  {:msg => k, :stamp => natural_time(v) }
           #end
-        end
-      end
-      class Contributor < Onetime::App::View
-        attr_accessor :secret
-        def init *args
-          self[:title] = "Contribute"
-          self[:contributor] = cust.contributor?
-          if self[:contributor]
-            self[:contributor_since] = epochdate(cust.contributor_at)
-          end
         end
       end
     end

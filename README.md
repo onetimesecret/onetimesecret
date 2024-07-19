@@ -1,4 +1,4 @@
-# Onetime Secret - v0.15.0
+# Onetime Secret - v0.16.0
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
@@ -19,7 +19,7 @@ Try it out on <a class="msg" href="https://onetimesecret.com/">OnetimeSecret.com
 
 ### Why would I want to use it?
 
-When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a one-time link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
+When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
 
 ## Installation
@@ -272,9 +272,13 @@ There are many ways to run the webapp. The default web server we use is [thin](h
 **To run on a server:**
 
 ```bash
-  bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 restart
+  bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 start
 ```
 
+Graceful restart:
+```bash
+  bundle exec thin --onebyone -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 4 -D restart
+```
 
 ## Generating a global secret
 

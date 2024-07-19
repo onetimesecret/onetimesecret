@@ -1,0 +1,68 @@
+
+<div class="container mx-auto p-4 max-w-2xl">
+  <footer class="text-sm text-center space-y-2">
+    {{#display_feedback}}
+    <div>
+      <form class="form form-inline" action="/feedback" method="post">
+        {{{add_shrimp}}}
+        <div class="flex items-center space-x-2 mb-4">
+          {{^authenticated}}
+            <input
+              type="text"
+              name="msg"
+              class="flex-grow p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+              autocomplete="off"
+              placeholder="Login to send feedback">
+
+            <button
+              class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded">
+              {{i18n.COMMON.button_send_feedback}}
+            </button>
+          {{/authenticated}}
+          {{#authenticated}}
+            <input
+              type="text"
+              name="msg"
+              class="flex-grow p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+              autocomplete="off"
+              placeholder="{{i18n.COMMON.feedback_text}}">
+            <button
+              class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded">
+              {{i18n.COMMON.button_send_feedback}}
+            </button>
+          {{/authenticated}}
+
+        </div>
+      </form>
+    </div>
+    {{/display_feedback}}
+    {{#display_links}}
+    <div class="prose dark:prose-invert text-base pt-4">
+      <a href="/about" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a> |
+      <a href="/translations" aria-label="Help translate Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Help Translate</a> |
+      <a href="/docs/api" aria-label="API documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">API</a> |
+      <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Code</a> |
+      <a href="https://github.com/onetimesecret/onetimesecret/issues" aria-label="View open issues on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Issues</a>
+    </div>
+    <div class="prose dark:prose-invert text-base">
+      <a href="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Privacy Policy</a> |
+      <a href="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Terms &amp; Conditions</a> |
+      <a href="https://status.onetimesecret.com/" aria-label="Check service status" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Status</a> |
+      <a href="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Security</a>
+    </div>
+
+    <div class="text-gray-400 dark:text-gray-500 mt-4 pt-4">
+      v{{ot_version}}
+    </div>
+    {{/display_links}}
+
+    {{#authenticated}}
+    <div class="mt-2 text-slate-400">
+      <span id="theme-toggle"></span>
+    </div>
+    {{/authenticated}}
+  </footer>
+</div>
+
+</body>
+</html>

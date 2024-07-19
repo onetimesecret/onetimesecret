@@ -1,3 +1,4 @@
+---
 :site:
   :host: '127.0.0.1:3000'
   :domain: 127.0.0.1
@@ -142,3 +143,7 @@
   :destroy_account: 5
   :forgot_password_request: 2
   :forgot_password_reset: 3
+:development:
+  :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
+  :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
+  :frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>

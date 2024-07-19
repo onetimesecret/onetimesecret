@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Node 22",
+  "_version": "22.0.0",
+
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "node16",
+    "lib": [
+      "es2023",
+      "dom"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node16",
+
+    "useDefineForClassFields": true,
+    "jsx": "preserve",
+
+    "allowJs": true,
+    "sourceMap": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      // The `@` alias. For this to work seamlessly in TypeScript,
+      // ensure that both the Vue project configuration and TypeScript
+      // configuration are correctly set up to recognize this alias.
+      "@/*": ["src/*"]
+    },
+    "types": [
+      "@types/node"
+    ]
+  },
+  "include": ["src/**/*.ts", "src/types/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["node_modules"]
+}

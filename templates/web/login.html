@@ -1,0 +1,51 @@
+{{>header}}
+
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+  <div class="mb-8">
+    <h3 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">{{i18n.page.enter_your_credentials}}</h3>
+
+    {{>partial/session_messages}}
+
+    <form method="post" class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+      {{{add_shrimp}}}
+
+      <fieldset>
+        <div class="mb-4">
+          <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="custidField">
+            {{i18n.COMMON.field_email}}
+          </label>
+          <input type="email" name="u" id="custidField" required
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline transition duration-300 ease-in-out invalid:not(:placeholder-shown):border-red-500 invalid:not(:placeholder-shown):text-red-600"
+            value="{{form_fields.custid}}" placeholder="your@email.com" />
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="passField">
+            {{i18n.COMMON.field_password}}
+          </label>
+          <input type="password" name="p" id="passField" required
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline transition duration-300 ease-in-out invalid:not(:placeholder-shown):border-red-500 invalid:not(:placeholder-shown):text-red-600"
+            value="" placeholder="••••••••" />
+        </div>
+        <div class="mb-6 flex items-center">
+          <input type="checkbox" name="remember" id="rememberMe" class="mr-2">
+          <label for="rememberMe" class="text-sm text-gray-700 dark:text-gray-300">Remember me</label>
+        </div>
+        <div class="flex items-center justify-between">
+          <button type="submit"
+            class="bg-brand-500 hover:bg-brand-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:scale-105">
+            {{i18n.page.button_sign_in}}
+          </button>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+
+  <div class="text-center">
+    <ul class="space-y-2">
+      <li><a href="/signup" class="text-sm text-gray-600 dark:text-gray-400 hover:underline transition duration-300 ease-in-out">{{i18n.page.need_an_account}}</a></li>
+      <li><a href="/forgot" class="text-sm text-gray-600 dark:text-gray-400 hover:underline transition duration-300 ease-in-out">{{i18n.page.forgot_your_password}}</a></li>
+    </ul>
+  </div>
+</div>
+
+{{>footer}}
