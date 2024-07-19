@@ -19,8 +19,12 @@ module Onetime
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
         @messages = { :info => [], :error => [] }
         is_default_locale = OT.conf[:locales].first.to_s == locale
-        is_subdomain = ! req.env['ots.subdomain'].nil?
-        base_domain = OT.conf[:site][:domain]
+        is_subdomain = req.nil? ? nil : !req.env['ots.subdomain'].nil?
+
+        # TODO: Make better use of fetch to avoid nil checks. Esp important
+        # across release versions where the config may change.
+        site = OT.conf.fetch(:site, {})
+        base_domain = site[:domain]
 
         # If not set, the frontend_host is the same as the base_domain and we can
         # leave the absolute path empty as-is without a host.
@@ -30,7 +34,7 @@ module Onetime
         self[:js], self[:css] = [], []
         self[:is_default_locale] = is_default_locale
         self[:supported_locales] = OT.conf[:locales]
-        self[:authentication] = OT.conf[:site][:authentication]
+        self[:authentication] = site[:authentication]
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
