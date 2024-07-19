@@ -17,7 +17,7 @@
 #
 $stdout.sync = true
 
-ENV['RACK_ENV'] ||= 'prod'
+ENV['RACK_ENV'] ||= 'production'
 ENV['APP_ROOT'] = File.expand_path(File.join(File.dirname(__FILE__)))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))

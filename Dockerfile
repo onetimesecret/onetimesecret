@@ -89,7 +89,7 @@ FROM ruby:3.3-slim-bookworm@sha256:bc6372a998e79b5154c8132d1b3e0287dc656249f71f4
 # NOTE: We only need the build tools installed if we need
 # to compile anything from source during the build.
 # TODO: Use psycopg2-binary and remove psycopg2.
-ARG PACKAGES="build-essential autoconf m4 sudo"
+ARG PACKAGES="build-essential autoconf m4 sudo nodejs npm"
 
 # Fast fail on errors while installing system packages
 RUN set -eux && \
@@ -99,6 +99,7 @@ RUN set -eux && \
 RUN gem update --system
 RUN gem install bundler
 
+RUN npm install -g pnpm
 
 ##
 # ENVIRONMENT LAYER
@@ -126,13 +127,23 @@ RUN mkdir -p "$ONETIME_HOME/{log,tmp}"
 
 WORKDIR $CODE_ROOT
 
-COPY Gemfile Gemfile.lock ./
+COPY Gemfile ./
+COPY Gemfile.lock ./
 
 # Install the dependencies into the environment image
 RUN bundle config set --local without 'development test'
 RUN bundle install
 RUN bundle update --bundler
 
+COPY package.json ./
+COPY pnpm-lock.yaml  ./
+RUN pnpm install --frozen-lockfile
+ENV NODE_PATH=$CODE_ROOT/node_modules
+
+COPY . .
+
+RUN pnpm run type-check
+RUN pnpm run build-only
 
 ##
 # APPLICATION LAYER
