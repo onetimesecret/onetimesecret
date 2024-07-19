@@ -323,6 +323,8 @@ module Onetime
       end
 
       class Recent < Onetime::App::Views::Dashboard
+        # Use the same locale as the dashboard
+        self.pagename = :dashboard
         def init
           self[:body_class] = :recent
           super

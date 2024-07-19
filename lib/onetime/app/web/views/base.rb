@@ -12,7 +12,7 @@ module Onetime
       self.view_path = './app/web/views'
 
       attr_reader :req, :plan, :is_paid
-      attr_accessor :sess, :cust, :locale, :messages, :form_fields
+      attr_accessor :sess, :cust, :locale, :messages, :form_fields, :pagename
 
       def initialize req=nil, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
@@ -104,11 +104,11 @@ module Onetime
       end
 
       def i18n
-        pagename = self.class.name.split('::').last.downcase.to_sym
+        self.class.pagename ||= self.class.name.split('::').last.downcase.to_sym
         @i18n ||= {
           locale: self.locale,
           default: OT.conf[:locales].first.to_s,
-          page: OT.locales[self.locale][:web][pagename],
+          page: OT.locales[self.locale][:web][self.class.pagename],
           COMMON: OT.locales[self.locale][:web][:COMMON]
         }
       end
@@ -174,6 +174,7 @@ module Onetime
       end
 
       class << self
+        attr_accessor :pagename
         # Each page has exactly one #app element and each view can have its
         # own Vue component. This method allows setting the component name
         # that is created and mounted in main.ts. If not set, the component
