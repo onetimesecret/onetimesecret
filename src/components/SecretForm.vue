@@ -3,16 +3,18 @@
 export interface Props {
   enabled?: boolean;
   shrimp: string | null;
+  withRecipient?: boolean;
+  withAsterisk?: boolean;
   showGenerate?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
   shrimp: null,
+  withRecipient: false,
+  withAsterisk: false,
   showGenerate: false,
 })
-
-
 
 
 </script>
@@ -39,8 +41,8 @@ const props = withDefaults(defineProps<Props>(), {
                 placeholder="Secret content goes here..."
                 aria-label="Secret content"></textarea>
 
-      <div class="bg-gray-200 dark:bg-gray-800 p-4 rounded mb-4">
-        <h2 class="text-lg font-bold mb-2">Privacy Options</h2>
+      <div class="bg-gray-100 dark:bg-gray-800 p-4 rounded mb-4">
+        <h5 class="dark:text-white font-bold m-0 mb-4">Privacy Options</h5>
         <div class="space-y-4">
           <div class="flex justify-between items-center">
             <label for="passphrase"
@@ -51,7 +53,7 @@ const props = withDefaults(defineProps<Props>(), {
                    class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                    placeholder="A word or phrase that's difficult to guess">
           </div>
-          <div class="flex justify-between items-center">
+          <div v-if="props.withRecipient" class="flex justify-between items-center">
             <label for="recipient"
                    class="w-1/3">Recipient Address:</label>
             <input type="email"
@@ -66,7 +68,15 @@ const props = withDefaults(defineProps<Props>(), {
             <select id="lifetime"
                     name="ttl"
                     class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
-              <option>7 days</option>
+              <option value="1209600.0">14 days</option>
+              <option value="604800.0" selected>7 days</option>
+              <option value="259200.0">3 days</option>
+              <option value="86400.0">1 day</option>
+              <option value="43200.0">12 hours</option>
+              <option value="14400.0">4 hours</option>
+              <option value="3600.0">1 hour</option>
+              <option value="1800.0">30 minutes</option>
+              <option value="300.0">5 minutes</option>
 
             </select>
           </div>
@@ -74,9 +84,9 @@ const props = withDefaults(defineProps<Props>(), {
       </div>
 
       <button type="submit"
-              class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mb-4"
+              class="text-xl w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mb-4"
               name="kind" value="share">
-        Create a secret link
+        Create a secret link<span v-if="withAsterisk">*</span>
       </button>
 
       <button v-if="props.showGenerate"

@@ -4,97 +4,82 @@
   {{^verification}}
   {{#is_owner}}
     {{^show_secret}}
-    <div class="alert alert-warning">
-      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 dark:bg-yellow-800 dark:text-yellow-200">
+      <button type="button" class="float-right" onclick="this.parentElement.remove()">&times;</button>
       <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.you_created_this_secret}}
     </div>
     {{/show_secret}}
     {{#show_secret}}
-    <div class="alert alert-info">
-      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 dark:bg-blue-800 dark:text-blue-200">
+      <button type="button" class="float-right" onclick="this.parentElement.remove()">&times;</button>
       {{i18n.page.viewed_own_secret}}
     </div>
     {{/show_secret}}
   {{/is_owner}}
   {{/verification}}
 
-  <div class="shared">
+  <div class="space-y-4">
     {{^show_secret}}
     {{^has_passphrase}}
     {{#verification}}
-    <span class="pretext">{{i18n.COMMON.click_to_verify}}</span><br/>
+    <p class="text-sm text-gray-600 dark:text-gray-400">{{i18n.COMMON.click_to_verify}}</p>
     {{/verification}}
     {{^verification}}
-    <span class="pretext">{{i18n.COMMON.click_to_continue}}</span><br/>
+    <p class="text-sm text-gray-600 dark:text-gray-400">{{i18n.COMMON.click_to_continue}}</p>
     {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
-    <h2 class="intro">{{i18n.page.requires_passphrase}}</h2>
+    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">{{i18n.page.requires_passphrase}}</h2>
     {{/has_passphrase}}
     {{>partial/session_messages}}
-    <div class="passphrase">
-      <form method="POST">
-        {{{add_shrimp}}}
-        <input name="continue" type="hidden" value="true" />
-        <fieldset>
-          <!--<legend>Legend</legend>-->
-          <div class="control-group">
-            {{#has_passphrase}}
-            <div class="controls">
-              <input type="password" name="passphrase" id="passField" class="input-large" value="" placeholder="{{i18n.COMMON.enter_passphrase_here}}" />
-            </div>
-            {{/has_passphrase}}
-          </div>
-        <div class="control-group">
-          <div class="controls">
-            <button type="submit" class="btn btn-large btn-block btn-custom">{{i18n.COMMON.view_secret}}</button>
-          </div>
-        </div>
-      </form>
-      {{^verification}}
-      <p class="lighter">({{i18n.COMMON.careful_only_see_once}})</p>
-      {{/verification}}
-    </div>
+    <form method="POST" class="space-y-4">
+      {{{add_shrimp}}}
+      <input name="continue" type="hidden" value="true" />
+      {{#has_passphrase}}
+      <input type="password" name="passphrase" id="passField" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="{{i18n.COMMON.enter_passphrase_here}}" />
+      {{/has_passphrase}}
+      <button type="submit" class="w-full px-4 py-2 text-white bg-brand-500 rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">{{i18n.COMMON.view_secret}}</button>
+    </form>
+    {{^verification}}
+    <p class="text-sm text-gray-500 dark:text-gray-400">({{i18n.COMMON.careful_only_see_once}})</p>
+    {{/verification}}
     {{/show_secret}}
     {{#show_secret}}
-    <div class="secret">
+    <div class="space-y-4">
       {{#verification}}
-      <span class="pretext">{{i18n.page.your_secret_message}}</span><br/>
+      <p class="text-sm text-gray-600 dark:text-gray-400">{{i18n.page.your_secret_message}}</p>
       {{/verification}}
       {{^verification}}
-      <div class="pretext">{{i18n.page.this_message_for_you}}</div>
+      <p class="text-sm text-gray-600 dark:text-gray-400">{{i18n.page.this_message_for_you}}</p>
       {{/verification}}
 
-      <textarea class="input-block-level" readonly="readonly" rows="{{display_lines}}">{{secret_value}}</textarea>
+      <textarea class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" readonly rows="{{display_lines}}">{{secret_value}}</textarea>
 
       {{^verification}}
-      <p class="lighter">({{i18n.COMMON.careful_only_see_once}})</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">({{i18n.COMMON.careful_only_see_once}})</p>
       {{/verification}}
 
       {{#truncated}}
-      <div class="alert alert-info smaller">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+      <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 text-sm dark:bg-blue-800 dark:text-blue-200">
+        <button type="button" class="float-right" onclick="this.parentElement.remove()">&times;</button>
         <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.secret_was_truncated}} {{secret_value.size.to_bytes}}.
-        {{^authenticated}}<a href="/signup">{{i18n.COMMON.signup_for_more}}</a>.{{/authenticated}}
+        {{^authenticated}}<a href="/signup" class="text-brand-500 hover:underline">{{i18n.COMMON.signup_for_more}}</a>.{{/authenticated}}
       </div>
       {{/truncated}}
-
     </div>
-    <ul class="nav">
-      <li class="alt">
-        {{^verification}}
-        {{^is_subdomain}}
-        <a class="btn btn-large btn-block" href="/" class="">{{i18n.page.reply_with_secret}}</a>
-        {{/is_subdomain}}
-        {{#is_subdomain}}
-        <a href="{{subdomain.homepage}}">Return to {{subdomain.company_domain}}</a>
-        {{/is_subdomain}}
-        {{/verification}}
-        {{#verification}}
-        <a class="btn btn-large btn-block" href="/login" class="">{{i18n.COMMON.login_to_your_account}}</a>
-        {{/verification}}
-      </li>
-    </ul>
+    <div class="mt-4">
+      {{^verification}}
+      {{^is_subdomain}}
+      <a href="/" class="block w-full px-4 py-2 text-center text-brand-500 bg-white border border-brand-500 rounded-md hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-brand-400 dark:border-brand-400 dark:hover:bg-gray-700">{{i18n.page.reply_with_secret}}</a>
+      {{/is_subdomain}}
+      {{#is_subdomain}}
+      <a href="{{subdomain.homepage}}" class="text-brand-500 hover:underline">Return to {{subdomain.company_domain}}</a>
+      {{/is_subdomain}}
+      {{/verification}}
+      {{#verification}}
+      <a href="/login" class="block w-full px-4 py-2 text-center text-brand-500 bg-white border border-brand-500 rounded-md hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-brand-400 dark:border-brand-400 dark:hover:bg-gray-700">{{i18n.COMMON.login_to_your_account}}</a>
+      {{/verification}}
+    </div>
     {{/show_secret}}
   </div>
 </div>

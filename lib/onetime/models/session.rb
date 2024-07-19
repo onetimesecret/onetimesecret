@@ -140,18 +140,14 @@ class Onetime::Session < Familia::HashKey
   def ie?()               (@agent.to_s =~ /msie/i && !opera?)           end
   def gecko?()            (@agent.to_s =~ /gecko/i && !webkit?)         end
   def webkit?()           @agent.to_s  =~ /webkit/i                     end
-  def stella?()           @agent.to_s  =~ /stella/i                     end
   def superfeedr?()       @agent.to_s  =~ /superfeedr/i                 end
   def google?()           @agent.to_s  =~ /google/i                     end
   def yahoo?()            @agent.to_s  =~ /yahoo/i                      end
   def yandex?()           @agent.to_s  =~ /yandex/i                     end
   def baidu?()            @agent.to_s  =~ /baidu/i                      end
-  def stella?()           @agent.to_s  =~ /stella/i                     end
   def searchengine?()
     @agent.to_s  =~ /\b(Baidu|Gigabot|Googlebot|libwww-perl|lwp-trivial|msnbot|SiteUptime|Slurp|WordPress|ZIBB|ZyBorg|Yahoo|bing|superfeedr)\b/i
   end
-  def clitool?()          @agent.to_s  =~ /curl|wget/i  || stella?      end
-  def human?()           !searchengine? && !superfeedr? && !clitool? && !stella? end
 
   module ClassMethods
     attr_reader :values

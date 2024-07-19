@@ -36,14 +36,6 @@ class Onetime::App
       end
     end
 
-    def generate_entropy
-      colonels do
-        Onetime::Entropy.generate 5000
-        sess.set_info_message "Added 5000 elements to entropy"
-        res.redirect '/colonel' unless req.ajax?
-      end
-    end
-
     module Views
     end
 
@@ -51,6 +43,7 @@ class Onetime::App
       self.template_path = './templates/colonel'
       self.view_namespace = Onetime::App::Colonel::Views
       self.view_path = './lib/onetime/app/colonel/views'
+
       def initialize *args
         super
         self[:subtitle] = "Colonel"
@@ -59,6 +52,7 @@ class Onetime::App
 
     module Views
       class Homepage < OT::App::Colonel::View
+
         def init *args
           self[:title] = "Home"
           if OT.conf[:stathat]
@@ -106,6 +100,7 @@ class Onetime::App
           self[:has_split_tests] = !self[:split_tests].empty?
           self[:entropy_count] = OT::Entropy.count
         end
+
         def redis_info
           Familia.redis.info.to_yaml
         end

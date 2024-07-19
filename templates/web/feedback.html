@@ -1,24 +1,37 @@
 {{>header}}
 
-  <div class="container mx-auto p-4 max-w-2xl">
+<div class="container mx-auto p-4 max-w-2xl">
+  <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-200">Give us your feedback</h2>
 
-    <h2 class="">Give us your feedback</h2>
+  {{>partial/session_messages}}
 
-    {{>partial/session_messages}}
+  <form class="mb-8" action="/feedback" method="post">
+    {{{add_shrimp}}}
+    <div class="flex">
+      <input
+        class="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+        name="msg"
+        id="feedbackInput"
+        type="text"
+        placeholder="{{feedback_text}}"
+        autocomplete="off"
+      >
+      <button
+        class="px-4 py-2 bg-brand-500 text-white rounded-r-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+        type="submit"
+      >
+        Send Feedback
+      </button>
+    </div>
+  </form>
 
-    <form class="form form-inline" action="/feedback" method="post">
-      {{{add_shrimp}}}
-      <div class="input-append">
-        <input class="span6" name="msg" id="appendedInputButton" type="text" placeholder="{{feedback_text}}" autocomplete="off">
-        <button class="btn" type="submit">Send Feedback</button>
-      </div>
-    </form>
-
-    <ul>
+  <ul class="space-y-2">
     {{#popular_feedback}}
-      <li>{{msg}} <em>{{stamp}}</em></li>
+      <li class="text-gray-700 dark:text-gray-300">
+        {{msg}} <em class="text-gray-500 dark:text-gray-400">{{stamp}}</em>
+      </li>
     {{/popular_feedback}}
-    </ul>
-  </div>
+  </ul>
+</div>
 
 {{>footer}}

@@ -136,6 +136,9 @@ module Onetime
       if OT.conf[:site].key?(:authentication)
         info "Authentication: #{OT.conf[:site][:authentication]}"
       end
+      if OT.conf[:development][:enabled]
+        info "Frontend: #{OT.conf[:development][:frontend_host]}"
+      end
       info "Loaded locales: #{@locales.keys.join(', ')}"
       info "Limits: #{OT::RateLimit.events}"
     end
