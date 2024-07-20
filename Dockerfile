@@ -135,6 +135,7 @@ RUN bundle config set --local without 'development test'
 RUN bundle install
 RUN bundle update --bundler
 
+# Invite Vite and Vue dependencies to the environment image
 COPY package.json ./
 COPY pnpm-lock.yaml  ./
 RUN pnpm install --frozen-lockfile
@@ -185,5 +186,8 @@ RUN cp --preserve --no-clobber \
 # 3. Using the CMD instruction in the Dockerfile provides a fallback
 # command, which can be useful if no specific command is set in the
 # Docker Compose configuration.
+
+# Rack app
+EXPOSE 3000
 
 CMD ["bin/entrypoint.sh"]
