@@ -120,7 +120,7 @@ jobs:
       - name: Run tryouts
         continue-on-error: false
         run: |
-          bundle exec try -v
+          bundle exec try -vf
 
       - name: Typecheck with Sorbet
         continue-on-error: true
