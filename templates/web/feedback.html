@@ -9,18 +9,18 @@
     {{{add_shrimp}}}
     <div class="flex">
       <input
-        class="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-        name="msg"
         id="feedbackInput"
         type="text"
-        placeholder="{{feedback_text}}"
+        name="msg"
+        class="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
         autocomplete="off"
+        placeholder="{{feedback_text}}"
       >
       <button
         class="px-4 py-2 bg-brand-500 text-white rounded-r-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
         type="submit"
       >
-        Send Feedback
+        {{i18n.COMMON.button_send_feedback}}
       </button>
     </div>
   </form>

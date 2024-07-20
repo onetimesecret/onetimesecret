@@ -5,7 +5,7 @@
     <div>
       <form class="form form-inline" action="/feedback" method="post">
         {{{add_shrimp}}}
-        <div class="flex items-center space-x-2 mb-4">
+        <div class="flex mb-4">
           {{^authenticated}}
             <input
               type="text"
@@ -23,13 +23,15 @@
             <input
               type="text"
               name="msg"
-              class="flex-grow p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+              class="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               autocomplete="off"
               placeholder="{{i18n.COMMON.feedback_text}}">
             <button
-              class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded">
-              {{i18n.COMMON.button_send_feedback}}
-            </button>
+        class="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-light rounded-r-md"
+        type="submit"
+      >
+        {{i18n.COMMON.button_send_feedback}}
+      </button>
           {{/authenticated}}
 
         </div>
