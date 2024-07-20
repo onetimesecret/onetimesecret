@@ -14,9 +14,9 @@ module Onetime
       attr_reader :req, :plan, :is_paid
       attr_accessor :sess, :cust, :locale, :messages, :form_fields, :pagename
 
-      def initialize req=nil, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
+      def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
-        @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
+        @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
         @messages = { :info => [], :error => [] }
         is_default_locale = OT.conf[:locales].first.to_s == locale
         is_subdomain = req.nil? ? nil : !req.env['ots.subdomain'].nil?
@@ -28,7 +28,9 @@ module Onetime
 
         # If not set, the frontend_host is the same as the base_domain and we can
         # leave the absolute path empty as-is without a host.
-        frontend_host = OT.conf[:development][:frontend_host] || ''
+        development = OT.conf.fetch(:development, {})
+        frontend_development = development[:enabled] || false
+        frontend_host = development[:frontend_host] || ''
 
         authenticated = sess && sess.authenticated? && ! cust.anonymous?
         self[:js], self[:css] = [], []
@@ -47,6 +49,7 @@ module Onetime
         self[:base_domain] = base_domain
         self[:is_subdomain] = is_subdomain
         self[:frontend_host] = frontend_host
+        self[:frontend_development] = frontend_development
         self[:no_cache] = false
         self[:display_sitenav] = true
         self[:jsvars] = []

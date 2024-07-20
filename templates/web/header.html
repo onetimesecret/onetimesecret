@@ -30,19 +30,18 @@
     {{/jsvars}}
     </script>
 
-    {{#frontend_host}}
+    {{#frontend_development}}
       <!-- if development -->
       <!-- an entry point for each page (main == homepage) -->
-      <script type="module" src="{{ . }}/dist/main.ts"></script>
-      <script type="module" src="{{ . }}/dist/@vite/client"></script>
-    {{/frontend_host}}
+      <script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
+      <script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
+    {{/frontend_development}}
 
-    {{^frontend_host}}
+    {{^frontend_development}}
       <!-- if production -->
-      <!-- write_a_helper_for_the(manifest.json) -->
       <!-- https://vitejs.dev/guide/backend-integration.html#backend-integration -->
       {{{vite_assets}}}
-    {{/frontend_host}}
+    {{/frontend_development}}
 
   </head>
 

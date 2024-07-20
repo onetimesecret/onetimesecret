@@ -4,9 +4,13 @@
   "description": "",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "type-check": "vue-tsc --noEmit",
+    "build-only": "vite build",
+    "build": "pnpm run type-check && pnpm run build-only",
     "preview": "vite preview",
-    "lint": "eslint"
+    "optimize": "vite optimize",
+    "lint": "eslint",
+    "clean": "rimraf public/web/dist"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +34,7 @@
     "eslint-plugin-vue": "^9.27.0",
     "globals": "^15.8.0",
     "postcss": "^8.4.39",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^3.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3",

@@ -1,0 +1,63 @@
+{
+  "components/PasswordStrengthChecker.vue": {
+    "file": "assets/PasswordStrengthChecker-CHfwU2uH.js",
+    "name": "PasswordStrengthChecker",
+    "src": "components/PasswordStrengthChecker.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "main.ts": {
+    "file": "assets/main-DZEsuFyw.js",
+    "name": "main",
+    "src": "main.ts",
+    "isEntry": true,
+    "dynamicImports": [
+      "views/Account.vue",
+      "views/Shared.vue",
+      "views/Private.vue",
+      "views/Feedback.vue",
+      "components/PasswordStrengthChecker.vue"
+    ],
+    "css": [
+      "assets/main-03K1pcsM.css"
+    ]
+  },
+  "views/Account.vue": {
+    "file": "assets/Account-Dm8zBVbO.js",
+    "name": "Account",
+    "src": "views/Account.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/Feedback.vue": {
+    "file": "assets/Feedback-9LOlHDn2.js",
+    "name": "Feedback",
+    "src": "views/Feedback.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/Private.vue": {
+    "file": "assets/Private-DV8KskRA.js",
+    "name": "Private",
+    "src": "views/Private.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/Shared.vue": {
+    "file": "assets/Shared-DTJCPLry.js",
+    "name": "Shared",
+    "src": "views/Shared.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  }
+}
