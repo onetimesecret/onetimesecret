@@ -18,8 +18,10 @@ class Onetime::Session < Familia::HashKey
   # be anonymous and the customer will be anonymous.
   attr_accessor :disable_auth
 
-  def initialize ipaddress=nil, useragent=nil, custid=nil
-    @ipaddress, @custid, @useragent = ipaddress, custid, useragent  # must be nil or have values!
+  def initialize ipaddress, custid, useragent=nil
+    @ipaddress = ipaddress
+    @custid = custid
+    @useragent = useragent
     @entropy = [ipaddress, custid, useragent]
     OT.ld "[Session.initialize] Initialized session #{self} with entropy: #{@entropy}"
     @sessid = "anon"
@@ -167,13 +169,13 @@ class Onetime::Session < Familia::HashKey
     end
 
     def exists? sessid
-      sess = new
+      sess = new nil, nil
       sess.sessid = sessid
       sess.exists?
     end
 
     def load sessid
-      sess = new
+      sess = new nil, nil
       sess.sessid = sessid
       sess.exists? ? (add(sess); sess) : nil  # make sure this sess is in the values set
     end

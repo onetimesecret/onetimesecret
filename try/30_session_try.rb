@@ -26,10 +26,9 @@ OT.boot!
 @useragent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_2_5) AppleWebKit/237.36 (KHTML, like Gecko) Chrome/10.0.95 Safari/237.36'
 @custid = 'tryouts'
 
-# NOTE: create and initialize have transposed arguments 😩
 @sess = OT::Session.create @ipaddress, @custid, @useragent
 
-## Sessions have a session ID when created
+## Sessions have a session ID when _create_ is called
 sessid = @sess.sessid
 [sessid.class, sessid.length > 50]
 #=> [String, true]
@@ -50,8 +49,8 @@ ipaddress = @sess.ipaddress
 #=> [String, @ipaddress]
 
 ## Sessions don't get unique IDs when instantiated
-s1 = OT::Session.new
-s2 = OT::Session.new
+s1 = OT::Session.new '255.255.255.255', :anon
+s2 = OT::Session.new '255.255.255.255', :anon
 s1.sessid.eql?(s2.sessid)
 #=> true
 

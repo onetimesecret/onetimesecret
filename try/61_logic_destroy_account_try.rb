@@ -24,7 +24,7 @@ OT.boot! :app
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
 @now = DateTime.now
-@sess = OT::Session.new
+@sess = OT::Session.new '255.255.255.255', :anon
 @sess.event_clear! :destroy_account
 @cust = OT::Customer.new @email_address
 @sess.event_clear! :send_feedback
