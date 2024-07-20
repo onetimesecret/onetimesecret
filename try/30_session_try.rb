@@ -30,12 +30,12 @@ OT.boot!
 
 ## Sessions have a session ID when _create_ is called
 sessid = @sess.sessid
-[sessid.class, sessid.length > 50]
+[sessid.class, (48..52).include?(sessid.length)]
 #=> [String, true]
 
 ## Sessions have an identifier
 identifier = @sess.identifier
-[identifier.class, identifier.length > 50]
+[identifier.class, (48..52).include?(identifier.length)]
 #=> [String, true]
 
 ## Sessions have a short identifier
@@ -128,7 +128,7 @@ sess.sessid.eql?(@sess.sessid)
 
 ## Can generate a session ID
 sid = OT::Session.generate_id
-[sid.class, sid.length > 50]
+[sid.class, (48..52).include?(sid.length)]
 #=> [String, true]
 
 ## Can update fields

@@ -5,8 +5,6 @@ class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
 
-  attr_reader :entropy
-
   # When set to true, the session reports itself as not authenticated
   # regardless of the value of the authenticated field. This allows
   # the site to disable authentication without affecting the session
@@ -88,12 +86,12 @@ class Onetime::Session < Familia::HashKey
   end
 
   def update_sessid
-    self.sessid = self.class.generate_id *entropy
+    self.sessid = self.class.generate_id
   end
 
   def replace!
     @custid ||= self[:custid]
-    newid = self.class.generate_id @entropy
+    newid = self.class.generate_id
 
     # Rename the existing key in redis if necessary
     rename name(newid) if exists?
@@ -115,7 +113,7 @@ class Onetime::Session < Familia::HashKey
   def add_shrimp
     ret = self.shrimp
     if ret.to_s.empty?
-      ret = self.shrimp = self.class.generate_id(sessid, custid, :shrimp)
+      ret = self.shrimp = self.class.generate_id
     end
     ret
   end
@@ -207,11 +205,10 @@ class Onetime::Session < Familia::HashKey
       sess
     end
 
-    def generate_id *entropy
-      entropy << OT.entropy
-      input = [OT.instance, OT.now.to_f, :session, *entropy].join(':')
+    def generate_id
+      input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
       # Not using gibbler to make sure it's always SHA512
-      Digest::SHA512.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
+      Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
     end
   end
 

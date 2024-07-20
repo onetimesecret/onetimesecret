@@ -98,7 +98,7 @@ class Onetime::App
       error_response "An unexpected error occurred :["
 
     ensure
-      @sess ||= OT::Session.new :failover
+      @sess ||= OT::Session.new :failover, :anon
       @cust ||= OT::Customer.anonymous
     end
 
