@@ -128,7 +128,7 @@ last_error = nil
 end
 @sess.event_clear! :destroy_account
 last_error
-#=> [OT::LimitExceeded, '[limit-exceeded] 9b8yjehe955u8l6kicd1jz90xqj8nz for destroy_account (6)']
+#=> [OT::LimitExceeded, '[limit-exceeded] lk2oqnz198o3p7vm0mptqvpeqanjzae for destroy_account (6)']
 
 ## Attempt to process the request without calling raise_concerns first
 password_guess = @params[:currentp]
