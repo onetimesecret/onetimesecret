@@ -21,7 +21,7 @@ class Onetime::Session < Familia::HashKey
   def initialize ipaddress=nil, useragent=nil, custid=nil
     @ipaddress, @custid, @useragent = ipaddress, custid, useragent  # must be nil or have values!
     @entropy = [ipaddress, custid, useragent]
-    # TODO: This calls Entropy every time
+    OT.ld "[Session.initialize] Initialized session #{self} with entropy: #{@entropy}"
     @sessid = "anon"
     @disable_auth = false
     super name, db: 1, ttl: 20.minutes
@@ -54,8 +54,8 @@ class Onetime::Session < Familia::HashKey
     elements = []
     elements << ipaddress || 'UNKNOWNIP'
     elements << custid || 'anon'
-    #OT.ld "sess identifier input: #{elements.inspect}"
     @external_identifier ||= elements.gibbler.base(36)
+    OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
     @external_identifier
   end
 
@@ -151,13 +151,16 @@ class Onetime::Session < Familia::HashKey
 
   module ClassMethods
     attr_reader :values
+
     def add sess
       self.values.add OT.now.to_i, sess.identifier
       self.values.remrangebyscore 0, OT.now.to_i-2.days
     end
+
     def all
       self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
     end
+
     def recent duration=30.days
       spoint, epoint = OT.now.to_i-duration, OT.now.to_i
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
@@ -168,11 +171,13 @@ class Onetime::Session < Familia::HashKey
       sess.sessid = sessid
       sess.exists?
     end
+
     def load sessid
       sess = new
       sess.sessid = sessid
       sess.exists? ? (add(sess); sess) : nil  # make sure this sess is in the values set
     end
+
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress, custid, useragent
       # force the storing of the fields to redis
@@ -182,6 +187,7 @@ class Onetime::Session < Familia::HashKey
       add sess # to the @values sorted set
       sess
     end
+
     def generate_id *entropy
       entropy << OT.entropy
       input = [OT.instance, OT.now.to_f, :session, *entropy].join(':')
