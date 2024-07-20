@@ -109,7 +109,10 @@ module Onetime
         logic = OT::Logic::CreateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
-        #sess, cust = logic.sess, logic.cust
+        if logic.autoverify
+          sess = logic.sess
+          cust = logic.cust
+        end
         res.redirect '/'
       end
     end

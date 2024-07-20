@@ -56,10 +56,11 @@ module Onetime
       def plan
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')
+        @plan
       end
 
       def limit_action(event)
-        return if plan.paid?
+        return if plan && plan.paid?
 
         sess.event_incr! event
       end
