@@ -22,10 +22,16 @@ class Onetime::Session < Familia::HashKey
     @ipaddress = ipaddress
     @custid = custid
     @useragent = useragent
-    @entropy = [ipaddress, custid, useragent]
-    OT.ld "[Session.initialize] Initialized session #{self} with entropy: #{@entropy}"
-    @sessid = "anon"
+
+    # Setting the session ID to nil ensures we can't persist this instance
+    # to redis until one is set (see `RedisHash#check_identifier!`). This is
+    # important b/c we don't want to be colliding a default session ID and risk
+    # leaking session data (e.g. across anonymous users).
+    @sessid = nil
+
     @disable_auth = false
+
+    OT.ld "[Session.initialize] Initialized session #{self}"
     super name, db: 1, ttl: 20.minutes
   end
 
@@ -49,9 +55,20 @@ class Onetime::Session < Familia::HashKey
     @sessid  # Don't call the method
   end
 
-  # Used by the limiter to estimate a unique client. We can't use
-  # the session ID b/c the request agent can choose to not send
-  # the cookie (which hash the session ID).
+  # The external identifier is used by the rate limiter to estimate a unique
+  # client. We can't use the session ID b/c the request agent can choose to
+  # not send cookies, or the user can clear their cookies (in both cases the
+  # session ID would change which would circumvent the rate limiter). The
+  # external identifier is a hash of the IP address and the customer ID
+  # which means that anonymous users from the same IP address are treated
+  # as the same client (as far as the limiter is concerned). Not ideal.
+  #
+  # To put it another way, the risk of colliding external identifiers is
+  # acceptable for the rate limiter, but not for the session data. Acceptable
+  # b/c the rate limiter is a temporary measure to prevent abuse, and the
+  # worse case scenario is that a user is rate limited when they shouldn't be.
+  # The session data is permanent and must be kept separate to avoid leaking
+  # data between users.
   def external_identifier
     elements = []
     elements << ipaddress || 'UNKNOWNIP'
