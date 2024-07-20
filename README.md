@@ -35,15 +35,23 @@ When you send people sensitive info like passwords and private links via email o
   * 1GB memory
   * 4GB disk
 
+For front-end development, you'll also need:
+* Node.js 18+
+* pnpm 7.0.0+
+
 
 ### Docker
 
-Building and running locally.
+Running from a container is the easiest way to get started. We provide a Dockerfile that you can use to build your own image, or you can use one of the pre-built images from our container repositories.
+
 
 ```bash
-  # Create or update the image tagged 'onetimesecret'
-  $ docker build -t onetimesecret .
-  ...
+  # Install from the GitHub Container Registry
+  $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
+
+  # OR, install from Docker Hub
+
+  $ docker pull onetimesecret/onetimesecret:latest
 
   # Start redis container
   $ docker run -p 6379:6379 -d redis:bookworm
@@ -61,6 +69,18 @@ Building and running locally.
       -e HOST=$HOST \
       -e SSL=$SSL \
       onetimesecret/onetimesecret:latest
+```
+
+#### Building locally
+
+```bash
+  $ docker build -t onetimesecret .
+  $ docker run -p 3000:3000 -d --name onetimesecret \
+      -e REDIS_URL=$REDIS_URL \
+      -e COLONEL=$COLONEL \
+      -e HOST=$HOST \
+      -e SSL=$SSL \
+      onetimesecret
 ```
 
 #### Optional Bundle Install
@@ -85,7 +105,7 @@ This will cause the container to run bundle install each time it starts up. Note
 Docker's buildx command is a powerful tool that allows you to create Docker images for multiple platforms simultaneously. Use buildx to build a Docker image that can run on both amd64 (standard Intel/AMD CPUs) and arm64 (ARM CPUs, like those in the Apple M1 chip) platforms.
 
 ```bash
-  $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret:latest
+  $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
 ```
 
 #### "The container name "/onetimesecret" is already in use"
@@ -198,12 +218,25 @@ NOTE: The redis-server service should start automatically after installing it. Y
   $ bundle install
 ```
 
-#### 4. Run the webapp
+#### 4. Install javascript dependencies
+
+```bash
+  $ pnpm install
+```
+
+And build the assets:
+
+```bash
+  $ pnpm run build
+```
+
+
+#### 5. Run the webapp
 
 ```bash
   $ bundle exec thin -R config.ru -p 3000 start
 
-  ---  ONETIME app v0.13  -----------------------------------
+  ---  ONETIME app  ----------------------------------------
   Config: /Users/d/Projects/opensource/onetimesecret/etc/config
   2024-04-10 22:39:15 -0700 Thin web server (v1.8.2 codename Ruby Razor)
   2024-04-10 22:39:15 -0700 Maximum connections set to 1024
@@ -212,6 +245,11 @@ NOTE: The redis-server service should start automatically after installing it. Y
 
 See the [Ruby CI workflow](.github/workflows/ruby.yaml) for another example of the steps.
 
+In a separate terminal window, run the Vite dev server:
+
+```bash
+  $ pnpm run dev
+```
 
 ## Debugging
 

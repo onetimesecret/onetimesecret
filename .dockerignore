@@ -46,7 +46,6 @@ vendor
 .DS_Store
 !pr_agent.toml
 Caddyfile
-Gemfile.lock
 fly.toml
 etc/config
 !.env.empty
