@@ -29,7 +29,7 @@ module Onetime
     end
 
     class CreateAccount < OT::Logic::Base
-      attr_reader :cust
+      attr_reader :cust, :plan, :autoverify, :customer_role
       attr_reader :planid, :custid, :password, :password2, :skill
       attr_accessor :token
       def process_params
@@ -37,7 +37,13 @@ module Onetime
         @custid = params[:u].to_s.downcase.strip
         @password = params[:p].to_s
         @password2 = params[:p2].to_s
-        @skill = params[:skill].to_s # Hidden field, shouldn't have a value
+
+        @autoverify = OT.conf&.dig(:site, :authentication, :autoverify) || false
+
+        # This is a hidden field, so it should be empty. If it has a value, it's
+        # a simple bot trying to submit the form or similar chicanery. We just
+        # quietly redirect to the home page to mimic a successful response.
+        @skill = params[:skill].to_s
       end
       def raise_concerns
         limit_action :create_account

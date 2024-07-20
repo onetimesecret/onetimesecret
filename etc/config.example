@@ -21,6 +21,12 @@
     # are circumstances where it's helpful to turn off authentication
     # temporarily.
     :signin: true
+    # By default, new accounts need to verify their email address before
+    # they can sign in. This is a security measure to prevent spamming
+    # and abuse of the system. If you're running a private instance or
+    # an instance for your team or company, you can disable this feature
+    # to make it easier for users to sign in.
+    :autoverify: false
 :redis:
   :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
 :colonels:
@@ -71,7 +77,7 @@
     #:blocked_mx_ip_addresses: []
     #
     # Name servers to use for MX et al record lookup.
-    # Default is Oracle/OpenDNS servers.
+    # Default is CloudFlare, Google, Oracle/OpenDNS servers.
     :dns:
       - 1.1.1.1
       - 8.8.4.4
