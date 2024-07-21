@@ -21,10 +21,14 @@ class Onetime::Session < Familia::HashKey
     @custid = custid
     @useragent = useragent
 
-    # Setting the session ID to nil ensures we can't persist this instance
+    # Defaulting the session ID to nil ensures we can't persist this instance
     # to redis until one is set (see `RedisHash#check_identifier!`). This is
     # important b/c we don't want to be colliding a default session ID and risk
     # leaking session data (e.g. across anonymous users).
+    #
+    # This is the distinction between .new and .create. .new is a new session
+    # that hasn't been saved to redis yet. .create is a new session that has
+    # been saved to redis.
     @sessid = nil
 
     @disable_auth = false

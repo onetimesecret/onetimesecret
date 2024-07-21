@@ -28,10 +28,24 @@ OT.boot!
 
 @sess = OT::Session.create @ipaddress, @custid, @useragent
 
+## Sessions have a NIL session ID when _new_ is called
+sess = OT::Session.new @ipaddress, @custid, @useragent
+sessid = sess.sessid
+[sessid.class, sessid]
+#=> [NilClass, nil]
+
 ## Sessions have a session ID when _create_ is called
 sessid = @sess.sessid
 [sessid.class, (48..52).include?(sessid.length)]
 #=> [String, true]
+
+## Sessions have a unique session ID when _create_ is called the same arguments
+@sess = OT::Session.create @ipaddress, @custid, @useragent
+sess = OT::Session.create @ipaddress, @custid, @useragent
+sessid1 = @sess.sessid
+sessid2 = sess.sessid
+[sessid1.eql?(sessid2), sessid1.eql?(''), sessid1.class, sessid2.class, sessid2.to_i(36).positive?, sessid2.to_i(36).positive?]
+#=> [false, false, String, String, true, true]
 
 ## Sessions have an identifier
 identifier = @sess.identifier
