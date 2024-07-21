@@ -22,10 +22,10 @@
     {{^show_secret}}
     {{^has_passphrase}}
     {{#verification}}
-    <p class="text-sm text-gray-600 dark:text-gray-400">{{i18n.COMMON.click_to_verify}}</p>
+    <p class="text-md text-gray-600 dark:text-gray-400">{{i18n.COMMON.click_to_verify}}</p>
     {{/verification}}
     {{^verification}}
-    <p class="text-sm text-gray-600 dark:text-gray-400">{{i18n.COMMON.click_to_continue}}</p>
+    <p class="text-md text-gray-600 dark:text-gray-400">{{i18n.COMMON.click_to_continue}}</p>
     {{/verification}}
     {{/has_passphrase}}
     {{#has_passphrase}}
@@ -70,7 +70,10 @@
     <div class="mt-4">
       {{^verification}}
       {{^is_subdomain}}
-      <a href="/" class="block w-full px-4 py-2 text-center text-brand-500 bg-white border border-brand-500 rounded-md hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-brand-400 dark:border-brand-400 dark:hover:bg-gray-700">{{i18n.page.reply_with_secret}}</a>
+      <a href="/" class="block w-full px-4 py-2 text-center rounded-md
+      text-brand-500 bg-white border border-brand-500
+      dark:bg-gray-800 dark:text-brand-400 dark:border-brand-400 dark:hover:bg-gray-700
+      hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ">{{i18n.page.reply_with_secret}}</a>
       {{/is_subdomain}}
       {{#is_subdomain}}
       <a href="{{subdomain.homepage}}" class="text-brand-500 hover:underline">Return to {{subdomain.company_domain}}</a>

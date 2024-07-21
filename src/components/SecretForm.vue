@@ -15,8 +15,6 @@ const props = withDefaults(defineProps<Props>(), {
   withAsterisk: false,
   showGenerate: false,
 })
-
-
 </script>
 
 <template>
@@ -53,7 +51,8 @@ const props = withDefaults(defineProps<Props>(), {
                    class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                    placeholder="A word or phrase that's difficult to guess">
           </div>
-          <div v-if="props.withRecipient" class="flex justify-between items-center">
+          <div v-if="props.withRecipient"
+               class="flex justify-between items-center">
             <label for="recipient"
                    class="w-1/3">Recipient Address:</label>
             <input type="email"
@@ -69,7 +68,8 @@ const props = withDefaults(defineProps<Props>(), {
                     name="ttl"
                     class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
               <option value="1209600.0">14 days</option>
-              <option value="604800.0" selected>7 days</option>
+              <option value="604800.0"
+                      selected>7 days</option>
               <option value="259200.0">3 days</option>
               <option value="86400.0">1 day</option>
               <option value="43200.0">12 hours</option>
@@ -84,13 +84,22 @@ const props = withDefaults(defineProps<Props>(), {
       </div>
 
       <button type="submit"
-              class="text-xl w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded mb-4"
-              name="kind" value="share">
+              class="text-xl w-full py-2 px-4 rounded mb-4
+              bg-orange-600 hover:bg-orange-700 text-white
+              font-bold2 "
+              name="kind"
+              value="share">
         Create a secret link<span v-if="withAsterisk">*</span>
       </button>
 
-      <button v-if="props.showGenerate"
-              class="w-full bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded mb-4">
+      <button type="submit"
+              v-if="props.showGenerate"
+              class="w-full py-2 px-4 rounded mb-4
+              text-base
+              bg-gray-300 hover:bg-gray-400 text-gray-800
+              dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
+              name="kind"
+              value="generate">
         Or generate a random password
       </button>
     </form>
