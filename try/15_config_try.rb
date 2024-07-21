@@ -77,6 +77,10 @@ OT.conf[:site][:authentication].key? :enabled
 OT.conf[:site][:authentication][:enabled]
 #=> true
 
+## Autoverification is disabled by default
+OT.conf[:site][:authentication][:autoverify]
+#=> false
+
 ## Option for emailer
 OT.conf[:emailer][:from]
 #=> "CHANGEME@example.com"

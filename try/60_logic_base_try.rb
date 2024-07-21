@@ -24,7 +24,7 @@ OT.boot! :app
 
 # Setup some variables for these tryouts
 @now = DateTime.now
-@from_address = OT.conf[:emailer][:from]
+@from_address = OT.conf.dig(:emailer, :from)
 @email_address = 'tryouts@onetimesecret.com'
 @sess = OT::Session.new
 @cust = OT::Customer.new @email_address
@@ -32,6 +32,23 @@ OT.boot! :app
 @params = {}
 @locale = 'en'
 @obj = OT::Logic::CreateAccount.new @sess, @cust
+
+# A generator for valid params for creating an account
+@valid_params = lambda do
+  entropy = OT.entropy[0..6]
+  email = "tryouts+60+#{entropy}@onetimesecret.com"
+  pword = 'loopersucks'
+  {
+    planid: :individual_v1,
+    u: email,
+    p: pword,
+    p2: pword,
+
+    # This is a hidden field, so it should be empty. If it has a value, it's
+    skill: '',
+  }
+end
+
 
 # TRYOUTS
 
@@ -49,9 +66,28 @@ OT.boot! :app
 
 ## Can't tell the diff between a valid email syntax and a deliverable
 ## email address. The default from address is changeme@example.com so
-# @ it's a valid email string but not an actual, real mailbox.
+## @ it's a valid email string but not an actual, real mailbox.
 ##
 ## This is b/c currently we only perform regex validation.
 ##
 @obj.valid_email?(@from_address)
 #=> true
+
+## Can create account and it's not verified by default.
+sess = OT::Session.new
+cust = OT::Customer.new
+logic = OT::Logic::CreateAccount.new sess, cust, @valid_params.call, 'en'
+logic.raise_concerns
+logic.process
+[logic.autoverify, logic.cust.verified, OT.conf[:site][:authentication][:autoverify]]
+#=> [false, 'false', false]
+
+## Can create account and have it auto-verified.
+sess = OT::Session.new
+cust = OT::Customer.new
+OT.conf[:site][:authentication][:autoverify] = true # force the config to be true
+logic = OT::Logic::CreateAccount.new sess, cust, @valid_params.call, 'en'
+logic.raise_concerns
+logic.process
+[logic.autoverify, logic.cust.verified, OT.conf[:site][:authentication][:autoverify]]
+#=> [true, 'true', true]

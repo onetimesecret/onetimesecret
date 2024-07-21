@@ -29,7 +29,7 @@ module Onetime
     end
 
     class CreateAccount < OT::Logic::Base
-      attr_reader :cust
+      attr_reader :cust, :plan, :autoverify, :customer_role
       attr_reader :planid, :custid, :password, :password2, :skill
       attr_accessor :token
       def process_params
@@ -37,7 +37,13 @@ module Onetime
         @custid = params[:u].to_s.downcase.strip
         @password = params[:p].to_s
         @password2 = params[:p2].to_s
-        @skill = params[:skill].to_s # Hidden field, shouldn't have a value
+
+        @autoverify = OT.conf&.dig(:site, :authentication, :autoverify) || false
+
+        # This is a hidden field, so it should be empty. If it has a value, it's
+        # a simple bot trying to submit the form or similar chicanery. We just
+        # quietly redirect to the home page to mimic a successful response.
+        @skill = params[:skill].to_s
       end
       def raise_concerns
         limit_action :create_account
@@ -56,38 +62,57 @@ module Onetime
         end
       end
       def process
+
+
         @plan = OT::Plan.plan(planid)
         @cust = OT::Customer.create custid
+
         cust.update_passphrase password
-        sess.update_fields :custid => cust.custid
-        cust.update_fields :planid => @plan.planid, :verified => "false"
+        sess.update_fields(custid: cust.custid)
+
+        @customer_role = if OT.conf[:colonels].member?(cust.custid)
+                           'colonel'
+                         else
+                           'customer'
+                         end
+
+        cust.update_fields(planid: @plan.planid, verified: @autoverify.to_s, role: @customer_role)
+
+        OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
+        OT::Logic.stathat_count("New Customers (OTS)", 1)
+
+        if autoverify
+          sess.set_info_message "Account created"
+        else
+          self.send_verification_email
+        end
+
+      end
+
+      private
+
+      def send_verification_email
         _, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
+
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
+
         secret.encrypt_value msg
         secret.verification = true
         secret.custid = cust.custid
         secret.save
+
         view = OT::App::Mail::Welcome.new cust, locale, secret
 
         begin
           view.deliver_email self.token
+
         rescue StandardError => ex
           errmsg = "Couldn't send the verification email. Let us know below."
           OT.le "Error sending verification email: #{ex.message}"
           sess.set_info_message errmsg
-        else
-
-          if OT.conf[:colonels].member?(cust.custid)
-            cust.role = 'colonel'
-          else
-            cust.role = 'customer'
-          end
-          OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
-
-          OT::Logic.stathat_count("New Customers (OTS)", 1)
         end
       end
-      private
+
       def form_fields
         { :planid => planid, :custid => custid }
       end

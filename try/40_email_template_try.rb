@@ -19,30 +19,27 @@ require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot!
 
-@cust = OT::Customer.new :tryouts
-@secret = OT::Secret.new :tryouts
+@email = 'tryouts+40@onetimesecret.com'
+@cust = OT::Customer.new @email
+@secret = OT::Secret.new @email
 @locale = 'es'
 
 ## Can create a view
-view = OT::Email::Welcome.new @cust, @locale, @secret
-puts view.render
-[view.verify_uri, view[:secret]]
-true
-#=> true
+view = OT::App::Mail::Welcome.new @cust, @locale, @secret
+[view.verify_uri, view[:secret].identifier]
+#=> ["/secret/#{@secret.identifier}", @secret.identifier]
 
 ## Can create a view
-view = OT::Email::SecretLink.new @cust, @locale, @secret, 'tryouts@onetime.com'
-puts view.render
-[view.verify_uri, view[:secret], view.subject]
-true
-#=> true
+view = OT::App::Mail::SecretLink.new @cust, @locale, @secret, 'tryouts+recipient@onetimesecret.com'
+[view.verify_uri, view[:secret].identifier, view[:email_address]]
+#=> ["/secret/#{@secret.identifier}", @secret.identifier, "tryouts+recipient@onetimesecret.com"]
 
 ## Understands locale in english
-view = OT::Email::SecretLink.new @cust, 'en', @secret, 'tryouts@onetime.com'
+view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, 'tryouts+recipient@onetimesecret.com'
 view.subject
-#=> 'CHANGEME@example.com sent you a secret'
+#=> "#{@email} sent you a secret"
 
 ## Understands locale in spanish
-view = OT::Email::SecretLink.new @cust, 'es', @secret, 'tryouts@onetime.com'
+view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, 'tryouts+recipient@onetimesecret.com'
 view.subject
-#=> 'CHANGEME@example.com le ha enviado un secreto'
+#=> "#{@email} le ha enviado un secreto"
