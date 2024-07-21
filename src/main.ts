@@ -62,9 +62,11 @@ const broadcastApp = createApp(GlobalBroadcast, {
 })
 broadcastApp.mount('#broadcast')
 
-const toggleApp = createApp(ThemeToggle)
-toggleApp.mount('#theme-toggle')
-
+const themeToggleElement = document.querySelector('#theme-toggle');
+if (themeToggleElement) {
+  const toggleApp = createApp(ThemeToggle);
+  toggleApp.mount('#theme-toggle');
+}
 
 function deobfuscateEmails(): void {
   document.querySelectorAll<HTMLElement>('.email').forEach(el => {
