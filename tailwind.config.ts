@@ -53,7 +53,7 @@ export default {
      */
     "./src/demo.html",
     "./templates/web/**/*.html",
-    "./src/**/*.{vue,js,ts,jsx,tsx}",
+    "./src/**/*.{vue,js,ts,jsx,tsx,mjs}",
   ],
 
   darkMode: 'class',
