@@ -5,8 +5,6 @@ class Onetime::Session < Familia::HashKey
   include Onetime::Models::RedisHash
   include Onetime::Models::RateLimited
 
-  attr_reader :entropy
-
   # When set to true, the session reports itself as not authenticated
   # regardless of the value of the authenticated field. This allows
   # the site to disable authentication without affecting the session
@@ -18,12 +16,24 @@ class Onetime::Session < Familia::HashKey
   # be anonymous and the customer will be anonymous.
   attr_accessor :disable_auth
 
-  def initialize ipaddress=nil, useragent=nil, custid=nil
-    @ipaddress, @custid, @useragent = ipaddress, custid, useragent  # must be nil or have values!
-    @entropy = [ipaddress, custid, useragent]
-    # TODO: This calls Entropy every time
-    @sessid = "anon"
+  def initialize ipaddress, custid, useragent=nil
+    @ipaddress = ipaddress
+    @custid = custid
+    @useragent = useragent
+
+    # Defaulting the session ID to nil ensures we can't persist this instance
+    # to redis until one is set (see `RedisHash#check_identifier!`). This is
+    # important b/c we don't want to be colliding a default session ID and risk
+    # leaking session data (e.g. across anonymous users).
+    #
+    # This is the distinction between .new and .create. .new is a new session
+    # that hasn't been saved to redis yet. .create is a new session that has
+    # been saved to redis.
+    @sessid = nil
+
     @disable_auth = false
+
+    OT.ld "[Session.initialize] Initialized session #{self}"
     super name, db: 1, ttl: 20.minutes
   end
 
@@ -47,15 +57,26 @@ class Onetime::Session < Familia::HashKey
     @sessid  # Don't call the method
   end
 
-  # Used by the limiter to estimate a unique client. We can't use
-  # the session ID b/c the request agent can choose to not send
-  # the cookie (which hash the session ID).
+  # The external identifier is used by the rate limiter to estimate a unique
+  # client. We can't use the session ID b/c the request agent can choose to
+  # not send cookies, or the user can clear their cookies (in both cases the
+  # session ID would change which would circumvent the rate limiter). The
+  # external identifier is a hash of the IP address and the customer ID
+  # which means that anonymous users from the same IP address are treated
+  # as the same client (as far as the limiter is concerned). Not ideal.
+  #
+  # To put it another way, the risk of colliding external identifiers is
+  # acceptable for the rate limiter, but not for the session data. Acceptable
+  # b/c the rate limiter is a temporary measure to prevent abuse, and the
+  # worse case scenario is that a user is rate limited when they shouldn't be.
+  # The session data is permanent and must be kept separate to avoid leaking
+  # data between users.
   def external_identifier
     elements = []
     elements << ipaddress || 'UNKNOWNIP'
     elements << custid || 'anon'
-    #OT.ld "sess identifier input: #{elements.inspect}"
     @external_identifier ||= elements.gibbler.base(36)
+    OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
     @external_identifier
   end
 
@@ -69,12 +90,12 @@ class Onetime::Session < Familia::HashKey
   end
 
   def update_sessid
-    self.sessid = self.class.generate_id *entropy
+    self.sessid = self.class.generate_id
   end
 
   def replace!
     @custid ||= self[:custid]
-    newid = self.class.generate_id @entropy
+    newid = self.class.generate_id
 
     # Rename the existing key in redis if necessary
     rename name(newid) if exists?
@@ -96,7 +117,7 @@ class Onetime::Session < Familia::HashKey
   def add_shrimp
     ret = self.shrimp
     if ret.to_s.empty?
-      ret = self.shrimp = self.class.generate_id(sessid, custid, :shrimp)
+      ret = self.shrimp = self.class.generate_id
     end
     ret
   end
@@ -151,28 +172,33 @@ class Onetime::Session < Familia::HashKey
 
   module ClassMethods
     attr_reader :values
+
     def add sess
       self.values.add OT.now.to_i, sess.identifier
       self.values.remrangebyscore 0, OT.now.to_i-2.days
     end
+
     def all
       self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
     end
+
     def recent duration=30.days
       spoint, epoint = OT.now.to_i-duration, OT.now.to_i
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
     def exists? sessid
-      sess = new
+      sess = new nil, nil
       sess.sessid = sessid
       sess.exists?
     end
+
     def load sessid
-      sess = new
+      sess = new nil, nil
       sess.sessid = sessid
       sess.exists? ? (add(sess); sess) : nil  # make sure this sess is in the values set
     end
+
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress, custid, useragent
       # force the storing of the fields to redis
@@ -182,11 +208,11 @@ class Onetime::Session < Familia::HashKey
       add sess # to the @values sorted set
       sess
     end
-    def generate_id *entropy
-      entropy << OT.entropy
-      input = [OT.instance, OT.now.to_f, :session, *entropy].join(':')
+
+    def generate_id
+      input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
       # Not using gibbler to make sure it's always SHA512
-      Digest::SHA512.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
+      Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
     end
   end
 
