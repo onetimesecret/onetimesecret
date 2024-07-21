@@ -358,11 +358,13 @@ module Onetime
           end
         end
       end
+
       class Error < Onetime::App::View
         def init *args
           self[:title] = "Oh cripes!"
         end
       end
+
       class About < Onetime::App::View
         def init *args
           self[:title] = "About Us"
@@ -371,6 +373,7 @@ module Onetime
           setup_plan_variables
         end
       end
+
       @translations = nil
       class Translations < Onetime::App::View
         TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml')
@@ -386,6 +389,7 @@ module Onetime
           self[:translations] = self.class.translations
         end
       end
+
       class NotFound < Onetime::App::View
         def init *args
           self[:title] = "Page not found"
@@ -393,6 +397,7 @@ module Onetime
           self[:with_analytics] = false
         end
       end
+
       class Feedback < Onetime::App::View
         def init *args
           self[:title] = "Your Feedback"
