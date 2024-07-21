@@ -1,9 +1,7 @@
 <template>
   <main>
 
-
-    <SecretForm :shrimp="shrimp" />
-
+    <SecretForm :shrimp="shrimp" :show-generate="true" :with-recipient="true" />
 
   </main>
 </template>
