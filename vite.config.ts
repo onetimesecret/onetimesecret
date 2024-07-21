@@ -3,6 +3,11 @@ import { createHtmlPlugin } from 'vite-plugin-html'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
+// Remember, for security reasons, only variables prefixed with VITE_ are
+// available here to prevent accidental exposure of sensitive
+// environment variables to the client-side code.
+const apiBaseUrl = process.env.VITE_API_BASE_URL || 'https://dev.onetimesecret.com';
+
 export default defineConfig({
   root: "./src",
 
@@ -14,6 +19,7 @@ export default defineConfig({
         }
       }
     }),
+    // Uncomment and adjust the createHtmlPlugin configuration as needed
     // TODO: Doesn't add the preload <link> to the output index.html
     //       but it does process the html b/c minify: true works.
     //       Might be handy for some use cases. Leaving for now.
@@ -52,7 +58,7 @@ export default defineConfig({
 
     manifest: true,
     rollupOptions: {
-      input: 'src/main.ts',
+      input: 'src/main.ts', // Explicitly define the entry point here
     },
 
     // https://guybedford.com/es-module-preloading-integrity
@@ -63,6 +69,19 @@ export default defineConfig({
   },
 
   server: {
-    origin: 'https://dev.onetimesecret.com',
+    origin: apiBaseUrl,
+  },
+
+  // Add this section to explicitly include dependencies for pre-bundling
+  optimizeDeps: {
+    include: [
+      // List dependencies that you want to pre-bundle here
+      // Example: 'vue', 'axios'
+      //'vue'
+    ]
+  },
+
+  define: {
+    'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
   },
 })
