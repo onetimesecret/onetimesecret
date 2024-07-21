@@ -10,28 +10,42 @@
             <input
               type="text"
               name="msg"
-              class="flex-grow p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
+              class="flex-grow px-4 py-2 border rounded-l-md
+                border-gray-300 focus:ring-gray-300 focus:border-transparent
+                dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200
+                focus:outline-none focus:ring-2"
               autocomplete="off"
-              placeholder="Login to send feedback">
+              placeholder="Sign-in to send feedback">
 
             <button
-              class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded">
+              class="px-4 py-2 font-light rounded-r-md
+                bg-gray-300
+                dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200
+                hover:bg-gray-400">
               {{i18n.COMMON.button_send_feedback}}
             </button>
           {{/authenticated}}
           {{#authenticated}}
-            <input
-              type="text"
-              name="msg"
-              class="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2  focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-              autocomplete="off"
-              placeholder="{{i18n.COMMON.feedback_text}}">
-            <button
-        class="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-light rounded-r-md"
-        type="submit"
-      >
-        {{i18n.COMMON.button_send_feedback}}
-      </button>
+            <div class="flex">
+              <input
+                type="text"
+                name="msg"
+                class="flex-grow px-4 py-2 border rounded-l-md
+                border-gray-300 focus:ring-gray-300 focus:border-transparent
+                dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200
+                focus:outline-none focus:ring-2"
+                autocomplete="off"
+                placeholder="{{i18n.COMMON.feedback_text}}">
+              <button
+                class="px-4 py-2 font-light rounded-r-md
+                bg-gray-300
+                dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200
+                hover:bg-gray-400"
+                  type="submit"
+              >
+                {{i18n.COMMON.button_send_feedback}}
+              </button>
+            </div>
           {{/authenticated}}
 
         </div>
