@@ -142,7 +142,9 @@
   {{^is_destroyed}}
   <a
     href="{{burn_uri}}"
-    class="block w-full px-4 py-2 mb-4 text-center text-white bg-yellow-400 rounded-md hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+    class="block w-full px-4 py-2 mb-4 text-center text-base
+      bg-yellow-400 rounded-md text-gray-800
+      hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
     <svg
       class="inline-block w-5 h-5 mr-2"
       fill="none"
@@ -174,9 +176,11 @@
 
   <a
     href="/"
-    class="block w-full px-4 py-2 mb-4 text-center text-brand-500 border-brand-500 bg-white rounded-md hover:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-    >Create another secret</a
-  >
+    class="block w-full px-4 py-2 mb-4 text-center rounded-md border-2 text-lg font-medium
+      bg-gray-200 text-gray-800 border-gray-300
+      dark:bg-gray-700 dark:text-gray-200 dark:border-gray-800
+      hover:bg-gray-100 hover:border-grey-200 dark:hover:bg-gray-600 dark:hover:border-gray-600"
+    >Create another secret</a>
 
   {{#show_secret}}
   <div class="text-sm text-gray-600 dark:text-gray-400">
