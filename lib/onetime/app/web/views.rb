@@ -243,9 +243,10 @@ module Onetime
           self[:with_analytics] = false
         end
       end
-      class Login < Onetime::App::View
+      class Signin < Onetime::App::View
+        self.pagename = :login # used for locale content
         def init
-          self[:title] = "Login"
+          self[:title] = "Sign In"
           self[:body_class] = :login
           self[:with_analytics] = false
           if req.params[:custid]
@@ -324,7 +325,7 @@ module Onetime
 
       class Recent < Onetime::App::Views::Dashboard
         # Use the same locale as the dashboard
-        self.pagename = :dashboard
+        self.pagename = :dashboard # used for locale content
         def init
           self[:body_class] = :recent
           super

@@ -14,7 +14,7 @@ module Onetime
       publically do # rubocop:disable Metrics/BlockLength
         if !sess.authenticated? && req.post?
           sess.set_error_message "You'll need to sign in before agreeing."
-          res.redirect '/login'
+          res.redirect '/signin'
         end
         if sess.authenticated? && req.post?
           if cust.contributor?
@@ -65,7 +65,7 @@ module Onetime
           logic = OT::Logic::ResetPassword.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          res.redirect '/login'
+          res.redirect '/signin'
         else
           logic = OT::Logic::ResetPasswordRequest.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -117,9 +117,9 @@ module Onetime
       end
     end
 
-    def login
+    def signin
       publically do
-        view = Onetime::App::Views::Login.new req, sess, cust, locale
+        view = Onetime::App::Views::Signin.new req, sess, cust, locale
         res.body = view.render
       end
     end
@@ -127,7 +127,7 @@ module Onetime
     def authenticate # rubocop:disable Metrics/AbcSize
       publically do
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params, locale
-        view = Onetime::App::Views::Login.new req, sess, cust, locale
+        view = Onetime::App::Views::Signin.new req, sess, cust, locale
         if sess.authenticated?
           sess.set_info_message "You are already logged in."
           res.redirect '/'

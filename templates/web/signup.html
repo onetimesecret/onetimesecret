@@ -1,6 +1,8 @@
 {{>header}}
 
 <div class="container mx-auto px-4 py-8 max-w-2xl">
+  {{>partial/session_messages}}
+
   <section class="mb-8">
     <h3 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Signup is free! You get:</h3>
     <ul class="list-disc pl-6 text-gray-700 dark:text-gray-300">
@@ -12,12 +14,10 @@
     </ul>
   </section>
 
-  {{>partial/session_messages}}
-
   {{>partial/signup_form_basic}}
 
   <div class="mt-6 text-center">
-    <a href="/login" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">
+    <a href="/signin" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">
       Already have an account? <strong class="font-medium text-gray-900 dark:text-gray-200">Sign In</strong>
     </a>
   </div>
