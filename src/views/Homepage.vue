@@ -1,6 +1,6 @@
 <template>
 
-    <SecretForm :shrimp="shrimp" :withRecipient="false" :withAsterisk="true" />
+    <SecretForm :shrimp="shrimp" :withRecipient="false" :withAsterisk="true" showGenerate="true" />
 
 </template>
 
@@ -8,5 +8,4 @@
 import SecretForm from '@/components/SecretForm.vue';
 
 const shrimp = window.shrimp;
-
 </script>
