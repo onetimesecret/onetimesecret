@@ -340,13 +340,15 @@ module Onetime
     end
 
     class UpdateAccount < OT::Logic::Base
-      attr_reader :modified
+      attr_reader :modified, :greenlighted
+
       def process_params
         @currentp = params[:currentp].to_s.strip.slice(0,60)
         @newp = params[:newp].to_s.strip.slice(0,60)
         @newp2 = params[:newp2].to_s.strip.slice(0,60)
         @passgen_token = params[:passgen_token].to_s.strip.slice(0,60)
       end
+
       def raise_concerns
         @modified ||= []
         limit_action :update_account
@@ -360,24 +362,27 @@ module Onetime
           raise_form_error "Token is too short" if @passgen_token.size < 6
         end
       end
+
       def process
         if cust.passphrase?(@currentp) && @newp == @newp2
+          @greenlighted = true
+          OT.info "[update-account] Password updated cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
+
           cust.update_passphrase @newp
           @modified << :password
           sess.set_info_message "Password changed"
         end
-        if ! @passgen_token.empty?
-          cust.update_passgen_token @passgen_token
-          @modified << :token
-          sess.set_info_message "Token changed"
-        end
+
         sess.set_error_message "Nothing changed" if modified.empty?
         sess.set_form_fields form_fields # for tabindex
       end
+
       def modified? guess
         modified.member? guess
       end
+
       private
+
       def form_fields
         { :tabindex => params[:tabindex] }
       end
@@ -426,6 +431,8 @@ module Onetime
           # Process the customer's request to destroy their account.
           if Onetime.debug
             OT.ld "[destroy-account] Debug logging to simulate this action #{cust.custid} #{cust.role} #{sess.ipaddress}"
+
+            # We add a message to the session to let the debug user know
             sess.set_info_message 'Account deleted'
 
           else
@@ -436,6 +443,9 @@ module Onetime
             OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{sess.ipaddress}"
           end
 
+          # We replace the session and session ID and then add a message
+          # for the user so that when the page they're directed to loads
+          # (i.e. the homepage), they'll see it and remember what they did.
           sess.replace!
           sess.set_info_message 'Account deleted'
         end

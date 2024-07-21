@@ -143,6 +143,19 @@ class Onetime::App
       end
     end
 
+    def change_account_password
+      authorized do
+        logic = OT::Logic::UpdateAccount.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        if logic.greenlighted
+          json :success => true, :custid => cust.custid
+        else
+          error_response "Password could not be changed."
+        end
+      end
+    end
+
     def destroy_account
       authorized() do
         logic = OT::Logic::DestroyAccount.new sess, cust, req.params, locale
@@ -151,7 +164,7 @@ class Onetime::App
         if logic.greenlighted
           json :success => true, :custid => cust.custid
         else
-          handle_form_error
+          error_response "Account could not be destroyed."
         end
       end
     end
