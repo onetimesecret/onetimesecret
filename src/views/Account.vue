@@ -23,7 +23,10 @@
                     id="currentPassword" v-model="currentPassword" required autocomplete="current-password"
                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
               <button type="button" @click="togglePassword('current')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <i :class="showPassword.current ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                <Icon :icon="showPassword.current ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
+                      class="h-5 w-5 text-gray-900 dark:text-gray-100"
+                      aria-hidden="true" />
+
               </button>
             </div>
 
@@ -37,7 +40,9 @@
                      class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
               <button type="button" @click="togglePassword('new')"
                       class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
-                <i :class="showPassword.new ? 'fas fa-eye-slash' : 'fas fa-eye'" aria-hidden="true"></i>
+                <Icon :icon="showPassword.new ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
+                      class="h-5 w-5 text-gray-900 dark:text-gray-100"
+                      aria-hidden="true" />
               </button>
             </div>
 
@@ -50,7 +55,9 @@
                      id="confirmPassword" v-model="confirmPassword" required autocomplete="confirm-password"
                      class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
               <button type="button" @click="togglePassword('confirm')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                <i :class="showPassword.confirm ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                <Icon :icon="showPassword.confirm ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
+                      class="h-5 w-5 text-gray-900 dark:text-gray-100"
+                      aria-hidden="true" />
               </button>
             </div>
 
@@ -139,6 +146,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
+import { Icon } from '@iconify/vue';
 
 const custid = window.custid;
 
