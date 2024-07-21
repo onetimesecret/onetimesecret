@@ -13,6 +13,9 @@
     margin: theme('spacing.5') 0;
   }
 
+  button, a.block {
+    font-family: theme('fontFamily.brand');
+  }
   h1 {
     @apply text-4xl font-bold text-gray-900 mb-3;
   }
