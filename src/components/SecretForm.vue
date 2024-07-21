@@ -53,7 +53,8 @@ const props = withDefaults(defineProps<Props>(), {
                    class="w-2/3 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
                    placeholder="A word or phrase that's difficult to guess">
           </div>
-          <div v-if="props.withRecipient" class="flex justify-between items-center">
+          <div v-if="props.withRecipient"
+               class="flex justify-between items-center">
             <label for="recipient"
                    class="w-1/3">Recipient Address:</label>
             <input type="email"
