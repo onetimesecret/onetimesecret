@@ -243,6 +243,7 @@ module Onetime
           self[:with_analytics] = false
         end
       end
+
       class Signin < Onetime::App::View
         self.pagename = :login # used for locale content
         def init

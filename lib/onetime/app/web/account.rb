@@ -180,14 +180,6 @@ module Onetime
       end
     end
 
-    def destroy_account
-      authenticated('/account') do
-        logic = OT::Logic::DestroyAccount.new sess, cust, req.params, locale
-        logic.raise_concerns
-        logic.process
-        res.redirect app_path('/account')
-      end
-    end
     def update_subdomain
       authenticated('/account') do
         logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params, locale

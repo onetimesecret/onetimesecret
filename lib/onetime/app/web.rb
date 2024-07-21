@@ -165,7 +165,7 @@ module Onetime
         view = Onetime::App::Views::Burn.new req, sess, cust, locale, logic.metadata
         logic.raise_concerns
         logic.process
-        if logic.burn_secret
+        if logic.greenlighted
           res.redirect '/private/' + logic.metadata.key
         else
           view.add_error view.i18n[:COMMON][:error_passphrase] if req.post? && !logic.correct_passphrase

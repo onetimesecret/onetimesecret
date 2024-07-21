@@ -19,7 +19,8 @@ POST   /v1/metadata/:key                        Onetime::App::API#show_metadata
 
 POST   /v1/private/:key/burn                    Onetime::App::API#burn_secret
 
+POST   /v1/account/destroy                      Onetime::App::API#destroy_account
 
 ## API v2
-GET     /v2/status                               Onetime::App::APIV2#status
-GET     /v2/version                              Onetime::App::APIV2#version
+GET    /v2/status                                Onetime::App::APIV2#status
+GET    /v2/version                               Onetime::App::APIV2#version

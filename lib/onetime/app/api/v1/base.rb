@@ -18,7 +18,6 @@ class Onetime::App
       # curl -F 'ttl=7200' -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:3000/api/v1/generate
       def authorized allow_anonymous=false
         carefully do
-          success = false
           check_locale!
           req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
           auth = req.env['otto.auth']
@@ -35,8 +34,8 @@ class Onetime::App
             end
             sess.authenticated = true unless sess.nil?
           elsif req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-            #check_session!
-            raise OT::Unauthorized, "No session support"
+            check_session!
+            #raise OT::Unauthorized, "No session support"
           elsif !allow_anonymous
             raise OT::Unauthorized, "No session or credentials"
           else
@@ -78,7 +77,7 @@ class Onetime::App
         res.body = hsh.to_json
       end
 
-      def handle_form_error ex, redirect
+      def handle_form_error ex, hsh={}
         error_response ex.message
       end
 
