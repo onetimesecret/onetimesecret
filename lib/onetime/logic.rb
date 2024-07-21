@@ -121,6 +121,7 @@ module Onetime
     class AuthenticateSession < OT::Logic::Base
       attr_reader :custid, :stay
       attr_reader :session_ttl
+
       def process_params
         @potential_custid = params[:u].to_s.downcase.strip
         @passwd = params[:p]
@@ -207,9 +208,11 @@ module Onetime
     class ViewAccount < OT::Logic::Base
       def process_params
       end
+
       def raise_concerns
         limit_action :show_account
       end
+
       def process
       end
     end
@@ -220,11 +223,13 @@ module Onetime
       def process_params
         @custid = params[:u].to_s.downcase
       end
+
       def raise_concerns
         limit_action :forgot_password_request
         raise_form_error "Not a valid email address" unless valid_email?(@custid)
         raise_form_error "No account found" unless OT::Customer.exists?(@custid)
       end
+
       def process
         cust = OT::Customer.load @custid
         secret = OT::Secret.create @custid, [@custid]
@@ -261,6 +266,7 @@ module Onetime
         @newp = params[:newp].to_s
         @newp2 = params[:newp2].to_s
       end
+
       def raise_concerns
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
@@ -269,6 +275,7 @@ module Onetime
         raise_form_error "New password is too short" unless @newp.size >= 6
         raise_form_error "New password cannot match current password" if @newp == @currentp
       end
+
       def process
         cust = secret.load_customer
         cust.update_passphrase @newp
@@ -292,6 +299,7 @@ module Onetime
           :border_color => params[:cb].to_s.strip.slice(0,30)
         }
       end
+
       def raise_concerns
         limit_action :update_branding
         if %w{www yourcompany mycompany admin ots secure secrets}.member?(@cname)
@@ -308,6 +316,7 @@ module Onetime
           end
         end
       end
+
       def process
         @subdomain ||= OT::Subdomain.create cust.custid, @cname
         if cname.empty?
@@ -322,7 +331,9 @@ module Onetime
         end
         sess.set_form_fields form_fields # for tabindex
       end
+
       private
+
       def form_fields
         properties.merge :tabindex => params[:tabindex], :cname => cname
       end
@@ -373,13 +384,14 @@ module Onetime
     end
 
     class DestroyAccount < OT::Logic::Base
-      attr_reader :raised_concerns_was_called
+      attr_reader :raised_concerns_was_called, :greenlighted
 
       def process_params
         unless params.nil?
-          @currentp = params[:currentp].to_s.strip.slice(0,60)
+          @confirmation = params[:confirmation].to_s.strip.slice(0,60)
         end
       end
+
       def raise_concerns
         @raised_concerns_was_called = true
 
@@ -388,14 +400,14 @@ module Onetime
         # attempting to brute force the password.
         #
         limit_action :destroy_account
-        if @currentp && @currentp.empty?
+        if @confirmation&.empty?
           raise_form_error "Password confirmation is required."
         else
           OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
 
-          unless cust.passphrase?(@currentp)
+          unless cust.passphrase?(@confirmation)
             sess.set_info_message "Nothing changed"
-            raise_form_error "Password does not match."
+            raise_form_error "Please check the password."
           end
         end
       end
@@ -407,36 +419,40 @@ module Onetime
           raise_form_error "We have concerns about that request."
         end
 
-        if cust.passphrase?(@currentp)
+        if cust.passphrase?(@confirmation)
+          # All criteria to destroy the account have been met.
+          @greenlighted = true
 
           # Process the customer's request to destroy their account.
-          cust.destroy_requested!
+          if Onetime.debug
+            OT.ld "[destroy-account] Debug logging to simulate this action #{cust.custid} #{cust.role} #{sess.ipaddress}"
+            sess.set_info_message 'Account deleted'
 
-          # Log the event immediately after saving the change to
-          # to minimize the chance of the event not being logged.
-          OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{sess.ipaddress}"
+          else
+            cust.destroy_requested!
+
+            # Log the event immediately after saving the change to
+            # to minimize the chance of the event not being logged.
+            OT.info "[destroy-account] Account destroyed. #{cust.custid} #{cust.role} #{sess.ipaddress}"
+          end
 
           sess.replace!
           sess.set_info_message 'Account deleted'
-
-        else
-
-          # In theory we should never get here since raise_concerns
-          # should have caught an incorrect password.
-          sess.set_error_message 'Nothing changed'
-
         end
 
         sess.set_form_fields form_fields  # for tabindex
       end
+
       def modified? guess
         modified.member? guess
       end
+
       private
       def form_fields
         { :tabindex => params[:tabindex] } unless params.nil?
       end
     end
+
     class GenerateAPIkey < OT::Logic::Base
       attr_reader :apikey
       def process_params
@@ -647,24 +663,27 @@ module Onetime
 
     class BurnSecret < OT::Logic::Base
       attr_reader :key, :passphrase, :continue
-      attr_reader :metadata, :secret, :correct_passphrase, :burn_secret
+      attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
+
       def process_params
         @key = params[:key].to_s
         @metadata = Onetime::Metadata.load key
         @passphrase = params[:passphrase].to_s
         @continue = params[:continue] == 'true'
       end
+
       def raise_concerns
         limit_action :burn_secret
         raise OT::MissingSecret if metadata.nil?
       end
+
       def process
         @secret = @metadata.load_secret
         if secret
           @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
-          @burn_secret = secret.viewable? && correct_passphrase && continue
+          @greenlighted = secret.viewable? && correct_passphrase && continue
           owner = secret.load_customer
-          if burn_secret
+          if greenlighted
             owner.incr :secrets_burned unless owner.anonymous?
             OT::Customer.global.incr :secrets_burned
             secret.burned!
@@ -675,6 +694,7 @@ module Onetime
           end
         end
       end
+
     end
 
     class ShowRecentMetadata < OT::Logic::Base
