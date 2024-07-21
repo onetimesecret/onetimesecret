@@ -1,6 +1,6 @@
 <template>
 
-    <SecretForm :shrimp="shrimp" :withRecipient="false" :withAsterisk="true" showGenerate="true" />
+    <SecretForm :shrimp="shrimp" :withRecipient="false" :withAsterisk="true" :showGenerate="true" />
 
 </template>
 

@@ -1,6 +1,6 @@
 {
   "components/PasswordStrengthChecker.vue": {
-    "file": "assets/PasswordStrengthChecker-CHYn8mam.js",
+    "file": "assets/PasswordStrengthChecker-CeAbr7Tl.js",
     "name": "PasswordStrengthChecker",
     "src": "components/PasswordStrengthChecker.vue",
     "isDynamicEntry": true,
@@ -9,7 +9,7 @@
     ]
   },
   "main.ts": {
-    "file": "assets/main-BwFpSvwz.js",
+    "file": "assets/main-COspXmMH.js",
     "name": "main",
     "src": "main.ts",
     "isEntry": true,
@@ -21,11 +21,11 @@
       "components/PasswordStrengthChecker.vue"
     ],
     "css": [
-      "assets/main-BNGhI35C.css"
+      "assets/main-C2V543z-.css"
     ]
   },
   "views/Account.vue": {
-    "file": "assets/Account-B4dFQb0S.js",
+    "file": "assets/Account-BxxFha4m.js",
     "name": "Account",
     "src": "views/Account.vue",
     "isDynamicEntry": true,
@@ -34,7 +34,7 @@
     ]
   },
   "views/Feedback.vue": {
-    "file": "assets/Feedback-BuooRXqw.js",
+    "file": "assets/Feedback-B4KGCUeK.js",
     "name": "Feedback",
     "src": "views/Feedback.vue",
     "isDynamicEntry": true,
@@ -43,7 +43,7 @@
     ]
   },
   "views/Private.vue": {
-    "file": "assets/Private-C6oVyFVR.js",
+    "file": "assets/Private-DiMtWcNG.js",
     "name": "Private",
     "src": "views/Private.vue",
     "isDynamicEntry": true,
@@ -52,7 +52,7 @@
     ]
   },
   "views/Shared.vue": {
-    "file": "assets/Shared-DwEfldYU.js",
+    "file": "assets/Shared-CQ265ark.js",
     "name": "Shared",
     "src": "views/Shared.vue",
     "isDynamicEntry": true,
