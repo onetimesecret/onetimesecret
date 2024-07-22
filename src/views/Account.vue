@@ -93,9 +93,6 @@
     <p class="mt-6 text-sm text-gray-600 dark:text-gray-400">
       Created {{ secretsCount }} secrets since {{ creationDate }}.
     </p>
-    <p class="text-sm text-gray-600 dark:text-gray-400">
-      You became a <span class="font-semibold">contributor</span> on {{ contributorDate }}.
-    </p>
 
     <!-- Delete Account Confirmation Modal -->
     <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -149,14 +146,16 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { Icon } from '@iconify/vue';
+import { Cust } from '@/types/onetime';
 
 const custid = window.custid;
+const cust: Cust = window.cust as Cust;
+const customer_since = window.customer_since;
 
 // Props or state management would typically be used here
 const accountType = ref('Agency')
-const secretsCount = ref(796)
-const creationDate = ref('Dec 03, 2011')
-const contributorDate = ref('2013-02-20')
+const secretsCount = ref(cust.secrets_created)
+const creationDate = ref(customer_since)
 
 const currentPassword = ref('');
 const newPassword = ref('');

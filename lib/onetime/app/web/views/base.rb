@@ -55,6 +55,7 @@ module Onetime
         self[:jsvars] = []
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
+        self[:jsvars] << jsvar(:cust, cust.safe_dump)
         self[:jsvars] << jsvar(:email, cust.email)
         self[:jsvars] << jsvar(:vue_component_name, self.class.vue_component_name)
         self[:jsvars] << jsvar(:locale, locale)
@@ -63,6 +64,11 @@ module Onetime
         self[:jsvars] << jsvar(:base_domain, base_domain)
         self[:jsvars] << jsvar(:is_subdomain, is_subdomain)
         self[:jsvars] << jsvar(:authenticated, authenticated)
+
+        # TODO: We can remove this after we update the Account view to use
+        # the value of cust.created to calculate the customer_since value
+        # on-the-fly and in the time zone of the user.
+        self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
         self[:display_links] = true
         self[:display_options] = true
         self[:display_recipients] = sess.authenticated?
