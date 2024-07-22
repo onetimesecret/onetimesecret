@@ -3,7 +3,8 @@
 export interface Cust {
   custid: string;
   role: string;
-  planid: string;
+  planid?: string;
+  plan: Plan;
   verified: string;
   updated: string;
   created: string;

@@ -153,7 +153,7 @@ const cust: Cust = window.cust as Cust;
 const customer_since = window.customer_since;
 
 // Props or state management would typically be used here
-const accountType = ref('Agency')
+const accountType = ref(cust.plan.options.name)
 const secretsCount = ref(cust.secrets_created)
 const creationDate = ref(customer_since)
 
