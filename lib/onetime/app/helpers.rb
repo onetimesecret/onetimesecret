@@ -11,6 +11,7 @@ class Onetime::App
     attr_reader :req, :res
     attr_reader :sess, :cust, :locale
     attr_reader :ignoreshrimp
+
     def initialize req, res
       @req, @res = req, res
     end
@@ -133,8 +134,10 @@ class Onetime::App
       unless sess.shrimp?(attempted_shrimp) || ignoreshrimp
         shrimp = (sess.shrimp || '[noshrimp]').clone
         sess.clear_shrimp!  # assume the shrimp is being tampered with
+
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp}"
+
         raise ex
       end
     end
