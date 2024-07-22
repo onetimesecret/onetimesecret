@@ -9,10 +9,11 @@ class Onetime::Customer < Familia::HashKey
   @safe_dump_fields = [
     :custid,
     :role,
-    :planid,
     :verified,
     :updated,
     :created,
+
+    {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
 
     # NOTE: The secrets_created incrementer is null until the first secret
     # is created. See CreateSecret for where the incrementer is called.
@@ -46,6 +47,10 @@ class Onetime::Customer < Familia::HashKey
 
   def regenerate_apitoken
     self.apitoken = [OT.instance, OT.now.to_f, :apikey, custid].gibbler
+  end
+
+  def load_plan
+    Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
   end
 
   def get_persistent_value sess, n

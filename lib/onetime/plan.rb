@@ -1,6 +1,8 @@
 
 module Onetime
   class Plan
+    @safe_dump_fields = [:planid, :price, :discount, :options]
+
     attr_reader :planid, :price, :discount, :options
 
     def initialize(planid, price, discount, options = {})
@@ -8,6 +10,11 @@ module Onetime
       @price = price
       @discount = discount
       @options = options
+
+      # Include dynamically here at instantiation time to avoid
+      # circular dependency issues. Plans are loaded very early
+      # ans technically aren't models in the traditional sense.
+      self.class.include Onetime::Models::SafeDump
     end
 
     def calculated_price
