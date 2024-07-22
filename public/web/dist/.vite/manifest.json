@@ -1,6 +1,30 @@
 {
+  "assets/fonts/zs/ZillaSlab-Bold.woff": {
+    "file": "assets/ZillaSlab-Bold-BSphAb8W.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Bold.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Bold.woff2": {
+    "file": "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Bold.woff2"
+  },
+  "assets/fonts/zs/ZillaSlab-Italic.woff": {
+    "file": "assets/ZillaSlab-Italic-B4KlKyMb.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Italic.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Italic.woff2": {
+    "file": "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Italic.woff2"
+  },
+  "assets/fonts/zs/ZillaSlab-Regular.woff": {
+    "file": "assets/ZillaSlab-Regular-2Acx4doP.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Regular.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Regular.woff2": {
+    "file": "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Regular.woff2"
+  },
   "components/PasswordStrengthChecker.vue": {
-    "file": "assets/PasswordStrengthChecker-Cj20yyYL.js",
+    "file": "assets/PasswordStrengthChecker-8LoecC6-.js",
     "name": "PasswordStrengthChecker",
     "src": "components/PasswordStrengthChecker.vue",
     "isDynamicEntry": true,
@@ -9,7 +33,7 @@
     ]
   },
   "main.ts": {
-    "file": "assets/main-DR8YnxO8.js",
+    "file": "assets/main-BZ_6efUG.js",
     "name": "main",
     "src": "main.ts",
     "isEntry": true,
@@ -21,11 +45,19 @@
       "components/PasswordStrengthChecker.vue"
     ],
     "css": [
-      "assets/main-Bju4KhE7.css"
+      "assets/main-bUTwSAvo.css"
+    ],
+    "assets": [
+      "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
+      "assets/ZillaSlab-Regular-2Acx4doP.woff",
+      "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
+      "assets/ZillaSlab-Bold-BSphAb8W.woff",
+      "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
+      "assets/ZillaSlab-Italic-B4KlKyMb.woff"
     ]
   },
   "views/Account.vue": {
-    "file": "assets/Account-BxArrfcb.js",
+    "file": "assets/Account-Dopx8qay.js",
     "name": "Account",
     "src": "views/Account.vue",
     "isDynamicEntry": true,
@@ -34,7 +66,7 @@
     ]
   },
   "views/Feedback.vue": {
-    "file": "assets/Feedback-Du4k0Y0l.js",
+    "file": "assets/Feedback-BEv02lEs.js",
     "name": "Feedback",
     "src": "views/Feedback.vue",
     "isDynamicEntry": true,
@@ -43,7 +75,7 @@
     ]
   },
   "views/Private.vue": {
-    "file": "assets/Private-BfsnaFQk.js",
+    "file": "assets/Private-Dm_2q16J.js",
     "name": "Private",
     "src": "views/Private.vue",
     "isDynamicEntry": true,
@@ -52,7 +84,7 @@
     ]
   },
   "views/Shared.vue": {
-    "file": "assets/Shared-QNVSS8GU.js",
+    "file": "assets/Shared-Cipql0ay.js",
     "name": "Shared",
     "src": "views/Shared.vue",
     "isDynamicEntry": true,
