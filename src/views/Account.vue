@@ -9,8 +9,10 @@
       </h2>
       <div class="pl-3"> <!-- Added padding-left to align with the title text -->
         <form @submit.prevent="updatePassword">
-          <!-- Visually Hidden Username Field -->
+
+          <!-- Visually Hidden Fields -->
           <div class="hidden">
+            <input type="hidden" name="shrimp" :value="shrimp" />
             <label for="username">Username</label>
             <input type="text" id="username" autocomplete="username" />
           </div>
@@ -19,15 +21,14 @@
             <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
 
             <div class="relative">
-
               <input :type="showPassword.current ? 'text' : 'password'"
+                    name="currentp"
                     id="currentPassword" v-model="currentPassword" required autocomplete="current-password"
                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
               <button type="button" @click="togglePassword('current')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <Icon :icon="showPassword.current ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
                       class="h-5 w-5 text-gray-400 dark:text-gray-100"
                       aria-hidden="true" />
-
               </button>
             </div>
 
@@ -37,6 +38,7 @@
 
             <div class="relative">
               <input :type="showPassword.new ? 'text' : 'password'"
+                     name="newp"
                      id="newPassword" v-model="newPassword" required autocomplete="new-password"
                      class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
               <button type="button" @click="togglePassword('new')"
@@ -53,6 +55,7 @@
 
             <div class="relative">
               <input :type="showPassword.confirm ? 'text' : 'password'"
+                     name="newp2"
                      id="confirmPassword" v-model="confirmPassword" required autocomplete="confirm-password"
                      class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
               <button type="button" @click="togglePassword('confirm')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -63,7 +66,10 @@
             </div>
 
           </div>
-          <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-2 px-4 rounded flex items-center justify-center">
+          <div v-if="updateError" class="text-red-500 mb-4">{{ updateError }}</div>
+          <div v-if="successMessage" class="text-green-500 mb-4">{{ successMessage }}</div>
+
+          <button type="submit" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded flex items-center justify-center">
             <i class="fas fa-save mr-2"></i> Update Password
           </button>
         </form>
@@ -88,7 +94,6 @@
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Deleting {{ custid }}</p>
       </div>
     </div>
-
 
     <p class="mt-6 text-sm text-gray-600 dark:text-gray-400">
       Created {{ secretsCount }} secrets since {{ creationDate }}.
@@ -151,6 +156,7 @@ import { Cust } from '@/types/onetime';
 const custid = window.custid;
 const cust: Cust = window.cust as Cust;
 const customer_since = window.customer_since;
+const shrimp = window.shrimp;
 
 // Props or state management would typically be used here
 const accountType = ref(cust.plan.options.name)
@@ -220,16 +226,20 @@ const isUpdating = ref(false);
 const updateError = ref('');
 const successMessage = ref('');
 
-const updatePassword = async () => {
+const updatePassword = async (event: Event) => {
   isUpdating.value = true;
   updateError.value = '';
+  successMessage.value = '';
 
   try {
-    // Prepare the data
-    const formData = new URLSearchParams();
-    formData.append('newp', newPassword.value);
-    formData.append('newp2', confirmPassword.value);
-    formData.append('currentp', currentPassword.value);
+    // Get the form element from the event
+    const form = event.target as HTMLFormElement;
+
+    // Create FormData object from the form
+    const formData = new FormData(form);
+
+    // Convert FormData to URLSearchParams
+    const urlSearchParams = new URLSearchParams(formData as never);
 
     // Call the API
     const response = await fetch('/api/v1/account/change-password', {
@@ -237,17 +247,25 @@ const updatePassword = async () => {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: formData.toString(),
+      body: urlSearchParams.toString(),
     });
 
     if (!response.ok) {
-      const errorResponse = await response.json(); // Parse the JSON from the response
-      const errorMessage = errorResponse.message; // Assuming the error message is stored in a property named 'message'
-      throw new Error(errorMessage || 'Failed to update password'); // Throw a new error with the message
+      if (response.headers.get("content-type")?.includes("application/json")) {
+        const errorResponse = await response.json();
+        const errorMessage = errorResponse.message;
+        throw new Error(errorMessage || 'Failed to update password');
+      } else {
+        throw new Error(`Please refresh the page and try again.`);
+      }
     }
 
-    window.location.href = '/account'
+    // Show the success message for a few seconds before redirecting
     successMessage.value = "Password updated successfully.";
+
+    setTimeout(() => {
+      window.location.href = '/account';
+    }, 3000); // Redirect after 3 seconds
 
   } catch (error: unknown) {
 
@@ -255,7 +273,7 @@ const updatePassword = async () => {
       updateError.value = error.message || 'An error occurred while updating the password';
 
     } else {
-      console.error("An unexpected error occurred", error);
+      console.error('An unexpected error occurred', error);
     }
 
   } finally {
