@@ -401,6 +401,7 @@ module Onetime
         # attempting to brute force the password.
         #
         limit_action :destroy_account
+
         if @confirmation&.empty?
           raise_form_error "Password confirmation is required."
         else
@@ -462,21 +463,25 @@ module Onetime
     end
 
     class GenerateAPIkey < OT::Logic::Base
-      attr_reader :apikey
+      attr_reader :apikey, :greenlighted
+
       def process_params
       end
+
       def raise_concerns
+        limit_action :generate_apikey
+
         if (!sess.authenticated?) || (cust.anonymous?)
           raise_form_error "Sorry, we don't support that"
         end
       end
+
       def process
-        unless cust.anonymous?
-          @apikey = cust.regenerate_apitoken
-        end
-        sess.set_form_fields form_fields
-        sess.set_info_message "Key changed"
+        @apikey = cust.regenerate_apitoken
+
+        @greenlighted = true
       end
+
       private
       def form_fields
         { :tabindex => params[:tabindex] }

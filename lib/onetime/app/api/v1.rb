@@ -143,6 +143,29 @@ class Onetime::App
       end
     end
 
+    # Endpoints for interactive UI (v1)
+    #
+    # The response objects are minimal, and are intended to be used
+    # by the client to determine the next step in the UI flow. The
+    # client should not rely on the response object for any data
+    # other than the success flag, error messages.
+    #
+    # This is an intentional limitation to keep the API simple and
+    # while we transition to a V2 API that will be more feature-rich.
+    #
+    def generate_apikey
+      authorized do
+        logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        if logic.greenlighted
+          json :success => true, :custid => cust.custid, :apikey => logic.apikey
+        else
+          error_response "API Key could not be generated."
+        end
+      end
+    end
+
     def change_account_password
       authorized do
         logic = OT::Logic::UpdateAccount.new sess, cust, req.params, locale
@@ -157,7 +180,7 @@ class Onetime::App
     end
 
     def destroy_account
-      authorized() do
+      authorized do
         logic = OT::Logic::DestroyAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process

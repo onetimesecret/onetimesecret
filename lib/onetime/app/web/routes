@@ -50,7 +50,6 @@ GET   /dashboard                                 Onetime::App#dashboard
 POST  /dashboard                                 Onetime::App#create_secret
 
 GET   /account                                   Onetime::App#account
-POST  /account/apikey                            Onetime::App#generate_apikey
 POST  /account/subdomain                         Onetime::App#update_subdomain
 
 GET   /contributor                               Onetime::App#contributors
