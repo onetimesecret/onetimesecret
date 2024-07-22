@@ -22,7 +22,7 @@ module Onetime
       calculated_price.zero?
     end
 
-    class ClassMethods
+    module ClassMethods
       attr_reader :plans
 
       def add_plan(planid, *args)
