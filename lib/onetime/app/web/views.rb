@@ -356,6 +356,8 @@ module Onetime
             end
             self[:token] = cust.passgen_token
           end
+
+          self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
         end
       end
 

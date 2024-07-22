@@ -49,6 +49,7 @@ declare global {
     custid?: string;
     cust?: Cust;
     available_plans?: Plan[];
+    apitoken?: string;
     email?: string;
     customer_since?: string;
     vue_component_name?: string;

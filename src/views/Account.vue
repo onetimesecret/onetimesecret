@@ -1,7 +1,37 @@
+
+
 <template>
   <div class="max-w-2xl mx-auto p-4">
     <h1 class="text-3xl font-bold mb-6 dark:text-white">Your Account</h1>
     <p class="text-lg mb-4 dark:text-gray-300">Account type: {{ accountType }}</p>
+
+
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4 dark:text-white flex items-center">
+        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+        <span class="flex-1">API Key</span>
+      </h2>
+      <div class="pl-3">
+        <form @submit.prevent="generateAPIKey">
+          <!-- Visually Hidden Username Field -->
+          <div class="hidden">
+            <input type="text" name="shrimp" :value="shrimp" />
+          </div>
+
+          <APIKeyCard
+            :token="apitoken"
+          />
+
+          <div v-if="apiKeyError" class="text-red-500 mb-4">{{ apiKeyError }}</div>
+          <div v-if="apiKeySuccess" class="text-green-500 mb-4">{{ apiKeySuccess }}</div>
+
+          <button type="submit" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded flex items-center justify-center">
+            <i class="fas fa-trash-alt mr-2"></i> {{ isGeneratingAPIKey ? 'Generating...' : 'Generate Key' }}
+          </button>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"></p>
+        </form>
+      </div>
+    </div>
 
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
       <h2 class="text-xl font-semibold mb-4 dark:text-white flex items-center">
@@ -66,11 +96,12 @@
             </div>
 
           </div>
-          <div v-if="updateError" class="text-red-500 mb-4">{{ updateError }}</div>
-          <div v-if="successMessage" class="text-green-500 mb-4">{{ successMessage }}</div>
+
+          <div v-if="passwordError" class="text-red-500 mb-4">{{ passwordError }}</div>
+          <div v-if="passwordSuccess" class="text-green-500 mb-4">{{ passwordSuccess }}</div>
 
           <button type="submit" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded flex items-center justify-center">
-            <i class="fas fa-save mr-2"></i> Update Password
+            <i class="fas fa-save mr-2"></i> {{ isUpdatingPassword ? 'Updating...' : 'Update Password' }}
           </button>
         </form>
       </div>
@@ -152,12 +183,14 @@
 import { ref, reactive } from 'vue';
 import { Icon } from '@iconify/vue';
 import { Cust } from '@/types/onetime';
-import { handleFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/utils/formSubmission';
+import APIKeyCard from '@/components/APIKeyCard.vue';
 
 const custid = window.custid;
 const cust: Cust = window.cust as Cust;
 const customer_since = window.customer_since;
 const shrimp = window.shrimp;
+const apitoken = ref(window.apitoken);
 
 // Props or state management would typically be used here
 const accountType = ref(cust.plan.options.name)
@@ -222,29 +255,35 @@ const submitDeleteAccount = async () => {
   }
 };
 
-// Define reactive variables
-const isUpdating = ref(false);
-const updateError = ref('');
-const successMessage = ref('');
 
-const updatePassword = async (event: Event) => {
-  await handleFormSubmission(
-    event,
-    {
-      url: '/api/v1/account/change-password',
-      successMessage: 'Password updated successfully.',
-      redirectUrl: '/account',
-      redirectDelay: 3000,
-    },
-    (value) => isUpdating.value = value,
-    (value) => updateError.value = value,
-    (value) => successMessage.value = value
-  );
-};
+const {
+  isSubmitting: isGeneratingAPIKey,
+  error: apiKeyError,
+  success: apiKeySuccess,
+  submitForm: generateAPIKey
+} = useFormSubmission({
+  url: '/api/v1/account/apikey',
+  successMessage: 'Key generated.',
+  onSuccess: async (response) => {
+    const data = await response.json()
+    // Do something with the response data
+    apitoken.value = data.apikey;
+    // You could update some state in your component here
+  }
+});
+
+const {
+  isSubmitting: isUpdatingPassword,
+  error: passwordError,
+  success: passwordSuccess,
+  submitForm: updatePassword
+} = useFormSubmission({
+  url: '/api/v1/account/change-password',
+  successMessage: 'Password updated successfully.',
+});
 
 const togglePassword = (field: 'current' | 'new' | 'confirm') => {
   showPassword[field] = !showPassword[field];
 };
-
 
 </script>
