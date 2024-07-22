@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<Props>(), {
   shrimp: null,
   withRecipient: false,
   withAsterisk: false,
-  showGenerate: false,
+  withGenerate: false,
 })
 </script>
 
