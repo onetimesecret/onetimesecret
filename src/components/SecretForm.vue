@@ -59,7 +59,6 @@ const togglePassphrase = () => {
                 :type="showPassphrase ? 'text' : 'password'"
                 id="currentPassphrase"
                 v-model="currentPassphrase"
-                required
                 autocomplete="unique-passphrase"
                 placeholder="A word or passphrase that's difficult to guess"
                 class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 pr-10"
