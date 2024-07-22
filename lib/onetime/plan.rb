@@ -1,7 +1,28 @@
 
 module Onetime
   class Plan
-    class << self
+    attr_reader :planid, :price, :discount, :options
+
+    def initialize(planid, price, discount, options = {})
+      @planid = self.class.normalize(planid)
+      @price = price
+      @discount = discount
+      @options = options
+    end
+
+    def calculated_price
+      (price * (1 - discount)).to_i
+    end
+
+    def paid?
+      !free?
+    end
+
+    def free?
+      calculated_price.zero?
+    end
+
+    class ClassMethods
       attr_reader :plans
 
       def add_plan(planid, *args)
@@ -41,26 +62,8 @@ module Onetime
                                       name: 'Non Profit'
       end
     end
-    attr_reader :planid, :price, :discount, :options
 
-    def initialize(planid, price, discount, options = {})
-      @planid = self.class.normalize(planid)
-      @price = price
-      @discount = discount
-      @options = options
-    end
 
-    def calculated_price
-      (price * (1 - discount)).to_i
-    end
-
-    def paid?
-      !free?
-    end
-
-    def free?
-      calculated_price.zero?
-    end
+    extend ClassMethods
   end
-
 end
