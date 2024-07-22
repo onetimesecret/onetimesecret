@@ -62,7 +62,9 @@ module Onetime::Models
         @safe_dump_field_map = @safe_dump_fields.each_with_object({}) do |el, map|
           if el.is_a?(Symbol)
             field_name = el
-            callable = ->(obj) { obj.send(field_name) } # gather by instance method
+            callable = lambda { |obj|
+              obj.send(field_name) # gather by instance method
+            }
           else
             field_name = el.keys.first
             callable = el.values.first
@@ -114,7 +116,15 @@ module Onetime::Models
     #
     def safe_dump
       self.class.safe_dump_field_map.transform_values do |callable|
-        callable.call(self)
+        transformed_value = callable.call(self)
+
+        # If the value is a relative ancestor of SafeDump we can
+        # call safe_dump on it, otherwise we'll just return the value as-is.
+        if transformed_value.is_a?(SafeDump)
+          transformed_value.safe_dump
+        else
+          transformed_value
+        end
       end
     end
 
