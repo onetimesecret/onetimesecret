@@ -34,7 +34,8 @@ GET   /pricing                                   Onetime::App#pricing
 GET   /signup                                    Onetime::App#signup
 GET   /signup/:planid                            Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account
-GET   /login                                     Onetime::App#signin
+
+GET   /login                                     Onetime::App#login
 GET   /signin                                    Onetime::App#signin
 POST  /signin                                    Onetime::App#authenticate
 

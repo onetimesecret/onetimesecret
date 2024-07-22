@@ -117,6 +117,12 @@ module Onetime
       end
     end
 
+    def login
+      publically do
+        res.redirect '/signin'
+      end
+    end
+
     def signin
       publically do
         view = Onetime::App::Views::Signin.new req, sess, cust, locale
