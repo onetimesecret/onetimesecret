@@ -152,6 +152,7 @@
 import { ref, reactive } from 'vue';
 import { Icon } from '@iconify/vue';
 import { Cust } from '@/types/onetime';
+import { handleFormSubmission } from '@/utils/formSubmission';
 
 const custid = window.custid;
 const cust: Cust = window.cust as Cust;
@@ -227,58 +228,18 @@ const updateError = ref('');
 const successMessage = ref('');
 
 const updatePassword = async (event: Event) => {
-  isUpdating.value = true;
-  updateError.value = '';
-  successMessage.value = '';
-
-  try {
-    // Get the form element from the event
-    const form = event.target as HTMLFormElement;
-
-    // Create FormData object from the form
-    const formData = new FormData(form);
-
-    // Convert FormData to URLSearchParams
-    const urlSearchParams = new URLSearchParams(formData as never);
-
-    // Call the API
-    const response = await fetch('/api/v1/account/change-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: urlSearchParams.toString(),
-    });
-
-    if (!response.ok) {
-      if (response.headers.get("content-type")?.includes("application/json")) {
-        const errorResponse = await response.json();
-        const errorMessage = errorResponse.message;
-        throw new Error(errorMessage || 'Failed to update password');
-      } else {
-        throw new Error(`Please refresh the page and try again.`);
-      }
-    }
-
-    // Show the success message for a few seconds before redirecting
-    successMessage.value = "Password updated successfully.";
-
-    setTimeout(() => {
-      window.location.href = '/account';
-    }, 3000); // Redirect after 3 seconds
-
-  } catch (error: unknown) {
-
-    if (error instanceof Error) {
-      updateError.value = error.message || 'An error occurred while updating the password';
-
-    } else {
-      console.error('An unexpected error occurred', error);
-    }
-
-  } finally {
-    isUpdating.value = false;
-  }
+  await handleFormSubmission(
+    event,
+    {
+      url: '/api/v1/account/change-password',
+      successMessage: 'Password updated successfully.',
+      redirectUrl: '/account',
+      redirectDelay: 3000,
+    },
+    (value) => isUpdating.value = value,
+    (value) => updateError.value = value,
+    (value) => successMessage.value = value
+  );
 };
 
 const togglePassword = (field: 'current' | 'new' | 'confirm') => {
