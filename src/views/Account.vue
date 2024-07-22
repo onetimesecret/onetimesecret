@@ -19,12 +19,13 @@
             <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
 
             <div class="relative">
+
               <input :type="showPassword.current ? 'text' : 'password'"
                     id="currentPassword" v-model="currentPassword" required autocomplete="current-password"
                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
               <button type="button" @click="togglePassword('current')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <Icon :icon="showPassword.current ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
-                      class="h-5 w-5 text-gray-900 dark:text-gray-100"
+                      class="h-5 w-5 text-gray-400 dark:text-gray-100"
                       aria-hidden="true" />
 
               </button>
@@ -41,7 +42,7 @@
               <button type="button" @click="togglePassword('new')"
                       class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
                 <Icon :icon="showPassword.new ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
-                      class="h-5 w-5 text-gray-900 dark:text-gray-100"
+                      class="h-5 w-5 text-gray-400 dark:text-gray-100"
                       aria-hidden="true" />
               </button>
             </div>
@@ -56,7 +57,7 @@
                      class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
               <button type="button" @click="togglePassword('confirm')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                 <Icon :icon="showPassword.confirm ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
-                      class="h-5 w-5 text-gray-900 dark:text-gray-100"
+                      class="h-5 w-5 text-gray-400 dark:text-gray-100"
                       aria-hidden="true" />
               </button>
             </div>
@@ -104,6 +105,7 @@
           <p class="mb-4 text-gray-700 dark:text-gray-300">Are you sure you want to permanently delete your account? This action cannot be undone.</p>
 
           <input type="hidden" name="tabindex" value="destroy" />
+
           <div class="mb-4">
             <input
               v-model="deletePassword"
@@ -214,12 +216,57 @@ const submitDeleteAccount = async () => {
   }
 };
 
+// Define reactive variables
+const isUpdating = ref(false);
+const updateError = ref('');
+const successMessage = ref('');
+
+const updatePassword = async () => {
+  isUpdating.value = true;
+  updateError.value = '';
+
+  try {
+    // Prepare the data
+    const formData = new URLSearchParams();
+    formData.append('newp', newPassword.value);
+    formData.append('newp2', confirmPassword.value);
+    formData.append('currentp', currentPassword.value);
+
+    // Call the API
+    const response = await fetch('/api/v1/account/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
+    });
+
+    if (!response.ok) {
+      const errorResponse = await response.json(); // Parse the JSON from the response
+      const errorMessage = errorResponse.message; // Assuming the error message is stored in a property named 'message'
+      throw new Error(errorMessage || 'Failed to update password'); // Throw a new error with the message
+    }
+
+    window.location.href = '/account'
+    successMessage.value = "Password updated successfully.";
+
+  } catch (error: unknown) {
+
+    if (error instanceof Error) {
+      updateError.value = error.message || 'An error occurred while updating the password';
+
+    } else {
+      console.error("An unexpected error occurred", error);
+    }
+
+  } finally {
+    isUpdating.value = false;
+  }
+};
+
 const togglePassword = (field: 'current' | 'new' | 'confirm') => {
   showPassword[field] = !showPassword[field];
 };
 
-const updatePassword = () => {
-  // Implement password update logic
-};
 
 </script>
