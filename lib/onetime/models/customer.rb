@@ -3,8 +3,29 @@
 class Onetime::Customer < Familia::HashKey
   @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 6
 
+  # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
+  # with hot reloading in dev mode will not work. You will need to restart the
+  # server to see the changes.
+  @safe_dump_fields = [
+    :custid,
+    :role,
+    :planid,
+    :verified,
+    :updated,
+    :created,
+
+    # NOTE: The secrets_created incrementer is null until the first secret
+    # is created. See CreateSecret for where the incrementer is called.
+    #
+    {:secrets_created => ->(cust) { cust.secrets_created || 0 } },
+
+    # We use the hash syntax here since `:active?` is not a valid symbol.
+    { :active => ->(cust) { cust.active? } }
+  ]
+
   include Onetime::Models::RedisHash
   include Onetime::Models::Passphrase
+  include Onetime::Models::SafeDump
 
   def initialize custid=:anon
     @custid = custid  # if we use accessor methods it will sync to redis.
