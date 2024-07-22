@@ -370,15 +370,11 @@ module Onetime
 
           cust.update_passphrase @newp
           @modified << :password
-          sess.set_info_message "Password changed"
         end
-
-        sess.set_error_message "Nothing changed" if modified.empty?
-        sess.set_form_fields form_fields # for tabindex
       end
 
-      def modified? guess
-        modified.member? guess
+      def modified? field_name
+        modified.member? field_name
       end
 
       private
@@ -411,7 +407,6 @@ module Onetime
           OT.info "[destroy-account] Passphrase check attempt cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
 
           unless cust.passphrase?(@confirmation)
-            sess.set_info_message "Nothing changed"
             raise_form_error "Please check the password."
           end
         end
@@ -430,9 +425,12 @@ module Onetime
 
           # Process the customer's request to destroy their account.
           if Onetime.debug
-            OT.ld "[destroy-account] Debug logging to simulate this action #{cust.custid} #{cust.role} #{sess.ipaddress}"
+            OT.ld "[destroy-account] Simulated account destruction #{cust.custid} #{cust.role} #{sess.ipaddress}"
 
             # We add a message to the session to let the debug user know
+            # that we made it to this point in the logic. Otherwise, they
+            # might not know if the action was successful or not since we
+            # don't actually destroy the account in debug mode.
             sess.set_info_message 'Account deleted'
 
           else

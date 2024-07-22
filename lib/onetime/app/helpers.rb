@@ -250,8 +250,10 @@ class Onetime::App
     end
 
     def secure?
-      # X-Scheme is set by nginx
-      # X-FORWARDED-PROTO is set by elastic load balancer
+      # It's crucial to only accept header values set by known, trusted
+      # sources. See Caddy config docs re: trusted_proxies.
+      # X-Scheme is set by e.g. nginx, caddy etc
+      # X-FORWARDED-PROTO is set by load balancer e.g. ELB
       (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")
     end
 
