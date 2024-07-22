@@ -40,7 +40,7 @@
  * IDEs.
  */
 
-import { Cust } from './onetime';
+import { Cust, Plan } from './onetime';
 
 declare global {
   interface Window {
@@ -48,6 +48,7 @@ declare global {
     shrimp?: string;
     custid?: string;
     cust?: Cust;
+    available_plans?: Plan[];
     email?: string;
     customer_since?: string;
     vue_component_name?: string;

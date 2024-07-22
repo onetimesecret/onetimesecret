@@ -69,6 +69,15 @@ module Onetime
         # the value of cust.created to calculate the customer_since value
         # on-the-fly and in the time zone of the user.
         self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
+
+        self[:jsvars] << jsvar(:ot_version, OT::VERSION)
+        self[:jsvars] << jsvar(:ruby_version, "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
+
+        plans = Onetime::Plan.plans.transform_values do |plan|
+          plan.safe_dump
+        end
+        self[:jsvars] << jsvar(:available_plans, plans)
+
         self[:display_links] = true
         self[:display_options] = true
         self[:display_recipients] = sess.authenticated?
