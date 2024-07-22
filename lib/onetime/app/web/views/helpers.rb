@@ -27,10 +27,8 @@ module Onetime
           value = case value.class.to_s
                   when 'String', 'Gibbler::Digest', 'Symbol'
                     "'#{Rack::Utils.escape_html(value)}'"
-                  when 'Array'
-                    value.inspect
-                  when 'Hash'
-                    "jQuery.parseJSON('#{value.to_json}')"
+                  when 'Array', 'Hash'
+                    value.to_json
                   when 'NilClass'
                     'null'
                   else
