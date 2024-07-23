@@ -13,7 +13,7 @@ module Onetime
 
       YAML.load(ERB.new(File.read(path)).result)
     rescue StandardError => e
-      OT.err e.message
+      OT.ld e.message
       msg = if path =~ /locale/
               "Error loading locale: #{path} (#{e.message})"
             else
@@ -27,12 +27,16 @@ module Onetime
     def after_load(conf = nil)
       conf ||= {}
 
+      unless conf.has_key?(:development)
+        raise OT::Problem, "No :development config found in #{path}"
+      end
+
       unless conf.has_key?(:mail)
         raise OT::Problem, "No :mail config found in #{path}"
       end
 
       mtc = conf[:mail][:truemail]
-      OT.info "Setting TrueMail config from #{path}"
+      OT.ld "Setting TrueMail config from #{path}"
       raise OT::Problem, "No TrueMail config found" unless mtc
 
       # Iterate over the keys in the mail/truemail config
@@ -47,6 +51,10 @@ module Onetime
           config.send("#{actual_key}=", value)
         end
       end
+
+      development = conf[:development]
+      development[:enabled] ||= false
+      development[:frontend_host] ||= ''  # make sure this is set
 
       sentry = conf[:services][:sentry]
       if ::Otto.env?(:dev) && sentry && sentry[:enabled]

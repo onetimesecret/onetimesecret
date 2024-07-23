@@ -1,0 +1,98 @@
+{
+  "assets/fonts/zs/ZillaSlab-Bold.woff": {
+    "file": "assets/ZillaSlab-Bold-BSphAb8W.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Bold.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Bold.woff2": {
+    "file": "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Bold.woff2"
+  },
+  "assets/fonts/zs/ZillaSlab-Italic.woff": {
+    "file": "assets/ZillaSlab-Italic-B4KlKyMb.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Italic.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Italic.woff2": {
+    "file": "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Italic.woff2"
+  },
+  "assets/fonts/zs/ZillaSlab-Regular.woff": {
+    "file": "assets/ZillaSlab-Regular-2Acx4doP.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Regular.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Regular.woff2": {
+    "file": "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Regular.woff2"
+  },
+  "components/PasswordStrengthChecker.vue": {
+    "file": "assets/PasswordStrengthChecker-BZSbAgvs.js",
+    "name": "PasswordStrengthChecker",
+    "src": "components/PasswordStrengthChecker.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "main.ts": {
+    "file": "assets/main-DpDedNNG.js",
+    "name": "main",
+    "src": "main.ts",
+    "isEntry": true,
+    "dynamicImports": [
+      "views/Account.vue",
+      "views/Shared.vue",
+      "views/Private.vue",
+      "views/Feedback.vue",
+      "components/PasswordStrengthChecker.vue"
+    ],
+    "css": [
+      "assets/main-CRxYCVHF.css"
+    ],
+    "assets": [
+      "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
+      "assets/ZillaSlab-Regular-2Acx4doP.woff",
+      "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
+      "assets/ZillaSlab-Bold-BSphAb8W.woff",
+      "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
+      "assets/ZillaSlab-Italic-B4KlKyMb.woff"
+    ]
+  },
+  "views/Account.vue": {
+    "file": "assets/Account-wkhyCQLx.js",
+    "name": "Account",
+    "src": "views/Account.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ],
+    "css": [
+      "assets/Account-ChrBM-lG.css"
+    ]
+  },
+  "views/Feedback.vue": {
+    "file": "assets/Feedback-DmQJXLBZ.js",
+    "name": "Feedback",
+    "src": "views/Feedback.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/Private.vue": {
+    "file": "assets/Private-UV7cG5L5.js",
+    "name": "Private",
+    "src": "views/Private.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/Shared.vue": {
+    "file": "assets/Shared-DUs6zI12.js",
+    "name": "Shared",
+    "src": "views/Shared.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  }
+}

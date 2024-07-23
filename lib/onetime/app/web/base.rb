@@ -70,7 +70,7 @@ module Onetime
 
       def not_found
         publically do
-          not_found_response "Not sure what you're looking for..."
+          not_found_response ""
         end
       end
 

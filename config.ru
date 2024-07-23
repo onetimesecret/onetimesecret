@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-#
+# Rackup Configuration
 #
 # Usage:
 #
@@ -10,18 +10,24 @@
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
 # This is particularly useful in development and production environments where
 # timely log output is crucial for monitoring and debugging purposes.
+#
+# Note: This setting can have a performance impact in high-throughput environments.
+#
+# See: https://www.rubydoc.info/gems/rack/Rack/CommonLogger
+#
 $stdout.sync = true
 
-ENV['RACK_ENV'] ||= 'prod'
+ENV['RACK_ENV'] ||= 'production'
 ENV['APP_ROOT'] = File.expand_path(File.join(File.dirname(__FILE__)))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT')))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
+require_relative 'lib/onetime'
+
 require_relative 'lib/middleware/header_logger_middleware'
 require_relative 'lib/middleware/handle_invalid_percent_encoding'
 require_relative 'lib/middleware/handle_invalid_utf8'
-require_relative 'lib/onetime'
 
 PUBLIC_DIR = "#{ENV.fetch('APP_ROOT', nil)}/public/web".freeze
 APP_DIR = "#{ENV.fetch('APP_ROOT', nil)}/lib/onetime/app".freeze
@@ -38,7 +44,6 @@ middlewares = if Otto.env?(:dev)
   [
     [Rack::CommonLogger],
     [Rack::Reloader, 1],
-    [Rack::HeaderLoggerMiddleware],
     [Rack::HandleInvalidUTF8],
     [Rack::HandleInvalidPercentEncoding]
   ]

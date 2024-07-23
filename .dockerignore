@@ -1,4 +1,4 @@
-# Default
+# Globs
 **/.classpath
 **/.dockerignore
 **/.env*
@@ -21,21 +21,33 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-.DS_Store
-fly.toml
-
-
-# Project specific
-!.env.empty
-!.env.example
 **/log
 **/tmp
+
+# Directories
+.bundle
+.certs/
+.dev-container
+.history
+.pnpm/
+.prompts/
+.ruby-version
+/etc/caddy
+appendonlydir
+data/
+log
 sorbet/
 spoom_data/
 spoom_*
-.bundle
-.ruby-version
-.history
-.vscode
-.dev-container
-.certs/
+tmp
+vendor
+
+# Files
+.DS_Store
+!pr_agent.toml
+Caddyfile
+fly.toml
+etc/config
+!.env.empty
+!.env.example
+*.rdb

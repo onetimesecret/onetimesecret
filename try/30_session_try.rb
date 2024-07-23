@@ -26,17 +26,30 @@ OT.boot!
 @useragent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_2_5) AppleWebKit/237.36 (KHTML, like Gecko) Chrome/10.0.95 Safari/237.36'
 @custid = 'tryouts'
 
-# NOTE: create and initialize have transposed arguments 😩
 @sess = OT::Session.create @ipaddress, @custid, @useragent
 
-## Sessions have a session ID when created
+## Sessions have a NIL session ID when _new_ is called
+sess = OT::Session.new @ipaddress, @custid, @useragent
+sessid = sess.sessid
+[sessid.class, sessid]
+#=> [NilClass, nil]
+
+## Sessions have a session ID when _create_ is called
 sessid = @sess.sessid
-[sessid.class, sessid.length > 50]
+[sessid.class, (48..52).include?(sessid.length)]
 #=> [String, true]
+
+## Sessions have a unique session ID when _create_ is called the same arguments
+@sess = OT::Session.create @ipaddress, @custid, @useragent
+sess = OT::Session.create @ipaddress, @custid, @useragent
+sessid1 = @sess.sessid
+sessid2 = sess.sessid
+[sessid1.eql?(sessid2), sessid1.eql?(''), sessid1.class, sessid2.class, sessid2.to_i(36).positive?, sessid2.to_i(36).positive?]
+#=> [false, false, String, String, true, true]
 
 ## Sessions have an identifier
 identifier = @sess.identifier
-[identifier.class, identifier.length > 50]
+[identifier.class, (48..52).include?(identifier.length)]
 #=> [String, true]
 
 ## Sessions have a short identifier
@@ -50,8 +63,8 @@ ipaddress = @sess.ipaddress
 #=> [String, @ipaddress]
 
 ## Sessions don't get unique IDs when instantiated
-s1 = OT::Session.new
-s2 = OT::Session.new
+s1 = OT::Session.new '255.255.255.255', :anon
+s2 = OT::Session.new '255.255.255.255', :anon
 s1.sessid.eql?(s2.sessid)
 #=> true
 
@@ -129,7 +142,7 @@ sess.sessid.eql?(@sess.sessid)
 
 ## Can generate a session ID
 sid = OT::Session.generate_id
-[sid.class, sid.length > 50]
+[sid.class, (48..52).include?(sid.length)]
 #=> [String, true]
 
 ## Can update fields

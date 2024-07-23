@@ -44,6 +44,16 @@ module Onetime
       end
     end
 
+    def recent
+      authenticated do
+        logic = OT::Logic::Dashboard.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        view = Onetime::App::Views::Recent.new req, sess, cust, locale
+        res.body = view.render
+      end
+    end
+
     def show_docs
       publically do
         view = Onetime::App::Views::Docs::Api.new req, sess, cust, locale
@@ -156,7 +166,7 @@ module Onetime
         view = Onetime::App::Views::Burn.new req, sess, cust, locale, logic.metadata
         logic.raise_concerns
         logic.process
-        if logic.burn_secret
+        if logic.greenlighted
           res.redirect '/private/' + logic.metadata.key
         else
           view.add_error view.i18n[:COMMON][:error_passphrase] if req.post? && !logic.correct_passphrase

@@ -69,7 +69,7 @@ repos:
       - id: rubocop
         name: rubocop
         description: Enforce the community Ruby Style Guide with RuboCop
-        entry: bundle exec rubocop --config .rubocop.yml --format json --fail-level warning
+        entry: "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning"
         types: ['ruby']
         # language: ruby
         # language_version: 3.2.4
@@ -85,3 +85,15 @@ repos:
           - "--default=[UNTRACKED]"
           - "--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}"
           - "--template=[#{}]"
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0  # Use the latest version
+    hooks:
+      - id: eslint
+        files: \.(js|ts|vue)$
+        types: [file]
+        additional_dependencies:
+          - eslint
+          - eslint-plugin-vue
+          - "@typescript-eslint/eslint-plugin"
+          - "@typescript-eslint/parser"

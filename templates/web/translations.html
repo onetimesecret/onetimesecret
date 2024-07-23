@@ -1,0 +1,84 @@
+{{>partial/header}}
+
+<div class="container mx-auto px-4 max-w-2xl">
+  <article class="prose dark:prose-invert lg:prose-lg xl:prose-xl">
+    <h2 class="text-3xl font-bold mb-4 text-brand-500 dark:text-brand-400">Help us translate!</h2>
+
+    <p class="mb-4">
+      Since Onetime Secret launched in 2012, one of the most requested features has been to support
+      languages other than english. Many visitors -- in fact, most -- live in countries where
+      English is not the first or even second language.
+    </p>
+
+    <p class="mb-4">
+      One of the major goals of Onetime Secret is to simplify secure communication so that it can
+      help as many people as possible. Translating the site plays a big role in that. Since 2015 our
+      contributors have added over 20, plus corrections and other updates! But we still have a ways
+      to go.
+      <strong class="text-brand-500 dark:text-brand-400">
+        I need your help to add support for more languages.
+      </strong>
+      More details at the bottom of this page.
+    </p>
+
+    <hr class="my-8" />
+
+    <h3 class="text-2xl font-semibold mb-4">Translations</h3>
+    <p class="mb-4">
+      The following people have donated their time to help expand the reach of Onetime Secret:
+    </p>
+
+    {{#translations}}
+    <h4 class="text-xl font-semibold mb-2">
+      {{name}} (<a
+        href="/?locale={{code}}"
+        class="text-brand-500 dark:text-brand-400 hover:underline"
+        >switch</a
+      >)
+    </h4>
+    <ul class="list-disc pl-5 mb-4">
+      {{#translators}}
+      <li>
+        <a href="{{url}}" class="text-brand-500 dark:text-brand-400 hover:underline">{{name}}</a>
+        ({{date}})
+      </li>
+      {{/translators}}
+    </ul>
+    {{/translations}}
+
+    <hr class="my-8" />
+
+    <h4 class="text-xl font-semibold mb-4">Currently Supported Languages</h4>
+
+    <ul class="list-disc pl-5 mb-4">
+      {{#supported_locales}}
+      <li>
+        <a href="/?locale={{to_s}}" class="text-brand-500 dark:text-brand-400 hover:underline"
+          >{{to_s}}</a
+        >
+      </li>
+      {{/supported_locales}}
+    </ul>
+
+    <p class="mb-4">
+      If you have a Github account, you can use the links above to create a new language file. If
+      not, you can copy the text from an existing lanaguage -- like
+      <a
+        href="https://github.com/onetimesecret/onetimesecret/blob/develop/etc/locale/en"
+        class="text-brand-500 dark:text-brand-400 hover:underline"
+        >english</a
+      >
+      -- and send a text file via email to
+      <span class="email" data-subject="Translations">contribute &#65;&#84; onetimesecret D0T com</span>.
+    </p>
+
+    <p class="mb-4">
+      There is a feedback form at the bottom of the page if you have any questions. If you're not logged in, be sure to
+      include an email address so I can reply.
+    </p>
+
+    <p class="mb-4">Delano</p>
+  </article>
+</div>
+
+{{>partial/footer}}

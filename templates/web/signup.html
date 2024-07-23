@@ -1,0 +1,26 @@
+{{>partial/header}}
+
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+  {{>partial/session_messages}}
+
+  <section class="mb-8">
+    <h3 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Signup is free! You get:</h3>
+    <ul class="list-disc pl-6 text-gray-700 dark:text-gray-300">
+      <li>secrets that live up to <span class="font-bold text-brand-600 dark:text-brand-400">{{default_plan.ttl}} days</span>.</li>
+      <li>to send secret links via <span class="font-bold text-brand-600 dark:text-brand-400">email</span>.</li>
+      {{#default_plan.api}}
+        <li>access to the <a href="/docs/api" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">API</a>.</li>
+      {{/default_plan.api}}
+    </ul>
+  </section>
+
+  {{>partial/signup_form_basic}}
+
+  <div class="mt-6 text-center">
+    <a href="/signin" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">
+      Already have an account? <strong class="font-medium text-gray-900 dark:text-gray-200">Sign In</strong>
+    </a>
+  </div>
+</div>
+
+{{>partial/footer}}

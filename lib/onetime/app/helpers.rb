@@ -11,6 +11,7 @@ class Onetime::App
     attr_reader :req, :res
     attr_reader :sess, :cust, :locale
     attr_reader :ignoreshrimp
+
     def initialize req, res
       @req, @res = req, res
     end
@@ -98,7 +99,7 @@ class Onetime::App
       error_response "An unexpected error occurred :["
 
     ensure
-      @sess ||= OT::Session.new :failover
+      @sess ||= OT::Session.new :failover, :anon
       @cust ||= OT::Customer.anonymous
     end
 
@@ -127,6 +128,7 @@ class Onetime::App
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete?
       attempted_shrimp = req.params[:shrimp]
+
       shrimp = (sess.shrimp || '[noshrimp]').clone
 
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
@@ -253,8 +255,10 @@ class Onetime::App
     end
 
     def secure?
-      # X-Scheme is set by nginx
-      # X-FORWARDED-PROTO is set by elastic load balancer
+      # It's crucial to only accept header values set by known, trusted
+      # sources. See Caddy config docs re: trusted_proxies.
+      # X-Scheme is set by e.g. nginx, caddy etc
+      # X-FORWARDED-PROTO is set by load balancer e.g. ELB
       (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")
     end
 

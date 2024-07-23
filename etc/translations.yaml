@@ -1,0 +1,136 @@
+---
+- :name: Hungarian
+  :code: hu
+  :translators:
+  - :name: halmosigabor
+    :url: https://github.com/halmosigabor
+    :date: Mar, 2023
+- :name: Hebrew
+  :code: he
+  :translators:
+  - :name: Erez K
+    :url: https://twitter.com/kaerez
+    :date: Mar, 2022
+- :name: Danish
+  :code: da_DK
+  :translators:
+  - :name: PurGe
+    :url:
+    :date: Dec, 2018
+- :name: Swedish
+  :code: sv_SE
+  :translators:
+  - :name: Wollyhat
+    :url: https://github.com/Wollyhat
+    :date: May, 2021
+- :name: Slovenian
+  :code: sl_SI
+  :translators:
+  - :name: Aleš M
+    :url:
+    :date: Jan, 2021
+- :name: Greek
+  :code: el_GR
+  :translators:
+  - :name: Stef Ki
+    :url:
+    :date: Sept, 2020
+- :name: Arabic
+  :code: ar
+  :translators:
+  - :name: Dergham Alaa
+    :url: https://www.facebook.com/DerghamAlaa1
+    :date: Dec 2017, 2020
+- :name: French
+  :code: fr
+  :translators:
+  - :name: NetAgence
+    :url: https://github.com/netagence
+    :date: June, 2018
+  - :name: Laurent NAUDIER
+    :url: https://github.com/fr-laurentn
+    :date: June, 2018
+  - :name: Olha Horbachuk
+    :url: https://github.com/KittPaws13
+    :date: March, 2017
+- :name: Chinese
+  :code: cn
+  :translators:
+  - :name: Rayi_Yosoro
+    :url: https://github.com/inewhero
+    :date: February, 2018
+- :name: Italian
+  :code: it_IT
+  :translators:
+  - :name: Giuseppe Pignataro
+    :url: https://github.com/fastbyte01
+    :date: November, 2017
+- :name: Portuguese
+  :code: pt_BR
+  :translators:
+  - :name: ramirovjr
+    :url: https://github.com/ramirovjr
+    :date: April, 2017
+- :name: Turkish
+  :code: tr
+  :translators:
+  - :name: webninjasi
+    :url: https://github.com/webninjasi
+    :date: April, 2017
+- :name: Polish
+  :code: pl
+  :translators:
+  - :name: Michał Paulus
+    :url: https://www.techinet.pl
+    :date: April, 2017
+- :name: Catalan
+  :code: ca_ES
+  :translators:
+  - :name: Ningú No res
+    :url:
+    :date: April, 2017
+- :name: Bulgarian
+  :code: bg
+  :translators:
+  - :name: Byalk
+    :url: https://github.com/Byalk
+    :date: March, 2017
+- :name: Czech
+  :code: cs
+  :translators:
+  - :name: kibeb
+    :url: https://github.com/kibeb
+    :date: February, 2017
+- :name: Russian
+  :code: ru
+  :translators:
+  - :name: Ivan Klochko
+    :url: https://i1group.ru
+    :date: September, 2020
+  - :name: DotTheI
+    :url: https://github.com/DotTheI
+    :date: September, 2016
+- :name: Deutsch
+  :code: de
+  :translators:
+  - :name: blobgo
+    :url: ''
+    :date: June, 2015
+- :name: Español
+  :code: es
+  :translators:
+  - :name: Freedom Apps
+    :url: https://play.google.com/store/apps/details?id=com.goldeagle.secretemail
+    :date: April, 2015
+- :name: Nederlands
+  :code: nl
+  :translators:
+  - :name: Bas Berkhout
+    :url: http://under-ctrl.nl
+    :date: October, 2015
+- :name: Vietnamese
+  :code: vi
+  :translators:
+  - :name: Duc Nguyen
+    :url: https://fb.me/socthaovat
+    :date: Nov, 2022

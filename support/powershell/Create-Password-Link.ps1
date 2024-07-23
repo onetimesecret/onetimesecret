@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-This demo script simulates generating a strong password and creates a one-time secret using the OneTimeSecret service. (Passwords are actually randomly selected from a pre-defined list.)
+This demo script simulates generating a strong password and creates a Onetime secret using the OneTimeSecret service. (Passwords are actually randomly selected from a pre-defined list.)
 
 NOTE: Not meant for production use.
 
@@ -14,7 +14,7 @@ The script performs the following actions:
 4. Defines a function that selects a random password from a pre-defined list. This mimics the output expected from System.Web.Security.Membership.GeneratePassword() (which is not available on macos Powershell).
 5. Sets the authorization token for OneTimeSecret.
 6. Generates a strong password.
-7. Creates a new one-time secret with the generated password.
+7. Creates a new Onetime secret with the generated password.
 
 .NOTES
 Prerequisites:

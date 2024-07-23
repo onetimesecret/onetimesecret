@@ -5,36 +5,79 @@ module Onetime
   class App
     class View < Mustache
       include Onetime::App::Views::Helpers
+
       self.template_path = './templates/web'
+      self.template_extension = 'html'
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
+
       attr_reader :req, :plan, :is_paid
-      attr_accessor :sess, :cust, :locale, :messages, :form_fields
-      def initialize req=nil, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
+      attr_accessor :sess, :cust, :locale, :messages, :form_fields, :pagename
+
+      def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
-        @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en'
+        @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
         @messages = { :info => [], :error => [] }
+        is_default_locale = OT.conf[:locales].first.to_s == locale
+        is_subdomain = req.nil? ? nil : !req.env['ots.subdomain'].nil?
+
+        # TODO: Make better use of fetch to avoid nil checks. Esp important
+        # across release versions where the config may change.
+        site = OT.conf.fetch(:site, {})
+        base_domain = site[:domain]
+
+        # If not set, the frontend_host is the same as the base_domain and we can
+        # leave the absolute path empty as-is without a host.
+        development = OT.conf.fetch(:development, {})
+        frontend_development = development[:enabled] || false
+        frontend_host = development[:frontend_host] || ''
+
+        authenticated = sess && sess.authenticated? && ! cust.anonymous?
         self[:js], self[:css] = [], []
-        self[:is_default_locale] = OT.conf[:locales].first.to_s == locale
+        self[:is_default_locale] = is_default_locale
         self[:supported_locales] = OT.conf[:locales]
-        self[:authentication] = OT.conf[:site][:authentication]
+        self[:authentication] = site[:authentication]
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
         self[:ot_version] = OT::VERSION.inspect
         self[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
-        self[:authenticated] = sess.authenticated? if sess
+        self[:authenticated] = authenticated
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:colonel] = cust.role?(:colonel) if cust
         self[:feedback_text] = i18n[:COMMON][:feedback_text]
-        self[:base_domain] = OT.conf[:site][:domain]
-        self[:is_subdomain] = ! req.env['ots.subdomain'].nil?
+        self[:base_domain] = base_domain
+        self[:is_subdomain] = is_subdomain
+        self[:frontend_host] = frontend_host
+        self[:frontend_development] = frontend_development
         self[:no_cache] = false
         self[:display_sitenav] = true
         self[:jsvars] = []
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
+        self[:jsvars] << jsvar(:cust, cust.safe_dump)
         self[:jsvars] << jsvar(:email, cust.email)
+        self[:jsvars] << jsvar(:vue_component_name, self.class.vue_component_name)
+        self[:jsvars] << jsvar(:locale, locale)
+        self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
+        self[:jsvars] << jsvar(:frontend_host, frontend_host)
+        self[:jsvars] << jsvar(:base_domain, base_domain)
+        self[:jsvars] << jsvar(:is_subdomain, is_subdomain)
+        self[:jsvars] << jsvar(:authenticated, authenticated)
+
+        # TODO: We can remove this after we update the Account view to use
+        # the value of cust.created to calculate the customer_since value
+        # on-the-fly and in the time zone of the user.
+        self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
+
+        self[:jsvars] << jsvar(:ot_version, OT::VERSION)
+        self[:jsvars] << jsvar(:ruby_version, "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
+
+        plans = Onetime::Plan.plans.transform_values do |plan|
+          plan.safe_dump
+        end
+        self[:jsvars] << jsvar(:available_plans, plans)
+
         self[:display_links] = true
         self[:display_options] = true
         self[:display_recipients] = sess.authenticated?
@@ -57,7 +100,7 @@ module Onetime
           self[:display_otslogo] = self[:banner_url].to_s.empty?
           self[:with_broadcast] = false
         else
-          self[:subtitle] = "One Time"
+          self[:subtitle] = "Onetime"
           self[:display_faq] = true
           self[:display_otslogo] = true
           self[:actionable_visitor] = true
@@ -81,15 +124,17 @@ module Onetime
         @is_paid = plan.paid?
         init *args if respond_to? :init
       end
+
       def i18n
-        pagename = self.class.name.split('::').last.downcase.to_sym
+        self.class.pagename ||= self.class.name.split('::').last.downcase.to_sym
         @i18n ||= {
           locale: self.locale,
           default: OT.conf[:locales].first.to_s,
-          page: OT.locales[self.locale][:web][pagename],
+          page: OT.locales[self.locale][:web][self.class.pagename],
           COMMON: OT.locales[self.locale][:web][:COMMON]
         }
       end
+
       def setup_plan_variables
         Onetime::Plan.plans.each_pair do |planid,plan|
           self[plan.planid] = {
@@ -118,9 +163,11 @@ module Onetime
           @plans[plan_idx] = cust.planid unless plan_idx.nil?
         end
         self[:default_plan] = self[@plans.first.to_s] || self['individual_v1']
+
         OT.ld self[:default_plan].to_json
         self[:planid] = self[:default_plan][:planid]
       end
+
       def get_split_test_values testname
         varname = "#{testname}_group"
         if OT::SplitTest.test_running? testname
@@ -135,15 +182,31 @@ module Onetime
           @plans = yield # TODO: not tested
         end
       end
+
       def add_message msg
         messages[:info] << msg unless msg.to_s.empty?
       end
+
       def add_error msg
         messages[:error] << msg unless msg.to_s.empty?
       end
+
       def add_form_fields hsh
         (self.form_fields ||= {}).merge! hsh unless hsh.nil?
       end
+
+      class << self
+        attr_accessor :pagename
+        # Each page has exactly one #app element and each view can have its
+        # own Vue component. This method allows setting the component name
+        # that is created and mounted in main.ts. If not set, the component
+        # name is derived from the view class name.
+        attr_writer :vue_component_name
+        def vue_component_name
+          @vue_component_name || self.name.split('::').last
+        end
+      end
+
     end
   end
 end

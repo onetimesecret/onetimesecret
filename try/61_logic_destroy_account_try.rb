@@ -24,12 +24,12 @@ OT.boot! :app
 # Setup some variables for these tryouts
 @email_address = 'changeme@example.com'
 @now = DateTime.now
-@sess = OT::Session.new
+@sess = OT::Session.new '255.255.255.255', :anon
 @sess.event_clear! :destroy_account
 @cust = OT::Customer.new @email_address
 @sess.event_clear! :send_feedback
 @params = {
-  currentp: 'pa55w0rd'
+  confirmation: 'pa55w0rd'
 }
 
 def generate_random_email
@@ -45,13 +45,13 @@ end
 
 ## Can create DestroyAccount instance
 obj = OT::Logic::DestroyAccount.new @sess, @cust, @params
-obj.params[:currentp]
-#=> @params[:currentp]
+obj.params[:confirmation]
+#=> @params[:confirmation]
 
 ## Processing params removes leading and trailing whitespace
 ## from current password, but not in the middle.
 password_guess = '   padded p455   '
-obj = OT::Logic::DestroyAccount.new @sess, @cust, currentp: password_guess
+obj = OT::Logic::DestroyAccount.new @sess, @cust, confirmation: password_guess
 obj.process_params
 #=> 'padded p455'
 
@@ -64,11 +64,11 @@ rescue => e
   puts e.backtrace
   [e.class, e.message]
 end
-#=> [Onetime::FormError, 'Password does not match.']
+#=> [Onetime::FormError, 'Please check the password.']
 
 
 ## Raises an error if the current password is nil
-obj = OT::Logic::DestroyAccount.new @sess, @cust, currentp: nil
+obj = OT::Logic::DestroyAccount.new @sess, @cust, confirmation: nil
 begin
   obj.raise_concerns
 rescue => e
@@ -78,7 +78,7 @@ end
 
 
 ## Raises an error if the current password is empty
-obj = OT::Logic::DestroyAccount.new @sess, @cust, currentp: ''
+obj = OT::Logic::DestroyAccount.new @sess, @cust, confirmation: ''
 begin
   obj.raise_concerns
 rescue => e
@@ -97,12 +97,12 @@ begin
 rescue => e
   [e.class, e.message]
 end
-#=> [Onetime::FormError, 'Password does not match.']
+#=> [Onetime::FormError, 'Please check the password.']
 
 
 ## No errors are raised as long as the password is correct
 cust = OT::Customer.new generate_random_email
-password_guess = @params[:currentp]
+password_guess = @params[:confirmation]
 obj = OT::Logic::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess
 obj.raise_concerns
@@ -111,7 +111,7 @@ obj.raise_concerns
 
 ## Too many attempts is throttled by rate limiting
 cust = OT::Customer.new generate_random_email
-password_guess = @params[:currentp]
+password_guess = @params[:confirmation]
 obj = OT::Logic::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase password_guess
 
@@ -128,10 +128,10 @@ last_error = nil
 end
 @sess.event_clear! :destroy_account
 last_error
-#=> [OT::LimitExceeded, '[limit-exceeded] 9b8yjehe955u8l6kicd1jz90xqj8nz for destroy_account (6)']
+#=> [OT::LimitExceeded, '[limit-exceeded] lk2oqnz198o3p7vm0mptqvpeqanjzae for destroy_account (6)']
 
 ## Attempt to process the request without calling raise_concerns first
-password_guess = @params[:currentp]
+password_guess = @params[:confirmation]
 obj = OT::Logic::DestroyAccount.new @sess, @cust, @params
 begin
   obj.process
@@ -143,7 +143,7 @@ end
 ## Process the request and destroy the account
 cust = OT::Customer.new generate_random_email
 obj = OT::Logic::DestroyAccount.new @sess, cust, @params
-cust.update_passphrase @params[:currentp]
+cust.update_passphrase @params[:confirmation]
 obj.raise_concerns
 obj.process
 [cust.role, cust.verified, cust.passphrase]
@@ -153,7 +153,7 @@ obj.process
 cust = OT::Customer.new generate_random_email
 first_token = cust.regenerate_apitoken  # first we need to set an api key
 obj = OT::Logic::DestroyAccount.new @sess, cust, @params
-cust.update_passphrase @params[:currentp]
+cust.update_passphrase @params[:confirmation]
 obj.raise_concerns
 obj.process
 first_token.eql?(cust.apitoken)

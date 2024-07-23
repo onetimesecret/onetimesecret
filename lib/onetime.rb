@@ -25,7 +25,7 @@ require_relative 'onetime/core_ext'
 
 Familia.apiversion = nil
 
-# Onetime is the core of the One-Time Secret application.
+# Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
 # the app. It is the main namespace for the application.
 #
@@ -43,6 +43,10 @@ module Onetime
 
     def debug
       @debug || ((@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true') || ENV['ONETIME_DEBUG'].to_i == 1)
+    end
+
+    def debug?
+      !!debug # force a boolean
     end
 
     def mode?(guess)
@@ -135,6 +139,9 @@ module Onetime
       info "Colonels: #{OT.conf[:colonels]}"
       if OT.conf[:site].key?(:authentication)
         info "Authentication: #{OT.conf[:site][:authentication]}"
+      end
+      if OT.conf[:development][:enabled]
+        info "Frontend: #{OT.conf[:development][:frontend_host]}"
       end
       info "Loaded locales: #{@locales.keys.join(', ')}"
       info "Limits: #{OT::RateLimit.events}"

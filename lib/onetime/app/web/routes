@@ -2,6 +2,8 @@
 GET   /                                          Onetime::App#index
 POST  /share                                     Onetime::App#create_secret
 
+GET   /recent                                    Onetime::App#recent
+
 GET   /incoming                                  Onetime::App#incoming
 POST  /incoming                                  Onetime::App#create_incoming
 
@@ -32,8 +34,11 @@ GET   /pricing                                   Onetime::App#pricing
 GET   /signup                                    Onetime::App#signup
 GET   /signup/:planid                            Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account
+
 GET   /login                                     Onetime::App#login
-POST  /login                                     Onetime::App#authenticate
+GET   /signin                                    Onetime::App#signin
+POST  /signin                                    Onetime::App#authenticate
+
 GET   /logout                                    Onetime::App#logout
 
 GET   /forgot                                    Onetime::App#forgot
@@ -45,10 +50,6 @@ GET   /dashboard                                 Onetime::App#dashboard
 POST  /dashboard                                 Onetime::App#create_secret
 
 GET   /account                                   Onetime::App#account
-POST  /account/change_password                   Onetime::App#update_account
-POST  /account/destroy                           Onetime::App#destroy_account
-POST  /account/passgen                           Onetime::App#update_account
-POST  /account/apikey                            Onetime::App#generate_apikey
 POST  /account/subdomain                         Onetime::App#update_subdomain
 
 GET   /contributor                               Onetime::App#contributors
