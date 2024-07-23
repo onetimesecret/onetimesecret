@@ -115,7 +115,7 @@ class Onetime::Session < Familia::HashKey
   end
 
   def add_shrimp
-    self.shrimp ||= self.class.generate_id(sessid, custid, :shrimp)
+    self.shrimp ||= self.class.generate_id
     self.shrimp
   end
 
@@ -215,7 +215,7 @@ class Onetime::Session < Familia::HashKey
 
     def generate_id
       input = SecureRandom.hex(32)  # 16=128 bits, 32=256 bits
-      # Not using gibbler to make sure it's always SHA512
+      # Not using gibbler to make sure it's always SHA256
       Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
     end
   end
