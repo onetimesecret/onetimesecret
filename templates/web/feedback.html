@@ -1,4 +1,4 @@
-{{>header}}
+{{>partial/header}}
 
 <div class="container mx-auto p-4 max-w-2xl">
   <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-200">Give us your feedback</h2>
@@ -12,12 +12,18 @@
         id="feedbackInput"
         type="text"
         name="msg"
-        class="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+        class="flex-grow px-4 py-2 border rounded-l-md
+        border-gray-300
+        dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200
+        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent "
         autocomplete="off"
         placeholder="{{feedback_text}}"
       >
       <button
-        class="px-4 py-2 bg-brand-500 text-white rounded-r-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+        class="px-4 py-2 rounded-r-md
+        bg-brand-500 text-white
+        dark:focus:ring-offset-gray-800
+        hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
         type="submit"
       >
         {{i18n.COMMON.button_send_feedback}}
@@ -34,4 +40,4 @@
   </ul>
 </div>
 
-{{>footer}}
+{{>partial/footer}}

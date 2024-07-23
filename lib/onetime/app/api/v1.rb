@@ -96,6 +96,12 @@ class Onetime::App
         logic.process
         if logic.show_secret
           json :value => logic.secret_value, :secret_key => req.params[:key]
+
+          # Immediately mark the secret as viewed, so that it
+          # can't be shown again. If there's a network failure
+          # that prevents the client from receiving the response,
+          # we're not able to show it again. This is a feature
+          # not a bug.
           logic.secret.received!
         else
           secret_not_found_response
@@ -110,7 +116,7 @@ class Onetime::App
         logic = OT::Logic::BurnSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
-        if logic.burn_secret
+        if logic.greenlighted
           json :state           => metadata_hsh(logic.metadata),
                :secret_shortkey => logic.metadata.secret_shortkey
         else
@@ -137,6 +143,54 @@ class Onetime::App
       end
     end
 
+    # Endpoints for interactive UI (v1)
+    #
+    # The response objects are minimal, and are intended to be used
+    # by the client to determine the next step in the UI flow. The
+    # client should not rely on the response object for any data
+    # other than the success flag, error messages.
+    #
+    # This is an intentional limitation to keep the API simple and
+    # while we transition to a V2 API that will be more feature-rich.
+    #
+    def generate_apikey
+      authorized do
+        logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        if logic.greenlighted
+          json :success => true, :custid => cust.custid, :apikey => logic.apikey
+        else
+          error_response "API Key could not be generated."
+        end
+      end
+    end
+
+    def change_account_password
+      authorized do
+        logic = OT::Logic::UpdateAccount.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        if logic.greenlighted
+          json :success => true, :custid => cust.custid
+        else
+          error_response "Password could not be changed."
+        end
+      end
+    end
+
+    def destroy_account
+      authorized do
+        logic = OT::Logic::DestroyAccount.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        if logic.greenlighted
+          json :success => true, :custid => cust.custid
+        else
+          error_response "Account could not be destroyed."
+        end
+      end
+    end
 
     private
     def metadata_hsh md, opts={}

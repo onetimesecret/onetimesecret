@@ -40,11 +40,19 @@
  * IDEs.
  */
 
-interface Window {
-  // Our CSRF token, to be used in POSTrequests to the backend
-  shrimp?: string;
-  custid?: string;
-  email?: string;
-  vue_component_name?: string;
-  deobfuscateEmails: () => void;
+import { Cust, Plan } from './onetime';
+
+declare global {
+  interface Window {
+    // Our CSRF token, to be used in POST requests to the backend
+    shrimp?: string;
+    custid?: string;
+    cust?: Cust;
+    available_plans?: Plan[];
+    apitoken?: string;
+    email?: string;
+    customer_since?: string;
+    vue_component_name?: string;
+    deobfuscateEmails: () => void;
+  }
 }

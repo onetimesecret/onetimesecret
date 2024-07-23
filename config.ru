@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-#
+# Rackup Configuration
 #
 # Usage:
 #
@@ -44,7 +44,6 @@ middlewares = if Otto.env?(:dev)
   [
     [Rack::CommonLogger],
     [Rack::Reloader, 1],
-    [Rack::HeaderLoggerMiddleware],
     [Rack::HandleInvalidUTF8],
     [Rack::HandleInvalidPercentEncoding]
   ]

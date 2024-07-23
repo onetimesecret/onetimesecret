@@ -31,7 +31,7 @@ const componentMap: ComponentMap = {
   'Account': defineAsyncComponent(() => import('@/views/Account.vue')),
   'Shared': defineAsyncComponent(() => import('@/views/Shared.vue')),
   'Private': defineAsyncComponent(() => import('@/views/Private.vue')),
-  //'Login': defineAsyncComponent(() => import('@/views/Login.vue')),
+  //'Signin': defineAsyncComponent(() => import('@/views/Signin.vue')),
   //'Signup': defineAsyncComponent(() => import('@/views/Signup.vue')),
   'Feedback': defineAsyncComponent(() => import('@/views/Feedback.vue')),
   'Forgot': defineAsyncComponent(() => import('@/components/PasswordStrengthChecker.vue')),
@@ -62,9 +62,11 @@ const broadcastApp = createApp(GlobalBroadcast, {
 })
 broadcastApp.mount('#broadcast')
 
-const toggleApp = createApp(ThemeToggle)
-toggleApp.mount('#theme-toggle')
-
+const themeToggleElement = document.querySelector('#theme-toggle');
+if (themeToggleElement) {
+  const toggleApp = createApp(ThemeToggle);
+  toggleApp.mount('#theme-toggle');
+}
 
 function deobfuscateEmails(): void {
   document.querySelectorAll<HTMLElement>('.email').forEach(el => {

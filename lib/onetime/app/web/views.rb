@@ -243,9 +243,11 @@ module Onetime
           self[:with_analytics] = false
         end
       end
-      class Login < Onetime::App::View
+
+      class Signin < Onetime::App::View
+        self.pagename = :login # used for locale content
         def init
-          self[:title] = "Login"
+          self[:title] = "Sign In"
           self[:body_class] = :login
           self[:with_analytics] = false
           if req.params[:custid]
@@ -324,7 +326,7 @@ module Onetime
 
       class Recent < Onetime::App::Views::Dashboard
         # Use the same locale as the dashboard
-        self.pagename = :dashboard
+        self.pagename = :dashboard # used for locale content
         def init
           self[:body_class] = :recent
           super
@@ -354,13 +356,17 @@ module Onetime
             end
             self[:token] = cust.passgen_token
           end
+
+          self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
         end
       end
+
       class Error < Onetime::App::View
         def init *args
           self[:title] = "Oh cripes!"
         end
       end
+
       class About < Onetime::App::View
         def init *args
           self[:title] = "About Us"
@@ -369,6 +375,7 @@ module Onetime
           setup_plan_variables
         end
       end
+
       @translations = nil
       class Translations < Onetime::App::View
         TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml')
@@ -384,6 +391,7 @@ module Onetime
           self[:translations] = self.class.translations
         end
       end
+
       class NotFound < Onetime::App::View
         def init *args
           self[:title] = "Page not found"
@@ -391,6 +399,7 @@ module Onetime
           self[:with_analytics] = false
         end
       end
+
       class Feedback < Onetime::App::View
         def init *args
           self[:title] = "Your Feedback"

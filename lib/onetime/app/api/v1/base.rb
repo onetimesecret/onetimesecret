@@ -18,37 +18,66 @@ class Onetime::App
       # curl -F 'ttl=7200' -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:3000/api/v1/generate
       def authorized allow_anonymous=false
         carefully do
-          success = false
           check_locale!
+
           req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
           auth = req.env['otto.auth']
-          #req.env['HTTP_X_ONETIME_CLIENT']
+
+          # First line, check for basic auth
           if auth.provided?
             raise OT::Unauthorized unless auth.basic?
+
             custid, apitoken = *(auth.credentials || [])
             raise OT::Unauthorized if custid.to_s.empty? || apitoken.to_s.empty?
+
             possible = OT::Customer.load custid
             raise OT::Unauthorized if possible.nil?
+
             @cust = possible if possible.apitoken?(apitoken)
+
             unless cust.nil? || @sess = cust.load_session
               @sess = OT::Session.create req.client_ipaddress, cust.custid
             end
+
             sess.authenticated = true unless sess.nil?
-          elsif req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
-            #check_session!
-            raise OT::Unauthorized, "No session support"
-          elsif !allow_anonymous
-            raise OT::Unauthorized, "No session or credentials"
+
+            OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (#{sess.authenticated?})"
+
+          # Second line, check for session cookie. We allow this in certain cases
+          # like API requests coming from hybrid Vue components.
+          elsif req.cookie?(:sess)
+
+            # Anytime we allow session cookies, we must also check shrimp.
+            check_session!
+            check_shrimp!
+
+            # Only attempt to load the customer object if the session has
+            # already been authenticated. Otherwise this is an anonymous session.
+            @cust = sess.load_customer if sess.authenticated?
+
+          # Otherwise, we have no credentials, so we must be anonymous. Only
+          # methods that opt-in to allow anonymous sessions will be allowed to
+          # proceed.
           else
-            @cust = OT::Customer.anonymous
-            @sess = OT::Session.new req.client_ipaddress, cust.custid
+
+            if allow_anonymous
+              @cust = OT::Customer.anonymous
+              @sess = OT::Session.new req.client_ipaddress, cust.custid
+              OT.info "[authorized] Anonymous session via #{req.client_ipaddress} (new session #{sess.sessid})"
+            else
+              raise OT::Unauthorized, "No session or credentials"
+            end
+
           end
-          if cust.nil? || sess.nil? #|| cust.anonymous? && !sess.authenticated?
+
+          if cust.nil? || sess.nil?
             raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}"
-          else
-            cust.sessid = sess.sessid unless cust.anonymous?
-            yield
           end
+
+          # TODO: Have a look through this codepath and see if we can remove it.
+          cust.sessid = sess.sessid unless cust.anonymous?
+
+          yield
         end
       end
 
@@ -78,7 +107,7 @@ class Onetime::App
         res.body = hsh.to_json
       end
 
-      def handle_form_error ex, redirect
+      def handle_form_error ex, hsh={}
         error_response ex.message
       end
 

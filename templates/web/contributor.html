@@ -1,4 +1,4 @@
-{{>header}}
+{{>partial/header}}
 
 <div class="span7">
 <h1 class="">Become a Contributor <em>!</em></h1>
@@ -97,7 +97,7 @@
 
   {{^authenticated}}
   <div class="alert alert-info">
-    You need to <a href="/login">sign in</a> before agreeing.
+    You need to <a href="/signin">sign in</a> before agreeing.
   </div>
   {{/authenticated}}
   {{#authenticated}}
@@ -118,4 +118,4 @@
 </form>
 </div>
 
-{{>footer}}
+{{>partial/footer}}

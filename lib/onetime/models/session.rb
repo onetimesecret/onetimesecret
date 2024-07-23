@@ -33,7 +33,7 @@ class Onetime::Session < Familia::HashKey
 
     @disable_auth = false
 
-    OT.ld "[Session.initialize] Initialized session #{self}"
+    OT.ld "[Session.initialize] Initialized session (not saved) #{self}"
     super name, db: 1, ttl: 20.minutes
   end
 
@@ -141,6 +141,10 @@ class Onetime::Session < Familia::HashKey
     cust.nil? ? OT::Customer.anonymous : cust
   end
 
+  def unset_error_message
+    self.error_message = nil
+  end
+
   def set_error_message msg
     self.error_message = msg
   end
@@ -201,6 +205,9 @@ class Onetime::Session < Familia::HashKey
 
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress, custid, useragent
+
+      OT.ld "[Session.create] Creating new session #{sess}"
+
       # force the storing of the fields to redis
       sess.update_sessid
       sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent

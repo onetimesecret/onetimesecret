@@ -45,6 +45,10 @@ module Onetime
       @debug || ((@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true') || ENV['ONETIME_DEBUG'].to_i == 1)
     end
 
+    def debug?
+      !!debug # force a boolean
+    end
+
     def mode?(guess)
       @mode.to_s == guess.to_s
     end
