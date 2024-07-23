@@ -13,6 +13,9 @@ spoom_*
 .history
 .pnpm/
 .prompts/
+
+/etc/caddy
+
 .appendonlydir/
 .bundle/
 data/

@@ -132,6 +132,10 @@ module Onetime
 
     def authenticate # rubocop:disable Metrics/AbcSize
       publically do
+        # If the request is halted, say for example rate limited, we don't want to
+        # allow the browser to refresh and re-submit the form with the login
+        # credentials.
+        no_cache!
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params, locale
         view = Onetime::App::Views::Signin.new req, sess, cust, locale
         if sess.authenticated?

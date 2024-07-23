@@ -129,15 +129,20 @@ class Onetime::App
       return unless req.post? || req.put? || req.delete?
       attempted_shrimp = req.params[:shrimp]
 
-      ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
-      ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
-      unless sess.shrimp?(attempted_shrimp) || ignoreshrimp
-        shrimp = (sess.shrimp || '[noshrimp]').clone
-        sess.clear_shrimp!  # assume the shrimp is being tampered with
+      shrimp = (sess.shrimp || '[noshrimp]').clone
 
+      if sess.shrimp?(attempted_shrimp) || ignoreshrimp
+        OT.ld "GOOD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
+        # Regardless of the outcome, we clear the shrimp from the session
+        # to prevent replay attacks. A new shrimp is generated on the
+        # next page load.
+        sess.clear_shrimp!
+      else
+        ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
+        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
-        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp}"
-
+        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
+        sess.clear_shrimp!
         raise ex
       end
     end

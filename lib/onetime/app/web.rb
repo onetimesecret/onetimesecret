@@ -35,6 +35,7 @@ module Onetime
 
     def dashboard
       authenticated do
+        no_cache!
         logic = OT::Logic::Dashboard.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
