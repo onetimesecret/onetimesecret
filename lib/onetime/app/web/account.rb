@@ -43,6 +43,7 @@ module Onetime
 
     def forgot
       publically do
+        no_cache!
         if req.params[:key]
           secret = OT::Secret.load req.params[:key]
           if secret.nil? || secret.verification.to_s != 'true'
@@ -61,6 +62,7 @@ module Onetime
 
     def request_reset
       publically do
+        no_cache!
         if req.params[:key]
           logic = OT::Logic::ResetPassword.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -81,6 +83,8 @@ module Onetime
 
     def signup
       publically do
+        no_cache!
+
         # If a plan has been selected, the next onboarding step is the actual signup
         if OT::Plan.plan?(req.params[:planid])
           sess.set_error_message "You're already signed up" if sess.authenticated?
@@ -106,6 +110,7 @@ module Onetime
     def create_account
       publically() do
         deny_agents!
+        no_cache!
         logic = OT::Logic::CreateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
@@ -123,6 +128,7 @@ module Onetime
 
     def authenticate # rubocop:disable Metrics/AbcSize
       publically do
+        no_cache!
         logic = OT::Logic::AuthenticateSession.new sess, cust, req.params, locale
         view = Onetime::App::Views::Login.new req, sess, cust, locale
         if sess.authenticated?
@@ -151,6 +157,7 @@ module Onetime
 
     def logout
       authenticated do
+        no_cache!
         logic = OT::Logic::DestroySession.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
@@ -160,6 +167,7 @@ module Onetime
 
     def account
       authenticated do
+        no_cache!
         logic = OT::Logic::ViewAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
@@ -187,6 +195,7 @@ module Onetime
     end
     def update_subdomain
       authenticated('/account') do
+        no_cache!
         logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
