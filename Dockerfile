@@ -143,7 +143,7 @@ RUN bundle update --bundler
 FROM app_env
 ARG CODE_ROOT
 
-LABEL Name=onetimesecret Version=0.15.0
+LABEL Name=onetimesecret Version=0.15.1
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
