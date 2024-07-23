@@ -94,11 +94,8 @@ class Onetime::Session < Familia::HashKey
   end
 
   def add_shrimp
-    ret = self.shrimp
-    if ret.to_s.empty?
-      ret = self.shrimp = self.class.generate_id(sessid, custid, :shrimp)
-    end
-    ret
+    self.shrimp ||= self.class.generate_id(sessid, custid, :shrimp)
+    self.shrimp
   end
 
   def clear_shrimp!
