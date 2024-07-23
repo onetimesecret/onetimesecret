@@ -63,6 +63,14 @@ module Onetime
 
         sess.event_incr! event
       end
+
+      module ClassMethods
+        def normalize_password(password, max_length = 128)
+          password.to_s.strip.slice(0, max_length)
+        end
+      end
+
+      extend ClassMethods
     end
 
     module ClassMethods

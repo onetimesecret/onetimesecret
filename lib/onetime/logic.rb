@@ -35,9 +35,9 @@ module Onetime
       def process_params
         @planid = params[:planid].to_s
         @custid = params[:u].to_s.downcase.strip
-        @password = params[:p].to_s
-        @password2 = params[:p2].to_s
-        @skill = params[:skill].to_s # Hidden field, shouldn't have a value
+        @password = self.class.normalize_password(params[:p])
+        @password2 = self.class.normalize_password(params[:p2])
+        @skill = params[:skill].to_s.strip.slice(0,60) # Hidden field, shouldn't have a value
       end
       def raise_concerns
         limit_action :create_account
@@ -98,7 +98,7 @@ module Onetime
       attr_reader :session_ttl
       def process_params
         @potential_custid = params[:u].to_s.downcase.strip
-        @passwd = params[:p]
+        @passwd = self.class.normalize_password(params[:p])
         #@stay = params[:stay].to_s == "true"
         @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
@@ -243,8 +243,8 @@ module Onetime
       attr_reader :secret
       def process_params
         @secret = OT::Secret.load params[:key].to_s
-        @newp = params[:newp].to_s
-        @newp2 = params[:newp2].to_s
+        @newp = self.class.normalize_password(params[:newp])
+        @newp2 = self.class.normalize_password(params[:newp2])
       end
       def raise_concerns
         raise OT::MissingSecret if secret.nil?
@@ -316,10 +316,10 @@ module Onetime
     class UpdateAccount < OT::Logic::Base
       attr_reader :modified
       def process_params
-        @currentp = params[:currentp].to_s.strip.slice(0,60)
-        @newp = params[:newp].to_s.strip.slice(0,60)
-        @newp2 = params[:newp2].to_s.strip.slice(0,60)
-        @passgen_token = params[:passgen_token].to_s.strip.slice(0,60)
+        @currentp = self.class.normalize_password(params[:currentp])
+        @newp = self.class.normalize_password(params[:newp])
+        @newp2 = self.class.normalize_password(params[:newp2])
+        @passgen_token = self.class.normalize_password(params[:passgen_token], 60)
       end
       def raise_concerns
         @modified ||= []
@@ -361,10 +361,10 @@ module Onetime
       attr_reader :raised_concerns_was_called
 
       def process_params
-        unless params.nil?
-          @currentp = params[:currentp].to_s.strip.slice(0,60)
-        end
+        return if params.nil?
+        @currentp = self.class.normalize_password(params[:currentp])
       end
+
       def raise_concerns
         @raised_concerns_was_called = true
 
