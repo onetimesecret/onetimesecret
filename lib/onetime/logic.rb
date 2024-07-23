@@ -94,7 +94,7 @@ module Onetime
     end
 
     class AuthenticateSession < OT::Logic::Base
-      attr_reader :custid, :stay
+      attr_reader :custid, :stay, :greenlighted
       attr_reader :session_ttl
       def process_params
         @potential_custid = params[:u].to_s.downcase.strip
@@ -131,12 +131,22 @@ module Onetime
 
       def process
         if success?
-          OT.info "[login-success] #{cust.custid} #{cust.role}"
-          #TODO: get rid of the unauthenticated session ID
+          @greenlighted = true
+
+          OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (replacing sessid)"
+
+          # Create a completely new session, new id, new everything (incl
+          # cookie which the controllor will implicitly do above when it
+          # resends the cookie with the new session id).
+          sess.replace!
+
+          OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
+
           sess.update_fields :custid => cust.custid, :authenticated => 'true'
           sess.ttl = session_ttl if @stay
           sess.save
           cust.save
+
           if OT.conf[:colonels].member?(cust.custid)
             cust.role = :colonel
           else
