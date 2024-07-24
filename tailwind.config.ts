@@ -66,6 +66,7 @@ export default {
     },
     extend: {
       colors: {
+        // https://javisperez.github.io/tailwindcolorshades/?flamingo=dc4a22&guardsman-red=23b5dd
         brand: {
           50: '#fcf8f2',
           100: '#fcf4e8',
@@ -77,20 +78,34 @@ export default {
           700: '#a32d12',
           800: '#85200c',
           900: '#631507',
-          950: '#400b03'
+          950: '#400b03',
         },
+        rbrand: {
+          50: '#f2fbfc',
+          100: '#e8fafc',
+          200: '#c3f0f7',
+          300: '#a0e6f2',
+          400: '#5fcfe8',
+          500: '#23b5dd',
+          600: '#1c9cc7',
+          700: '#1478a6',
+          800: '#0d5985',
+          900: '#073b63',
+          950: '#032140',
+        }
       },
     },
-    fontSize: {
-      'sm': '0.9rem',
-      'base': '1rem',
-      'lg': '1.25rem',
-      'xl': '1.30rem',
-      '2xl': '1.563rem',
-      '3xl': '1.953rem',
-      '4xl': '2.441rem',
-      '5xl': '3.052rem',
-    }
+    // Don't mess with the scaling. rem == root em (ie. <html>). Everything is relative to that.
+    //fontSize: {
+    //  'sm': '0.9rem',
+    //  'base': '1rem',
+    //  'lg': '1.25rem',
+    //  'xl': '1.30rem',
+    //  '2xl': '1.563rem',
+    //  '3xl': '1.953rem',
+    //  '4xl': '2.441rem',
+    //  '5xl': '3.052rem',
+    //}
   },
   plugins: [
     forms(),
