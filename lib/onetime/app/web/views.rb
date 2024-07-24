@@ -283,11 +283,12 @@ module Onetime
           setup_plan_variables
         end
       end
-      class Plans < Onetime::App::View
+
+      class Pricing < Onetime::App::View
         def init
           self[:title] = "Create an Account"
-          self[:body_class] = :pricing
-          self[:with_analytics] = false
+          self[:body_class] = 'entrypoint/main-full-width'
+          self.pagename = 'entrypoint/main-full-width.html'
           setup_plan_variables
         end
         def plan1;  self[@plans[0].to_s]; end

@@ -76,7 +76,11 @@ module Onetime
     end
 
     def pricing
-      res.redirect '/signup'
+      publically do
+        view = Onetime::App::Views::Pricing.new req, sess, cust, locale
+        view[:business] = true
+        res.body = view.render
+      end
     end
 
     def signup
@@ -92,14 +96,6 @@ module Onetime
           view = Onetime::App::Views::Signup.new req, sess, cust, locale
           res.body = view.render
         end
-      end
-    end
-
-    def business_pricing
-      publically do
-        view = Onetime::App::Views::Plans.new req, sess, cust, locale
-        view[:business] = true
-        res.body = view.render
       end
     end
 
