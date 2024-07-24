@@ -1,9 +1,13 @@
 <template>
-  <div class="relative isolate bg-white px-6 py-18 sm:py-32 lg:px-8">
+  <div class="relative isolate bg-white px-6 py-18 sm:py-12 lg:px-8">
+    <div class="pb-12 flex justify-center text-sm ">
+      <ButtonGroup first-val="100% Human Content" mid-val1="50/50" last-val="100% AI Generated" />
+    </div>
     <div class="absolute inset-x-0 -top-3 -z-10 transform-gpu overflow-hidden px-36 blur-3xl"
          aria-hidden="true">
-      <div class="mx-auto aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#655b5f] to-[#c25151] opacity-30"
-           style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" />
+      <!--<div class="mx-auto aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#655b5f] to-[#c25151] opacity-30"
+           style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" />-->
+      <MovingGlobules from-colour="#23b5dd" to-colour="#dc4a22" speed="4s" />
     </div>
     <div class="mx-auto max-w-2xl text-center lg:max-w-4xl">
       <h2 class="text-2xl font-semibold leading-7 text-brand-600">Pricing</h2>
@@ -21,6 +25,8 @@
         </RadioGroup>
       </fieldset>
     </div>
+
+
     <div
          class="mx-auto mt-16 grid max-w-lg grid-cols-1 items-center gap-y-6 sm:mt-20 sm:gap-y-0 lg:max-w-4xl lg:grid-cols-2">
       <div v-for="(tier, tierIdx) in tiers"
@@ -56,10 +62,23 @@
   </div>
 </template>
 
+<!--<div class="bg-gradient-to-r from-brand-500 to-rband-500 font-bold text-2xl gradient-text">
+  Gradient Text222
+</div>-->
+<style>
+.gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+</style>
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { RadioGroup, RadioGroupOption } from '@headlessui/vue'
 import { Icon } from '@iconify/vue';
+import MovingGlobules from '@/components/MovingGlobules.vue';
+import ButtonGroup from '@/components/ButtonGroup.vue';
 
 const frequencies = [
   { value: 'monthly', label: 'Monthly', priceSuffix: '/month' },
@@ -71,19 +90,19 @@ const tiers = [
     name: 'Identity Plus',
     id: 'tier-identity',
     href: '#',
-    price: { monthly: '$35', annually: '$365' },
+    price: { monthly: '$25', annually: '$365' },
     description: "The perfect plan if you're just getting started with our product.",
     features: [
-      'Custom domain',
-      'Custom branding (logos, colors)',
+      'Custom domain and branding',
+      'Unlimited secrets',
       'Branded email notifications',
-      'HeartCore® technology'
+      'AuthenticityEngine℗ Technology'
 
     ],
     featured: false,
   },
   {
-    name: 'World Elite',
+    name: 'Global Elite',
     id: 'tier-integrity',
     href: '#',
     price: { monthly: '$145', annually: '$1595' },
