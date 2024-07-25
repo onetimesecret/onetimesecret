@@ -143,55 +143,6 @@ class Onetime::App
       end
     end
 
-    # Endpoints for interactive UI (v1)
-    #
-    # The response objects are minimal, and are intended to be used
-    # by the client to determine the next step in the UI flow. The
-    # client should not rely on the response object for any data
-    # other than the success flag, error messages.
-    #
-    # This is an intentional limitation to keep the API simple and
-    # while we transition to a V2 API that will be more feature-rich.
-    #
-    def generate_apikey
-      authorized do
-        logic = OT::Logic::GenerateAPIkey.new sess, cust, req.params, locale
-        logic.raise_concerns
-        logic.process
-        if logic.greenlighted
-          json_success :custid => cust.custid, :apikey => logic.apikey
-        else
-          error_response "API Key could not be generated."
-        end
-      end
-    end
-
-    def change_account_password
-      authorized do
-        logic = OT::Logic::UpdateAccount.new sess, cust, req.params, locale
-        logic.raise_concerns
-        logic.process
-        if logic.greenlighted
-          json_success :custid => cust.custid
-        else
-          error_response "Password could not be changed."
-        end
-      end
-    end
-
-    def destroy_account
-      authorized do
-        logic = OT::Logic::DestroyAccount.new sess, cust, req.params, locale
-        logic.raise_concerns
-        logic.process
-        if logic.greenlighted
-          json_success :custid => cust.custid
-        else
-          error_response "Account could not be destroyed."
-        end
-      end
-    end
-
     private
     def metadata_hsh md, opts={}
       hsh = md.all
@@ -223,6 +174,9 @@ class Onetime::App
       ret
     end
 
-
   end
 end
+
+# Require after the above to avoid circular dependency
+require_relative 'v1/account'
+require_relative 'v1/domains'
