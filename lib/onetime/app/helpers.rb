@@ -37,16 +37,11 @@ class Onetime::App
 
       res.header['Content-Type'] ||= content_type
 
-
       return_value = yield
 
-
       unless cust.anonymous?
-
         reqstr = stringify_request_details(req)
-
         custref = cust.obscure_email
-
         OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
       end
 
@@ -65,7 +60,7 @@ class Onetime::App
     rescue OT::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
-        res.redirect redirect
+        error_response 'Please refresh the page and try again'
       else
         sess.set_error_message "Please go back, refresh the page, and try again."
         res.redirect redirect
