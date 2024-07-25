@@ -54,16 +54,26 @@ module Onetime
       end
     end
 
-    def customize
+    def account_domains
+      self._dashboard_component('AccountDomains')
+    end
+
+    def account_domains_add
+      self._dashboard_component('AccountDomains')
+    end
+
+    def account_domains_verify
+      self._dashboard_component('AccountDomains')
+    end
+
+    def _dashboard_component(component_name)
       authenticated do
         no_cache!
-        logic = OT::Logic::CustomDomain.new sess, cust, req.params, locale
-        logic.raise_concerns
-        logic.process
-        view = Onetime::App::Views::Customize.new req, sess, cust, locale
+        view = Onetime::App::Views::DashboardComponent.new component_name, req, sess, cust, locale
         res.body = view.render
       end
     end
+    protected :_dashboard_component
 
     def show_docs
       publically do

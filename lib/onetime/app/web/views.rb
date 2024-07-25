@@ -328,18 +328,13 @@ module Onetime
       class Recent < Onetime::App::Views::Dashboard
         # Use the same locale as the dashboard
         self.pagename = :dashboard # used for locale content
-        def init
-          self[:body_class] = :recent
-          super
-        end
       end
 
-      class Customize < Onetime::App::Views::Dashboard
-        # Use the same locale as the dashboard
-        self.pagename = :dashboard # used for locale content
-        def init
-          self[:body_class] = :customize
-          super
+      class DashboardComponent < Onetime::App::Views::Dashboard
+        self.pagename = :dashboard
+        def initialize component, req, sess=nil, cust=nil, locale=nil, *args
+          @vue_component_name = component
+          super req, sess, cust, locale, *args
         end
       end
 

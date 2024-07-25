@@ -23,13 +23,22 @@ type ComponentMap = {
  * and mounting the common components which are part of the layout
  * (i.e. in the header or footer templates).
  *
+ *    class NiceView < Onetime::App::View
+ *      self.vue_component_name = 'Homepage'
+ *    end
+ *
+ *    componentMap['Homepage']  #=> Homepage
+ *
  */
 
 const componentMap: ComponentMap = {
+  // Auto-load default and the most common pages
   'Homepage': Homepage,
   'Dashboard': Dashboard,
-  'Customize': defineAsyncComponent(() => import('@/views/Customize.vue')),
-  'Account': defineAsyncComponent(() => import('@/views/Account.vue')),
+
+  // Laz-load the rest of the pages
+  'AccountDomains': defineAsyncComponent(() => import('@/views/account/AccountDomains.vue')),
+  'Account': defineAsyncComponent(() => import('@/views/account/AccountIndex.vue')),
   'Shared': defineAsyncComponent(() => import('@/views/Shared.vue')),
   'Private': defineAsyncComponent(() => import('@/views/Private.vue')),
   //'Pricing': defineAsyncComponent(() => import('@/views/Pricing.vue')),
