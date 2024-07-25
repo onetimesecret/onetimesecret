@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 
 // Define the cust object
 export interface Cust {
@@ -26,3 +27,14 @@ export interface Plan {
     name: string;
   };
 }
+
+export type FormSubmissionOptions = {
+  url: string;
+  successMessage: string;
+  redirectUrl?: string;
+  redirectDelay?: number;
+  getFormData?: () => FormData | URLSearchParams;
+  onSuccess?: (data: Record<string, string>) => void | Promise<void>;
+  onError?: (data: Record<string, string>) => void | Promise<void>;
+  handleShrimp?: (shrimp: string) => void | Promise<void>
+};
