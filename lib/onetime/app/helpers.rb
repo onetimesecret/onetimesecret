@@ -63,8 +63,13 @@ class Onetime::App
       not_found_response "Not authorized"
 
     rescue OT::BadShrimp => ex
-      sess.set_error_message "Please go back, refresh the page, and try again."
-      res.redirect redirect
+      # If it's a json response, no need to set an error message on the session
+      if res.header['Content-Type'] == 'application/json'
+        res.redirect redirect
+      else
+        sess.set_error_message "Please go back, refresh the page, and try again."
+        res.redirect redirect
+      end
 
     rescue OT::FormError => ex
       handle_form_error ex, redirect
