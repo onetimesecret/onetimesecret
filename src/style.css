@@ -10,7 +10,7 @@
   }
   h1,h2,h3,h4,h5 {
     font-family: theme('fontFamily.brand');
-    margin: theme('spacing.5') 0;
+    /*margin: theme('spacing.5') 0;*/
   }
 
   button, a.block {
