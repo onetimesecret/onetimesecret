@@ -24,7 +24,6 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
 require_relative 'lib/onetime'
-
 require_relative 'lib/middleware/header_logger_middleware'
 require_relative 'lib/middleware/handle_invalid_percent_encoding'
 require_relative 'lib/middleware/handle_invalid_utf8'
@@ -39,7 +38,7 @@ api.server_error = [500, { 'Content-Type' => 'application/json' }, [{ error: 'In
 
 apps = {
   '/'           => Otto.new("#{APP_DIR}/web/routes"),
-  '/api'        => Otto.new("#{APP_DIR}/api/routes"),
+  '/api'        => api,
   '/colonel'    => Otto.new("#{APP_DIR}/colonel/routes")
 }
 
