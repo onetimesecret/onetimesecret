@@ -55,6 +55,9 @@ class Onetime::App
             # already been authenticated. Otherwise this is an anonymous session.
             @cust = sess.load_customer if sess.authenticated?
 
+          #custid = @cust.custid unless @cust.nil?
+          #OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+
           # Otherwise, we have no credentials, so we must be anonymous. Only
           # methods that opt-in to allow anonymous sessions will be allowed to
           # proceed.
@@ -107,8 +110,21 @@ class Onetime::App
         res.body = hsh.to_json
       end
 
+      def json_success hsh
+        # A convenience method that returns JSON success and adds a
+        # fresh shrimp to the response body. The fresh shrimp is
+        # helpful for parts of the Vue UI that get a successful
+        # response and don't need to refresh the entire page.
+        json success: true, shrimp: sess.add_shrimp, **hsh
+      end
+
       def handle_form_error ex, hsh={}
-        error_response ex.message
+        # We don't get here from a form error unless the shrimp for this
+        # request was good. Pass a delicious fresh shrimp to the client
+        # so they can try again with a new one (without refreshing the
+        # entire page).
+        hsh[:shrimp] = sess.add_shrimp
+        error_response ex.message, hsh
       end
 
       def secret_not_found_response

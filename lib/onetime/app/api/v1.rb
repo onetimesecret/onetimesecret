@@ -159,7 +159,7 @@ class Onetime::App
         logic.raise_concerns
         logic.process
         if logic.greenlighted
-          json :success => true, :custid => cust.custid, :apikey => logic.apikey
+          json_success :custid => cust.custid, :apikey => logic.apikey
         else
           error_response "API Key could not be generated."
         end
@@ -172,7 +172,7 @@ class Onetime::App
         logic.raise_concerns
         logic.process
         if logic.greenlighted
-          json :success => true, :custid => cust.custid
+          json_success :custid => cust.custid
         else
           error_response "Password could not be changed."
         end
@@ -185,7 +185,7 @@ class Onetime::App
         logic.raise_concerns
         logic.process
         if logic.greenlighted
-          json :success => true, :custid => cust.custid
+          json_success :custid => cust.custid
         else
           error_response "Account could not be destroyed."
         end
