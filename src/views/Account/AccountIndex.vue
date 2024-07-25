@@ -1,180 +1,191 @@
 
 
 <template>
-  <div class="max-w-2xl mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-6 dark:text-white">Your Account</h1>
-    <p class="text-lg mb-4 dark:text-gray-300">Account type: {{ accountType }}</p>
+  <div class="max-w-2xl p-4 mx-auto">
+    <h1 class="dark:text-white mb-6 text-3xl font-bold">Your Account</h1>
+    <p class="dark:text-gray-300 mb-4 text-lg">Account type: {{ accountType }}</p>
 
-
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-      <h2 class="text-xl font-semibold mb-4 dark:text-white flex items-center">
-        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+    <div class="dark:bg-gray-800 p-6 mb-6 bg-white rounded-lg shadow">
+      <h2 class="dark:text-white flex items-center mb-4 text-xl font-semibold">
+        <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
         <span class="flex-1">API Key</span>
       </h2>
       <div class="pl-3">
         <form @submit.prevent="generateAPIKey">
-          <!-- Visually Hidden Username Field -->
-          <div class="hidden">
-            <input type="text" name="shrimp" :value="shrimp" />
-          </div>
+          <input type="hidden" name="shrimp" :value="shrimp" />
 
           <APIKeyCard
             :token="apitoken"
           />
 
-          <div v-if="apiKeyError" class="text-red-500 mb-4">{{ apiKeyError }}</div>
-          <div v-if="apiKeySuccess" class="text-green-500 mb-4">{{ apiKeySuccess }}</div>
+          <div v-if="apiKeyError" class="mb-4 text-red-500">{{ apiKeyError }}</div>
+          <div v-if="apiKeySuccess" class="mb-4 text-green-500">{{ apiKeySuccess }}</div>
 
-          <button type="submit" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded flex items-center justify-center">
+          <button type="submit" class="hover:bg-gray-600 flex items-center justify-center w-full px-4 py-2 text-white bg-gray-500 rounded">
             <i class="fas fa-trash-alt mr-2"></i> {{ isGeneratingAPIKey ? 'Generating...' : 'Generate Key' }}
           </button>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2"></p>
+          <p class="dark:text-gray-400 mt-2 text-sm text-gray-500"></p>
         </form>
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-      <h2 class="text-xl font-semibold mb-4 dark:text-white flex items-center">
+    <div class="dark:bg-gray-800 p-6 mb-6 bg-white rounded-lg shadow">
+      <h2 class="dark:text-white flex items-center mb-4 text-xl font-semibold">
         <i class="fas fa-lock mr-2"></i> Update Password
       </h2>
       <div class="pl-3"> <!-- Added padding-left to align with the title text -->
         <form @submit.prevent="updatePassword">
+          <input type="hidden" name="shrimp" :value="shrimp" />
 
           <!-- Visually Hidden Fields -->
           <div class="hidden">
-            <input type="hidden" name="shrimp" :value="shrimp" />
             <label for="username">Username</label>
             <input type="text" id="username" autocomplete="username" />
           </div>
 
-          <div class="mb-4 relative">
-            <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
+          <div class="relative mb-4">
+            <label for="currentPassword" id="currentPasswordLabel" class="dark:text-gray-300 block text-sm font-medium text-gray-700">Current Password</label>
 
             <div class="relative">
               <input :type="showPassword.current ? 'text' : 'password'"
                     name="currentp"
-                    id="currentPassword" v-model="currentPassword" required autocomplete="current-password"
-                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
-              <button type="button" @click="togglePassword('current')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    id="currentPassword" v-model="currentPassword"
+                    required
+                    tabindex="1"
+                    autocomplete="current-password"
+                    aria-label="Current Password" aria-labelledby="currentPasswordLabel"
+                    class="dark:border-gray-600 focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white block w-full pr-10 mt-1 border-gray-300 rounded-md shadow-sm">
+              <button type="button" @click="togglePassword('current')" class="absolute inset-y-0 right-0 flex items-center pr-3">
                 <Icon :icon="showPassword.current ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
-                      class="h-5 w-5 text-gray-400 dark:text-gray-100"
+                      class="dark:text-gray-100 w-5 h-5 text-gray-400"
                       aria-hidden="true" />
               </button>
             </div>
 
           </div>
-          <div class="mb-4 relative">
-            <label for="newPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
+          <div class="relative mb-4">
+            <label for="newPassword" id="newPasswordLabel" class="dark:text-gray-300 block text-sm font-medium text-gray-700">New Password</label>
 
             <div class="relative">
               <input :type="showPassword.new ? 'text' : 'password'"
                      name="newp"
-                     id="newPassword" v-model="newPassword" required autocomplete="new-password"
-                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
+                     id="newPassword" v-model="newPassword"
+                     required
+                     tabindex="2"
+                     autocomplete="new-password"
+                     aria-label="New Password" aria-labelledby="newPasswordLabel"
+                     class="dark:border-gray-600 focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white block w-full pr-10 mt-1 border-gray-300 rounded-md shadow-sm">
               <button type="button" @click="togglePassword('new')"
-                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                      class="hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
                 <Icon :icon="showPassword.new ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
-                      class="h-5 w-5 text-gray-400 dark:text-gray-100"
+                      class="dark:text-gray-100 w-5 h-5 text-gray-400"
                       aria-hidden="true" />
               </button>
             </div>
 
           </div>
-          <div class="mb-4 relative">
-            <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm</label>
+          <div class="relative mb-4">
+            <label for="confirmPassword" id="confirmPasswordlabel" class="dark:text-gray-300 block text-sm font-medium text-gray-700">Confirm</label>
 
             <div class="relative">
               <input :type="showPassword.confirm ? 'text' : 'password'"
                      name="newp2"
-                     id="confirmPassword" v-model="confirmPassword" required autocomplete="confirm-password"
-                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white pr-10">
-              <button type="button" @click="togglePassword('confirm')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                     id="confirmPassword" v-model="confirmPassword"
+                     required
+                     tabindex="3"
+                     autocomplete="confirm-password"
+                     aria-label="New Password" aria-labelledby="confirmPasswordlabel"
+                     class="dark:border-gray-600 focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white block w-full pr-10 mt-1 border-gray-300 rounded-md shadow-sm">
+              <button type="button" @click="togglePassword('confirm')" class="absolute inset-y-0 right-0 flex items-center pr-3">
                 <Icon :icon="showPassword.confirm ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
-                      class="h-5 w-5 text-gray-400 dark:text-gray-100"
+                      class="dark:text-gray-100 w-5 h-5 text-gray-400"
                       aria-hidden="true" />
               </button>
             </div>
 
           </div>
 
-          <div v-if="passwordError" class="text-red-500 mb-4">{{ passwordError }}</div>
-          <div v-if="passwordSuccess" class="text-green-500 mb-4">{{ passwordSuccess }}</div>
+          <div v-if="passwordError" class="mb-4 text-red-500">{{ passwordError }}</div>
+          <div v-if="passwordSuccess" class="mb-4 text-green-500">{{ passwordSuccess }}</div>
 
-          <button type="submit" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded flex items-center justify-center">
+          <button type="submit" class="hover:bg-gray-600 flex items-center justify-center w-full px-4 py-2 text-white bg-gray-500 rounded">
             <i class="fas fa-save mr-2"></i> {{ isUpdatingPassword ? 'Updating...' : 'Update Password' }}
           </button>
         </form>
       </div>
     </div>
 
-    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <h2 class="text-xl font-semibold mb-4 dark:text-white flex items-center">
-        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+    <div class="dark:bg-gray-800 p-6 bg-white rounded-lg shadow">
+      <h2 class="dark:text-white flex items-center mb-4 text-xl font-semibold">
+        <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
         <span class="flex-1">Delete Account</span>
       </h2>
       <div class="pl-3"> <!-- Added padding-left to align with the title text -->
-        <p class="mb-4 dark:text-gray-300">Please be advised:</p>
-        <ul class="list-disc list-inside mb-4 dark:text-gray-300">
+        <p class="dark:text-gray-300 mb-4">Please be advised:</p>
+        <ul class="dark:text-gray-300 mb-4 list-disc list-inside">
           <li><span class="font-bold">Secrets will remain active until they expire.</span></li>
           <li>Any secrets you wish to remove, <a href="#" class="underline">burn them before continuing</a>.</li>
           <li>Deleting your account is <span class="italic">permanent and non-reversible.</span></li>
         </ul>
-        <button @click="showDeleteModal = true" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center">
+        <button @click="openDeleteModal" class="hover:bg-red-700 flex items-center justify-center w-full px-4 py-2 font-bold text-white bg-red-600 rounded">
           <i class="fas fa-trash-alt mr-2"></i> Permanently Delete Account
         </button>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Deleting {{ custid }}</p>
+        <p class="dark:text-gray-400 mt-2 text-sm text-gray-500">Deleting {{ custid }}</p>
       </div>
     </div>
 
-    <p class="mt-6 text-sm text-gray-600 dark:text-gray-400">
+    <p class="dark:text-gray-400 mt-6 text-sm text-gray-600">
       Created {{ secretsCount }} secrets since {{ creationDate }}.
     </p>
 
     <!-- Delete Account Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <form @submit.prevent="submitDeleteAccount" class="w-full max-w-md">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-          <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Confirm Account Deletion</h3>
-          <p class="mb-4 text-gray-700 dark:text-gray-300">Are you sure you want to permanently delete your account? This action cannot be undone.</p>
+      <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <form @submit.prevent="submitDeleteAccount" class="w-full max-w-md">
+          <input type="hidden" name="shrimp" :value="shrimp" />
 
-          <input type="hidden" name="tabindex" value="destroy" />
+          <div class="dark:bg-gray-800 p-6 bg-white rounded-lg shadow-lg">
+            <h3 class="dark:text-white mb-4 text-xl font-bold text-gray-900">Confirm Account Deletion</h3>
+            <p class="dark:text-gray-300 mb-4 text-gray-700">Are you sure you want to permanently delete your account? This action cannot be undone.</p>
 
-          <div class="mb-4">
-            <input
-              v-model="deletePassword"
-              type="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              autocomplete="confirmation"
-              placeholder="Confirm with your password" />
+            <input type="hidden" name="tabindex" value="destroy" />
+
+            <div class="mb-4">
+              <input
+                v-model="deletePassword"
+                name="confirmation"
+                type="password"
+                class="focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white w-full px-3 py-2 border border-gray-300 rounded-md"
+                autocomplete="confirmation"
+                placeholder="Confirm with your password" />
+            </div>
+
+            <p v-if="deleteError" class="mb-4 text-red-500">{{ deleteError }}</p>
+            <p v-if="deleteSuccess" class="mb-4 text-green-500">{{ deleteSuccess }}</p>
+
+            <div class="flex justify-end space-x-4">
+              <button
+                @click="closeDeleteModal"
+                type="button"
+                class="hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 px-4 py-2 text-gray-800 bg-gray-200 rounded-md">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                :disabled="!deletePassword || isDeleting"
+                class="hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center px-4 py-2 text-white bg-red-600 rounded-md">
+                <svg v-if="isDeleting" class="animate-spin w-5 h-5 mr-3 -ml-1 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                {{ isDeleting ? 'Deleting...' : 'Delete Account' }}
+              </button>
+            </div>
           </div>
-
-          <p v-if="deleteError" class="text-red-500 mb-4">{{ deleteError }}</p>
-
-          <div class="flex justify-end space-x-4">
-            <button
-              @click="showDeleteModal = false"
-              type="button"
-              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              :disabled="!deletePassword || isDeleting"
-              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-800 flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
-              <svg v-if="isDeleting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-              </svg>
-              {{ isDeleting ? 'Deleting...' : 'Delete Account' }}
-            </button>
-          </div>
-
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
 
   </div>
 </template>
@@ -189,7 +200,7 @@ import APIKeyCard from '@/components/APIKeyCard.vue';
 const custid = window.custid;
 const cust: Cust = window.cust as Cust;
 const customer_since = window.customer_since;
-const shrimp = window.shrimp;
+const shrimp = ref(window.shrimp);
 const apitoken = ref(window.apitoken);
 
 // Props or state management would typically be used here
@@ -207,52 +218,36 @@ const showPassword = reactive({
   confirm: false
 });
 
+
+const handleShrimp = (freshShrimp: string) => {
+  shrimp.value = freshShrimp;
+}
 const showDeleteModal = ref(false);
 const deletePassword = ref('');
-const isDeleting = ref(false);
-const deleteError = ref('');
 
-const submitDeleteAccount = async () => {
-  isDeleting.value = true;
-  deleteError.value = '';
-
-  try {
-    // Call the API
-    const formData = new URLSearchParams();
-    formData.append('confirmation', deletePassword.value);
-
-    const response = await fetch('/api/v1/account/destroy', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-    });
-
-    if (!response.ok) {
-      const errorResponse = await response.json(); // Parse the JSON from the response
-      const errorMessage = errorResponse.message; // Assuming the error message is stored in a property named 'message'
-      throw new Error(errorMessage || 'Failed to delete account'); // Throw a new error with the message
-    }
-
-    // Account deleted successfully
+const {
+  isSubmitting: isDeleting,
+  error: deleteError,
+  success: deleteSuccess,
+  submitForm: submitDeleteAccount
+} = useFormSubmission({
+  url: '/api/v1/account/destroy',
+  successMessage: 'Account deleted successfully.',
+  onSuccess: () => {
     showDeleteModal.value = false;
+    window.location.href = '/';
+  },
+  handleShrimp: handleShrimp,
+});
 
-    // Old-school, plain js redirect to the homepage
-    window.location.href = '/'
 
-  } catch (error: unknown) {
+const openDeleteModal = () => {
+  showDeleteModal.value = true;
+};
 
-    if (error instanceof Error) {
-      deleteError.value = error.message || 'An error occurred while deleting the account';
-
-    } else {
-      console.error("An unexpected error occurred", error);
-    }
-
-  } finally {
-    isDeleting.value = false;
-  }
+const closeDeleteModal = () => {
+  showDeleteModal.value = false;
+  deletePassword.value = '';
 };
 
 
@@ -264,12 +259,10 @@ const {
 } = useFormSubmission({
   url: '/api/v1/account/apikey',
   successMessage: 'Key generated.',
-  onSuccess: async (response) => {
-    const data = await response.json()
-    // Do something with the response data
+  onSuccess: async (data) => {
     apitoken.value = data.apikey;
-    // You could update some state in your component here
-  }
+  },
+  handleShrimp: handleShrimp,
 });
 
 const {
@@ -280,6 +273,7 @@ const {
 } = useFormSubmission({
   url: '/api/v1/account/change-password',
   successMessage: 'Password updated successfully.',
+  handleShrimp: handleShrimp,
 });
 
 const togglePassword = (field: 'current' | 'new' | 'confirm') => {

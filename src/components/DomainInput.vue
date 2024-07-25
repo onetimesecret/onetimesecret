@@ -2,23 +2,21 @@
   <!-- We were unable to verify ownership of quantified.guru. We couldn't find the TXT record. Note that DNS changes can take up to 24 hours. -->
 <template>
   <div>
-    <label for="domain"
-            class="block text-base font-medium leading-6 text-gray-900">Your Domain</label>
+    <h3 for="domain"
+            class="text-ba2se block font-medium leading-6 text-gray-900">Your Domain</h3>
     <div class="relative mt-2 rounded-md shadow-lg">
       <input type="text"
               name="domain"
               id="domain"
-              class="block w-full rounded-md border-0
-              py-3 pr-10 text-red-900 ring-1 ring-inset ring-red-300 placeholder:text-red-300
-              focus:ring-2 focus:ring-inset focus:ring-red-500 sm:leading-9 text-xl"
+              class="ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:leading-9 block w-full py-3 pl-5 pr-10 text-xl text-red-900 border-0 rounded-md"
               :placeholder="placeholder"
               :value="domain"
               :aria-invalid="!isValid"
               aria-describedby="domain-error" />
 
-      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
         <Icon icon="heroicons:exclamation-circle"
-              class="h-6 w-6 text-red-500"
+              class="w-6 h-6 text-red-500"
               aria-hidden="true" />
       </div>
     </div>
