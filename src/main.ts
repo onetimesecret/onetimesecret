@@ -28,6 +28,7 @@ type ComponentMap = {
 const componentMap: ComponentMap = {
   'Homepage': Homepage,
   'Dashboard': Dashboard,
+  'Customize': defineAsyncComponent(() => import('@/views/Customize.vue')),
   'Account': defineAsyncComponent(() => import('@/views/Account.vue')),
   'Shared': defineAsyncComponent(() => import('@/views/Shared.vue')),
   'Private': defineAsyncComponent(() => import('@/views/Private.vue')),

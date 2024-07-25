@@ -334,6 +334,15 @@ module Onetime
         end
       end
 
+      class Customize < Onetime::App::Views::Dashboard
+        # Use the same locale as the dashboard
+        self.pagename = :dashboard # used for locale content
+        def init
+          self[:body_class] = :customize
+          super
+        end
+      end
+
       class Account < Onetime::App::View
         def init
           self[:title] = "Your Account"

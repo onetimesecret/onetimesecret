@@ -2,8 +2,6 @@
 GET   /                                          Onetime::App#index
 POST  /share                                     Onetime::App#create_secret
 
-GET   /recent                                    Onetime::App#recent
-
 GET   /incoming                                  Onetime::App#incoming
 POST  /incoming                                  Onetime::App#create_incoming
 
@@ -48,6 +46,8 @@ POST  /forgot/:key                               Onetime::App#request_reset
 
 GET   /dashboard                                 Onetime::App#dashboard
 POST  /dashboard                                 Onetime::App#create_secret
+GET   /recent                                    Onetime::App#recent
+GET   /customize                                 Onetime::App#customize
 
 GET   /account                                   Onetime::App#account
 POST  /account/subdomain                         Onetime::App#update_subdomain

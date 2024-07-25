@@ -46,7 +46,7 @@ module Onetime
         # quietly redirect to the home page to mimic a successful response.
         @skill = params[:skill].to_s.strip.slice(0,60)
       end
-      
+
       def raise_concerns
         limit_action :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
@@ -349,6 +349,25 @@ module Onetime
       def form_fields
         properties.merge :tabindex => params[:tabindex], :cname => cname
       end
+    end
+
+    class CustomDomain < OT::Logic::Base
+      attr_reader :modified, :greenlighted
+
+      def process_params
+        @currentp = self.class.normalize_password(params[:currentp])
+
+      end
+
+      def raise_concerns
+        @modified ||= []
+        limit_action :update_account
+      end
+
+      def process
+
+      end
+
     end
 
     class UpdateAccount < OT::Logic::Base

@@ -54,6 +54,17 @@ module Onetime
       end
     end
 
+    def customize
+      authenticated do
+        no_cache!
+        logic = OT::Logic::CustomDomain.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        view = Onetime::App::Views::Customize.new req, sess, cust, locale
+        res.body = view.render
+      end
+    end
+
     def show_docs
       publically do
         view = Onetime::App::Views::Docs::Api.new req, sess, cust, locale
