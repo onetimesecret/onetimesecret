@@ -163,11 +163,10 @@ const tiers = [
     features: [
       'Custom domain and branding',
       'Unlimited secrets',
-      'Branded email notifications',
       'AuthentiCore℗ Technology'
 
     ],
-    featured: true,
+    featured: false,
   },
   {
     name: 'Global Elite',
@@ -177,11 +176,12 @@ const tiers = [
     description: 'Dedicated infrastructure for your company.',
     features: [
       'Dedicated, private cloud infrastructure',
+      'Identity Plus',
       'Unlimited usage',
       'Data residency options (EU, US)',
       'SafeTek® Architecture'
     ],
-    featured: false,
+    featured: true,
   },
 ]
 
