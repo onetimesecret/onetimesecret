@@ -2,7 +2,7 @@
 # typed: false
 
 #
-# Recommended: Ruby 3.2
+# Recommended: Ruby 3.2+
 #
 # status: normal maintenance
 # release date: 2022-12-25
@@ -25,7 +25,9 @@ gem 'addressable'
 gem 'rack'
 
 gem 'multi_json'
+gem 'public_suffix'
 gem 'thin'
+#gem 'whois'
 gem 'yajl-ruby'
 
 gem 'mustache'

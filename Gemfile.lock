@@ -182,6 +182,7 @@ DEPENDENCIES
   otto (~> 1.1.0.pre.alpha1)
   pry
   pry-byebug
+  public_suffix
   rack
   redis (~> 5.2.0)
   rubocop
