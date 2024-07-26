@@ -70,13 +70,14 @@ module Onetime::Logic
 
       def raise_concerns
 
-        OT.ld "[AddDomain] Raising concerns #{@domain_input}"
+        OT.ld "[AddDomain] Raising any concerns about #{@domain_input}"
         # TODO: Consider returning all applicable errors (plural) at once
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
         # Only store a valid, parsed input value to @domain
-        @domain = OT::CustomDomain.parse(@domain_input) # raises OT::Problem
+        @parsed_domain = OT::CustomDomain.parse(@domain_input) # raises OT::Problem
+        @display_domain = @parsed_domain.display_domain
 
         limit_action :add_domain
 
@@ -91,12 +92,12 @@ module Onetime::Logic
 
       def process
         @greenlighted = true
-        OT.ld "[AddDomain] Processing #{@domain}"
-        @custom_domain = OT::CustomDomain.create(@domain, custid=@cust.custid)
+        OT.ld "[AddDomain] Processing #{@display_domain}"
+        @custom_domain = OT::CustomDomain.create(@display_domain, custid=@cust.custid)
       end
 
       def success_data
-        { custid: @cust.custid, custom_domain: custom_domain }
+        { custid: @cust.custid, custom_domain: @custom_domain }
       end
     end
 

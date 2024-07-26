@@ -6,7 +6,7 @@
 # The list of custom domains that are associated to a customer is
 # distinct from a customer's subdomain.
 #
-# Definitions:
+# General techical terminology:
 #
 # `tld`` = Top level domain, this is in reference to the last segment of a
 # domain, sometimes the part that is directly after the "dot" symbol. For
@@ -33,15 +33,21 @@ class Onetime::CustomDomain < Familia::HashKey
 
   include Onetime::Models::RedisHash
 
-  attr_accessor :display_domain, :base_domain, :custid, :subdomain, :tld, :sld, :trd, :_original_value, :txt_validation_host, :txt_validation_value
+  #attr_accessor :display_domain, :base_domain, :custid, :subdomain, :tld, :sld, :trd, :_original_value, :txt_validation_host, :txt_validation_value
 
   # We need a minimum of a domain and customer id to create a custom
-  # domain -- or more specifically, a custom domain indentifier.
+  # domain -- or more specifically, a custom domain indentifier. We
+  # allow instantiating a custom domain without a customer id, but
+  # instead raise a fuss if we try to save it later without one.
   #
-  # See CustomDomain.base_domain for more information on the difference
-  # between display domain and base domain.
+  # See CustomDomain.base_domain and display_domain for details on
+  # the difference between display domain and base domain.
   #
-  # NOTE: A feature/limitation of Familia RedisObjects is that all
+  # NOTE: Interally within this class, we try not to use the
+  # unqualified term "domain" on its own since there's so much
+  # room for confusion.
+  #
+  # WARNING: A feature/limitation of Familia RedisObjects is that all
   # arguments to initialize must be named arguments. This is because
   # up the `super` chain, we're expecting a catch-all argument named
   # `opts`. If opts is nil, all hell breaks loose and we get an error.
@@ -50,19 +56,27 @@ class Onetime::CustomDomain < Familia::HashKey
   # Actually it's possible that we just need to run super before setting
   # the instance variables.
   #
-  def initialize display_domain, custid
+  def initialize display_domain, custid=nil
     unless display_domain.is_a?(String)
       raise ArgumentError, "Domain must be a string"
     end
 
-    @display_domain = display_domain
-    @base_domain = OT::CustomDomain.base_domain(display_domain)
+    super name, db: self.class.db # `name` here refers to `RedisHash#name`
+
+    # TODO: Why are these not saving to DB? What don't I know about RedisObjects?
+    self.display_domain = display_domain
+    self.base_domain = OT::CustomDomain.base_domain(display_domain)
     @custid = custid
 
-    super name, db: self.class.db # `name` here refers to `RedisHash#name`
   end
 
   # Generate a unique identifier for this customer's custom domain.
+  #
+  # From a customer's perspective, the display_domain is what they see
+  # in their browser's address bar. We use display_domain in the identifier,
+  # b/c it's totally reasonable for a user to have multiple custom domains,
+  # like secrets.example.com and linx.example.com, and they want to be able
+  # to distinguish them from each other.
   #
   # The fact that we rely on this generating the same identifier for a
   # given domain + customer is important b/c it's a means of making
@@ -70,9 +84,15 @@ class Onetime::CustomDomain < Familia::HashKey
   #
   # @return [String] A shortened hash of the domain name and custid.
   def identifier
-    [@domain, @custid].gibbler.shorten
+    return nil if @custid.nil?
+    [@display_domain, @custid].gibbler.shorten
   end
   alias :domainid :identifier
+
+  def save(*)
+    raise ArgumentError, "No customer id provided" unless @custid
+    super # pass the arguments on as-is
+  end
 
   # Check if the given customer is the owner of this domain
   #
@@ -106,7 +126,7 @@ class Onetime::CustomDomain < Familia::HashKey
     #
     # Can raise Onetime::Error.
     #
-    def parse input, custid
+    def parse input, custid=nil
       # The `display_domain` calls PublicSuffix.parse
       display_domain = OT::CustomDomain.display_domain input
 
@@ -169,6 +189,7 @@ class Onetime::CustomDomain < Familia::HashKey
     def display_domain input
       ps_domain = PublicSuffix.parse(input, default_rule: nil)
       ps_domain.subdomain || ps_domain.domain
+
     rescue PublicSuffix::Error => e
       OT.ld "[CustomDomain.parse] #{e.message} for `#{input}"
       raise Onetime::Problem, e.message
@@ -197,7 +218,7 @@ class Onetime::CustomDomain < Familia::HashKey
       # Append the TRD if it exists. This allows for multiple subdomains
       # to be used for the same domain.
       # e.g. The `status` in status.example.com.
-      if obj.trd
+      unless obj.trd.to_s.empty?
         record_host = "#{record_host}.#{obj.trd}"
       end
 
