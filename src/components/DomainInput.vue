@@ -3,12 +3,12 @@
 <template>
   <div>
     <h3 for="domain"
-            class="text-ba2se block font-medium leading-6 text-gray-900">Your Domain</h3>
+            class="text-ba2se block font-medium leading-6 text-gray-900">Add a domain</h3>
     <div class="relative mt-2 rounded-md shadow-lg">
       <input type="text"
               name="domain"
               id="domain"
-              class="ring-1 ring-inset ring-red-300 placeholder:text-red-300 focus:ring-2 focus:ring-inset focus:ring-red-500 sm:leading-9 block w-full py-3 pl-5 pr-10 text-xl text-red-900 border-0 rounded-md"
+              class="ring-1 ring-inset ring-brandcomp-300 placeholder:text-gray-300 focus:ring-2 focus:ring-inset focus:ring-brandcomp-500 sm:leading-9 text-brandcomp-900 block w-full py-3 pl-5 pr-10 text-xl border-0 rounded-md"
               :placeholder="placeholder"
               :value="domain"
               :aria-invalid="!isValid"
@@ -16,7 +16,7 @@
 
       <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
         <Icon icon="heroicons:exclamation-circle"
-              class="w-6 h-6 text-red-500"
+              class="hidden w-6 h-6 text-gray-500"
               aria-hidden="true" />
       </div>
     </div>
