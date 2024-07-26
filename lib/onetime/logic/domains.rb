@@ -1,4 +1,6 @@
 
+require 'public_suffix'
+
 require_relative 'base'
 
 module Onetime::Logic
@@ -22,7 +24,7 @@ module Onetime::Logic
 
       def raise_concerns
         limit_action :update_branding
-        if %w{www yourcompany mycompany admin ots secure secrets}.member?(@cname)
+        if %w{www yourcompany mycompany admin ots secure secrets onetime onetimesecret}.member?(@cname)
           raise_form_error "That CNAME is not available"
         elsif ! @cname.empty?
           @subdomain = OT::Subdomain.load_by_cname(@cname)
@@ -59,7 +61,7 @@ module Onetime::Logic
       end
     end
 
-    class CustomDomain < OT::Logic::Base
+    class AddDomain < OT::Logic::Base
       attr_reader :modified, :greenlighted
 
       def process_params

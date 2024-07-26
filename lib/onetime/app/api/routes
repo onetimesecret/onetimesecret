@@ -23,7 +23,8 @@ POST   /v1/account/destroy                      Onetime::App::API::Account#destr
 POST   /v1/account/change-password              Onetime::App::API::Account#change_account_password
 POST   /v1/account/apikey                       Onetime::App::API::Account#generate_apikey
 POST   /v1/account/domains/add                  Onetime::App::API::Account#add_domain
-DELETE /v1/account/domains/:domain               Onetime::App::API::Account#remove_domain
+DELETE /v1/account/domains/:domain              Onetime::App::API::Account#remove_domain
+POST    /v1/account/domains/:domain/verify      Onetime::App::API::Account#verify_domain
 GET    /v1/account/domains                      Onetime::App::API::Account#list_domains
 
 ## API v2

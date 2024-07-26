@@ -1,10 +1,21 @@
-# http://www.artviper.net/website-tools/colorfinder.php
-class Onetime::Subdomain < Familia::HashKey
-  include Onetime::Models::RedisHash
 
+# Customer->Subdomain
+#
+# Every customer has or can have a subdomain. This was a feature
+# from the early years. Since there can only be 0 or 1, the redis
+# key for this object is simply `customer:custid:subdomain`. Real-
+# world example of a subdomain: mypage.github.io.
+#
+# The customer subdomain is distinct from CustomDomain (plural)
+# which is a list of domains that are managed by the customer.
+#
+class Onetime::Subdomain < Familia::HashKey
   @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 6
 
+  include Onetime::Models::RedisHash
+
   attr_accessor :values
+
   def initialize custid=nil, cname=nil
     @prefix, @suffix = :customer, :subdomain
     @cname, @custid = OT::Subdomain.normalize_cname(cname), custid
