@@ -54,7 +54,8 @@ module Onetime::Logic
 
       end
 
-      def form_fields
+      def success_data
+        { custid: @cust.custid }
       end
     end
 
@@ -80,6 +81,10 @@ module Onetime::Logic
         cust.update_passphrase @newp
         sess.set_info_message "Password changed"
         secret.destroy!
+      end
+
+      def success_data
+        { custid: @cust.custid }
       end
     end
 
@@ -121,10 +126,8 @@ module Onetime::Logic
         modified.member? field_name
       end
 
-      private
-
-      def form_fields
-        { :tabindex => params[:tabindex] }
+      def success_data
+        {}
       end
     end
 
@@ -199,9 +202,8 @@ module Onetime::Logic
         modified.member? guess
       end
 
-      private
-      def form_fields
-        { :tabindex => params[:tabindex] } unless params.nil?
+      def success_data
+        { custid: @cust.custid }
       end
     end
 
@@ -221,13 +223,12 @@ module Onetime::Logic
 
       def process
         @apikey = cust.regenerate_apitoken
-
         @greenlighted = true
       end
 
-      private
-      def form_fields
-        { :tabindex => params[:tabindex] }
+      # The data returned from this method is passed back to the client.
+      def success_data
+        { apikey: apikey }
       end
     end
 

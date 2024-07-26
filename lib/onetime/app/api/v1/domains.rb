@@ -12,12 +12,20 @@ class Onetime::App::API
     @check_utf8 = true
     @check_uri_encoding = true
 
-
     def add_domain
+      OT.ld "[API::Domains] add_domain"
       process_action(
         OT::Logic::Domains::AddDomain,
         "Domain added successfully.",
         "Domain could not be added."
+      )
+    end
+
+    def verify_domain
+      process_action(
+        OT::Logic::Domains::VerifyDomain,
+        "Domain verified.",
+        "Domain could not be verified."
       )
     end
 

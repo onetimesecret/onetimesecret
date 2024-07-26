@@ -1,6 +1,8 @@
 <template>
   <div class="space-y-9 my-32">
     <form @submit.prevent="submitForm">
+      <input type="hidden" name="shrimp" :value="shrimp" />
+
       <DomainInput v-model="domain"
                    :is-valid="true"
                    placeholder="e.g. secrets.example.com" />
@@ -21,6 +23,12 @@ import DomainInput from './DomainInput.vue';
 import { useFormSubmission } from '@/utils/formSubmission';
 
 const domain = ref('');
+const shrimp = ref(window.shrimp);
+
+const handleShrimp = (freshShrimp: string) => {
+  shrimp.value = freshShrimp;
+}
+
 
 const {
   isSubmitting,
@@ -28,27 +36,18 @@ const {
   success,
   submitForm
 } = useFormSubmission({
-  url: '/api/v1/account/domain',
+  url: '/api/v1/account/domains/add',
   successMessage: 'Domain added successfully.',
-  getFormData: () => {
-    const formData = new URLSearchParams();
-    formData.append('domain', domain.value);
-    return formData;
-  },
-  onSuccess: (data) => {
+  onSuccess: (data: Record<string, string>) => {
     // Handle successful domain addition
     console.log('Domain added:', data);
     // You might want to reset the form or perform other actions
     domain.value = '';
   },
-  onError: (data) => {
+  onError: (data: Record<string, string>) => {
     // Handle error in domain addition
     console.error('Error adding domain:', data);
   },
-  handleShrimp: (newShrimp) => {
-    // Update shrimp if needed
-    console.log('New shrimp:', newShrimp);
-    // You might want to update a shrimp ref or emit an event to update parent component
-  }
+  handleShrimp: handleShrimp,
 });
 </script>

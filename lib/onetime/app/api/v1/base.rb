@@ -107,6 +107,13 @@ class Onetime::App
       # @param logic_class [Class] The class implementing the action logic.
       # @param error_message [String] The error message to display if the action fails.
       #
+      # The logic class must implement the following methods:
+      # - raise_concerns
+      # - process_params
+      # - process
+      # - greenlighted
+      # - success_data
+      #
       # @yield [logic] Gives access to the logic object for custom success handling.
       # @yieldparam logic [Object] The instantiated logic object after processing.
       #
@@ -122,6 +129,7 @@ class Onetime::App
           logic = logic_class.new(sess, cust, req.params, locale)
           logic.raise_concerns
           logic.process
+          OT.ld "[process_action] #{logic_class} success=#{logic.greenlighted}"
           if logic.greenlighted
             json_success(custid: cust.custid, **logic.success_data)
           else

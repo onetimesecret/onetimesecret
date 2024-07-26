@@ -54,30 +54,45 @@ module Onetime::Logic
         sess.set_form_fields form_fields # for tabindex
       end
 
-      private
-
-      def form_fields
-        properties.merge :tabindex => params[:tabindex], :cname => cname
+      def success_data
+        { custid: @cust.custid }
       end
     end
 
     class AddDomain < OT::Logic::Base
-      attr_reader :modified, :greenlighted
+      attr_reader :modified, :greenlighted, :custom_domain
 
       def process_params
-        @currentp = self.class.normalize_password(params[:currentp])
-
+        OT.ld "[AddDomain] Normalizing #{@domain}"
+        @domain = OT::CustomDomain.normalize(params[:domain])  # returns a string or nil
       end
 
       def raise_concerns
         @modified ||= []
-        #limit_action :update_account
+        OT.ld "[AddDomain] Raising concerns #{@domain}"
+        limit_action :add_domain
+        raise_form_error "Please enter a domain" if @domain.to_s.empty?
+        raise_form_error "Not a valid domain" unless OT::CustomDomain.valid?(@domain)
+        # Don't need to do a bunch of validation checks here. If a value
+        # is provided and it passes as valid, it's valid. If another account
+        # has verified the same domain, that's fine. Both accounts can generate
+        # secret links for that domain, and the links will be valid for both accounts.
+        #
+        #if OT::CustomDomain.exists?(@domain)
+        #  raise_form_error "That domain is not available"
+        #end
+        #
       end
 
       def process
-
+        @greenlighted = true
+        OT.ld "[AddDomain] Processing #{@domain}"
+        @custom_domain = OT::CustomDomain.create(@domain, custid=@cust.custid)
       end
 
+      def success_data
+        { custid: @cust.custid, custom_domain: custom_domain }
+      end
     end
 
   end

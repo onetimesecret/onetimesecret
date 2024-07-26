@@ -48,7 +48,7 @@ class Onetime::CustomDomain < Familia::HashKey
     # Can raise Onetime::Error.
     #
     def parse name
-      ps_domain PublicSuffix.parse(name, default_rule: nil)
+      ps_domain = PublicSuffix.parse(name, default_rule: nil)
       OT::CustomDomain.new(ps_domain.domain)
     rescue PublicSuffix::Error => e
       OT.ld "[CustomDomain.parse] #{e.message} for `#{name}"
@@ -61,6 +61,7 @@ class Onetime::CustomDomain < Familia::HashKey
     def create name=nil, custid=nil
       parse(name).tap do |cd|
         cd.custid = custid if custid
+        OT.info "[CustomDomain.create] Added domain #{name} for #{custid}"
         cd.save
       end
     end
