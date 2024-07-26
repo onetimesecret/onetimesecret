@@ -1,24 +1,30 @@
 <template>
-  <div class="space-y-9 my-32">
+  <div class="space-y-9 my-16">
+
+    <BasicFormAlerts :success="success" :error="error" />
+
     <form @submit.prevent="submitForm">
-      <input type="hidden" name="shrimp" :value="shrimp" />
+      <input type="hidden"
+             name="shrimp"
+             :value="shrimp" />
 
       <DomainInput v-model="domain"
                    :is-valid="true"
+                   domain=""
                    placeholder="e.g. secrets.example.com" />
+
       <button type="submit"
               :disabled="isSubmitting"
               class="hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-opacity-50 bg-brand-500 px-4 py-2 mt-4 text-lg text-white rounded">
         {{ isSubmitting ? 'Adding...' : 'Continue' }}
       </button>
     </form>
-    <p v-if="error" class="text-red-500">{{ error }}</p>
-    <p v-if="success" class="text-green-500">{{ success }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import BasicFormAlerts from './BasicFormAlerts.vue';
 import DomainInput from './DomainInput.vue';
 import { useFormSubmission } from '@/utils/formSubmission';
 
