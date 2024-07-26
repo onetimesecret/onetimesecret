@@ -6,7 +6,7 @@ module Onetime::Models
 
     attr_accessor :prefix, :identifier, :suffix, :cache
 
-    def name identifier=nil
+    def name identifier=nil  # TODO: Rename this method to `rediskey`. Too many collisions on "name".
       self.identifier ||= identifier
       @prefix ||= self.class.to_s.downcase.split('::').last.to_sym
       @suffix ||= :object
