@@ -60,28 +60,33 @@ module Onetime::Logic
     end
 
     class AddDomain < OT::Logic::Base
-      attr_reader :modified, :greenlighted, :custom_domain
+      attr_reader :greenlighted, :custom_domain
 
       def process_params
-        OT.ld "[AddDomain] Normalizing #{@domain}"
-        @domain = OT::CustomDomain.normalize(params[:domain])  # returns a string or nil
+        OT.ld "[AddDomain] Parsing #{params[:domain]}"
+         # PublicSuffix does its own normalizing so we don't need to do any here
+         @domain_input = params[:domain].to_s
       end
 
       def raise_concerns
-        @modified ||= []
-        OT.ld "[AddDomain] Raising concerns #{@domain}"
+
+        OT.ld "[AddDomain] Raising concerns #{@domain_input}"
+        # TODO: Consider returning all applicable errors (plural) at once
+        raise_form_error "Please enter a domain" if @domain_input.empty?
+        raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
+
+        # Only store a valid, parsed input value to @domain
+        @domain = OT::CustomDomain.parse(@domain_input) # raises OT::Problem
+
         limit_action :add_domain
-        raise_form_error "Please enter a domain" if @domain.to_s.empty?
-        raise_form_error "Not a valid domain" unless OT::CustomDomain.valid?(@domain)
-        # Don't need to do a bunch of validation checks here. If a value
-        # is provided and it passes as valid, it's valid. If another account
-        # has verified the same domain, that's fine. Both accounts can generate
-        # secret links for that domain, and the links will be valid for both accounts.
+
+        # Don't need to do a bunch of validation checks here. If the input value
+        # passes as valid, it's valid. If another account has verified the same
+        # domain, that's fine. Both accounts can generate secret links for that
+        # domain, and the links will be valid for both accounts.
         #
-        #if OT::CustomDomain.exists?(@domain)
-        #  raise_form_error "That domain is not available"
-        #end
-        #
+        #   e.g. `OT::CustomDomain.exists?(@domain)`
+
       end
 
       def process

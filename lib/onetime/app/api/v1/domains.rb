@@ -13,7 +13,7 @@ class Onetime::App::API
     @check_uri_encoding = true
 
     def add_domain
-      OT.ld "[API::Domains] add_domain"
+      OT.ld "[API::Domains] add_domain #{req.params}"
       process_action(
         OT::Logic::Domains::AddDomain,
         "Domain added successfully.",
