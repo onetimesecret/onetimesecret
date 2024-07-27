@@ -63,7 +63,11 @@ module Onetime::Models
           if el.is_a?(Symbol)
             field_name = el
             callable = lambda { |obj|
-              obj.send(field_name) # gather by instance method
+              if obj.respond_to?(:[]) && obj[field_name]
+                obj[field_name] # Familia::RedisObject classes
+              elsif obj.respond_to?(field_name)
+                obj.send(field_name) # Onetime::Models::RedisHash classes via method_missing 😩
+              end
             }
           else
             field_name = el.keys.first

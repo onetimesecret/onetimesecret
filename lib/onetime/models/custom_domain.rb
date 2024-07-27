@@ -34,7 +34,23 @@ class Onetime::CustomDomain < Familia::HashKey
   #@owners = Familia::HashKey.new [name.to_s.downcase.gsub('::', Familia.delim).to_sym, :owners], db: @db
   @txt_validation_prefix = '_onetime-challenge'
 
-  #include Onetime::Models::RedisHash
+  @safe_dump_fields = [
+    :created,
+    :updated,
+    :domainid,
+    :custid,
+    :display_domain,
+    :base_domain,
+    :subdomain,
+    :trd,
+    :tld,
+    :sld,
+    :_original_value,
+    :txt_validation_host,
+    :txt_validation_value
+  ]
+
+  include Onetime::Models::SafeDump
 
   #attr_accessor :display_domain, :base_domain, :custid, :subdomain, :tld, :sld, :trd, :_original_value, :txt_validation_host, :txt_validation_value
 
@@ -67,14 +83,24 @@ class Onetime::CustomDomain < Familia::HashKey
       raise ArgumentError, "Domain must be a string (got #{display_domain.class})"
     end
 
+    # Set the minimum number of required instance variables,
+    # where minimum means the ones needed to generate a valid identifier.
     @display_domain = display_domain
     @custid = custid.to_s
-    p [1, rediskey, @display_domain, display_domain, identifier]
-    super rediskey, db: self.class.db
 
-    #self[:display_domain] = display_domain
-    # NOTE: We don't know what the identifier for this instance is
-    # yet if custid is nil.
+    super rediskey, db: self.class.db
+  end
+
+  def init
+    self[:display_domain] = @display_domain
+    self[:custid] = @custid
+    OT.ld "[CustomDomain.init] #{self[:display_domain]} id:#{identifier}"
+  end
+
+  def rediskey
+    @prefix ||= self.class.to_s.downcase.split('::').last.to_sym
+    @suffix ||= :object
+    Familia.rediskey @prefix, self.identifier, @suffix
   end
 
   # Generate a unique identifier for this customer's custom domain.
@@ -93,11 +119,6 @@ class Onetime::CustomDomain < Familia::HashKey
   def identifier
     raise ArgumentError if @display_domain.nil? || @custid.nil?
     [@display_domain, @custid].gibbler.shorten
-  end
-
-  def save(*)
-    raise ArgumentError, "No customer id provided" unless self[:custid]
-    super # pass the arguments on as-is
   end
 
   # Check if the given customer is the owner of this domain
@@ -133,6 +154,22 @@ class Onetime::CustomDomain < Familia::HashKey
     identifier.to_s
   end
 
+  def check_identifier!
+    if self.identifier.to_s.empty?
+      raise RuntimeError, "Identifier cannot be empty for #{self.class}"
+    end
+  end
+
+  def update_fields hsh={}
+    check_identifier!
+    hsh[:updated] = OT.now.to_i
+    hsh[:created] = OT.now.to_i unless has_key?(:created)
+    ret = update hsh
+    ## NOTE: caching here like this only works if hsh has all keys
+    #self.cache.replace hsh
+    ret
+  end
+
   module ClassMethods
     attr_reader :db, :values, :owners, :txt_validation_prefix
 
@@ -151,6 +188,8 @@ class Onetime::CustomDomain < Familia::HashKey
       end
       custid = cust.custid
 
+      p [2, input, custid]
+
       parse(input, custid).tap do |obj|
         OT.ld "[CustomDomain.tap] Got #{obj.all} #{obj.all}"
         self.add obj # Add to CustomDomain.values, CustomDomain.owners
@@ -161,7 +200,7 @@ class Onetime::CustomDomain < Familia::HashKey
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         cust = OT::Customer.new(custid)
 
-        p [5, obj[:display_domain], obj[:domainid], obj.all]
+        p [5, obj[:display_domain], obj[:domainid]]
         OT.info "[CustomDomain.create] Adding domain #{obj["display_domain"]}/#{domainid} for #{cust}"
 
         # Add to customer's list of custom domains. It's actually
@@ -169,27 +208,30 @@ class Onetime::CustomDomain < Familia::HashKey
         cust.add_custom_domain obj
 
         # See initialize above for more context.
-        obj[:domainid] = obj.identifier
-        obj[:custid] = custid
+        hsh = {}
+        hsh[:domainid] = obj.identifier
+        hsh[:custid] = custid
 
-        #obj.save # early, paranoid save
+        #hsh.save # early, paranoid save
 
         # Store the individual domain parts that PublicSuffix parsed out
-        obj[:base_domain] = ps_domain.domain
-        obj[:subdomain] = ps_domain.subdomain
-        obj[:trd] = ps_domain.trd
-        obj[:tld] = ps_domain.tld
-        obj[:sld] = ps_domain.sld
+        hsh[:base_domain] = ps_domain.domain.to_s
+        hsh[:subdomain] = ps_domain.subdomain.to_s
+        hsh[:trd] = ps_domain.trd.to_s
+        hsh[:tld] = ps_domain.tld.to_s
+        hsh[:sld] = ps_domain.sld.to_s
 
         # Also keep the original input as the customer intended in
         # case there's a need to "audit" this record later on.
-        obj[:_original_value] = input
+        hsh[:_original_value] = input
 
-        host, value = generate_txt_validation_record(obj)
-        obj[:txt_validation_host] = host
-        obj[:txt_validation_value] = value
+        obj.update_fields hsh
 
-        #obj.save
+        host, value = generate_txt_validation_record(hsh)
+        hsh[:txt_validation_host] = host
+        hsh[:txt_validation_value] = value
+
+        #hsh.save
       end
     end
 
@@ -209,7 +251,7 @@ class Onetime::CustomDomain < Familia::HashKey
       display_domain = OT::CustomDomain.display_domain input
 
       custom_domain = OT::CustomDomain.new(display_domain, custid)
-      OT.ld "[CustomDomain.parse2] Instantiated #{custom_domain[:display_domain]} and #{custom_domain[:custid]}"
+      OT.ld "[CustomDomain.parse2] Instantiated #{custom_domain[:display_domain]} and #{custom_domain[:custid]} (#{display_domain})"
       custom_domain
     end
 
