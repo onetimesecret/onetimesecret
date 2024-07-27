@@ -28,10 +28,13 @@ require 'public_suffix'
 
 class Onetime::CustomDomain < Familia::HashKey
   @db = 6
-  @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: @db
+  # NOTE: The redis key used by older models for values is simply
+  # "onetime:customdomain". We'll want to rename those at some point.
+  @values = Familia::SortedSet.new [name.to_s.downcase.gsub('::', Familia.delim).to_sym, :values], db: @db
+  #@owners = Familia::HashKey.new [name.to_s.downcase.gsub('::', Familia.delim).to_sym, :owners], db: @db
   @txt_validation_prefix = '_onetime-challenge'
 
-  include Onetime::Models::RedisHash
+  #include Onetime::Models::RedisHash
 
   #attr_accessor :display_domain, :base_domain, :custid, :subdomain, :tld, :sld, :trd, :_original_value, :txt_validation_host, :txt_validation_value
 
@@ -56,32 +59,22 @@ class Onetime::CustomDomain < Familia::HashKey
   # Actually it's possible that we just need to run super before setting
   # the instance variables.
   #
-  def initialize display_domain, custid=nil
+  def initialize display_domain, custid
+    @prefix = :customdomain
+    @suffix = :object
+
     unless display_domain.is_a?(String)
-      raise ArgumentError, "Domain must be a string"
+      raise ArgumentError, "Domain must be a string (got #{display_domain.class})"
     end
 
-    super name, db: self.class.db # `name` here refers to `RedisHash#name`
-
-    # WARNING: There's a gnarly bug in the awkward relationship between
-    # RedisHash (local lib) and RedisObject (familia gem) where a value
-    # can be set to an instance var, the in-memory cache in RedisHash,
-    # and/or the persisted value in redis. RedisHash#method_missing
-    # allows for calling fields as method names on the object itself;
-    # RedisObject (specifically Familia::HashKey in this case), relies
-    # on `[]` and `[]=` to access and set values in redis.
-    #
-    # The problem is that the value set by RedisHash#method_missing
-    # is not available to RedisObject (Familia::HashKey) until after
-    # the object has been initialized and `super` called in RedisObject.
-    # Long story short: we set these two instance vars do that the
-    # identifier method can produce a valid identifier string. But,
-    # we're relying on CustomDomain.create to duplicate the effort
-    # and set the same values in the way that will persist them to
-    # redis. Hopefully I do'nt find myself reading this comment in
-    # 5 years and wondering why I can't just call `super` man.
     @display_domain = display_domain
-    @custid = custid
+    @custid = custid.to_s
+    p [1, rediskey, @display_domain, display_domain, identifier]
+    super rediskey, db: self.class.db
+
+    #self[:display_domain] = display_domain
+    # NOTE: We don't know what the identifier for this instance is
+    # yet if custid is nil.
   end
 
   # Generate a unique identifier for this customer's custom domain.
@@ -98,13 +91,12 @@ class Onetime::CustomDomain < Familia::HashKey
   #
   # @return [String] A shortened hash of the domain name and custid.
   def identifier
-    return nil if @custid.nil?
+    raise ArgumentError if @display_domain.nil? || @custid.nil?
     [@display_domain, @custid].gibbler.shorten
   end
-  alias :domainid :identifier
 
   def save(*)
-    raise ArgumentError, "No customer id provided" unless @custid
+    raise ArgumentError, "No customer id provided" unless self[:custid]
     super # pass the arguments on as-is
   end
 
@@ -112,9 +104,9 @@ class Onetime::CustomDomain < Familia::HashKey
   #
   # @param cust [OT::Customer, String] The customer object or customer ID to check
   # @return [Boolean] true if the customer is the owner, false otherwise
-  def owner?(cust)
-    (cust.is_a?(OT::Customer) ? cust.custid : cust).eql?(custid)
-  end
+  #def owner?(cust)
+  #  (cust.is_a?(OT::Customer) ? cust.custid : cust).eql?(custid)
+  #end
 
   # Destroy the custom domain record
   #
@@ -128,27 +120,59 @@ class Onetime::CustomDomain < Familia::HashKey
     super
   end
 
+  def to_s
+    # If we can treat familia objects as strings, then passing them as method
+    # arguments we don't need to check whether it is_a? RedisObject or not;
+    # we can simply call `fobj.to_s`. In both cases the result is the unqiue
+    # ID of the familia object. Usually that is all we need to maintain the
+    # relation records -- we don't actually need the instance of the familia
+    # object itself.
+    #
+    # As a pilot to trial this out, Customer has the equivalent method and
+    # comment. See the ClassMethods below for usage details.
+    identifier.to_s
+  end
+
   module ClassMethods
-    attr_reader :db, :values, :txt_validation_prefix
+    attr_reader :db, :values, :owners, :txt_validation_prefix
 
     # Returns a Onetime::CustomDomain object after saving it to Redis.
     #
     # Calls `parse` so it can raise Onetime::Problem.
     def create input, custid
+      OT.ld "[CustomDomain.create] Called with #{input} and #{custid}"
+
+      # Standardize inputs so that we can handle being given
+      # either a customer object or an ID.
+      cust = if custid.is_a?(Familia::RedisObject)
+        custid
+      else
+        OT::Customer.load(custid)
+      end
+      custid = cust.custid
+
       parse(input, custid).tap do |obj|
+        OT.ld "[CustomDomain.tap] Got #{obj.all} #{obj.all}"
+        self.add obj # Add to CustomDomain.values, CustomDomain.owners
+
         domainid = obj.identifier
 
-        ps_domain = PublicSuffix.parse(input, default_rule: nil)  # raises PublicSuffix::DomainInvalid if invalid domain
+        # Will raise PublicSuffix::DomainInvalid if invalid domain
+        ps_domain = PublicSuffix.parse(input, default_rule: nil)
+        cust = OT::Customer.new(custid)
 
-        OT.info "[CustomDomain.create] Adding domain #{obj.display_domain}/#{domainid} for #{custid}"
+        p [5, obj[:display_domain], obj[:domainid], obj.all]
+        OT.info "[CustomDomain.create] Adding domain #{obj["display_domain"]}/#{domainid} for #{cust}"
 
-        # This looks like a tautology but it's actually doing something
-        # you'd expect was already taken care of: making sure that the
-        # display domain field is persisted to Redis.
-        #
+        # Add to customer's list of custom domains. It's actually
+        # a sorted set so we don't need to worry about dupes.
+        cust.add_custom_domain obj
+
         # See initialize above for more context.
-        obj[:display_domain] = obj.display_domain
+        obj[:domainid] = obj.identifier
         obj[:custid] = custid
+
+        #obj.save # early, paranoid save
 
         # Store the individual domain parts that PublicSuffix parsed out
         obj[:base_domain] = ps_domain.domain
@@ -161,13 +185,11 @@ class Onetime::CustomDomain < Familia::HashKey
         # case there's a need to "audit" this record later on.
         obj[:_original_value] = input
 
-        obj.save
-
         host, value = generate_txt_validation_record(obj)
-        obj.txt_validation_host = host
-        obj.txt_validation_value = value
+        obj[:txt_validation_host] = host
+        obj[:txt_validation_value] = value
 
-        obj.save
+        #obj.save
       end
     end
 
@@ -180,11 +202,15 @@ class Onetime::CustomDomain < Familia::HashKey
     #
     # Can raise Onetime::Error.
     #
-    def parse input, custid=nil
+    def parse input, custid
+      OT.ld "[CustomDomain.parse] Called with #{input} and #{custid}"
+
       # The `display_domain` method calls PublicSuffix.parse
       display_domain = OT::CustomDomain.display_domain input
 
-      OT::CustomDomain.new(display_domain, custid)
+      custom_domain = OT::CustomDomain.new(display_domain, custid)
+      OT.ld "[CustomDomain.parse2] Instantiated #{custom_domain[:display_domain]} and #{custom_domain[:custid]}"
+      custom_domain
     end
 
     # Takes the given input domain and returns the base domain,
@@ -239,14 +265,14 @@ class Onetime::CustomDomain < Familia::HashKey
       # Include a short identifier that is unique to this domain. This
       # allows for multiple customers to use the same domain without
       # conflicting with each other.
-      shortid = obj.domainid.to_s[0..6]
+      shortid = obj[:domainid].to_s[0..6]
       record_host = "#{txt_validation_prefix}-#{shortid}"
 
       # Append the TRD if it exists. This allows for multiple subdomains
       # to be used for the same domain.
       # e.g. The `status` in status.example.com.
-      unless obj.trd.to_s.empty?
-        record_host = "#{record_host}.#{obj.trd}"
+      unless obj[:trd].to_s.empty?
+        record_host = "#{record_host}.#{obj[:trd]}"
       end
 
       # The value needs to be sufficiently unique and non-guessable to
@@ -260,6 +286,50 @@ class Onetime::CustomDomain < Familia::HashKey
       # These can now be displayed to the customer for them
       # to continue the validation process.
       [record_host, record_value]
+    end
+
+    def add fobj
+      #self.owners.put fobj.to_s, fobj[:custid]  # domainid => customer id
+      self.values.add OT.now.to_i, fobj.to_s # created time, identifier
+    end
+
+    def rem fobj
+      self.values.del fobj.to_s
+      #self.owners.del fobj.to_s
+    end
+
+    def all
+      # Load all instances from the sorted set. No need
+      # to involve the owners HashKey here.
+      self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+    end
+
+    def recent duration=48.hours
+      spoint, epoint = OT.now.to_i-duration, OT.now.to_i
+      self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
+    end
+
+    def exists? fobjid
+      fobj = new fobjid
+      fobj.exists?
+    end
+
+    def load display_domain, custid
+      OT.ld "[CustomDomain.load] Got #{display_domain} and #{custid}"
+      # Seems weird at first blush that we're just instantiating
+      # and checking whether the object key exists in Redis, that
+      # we're not also loading all of the attributes. But at second
+      # blush it makes sense b/c it's equivalent to lazy loading
+      # which is a common pattern. Whether lazy loading presents
+      # much value or not when working with redis (which is already
+      # a fast, in-memory data store) is a different question.
+      fobj = new display_domain, custid
+      fobj.exists? ? fobj : nil
+      #
+      #      key = Familia.join(:customdomain, fobjid, :object)
+      #      redis = Familia.redis(db)
+      #      robj = redis.hgetall key
+      #      new robj['display_domain'], robj['custid']
     end
   end
 
