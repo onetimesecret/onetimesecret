@@ -42,7 +42,7 @@ module Onetime
       end
 
       def form_fields
-        OT.ld "No form_fields method for #{self.class}"
+        OT.ld "No form_fields method for #{self.class} via:", caller[0..2].join("\n")
         {}
       end
 

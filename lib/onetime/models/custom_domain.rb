@@ -63,11 +63,25 @@ class Onetime::CustomDomain < Familia::HashKey
 
     super name, db: self.class.db # `name` here refers to `RedisHash#name`
 
-    # TODO: Why are these not saving to DB? What don't I know about RedisObjects?
-    self.display_domain = display_domain
-    self.base_domain = OT::CustomDomain.base_domain(display_domain)
+    # WARNING: There's a gnarly bug in the awkward relationship between
+    # RedisHash (local lib) and RedisObject (familia gem) where a value
+    # can be set to an instance var, the in-memory cache in RedisHash,
+    # and/or the persisted value in redis. RedisHash#method_missing
+    # allows for calling fields as method names on the object itself;
+    # RedisObject (specifically Familia::HashKey in this case), relies
+    # on `[]` and `[]=` to access and set values in redis.
+    #
+    # The problem is that the value set by RedisHash#method_missing
+    # is not available to RedisObject (Familia::HashKey) until after
+    # the object has been initialized and `super` called in RedisObject.
+    # Long story short: we set these two instance vars do that the
+    # identifier method can produce a valid identifier string. But,
+    # we're relying on CustomDomain.create to duplicate the effort
+    # and set the same values in the way that will persist them to
+    # redis. Hopefully I do'nt find myself reading this comment in
+    # 5 years and wondering why I can't just call `super` man.
+    @display_domain = display_domain
     @custid = custid
-
   end
 
   # Generate a unique identifier for this customer's custom domain.
@@ -117,6 +131,46 @@ class Onetime::CustomDomain < Familia::HashKey
   module ClassMethods
     attr_reader :db, :values, :txt_validation_prefix
 
+    # Returns a Onetime::CustomDomain object after saving it to Redis.
+    #
+    # Calls `parse` so it can raise Onetime::Problem.
+    def create input, custid
+      parse(input, custid).tap do |obj|
+        domainid = obj.identifier
+
+        ps_domain = PublicSuffix.parse(input, default_rule: nil)  # raises PublicSuffix::DomainInvalid if invalid domain
+
+        OT.info "[CustomDomain.create] Adding domain #{obj.display_domain}/#{domainid} for #{custid}"
+
+        # This looks like a tautology but it's actually doing something
+        # you'd expect was already taken care of: making sure that the
+        # display domain field is persisted to Redis.
+        #
+        # See initialize above for more context.
+        obj[:display_domain] = obj.display_domain
+        obj[:custid] = custid
+
+        # Store the individual domain parts that PublicSuffix parsed out
+        obj[:base_domain] = ps_domain.domain
+        obj[:subdomain] = ps_domain.subdomain
+        obj[:trd] = ps_domain.trd
+        obj[:tld] = ps_domain.tld
+        obj[:sld] = ps_domain.sld
+
+        # Also keep the original input as the customer intended in
+        # case there's a need to "audit" this record later on.
+        obj[:_original_value] = input
+
+        obj.save
+
+        host, value = generate_txt_validation_record(obj)
+        obj.txt_validation_host = host
+        obj.txt_validation_value = value
+
+        obj.save
+      end
+    end
+
     # Returns a Onetime::CustomDomain object (without saving it to Redis).
     #
     # Rescues on the following:
@@ -127,37 +181,10 @@ class Onetime::CustomDomain < Familia::HashKey
     # Can raise Onetime::Error.
     #
     def parse input, custid=nil
-      # The `display_domain` calls PublicSuffix.parse
+      # The `display_domain` method calls PublicSuffix.parse
       display_domain = OT::CustomDomain.display_domain input
 
       OT::CustomDomain.new(display_domain, custid)
-    end
-
-    # Returns a Onetime::CustomDomain object after saving it to Redis.
-    #
-    # Calls `parse` so it can raise Onetime::Problem.
-    def create input, custid
-      parse(input, custid).tap do |obj|
-        domainid = obj.identifier
-
-        ps_domain = PublicSuffix.parse(input, default_rule: nil)  # raise PublicSuffix::DomainInvalid if invalid domain
-
-        OT.info "[CustomDomain.create] Adding domain #{name}/#{domainid} for #{custid}"
-
-        obj.subdomain = ps_domain.subdomain
-        obj.trd = ps_domain.trd
-        obj.tld = ps_domain.tld
-        obj.sld = ps_domain.sld
-        obj._original_value = input
-
-        obj.save
-
-        host, value = generate_txt_validation_record(obj)
-        obj.txt_validation_host = host
-        obj.txt_validation_value = value
-
-        obj.save
-      end
     end
 
     # Takes the given input domain and returns the base domain,
@@ -222,9 +249,16 @@ class Onetime::CustomDomain < Familia::HashKey
         record_host = "#{record_host}.#{obj.trd}"
       end
 
+      # The value needs to be sufficiently unique and non-guessable to
+      # function as a challenge response. IOW, if we check the DNS for
+      # the domain and match the value we've generated here, then we
+      # can reasonably assume that the customer controls the domain.
       record_value = SecureRandom.hex(16)
+
       OT.info "[CustomDomain] Generated txt record #{record_host} -> #{record_value}"
 
+      # These can now be displayed to the customer for them
+      # to continue the validation process.
       [record_host, record_value]
     end
   end
