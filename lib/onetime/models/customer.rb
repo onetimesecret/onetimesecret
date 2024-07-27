@@ -170,6 +170,7 @@ class Onetime::Customer < Familia::HashKey
   end
 
   def add_custom_domain obj
+    OT.ld "[add_custom_domain] adding #{obj} to #{self}"
     custom_domains_list.add OT.now.to_i, obj[:display_domain] # not the object identifier
   end
 

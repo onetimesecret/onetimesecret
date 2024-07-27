@@ -76,8 +76,8 @@ module Onetime::Logic
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
         # Only store a valid, parsed input value to @domain
-        @parsed_domain = OT::CustomDomain.parse(@domain_input) # raises OT::Problem
-        @display_domain = @parsed_domain.display_domain
+        @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust) # raises OT::Problem
+        @display_domain = @parsed_domain[:display_domain]
 
         limit_action :add_domain
 
@@ -93,7 +93,7 @@ module Onetime::Logic
       def process
         @greenlighted = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
-        @custom_domain = OT::CustomDomain.create(@display_domain, custid=@cust.custid)
+        @custom_domain = OT::CustomDomain.create(@display_domain, @cust.custid)
       end
 
       def success_data
@@ -101,5 +101,24 @@ module Onetime::Logic
       end
     end
 
+    class ListDomains < OT::Logic::Base
+      attr_reader :custom_domains
+
+      def raise_concerns
+      end
+
+      def process
+        OT.ld "[ListDomains] Processing #{@cust.custom_domains_list.length}"
+        @custom_domains = @cust.custom_domains.map { |cd| cd.safe_dump }
+      end
+
+      def success_data
+        {
+          custid: @cust.custid,
+          records: @custom_domains,
+          count: @custom_domains.length
+        }
+      end
+    end
   end
 end

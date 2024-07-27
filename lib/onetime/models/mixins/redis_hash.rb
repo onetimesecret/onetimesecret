@@ -85,7 +85,7 @@ module Onetime::Models
       else
         meth.to_s
       end
-      OT.ld "[method_missing] #{field} #{self.class}##{meth}"
+      #OT.ld "[method_missing] #{field} #{self.class}##{meth}"
       instance_value = instance_variable_get("@#{field}")
       refresh_cache unless !instance_value.nil? || self.cache.has_key?(field)
       ret = case last_char

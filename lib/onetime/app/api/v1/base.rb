@@ -96,9 +96,11 @@ class Onetime::App
       #
       def retrieve_records(logic_class)
         authorized do
+          OT.ld "[retrieve] #{logic_class}"
           logic = logic_class.new(sess, cust, req.params, locale)
           logic.raise_concerns
           logic.process
+          json success: true, **logic.success_data
         end
       end
 

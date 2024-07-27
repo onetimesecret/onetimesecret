@@ -38,7 +38,7 @@ class Onetime::App::API
     end
 
     def list_domains
-      process_action(OT::Logic::Domains::ListDomains)
+      retrieve_records(OT::Logic::Domains::ListDomains)
     end
 
   end
