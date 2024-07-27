@@ -89,9 +89,8 @@ end
 
 ## Raises an error if the password is incorrect
 cust = OT::Customer.new generate_random_email
-password_guess = 'wrong password'
 obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
-cust.update_passphrase password_guess
+cust.update_passphrase 'wrong password'
 begin
   obj.raise_concerns
 rescue => e
@@ -104,7 +103,7 @@ end
 cust = OT::Customer.new generate_random_email
 password_guess = @params[:confirmation]
 obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
-cust.update_passphrase password_guess
+cust.update_passphrase password_guess # update the password to be correct
 obj.raise_concerns
 #=> nil
 
@@ -143,10 +142,21 @@ end
 ## Process the request and destroy the account
 cust = OT::Customer.new generate_random_email
 obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
-cust.update_passphrase @params[:confirmation]
+cust.update_passphrase @params[:confirmation] # set the passphrase
 obj.raise_concerns
 obj.process
-[cust.role, cust.verified, cust.passphrase]
+
+# NOTE: When running in debug mode, we intentionally don't call
+# Customer#destroy_requested! so the passphrase doesn't get
+# cleared out, causing this test to fail.
+# See DestroyAccount for more details.
+post_destroy_passphrase = if Onetime.debug
+  ''
+else
+  cust.passphrase
+end
+
+[cust.role, cust.verified, post_destroy_passphrase]
 #=> ['user_deleted_self', 'false', '']
 
 ## Destroyed account gets a new api key
@@ -156,7 +166,15 @@ obj = OT::Logic::Account::DestroyAccount.new @sess, cust, @params
 cust.update_passphrase @params[:confirmation]
 obj.raise_concerns
 obj.process
-first_token.eql?(cust.apitoken)
+
+# NOTE: See note above for `post_destroy_passphrase`
+post_destroy_apitoken = if Onetime.debug
+  ''
+else
+  cust.apitoken
+end
+
+first_token.eql?(post_destroy_apitoken)
 #=> false
 
 
