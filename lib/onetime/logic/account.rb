@@ -174,6 +174,12 @@ module Onetime::Logic
           if Onetime.debug
             OT.ld "[destroy-account] Simulated account destruction #{cust.custid} #{cust.role} #{sess.ipaddress}"
 
+            # Since we intentionally don't call Customer#destroy_requested!
+            # when running in debug mode (to simulate the destruction but
+            # not actually modify the customer record), the tryouts that
+            # checked the state of the customer record after destroying
+            # will fail (e.g. they expect the passphrase to be removed).
+
             # We add a message to the session to let the debug user know
             # that we made it to this point in the logic. Otherwise, they
             # might not know if the action was successful or not since we
@@ -195,7 +201,6 @@ module Onetime::Logic
           sess.set_info_message 'Account deleted'
         end
 
-        sess.set_form_fields form_fields  # for tabindex
       end
 
       def modified? guess
@@ -205,6 +210,7 @@ module Onetime::Logic
       def success_data
         { custid: @cust.custid }
       end
+
     end
 
     class GenerateAPIkey < OT::Logic::Base

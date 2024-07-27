@@ -117,7 +117,9 @@ class Onetime::CustomDomain < Familia::HashKey
   #
   # @return [String] A shortened hash of the domain name and custid.
   def identifier
-    raise ArgumentError if @display_domain.nil? || @custid.nil?
+    if @display_domain.to_s.empty? || @custid.to_s.empty?
+      raise OT::Problem, 'Cannot generate identifier with emptiness'
+    end
     [@display_domain, @custid].gibbler.shorten
   end
 
@@ -164,10 +166,7 @@ class Onetime::CustomDomain < Familia::HashKey
     check_identifier!
     hsh[:updated] = OT.now.to_i
     hsh[:created] = OT.now.to_i unless has_key?(:created)
-    ret = update hsh
-    ## NOTE: caching here like this only works if hsh has all keys
-    #self.cache.replace hsh
-    ret
+    update hsh # See Familia::RedisObject#update
   end
 
   module ClassMethods
@@ -178,17 +177,6 @@ class Onetime::CustomDomain < Familia::HashKey
     # Calls `parse` so it can raise Onetime::Problem.
     def create input, custid
       OT.ld "[CustomDomain.create] Called with #{input} and #{custid}"
-
-      # Standardize inputs so that we can handle being given
-      # either a customer object or an ID.
-      cust = if custid.is_a?(Familia::RedisObject)
-        custid
-      else
-        OT::Customer.load(custid)
-      end
-      custid = cust.custid
-
-      p [2, input, custid]
 
       parse(input, custid).tap do |obj|
         OT.ld "[CustomDomain.tap] Got #{obj.all} #{obj.all}"
@@ -210,9 +198,7 @@ class Onetime::CustomDomain < Familia::HashKey
         # See initialize above for more context.
         hsh = {}
         hsh[:domainid] = obj.identifier
-        hsh[:custid] = custid
-
-        #hsh.save # early, paranoid save
+        hsh[:custid] = custid.to_s
 
         # Store the individual domain parts that PublicSuffix parsed out
         hsh[:base_domain] = ps_domain.domain.to_s
@@ -225,13 +211,11 @@ class Onetime::CustomDomain < Familia::HashKey
         # case there's a need to "audit" this record later on.
         hsh[:_original_value] = input
 
-        obj.update_fields hsh
-
         host, value = generate_txt_validation_record(hsh)
         hsh[:txt_validation_host] = host
         hsh[:txt_validation_value] = value
 
-        #hsh.save
+        obj.update_fields hsh
       end
     end
 

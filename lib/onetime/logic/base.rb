@@ -49,7 +49,7 @@ module Onetime
       def raise_form_error(msg)
         ex = OT::FormError.new
         ex.message = msg
-        ex.form_fields = form_fields
+        ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end
 

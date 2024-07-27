@@ -45,6 +45,7 @@ export interface CustomDomain {
   trd: string;
   tld: string;
   sld: string;
+  verified: boolean;
   _original_value: string;
   txt_validation_host: string;
   txt_validation_value: string;
