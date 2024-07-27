@@ -29,8 +29,8 @@ class Onetime::Customer < Familia::HashKey
   include Onetime::Models::Passphrase
   include Onetime::Models::SafeDump
 
-  def initialize custid=:anon
-    @custid = custid  # if we use accessor methods it will sync to redis.
+  def initialize custid=nil
+    @custid = custid || :anon # if we use accessor methods it will sync to redis.
 
     # WARNING: There's a gnarly bug in the awkward relationship between
     # RedisHash (local lib) and RedisObject (familia gem) where a value
@@ -51,6 +51,10 @@ class Onetime::Customer < Familia::HashKey
     # 5 years and wondering why I can't just call `super` man.
 
     super name, db: 6 # `name` here refers to `RedisHash#name`
+  end
+
+  def custid
+    @custid || :anon
   end
 
   def identifier
