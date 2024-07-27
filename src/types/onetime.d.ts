@@ -1,6 +1,11 @@
 /* eslint-disable no-unused-vars */
 
-// Define the cust object
+/**
+ * Backend Ruby app
+ *
+ **/
+
+// Define the cust model
 export interface Cust {
   custid: string;
   role: string;
@@ -13,7 +18,7 @@ export interface Cust {
   active: string;
 }
 
-// Define the plan object
+// Define the plan model
 export interface Plan {
   planid: string;
   price: number;
@@ -28,6 +33,27 @@ export interface Plan {
   };
 }
 
+export interface CustomDomain {
+  created: string;
+  updated: string;
+  identifier: string;
+  domainid: string;
+  custid: string;
+  display_domain: string;
+  base_domain: string;
+  subdomain: string;
+  trd: string;
+  tld: string;
+  sld: string;
+  _original_value: string;
+  txt_validation_host: string;
+  txt_validation_value: string;
+}
+
+/**
+ * Front-end Vue App
+ *
+ **/
 export type FormSubmissionOptions = {
   url: string;
   successMessage: string;

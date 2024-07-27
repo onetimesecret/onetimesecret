@@ -1,5 +1,5 @@
-<!-- _onetime-challenge-custid -> 7709715a6411631ce1d447428d8a70  -->
-<!-- _onetime-challenge-custid.status -> cd94fec5a98fd33a0d70d069acaae9  -->
+<!-- _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70  -->
+<!-- _onetime-challenge-domainid.status -> cd94fec5a98fd33a0d70d069acaae9  -->
 <template>
   <div class="max-w-lg p-6 mx-auto text-white bg-gray-800 rounded-lg shadow-lg">
     <div class="flex items-start p-4 mb-6 text-yellow-300 bg-yellow-900 rounded-md">
