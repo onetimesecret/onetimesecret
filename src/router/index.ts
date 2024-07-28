@@ -9,7 +9,7 @@ const routes: Array<RouteRecordRaw> = [
     component: AccountDomainAdd,
   },
   {
-    path: '/account/domains/verify/:domain',
+    path: '/account/domains/:domain/verify',
     name: 'AccountDomainVerify',
     component: AccountDomainVerify,
   },

@@ -50,7 +50,7 @@ GET   /recent                                    Onetime::App#recent
 
 GET   /account/domains                           Onetime::App#account_domains
 GET   /account/domains/add                       Onetime::App#account_domains_add
-GET   /account/domains/verify/:domain            Onetime::App#account_domains_verify
+GET   /account/domains/:domain/verify            Onetime::App#account_domains_verify
 GET   /account                                   Onetime::App#account
 
 #POST  /account/subdomain                         Onetime::App#update_subdomain

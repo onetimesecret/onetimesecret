@@ -152,19 +152,33 @@ module Onetime::Logic
     end
 
     class GetDomain < OT::Logic::Base
-      def raise_concerns
 
+      def process_params
+        @domain_input = params[:domain].to_s.strip
+      end
+
+      def raise_concerns
+        raise_form_error "Please enter a domain" if @domain_input.empty?
+        raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
+
+        @custom_domain = OT::CustomDomain.load(@domain_input, @cust)
+        raise_form_error "Domain not found" unless @custom_domain
       end
 
       def process
-        OT.ld "[GetDomain] Processing #{@cust.custom_domains_list.length}"
+        OT.ld "[GetDomain] Processing #{@custom_domain[:display_domain]}"
 
         # TODO: GET DOMAIN based on `req.params[:domain]` which should be
         # the display_domain. That way we need to combine with the custid
         # in order to find it. It's a way of proving ownership. Vs passing the
         # domainid in the URL path which gives up the goods.
+      end
 
-        @custom_domains = @cust.custom_domains.map { |cd| cd.safe_dump }
+      def success_data
+        {
+          custid: @cust.custid,
+          record: @custom_domain.safe_dump
+        }
       end
     end
   end

@@ -38,7 +38,7 @@ class Onetime::App::API
     end
 
     def get_domain
-      retrieve_record(OT::Logic::Domains::GetDomain)
+      retrieve_records(OT::Logic::Domains::GetDomain)
     end
 
     def list_domains

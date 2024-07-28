@@ -6,8 +6,11 @@
         <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">These are your verified custom domains.</p>
       </div>
       <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <!-- NOTE: We could instead use the Vue router to load the AccountDomainAdd -->
+        <!-- view on this page and avoid doing a full page request (it's also one less -->
+        <!-- web route that needs to be implemented). -->
         <a href="/account/domains/add"
-                class="block rounded-md bg-brandcomp-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-brandcomp-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brandcomp-600 dark:bg-brandcomp-500 dark:hover:bg-brandcomp-400">
+                class="block rounded-md bg-green-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 dark:bg-green-500 dark:hover:bg-green-400">
                 Add domain
       </a>
       </div>
@@ -42,8 +45,11 @@
             <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
               <MinimalDropdownMenu>
                 <template #menu-items>
+                  <!-- NOTE: We could instead use the Vue router to load the AccountDomainVerify -->
+                  <!-- view on this page and avoid doing a full page request (it's also one less -->
+                  <!-- web route that needs to be implemented). -->
                   <MenuItem v-slot="{ active }">
-                    <a href="#"
+                    <a :href="`/account/domains/${domain.display_domain}/verify`"
                         :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
 
                       Review verification steps

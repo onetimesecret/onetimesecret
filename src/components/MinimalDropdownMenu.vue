@@ -1,20 +1,4 @@
 
-<!--
-  <MenuItem v-slot="{ active }">
-    <a href="#"
-        :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
-      Review verification steps
-      </a>
-  </MenuItem>
-
-  <form method="DELETE" action="/api/v1/account/domains/{{}}">
-    <MenuItem v-slot="{ active }">
-    <button type="submit"
-            :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block w-full px-4 py-2 text-left text-sm']">
-            Remove</button>
-    </MenuItem>
-  </form>
--->
 <template>
   <Menu as="div"
         class="relative inline-block text-left">
