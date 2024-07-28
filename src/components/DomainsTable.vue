@@ -9,10 +9,9 @@
         <!-- NOTE: We could instead use the Vue router to load the AccountDomainAdd -->
         <!-- view on this page and avoid doing a full page request (it's also one less -->
         <!-- web route that needs to be implemented). -->
-        <a href="/account/domains/add"
-                class="block rounded-md bg-green-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 dark:bg-green-500 dark:hover:bg-green-400">
-                Add domain
-      </a>
+        <router-link to="/account/domains/add"
+                     class="block rounded-md bg-green-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 dark:bg-green-500 dark:hover:bg-green-400">Add
+          Domain</router-link>
       </div>
     </div>
     <div class="-mx-4 mt-10 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg dark:ring-gray-700">
@@ -20,11 +19,14 @@
         <thead>
           <tr>
             <th scope="col"
-                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">Domain</th>
+                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">Domain
+            </th>
             <th scope="col"
-                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell dark:text-gray-100">Status</th>
+                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell dark:text-gray-100">
+              Status</th>
             <th scope="col"
-                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell dark:text-gray-100">Added</th>
+                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell dark:text-gray-100">
+              Added</th>
             <th scope="col"
                 class="relative py-3.5 pl-3 pr-4 sm:pr-6">
               <span class="sr-only">Actions</span>
@@ -32,7 +34,9 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          <tr v-for="(domain, domainIdx) in domains" :key="domain.identifier" :tabindex="domainIdx">
+          <tr v-for="(domain, domainIdx) in domains"
+              :key="domain.identifier"
+              :tabindex="domainIdx">
             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-gray-100">
               {{ domain.display_domain }}
             </td>
@@ -49,28 +53,31 @@
                   <!-- view on this page and avoid doing a full page request (it's also one less -->
                   <!-- web route that needs to be implemented). -->
                   <MenuItem v-slot="{ active }">
-                    <a :href="`/account/domains/${domain.display_domain}/verify`"
-                        :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
+                  <a :href="`/account/domains/${domain.display_domain}/verify`"
+                     :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
 
-                      Review verification steps
-                    </a>
+                    Review verification steps
+                  </a>
                   </MenuItem>
 
-                  <form @submit.prevent="(event) => submitForm(event)" :action="`/api/v1/account/domains/${domain.display_domain}/remove`">
-                    <input type="hidden" name="shrimp" :value="shrimp" />
-                    <MenuItem v-slot="{ active }" class="text-red-500">
-                      <button
-                        type="submit"
-                        :class="[
-                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                          'flex w-full items-center px-4 py-2 text-left text-sm'
-                        ]"
-                        :disabled="isSubmitting"
-                      >
+                  <form @submit.prevent="(event) => submitForm(event)"
+                        :action="`/api/v1/account/domains/${domain.display_domain}/remove`">
+                    <input type="hidden"
+                           name="shrimp"
+                           :value="shrimp" />
+                    <MenuItem v-slot="{ active }"
+                              class="text-red-500">
+                    <button type="submit"
+                            :class="[
+                              active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                              'flex w-full items-center px-4 py-2 text-left text-sm'
+                            ]"
+                            :disabled="isSubmitting">
 
-                        <Icon icon="heroicons:trash-20-solid" class="mr-2 h-5 w-5 text-red-500" />
-                        <span>Remove</span>
-                      </button>
+                      <Icon icon="heroicons:trash-20-solid"
+                            class="mr-2 h-5 w-5 text-red-500" />
+                      <span>Remove</span>
+                    </button>
                     </MenuItem>
                   </form>
 
