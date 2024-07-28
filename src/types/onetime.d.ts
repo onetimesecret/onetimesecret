@@ -1,12 +1,19 @@
 /* eslint-disable no-unused-vars */
 
 /**
- * Backend Ruby app
+ * REST API - Backend Ruby app
  *
  **/
 
+// Base interface for common properties
+export interface BaseResponseRecord {
+  identifier: string;
+  created: string;
+  updated: string;
+}
+
 // Define the cust model
-export interface Cust {
+export interface Cust extends BaseResponseRecord {
   custid: string;
   role: string;
   planid?: string;
@@ -19,7 +26,7 @@ export interface Cust {
 }
 
 // Define the plan model
-export interface Plan {
+export interface Plan extends BaseResponseRecord {
   planid: string;
   price: number;
   discount: number;
@@ -33,7 +40,7 @@ export interface Plan {
   };
 }
 
-export interface CustomDomain {
+export interface CustomDomain extends BaseResponseRecord {
   created: string;
   updated: string;
   identifier: string;
@@ -49,6 +56,19 @@ export interface CustomDomain {
   _original_value: string;
   txt_validation_host: string;
   txt_validation_value: string;
+}
+
+export type APIRecordsResponse = {
+  success: boolean;
+  custid: string;
+  records: BaseResponseRecord[];
+  count: number;
+}
+
+export type APIRecordResponse = {
+  success: boolean;
+  custid: string;
+  record: BaseResponseRecord | null;
 }
 
 /**
