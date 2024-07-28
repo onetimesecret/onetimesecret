@@ -3,7 +3,7 @@ import Homepage from '@/views/Homepage.vue'
 import Dashboard from '@/views/Dashboard.vue'
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
-import router from '@/router'
+
 import { ref } from 'vue';
 import './style.css'
 
@@ -76,6 +76,8 @@ const componentMap: ComponentMap = {
   'Feedback': defineAsyncComponent(() => import('@/views/Feedback.vue')),
   'Forgot': defineAsyncComponent(() => import('@/components/PasswordStrengthChecker.vue')),
 }
+
+import router from '@/router/index.ts'
 
 if (window.vue_component_name && window.vue_component_name in componentMap) {
   const Component = componentMap[window.vue_component_name]
