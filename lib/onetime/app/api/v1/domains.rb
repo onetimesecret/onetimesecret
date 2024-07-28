@@ -37,7 +37,15 @@ class Onetime::App::API
       )
     end
 
+    def get_domain
+      retrieve_record(OT::Logic::Domains::GetDomain)
+    end
+
     def list_domains
+      # Probably we only need logic for requests with side effects (POST
+      # etc). We can handle the access controls and params stuff here or
+      # in a lighter way so it doesn't feel like so much machinery just
+      # to return a single record (get_domain et al).
       retrieve_records(OT::Logic::Domains::ListDomains)
     end
 

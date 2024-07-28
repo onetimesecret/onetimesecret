@@ -84,7 +84,9 @@ class Onetime::App
         end
       end
 
-      # Retrieves and lists records of the specified class.
+      # Retrieves and lists records of the specified class. Also used for single
+      # records. It's up to the logic class what it wants to return via
+      # `logic.success_data`` (i.e. `record: {...}` or `records: [...]`` ).
       #
       # @param record_class [Class] The ActiveRecord class of the records to be retrieved.
       # @param error_message [String] The error message to display if retrieval fails.

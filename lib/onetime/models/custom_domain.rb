@@ -138,9 +138,9 @@ class Onetime::CustomDomain < Familia::HashKey
   #
   # @param args [Array] Additional arguments to pass to the superclass destroy method
   # @return [Object] The result of the superclass destroy method
-  def destroy!(*args)
+  def del(*args)
     OT::CustomDomain.values.rem identifier
-    super
+    super # we may prefer to call self.clear here instead
   end
 
   def to_s
@@ -167,6 +167,21 @@ class Onetime::CustomDomain < Familia::HashKey
     hsh[:updated] = OT.now.to_i
     hsh[:created] = OT.now.to_i unless has_key?(:created)
     update hsh # See Familia::RedisObject#update
+  end
+
+  # If we just want to delete the custom domain object key from Redis,
+  # we can use the following method: `self.clear`. However, this method
+  # runs an atomic MULTI command to delete the key and remove it from the
+  # customer's custom domains list. All or nothing.
+  def destroy! customer=nil
+    redis.multi do |multi|
+      multi.del(self.rediskey)
+      # Also remove from CustomDomain.values
+      multi.zrem(OT::CustomDomain.values.rediskey, identifier)
+      unless customer.nil?
+        multi.zrem(customer.custom_domains_list.rediskey, self[:display_domain])
+      end
+    end
   end
 
   module ClassMethods
