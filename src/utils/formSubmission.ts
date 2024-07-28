@@ -1,25 +1,35 @@
 // src/utils/formSubmission.ts
-import { ref } from 'vue'
-import { FormSubmissionOptions } from '@/types/onetime'
+// src/utils/formSubmission.ts
+import { ref } from 'vue';
+import { FormSubmissionOptions } from '@/types/onetime.d.ts';
 
 export function useFormSubmission(options: FormSubmissionOptions) {
-  const isSubmitting = ref(false)
-  const error = ref('')
-  const success = ref('')
+  const isSubmitting = ref(false);
+  const error = ref('');
+  const success = ref('');
 
   const submitForm = async (event?: Event) => {
-    isSubmitting.value = true
-    error.value = ''
-    success.value = ''
+    isSubmitting.value = true;
+    error.value = '';
+    success.value = '';
 
     try {
       let formData: FormData | URLSearchParams;
+      let url: string | undefined = options.url;
 
       if (options.getFormData) {
         formData = options.getFormData();
+
       } else if (event) {
-        const form = event.target as HTMLFormElement
-        formData = new FormData(form)
+        const form = event.target as HTMLFormElement;
+        formData = new FormData(form);
+
+        // Use the form's action attribute if no url
+        // was passed in the options.
+        if (typeof url == 'undefined') {
+          url = form.action;
+        }
+
       } else {
         throw new Error('No form data provided');
       }
@@ -28,25 +38,25 @@ export function useFormSubmission(options: FormSubmissionOptions) {
         ? formData
         : new URLSearchParams(formData as never);
 
-      const response = await fetch(options.url, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: urlSearchParams.toString(),
-      })
+      });
 
       let jsonData;
       try {
-          jsonData = await response.json();
+        jsonData = await response.json();
 
       } catch (error) {
         // The API endoint didnt return JSON. This could be a network error
-        // but more likely
-        const message = `Server returned an incomplete response (${options.url})`;
+        // but more likely the endpoint hasn't been added correctly yet.
+        const message = `Server returned an incomplete response (${url})`;
         console.error(message, error);
         // Handle the error appropriately, e.g., set json to a default value or rethrow the error
-        throw new Error(message)
+        throw new Error(message);
       }
 
       // If the json response includes a new shrimp,
@@ -57,49 +67,46 @@ export function useFormSubmission(options: FormSubmissionOptions) {
       }
 
       if (!response.ok) {
-
         if (options.onError) {
-          await options.onError(jsonData)
+          await options.onError(jsonData);
         }
 
-        if (response.headers.get("content-type")?.includes("application/json")) {
-          throw new Error(jsonData.message || 'Submission failed')
+        if (response.headers.get('content-type')?.includes('application/json')) {
+          throw new Error(jsonData.message || 'Submission failed');
         } else {
-          throw new Error('Please refresh the page and try again.')
+          throw new Error('Please refresh the page and try again.');
         }
-
-
       }
 
-      success.value = options.successMessage
-
+      success.value = options.successMessage;
 
       if (options.onSuccess) {
-        await options.onSuccess(jsonData)
+        await options.onSuccess(jsonData);
       }
 
       if (options.redirectUrl) {
         setTimeout(() => {
-          window.location.href = options.redirectUrl!
-        }, options.redirectDelay || 3000)
+          window.location.href = options.redirectUrl!;
+        }, options.redirectDelay || 3000);
       }
 
     } catch (err: unknown) {
       if (err instanceof Error) {
-        error.value = err.message
+        error.value = err.message;
       } else {
-        console.error('An unexpected error occurred', err)
-        error.value = 'An unexpected error occurred'
+        const msg = 'An unexpected error occurred'
+        console.error(msg, err);
+        error.value = msg;
       }
     } finally {
-      isSubmitting.value = false
+      isSubmitting.value = false;
     }
-  }
+  };
 
   return {
     isSubmitting,
     error,
     success,
     submitForm
-  }
+  };
 }

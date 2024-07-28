@@ -13,7 +13,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'AccountDomainVerify',
     component: AccountDomainVerify,
   },
-  // ... other routes ...
+
 ]
 
 const router = createRouter({

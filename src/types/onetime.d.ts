@@ -56,7 +56,7 @@ export interface CustomDomain {
  *
  **/
 export type FormSubmissionOptions = {
-  url: string;
+  url?: string;
   successMessage: string;
   redirectUrl?: string;
   redirectDelay?: number;

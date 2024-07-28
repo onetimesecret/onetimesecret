@@ -1,7 +1,7 @@
 <template>
   <main>
     <div class="py-4 mb-16">
-      <DomainsTable :domains="domains" />
+      <DomainsTable :shrimp="shrimp" :domains="domains" />
     </div>
   </main>
 </template>
@@ -11,6 +11,7 @@ import { ref, onMounted } from 'vue';
 import { CustomDomain } from '@/types/onetime';
 import DomainsTable from '@/components/DomainsTable.vue';
 
+const shrimp = ref(window.shrimp);
 
 const isLoading = ref(false)
 const error = ref('')

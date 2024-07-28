@@ -40,7 +40,37 @@
               {{ formatRelativeTime(domain.created) }}
             </td>
             <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-              <a href="#" class="text-brandcomp-600 hover:text-brandcomp-900 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">Edit<span class="sr-only">, {{ domain.name }}</span></a>
+              <MinimalDropdownMenu>
+                <template #menu-items>
+                  <MenuItem v-slot="{ active }">
+                    <a href="#"
+                        :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
+
+                      Review verification steps
+                    </a>
+                  </MenuItem>
+
+                  <form @submit.prevent="(event) => submitForm(event)" :action="`/api/v1/account/domains/${domain.display_domain}/remove`">
+                    <input type="hidden" name="shrimp" :value="shrimp" />
+                    <MenuItem v-slot="{ active }" class="text-red-500">
+                      <button
+                        type="submit"
+                        :class="[
+                          active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                          'flex w-full items-center px-4 py-2 text-left text-sm'
+                        ]"
+                        :disabled="isSubmitting"
+                      >
+
+                        <Icon icon="heroicons:trash-20-solid" class="mr-2 h-5 w-5 text-red-500" />
+                        <span>Remove</span>
+                      </button>
+                    </MenuItem>
+                  </form>
+
+                </template>
+              </MinimalDropdownMenu>
+
             </td>
           </tr>
         </tbody>
@@ -50,12 +80,35 @@
 </template>
 
 <script setup lang="ts">
-import type { CustomDomain } from '@/types/onetime'
+import { Icon } from '@iconify/vue';
 
-defineProps({
-  domains: Array<CustomDomain>,
-})
+import type { CustomDomain } from '@/types/onetime';
+import { useFormSubmission } from '@/utils/formSubmission';
+import { MenuItem } from '@headlessui/vue';
+import { ref } from 'vue';
+import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
+import { useRouter } from 'vue-router';
 
+const shrimp = ref(window.shrimp);
+
+const router = useRouter();
+
+defineProps<{
+  domains: CustomDomain[];
+}>();
+
+const handleShrimp = (freshShrimp: string) => {
+  shrimp.value = freshShrimp;
+}
+
+const { isSubmitting, submitForm } = useFormSubmission({
+  successMessage: 'Domain removed successfully',
+  onSuccess: () => {
+    // Refresh the current route
+    router.go(0);
+  },
+  handleShrimp: handleShrimp,
+});
 
 const formatRelativeTime = (epochSeconds: number): string => {
   const date = new Date(epochSeconds * 1000); // Convert seconds to milliseconds
