@@ -35,8 +35,6 @@ class Onetime::CustomDomain < Familia::HashKey
   @txt_validation_prefix = '_onetime-challenge'
 
   @safe_dump_fields = [
-    :created,
-    :updated,
     :domainid,
     :custid,
     :display_domain,
@@ -47,12 +45,14 @@ class Onetime::CustomDomain < Familia::HashKey
     :sld,
     :_original_value,
     :txt_validation_host,
-    :txt_validation_value
+    :txt_validation_value,
+    :status,
+    :verified,
+    :created,
+    :updated
   ]
 
   include Onetime::Models::SafeDump
-
-  #attr_accessor :display_domain, :base_domain, :custid, :subdomain, :tld, :sld, :trd, :_original_value, :txt_validation_host, :txt_validation_value
 
   # We need a minimum of a domain and customer id to create a custom
   # domain -- or more specifically, a custom domain indentifier. We
