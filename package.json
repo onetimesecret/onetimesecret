@@ -44,6 +44,7 @@
     "typescript-eslint": "^7.16.1",
     "vite": "^5.3.4",
     "vite-plugin-html": "^3.2.2",
+    "vue-router": "^4.4.0",
     "vue-tsc": "^2.0.26"
   }
 }
