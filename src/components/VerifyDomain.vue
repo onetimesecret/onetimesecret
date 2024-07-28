@@ -46,7 +46,11 @@
 
 <script setup lang="ts">
 //import { ref } from 'vue';
+//import { CustomDomain } from '@/types/onetime';
 
+defineProps({
+
+})
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text);
   // You might want to add a toast or notification here to inform the user that the text was copied

@@ -25,12 +25,13 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, defineEmits } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DomainInput from './DomainInput.vue';
 import { useFormSubmission } from '@/utils/formSubmission';
+
+const emit = defineEmits(['domain-added']);
 
 const domain = ref('');
 const shrimp = ref(window.shrimp);
@@ -38,7 +39,6 @@ const shrimp = ref(window.shrimp);
 const handleShrimp = (freshShrimp: string) => {
   shrimp.value = freshShrimp;
 }
-
 
 const {
   isSubmitting,
@@ -49,13 +49,18 @@ const {
   url: '/api/v1/account/domains/add',
   successMessage: 'Domain added successfully.',
   onSuccess: (data: Record<string, string>) => {
-    // Handle successful domain addition
     console.log('Domain added:', data);
-    // You might want to reset the form or perform other actions
-    domain.value = '';
+    domain.value = data.record.display_domain
+    if (!domain.value) {
+      console.error('Domain is undefined or empty');
+    }
+    try {
+      emit('domain-added', domain.value);
+    } catch (error) {
+      console.error('Error emitting domain-added event:', error);
+    }
   },
   onError: (data: Record<string, string>) => {
-    // Handle error in domain addition
     console.error('Error adding domain:', data);
   },
   handleShrimp: handleShrimp,

@@ -59,11 +59,11 @@ module Onetime
     end
 
     def account_domains_add
-      self._dashboard_component('AccountDomains')
+      self._dashboard_component('AccountDomainAdd')
     end
 
     def account_domains_verify
-      self._dashboard_component('AccountDomains')
+      self._dashboard_component('AccountDomainVerify')
     end
 
     def _dashboard_component(component_name)

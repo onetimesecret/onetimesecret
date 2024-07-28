@@ -1,19 +1,16 @@
 <template>
   <main>
-
-    <DomainsTable :domains="domains" />
-    <DomainForm :shrimp="shrimp" />
-
+    <div class="py-4 mb-16">
+      <DomainsTable :domains="domains" />
+    </div>
   </main>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import DomainsTable from '@/components/DomainsTable.vue';
-import DomainForm from '@/components/DomainForm.vue';
 import { CustomDomain } from '@/types/onetime';
+import DomainsTable from '@/components/DomainsTable.vue';
 
-const shrimp = window.shrimp;
 
 const isLoading = ref(false)
 const error = ref('')

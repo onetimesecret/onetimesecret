@@ -24,6 +24,7 @@ POST   /v1/account/change-password              Onetime::App::API::Account#chang
 POST   /v1/account/apikey                       Onetime::App::API::Account#generate_apikey
 POST   /v1/account/domains/add                  Onetime::App::API::Domains#add_domain
 DELETE /v1/account/domains/:domain              Onetime::App::API::Domains#remove_domain
+GET    /v1/account/domains/:domain              Onetime::App::API::Domains#get_domain
 POST   /v1/account/domains/:domain/verify       Onetime::App::API::Domains#verify_domain
 GET    /v1/account/domains                      Onetime::App::API::Domains#list_domains
 

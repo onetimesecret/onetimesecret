@@ -3,6 +3,7 @@ import Homepage from '@/views/Homepage.vue'
 import Dashboard from '@/views/Dashboard.vue'
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import router from '@/router'
 import { ref } from 'vue';
 import './style.css'
 
@@ -36,8 +37,11 @@ const componentMap: ComponentMap = {
   'Homepage': Homepage,
   'Dashboard': Dashboard,
 
-  // Laz-load the rest of the pages
+  // Lazy-load the rest of the pages
   'AccountDomains': defineAsyncComponent(() => import('@/views/account/AccountDomains.vue')),
+  'AccountDomainAdd': defineAsyncComponent(() => import('@/views/account/AccountDomainAdd.vue')),
+  'AccountDomainVerify': defineAsyncComponent(() => import('@/views/account/AccountDomainVerify.vue')),
+
   'Account': defineAsyncComponent(() => import('@/views/account/AccountIndex.vue')),
   'Shared': defineAsyncComponent(() => import('@/views/Shared.vue')),
   'Private': defineAsyncComponent(() => import('@/views/Private.vue')),
@@ -51,6 +55,7 @@ const componentMap: ComponentMap = {
 if (window.vue_component_name && window.vue_component_name in componentMap) {
   const Component = componentMap[window.vue_component_name]
   const pageContentApp = createApp(Component)
+  pageContentApp.use(router)
   pageContentApp.mount('#app')
 
 } else {
