@@ -12,8 +12,12 @@ import { useRoute } from 'vue-router';
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
 import { APIRecordResponse, CustomDomain } from '@/types/onetime';
 
+//const props = defineProps<{ domain?: CustomDomain }>();
+
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);
+
+console.log("VerifyDomain.ts", route.params.domain );
 
 const fetchDomain = async (): Promise<void> => {
   const domainName: string = route.params.domain as string;
@@ -32,6 +36,24 @@ const fetchDomain = async (): Promise<void> => {
 };
 
 onMounted(() => {
+  console.log('AccountDomainVerify component mounted');
+  console.log('Domain parameter:', route.params.domain);
   fetchDomain();
+
 });
+
+
+//function verifyDomain(domain: string) {
+//  fetch(`/api/v1/account/domains/${domain}/verify`)
+//    .then(response => response.json())
+//    .then(data => {
+//      // Handle the response data
+//    });
+//}
+//
+//onMounted(() => {
+//  const domain = route.params.domain as string;
+//  verifyDomain(domain);
+//});
+
 </script>
