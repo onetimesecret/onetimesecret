@@ -26,41 +26,16 @@
       <li>
         Create a TXT record in your DNS configuration for the following hostname:
         <div class="flex items-center justify-between p-2 mt-2 bg-gray-100 rounded dark:bg-gray-700">
-          <span>{{ domain.txt_validation_host }}.{{ domain.base_domain }}</span>
-          <button @click="copyToClipboard(domain.txt_validation_host)"
-                  class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-            <svg class="w-5 h-5"
-                 fill="none"
-                 stroke="currentColor"
-                 viewBox="0 0 24 24"
-                 xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
-              </path>
-            </svg>
-          </button>
+          <span ref="hostSpan">{{ domain.txt_validation_host }}<span class="text-gray-400">.{{ domain.base_domain }}</span></span>
+          <CopyButton :text="domain.txt_validation_host" />
+
         </div>
       </li>
       <li>
         Use this code for the value of the TXT record:
         <div class="flex items-center justify-between p-2 mt-2 bg-gray-100 rounded dark:bg-gray-700">
-          <span>{{ domain.txt_validation_value }}</span>
-          <button @click="copyToClipboard(domain.txt_validation_value)"
-                  class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-            <svg class="w-5 h-5"
-                 fill="none"
-                 stroke="currentColor"
-                 viewBox="0 0 24 24"
-                 xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
-              </path>
-            </svg>
-          </button>
+          <span ref="valueSpan">{{ domain.txt_validation_value }}</span>
+          <CopyButton :text="domain.txt_validation_value" />
         </div>
       </li>
       <li>Wait until your DNS configuration changes. This could take up to 24 hours to propagate.</li>
@@ -75,18 +50,17 @@
 
 
 <script setup lang="ts">
-//import { ref } from 'vue';
-import { defineProps } from 'vue';
+import { ref } from 'vue';
 import { CustomDomain } from '@/types/onetime';
+import CopyButton from '@/components/CopyButton.vue';
 
 defineProps({
   domain: { type: Object as () => CustomDomain, required: true },
 })
 
-const copyToClipboard = (text: string) => {
-  navigator.clipboard.writeText(text);
-  // You might want to add a toast or notification here to inform the user that the text was copied
-};
+
+const hostSpan = ref<HTMLSpanElement | null>(null);
+const valueSpan = ref<HTMLSpanElement | null>(null);
 
 const verify = () => {
   // Implement verification logic here

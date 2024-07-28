@@ -10,20 +10,21 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { CustomDomain } from '@/types/onetime';
+import { APIRecordResponse, CustomDomain } from '@/types/onetime';
 
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);
 
-const fetchDomain = async () => {
-  const domainName = route.params.domain as string;
+const fetchDomain = async (): Promise<void> => {
+  const domainName: string = route.params.domain as string;
   try {
-    const response = await fetch(`/api/v1/account/domains/${domainName}`);
+    const response: Response = await fetch(`/api/v1/account/domains/${domainName}`);
     if (!response.ok) {
       throw new Error('Failed to fetch domain information');
     }
-    const data = await response.json();
+    const data: APIRecordResponse = await response.json();
     domain.value = data.record as CustomDomain;
+    console.log('data', data)
   } catch (error) {
     console.error('Error fetching domain:', error);
     // Handle error (e.g., show error message to user)
