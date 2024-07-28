@@ -234,7 +234,7 @@ module Onetime::Logic
 
       # The data returned from this method is passed back to the client.
       def success_data
-        { apikey: apikey }
+        { record: { apikey: apikey, active: true } }
       end
     end
 
