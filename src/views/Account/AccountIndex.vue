@@ -191,11 +191,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
-import { Icon } from '@iconify/vue';
-import { Cust } from '@/types/onetime';
-import { useFormSubmission } from '@/utils/formSubmission';
 import APIKeyCard from '@/components/APIKeyCard.vue';
+import { ApiKeyApiResponse, Cust } from '@/types/onetime';
+import { useFormSubmission } from '@/utils/formSubmission';
+import { Icon } from '@iconify/vue';
+import { reactive, ref } from 'vue';
 
 const custid = window.custid;
 const cust: Cust = window.cust as Cust;
@@ -259,8 +259,9 @@ const {
 } = useFormSubmission({
   url: '/api/v1/account/apikey',
   successMessage: 'Key generated.',
-  onSuccess: async (data) => {
-    apitoken.value = data.apikey;
+  onSuccess: async (data: ApiKeyApiResponse) => {
+    // @ts-expect-error "data.record" is defined only as BaseApiRecord
+    apitoken.value = (data as ApiRecordResponse).record?.apikey || '';
   },
   handleShrimp: handleShrimp,
 });

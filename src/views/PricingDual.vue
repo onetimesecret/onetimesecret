@@ -158,13 +158,12 @@ const tiers = [
     name: 'Identity Plus',
     id: 'tier-identity',
     href: '#',
-    price: { monthly: '$25', annually: '$365' },
+    price: { monthly: '$25', annually: '$365' } as { [key: string]: string },
     description: "Secure sharing that elevates your brand and simplifies communication.",
     features: [
       'Custom domain and branding',
       'Unlimited secrets',
       'AuthentiCore℗ Technology'
-
     ],
     featured: false,
   },
@@ -172,7 +171,7 @@ const tiers = [
     name: 'Global Elite',
     id: 'tier-integrity',
     href: '#',
-    price: { monthly: '$185', annually: '$1995' },
+    price: { monthly: '$185', annually: '$1995' } as { [key: string]: string },
     description: 'Dedicated infrastructure for your company.',
     features: [
       'Dedicated, private cloud infrastructure',

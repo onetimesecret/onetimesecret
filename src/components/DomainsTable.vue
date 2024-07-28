@@ -44,7 +44,7 @@
               {{ domain.verified || 'pending' }}
             </td>
             <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell dark:text-gray-300">
-              {{ formatRelativeTime(domain.created) }}
+              {{ formatRelativeTime(Number(domain.created)) }}
             </td>
             <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
               <MinimalDropdownMenu>
@@ -53,11 +53,10 @@
                   <!-- view on this page and avoid doing a full page request (it's also one less -->
                   <!-- web route that needs to be implemented). -->
                   <MenuItem v-slot="{ active }">
-                  <a :href="`/account/domains/${domain.display_domain}/verify`"
-                     :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
-
+                  <router-link :to="{ name: 'AccountDomainVerify', params: { domain: domain.display_domain } }"
+                               :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
                     Review verification steps
-                  </a>
+                  </router-link>
                   </MenuItem>
 
                   <form @submit.prevent="(event) => submitForm(event)"

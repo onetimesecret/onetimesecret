@@ -104,7 +104,7 @@ const activity = [
     person: {
       name: 'Chelsea Hagon',
       imageUrl:
-        'https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+        '/v3/img/onetime-logo-v3-xl.svg',
     },
     comment: 'Called client, they reassured me the invoice would be paid by the 25th.',
     date: '3d ago',
@@ -119,7 +119,7 @@ const moods = [
   { name: 'Happy', value: 'happy', icon: 'heroicons:face-smile', iconColor: 'text-white', bgColor: 'bg-green-400' },
   { name: 'Sad', value: 'sad', icon: 'heroicons:face-frown', iconColor: 'text-white', bgColor: 'bg-yellow-400' },
   { name: 'Thumbsy', value: 'thumbsy', icon: 'heroicons:hand-thumb-up', iconColor: 'text-white', bgColor: 'bg-blue-500' },
-  { name: 'I feel nothing', value: null, icon: 'heroicons:x-mark', iconColor: 'text-gray-400', bgColor: 'bg-transparent' },
+  { name: 'I feel nothing', value: '', icon: 'heroicons:x-mark', iconColor: 'text-gray-400', bgColor: 'bg-transparent' },
 ]
 
 const selected = ref(moods[5])

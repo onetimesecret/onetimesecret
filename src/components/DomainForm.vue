@@ -30,6 +30,7 @@ import { ref, defineEmits } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DomainInput from './DomainInput.vue';
 import { useFormSubmission } from '@/utils/formSubmission';
+import type { CustomDomainApiResponse } from '@/types/onetime';
 
 const emit = defineEmits(['domain-added']);
 
@@ -48,7 +49,7 @@ const {
 } = useFormSubmission({
   url: '/api/v1/account/domains/add',
   successMessage: 'Domain added successfully.',
-  onSuccess: (data: Record<string, string>) => {
+  onSuccess: (data: CustomDomainApiResponse) => {
     console.log('Domain added:', data);
     domain.value = data.record.display_domain
     if (!domain.value) {
@@ -60,7 +61,7 @@ const {
       console.error('Error emitting domain-added event:', error);
     }
   },
-  onError: (data: Record<string, string>) => {
+  onError: (data) => {
     console.error('Error adding domain:', data);
   },
   handleShrimp: handleShrimp,

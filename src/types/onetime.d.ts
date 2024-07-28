@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 
 /**
  * REST API - Backend Ruby app
@@ -6,14 +5,14 @@
  **/
 
 // Base interface for common properties
-export interface BaseResponseRecord {
+export interface BaseApiRecord {
   identifier: string;
   created: string;
   updated: string;
 }
 
 // Define the cust model
-export interface Cust extends BaseResponseRecord {
+export interface Cust extends BaseApiRecord {
   custid: string;
   role: string;
   planid?: string;
@@ -26,7 +25,7 @@ export interface Cust extends BaseResponseRecord {
 }
 
 // Define the plan model
-export interface Plan extends BaseResponseRecord {
+export interface Plan extends BaseApiRecord {
   planid: string;
   price: number;
   discount: number;
@@ -40,7 +39,7 @@ export interface Plan extends BaseResponseRecord {
   };
 }
 
-export interface CustomDomain extends BaseResponseRecord {
+export interface CustomDomain extends BaseApiRecord {
   created: string;
   updated: string;
   identifier: string;
@@ -58,18 +57,33 @@ export interface CustomDomain extends BaseResponseRecord {
   txt_validation_value: string;
 }
 
-export type APIRecordsResponse = {
+export interface ApiKey extends BaseApiRecord {
+  apikey: string;
+  active: boolean;
+}
+
+export interface BaseApiResponse {
   success: boolean;
+}
+
+export interface ApiErrorResponse<T extends BaseApiRecord> extends BaseApiResponse {
+  message: string;
+  code?: number;
+  record?: T | null;
+}
+
+export interface ApiRecordsResponse<T extends BaseApiRecord> extends BaseApiResponse {
   custid: string;
-  records: BaseResponseRecord[];
+  records: T[];
   count: number;
 }
 
-export type APIRecordResponse = {
-  success: boolean;
-  custid: string;
-  record: BaseResponseRecord | null;
+export interface ApiRecordResponse<T extends BaseApiRecord> extends BaseApiResponse {
+  record: T;
 }
+
+export type ApiKeyApiResponse = ApiRecordResponse<ApiKey>;
+export type CustomDomainApiResponse = ApiRecordResponse<CustomDomain>;
 
 /**
  * Front-end Vue App
@@ -81,7 +95,7 @@ export type FormSubmissionOptions = {
   redirectUrl?: string;
   redirectDelay?: number;
   getFormData?: () => FormData | URLSearchParams;
-  onSuccess?: (data: Record<string, string>) => void | Promise<void>;
-  onError?: (data: Record<string, string>) => void | Promise<void>;
+  onSuccess?: (data: ApiRecordsResponse | ApiRecordResponse) => void | Promise<void>;
+  onError?: (data: ApiErrorResponse) => void | Promise<void>;
   handleShrimp?: (shrimp: string) => void | Promise<void>
 };

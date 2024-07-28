@@ -1,7 +1,7 @@
 // src/utils/formSubmission.ts
 // src/utils/formSubmission.ts
 import { ref } from 'vue';
-import { FormSubmissionOptions } from '@/types/onetime.d.ts';
+import type { FormSubmissionOptions } from '@/types/onetime.d.ts';
 
 export function useFormSubmission(options: FormSubmissionOptions) {
   const isSubmitting = ref(false);
@@ -15,21 +15,32 @@ export function useFormSubmission(options: FormSubmissionOptions) {
 
     try {
       let formData: FormData | URLSearchParams;
-      let url: string | undefined = options.url;
+      let submissionUrl: string;
+      const url: string | undefined = options.url;
 
       if (options.getFormData) {
         formData = options.getFormData();
+        if (!options.url) {
+          throw new Error('URL is required when using getFormData');
+        }
+        submissionUrl = options.url;
 
       } else if (event) {
         const form = event.target as HTMLFormElement;
         formData = new FormData(form);
 
+
         // Use the form's action attribute if no url
         // was passed in the options.
-        if (typeof url == 'undefined') {
-          url = form.action;
+        if (!url) {
+          submissionUrl = form.action;
+        } else {
+          submissionUrl = url;
         }
 
+        if (!submissionUrl) {
+          throw new Error('No URL provided in options or form action');
+        }
       } else {
         throw new Error('No form data provided');
       }
@@ -38,7 +49,7 @@ export function useFormSubmission(options: FormSubmissionOptions) {
         ? formData
         : new URLSearchParams(formData as never);
 
-      const response = await fetch(url, {
+      const response = await fetch(submissionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

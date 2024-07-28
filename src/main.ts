@@ -1,6 +1,6 @@
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
-import router from '@/router/index.ts'
+import router from '@/router'
 import Dashboard from '@/views/Dashboard.vue'
 import Homepage from '@/views/Homepage.vue'
 import { Component, createApp, defineAsyncComponent, ref } from 'vue'
