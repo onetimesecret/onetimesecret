@@ -1,6 +1,7 @@
 <template>
   <main>
     <div class="py-4 mb-16">
+      <button @click="navigateToAddDomain">Add Domain</button> - <router-link to="/account/domains/add">Add Domain</router-link>
       <DomainsTable :shrimp="shrimp" :domains="domains" />
     </div>
   </main>
@@ -10,12 +11,19 @@
 import { ref, onMounted } from 'vue';
 import { CustomDomain } from '@/types/onetime';
 import DomainsTable from '@/components/DomainsTable.vue';
+import { useRouter } from 'vue-router';
 
 const shrimp = ref(window.shrimp);
 
 const isLoading = ref(false)
 const error = ref('')
 const domains = ref<CustomDomain[]>([])
+  const router = useRouter();
+
+const navigateToAddDomain = () => {
+  router.push({ name: 'AccountDomainAdd' });
+};
+
 
 const fetchDomains = async () => {
   isLoading.value = true
