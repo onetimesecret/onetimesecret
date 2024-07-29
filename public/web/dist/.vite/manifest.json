@@ -1,30 +1,6 @@
 {
-  "assets/fonts/zs/ZillaSlab-Bold.woff": {
-    "file": "assets/ZillaSlab-Bold-BSphAb8W.woff",
-    "src": "assets/fonts/zs/ZillaSlab-Bold.woff"
-  },
-  "assets/fonts/zs/ZillaSlab-Bold.woff2": {
-    "file": "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
-    "src": "assets/fonts/zs/ZillaSlab-Bold.woff2"
-  },
-  "assets/fonts/zs/ZillaSlab-Italic.woff": {
-    "file": "assets/ZillaSlab-Italic-B4KlKyMb.woff",
-    "src": "assets/fonts/zs/ZillaSlab-Italic.woff"
-  },
-  "assets/fonts/zs/ZillaSlab-Italic.woff2": {
-    "file": "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
-    "src": "assets/fonts/zs/ZillaSlab-Italic.woff2"
-  },
-  "assets/fonts/zs/ZillaSlab-Regular.woff": {
-    "file": "assets/ZillaSlab-Regular-2Acx4doP.woff",
-    "src": "assets/fonts/zs/ZillaSlab-Regular.woff"
-  },
-  "assets/fonts/zs/ZillaSlab-Regular.woff2": {
-    "file": "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
-    "src": "assets/fonts/zs/ZillaSlab-Regular.woff2"
-  },
   "components/PasswordStrengthChecker.vue": {
-    "file": "assets/PasswordStrengthChecker-BZSbAgvs.js",
+    "file": "assets/PasswordStrengthChecker-BMZOLRHw.js",
     "name": "PasswordStrengthChecker",
     "src": "components/PasswordStrengthChecker.vue",
     "isDynamicEntry": true,
@@ -33,43 +9,27 @@
     ]
   },
   "main.ts": {
-    "file": "assets/main-DpDedNNG.js",
+    "file": "assets/main-B3_245SN.js",
     "name": "main",
     "src": "main.ts",
     "isEntry": true,
     "dynamicImports": [
-      "views/Account.vue",
+      "views/account/AccountDomains.vue",
+      "views/account/AccountDomainAdd.vue",
+      "views/account/AccountDomainVerify.vue",
+      "views/account/AccountIndex.vue",
       "views/Shared.vue",
       "views/Private.vue",
+      "views/PricingDual.vue",
       "views/Feedback.vue",
       "components/PasswordStrengthChecker.vue"
     ],
     "css": [
-      "assets/main-CRxYCVHF.css"
-    ],
-    "assets": [
-      "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
-      "assets/ZillaSlab-Regular-2Acx4doP.woff",
-      "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
-      "assets/ZillaSlab-Bold-BSphAb8W.woff",
-      "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
-      "assets/ZillaSlab-Italic-B4KlKyMb.woff"
-    ]
-  },
-  "views/Account.vue": {
-    "file": "assets/Account-wkhyCQLx.js",
-    "name": "Account",
-    "src": "views/Account.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ],
-    "css": [
-      "assets/Account-ChrBM-lG.css"
+      "assets/main-lAX_gW54.css"
     ]
   },
   "views/Feedback.vue": {
-    "file": "assets/Feedback-DmQJXLBZ.js",
+    "file": "assets/Feedback-Bmpl084m.js",
     "name": "Feedback",
     "src": "views/Feedback.vue",
     "isDynamicEntry": true,
@@ -77,8 +37,20 @@
       "main.ts"
     ]
   },
+  "views/PricingDual.vue": {
+    "file": "assets/PricingDual-Dxucsyfr.js",
+    "name": "PricingDual",
+    "src": "views/PricingDual.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ],
+    "css": [
+      "assets/PricingDual-BxpV0a4t.css"
+    ]
+  },
   "views/Private.vue": {
-    "file": "assets/Private-UV7cG5L5.js",
+    "file": "assets/Private-DAtmi1ss.js",
     "name": "Private",
     "src": "views/Private.vue",
     "isDynamicEntry": true,
@@ -87,12 +59,51 @@
     ]
   },
   "views/Shared.vue": {
-    "file": "assets/Shared-DUs6zI12.js",
+    "file": "assets/Shared-emI96HS3.js",
     "name": "Shared",
     "src": "views/Shared.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts"
+    ]
+  },
+  "views/account/AccountDomainAdd.vue": {
+    "file": "assets/AccountDomainAdd-Dh8lSJMU.js",
+    "name": "AccountDomainAdd",
+    "src": "views/account/AccountDomainAdd.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/account/AccountDomainVerify.vue": {
+    "file": "assets/AccountDomainVerify-CNLVYCCJ.js",
+    "name": "AccountDomainVerify",
+    "src": "views/account/AccountDomainVerify.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/account/AccountDomains.vue": {
+    "file": "assets/AccountDomains-rWnNbS8a.js",
+    "name": "AccountDomains",
+    "src": "views/account/AccountDomains.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/account/AccountIndex.vue": {
+    "file": "assets/AccountIndex-ChBBJmzy.js",
+    "name": "AccountIndex",
+    "src": "views/account/AccountIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ],
+    "css": [
+      "assets/AccountIndex-ChrBM-lG.css"
     ]
   }
 }
