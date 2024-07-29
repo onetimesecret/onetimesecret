@@ -59,14 +59,16 @@ export default defineConfig({
   },
 
   assetsInclude: ['**/*.woff', '**/*.woff2'], // Include font files
-  base: '/dist/',
+  base: '/',
   build: {
     outDir: '../public/web/dist',
     emptyOutDir: true,
 
     manifest: true,
     rollupOptions: {
-      input: 'src/main.ts', // Explicitly define the entry point here
+      input: {
+        main: 'src/main.ts', // Explicitly define the entry point here
+      }
     },
 
     // https://guybedford.com/es-module-preloading-integrity

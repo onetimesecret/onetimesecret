@@ -51,9 +51,9 @@ export default {
      * files in the content array as well.
      *
      */
-    "./src/demo.html",
-    "./templates/web/**/*.html",
+    "./src/*.html",
     "./src/**/*.{vue,js,ts,jsx,tsx,mjs}",
+    "./templates/web/**/*.html",
   ],
 
   darkMode: 'class',
