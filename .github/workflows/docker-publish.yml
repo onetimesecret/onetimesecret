@@ -12,6 +12,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   DOCKERHUB_IMAGE_NAME: ${{ github.repository }}
+  RACK_ENV: production
 
 jobs:
   build:
