@@ -127,7 +127,7 @@ class Onetime::App
       return if @check_shrimp_ran
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete?
-      attempted_shrimp = req.params[:shrimp]
+      attempted_shrimp = req.params[:shrimp].to_s
 
       shrimp = (sess.shrimp || '[noshrimp]').clone
 
