@@ -77,10 +77,72 @@ OT.conf[:site][:authentication].key? :enabled
 OT.conf[:site][:authentication][:enabled]
 #=> true
 
-## Autoverification is disabled by default
+## Signup is enabled by default
+OT.conf[:site][:authentication][:signup]
+#=> true
+
+## Signin is enabled by default
+OT.conf[:site][:authentication][:signin]
+#=> true
+
+## Auto-verification is disabled by default
 OT.conf[:site][:authentication][:autoverify]
 #=> false
 
 ## Option for emailer
 OT.conf[:emailer][:from]
 #=> "CHANGEME@example.com"
+
+## An exception is raised if authentication config is missing
+site_authentication = OT.conf[:site].delete(:authentication)
+begin
+  OT::Config.after_load(OT.conf)
+rescue OT::Problem => e
+  puts "Error: #{e}"
+  OT.conf[:site][:authentication] = site_authentication # restore
+  e.message
+end
+#=> "No `site.authentication` config found in try/../etc/config.test"
+
+## An exception is raised if development config is missing
+development = OT.conf.delete(:development)
+begin
+  OT::Config.after_load(OT.conf)
+rescue OT::Problem => e
+  puts "Error: #{e}"
+  OT.conf[:development] = development # restore
+  e.message
+end
+#=> "No `development` config found in try/../etc/config.test"
+
+## An exception is raised if mail config is missing
+mail = OT.conf.delete(:mail)
+begin
+  OT::Config.after_load(OT.conf)
+rescue OT::Problem => e
+  puts "Error: #{e}"
+  OT.conf[:mail] = mail # restore
+  e.message
+end
+#=> "No `mail` config found in try/../etc/config.test"
+
+## (1 of 3) When authentication is disabled, sign-in is disabled regardless of the setting
+OT.conf[:site][:authentication][:enabled] = false
+OT.conf[:site][:authentication][:signin] = true
+OT::Config.after_load(OT.conf)
+OT.conf.dig(:site, :authentication, :signin)
+#=> false
+
+## (2 of 3) When authentication is disabled, sign-up is disabled regardless of the setting
+OT.conf[:site][:authentication][:enabled] = false
+OT.conf[:site][:authentication][:signup] = true
+OT::Config.after_load(OT.conf)
+OT.conf.dig(:site, :authentication, :signup)
+#=> false
+
+## (3 of 3) When authentication is disabled, auto-verify is disabled regardless of the setting
+OT.conf[:site][:authentication][:enabled] = false
+OT.conf[:site][:authentication][:enabled] = true
+OT::Config.after_load(OT.conf)
+OT.conf.dig(:site, :authentication, :signin)
+#=> false
