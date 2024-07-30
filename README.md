@@ -68,6 +68,7 @@ Running from a container is the easiest way to get started. We provide a Dockerf
       -e COLONEL=$COLONEL \
       -e HOST=$HOST \
       -e SSL=$SSL \
+      -e RACK_ENV=production \
       onetimesecret/onetimesecret:latest
 ```
 
