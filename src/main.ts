@@ -73,7 +73,7 @@ function deobfuscateEmails(): void {
     const email = el.textContent?.replace(/ &#65;&#84; /g, "@").replace(/ AT /g, "@").replace(/ D0T /g, ".") || '';
     const subject = el.getAttribute('data-subject');
     const subjectParam = subject ? `?subject=${encodeURIComponent(subject)}` : '';
-    el.innerHTML = `<a href="mailto:${encodeURIComponent(email)}${subjectParam}">${email}</a>`;
+    el.innerHTML = `<a class="dark:text-gray-300" href="mailto:${encodeURIComponent(email)}${subjectParam}">${email}</a>`;
   });
 }
 
