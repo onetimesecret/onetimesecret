@@ -20,9 +20,11 @@
       <p class="text-md text-gray-500 dark:text-gray-400 mb-4">
         {{i18n.page.secret_hint}}
       </p>
-      <p class="text-lg text-slate-500 dark:text-slate-400">
-        {{i18n.page.secret_form_more_text1}} <a href='/signup' class="underline text-slate-700 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-300">{{i18n.page.secret_form_more_text2}}</a> {{i18n.page.secret_form_more_text3}}
-      </p>
+      {{#authentication.signup}}
+        <p class="text-lg text-slate-500 dark:text-slate-400">
+          {{i18n.page.secret_form_more_text1}} <a href='/signup' class="underline text-slate-700 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-300">{{i18n.page.secret_form_more_text2}}</a> {{i18n.page.secret_form_more_text3}}
+        </p>
+      {{/authentication.signup}}
     </div>
     {{/authenticated}}
   </main>

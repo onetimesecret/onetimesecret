@@ -1,4 +1,4 @@
-# Onetime Secret - v0.16.0
+# Onetime Secret - v0.16.1
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
@@ -61,6 +61,7 @@ Running from a container is the easiest way to get started. We provide a Dockerf
   SSL=false
   COLONEL=admin@example.com
   REDIS_URL=redis://host.docker.internal:6379/0
+  RACK_ENV=production
 
   # Create and run a container named `onetimesecret`
   $ docker run -p 3000:3000 -d --name onetimesecret \
@@ -68,11 +69,11 @@ Running from a container is the easiest way to get started. We provide a Dockerf
       -e COLONEL=$COLONEL \
       -e HOST=$HOST \
       -e SSL=$SSL \
-      -e RACK_ENV=production \
+      -e RACK_ENV=$RACK_ENV \
       onetimesecret/onetimesecret:latest
 ```
 
-#### Building locally
+#### Building image locally
 
 ```bash
   $ docker build -t onetimesecret .
@@ -81,6 +82,7 @@ Running from a container is the easiest way to get started. We provide a Dockerf
       -e COLONEL=$COLONEL \
       -e HOST=$HOST \
       -e SSL=$SSL \
+      -e RACK_ENV=$RACK_ENV \
       onetimesecret
 ```
 
@@ -95,6 +97,7 @@ $ docker run -p 3000:3000 -d --name onetimesecret \
     -e COLONEL=$COLONEL \
     -e HOST=$HOST \
     -e SSL=$SSL \
+    -e RACK_ENV=$RACK_ENV \
     onetimesecret/onetimesecret:latest
 ```
 
@@ -159,7 +162,6 @@ See the dedicated [Docker Compose repo](https://github.com/onetimesecret/docker-
 Get the code, one of:
 
 * Download the [latest release](https://github.com/onetimesecret/onetimesecret/archive/refs/tags/latest.tar.gz)
-
 * Clone this repo:
 
 ```bash
@@ -251,6 +253,9 @@ In a separate terminal window, run the Vite dev server:
 ```bash
   $ pnpm run dev
 ```
+
+NOTE: When running the Vite server in development mode, it will automatically reload when files change. Make sure that `RACK_ENV` is either set to `development` or `development.enabled` in etc/config is false. Otherwise the ruby application will attempt to lad the JS/CSS etc from the pre-built files in `public/web/dist`.
+
 
 ## Debugging
 

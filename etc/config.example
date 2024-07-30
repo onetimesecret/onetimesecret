@@ -170,6 +170,24 @@
   :forgot_password_reset: 3
   :generate_apikey: 10
 :development:
+  # Enabling development mode here directs the application to expect
+  # a vite server to be running on port 5173 and will attempt to
+  # connect to that server for each request. This is useful for
+  # development when you want to use a local instance of the frontend
+  # and not have to rebuild it every time you make changes.
+  #
+  #   $ pnpm run dev
+  #   VITE v5.3.4  ready in 38 ms
+  #
+  #   ➜  Local:   http://localhost:5173/dist/
+  #   ➜  Network: use --host to expose
+  #   ➜  press h + enter to show help
+  #
+  # Disabling development mode will cause the application to use the
+  # pre-built JS/CSS assets in the "public/web/dist" directory. This
+  # is useful for production deployments but also for any deployment
+  # where you're not actively working on the frontend JS/CSS etc.
+  # Setting RACK_ENV=production disables development mode automatically.
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
   :frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>

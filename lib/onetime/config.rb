@@ -27,12 +27,25 @@ module Onetime
     def after_load(conf = nil)
       conf ||= {}
 
-      unless conf.has_key?(:development)
-        raise OT::Problem, "No :development config found in #{path}"
+      unless conf.key?(:development)
+        raise OT::Problem, "No `development` config found in #{path}"
       end
 
-      unless conf.has_key?(:mail)
-        raise OT::Problem, "No :mail config found in #{path}"
+      unless conf.key?(:mail)
+        raise OT::Problem, "No `mail` config found in #{path}"
+      end
+
+      unless conf[:site]&.key?(:authentication)
+        raise OT::Problem, "No `site.authentication` config found in #{path}"
+      end
+
+      # Disable all authentication sub-features when main feature is off for
+      # consistency, security, and to prevent unexpected behavior. Ensures clean
+      # config state.
+      if OT.conf.dig(:site, :authentication, :enabled) != true
+        OT.conf[:site][:authentication].each_key do |key|
+          conf[:site][:authentication][key] = false
+        end
       end
 
       mtc = conf[:mail][:truemail]

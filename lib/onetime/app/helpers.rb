@@ -93,7 +93,9 @@ class Onetime::App
       error_response "We'll be back shortly!"
 
     rescue StandardError => ex
-      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{cust.custid} #{sess.short_identifier} #{locale} #{content_type} #{redirect} "
+      custid = cust&.custid || '<notset>'
+      sessid = sess&.short_identifier || '<notset>'
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
 
       error_response "An unexpected error occurred :["
