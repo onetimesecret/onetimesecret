@@ -1,6 +1,6 @@
 <!-- src/components/ApiTokenDisplay.vue -->
 <template>
-  <div v-if="token" class="mb-4 p-4 bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 rounded-lg shadow-lg">
+  <div v-if="token" class="mb-4 p-4 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 rounded-lg shadow-lg">
     <div class="font-mono text-lg text-white">
       <div class="bg-black bg-opacity-20 p-3 rounded flex items-center overflow-x-auto relative">
         <span class="break-all pr-10">{{ token }}</span>
