@@ -189,7 +189,7 @@ import APIKeyCard from '@/components/APIKeyCard.vue';
 const custid = window.custid;
 const cust: Cust = window.cust as Cust;
 const customer_since = window.customer_since;
-const shrimp = window.shrimp;
+const shrimp = window.shrimp as string | undefined;
 const apitoken = ref(window.apitoken);
 
 // Props or state management would typically be used here
@@ -220,6 +220,12 @@ const submitDeleteAccount = async () => {
     // Call the API
     const formData = new URLSearchParams();
     formData.append('confirmation', deletePassword.value);
+
+    if (shrimp) {
+      formData.append('shrimp', shrimp);
+    } else {
+      throw new Error('Shrimp value is missing');
+    }
 
     const response = await fetch('/api/v1/account/destroy', {
       method: 'POST',
