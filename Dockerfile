@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2024-04-10
+# ONETIME SECRET - DOCKER IMAGE - 2024-07-30
 #
 #
 # To build and use this image, you need to copy the example
@@ -159,7 +159,7 @@ RUN pnpm run build-only
 FROM app_env
 ARG CODE_ROOT
 
-LABEL Name=onetimesecret Version=0.16.0
+LABEL Name=onetimesecret Version=0.16.1
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
