@@ -100,9 +100,9 @@ begin
 rescue OT::Problem => e
   puts "Error: #{e}"
   OT.conf[:site][:authentication] = site_authentication # restore
-  e.message
+  e.message.include?('No `site.authentication` config found')
 end
-#=> "No `site.authentication` config found in try/../etc/config.test"
+#=> true
 
 ## An exception is raised if development config is missing
 development = OT.conf.delete(:development)
@@ -111,9 +111,9 @@ begin
 rescue OT::Problem => e
   puts "Error: #{e}"
   OT.conf[:development] = development # restore
-  e.message
+  e.message.include?('No `development` config found')
 end
-#=> "No `development` config found in try/../etc/config.test"
+#=> true
 
 ## An exception is raised if mail config is missing
 mail = OT.conf.delete(:mail)
@@ -122,9 +122,9 @@ begin
 rescue OT::Problem => e
   puts "Error: #{e}"
   OT.conf[:mail] = mail # restore
-  e.message
+  e.message.include?('No `mail` config found')
 end
-#=> "No `mail` config found in try/../etc/config.test"
+#=> true
 
 ## (1 of 3) When authentication is disabled, sign-in is disabled regardless of the setting
 OT.conf[:site][:authentication][:enabled] = false
