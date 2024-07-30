@@ -30,6 +30,8 @@ class Onetime::App
             custid, apitoken = *(auth.credentials || [])
             raise OT::Unauthorized if custid.to_s.empty? || apitoken.to_s.empty?
 
+            return disabled_response(req.path) unless authentication_enabled?
+
             possible = OT::Customer.load custid
             raise OT::Unauthorized if possible.nil?
 
@@ -187,6 +189,10 @@ class Onetime::App
 
       def secret_not_found_response
         not_found_response "Unknown secret", :secret_key => req.params[:key]
+      end
+
+      def disabled_response path
+        not_found_response "#{path} is not available"
       end
 
       def not_found_response msg, hsh={}

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2024-04-10
+# ONETIME SECRET - DOCKER IMAGE - 2024-07-30
 #
 #
 # To build and use this image, you need to copy the example
@@ -28,6 +28,7 @@
 #
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
 #       -e REDIS_URL="redis://172.17.0.2:6379/0" \
+#       -e RACK_ENV=production \
 #       onetimesecret
 #
 # It will be accessible on http://localhost:3000.
@@ -67,8 +68,11 @@
 #
 #   $ docker run -p 3000:3000 -d \
 #     -e REDIS_URL="redis://user:password@host:port/0" \
-#     -e SSL=true -e HOST=example.com \
+#     -e COLONEL="admin@example.com" \
+#     -e HOST=example.com \
+#     -e SSL=true \
 #     -e SECRET="<put your own secret here>" \
+#     -e RACK_ENV=production
 #     onetimesecret
 #
 
@@ -155,12 +159,27 @@ RUN pnpm run build-only
 FROM app_env
 ARG CODE_ROOT
 
-LABEL Name=onetimesecret Version=0.16.0
+LABEL Name=onetimesecret Version=0.16.1
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
+
+# Explicitly setting the Rack environment to production directs
+# the application to use the pre-built JS/CSS assets in the
+# "public/web/dist" directory. In dev mode, the application
+# expects a vite server to be running on port 5173 and will
+# attempt to connect to that server for each request.
+#
+#   $ pnpm run dev
+#   VITE v5.3.4  ready in 38 ms
+#
+#   ➜  Local:   http://localhost:5173/dist/
+#   ➜  Network: use --host to expose
+#   ➜  press h + enter to show help
+#
+ENV RACK_ENV=production
 
 WORKDIR $CODE_ROOT
 

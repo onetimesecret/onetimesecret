@@ -22,6 +22,13 @@ module Onetime
           no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
+
+          # We need the session so that cust is set to anonymous (and not
+          # nil); we want locale too so that we know what language to use.
+          # If this is a POST request, we don't need to check the shrimp
+          # since it wouldn't change our response either way.
+          return disabled_response(req.path) unless authentication_enabled?
+
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           check_subdomain!   # 4. Check if we're running as a subdomain
           sess.authenticated? ? yield : res.redirect(('/'))
@@ -32,6 +39,10 @@ module Onetime
         carefully(redirect) do
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
+
+          # See explanation in `authenticated` method
+          return disabled_response(req.path) unless authentication_enabled?
+
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
         end
@@ -78,6 +89,10 @@ module Onetime
         publically do
           error_response "You found a bug. Let us know how it happened!"
         end
+      end
+
+      def disabled_response path
+         not_found_response "#{path} is not available"
       end
 
       def not_found_response message

@@ -85,6 +85,10 @@ module Onetime
 
     def signup
       publically do
+        unless _auth_settings[:enabled] && _auth_settings[:signup]
+          return disabled_response(req.path)
+        end
+
         # If a plan has been selected, the next onboarding step is the actual signup
         if OT::Plan.plan?(req.params[:planid])
           sess.set_error_message "You're already signed up" if sess.authenticated?
@@ -100,7 +104,10 @@ module Onetime
     end
 
     def create_account
-      publically() do
+      publically do
+        unless _auth_settings[:enabled] && _auth_settings[:signup]
+          return disabled_response(req.path)
+        end
         deny_agents!
         logic = OT::Logic::Account::CreateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
@@ -121,6 +128,9 @@ module Onetime
 
     def signin
       publically do
+        unless _auth_settings[:enabled] && _auth_settings[:signin]
+          return disabled_response(req.path)
+        end
         view = Onetime::App::Views::Signin.new req, sess, cust, locale
         res.body = view.render
       end
@@ -128,6 +138,9 @@ module Onetime
 
     def authenticate # rubocop:disable Metrics/AbcSize
       publically do
+        unless _auth_settings[:enabled] && _auth_settings[:signin]
+          return disabled_response(req.path)
+        end
         # If the request is halted, say for example rate limited, we don't want to
         # allow the browser to refresh and re-submit the form with the login
         # credentials.
@@ -184,6 +197,11 @@ module Onetime
         logic.process
         res.redirect app_path('/account')
       end
+    end
+
+    private
+    def _auth_settings
+      OT.conf.dig(:site, :authentication)
     end
 
   end
