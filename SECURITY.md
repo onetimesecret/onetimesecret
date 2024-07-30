@@ -6,11 +6,14 @@ We take the security of this project seriously and appreciate your efforts to re
 
 We provide security updates for the following versions of our project:
 
-| Version   | Supported          |
-| -------   | ------------------ |
-| 0.16.x+   | :white_check_mark: |
-| 0.15.x    | :white_check_mark: |
-| <= 0.14.0 | :x:                |
+```markdown
+| Version   | Supported          | Support Level                 |
+| -------   | ------------------ | ----------------------------- |
+| 0.16.x+   | :white_check_mark: | Full support                  |
+| 0.15.x    | :white_check_mark: | Security updates only         |
+| <= 0.14.0 | :x:                | End of life (not supported)   |
+```
+
 
 If you are using an unsupported version, we strongly recommend upgrading to one of the supported versions to ensure you receive the latest security updates.
 
