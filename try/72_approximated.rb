@@ -7,7 +7,7 @@
 # with requests that are not actually going to be used in the
 # application.
 
-# TODO: Sort out way to mock API responses, in a Tryouts way.
+# NOTE: These tryouts send real requests to the Approximate API.
 
 require_relative '../lib/onetime'
 require_relative './test_helpers'
@@ -60,10 +60,6 @@ OT.boot!
         }
       ]
     }
-  )},
-  create_error: lambda {IndifferentHash.new(
-    "code" => 422,
-     "body" => {"errors"=>{"incoming_address"=>["This incoming address has already been created on the cluster you selected."]}}
   )}
 }
 
@@ -82,26 +78,38 @@ OT.boot!
   }
 }
 
+
 ## Can check TXT record for domain
 response = @mock_response[:check_records_exist].call
 content = response.body
 [content["records"].length, content["records"][0]["match"], content["records"][1]["match"]]
 #=> [2, false, false]
 
+
 ## Can add a vhost record
-#response = @generate_request[:create_vhost].call
-response = OT::Utils::Approximated.create_vhost(@api_key, @vhost1[:incoming_address], @vhost1[:target_address], @vhost1[:target_ports])
-raise StandardError, response if response.code >= 400
+response = @generate_request[:create_vhost].call
 content = response.parsed_response
 puts 'Recommended user message: %s' % content.dig("data", "user_message")
 [content.keys.length, content.dig("data", "incoming_address"), content.dig("data", "target_address"), content.dig("data", "target_ports")]
 #=> [1, @vhost1[:incoming_address], @vhost1[:target_address], @vhost1[:target_ports]]
 
+
+## Raises an exception if vhost record already exists
+begin
+  @generate_request[:create_vhost].call
+
+rescue HTTParty::ResponseError => e
+  [e.class, e.message.include?('already been created on the cluster'), e.message.include?('incoming_address')]
+end
+#=> [HTTParty::ResponseError, true, true]
+
+
 ## Can read a vhost record
-response = OT::Utils::Approximated.get_vhost_by_incoming_address(@api_key, @vhost1[:incoming_address])
+response = @generate_request[:get_vhost_by_incoming_address].call
 content  = response.parsed_response
 [content.keys.length, content.dig("data", "incoming_address"), content.dig("data", "target_address"), content.dig("data", "target_ports")]
 #=> [1, "72.tryouts.onetimesecret.com", "staging.onetimesecret.com", "443"]
+
 
 ## Can delete a vhost record
 response = @generate_request[:delete_vhost].call

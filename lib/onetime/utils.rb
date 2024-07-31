@@ -141,7 +141,7 @@ module Onetime
         }
         post_options = default_options.merge(options)
 
-        post('/vhosts',
+        response = post('/vhosts',
           headers: { 'api-key' => api_key },
           body: {
             incoming_address: incoming_address,
@@ -152,6 +152,15 @@ module Onetime
             redirect_www: post_options[:redirect_www],
             keep_host: post_options[:keep_host]
           }.to_json)
+
+        case response.code
+        when 422
+          raise HTTParty::ResponseError, response.parsed_response['errors']
+        when 401
+          raise HTTParty::ResponseError, "Invalid API key"
+        end
+
+        response
       end
 
       # Retrieves a virtual host by its incoming address.
