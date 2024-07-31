@@ -30,7 +30,7 @@ OT.boot!
   }
 ]
 @vhost1 = {
-  incoming_address: "72.tryouts.onetimesecret.com",
+  incoming_address: "72.tryouts.deleteme.ifyou.seeme.onetimesecret.com",
   target_address: "staging.onetimesecret.com",
   target_ports: "443"
 }
@@ -78,6 +78,9 @@ OT.boot!
   }
 }
 
+## API Key has a value
+@api_key.length > 1
+#=> true
 
 ## Can check TXT record for domain
 response = @mock_response[:check_records_exist].call
@@ -89,6 +92,7 @@ content = response.body
 ## Can add a vhost record
 response = @generate_request[:create_vhost].call
 content = response.parsed_response
+puts content["data"]
 puts 'Recommended user message: %s' % content.dig("data", "user_message")
 [content.keys.length, content.dig("data", "incoming_address"), content.dig("data", "target_address"), content.dig("data", "target_ports")]
 #=> [1, @vhost1[:incoming_address], @vhost1[:target_address], @vhost1[:target_ports]]
