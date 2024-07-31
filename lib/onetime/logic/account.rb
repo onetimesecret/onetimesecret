@@ -44,11 +44,9 @@ module Onetime::Logic
         raise_form_error "Password is too short" unless password.size >= 6
         raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
 
-        # This is a hidden field, so it should be empty. If it has a value, it's
-        # a simple bot trying to submit the form or similar chicanery. We just
-        # quietly redirect to the home page to mimic a successful response.
+        # Quietly redirect suspected bots to the home page.
         unless skill.empty?
-          raise OT::Redirect.new('/?s=1') # the query string is just an arbitrary value for the logs
+          raise OT::Redirect.new('/?s=1') # the query string is arbitrary, for log filtering
         end
       end
       def process
