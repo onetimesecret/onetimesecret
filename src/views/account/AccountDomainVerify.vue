@@ -1,21 +1,30 @@
+
 <template>
   <main class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6 dark:text-white">Verify Domain</h1>
+    <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Add your domain</h1>
+
+    <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">
+      Before we can verify <span class=" bg-white dark:bg-gray-800  text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>, you'll need to complete these steps.
+    </p>
+    <MoreInfoText :displayDomain="domain?.display_domain" :clusterIpAddress="cluster?.cluster_ip" />
     <VerifyDomainDetails v-if="domain" :domain="domain" />
     <p v-else class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
   </main>
 </template>
 
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { CustomDomain, CustomDomainApiResponse } from '@/types/onetime';
+import { CustomDomain, CustomDomainCluster, CustomDomainApiResponse } from '@/types/onetime';
+import MoreInfoText from "@/components/MoreInfoText.vue";
 
 //const props = defineProps<{ domain?: CustomDomain }>();
 
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);
+const cluster = ref<CustomDomainCluster | null>(null);
 
 console.log("VerifyDomain.ts", route.params.domain );
 
@@ -28,6 +37,10 @@ const fetchDomain = async (): Promise<void> => {
     }
     const data: CustomDomainApiResponse = await response.json();
     domain.value = data.record as CustomDomain;
+    if (data.details) {
+      cluster.value = data.details?.cluster;
+    }
+
     console.log('data', data)
   } catch (error) {
     console.error('Error fetching domain:', error);
