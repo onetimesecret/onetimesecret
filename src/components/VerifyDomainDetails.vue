@@ -29,7 +29,7 @@
           <DetailField label="Type" value="A" />
           <DetailField
             label="Host"
-            :value="domain?.subdomain ? domain.subdomain : '@'"
+            :value="domain?.trd ? domain.trd : '@'"
             :appendix="`.${domain?.base_domain}`"
           />
           <DetailField label="Value" :value="cluster?.cluster_ip" />
