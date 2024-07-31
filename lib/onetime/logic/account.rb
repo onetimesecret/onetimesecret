@@ -27,7 +27,7 @@ module Onetime::Logic
         @password = self.class.normalize_password(params[:p])
         @password2 = self.class.normalize_password(params[:p2])
 
-        @autoverify = OT.conf&.dig(:site, :authentication, :autoverify) || false
+        @autoverify = OT.conf&.dig(:site, :authentication, :autoverify).eql?(true) || false
 
         # This is a hidden field, so it should be empty. If it has a value, it's
         # a simple bot trying to submit the form or similar chicanery. We just
