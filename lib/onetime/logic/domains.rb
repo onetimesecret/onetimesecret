@@ -94,6 +94,25 @@ module Onetime::Logic
         @greenlighted = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
         @custom_domain = OT::CustomDomain.create(@display_domain, @cust.custid)
+
+        # Create the approximated vhost for this domain. Approximated provides a
+        # custom domain as a service API. If no API key is set, then this will
+        # simply log a message and return.
+        create_vhost
+      end
+
+      def create_vhost
+        api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
+        if api_key.empty?
+          return OT.info "[AddDomain.create_vhost] Approximated API key not set"
+        end
+
+        res = OT::Utils::Approximated.create_vhost(api_key, @display_domain, 'staging.onetimesecret.com', '443')
+        payload = res.parsed_response
+        OT.info "[AddDomain.create_vhost] %s" % payload
+        @custom_domain[:vhost] = payload.to_json
+      rescue HTTParty::ResponseError => e
+        OT.error  "[AddDomain.create_vhost] %s"  % e
       end
 
       def success_data
@@ -124,6 +143,19 @@ module Onetime::Logic
 
         @custom_domain.destroy!(@cust)
 
+        delete_vhost
+      end
+
+      def delete_vhost
+        api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
+        if api_key.empty?
+          return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
+        end
+        res = OT::Utils::Approximated.delete_vhost(api_key, @display_domain)
+        payload = res.parsed_response
+        OT.info "[RemoveDomain.delete_vhost] %s" % payload
+      rescue HTTParty::ResponseError => e
+        OT.error  "[RemoveDomain.delete_vhost] %s"  % e
       end
 
       def success_data
