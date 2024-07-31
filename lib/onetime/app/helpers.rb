@@ -4,6 +4,7 @@ class Onetime::App
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
+    HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'HTTP_X_OT_').freeze
   end
 
   module Helpers
@@ -268,6 +269,11 @@ class Onetime::App
         HTTP_X_REAL_IP
         REMOTE_ADDR
       ]
+
+      # Add any header that begins with HEADER_PREFIX
+      prefix_keys = env.keys.select { |key| key.start_with?(HEADER_PREFIX) }
+      keys.concat(prefix_keys)
+
       keys.map { |key| "#{key}=#{env[key]}" }.join(" ")
     end
 
