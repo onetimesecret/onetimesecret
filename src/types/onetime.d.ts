@@ -55,6 +55,16 @@ export interface CustomDomain extends BaseApiRecord {
   _original_value: string;
   txt_validation_host: string;
   txt_validation_value: string;
+  vhost?: string;
+}
+
+export interface CustomDomainCluster extends BaseApiRecord {
+  created?: string;
+  updated?: string;
+  identifier?: string;
+  cluster_name: string;
+  cluster_ip: string;
+  type: string;
 }
 
 export interface ApiKey extends BaseApiRecord {
@@ -70,16 +80,19 @@ export interface ApiErrorResponse<T extends BaseApiRecord> extends BaseApiRespon
   message: string;
   code?: number;
   record?: T | null;
+  details?: { [key: string]: never };
 }
 
 export interface ApiRecordsResponse<T extends BaseApiRecord> extends BaseApiResponse {
   custid: string;
   records: T[];
   count: number;
+  details?: { [key: string]: never };
 }
 
 export interface ApiRecordResponse<T extends BaseApiRecord> extends BaseApiResponse {
   record: T;
+  details?: { [key: string]: never };
 }
 
 export type ApiKeyApiResponse = ApiRecordResponse<ApiKey>;

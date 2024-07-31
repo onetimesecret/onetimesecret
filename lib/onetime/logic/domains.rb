@@ -59,8 +59,30 @@ module Onetime::Logic
       end
     end
 
+    module ClusterFeatures
+      @type = :approximated
+      @api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
+      @cluster_ip = ENV.fetch('APPROXIMATED_PROXY_CLUSTER_IP', '<CLUSTER_IP>')
+      @cluster_name = ENV.fetch('APPROXIMATED_PROXY_CLUSTER_NAME', '<CLUSTER_NAME>')
+
+      module ClassMethods
+        attr_reader :type, :api_key, :cluster_ip, :cluster_name
+      end
+
+      def cluster_safe_dump
+        {
+          type:  ClusterFeatures.type,
+          cluster_ip: ClusterFeatures.cluster_ip,
+          cluster_name: ClusterFeatures.cluster_name
+        }
+      end
+
+      extend ClassMethods
+    end
+
     class AddDomain < OT::Logic::Base
       attr_reader :greenlighted, :custom_domain
+      include ClusterFeatures # for cluster_safe_dump
 
       def process_params
         OT.ld "[AddDomain] Parsing #{params[:domain]}"
@@ -102,7 +124,8 @@ module Onetime::Logic
       end
 
       def create_vhost
-        api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
+        api_key = ClusterFeatures.api_key
+
         if api_key.empty?
           return OT.info "[AddDomain.create_vhost] Approximated API key not set"
         end
@@ -112,11 +135,17 @@ module Onetime::Logic
         OT.info "[AddDomain.create_vhost] %s" % payload
         @custom_domain[:vhost] = payload.to_json
       rescue HTTParty::ResponseError => e
-        OT.error  "[AddDomain.create_vhost] %s"  % e
+        OT.error "[AddDomain.create_vhost] %s"  % e
       end
 
       def success_data
-        { custid: @cust.custid, record: @custom_domain.safe_dump }
+        {
+          custid: @cust.custid,
+          record: @custom_domain.safe_dump,
+          details: {
+            cluster: cluster_safe_dump
+          }
+        }
       end
     end
 
@@ -147,7 +176,7 @@ module Onetime::Logic
       end
 
       def delete_vhost
-        api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
+        api_key = ClusterFeatures.api_key
         if api_key.empty?
           return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
         end
@@ -155,15 +184,21 @@ module Onetime::Logic
         payload = res.parsed_response
         OT.info "[RemoveDomain.delete_vhost] %s" % payload
       rescue HTTParty::ResponseError => e
-        OT.error  "[RemoveDomain.delete_vhost] %s"  % e
+        OT.error "[RemoveDomain.delete_vhost] %s"  % e
       end
 
       def success_data
-        { custid: @cust.custid, record: {}, message: "Removed #{display_domain}" }
+        {
+          custid: @cust.custid,
+          record: {},
+          message: "Removed #{display_domain}"
+        }
       end
     end
 
     class ListDomains < OT::Logic::Base
+      include ClusterFeatures # for cluster_safe_dump
+
       attr_reader :custom_domains
 
       def raise_concerns
@@ -178,12 +213,16 @@ module Onetime::Logic
         {
           custid: @cust.custid,
           records: @custom_domains,
-          count: @custom_domains.length
+          count: @custom_domains.length,
+          details: {
+            cluster: cluster_safe_dump
+          }
         }
       end
     end
 
     class GetDomain < OT::Logic::Base
+      include ClusterFeatures # for cluster_safe_dump
 
       def process_params
         @domain_input = params[:domain].to_s.strip
@@ -193,23 +232,27 @@ module Onetime::Logic
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
+        # Getting the domain record based on `req.params[:domain]` (which is
+        # the display_domain). That way we need to combine with the custid
+        # in order to find it. It's a way of proving ownership. Vs passing the
+        # domainid in the URL path which gives up the goods.
         @custom_domain = OT::CustomDomain.load(@domain_input, @cust)
+
         raise_form_error "Domain not found" unless @custom_domain
       end
 
       def process
         OT.ld "[GetDomain] Processing #{@custom_domain[:display_domain]}"
 
-        # TODO: GET DOMAIN based on `req.params[:domain]` which should be
-        # the display_domain. That way we need to combine with the custid
-        # in order to find it. It's a way of proving ownership. Vs passing the
-        # domainid in the URL path which gives up the goods.
       end
 
       def success_data
         {
           custid: @cust.custid,
-          record: @custom_domain.safe_dump
+          record: @custom_domain.safe_dump,
+          details: {
+            cluster: cluster_safe_dump
+          }
         }
       end
     end
