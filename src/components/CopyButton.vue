@@ -48,6 +48,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  text: '',
   interval: 2000
 });
 

@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
   <div class="mb-4 bg-white dark:bg-gray-800 shadow sm:rounded-lg relative">
     <div class="px-4 py-5 sm:p-4">
       <button @click="toggleExpand"
-              class="flex items-center text-lg font-medium text-gray-900 dark:text-gray-100 hover:text-brandcomp-600 dark:hover:text-brandcomp-400 focus:outline-none">
+              class="flex items-center text-base font- text-brandcomp-800 dark:text-gray-100 hover:text-brandcomp-600 dark:hover:text-brandcomp-400 focus:outline-none">
         <Icon :icon="isExpanded ? 'heroicons:chevron-down' : 'heroicons:chevron-right'"
               class="h-5 w-5 mr-2" />
         {{ isExpanded ? 'Hide details' : 'Expand for more info' }}
@@ -48,17 +48,10 @@ const props = withDefaults(defineProps<Props>(), {
           <div class="mt-4 text-sm">
             <a href="#"
                class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
-              Learn more about DNS configuration <span aria-hidden="true">&rarr;</span>
+              <!--Learn more about DNS configuration <span aria-hidden="true">&rarr;</span>-->
             </a>
           </div>
-          <div class="mt-5 flex items-start bg-white dark:bg-gray-800 p-4 rounded-md">
-            <Icon icon="mdi:information-outline"
-                  class="h-5 w-5 text-brand-400 mr-2 mt-0.5 flex-shrink-0"
-                  aria-hidden="true" />
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              It may take a few minutes for your SSL certificate to take effect once you've pointed your DNS A record.
-            </p>
-          </div>
+
         </div>
       </div>
     </div>

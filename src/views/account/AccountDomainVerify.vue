@@ -4,11 +4,16 @@
     <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Add your domain</h1>
 
     <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">
-      Before we can verify <span class=" bg-white dark:bg-gray-800  text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>, you'll need to complete these steps.
+      Before we can activate links for
+      <span class=" bg-white dark:bg-gray-800  text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>,
+      you'll need to complete these steps.
     </p>
-    <MoreInfoText :displayDomain="domain?.display_domain" :clusterIpAddress="cluster?.cluster_ip" />
-    <VerifyDomainDetails v-if="domain" :domain="domain" />
+
+    <MoreInfoText :displayDomain="domain?.display_domain" :clusterIpAddress="cluster?.cluster_ip" :clusterName="cluster?.cluster_name" />
+
+    <VerifyDomainDetails v-if="domain && cluster" :domain="domain" :cluster="cluster" />
     <p v-else class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
+
   </main>
 </template>
 
