@@ -135,7 +135,7 @@ module Onetime::Logic
         OT.info "[AddDomain.create_vhost] %s" % payload
         @custom_domain[:vhost] = payload.to_json
       rescue HTTParty::ResponseError => e
-        OT.error "[AddDomain.create_vhost] %s"  % e
+        OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
       end
 
       def success_data
@@ -184,7 +184,7 @@ module Onetime::Logic
         payload = res.parsed_response
         OT.info "[RemoveDomain.delete_vhost] %s" % payload
       rescue HTTParty::ResponseError => e
-        OT.error "[RemoveDomain.delete_vhost] %s"  % e
+        OT.le "[RemoveDomain.delete_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
       end
 
       def success_data
