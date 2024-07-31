@@ -126,17 +126,17 @@ if (router.hasRoute(vueComponentName)) {
   app.use(router)
   app.mount('#app')
   router.push({ name: vueComponentName })
+  console.log("Router route #{vueComponentName}")
+
 } else {
   console.warn(`No route found for component: ${vueComponentName}`)
 
   if (vueComponentName in componentMap) {
-
-
     const Component = componentMap[vueComponentName]
     const pageContentApp = createApp(Component)
     pageContentApp.use(router)
     pageContentApp.mount('#app')
-
+    console.info("Mounted component: ", vueComponentName)
   } else {
     console.info(`No component for: ${vueComponentName}`)
   }
