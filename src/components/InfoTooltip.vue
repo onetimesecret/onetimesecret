@@ -1,3 +1,11 @@
+<!--
+  Usage:
+
+  <InfoTooltip>
+    <p>This is some information inside the tooltip modal.</p>
+  </InfoTooltip>
+ -->
+
 <template>
   <div class="relative inline-block">
     <Icon icon="heroicons:information-circle-20-solid"

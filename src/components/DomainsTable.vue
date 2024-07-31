@@ -10,7 +10,7 @@
         <!-- view on this page and avoid doing a full page request (it's also one less -->
         <!-- web route that needs to be implemented). -->
         <router-link to="/account/domains/add"
-                     class="block rounded-md bg-green-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 dark:bg-green-500 dark:hover:bg-green-400">Add
+                     class="block rounded-md bg-brand-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">Add
           Domain</router-link>
       </div>
     </div>

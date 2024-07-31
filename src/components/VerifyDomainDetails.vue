@@ -11,25 +11,34 @@
       </div>
     </div>
 
-    <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Add a DNS TXT record</h2>
-    <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">Before we can verify {{ domain.display_domain }}, you'll need to complete these steps:</p>
+    <!--<h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white"></h2>-->
+    <!--<p class="text-lg mb-6 text-gray-600 dark:text-gray-300"></p>-->
 
     <ol class="space-y-6 mb-8">
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
         <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">1. Create a TXT record</h3>
         <p class="mb-2 text-gray-600 dark:text-gray-300">Add this hostname to your DNS configuration:</p>
-        <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-600 rounded-md">
-          <span ref="hostSpan" class="text-gray-800 dark:text-gray-200">{{ domain.txt_validation_host }}<span class="text-gray-400">.{{ domain.base_domain }}</span></span>
-          <CopyButton :text="domain.txt_validation_host" />
+
+        <div class="space-y-2">
+          <DetailField label="Type" value="TXT" />
+          <DetailField
+            label="Host"
+            :value="domain.txt_validation_host"
+            :appendix="`.${domain.base_domain}`"
+          />
+          <DetailField label="Value" :value="domain.txt_validation_value" />
         </div>
+
       </li>
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
         <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">2. Set the TXT record value</h3>
         <p class="mb-2 text-gray-600 dark:text-gray-300">Use this code for the value of the TXT record:</p>
-        <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-600 rounded-md">
-          <span ref="valueSpan" class="text-gray-800 dark:text-gray-200">{{ domain.txt_validation_value }}</span>
-          <CopyButton :text="domain.txt_validation_value" />
-        </div>
+
+
+      </li>
+      <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+        <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">2. Create a CNAME record</h3>
+
       </li>
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
         <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">3. Wait for propagation</h3>
@@ -46,17 +55,13 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import { CustomDomain } from '@/types/onetime';
-import CopyButton from '@/components/CopyButton.vue';
-
+import DetailField from './DetailField.vue';
 defineProps({
   domain: { type: Object as () => CustomDomain, required: true },
 })
 
 
-const hostSpan = ref<HTMLSpanElement | null>(null);
-const valueSpan = ref<HTMLSpanElement | null>(null);
 
 const verify = () => {
   // Implement verification logic here
