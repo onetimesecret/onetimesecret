@@ -38,9 +38,9 @@ const props = withDefaults(defineProps<Props>(), {
             <p>
               In order to connect your domain, you'll need to have a DNS A record that points
               <span class="font-bold bg-white dark:bg-gray-800 px-2 text-brand-600 dark:text-brand-400">{{ props.displayDomain }}</span> at <span
-                    :title="props.clusterName" class="bg-white dark:bg-gray-800 px-2">{{ props.clusterIpAddress }}</span>. If you already have an A record for
+                    :title="props.clusterName?? ''" class="bg-white dark:bg-gray-800 px-2">{{ props.clusterIpAddress }}</span>. If you already have an A record for
               that
-              address, please change it to point at <span :title="props.clusterName" class="bg-white dark:bg-gray-800 px-2">{{ props.clusterIpAddress }}</span>
+              address, please change it to point at <span :title="props.clusterName?? ''" class="bg-white dark:bg-gray-800 px-2">{{ props.clusterIpAddress }}</span>
               and remove any other A, AAAA,
               or CNAME records for that exact address.
             </p>
