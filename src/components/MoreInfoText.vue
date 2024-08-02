@@ -3,7 +3,8 @@ import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 
 const isExpanded = ref(false);
-const toggleExpand = () => {
+const toggleExpand = (event: Event) => {
+  event.preventDefault();
   isExpanded.value = !isExpanded.value;
 };
 
