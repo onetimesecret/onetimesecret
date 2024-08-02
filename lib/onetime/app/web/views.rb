@@ -172,14 +172,23 @@ module Onetime
           self[:show_metadata_link] = metadata.state?(:new)
           self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
         end
+        def share_path
+          [:secret, self[:secret_key]].join('/')
+        end
+        def burn_path
+          [:private, self[:metadata_key], 'burn'].join('/')
+        end
+        def metadata_path
+          [:private, self[:metadata_key]].join('/')
+        end
         def share_uri
-          [baseuri, :secret, self[:secret_key]].join('/')
+          [baseuri, share_path].flatten.join('/')
         end
         def metadata_uri
-          [baseuri, :private, self[:metadata_key]].join('/')
+          [baseuri, metadata_path].flatten.join('/')
         end
         def burn_uri
-          [baseuri, :private, self[:metadata_key], 'burn'].join('/')
+          [baseuri, burn_path, 'burn'].flatten.join('/')
         end
         def display_lines
           ret = self[:secret_value].to_s.scan(/\n/).size + 2

@@ -1,7 +1,6 @@
 ---
 :site:
   :host: <%= ENV['HOST'] || 'localhost:3000' %>
-
   :domain: localhost
   :ssl: <%= ENV['SSL'] == 'true' %>
   # IMPORTANT: After setting the secret, it should not be changed.
