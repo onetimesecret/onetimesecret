@@ -47,7 +47,7 @@ declare global {
     apitoken?: string;
     authenticated: boolean;
     available_plans?: Plan[];
-    base_domain: string;
+    baseuri: string;
     cust: Cust;
     custid: string;
     customer_since?: string;
@@ -59,6 +59,7 @@ declare global {
     ot_version: string;
     ruby_version: string;
     shrimp: string;  // Our CSRF token, to be used in POST requests to the backend
+    site_host: string;
     vue_component_name?: string;
 
     // A function that's called on page load to update any email

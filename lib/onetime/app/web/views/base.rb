@@ -24,10 +24,9 @@ module Onetime
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change.
         site = OT.conf.fetch(:site, {})
-        base_domain = site[:domain]
 
-        # If not set, the frontend_host is the same as the base_domain and we can
-        # leave the absolute path empty as-is without a host.
+        # If not set, the frontend_host is the same as the site_host and
+        # we can leave the absolute path empty as-is without a host.
         development = OT.conf.fetch(:development, {})
         frontend_development = development[:enabled] || false
         frontend_host = development[:frontend_host] || ''
@@ -45,7 +44,6 @@ module Onetime
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:feedback_text] = i18n[:COMMON][:feedback_text]
-        self[:base_domain] = base_domain
         self[:is_subdomain] = is_subdomain
         self[:frontend_host] = frontend_host
         self[:frontend_development] = frontend_development
@@ -67,9 +65,9 @@ module Onetime
         self[:jsvars] << jsvar(:locale, locale)
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
-        self[:jsvars] << jsvar(:base_domain, base_domain)
         self[:jsvars] << jsvar(:is_subdomain, is_subdomain)
         self[:jsvars] << jsvar(:authenticated, authenticated)
+        self[:jsvars] << jsvar(:site_host, site[:host])
 
         # TODO: We can remove this after we update the Account view to use
         # the value of cust.created to calculate the customer_since value
