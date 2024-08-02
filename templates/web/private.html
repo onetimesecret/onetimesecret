@@ -1,6 +1,11 @@
 {{>partial/header}}
 
 <div class="container mx-auto p-4 max-w-2xl">
+
+  {{#authenticated}}
+    {{>partial/dashboard_nav}}
+  {{/authenticated}}
+
   {{#show_secret_link}}
   <div class="mb-4">
     <p class="text-base text-gray-600 dark:text-gray-400 mb-2">{{i18n.page.pretext}}</p>
