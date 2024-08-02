@@ -71,12 +71,39 @@ const selectedDomain = availableDomains[0];
         Create a secret link<span v-if="withAsterisk">*</span>
       </button>
 
+      <!--
+        To adjust the width and centering of the <hr> and button elements:
+
+        1. For the <hr> element:
+          - Use the `w-2/3` class to set the width to 2/3 of its container.
+          - Use the `mx-auto` class to center it horizontally.
+          - Example: <hr class="w-2/3 my-4 border-gray-200 mx-auto">
+
+        2. For the button element:
+          - Use the `w-2/3` class to set the width to 2/3 of its container.
+          - Use the `mx-auto` class to center it horizontally.
+          - Use the `block` class to ensure it behaves as a block-level element.
+          - Example:
+            <button type="submit"
+                    v-if="props.withGenerate"
+                    class="w-2/3 py-2 px-4 rounded mb-4
+                    text-base
+                    bg-gray-100 hover:bg-gray-400 text-gray-800
+                    dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200
+                    mx-auto block"
+                    name="kind"
+                    value="generate">
+              Or generate a random password
+            </button>
+      -->
+      <hr class="w-1/4 my-4 border-gray-200 mx-auto">
       <button type="submit"
               v-if="props.withGenerate"
-              class="w-full py-2 px-4 rounded mb-4
+              class="w-2/3 py-2 px-4 rounded mb-4
               text-base
-              bg-gray-300 hover:bg-gray-400 text-gray-800
-              dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
+              bg-gray-100 hover:bg-gray-400 text-gray-800
+              dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200
+              mx-auto block"
               name="kind"
               value="generate">
         Or generate a random password
