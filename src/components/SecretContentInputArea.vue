@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { Icon } from '@iconify/vue';
 
 interface Props {
@@ -15,6 +15,7 @@ const emit = defineEmits(['update:selectedDomain']);
 
 const isOpen = ref(false);
 const selectedDomain = ref(props.initialDomain);
+const dropdownRef = ref<HTMLElement | null>(null);
 
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
@@ -25,7 +26,50 @@ const selectDomain = (domain: string) => {
   emit('update:selectedDomain', domain);
   isOpen.value = false;
 };
+
+const closeDropdown = () => {
+  isOpen.value = false;
+};
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+    closeDropdown();
+  }
+};
+
+const handleEscapeKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    closeDropdown();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+  document.addEventListener('keydown', handleEscapeKey);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+  document.removeEventListener('keydown', handleEscapeKey);
+});
 </script>
+
+<!--
+
+  FEATURE: Closing dropdown on click outside or Escape key press
+
+  1. Added `ref="dropdownRef"` to the dropdown container div.
+  2. Created a `closeDropdown` function to close the dropdown.
+  3. Added `handleClickOutside` function to check if a click occurred outside the dropdown.
+  4. Added `handleEscapeKey` function to close the dropdown when the Escape key is pressed.
+  5. Set up event listeners in the `onMounted` hook and removed them in the `onUnmounted` hook.
+
+  These changes will make the dropdown close when clicking outside of it or pressing the
+  Escape key. The click outside functionality checks if the click target is not contained
+  within the dropdown element, and if so, it closes the dropdown. The Escape key
+  functionality simply closes the dropdown when the key is pressed.
+
+-->
 
 <template>
   <div class="relative">
@@ -39,18 +83,7 @@ const selectDomain = (domain: string) => {
       placeholder="Secret content goes here..."
       aria-label="Enter the secret content here"></textarea>
     <div class="absolute top-2 right-2">
-      <!--
-        Dropdown Sizing Guide:
-        1. Button size: Adjust px-4 py-2 in the button class
-        2. Button text: Change text-base for larger/smaller font
-        3. Dropdown icon: Modify h-5 w-5 to change icon size
-        4. Dropdown menu:
-            - Change w-64 to adjust menu width
-            - Modify py-3 in menu items for height
-            - Adjust text-base in menu items for font size
-        Increase/decrease these values as needed for desired size.
-        -->
-      <div class="relative inline-block text-left">
+      <div class="relative inline-block text-left" ref="dropdownRef">
         <div>
           <button type="button"
                   class="inline-flex justify-center items-center w-full rounded-md
@@ -95,7 +128,6 @@ const selectDomain = (domain: string) => {
     </div>
   </div>
 </template>
-
 
 <style scoped>
 /* Ensure the dropdown container has a higher z-index than the input field */
