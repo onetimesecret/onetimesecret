@@ -17,7 +17,8 @@ const isOpen = ref(false);
 const selectedDomain = ref(props.initialDomain);
 const dropdownRef = ref<HTMLElement | null>(null);
 
-const toggleDropdown = () => {
+const toggleDropdown = (event: Event) => {
+  event.stopPropagation(); // Stop the event from propagating to the document
   isOpen.value = !isOpen.value;
 };
 
@@ -69,7 +70,7 @@ onUnmounted(() => {
   within the dropdown element, and if so, it closes the dropdown. The Escape key
   functionality simply closes the dropdown when the key is pressed.
 
--->
+  -->
 
 <template>
   <div class="relative">
@@ -93,12 +94,11 @@ onUnmounted(() => {
                   hover:bg-gray-50 dark:hover:bg-gray-700
                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800"
                   @click="toggleDropdown">
-            <span
-                  class="text-base text-brandcomp-600 dark:text-brandcomp-400 font-bold">
-                  {{ selectedDomain || 'Select Domain' }}
+            <span class="text-base text-brandcomp-600 dark:text-brandcomp-400 font-bold truncate max-w-[200px]">
+              {{ selectedDomain || 'Select Domain' }}
             </span>
             <Icon icon="heroicons-solid:chevron-down"
-                  class="ml-2 -mr-1 h-5 w-5 text-gray-400 dark:text-gray-500"
+                  class="ml-2 flex-shrink-0 h-5 w-5 text-gray-400 dark:text-gray-500"
                   aria-hidden="true" />
           </button>
         </div>
@@ -107,7 +107,8 @@ onUnmounted(() => {
              class="origin-top-right absolute right-0 mt-2 w-64 rounded-md shadow-lg
               bg-white dark:bg-gray-800
               ring-1 ring-black ring-opacity-5 dark:ring-gray-700
-              focus:outline-none z-50">
+              focus:outline-none z-50
+              max-h-60 overflow-y-auto break-words">
           <div class="py-1"
                role="menu"
                aria-orientation="vertical"
@@ -115,9 +116,10 @@ onUnmounted(() => {
             <a v-for="domain in availableDomains"
                :key="domain"
                href="#"
-               class="block px-4 py-3 text-base
+               class="block px-5 py-3 text-base
                 text-gray-700 dark:text-gray-300
-                hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white
+                whitespace-normal break-words"
                role="menuitem"
                @click.prevent="selectDomain(domain)">
               {{ domain }}
