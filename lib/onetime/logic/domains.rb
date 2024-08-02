@@ -172,7 +172,14 @@ module Onetime::Logic
 
         @custom_domain.destroy!(@cust)
 
-        delete_vhost
+        # NOTE: Disable deleting the domain from the cluster vhost to
+        # avoid issue with two customers adding the same domain and then
+        # one removing it. This would cause the domain to be removed for
+        # both customers, which would be surprising. Instead, we can
+        # just disable the domain for this customer and let them add it
+        # again if they want to use it in the future.
+        #
+        # delete_vhost
       end
 
       def delete_vhost
