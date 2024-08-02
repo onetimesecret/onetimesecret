@@ -6,11 +6,34 @@
   </InfoTooltip>
  -->
 
+<!--
+  ## FEATURE: Click outside to close.
+
+  This tooltip dialog can be closed by clicking outside the content
+  area due to the `@click="closeModal"` event listener on the outer
+  div with the class
+  `fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50`.
+  This event listener triggers the `closeModal` method, which sets
+  `isModalVisible` to false.
+
+  ### Explanation
+
+  * Outer div with `@click="closeModal"`: This div covers the entire
+    screen when the modal is visible. Clicking anywhere on this div
+    (outside the modal content) will trigger the closeModal method.
+
+  * Inner div with `@click.stop`: This div contains the modal content
+    and has the @click.stop directive to stop the click event from
+    propagating to the outer div. This prevents the modal from
+    closing when clicking inside the content area.
+-->
+
 <template>
   <div class="relative inline-block">
     <Icon icon="heroicons:information-circle-20-solid"
           class="inline align-baseline cursor-pointer"
           @click="toggleModal" />
+
     <Transition name="fade">
       <div v-if="isModalVisible"
            class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
@@ -25,6 +48,7 @@
         </div>
       </div>
     </Transition>
+
   </div>
 </template>
 
