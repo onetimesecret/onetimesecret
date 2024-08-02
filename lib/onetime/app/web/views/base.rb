@@ -24,6 +24,7 @@ module Onetime
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change.
         site = OT.conf.fetch(:site, {})
+        domains = OT.conf.dig(:site, :domains) || {}
 
         # If not set, the frontend_host is the same as the site_host and
         # we can leave the absolute path empty as-is without a host.
@@ -51,6 +52,7 @@ module Onetime
         self[:display_sitenav] = true
         self[:jsvars] = []
         if authenticated && cust
+          self[:domains_enabled] = domains[:enabled] || false  # only for authenticated
           self[:colonel] = cust.role?(:colonel)
           self[:metadata_record_count] = cust.metadata.size
           self[:custom_domains_record_count] = cust.custom_domains_list.size
@@ -58,6 +60,7 @@ module Onetime
           self[:jsvars] << jsvar(:metadata_record_count, self[:metadata_record_count])
           self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
           self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
+          self[:jsvars] << jsvar(:domains_enabled, self[:domains_enabled])
         end
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
