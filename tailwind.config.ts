@@ -63,6 +63,7 @@ export default {
       sans: defaultTheme.fontFamily.sans,
       /* In CSS: font-family: theme('fontFamily.brand'); */
       brand: ['Zilla Slab', ...defaultTheme.fontFamily.serif],
+      mono: defaultTheme.fontFamily.mono,
     },
     extend: {
       colors: {
