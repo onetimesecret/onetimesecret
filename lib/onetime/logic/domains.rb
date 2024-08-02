@@ -60,13 +60,13 @@ module Onetime::Logic
     end
 
     module ClusterFeatures
-      @type = :approximated
-      @api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
-      @cluster_ip = ENV.fetch('APPROXIMATED_PROXY_CLUSTER_IP', '<CLUSTER_IP>')
-      @cluster_name = ENV.fetch('APPROXIMATED_PROXY_CLUSTER_NAME', '<CLUSTER_NAME>')
+      @type = nil
+      @api_key = nil
+      @cluster_ip = nil
+      @cluster_name = nil
 
       module ClassMethods
-        attr_reader :type, :api_key, :cluster_ip, :cluster_name
+        attr_accessor :type, :api_key, :cluster_ip, :cluster_name
       end
 
       def cluster_safe_dump
@@ -126,7 +126,7 @@ module Onetime::Logic
       def create_vhost
         api_key = ClusterFeatures.api_key
 
-        if api_key.empty?
+        if api_key.to_s.empty?
           return OT.info "[AddDomain.create_vhost] Approximated API key not set"
         end
 
@@ -177,7 +177,7 @@ module Onetime::Logic
 
       def delete_vhost
         api_key = ClusterFeatures.api_key
-        if api_key.empty?
+        if api_key.to_s.empty?
           return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
         end
         res = OT::Utils::Approximated.delete_vhost(api_key, @display_domain)

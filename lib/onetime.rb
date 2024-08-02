@@ -140,6 +140,9 @@ module Onetime
       if OT.conf[:site].key?(:authentication)
         info "Authentication: #{OT.conf[:site][:authentication]}"
       end
+      if OT.conf[:site].key?(:domains)
+        info "Domains: #{OT.conf[:site][:domains]}"
+      end
       if OT.conf[:development][:enabled]
         info "Frontend: #{OT.conf[:development][:frontend_host]}"
       end
