@@ -53,6 +53,7 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   document.removeEventListener('keydown', handleEscapeKey);
 });
+
 </script>
 
 <!--
@@ -74,7 +75,8 @@ onUnmounted(() => {
 
 <template>
   <div class="relative">
-    <textarea class="w-full h-32 p-3
+    <textarea ref="secretContentRef"
+      class="w-full h-32 p-3
         border border-gray-300 rounded-md
         focus:ring-brandcompdim-500 focus:border-brandcompdim-500
         dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -83,6 +85,7 @@ onUnmounted(() => {
       autocomplete="off"
       placeholder="Secret content goes here..."
       aria-label="Enter the secret content here"></textarea>
+
     <div class="absolute top-2 right-2">
       <div class="relative inline-block text-left" ref="dropdownRef">
         <div>
@@ -103,7 +106,9 @@ onUnmounted(() => {
           </button>
         </div>
 
+        <!-- -class="origin-bottom-right absolute bottom-full right-0 mb-2 mt-2 w-64 rounded-md shadow-lg" -->
         <div v-if="isOpen"
+
              class="origin-top-right absolute right-0 mt-2 w-64 rounded-md shadow-lg
               bg-white dark:bg-gray-800
               ring-1 ring-black ring-opacity-5 dark:ring-gray-700
