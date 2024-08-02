@@ -44,7 +44,6 @@ module Onetime
         self[:authenticated] = authenticated
         self[:display_promo] = false
         self[:display_feedback] = true
-        self[:colonel] = cust.role?(:colonel) if cust
         self[:feedback_text] = i18n[:COMMON][:feedback_text]
         self[:base_domain] = base_domain
         self[:is_subdomain] = is_subdomain
@@ -53,6 +52,13 @@ module Onetime
         self[:no_cache] = false
         self[:display_sitenav] = true
         self[:jsvars] = []
+        if authenticated && cust
+          self[:colonel] = cust.role?(:colonel)
+          self[:metadata_record_count] = cust.metadata.size
+          self[:customdomains_record_count] = cust.custom_domains_list.size
+          self[:jsvars] << jsvar(:metadata_record_count, self[:metadata_record_count])
+          self[:jsvars] << jsvar(:customdomains_record_count, self[:customdomains_record_count])
+        end
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:cust, cust.safe_dump)

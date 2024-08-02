@@ -6,7 +6,7 @@
 
     <main>
       <nav class="mb-6">
-        <ul class="text-lg flex space-x-4">
+        <ul class="text-xl font-brand flex space-x-4">
           <li>
             <a href="/" class="text-gray-700 font-bold underline dark:text-gray-300 hover:underline dark:hover:text-grey-500 transition-colors">{{i18n.COMMON.title_home}}</a>
           </li>
@@ -19,6 +19,10 @@
           <li>
             <a href="/account/domains" class="text-gray-700 dark:text-gray-300 hover:underline hover:text-grey-500 dark:hover:text-grey-500 transition-colors flex items-center">
               Custom Domains
+              <span
+                class="ml-2 bg-gray-200 font-medium dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full px-2 py-0.5 text-xs"
+                >{{customdomains_record_count}}</span
+              >
             </a>
           </li>
         </ul>
