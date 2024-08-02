@@ -76,7 +76,7 @@ onUnmounted(() => {
 <template>
   <div class="relative">
     <textarea ref="secretContentRef"
-      class="w-full h-32 p-3
+      class="w-full h-40 p-3
         border border-gray-300 rounded-md
         focus:ring-brandcompdim-500 focus:border-brandcompdim-500
         dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -91,12 +91,14 @@ onUnmounted(() => {
         <div>
           <button type="button"
                   class="inline-flex justify-center items-center w-full rounded-md
-                  border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2
+                  pl-4 py-2
+                  border border-gray-300 dark:border-gray-600 shadow-sm
                   bg-white text-lg font-medium text-gray-700
                   dark:bg-gray-800 dark:text-gray-300
                   hover:bg-gray-50 dark:hover:bg-gray-700
                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800"
                   @click="toggleDropdown">
+
             <span class="text-base text-brandcomp-600 dark:text-brandcomp-400 font-bold truncate max-w-[200px]">
               {{ selectedDomain || 'Select Domain' }}
             </span>
