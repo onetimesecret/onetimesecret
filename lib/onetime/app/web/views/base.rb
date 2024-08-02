@@ -21,7 +21,7 @@ module Onetime
         is_default_locale = OT.conf[:locales].first.to_s == locale
         is_subdomain = req.nil? ? nil : !req.env['ots.subdomain'].nil?
 
-        # TODO: Make better use of fetch to avoid nil checks. Esp important
+        # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change.
         site = OT.conf.fetch(:site, {})
         base_domain = site[:domain]
@@ -122,7 +122,11 @@ module Onetime
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
-        init *args if respond_to? :init
+
+        # So the list of template vars shows up sorted variable name
+        self[:jsvars] = self[:jsvars].sort_by { |item| item[:name] }
+
+        init(*args) if respond_to? :init
       end
 
       def i18n
