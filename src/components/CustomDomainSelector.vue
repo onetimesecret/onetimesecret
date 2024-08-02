@@ -4,7 +4,7 @@
     :class="{ 'bg-gray-200 dark:bg-gray-600': isSelected }"
     @click="selectDomain"
   >
-    <Icon icon="mdi:link-variant" class="text-gray-400 dark:text-gray-500 flex-shrink-0" />
+    <!--<Icon icon="mdi:link-variant" class="text-gray-400 dark:text-gray-500 flex-shrink-0" />-->
     <div class="flex items-center space-x-1 overflow-hidden">
       <span class="text-sm text-gray-800 dark:text-gray-500 font-medium">https://</span>
       <span class="text-sm text-brandcomp-600 dark:text-brandcomp-400 font-bold">{{ props.default_domain }}</span>
