@@ -359,11 +359,7 @@ module Onetime
           if self[:contributor]
             self[:contributor_since] = epochdate(cust.contributor_at)
           end
-          self[:has_cname] = cust.has_key?(:cname)
-          self[:cname] = cust.cname || 'yourcompany'
-          self[:cust_subdomain] = cust.load_subdomain
-          self[:cname_uri] = '//%s.%s' % [self[:cname], self[:base_domain]]
-          self[:cname_uri] << (':%d' % req.env['SERVER_PORT']) if ![443, 80].member?(req.env['SERVER_PORT'].to_i)
+
           if self[:colonel]
             if cust.passgen_token.nil?
               cust.update_passgen_token sess.sessid.gibbler
