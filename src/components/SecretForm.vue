@@ -26,9 +26,17 @@ const togglePassphrase = () => {
   showPassphrase.value = !showPassphrase.value;
 };
 
-const selectedDomain = window.site_host;
-//const availableDomains = window.custom_domains;
-const availableDomains = [];
+const availableDomains = window.custom_domains || [];
+const defaultDomain = window.site_host;
+
+// Add defaultDomain to the list of available domains if it's not already there
+if (!availableDomains.includes(defaultDomain)) {
+  availableDomains.push(defaultDomain);
+}
+
+// The selectedDomain is the first available domain by default
+const selectedDomain = availableDomains[0];
+
 
 </script>
 

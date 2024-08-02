@@ -100,6 +100,6 @@ const selectDomain = (domain: string) => {
 <style scoped>
 /* Ensure the dropdown container has a higher z-index than the input field */
 .absolute {
-  z-index: 400;
+  z-index: 40;
 }
 </style>

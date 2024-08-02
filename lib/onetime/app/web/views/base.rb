@@ -54,8 +54,10 @@ module Onetime
           self[:colonel] = cust.role?(:colonel)
           self[:metadata_record_count] = cust.metadata.size
           self[:custom_domains_record_count] = cust.custom_domains_list.size
+          self[:custom_domains] = cust.custom_domains.collect { |obj| obj[:display_domain] }.sort
           self[:jsvars] << jsvar(:metadata_record_count, self[:metadata_record_count])
           self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
+          self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
         end
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)

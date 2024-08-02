@@ -51,6 +51,8 @@ declare global {
     cust: Cust;
     custid: string;
     customer_since?: string;
+    custom_domains_record_count: number;
+    custom_domains?: string[];
     email: string;
     frontend_host: string;
     is_default_locale: boolean;
