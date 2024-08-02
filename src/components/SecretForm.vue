@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
 import SecretContentInputArea from './SecretContentInputArea.vue';
 import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
+import CustomDomainPreview from './CustomDomainPreview.vue';
 
 export interface Props {
   enabled?: boolean;
@@ -18,8 +21,6 @@ const props = withDefaults(defineProps<Props>(), {
   withGenerate: false,
 })
 
-
-
 const availableDomains = window.custom_domains || [];
 const defaultDomain = window.site_host;
 
@@ -29,7 +30,7 @@ if (!availableDomains.includes(defaultDomain)) {
 }
 
 // The selectedDomain is the first available domain by default
-const selectedDomain = availableDomains[0];
+const selectedDomain = ref(availableDomains[0]);
 
 
 </script>
@@ -50,10 +51,19 @@ const selectedDomain = availableDomains[0];
              name="shrimp"
              :value="shrimp" />
 
+      <!--
+          v-model:selectedDomain is equivalent to:
+            :selectedDomain="selectedDomain"
+            @update:selectedDomain="selectedDomain = $event"
+      -->
+
       <SecretContentInputArea
         :availableDomains="availableDomains"
         :initialDomain="selectedDomain"
+        v-model:selectedDomain="selectedDomain"
       />
+
+      <CustomDomainPreview :default_domain="selectedDomain" />
 
       <SecretFormPrivacyOptions
         :withRecipient="props.withRecipient"
