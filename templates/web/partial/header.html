@@ -52,14 +52,24 @@
     <div class="container mx-auto mt-1 p-2 max-w-2xl">
       {{#display_masthead}}
 
-      <header class="">
-        <div class="flex justify-between items-center">
-          <div class=""><a href="/"><img id="logo" src="/v3/img/onetime-logo-v3-xl.svg" class="" width="64" height="64"></a></div>
-          <div class="flex items-center space-x-4">
+      <header class="min-w-[320px]">
+        <div class="flex flex-col sm:flex-row justify-between items-center">
+          <div class="mb-2 sm:mb-0"><a href="/"><img id="logo" src="/v3/img/onetime-logo-v3-xl.svg" class="" width="64" height="64"></a></div>
+              <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-sm">
 
             {{#authenticated}}
-              <a href="/" class="nounderline  text-gray-400"><span id="userEmail">{{cust.custid}}</span></a>
-              {{#colonel}}<a href="/colonel/" title="" class="nounderline">*</a>{{/colonel}}<span class="mx-0 text-gray-400">|</span>
+              <div class="hidden sm:flex items-center">
+                <a href="/" class="text-gray-400 hover:text-gray-300 transition">
+                  <span id="userEmail">{{cust.custid}}</span>
+                </a>
+                {{#colonel}}
+                  <a href="/colonel/" title="" class="ml-2 text-gray-400 hover:text-gray-300 transition">
+                    <Icon icon="mdi:star" class="w-4 h-4" />
+                  </a>
+                {{/colonel}}
+                <span class="mx-2 text-gray-400">|</span>
+              </div>
+
               <a href="/account" class="underline" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> <span class="mx-0 text-gray-400">|</span>
               <a href="/logout" class="underline" title="Log out of Onetime Secret">{{i18n.COMMON.header_logout}}</a>
             {{/authenticated}}
