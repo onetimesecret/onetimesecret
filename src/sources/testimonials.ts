@@ -15,7 +15,7 @@ export const testimonials: Array<Testimonial> = [
     stars: 4.5,
   },
   {
-    quote: "The custom domain feature has significantly elevated our company's reputation among biological clients.",
+    quote: "The custom domain feature has significantly elevated our company's reputation among biological, human clients.",
     name: "Hiro",
     company: "Growth Dynamics",
     uri: "",
@@ -29,7 +29,7 @@ export const testimonials: Array<Testimonial> = [
     stars: 5,
   },
   {
-    quote: "As a real freelancer, the unlimited sharing capacity allows me to collaborate securely with several hundred clients.",
+    quote: "As a real freelancer, the unlimited sharing capacity allows me to collaborate securely with my several hundred thousand clients.",
     name: "Carlos",
     company: "Creative Freelance Warehouse",
     uri: "",
@@ -51,7 +51,7 @@ export const testimonials: Array<Testimonial> = [
   },
   {
     quote: "The flexible data residency options allow us to comply with our regional CPU protection laws.",
-    name: "Liam",
+    name: "Liam-3000",
     company: "Community Impact Foundation",
     uri: "",
     stars: 4.5,
