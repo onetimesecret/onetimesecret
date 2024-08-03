@@ -3,16 +3,14 @@ import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 
 
-const props = defineProps({
-  defaultDomain: {
-    type: String,
-    required: false,
-    default: window.site_host,
-  },
-  availableDomains: {
-    type: Array,
-    required: false,
-  },
+interface DomainProps {
+  defaultDomain: string;
+  availableDomains: string[];
+}
+
+const props = withDefaults(defineProps<DomainProps>(), {
+  defaultDomain: window.site_host as string,
+  availableDomains: () => [],
 });
 
 const emit = defineEmits(['domainChange']);
