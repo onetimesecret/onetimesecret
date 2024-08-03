@@ -76,7 +76,6 @@
       </div>
     </div>
 
-
     <!-- Quotes -->
     <QuoteSection :testimonial="randomTestimonial" />
 
@@ -141,6 +140,7 @@ import MovingGlobules from '@/components/MovingGlobules.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
 import QuoteSection from '@/components/QuoteSection.vue';
 import { testimonials as testimonialsData } from '@/sources/testimonials';
+import { productTiers as productTiersData } from '@/sources/productTiers'
 
 const testimonials = ref(testimonialsData);
 const randomTestimonial = ref(testimonials.value[0]);
@@ -151,46 +151,7 @@ const frequencies = [
 ]
 const frequency = ref(frequencies[0]);
 
-// TODO: /v2/pricing-tiers
-const tiers = [
-  {
-    id: 'tier-identity',
-    name: 'Identity Plus',
-    href: '#',
-    cta: 'Choose this plan',
-    price: { monthly: '$35', annually: '$365' } as { [key: string]: string },
-    //description: "Elevate your brand with secure sharing that simplifies communication.",
-    //description: "Secure sharing that elevates your brand and simplifies communication.",
-    description: "Elevate your brand with secure, streamlined communication.",
-    features: [
-      'Branded custom domain',
-      'Unlimited sharing capacity',
-      'Enhanced privacy controls',
-      //'Advanced AuthentiCore℗ security',
-      'Full regulatory compliance (including GDPR, CCPA, HIPAA)',
-    ],
-
-    featured: false,
-  },
-  {
-    id: 'tier-dedication',
-    name: 'Global Elite',
-    href: '#',
-    cta: 'Coming Soon',
-    price: { monthly: '$185', annually: '$1995' } as { [key: string]: string },
-    description: 'Dedicated infrastructure with unlimited scalability and advanced data-compliance options.',
-    features: [
-      'Private cloud environment',
-      'Unlimited usage and scaling',
-      'Advanced identity management',
-      'Multiple data location choices (EU, US)',
-      //'SafeTek® Security Architecture',
-    ],
-
-
-    featured: true,
-  },
-]
+const tiers = ref(productTiersData)
 
 
 onMounted(() => {
