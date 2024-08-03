@@ -10,7 +10,7 @@ export const testimonials: Array<Testimonial> = [
   {
     quote: "Onetime Secret helps us share sensitive information securely while maintaining our professional facade.",
     name: "Aisha",
-    company: "TechStartup Ltd",
+    company: "SameDay Financial",
     uri: "",
     stars: 4.5,
   },

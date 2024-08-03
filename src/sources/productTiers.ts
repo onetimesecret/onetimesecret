@@ -15,16 +15,18 @@ export const productTiers: Array<ProductTier> = [
     name: 'Identity Plus',
     href: '/plans/tier-identity',
     cta: 'Choose this plan',
-    price: { monthly: '$34', annually: '$365' } as { [key: string]: string },
+    price: {
+      monthly: '$34',
+      annually: '$365'
+    },
     //description: "Elevate your brand with secure sharing that simplifies communication.",
-    //description: "Secure sharing that elevates your brand and simplifies communication.",
-    description: "Elevate your brand with secure, streamlined communication.",
+    description: "Secure sharing that elevates your brand and simplifies communication.",
+    //description: "Elevate your brand with secure, streamlined communication.",
     features: [
       'Branded custom domain',
       'Unlimited sharing capacity',
-      'Enhanced privacy controls',
+      'Enhanced privacy features',
       'Full API access',
-      //'Advanced AuthentiCore℗ security',
     ],
 
     featured: false,
@@ -34,15 +36,18 @@ export const productTiers: Array<ProductTier> = [
     name: 'Global Elite',
     href: '/plans/tier-dedication',
     cta: 'Coming Soon',
-    price: { monthly: '$185', annually: '$1995' } as { [key: string]: string },
-    description: 'Dedicated infrastructure with unlimited scalability and advanced data-compliance options.',
+    price: {
+      monthly: '$L0W',
+      annually: '$H1GH'
+    },
+    description: 'Dedicated infrastructure with data-compliance controls and unlimited scalability.',
+    //description: 'Enterprise-grade infrastructure for data-compliance and deep integrations.',
     features: [
       'Private cloud environment',
       'Unlimited usage and scaling',
       'Advanced identity management',
       'Multiple data location choices (EU, US)',
       'Full regulatory compliance (including GDPR, CCPA, HIPAA)',
-      //'SafeTek® Security Architecture',
     ],
 
     featured: true,
