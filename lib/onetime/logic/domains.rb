@@ -2,6 +2,7 @@
 require 'public_suffix'
 
 require_relative 'base'
+require_relative '../cluster'
 
 module Onetime::Logic
   module Domains
@@ -130,7 +131,7 @@ module Onetime::Logic
           return OT.info "[AddDomain.create_vhost] Approximated API key not set"
         end
 
-        res = OT::Utils::Approximated.create_vhost(api_key, @display_domain, 'staging.onetimesecret.com', '443')
+        res = OT::Cluster::Approximated.create_vhost(api_key, @display_domain, 'staging.onetimesecret.com', '443')
         payload = res.parsed_response
         OT.info "[AddDomain.create_vhost] %s" % payload
         @custom_domain[:vhost] = payload.to_json
@@ -187,7 +188,7 @@ module Onetime::Logic
         if api_key.to_s.empty?
           return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
         end
-        res = OT::Utils::Approximated.delete_vhost(api_key, @display_domain)
+        res = OT::Cluster::Approximated.delete_vhost(api_key, @display_domain)
         payload = res.parsed_response
         OT.info "[RemoveDomain.delete_vhost] %s" % payload
       rescue HTTParty::ResponseError => e
