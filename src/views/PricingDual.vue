@@ -167,7 +167,7 @@ const tiers = [
       'Unlimited sharing capacity',
       'Enhanced privacy controls',
       //'Advanced AuthentiCore℗ security',
-      'Full regulatory compliance (GDPR, CCPA, HIPAA)',
+      'Full regulatory compliance (including GDPR, CCPA, HIPAA)',
     ],
 
     featured: false,
@@ -181,10 +181,10 @@ const tiers = [
     description: 'Dedicated infrastructure with unlimited scalability and advanced data-compliance options.',
     features: [
       'Private cloud environment',
-      'Advanced identity management',
       'Unlimited usage and scaling',
+      'Advanced identity management',
       'Multiple data location choices (EU, US)',
-      'SafeTek® Security Architecture',
+      //'SafeTek® Security Architecture',
     ],
 
 
