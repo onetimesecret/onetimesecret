@@ -1,8 +1,8 @@
 <template>
 
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-  <h2 class="text-2xl font-bold text-left text-gray-900 dark:text-white mb-8">
-    What AI says about us:
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+  <h2 class="text-2=3xl font-bold text-left text-gray-900 dark:text-white mb-8">
+    What our AI says about us:
   </h2>
 
   <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">

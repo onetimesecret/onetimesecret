@@ -23,8 +23,8 @@ export const productTiers: Array<ProductTier> = [
       'Branded custom domain',
       'Unlimited sharing capacity',
       'Enhanced privacy controls',
+      'Full API access',
       //'Advanced AuthentiCore℗ security',
-      'Full regulatory compliance (including GDPR, CCPA, HIPAA)',
     ],
 
     featured: false,
@@ -41,6 +41,7 @@ export const productTiers: Array<ProductTier> = [
       'Unlimited usage and scaling',
       'Advanced identity management',
       'Multiple data location choices (EU, US)',
+      'Full regulatory compliance (including GDPR, CCPA, HIPAA)',
       //'SafeTek® Security Architecture',
     ],
 
