@@ -107,7 +107,7 @@
 <!--<div class="bg-gradient-to-r from-brand-500 to-rband-500 font-bold text-2xl gradient-text">
   Gradient Text222
 </div>-->
-<style>
+<style scoped>
 .gradient-text {
   background-clip: text;
   -webkit-background-clip: text;
