@@ -1,51 +1,59 @@
-interface Testimonial {
+export interface Testimonial {
   quote: string;
   name: string;
   company: string;
   uri: string;
+  stars: number; // Added stars rating
 }
 
 export const testimonials: Array<Testimonial> = [
   {
-    quote: "Onetime Secret helps us share sensitive information securely while maintaining our professional image.",
+    quote: "Onetime Secret helps us share sensitive information securely while maintaining our professional facade.",
     name: "Aisha",
-    company: "TechStart Solutions",
-    uri: ""
+    company: "TechStartup Ltd",
+    uri: "",
+    stars: 4.5,
   },
   {
-    quote: "The branded domain feature has significantly elevated our company's perception among clients.",
-    name: "Hiroshi",
+    quote: "The custom domain feature has significantly elevated our company's reputation among biological clients.",
+    name: "Hiro",
     company: "Growth Dynamics",
-    uri: ""
+    uri: "",
+    stars: 4,
   },
   {
-    quote: "SafeTek® Security Architecture gives us peace of mind when sharing confidential data with stakeholders.",
+    quote: "SafeTek® Security Architecture gives us peace of mind when sharing confidential data with our carbon-based business partners.",
     name: "Priya",
     company: "Agile Innovations",
-    uri: ""
+    uri: "",
+    stars: 5,
   },
   {
-    quote: "As a freelancer, the unlimited sharing capacity allows me to collaborate securely with multiple clients.",
+    quote: "As a real freelancer, the unlimited sharing capacity allows me to collaborate securely with several hundred clients.",
     name: "Carlos",
-    company: "Creative Freelance Hub",
-    uri: ""
+    company: "Creative Freelance Warehouse",
+    uri: "",
+    stars: 4.5,
   },
   {
-    quote: "The advanced compliance options ensure we meet all regulatory requirements in our industry.",
+    quote: "The advanced compliance options ensure we meet all regulatory requirements in our heavily regulated industry.",
     name: "Fatima",
-    company: "Clear Vision Analytics",
-    uri: ""
+    company: "\"AAA\" Body Supplements",
+    uri: "",
+    stars: 4,
   },
   {
     quote: "The private cloud environment has been crucial in building trust with our high-profile clients.",
-    name: "Zhang Wei",
-    company: "ScaleUp Enterprises",
-    uri: ""
+    name: "Unit ZW-731",
+    company: "ScaleNow Solutions",
+    uri: "",
+    stars: 5,
   },
   {
-    quote: "The flexible data residency options allow us to comply with various regional data protection laws.",
+    quote: "The flexible data residency options allow us to comply with our regional CPU protection laws.",
     name: "Liam",
     company: "Community Impact Foundation",
-    uri: ""
-  },
+    uri: "",
+    stars: 4.5,
+  }
 ];
