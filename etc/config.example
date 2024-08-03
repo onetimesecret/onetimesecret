@@ -11,6 +11,9 @@
     # application itself is responsible for handling multiple domains.
     :cluster:
       :type: <%= ENV['CLUSTER_TYPE'] || nil %>
+      :api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
+      :cluster_ip: <%= ENV['APPROXIMATED_PROXY_CLUSTER_IP'] || '<CLUSTER_IP>' %>
+      :cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
   # Turns https/http on or off when generating links
   :ssl: <%= ENV['SSL'] == 'true' %>
   # IMPORTANT: After setting the secret, it should not be changed.
