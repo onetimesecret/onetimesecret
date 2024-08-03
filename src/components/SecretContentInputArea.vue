@@ -83,7 +83,7 @@ onUnmounted(() => {
 
 <template>
   <div class="relative">
-    <textarea ref="secretContentRef"
+    <textarea ref="secretContentRef" tabindex="1"
               v-model="content"
               class="w-full h-40 p-3 font-mono
                 border border-gray-300 rounded-md
@@ -99,7 +99,7 @@ onUnmounted(() => {
       <div class="relative inline-block text-left"
            ref="dropdownRef">
         <div>
-          <button type="button"
+          <button type="button" tabindex="2"
                   class="inline-flex justify-center items-center w-full rounded-md
                   pl-4 py-2
                   border border-gray-300 dark:border-gray-600 shadow-sm

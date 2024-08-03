@@ -53,7 +53,7 @@ const togglePassphrase = () => {
             Passphrase:
           </label>
           <div class="relative">
-            <input :type="showPassphrase ? 'text' : 'password'"
+            <input :type="showPassphrase ? 'text' : 'password'" tabindex="3"
                    id="currentPassphrase"
                    v-model="currentPassphrase"
                    autocomplete="unique-passphrase"
@@ -93,7 +93,7 @@ const togglePassphrase = () => {
                  class="sr-only block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Lifetime:
           </label>
-          <select id="lifetime"
+          <select id="lifetime" tabindex="4"
                   name="ttl"
                   v-model="selectedLifetime"
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-brandcomp-500 focus:border-brandcomp-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
@@ -112,7 +112,7 @@ const togglePassphrase = () => {
                class="block font-brand text-sm font-medium text-gray-500 dark:text-gray-300 mb-2">
           Recipient Address
         </label>
-        <input type="email"
+        <input type="email" tabindex="5"
                id="recipient"
                name="recipient[]"
                placeholder="tom@myspace.com"

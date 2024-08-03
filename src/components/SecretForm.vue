@@ -75,10 +75,11 @@ const isFormValid = computed(() => secretContent.value.trim().length > 0);
                                 :withExpiry="true"
                                 :withPassphrase="true" />
 
-      <button type="submit"
+      <button type="submit" tabindex="6"
               class="text-xl w-full py-2 px-4 rounded mb-4
               bg-orange-600 hover:bg-orange-700 text-white
-              font-bold2 disabled:opacity-50 disabled:cursor-not-allowed"
+              font-bold2 disabled:opacity-50 disabled:cursor-not-allowed
+              duration-300 ease-in-out transform hover:scale-105"
               name="kind"
               value="share"
               :disabled="!isFormValid">
@@ -111,13 +112,14 @@ const isFormValid = computed(() => secretContent.value.trim().length > 0);
             </button>
       -->
       <hr class="w-1/4 my-4 border-gray-200 mx-auto">
-      <button type="submit"
+      <button type="submit" tabindex="7"
               v-if="props.withGenerate"
               class="w-2/3 py-2 px-4 rounded mb-4
               text-base
               bg-gray-100 hover:bg-gray-400 text-gray-800
               dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200
-              mx-auto block"
+              mx-auto block
+              duration-300 ease-in-out transform hover:scale-105"
               name="kind"
               value="generate">
         Or generate a random password
