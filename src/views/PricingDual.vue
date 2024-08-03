@@ -76,13 +76,11 @@
       </div>
     </div>
 
-    <!-- Quotes -->
-    <p class="pt-8 mx-auto mt-12 max-w-2xl text-center text-lg leading-8 text-gray-600 dark:text-gray-300">
-      "{{ randomTestimonial.quote }}" — <span class="font-brand">{{ randomTestimonial.name }}, <span
-              class="italic">{{ randomTestimonial.company }}</span></span>
-    </p>
 
-    <!-- Self-Hosted -->
+    <!-- Quotes -->
+    <QuoteSection :testimonial="randomTestimonial" />
+
+    <!-- Alternative option -->
     <div class="py-8 mx-auto mt-4 grid max-w-4xl justify-center grid-cols-1">
       <div class="relative mx-auto mt-4 max-w-7xl px-4 sm:px-6 lg:mt-5 lg:px-8">
         <div class="mx-auto max-w-md lg:max-w-5xl">
@@ -141,6 +139,11 @@ import { RadioGroup, RadioGroupOption } from '@headlessui/vue'
 import { Icon } from '@iconify/vue';
 import MovingGlobules from '@/components/MovingGlobules.vue';
 import InfoTooltip from '@/components/InfoTooltip.vue';
+import QuoteSection from '@/components/QuoteSection.vue';
+import { testimonials as testimonialsData } from '@/sources/testimonials';
+
+const testimonials = ref(testimonialsData);
+const randomTestimonial = ref(testimonials.value[0]);
 
 const frequencies = [
   { value: 'monthly', label: 'Monthly', priceSuffix: '/month' },
@@ -148,6 +151,7 @@ const frequencies = [
 ]
 const frequency = ref(frequencies[0]);
 
+// TODO: /v2/pricing-tiers
 const tiers = [
   {
     id: 'tier-identity',
@@ -188,62 +192,10 @@ const tiers = [
   },
 ]
 
-const testimonials: Array<{ quote: string, name: string, company: string, uri: string }> = [
-  {
-    quote: "Powerful tools, flexible plans. Choose the package that fits your ambitions.",
-    name: "Claude",
-    company: "Anthropic AI",
-    uri: ""
-  },
-  {
-    quote: "The AI-powered recommendations were spot-on. I'm now on a plan that perfectly fits my business needs.",
-    name: "Alex",
-    company: "TechStart Solutions",
-    uri: ""
-  },
-  {
-    quote: "I love how my plan evolves with my business. It's like having a pricing partner that grows with you.",
-    name: "Emma",
-    company: "Growth Dynamics",
-    uri: ""
-  },
-  {
-    quote: "The flexibility to adjust features and see real-time price changes is a game-changer. No more overpaying!",
-    name: "Marcus",
-    company: "Agile Innovations",
-    uri: ""
-  },
-  {
-    quote: "As a freelancer, my needs change constantly. This dynamic pricing model is perfect for my fluctuating workload.",
-    name: "Sophia",
-    company: "Creative Freelance Hub",
-    uri: ""
-  },
-  {
-    quote: "The transparency in pricing is refreshing. I know exactly what I'm paying for and why.",
-    name: "Daniel",
-    company: "Clear Vision Analytics",
-    uri: ""
-  },
-  {
-    quote: "We scaled from a small team to a mid-sized company, and our pricing plan seamlessly adapted. Brilliant!",
-    name: "Laura",
-    company: "ScaleUp Enterprises",
-    uri: ""
-  },
-  {
-    quote: "The customization options allowed me to create a plan that aligns perfectly with my nonprofit's budget and goals.",
-    name: "Michael",
-    company: "Community Impact Foundation",
-    uri: ""
-  }
-];
-
-const randomTestimonial = ref(testimonials[0]);
 
 onMounted(() => {
-  const randomIndex = Math.floor(Math.random() * testimonials.length);
-  randomTestimonial.value = testimonials[randomIndex];
+  const randomIndex = Math.floor(Math.random() * testimonials.value.length);
+  randomTestimonial.value = testimonials.value[randomIndex];
 });
 </script>
 
