@@ -3,12 +3,14 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 
 interface Props {
-  availableDomains: string[];
+  availableDomains?: string[];
   initialDomain?: string;
+  withDomainDropdown?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   initialDomain: '',
+  withDomainDropdown: false,
 });
 
 const emit = defineEmits(['update:selectedDomain', 'update:content']);
@@ -93,7 +95,7 @@ onUnmounted(() => {
               placeholder="Secret content goes here..."
               aria-label="Enter the secret content to share here"></textarea>
 
-    <div class="absolute bottom-4 right-2">
+    <div v-if="withDomainDropdown" class="absolute bottom-4 right-2">
       <div class="relative inline-block text-left"
            ref="dropdownRef">
         <div>

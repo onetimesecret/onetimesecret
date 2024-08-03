@@ -21,6 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   withGenerate: false,
 })
 
+const domainsEnabled = window.domains_enabled;
 const availableDomains = window.custom_domains || [];
 const defaultDomain = window.site_host;
 
@@ -62,6 +63,7 @@ const isFormValid = computed(() => secretContent.value.trim().length > 0);
       <SecretContentInputArea
         :availableDomains="availableDomains"
         :initialDomain="selectedDomain"
+        :withDomainDropdown="domainsEnabled"
         v-model:selectedDomain="selectedDomain"
         @update:content="secretContent = $event"
       />
