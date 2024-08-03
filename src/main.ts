@@ -1,15 +1,12 @@
-import { createApp, defineAsyncComponent, Component } from 'vue'
-import Homepage from '@/views/Homepage.vue'
-import Dashboard from '@/views/Dashboard.vue'
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
-import { ref } from 'vue';
+import router from '@/router'
+import Dashboard from '@/views/Dashboard.vue'
+import Homepage from '@/views/Homepage.vue'
+import { Component, createApp, defineAsyncComponent, ref } from 'vue'
+
 import './style.css'
 
-// Define a type for the component map
-type ComponentMap = {
-  [key: string]: Component | (() => Promise<Component>)
-}
 
 /**
  * Main page component
@@ -23,32 +20,132 @@ type ComponentMap = {
  * and mounting the common components which are part of the layout
  * (i.e. in the header or footer templates).
  *
+ *    class NiceView < Onetime::App::View
+ *      self.vue_component_name = 'Homepage'
+ *    end
+ *
+ *    componentMap['Homepage']  #=> Homepage
+ *
  */
 
+
+/**
+ * About Auto vs Lazy loading
+ *
+ * When components are auto-loaded instead of lazy-loaded, there are a few
+ * potential reasons why they might not display correctly:
+ *
+ * 1. **Dependencies and Timing:**
+ *    Auto-loaded components are imported and initialized immediately when the
+ *    application starts. If these components have dependencies that are not
+ *    yet available or initialized, they might not function correctly.
+ *
+ * 2. **Component Lifecycle:**
+ *    Lazy-loaded components are only imported when they are needed, which can
+ *    help ensure that all necessary dependencies and context are available.
+ *    Auto-loading might bypass some of these checks.
+ *
+ * 3. **Route Parameters and Initialization:**
+ *    Components that rely on route parameters (e.g., to determine the active
+ *    domain) might encounter issues if they are auto-loaded. This is because
+ *    the route parameters might not be available or fully resolved at the time
+ *    the component is initialized. Lazy loading ensures that the component is
+ *    only initialized after the route has been fully resolved, preventing such
+ *    issues.
+**/
+type ComponentMap = {
+  [key: string]: Component | (() => Promise<Component>)
+}
+
 const componentMap: ComponentMap = {
+  // Auto-load default and the most common pages
   'Homepage': Homepage,
   'Dashboard': Dashboard,
-  'Account': defineAsyncComponent(() => import('@/views/Account.vue')),
+
+  // Lazy-load the rest of the pages
+  'AccountDomains': defineAsyncComponent(() => import('@/views/account/AccountDomains.vue')),
+  'AccountDomainAdd': defineAsyncComponent(() => import('@/views/account/AccountDomainAdd.vue')),
+  'AccountDomainVerify': defineAsyncComponent(() => import('@/views/account/AccountDomainVerify.vue')),
+
+  'Account': defineAsyncComponent(() => import('@/views/account/AccountIndex.vue')),
   'Shared': defineAsyncComponent(() => import('@/views/Shared.vue')),
   'Private': defineAsyncComponent(() => import('@/views/Private.vue')),
-  //'Signin': defineAsyncComponent(() => import('@/views/Signin.vue')),
+  //'Pricing': defineAsyncComponent(() => import('@/views/Pricing.vue')),
+  'Pricing': defineAsyncComponent(() => import('@/views/PricingDual.vue')),
   //'Signup': defineAsyncComponent(() => import('@/views/Signup.vue')),
   'Feedback': defineAsyncComponent(() => import('@/views/Feedback.vue')),
   'Forgot': defineAsyncComponent(() => import('@/components/PasswordStrengthChecker.vue')),
 }
 
-if (window.vue_component_name && window.vue_component_name in componentMap) {
-  const Component = componentMap[window.vue_component_name]
-  const pageContentApp = createApp(Component)
-  pageContentApp.mount('#app')
+/**
+ * Hybrid SPA / Server-Rendered Page Initialization
+ *
+ * This code handles the initialization of our application, which uses a hybrid
+ * approach combining Single Page Application (SPA) features with traditional
+ * server-rendered pages. This approach allows for a gradual transition from a
+ * fully server-rendered site to a more modern SPA architecture.
+ *
+ * The process works as follows:
+ *
+ * 1. If the current page has a corresponding Vue route:
+ *    - We initialize the full Vue app with routing capabilities.
+ *    - This allows for client-side navigation between Vue-powered pages.
+ *
+ * 2. If the current page doesn't have a Vue route, but has a Vue component:
+ *    - We fall back to the older method of mounting a single Vue component.
+ *    - This preserves functionality for pages that have been partially
+ *      upgraded.
+ *
+ * 3. If neither a route nor a component exists:
+ *    - The page remains a traditional server-rendered page.
+ *
+ * Short-term benefits:
+ * - Allows use of Vue Router for navigation on new, Vue-powered pages.
+ * - Maintains compatibility with existing server-rendered and partially-
+ *   upgraded pages.
+ * - Enables incremental migration to a full SPA architecture.
+ *
+ * Long-term considerations:
+ * - This hybrid approach may lead to inconsistent user experiences between
+ *   different parts of the site.
+ * - As more pages are converted to Vue components, the codebase should be
+ *   refactored towards a full SPA model.
+ *
+ * @param {string} vueComponentName - The name of the Vue component for the
+ *                                    current page, set by the server.
+ */
 
+const DefaultApp = {
+  template: '<div id="app"><router-view></router-view></div>'
+}
+
+const vueComponentName = window.vue_component_name as string | "";
+
+if (router.hasRoute(vueComponentName)) {
+  const app = createApp(DefaultApp)
+  app.use(router)
+  app.mount('#app')
+  router.push({ name: vueComponentName })
 } else {
-  console.info(`No component for: ${window.vue_component_name}`)
+  console.warn(`No route found for component: ${vueComponentName}`)
+
+  if (vueComponentName in componentMap) {
+
+
+    const Component = componentMap[vueComponentName]
+    const pageContentApp = createApp(Component)
+    pageContentApp.use(router)
+    pageContentApp.mount('#app')
+
+  } else {
+    console.info(`No component for: ${vueComponentName}`)
+  }
+
 }
 
 
 /**
- * Common components
+ * Common components in the Header and Footer
  *
  * These are components mounted within the layout of the page, such as
  * in the header or footer. They are not tied to a specific page and

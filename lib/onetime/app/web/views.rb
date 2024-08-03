@@ -283,11 +283,12 @@ module Onetime
           setup_plan_variables
         end
       end
-      class Plans < Onetime::App::View
+
+      class Pricing < Onetime::App::View
         def init
           self[:title] = "Create an Account"
-          self[:body_class] = :pricing
-          self[:with_analytics] = false
+          self[:body_class] = 'entrypoint/main-full-width'
+          self.pagename = 'entrypoint/main-full-width.html'
           setup_plan_variables
         end
         def plan1;  self[@plans[0].to_s]; end
@@ -327,9 +328,13 @@ module Onetime
       class Recent < Onetime::App::Views::Dashboard
         # Use the same locale as the dashboard
         self.pagename = :dashboard # used for locale content
-        def init
-          self[:body_class] = :recent
-          super
+      end
+
+      class DashboardComponent < Onetime::App::Views::Dashboard
+        self.pagename = :dashboard
+        def initialize component, req, sess=nil, cust=nil, locale=nil, *args
+          @vue_component_name = component
+          super req, sess, cust, locale, *args
         end
       end
 

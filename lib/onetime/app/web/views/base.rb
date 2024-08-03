@@ -57,7 +57,7 @@ module Onetime
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:cust, cust.safe_dump)
         self[:jsvars] << jsvar(:email, cust.email)
-        self[:jsvars] << jsvar(:vue_component_name, self.class.vue_component_name)
+        self[:jsvars] << jsvar(:vue_component_name, self.vue_component_name)
         self[:jsvars] << jsvar(:locale, locale)
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
@@ -195,12 +195,20 @@ module Onetime
         (self.form_fields ||= {}).merge! hsh unless hsh.nil?
       end
 
+      # Each page has exactly one #app element and each view can have its
+      # own Vue component. This method allows setting the component name
+      # that is created and mounted in main.ts. If not set, the component
+      # name is derived from the view class name.
+      attr_writer :vue_component_name
+      def vue_component_name
+        @vue_component_name || self.class.vue_component_name
+      end
+
       class << self
-        attr_accessor :pagename
-        # Each page has exactly one #app element and each view can have its
-        # own Vue component. This method allows setting the component name
-        # that is created and mounted in main.ts. If not set, the component
-        # name is derived from the view class name.
+        attr_accessor :pagename, :vue_component_name
+
+        # Set the Vue component at the class level. Each view instance
+        # can override this value with its own #vue_component_name method.
         attr_writer :vue_component_name
         def vue_component_name
           @vue_component_name || self.name.split('::').last

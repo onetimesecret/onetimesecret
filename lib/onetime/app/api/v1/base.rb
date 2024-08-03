@@ -17,7 +17,7 @@ class Onetime::App
 
       # curl -F 'ttl=7200' -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:3000/api/v1/generate
       def authorized allow_anonymous=false
-        carefully do
+        carefully(redirect=nil, content_type='application/json') do
           check_locale!
 
           req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)
@@ -57,6 +57,9 @@ class Onetime::App
             # already been authenticated. Otherwise this is an anonymous session.
             @cust = sess.load_customer if sess.authenticated?
 
+          #custid = @cust.custid unless @cust.nil?
+          #OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+
           # Otherwise, we have no credentials, so we must be anonymous. Only
           # methods that opt-in to allow anonymous sessions will be allowed to
           # proceed.
@@ -80,6 +83,64 @@ class Onetime::App
           cust.sessid = sess.sessid unless cust.anonymous?
 
           yield
+        end
+      end
+
+      # Retrieves and lists records of the specified class. Also used for single
+      # records. It's up to the logic class what it wants to return via
+      # `logic.success_data`` (i.e. `record: {...}` or `records: [...]`` ).
+      #
+      # @param record_class [Class] The ActiveRecord class of the records to be retrieved.
+      # @param error_message [String] The error message to display if retrieval fails.
+      #
+      # @return [void]
+      #
+      # @example
+      #   retrieve_records(User, "Unable to retrieve users")
+      #
+      def retrieve_records(logic_class)
+        authorized do
+          OT.ld "[retrieve] #{logic_class}"
+          logic = logic_class.new(sess, cust, req.params, locale)
+          logic.raise_concerns
+          logic.process
+          json success: true, **logic.success_data
+        end
+      end
+
+      # Processes an action using the specified logic class and handles the response.
+      #
+      # @param logic_class [Class] The class implementing the action logic.
+      # @param error_message [String] The error message to display if the action fails.
+      #
+      # The logic class must implement the following methods:
+      # - raise_concerns
+      # - process_params
+      # - process
+      # - greenlighted
+      # - success_data
+      #
+      # @yield [logic] Gives access to the logic object for custom success handling.
+      # @yieldparam logic [Object] The instantiated logic object after processing.
+      #
+      # @return [void]
+      #
+      # @example
+      #   process_action(OT::Logic::GenerateAPIkey, "API Key could not be generated.") do |logic|
+      #     json_success(custid: cust.custid, apikey: logic.apikey)
+      #   end
+      #
+      def process_action(logic_class, success_message, error_message)
+        authorized do
+          logic = logic_class.new(sess, cust, req.params, locale)
+          logic.raise_concerns
+          logic.process
+          OT.ld "[process_action] #{logic_class} success=#{logic.greenlighted}"
+          if logic.greenlighted
+            json_success(custid: cust.custid, **logic.success_data)
+          else
+            error_response(error_message)
+          end
         end
       end
 
@@ -109,8 +170,21 @@ class Onetime::App
         res.body = hsh.to_json
       end
 
+      def json_success hsh
+        # A convenience method that returns JSON success and adds a
+        # fresh shrimp to the response body. The fresh shrimp is
+        # helpful for parts of the Vue UI that get a successful
+        # response and don't need to refresh the entire page.
+        json success: true, shrimp: sess.add_shrimp, **hsh
+      end
+
       def handle_form_error ex, hsh={}
-        error_response ex.message
+        # We don't get here from a form error unless the shrimp for this
+        # request was good. Pass a delicious fresh shrimp to the client
+        # so they can try again with a new one (without refreshing the
+        # entire page).
+        hsh[:shrimp] = sess.add_shrimp
+        error_response ex.message, hsh
       end
 
       def secret_not_found_response

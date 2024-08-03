@@ -13,6 +13,7 @@ spoom_*
 .history
 .pnpm/
 .prompts/
+.vscode/
 
 /etc/caddy
 

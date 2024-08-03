@@ -26,14 +26,6 @@ export default [
       },
     },
   },
-  {
-    rules: {
-      "no-explicit-any": "off",
-      "ban-types": "off",
-      "no-unused-vars": "error",
-      "no-undef": "error"
-    }
-  },
   // Directly integrate what would have been an override
   {
     files: ["src/views/*.vue", "src/layouts/*.vue"], // Target files in the views directory

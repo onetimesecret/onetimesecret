@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import { createHtmlPlugin } from 'vite-plugin-html'
+//import { createHtmlPlugin } from 'vite-plugin-html'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
@@ -46,7 +46,15 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './src'),
+
+      // Resolves browser console warning:
+      //
+      //    [Vue warn]: Component provided template option but runtime compilation is
+      //    not supported in this build of Vue. Configure your bundler to alias "vue"
+      //    to "vue/dist/vue.esm-bundler.js".
+      //
+      'vue': 'vue/dist/vue.esm-bundler.js'
     }
   },
 

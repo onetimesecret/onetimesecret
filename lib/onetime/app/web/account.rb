@@ -62,12 +62,12 @@ module Onetime
     def request_reset
       publically do
         if req.params[:key]
-          logic = OT::Logic::ResetPassword.new sess, cust, req.params, locale
+          logic = OT::Logic::Account::ResetPassword.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/signin'
         else
-          logic = OT::Logic::ResetPasswordRequest.new sess, cust, req.params, locale
+          logic = OT::Logic::Account::ResetPasswordRequest.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/'
@@ -76,7 +76,11 @@ module Onetime
     end
 
     def pricing
-      res.redirect '/signup'
+      publically do
+        view = Onetime::App::Views::Pricing.new req, sess, cust, locale
+        view[:business] = true
+        res.body = view.render
+      end
     end
 
     def signup
@@ -99,21 +103,13 @@ module Onetime
       end
     end
 
-    def business_pricing
-      publically do
-        view = Onetime::App::Views::Plans.new req, sess, cust, locale
-        view[:business] = true
-        res.body = view.render
-      end
-    end
-
     def create_account
       publically do
         unless _auth_settings[:enabled] && _auth_settings[:signup]
           return disabled_response(req.path)
         end
         deny_agents!
-        logic = OT::Logic::CreateAccount.new sess, cust, req.params, locale
+        logic = OT::Logic::Account::CreateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if logic.autoverify
@@ -186,7 +182,7 @@ module Onetime
 
     def account
       authenticated do
-        logic = OT::Logic::ViewAccount.new sess, cust, req.params, locale
+        logic = OT::Logic::Account::ViewAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         view = Onetime::App::Views::Account.new req, sess, cust, locale
@@ -196,7 +192,7 @@ module Onetime
 
     def update_subdomain
       authenticated('/account') do
-        logic = OT::Logic::UpdateSubdomain.new sess, cust, req.params, locale
+        logic = OT::Logic::Domains::UpdateSubdomain.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/account')

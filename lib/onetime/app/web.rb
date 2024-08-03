@@ -54,6 +54,27 @@ module Onetime
       end
     end
 
+    def account_domains
+      self._dashboard_component('AccountDomains')
+    end
+
+    def account_domains_add
+      self._dashboard_component('AccountDomainAdd')
+    end
+
+    def account_domains_verify
+      self._dashboard_component('AccountDomainVerify')
+    end
+
+    def _dashboard_component(component_name)
+      authenticated do
+        no_cache!
+        view = Onetime::App::Views::DashboardComponent.new component_name, req, sess, cust, locale
+        res.body = view.render
+      end
+    end
+    protected :_dashboard_component
+
     def show_docs
       publically do
         view = Onetime::App::Views::Docs::Api.new req, sess, cust, locale

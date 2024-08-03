@@ -6,7 +6,7 @@ module Onetime::Models
 
     attr_accessor :prefix, :identifier, :suffix, :cache
 
-    def name identifier=nil
+    def name identifier=nil  # TODO: Rename this method to `rediskey`. Too many collisions on "name".
       self.identifier ||= identifier
       @prefix ||= self.class.to_s.downcase.split('::').last.to_sym
       @suffix ||= :object
@@ -78,7 +78,6 @@ module Onetime::Models
     # NOTA BENE: This will hit the internal cache before redis.
     #
     def method_missing meth, *args
-      #OT.ld "Call to #{self.class}###{meth} (cache attempt)"
       last_char = meth.to_s[-1]
       field = case last_char
       when '=', '!', '?'
@@ -86,6 +85,7 @@ module Onetime::Models
       else
         meth.to_s
       end
+      #OT.ld "[method_missing] #{field} #{self.class}##{meth}"
       instance_value = instance_variable_get("@#{field}")
       refresh_cache unless !instance_value.nil? || self.cache.has_key?(field)
       ret = case last_char

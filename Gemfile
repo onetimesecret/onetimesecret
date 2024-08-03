@@ -2,7 +2,7 @@
 # typed: false
 
 #
-# Recommended: Ruby 3.2
+# Recommended: Ruby 3.2+
 #
 # status: normal maintenance
 # release date: 2022-12-25
@@ -25,7 +25,9 @@ gem 'addressable'
 gem 'rack'
 
 gem 'multi_json'
+gem 'public_suffix'
 gem 'thin'
+#gem 'whois'
 gem 'yajl-ruby'
 
 gem 'mustache'
@@ -33,7 +35,7 @@ gem 'mustache'
 gem 'drydock'
 gem 'familia', '~> 0.10.2'
 gem 'gibbler'
-gem 'otto', '~> 1.0.2'
+gem 'otto', '~> 1.1.0.pre.alpha1'
 gem 'redis', '~> 5.2.0'
 gem 'storable'
 gem 'sysinfo'

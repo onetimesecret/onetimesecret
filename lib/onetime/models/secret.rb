@@ -4,8 +4,10 @@ module Onetime
     include Onetime::Models::RedisHash
     include Onetime::Models::Passphrase
     include Gibbler::Complex
+
     attr_reader :entropy, :token
     gibbler :custid, :passphrase_temp, :entropy
+
     def initialize custid=nil, entropy=nil, token=nil
       @custid = custid
       @entropy = entropy

@@ -58,11 +58,16 @@ class Onetime::App
       not_found_response "Not authorized"
 
     rescue OT::BadShrimp => ex
-      sess.set_error_message "Please go back, refresh the page, and try again."
-      res.redirect redirect
+      # If it's a json response, no need to set an error message on the session
+      if res.header['Content-Type'] == 'application/json'
+        error_response 'Please refresh the page and try again'
+      else
+        sess.set_error_message "Please go back, refresh the page, and try again."
+        res.redirect redirect
+      end
 
     rescue OT::FormError => ex
-      handle_form_error ex, redirect
+      handle_form_error ex
 
     rescue OT::MissingSecret => ex
       secret_not_found_response
@@ -211,11 +216,12 @@ class Onetime::App
     end
 
     def stringify_request_details(req)
+      header_details = collect_proxy_header_details(req.env)
 
       details = [
         req.ip,
         "#{req.request_method} #{req.path_info}?#{req.query_string}",
-        collect_http_env_details(req.env)
+        "Proxy[#{header_details}]"
       ]
 
       # Convert the details array to a string for logging
@@ -226,7 +232,29 @@ class Onetime::App
       details_str
     end
 
-    def collect_http_env_details(env=nil, keys=nil)
+
+    # Collects and formats specific HTTP header details from the given
+    # environment hash.
+    #
+    # @param env [Hash, nil] The environment hash containing HTTP headers.
+    #   Defaults to an empty hash if not provided.
+    # @param keys [Array<String>, nil] The list of HTTP header keys to collect.
+    #   Defaults to a predefined list of common proxy-related headers if not
+    #   provided.
+    # @return [String] A single string with the requested headers formatted as
+    #   "key=value" pairs, separated by spaces.
+    #
+    # @example
+    #   env = {
+    #     "HTTP_X_FORWARDED_FOR" => "203.0.113.195",
+    #     "REMOTE_ADDR" => "192.0.2.1"
+    #   }
+    #   collect_proxy_header_details(env)
+    #   # => "HTTP_FLY_REQUEST_ID= HTTP_VIA= HTTP_X_FORWARDED_PROTO=
+    #   HTTP_X_FORWARDED_FOR=203.0.113.195 HTTP_X_FORWARDED_HOST=
+    #   HTTP_X_FORWARDED_PORT= HTTP_X_SCHEME= HTTP_X_REAL_IP=
+    #   REMOTE_ADDR=192.0.2.1"
+    def collect_proxy_header_details(env=nil, keys=nil)
       env ||= {}
       keys ||= %w[
         HTTP_FLY_REQUEST_ID
@@ -240,11 +268,6 @@ class Onetime::App
         REMOTE_ADDR
       ]
       keys.map { |key| "#{key}=#{env[key]}" }.join(" ")
-    end
-
-    def collect_http_env_keys(env=nil)
-      return [] unless env
-      env.keys.select { |key| key.start_with?('HTTP_') }.sort
     end
 
     def secure_request?

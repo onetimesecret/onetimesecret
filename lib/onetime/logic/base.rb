@@ -42,14 +42,14 @@ module Onetime
       end
 
       def form_fields
-        OT.ld "No form_fields method for #{self.class}"
+        OT.ld "No form_fields method for #{self.class} via:", caller[0..2].join("\n")
         {}
       end
 
       def raise_form_error(msg)
         ex = OT::FormError.new
         ex.message = msg
-        ex.form_fields = form_fields
+        ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end
 

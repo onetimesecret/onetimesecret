@@ -1,3 +1,6 @@
+
+require 'httparty'
+
 module Onetime
   module Utils
     extend self
@@ -56,5 +59,42 @@ module Onetime
       text.gsub regex, '\\3*****\\4@\\6*****\\7'
     end
   end
+end
 
+
+module Onetime
+  module Utils
+
+    # DNSChecker is a utility class for checking DNS records using an external API.
+    #
+    # It uses the HTTParty gem to make HTTP requests to the Approximated API.
+    class DNSChecker
+      include HTTParty
+      base_uri 'https://cloud.approximated.app/api'
+      headers 'Content-Type' => 'application/json'
+
+      # Checks the existence of specified DNS records.
+      #
+      # @param api_key [String] The API key for authenticating with the Approximated API.
+      # @param records [Array<Hash>] An array of hashes representing DNS records to check.
+      #   Each hash should contain keys like 'type', 'name', and 'value'.
+      #
+      # @return [HTTParty::Response] The response from the API call.
+      #
+      # @example
+      #   api_key = 'your_api_key_here'
+      #   records = [
+      #     { type: 'A', name: 'example.com', value: '192.0.2.1' },
+      #     { type: 'MX', name: 'example.com', value: 'mail.example.com' }
+      #   ]
+      #   response = DNSChecker.check_records(api_key, records)
+      #
+      def self.check_records(api_key, records)
+        post('/dns/check-records-exist',
+          headers: { 'api-key' => api_key },
+          body: { records: records }.to_json)
+      end
+    end
+
+  end
 end
