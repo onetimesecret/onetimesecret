@@ -96,8 +96,10 @@ response = @mock_request.get('/api/v1/status')
 
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v1/create')
-[response.status, response.body]
-#=> [404, '{"message":"You did not provide anything to share"}']
+content = JSON.parse(response.body) rescue {}
+message = content.delete('message')
+[response.status, message]
+#=> [404, "You did not provide anything to share"]
 
 ## Can access the API generate endpoint
 response = @mock_request.post('/api/v1/generate')

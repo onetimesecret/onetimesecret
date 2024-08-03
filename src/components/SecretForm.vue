@@ -84,7 +84,6 @@ const isFormValid = computed(() => secretContent.value.trim().length > 0);
         Create a secret link<span v-if="withAsterisk">*</span>
       </button>
 
-
       <!--
         To adjust the width and centering of the <hr> and button elements:
 
