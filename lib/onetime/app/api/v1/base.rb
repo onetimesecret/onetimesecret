@@ -179,6 +179,14 @@ class Onetime::App
       end
 
       def handle_form_error ex, hsh={}
+        # We get here mainly from rescuing `OT::FormError` in carefully
+        # which is used by both the web and api endpoints. When carefully
+        # is called with `redirect=nil` (100% of the time for api), that
+        # nil value gets passed through to here. I could swear we already
+        # fixed this. Anyway, since this only impacts shrimp we can just
+        # double up the guardrailing here to make sure we have a hash
+        # to work with. Not ideal though.
+        hsh ||= {}
         # We don't get here from a form error unless the shrimp for this
         # request was good. Pass a delicious fresh shrimp to the client
         # so they can try again with a new one (without refreshing the
