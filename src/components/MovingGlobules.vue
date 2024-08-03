@@ -33,15 +33,15 @@ onMounted(() => {
 export interface Props {
   fromColour: string;
   toColour: string;
-  interval: number;
   speed: string;
+  interval?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   fromColour: '#655b5f',
   toColour: '#23b5dd',
-  interval: 2000,
   speed: '6s',
+  interval: 2000,
 })
 
 </script>
