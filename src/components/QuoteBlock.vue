@@ -1,25 +1,20 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { testimonials } from '@/sources/testimonials'; // Adjust the path as necessary
 
-<!--
-  EXAMPLE USAGE:
+const currentIndex = ref(0);
 
-  <template>
-    <div>
-      <QuoteBlock :testimonial="testimonial" />
-    </div>
-  </template>
+const nextTestimonial = () => {
+  currentIndex.value = (currentIndex.value + 1) % testimonials.length;
+};
 
-  <script setup lang="ts">
-  import { ref } from 'vue';
-  import QuoteBlock from './QuoteBlock.vue';
+const previousTestimonial = () => {
+  currentIndex.value = (currentIndex.value - 1 + testimonials.length) % testimonials.length;
+};
 
-  const testimonial = ref({
-    quote: "This is an amazing product! It has changed the way we work.",
-    name: "John Doe",
-    company: "Tech Corp"
-  });
-  </script>
+const currentTestimonial = computed(() => testimonials[currentIndex.value]);
+</script>
 
--->
 <template>
   <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -31,7 +26,7 @@
           <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Artificial Feedback</span>
         </div>
         <blockquote class="text-lg sm:text-xl font-medium text-gray-900 dark:text-white mb-4 italic">
-          "{{ props.testimonial.quote }}"
+          "{{ currentTestimonial.quote }}"
         </blockquote>
         <div class="flex items-center">
           <div class="flex-shrink-0">
@@ -41,35 +36,23 @@
           </div>
           <div class="ml-3">
             <p class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ props.testimonial.name }}
+              {{ currentTestimonial.name }}
             </p>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              {{ props.testimonial.company }}
+              {{ currentTestimonial.company }}
             </p>
           </div>
         </div>
       </div>
       <div class="bg-gray-100 dark:bg-gray-700 px-6 py-3">
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          Note: This quote is AI-generated based on the content of this page and does not represent an actual person or company.
+          Note: This content is AI-generated based on the content of this page and does not represent an actual person or company.
         </p>
+      </div>
+      <div class="flex justify-between px-6 py-3">
+        <button @click="previousTestimonial" class="text-sm font-medium text-gray-500 dark:text-gray-400">Previous</button>
+        <button @click="nextTestimonial" class="text-sm font-medium text-gray-500 dark:text-gray-400">Next</button>
       </div>
     </div>
   </div>
-
 </template>
-
-<script setup lang="ts">
-
-interface Testimonial {
-  quote: string;
-  name: string;
-  company: string;
-}
-
-// Define props using defineProps
-const props = defineProps<{
-  testimonial: Testimonial;
-}>();
-
-</script>
