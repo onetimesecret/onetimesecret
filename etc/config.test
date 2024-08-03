@@ -1,8 +1,8 @@
 ---
 :site:
   :host: '127.0.0.1:3000'
-    :domains:
-    :enabled: <%= ENV['DOMAINS_ENABLED'] || true %>
+  :domains:
+    :enabled: <%= ENV['DOMAINS_ENABLED'] || false %>
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
