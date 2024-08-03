@@ -7,50 +7,44 @@ interface Testimonial {
 
 export const testimonials: Array<Testimonial> = [
   {
-    quote: "Powerful tools, flexible plans. Choose the package that fits your ambitions.",
-    name: "Claude",
-    company: "Anthropic AI",
-    uri: ""
-  },
-  {
-    quote: "The AI-powered recommendations were spot-on. I'm now on a plan that perfectly fits my business needs.",
-    name: "Alex",
+    quote: "Onetime Secret helps us share sensitive information securely while maintaining our professional image.",
+    name: "Aisha",
     company: "TechStart Solutions",
     uri: ""
   },
   {
-    quote: "I love how my plan evolves with my business. It's like having a pricing partner that grows with you.",
-    name: "Emma",
+    quote: "The branded domain feature has significantly elevated our company's perception among clients.",
+    name: "Hiroshi",
     company: "Growth Dynamics",
     uri: ""
   },
   {
-    quote: "The flexibility to adjust features and see real-time price changes is a game-changer. No more overpaying!",
-    name: "Marcus",
+    quote: "SafeTek® Security Architecture gives us peace of mind when sharing confidential data with stakeholders.",
+    name: "Priya",
     company: "Agile Innovations",
     uri: ""
   },
   {
-    quote: "As a freelancer, my needs change constantly. This dynamic pricing model is perfect for my fluctuating workload.",
-    name: "Sophia",
+    quote: "As a freelancer, the unlimited sharing capacity allows me to collaborate securely with multiple clients.",
+    name: "Carlos",
     company: "Creative Freelance Hub",
     uri: ""
   },
   {
-    quote: "The transparency in pricing is refreshing. I know exactly what I'm paying for and why.",
-    name: "Daniel",
+    quote: "The advanced compliance options ensure we meet all regulatory requirements in our industry.",
+    name: "Fatima",
     company: "Clear Vision Analytics",
     uri: ""
   },
   {
-    quote: "We scaled from a small team to a mid-sized company, and our pricing plan seamlessly adapted. Brilliant!",
-    name: "Laura",
+    quote: "The private cloud environment has been crucial in building trust with our high-profile clients.",
+    name: "Zhang Wei",
     company: "ScaleUp Enterprises",
     uri: ""
   },
   {
-    quote: "The customization options allowed me to create a plan that aligns perfectly with my nonprofit's budget and goals.",
-    name: "Michael",
+    quote: "The flexible data residency options allow us to comply with various regional data protection laws.",
+    name: "Liam",
     company: "Community Impact Foundation",
     uri: ""
   },
