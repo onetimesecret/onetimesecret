@@ -51,17 +51,24 @@ module Onetime
         self[:no_cache] = false
         self[:display_sitenav] = true
         self[:jsvars] = []
+
         if authenticated && cust
-          self[:domains_enabled] = domains[:enabled] || false  # only for authenticated
           self[:colonel] = cust.role?(:colonel)
           self[:metadata_record_count] = cust.metadata.size
-          self[:custom_domains_record_count] = cust.custom_domains_list.size
-          self[:custom_domains] = cust.custom_domains.collect { |obj| obj[:display_domain] }.sort
           self[:jsvars] << jsvar(:metadata_record_count, self[:metadata_record_count])
-          self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
-          self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
+
+          self[:domains_enabled] = domains[:enabled] || false  # only for authenticated
           self[:jsvars] << jsvar(:domains_enabled, self[:domains_enabled])
+
+          # There's no custom domain list when the feature is disabled.
+          if self[:domains_enabled]
+            self[:custom_domains_record_count] = cust.custom_domains_list.size
+            self[:custom_domains] = cust.custom_domains.collect { |obj| obj[:display_domain] }.sort
+            self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
+            self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
+          end
         end
+
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:cust, cust.safe_dump)
