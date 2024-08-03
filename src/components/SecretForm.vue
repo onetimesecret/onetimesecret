@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 
+import CustomDomainPreview from './CustomDomainPreview.vue';
 import SecretContentInputArea from './SecretContentInputArea.vue';
 import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
-import CustomDomainPreview from './CustomDomainPreview.vue';
 
 export interface Props {
   enabled?: boolean;
