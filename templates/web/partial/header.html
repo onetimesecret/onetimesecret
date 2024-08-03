@@ -33,8 +33,8 @@
     {{#frontend_development}}
       <!-- if development -->
       <!-- an entry point for each page (main == homepage) -->
-      <script type="module" src="{{ frontend_host }}/main.ts"></script>
-      <script type="module" src="{{ frontend_host }}/@vite/client"></script>
+      <script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
+      <script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
     {{/frontend_development}}
 
     {{^frontend_development}}
