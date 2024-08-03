@@ -197,7 +197,7 @@ module Onetime
           [baseuri, metadata_path].flatten.join('/')
         end
         def burn_uri
-          [baseuri, burn_path, 'burn'].flatten.join('/')
+          [baseuri, burn_path].flatten.join('/')
         end
         def display_lines
           ret = self[:secret_value].to_s.scan(/\n/).size + 2
