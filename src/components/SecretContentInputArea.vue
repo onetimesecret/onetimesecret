@@ -76,18 +76,19 @@ onUnmounted(() => {
 <template>
   <div class="relative">
     <textarea ref="secretContentRef"
-      class="w-full h-40 p-3
+              class="w-full h-40 p-3 font-mono
         border border-gray-300 rounded-md
         focus:ring-brandcompdim-500 focus:border-brandcompdim-500
         dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-      name="secret"
-      autofocus
-      autocomplete="off"
-      placeholder="Secret content goes here..."
-      aria-label="Enter the secret content here"></textarea>
+              name="secret"
+              autofocus
+              autocomplete="off"
+              placeholder="Secret content goes here..."
+              aria-label="Enter the secret content to share here"></textarea>
 
-    <div class="absolute top-2 right-2">
-      <div class="relative inline-block text-left" ref="dropdownRef">
+    <div class="absolute bottom-4 right-2">
+      <div class="relative inline-block text-left"
+           ref="dropdownRef">
         <div>
           <button type="button"
                   class="inline-flex justify-center items-center w-full rounded-md
@@ -110,7 +111,6 @@ onUnmounted(() => {
 
         <!-- -class="origin-bottom-right absolute bottom-full right-0 mb-2 mt-2 w-64 rounded-md shadow-lg" -->
         <div v-if="isOpen"
-
              class="origin-top-right absolute right-0 mt-2 w-64 rounded-md shadow-lg
               bg-white dark:bg-gray-800
               ring-1 ring-black ring-opacity-5 dark:ring-gray-700

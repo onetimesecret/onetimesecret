@@ -71,7 +71,6 @@ const selectedDomain = ref(availableDomains[0]);
         :withPassphrase="true"
       />
 
-
       <button type="submit"
               class="text-xl w-full py-2 px-4 rounded mb-4
               bg-orange-600 hover:bg-orange-700 text-white
