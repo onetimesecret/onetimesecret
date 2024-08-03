@@ -109,13 +109,13 @@ const togglePassphrase = () => {
       <div v-if="props.withRecipient"
            class="flex flex-col">
         <label for="recipient"
-               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Recipient Address:
+               class="block font-brand text-sm font-medium text-gray-500 dark:text-gray-300 mb-2">
+          Recipient Address
         </label>
         <input type="email"
                id="recipient"
                name="recipient[]"
-               placeholder="example@onetimesecret.com"
+               placeholder="tom@myspace.com"
                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-brandcomp-500 focus:border-brandcomp-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
       </div>
     </div>
