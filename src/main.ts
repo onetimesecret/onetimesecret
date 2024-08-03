@@ -70,9 +70,6 @@ const componentMap: ComponentMap = {
   'Account': defineAsyncComponent(() => import('@/views/account/AccountIndex.vue')),
   'Shared': defineAsyncComponent(() => import('@/views/Shared.vue')),
   'Private': defineAsyncComponent(() => import('@/views/Private.vue')),
-  //'Pricing': defineAsyncComponent(() => import('@/views/Pricing.vue')),
-  'Pricing': defineAsyncComponent(() => import('@/views/PricingDual.vue')),
-  //'Signup': defineAsyncComponent(() => import('@/views/Signup.vue')),
   'Feedback': defineAsyncComponent(() => import('@/views/Feedback.vue')),
   'Forgot': defineAsyncComponent(() => import('@/components/PasswordStrengthChecker.vue')),
 }

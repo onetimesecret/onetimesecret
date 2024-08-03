@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AccountDomainAdd from '@/views/account/AccountDomainAdd.vue'
 import AccountDomains from  '@/views/account/AccountDomains.vue'
+import Homepage from '@/views/Homepage.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -18,6 +19,21 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains',
     name: 'AccountDomains',
     component: AccountDomains,
+  },
+  {
+    path: '/pricing',
+    name: 'Pricing',
+    component: () => import('@/views/PricingDual.vue'),
+  },
+  {
+    path: '/',
+    name: 'Dashboard',
+    component: () => import('@/views/Dashboard.vue'),
+  },
+  {
+    path: '/',
+    name: 'Homepage',
+    component: Homepage,
   },
 
 ]
