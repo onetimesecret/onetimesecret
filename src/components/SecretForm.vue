@@ -60,21 +60,17 @@ const isFormValid = computed(() => secretContent.value.trim().length > 0);
             @update:selectedDomain="selectedDomain = $event"
       -->
 
-      <SecretContentInputArea
-        :availableDomains="availableDomains"
-        :initialDomain="selectedDomain"
-        :withDomainDropdown="domainsEnabled"
-        v-model:selectedDomain="selectedDomain"
-        @update:content="secretContent = $event"
-      />
+      <SecretContentInputArea :availableDomains="availableDomains"
+                              :initialDomain="selectedDomain"
+                              :withDomainDropdown="domainsEnabled"
+                              v-model:selectedDomain="selectedDomain"
+                              @update:content="secretContent = $event" />
 
       <CustomDomainPreview :default_domain="selectedDomain" />
 
-      <SecretFormPrivacyOptions
-        :withRecipient="props.withRecipient"
-        :withExpiry="true"
-        :withPassphrase="true"
-      />
+      <SecretFormPrivacyOptions :withRecipient="props.withRecipient"
+                                :withExpiry="true"
+                                :withPassphrase="true" />
 
       <button type="submit"
               class="text-xl w-full py-2 px-4 rounded mb-4

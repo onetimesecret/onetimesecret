@@ -172,6 +172,14 @@ module Onetime
           self[:show_metadata_link] = metadata.state?(:new)
           self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
         end
+        def share_domain
+          domain = if self[:domains_enabled]
+            "<CUSTOM DOMAIN>"
+          else
+            site_host
+          end
+          [base_scheme, domain].join
+        end
         def share_path
           [:secret, self[:secret_key]].join('/')
         end

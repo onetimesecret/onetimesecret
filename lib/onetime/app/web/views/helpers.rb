@@ -18,8 +18,12 @@ module Onetime
           format('/secret/%s', obj.key)
         end
 
+        def base_scheme
+          Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+        end
+
         def baseotsuri
-          scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+          scheme = base_scheme
           [scheme, Onetime.conf[:site][:host]].join
         end
 
@@ -50,7 +54,7 @@ module Onetime
         end
 
         def baseuri
-          scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+          scheme = base_scheme
           fulldomain = if current_subdomain
                          [current_subdomain['cname'], Onetime.conf[:site][:domain]].join('.')
                        else
