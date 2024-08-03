@@ -39,12 +39,29 @@ module Onetime
         raise OT::Problem, "No `site.authentication` config found in #{path}"
       end
 
+      unless conf[:site]&.key?(:domains)
+        conf[:site][:domains] = { enabled: false }
+      end
+
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
       if OT.conf.dig(:site, :authentication, :enabled) != true
         OT.conf[:site][:authentication].each_key do |key|
           conf[:site][:authentication][key] = false
+        end
+      end
+
+      if OT.conf.dig(:site, :domains, :enabled).to_s == "true"
+        cluster = conf.dig(:site, :domains, :cluster)
+        OT.ld "Setting ClusterFeatures #{cluster}"
+        klass = OT::Logic::Domains::ClusterFeatures
+        klass.api_key = cluster[:api_key]
+        klass.cluster_ip = cluster[:cluster_ip]
+        klass.cluster_name = cluster[:cluster_name]
+        OT.ld "Domains config: #{cluster}"
+        unless klass.api_key
+          raise OT::Problem, "No `site.domains.cluster` api key (#{klass.api_key})"
         end
       end
 

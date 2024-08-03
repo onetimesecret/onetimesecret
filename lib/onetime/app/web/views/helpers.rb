@@ -45,6 +45,10 @@ module Onetime
           defined?(req) ? req.env['ots.subdomain'] : subdomain
         end
 
+        def site_host
+          Onetime.conf[:site][:host]
+        end
+
         def baseuri
           scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
           fulldomain = if current_subdomain

@@ -21,13 +21,13 @@ module Onetime
         is_default_locale = OT.conf[:locales].first.to_s == locale
         is_subdomain = req.nil? ? nil : !req.env['ots.subdomain'].nil?
 
-        # TODO: Make better use of fetch to avoid nil checks. Esp important
+        # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change.
         site = OT.conf.fetch(:site, {})
-        base_domain = site[:domain]
+        domains = OT.conf.dig(:site, :domains) || {}
 
-        # If not set, the frontend_host is the same as the base_domain and we can
-        # leave the absolute path empty as-is without a host.
+        # If not set, the frontend_host is the same as the site_host and
+        # we can leave the absolute path empty as-is without a host.
         development = OT.conf.fetch(:development, {})
         frontend_development = development[:enabled] || false
         frontend_host = development[:frontend_host] || ''
@@ -44,15 +44,24 @@ module Onetime
         self[:authenticated] = authenticated
         self[:display_promo] = false
         self[:display_feedback] = true
-        self[:colonel] = cust.role?(:colonel) if cust
         self[:feedback_text] = i18n[:COMMON][:feedback_text]
-        self[:base_domain] = base_domain
         self[:is_subdomain] = is_subdomain
         self[:frontend_host] = frontend_host
         self[:frontend_development] = frontend_development
         self[:no_cache] = false
         self[:display_sitenav] = true
         self[:jsvars] = []
+        if authenticated && cust
+          self[:domains_enabled] = domains[:enabled] || false  # only for authenticated
+          self[:colonel] = cust.role?(:colonel)
+          self[:metadata_record_count] = cust.metadata.size
+          self[:custom_domains_record_count] = cust.custom_domains_list.size
+          self[:custom_domains] = cust.custom_domains.collect { |obj| obj[:display_domain] }.sort
+          self[:jsvars] << jsvar(:metadata_record_count, self[:metadata_record_count])
+          self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
+          self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
+          self[:jsvars] << jsvar(:domains_enabled, self[:domains_enabled])
+        end
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:cust, cust.safe_dump)
@@ -61,9 +70,9 @@ module Onetime
         self[:jsvars] << jsvar(:locale, locale)
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
-        self[:jsvars] << jsvar(:base_domain, base_domain)
         self[:jsvars] << jsvar(:is_subdomain, is_subdomain)
         self[:jsvars] << jsvar(:authenticated, authenticated)
+        self[:jsvars] << jsvar(:site_host, site[:host])
 
         # TODO: We can remove this after we update the Account view to use
         # the value of cust.created to calculate the customer_since value
@@ -122,7 +131,11 @@ module Onetime
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
-        init *args if respond_to? :init
+
+        # So the list of template vars shows up sorted variable name
+        self[:jsvars] = self[:jsvars].sort_by { |item| item[:name] }
+
+        init(*args) if respond_to? :init
       end
 
       def i18n

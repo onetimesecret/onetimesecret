@@ -4,6 +4,7 @@ class Onetime::App
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
     LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
+    HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
   module Helpers
@@ -67,7 +68,8 @@ class Onetime::App
       end
 
     rescue OT::FormError => ex
-      handle_form_error ex
+      OT.ld "[carefully] FormError: #{ex.message}"
+      handle_form_error ex, redirect
 
     rescue OT::MissingSecret => ex
       secret_not_found_response
@@ -267,7 +269,22 @@ class Onetime::App
         HTTP_X_REAL_IP
         REMOTE_ADDR
       ]
-      keys.map { |key| "#{key}=#{env[key]}" }.join(" ")
+
+      # Add any header that begins with HEADER_PREFIX
+      prefix_keys = env.keys.select { |key| key.upcase.start_with?("HTTP_#{HEADER_PREFIX}") }
+      keys.concat(prefix_keys)
+
+      OT.ld "[SELECTED KEYS] #{HEADER_PREFIX}: #{keys.sort}"
+
+      keys.sort.map { |key|
+        # Normalize the header name so it looks identical in the logs as it
+        # does in the browser dev console.
+        #
+        # e.g. Content-Type instead of HTTP_CONTENT_TYPE
+        #
+        pretty_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+        "#{pretty_name}: #{env[key]}"
+      }.join(" ")
     end
 
     def secure_request?

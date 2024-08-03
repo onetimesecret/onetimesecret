@@ -1,7 +1,17 @@
 ---
 :site:
   :host: '127.0.0.1:3000'
-  :domain: 127.0.0.1
+  :domains:
+    :enabled: <%= ENV['DOMAINS_ENABLED'] || false %>
+    # The default domain used for link URLs. When not set or empty,
+    # site.host is used.
+    :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    # The cluster type determines how the application will support
+    # multiple domains. The default is nil which means that the
+    # application itself is responsible for handling multiple domains.
+    :cluster:
+      :type: <%= ENV['CLUSTER_TYPE'] || nil %>
+  # Turns https/http on or off when generating links
   :ssl: true
   :secret: SuP0r_53cRU7
   # Registration and Authentication settings

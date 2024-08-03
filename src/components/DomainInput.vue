@@ -1,7 +1,7 @@
 <template>
   <div>
-    <label for="domain" class="block text-xl font-medium leading-6 text-gray-900 dark:text-gray-100">
-      Add a domain
+    <label for="domain" class="hidden text-xl font-medium leading-6 text-gray-900 dark:text-gray-100 bg-inherit" aria-hidden="false">
+      Domain name
     </label>
     <div class="relative mt-2 rounded-md shadow-sm">
       <input
@@ -29,8 +29,6 @@
   </div>
 </template>
 
-
-
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 
@@ -39,5 +37,4 @@ defineProps<{
   placeholder: string;
   isValid: boolean;
 }>();
-
 </script>

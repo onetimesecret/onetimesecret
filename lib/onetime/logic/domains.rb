@@ -59,8 +59,30 @@ module Onetime::Logic
       end
     end
 
+    module ClusterFeatures
+      @type = nil
+      @api_key = nil
+      @cluster_ip = nil
+      @cluster_name = nil
+
+      module ClassMethods
+        attr_accessor :type, :api_key, :cluster_ip, :cluster_name
+      end
+
+      def cluster_safe_dump
+        {
+          type:  ClusterFeatures.type,
+          cluster_ip: ClusterFeatures.cluster_ip,
+          cluster_name: ClusterFeatures.cluster_name
+        }
+      end
+
+      extend ClassMethods
+    end
+
     class AddDomain < OT::Logic::Base
       attr_reader :greenlighted, :custom_domain
+      include ClusterFeatures # for cluster_safe_dump
 
       def process_params
         OT.ld "[AddDomain] Parsing #{params[:domain]}"
@@ -94,10 +116,36 @@ module Onetime::Logic
         @greenlighted = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
         @custom_domain = OT::CustomDomain.create(@display_domain, @cust.custid)
+
+        # Create the approximated vhost for this domain. Approximated provides a
+        # custom domain as a service API. If no API key is set, then this will
+        # simply log a message and return.
+        create_vhost
+      end
+
+      def create_vhost
+        api_key = ClusterFeatures.api_key
+
+        if api_key.to_s.empty?
+          return OT.info "[AddDomain.create_vhost] Approximated API key not set"
+        end
+
+        res = OT::Utils::Approximated.create_vhost(api_key, @display_domain, 'staging.onetimesecret.com', '443')
+        payload = res.parsed_response
+        OT.info "[AddDomain.create_vhost] %s" % payload
+        @custom_domain[:vhost] = payload.to_json
+      rescue HTTParty::ResponseError => e
+        OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
       end
 
       def success_data
-        { custid: @cust.custid, record: @custom_domain.safe_dump }
+        {
+          custid: @cust.custid,
+          record: @custom_domain.safe_dump,
+          details: {
+            cluster: cluster_safe_dump
+          }
+        }
       end
     end
 
@@ -124,14 +172,40 @@ module Onetime::Logic
 
         @custom_domain.destroy!(@cust)
 
+        # NOTE: Disable deleting the domain from the cluster vhost to
+        # avoid issue with two customers adding the same domain and then
+        # one removing it. This would cause the domain to be removed for
+        # both customers, which would be surprising. Instead, we can
+        # just disable the domain for this customer and let them add it
+        # again if they want to use it in the future.
+        #
+        # delete_vhost
+      end
+
+      def delete_vhost
+        api_key = ClusterFeatures.api_key
+        if api_key.to_s.empty?
+          return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
+        end
+        res = OT::Utils::Approximated.delete_vhost(api_key, @display_domain)
+        payload = res.parsed_response
+        OT.info "[RemoveDomain.delete_vhost] %s" % payload
+      rescue HTTParty::ResponseError => e
+        OT.le "[RemoveDomain.delete_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
       end
 
       def success_data
-        { custid: @cust.custid, record: {}, message: "Removed #{display_domain}" }
+        {
+          custid: @cust.custid,
+          record: {},
+          message: "Removed #{display_domain}"
+        }
       end
     end
 
     class ListDomains < OT::Logic::Base
+      include ClusterFeatures # for cluster_safe_dump
+
       attr_reader :custom_domains
 
       def raise_concerns
@@ -146,12 +220,16 @@ module Onetime::Logic
         {
           custid: @cust.custid,
           records: @custom_domains,
-          count: @custom_domains.length
+          count: @custom_domains.length,
+          details: {
+            cluster: cluster_safe_dump
+          }
         }
       end
     end
 
     class GetDomain < OT::Logic::Base
+      include ClusterFeatures # for cluster_safe_dump
 
       def process_params
         @domain_input = params[:domain].to_s.strip
@@ -161,23 +239,27 @@ module Onetime::Logic
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
+        # Getting the domain record based on `req.params[:domain]` (which is
+        # the display_domain). That way we need to combine with the custid
+        # in order to find it. It's a way of proving ownership. Vs passing the
+        # domainid in the URL path which gives up the goods.
         @custom_domain = OT::CustomDomain.load(@domain_input, @cust)
+
         raise_form_error "Domain not found" unless @custom_domain
       end
 
       def process
         OT.ld "[GetDomain] Processing #{@custom_domain[:display_domain]}"
 
-        # TODO: GET DOMAIN based on `req.params[:domain]` which should be
-        # the display_domain. That way we need to combine with the custid
-        # in order to find it. It's a way of proving ownership. Vs passing the
-        # domainid in the URL path which gives up the goods.
       end
 
       def success_data
         {
           custid: @cust.custid,
-          record: @custom_domain.safe_dump
+          record: @custom_domain.safe_dump,
+          details: {
+            cluster: cluster_safe_dump
+          }
         }
       end
     end

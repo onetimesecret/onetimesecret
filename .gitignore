@@ -15,8 +15,6 @@ spoom_*
 .prompts/
 .vscode/
 
-/etc/caddy
-
 .appendonlydir/
 .bundle/
 data/
@@ -30,3 +28,4 @@ etc/caddy/
 .DS_Store
 !pr_agent.toml
 etc/config
+fly.toml

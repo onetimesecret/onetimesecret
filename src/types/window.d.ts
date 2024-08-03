@@ -44,15 +44,29 @@ import { Cust, Plan } from './onetime';
 
 declare global {
   interface Window {
-    // Our CSRF token, to be used in POST requests to the backend
-    shrimp?: string;
-    custid?: string;
-    cust?: Cust;
-    available_plans?: Plan[];
     apitoken?: string;
-    email?: string;
+    authenticated: boolean;
+    available_plans?: Plan[];
+    baseuri: string;
+    cust: Cust;
+    custid: string;
     customer_since?: string;
+    custom_domains_record_count: number;
+    custom_domains?: string[];
+    email: string;
+    frontend_host: string;
+    is_default_locale: boolean;
+    is_subdomain: boolean;
+    locale: string;
+    ot_version: string;
+    ruby_version: string;
+    shrimp: string;  // Our CSRF token, to be used in POST requests to the backend
+    site_host: string;
     vue_component_name?: string;
+
+    // A function that's called on page load to update any email
+    // addresses inside <span class="email">. Currently only the
+    // server-rendered templates contain these.
     deobfuscateEmails: () => void;
   }
 }

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import AccountDomainAdd from '@/views/account/AccountDomainAdd.vue'
-import AccountDomainVerify from '@/views/account/AccountDomainVerify.vue'
 import AccountDomains from  '@/views/account/AccountDomains.vue'
 
 const routes: Array<RouteRecordRaw> = [
@@ -12,7 +11,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/domains/:domain/verify',
     name: 'AccountDomainVerify',
-    component: AccountDomainVerify,
+    component: () => import('@/views/account/AccountDomainVerify.vue'),
     props: true,
   },
   {
