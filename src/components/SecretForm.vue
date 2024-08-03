@@ -53,6 +53,9 @@ const isFormValid = computed(() => secretContent.value.trim().length > 0);
       <input type="hidden"
              name="shrimp"
              :value="shrimp" />
+      <input type="hidden"
+             name="share_domain"
+             :value="selectedDomain" />
 
       <!--
           v-model:selectedDomain is equivalent to:

@@ -203,7 +203,6 @@ class Onetime::CustomDomain < Familia::HashKey
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         cust = OT::Customer.new(custid)
 
-        p [5, obj[:display_domain], obj[:domainid]]
         OT.info "[CustomDomain.create] Adding domain #{obj["display_domain"]}/#{domainid} for #{cust}"
 
         # Add to customer's list of custom domains. It's actually
@@ -263,8 +262,8 @@ class Onetime::CustomDomain < Familia::HashKey
     # to create will be created on the base domain. So if we have
     # www.froogle.com, we'll create the TXT record on froogle.com,
     # like this: `_onetime-challenge-domainid.froogle.com`. This is
-    # distinct from the domain we ask the user to create a CNAME
-    # record on, which is www.froogle.com. We also call this the
+    # distinct from the domain we ask the user to create an A
+    # record for, which is www.froogle.com. We also call this the
     # display domain.
     #
     # Returns either a string or nil if invalid
@@ -275,7 +274,7 @@ class Onetime::CustomDomain < Familia::HashKey
     end
 
     # Takes the given input domain and returns the display domain,
-    # the one that we ask the user to create a CNAME record on. So
+    # the one that we ask the user to create an A record for. So
     # subdir.www.froogle.com would return subdir.www.froogle.com here;
     # www.froogle.com would return www.froogle.com; and froogle.com
     # would return froogle.com.
