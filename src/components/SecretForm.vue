@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 import SecretContentInputArea from './SecretContentInputArea.vue';
 import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
@@ -32,6 +32,8 @@ if (!availableDomains.includes(defaultDomain)) {
 // The selectedDomain is the first available domain by default
 const selectedDomain = ref(availableDomains[0]);
 
+const secretContent = ref('');
+const isFormValid = computed(() => secretContent.value.trim().length > 0);
 
 </script>
 
@@ -61,6 +63,7 @@ const selectedDomain = ref(availableDomains[0]);
         :availableDomains="availableDomains"
         :initialDomain="selectedDomain"
         v-model:selectedDomain="selectedDomain"
+        @update:content="secretContent = $event"
       />
 
       <CustomDomainPreview :default_domain="selectedDomain" />
@@ -74,11 +77,13 @@ const selectedDomain = ref(availableDomains[0]);
       <button type="submit"
               class="text-xl w-full py-2 px-4 rounded mb-4
               bg-orange-600 hover:bg-orange-700 text-white
-              font-bold2 "
+              font-bold2 disabled:opacity-50 disabled:cursor-not-allowed"
               name="kind"
-              value="share">
+              value="share"
+              :disabled="!isFormValid">
         Create a secret link<span v-if="withAsterisk">*</span>
       </button>
+
 
       <!--
         To adjust the width and centering of the <hr> and button elements:

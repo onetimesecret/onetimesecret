@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 
 interface Props {
@@ -11,7 +11,13 @@ const props = withDefaults(defineProps<Props>(), {
   initialDomain: '',
 });
 
-const emit = defineEmits(['update:selectedDomain']);
+const emit = defineEmits(['update:selectedDomain', 'update:content']);
+
+const content = ref('');
+
+watch(content, (newContent) => {
+  emit('update:content', newContent);
+});
 
 const isOpen = ref(false);
 const selectedDomain = ref(props.initialDomain);
@@ -76,10 +82,11 @@ onUnmounted(() => {
 <template>
   <div class="relative">
     <textarea ref="secretContentRef"
+              v-model="content"
               class="w-full h-40 p-3 font-mono
-        border border-gray-300 rounded-md
-        focus:ring-brandcompdim-500 focus:border-brandcompdim-500
-        dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                border border-gray-300 rounded-md
+              focus:ring-brandcompdim-500 focus:border-brandcompdim-500
+              dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               name="secret"
               autofocus
               autocomplete="off"
