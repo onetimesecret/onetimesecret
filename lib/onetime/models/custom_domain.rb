@@ -47,7 +47,7 @@ class Onetime::CustomDomain < Familia::HashKey
     :txt_validation_host,
     :txt_validation_value,
     :status,
-    :vhost,
+    { :vhost => ->(obj) { obj.parse_vhost } },
     :verified,
     :created,
     :updated
@@ -142,6 +142,13 @@ class Onetime::CustomDomain < Familia::HashKey
   def del(*args)
     OT::CustomDomain.values.rem identifier
     super # we may prefer to call self.clear here instead
+  end
+
+  def parse_vhost
+    JSON.parse(self[:vhost] || '{}')
+  rescue JSON::ParserError => e
+    OT.le "[CustomDomain.parse_vhost] Error #{e}"
+    {}
   end
 
   def to_s
