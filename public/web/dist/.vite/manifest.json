@@ -1,6 +1,6 @@
 {
   "components/PasswordStrengthChecker.vue": {
-    "file": "assets/PasswordStrengthChecker-CcOGYqUg.js",
+    "file": "assets/PasswordStrengthChecker-D6vX51ZS.js",
     "name": "PasswordStrengthChecker",
     "src": "components/PasswordStrengthChecker.vue",
     "isDynamicEntry": true,
@@ -9,28 +9,38 @@
     ]
   },
   "main.ts": {
-    "file": "assets/main-4i32alWm.js",
+    "file": "assets/main-DEOVpVpT.js",
     "name": "main",
     "src": "main.ts",
     "isEntry": true,
     "dynamicImports": [
       "views/account/AccountDomainVerify.vue",
+      "views/PricingDual.vue",
+      "views/Dashboard.vue",
       "views/account/AccountDomains.vue",
       "views/account/AccountDomainAdd.vue",
       "views/account/AccountDomainVerify.vue",
       "views/account/AccountIndex.vue",
       "views/Shared.vue",
       "views/Private.vue",
-      "views/PricingDual.vue",
       "views/Feedback.vue",
       "components/PasswordStrengthChecker.vue"
     ],
     "css": [
-      "assets/main-uLZsH97D.css"
+      "assets/main-CsTHNMgT.css"
+    ]
+  },
+  "views/Dashboard.vue": {
+    "file": "assets/Dashboard-DlXSn26g.js",
+    "name": "Dashboard",
+    "src": "views/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
     ]
   },
   "views/Feedback.vue": {
-    "file": "assets/Feedback-CjErS5Qv.js",
+    "file": "assets/Feedback-Bx1JnZWh.js",
     "name": "Feedback",
     "src": "views/Feedback.vue",
     "isDynamicEntry": true,
@@ -39,7 +49,7 @@
     ]
   },
   "views/PricingDual.vue": {
-    "file": "assets/PricingDual-DAoh_SRs.js",
+    "file": "assets/PricingDual-Budc8KXN.js",
     "name": "PricingDual",
     "src": "views/PricingDual.vue",
     "isDynamicEntry": true,
@@ -47,11 +57,11 @@
       "main.ts"
     ],
     "css": [
-      "assets/PricingDual-Bi3V2p6_.css"
+      "assets/PricingDual-EzKlsU5v.css"
     ]
   },
   "views/Private.vue": {
-    "file": "assets/Private--9d1LcZm.js",
+    "file": "assets/Private-BdX2ZrK3.js",
     "name": "Private",
     "src": "views/Private.vue",
     "isDynamicEntry": true,
@@ -60,7 +70,7 @@
     ]
   },
   "views/Shared.vue": {
-    "file": "assets/Shared--9d1LcZm.js",
+    "file": "assets/Shared-DZtZmqEZ.js",
     "name": "Shared",
     "src": "views/Shared.vue",
     "isDynamicEntry": true,
@@ -69,7 +79,7 @@
     ]
   },
   "views/account/AccountDomainAdd.vue": {
-    "file": "assets/AccountDomainAdd-D24NA-P8.js",
+    "file": "assets/AccountDomainAdd-Dmu6YHL8.js",
     "name": "AccountDomainAdd",
     "src": "views/account/AccountDomainAdd.vue",
     "isDynamicEntry": true,
@@ -78,7 +88,7 @@
     ]
   },
   "views/account/AccountDomainVerify.vue": {
-    "file": "assets/AccountDomainVerify-6mQ9Fdcm.js",
+    "file": "assets/AccountDomainVerify-Dbfg7VL5.js",
     "name": "AccountDomainVerify",
     "src": "views/account/AccountDomainVerify.vue",
     "isDynamicEntry": true,
@@ -87,7 +97,7 @@
     ]
   },
   "views/account/AccountDomains.vue": {
-    "file": "assets/AccountDomains-D1v3A-G2.js",
+    "file": "assets/AccountDomains-CPZZPPw6.js",
     "name": "AccountDomains",
     "src": "views/account/AccountDomains.vue",
     "isDynamicEntry": true,
@@ -96,7 +106,7 @@
     ]
   },
   "views/account/AccountIndex.vue": {
-    "file": "assets/AccountIndex-UsozxVEY.js",
+    "file": "assets/AccountIndex-DiYdhxdQ.js",
     "name": "AccountIndex",
     "src": "views/account/AccountIndex.vue",
     "isDynamicEntry": true,
