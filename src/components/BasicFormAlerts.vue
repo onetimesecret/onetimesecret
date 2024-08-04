@@ -3,7 +3,7 @@
     <div v-if="error" class="rounded-md bg-red-50 p-4 mb-4">
       <div class="flex">
         <div class="flex-shrink-0">
-          <Icon icon="mdi:xcircle" class="h-5 w-5 text-green-400" aria-hidden="true" />
+          <Icon icon="mdi:fire-circle" class="h-5 w-5 text-red-400" aria-hidden="true" />
         </div>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800">Error</h3>

@@ -47,6 +47,7 @@ class Onetime::CustomDomain < Familia::HashKey
     :txt_validation_host,
     :txt_validation_value,
     :status,
+    :vhost,
     :verified,
     :created,
     :updated

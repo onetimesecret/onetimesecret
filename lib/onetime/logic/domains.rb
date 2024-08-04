@@ -130,7 +130,7 @@ module Onetime::Logic
     end
 
     class RemoveDomain < OT::Logic::Base
-      attr_reader :domain, :display_domain, :greenlighted
+      attr_reader :greenlighted, :domain_input, :display_domain
       def process_params
         @domain_input = params[:domain].to_s.strip
       end
@@ -144,7 +144,7 @@ module Onetime::Logic
       end
 
       def process
-        OT.ld "[RemoveDomain] Processing #{@domain} for #{@custom_domain.identifier}"
+        OT.ld "[RemoveDomain] Processing #{domain_input} for #{@custom_domain.identifier}"
         @greenlighted = true
         @display_domain = @custom_domain[:display_domain]
 
@@ -229,17 +229,39 @@ module Onetime::Logic
 
       def process
         OT.ld "[GetDomain] Processing #{@custom_domain[:display_domain]}"
-
+        @greenlighted = true
+        @display_domain = @custom_domain[:display_domain]
       end
 
       def success_data
         {
           custid: @cust.custid,
-          record: @custom_domain.safe_dump,
+          record: custom_domain.safe_dump,
           details: {
-            cluster: cluster_safe_dump
+            cluster: OT::Cluster::Features.cluster_safe_dump
           }
         }
+      end
+    end
+
+    class VerifyDomain < GetDomain
+
+      def process
+        super
+
+        refresh_vhost
+      end
+
+      def refresh_vhost
+        api_key = OT::Cluster::Features.api_key
+        if api_key.to_s.empty?
+          return OT.info "[VerifyDomain.refresh_vhost] Approximated API key not set"
+        end
+        res = OT::Cluster::Approximated.get_vhost_by_incoming_address(api_key, display_domain)
+        payload = res.parsed_response
+        OT.info "[VerifyDomain.refresh_vhost] %s" % payload
+        OT.ld ""
+        custom_domain[:vhost] = payload.to_json
       end
     end
   end

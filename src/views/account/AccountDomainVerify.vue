@@ -81,17 +81,4 @@ onMounted(() => {
 });
 
 
-//function verifyDomain(domain: string) {
-//  fetch(`/api/v1/account/domains/${domain}/verify`)
-//    .then(response => response.json())
-//    .then(data => {
-//      // Handle the response data
-//    });
-//}
-//
-//onMounted(() => {
-//  const domain = route.params.domain as string;
-//  verifyDomain(domain);
-//});
-
 </script>

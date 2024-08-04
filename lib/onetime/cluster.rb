@@ -2,6 +2,16 @@ require 'httparty'
 
 module Onetime
   module Cluster
+    # Features is a module for storing cluster-specific information.
+    #
+    # It is used to store information about the cluster type, API key, cluster IP,
+    # and cluster name.
+    #
+    #
+    # Reminder: when running in dev-mode (or any hot-reload environment), these class
+    # instance vars will revert back to nil every time this file is reloaded (usually
+    # only after it's been modified but some hot reloading logic is extra spicy).
+    #
     module Features
       @type = nil
       @api_key = nil
@@ -135,6 +145,27 @@ module Onetime
       #
       # @raise [HTTParty::ResponseError] If the API returns a 404 (Virtual Host not found) or 401 (Invalid API key) error.
       #
+      #  {
+      #  "data" => {
+      #    "apx_hit" => true,
+      #    "created_at" => "2024-07-31T22:52:29",
+      #    "dns_pointed_at" => "213.188.218.88",
+      #    "has_ssl" => true,
+      #    "id" => 784971,
+      #    "incoming_address" => "secrets.afb.pet",
+      #    "is_resolving" => true,
+      #    "keep_host" => nil,
+      #    "last_monitored_humanized" => "9 minutes ago",
+      #    "last_monitored_unix" => 1722731167,
+      #    "ssl_active_from" => "2024-07-31T21:55:26",
+      #    "ssl_active_until" => "2024-10-29T21:55:25",
+      #    "status" => "ACTIVE_SSL",
+      #    "status_message" => "Active with SSL",
+      #    "target_address" => "staging.onetimesecret.com",
+      #    "target_ports" => "443",
+      #    "user_message" => "..."
+      #  }
+      #}
       def self.get_vhost_by_incoming_address(api_key, incoming_address)
         response = get("/vhosts/by/incoming/#{incoming_address}",
           headers: { 'api-key' => api_key })
