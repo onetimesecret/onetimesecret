@@ -41,7 +41,7 @@
               {{ domain.display_domain }}
             </td>
             <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell dark:text-gray-300">
-              {{ domain.verified || 'pending' }}
+              <DomainVerificationInfo mode="icon" :domain="domain" />
             </td>
             <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell dark:text-gray-300">
               {{ formatRelativeTime(Number(domain.created)) }}
@@ -100,6 +100,7 @@ import { MenuItem } from '@headlessui/vue';
 import { ref } from 'vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
 import { useRouter } from 'vue-router';
+import DomainVerificationInfo from './DomainVerificationInfo.vue';
 
 const shrimp = ref(window.shrimp);
 

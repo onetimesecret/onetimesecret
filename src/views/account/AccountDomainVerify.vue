@@ -6,6 +6,7 @@
     <DomainVerificationInfo
       v-if="domain?.vhost?.last_monitored_unix"
       :domain="domain"
+      mode="table"
     />
     <p v-else class="text-lg mb-6 text-gray-600 dark:text-gray-300">
       Before we can activate links for
