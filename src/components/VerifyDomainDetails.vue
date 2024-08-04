@@ -6,8 +6,6 @@
     <!--<h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Card Title</h2>
     <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">Intro text for this card</p>-->
 
-    <BasicFormAlerts :success="success" :error="error" />
-
     <ol class="space-y-6 mb-8">
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
         <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">1. Create a TXT record</h3>
@@ -43,6 +41,8 @@
         <p class="text-gray-600 dark:text-gray-300">DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect.</p>
       </li>
     </ol>
+
+    <BasicFormAlerts :success="success" :error="error" />
 
     <button @click="verify"
           :disabled="isButtonDisabled"

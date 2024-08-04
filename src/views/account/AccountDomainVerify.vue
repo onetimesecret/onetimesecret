@@ -31,6 +31,8 @@
       </div>
     </MoreInfoText>
 
+    <DomainVerificationInfo v-if="domain?.vhost?.incoming_address" :domain="domain" />
+
     <VerifyDomainDetails v-if="domain && cluster" :domain="domain" :cluster="cluster" />
     <p v-else class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
 
@@ -44,6 +46,7 @@ import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
 import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 
 //const props = defineProps<{ domain?: CustomDomain }>();
 
@@ -66,7 +69,7 @@ const fetchDomain = async (): Promise<void> => {
       cluster.value = data.details?.cluster;
     }
 
-    console.log('data', data)
+    console.debug('data', data)
   } catch (error) {
     console.error('Error fetching domain:', error);
     // Handle error (e.g., show error message to user)
@@ -79,6 +82,5 @@ onMounted(() => {
   fetchDomain();
 
 });
-
 
 </script>
