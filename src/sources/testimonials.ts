@@ -50,7 +50,7 @@ export const testimonials: Array<Testimonial> = [
     stars: 5,
   },
   {
-    quote: "The flexible data residency options allow us to comply with our regional CPU protection laws.",
+    quote: "The flexible data residency options keep us in good standing with our regional CPU conservation society.",
     name: "Liam-3000",
     company: "Community Impact Foundation",
     uri: "",
