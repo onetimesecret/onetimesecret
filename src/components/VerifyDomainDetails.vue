@@ -44,7 +44,8 @@
 
     <BasicFormAlerts :success="success" :error="error" />
 
-    <button @click="verify"
+    <button v-if="withVerifyCTA"
+          @click="verify"
           :disabled="isButtonDisabled"
           class="w-full sm:w-auto px-6 py-3 text-lg font-semibold
             text-white bg-brand-500
@@ -67,24 +68,32 @@
 </template>
 
 <script setup lang="ts">
-import { CustomDomain, CustomDomainCluster } from '@/types/onetime';
+import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
 import { useFormSubmission } from '@/utils/formSubmission';
 import { Icon } from '@iconify/vue';
-import { ref, computed } from 'vue';
-import DetailField from './DetailField.vue';
+import { computed, ref } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';
-const shrimp = ref(window.shrimp);
+import DetailField from './DetailField.vue';
+
 
 interface Props {
   domain: CustomDomain;
   cluster: CustomDomainCluster;
+  withVerifyCTA?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   domain: () => ({} as CustomDomain),
   cluster: () => ({} as CustomDomainCluster),
+  withVerifyCTA: false,
 });
 
+// Define the emit function with the type
+const emit = defineEmits<{
+  (e: 'domainVerify', data: CustomDomainApiResponse): void;
+}>();
+
+const shrimp = ref(window.shrimp);
 const handleShrimp = (freshShrimp: string) => {
   shrimp.value = freshShrimp;
 }
@@ -98,6 +107,7 @@ const { isSubmitting, error, success, submitForm } = useFormSubmission({
   }),
   onSuccess: (data) => {
     console.log('Verification initiated:', data);
+    emit('domainVerify', data);
   },
   onError: (data) => {
     console.error('Verification failed:', data);
@@ -110,8 +120,10 @@ const isButtonDisabled = computed(() => isSubmitting.value || buttonDisabledDela
 
 const verify = () => {
   // Implement verification logic here
-  console.info('Verifying DNS TXT record...');
+  console.info('Refreshing DNS verification details...');
+
   submitForm().finally(() => {
+
     buttonDisabledDelay.value = true;
     setTimeout(() => {
       buttonDisabledDelay.value = false;

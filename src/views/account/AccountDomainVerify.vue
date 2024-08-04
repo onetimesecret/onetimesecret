@@ -1,9 +1,13 @@
 
 <template>
   <main class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Add your domain</h1>
+    <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Verify your domain</h1>
 
-    <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">
+    <DomainVerificationInfo
+      v-if="domain?.vhost?.last_monitored_unix"
+      :domain="domain"
+    />
+    <p v-else class="text-lg mb-6 text-gray-600 dark:text-gray-300">
       Before we can activate links for
       <span class=" bg-white dark:bg-gray-800  text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>,
       you'll need to complete these steps.
@@ -31,14 +35,17 @@
       </div>
     </MoreInfoText>
 
-    <DomainVerificationInfo v-if="domain?.vhost?.incoming_address" :domain="domain" />
-
-    <VerifyDomainDetails v-if="domain && cluster" :domain="domain" :cluster="cluster" />
+    <VerifyDomainDetails
+      v-if="domain && cluster"
+      :domain="domain"
+      :cluster="cluster"
+      :withVerifyCTA="allowVerifyCTA"
+      @domainVerify="handleDomainVerify"
+    />
     <p v-else class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
 
   </main>
 </template>
-
 
 <script setup lang="ts">
 import MoreInfoText from "@/components/MoreInfoText.vue";
@@ -47,8 +54,6 @@ import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/ty
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
-
-//const props = defineProps<{ domain?: CustomDomain }>();
 
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);
@@ -63,18 +68,49 @@ const fetchDomain = async (): Promise<void> => {
     if (!response.ok) {
       throw new Error('Failed to fetch domain information');
     }
-    const data: CustomDomainApiResponse = await response.json();
-    domain.value = data.record as CustomDomain;
-    if (data.details) {
-      cluster.value = data.details?.cluster;
-    }
 
-    console.debug('data', data)
+    const json: CustomDomainApiResponse = await response.json();
+    console.debug('json', json);
+
+    domain.value = json.record as CustomDomain;
+
+    if (json.details) {
+      cluster.value = json.details?.cluster;
+    }
+    const currentTime = Math.floor(Date.now() / 1000); // Current time in Unix time (seconds)
+
+    const last_monitored_unix = (domain.value?.updated || currentTime) as number;
+
+    if (last_monitored_unix) {
+
+      const timeDifference = currentTime - last_monitored_unix;
+
+      // If it's been at least N minutes since the most recent monitor
+      // check for this domain, let's make sure the verify button is
+      // enabled and ready for action.
+      if (timeDifference >= 30) {
+        console.debug("It has been at least 30 second since the last monitored time.", timeDifference);
+        allowVerifyCTA.value = true;
+
+      } else {
+        console.debug('It has not been 30 seconds yet since the last monitored time.', timeDifference);
+        allowVerifyCTA.value = false;
+      }
+    }
   } catch (error) {
     console.error('Error fetching domain:', error);
     // Handle error (e.g., show error message to user)
   }
 };
+
+const allowVerifyCTA = ref(false);
+
+const handleDomainVerify = async (data: CustomDomainApiResponse) => {
+  console.log('Domain verified: refreshing domain info', data);
+
+  await fetchDomain();
+};
+
 
 onMounted(() => {
   console.log('AccountDomainVerify component mounted');

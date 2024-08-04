@@ -18,9 +18,9 @@ export interface Cust extends BaseApiRecord {
   planid?: string;
   plan: Plan;
   verified: string;
-  updated: string;
-  created: string;
-  secrets_created: string;
+  updated: number;
+  created: number;
+  secrets_created: number;
   active: string;
 }
 
