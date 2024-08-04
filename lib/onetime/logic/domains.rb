@@ -34,7 +34,7 @@ module Onetime::Logic
         if ! properties[:logo_uri].empty?
           begin
             URI.parse properties[:logo_uri]
-          rescue => ex
+          rescue StandardError => ex
             raise_form_error "Check the logo URI"
           end
         end
@@ -76,11 +76,12 @@ module Onetime::Logic
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
+        limit_action :add_domain
+
         # Only store a valid, parsed input value to @domain
         @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust) # raises OT::Problem
         @display_domain = @parsed_domain[:display_domain]
 
-        limit_action :add_domain
 
         # Don't need to do a bunch of validation checks here. If the input value
         # passes as valid, it's valid. If another account has verified the same
@@ -112,7 +113,8 @@ module Onetime::Logic
         res = OT::Cluster::Approximated.create_vhost(api_key, @display_domain, 'staging.onetimesecret.com', '443')
         payload = res.parsed_response
         OT.info "[AddDomain.create_vhost] %s" % payload
-        @custom_domain[:vhost] = payload['data'].to_json
+        custom_domain[:vhost] = payload['data'].to_json
+        custom_domain[:updated] = OT.now.to_i
 
       rescue HTTParty::ResponseError => e
         OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
@@ -138,6 +140,8 @@ module Onetime::Logic
       def raise_concerns
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
+
+        limit_action :remove_domain
 
         @custom_domain = OT::CustomDomain.load(@domain_input, @cust)
         raise_form_error "Domain not found" unless @custom_domain
@@ -187,6 +191,7 @@ module Onetime::Logic
       attr_reader :custom_domains
 
       def raise_concerns
+        limit_action :list_domains
       end
 
       def process
@@ -218,6 +223,8 @@ module Onetime::Logic
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
+        limit_action :get_domain
+
         # Getting the domain record based on `req.params[:domain]` (which is
         # the display_domain). That way we need to combine with the custid
         # in order to find it. It's a way of proving ownership. Vs passing the
@@ -246,6 +253,15 @@ module Onetime::Logic
 
     class VerifyDomain < GetDomain
 
+      def raise_concerns
+        # Run this limiter before calling super which in turn runs
+        # the get_domain limiter since verify is a more restrictive. No
+        # sense running the get logic more than we need to.
+        limit_action :verify_domain
+
+        super
+      end
+
       def process
         super
 
@@ -262,6 +278,7 @@ module Onetime::Logic
         OT.info "[VerifyDomain.refresh_vhost] %s" % payload
         OT.ld ""
         custom_domain[:vhost] = payload['data'].to_json
+        custom_domain[:updated] = OT.now.to_i
       end
     end
   end

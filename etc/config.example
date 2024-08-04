@@ -181,6 +181,11 @@
   :forgot_password_request: 2
   :forgot_password_reset: 3
   :generate_apikey: 10
+  :add_domain: 30
+  :remove_domain: 30
+  :list_domains: 100
+  :get_domain: 100
+  :verify_domain: 25
 :development:
   # Enabling development mode here directs the application to expect
   # a vite server to be running on port 5173 and will attempt to
