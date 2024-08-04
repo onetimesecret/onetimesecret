@@ -60,30 +60,8 @@ module Onetime::Logic
       end
     end
 
-    module ClusterFeatures
-      @type = nil
-      @api_key = nil
-      @cluster_ip = nil
-      @cluster_name = nil
-
-      module ClassMethods
-        attr_accessor :type, :api_key, :cluster_ip, :cluster_name
-      end
-
-      def cluster_safe_dump
-        {
-          type:  ClusterFeatures.type,
-          cluster_ip: ClusterFeatures.cluster_ip,
-          cluster_name: ClusterFeatures.cluster_name
-        }
-      end
-
-      extend ClassMethods
-    end
-
     class AddDomain < OT::Logic::Base
       attr_reader :greenlighted, :custom_domain
-      include ClusterFeatures # for cluster_safe_dump
 
       def process_params
         OT.ld "[AddDomain] Parsing #{params[:domain]}"
@@ -125,7 +103,7 @@ module Onetime::Logic
       end
 
       def create_vhost
-        api_key = ClusterFeatures.api_key
+        api_key = OT::Cluster::Features.api_key
 
         if api_key.to_s.empty?
           return OT.info "[AddDomain.create_vhost] Approximated API key not set"
@@ -135,6 +113,7 @@ module Onetime::Logic
         payload = res.parsed_response
         OT.info "[AddDomain.create_vhost] %s" % payload
         @custom_domain[:vhost] = payload.to_json
+
       rescue HTTParty::ResponseError => e
         OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
       end
@@ -144,7 +123,7 @@ module Onetime::Logic
           custid: @cust.custid,
           record: @custom_domain.safe_dump,
           details: {
-            cluster: cluster_safe_dump
+            cluster: OT::Cluster::Features.cluster_safe_dump
           }
         }
       end
@@ -184,7 +163,7 @@ module Onetime::Logic
       end
 
       def delete_vhost
-        api_key = ClusterFeatures.api_key
+        api_key = OT::Cluster::Features.api_key
         if api_key.to_s.empty?
           return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
         end
@@ -205,8 +184,6 @@ module Onetime::Logic
     end
 
     class ListDomains < OT::Logic::Base
-      include ClusterFeatures # for cluster_safe_dump
-
       attr_reader :custom_domains
 
       def raise_concerns
@@ -223,14 +200,15 @@ module Onetime::Logic
           records: @custom_domains,
           count: @custom_domains.length,
           details: {
-            cluster: cluster_safe_dump
+            cluster: OT::Cluster::Features.cluster_safe_dump
           }
         }
       end
     end
 
     class GetDomain < OT::Logic::Base
-      include ClusterFeatures # for cluster_safe_dump
+
+      attr_reader :greenlighted, :display_domain, :custom_domain
 
       def process_params
         @domain_input = params[:domain].to_s.strip

@@ -2,6 +2,26 @@ require 'httparty'
 
 module Onetime
   module Cluster
+    module Features
+      @type = nil
+      @api_key = nil
+      @cluster_ip = nil
+      @cluster_name = nil
+
+      module ClassMethods
+        attr_accessor :type, :api_key, :cluster_ip, :cluster_name
+
+        def cluster_safe_dump
+          {
+            type: Features.type,
+            cluster_ip: Features.cluster_ip,
+            cluster_name: Features.cluster_name
+          }
+        end
+      end
+
+      extend ClassMethods
+    end
 
     # Onetime::Cluster::Approximated is a utility class for comunicating with
     # the approximated.app API.

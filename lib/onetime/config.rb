@@ -54,8 +54,8 @@ module Onetime
 
       if OT.conf.dig(:site, :domains, :enabled).to_s == "true"
         cluster = conf.dig(:site, :domains, :cluster)
-        OT.ld "Setting ClusterFeatures #{cluster}"
-        klass = OT::Logic::Domains::ClusterFeatures
+        OT.ld "Setting OT::Cluster::Features #{cluster}"
+        klass = OT::Cluster::Features
         klass.api_key = cluster[:api_key]
         klass.cluster_ip = cluster[:cluster_ip]
         klass.cluster_name = cluster[:cluster_name]
