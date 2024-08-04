@@ -9,7 +9,27 @@
       you'll need to complete these steps.
     </p>
 
-    <MoreInfoText :displayDomain="domain?.display_domain" :clusterIpAddress="cluster?.cluster_ip" :clusterName="cluster?.cluster_name" />
+    <MoreInfoText textColor="text-brandcomp-800 dark:text-gray-100" bgColor="bg-white dark:bg-gray-800">
+      <div class="px-6 py-6">
+        <div class="max-w-xl text-base text-gray-600 dark:text-gray-300">
+          <p>
+            In order to connect your domain, you'll need to have a DNS A record that points
+            <span class="font-bold bg-white dark:bg-gray-800 px-2 text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span> at <span
+                  :title="cluster?.cluster_name?? ''" class="bg-white dark:bg-gray-800 px-2">{{ cluster?.cluster_ip }}</span>. If you already have an A record for
+            that
+            address, please change it to point at <span :title="cluster?.cluster_name?? ''" class="bg-white dark:bg-gray-800 px-2">{{ cluster?.cluster_ip }}</span>
+            and remove any other A, AAAA,
+            or CNAME records for that exact address.
+          </p>
+        </div>
+        <div class="mt-4 text-sm">
+          <a href="#"
+             class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
+            <!--Learn more about DNS configuration <span aria-hidden="true">&rarr;</span>-->
+          </a>
+        </div>
+      </div>
+    </MoreInfoText>
 
     <VerifyDomainDetails v-if="domain && cluster" :domain="domain" :cluster="cluster" />
     <p v-else class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
@@ -19,11 +39,11 @@
 
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { CustomDomain, CustomDomainCluster, CustomDomainApiResponse } from '@/types/onetime';
 import MoreInfoText from "@/components/MoreInfoText.vue";
+import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
+import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 //const props = defineProps<{ domain?: CustomDomain }>();
 
