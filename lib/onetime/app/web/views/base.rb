@@ -69,6 +69,10 @@ module Onetime
           end
         end
 
+        # Link to the pricing page can be seen regardless of authentication status
+        self[:plans_enabled] = site.dig(:plans, :enabled) || false
+        self[:jsvars] << jsvar(:plans_enabled, self[:plans_enabled])
+
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
         self[:jsvars] << jsvar(:custid, cust.custid)
         self[:jsvars] << jsvar(:cust, cust.safe_dump)
