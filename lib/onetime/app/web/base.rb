@@ -67,6 +67,39 @@ module Onetime
         sess.referrer ||= req.referrer
       end
 
+      # Validates a given URL and ensures it can be safely redirected to.
+      #
+      # @param url [String] the URL to validate
+      # @return [URI::HTTP, nil] the validated URI object if valid, otherwise nil
+      def validate_url(url)
+        # This is named validate_url and not validate_uri because we aim to return
+        # an appropriate value that can be safely redirected to. A path or other portion
+        # of a URI can't be properly validated whereas a complete URL describes a
+        # specific location to attempt to navigate to.
+        uri = nil
+        begin
+          # Attempt to parse the URL
+          uri = URI.parse(url)
+        rescue URI::InvalidURIError
+          # Log an error message if the URL is invalid
+          OT.le "[validate_url] Invalid URI: #{uri}"
+        else
+          # Set a default host if the host is missing
+          uri.host ||= OT.conf[:site][:host]
+          # Ensure the scheme is HTTPS if SSL is enabled in the configuration
+          if OT.conf[:site][:ssl]
+            uri.scheme = 'https' if uri.scheme.nil? || uri.scheme != 'https'
+          end
+          # Set uri to nil if it is not an HTTP or HTTPS URI
+          uri = nil unless uri.is_a?(URI::HTTP)
+          # Log an info message with the validated URI
+          OT.info "[validate_url] Validated URI: #{uri}"
+        end
+
+        # Return the validated URI or nil if invalid
+        uri
+      end
+
       def handle_form_error ex, redirect
         sess.set_form_fields ex.form_fields  # to pre-populate the form
         sess.set_error_message ex.message
