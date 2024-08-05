@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Supprimer ce secret le fera disparaître avant qu'il soit lu (cliquez pour confirmer)"
     :burn_this_secret_confirm_hint: "La suppression du secret est définitive et ne peut pas être annulée"
     :msg_check_email: "Vérifiez votre courriel"
-    :click_to_continue: "Cliquez pour continuer:"
+    :click_to_continue: "Cliquez pour continuer →"
     :click_to_verify: "Continuez pour vérifier votre compte:"
     :error_secret: "Il n'y a rien à partager"
     :error_passphrase: "Confirmer ce mot de passe"

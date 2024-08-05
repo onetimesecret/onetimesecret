@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Radera en hemlighet kommer att radera den innan någon har hunnit läsa den(klicka igen om du har förstått)"
     :burn_this_secret_confirm_hint: "Att radera en hemlighet är oåterkalligt och kan inte tas tillbaka när återgärden vidtagits"
     :msg_check_email: "Kolla din Epost"
-    :click_to_continue: "Fortsätt:"
+    :click_to_continue: "Fortsätt →"
     :click_to_verify: "Klicka för att verifiera ditt konto"
     :error_secret: "Du har inte skrivt något som en hemlighet"
     :error_passphrase: "Något är fel med lösenordet, försök igen"

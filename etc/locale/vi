@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Hủy một thông tin bí mật có nghĩa là xóa những thông tin đó đi trước khi nó được đọc bởi ai đó (nhấn để xác nhận)"
     :burn_this_secret_confirm_hint: "Việc hủy thông tin bí mật sẽ không thể hoàn tác"
     :msg_check_email: "Kiểm tra email của bạn"
-    :click_to_continue: "Nhấn để tiếp tục:"
+    :click_to_continue: "Nhấn để tiếp tục →"
     :click_to_verify: "Tiếp tục để xác nhận tài khoản của bạn:"
     :error_secret: "Dường như bạn chưa nhập thông tin nào cả"
     :error_passphrase: "Vui lòng kiểm tra lại cụm mật khẩu"

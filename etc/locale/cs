@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Spálení tajemství jej smaže předtím, než je přečteno (klepněte pro potvrzení)"
     :burn_this_secret_confirm_hint: "Spálení tajemství je trvalé a nelze jej vrátit zpět"
     :msg_check_email: "Zkontrolujte svůj email"
-    :click_to_continue: "Klepněte pro pokračování:"
+    :click_to_continue: "Klepněte pro pokračování →"
     :click_to_verify: "Pokračujte k ověření svého účtu:"
     :error_secret: "Nezadali jste nic ke sdílení"
     :error_passphrase: "Znovu zkontrolujte tuto heslovou frázi"

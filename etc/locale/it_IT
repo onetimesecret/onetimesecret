@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Bruciando un segreto questo verrà eliminato prima che venga letto (fai clic per continuare)"
     :burn_this_secret_confirm_hint: "Bruciare un segreto è permanente e non può essere annullato"
     :msg_check_email: "Controlla la tua email"
-    :click_to_continue: "Fai clic per continuare:"
+    :click_to_continue: "Fai clic per continuare →"
     :click_to_verify: "Continua per verificare il tuo account:"
     :error_secret: "Non hai ancora niente da condividere"
     :error_passphrase: "Ricontrolla la password"

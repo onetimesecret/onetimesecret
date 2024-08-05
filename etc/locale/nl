@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Het verbranden van een geheim vernietigt het bericht voor het is gelezen (klik om te bevestigen)"
     :burn_this_secret_confirm_hint: "Het verbranden van een geheim is permanent en kan niet ongedaan gemaakt worden."
     :msg_check_email: "Controleer uw E-mail"
-    :click_to_continue: "Klik om door te gaan:"
+    :click_to_continue: "Klik om door te gaan →"
     :click_to_verify: "Ga door om uw account te verifiëren:"
     :error_secret: "Je heb niets opgegeven om te delen."
     :error_passphrase: "Controleer nogmaals de wachtwoordzin"

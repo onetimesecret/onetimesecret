@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "(حرق السر سيحذفه قبل ان تتم قراءته (اضغط للتأكيد"
     :burn_this_secret_confirm_hint: "خيار حرق السر دائم ولن تتمكن من التراجع عنه"
     :msg_check_email: "تفقد بريدك الالكتروني"
-    :click_to_continue: ":اضغط للمتابعة"
+    :click_to_continue: "← اضغط للمتابعة"
     :click_to_verify: ":المتابعة لتأكيد الحساب"
     :error_secret: "لم تضع محتوى لتشاركه"
     :error_passphrase: "تأكد من كلمة المرور"

@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "A titok elégetése törli a titkot, mielőtt azt elolvasnák (kattintson a megerősítéshez)."
     :burn_this_secret_confirm_hint: "A titok elégetése végleges és nem lehet visszacsinálni."
     :msg_check_email: "Ellenőrizd az e-mailed"
-    :click_to_continue: "Kattints a folytatáshoz:"
+    :click_to_continue: "Kattints a folytatáshoz →"
     :click_to_verify: "Folytasd fiókod ellenőrzését:"
     :error_secret: "Nem adtál semmit, amit megoszthatnánk"
     :error_passphrase: "Ellenőrizze kétszer a jelszót"

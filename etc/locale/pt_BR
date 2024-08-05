@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Remover um segredo irá apagá-lo antes de ser lido (clique para confirmar)"
     :burn_this_secret_confirm_hint: "Remover um segredo é permanente e não pode ser desfeito"
     :msg_check_email: "Verifique seu email"
-    :click_to_continue: "Clique para continuar:"
+    :click_to_continue: "Clique para continuar →"
     :click_to_verify: "Continue para verificar sua conta:"
     :error_secret: "Você não forneceu nada para compartilhar"
     :error_passphrase: "Verifique a senha mestre"

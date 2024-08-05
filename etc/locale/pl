@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Unieważnienie spowoduje wygaśnięcie tajnego łącza przed jego użyciem oraz bezpowrotne usunięcie wiadomości z serwera (kliknij, aby potwierdzić)"
     :burn_this_secret_confirm_hint: "Unieważnienie jest trwałe i nieodwracalne"
     :msg_check_email: "Sprawdź swoją skrzynkę e-mail"
-    :click_to_continue: "Kliknij aby kontynuować:"
+    :click_to_continue: "Kliknij aby kontynuować →"
     :click_to_verify: "Kontynuuj weryfikację swojego konta:"
     :error_secret: "Nie podałeś niczego do udostępnienia"
     :error_passphrase: "Nieprawidłowe hasło, spróbuj jeszcze raz!"
