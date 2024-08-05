@@ -17,9 +17,6 @@
 
         <h3>Secrets ({{secret_count}})</h3>
 
-        <script src="https://www.stathat.com/javascripts/embed.js"></script>
-        <script>StatHatEmbed.render({s1: '{{stathat_chart}}', w: 760, h: 235});</script>
-
         <p><a href="/colonel/metadata">Metadata</a>/<a href="/colonel/secrets">Secrets</a>: {{metadata_count}}/{{secret_count}} ({{secrets_created}}/{{secrets_shared}}/{{emails_sent}} total)</p>
 
       </div>
@@ -55,14 +52,6 @@
       </div>
 
       <div id="customers">
-        <h3>Subdomains ({{subdomain_count}})</h3>
-
-        <ul class="smaller">
-          {{#subdomains}}
-          <li><a href="//{{fulldomain}}">{{cname}}</a> {{custid}}</li>
-          {{/subdomains}}
-        </ul>
-
         <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
         <ul class="smaller">
         {{#recent_customers}}
