@@ -73,9 +73,12 @@
             {{ feature }}
           </li>
         </ul>
-        <form :action="tier.href" method="POST">
-          <input type="hidden" name="shrimp" :value="shrimp" />
-                    <button type="submit"
+        <form :action="tier.href"
+              method="POST">
+          <input type="hidden"
+                 name="shrimp"
+                 :value="shrimp" />
+          <button type="submit"
                   :aria-describedby="tier.id"
                   v-on="tier.featured ? { click: ($event: MouseEvent) => $event.preventDefault() } : {}"
                   :class="[tier.featured ? 'block text-brand-400 dark:text-brand-400 ring-2 ring-inset bg-gray-800 dark:ring-slate-800 hover:ring-gray-300 dark:hover:ring-gray-800 focus-visible:outline-gray-600' : 'block bg-brand-500 text-white shadow-sm hover:bg-brand-600 focus-visible:outline-brand-500', 'mt-8 block rounded-md px-3.5 py-2.5 text-center text-lg font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:mt-10']">
@@ -87,18 +90,14 @@
 
     <!-- Quotes -->
     <div class="relative">
-      <QuoteSection
-        class="relative z-10 bg-opacity-80 dark:bg-opacity-80"
-        :testimonial="randomTestimonial"
-      />
-      <MovingGlobules
-        class="absolute inset-0 z-0"
-        from-colour="#23b5dd"
-        to-colour="#dc4a22"
-        speed="10s"
-        :interval="1000"
-        :scale="2"
-      />
+      <QuoteSection class="relative z-10 bg-opacity-80 dark:bg-opacity-80"
+                    :testimonial="randomTestimonial" />
+      <MovingGlobules class="absolute inset-0 z-0"
+                      from-colour="#23b5dd"
+                      to-colour="#dc4a22"
+                      speed="10s"
+                      :interval="1000"
+                      :scale="2" />
     </div>
 
     <!-- Alternative option -->
