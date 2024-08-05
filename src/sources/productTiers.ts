@@ -24,7 +24,7 @@ export const productTiers: Array<ProductTier> = [
   {
     id: 'tier-identity',
     name: 'Identity Plus',
-    href: '/plans/tier-identity',
+    href: '/plans/identity',
     cta: 'Choose this plan',
     price: {
       monthly: '$35',
@@ -44,11 +44,11 @@ export const productTiers: Array<ProductTier> = [
   {
     id: 'tier-dedication',
     name: 'Global Elite',
-    href: '#',
+    href: '/plans/dedication',
     cta: 'Coming Soon',
     price: {
-      monthly: '$000',
-      annually: '$1111'
+      monthly: '$111',
+      annually: '$000'
     },
     description: 'Dedicated infrastructure with data-compliance controls and unlimited scalability.',
     //description: 'Enterprise-grade infrastructure for data-compliance and deep integrations.',

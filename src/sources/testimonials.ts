@@ -45,7 +45,7 @@ export const testimonials: Array<Testimonial> = [
   {
     quote: "The private cloud environment has been crucial in building trust with our high-profile clients.",
     name: "Unit ZW-731",
-    company: "ScaleNow Solutions",
+    company: "Scaling Solutions",
     uri: "",
     stars: 5,
   },

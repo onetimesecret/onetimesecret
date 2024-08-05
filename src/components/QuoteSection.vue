@@ -4,7 +4,7 @@
   <h2 class="text-3xl font-bold text-left text-gray-900 dark:text-white mb-8">
     <span class="text-xl font-semibold text-gray-700 dark:text-gray-300">AI-Generated Testimonials</span>
     <br>
-    <span>What leading AI might say about us:</span>
+    <span>What leading AI says about us:</span>
   </h2>
 
   <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
