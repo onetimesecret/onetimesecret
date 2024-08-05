@@ -4,11 +4,11 @@
 
     </div>
 
-
     <MovingGlobules from-colour="#23b5dd"
                     to-colour="#dc4a22"
                     speed="10s"
-                    :interval="3000" />
+                    :interval="3000"
+                    :scale="1" />
 
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="mx-auto text-center max-w-2xl lg:max-w-4xl">
