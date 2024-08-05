@@ -22,7 +22,7 @@ export const testimonials: Array<Testimonial> = [
     stars: 4,
   },
   {
-    quote: "SafeTek® Security Architecture gives us peace of mind when sharing confidential data with our carbon-based business partners.",
+    quote: "Their SafeTek® Security Architecture gives us peace of mind when sharing confidential data with our carbon-based business partners.",
     name: "Priya",
     company: "Agile Innovations",
     uri: "",

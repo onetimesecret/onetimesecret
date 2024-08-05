@@ -13,12 +13,16 @@
 
 
 <template>
-  <div :class="['mx-auto aspect-[1155/678] w-[72.1875rem] opacity-30']"
+  <div class="absolute inset-x-0 -top-3 -z-10 transform-gpu overflow-hidden px-36 blur-3xl"
+         aria-hidden="true">
+    <div :class="['mx-auto aspect-[1155/678] w-[72.1875rem] opacity-30']"
       :style="{
           clipPath: clipPath,
         transition: `clip-path ${props.speed} ease`,
-        background: `linear-gradient(to top right, ${props.fromColour}, ${props.toColour})`
-      }" />
+        background: `linear-gradient(to top right, ${props.fromColour}, ${props.toColour})`,
+        transform: `scale(${props.scale})`
+    }" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -52,6 +56,7 @@ export interface Props {
   toColour: string;
   speed: string;
   interval?: number;
+  scale: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -59,6 +64,7 @@ const props = withDefaults(defineProps<Props>(), {
   toColour: '#23b5dd',
   speed: '6s',
   interval: 2000,
+  scale: 1,
 });
 
 </script>

@@ -7,7 +7,6 @@
     <span>What leading AI might say about us:</span>
   </h2>
 
-
   <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
     <div class="p-6 sm:p-8">
       <svg class="w-5 h-5 text-brand-500 mb-4" fill="currentColor" viewBox="0 0 24 24" width="20" height="20">

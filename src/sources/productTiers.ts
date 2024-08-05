@@ -1,3 +1,9 @@
+export interface PaymentFrequency {
+  value: string;
+  label: string;
+  priceSuffix: string;
+}
+
 export interface ProductTier {
   id: string;
   name: string;
@@ -9,6 +15,11 @@ export interface ProductTier {
   featured: boolean;
 }
 
+export const paymentFrequencies: Array<PaymentFrequency> = [
+  { value: 'monthly', label: 'Monthly', priceSuffix: '/month' },
+  { value: 'annually', label: 'Yearly', priceSuffix: '/year' },
+]
+
 export const productTiers: Array<ProductTier> = [
   {
     id: 'tier-identity',
@@ -16,11 +27,11 @@ export const productTiers: Array<ProductTier> = [
     href: '/plans/tier-identity',
     cta: 'Choose this plan',
     price: {
-      monthly: '$34',
-      annually: '$365'
+      monthly: '$35',
+      annually: '$365',
     },
-    //description: "Elevate your brand with secure sharing that simplifies communication.",
     description: "Secure sharing that elevates your brand and simplifies communication.",
+    //description: "Elevate your brand with secure sharing that simplifies communication.",
     //description: "Elevate your brand with secure, streamlined communication.",
     features: [
       'Branded custom domain',
@@ -28,17 +39,16 @@ export const productTiers: Array<ProductTier> = [
       'Enhanced privacy features',
       'Full API access',
     ],
-
     featured: false,
   },
   {
     id: 'tier-dedication',
     name: 'Global Elite',
-    href: '/plans/tier-dedication',
+    href: '#',
     cta: 'Coming Soon',
     price: {
-      monthly: '$L0W',
-      annually: '$H1GH'
+      monthly: '$000',
+      annually: '$1111'
     },
     description: 'Dedicated infrastructure with data-compliance controls and unlimited scalability.',
     //description: 'Enterprise-grade infrastructure for data-compliance and deep integrations.',
