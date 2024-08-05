@@ -23,16 +23,16 @@
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.
-    :enabled: true
+    :enabled: <%= ENV['AUTH_ENABLED'] || true %>
     # Allow users to create accounts. This can be disabled if you plan
     # to create accounts manually or enable during setup when accounts
     # can be created and then disabled to prevent any new users from
     # creating accounts.
-    :signup: true
+    :signup: <%= ENV['AUTH_SIGNUP'] || true %>
     # Generally if you allow registration, you allow signin. But there
     # are circumstances where it's helpful to turn off authentication
     # temporarily.
-    :signin: true
+    :signin: <%= ENV['AUTH_SIGNIN'] || true %>
     # By default, new accounts need to verify their email address before
     # they can sign in. This is a security measure to prevent spamming
     # and abuse of the system. If you're running a private instance or
