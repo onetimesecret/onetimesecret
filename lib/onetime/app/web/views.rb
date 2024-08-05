@@ -52,14 +52,20 @@ module Onetime
             self[:with_analytics] = false
             self[:css] << '/css/docs.css'
           end
+
           def baseuri_httpauth
             scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
             [scheme, 'USERNAME:APITOKEN@', Onetime.conf[:site][:host]].join
           end
         end
+
+        # Defining each class is necessary for any page that
+        # uses its own template. IOW, there's one template per
+        # class and vice versa.
         class Api < Onetime::App::View
           class Secrets < Api
           end
+
           class Libs < Api
           end
         end

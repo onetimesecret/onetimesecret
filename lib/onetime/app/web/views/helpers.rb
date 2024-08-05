@@ -4,7 +4,6 @@ module Onetime
   class App
     module Views
       module Helpers # rubocop:disable Style/Documentation
-        attr_accessor :subdomain
 
         def add_shrimp
           format('<input type="hidden" name="shrimp" value="%s" />', sess.add_shrimp)
@@ -45,22 +44,14 @@ module Onetime
           (defined?(req) ? req.env['SERVER_PORT'] : 443).to_i
         end
 
-        def current_subdomain
-          defined?(req) ? req.env['ots.subdomain'] : subdomain
-        end
-
         def site_host
           Onetime.conf[:site][:host]
         end
 
         def baseuri
           scheme = base_scheme
-          fulldomain = if current_subdomain
-                         [current_subdomain['cname'], Onetime.conf[:site][:domain]].join('.')
-                       else
-                         Onetime.conf[:site][:host]
-                       end
-          [scheme, fulldomain].join
+          host = Onetime.conf[:site][:host]
+          [scheme, host].join
         end
 
         def gravatar(email)

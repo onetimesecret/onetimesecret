@@ -11,8 +11,7 @@ module Onetime
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          check_subdomain!   # 4. Check if we're running as a subdomain
-          check_referrer!    # 5. Check referrers for public requests
+          check_referrer!    # 4. Check referrers for public requests
           yield
         end
       end
@@ -30,7 +29,6 @@ module Onetime
           return disabled_response(req.path) unless authentication_enabled?
 
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          check_subdomain!   # 4. Check if we're running as a subdomain
           sess.authenticated? ? yield : res.redirect(('/'))
         end
       end
@@ -45,15 +43,6 @@ module Onetime
 
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
-        end
-      end
-
-      def check_subdomain!
-        subdomstr = req.env['SERVER_NAME'].split('.').first
-        if !subdomstr.to_s.empty? && subdomstr != 'www' && OT::Subdomain.mapped?(subdomstr)
-          req.env['ots.subdomain'] = OT::Subdomain.load_by_cname(subdomstr)
-        elsif cust.has_key?(:cname)
-          req.env['ots.subdomain'] = cust.load_subdomain
         end
       end
 
@@ -140,10 +129,6 @@ module Onetime
         view.add_error message
         res.status = 401
         res.body = view.render
-      end
-
-      def is_subdomain?
-        ! req.env['ots.subdomain'].nil?
       end
 
     end

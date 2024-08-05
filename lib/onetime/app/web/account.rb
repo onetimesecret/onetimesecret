@@ -214,15 +214,6 @@ module Onetime
       end
     end
 
-    def update_subdomain
-      authenticated('/account') do
-        logic = OT::Logic::Domains::UpdateSubdomain.new sess, cust, req.params, locale
-        logic.raise_concerns
-        logic.process
-        res.redirect app_path('/account')
-      end
-    end
-
     private
     def _auth_settings
       OT.conf.dig(:site, :authentication)

@@ -57,7 +57,6 @@ declare global {
     email: string;
     frontend_host: string;
     is_default_locale: boolean;
-    is_subdomain: boolean;
     locale: string;
     ot_version: string;
     ruby_version: string;

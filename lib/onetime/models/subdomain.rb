@@ -40,7 +40,10 @@ class Onetime::Subdomain < Familia::HashKey
   end
 
   def fulldomain
-    '%s.%s' % [self['cname'], OT.conf[:site][:domain]]
+    # Previously was:
+    #   '%s.%s' % [self['cname'], OT.conf[:site][:domain]]
+    #
+    raise NotImplementedError
   end
 
   def company_domain

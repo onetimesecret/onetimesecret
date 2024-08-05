@@ -19,7 +19,6 @@ module Onetime
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
         @messages = { :info => [], :error => [] }
         is_default_locale = OT.conf[:locales].first.to_s == locale
-        is_subdomain = req.nil? ? nil : !req.env['ots.subdomain'].nil?
 
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change.
@@ -45,7 +44,6 @@ module Onetime
         self[:display_promo] = false
         self[:display_feedback] = true
         self[:feedback_text] = i18n[:COMMON][:feedback_text]
-        self[:is_subdomain] = is_subdomain
         self[:frontend_host] = frontend_host
         self[:frontend_development] = frontend_development
         self[:no_cache] = false
@@ -81,7 +79,6 @@ module Onetime
         self[:jsvars] << jsvar(:locale, locale)
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
-        self[:jsvars] << jsvar(:is_subdomain, is_subdomain)
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])
 
@@ -102,31 +99,12 @@ module Onetime
         self[:display_options] = true
         self[:display_recipients] = sess.authenticated?
         self[:display_masthead] = true
-        if self[:is_subdomain]
-          tmp = req.env['ots.subdomain']
-          self[:subdomain] = tmp.to_hash
-          self[:subdomain]['homepage'] = '/'
-          self[:subdomain]['company_domain'] = tmp.company_domain || 'onetimesecret.com'
-          self[:subdomain]['company'] = "Onetime Secret"
-          self[:subtitle] = self[:subdomain]['company'] || self[:subdomain]['company_domain']
-          self[:display_feedback] = sess.authenticated?
-          self[:display_faq] = false
-          self[:actionable_visitor] = sess.authenticated?
-          self[:override_styles] = true
-          self[:primary_color] = req.env['ots.subdomain'].primary_color
-          self[:secondary_color] = req.env['ots.subdomain'].secondary_color
-          self[:border_color] = req.env['ots.subdomain'].border_color
-          self[:banner_url] = req.env['ots.subdomain'].logo_uri
-          self[:display_otslogo] = self[:banner_url].to_s.empty?
-          self[:with_broadcast] = false
-        else
-          self[:subtitle] = "Onetime"
-          self[:display_faq] = true
-          self[:display_otslogo] = true
-          self[:actionable_visitor] = true
-          # NOTE: uncomment the following line to show the broadcast
-          #self[:with_broadcast] = ! self[:authenticated]
-        end
+
+        self[:subtitle] = "Onetime"
+        self[:display_faq] = true
+        self[:display_otslogo] = true
+        self[:actionable_visitor] = true
+
         unless sess.nil?
           self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
 
