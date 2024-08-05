@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import CustomDomainPreview from './CustomDomainPreview.vue';
 import SecretContentInputArea from './SecretContentInputArea.vue';
@@ -30,11 +30,29 @@ if (!availableDomains.includes(defaultDomain)) {
   availableDomains.push(defaultDomain);
 }
 
-// The selectedDomain is the first available domain by default
-const selectedDomain = ref(availableDomains[0]);
+// Function to get the saved domain or default to the first available domain
+const getSavedDomain = () => {
+  const savedDomain = localStorage.getItem('selectedDomain');
+  return savedDomain && availableDomains.includes(savedDomain)
+    ? savedDomain
+    : availableDomains[0];
+};
+
+// Initialize selectedDomain with the saved domain or default
+const selectedDomain = ref(getSavedDomain());
+
+// Watch for changes in selectedDomain and save to localStorage
+watch(selectedDomain, (newDomain) => {
+  localStorage.setItem('selectedDomain', newDomain);
+});
 
 const secretContent = ref('');
 const isFormValid = computed(() => secretContent.value.trim().length > 0);
+
+// Function to update the selected domain
+const updateSelectedDomain = (domain: string) => {
+  selectedDomain.value = domain;
+};
 
 </script>
 
@@ -63,10 +81,24 @@ const isFormValid = computed(() => secretContent.value.trim().length > 0);
             @update:selectedDomain="selectedDomain = $event"
       -->
 
+      <!--
+        Domain selection and persistence logic:
+          - getSavedDomain() retrieves the saved domain from localStorage or defaults
+            to the first available domain
+                - selectedDomain is initialized with getSavedDomain()
+                - A watcher saves selectedDomain to localStorage on changes
+          - updateSelectedDomain() updates the selectedDomain ref when the child
+            component emits an update
+          - The template passes initialDomain to SecretContentInputArea and listens
+            for update:selectedDomain events
+          This setup allows SecretForm to manage domain state and persistence while
+          SecretContentInputArea handles the dropdown UI. The selected domain
+          persists across sessions and can be overridden when needed.
+      -->
       <SecretContentInputArea :availableDomains="availableDomains"
                               :initialDomain="selectedDomain"
                               :withDomainDropdown="domainsEnabled"
-                              v-model:selectedDomain="selectedDomain"
+                              @update:selectedDomain="updateSelectedDomain"
                               @update:content="secretContent = $event" />
 
       <CustomDomainPreview :default_domain="selectedDomain" />

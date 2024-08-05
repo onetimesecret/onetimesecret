@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import SecretFormDrawer from './SecretFormDrawer.vue';
 
@@ -20,7 +20,6 @@ const props = withDefaults(defineProps<Props>(), {
 const showPassphrase = ref(false);
 const currentPassphrase = ref('');
 const selectedLifetime = ref('604800.0');
-const isExpanded = ref(false);
 
 const lifetimeOptions = [
   { value: '1209600.0', label: '14 days' },
@@ -38,13 +37,6 @@ const togglePassphrase = () => {
   showPassphrase.value = !showPassphrase.value;
 };
 
-// Load the expanded state from localStorage
-isExpanded.value = localStorage.getItem('privacyOptionsExpanded') === 'true';
-
-// Watch for changes in isExpanded and save to localStorage
-watch(isExpanded, (newValue) => {
-  localStorage.setItem('privacyOptionsExpanded', newValue.toString());
-});
 </script>
 
 <template>
