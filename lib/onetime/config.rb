@@ -43,6 +43,14 @@ module Onetime
         conf[:site][:domains] = { enabled: false }
       end
 
+      unless conf[:site]&.key?(:plans)
+        conf[:site][:plans] = { enabled: false }
+      end
+
+      unless conf[:site]&.key?(:regions)
+        conf[:site][:regions] = { enabled: false }
+      end
+
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
