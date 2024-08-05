@@ -33,6 +33,8 @@
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
     :autoverify: false
+  :plans:
+    :enabled: <%= ENV['PLANS_ENABLED'] || false %>
 :redis:
   :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
   :config: ./try/redis.conf
