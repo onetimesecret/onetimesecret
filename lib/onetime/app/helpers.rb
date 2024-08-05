@@ -274,7 +274,7 @@ class Onetime::App
       prefix_keys = env.keys.select { |key| key.upcase.start_with?("HTTP_#{HEADER_PREFIX}") }
       keys.concat(prefix_keys)
 
-      OT.ld "[SELECTED KEYS] #{HEADER_PREFIX}: #{keys.sort}"
+      OT.ld "[SELECTED KEYS] With prefix `#{HEADER_PREFIX}`: #{keys.sort}"
 
       keys.sort.map { |key|
         # Normalize the header name so it looks identical in the logs as it

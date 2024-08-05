@@ -41,6 +41,30 @@ module Onetime
       end
     end
 
+    def plan_redirect
+      publically do
+        tierid = req.params[:tier] ||= 'free'
+        billing_cycle = req.params[:billing_cycle] ||= 'month'
+
+        plans = OT.conf.dig(:site, :plans)
+        payment_links = plans.fetch(:payment_links, {})
+        payment_link = payment_links.dig(tierid.to_sym, billing_cycle.to_sym)
+        validated_url = validate_url(payment_link)
+
+        OT.ld "[plan_redirect] plans: #{plans}"
+        OT.ld "[plan_redirect] payment_links: #{payment_links}"
+        OT.ld "[plan_redirect] payment_link: #{payment_link}"
+
+        OT.info "[plan_redirect] Clicked #{tierid} per #{billing_cycle} (redirecting to #{validated_url})"
+        if validated_url
+          res.redirect validated_url.to_s # Convert URI::Generic to a string
+        else
+          OT.le "[plan_redirect] Redirect not found. Sending to /signup"
+          res.redirect '/signup'
+        end
+      end
+    end
+
     def forgot
       publically do
         if req.params[:key]

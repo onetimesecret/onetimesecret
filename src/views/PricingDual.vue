@@ -73,11 +73,8 @@
             {{ feature }}
           </li>
         </ul>
-        <form :action="tier.href"
-              method="POST">
-          <input type="hidden"
-                 name="shrimp"
-                 :value="shrimp" />
+        <form :action="`${tier.href}${frequency.priceSuffix}`"
+              method="GET">
           <button type="submit"
                   :aria-describedby="tier.id"
                   v-on="tier.featured ? { click: ($event: MouseEvent) => $event.preventDefault() } : {}"
@@ -171,12 +168,11 @@ const tiers = ref(productTiers);
 const frequencies = ref(paymentFrequencies);
 const frequency = ref(frequencies.value[0]);
 
-const shrimp = ref(window.shrimp);
-
 onMounted(() => {
   const randomIndex = Math.floor(Math.random() * testimonials.value.length);
   randomTestimonial.value = testimonials.value[randomIndex];
 });
+
 </script>
 
 <style scoped>
