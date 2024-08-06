@@ -108,14 +108,13 @@
               <div>
                 <h3
                     class="inline-flex rounded-full bg-brandcompdim-200 dark:bg-brandcompdim-700 px-4 py-1 text-base font-semibold text-gray-800 dark:text-gray-200">
-                  Self-Hosted
+                  Free plan
                 </h3>
               </div>
               <div class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-                Get full access to all features for the honest and wholesome price of <span
-                      class="italic font-semibold text-gray-900 dark:text-gray-100">$0 dollars</span> with self-hosting.
-                We even include our SimpleStack℠ guarantee at no extra charge.
-
+                Go with our basic, free plan. Access all of our features for the honest and wholesome price of <span
+                      class="italic font-semibold text-gray-900 dark:text-gray-100">$0 dollars</span>.
+                Or if self-hosting is more your speed, we'll even include our SimpleStack℠ guarantee at no extra charge.
                 <InfoTooltip color="bg-brandcomp-100 dark:bg-brandcomp-900">
                   <div class="float-left mr-4 mb-2 shape-icon">
                     <Icon icon="fa6-solid:handshake-simple"
@@ -137,10 +136,11 @@
                 </InfoTooltip>
               </div>
             </div>
+
             <div class="mt-6 rounded-md shadow lg:ml-10 lg:mt-0 lg:flex-shrink-0">
-              <a href="https://github.com/onetimesecret/onetimesecret"
+              <a href="/signup/basic"
                  class="block items-center justify-center rounded-md border border-transparent bg-brandcompdim-300 dark:bg-brandcompdim-700 px-5 py-3 text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-brandcompdim-200 dark:hover:bg-brandcompdim-600">
-                Get Started
+                Choose basic
               </a>
             </div>
           </div>
