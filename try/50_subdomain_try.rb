@@ -17,6 +17,7 @@
 
 
 require_relative '../lib/onetime'
+require_relative '../lib/onetime/models/subdomain'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
