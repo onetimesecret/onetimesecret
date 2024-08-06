@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Brisanje bo izvedeno pred branjem  (potrdi tukaj)"
     :burn_this_secret_confirm_hint: "Brisanje je nepovratno"
     :msg_check_email: "Preveri e-pošto"
-    :click_to_continue: "Pritisni z nadaljevanje:"
+    :click_to_continue: "Pritisni z nadaljevanje →"
     :click_to_verify: "Pritisni za potrditev računa:"
     :error_secret: "Manjka vnos za delitev"
     :error_passphrase: "Preveri pravilnost gesla"

@@ -2,87 +2,13 @@
 require 'public_suffix'
 
 require_relative 'base'
+require_relative '../cluster'
 
 module Onetime::Logic
   module Domains
 
-    class UpdateSubdomain < OT::Logic::Base
-      attr_reader :subdomain, :cname, :properties
-      def process_params
-        @cname = params[:cname].to_s.downcase.strip.slice(0,30)
-        @properties = {
-          :company => params[:company].to_s.strip.slice(0,120),
-          :homepage => params[:homepage].to_s.strip.slice(0,120),
-          :contact => params[:contact].to_s.strip.slice(0,60),
-          :email => params[:email].to_s.strip.slice(0,120),
-          :logo_uri => params[:logo_uri].to_s.strip.slice(0,120),
-          :primary_color => params[:cp].to_s.strip.slice(0,30),
-          :secondary_color => params[:cs].to_s.strip.slice(0,30),
-          :border_color => params[:cb].to_s.strip.slice(0,30)
-        }
-      end
-
-      def raise_concerns
-        limit_action :update_branding
-        if %w{www yourcompany mycompany admin ots secure secrets onetime onetimesecret}.member?(@cname)
-          raise_form_error "That CNAME is not available"
-        elsif ! @cname.empty?
-          @subdomain = OT::Subdomain.load_by_cname(@cname)
-          raise_form_error "That CNAME is not available" if subdomain && !subdomain.owner?(cust.custid)
-        end
-        if ! properties[:logo_uri].empty?
-          begin
-            URI.parse properties[:logo_uri]
-          rescue => ex
-            raise_form_error "Check the logo URI"
-          end
-        end
-      end
-
-      def process
-        @subdomain ||= OT::Subdomain.create cust.custid, @cname
-        if cname.empty?
-          sess.set_error_message "Nothing changed"
-        else
-          OT::Subdomain.rem cust['cname']
-          subdomain.update_cname cname
-          subdomain.update_fields properties
-          cust.update_fields :cname => subdomain.cname
-          OT::Subdomain.add cname, cust.custid
-          sess.set_info_message "Branding updated"
-        end
-        sess.set_form_fields form_fields # for tabindex
-      end
-
-      def success_data
-        { custid: @cust.custid }
-      end
-    end
-
-    module ClusterFeatures
-      @type = nil
-      @api_key = nil
-      @cluster_ip = nil
-      @cluster_name = nil
-
-      module ClassMethods
-        attr_accessor :type, :api_key, :cluster_ip, :cluster_name
-      end
-
-      def cluster_safe_dump
-        {
-          type:  ClusterFeatures.type,
-          cluster_ip: ClusterFeatures.cluster_ip,
-          cluster_name: ClusterFeatures.cluster_name
-        }
-      end
-
-      extend ClassMethods
-    end
-
     class AddDomain < OT::Logic::Base
       attr_reader :greenlighted, :custom_domain
-      include ClusterFeatures # for cluster_safe_dump
 
       def process_params
         OT.ld "[AddDomain] Parsing #{params[:domain]}"
@@ -97,11 +23,12 @@ module Onetime::Logic
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
+        limit_action :add_domain
+
         # Only store a valid, parsed input value to @domain
         @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust) # raises OT::Problem
         @display_domain = @parsed_domain[:display_domain]
 
-        limit_action :add_domain
 
         # Don't need to do a bunch of validation checks here. If the input value
         # passes as valid, it's valid. If another account has verified the same
@@ -124,16 +51,19 @@ module Onetime::Logic
       end
 
       def create_vhost
-        api_key = ClusterFeatures.api_key
+        api_key = OT::Cluster::Features.api_key
+        vhost_target = OT::Cluster::Features.vhost_target
 
         if api_key.to_s.empty?
           return OT.info "[AddDomain.create_vhost] Approximated API key not set"
         end
 
-        res = OT::Utils::Approximated.create_vhost(api_key, @display_domain, 'staging.onetimesecret.com', '443')
+        res = OT::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
         payload = res.parsed_response
-        OT.info "[AddDomain.create_vhost] %s" % payload
-        @custom_domain[:vhost] = payload.to_json
+      OT.info "[AddDomain.create_vhost] %s" % payload
+        custom_domain[:vhost] = payload['data'].to_json
+        custom_domain[:updated] = OT.now.to_i
+
       rescue HTTParty::ResponseError => e
         OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
       end
@@ -143,14 +73,14 @@ module Onetime::Logic
           custid: @cust.custid,
           record: @custom_domain.safe_dump,
           details: {
-            cluster: cluster_safe_dump
+            cluster: OT::Cluster::Features.cluster_safe_dump
           }
         }
       end
     end
 
     class RemoveDomain < OT::Logic::Base
-      attr_reader :domain, :display_domain, :greenlighted
+      attr_reader :greenlighted, :domain_input, :display_domain
       def process_params
         @domain_input = params[:domain].to_s.strip
       end
@@ -159,12 +89,14 @@ module Onetime::Logic
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
+        limit_action :remove_domain
+
         @custom_domain = OT::CustomDomain.load(@domain_input, @cust)
         raise_form_error "Domain not found" unless @custom_domain
       end
 
       def process
-        OT.ld "[RemoveDomain] Processing #{@domain} for #{@custom_domain.identifier}"
+        OT.ld "[RemoveDomain] Processing #{domain_input} for #{@custom_domain.identifier}"
         @greenlighted = true
         @display_domain = @custom_domain[:display_domain]
 
@@ -183,11 +115,11 @@ module Onetime::Logic
       end
 
       def delete_vhost
-        api_key = ClusterFeatures.api_key
+        api_key = OT::Cluster::Features.api_key
         if api_key.to_s.empty?
           return OT.info "[RemoveDomain.delete_vhost] Approximated API key not set"
         end
-        res = OT::Utils::Approximated.delete_vhost(api_key, @display_domain)
+        res = OT::Cluster::Approximated.delete_vhost(api_key, @display_domain)
         payload = res.parsed_response
         OT.info "[RemoveDomain.delete_vhost] %s" % payload
       rescue HTTParty::ResponseError => e
@@ -204,11 +136,10 @@ module Onetime::Logic
     end
 
     class ListDomains < OT::Logic::Base
-      include ClusterFeatures # for cluster_safe_dump
-
       attr_reader :custom_domains
 
       def raise_concerns
+        limit_action :list_domains
       end
 
       def process
@@ -222,14 +153,15 @@ module Onetime::Logic
           records: @custom_domains,
           count: @custom_domains.length,
           details: {
-            cluster: cluster_safe_dump
+            cluster: OT::Cluster::Features.cluster_safe_dump
           }
         }
       end
     end
 
     class GetDomain < OT::Logic::Base
-      include ClusterFeatures # for cluster_safe_dump
+
+      attr_reader :greenlighted, :display_domain, :custom_domain
 
       def process_params
         @domain_input = params[:domain].to_s.strip
@@ -238,6 +170,8 @@ module Onetime::Logic
       def raise_concerns
         raise_form_error "Please enter a domain" if @domain_input.empty?
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
+
+        limit_action :get_domain
 
         # Getting the domain record based on `req.params[:domain]` (which is
         # the display_domain). That way we need to combine with the custid
@@ -250,17 +184,49 @@ module Onetime::Logic
 
       def process
         OT.ld "[GetDomain] Processing #{@custom_domain[:display_domain]}"
-
+        @greenlighted = true
+        @display_domain = @custom_domain[:display_domain]
       end
 
       def success_data
         {
           custid: @cust.custid,
-          record: @custom_domain.safe_dump,
+          record: custom_domain.safe_dump,
           details: {
-            cluster: cluster_safe_dump
+            cluster: OT::Cluster::Features.cluster_safe_dump
           }
         }
+      end
+    end
+
+    class VerifyDomain < GetDomain
+
+      def raise_concerns
+        # Run this limiter before calling super which in turn runs
+        # the get_domain limiter since verify is a more restrictive. No
+        # sense running the get logic more than we need to.
+        limit_action :verify_domain
+
+        super
+      end
+
+      def process
+        super
+
+        refresh_vhost
+      end
+
+      def refresh_vhost
+        api_key = OT::Cluster::Features.api_key
+        if api_key.to_s.empty?
+          return OT.info "[VerifyDomain.refresh_vhost] Approximated API key not set"
+        end
+        res = OT::Cluster::Approximated.get_vhost_by_incoming_address(api_key, display_domain)
+        payload = res.parsed_response
+        OT.info "[VerifyDomain.refresh_vhost] %s" % payload
+        OT.ld ""
+        custom_domain[:vhost] = payload['data'].to_json
+        custom_domain[:updated] = OT.now.to_i
       end
     end
   end

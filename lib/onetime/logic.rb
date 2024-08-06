@@ -28,8 +28,6 @@ module Onetime
       end
     end
 
-
-
     class AuthenticateSession < OT::Logic::Base
       attr_reader :custid, :stay, :greenlighted
       attr_reader :session_ttl
@@ -129,7 +127,7 @@ module Onetime
 
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :maxviews
-      attr_reader :metadata, :secret
+      attr_reader :metadata, :secret, :share_domain
       attr_accessor :token
       def process_params
         @ttl = params[:ttl].to_i
@@ -151,7 +149,18 @@ module Onetime
           email_address.scan(r).uniq.first
         }.compact.uniq
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
+
+        # Capture the selected domain the link is meant for, as long as it's
+        # a valid public domain (no pub intended). This is the same validation
+        # that CustomDomain objects go through so if we don't get past this
+        # most basic of checks, then whatever this is never had a whisker's
+        # chance in a lion's den of being a custom domain anyway.
+        potential_domain = params[:share_domain].to_s
+        if potential_domain && OT::CustomDomain.valid?(potential_domain)
+          @share_domain = potential_domain
+        end
       end
+
       def raise_concerns
         limit_action :create_secret
         limit_action :email_recipient unless recipient.empty?
@@ -162,7 +171,11 @@ module Onetime
           raise_form_error "An account is required to send emails. Signup here: https://#{OT.conf[:site][:host]}"
         end
         raise OT::Problem, "Unknown type of secret" if kind.nil?
+
+        # Returns the display_domain/share_domain or
+        @share_domain = OT::CustomDomain.display_domain(@share_domain) if share_domain
       end
+
       def process
         @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
         if !passphrase.empty?
@@ -173,6 +186,8 @@ module Onetime
         metadata.ttl, secret.ttl = ttl*2, ttl
         metadata.secret_shortkey = secret.shortkey
         metadata.secret_ttl = secret.ttl
+        metadata.share_domain = share_domain
+        secret.share_domain = share_domain
         secret.maxviews = maxviews
         secret.save
         metadata.save
@@ -191,10 +206,13 @@ module Onetime
           raise_form_error "Could not store your secret"
         end
       end
+
       def redirect_uri
         ['/private/', metadata.key].join
       end
+
       private
+
       def form_fields
       end
     end

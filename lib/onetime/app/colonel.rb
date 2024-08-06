@@ -69,10 +69,6 @@ class Onetime::App
           self[:older_feedback] = OT::Feedback.recent(14.days, OT.now.to_i-48.hours).collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
           end.reverse
-          self[:subdomain_count] = OT::Subdomain.values.size
-          self[:subdomains] = OT::Subdomain.all.collect do |v|
-            { :cname => v['cname'], :custid => v.custid, :fulldomain => v.fulldomain }
-          end.reverse
           self[:feedback_count] = OT::Feedback.values.size
           self[:today_feedback_count] = self[:today_feedback].size
           self[:yesterday_feedback_count] = self[:yesterday_feedback].size

@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Die Zerstörung eines Geheimnisses wird es löschen bevor es gelesen wurde (Klicken zum Bestätigen)"
     :burn_this_secret_confirm_hint: "Die Zerstörung eines Geheimnisses ist permanent und kann nicht rückgängig gemacht werden"
     :msg_check_email: "Überprüfe dein E-Mail-Postfach"
-    :click_to_continue: "Klicken um fortzufahren:"
+    :click_to_continue: "Klicken um fortzufahren →"
     :click_to_verify: "Klicke, um deinen Account zu verifizieren:"
     :error_secret: "Du hast nichts zum Teilen geliefert"
     :error_passphrase: "Prüfe diese Passphrase nochmals"

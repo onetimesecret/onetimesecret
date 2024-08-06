@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Brûler un secret le supprimera pour toujours avant qu'il ne soit lu (cliquer pour confirmer)"
     :burn_this_secret_confirm_hint: "Brûler un secret est définitif et ne peut pas être annulé"
     :msg_check_email: "Vérifier votre e-mail"
-    :click_to_continue: "Cliquer pour continuer:"
+    :click_to_continue: "Cliquer pour continuer →"
     :click_to_verify: "Continuez pour finaliser la vérification de votre compte :"
     :error_secret: "Il n'y a rien à partager"
     :error_passphrase: "Revérifier cet indice"

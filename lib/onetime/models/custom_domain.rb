@@ -47,6 +47,7 @@ class Onetime::CustomDomain < Familia::HashKey
     :txt_validation_host,
     :txt_validation_value,
     :status,
+    { :vhost => ->(obj) { obj.parse_vhost } },
     :verified,
     :created,
     :updated
@@ -143,6 +144,13 @@ class Onetime::CustomDomain < Familia::HashKey
     super # we may prefer to call self.clear here instead
   end
 
+  def parse_vhost
+    JSON.parse(self[:vhost] || '{}')
+  rescue JSON::ParserError => e
+    OT.le "[CustomDomain.parse_vhost] Error #{e}"
+    {}
+  end
+
   def to_s
     # If we can treat familia objects as strings, then passing them as method
     # arguments we don't need to check whether it is_a? RedisObject or not;
@@ -203,7 +211,6 @@ class Onetime::CustomDomain < Familia::HashKey
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         cust = OT::Customer.new(custid)
 
-        p [5, obj[:display_domain], obj[:domainid]]
         OT.info "[CustomDomain.create] Adding domain #{obj["display_domain"]}/#{domainid} for #{cust}"
 
         # Add to customer's list of custom domains. It's actually
@@ -263,8 +270,8 @@ class Onetime::CustomDomain < Familia::HashKey
     # to create will be created on the base domain. So if we have
     # www.froogle.com, we'll create the TXT record on froogle.com,
     # like this: `_onetime-challenge-domainid.froogle.com`. This is
-    # distinct from the domain we ask the user to create a CNAME
-    # record on, which is www.froogle.com. We also call this the
+    # distinct from the domain we ask the user to create an A
+    # record for, which is www.froogle.com. We also call this the
     # display domain.
     #
     # Returns either a string or nil if invalid
@@ -275,7 +282,7 @@ class Onetime::CustomDomain < Familia::HashKey
     end
 
     # Takes the given input domain and returns the display domain,
-    # the one that we ask the user to create a CNAME record on. So
+    # the one that we ask the user to create an A record for. So
     # subdir.www.froogle.com would return subdir.www.froogle.com here;
     # www.froogle.com would return www.froogle.com; and froogle.com
     # would return froogle.com.

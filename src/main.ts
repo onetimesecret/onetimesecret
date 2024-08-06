@@ -70,9 +70,6 @@ const componentMap: ComponentMap = {
   'Account': defineAsyncComponent(() => import('@/views/account/AccountIndex.vue')),
   'Shared': defineAsyncComponent(() => import('@/views/Shared.vue')),
   'Private': defineAsyncComponent(() => import('@/views/Private.vue')),
-  //'Pricing': defineAsyncComponent(() => import('@/views/Pricing.vue')),
-  'Pricing': defineAsyncComponent(() => import('@/views/PricingDual.vue')),
-  //'Signup': defineAsyncComponent(() => import('@/views/Signup.vue')),
   'Feedback': defineAsyncComponent(() => import('@/views/Feedback.vue')),
   'Forgot': defineAsyncComponent(() => import('@/components/PasswordStrengthChecker.vue')),
 }
@@ -126,7 +123,7 @@ if (router.hasRoute(vueComponentName)) {
   app.use(router)
   app.mount('#app')
   router.push({ name: vueComponentName })
-  console.log("Router route #{vueComponentName}")
+  console.log("Router route `${vueComponentName}`")
 
 } else {
   console.warn(`No route found for component: ${vueComponentName}`)

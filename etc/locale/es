@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Destruir un secreto lo borrará antes de que haya sido leído (clic para confirmar)"
     :burn_this_secret_confirm_hint: "La destrucción de un secreto es permanente y no se puede deshacer"
     :msg_check_email: "Consulte su correo electrónico"
-    :click_to_continue: "Clic para continuar:"
+    :click_to_continue: "Clic para continuar →"
     :click_to_verify: "Continúe para verificar su cuenta:"
     :error_secret: "Usted no proporcionó nada para compartir"
     :error_passphrase: "Vuelva a comprobar la frase de contraseña"

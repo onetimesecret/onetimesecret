@@ -51,12 +51,12 @@ declare global {
     cust: Cust;
     custid: string;
     customer_since?: string;
-    custom_domains_record_count: number;
+    custom_domains_record_count?: number;
     custom_domains?: string[];
+    domains_enabled: booleam;
     email: string;
     frontend_host: string;
     is_default_locale: boolean;
-    is_subdomain: boolean;
     locale: string;
     ot_version: string;
     ruby_version: string;

@@ -65,16 +65,16 @@ OT.boot!
 
 @generate_request = {
   check_records_exist: lambda { ||
-    OT::Utils::Approximated.check_records_exist(@api_key, @dns_records)
+    OT::Cluster::Approximated.check_records_exist(@api_key, @dns_records)
   },
   create_vhost: lambda { ||
-    OT::Utils::Approximated.create_vhost(@api_key, @vhost1[:incoming_address], @vhost1[:target_address], @vhost1[:target_ports])
+    OT::Cluster::Approximated.create_vhost(@api_key, @vhost1[:incoming_address], @vhost1[:target_address], @vhost1[:target_ports])
   },
   get_vhost_by_incoming_address: lambda  { ||
-    OT::Utils::Approximated.get_vhost_by_incoming_address(@api_key, @vhost1[:incoming_address])
+    OT::Cluster::Approximated.get_vhost_by_incoming_address(@api_key, @vhost1[:incoming_address])
   },
   delete_vhost: lambda  { ||
-    OT::Utils::Approximated.delete_vhost(@api_key, @vhost1[:incoming_address])
+    OT::Cluster::Approximated.delete_vhost(@api_key, @vhost1[:incoming_address])
   }
 }
 
@@ -112,7 +112,7 @@ end
 response = @generate_request[:get_vhost_by_incoming_address].call
 content  = response.parsed_response
 [content.keys.length, content.dig("data", "incoming_address"), content.dig("data", "target_address"), content.dig("data", "target_ports")]
-#=> [1, "72.tryouts.onetimesecret.com", "staging.onetimesecret.com", "443"]
+#=> [1, "72.tryouts.deleteme.ifyou.seeme.onetimesecret.com", "staging.onetimesecret.com", "443"]
 
 
 ## Can delete a vhost record

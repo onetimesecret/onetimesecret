@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "ביעור סוד ימחק אותו לפני שנקרא (לחצו לאישור)"
     :burn_this_secret_confirm_hint: "ביעור סוד הינו לצמיתות ואינו ניתן לביטול"
     :msg_check_email: "בדקו את המייל"
-    :click_to_continue: "לחצו להמשך:"
+    :click_to_continue: "לחצו להמשך →"
     :click_to_verify: "המשך לאישור החשבון:"
     :error_secret: "לא סיפקתם משהו לשיתוף"
     :error_passphrase: "בדקו שוב את סיסמת המשפט"

@@ -11,6 +11,10 @@
     # application itself is responsible for handling multiple domains.
     :cluster:
       :type: <%= ENV['CLUSTER_TYPE'] || nil %>
+      :api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
+      :cluster_ip: <%= ENV['APPROXIMATED_PROXY_CLUSTER_IP'] || '<CLUSTER_IP>' %>
+      :cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
+      :vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
   # Turns https/http on or off when generating links
   :ssl: <%= ENV['SSL'] == 'true' %>
   # IMPORTANT: After setting the secret, it should not be changed.
@@ -20,22 +24,24 @@
   # Registration and Authentication settings
   :authentication:
     # Can be disabled altogether, including API authentication.
-    :enabled: true
+    :enabled: <%= ENV['AUTH_ENABLED'] || true %>
     # Allow users to create accounts. This can be disabled if you plan
     # to create accounts manually or enable during setup when accounts
     # can be created and then disabled to prevent any new users from
     # creating accounts.
-    :signup: true
+    :signup: <%= ENV['AUTH_SIGNUP'] || true %>
     # Generally if you allow registration, you allow signin. But there
     # are circumstances where it's helpful to turn off authentication
     # temporarily.
-    :signin: true
+    :signin: <%= ENV['AUTH_SIGNIN'] || true %>
     # By default, new accounts need to verify their email address before
     # they can sign in. This is a security measure to prevent spamming
     # and abuse of the system. If you're running a private instance or
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
-    :autoverify: false
+    :autoverify: <%= ENV['AUTH_AUTOVERIFY'] || false %>
+  :plans:
+    :enabled: <%= ENV['PLANS_ENABLED'] || false %>
 :redis:
   :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
 :colonels:
@@ -178,6 +184,11 @@
   :forgot_password_request: 2
   :forgot_password_reset: 3
   :generate_apikey: 10
+  :add_domain: 30
+  :remove_domain: 30
+  :list_domains: 100
+  :get_domain: 100
+  :verify_domain: 25
 :development:
   # Enabling development mode here directs the application to expect
   # a vite server to be running on port 5173 and will attempt to

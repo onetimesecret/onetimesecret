@@ -11,8 +11,7 @@ module Onetime
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          check_subdomain!   # 4. Check if we're running as a subdomain
-          check_referrer!    # 5. Check referrers for public requests
+          check_referrer!    # 4. Check referrers for public requests
           yield
         end
       end
@@ -30,7 +29,6 @@ module Onetime
           return disabled_response(req.path) unless authentication_enabled?
 
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          check_subdomain!   # 4. Check if we're running as a subdomain
           sess.authenticated? ? yield : res.redirect(('/'))
         end
       end
@@ -48,15 +46,6 @@ module Onetime
         end
       end
 
-      def check_subdomain!
-        subdomstr = req.env['SERVER_NAME'].split('.').first
-        if !subdomstr.to_s.empty? && subdomstr != 'www' && OT::Subdomain.mapped?(subdomstr)
-          req.env['ots.subdomain'] = OT::Subdomain.load_by_cname(subdomstr)
-        elsif cust.has_key?(:cname)
-          req.env['ots.subdomain'] = cust.load_subdomain
-        end
-      end
-
       def check_referrer!
         return if @check_referrer_ran
         @check_referrer_ran = true
@@ -65,6 +54,39 @@ module Onetime
         end
         return if req.referrer.nil? || req.referrer.match(Onetime.conf[:site][:host])
         sess.referrer ||= req.referrer
+      end
+
+      # Validates a given URL and ensures it can be safely redirected to.
+      #
+      # @param url [String] the URL to validate
+      # @return [URI::HTTP, nil] the validated URI object if valid, otherwise nil
+      def validate_url(url)
+        # This is named validate_url and not validate_uri because we aim to return
+        # an appropriate value that can be safely redirected to. A path or other portion
+        # of a URI can't be properly validated whereas a complete URL describes a
+        # specific location to attempt to navigate to.
+        uri = nil
+        begin
+          # Attempt to parse the URL
+          uri = URI.parse(url)
+        rescue URI::InvalidURIError
+          # Log an error message if the URL is invalid
+          OT.le "[validate_url] Invalid URI: #{uri}"
+        else
+          # Set a default host if the host is missing
+          uri.host ||= OT.conf[:site][:host]
+          # Ensure the scheme is HTTPS if SSL is enabled in the configuration
+          if OT.conf[:site][:ssl]
+            uri.scheme = 'https' if uri.scheme.nil? || uri.scheme != 'https'
+          end
+          # Set uri to nil if it is not an HTTP or HTTPS URI
+          uri = nil unless uri.is_a?(URI::HTTP)
+          # Log an info message with the validated URI
+          OT.info "[validate_url] Validated URI: #{uri}"
+        end
+
+        # Return the validated URI or nil if invalid
+        uri
       end
 
       def handle_form_error ex, redirect
@@ -107,10 +129,6 @@ module Onetime
         view.add_error message
         res.status = 401
         res.body = view.render
-      end
-
-      def is_subdomain?
-        ! req.env['ots.subdomain'].nil?
       end
 
     end

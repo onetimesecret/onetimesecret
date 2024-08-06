@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Destruéring af en hemmelighed vil slette den før den er blevet læst (klik for at bekræfte)"
     :burn_this_secret_confirm_hint: "Destruktion af en hemmelighed er permanent og kan ikke fortrydes"
     :msg_check_email: "Tjek din e-mail"
-    :click_to_continue: "Klik for at fortsætte:"
+    :click_to_continue: "Klik for at fortsætte →"
     :click_to_verify: "Fortsæt for at bekræfte din konto:"
     :error_secret: "Du har ikke angivet noget til deling"
     :error_passphrase: "Dobbelttjek den adgangskode"

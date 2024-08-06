@@ -36,7 +36,7 @@
 
     <Transition name="fade">
       <div v-if="isModalVisible"
-           class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+           class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
            @click="closeModal">
         <div :class="['relative max-w-md p-6 rounded-lg shadow-lg', modalClasses]"
              @click.stop>
@@ -87,5 +87,11 @@ const modalClasses = computed(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Add this new rule */
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
 }
 </style>

@@ -139,10 +139,6 @@ class Onetime::Customer < Familia::HashKey
     OT::Session.load sessid unless sessid.to_s.empty?
   end
 
-  def load_subdomain
-    OT::Subdomain.load custid unless custid.to_s.empty?
-  end
-
   def metadata_list
     if @metadata_list.nil?
       el = [prefix, identifier, :metadata]

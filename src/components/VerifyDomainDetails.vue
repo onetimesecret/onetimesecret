@@ -3,8 +3,8 @@
 <template>
   <div class="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
 
-    <!--<h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white"></h2>-->
-    <!--<p class="text-lg mb-6 text-gray-600 dark:text-gray-300"></p>-->
+    <!--<h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Card Title</h2>
+    <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">Intro text for this card</p>-->
 
     <ol class="space-y-6 mb-8">
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
@@ -42,8 +42,17 @@
       </li>
     </ol>
 
-    <button @click="verify" class="w-full sm:w-auto px-6 py-3 text-lg font-semibold text-white bg-brand-500 hover:bg-brand-600 rounded-lg transition duration-300 ease-in-out">
-      Verify Domain
+    <BasicFormAlerts :success="success" :error="error" />
+
+    <button v-if="withVerifyCTA"
+          @click="verify"
+          :disabled="isButtonDisabled"
+          class="w-full sm:w-auto px-6 py-3 text-lg font-semibold
+            text-white bg-brand-500
+            disabled:bg-gray-400 disabled:cursor-not-allowed
+            hover:bg-brand-600
+            rounded-lg transition duration-100 ease-in-out">
+      {{ isSubmitting ? 'Verifying...' : 'Verify Domain' }}
     </button>
 
     <div class="mt-5 flex items-start bg-white dark:bg-gray-800 p-4 rounded-md">
@@ -59,17 +68,66 @@
 </template>
 
 <script setup lang="ts">
-import { CustomDomain, CustomDomainCluster } from '@/types/onetime';
-import DetailField from './DetailField.vue';
+import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
+import { useFormSubmission } from '@/utils/formSubmission';
 import { Icon } from '@iconify/vue';
+import { computed, ref } from 'vue';
+import BasicFormAlerts from './BasicFormAlerts.vue';
+import DetailField from './DetailField.vue';
 
-defineProps({
-  domain: { type: Object as () => CustomDomain, required: true },
-  cluster: { type: Object as () => CustomDomainCluster, required: true },
-})
+
+interface Props {
+  domain: CustomDomain;
+  cluster: CustomDomainCluster;
+  withVerifyCTA?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  domain: () => ({} as CustomDomain),
+  cluster: () => ({} as CustomDomainCluster),
+  withVerifyCTA: false,
+});
+
+// Define the emit function with the type
+const emit = defineEmits<{
+  (e: 'domainVerify', data: CustomDomainApiResponse): void;
+}>();
+
+const shrimp = ref(window.shrimp);
+const handleShrimp = (freshShrimp: string) => {
+  shrimp.value = freshShrimp;
+}
+
+const { isSubmitting, error, success, submitForm } = useFormSubmission({
+  url: `/api/v1/account/domains/${props.domain.display_domain}/verify`,
+  successMessage: 'Domain verification initiated successfully.',
+  getFormData: () => new URLSearchParams({
+    domain: props.domain.display_domain,
+    shrimp: shrimp.value,
+  }),
+  onSuccess: (data) => {
+    console.log('Verification initiated:', data);
+    emit('domainVerify', data);
+  },
+  onError: (data) => {
+    console.error('Verification failed:', data);
+  },
+  handleShrimp: handleShrimp,
+});
+
+const buttonDisabledDelay = ref(false);
+const isButtonDisabled = computed(() => isSubmitting.value || buttonDisabledDelay.value);
 
 const verify = () => {
   // Implement verification logic here
-  console.info('Verifying DNS TXT record...');
+  console.info('Refreshing DNS verification details...');
+
+  submitForm().finally(() => {
+
+    buttonDisabledDelay.value = true;
+    setTimeout(() => {
+      buttonDisabledDelay.value = false;
+    }, 10000); // 4 seconds
+  });
 };
 </script>

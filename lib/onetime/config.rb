@@ -43,6 +43,14 @@ module Onetime
         conf[:site][:domains] = { enabled: false }
       end
 
+      unless conf[:site]&.key?(:plans)
+        conf[:site][:plans] = { enabled: false }
+      end
+
+      unless conf[:site]&.key?(:regions)
+        conf[:site][:regions] = { enabled: false }
+      end
+
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
@@ -54,11 +62,12 @@ module Onetime
 
       if OT.conf.dig(:site, :domains, :enabled).to_s == "true"
         cluster = conf.dig(:site, :domains, :cluster)
-        OT.ld "Setting ClusterFeatures #{cluster}"
-        klass = OT::Logic::Domains::ClusterFeatures
+        OT.ld "Setting OT::Cluster::Features #{cluster}"
+        klass = OT::Cluster::Features
         klass.api_key = cluster[:api_key]
         klass.cluster_ip = cluster[:cluster_ip]
         klass.cluster_name = cluster[:cluster_name]
+        klass.vhost_target = cluster[:vhost_target]
         OT.ld "Domains config: #{cluster}"
         unless klass.api_key
           raise OT::Problem, "No `site.domains.cluster` api key (#{klass.api_key})"

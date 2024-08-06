@@ -13,7 +13,7 @@ export default defineConfig({
 
   plugins: [
     vue({
-      template:{
+      template: {
         compilerOptions: {
 
         }
@@ -59,7 +59,7 @@ export default defineConfig({
   },
 
   assetsInclude: ['**/*.woff', '**/*.woff2'], // Include font files
-  base: '/',
+  base: '/dist',
   build: {
     outDir: '../public/web/dist',
     emptyOutDir: true,

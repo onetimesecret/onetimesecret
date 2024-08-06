@@ -33,8 +33,8 @@
     {{#frontend_development}}
       <!-- if development -->
       <!-- an entry point for each page (main == homepage) -->
-      <script type="module" src="{{ frontend_host }}/main.ts"></script>
-      <script type="module" src="{{ frontend_host }}/@vite/client"></script>
+      <script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
+      <script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
     {{/frontend_development}}
 
     {{^frontend_development}}
@@ -55,7 +55,7 @@
       <header class="min-w-[320px]">
         <div class="flex flex-col sm:flex-row justify-between items-center">
           <div class="mb-2 sm:mb-0"><a href="/"><img id="logo" src="/v3/img/onetime-logo-v3-xl.svg" class="" width="64" height="64"></a></div>
-              <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-sm">
+              <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-base">
 
             {{#authenticated}}
               <div class="hidden sm:flex items-center">

@@ -55,7 +55,9 @@
     {{#display_links}}
     <div class="prose dark:prose-invert text-base pt-4">
       <a href="/about" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a> |
-      <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a> |
+      {{#plans_enabled}}
+        <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a> |
+      {{/plans_enabled}}
       <a href="/docs/api" aria-label="API documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">API</a> |
       <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Code</a> |
       <a href="https://github.com/onetimesecret/onetimesecret/issues" aria-label="View open issues on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Issues</a>

@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "Gizli mesajı yakmak onu okunmadan önce siler (onaylamak için tıkla)"
     :burn_this_secret_confirm_hint: "Gizli mesajı yakmak kalıcıdır ve geri alınamaz"
     :msg_check_email: "E-postanı kontrol et"
-    :click_to_continue: "Devam etmek için tıkla:"
+    :click_to_continue: "Devam etmek için tıkla →"
     :click_to_verify: "Hesabını doğrulamak için devam et:"
     :error_secret: "Paylaşılacak birşey yazmadın"
     :error_passphrase: "Yanlış parola"

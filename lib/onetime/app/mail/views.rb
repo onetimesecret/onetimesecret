@@ -25,19 +25,10 @@ class Onetime::App
         self[:secret] = secret
         self[:custid] = cust.custid
         self[:email_address] = recipient
-        self.subdomain = cust.load_subdomain if cust.has_key?(:cname)
-        if self.subdomain
-          self[:from_name] = subdomain['contact']
-          self[:from] = subdomain['email']
-          self[:signature_link] = subdomain['homepage']
-          emailer.from = self[:from]
-          emailer.fromname = self[:from_name]
-        else
-          self[:from_name] = OT.conf[:emailer][:fromname]
-          self[:from] = OT.conf[:emailer][:from]
-          self[:signature_link] = 'https://onetimesecret.com/'
-          emailer.fromname = 'Onetime Secret'
-        end
+        self[:from_name] = OT.conf[:emailer][:fromname]
+        self[:from] = OT.conf[:emailer][:from]
+        self[:signature_link] = 'https://onetimesecret.com/'
+        emailer.fromname = 'Onetime Secret'
       end
       def subject
         i18n[:email][:subject] % [self[:custid]] # e.g. "ABC" sent you a secret
@@ -66,7 +57,6 @@ class Onetime::App
         self[:secret] = secret
         self[:custid] = cust.custid
         self[:email_address] = recipient
-        self.subdomain = cust.load_subdomain if cust.has_key?(:cname)
       end
       def subject
         i18n[:email][:subject] % [self[:ticketno]]

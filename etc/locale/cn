@@ -23,7 +23,7 @@
     :burn_this_secret_hint: "此时销毁密文将在密文未被查看前直接删除（点击确认）"
     :burn_this_secret_confirm_hint: "销毁密文将是永久的、不可撤销的操作"
     :msg_check_email: "检查您的电子邮箱"
-    :click_to_continue: "点击继续:"
+    :click_to_continue: "点击继续 →"
     :click_to_verify: "继续进行账户认证:"
     :error_secret: "您还未提交任何需要加密的内容"
     :error_passphrase: "再次确认密码"

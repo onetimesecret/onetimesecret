@@ -32,6 +32,8 @@ GET   /pricing                                   Onetime::App#pricing
 GET   /signup                                    Onetime::App#signup
 GET   /signup/:planid                            Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account
+GET   /plans/:tier                               Onetime::App#plan_redirect
+GET   /plans/:tier/:billing_cycle                Onetime::App#plan_redirect
 
 GET   /login                                     Onetime::App#login
 GET   /signin                                    Onetime::App#signin
@@ -52,8 +54,6 @@ GET   /account/domains                           Onetime::App#account_domains
 GET   /account/domains/add                       Onetime::App#account_domains_add
 GET   /account/domains/:domain/verify            Onetime::App#account_domains_verify
 GET   /account                                   Onetime::App#account
-
-#POST  /account/subdomain                         Onetime::App#update_subdomain
 
 GET   /contributor                               Onetime::App#contributors
 POST  /contributor                               Onetime::App#contributors

@@ -83,7 +83,7 @@ export function useFormSubmission(options: FormSubmissionOptions) {
         }
 
         if (response.headers.get('content-type')?.includes('application/json')) {
-          throw new Error(jsonData.message || 'Submission failed');
+          throw new Error(jsonData.message || 'Request was not successful. Please try again later.');
         } else {
           throw new Error('Please refresh the page and try again.');
         }

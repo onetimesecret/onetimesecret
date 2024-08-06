@@ -52,14 +52,20 @@ module Onetime
             self[:with_analytics] = false
             self[:css] << '/css/docs.css'
           end
+
           def baseuri_httpauth
             scheme = Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
             [scheme, 'USERNAME:APITOKEN@', Onetime.conf[:site][:host]].join
           end
         end
+
+        # Defining each class is necessary for any page that
+        # uses its own template. IOW, there's one template per
+        # class and vice versa.
         class Api < Onetime::App::View
           class Secrets < Api
           end
+
           class Libs < Api
           end
         end
@@ -171,7 +177,16 @@ module Onetime
           self[:show_secret_link] = !(metadata.state?(:received) || metadata.state?(:burned)) && (self[:show_secret] || metadata.owner?(cust)) && self[:recipients].nil?
           self[:show_metadata_link] = metadata.state?(:new)
           self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
+
+          domain = if self[:domains_enabled]
+            metadata.share_domain || site_host
+          else
+            site_host
+          end
+
+          self[:share_domain] = [base_scheme, domain].join
         end
+
         def share_path
           [:secret, self[:secret_key]].join('/')
         end
@@ -188,7 +203,7 @@ module Onetime
           [baseuri, metadata_path].flatten.join('/')
         end
         def burn_uri
-          [baseuri, burn_path, 'burn'].flatten.join('/')
+          [baseuri, burn_path].flatten.join('/')
         end
         def display_lines
           ret = self[:secret_value].to_s.scan(/\n/).size + 2
