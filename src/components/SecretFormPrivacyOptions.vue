@@ -50,6 +50,7 @@ const togglePassphrase = () => {
             <input :type="showPassphrase ? 'text' : 'password'" tabindex="3"
                    id="currentPassphrase"
                    v-model="currentPassphrase"
+                   name="passphrase"
                    autocomplete="unique-passphrase"
                    placeholder="Enter a passphrase"
                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-brandcomp-500 focus:border-brandcomp-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
