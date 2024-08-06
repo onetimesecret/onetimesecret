@@ -50,12 +50,19 @@ class OT::CLI::Definition
     end
   end
 
-  usage 'ots register-build [msg]'
-  command register_build: OT::CLI
-
   usage 'ots build'
   command :build do
-    puts OT::VERSION.inspect
+    # Get the commit hash from .commit_hash.txt
+    commit_hash_file = File.join(OT::HOME, '.commit_hash.txt')
+
+    if File.exist?(commit_hash_file)
+      commit_hash = File.read(commit_hash_file).strip
+    else
+      commit_hash = 'unknown'
+      $stderr.puts "Warning: Commit hash file not found. Using default value 'unknown'."
+    end
+
+    puts format('Onetime %s (%s)', OT::VERSION.inspect, commit_hash)
   end
 
   usage 'ots entropy'
