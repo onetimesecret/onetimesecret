@@ -29,9 +29,9 @@
 -->
 
 <template>
-  <div class="relative inline-block">
-    <Icon icon="heroicons:information-circle-20-solid"
-          class="inline align-baseline cursor-pointer"
+  <div class="relative inline-block mx-1">
+    <Icon icon="heroicons:information-circle"
+          class="inline align-baseline cursor-pointer text-base"
           @click="toggleModal" />
 
     <Transition name="fade">
