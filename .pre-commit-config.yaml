@@ -32,6 +32,7 @@
 default_install_hook_types:
   - pre-commit
   - prepare-commit-msg
+  - post-commit
 # default_stages:
 #   - pre-commit
 #   - prepare-commit-msg
@@ -103,7 +104,7 @@ repos:
       - id: register-build
         stages: [post-commit]
         name: Record the current commit hash into an untracked file
-        entry: git rev-parse HEAD > .commit_hash.txt
-        language: ruby
+        entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; bin/ots build;'"
+        language: system
         always_run: true
         pass_filenames: false

@@ -50,20 +50,11 @@ class OT::CLI::Definition
     end
   end
 
-  usage 'ots build'
-  command :build do
-    # Get the commit hash from .commit_hash.txt
-    commit_hash_file = File.join(OT::HOME, '.commit_hash.txt')
-
-    if File.exist?(commit_hash_file)
-      commit_hash = File.read(commit_hash_file).strip
-    else
-      commit_hash = 'unknown'
-      $stderr.puts "Warning: Commit hash file not found. Using default value 'unknown'."
-    end
-
-    puts format('Onetime %s (%s)', OT::VERSION.inspect, commit_hash)
+  usage 'ots version'
+  command :version do
+    puts format('Onetime %s', OT::VERSION.inspect)
   end
+  alias_command :build, :version
 
   usage 'ots entropy'
   usage 'ots entropy -G [-c NUM]'
