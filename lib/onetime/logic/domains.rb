@@ -52,14 +52,15 @@ module Onetime::Logic
 
       def create_vhost
         api_key = OT::Cluster::Features.api_key
+        vhost_target = OT::Cluster::Features.vhost_target
 
         if api_key.to_s.empty?
           return OT.info "[AddDomain.create_vhost] Approximated API key not set"
         end
 
-        res = OT::Cluster::Approximated.create_vhost(api_key, @display_domain, 'staging.onetimesecret.com', '443')
+        res = OT::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
         payload = res.parsed_response
-        OT.info "[AddDomain.create_vhost] %s" % payload
+      OT.info "[AddDomain.create_vhost] %s" % payload
         custom_domain[:vhost] = payload['data'].to_json
         custom_domain[:updated] = OT.now.to_i
 

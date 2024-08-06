@@ -14,6 +14,7 @@
       :api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
       :cluster_ip: <%= ENV['APPROXIMATED_PROXY_CLUSTER_IP'] || '<CLUSTER_IP>' %>
       :cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
+      :vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
   # Turns https/http on or off when generating links
   :ssl: <%= ENV['SSL'] == 'true' %>
   # IMPORTANT: After setting the secret, it should not be changed.

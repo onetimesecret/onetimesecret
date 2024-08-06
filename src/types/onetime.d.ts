@@ -59,7 +59,6 @@ export interface ApproximatedVHost {
   user_message: string;
 }
 
-
 export interface CustomDomain extends BaseApiRecord {
   created: string;
   updated: string;
@@ -83,9 +82,10 @@ export interface CustomDomainCluster extends BaseApiRecord {
   created?: string;
   updated?: string;
   identifier?: string;
-  cluster_name: string;
-  cluster_ip: string;
   type: string;
+  cluster_ip: string;
+  cluster_name: string;
+  vhost_target: string;
 }
 
 export interface ApiKey extends BaseApiRecord {

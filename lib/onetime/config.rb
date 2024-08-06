@@ -67,6 +67,7 @@ module Onetime
         klass.api_key = cluster[:api_key]
         klass.cluster_ip = cluster[:cluster_ip]
         klass.cluster_name = cluster[:cluster_name]
+        klass.vhost_target = cluster[:vhost_target]
         OT.ld "Domains config: #{cluster}"
         unless klass.api_key
           raise OT::Problem, "No `site.domains.cluster` api key (#{klass.api_key})"
