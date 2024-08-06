@@ -97,3 +97,13 @@ repos:
           - eslint-plugin-vue
           - "@typescript-eslint/eslint-plugin"
           - "@typescript-eslint/parser"
+
+  - repo: local
+    hooks:
+      - id: update-version
+        stages: [post-commit]
+        name: Update VERSION.yml with build (commit hash)
+        entry: bin/ots register-build
+        language: ruby
+        always_run: true
+        pass_filenames: false

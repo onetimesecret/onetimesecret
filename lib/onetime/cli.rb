@@ -2,7 +2,6 @@ require 'drydock'
 require 'onetime'
 require 'familia/tools'
 
-
 class OT::CLI < Drydock::Command
   def init
     OT.boot! :cli
@@ -44,6 +43,10 @@ class OT::CLI < Drydock::Command
     puts
   end
 
+  def register_build
+    puts update_version_file
+  end
+
   def customers
     puts '%d customers' % OT::Customer.values.size
   end
@@ -52,4 +55,18 @@ class OT::CLI < Drydock::Command
     return if Process.uid.zero?
     raise 'Must run as root or with sudo'
   end
+
+  def get_git_hash
+    `git rev-parse --short HEAD`.strip
+  end
+  private :get_git_hash
+
+  def update_version_file
+    data = YAML.load_file('VERSION.yml')
+    data[:build] = get_git_hash
+    File.write('VERSION.yml', data.to_yaml)
+    data[:build]
+  end
+  private :update_version_file
+
 end
