@@ -61,5 +61,6 @@ gem 'sorbet', require: false, group: :development
 gem 'sorbet-runtime'
 gem 'spoom', require: false, group: :development
 gem 'stackprof', require: false, group: :development # bundle exec stackprof --text tmp/rubocop-stackprof.dump
+gem 'stripe', require: false, group: :plans # bundle install --group plans
 gem 'tapioca', require: false, group: :development
 gem 'tryouts', require: false, group: :development
