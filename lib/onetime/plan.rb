@@ -52,6 +52,7 @@ module Onetime
       end
 
       def load_plans!
+        add_plan :basic, 0, 0, ttl: 7.days, size: 1_000_000, api: false, name: 'Free'
         add_plan :anonymous, 0, 0, ttl: 7.days, size: 1_000_000, api: false, name: 'Anonymous'
         add_plan :personal_v1, 5.0, 1, ttl: 14.days, size: 1_000_000, api: false, name: 'Personal'
         add_plan :personal_v2, 10.0, 0.5, ttl: 30.days, size: 1_000_000, api: true, name: 'Personal'

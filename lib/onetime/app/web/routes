@@ -9,7 +9,6 @@ GET   /feedback                                  Onetime::App#feedback
 POST  /feedback                                  Onetime::App#receive_feedback
 
 GET   /about                                     Onetime::App#about
-GET   /logo                                      Onetime::App#logo
 
 GET   /docs/api                                  Onetime::App#show_docs
 GET   /docs/api/secrets                          Onetime::App#show_docs_secrets
@@ -34,6 +33,8 @@ GET   /signup/:planid                            Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account
 GET   /plans/:tier                               Onetime::App#plan_redirect
 GET   /plans/:tier/:billing_cycle                Onetime::App#plan_redirect
+GET   /welcome                                   Onetime::App#welcome
+POST  /welcome/strip/webhook                     Onetime::App#welcome_webhook
 
 GET   /login                                     Onetime::App#login
 GET   /signin                                    Onetime::App#signin

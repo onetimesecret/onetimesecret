@@ -43,60 +43,102 @@ module Onetime
 
     def plan_redirect
       publically do
+        # We take the tier and billing cycle from the URL path and try to
+        # get the preconfigured Stripe payment links using those values.
         tierid = req.params[:tier] ||= 'free'
         billing_cycle = req.params[:billing_cycle] ||= 'month'
 
         plans = OT.conf.dig(:site, :plans)
         payment_links = plans.fetch(:payment_links, {})
         payment_link = payment_links.dig(tierid.to_sym, billing_cycle.to_sym)
-        validated_url = validate_url(payment_link)
 
         OT.ld "[plan_redirect] plans: #{plans}"
         OT.ld "[plan_redirect] payment_links: #{payment_links}"
         OT.ld "[plan_redirect] payment_link: #{payment_link}"
 
+        validated_url = validate_url(payment_link)
+
+        unless validated_url
+          OT.le "[plan_redirect] Unknown #{tierid}/#{billing_cycle}. Sending to /signup"
+          raise OT::Redirect.new('/signup')
+        end
+
         OT.info "[plan_redirect] Clicked #{tierid} per #{billing_cycle} (redirecting to #{validated_url})"
-        if validated_url
-          res.redirect validated_url.to_s # Convert URI::Generic to a string
-        else
-          OT.le "[plan_redirect] Redirect not found. Sending to /signup"
-          res.redirect '/signup'
+
+        stripe_params = {
+          # rack.locale is a list, often with just a single locale (e.g. `[en]`).
+          # When calling `encode_www_form` the list gets expanded into N query
+          # parameters where N is the number of elements in the list. So a list
+          # with 2 items `[en, en-US]` becomes `locale=en&locale=en-US`.
+          locale: req.env['rack.locale']
+        }
+
+        # Adding the existing customer details streamlines the payment flow
+        # by prepolulating the email address.
+        unless cust.anonymous?
+          stripe_params[:prefilled_email] = cust.custid
+          stripe_params[:client_reference_id] = ''
         end
+
+        # Apply the query parameters back to the URI::HTTP object
+        validated_url.query = URI.encode_www_form(stripe_params)
+        OT.info "[plan_redirect] Updated query parameters: #{validated_url.query}"
+        res.redirect validated_url.to_s # convert URI::Generic to a string
       end
     end
 
-    def forgot
+    def welcome
       publically do
-        if req.params[:key]
-          secret = OT::Secret.load req.params[:key]
-          if secret.nil? || secret.verification.to_s != 'true'
-            raise OT::MissingSecret if secret.nil?
-          else
-            view = Onetime::App::Views::Forgot.new req, sess, cust, locale
-            view[:verified] = true
-            res.body = view.render
-          end
-        else
-          view = Onetime::App::Views::Forgot.new req, sess, cust, locale
-          res.body = view.render
-        end
+        checkout_session_id = req.params[:checkout]
+
+        session = Stripe::Checkout::Session.retrieve(checkout_session_id)
+        email = session.customer_details.email
+        subscription_id = session.subscription
+        customer_id = session.customer
+
+        res.body = session
       end
     end
 
-    def request_reset
-      publically do
-        if req.params[:key]
-          logic = OT::Logic::Account::ResetPassword.new sess, cust, req.params, locale
-          logic.raise_concerns
-          logic.process
-          res.redirect '/signin'
-        else
-          logic = OT::Logic::Account::ResetPasswordRequest.new sess, cust, req.params, locale
-          logic.raise_concerns
-          logic.process
-          res.redirect '/'
-        end
+    def welcome_webhook
+      payload = request.body.read
+      sig_header = request.env['HTTP_STRIPE_SIGNATURE']
+      event = nil
+
+      begin
+        event = Stripe::Webhook.construct_event(
+          payload, sig_header, endpoint_secret
+        )
+
+      rescue JSON::ParserError => e
+        OT.le "[webhook: #{event.type}] JSON parsing error: #{e}"
+        raise_form_error "Invalid payload"
+
+      rescue Stripe::SignatureVerificationError => e
+        OT.le "[webhook: #{event.type}] Signature verification failed: #{e}"
+        raise_form_error "Bad signature"
       end
+
+      OT.info "[webhook: #{event.type}] #{event.data}"
+
+      case event.type
+      when 'checkout.session.completed'
+        session = event.data.object
+        # Handle successful checkout
+        OT.info "[webhook: #{event.type}] session: #{session} "
+
+      when 'customer.subscription.created'
+        subscription = event.data.object
+        # Handle new subscription
+        # ... handle other events as needed
+        OT.info "[webhook: #{event.type}] subscription: #{subscription} "
+
+      else
+        OT.info "[webhook: #{event.type}] Unhandled event"
+      end
+
+      payload = { welcome: 'thank you' }
+      [200, { 'Content-Type' => 'application/json' }, [payload.to_json]]
     end
 
     def pricing
@@ -117,12 +159,19 @@ module Onetime
         if OT::Plan.plan?(req.params[:planid])
           sess.set_error_message "You're already signed up" if sess.authenticated?
           view = Onetime::App::Views::Signup.new req, sess, cust, locale
+
+          # For signup pages that include a call-to-action regarding other
+          # plan options, we want to hide it when the user is already on a
+          # page for a specific plan.
+          view[:hide_cta] = true
+
           res.body = view.render
 
         # Otherwise we default to showing the various account plans available
         else
           view = Onetime::App::Views::Signup.new req, sess, cust, locale
           res.body = view.render
+
         end
       end
     end
@@ -211,6 +260,40 @@ module Onetime
         logic.process
         view = Onetime::App::Views::Account.new req, sess, cust, locale
         res.body = view.render
+      end
+    end
+
+    def forgot
+      publically do
+        if req.params[:key]
+          secret = OT::Secret.load req.params[:key]
+          if secret.nil? || secret.verification.to_s != 'true'
+            raise OT::MissingSecret if secret.nil?
+          else
+            view = Onetime::App::Views::Forgot.new req, sess, cust, locale
+            view[:verified] = true
+            res.body = view.render
+          end
+        else
+          view = Onetime::App::Views::Forgot.new req, sess, cust, locale
+          res.body = view.render
+        end
+      end
+    end
+
+    def request_reset
+      publically do
+        if req.params[:key]
+          logic = OT::Logic::Account::ResetPassword.new sess, cust, req.params, locale
+          logic.raise_concerns
+          logic.process
+          res.redirect '/signin'
+        else
+          logic = OT::Logic::Account::ResetPasswordRequest.new sess, cust, req.params, locale
+          logic.raise_concerns
+          logic.process
+          res.redirect '/'
+        end
       end
     end
 
