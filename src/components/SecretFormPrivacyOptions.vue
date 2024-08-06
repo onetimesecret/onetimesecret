@@ -53,6 +53,7 @@ const togglePassphrase = () => {
                    name="passphrase"
                    autocomplete="unique-passphrase"
                    placeholder="Enter a passphrase"
+                   aria-label="Passphrase"
                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-brandcomp-500 focus:border-brandcomp-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             <button type="button"
                     @click="togglePassphrase()"
