@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Onetime
-  class App # rubocop:disable Style/Documentation
+  class App # rubocop:disable
 
     def translations
       publically do
@@ -92,7 +92,13 @@ module Onetime
         logic = OT::Logic::Welcome::FromStripePaymentLink.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
-        res.body = logic.checkout_session.to_json
+
+        @cust = logic.cust
+
+        is_secure = Onetime.conf[:site][:ssl]
+        res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+
+        res.redirect '/account'
       end
     end
 
@@ -105,7 +111,38 @@ module Onetime
         logic.payload = req.body.read
         logic.raise_concerns
         logic.process
+
         res.status = 200
+      end
+    end
+
+    def customer_portal_redirect
+      authenticated do
+        begin
+          # Get the Stripe Customer ID from our customer instance
+          customer_id = cust.stripe_customer_id
+
+          site_host = Onetime.conf[:site][:host]
+          is_secure = Onetime.conf[:site][:ssl]
+          return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
+
+          # Create a Stripe Customer Portal session
+          session = Stripe::BillingPortal::Session.create({
+                                                            customer: customer_id,
+            return_url: return_url
+                                                          })
+
+          # Continue the redirect
+          res.redirect session.url
+
+        rescue Stripe::StripeError => e
+          OT.le "[customer_portal_redirect] Stripe error: #{e.message}"
+          raise_form_error(e.message)
+
+        rescue => e
+          OT.le "[customer_portal_redirect] Unexpected error: #{e.message}"
+          raise_form_error('An unexpected error occurred')
+        end
       end
     end
 
@@ -186,7 +223,7 @@ module Onetime
         # allow the browser to refresh and re-submit the form with the login
         # credentials.
         no_cache!
-        logic = OT::Logic::AuthenticateSession.new sess, cust, req.params, locale
+        logic = OT::Logic::Account::AuthenticateSession.new sess, cust, req.params, locale
         view = Onetime::App::Views::Signin.new req, sess, cust, locale
         if sess.authenticated?
           sess.set_info_message "You are already logged in."
@@ -226,7 +263,11 @@ module Onetime
         logic = OT::Logic::Account::ViewAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
+        subscriptions = [logic.stripe_subscription].compact
         view = Onetime::App::Views::Account.new req, sess, cust, locale
+        view[:jsvars] << view.jsvar(:stripe_customer, logic.stripe_customer)
+        view[:jsvars] << view.jsvar(:stripe_subscriptions, subscriptions)
+
         res.body = view.render
       end
     end
