@@ -34,7 +34,7 @@ POST  /signup                                    Onetime::App#create_account
 GET   /plans/:tier                               Onetime::App#plan_redirect
 GET   /plans/:tier/:billing_cycle                Onetime::App#plan_redirect
 GET   /welcome                                   Onetime::App#welcome
-POST  /welcome/strip/webhook                     Onetime::App#welcome_webhook
+POST  /welcome/stripe/webhook                    Onetime::App#welcome_webhook
 
 GET   /login                                     Onetime::App#login
 GET   /signin                                    Onetime::App#signin

@@ -384,3 +384,4 @@ module Onetime
 end
 
 require_relative 'logic/account'
+require_relative 'logic/welcome'

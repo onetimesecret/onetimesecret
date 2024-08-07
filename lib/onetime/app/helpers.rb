@@ -136,7 +136,8 @@ class Onetime::App
       shrimp = (sess.shrimp || '[noshrimp]').clone
 
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
-        OT.ld "GOOD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
+        adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
+        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
         # Regardless of the outcome, we clear the shrimp from the session
         # to prevent replay attacks. A new shrimp is generated on the
         # next page load.

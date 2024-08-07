@@ -89,56 +89,24 @@ module Onetime
 
     def welcome
       publically do
-        checkout_session_id = req.params[:checkout]
-
-        session = Stripe::Checkout::Session.retrieve(checkout_session_id)
-        email = session.customer_details.email
-        subscription_id = session.subscription
-        customer_id = session.customer
-
-        res.body = session
+        logic = OT::Logic::Welcome::FromStripePaymentLink.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        res.body = logic.checkout_session.to_json
       end
     end
 
     def welcome_webhook
-      payload = request.body.read
-      sig_header = request.env['HTTP_STRIPE_SIGNATURE']
-      event = nil
-
-      begin
-        event = Stripe::Webhook.construct_event(
-          payload, sig_header, endpoint_secret
-        )
-
-      rescue JSON::ParserError => e
-        OT.le "[webhook: #{event.type}] JSON parsing error: #{e}"
-        raise_form_error "Invalid payload"
-
-      rescue Stripe::SignatureVerificationError => e
-        OT.le "[webhook: #{event.type}] Signature verification failed: #{e}"
-        raise_form_error "Bad signature"
+      @ignoreshrimp = true
+      # But should check webhook signing secret
+      publically do
+        logic = OT::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
+        logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
+        logic.payload = req.body.read
+        logic.raise_concerns
+        logic.process
+        res.status = 200
       end
-
-      OT.info "[webhook: #{event.type}] #{event.data}"
-
-      case event.type
-      when 'checkout.session.completed'
-        session = event.data.object
-        # Handle successful checkout
-        OT.info "[webhook: #{event.type}] session: #{session} "
-
-      when 'customer.subscription.created'
-        subscription = event.data.object
-        # Handle new subscription
-        # ... handle other events as needed
-        OT.info "[webhook: #{event.type}] subscription: #{subscription} "
-
-      else
-        OT.info "[webhook: #{event.type}] Unhandled event"
-      end
-
-      payload = { welcome: 'thank you' }
-      [200, { 'Content-Type' => 'application/json' }, [payload.to_json]]
     end
 
     def pricing
