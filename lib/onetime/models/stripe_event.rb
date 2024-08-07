@@ -1,22 +1,23 @@
 
-class Onetime::EmailReceipt < Familia::HashKey
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 8
+class Onetime::StripeEvent < Familia::HashKey
+  @db = 10
+  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: @db
 
   include Onetime::Models::RedisHash
+  include Onetime::Models::SafeDump
 
-  attr_accessor :values
 
   # e.g.
   #
-  #  secret:1234567890:email
+  #  stripe:1234567890:event
   #
-  def initialize custid=nil, secretid=nil, message_response=nil
-    @prefix = :secret
-    @suffix = :email
+  def initialize custid=nil, eventid=nil, message_response=nil
+    @prefix = :stripe
+    @suffix = :event
     @custid = custid
-    @secretid = secretid
+    @eventid = eventid
     @custid = custid.identifier if custid.is_a?(Familia::RedisObject)
-    @secretid = secretid.identifier if secretid.is_a?(Familia::RedisObject)
+    @eventid = eventid.identifier if eventid.is_a?(Familia::RedisObject)
     @message_response = message_response
     super name, db: 8, ttl: 30.days
   end
@@ -28,11 +29,11 @@ class Onetime::EmailReceipt < Familia::HashKey
   def destroy! *args
     super
     # Remove
-    OT::EmailReceipt.values.rem identifier
+    OT::StripeEvent.values.rem identifier
   end
 
   module ClassMethods
-    attr_reader :values
+    attr_reader :values, :db
 
     # fobj is a familia object
     def add fobj
@@ -61,7 +62,7 @@ class Onetime::EmailReceipt < Familia::HashKey
 
     def create(custid, secretid, message_response=nil)
       fobj = new custid, secretid, message_response
-      OT.ld "[EmailReceipt.create] #{custid} #{secretid} #{message_response}"
+      OT.ld "[StripeEvent.create] #{custid} #{secretid} #{message_response}"
       raise ArgumentError, "#{name} record exists #{rediskey}" if fobj.exists?
 
       fobj.update_fields custid: custid, secretid: secretid, message_response: message_response
@@ -69,12 +70,6 @@ class Onetime::EmailReceipt < Familia::HashKey
       fobj
     end
 
-    #def generate_id *entropy
-    #  entropy << OT.entropy
-    #  input = [OT.instance, OT.now.to_f, :session, *entropy].join(':')
-    #  # Not using gibbler to make sure it's always SHA512
-    #  Digest::SHA512.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
-    #end
   end
 
   extend ClassMethods
