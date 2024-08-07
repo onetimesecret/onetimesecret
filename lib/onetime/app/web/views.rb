@@ -289,7 +289,7 @@ module Onetime
           self[:body_class] = :signup
           self[:with_analytics] = false
           planid = req.params[:planid]
-          planid = 'individual_v1' unless OT::Plan.plan?(planid)
+          planid = 'basic' unless OT::Plan.plan?(planid)
           self[:planid] = planid
           plan = OT::Plan.plan(self[:planid])
           self[:plan] = {
@@ -301,6 +301,8 @@ module Onetime
             :name => plan.options[:name],
             :private => plan.options[:private].to_s == 'true',
             :cname => plan.options[:cname].to_s == 'true',
+            :custom_domains => plan.options[:custom_domains].to_s == 'true',
+            :dark_mode => plan.options[:dark_mode].to_s == 'true',
             :is_paid => plan.paid?,
             :planid => self[:planid]
           }
