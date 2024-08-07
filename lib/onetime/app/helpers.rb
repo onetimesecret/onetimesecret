@@ -68,8 +68,12 @@ class Onetime::App
       end
 
     rescue OT::FormError => ex
-      OT.ld "[carefully] FormError: #{ex.message}"
-      handle_form_error ex, redirect
+      OT.ld "[carefully] FormError: #{ex.message} (#{req.path} redirect:#{redirect})"
+      if redirect
+        handle_form_error ex, redirect
+      else
+        handle_form_error ex
+      end
 
     rescue OT::MissingSecret => ex
       secret_not_found_response

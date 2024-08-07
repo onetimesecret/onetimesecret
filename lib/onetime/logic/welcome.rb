@@ -17,7 +17,7 @@ module Onetime::Logic
     end
 
     class FromStripePaymentLink < OT::Logic::Base
-      attr_reader :checkout_session_id, :checkout_session, :checkout_email, :stripe_details
+      attr_reader :checkout_session_id, :checkout_session, :checkout_email, :update_customer_fields
 
       def process_params
         @checkout_session_id = params[:checkout]
@@ -29,10 +29,11 @@ module Onetime::Logic
         raise_form_error "Invalid Stripe checkout session" unless checkout_session
 
         @checkout_email = checkout_session.customer_details.email
-        @stripe_details = {
-          checkout_email: checkout_email,
-          subscription_id: checkout_session.subscription,
-          customer_id: checkout_session.customer
+        @update_customer_fields = {
+          stripe_checkout_email: checkout_email,
+          stripe_subscription_id: checkout_session.subscription,
+          stripe_customer_id: checkout_session.customer,
+          planid: 'identity'
         }
 
       end
@@ -55,7 +56,7 @@ module Onetime::Logic
           # authenticated account.
 
           # TODO: Handle case where the user is already a Stripe customer
-          cust.update_fields(stripe: stripe_details)
+          cust.update_fields(**update_customer_fields)
 
         else
           # If the user is not authenticated, check if the email address is already
@@ -65,18 +66,37 @@ module Onetime::Logic
 
           if cust
             # If the email address is already associated with an account, we can
-            # associate the checkout session with that account.
+            # associate the checkout session with that account and then direct
+            # them to sign in.
 
             OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.email}"
 
+            cust.update_fields(**update_customer_fields)
+
+            raise OT::Redirect.new('/signin')
           else
             OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
-            cust = OT::Customer.create(email: checkout_email)
 
-            #raise OT::Redirect.new('/signup/identity') # ?
+            cust = OT::Customer.create(checkout_email)
+            cust.planid = "identity"
+            cust.verified = "true"
+            cust.role = "customer"
+            cust.update_passphrase Onetime::Utils.strand(12)
+            cust.update_fields(**update_customer_fields)
+
+            # Create a completely new session, new id, new everything (incl
+            # cookie which the controllor will implicitly do above when it
+            # resends the cookie with the new session id).
+            sess.replace!
+
+            OT.info "[FromStripePaymentLink:login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
+
+            sess.update_fields :custid => cust.custid, :authenticated => 'true'
+            sess.ttl = session_ttl if @stay
+            sess.save
+
           end
 
-          cust.update_fields(stripe: stripe_details)
 
 
         end
