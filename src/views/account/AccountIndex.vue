@@ -259,6 +259,7 @@ import { ApiKeyApiResponse, Cust } from '@/types/onetime';
 import { useFormSubmission } from '@/utils/formSubmission';
 import { Icon } from '@iconify/vue';
 import { reactive, ref } from 'vue';
+import { getStripeCustomer, getStripeSubscriptions } from '@/utils/stripe';
 
 const custid = window.custid;
 const cust: Cust = window.cust as Cust;
@@ -266,8 +267,8 @@ const customer_since = window.customer_since;
 const shrimp = ref(window.shrimp);
 const apitoken = ref(window.apitoken);
 
-const stripe_customer = ref(window.stripe_customer);
-const stripe_subscriptions = ref(window.stripe_subscriptions);
+const stripe_customer = ref(getStripeCustomer());
+const stripe_subscriptions = ref(getStripeSubscriptions());
 
 // Props or state management would typically be used here
 const accountType = ref(cust.plan?.options?.name)
