@@ -82,6 +82,7 @@ module Onetime
 
         require 'stripe'
         Stripe.api_key = stripe_key
+        #require_relative 'refinements/stripe_refinements'
       end
 
       mtc = conf[:mail][:truemail]

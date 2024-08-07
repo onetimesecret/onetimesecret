@@ -36,6 +36,9 @@ module Onetime::Models
     @safe_dump_field_map = {}
 
     module ClassMethods
+      def set_safe_dump_fields(*fields)
+        @safe_dump_fields = fields
+      end
 
       # `SafeDump.safe_dump_fields` returns only the list
       # of symbols in the order they were defined.
@@ -79,7 +82,7 @@ module Onetime::Models
     end
 
     def self.included base
-      OT.ld "Including SafeDump in #{base}"
+      OT.ld "Including SafeDump in #{base} (#{base.object_id})"
       base.extend ClassMethods
 
       # Optionally define safe_dump_fields in the class to make

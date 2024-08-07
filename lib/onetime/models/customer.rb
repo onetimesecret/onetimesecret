@@ -14,6 +14,10 @@ class Onetime::Customer < Familia::HashKey
     :updated,
     :created,
 
+    :stripe_customer_id,
+    :stripe_subscription_id,
+    :stripe_checkout_email,
+
     {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
 
     # NOTE: The secrets_created incrementer is null until the first secret
@@ -75,6 +79,68 @@ class Onetime::Customer < Familia::HashKey
 
   def load_plan
     Onetime::Plan.plan(planid) || {:planid => planid, :source => 'parts_unknown'}
+  end
+
+  def get_stripe_customer
+    get_stripe_customer_by_id || get_stripe_customer_by_email
+  end
+
+  def get_stripe_subscription
+    get_stripe_subscription_by_id || get_stripe_subscriptions&.first
+  end
+
+  def get_stripe_customer_by_id customer_id=nil
+    return unless stripe_customer_id || customer_id
+    @stripe_customer = Stripe::Customer.retrieve(stripe_customer_id || customer_id)
+
+  rescue Stripe::StripeError => e
+    OT.le "[Customer.get_stripe_customer_by_id] Error: #{e.message}"
+    nil
+  end
+
+  def get_stripe_customer_by_email
+    customers = Stripe::Customer.list(email: email, limit: 1)
+
+    if customers.data.empty?
+      OT.info "[Customer.get_stripe_customer_by_email] No customer found with email: #{email}"
+
+    else
+      @stripe_customer = customers.data.first
+      OT.info "[Customer.get_stripe_customer_by_email] Customer found: #{@stripe_customer.id}"
+    end
+
+    @stripe_customer
+
+  rescue Stripe::StripeError => e
+    OT.le "[Customer.get_stripe_customer_by_email] Error: #{e.message}"
+    nil
+  end
+
+  def get_stripe_subscription_by_id subscription_id=nil
+    return unless stripe_subscription_id || subscription_id
+    @stripe_subscription = Stripe::Subscription.retrieve(stripe_subscription_id || subscription_id)
+  end
+
+  def get_stripe_subscriptions stripe_customer=nil
+    stripe_customer ||= @stripe_customer
+    subscriptions = []
+    return subscriptions unless stripe_customer
+
+    begin
+      subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: limit)
+
+    rescue Stripe::StripeError => e
+      OT.le "Error: #{e.message}"
+    else
+      if subscriptions.data.empty?
+        OT.info "No subscriptions found for customer: #{customer_id}"
+      else
+        OT.info "Found #{subscriptions.data.length} subscriptions"
+        subscriptions = subscriptions.data
+      end
+    end
+
+    subscriptions
   end
 
   def get_persistent_value sess, n
