@@ -29,6 +29,7 @@
     "@tailwindcss/typography": "^0.5.13",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^20.14.11",
+    "@types/stripe": "^8.0.417",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
     "@vitejs/plugin-vue": "^5.0.5",
