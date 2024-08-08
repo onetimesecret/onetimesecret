@@ -74,6 +74,17 @@ module Onetime
         end
       end
 
+      if OT.conf.dig(:site, :plans, :enabled).to_s == "true"
+        stripe_key = conf.dig(:site, :plans, :stripe_key)
+        unless stripe_key
+          raise OT::Problem, "No `site.plans.stripe_key` found in #{path}"
+        end
+
+        require 'stripe'
+        Stripe.api_key = stripe_key
+        #require_relative 'refinements/stripe_refinements'
+      end
+
       mtc = conf[:mail][:truemail]
       OT.ld "Setting TrueMail config from #{path}"
       raise OT::Problem, "No TrueMail config found" unless mtc

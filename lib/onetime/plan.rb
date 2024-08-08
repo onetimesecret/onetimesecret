@@ -53,6 +53,10 @@ module Onetime
 
       def load_plans!
         add_plan :anonymous, 0, 0, ttl: 7.days, size: 1_000_000, api: false, name: 'Anonymous'
+        add_plan :basic, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Basic Plan', email: true, custom_domains: false, dark_mode: true
+        add_plan :identity, 35, 0, ttl: 30.days, size: 1_000_000, api: true, name: 'Identity', email: true, custom_domains: true, dark_mode: true
+
+        # Deprecated / to be removed in future versions
         add_plan :personal_v1, 5.0, 1, ttl: 14.days, size: 1_000_000, api: false, name: 'Personal'
         add_plan :personal_v2, 10.0, 0.5, ttl: 30.days, size: 1_000_000, api: true, name: 'Personal'
         add_plan :personal_v3, 5.0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Personal'
@@ -69,7 +73,6 @@ module Onetime
                                       name: 'Non Profit'
       end
     end
-
 
     extend ClassMethods
   end

@@ -22,6 +22,10 @@ export interface Cust extends BaseApiRecord {
   created: number;
   secrets_created: number;
   active: string;
+
+  stripe_checkout_email?: string;
+  stripe_subscription_id?: string;
+  stripe_customer_id?: string;
 }
 
 // Define the plan model

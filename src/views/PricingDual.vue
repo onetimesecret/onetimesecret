@@ -89,6 +89,7 @@
     <div class="relative">
       <QuoteSection class="relative z-10 bg-opacity-80 dark:bg-opacity-80"
                     :testimonial="randomTestimonial" />
+
       <MovingGlobules class="absolute inset-0 z-0"
                       from-colour="#23b5dd"
                       to-colour="#dc4a22"
@@ -98,24 +99,49 @@
     </div>
 
     <!-- Alternative option -->
-    <div class="py-8 mx-auto mt-4 grid max-w-4xl justify-center grid-cols-1">
-
-      <div class="relative mx-auto mt-4 max-w-7xl px-4 sm:px-6 lg:mt-5 lg:px-8">
-        <div class="mx-auto max-w-md lg:max-w-5xl">
-          <div
-               class="rounded-lg bg-brandcompdim-50 dark:bg-gray-800 px-6 py-8 sm:p-10 lg:flex lg:items-center border-2 border-dotted hover:border-brandcompdim-300 dark:hover:border-brandcompdim-600">
-            <div class="flex-1">
-              <div>
-                <h3
-                    class="inline-flex rounded-full bg-brandcompdim-200 dark:bg-brandcompdim-700 px-4 py-1 text-base font-semibold text-gray-800 dark:text-gray-200">
-                  Self-Hosted
-                </h3>
-              </div>
-              <div class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-                Get full access to all features for the honest and wholesome price of <span
-                      class="italic font-semibold text-gray-900 dark:text-gray-100">$0 dollars</span> with self-hosting.
-                We even include our SimpleStack℠ guarantee at no extra charge.
-
+    <div class="py-12 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="rounded-lg bg-white dark:bg-gray-800 shadow-lg overflow-hidden">
+        <div class="px-6 py-8 sm:p-10 lg:flex lg:items-center lg:justify-between">
+          <div class="flex-1 space-y-6">
+            <h3
+                class="inline-flex items-center rounded-full bg-brandcomp-100 dark:bg-brandcomp-900 px-4 py-1 text-sm font-semibold text-brandcomp-700 dark:text-brandcomp-300">
+              <svg class="w-5 h-5 mr-2"
+                   fill="currentColor"
+                   viewBox="0 0 20 20"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd"
+                      d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zm7-10a1 1 0 01.707.293l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L13.586 8l-2.293-2.293a1 1 0 011.414-1.414l3 3z"
+                      clip-rule="evenodd"></path>
+              </svg>
+              An Unlimited-Time Offer
+            </h3>
+            <ul class="space-y-4 text-base text-gray-600 dark:text-gray-300">
+              <li class="flex items-center">
+                <svg class="w-6 h-6 text-brandcomp-500 mr-3"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24"
+                     xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                <span><strong class="font-medium">Start Free:</strong> Unlock most features at $0/month</span>
+              </li>
+              <li class="flex items-center">
+                <svg class="w-6 h-6 text-brandcomp-500 mr-3"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24"
+                     xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                  </path>
+                </svg>
+                <span><strong class="font-medium">Self-Host:</strong> Get our SimpleStack℠ guarantee included</span>
                 <InfoTooltip color="bg-brandcomp-100 dark:bg-brandcomp-900">
                   <div class="float-left mr-4 mb-2 shape-icon">
                     <Icon icon="fa6-solid:handshake-simple"
@@ -123,30 +149,41 @@
                   </div>
                   <h3 class="font-bold mb-2 text-gray-900 dark:text-white">Our SimpleStack℠ Guarantee</h3>
                   <p class="prose dark:prose-invert">Our SimpleStack guarantee ensures effortless deployment and
-                    management of our
-                    software. You can have the entire system up and running in minutes, from a single docker container.
+                    management of our software. You can have the entire system up and running in minutes, from a single
+                    docker container.
                   </p>
                   <p class="prose dark:prose-invert">Whether you're a seasoned DevOps pro or new to self-hosting, our
-                    SimpleStack design
-                    ensures you can focus on using the product, not wrestling with infrastructure. That's the
+                    SimpleStack design ensures you can focus on using the product, not wrestling with infrastructure.
+                    That's the
                     SimpleStack advantage!</p>
                   <p class="prose mt-4 font-semibold dark:prose-invert">
                     While others are stacking up complications, we've got your back with a stack so simple, it just
                     works.
                   </p>
                 </InfoTooltip>
-              </div>
-            </div>
-            <div class="mt-6 rounded-md shadow lg:ml-10 lg:mt-0 lg:flex-shrink-0">
-              <a href="https://github.com/onetimesecret/onetimesecret"
-                 class="block items-center justify-center rounded-md border border-transparent bg-brandcompdim-300 dark:bg-brandcompdim-700 px-5 py-3 text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-brandcompdim-200 dark:hover:bg-brandcompdim-600">
-                Get Started
-              </a>
-            </div>
+              </li>
+            </ul>
+            <p class="text-base text-gray-600 dark:text-gray-300">
+              Why wait? Join thousands of happy users today!
+            </p>
+          </div>
+          <div class="mt-8 lg:mt-0 lg:ml-10 flex flex-col space-y-4">
+            <a href="/signup/basic"
+               class="font-brand inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brandcomp-500 hover:bg-brandcomp-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 transition-colors duration-200">
+              Get Started for Free
+            </a>
+            <a href="https://github.com/onetimesecret/onetimesecret"
+               ref="noopener noreferrer"
+               class="font-brand inline-flex items-center justify-center px-5 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 transition-colors duration-200">
+              Learn About Self-Hosting
+            </a>
           </div>
         </div>
       </div>
     </div>
+
+
+
   </div>
 </template>
 

@@ -41,6 +41,7 @@
  */
 
 import { Cust, Plan } from './onetime';
+import type Stripe from 'stripe';
 
 declare global {
   interface Window {
@@ -63,6 +64,8 @@ declare global {
     shrimp: string;  // Our CSRF token, to be used in POST requests to the backend
     site_host: string;
     vue_component_name?: string;
+    stripe_customer?: Stripe.Customer;
+    stripe_subscriptions?: Stripe.Subscriptions[];
 
     // A function that's called on page load to update any email
     // addresses inside <span class="email">. Currently only the

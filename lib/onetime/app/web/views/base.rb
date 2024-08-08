@@ -144,29 +144,20 @@ module Onetime
             :original_price => plan.price.to_i,
             :ttl => plan.options[:ttl].in_days.to_i,
             :size => plan.options[:size].to_i,
-            :api => plan.options[:api] ? 'Yes' : 'No',
+            :api => plan.options[:api],
             :name => plan.options[:name],
+            :dark_mode => plan.options[:dark_mode],
+            :custom_domains => plan.options[:custom_domains],
+            :email => plan.options[:email],
             :planid => planid
           }
           self[plan.planid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
         end
 
-        @plans = [:individual_v1, :professional_v1, :agency_v1]
+        @plans = [:basic, :identity, :dedicated]
 
-        unless cust.anonymous?
-          plan_idx = case cust.planid
-          when /personal/
-            0
-          when /professional/
-            1
-          when /agency/
-            2
-          end
-          @plans[plan_idx] = cust.planid unless plan_idx.nil?
-        end
-        self[:default_plan] = self[@plans.first.to_s] || self['individual_v1']
+        self[:default_plan] = self[@plans.first.to_s] || self['basic']
 
-        OT.ld self[:default_plan].to_json
         self[:planid] = self[:default_plan][:planid]
       end
 

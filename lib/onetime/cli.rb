@@ -2,7 +2,6 @@ require 'drydock'
 require 'onetime'
 require 'familia/tools'
 
-
 class OT::CLI < Drydock::Command
   def init
     OT.boot! :cli
@@ -52,4 +51,5 @@ class OT::CLI < Drydock::Command
     return if Process.uid.zero?
     raise 'Must run as root or with sudo'
   end
+
 end

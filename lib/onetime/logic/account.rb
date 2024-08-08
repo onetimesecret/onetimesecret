@@ -1,18 +1,51 @@
 
 require_relative 'base'
+require_relative '../refinements/stripe_refinements'
 
 module Onetime::Logic
   module Account
 
     class ViewAccount < OT::Logic::Base
+      attr_reader :stripe_subscription, :stripe_customer
+      using Onetime::StripeRefinements
+
       def process_params
       end
 
       def raise_concerns
         limit_action :show_account
+
       end
 
       def process
+        @stripe_customer = cust.get_stripe_customer
+        @stripe_subscription = cust.get_stripe_subscription
+
+        update_customer_fields = {}
+
+        # Rudimentary normalization to make sure that all Onetime customers
+        # that have a stripe customer and subscription record, have the
+        # RedisHash fields stripe_customer_id and stripe_subscription_id
+        # fields populated. The subscription section on the account screen
+        # depends on these ID fields being populated.
+        if !cust.stripe_customer_id && stripe_customer
+          OT.info "Recording stripe customer ID"
+          update_customer_fields[:stripe_customer_id] = stripe_customer.id
+        end
+        if !cust.stripe_subscription_id && stripe_subscription
+          OT.info "Recording stripe subscription ID"
+          update_customer_fields[:stripe_subscription_id] = stripe_subscription.id
+        end
+
+        # Just incase we didn't capture the Onetime Secret planid update after
+        # a customer subscribes, let's make sure we update it b/c it doesn't
+        # feel good to pay for something and still see "Basic Plan" at the
+        # top of your account page.
+        if stripe_subscription && stripe_subscription.plan
+          update_customer_fields[:planid] = 'identity' # TOOD: obviously find a better way
+        end
+
+        cust.update_fields(**update_customer_fields)
       end
     end
 
@@ -103,6 +136,81 @@ module Onetime::Logic
 
       def form_fields
         { :planid => planid, :custid => custid }
+      end
+    end
+
+    class AuthenticateSession < OT::Logic::Base
+      attr_reader :custid, :stay, :greenlighted
+      attr_reader :session_ttl
+
+      def process_params
+        @potential_custid = params[:u].to_s.downcase.strip
+        @passwd = self.class.normalize_password(params[:p])
+        #@stay = params[:stay].to_s == "true"
+        @stay = true # Keep sessions alive by default
+        @session_ttl = (stay ? 30.days : 20.minutes).to_i
+        if @potential_custid.to_s.index(':as:')
+          @colonelname, @potential_custid = *@potential_custid.downcase.split(':as:')
+        else
+          @potential_custid = @potential_custid.downcase if @potential_custid
+        end
+        if @passwd.to_s.empty?
+          @cust = nil
+        elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@potential_custid)
+          OT.info "[login-as-attempt] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
+          potential = OT::Customer.load @colonelname
+          @colonel = potential if potential.passphrase?(@passwd)
+          @cust = OT::Customer.load @potential_custid if @colonel.role?(:colonel)
+          sess['authenticated_by'] = @colonel.custid
+          OT.info "[login-as-success] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
+        elsif (potential = OT::Customer.load(@potential_custid))
+          @cust = potential if potential.passphrase?(@passwd)
+        end
+      end
+
+      def raise_concerns
+        limit_action :authenticate_session
+        if @cust.nil?
+          @cust ||= OT::Customer.anonymous
+          raise_form_error "Try again"
+        end
+      end
+
+      def process
+        if success?
+          @greenlighted = true
+
+          OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (replacing sessid)"
+
+          # Create a completely new session, new id, new everything (incl
+          # cookie which the controllor will implicitly do above when it
+          # resends the cookie with the new session id).
+          sess.replace!
+
+          OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
+
+          sess.update_fields :custid => cust.custid, :authenticated => 'true'
+          sess.ttl = session_ttl if @stay
+          sess.save
+          cust.save
+
+          if OT.conf[:colonels].member?(cust.custid)
+            cust.role = :colonel
+          else
+            cust.role = :customer unless cust.role?(:customer)
+          end
+        else
+          raise_form_error "Try again"
+        end
+      end
+
+      def success?
+        !cust&.anonymous? && (cust.passphrase?(@passwd) || @colonel&.passphrase?(@passwd))
+      end
+
+      private
+      def form_fields
+        {:custid => custid}
       end
     end
 

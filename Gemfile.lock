@@ -130,6 +130,7 @@ GEM
       thor (>= 0.19.2)
     stackprof (0.2.26)
     storable (0.10.0)
+    stripe (12.4.0)
     strscan (3.1.0)
     sysinfo (0.10.0)
       drydock (< 1.0)
@@ -195,6 +196,7 @@ DEPENDENCIES
   spoom
   stackprof
   storable
+  stripe
   sysinfo
   tapioca
   thin

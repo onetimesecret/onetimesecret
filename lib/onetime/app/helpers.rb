@@ -68,8 +68,12 @@ class Onetime::App
       end
 
     rescue OT::FormError => ex
-      OT.ld "[carefully] FormError: #{ex.message}"
-      handle_form_error ex, redirect
+      OT.ld "[carefully] FormError: #{ex.message} (#{req.path} redirect:#{redirect})"
+      if redirect
+        handle_form_error ex, redirect
+      else
+        handle_form_error ex
+      end
 
     rescue OT::MissingSecret => ex
       secret_not_found_response
@@ -136,7 +140,8 @@ class Onetime::App
       shrimp = (sess.shrimp || '[noshrimp]').clone
 
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
-        OT.ld "GOOD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
+        adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
+        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
         # Regardless of the outcome, we clear the shrimp from the session
         # to prevent replay attacks. A new shrimp is generated on the
         # next page load.

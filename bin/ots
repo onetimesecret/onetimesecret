@@ -50,13 +50,11 @@ class OT::CLI::Definition
     end
   end
 
-  usage 'ots register-build [msg]'
-  command register_build: OT::CLI
-
-  usage 'ots build'
-  command :build do
-    puts OT::VERSION.inspect
+  usage 'ots version'
+  command :version do
+    puts format('Onetime %s', OT::VERSION.inspect)
   end
+  alias_command :build, :version
 
   usage 'ots entropy'
   usage 'ots entropy -G [-c NUM]'
