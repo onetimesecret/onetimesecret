@@ -323,10 +323,13 @@ module Onetime
         logic = OT::Logic::Account::ViewAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
-        subscriptions = [logic.stripe_subscription].compact
+
         view = Onetime::App::Views::Account.new req, sess, cust, locale
-        view[:jsvars] << view.jsvar(:stripe_customer, logic.stripe_customer)
-        view[:jsvars] << view.jsvar(:stripe_subscriptions, subscriptions)
+        if view[:plans_enabled]
+          subscriptions = [logic.stripe_subscription].compact
+          view[:jsvars] << view.jsvar(:stripe_customer, logic.stripe_customer)
+          view[:jsvars] << view.jsvar(:stripe_subscriptions, subscriptions)
+        end
 
         res.body = view.render
       end
