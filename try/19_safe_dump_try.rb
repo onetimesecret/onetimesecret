@@ -14,12 +14,12 @@ OT::Models::SafeDump.safe_dump_fields
 
 ## Implementing models like Customer can define safe dump fields
 Onetime::Customer.safe_dump_fields
-#=> [:custid, :role, :verified, :updated, :created, :plan, :secrets_created, :active]
+#=> [:custid, :role, :verified, :updated, :created, :stripe_customer_id, :stripe_subscription_id, :stripe_checkout_email, :plan, :secrets_created, :active]
 
 ## Implementing models like Customer can safely dump their fields
 cust = Onetime::Customer.new
 cust.safe_dump
-#=> {:custid=>:anon, :role=>"customer", :verified=>nil, :updated=>nil, :created=>nil, :plan=>{:planid=>nil, :source=>"parts_unknown"}, :secrets_created=>0, :active=>false}
+#=> {:custid=>:anon, :role=>"customer", :verified=>nil, :updated=>nil, :created=>nil, :stripe_customer_id=>nil, :stripe_subscription_id=>nil, :stripe_checkout_email=>nil, :plan=>{:planid=>nil, :source=>"parts_unknown"}, :secrets_created=>0, :active=>false}
 
 ## Implementing models like Customer do have other fields
 ## that are by default considered not safe to dump.
