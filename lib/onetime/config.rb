@@ -8,7 +8,17 @@ module Onetime
     UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
     attr_reader :env, :base, :bootstrap
 
-    def load(path = self.path)
+    # Load a YAML configuration file, allowing for ERB templating within the file.
+    # This reads the file at the given path, processes any embedded Ruby (ERB) code,
+    # and then parses the result as YAML.
+    #
+    # @param path [String] (optional the path to the YAML configuration file
+    # @return [Hash] the parsed YAML data
+    #
+    def load(path=nil)
+      path ||= self.path
+
+      raise ArgumentError, "Missing config file" if path.nil?
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
 
       YAML.load(ERB.new(File.read(path)).result)
@@ -20,7 +30,8 @@ module Onetime
               "Error loading config: #{path}"
             end
       OT.le msg
-      OT.le e.message, e.backtrace.join("\n")
+      OT.le e.message
+      OT.ld e.backtrace.join("\n")
       Kernel.exit(1)
     end
 
