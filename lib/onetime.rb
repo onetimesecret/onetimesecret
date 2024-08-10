@@ -132,7 +132,7 @@ module Onetime
     end
 
     def print_banner
-      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  #{'---' * 12}"
+      info "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 10}"
       info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
       info "Config: #{OT::Config.path}"
       info "Redis:  #{Familia.uri.serverid}" # doesn't print the password
