@@ -87,7 +87,7 @@ module Onetime
         # on-the-fly and in the time zone of the user.
         self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
 
-        self[:jsvars] << jsvar(:ot_version, OT::VERSION)
+        self[:jsvars] << jsvar(:ot_version, OT::VERSION.to_s)
         self[:jsvars] << jsvar(:ruby_version, "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
 
         plans = Onetime::Plan.plans.transform_values do |plan|
