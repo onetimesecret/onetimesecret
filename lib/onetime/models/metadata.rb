@@ -1,35 +1,29 @@
 
 module Onetime
-  class Metadata < Familia::HashKey
-    include Onetime::Models::RedisHash
+  class Metadata < Familia::Horreum
     include Gibbler::Complex
-    #prefix :metadata
-    #index :key
-    #field :key
-    #field :custid
-    #field :state
-    #field :secret_key
-    #field :passphrase
-    #field :viewed => Integer
-    #field :shared => Integer
-    attr_reader :entropy, :token
-    gibbler :custid, :secret_key, :entropy
-    def initialize custid=nil, entropy=[], token=nil
-      @custid = custid
-      @entropy = entropy
-      @token = token
 
-      @state = :new
+    db 7
+    ttl 14.days
+
+    identifier :custid
+
+    field :custid
+    field :token
+    field :state
+    field :key
+    field :secret_key
+    field :passphrase
+    field :viewed
+    field :shared
+    field :created
+    field :updated
+
+    def init
+      self.state ||= :new
       @key = gibbler.base(36)
-      super name, db: 7, ttl: 7.days
     end
-    def update_fields hsh={}
-      hsh[:custid] ||= custid || ''  # anything but nil, see #441
-      super hsh
-    end
-    def identifier
-      @key
-    end
+
     def key= objid
       @key = objid
       @name = name
@@ -75,20 +69,26 @@ module Onetime
     def viewed!
       # Make sure we don't go from :shared to :viewed
       return unless state?(:new)
-      @state = :viewed
-      update_fields :state => :viewed, :viewed => Time.now.utc.to_i
+      self.state = :viewed
+      self.viewed = Time.now.utc.to_i
+      save
     end
     def received!
       # Make sure we don't go from :shared to :viewed
       return unless state?(:new) || state?(:viewed)
-      @state = :received
-      update_fields :state => :received, :received => Time.now.utc.to_i, :secret_key => ""
+      self.state = :received
+      self.received = Time.now.utc.to_i
+      self.secret_key = ""
+      save
     end
     def burned!
       # Make sure we don't go from :shared to :viewed
       return unless state?(:new) || state?(:viewed)
       @state = :burned
-      update_fields :state => :burned, :burned => Time.now.utc.to_i, :secret_key => ""
+      self.state = :burned
+      self.burned = Time.now.utc.to_i
+      self.secret_key = ""
+      save
     end
     def state? guess
       state.to_s == guess.to_s
@@ -108,9 +108,9 @@ module Onetime
         obj.exists? ? obj : nil
       end
       def create custid, entropy=[]
-        obj = new custid, entropy << [OT.instance, Time.now.to_f, OT.entropy]
+        obj = new custid
         # force the storing of the fields to redis
-        obj.update_fields :custid => custid # calls update_time!
+        obj.save
         obj
       end
     end
