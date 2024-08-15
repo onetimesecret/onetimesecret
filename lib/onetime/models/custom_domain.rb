@@ -26,12 +26,36 @@
 
 require 'public_suffix'
 
-class Onetime::CustomDomain < Familia::HashKey
-  @db = 6
+class Onetime::CustomDomain < Familia::Horreum
+  db 6
+
+  feature :safe_dump
+
+  identifier :derive_id
+
   # NOTE: The redis key used by older models for values is simply
   # "onetime:customdomain". We'll want to rename those at some point.
-  @values = Familia::SortedSet.new [name.to_s.downcase.gsub('::', Familia.delim).to_sym, :values], db: @db
-  #@owners = Familia::HashKey.new [name.to_s.downcase.gsub('::', Familia.delim).to_sym, :owners], db: @db
+  class_sorted_set :values
+  class_hashkey :owners
+  counter :secrets_created
+
+  field :display_domain
+  field :custid
+  field :domainid
+  field :base_domain
+  field :subdomain
+  field :trd
+  field :tld
+  field :sld
+  field :txt_validation_host
+  field :txt_validation_value
+  field :status
+  field :vhost
+  field :verified
+  field :created
+  field :updated
+  field :_original_value
+
   @txt_validation_prefix = '_onetime-challenge'
 
   @safe_dump_fields = [
@@ -53,8 +77,6 @@ class Onetime::CustomDomain < Familia::HashKey
     :updated
   ]
 
-  include Onetime::Models::SafeDump
-
   # We need a minimum of a domain and customer id to create a custom
   # domain -- or more specifically, a custom domain indentifier. We
   # allow instantiating a custom domain without a customer id, but
@@ -67,41 +89,26 @@ class Onetime::CustomDomain < Familia::HashKey
   # unqualified term "domain" on its own since there's so much
   # room for confusion.
   #
-  # WARNING: A feature/limitation of Familia RedisObjects is that all
-  # arguments to initialize must be named arguments. This is because
-  # up the `super` chain, we're expecting a catch-all argument named
-  # `opts`. If opts is nil, all hell breaks loose and we get an error.
+  #def initialize display_domain, custid
+  #  @prefix = :customdomain
+  #  @suffix = :object
   #
-  # See RedisObject#initialize. It's possible thise could be addressed.
-  # Actually it's possible that we just need to run super before setting
-  # the instance variables.
+  #  unless display_domain.is_a?(String)
+  #    raise ArgumentError, "Domain must be a string (got #{display_domain.class})"
+  #  end
   #
-  def initialize display_domain, custid
-    @prefix = :customdomain
-    @suffix = :object
-
-    unless display_domain.is_a?(String)
-      raise ArgumentError, "Domain must be a string (got #{display_domain.class})"
-    end
-
-    # Set the minimum number of required instance variables,
-    # where minimum means the ones needed to generate a valid identifier.
-    @display_domain = display_domain
-    @custid = custid.to_s
-
-    super rediskey, db: self.class.db
-  end
-
+  #  # Set the minimum number of required instance variables,
+  #  # where minimum means the ones needed to generate a valid identifier.
+  #  @display_domain = display_domain
+  #  @custid = custid.to_s
+  #
+  #  super rediskey, db: self.class.db
+  #end
+  #
   def init
-    self[:display_domain] = @display_domain
-    self[:custid] = @custid
-    OT.ld "[CustomDomain.init] #{self[:display_domain]} id:#{identifier}"
-  end
-
-  def rediskey
-    @prefix ||= self.class.to_s.downcase.split('::').last.to_sym
-    @suffix ||= :object
-    Familia.rediskey @prefix, self.identifier, @suffix
+    # Display domain and cust should already be set and accessible
+    # via accessor methods.
+    OT.ld "[CustomDomain.init] #{self.display_domain} id:#{self.identifier}"
   end
 
   # Generate a unique identifier for this customer's custom domain.
@@ -117,7 +124,7 @@ class Onetime::CustomDomain < Familia::HashKey
   # sure that the same domain can only be added once per customer.
   #
   # @return [String] A shortened hash of the domain name and custid.
-  def identifier
+  def derive_id
     if @display_domain.to_s.empty? || @custid.to_s.empty?
       raise OT::Problem, 'Cannot generate identifier with emptiness'
     end
@@ -139,13 +146,13 @@ class Onetime::CustomDomain < Familia::HashKey
   #
   # @param args [Array] Additional arguments to pass to the superclass destroy method
   # @return [Object] The result of the superclass destroy method
-  def del(*args)
+  def delete!(*args)
     OT::CustomDomain.values.rem identifier
     super # we may prefer to call self.clear here instead
   end
 
   def parse_vhost
-    JSON.parse(self[:vhost] || '{}')
+    JSON.parse(self.vhost || '{}')
   rescue JSON::ParserError => e
     OT.le "[CustomDomain.parse_vhost] Error #{e}"
     {}
@@ -168,13 +175,6 @@ class Onetime::CustomDomain < Familia::HashKey
     if self.identifier.to_s.empty?
       raise RuntimeError, "Identifier cannot be empty for #{self.class}"
     end
-  end
-
-  def update_fields hsh={}
-    check_identifier!
-    hsh[:updated] = OT.now.to_i
-    hsh[:created] = OT.now.to_i unless has_key?(:created)
-    update hsh # See Familia::RedisObject#update
   end
 
   # If we just want to delete the custom domain object key from Redis,
@@ -219,25 +219,25 @@ class Onetime::CustomDomain < Familia::HashKey
 
         # See initialize above for more context.
         hsh = {}
-        hsh[:domainid] = obj.identifier
-        hsh[:custid] = custid.to_s
+        obj.domainid = obj.identifier
+        obj.custid = custid.to_s
 
         # Store the individual domain parts that PublicSuffix parsed out
-        hsh[:base_domain] = ps_domain.domain.to_s
-        hsh[:subdomain] = ps_domain.subdomain.to_s
-        hsh[:trd] = ps_domain.trd.to_s
-        hsh[:tld] = ps_domain.tld.to_s
-        hsh[:sld] = ps_domain.sld.to_s
+        obj.base_domain = ps_domain.domain.to_s
+        obj.subdomain = ps_domain.subdomain.to_s
+        obj.trd = ps_domain.trd.to_s
+        obj.tld = ps_domain.tld.to_s
+        obj.sld = ps_domain.sld.to_s
 
         # Also keep the original input as the customer intended in
         # case there's a need to "audit" this record later on.
-        hsh[:_original_value] = input
+        obj._original_value = input
 
         host, value = generate_txt_validation_record(hsh)
-        hsh[:txt_validation_host] = host
-        hsh[:txt_validation_value] = value
+        obj.txt_validation_host = host
+        obj.txt_validation_value = value
 
-        obj.update_fields hsh
+        obj.save
       end
     end
 
@@ -309,18 +309,18 @@ class Onetime::CustomDomain < Familia::HashKey
     #   _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70
     #   _onetime-challenge-domainid.status -> cd94fec5a98fd33a0d70d069acaae9
     #
-    def generate_txt_validation_record obj
+    def generate_txt_validation_record
       # Include a short identifier that is unique to this domain. This
       # allows for multiple customers to use the same domain without
       # conflicting with each other.
-      shortid = obj[:domainid].to_s[0..6]
+      shortid = obj.domainid.to_s[0..6]
       record_host = "#{txt_validation_prefix}-#{shortid}"
 
       # Append the TRD if it exists. This allows for multiple subdomains
       # to be used for the same domain.
       # e.g. The `status` in status.example.com.
-      unless obj[:trd].to_s.empty?
-        record_host = "#{record_host}.#{obj[:trd]}"
+      unless obj.trd.to_s.empty?
+        record_host = "#{record_host}.#{obj.trd}"
       end
 
       # The value needs to be sufficiently unique and non-guessable to
@@ -337,7 +337,7 @@ class Onetime::CustomDomain < Familia::HashKey
     end
 
     def add fobj
-      #self.owners.put fobj.to_s, fobj[:custid]  # domainid => customer id
+      #self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
       self.values.add OT.now.to_i, fobj.to_s # created time, identifier
     end
 
