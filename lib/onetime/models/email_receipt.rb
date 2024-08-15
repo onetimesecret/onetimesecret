@@ -1,10 +1,15 @@
 
-class Onetime::EmailReceipt < Familia::HashKey
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 8
+class Onetime::EmailReceipt < Familia::Horreum
+  db 8
+  ttl 30.days
 
-  include Onetime::Models::RedisHash
+  class_sorted_set :values, key: 'onetime:emailreceipt'
 
-  attr_accessor :values
+  identifier :secretid
+
+  field :custid
+  field :secretid
+  field :message_response
 
   # e.g.
   #
@@ -69,12 +74,6 @@ class Onetime::EmailReceipt < Familia::HashKey
       fobj
     end
 
-    #def generate_id *entropy
-    #  entropy << OT.entropy
-    #  input = [OT.instance, OT.now.to_f, :session, *entropy].join(':')
-    #  # Not using gibbler to make sure it's always SHA512
-    #  Digest::SHA512.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
-    #end
   end
 
   extend ClassMethods
