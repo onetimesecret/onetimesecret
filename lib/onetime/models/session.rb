@@ -80,6 +80,10 @@ class Onetime::Session < Familia::HashKey
     @external_identifier
   end
 
+  def short_identifier
+    identifier[0, 12]
+  end
+
   def stale?
     self[:stale].to_s == 'true'
   end

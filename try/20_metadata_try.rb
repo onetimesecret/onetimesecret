@@ -15,10 +15,12 @@
 # about secrets in the application.
 
 require_relative '../lib/onetime'
+#Familia.debug = true
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot!
+
 
 ## Keys are consistent for Metadata
 @metadata = Onetime::Metadata.new :metadata, :entropy

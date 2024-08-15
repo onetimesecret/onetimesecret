@@ -35,8 +35,8 @@ default_install_hook_types:
   - post-commit
   - post-checkout
   - post-merge
-# default_stages:
-#   - pre-commit
+default_stages:
+   - pre-commit
 #   - prepare-commit-msg
 
 fail_fast: true
@@ -70,6 +70,7 @@ repos:
     rev: v1.64.1  # Use the ref you want to point at
     hooks:
       - id: rubocop
+        stages: [pre-commit]
         name: rubocop
         description: Enforce the community Ruby Style Guide with RuboCop
         entry: "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning"
@@ -93,6 +94,7 @@ repos:
     rev: v8.56.0  # Use the latest version
     hooks:
       - id: eslint
+        stages: [pre-commit]
         files: \.(js|ts|vue)$
         types: [file]
         additional_dependencies:
