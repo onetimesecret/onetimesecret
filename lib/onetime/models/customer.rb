@@ -49,7 +49,7 @@ class Onetime::Customer < Familia::HashKey
     # the object has been initialized and `super` called in RedisObject.
     # Long story short: we set these two instance vars do that the
     # identifier method can produce a valid identifier string. But,
-    # we're relying on CustomDomain.create to duplicate the effort
+    # we're relying on Customer.create to duplicate the effort
     # and set the same values in the way that will persist them to
     # redis. Hopefully I do'nt find myself reading this comment in
     # 5 years and wondering why I can't just call `super` man.
@@ -208,7 +208,7 @@ class Onetime::Customer < Familia::HashKey
   def metadata_list
     if @metadata_list.nil?
       el = [prefix, identifier, :metadata]
-      el.unshift Familia.apiversion unless Familia.apiversion.nil?
+      #el.unshift Familia.apiversion unless Familia.apiversion.nil?
       @metadata_list = Familia::SortedSet.new Familia.join(el), :db => db
     end
     @metadata_list
@@ -225,7 +225,7 @@ class Onetime::Customer < Familia::HashKey
   def custom_domains_list
     if @custom_domains_list.nil?
       el = [prefix, identifier, :custom_domain]
-      el.unshift Familia.apiversion unless Familia.apiversion.nil?
+      #el.unshift Familia.apiversion unless Familia.apiversion.nil?
       @custom_domains_list = Familia::SortedSet.new Familia.join(el), :db => db
     end
     @custom_domains_list
