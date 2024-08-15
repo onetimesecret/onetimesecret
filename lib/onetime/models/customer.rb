@@ -1,8 +1,38 @@
 
 
-class Onetime::Customer < Familia::HashKey
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 6
-  @domains = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 6
+class Onetime::Customer < Familia::Horreum
+  include Gibbler::Complex
+  include Onetime::Models::Passphrase
+
+  db 6
+
+  class_sorted_set :values, key: 'onetime:customers'
+  class_hashkey :domains, key: 'onetime:customers:domains'
+  class_hashkey :global, key: 'customer:GLOBAL:object'
+
+  sorted_set :custom_domains_list
+  sorted_set :metadata_list
+
+  identifier :custid
+
+  field :custid
+  field :email
+  field :key
+  field :passphrase_encryption
+  field :role
+  field :sessid
+  field :apitoken
+  field :verified
+  field :secrets_created
+  field :planid
+  field :passphrase
+  field :created
+  field :updated
+
+  field :stripe_customer_i
+  field :stripe_subscription_id
+  field :stripe_checkout_email
+
 
   # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
   # with hot reloading in dev mode will not work. You will need to restart the
@@ -23,46 +53,38 @@ class Onetime::Customer < Familia::HashKey
     # NOTE: The secrets_created incrementer is null until the first secret
     # is created. See CreateSecret for where the incrementer is called.
     #
-    {:secrets_created => ->(cust) { cust.secrets_created || 0 } },
+    {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
 
     # We use the hash syntax here since `:active?` is not a valid symbol.
     { :active => ->(cust) { cust.active? } }
   ]
 
-  include Onetime::Models::RedisHash
-  include Onetime::Models::Passphrase
-  include Onetime::Models::SafeDump
+  #  def initialize custid=nil
+  #    @custid = custid || :anon # if we use accessor methods it will sync to redis.
+  #
+  #    # WARNING: There's a gnarly bug in the awkward relationship between
+  #    # RedisHash (local lib) and RedisObject (familia gem) where a value
+  #    # can be set to an instance var, the in-memory cache in RedisHash,
+  #    # and/or the persisted value in redis. RedisHash#method_missing
+  #    # allows for calling fields as method names on the object itself;
+  #    # RedisObject (specifically Familia::HashKey in this case), relies
+  #    # on `[]` and `[]=` to access and set values in redis.
+  #    #
+  #    # The problem is that the value set by RedisHash#method_missing
+  #    # is not available to RedisObject (Familia::HashKey) until after
+  #    # the object has been initialized and `super` called in RedisObject.
+  #    # Long story short: we set these two instance vars do that the
+  #    # identifier method can produce a valid identifier string. But,
+  #    # we're relying on Customer.create to duplicate the effort
+  #    # and set the same values in the way that will persist them to
+  #    # redis. Hopefully I do'nt find myself reading this comment in
+  #    # 5 years and wondering why I can't just call `super` man.
+  #
+  #    super name, db: 6 # `name` here refers to `RedisHash#name`
+  #  end
 
-  def initialize custid=nil
-    @custid = custid || :anon # if we use accessor methods it will sync to redis.
-
-    # WARNING: There's a gnarly bug in the awkward relationship between
-    # RedisHash (local lib) and RedisObject (familia gem) where a value
-    # can be set to an instance var, the in-memory cache in RedisHash,
-    # and/or the persisted value in redis. RedisHash#method_missing
-    # allows for calling fields as method names on the object itself;
-    # RedisObject (specifically Familia::HashKey in this case), relies
-    # on `[]` and `[]=` to access and set values in redis.
-    #
-    # The problem is that the value set by RedisHash#method_missing
-    # is not available to RedisObject (Familia::HashKey) until after
-    # the object has been initialized and `super` called in RedisObject.
-    # Long story short: we set these two instance vars do that the
-    # identifier method can produce a valid identifier string. But,
-    # we're relying on Customer.create to duplicate the effort
-    # and set the same values in the way that will persist them to
-    # redis. Hopefully I do'nt find myself reading this comment in
-    # 5 years and wondering why I can't just call `super` man.
-
-    super name, db: 6 # `name` here refers to `RedisHash#name`
-  end
-
-  def custid
-    @custid || :anon
-  end
-
-  def identifier
-    @custid
+  def init
+    self.custid ||= :anon
   end
 
   def contributor?
@@ -176,10 +198,6 @@ class Onetime::Customer < Familia::HashKey
     @custid
   end
 
-  def role
-    self.get_value(:role) || 'customer'
-  end
-
   def role? guess
     role.to_s.eql?(guess.to_s)
   end
@@ -205,15 +223,6 @@ class Onetime::Customer < Familia::HashKey
     OT::Session.load sessid unless sessid.to_s.empty?
   end
 
-  def metadata_list
-    if @metadata_list.nil?
-      el = [prefix, identifier, :metadata]
-      #el.unshift Familia.apiversion unless Familia.apiversion.nil?
-      @metadata_list = Familia::SortedSet.new Familia.join(el), :db => db
-    end
-    @metadata_list
-  end
-
   def metadata
     metadata_list.revmembers.collect { |key| OT::Metadata.load key }.compact
   end
@@ -222,34 +231,25 @@ class Onetime::Customer < Familia::HashKey
     metadata_list.add OT.now.to_i, obj.key
   end
 
-  def custom_domains_list
-    if @custom_domains_list.nil?
-      el = [prefix, identifier, :custom_domain]
-      #el.unshift Familia.apiversion unless Familia.apiversion.nil?
-      @custom_domains_list = Familia::SortedSet.new Familia.join(el), :db => db
-    end
-    @custom_domains_list
-  end
-
   def custom_domains
     custom_domains_list.revmembers.collect { |domain| OT::CustomDomain.load domain, self }.compact
   end
 
   def add_custom_domain obj
     OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-    custom_domains_list.add OT.now.to_i, obj[:display_domain] # not the object identifier
+    custom_domains_list.add OT.now.to_i, obj.display_domain # not the object identifier
   end
 
   def remove_custom_domain obj
-    custom_domains_list.rem obj[:display_domain] # not the object identifier
+    custom_domains_list.rem obj.display_domain # not the object identifier
   end
 
   def update_passgen_token v
-    self['passgen_token'] = v.encrypt(:key => encryption_key)
+    self.passgen_token = v.encrypt(:key => encryption_key)
   end
 
   def passgen_token
-    self['passgen_token'].decrypt(:key => encryption_key) if has_key?(:passgen_token)
+    self.passgen_token.decrypt(:key => encryption_key) if has_key?(:passgen_token)
   end
 
   def encryption_key
@@ -267,7 +267,7 @@ class Onetime::Customer < Familia::HashKey
     # For example if we need to send a pro-rated refund
     # or if we need to send a notification to the customer
     # to confirm the account deletion.
-    self.ttl = 7.days
+    self.ttl = 365.days
     self.regenerate_apitoken
     self.passphrase = ''
     self.verified = 'false'
@@ -302,17 +302,9 @@ class Onetime::Customer < Familia::HashKey
       spoint = OT.now.to_i-duration
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
-    def global
-      if @global.nil?
-        @global = exists?(:GLOBAL) ? load(:GLOBAL) : create(:GLOBAL)
-        @global.secrets_created ||= 0
-        @global.secrets_shared  ||= 0
-      end
-      @global
-    end
 
     def anonymous
-      cust = new
+      new(:anonymous).freeze
     end
     def exists? custid
       cust = new custid
@@ -324,7 +316,7 @@ class Onetime::Customer < Familia::HashKey
     end
     def create custid, email=nil
       cust = new custid
-      # force the storing of the fields to redis
+      cust.email = email || custid
       cust.custid = custid
       cust.role = 'customer'
       cust.save

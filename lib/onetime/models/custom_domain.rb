@@ -27,6 +27,8 @@
 require 'public_suffix'
 
 class Onetime::CustomDomain < Familia::Horreum
+  include Gibbler::Complex
+
   db 6
 
   feature :safe_dump
@@ -37,7 +39,6 @@ class Onetime::CustomDomain < Familia::Horreum
   # "onetime:customdomain". We'll want to rename those at some point.
   class_sorted_set :values
   class_hashkey :owners
-  counter :secrets_created
 
   field :display_domain
   field :custid
@@ -60,8 +61,8 @@ class Onetime::CustomDomain < Familia::Horreum
 
   @safe_dump_fields = [
     :domainid,
-    :custid,
     :display_domain,
+    :custid,
     :base_domain,
     :subdomain,
     :trd,
