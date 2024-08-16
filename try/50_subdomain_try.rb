@@ -24,7 +24,7 @@ OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot! :app
 
 ## Can create Subdomain instance
-s = Onetime::Subdomain.new 'tryouts@onetimesecret.com'
+s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'testcname'
 s.class
 #=> Onetime::Subdomain
 
@@ -37,7 +37,7 @@ OT::Subdomain.normalize_cname './*&^%$#@!BignAMECO.'
 #=> 'bignameco'
 
 ## Subdomain has an identifier
-s = Onetime::Subdomain.new 'tryouts@onetimesecret.com', 'bignameco'
+s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'bignameco'
 [s.identifier, s.cname, s.rediskey]
 #=> ['tryouts@onetimesecret.com', 'bignameco', 'customer:tryouts@onetimesecret.com:subdomain']
 
@@ -46,7 +46,7 @@ Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
 #=> false
 
 ## Create subdomain
-@subdomain = Onetime::Subdomain.create 'tryouts@onetimesecret.com', 'bignameco'
+@subdomain = Onetime::Subdomain.create('bignameco', 'tryouts@onetimesecret.com')
 @subdomain.exists?
 #=> true
 
@@ -68,4 +68,4 @@ OT::Subdomain.owned_by? 'bignameco', 'tryouts@onetimesecret.com'
 
 ## Destroy subdomain
 @subdomain.destroy!
-#=> 1
+#=> true
