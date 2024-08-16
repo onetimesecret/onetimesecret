@@ -69,7 +69,8 @@ ipaddress = @sess.ipaddress
 ## Sessions don't get unique IDs when instantiated
 s1 = OT::Session.new '255.255.255.255', :anon
 s2 = OT::Session.new '255.255.255.255', :anon
-s1.sessid.eql?(s2.sessid)
+# Don't call s1.sessid by accessor method b/c that will generate one
+s1.instance_variable_get(:@sessid).eql?(s2.instance_variable_get(:@sessid))
 #=> true
 
 ## Can set form fields
@@ -106,19 +107,25 @@ sess.authenticated?
 
 ## Can force a session to be unauthenticated
 @sess_disabled_auth = OT::Session.create @ipaddress, @custid, @useragent
-@sess_disabled_auth.authenticated = true
+@sess_disabled_auth.authenticated! true
 @sess_disabled_auth.disable_auth = true
+pp @sess_disabled_auth.to_h
 @sess_disabled_auth.authenticated?
 #=> false
 
 ## Load a new instance of the session and check authenticated status
 sess = OT::Session.load @sess_disabled_auth.sessid
+pp sess.to_h
 [sess.authenticated?, sess.disable_auth]
 #=> [true, false]
 
-## Reload the same instance of the session and check authenticated status
-@sess_disabled_auth = OT::Session.from_key @sess_disabled_auth.rediskey
-[@sess_disabled_auth.authenticated?, @sess_disabled_auth.disable_auth]
+
+## Reload the same instance of the session and check authenticated status.
+## Calling authenticated? will return false again b/c the instance var
+## disable_auth is still set to true.
+sess = @sess_disabled_auth.refresh
+pp sess.to_h
+[sess.authenticated?, sess.disable_auth]
 #=> [false, true]
 
 

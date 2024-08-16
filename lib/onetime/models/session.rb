@@ -10,7 +10,7 @@ class Onetime::Session < Familia::Horreum
 
   class_sorted_set :values, key: "onetime:session"
 
-  identifier :generate_id
+  identifier :sessid
 
   field :ipaddress
   field :custid
@@ -21,7 +21,6 @@ class Onetime::Session < Familia::Horreum
   field :created
   field :authenticated
   field :external_identifier
-  field :ttl
   field :key
   field :shrimp
 
@@ -44,24 +43,21 @@ class Onetime::Session < Familia::Horreum
   attr_accessor :form_fields
 
   def init
-
-    # Defaulting the session ID to nil ensures we can't persist this instance
-    # to redis until one is set (see `RedisHash#check_identifier!`). This is
-    # important b/c we don't want to be colliding a default session ID and risk
-    # leaking session data (e.g. across anonymous users).
-    #
-    # This is the distinction between .new and .create. .new is a new session
-    # that hasn't been saved to redis yet. .create is a new session that has
-    # been saved to redis.
-    @sessid = nil
-
+    # This regular attribute that gets set on each request (if necessary). When
+    # true this instance will report authenticated? -> false regardless of what
+    # the authenticated field is set to.
     @disable_auth = false
+
+    # Don't call the sessid accessor in here. We intentionally allow
+    # instantiating a session without a sessid. It's a distinction
+    # from create which generates an sessid _and_ saves.
+    @sessid ||= nil
 
     OT.ld "[Session.init] Initialized session #{self}"
   end
 
-  def generate_id
-    @sessid ||= Familia.generate_id
+  def sessid
+    @sessid ||= self.class.generate_id
     @sessid
   end
 
@@ -186,21 +182,33 @@ class Onetime::Session < Familia::Horreum
     sessid.to_i(16) % groups.to_i
   end
 
-  def opera?()            @agent.to_s  =~ /opera/i                      end
-  def firefox?()          @agent.to_s  =~ /firefox/i                    end
-  def chrome?()          !(@agent.to_s =~ /chrome/i).nil?               end
-  def safari?()           (@agent.to_s =~ /safari/i && !chrome?)        end
-  def konqueror?()        @agent.to_s  =~ /konqueror/i                  end
-  def ie?()               (@agent.to_s =~ /msie/i && !opera?)           end
-  def gecko?()            (@agent.to_s =~ /gecko/i && !webkit?)         end
-  def webkit?()           @agent.to_s  =~ /webkit/i                     end
-  def superfeedr?()       @agent.to_s  =~ /superfeedr/i                 end
-  def google?()           @agent.to_s  =~ /google/i                     end
-  def yahoo?()            @agent.to_s  =~ /yahoo/i                      end
-  def yandex?()           @agent.to_s  =~ /yandex/i                     end
-  def baidu?()            @agent.to_s  =~ /baidu/i                      end
-  def searchengine?()
-    @agent.to_s  =~ /\b(Baidu|Gigabot|Googlebot|libwww-perl|lwp-trivial|msnbot|SiteUptime|Slurp|WordPress|ZIBB|ZyBorg|Yahoo|bing|superfeedr)\b/i
+  def opera?()            @agent.to_s =~ /opera|opr/i                      end
+  def firefox?()          @agent.to_s =~ /firefox|fxios/i                  end
+  def chrome?()           @agent.to_s =~ /chrome|crios/i                   end
+  def safari?()           @agent.to_s =~ /safari/i && !chrome?             end
+  def edge?()             @agent.to_s =~ /edge|edg/i                       end
+  def konqueror?()        @agent.to_s =~ /konqueror/i                      end
+  def ie?()               @agent.to_s =~ /msie|trident/i && !opera?        end
+  def gecko?()            @agent.to_s =~ /gecko/i && !webkit?              end
+  def webkit?()           @agent.to_s =~ /webkit/i                         end
+  def superfeedr?()       @agent.to_s =~ /superfeedr/i                     end
+  def google?()           @agent.to_s =~ /googlebot/i                      end
+  def yahoo?()            @agent.to_s =~ /yahoo/i                          end
+  def yandex?()           @agent.to_s =~ /yandex/i                         end
+  def baidu?()            @agent.to_s =~ /baidu/i                          end
+  def duckduckgo?()       @agent.to_s =~ /duckduckbot/i                    end
+  def bing?()             @agent.to_s =~ /bingbot/i                        end
+  def applebot?()         @agent.to_s =~ /applebot/i                       end
+  def semrush?()          @agent.to_s =~ /semrushbot/i                     end
+  def ahrefs?()           @agent.to_s =~ /ahrefsbot/i                      end
+  def mj12?()             @agent.to_s =~ /mj12bot/i                        end
+  def dotbot?()           @agent.to_s =~ /dotbot/i                         end
+  def blexbot?()          @agent.to_s =~ /blexbot/i                        end
+  def uptimerobot?()      @agent.to_s =~ /uptimerobot/i                    end
+  def facebot?()          @agent.to_s =~ /facebot/i                        end
+  def ia_archiver?()      @agent.to_s =~ /ia_archiver/i                    end
+  def searchengine?
+    @agent.to_s =~ /\b(Baidu|Gigabot|Googlebot|libwww-perl|lwp-trivial|msnbot|SiteUptime|Slurp|WordPress|ZIBB|ZyBorg|Yahoo|bing|superfeedr|DuckDuckBot|YandexBot|Sogou|Exabot|facebot|ia_archiver|Applebot|SemrushBot|AhrefsBot|MJ12bot|DotBot|BLEXBot|UptimeRobot)\b/i
   end
 
   module ClassMethods
@@ -221,14 +229,12 @@ class Onetime::Session < Familia::Horreum
     end
 
     def exists? sessid
-      sess = new nil, nil
-      sess.sessid = sessid
+      sess = new sessid: sessid
       sess.exists?
     end
 
     def load sessid
-      sess = new nil, nil
-      sess.sessid = sessid
+      sess = from_redis sessid
       sess.exists? ? (add(sess); sess) : nil  # make sure this sess is in the values set
     end
 
