@@ -90,8 +90,6 @@ module Onetime
       end
 
       def handle_form_error ex, redirect
-        # We store the form fields temporarily in the session so
-        # that the form can be pre-populated after the redirect.
         sess.set_form_fields ex.form_fields  # to pre-populate the form
         sess.set_error_message ex.message
         res.redirect redirect

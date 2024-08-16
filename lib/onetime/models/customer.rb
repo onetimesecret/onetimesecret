@@ -87,7 +87,6 @@ class Onetime::Customer < Familia::Horreum
   def init
     self.custid ||= :anon
     self.role ||= 'customer'
-    self.key ||= identifier
   end
 
   def name

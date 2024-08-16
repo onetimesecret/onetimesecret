@@ -17,11 +17,9 @@
 # of these specific features.
 
 require_relative '../lib/onetime'
-#Familia.debug = true
 
 # Use the default config file for tests
-#OT::Config.path = File.join(__dir__, 'etc', 'config.test') # irb
-OT::Config.path = File.join('etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot!
 
 @ipaddress = '10.0.0.254' # A private IP address
@@ -51,9 +49,8 @@ sessid2 = sess.sessid
 
 ## Sessions always have a ttl value
 ttl = @sess.ttl
-p [@sess.respond_to?(:ttl), ttl.class, ttl]
 [ttl.class, ttl]
-#=> [Float, 20.minutes]
+#=> [Integer, 20.minutes]
 
 ## Sessions have an identifier
 identifier = @sess.identifier
@@ -109,30 +106,20 @@ sess.authenticated?
 #=> true
 
 ## Can force a session to be unauthenticated
-Familia.debug = true
 @sess_disabled_auth = OT::Session.create @ipaddress, @custid, @useragent
-@sess_disabled_auth.authenticated! true # A fast writer that immedately save to redis
+@sess_disabled_auth.authenticated = true
 @sess_disabled_auth.disable_auth = true
-@sess_disabled_auth.refresh!
-p [@sess_disabled_auth.authenticated, @sess_disabled_auth.to_h]
 @sess_disabled_auth.authenticated?
 #=> false
 
 ## Load a new instance of the session and check authenticated status
-@sess_disabled_auth.disable_auth = nil
 sess = OT::Session.load @sess_disabled_auth.sessid
-p [sess.authenticated, @sess_disabled_auth.authenticated, sess.to_h]
-
-sess.refresh!
-@sess_disabled_auth.refresh!
-p [sess.authenticated, @sess_disabled_auth.authenticated, sess.to_h]
 [sess.authenticated?, sess.disable_auth]
 #=> [true, false]
 
-
 ## Reload the same instance of the session and check authenticated status
-sess = OT::Session.from_key @sess_disabled_auth.rediskey
-[sess.authenticated?, sess.disable_auth]
+@sess_disabled_auth = OT::Session.from_key @sess_disabled_auth.rediskey
+[@sess_disabled_auth.authenticated?, @sess_disabled_auth.disable_auth]
 #=> [false, true]
 
 
@@ -141,12 +128,13 @@ sess = OT::Session.from_key @sess_disabled_auth.rediskey
 initial_sessid = @replaced_session.sessid.to_s
 @replaced_session.authenticated = true
 @replaced_session.replace!
+
+
 @replaced_session.sessid.eql?(initial_sessid)
 #=> false
 
 ## Replaced session is not authenticated
-@replaced_session.authenticated
-#=> false
+
 
 ## Can check if a session exists
 OT::Session.exists? @sess.sessid
