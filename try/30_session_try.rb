@@ -49,7 +49,7 @@ sessid2 = sess.sessid
 ## Sessions always have a ttl value
 ttl = @sess.ttl
 [ttl.class, ttl]
-#=> [Integer, 20.minutes]
+#=> [Float, 20.minutes]
 
 ## Sessions have an identifier
 identifier = @sess.identifier
