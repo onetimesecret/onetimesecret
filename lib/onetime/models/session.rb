@@ -2,7 +2,7 @@
 class Onetime::Session < Familia::Horreum
   include Onetime::Models::RateLimited
 
-  db 1
+  db 9
   ttl 20.minutes
   prefix :session
 
@@ -10,7 +10,9 @@ class Onetime::Session < Familia::Horreum
 
   class_sorted_set :values, key: "onetime:session"
 
-  identifier :generate_id
+  identifier :sessid
+
+  # NOTE: Avoid adding fields with the same name as settings (e.g. ttl)
 
   field :ipaddress
   field :custid
@@ -21,9 +23,14 @@ class Onetime::Session < Familia::Horreum
   field :created
   field :authenticated
   field :external_identifier
-  field :ttl
   field :key
   field :shrimp
+
+  # In some UI flows, we temporarily store form values after a form
+  # error so that the form UI inputs can be prepopulated, even if
+  # there's a redirect inbetween. Ideally we can move this to local
+  # storage with Vue.
+  field :form_fields
 
   # TODO: The authenticated_by field needs to be revisited
   field :authenticated_by
@@ -37,11 +44,9 @@ class Onetime::Session < Familia::Horreum
   #
   # During the time that authentication is disabled, the session will
   # be anonymous and the customer will be anonymous.
+  #
+  # This value is set on every request and should not be persisted.
   attr_accessor :disable_auth
-
-  # Used to temporarily store form values after a form error (or
-  # when intended ti ==o load the page with form fields preloaded).
-  attr_accessor :form_fields
 
   def init
 
@@ -53,15 +58,16 @@ class Onetime::Session < Familia::Horreum
     # This is the distinction between .new and .create. .new is a new session
     # that hasn't been saved to redis yet. .create is a new session that has
     # been saved to redis.
-    @sessid = nil
+    #@sessid = nil
+    self.key ||= identifier
 
     @disable_auth = false
 
     OT.ld "[Session.init] Initialized session #{self}"
   end
 
-  def generate_id
-    @sessid ||= Familia.generate_id
+  def sessid
+    @sessid ||= self.class.generate_id
     @sessid
   end
 
@@ -221,26 +227,29 @@ class Onetime::Session < Familia::Horreum
     end
 
     def exists? sessid
-      sess = new nil, nil
-      sess.sessid = sessid
+      sess = new sessid: sessid
       sess.exists?
     end
 
     def load sessid
-      sess = new nil, nil
-      sess.sessid = sessid
-      sess.exists? ? (add(sess); sess) : nil  # make sure this sess is in the values set
+      Familia.ld "[LOAD] Loading session #{sessid}"
+      sess = from_redis(sessid)
+      Familia.ld " got session #{sess.sessid}"
+      unless sess.nil?
+        add(sess) # make sure this sess is in the values set
+        sess
+      end
+      # Returns sess or nil
     end
 
     def create ipaddress, custid, useragent=nil
-      sess = new ipaddress, custid, useragent
+      sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
 
-      OT.ld "[Session.create] Creating new session #{sess}"
+      Familia.ld "[Session.create] Creating new session #{sess}"
 
-      # force the storing of the fields to redis
-      sess.update_sessid!
-      sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
+      # Save immediately
       sess.save
+
       add sess # to the @values sorted set
       sess
     end
