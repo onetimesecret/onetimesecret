@@ -23,7 +23,7 @@ OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot!
 
 @ipaddress = '10.0.0.254' # A private IP address
-@useragent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_2_5) AppleWebKit/237.36 (KHTML, like Gecko) Chrome/10.0.95 Safari/237.36'
+@useragent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT 5.0)'
 @custid = 'tryouts'
 
 @sess = OT::Session.create @ipaddress, @custid, @useragent
