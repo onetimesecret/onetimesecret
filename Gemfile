@@ -36,7 +36,7 @@ gem 'drydock'
 if ENV['USE_LOCAL_WIP']
   gem 'familia', path: '~/Projects/opensource/d/familia'
 else
-  gem 'familia', '~> 0.10.2'
+  gem 'familia', '~> 1.0.0.pre.rc1'
 end
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha1'
