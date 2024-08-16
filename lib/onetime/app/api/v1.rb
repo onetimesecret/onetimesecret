@@ -1,6 +1,7 @@
 require_relative 'v1/base'
 require_relative '../base'  # app/base.rb
 
+
 class Onetime::App
   class API
     include AppSettings
@@ -8,6 +9,14 @@ class Onetime::App
 
     @check_utf8 = true
     @check_uri_encoding = true
+
+    # FlexibleHashAccess is a refinement for the Hash class that enables
+    # flexible key access, allowing the use of either strings or symbols
+    # interchangeably when retrieving values from a hash.
+    #
+    # @see metadata_hsh method
+    #
+    using FlexibleHashAccess
 
     def status
       authorized(true) do
@@ -143,7 +152,34 @@ class Onetime::App
       end
     end
 
-    private
+    #
+    # Transforms metadata into a structured hash with enhanced information.
+    #
+    # This method processes a metadata object and optional parameters to create
+    # a comprehensive hash representation. It includes derived and calculated
+    # values, providing a rich snapshot of the metadata and associated secret
+    # state.
+    #
+    # @param md [Metadata] The metadata object to process
+    # @param opts [Hash] Optional parameters to influence the output
+    # @option opts [Integer, nil] :secret_ttl The actual TTL of the associated
+    #   secret, if available
+    #
+    # @return [Hash] A structured hash containing metadata and derived
+    #   information
+    #
+    # @note This method relies on the FlexibleHashAccess refinement for hash
+    #   key access.
+    #
+    # @example Basic usage
+    #   metadata = Metadata.new(key: 'abc123', custid: 'user@example.com')
+    #   result = metadata_hsh(metadata)
+    #   puts result[:custid] # => "user@example.com"
+    #
+    # @example With secret TTL provided
+    #   result = metadata_hsh(metadata, secret_ttl: 3600)
+    #   puts result[:secret_ttl] # => 3600
+    #
     def metadata_hsh md, opts={}
       hsh = md.refresh.to_h
 
@@ -155,7 +191,7 @@ class Onetime::App
         :metadata_key => hsh['key'],
         :secret_key => hsh['secret_key'],
         :ttl => hsh['ttl'].to_i,
-        :metadata_ttl => md.realttl.to_i,
+        :metadata_ttl => md.realttl.to_i, # md.realttl is a redis command method
         :secret_ttl => secret_ttl,
         :state => hsh['state'] || 'new',
         :updated => hsh['updated'].to_i,
@@ -175,6 +211,7 @@ class Onetime::App
       end
       ret
     end
+    private :metadata_hsh
 
   end
 end
