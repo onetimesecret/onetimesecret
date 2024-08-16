@@ -194,6 +194,40 @@ class Onetime::CustomDomain < Familia::Horreum
     end
   end
 
+  # Generates a host and value pair for a TXT record.
+  #
+  # Examples:
+  #
+  #   _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70
+  #   _onetime-challenge-domainid.status -> cd94fec5a98fd33a0d70d069acaae9
+  #
+  def generate_txt_validation_record
+    # Include a short identifier that is unique to this domain. This
+    # allows for multiple customers to use the same domain without
+    # conflicting with each other.
+    shortid = self.domainid.to_s[0..6]
+    record_host = "#{self.class.txt_validation_prefix}-#{shortid}"
+
+    # Append the TRD if it exists. This allows for multiple subdomains
+    # to be used for the same domain.
+    # e.g. The `status` in status.example.com.
+    unless self.trd.to_s.empty?
+      record_host = "#{record_host}.#{self.trd}"
+    end
+
+    # The value needs to be sufficiently unique and non-guessable to
+    # function as a challenge response. IOW, if we check the DNS for
+    # the domain and match the value we've generated here, then we
+    # can reasonably assume that the customer controls the domain.
+    record_value = SecureRandom.hex(16)
+
+    OT.info "[CustomDomain] Generated txt record #{record_host} -> #{record_value}"
+
+    # These can now be displayed to the customer for them
+    # to continue the validation process.
+    [record_host, record_value]
+  end
+
   module ClassMethods
     attr_reader :db, :values, :owners, :txt_validation_prefix
 
@@ -213,7 +247,7 @@ class Onetime::CustomDomain < Familia::Horreum
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
         cust = OT::Customer.new(custid)
 
-        OT.info "[CustomDomain.create] Adding domain #{obj["display_domain"]}/#{domainid} for #{cust}"
+        OT.info "[CustomDomain.create] Adding domain #{obj.display_domain}/#{domainid} for #{cust}"
 
         # Add to customer's list of custom domains. It's actually
         # a sorted set so we don't need to worry about dupes.
@@ -235,7 +269,7 @@ class Onetime::CustomDomain < Familia::Horreum
         # case there's a need to "audit" this record later on.
         obj._original_value = input
 
-        host, value = generate_txt_validation_record(hsh)
+        host, value = obj.generate_txt_validation_record
         obj.txt_validation_host = host
         obj.txt_validation_value = value
 
@@ -259,7 +293,7 @@ class Onetime::CustomDomain < Familia::Horreum
       display_domain = OT::CustomDomain.display_domain input
 
       custom_domain = OT::CustomDomain.new(display_domain, custid)
-      OT.ld "[CustomDomain.parse2] Instantiated #{custom_domain[:display_domain]} and #{custom_domain[:custid]} (#{display_domain})"
+      OT.ld "[CustomDomain.parse2] Instantiated #{custom_domain.display_domain} and #{custom_domain.custid} (#{display_domain})"
       custom_domain
     end
 
@@ -302,40 +336,6 @@ class Onetime::CustomDomain < Familia::Horreum
     # which checks without actually parsing it.
     def valid? input
       PublicSuffix.valid?(input, default_rule: nil)
-    end
-
-    # Generates a host and value pair for a TXT record.
-    #
-    # Examples:
-    #
-    #   _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70
-    #   _onetime-challenge-domainid.status -> cd94fec5a98fd33a0d70d069acaae9
-    #
-    def generate_txt_validation_record
-      # Include a short identifier that is unique to this domain. This
-      # allows for multiple customers to use the same domain without
-      # conflicting with each other.
-      shortid = obj.domainid.to_s[0..6]
-      record_host = "#{txt_validation_prefix}-#{shortid}"
-
-      # Append the TRD if it exists. This allows for multiple subdomains
-      # to be used for the same domain.
-      # e.g. The `status` in status.example.com.
-      unless obj.trd.to_s.empty?
-        record_host = "#{record_host}.#{obj.trd}"
-      end
-
-      # The value needs to be sufficiently unique and non-guessable to
-      # function as a challenge response. IOW, if we check the DNS for
-      # the domain and match the value we've generated here, then we
-      # can reasonably assume that the customer controls the domain.
-      record_value = SecureRandom.hex(16)
-
-      OT.info "[CustomDomain] Generated txt record #{record_host} -> #{record_value}"
-
-      # These can now be displayed to the customer for them
-      # to continue the validation process.
-      [record_host, record_value]
     end
 
     def add fobj

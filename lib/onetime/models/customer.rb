@@ -296,8 +296,8 @@ class Onetime::Customer < Familia::Horreum
     # unless we need to access the object's attributes (e.g., for logging or
     # debugging purposes or modifying/manipulating the object's attributes).
     #
-    # As a pilot, CustomDomain has the equivalent method and comment. See the
-    # CustomDomain class methods for usage details.
+    # As a pilot for the project, CustomDomain has the equivalent method and
+    # comment. See the CustomDomain class methods for usage details.
     identifier.to_s
   end
 
