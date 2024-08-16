@@ -5,6 +5,7 @@ class Onetime::Customer < Familia::Horreum
   include Onetime::Models::Passphrase
 
   db 6
+  prefix :customer
 
   class_sorted_set :values, key: 'onetime:customers'
   class_hashkey :domains, key: 'onetime:customers:domains'
@@ -28,11 +29,11 @@ class Onetime::Customer < Familia::Horreum
   field :passphrase
   field :created
   field :updated
+  field :last_login
 
-  field :stripe_customer_i
+  field :stripe_customer_id
   field :stripe_subscription_id
   field :stripe_checkout_email
-
 
   # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
   # with hot reloading in dev mode will not work. You will need to restart the
@@ -41,6 +42,7 @@ class Onetime::Customer < Familia::Horreum
     :custid,
     :role,
     :verified,
+    :last_login,
     :updated,
     :created,
 
@@ -85,6 +87,11 @@ class Onetime::Customer < Familia::Horreum
 
   def init
     self.custid ||= :anon
+    self.role ||= 'customer'
+  end
+
+  def name
+    rediskey # backwards compat for Familia v0.10.2
   end
 
   def contributor?
@@ -273,6 +280,11 @@ class Onetime::Customer < Familia::Horreum
     self.verified = 'false'
     self.role = 'user_deleted_self'
     save
+  end
+
+  def save
+    Familia.warn "[save] Anonymous #{self.class} #{rediskey} #{to_h}" if anonymous?
+    super
   end
 
   def to_s

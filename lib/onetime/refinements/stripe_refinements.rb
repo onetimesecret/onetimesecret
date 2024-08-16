@@ -4,7 +4,7 @@ require 'stripe' # ensures Stripe namespace is loaded
 
 module Onetime::StripeRefinements
   refine Stripe::Subscription do
-    extend Onetime::Models::SafeDump::ClassMethods
+    extend Familia::Features::SafeDump::ClassMethods
 
     # Safe fields for Stripe Subscription object
     set_safe_dump_fields [
@@ -53,7 +53,7 @@ module Onetime::StripeRefinements
   refine Stripe::Customer do
     @safe_dump_fields = []
     @safe_dump_field_map = {}
-    extend Onetime::Models::SafeDump::ClassMethods
+    extend Familia::Features::SafeDump::ClassMethods
 
     def safe_dump
       self.class.safe_dump_field_map.transform_values do |callable|

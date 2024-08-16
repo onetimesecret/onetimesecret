@@ -102,7 +102,7 @@ module Onetime
       end
 
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
@@ -171,7 +171,7 @@ module Onetime
         end
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase

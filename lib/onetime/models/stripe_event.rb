@@ -1,17 +1,21 @@
 
-class Onetime::StripeEvent < Familia::HashKey
-  @db = 10
+class Onetime::StripeEvent < Familia::Horreum
+  db 10
+
+  class_sorted_set :values, key: "onetime:stripeevent:values"
   @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: @db
 
-  include Onetime::Models::RedisHash
-  include Onetime::Models::SafeDump
+  identifier :secretid
 
+  field :custid
+  field :eventid
+  field :message_response
 
   # e.g.
   #
   #  stripe:1234567890:event
   #
-  def initialize custid=nil, eventid=nil, message_response=nil
+  def init
     @prefix = :stripe
     @suffix = :event
     @custid = custid
@@ -19,7 +23,6 @@ class Onetime::StripeEvent < Familia::HashKey
     @custid = custid.identifier if custid.is_a?(Familia::RedisObject)
     @eventid = eventid.identifier if eventid.is_a?(Familia::RedisObject)
     @message_response = message_response
-    super name, db: 8, ttl: 30.days
   end
 
   def identifier

@@ -118,7 +118,7 @@ module Onetime::Logic
       private
 
       def send_verification_email
-        _, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
+        _, secret = Onetime::Secret.spawn_pair cust.custid, token
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 
@@ -166,7 +166,7 @@ module Onetime::Logic
           potential = OT::Customer.load @colonelname
           @colonel = potential if potential.passphrase?(@passwd)
           @cust = OT::Customer.load @potential_custid if @colonel.role?(:colonel)
-          sess['authenticated_by'] = @colonel.custid
+          sess.authenticated_by = @colonel.custid
           OT.info "[login-as-success] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
         elsif (potential = OT::Customer.load(@potential_custid))
           @cust = potential if potential.passphrase?(@passwd)

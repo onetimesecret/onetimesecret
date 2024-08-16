@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Onetime::RateLimit < Familia::String
+  # TODO: Update for Familia v1.0 (implement as a full model -- no need to be backwards compatible)
   DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
 
   ttl 20.minutes

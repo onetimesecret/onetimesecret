@@ -176,8 +176,8 @@ class Onetime::App
       # rest of the data. This is a security feature.
       sess.disable_auth = !authentication_enabled?
 
-      # Update the session fields in redis
-      sess.update_fields  # calls update_time!
+      # Update the session fields in redis (including updated timestamp)
+      sess.save
 
       # Only set the cookie after session is for sure saved to redis
       is_secure = Onetime.conf[:site][:ssl]
@@ -192,7 +192,7 @@ class Onetime::App
       # the customer object.
       if cust.anonymous?
         sess.authenticated = false
-      elsif cust.verified.to_s != 'true' && !sess['authenticated_by']
+      elsif cust.verified.to_s != 'true' && !sess.authenticated_by
         sess.authenticated = false
       end
 

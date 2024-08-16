@@ -2,6 +2,7 @@
 
 module Onetime
   module Feedback
+    # TODO: Update for Familia v1.0 (implement as a full model -- no need to be backwards compatible)
     @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 11
     class << self
       attr_reader :values

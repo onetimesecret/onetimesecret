@@ -203,7 +203,7 @@ class Onetime::CustomDomain < Familia::Horreum
       OT.ld "[CustomDomain.create] Called with #{input} and #{custid}"
 
       parse(input, custid).tap do |obj|
-        OT.ld "[CustomDomain.tap] Got #{obj.all} #{obj.all}"
+        OT.ld "[CustomDomain.tap] Got #{obj.identifier} #{obj.to_h}"
         self.add obj # Add to CustomDomain.values, CustomDomain.owners
 
         domainid = obj.identifier

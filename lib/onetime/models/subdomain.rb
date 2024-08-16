@@ -9,12 +9,18 @@
 # The customer subdomain is distinct from CustomDomain (plural)
 # which is a list of domains that are managed by the customer.
 #
-class Onetime::Subdomain < Familia::HashKey
-  @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 6
+class Onetime::Subdomain < Familia::Horreum
+  db 6
 
-  include Onetime::Models::RedisHash
+  class_sorted_set :values, key: 'onetime:subdomain'
 
-  attr_accessor :values
+  identifier :custid
+
+  field :custid
+  field :cname
+  field :createed
+  field :updated
+  field :homepage
 
   def initialize custid=nil, cname=nil
     @prefix, @suffix = :customer, :subdomain
@@ -47,8 +53,8 @@ class Onetime::Subdomain < Familia::HashKey
   end
 
   def company_domain
-    return unless self['homepage']
-    URI.parse(self['homepage']).host
+    return unless self.homepage
+    URI.parse(self.homepage).host
   end
 
   module ClassMethods

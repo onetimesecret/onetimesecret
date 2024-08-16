@@ -165,7 +165,7 @@ module Onetime
           else
             self[:maxviews] = secret.maxviews
             self[:has_maxviews] = true if self[:maxviews] > 1
-            self[:view_count] = secret.view_count
+            self[:view_count] = secret.view_count # TODO: Remove
             if secret.viewable?
               self[:has_passphrase] = !secret.passphrase.to_s.empty?
               self[:can_decrypt] = secret.can_decrypt?

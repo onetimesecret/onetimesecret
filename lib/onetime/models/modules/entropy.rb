@@ -2,6 +2,8 @@
 
 module Onetime
   module Entropy
+    # TODO: To be removed altogether. The Entropy values already are not
+    # used any more for generating digests.
     @values = Familia::Set.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 11
     class << self
       attr_reader :values

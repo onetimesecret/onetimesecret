@@ -47,6 +47,11 @@ sessid2 = sess.sessid
 [sessid1.eql?(sessid2), sessid1.eql?(''), sessid1.class, sessid2.class, sessid2.to_i(36).positive?, sessid2.to_i(36).positive?]
 #=> [false, false, String, String, true, true]
 
+## Sessions always have a ttl value
+ttl = @sess.ttl
+[ttl.class, ttl]
+#=> [Integer, 20.minutes]
+
 ## Sessions have an identifier
 identifier = @sess.identifier
 [identifier.class, (48..52).include?(identifier.length)]

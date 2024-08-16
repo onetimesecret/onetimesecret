@@ -1,11 +1,14 @@
 
 class Onetime::EmailReceipt < Familia::Horreum
+  include Gibbler::Complex
+
   db 8
   ttl 30.days
+  prefix :secret
+  identifier :secretid
+  suffix :email
 
   class_sorted_set :values, key: 'onetime:emailreceipt'
-
-  identifier :secretid
 
   field :custid
   field :secretid
@@ -15,20 +18,16 @@ class Onetime::EmailReceipt < Familia::Horreum
   #
   #  secret:1234567890:email
   #
-  def initialize custid=nil, secretid=nil, message_response=nil
-    @prefix = :secret
-    @suffix = :email
-    @custid = custid
-    @secretid = secretid
-    @custid = custid.identifier if custid.is_a?(Familia::RedisObject)
-    @secretid = secretid.identifier if secretid.is_a?(Familia::RedisObject)
-    @message_response = message_response
-    super name, db: 8, ttl: 30.days
-  end
-
-  def identifier
-    @secretid  # Don't call the method
-  end
+  #def initialize custid=nil, secretid=nil, message_response=nil
+  #  @prefix = :secret
+  #  @suffix = :email
+  #  @custid = custid
+  #  @secretid = secretid
+  #  @custid = custid.identifier if custid.is_a?(Familia::RedisObject)
+  #  @secretid = secretid.identifier if secretid.is_a?(Familia::RedisObject)
+  #  @message_response = message_response
+  #  super name, db: 8, ttl: 30.days
+  #end
 
   def destroy! *args
     super

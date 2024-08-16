@@ -1,9 +1,30 @@
 
-class Onetime::Session < Familia::HashKey
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 1
-
-  include Onetime::Models::RedisHash
+class Onetime::Session < Familia::Horreum
   include Onetime::Models::RateLimited
+
+  db 1
+  ttl 20.minutes
+  prefix :session
+
+  class_sorted_set :values, key: "onetime:session"
+
+  identifier :generate_id
+
+  field :ipaddress
+  field :custid
+  field :useragent
+  field :stale
+  field :sessid
+  field :updated
+  field :created
+  field :authenticated
+  field :external_identifier
+  field :ttl
+  field :key
+  field :shrimp
+
+  # TODO: The authenticated_by field needs to be revisited
+  field :authenticated_by
 
   # When set to true, the session reports itself as not authenticated
   # regardless of the value of the authenticated field. This allows
@@ -16,10 +37,7 @@ class Onetime::Session < Familia::HashKey
   # be anonymous and the customer will be anonymous.
   attr_accessor :disable_auth
 
-  def initialize ipaddress, custid, useragent=nil
-    @ipaddress = ipaddress
-    @custid = custid
-    @useragent = useragent
+  def init
 
     # Defaulting the session ID to nil ensures we can't persist this instance
     # to redis until one is set (see `RedisHash#check_identifier!`). This is
@@ -33,13 +51,11 @@ class Onetime::Session < Familia::HashKey
 
     @disable_auth = false
 
-    OT.ld "[Session.initialize] Initialized session (not saved) #{self}"
-    super name, db: 1, ttl: 20.minutes
+    OT.ld "[Session.init] Initialized session #{self}"
   end
 
-  def sessid= sid
-    @sessid = sid
-    @name = name
+  def generate_id
+    @sessid ||= Familia.generate_id
     @sessid
   end
 
@@ -51,10 +67,6 @@ class Onetime::Session < Familia::HashKey
     fields_json = self.form_fields!
     return if fields_json.nil?
     OT::Utils.indifferent_params Yajl::Parser.parse(fields_json)
-  end
-
-  def identifier
-    @sessid  # Don't call the method
   end
 
   # The external identifier is used by the rate limiter to estimate a unique
@@ -81,40 +93,38 @@ class Onetime::Session < Familia::HashKey
   end
 
   def short_identifier
-    identifier[0, 12]
+    identifier.slice(0, 12)
   end
 
   def stale?
-    self[:stale].to_s == 'true'
+    self.stale.to_s == 'true'
   end
 
-  def update_fields hsh={}
-    hsh[:sessid] ||= sessid
-    super hsh
-  end
-
-  def update_sessid
+  def update_sessid!
     self.sessid = self.class.generate_id
   end
 
   def replace!
-    @custid ||= self[:custid]
+    @custid ||= self.custid
     newid = self.class.generate_id
 
     # Rename the existing key in redis if necessary
-    rename name(newid) if exists?
-    self.sessid = newid
-
-    clear_cache
+    if exists?
+      self.sessid = newid
+      rename rediskey
+    end
 
     # This update is important b/c it ensures that the
     # data gets written to redis.
-    update_fields :stale => 'false', :sessid => newid
+    self.stale = 'false'
+    self.sessid = newid
+    save
+
     sessid
   end
 
   def shrimp? guess
-    shrimp = self[:shrimp].to_s
+    shrimp = self.shrimp.to_s
     (!shrimp.empty?) && shrimp == guess.to_s
   end
 
@@ -143,7 +153,7 @@ class Onetime::Session < Familia::HashKey
   end
 
   def unset_error_message
-    self.error_message = nil
+    self.error_message = nil # todo
   end
 
   def set_error_message msg
@@ -210,7 +220,7 @@ class Onetime::Session < Familia::HashKey
       OT.ld "[Session.create] Creating new session #{sess}"
 
       # force the storing of the fields to redis
-      sess.update_sessid
+      sess.update_sessid!
       sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
       sess.save
       add sess # to the @values sorted set

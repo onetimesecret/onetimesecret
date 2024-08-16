@@ -1,7 +1,6 @@
 
 
-class Onetime::SplitTest < Familia::HashKey
-  include Onetime::Models::RedisHash
+class Onetime::SplitTest < Familia::Horreum
 
   @tests = {}
 

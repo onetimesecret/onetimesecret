@@ -24,7 +24,7 @@ OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot! :app
 
 # Setup some variables for these tryouts
-@now = Time.now
+@now = Time.now.strftime("%Y%m%d%H%M%S")
 @model_class = OT::Customer
 @email_address = "tryouts+#{@now}@onetimesecret.com"
 @cust = OT::Customer.new @email_address
@@ -40,6 +40,7 @@ OT.boot! :app
 #=> @email_address
 
 ## New instance of customer has a rediskey
+p [:email, @email_address]
 @cust.rediskey
 #=> "customer:#{@email_address}:object"
 
@@ -58,6 +59,11 @@ OT.boot! :app
 ## New un-saved instance of customer is not verified
 @cust.verified?
 #=> false
+
+## Customers don't have a default ttl
+ttl = @cust.ttl
+[ttl.class, ttl]
+#=> [NilClass, nil]
 
 ## New un-saved instance of customer is not active
 @cust.active?
