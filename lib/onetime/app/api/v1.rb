@@ -145,9 +145,11 @@ class Onetime::App
 
     private
     def metadata_hsh md, opts={}
-      hsh = md.all
-      secret_ttl = opts[:secret_ttl] ?
-        opts[:secret_ttl].to_i : md.realttl.to_i
+      hsh = md.refresh.to_h
+
+      # Show the secret's actual real ttl as of now if we have it. If we don't
+      # (for example if it was burned) then we have the metadata record's ttl.
+      secret_ttl = opts[:secret_ttl] ? opts[:secret_ttl].to_i : md.realttl.to_i
       ret = {
         :custid => hsh['custid'],
         :metadata_key => hsh['key'],
