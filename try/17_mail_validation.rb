@@ -133,7 +133,7 @@ Truemail.validate(@invalid_no_domain, with: :regex).result.valid?
 #=> false
 
 ## Truemail knows an invalid email address (via mx)
-Truemail.validate(@invalid_no_tld, with: mx).result.valid?
+Truemail.validate(@invalid_no_tld, with: :mx).result.valid?
 #=> false
 
 ## Truemail knows an invalid email address (via smtp)

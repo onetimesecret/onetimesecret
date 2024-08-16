@@ -30,6 +30,7 @@ gem 'thin'
 #gem 'whois'
 gem 'yajl-ruby'
 
+gem 'dotenv'
 gem 'mustache'
 
 gem 'drydock'
