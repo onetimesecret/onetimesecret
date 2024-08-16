@@ -27,6 +27,12 @@ class Onetime::Session < Familia::Horreum
   # TODO: The authenticated_by field needs to be revisited
   field :authenticated_by
 
+  # In some UI flows, we temporarily store form values after a form
+  # error so that the form UI inputs can be prepopulated, even if
+  # there's a redirect inbetween. Ideally we can move this to local
+  # storage with Vue.
+  field :form_fields
+
   # When set to true, the session reports itself as not authenticated
   # regardless of the value of the authenticated field. This allows
   # the site to disable authentication without affecting the session
@@ -36,11 +42,10 @@ class Onetime::Session < Familia::Horreum
   #
   # During the time that authentication is disabled, the session will
   # be anonymous and the customer will be anonymous.
+  #
+  # This value is set on every request and should not be persisted.
+  #
   attr_accessor :disable_auth
-
-  # Used to temporarily store form values after a form error (or
-  # when intended ti ==o load the page with form fields preloaded).
-  attr_accessor :form_fields
 
   def init
     # This regular attribute that gets set on each request (if necessary). When
@@ -239,15 +244,12 @@ class Onetime::Session < Familia::Horreum
     end
 
     def create ipaddress, custid, useragent=nil
-      sess = new ipaddress, custid, useragent
+      sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
 
       OT.ld "[Session.create] Creating new session #{sess}"
 
-      # force the storing of the fields to redis
-      sess.update_sessid!
-      sess.ipaddress, sess.custid, sess.useragent = ipaddress, custid, useragent
       sess.save
-      add sess # to the @values sorted set
+      add sess # to the class-level values relation (sorted set)
       sess
     end
 

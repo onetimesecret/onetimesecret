@@ -325,15 +325,15 @@ class Onetime::Customer < Familia::Horreum
       new(:anonymous).freeze
     end
     def exists? custid
-      cust = new custid
+      cust = new custid: custid
       cust.exists?
     end
     def load custid
-      cust = new custid
+      cust = new custid: custid
       cust.exists? ? cust : nil
     end
     def create custid, email=nil
-      cust = new custid
+      cust = new custid: custid
       cust.email = email || custid
       cust.custid = custid
       cust.role = 'customer'
