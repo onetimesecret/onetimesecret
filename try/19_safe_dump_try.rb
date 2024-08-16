@@ -9,7 +9,7 @@ OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot!
 
 ## By default there are no safe dump fields
-OT::Models::SafeDump.safe_dump_fields
+Familia::Features::SafeDump.safe_dump_fields
 #=> []
 
 ## Implementing models like Customer can define safe dump fields

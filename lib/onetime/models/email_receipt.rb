@@ -4,9 +4,12 @@ class Onetime::EmailReceipt < Familia::Horreum
 
   db 8
   ttl 30.days
+
   prefix :secret
   identifier :secretid
   suffix :email
+
+  feature :safe_dump
 
   class_sorted_set :values, key: 'onetime:emailreceipt'
 

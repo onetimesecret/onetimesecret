@@ -6,9 +6,10 @@ module Onetime
 
     db 8
     ttl 7.days # default only, can be overridden at create time
-
     prefix :secret
     identifier :generate_id
+
+    feature :safe_dump
 
     gibbler :custid, :passphrase_temp, :entropy # TODO: Remove as part of Familia v1.0.0?
 

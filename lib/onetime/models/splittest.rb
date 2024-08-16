@@ -2,6 +2,8 @@
 
 class Onetime::SplitTest < Familia::Horreum
 
+  feature :safe_dump
+
   @tests = {}
 
   attr_accessor :values

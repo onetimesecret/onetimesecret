@@ -7,6 +7,8 @@ module Onetime
     ttl 14.days
     prefix :metadata
 
+    feature :safe_dump
+
     identifier :generate_id
 
     field :custid

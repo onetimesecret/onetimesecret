@@ -11,10 +11,13 @@
 #
 class Onetime::Subdomain < Familia::Horreum
   db 6
+  prefix :customer
+  identifier :custid
+  suffix :subdomain
+
+  feature :safe_dump
 
   class_sorted_set :values, key: 'onetime:subdomain'
-
-  identifier :custid
 
   field :custid
   field :cname

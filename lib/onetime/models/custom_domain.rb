@@ -30,6 +30,7 @@ class Onetime::CustomDomain < Familia::Horreum
   include Gibbler::Complex
 
   db 6
+  prefix :custom_domain
 
   feature :safe_dump
 

@@ -7,6 +7,8 @@ class Onetime::Customer < Familia::Horreum
   db 6
   prefix :customer
 
+  feature :safe_dump
+
   class_sorted_set :values, key: 'onetime:customers'
   class_hashkey :domains, key: 'onetime:customers:domains'
   class_hashkey :global, key: 'customer:GLOBAL:object'

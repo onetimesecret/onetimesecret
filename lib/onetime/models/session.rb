@@ -6,6 +6,8 @@ class Onetime::Session < Familia::Horreum
   ttl 20.minutes
   prefix :session
 
+  feature :safe_dump
+
   class_sorted_set :values, key: "onetime:session"
 
   identifier :generate_id
