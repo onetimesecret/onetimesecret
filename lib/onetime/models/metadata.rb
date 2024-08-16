@@ -15,6 +15,9 @@ module Onetime
     field :state
     field :key
     field :secret_key
+    field :secret_shortkey
+    field :secret_ttl
+    field :share_domain
     field :passphrase
     field :viewed
     field :shared

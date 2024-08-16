@@ -25,6 +25,9 @@ module Onetime
     field :verification
     field :updated
     field :created
+    field :maxviews # always 1 (here for backwards compat)
+
+    counter :view_count, ttl: 14.days
 
     # NOTE: this field is a nullop. It's only populated if a value was entered
     # into a hidden field which is something a regular person would not do.
@@ -60,20 +63,15 @@ module Onetime
       key.slice(0,6)
     end
 
-    # TODO: Remove. See note for `maxviews?` also.
-    def view_count
-      (get_value(:view_count) || 0).to_i
-    end
-
     def maxviews
-      (get_value(:maxviews) || 1).to_i
+      1
     end
 
     # TODO: Remove. If we get around to support some manner of "multiple views"
     # it would be implmented as separate secrets with the same value. All of them
     # viewable only once.
     def maxviews?
-      self.view_count >= self.maxviews
+      self.view_count.to_s.to_i >= self.maxviews
     end
 
     def viewable?
