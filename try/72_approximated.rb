@@ -9,6 +9,10 @@
 
 # NOTE: These tryouts send real requests to the Approximate API.
 
+require 'dotenv'
+
+Dotenv.load('.env')
+
 require_relative '../lib/onetime'
 require_relative './test_helpers'
 
