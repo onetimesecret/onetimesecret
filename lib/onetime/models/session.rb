@@ -111,6 +111,10 @@ class Onetime::Session < Familia::Horreum
     self.sessid = self.class.generate_id
   end
 
+  def rename(newkey)
+    redis.rename rediskey, newkey
+  end
+
   def replace!
     @custid ||= self.custid
     newid = self.class.generate_id
@@ -118,7 +122,7 @@ class Onetime::Session < Familia::Horreum
     # Rename the existing key in redis if necessary
     if exists?
       self.sessid = newid
-      rename rediskey
+      #self.rename rediskey # disabled, part of Familia v1.0 updates
     end
 
     # This update is important b/c it ensures that the

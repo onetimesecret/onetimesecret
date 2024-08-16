@@ -118,7 +118,7 @@ sess = OT::Session.load @sess_disabled_auth.sessid
 #=> [true, false]
 
 ## Reload the same instance of the session and check authenticated status
-@sess_disabled_auth.reload!
+@sess_disabled_auth = OT::Session.from_key @sess_disabled_auth.rediskey
 [@sess_disabled_auth.authenticated?, @sess_disabled_auth.disable_auth]
 #=> [false, true]
 
