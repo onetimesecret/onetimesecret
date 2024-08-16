@@ -4,6 +4,7 @@ module Onetime::Models
   module Passphrase
     def self.included(base)
       base.field :passphrase
+      base.field :passphrase_encryption
     end
 
     attr_accessor :passphrase_temp

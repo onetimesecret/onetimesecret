@@ -16,8 +16,10 @@
 # behavior without needing to run the full application, allowing for targeted testing
 # of these specific scenarios.
 
-
+#ENV['FAMILIA_TRACE'] = '1'
 require_relative '../lib/onetime'
+
+#Familia.debug = true
 
 # Load the app
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
@@ -25,7 +27,6 @@ OT.boot! :app
 
 # Setup some variables for these tryouts
 @now = Time.now.strftime("%Y%m%d%H%M%S")
-@model_class = OT::Customer
 @email_address = "tryouts+#{@now}@onetimesecret.com"
 @cust = OT::Customer.new @email_address
 
@@ -36,6 +37,7 @@ OT.boot! :app
 #=> nil
 
 ## New instance of customer has a custid
+p @cust.to_h
 @cust.custid
 #=> @email_address
 

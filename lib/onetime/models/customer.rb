@@ -2,7 +2,6 @@
 
 class Onetime::Customer < Familia::Horreum
   include Gibbler::Complex
-  include Onetime::Models::Passphrase
 
   db 6
   prefix :customer
@@ -21,14 +20,12 @@ class Onetime::Customer < Familia::Horreum
   field :custid
   field :email
   field :key
-  field :passphrase_encryption
   field :role
   field :sessid
   field :apitoken
   field :verified
   field :secrets_created
   field :planid
-  field :passphrase
   field :created
   field :updated
   field :last_login
@@ -339,5 +336,17 @@ class Onetime::Customer < Familia::Horreum
     end
   end
 
+  # We include this at the end so that the added fields
+  # appear at the end of the field list instead of the
+  # very start. This avoids the subtle behaviour where
+  # Customer.new (or any Familia::Horreum subclass)
+  # accepts positional arguments in the order they
+  # are defined at the top of the class definition.
+  #
+  # e.g. `Customer.new('my@example.com')`. If we include
+  # Passphrase at the top, instead of custid, this email
+  # address would get written to the passphrase field.
+  #
+  include Onetime::Models::Passphrase
   extend ClassMethods
 end

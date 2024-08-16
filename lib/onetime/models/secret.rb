@@ -1,7 +1,6 @@
 
 module Onetime
   class Secret < Familia::Horreum
-    include Onetime::Models::Passphrase
     include Gibbler::Complex
 
     db 8
@@ -20,7 +19,6 @@ module Onetime
     field :original_size
     field :value_checksum
     field :value_encryption
-    field :passphrase_encryption
     field :ttl
     field :share_domain
     field :custid
@@ -233,5 +231,9 @@ module Onetime
         Digest::SHA256.hexdigest(input) # TODO: Use Familila.generate_id
       end
     end
+
+    # See Customer model for explanation about why
+    # we include extra fields at the end here.
+    include Onetime::Models::Passphrase
   end
 end
