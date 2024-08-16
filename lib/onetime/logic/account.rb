@@ -24,8 +24,6 @@ module Onetime::Logic
           @stripe_customer = cust.get_stripe_customer
           @stripe_subscription = cust.get_stripe_subscription
 
-          update_customer_fields = {}
-
           # Rudimentary normalization to make sure that all Onetime customers
           # that have a stripe customer and subscription record, have the
           # RedisHash fields stripe_customer_id and stripe_subscription_id
@@ -33,11 +31,11 @@ module Onetime::Logic
           # depends on these ID fields being populated.
           if !cust.stripe_customer_id && stripe_customer
             OT.info "Recording stripe customer ID"
-            update_customer_fields[:stripe_customer_id] = stripe_customer.id
+            cust.stripe_customer_id = stripe_customer.id
           end
           if !cust.stripe_subscription_id && stripe_subscription
             OT.info "Recording stripe subscription ID"
-            update_customer_fields[:stripe_subscription_id] = stripe_subscription.id
+            cust.stripe_subscription_id = stripe_subscription.id
           end
 
           # Just incase we didn't capture the Onetime Secret planid update after
@@ -45,10 +43,10 @@ module Onetime::Logic
           # feel good to pay for something and still see "Basic Plan" at the
           # top of your account page.
           if stripe_subscription && stripe_subscription.plan
-            update_customer_fields[:planid] = 'identity' # TOOD: obviously find a better way
+            cust.planid = 'identity' # TOOD: obviously find a better way
           end
 
-          cust.update_fields(**update_customer_fields)
+          cust.save
         end
 
       end
@@ -89,20 +87,22 @@ module Onetime::Logic
       end
       def process
 
-
         @plan = OT::Plan.plan(planid)
         @cust = OT::Customer.create custid
 
         cust.update_passphrase password
-        sess.update_fields(custid: cust.custid)
+        sess.custid = cust.custid
+        sess.save
 
         @customer_role = if OT.conf[:colonels].member?(cust.custid)
                            'colonel'
                          else
                            'customer'
                          end
-
-        cust.update_fields(planid: @plan.planid, verified: @autoverify.to_s, role: @customer_role)
+        cust.planid = @plan.planid
+        cust.verified = @autoverify.to_s
+        cust.role = @customer_role.to_s
+        cust.save
 
         OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
         OT::Logic.stathat_count("New Customers (OTS)", 1)
@@ -194,7 +194,8 @@ module Onetime::Logic
 
           OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
 
-          sess.update_fields :custid => cust.custid, :authenticated => 'true'
+          sess.custid = cust.custid
+          sess.authenticated = 'true'
           sess.ttl = session_ttl if @stay
           sess.save
           cust.save

@@ -152,9 +152,9 @@ sid = OT::Session.generate_id
 
 ## Can update fields
 @sess_with_changes = OT::Session.create @ipaddress, @custid, @useragent
-@sess_with_changes.update_fields custid: 'tryouts', planid: :testing
-#=> "OK"
+@sess_with_changes.update_fields custid: 'tryouts', stale: 'testing'
+#=> true
 
 ## Can update fields (verify changes)
-[@sess_with_changes.custid, @sess_with_changes.planid]
+[@sess_with_changes.custid, @sess_with_changes.stale]
 #=> ["tryouts", "testing"]
