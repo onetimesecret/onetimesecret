@@ -2,12 +2,16 @@
 
 module Onetime::Models
   module Passphrase
+    def self.included(base)
+      base.field :passphrase
+    end
+
     attr_accessor :passphrase_temp
 
-    def update_passphrase v
+    def update_passphrase val
       self.passphrase_encryption = "1"
-      @passphrase_temp = v
-      self.passphrase = BCrypt::Password.create(v, :cost => 12).to_s
+      @passphrase_temp = val
+      self.passphrase = BCrypt::Password.create(val, cost: 12).to_s
     end
 
     def has_passphrase?
@@ -26,4 +30,29 @@ module Onetime::Models
       end
     end
   end
+end
+
+__END__
+
+require 'bcrypt'
+require 'benchmark'
+
+# Sample password
+password =  '58ww8zwt5tvt40cvmbmpqk4f7sklk4prk032dh3gwvbn6jkavk3elvb9qtrasa5'
+
+# Define the range of cost factors to test
+# cost factor 10: 0.085388 seconds
+# cost factor 11: 0.122143 seconds
+# cost factor 12: 0.230641 seconds
+# cost factor 13: 0.462779 seconds
+# cost factor 14: 0.922170 seconds
+cost_factors = (10..14)
+
+# Run the benchmark for each cost factor
+puts "Using password: #{password}"
+cost_factors.each do |cost|
+  time = Benchmark.measure do
+    passphrase = BCrypt::Password.create(password, cost: cost).to_s
+  end
+  puts "Cost factor #{cost}: #{time.real} seconds"
 end

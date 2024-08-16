@@ -20,6 +20,7 @@ module Onetime
     field :original_size
     field :value_checksum
     field :value_encryption
+    field :passphrase_encryption
     field :ttl
     field :share_domain
     field :custid
