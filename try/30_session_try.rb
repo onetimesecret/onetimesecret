@@ -30,9 +30,8 @@ OT.boot!
 
 ## Sessions have a NIL session ID when _new_ is called
 sess = OT::Session.new @ipaddress, @custid, @useragent
-sessid = sess.sessid
-[sessid.class, sessid]
-#=> [NilClass, nil]
+sess.instance_variable_get(:@sessid)
+#=> nil
 
 ## Sessions have a session ID when _create_ is called
 sessid = @sess.sessid
