@@ -22,6 +22,7 @@ module Onetime
     field :ttl
     field :share_domain
     field :custid
+    field :verification
     field :updated
     field :created
 

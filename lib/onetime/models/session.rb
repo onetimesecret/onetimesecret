@@ -21,6 +21,8 @@ class Onetime::Session < Familia::Horreum
   field :created
   field :authenticated
   field :external_identifier
+  field :info_message
+  field :error_message
   field :key
   field :shrimp
 
