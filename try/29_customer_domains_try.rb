@@ -39,13 +39,13 @@ OT.boot! :app
 #=> true
 
 ## A customer's custom_domain list updates when a new domain is added
-OT::CustomDomain.create(@valid_domain, @cust)
+OT::CustomDomain.create(@valid_domain, @cust.custid)
 @cust.custom_domains.empty?
 #=> false
 
 ## A customer's custom_domain list updates when a new domain is added
-custom_domain = OT::CustomDomain.load(@valid_domain, @cust)
-[custom_domain.class, custom_domain[:display_domain]]
+custom_domain = OT::CustomDomain.load(@valid_domain, @cust.custid)
+[custom_domain.class, custom_domain.display_domain]
 #=> [OT::CustomDomain, @valid_domain]
 
 ## A customer's custom_domain list updates when a new domain is added
@@ -54,7 +54,7 @@ custom_domain = OT::CustomDomain.load(@valid_domain, @cust)
 
 ## A customer's custom_domain list updates when a new domain is added
 custom_domain = @cust.custom_domains.first
-[custom_domain.class, custom_domain[:display_domain]]
+[custom_domain.class, custom_domain.display_domain]
 #=> [OT::CustomDomain, @valid_domain]
 
 ## A customer's custom_domain list updates when an existing domain is removed

@@ -238,7 +238,7 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def custom_domains
-    custom_domains_list.revmembers.collect { |domain| OT::CustomDomain.load domain, self }.compact
+    custom_domains_list.revmembers.collect { |domain| OT::CustomDomain.load domain, self.custid }.compact
   end
 
   def add_custom_domain obj

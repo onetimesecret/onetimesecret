@@ -39,6 +39,10 @@ class Onetime::Session < Familia::Horreum
   # be anonymous and the customer will be anonymous.
   attr_accessor :disable_auth
 
+  # Used to temporarily store form values after a form error (or
+  # when intended ti ==o load the page with form fields preloaded).
+  attr_accessor :form_fields
+
   def init
 
     # Defaulting the session ID to nil ensures we can't persist this instance
@@ -66,8 +70,9 @@ class Onetime::Session < Familia::Horreum
   end
 
   def get_form_fields!
-    fields_json = self.form_fields!
+    fields_json = self.form_fields # previously name self.form_fields!
     return if fields_json.nil?
+    self.form_fields = nil
     OT::Utils.indifferent_params Yajl::Parser.parse(fields_json)
   end
 

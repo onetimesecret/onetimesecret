@@ -91,7 +91,7 @@ module Onetime::Logic
 
         limit_action :remove_domain
 
-        @custom_domain = OT::CustomDomain.load(@domain_input, @cust)
+        @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
         raise_form_error "Domain not found" unless @custom_domain
       end
 
@@ -177,7 +177,7 @@ module Onetime::Logic
         # the display_domain). That way we need to combine with the custid
         # in order to find it. It's a way of proving ownership. Vs passing the
         # domainid in the URL path which gives up the goods.
-        @custom_domain = OT::CustomDomain.load(@domain_input, @cust)
+        @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
 
         raise_form_error "Domain not found" unless @custom_domain
       end
