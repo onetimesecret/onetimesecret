@@ -46,6 +46,36 @@ p [:email, @email_address]
 @cust.rediskey
 #=> "customer:#{@email_address}:object"
 
+## Can "create" an anonymous user (more like simulate)
+@anonymous = OT::Customer.anonymous
+@anonymous.custid
+#=> :anon
+
+## Anonymous is a Customer class
+@anonymous.class
+#=> OT::Customer
+
+## Anonymous knows it's anonymous
+@anonymous.anonymous?
+#=> true
+
+## Anonymous is frozen in time
+@anonymous.frozen?
+#=> true
+
+## Anonymous doesn't exist
+#@anonymous.destroy!
+@anonymous.exists?
+#=> false
+
+## Trying to save anonymous raises hell on earth
+begin
+  @anonymous.save
+rescue OT::Problem => e
+  [e.class, e.message]
+end
+#=> [Onetime::Problem, "Anonymous cannot be saved Onetime::Customer customer:anon:object"]
+
 ## Object name and rediskey are equivalent
 @cust.rediskey.eql?(@cust.name)
 #=> true

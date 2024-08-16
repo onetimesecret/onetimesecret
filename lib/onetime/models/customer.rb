@@ -189,7 +189,7 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def anonymous?
-    custid.to_s.eql?('anon')
+    custid.to_s.to_sym.eql?(:anon)
   end
 
   def obscure_email
@@ -269,6 +269,22 @@ class Onetime::Customer < Familia::Horreum
     OT::Secret.encryption_key OT.global_secret, custid
   end
 
+  # Marks the customer account as requested for destruction.
+  #
+  # This method doesn't actually destroy the customer record but prepares it
+  # for eventual deletion after a grace period. It performs the following actions:
+  #
+  # 1. Sets a Time To Live (TTL) of 365 days on the customer record.
+  # 2. Regenerates the API token.
+  # 3. Clears the passphrase.
+  # 4. Sets the verified status to 'false'.
+  # 5. Changes the role to 'user_deleted_self'.
+  #
+  # The customer record is kept for a grace period to handle any remaining
+  # account-related tasks, such as pro-rated refunds or sending confirmation
+  # notifications.
+  #
+  # @return [void]
   def destroy_requested!
     # NOTE: we don't use cust.destroy! here since we want to keep the
     # customer record around for a grace period to take care of any
@@ -288,8 +304,15 @@ class Onetime::Customer < Familia::Horreum
     save
   end
 
+  # Saves the customer object to the database.
+  #
+  # @raise [OT::Problem] If attempting to save an anonymous customer.
+  # @return [Boolean] Returns true if the save was successful.
+  #
+  # This method overrides the default save behavior to prevent
+  # anonymous customers from being persisted to the database.
   def save
-    Familia.warn "[save] Anonymous #{self.class} #{rediskey} #{to_h}" if anonymous?
+    raise OT::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
     super
   end
 
@@ -313,25 +336,30 @@ class Onetime::Customer < Familia::Horreum
     def add cust
       self.values.add OT.now.to_i, cust.identifier
     end
+
     def all
       self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
     end
+
     def recent duration=30.days, epoint=OT.now.to_i
       spoint = OT.now.to_i-duration
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
     def anonymous
-      new(:anonymous).freeze
+      new(:anon).freeze
     end
+
     def exists? custid
       cust = new custid: custid
       cust.exists?
     end
+
     def load custid
       cust = new custid: custid
       cust.exists? ? cust : nil
     end
+
     def create custid, email=nil
       cust = new custid: custid
       cust.email = email || custid
