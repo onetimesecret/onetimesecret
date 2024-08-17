@@ -154,21 +154,8 @@ module Onetime::Logic
         #@stay = params[:stay].to_s == "true"
         @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
-        if @potential_custid.to_s.index(':as:')
-          @colonelname, @potential_custid = *@potential_custid.downcase.split(':as:')
-        else
-          @potential_custid = @potential_custid.downcase if @potential_custid
-        end
-        if @passwd.to_s.empty?
-          @cust = nil
-        elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@potential_custid)
-          OT.info "[login-as-attempt] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
-          potential = OT::Customer.load @colonelname
-          @colonel = potential if potential.passphrase?(@passwd)
-          @cust = OT::Customer.load @potential_custid if @colonel.role?(:colonel)
-          sess.authenticated_by = @colonel.custid
-          OT.info "[login-as-success] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
-        elsif (potential = OT::Customer.load(@potential_custid))
+
+        if (potential = OT::Customer.load(@potential_custid))
           @cust = potential if potential.passphrase?(@passwd)
         end
       end
@@ -182,6 +169,7 @@ module Onetime::Logic
       end
 
       def process
+
         if success?
           @greenlighted = true
 

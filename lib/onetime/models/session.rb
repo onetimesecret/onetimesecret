@@ -26,9 +26,6 @@ class Onetime::Session < Familia::Horreum
   field :key
   field :shrimp
 
-  # TODO: The authenticated_by field needs to be revisited
-  field :authenticated_by
-
   # In some UI flows, we temporarily store form values after a form
   # error so that the form UI inputs can be prepopulated, even if
   # there's a redirect inbetween. Ideally we can move this to local

@@ -192,7 +192,7 @@ class Onetime::App
       # the customer object.
       if cust.anonymous?
         sess.authenticated = false
-      elsif cust.verified.to_s != 'true' && !sess.authenticated_by
+      elsif cust.verified.to_s != 'true'
         sess.authenticated = false
       end
 
