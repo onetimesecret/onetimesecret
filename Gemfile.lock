@@ -154,7 +154,6 @@ GEM
       sysinfo (~> 0.10)
     unicode-display_width (2.5.0)
     uri-redis (1.3.0)
-    yajl-ruby (1.4.3)
     yard (0.9.36)
     yard-sorbet (0.8.1)
       sorbet-runtime (>= 0.5)
@@ -202,7 +201,6 @@ DEPENDENCIES
   truemail
   tryouts
   uri-redis (~> 1.3.0)
-  yajl-ruby
 
 RUBY VERSION
    ruby 3.2.4p170

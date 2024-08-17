@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'json'
+
 module Onetime::Models
 
   # Module containing helper methods for session-related functionality
@@ -29,12 +31,9 @@ module Onetime::Models
     def get_form_fields!
       fields_json = self.form_fields # previously name self.form_fields!
       return if fields_json.nil?
-      self.form_fields = nil
-      OT::Utils.indifferent_params Yajl::Parser.parse(fields_json)
-    end
-
-    def unset_error_message
-      self.error_message = nil # todo
+      ret = OT::Utils.indifferent_params JSON.parse(fields_json) # TODO: Use refinement
+      self.hdel :form_fields
+      ret
     end
 
     def set_error_message msg
@@ -45,8 +44,8 @@ module Onetime::Models
       self.info_message = msg
     end
 
-    def session_group groups
-      sessid.to_i(16) % groups.to_i
+    def _json msg, type=:error
+      {type: type, content: msg}.to_json
     end
 
   end

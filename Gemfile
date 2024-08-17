@@ -24,14 +24,11 @@ gem 'addressable'
 
 gem 'rack'
 
+gem 'dotenv'
 gem 'multi_json'
+gem 'mustache'
 gem 'public_suffix'
 gem 'thin'
-#gem 'whois'
-gem 'yajl-ruby'
-
-gem 'dotenv'
-gem 'mustache'
 
 gem 'drydock'
 gem 'familia', '~> 1.0.0.pre.rc2'

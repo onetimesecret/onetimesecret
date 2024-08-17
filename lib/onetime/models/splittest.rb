@@ -1,5 +1,12 @@
 
 
+
+# An example of a session method to create groups.
+#
+#  def session_group groups
+#    sessid.to_i(16) % groups.to_i
+#  end
+
 class Onetime::SplitTest < Familia::Horreum
 
   feature :safe_dump
