@@ -349,15 +349,12 @@ class Onetime::Customer < Familia::Horreum
     end
 
     def load custid
-      cust = new custid: custid
-      cust.exists? ? cust : nil
+      from_redis custid
     end
 
     def create custid, email=nil
-      cust = new custid: custid
+      cust = new custid: custid, role: 'customer'
       cust.email = email || custid
-      cust.custid = custid
-      cust.role = 'customer'
       cust.save
       add cust
       cust
