@@ -21,16 +21,8 @@ class Onetime::Session < Familia::Horreum
   field :created
   field :authenticated
   field :external_identifier
-  field :info_message
-  field :error_message
   field :key
   field :shrimp
-
-  # In some UI flows, we temporarily store form values after a form
-  # error so that the form UI inputs can be prepopulated, even if
-  # there's a redirect inbetween. Ideally we can move this to local
-  # storage with Vue.
-  field :form_fields
 
   # When set to true, the session reports itself as not authenticated
   # regardless of the value of the authenticated field. This allows
@@ -63,17 +55,6 @@ class Onetime::Session < Familia::Horreum
   def sessid
     @sessid ||= self.class.generate_id
     @sessid
-  end
-
-  def set_form_fields hsh
-    self.form_fields = hsh.to_json unless hsh.nil?
-  end
-
-  def get_form_fields!
-    fields_json = self.form_fields # previously name self.form_fields!
-    return if fields_json.nil?
-    self.form_fields = nil
-    OT::Utils.indifferent_params Yajl::Parser.parse(fields_json)
   end
 
   # The external identifier is used by the rate limiter to estimate a unique
@@ -157,22 +138,6 @@ class Onetime::Session < Familia::Horreum
     return OT::Customer.anonymous if anonymous?
     cust = OT::Customer.load custid
     cust.nil? ? OT::Customer.anonymous : cust
-  end
-
-  def unset_error_message
-    self.error_message = nil # todo
-  end
-
-  def set_error_message msg
-    self.error_message = msg
-  end
-
-  def set_info_message msg
-    self.info_message = msg
-  end
-
-  def session_group groups
-    sessid.to_i(16) % groups.to_i
   end
 
   module ClassMethods
