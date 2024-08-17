@@ -4,18 +4,6 @@ require_relative 'base'
 module Onetime::Logic
   module Welcome
 
-    class ExampleClass < OT::Logic::Base
-      def process_params
-      end
-
-      def raise_concerns
-        limit_action :example_class
-      end
-
-      def process
-      end
-    end
-
     class FromStripePaymentLink < OT::Logic::Base
       attr_reader :checkout_session_id, :checkout_session, :checkout_email, :update_customer_fields
 
@@ -96,7 +84,6 @@ module Onetime::Logic
             sess.save
 
           end
-
 
         end
 
