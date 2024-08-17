@@ -12,6 +12,7 @@ module Onetime
 
     gibbler :custid, :passphrase_temp, :entropy # TODO: Remove as part of Familia v1.0.0?
 
+    field :custid
     field :state
     field :value
     field :key
@@ -21,7 +22,6 @@ module Onetime
     field :value_encryption
     field :ttl
     field :share_domain
-    field :custid
     field :verification
     field :updated
     field :created
