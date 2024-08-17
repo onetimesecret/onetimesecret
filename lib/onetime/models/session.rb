@@ -120,12 +120,12 @@ class Onetime::Session < Familia::Horreum
   end
 
   def add_shrimp
-    self.shrimp ||= self.class.generate_id
+    self.shrimp! self.class.generate_id if self.shrimp.to_s.empty?
     self.shrimp
   end
 
   def clear_shrimp!
-    delete :shrimp
+    hdel! :shrimp
     nil
   end
 
@@ -134,7 +134,7 @@ class Onetime::Session < Familia::Horreum
   end
 
   def anonymous?
-    disable_auth || sessid.to_s == 'anon' || sessid.to_s.empty?
+    disable_auth || sessid.to_s.to_sym == :anon || sessid.to_s.empty?
   end
 
   def load_customer
