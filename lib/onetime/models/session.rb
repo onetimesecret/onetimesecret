@@ -107,17 +107,6 @@ class Onetime::Session < Familia::Horreum
     self.stale.to_s == 'true'
   end
 
-  def update_sessid!
-    self.sessid = self.class.generate_id
-  end
-
-  def update_fields(**kwargs)
-    kwargs.each do |field, value|
-      self.send("#{field}=", value)
-    end
-    self.save
-  end
-
   def rename(newkey)
     redis.rename rediskey, newkey
   end

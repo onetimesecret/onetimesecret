@@ -56,7 +56,7 @@ module Onetime::Logic
           # authenticated account.
 
           # TODO: Handle case where the user is already a Stripe customer
-          cust.update_fields(**update_customer_fields)
+          cust.commit_fields(**update_customer_fields)
 
         else
           # If the user is not authenticated, check if the email address is already
@@ -71,7 +71,7 @@ module Onetime::Logic
 
             OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.email}"
 
-            cust.update_fields(**update_customer_fields)
+            cust.commit_fields(**update_customer_fields)
 
             raise OT::Redirect.new('/signin')
           else
@@ -82,7 +82,7 @@ module Onetime::Logic
             cust.verified = "true"
             cust.role = "customer"
             cust.update_passphrase Onetime::Utils.strand(12)
-            cust.update_fields(**update_customer_fields)
+            cust.commit_fields(**update_customer_fields)
 
             # Create a completely new session, new id, new everything (incl
             # cookie which the controllor will implicitly do above when it
@@ -91,7 +91,7 @@ module Onetime::Logic
 
             OT.info "[FromStripePaymentLink:login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
 
-            sess.update_fields :custid => cust.custid, :authenticated => 'true'
+            sess.commit_fields :custid => cust.custid, :authenticated => 'true'
             sess.ttl = session_ttl if @stay
             sess.save
 

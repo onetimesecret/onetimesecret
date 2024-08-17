@@ -229,13 +229,6 @@ class Onetime::Customer < Familia::Horreum
     OT::Session.load sessid unless sessid.to_s.empty?
   end
 
-  def update_fields(**kwargs)
-    kwargs.each do |field, value|
-      self.send("#{field}=", value)
-    end
-    self.save
-  end
-
   def metadata
     metadata_list.revmembers.collect { |key| OT::Metadata.load key }.compact
   end

@@ -158,7 +158,7 @@ sid = OT::Session.generate_id
 
 ## Can update fields
 @sess_with_changes = OT::Session.create @ipaddress, @custid, @useragent
-@sess_with_changes.update_fields custid: 'tryouts', stale: 'testing'
+@sess_with_changes.commit_fields custid: 'tryouts', stale: 'testing'
 #=> true
 
 ## Can update fields (verify changes)
