@@ -75,9 +75,7 @@ class Onetime::SplitTest < Familia::Horreum
       obj.exists?
     end
     def load objid
-      obj = new
-      obj.testname = objid
-      obj.exists? ? obj : nil
+      from_redis objid
     end
     def create testname, *values
       obj = new testname

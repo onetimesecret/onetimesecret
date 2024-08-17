@@ -24,11 +24,12 @@ class Onetime::Customer < Familia::Horreum
   field :sessid
   field :apitoken
   field :verified
-  field :secrets_created
+  field :secrets_created # regular hashkey string field
   field :planid
   field :created
   field :updated
   field :last_login
+  field :contributor
 
   field :stripe_customer_id
   field :stripe_subscription_id
@@ -353,6 +354,8 @@ class Onetime::Customer < Familia::Horreum
     end
 
     def create custid, email=nil
+      raise OT::Problem, "custid is required" if custid.to_s.empty?
+      raise OT::Problem, "Customer exists" if exists?(custid)
       cust = new custid: custid, role: 'customer'
       cust.email = email || custid
       cust.save

@@ -20,9 +20,13 @@ module Onetime
     field :share_domain
     field :passphrase
     field :viewed
+    field :received
     field :shared
+    field :burned
     field :created
     field :updated
+    field :recipients
+    field :truncate # boolean
 
     # NOTE: this field is a nullop. It's only populated if a value was entered
     # into a hidden field which is something a regular person would not do.
@@ -63,10 +67,13 @@ module Onetime
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} No addresses specified"
       end
+
       OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} (token/#{self.token})"
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
+
       eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
       self.recipients = eaddrs_safe.join(', ')
+
       OT.ld "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
       eaddrs.each do |email_address|
         view = template.new cust, locale, secret, email_address
@@ -138,13 +145,12 @@ module Onetime
       end
 
       def load objid
-        obj = new key: objid
-        obj.exists? ? obj : nil
+        from_redis objid
       end
 
       def create custid
-        obj = new custid: custid
-        # force the storing of the fields to redis
+        raise OT::Problem, "custid is required" if custid.to_s.empty?
+        obj = new(custid: custid)
         obj.save
         obj
       end

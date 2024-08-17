@@ -165,9 +165,8 @@ class Onetime::Session < Familia::Horreum
       sess.exists?
     end
 
-    def load sessid
-      sess = from_redis sessid
-      sess.exists? ? (add(sess); sess) : nil  # make sure this sess is in the values set
+    def load objid
+      from_redis objid
     end
 
     def create ipaddress, custid, useragent=nil

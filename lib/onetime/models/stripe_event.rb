@@ -62,12 +62,11 @@ class Onetime::StripeEvent < Familia::Horreum
     end
 
     def load fobjid
-      fobj = new fobjid
-      fobj.exists? ? fobj : nil
+      from_redis fobjid
     end
 
     def create(custid, secretid, message_response=nil)
-      fobj = new custid, secretid, message_response
+      fobj = new custid: custid, secretid: secretid, message_response: message_response
       OT.ld "[StripeEvent.create] #{custid} #{secretid} #{message_response}"
       raise ArgumentError, "#{name} record exists #{rediskey}" if fobj.exists?
 

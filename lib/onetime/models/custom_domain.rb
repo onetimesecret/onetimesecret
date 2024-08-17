@@ -245,7 +245,7 @@ class Onetime::CustomDomain < Familia::Horreum
 
         # Will raise PublicSuffix::DomainInvalid if invalid domain
         ps_domain = PublicSuffix.parse(input, default_rule: nil)
-        cust = OT::Customer.new(custid)
+        cust = OT::Customer.new(custid: custid) # don't need to load the customer, just need the rediskey
 
         OT.info "[CustomDomain.create] Adding domain #{obj.display_domain}/#{domainid} for #{cust}"
 
@@ -254,7 +254,6 @@ class Onetime::CustomDomain < Familia::Horreum
         cust.add_custom_domain obj
 
         # See initialize above for more context.
-        hsh = {}
         obj.domainid = obj.identifier
         obj.custid = custid.to_s
 
@@ -373,13 +372,7 @@ class Onetime::CustomDomain < Familia::Horreum
       # which is a common pattern. Whether lazy loading presents
       # much value or not when working with redis (which is already
       # a fast, in-memory data store) is a different question.
-      fobj = new display_domain, custid
-      fobj.exists? ? fobj : nil
-      #
-      #      key = Familia.join(:customdomain, fobjid, :object)
-      #      redis = Familia.redis(db)
-      #      robj = redis.hgetall key
-      #      new robj['display_domain'], robj['custid']
+      from_redis display_domain: display_domain, custid: custid
     end
   end
 

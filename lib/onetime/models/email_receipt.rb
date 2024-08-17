@@ -62,8 +62,7 @@ class Onetime::EmailReceipt < Familia::Horreum
     end
 
     def load fobjid
-      fobj = new fobjid
-      fobj.exists? ? fobj : nil
+      from_redis fobjid
     end
 
     def create(custid, secretid, message_response=nil)

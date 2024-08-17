@@ -28,7 +28,7 @@ module Onetime
 
         def jsvar(name, value)
           value = case value.class.to_s
-                  when 'String', 'Gibbler::Digest', 'Symbol'
+                  when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
                     "'#{Rack::Utils.escape_html(value)}'"
                   when 'Array', 'Hash'
                     value.to_json
@@ -37,7 +37,7 @@ module Onetime
                   when 'Boolean', 'FalseClass', 'TrueClass'
                     value
                   else
-                    "console.error('#{name} is an unhandled type (#{value.class})')"
+                    "console.error('#{value.class} is an unhandled type (named #{name})')"
                   end
           { name: name, value: value }
         end

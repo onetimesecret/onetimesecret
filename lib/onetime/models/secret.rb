@@ -25,6 +25,7 @@ module Onetime
     field :verification
     field :updated
     field :created
+    field :truncated # boolean
     field :maxviews # always 1 (here for backwards compat)
 
     counter :view_count, ttl: 14.days
@@ -202,8 +203,7 @@ module Onetime
       end
 
       def load objid
-        obj = new key: objid
-        obj.exists? ? obj : nil
+        from_redis objid
       end
 
       def create custid
