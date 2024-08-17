@@ -76,7 +76,7 @@ s1.instance_variable_get(:@sessid).eql?(s2.instance_variable_get(:@sessid))
 ## Can set form fields
 ret = @sess.set_form_fields custid: 'tryouts', planid: :testing
 ret.class
-#=> String
+#=> Integer
 
 ## Can get form fields, with indifferent access via symbol or string
 ret = @sess.get_form_fields!

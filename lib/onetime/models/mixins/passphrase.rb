@@ -25,7 +25,7 @@ module Onetime::Models
         @passphrase_temp = guess if ret  # used to decrypt the value
         ret
       rescue BCrypt::Errors::InvalidHash => ex
-        prefix = "[old-passphrase]"
+        prefix = "[passphrase?]"
         OT.ld "#{prefix} Invalid passphrase hash: #{ex.message}"
         (!guess.to_s.empty? && passphrase.to_s.downcase.strip == guess.to_s.downcase.strip)
       end

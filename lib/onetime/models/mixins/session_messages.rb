@@ -23,30 +23,61 @@ module Onetime::Models
       base.list :messages
     end
 
-
     def set_form_fields hsh
-      self.form_fields = hsh.to_json unless hsh.nil?
+      self.form_fields! hsh.to_json unless hsh.nil?
     end
 
     def get_form_fields!
-      fields_json = self.form_fields # previously name self.form_fields!
-      return if fields_json.nil?
+      fields_json = self.form_fields
+      return if fields_json.to_s.empty?
       ret = OT::Utils.indifferent_params JSON.parse(fields_json) # TODO: Use refinement
-      self.hdel :form_fields
+      self.hdel! :form_fields
       ret
+    rescue JSON::ParserError => ex
+      OT.le "Error parsing JSON fields: #{ex.message}"
+      nil
     end
 
     def set_error_message msg
-      self.error_message = msg
+      self.messages << _json(msg, :error)
     end
 
     def set_info_message msg
-      self.info_message = msg
+      self.messages << _json(msg, :info)
+    end
+
+    def get_info_messages
+      self.messages.to_a.select{ |m|
+        next if m.to_s.empty?
+        detail = JSON.parse(m)
+        detail['type'] == 'info'
+        detail['content']
+      }
+    rescue JSON::ParserError => ex
+      OT.le "Error parsing JSON message: #{ex.message}"
+      nil
+    end
+
+    def get_error_messages
+      self.messages.to_a.select{ |m|
+        next if m.to_s.empty?
+        detail = JSON.parse(m)
+        detail['type'] == 'error'
+        detail['content']
+      }
+    rescue JSON::ParserError => ex
+      OT.le "Error parsing JSON error message: #{ex.message}"
+      nil
+    end
+
+    def clear_messages!
+      self.messages.clear
     end
 
     def _json msg, type=:error
       {type: type, content: msg}.to_json
     end
+    private :_json
 
   end
 end

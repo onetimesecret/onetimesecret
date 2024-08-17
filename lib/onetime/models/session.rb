@@ -1,6 +1,9 @@
 
+require_relative 'mixins/session_messages'
+
 class Onetime::Session < Familia::Horreum
   include Onetime::Models::RateLimited
+  include Onetime::Models::SessionMessages
 
   db 1
   ttl 20.minutes

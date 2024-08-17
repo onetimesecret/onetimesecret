@@ -160,12 +160,32 @@ class Onetime::App
       return if @check_session_ran
       @check_session_ran = true
 
+
       # Load from redis or create the session
       if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
         @sess = OT::Session.load req.cookie(:sess)
       else
         @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
       end
+
+      # Set the session to rack.session
+      #
+      # The `req.env` hash is a central repository for all environment variables
+      # and request-specific data in a Rack application. By setting the session
+      # object in `req.env['rack.session']`, we make the session data accessible
+      # to all middleware and components that process the request and response.
+      # This approach ensures that the session data is consistently available
+      # throughout the entire request-response cycle, allowing middleware to
+      # read from and write to the session as needed. This is particularly
+      # useful for maintaining user state, managing authentication, and storing
+      # other session-specific information.
+      #
+      # Example:
+      #   If a middleware needs to check if a user is authenticated, it can
+      #   access the session data via `env['rack.session']` and perform the
+      #   necessary checks or updates.
+      #
+      req.env['rack.session'] = sess
 
       # Immediately check the the auth status of the session. If the site
       # configuration changes to disable authentication, the session will

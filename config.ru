@@ -24,6 +24,7 @@ $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'lib'))
 $LOAD_PATH.unshift(File.join(ENV.fetch('APP_ROOT', nil), 'app'))
 
 require_relative 'lib/onetime'
+require_relative 'lib/middleware/clear_session_messages'
 require_relative 'lib/middleware/header_logger_middleware'
 require_relative 'lib/middleware/handle_invalid_percent_encoding'
 require_relative 'lib/middleware/handle_invalid_utf8'
@@ -47,6 +48,7 @@ Onetime.boot! :app
 middlewares = if Otto.env?(:dev)
   [
     [Rack::CommonLogger],
+    [Rack::ClearSessionMessages],
     [Rack::Reloader, 1],
     [Rack::HandleInvalidUTF8],
     [Rack::HandleInvalidPercentEncoding]
@@ -54,6 +56,7 @@ middlewares = if Otto.env?(:dev)
 else
   [
     [Rack::CommonLogger],
+    [Rack::ClearSessionMessages],
     [Rack::HandleInvalidUTF8],
     [Rack::HandleInvalidPercentEncoding]
   ]

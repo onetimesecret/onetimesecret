@@ -74,10 +74,10 @@ module Onetime
             if cust.pending? && self.class != Onetime::App::Views::Shared
               add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
             else
-              add_error sess.error_message!
+              add_errors sess.get_error_messages
             end
 
-            add_message sess.info_message!
+            add_messages sess.get_info_messages
             add_form_fields sess.get_form_fields!
           end
 
@@ -183,8 +183,16 @@ module Onetime
         messages[:info] << msg unless msg.to_s.empty?
       end
 
+      def add_messages *msgs
+        messages[:info].append *msgs unless msgs.flatten.empty?
+      end
+
       def add_error msg
         messages[:error] << msg unless msg.to_s.empty?
+      end
+
+      def add_errors *msgs
+        messages[:error].append *msgs unless msgs.flatten.empty?
       end
 
       def add_form_fields hsh
