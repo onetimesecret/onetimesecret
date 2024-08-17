@@ -119,7 +119,6 @@ pp sess.to_h
 [sess.authenticated?, sess.disable_auth]
 #=> [true, false]
 
-
 ## Reload the same instance of the session and check authenticated status.
 ## Calling authenticated? will return false again b/c the instance var
 ## disable_auth is still set to true.
@@ -128,19 +127,17 @@ pp sess.to_h
 [sess.authenticated?, sess.disable_auth]
 #=> [false, true]
 
-
 ## Replacing the session ID will update the session
 @replaced_session = OT::Session.create @ipaddress, @custid, @useragent
 initial_sessid = @replaced_session.sessid.to_s
 @replaced_session.authenticated = true
 @replaced_session.replace!
-
-
 @replaced_session.sessid.eql?(initial_sessid)
 #=> false
 
 ## Replaced session is not authenticated
-
+@replaced_session.authenticated?
+#=> false
 
 ## Can check if a session exists
 OT::Session.exists? @sess.sessid
@@ -156,11 +153,27 @@ sid = OT::Session.generate_id
 [sid.class, (48..52).include?(sid.length)]
 #=> [String, true]
 
-## Can update fields
+## Can update fields (1 of 2)
 @sess_with_changes = OT::Session.create @ipaddress, @custid, @useragent
-@sess_with_changes.commit_fields custid: 'tryouts', stale: 'testing'
-#=> true
+@sess_with_changes.apply_fields(custid: 'tryouts', stale: 'testing')
+@sess_with_changes.commit_fields
+#=> ["OK"]
 
-## Can update fields (verify changes)
+## Can update fields (2 of 2)
 [@sess_with_changes.custid, @sess_with_changes.stale]
 #=> ["tryouts", "testing"]
+
+## Can do the same thing but with save (1 of 2)
+@sess_with_changes2 = OT::Session.create @ipaddress, @custid, @useragent
+@sess_with_changes2.custid = 'tryouts2'
+@sess_with_changes2.stale = 'testing2'
+@sess_with_changes2.save
+#=> true
+
+## Can do the same thing but with save (2 of 2)
+[@sess_with_changes2.custid, @sess_with_changes2.stale]
+#=> ["tryouts2", "testing2"]
+
+## Can call apply_fields and chain on commit_fields
+@sess_with_changes2.apply_fields(custid: 'tryouts3', stale: 'testing3').commit_fields
+#=> ["OK"]

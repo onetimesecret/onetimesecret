@@ -71,7 +71,8 @@ class Onetime::StripeEvent < Familia::Horreum
       OT.ld "[StripeEvent.create] #{custid} #{secretid} #{message_response}"
       raise ArgumentError, "#{name} record exists #{rediskey}" if fobj.exists?
 
-      fobj.commit_fields custid: custid, secretid: secretid, message_response: message_response
+      fobj.apply_fields custid: custid, secretid: secretid, message_response: message_response
+      fobj.save
       add fobj # to the @values sorted set
       fobj
     end
