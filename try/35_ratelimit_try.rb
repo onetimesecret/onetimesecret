@@ -38,7 +38,7 @@ OT::RateLimit.events[:delano_limit]
 
 ## Create limiter
 l = OT::RateLimit.new :tryouts, :delano_limit
-[l.class, l.name]
+[l.class, l.rediskey]
 #=> [Onetime::RateLimit, "limiter:tryouts:delano_limit:#{@stamp}"]
 
 ## Knows when not exceeded
