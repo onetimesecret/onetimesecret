@@ -53,7 +53,7 @@ module Onetime
 
         if authenticated && cust
           self[:colonel] = cust.role?(:colonel)
-          self[:metadata_record_count] = cust.metadata.size
+          self[:metadata_record_count] = cust.metadata_list.count
           self[:jsvars] << jsvar(:metadata_record_count, self[:metadata_record_count])
 
           self[:domains_enabled] = domains[:enabled] || false  # only for authenticated
@@ -83,8 +83,8 @@ module Onetime
 
           # There's no custom domain list when the feature is disabled.
           if self[:domains_enabled]
-            self[:custom_domains_record_count] = cust.custom_domains_list.size
-            self[:custom_domains] = cust.custom_domains.collect { |obj| obj[:display_domain] }.sort
+            self[:custom_domains_record_count] = cust.custom_domains.count
+            self[:custom_domains] = cust.custom_domains_list.collect { |obj| obj[:display_domain] }.sort
             self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
             self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
           end

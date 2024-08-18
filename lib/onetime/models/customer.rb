@@ -12,8 +12,8 @@ class Onetime::Customer < Familia::Horreum
   class_hashkey :domains, key: 'onetime:customers:domains'
   class_hashkey :global, key: 'customer:GLOBAL:object'
 
-  sorted_set :custom_domains_list
-  sorted_set :metadata_list
+  sorted_set :custom_domains
+  sorted_set :metadata
 
   identifier :custid
 
@@ -230,25 +230,28 @@ class Onetime::Customer < Familia::Horreum
     OT::Session.load sessid unless sessid.to_s.empty?
   end
 
-  def metadata
-    metadata_list.revmembers.collect { |key| OT::Metadata.load key }.compact
+  def metadata_list
+    metadata.revmembers.collect do |key|
+      obj = OT::Metadata.load(key)
+      obj
+    end.compact
   end
 
   def add_metadata obj
-    metadata_list.add OT.now.to_i, obj.key
+    metadata.add OT.now.to_i, obj.key
   end
 
-  def custom_domains
-    custom_domains_list.revmembers.collect { |domain| OT::CustomDomain.load domain, self.custid }.compact
+  def custom_domains_list
+    custom_domains.revmembers.collect { |domain| OT::CustomDomain.load domain, self.custid }.compact
   end
 
   def add_custom_domain obj
     OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-    custom_domains_list.add OT.now.to_i, obj.display_domain # not the object identifier
+    custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
   end
 
   def remove_custom_domain obj
-    custom_domains_list.rem obj.display_domain # not the object identifier
+    custom_domains.rem obj.display_domain # not the object identifier
   end
 
   def update_passgen_token v

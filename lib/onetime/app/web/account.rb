@@ -327,7 +327,7 @@ module Onetime
         view = Onetime::App::Views::Account.new req, sess, cust, locale
         if view[:plans_enabled]
           subscriptions = [logic.stripe_subscription].compact
-          view[:jsvars] << view.jsvar(:stripe_customer, logic.stripe_customer)
+          view[:jsvars] << view.jsvar(:stripe_customer, logic.stripe_customer.id)
           view[:jsvars] << view.jsvar(:stripe_subscriptions, subscriptions)
         end
 

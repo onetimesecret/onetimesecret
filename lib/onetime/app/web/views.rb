@@ -329,7 +329,7 @@ module Onetime
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
           self[:with_analytics] = false
-          self[:metadata] = cust.metadata.collect do |m|
+          self[:metadata] = cust.metadata_list.collect do |m|
             { :uri => private_uri(m),
               :stamp => natural_time(m.updated),
               :updated => epochformat(m.updated),

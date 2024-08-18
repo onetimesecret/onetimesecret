@@ -301,7 +301,7 @@ module Onetime
     class ShowRecentMetadata < OT::Logic::Base
       attr_reader :metadata
       def process_params
-        @metadata = cust.metadata
+        @metadata = cust.metadata_list
       end
       def raise_concerns
         limit_action :show_metadata

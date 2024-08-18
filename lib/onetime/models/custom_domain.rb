@@ -189,7 +189,7 @@ class Onetime::CustomDomain < Familia::Horreum
       # Also remove from CustomDomain.values
       multi.zrem(OT::CustomDomain.values.rediskey, identifier)
       unless customer.nil?
-        multi.zrem(customer.custom_domains_list.rediskey, self[:display_domain])
+        multi.zrem(customer.custom_domains.rediskey, self[:display_domain])
       end
     end
   end
