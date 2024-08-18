@@ -6,11 +6,10 @@ module Onetime
     db 8
     ttl 7.days # default only, can be overridden at create time
     prefix :secret
+
     identifier :generate_id
 
     feature :safe_dump
-
-    gibbler :custid, :passphrase_temp, :entropy # TODO: Remove as part of Familia v1.0.0?
 
     field :custid
     field :state
@@ -86,11 +85,6 @@ module Onetime
 
     def older_than? seconds
       age > seconds
-    end
-
-    def key
-      @key ||= gibbler.base(36)
-      @key
     end
 
     def valid?
