@@ -32,7 +32,7 @@ all_non_safe_fields = cust.instance_variables.map { |el|
 p [cust.respond_to?(:suffix), cust.respond_to?(:db), cust.respond_to?(:ttl)]
 
 all_non_safe_fields.sort
-#=> [:custid, :custom_domains_list, :metadata_list, :role]
+#=> [:custid, :custom_domains, :metadata, :role]
 
 ## Implementing models like Customer can rest assured knowing
 ## any other field not in the safe list will not be dumped.
