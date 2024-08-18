@@ -20,12 +20,9 @@ require 'familia'
 require 'storable'
 require 'sysinfo'
 
-
 require_relative 'onetime/core_ext'
 
-
-Familia.debug = false
-#Familia.apiversion = nil
+Familia.debug = true
 
 # Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up

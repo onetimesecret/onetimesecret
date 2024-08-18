@@ -143,7 +143,7 @@ module Onetime::Logic
       end
 
       def process
-        OT.ld "[ListDomains] Processing #{@cust.custom_domains.count}"
+        OT.ld "[ListDomains] Processing #{@cust.custom_domains.length}"
         @custom_domains = @cust.custom_domains.map { |cd| cd.safe_dump }
       end
 
