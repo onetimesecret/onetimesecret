@@ -160,15 +160,6 @@ class Onetime::Session < Familia::Horreum
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
-    def exists? sessid
-      sess = new sessid: sessid
-      sess.exists?
-    end
-
-    def load objid
-      from_redis objid
-    end
-
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
 

@@ -197,20 +197,6 @@ module Onetime
     end
 
     class << self
-      def exists? objid
-        obj = new key: objid
-        obj.exists?
-      end
-
-      def load objid
-        from_redis objid
-      end
-
-      def create custid
-        obj = new custid: custid
-        obj.save # persist to redis right away
-        obj
-      end
 
       def spawn_pair custid, token=nil
         secret = OT::Secret.new(custid: custid, token: token)

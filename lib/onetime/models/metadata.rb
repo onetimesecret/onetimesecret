@@ -140,26 +140,5 @@ module Onetime
     def load_secret
       OT::Secret.load secret_key
     end
-
-    class << self
-      def exists? objid
-        obj = new key: objid
-        obj.exists?
-      end
-
-      def load objid
-        from_redis objid
-      end
-
-      def create custid
-        raise OT::Problem, "custid is required" if custid.to_s.empty?
-
-        fobj = new(custid: custid)
-        raise ArgumentError, "#{name} record exists #{fobj.rediskey}" if fobj.exists?
-
-        fobj.save # persist to redis right away
-        fobj
-      end
-    end
   end
 end

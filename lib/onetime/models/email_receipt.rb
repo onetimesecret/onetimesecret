@@ -58,15 +58,6 @@ class Onetime::EmailReceipt < Familia::Horreum
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
-    def exists? fobjid
-      fobj = new fobjid
-      fobj.exists?
-    end
-
-    def load fobjid
-      from_redis fobjid
-    end
-
     def create(custid, secretid, message_response=nil)
       fobj = new secretid: secretid, custid: custid, message_response: message_response
       OT.ld "[EmailReceipt.create] #{custid} #{secretid} #{message_response}"

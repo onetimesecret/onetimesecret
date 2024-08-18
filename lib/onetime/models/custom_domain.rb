@@ -233,12 +233,15 @@ class Onetime::CustomDomain < Familia::Horreum
 
     # Returns a Onetime::CustomDomain object after saving it to Redis.
     #
+    # +input+ is the domain name that the customer wants to use.
+    # +custid+ is the customer ID that owns this domain name.
+    #
     # Calls `parse` so it can raise Onetime::Problem.
     def create input, custid
       OT.ld "[CustomDomain.create] Called with #{input} and #{custid}"
 
       parse(input, custid).tap do |obj|
-        OT.ld "[CustomDomain.tap] Got #{obj.identifier} #{obj.to_h}"
+        OT.ld "[CustomDomain.create] Got #{obj.identifier} #{obj.to_h}"
         self.add obj # Add to CustomDomain.values, CustomDomain.owners
 
         domainid = obj.identifier
@@ -358,21 +361,14 @@ class Onetime::CustomDomain < Familia::Horreum
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
-    def exists? fobjid
-      fobj = new fobjid
-      fobj.exists?
-    end
-
+    # Implement a load method for CustomDomain to make sure the
+    # correct derived ID is used as the key.
     def load display_domain, custid
-      OT.ld "[CustomDomain.load] Got #{display_domain} and #{custid}"
-      # Seems weird at first blush that we're just instantiating
-      # and checking whether the object key exists in Redis, that
-      # we're not also loading all of the attributes. But at second
-      # blush it makes sense b/c it's equivalent to lazy loading
-      # which is a common pattern. Whether lazy loading presents
-      # much value or not when working with redis (which is already
-      # a fast, in-memory data store) is a different question.
-      from_redis display_domain: display_domain, custid: custid
+      parse(display_domain, custid).tap do |obj|
+        OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.to_h}"
+        raise OT::Problem, "Domain not found" unless obj.exists?
+        from_key(obj.rediskey)
+      end
     end
   end
 

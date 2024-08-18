@@ -115,15 +115,6 @@ class Onetime::Subdomain < Familia::Horreum
       load map(cname)
     end
 
-    def exists? objid
-      obj = new objid
-      obj.exists?
-    end
-
-    def load objid
-      from_redis objid
-    end
-
     def create cname, custid
       obj = new cname: normalize_cname(cname), custid: custid
       obj.save

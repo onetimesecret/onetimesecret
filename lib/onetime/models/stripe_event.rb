@@ -56,15 +56,6 @@ class Onetime::StripeEvent < Familia::Horreum
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
-    def exists? fobjid
-      fobj = new fobjid
-      fobj.exists?
-    end
-
-    def load fobjid
-      from_redis fobjid
-    end
-
     def create(custid, secretid, message_response=nil)
       fobj = new custid: custid, secretid: secretid, message_response: message_response
       OT.ld "[StripeEvent.create] #{custid} #{secretid} #{message_response}"
