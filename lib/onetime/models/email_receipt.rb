@@ -13,9 +13,11 @@ class Onetime::EmailReceipt < Familia::Horreum
 
   class_sorted_set :values, key: 'onetime:emailreceipt'
 
-  field :custid
   field :secretid
+  field :custid
   field :message_response
+  field :created
+  field :updated
 
   # e.g.
   #
@@ -66,9 +68,9 @@ class Onetime::EmailReceipt < Familia::Horreum
     end
 
     def create(custid, secretid, message_response=nil)
-      fobj = new custid, secretid, message_response
+      fobj = new secretid: secretid, custid: custid, message_response: message_response
       OT.ld "[EmailReceipt.create] #{custid} #{secretid} #{message_response}"
-      raise ArgumentError, "#{name} record exists #{rediskey}" if fobj.exists?
+      raise ArgumentError, "#{name} record exists #{fobj.rediskey}" if fobj.exists?
 
       fobj.apply_fields custid: custid, secretid: secretid, message_response: message_response
       fobj.save
