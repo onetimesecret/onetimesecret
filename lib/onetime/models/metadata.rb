@@ -7,9 +7,9 @@ module Onetime
     ttl 14.days
     prefix :metadata
 
-    feature :safe_dump
-
     identifier :generate_id
+
+    feature :safe_dump
 
     field :custid
     field :state
@@ -63,7 +63,10 @@ module Onetime
       !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
-    def deliver_by_email cust, locale, secret, eaddrs, template=OT::Email::SecretLink, ticketno=null
+    def deliver_by_email cust, locale, secret, eaddrs, template=nil, ticketno=nil
+      template ||= OT::Email::SecretLink
+
+
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} No addresses specified"
       end
@@ -150,9 +153,12 @@ module Onetime
 
       def create custid
         raise OT::Problem, "custid is required" if custid.to_s.empty?
-        obj = new(custid: custid)
-        obj.save
-        obj
+
+        fobj = new(custid: custid)
+        raise ArgumentError, "#{name} record exists #{fobj.rediskey}" if fobj.exists?
+
+        fobj.save # persist to redis right away
+        fobj
       end
     end
   end

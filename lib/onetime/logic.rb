@@ -127,6 +127,7 @@ module Onetime
           end
 
           OT::Customer.global.increment :secrets_created
+
           unless recipient.nil? || recipient.empty?
             klass = OT::App::Mail::SecretLink
             metadata.deliver_by_email cust, locale, secret, recipient.first, klass
