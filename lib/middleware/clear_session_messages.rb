@@ -1,11 +1,10 @@
-
 require 'logger'
 
 module Rack
-
-  # Response middleware. Clears session messages after a successful response.
+  # ClearSessionMessages: Clears session messages after a successful response.
+  #
+  # This middleware operates on the response, not affecting requests or errors.
   class ClearSessionMessages
-
     attr_reader :logger
 
     def initialize(app, io: $stdout, check_enabled: nil)
@@ -13,50 +12,52 @@ module Rack
       @logger = ::Logger.new(io, level: :info)
     end
 
-    # The call method is the entry point for the middleware.
-    # It receives the env object, which is a hash containing all the environment
-    # variables and request-specific data.
+    # Entry point for the middleware. Processes the request and clears session
+    # messages if conditions are met.
     def call(env)
-      # Call the next middleware or application in the stack.
-      # The env object is passed by value, but since it is a reference to a hash,
-      # any modifications made to it will be visible to subsequent middleware and the final application.
+      # Pass the request down the middleware stack
       status, headers, response = @app.call(env)
 
-      # Access the session object from the env hash.
-      # The session object is expected to be stored in env['rack.session'].
+      # Retrieve the session object after the application has processed the request
       sess = env['rack.session']
 
-      # Clear session messages if all of the following conditions are met:
-      # 1. The session object exists
-      # 2. The response has a body (is not a redirect or other headerless response)
-      # 3. The status code indicates success (less than 300)
-      # 4. The session object has a 'messages' method that returns a Redis list object
-      response_has_content = !Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status)
+      # Ensure the session is properly configured before proceeding
+      return [status, headers, response] unless check_session_messages(sess)
 
-      if sess && response_has_content && status < 300 && sess.respond_to?(:messages)
-        # The 'messages' method is expected to return a Redis list object from redis-rb or Familia
-        # This list object should have a 'clear' method to remove all items from the list
-        sess.messages.clear if sess.messages.respond_to?(:clear)
+      # Determine if we should clear the session messages
+      response_has_content = !Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status)
+      is_successful_response = status < 300
+
+      if response_has_content && is_successful_response
+        # Clear the messages if all conditions are met
+        sess.messages.clear
         logger.info("[ClearSessionMessages] Session messages cleared")
       end
 
-      if sess && response_has_content && status < 300
-        unless sess.respond_to?(:messages)
-          logger.warn("[ClearSessionMessages] Session object does not respond to 'messages' method")
-          return [status, headers, response]
-        end
+      [status, headers, response]
+    end
 
-        unless sess.messages.respond_to?(:clear)
-          logger.warn("[ClearSessionMessages] Session messages object does not respond to 'clear' method")
-          return [status, headers, response]
-        end
+    protected
 
-        # The 'messages' method is expected to return a Redis list object from redis-rb or Familia
-        # This list object should have a 'clear' method to remove all items from the list
-        sess.messages.clear
+    # Verify that the session object is properly configured and that
+    # there are messages to clear.
+    def check_session_messages(sess)
+      unless sess
+        logger.warn("[ClearSessionMessages] Session object not found in environment")
+        return false
       end
 
-      [status, headers, response]
+      unless sess.respond_to?(:messages)
+        logger.warn("[ClearSessionMessages] Session object lacks 'messages' method")
+        return false
+      end
+
+      unless sess.messages.respond_to?(:clear)
+        logger.warn("[ClearSessionMessages] Session messages object lacks 'clear' method")
+        return false
+      end
+
+      sess.messages.exists?
     end
   end
 end
