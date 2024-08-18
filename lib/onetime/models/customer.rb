@@ -22,7 +22,7 @@ class Onetime::Customer < Familia::Horreum
   field :key
   field :role
   field :sessid
-  field :apitoken
+  field :apitoken # TODO: use sorted set?
   field :verified
   field :secrets_created # regular hashkey string field
   field :planid
@@ -184,7 +184,7 @@ class Onetime::Customer < Familia::Horreum
     if anonymous?
       raise OT::Problem, "Anonymous customer has no external identifier"
     end
-    elements = [custid]
+    elements = ['cust', role, custid]
     @external_identifier ||= elements.gibbler
     @external_identifier
   end
@@ -345,15 +345,6 @@ class Onetime::Customer < Familia::Horreum
 
     def anonymous
       new(:anon).freeze
-    end
-
-    def exists? custid
-      cust = new custid: custid
-      cust.exists?
-    end
-
-    def load custid
-      from_redis custid
     end
 
     def create custid, email=nil
