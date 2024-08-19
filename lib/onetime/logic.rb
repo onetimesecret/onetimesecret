@@ -224,7 +224,7 @@ module Onetime
         owner = secret.load_customer
         if show_secret
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
-          @truncated = secret.truncated
+          @truncated = secret.truncated?
           @original_size = secret.original_size
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)

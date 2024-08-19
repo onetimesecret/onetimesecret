@@ -290,7 +290,7 @@ module Onetime
               self[:has_passphrase] = !secret.passphrase.to_s.empty?
               self[:can_decrypt] = secret.can_decrypt?
               self[:secret_value] = secret.decrypted_value if self[:can_decrypt]
-              self[:truncated] = secret.truncated
+              self[:truncated] = secret.truncated?
             end
           end
         end
