@@ -132,12 +132,13 @@ pp sess.to_h
 initial_sessid = @replaced_session.sessid.to_s
 @replaced_session.authenticated = true
 @replaced_session.replace!
+puts initial_sessid, @replaced_session.sessid
 @replaced_session.sessid.eql?(initial_sessid)
 #=> false
 
-## Replaced session is not authenticated
+## Replaced session is stil authenticated
 @replaced_session.authenticated?
-#=> false
+#=> true
 
 ## Can check if a session exists
 OT::Session.exists? @sess.sessid
