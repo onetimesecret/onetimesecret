@@ -152,7 +152,6 @@ class Onetime::App
       end
     end
 
-    #
     # Transforms metadata into a structured hash with enhanced information.
     #
     # This method processes a metadata object and optional parameters to create

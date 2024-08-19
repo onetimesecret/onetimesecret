@@ -73,7 +73,7 @@ obj.raise_concerns
 obj = OT::Logic::ReceiveFeedback.new @sess, @cust, @params
 obj.process
 @sess.get_info_messages
-#=> ["{\"type\":\"info\",\"content\":\"Message received. Send as much as you like!\"}"]
+#=> [{:type=>"info", :content=>"Message received. Send as much as you like!"}]
 
 ## Sending the same feedback from the same customer does not
 ## increment the count. A feature of using a redis set.

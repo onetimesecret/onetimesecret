@@ -62,6 +62,7 @@ module Onetime
         @maxviews = params[:maxviews].to_i
         @maxviews = 1 if @maxviews < 1
         @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
+
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym
         end
