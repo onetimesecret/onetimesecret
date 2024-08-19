@@ -10,7 +10,7 @@ require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot! :app
 
-@customer = OT::Customer.create 'Tryouts+27@onetimesecret.com'
+@customer = OT::Customer.create 'Tryouts+27@onetimesecret.com'  # relies on the destory on teardown
 @valid_domain = 'another.subdomain.onetimesecret.com'
 @input_domains = [
   'example.com',
@@ -193,3 +193,6 @@ OT::CustomDomain.valid?('テスト.com')
 ## Domain with a mix of characters in the subdomain is valid
 OT::CustomDomain.valid?('tést.😀.com')
 #=> true
+
+
+@customer.destroy!
