@@ -185,6 +185,13 @@ class Onetime::App
       # Show the secret's actual real ttl as of now if we have it. If we don't
       # (for example if it was burned) then we have the metadata record's ttl.
       secret_ttl = opts[:secret_ttl] ? opts[:secret_ttl].to_i : md.realttl.to_i
+
+      recipient = [hsh['recipients']]
+                  .flatten
+                  .compact
+                  .reject(&:empty?)
+                  .uniq
+
       ret = {
         :custid => hsh['custid'],
         :metadata_key => hsh['key'],
@@ -196,7 +203,7 @@ class Onetime::App
         :updated => hsh['updated'].to_i,
         :created => hsh['created'].to_i,
         :received => hsh['received'].to_i,
-        :recipient => [hsh['recipients']].flatten.compact.uniq
+        :recipient => recipient
       }
       if ret[:state] == 'received'
         ret.delete :secret_ttl

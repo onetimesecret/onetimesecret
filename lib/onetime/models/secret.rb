@@ -153,7 +153,7 @@ module Onetime
 
     def load_customer
       cust = OT::Customer.load custid
-      cust.nil? ? OT::Customer.anonymous : cust
+      cust.nil? ? OT::Customer.anonymous : cust # TODO: Probably should simply return nil (see defensive "fix" in 23c152)
     end
 
     def state? guess
