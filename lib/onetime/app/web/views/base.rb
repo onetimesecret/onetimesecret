@@ -31,7 +31,9 @@ module Onetime
         frontend_development = development[:enabled] || false
         frontend_host = development[:frontend_host] || ''
 
+        cust ||= OT::Customer.anonymous
         authenticated = sess && sess.authenticated? && ! cust.anonymous?
+
         self[:js], self[:css] = [], []
         self[:is_default_locale] = is_default_locale
         self[:supported_locales] = OT.conf[:locales]
