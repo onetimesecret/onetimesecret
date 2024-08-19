@@ -159,7 +159,7 @@ RUN pnpm run build-only
 FROM app_env
 ARG CODE_ROOT
 
-LABEL Name=onetimesecret Version=0.16.1
+LABEL Name=onetimesecret Version=0.16.2
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 

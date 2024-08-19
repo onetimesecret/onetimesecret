@@ -412,6 +412,7 @@ module Onetime
         def init *args
           self[:title] = "Help us translate"
           self[:body_class] = :info
+          self[:with_github_corner] = true
           self[:with_analytics] = false
           # Load translations YAML file from etc/translations.yaml
           self.class.translations ||= OT::Config.load(TRANSLATIONS_PATH)
