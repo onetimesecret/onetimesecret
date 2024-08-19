@@ -50,7 +50,7 @@ module Onetime::Models
       self.messages.to_a.select{ |m|
         next if m.to_s.empty?
         detail = JSON.parse(m)
-        detail['type'] == 'info'
+        detail['type'] = 'info'
         detail['content']
       }
     rescue JSON::ParserError => ex
@@ -62,7 +62,7 @@ module Onetime::Models
       self.messages.to_a.select{ |m|
         next if m.to_s.empty?
         detail = JSON.parse(m)
-        detail['type'] == 'error'
+        detail['type'] = 'error'
         detail['content']
       }
     rescue JSON::ParserError => ex

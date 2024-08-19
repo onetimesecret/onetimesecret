@@ -203,7 +203,6 @@ module Onetime
         secret.metadata_key = metadata.key
         secret.save
 
-
         [metadata, secret]
       end
 
