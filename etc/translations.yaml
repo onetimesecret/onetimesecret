@@ -1,4 +1,16 @@
 ---
+- :name: Ukrainian
+  :code: uk
+  :translators:
+  - :name: Claude 3.5 Sonnet
+    :url: https://github.com/anthropics
+    :date: Aug, 2024
+- :name: Portuguese (Portugal)
+  :code: pt_PT
+  :translators:
+  - :name: Claude 3.5 Sonnet
+    :url: https://github.com/anthropics
+    :date: Aug, 2024
 - :name: Hungarian
   :code: hu
   :translators:
