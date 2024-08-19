@@ -96,16 +96,22 @@ response = @mock_request.get('/api/v1/status')
 
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v1/create')
-content = JSON.parse(response.body) rescue {}
+content = JSON.parse(response.body)
 message = content.delete('message')
 [response.status, message]
 #=> [404, "You did not provide anything to share"]
 
 ## Can access the API generate endpoint
 response = @mock_request.post('/api/v1/generate')
-content = JSON.parse(response.body) rescue {}
+content = JSON.parse(response.body)
 [response.status, content["custid"]]
 #=> [200, 'anon']
+
+## Can post to a bogus endpoint and get a 404
+response = @mock_request.post('/api/v1/generate2')
+content = JSON.parse(response.body)
+[response.status, content["custid"]]
+#=> [404, nil]
 
 
 # Colonel Routes
