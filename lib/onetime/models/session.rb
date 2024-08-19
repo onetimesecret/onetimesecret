@@ -3,7 +3,7 @@ require_relative 'mixins/session_messages'
 
 class Onetime::Session < Familia::Horreum
   include Onetime::Models::RateLimited
-  include Onetime::Models::SessionMessages
+
 
   db 1
   ttl 20.minutes
@@ -79,6 +79,7 @@ class Onetime::Session < Familia::Horreum
     elements << ipaddress || 'UNKNOWNIP'
     elements << custid || 'anon'
     @external_identifier ||= elements.gibbler.base(36)
+
     OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
     @external_identifier
   end
@@ -176,6 +177,21 @@ class Onetime::Session < Familia::Horreum
       Digest::SHA256.hexdigest(input).to_i(16).to_s(36) # base-36 encoding
     end
   end
+
+  # Mixin Placement for Field Order Control
+  #
+  # We include the SessionMessages mixin at the end of this class definition
+  # for a specific reason related to how Familia::Horreum handles fields.
+  #
+  # In Familia::Horreum subclasses (like this Session class), fields are processed
+  # in the order they are defined. When creating a new instance with Session.new,
+  # any provided positional arguments correspond to these fields in the same order.
+  #
+  # By including SessionMessages last, we ensure that:
+  # 1. Its additional fields appear at the end of the field list.
+  # 2. These fields don't unexpectedly consume positional arguments in Session.new.
+  #
+  include Onetime::Models::SessionMessages
 
   extend ClassMethods
 end
