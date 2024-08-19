@@ -63,6 +63,11 @@
     :anon_info2: "Create an account using a "
     :anon_info3: "temporary email address"
     :anon_info4: "."
+    :cta_title: "Elevate Your Secret Sharing"
+    :cta_subtitle: "Custom domains, unlimited sharing, enhanced privacy"
+    :explore_premium_plans: "Explore Plans"
+    :need_free_account: "Need a free account?"
+    :sign_up_now: "Sign up now"
   :private:
     :pretext: "Share this link:"
     :requires_passphrase: "Requires a passphrase."
