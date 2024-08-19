@@ -180,7 +180,7 @@ module Onetime
       end
 
       def add_message msg
-        messages[:info] << msg unless msg.to_s.empty?
+        messages[:info] << {type: 'info', content: msg} unless msg.to_s.empty?
       end
 
       def add_messages *msgs
@@ -188,7 +188,7 @@ module Onetime
       end
 
       def add_error msg
-        messages[:error] << msg unless msg.to_s.empty?
+        messages[:error] << {type: 'error', content: msg} unless msg.to_s.empty?
       end
 
       def add_errors *msgs
