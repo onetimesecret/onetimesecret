@@ -47,27 +47,27 @@ module Onetime::Models
     end
 
     def get_info_messages
-      self.messages.to_a.select{ |m|
-        next if m.to_s.empty?
-        detail = JSON.parse(m)
-        detail['type'] = 'info'
-        detail['content']
-      }
-    rescue JSON::ParserError => ex
-      OT.le "Error parsing JSON message: #{ex.message}"
-      nil
+      messages.to_a.filter_map do |message|
+        next if message.to_s.empty?
+
+        detail = JSON.parse(message, symbolize_names: true)
+        detail if detail[:type].eql?('info')
+      rescue JSON::ParserError => e
+        OT.le "Error parsing JSON message: #{e.message}"
+        nil
+      end
     end
 
     def get_error_messages
-      self.messages.to_a.select{ |m|
-        next if m.to_s.empty?
-        detail = JSON.parse(m)
-        detail['type'] = 'error'
-        detail['content']
-      }
-    rescue JSON::ParserError => ex
-      OT.le "Error parsing JSON error message: #{ex.message}"
-      nil
+      messages.to_a.filter_map do |message|
+        next if message.to_s.empty?
+
+        detail = JSON.parse(message, symbolize_names: true)
+        detail if detail[:type].eql?('error')
+      rescue JSON::ParserError => ex
+        OT.le "Error parsing JSON error message: #{ex.message}"
+        nil
+      end
     end
 
     def clear_messages!

@@ -184,7 +184,7 @@ module Onetime
       end
 
       def add_messages *msgs
-        messages[:info].append *msgs unless msgs.flatten.empty?
+        messages[:info].concat msgs.flatten unless msgs.flatten.empty?
       end
 
       def add_error msg
@@ -192,7 +192,7 @@ module Onetime
       end
 
       def add_errors *msgs
-        messages[:error].append *msgs unless msgs.flatten.empty?
+        messages[:error].concat msgs.flatten unless msgs.flatten.empty?
       end
 
       def add_form_fields hsh
