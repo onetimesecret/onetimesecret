@@ -8,9 +8,9 @@
     {{^secret_shortkey}}
     m:{{shortkey}}
     {{/secret_shortkey}}
-    {{#recipients}}
+    {{#show_recipients}}
     <span class="text-gray-600 dark:text-gray-400">({{i18n.COMMON.sent_to}} {{to_s}})</span>
-    {{/recipients}}
+    {{/show_recipients}}
   </a>
   <span class="text-gray-500 dark:text-gray-400 ml-2">-</span>
   <em class="text-gray-500 dark:text-gray-400 italic" title="{{updated}}">

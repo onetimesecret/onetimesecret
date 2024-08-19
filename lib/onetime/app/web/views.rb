@@ -376,7 +376,10 @@ module Onetime
               :shortkey => m.key.slice(0,8),
               # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
               :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
+
               :recipients => m.recipients,
+              :show_recipients => !m.recipients.empty?,
+
               :is_received => m.state?(:received),
               :is_burned => m.state?(:burned),
               :is_destroyed => (m.state?(:received) || m.state?(:burned))}
