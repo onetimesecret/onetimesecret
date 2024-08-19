@@ -68,19 +68,6 @@ module Onetime
           # on-the-fly and in the time zone of the user.
           self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
 
-          unless sess.nil?
-            self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
-
-            if cust.pending? && self.class != Onetime::App::Views::Shared
-              add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
-            else
-              add_errors sess.get_error_messages
-            end
-
-            add_messages sess.get_info_messages
-            add_form_fields sess.get_form_fields!
-          end
-
           # There's no custom domain list when the feature is disabled.
           if self[:domains_enabled]
             self[:custom_domains_record_count] = cust.custom_domains.length
@@ -88,6 +75,19 @@ module Onetime
             self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
             self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
           end
+        end
+
+        unless sess.nil?
+          self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
+
+          if cust.pending? && self.class != Onetime::App::Views::Shared
+            add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
+          else
+            add_errors sess.get_error_messages
+          end
+
+          add_messages sess.get_info_messages
+          add_form_fields sess.get_form_fields!
         end
 
         # Link to the pricing page can be seen regardless of authentication status
