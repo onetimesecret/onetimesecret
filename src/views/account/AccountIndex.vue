@@ -307,7 +307,6 @@ const {
   handleShrimp: handleShrimp,
 });
 
-
 const openDeleteModal = () => {
   showDeleteModal.value = true;
 };
@@ -316,7 +315,6 @@ const closeDeleteModal = () => {
   showDeleteModal.value = false;
   deletePassword.value = '';
 };
-
 
 const {
   isSubmitting: isGeneratingAPIKey,

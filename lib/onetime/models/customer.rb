@@ -103,7 +103,8 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def regenerate_apitoken
-    self.apitoken = [OT.instance, OT.now.to_f, :apikey, custid].gibbler
+    self.apitoken! [OT.instance, OT.now.to_f, :apikey, custid].gibbler
+    self.apitoken # the fast writer bang methods don't return the value
   end
 
   def load_plan

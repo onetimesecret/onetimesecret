@@ -145,13 +145,13 @@ class Onetime::App
         # Regardless of the outcome, we clear the shrimp from the session
         # to prevent replay attacks. A new shrimp is generated on the
         # next page load.
-        sess.clear_shrimp!
+        sess.replace_shrimp!
       else
         ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
         ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
-        sess.clear_shrimp!
+        sess.replace_shrimp!
         raise ex
       end
     end

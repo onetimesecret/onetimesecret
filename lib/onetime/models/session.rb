@@ -125,13 +125,16 @@ class Onetime::Session < Familia::Horreum
   end
 
   def add_shrimp
+    # Shrimp is removed each time it's used to prevent replay attacks. Here
+    # we only add it if it's not already set ao that we don't accidentally
+    # dispose of perfectly good piece of shrimp. Because of this guard, the
+    # method is idempotent and can be called multiple times without side effects.
     self.shrimp! self.class.generate_id if self.shrimp.to_s.empty?
-    self.shrimp
+    self.shrimp # fast writer bang methods don't return the value
   end
 
-  def clear_shrimp!
-    hdel! :shrimp
-    nil
+  def replace_shrimp!
+    self.shrimp! self.class.generate_id
   end
 
   def authenticated?
