@@ -147,13 +147,6 @@ module Rack
   end
 end
 
-class Numeric
-  def square ; self * self ; end
-  def fineround(len=6.0)
-    v = (self * (10.0**len)).round / (10.0**len)
-    v.zero? ? 0 : v
-  end
-end
 
 class Array
   def sum ; self.inject(0){|a,x| next if x.nil? || a.nil?; x+a} ; end

@@ -20,10 +20,12 @@ require 'familia'
 require 'storable'
 require 'sysinfo'
 
+
 require_relative 'onetime/core_ext'
 
 
-Familia.apiversion = nil
+Familia.debug = false
+#Familia.apiversion = nil
 
 # Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
@@ -132,7 +134,7 @@ module Onetime
     end
 
     def print_banner
-      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  #{'---' * 12}"
+      info "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 10}"
       info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
       info "Config: #{OT::Config.path}"
       info "Redis:  #{Familia.uri.serverid}" # doesn't print the password

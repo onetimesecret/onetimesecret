@@ -34,8 +34,10 @@ module Onetime
                     value.to_json
                   when 'NilClass'
                     'null'
-                  else
+                  when 'Boolean', 'FalseClass', 'TrueClass'
                     value
+                  else
+                    "console.error('#{name} is an unhandled type (#{value.class})')"
                   end
           { name: name, value: value }
         end

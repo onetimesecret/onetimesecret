@@ -33,7 +33,11 @@ gem 'yajl-ruby'
 gem 'mustache'
 
 gem 'drydock'
-gem 'familia', '~> 0.10.2'
+if ENV['USE_LOCAL_WIP']
+  gem 'familia', path: '~/Projects/opensource/d/familia'
+else
+  gem 'familia', '~> 0.10.2'
+end
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha1'
 gem 'redis', '~> 5.2.0'

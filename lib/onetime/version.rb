@@ -6,7 +6,7 @@ module Onetime
     end
 
     def self.to_s
-      to_a[0..-2].join('.')
+      to_a.join('.')
     end
 
     def self.inspect

@@ -118,12 +118,18 @@ module Onetime
       development[:frontend_host] ||= ''  # make sure this is set
 
       sentry = conf[:services][:sentry]
-      if ::Otto.env?(:dev) && sentry && sentry[:enabled]
-        OT.ld "Setting up Sentry #{sentry}..."
+
+      if sentry&.dig(:enabled)
+        OT.info "Setting up Sentry #{sentry}..."
+        dsn = sentry&.dig(:dsn)
+
+        unless dsn
+          OT.le "No DSN"
+        end
 
         require 'sentry-ruby'
+        require 'stackprof'
 
-        dsn = sentry[:dsn]
         OT.info "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
         Sentry.init do |config|
           config.dsn = sentry[:dsn]

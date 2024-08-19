@@ -155,7 +155,7 @@ post_destroy_passphrase = if Onetime.debug
 else
   cust.passphrase
 end
-
+puts [cust.role, cust.verified, post_destroy_passphrase]
 [cust.role, cust.verified, post_destroy_passphrase]
 #=> ['user_deleted_self', 'false', '']
 
