@@ -155,10 +155,12 @@
   - nl
   - pl
   - pt_BR
+  - pt_PT
   - ru
   - sl_SI
   - sv_SE
   - tr
+  - uk
   - vi
 :services:
   :sentry:
