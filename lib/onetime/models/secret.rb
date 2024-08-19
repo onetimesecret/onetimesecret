@@ -193,14 +193,16 @@ module Onetime
     class << self
 
       def spawn_pair custid, token=nil
-        secret = OT::Secret.new(custid: custid, token: token)
-        metadata = OT::Metadata.new(custid: custid, token: token)
+        secret = OT::Secret.create(custid: custid, token: token)
+        metadata = OT::Metadata.create(custid: custid, token: token)
 
         # TODO: Use Familia transaction
         metadata.secret_key = secret.key
         metadata.save
+
         secret.metadata_key = metadata.key
         secret.save
+
 
         [metadata, secret]
       end
