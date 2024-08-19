@@ -92,24 +92,28 @@ class Onetime::Session < Familia::Horreum
     self.stale.to_s == 'true'
   end
 
-  def rename(newkey)
-    redis.rename rediskey, newkey
-  end
-
   def replace!
     @custid ||= self.custid
     newid = self.class.generate_id
 
     # Rename the existing key in redis if necessary
     if exists?
+      begin
+        self.rename rediskey # disabled, part of Familia v1.0 updates
+      rescue => ex
+        OT.le "[Session.replace!] Failed to rename key #{rediskey} to #{newid}: #{ex.message}"
+      end
       self.sessid = newid
-      #self.rename rediskey # disabled, part of Familia v1.0 updates
     end
 
     # This update is important b/c it ensures that the
     # data gets written to redis.
-    self.stale = 'false'
     self.sessid = newid
+
+    # Familia doesn't automatically keeo the key in sync with the
+    # identifier field. We need to do it manually.
+    self.key = self.sessid
+
     save
 
     sessid
