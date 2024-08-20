@@ -19,7 +19,7 @@ module Onetime
     field :original_size
     field :value_checksum
     field :value_encryption
-    field :ttl
+    field :lifespan
     field :share_domain
     field :verification
     field :updated
@@ -27,7 +27,7 @@ module Onetime
     field :truncated # boolean
     field :maxviews # always 1 (here for backwards compat)
 
-    counter :view_count, ttl: 14.days
+    counter :view_count, ttl: 14.days # out lives the secret itself
 
     # NOTE: this field is a nullop. It's only populated if a value was entered
     # into a hidden field which is something a regular person would not do.
