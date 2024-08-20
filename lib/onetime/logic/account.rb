@@ -6,10 +6,13 @@ module Onetime::Logic
   module Account
 
     class ViewAccount < OT::Logic::Base
+      attr_reader :plans_enabled
       attr_reader :stripe_subscription, :stripe_customer
       using Onetime::StripeRefinements
 
       def process_params
+        site = OT.conf.fetch(:site, {})
+        @plans_enabled = site.dig(:plans, :enabled) || false
       end
 
       def raise_concerns
@@ -18,9 +21,9 @@ module Onetime::Logic
       end
 
       def process
-        plans_enabled = OT.conf[:site][:plans].fetch(:enabled, false)
 
         if plans_enabled
+
           @stripe_customer = cust.get_stripe_customer
           @stripe_subscription = cust.get_stripe_subscription
 
@@ -29,11 +32,12 @@ module Onetime::Logic
           # RedisHash fields stripe_customer_id and stripe_subscription_id
           # fields populated. The subscription section on the account screen
           # depends on these ID fields being populated.
-          if !cust.stripe_customer_id && stripe_customer
+          if stripe_customer
             OT.info "Recording stripe customer ID"
             cust.stripe_customer_id = stripe_customer.id
           end
-          if !cust.stripe_subscription_id && stripe_subscription
+
+          if stripe_subscription
             OT.info "Recording stripe subscription ID"
             cust.stripe_subscription_id = stripe_subscription.id
           end
@@ -48,7 +52,10 @@ module Onetime::Logic
 
           cust.save
         end
+      end
 
+      def show_stripe_section?
+        plans_enabled && !stripe_customer.nil?
       end
     end
 

@@ -325,7 +325,7 @@ module Onetime
         logic.process
 
         view = Onetime::App::Views::Account.new req, sess, cust, locale
-        if view[:plans_enabled]
+        if logic.show_stripe_section?
           subscriptions = [logic.stripe_subscription].compact
           view[:jsvars] << view.jsvar(:stripe_customer, logic.stripe_customer.id)
           view[:jsvars] << view.jsvar(:stripe_subscriptions, subscriptions)

@@ -114,6 +114,9 @@ class Onetime::Customer < Familia::Horreum
 
   def get_stripe_customer
     get_stripe_customer_by_id || get_stripe_customer_by_email
+  rescue Stripe::StripeError => e
+    OT.le "[Customer.get_stripe_customer] Error: #{e.message}: #{e.backtrace}"
+    nil
   end
 
   def get_stripe_subscription
@@ -121,7 +124,7 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def get_stripe_customer_by_id customer_id=nil
-    return unless stripe_customer_id || customer_id
+    return unless stripe_customer_id || customer_id # these should be reverse, no? args override
     @stripe_customer = Stripe::Customer.retrieve(stripe_customer_id || customer_id)
 
   rescue Stripe::StripeError => e
@@ -150,6 +153,9 @@ class Onetime::Customer < Familia::Horreum
   def get_stripe_subscription_by_id subscription_id=nil
     return unless stripe_subscription_id || subscription_id
     @stripe_subscription = Stripe::Subscription.retrieve(stripe_subscription_id || subscription_id)
+  rescue Stripe::StripeError => e
+    OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message} #{e.backtrace}"
+    nil
   end
 
   def get_stripe_subscriptions stripe_customer=nil
