@@ -92,10 +92,10 @@ end
 @cust.verified?
 #=> false
 
-## Customers don't have a default ttl
+## Customers have a default ttl of 0
 ttl = @cust.ttl
 [ttl.class, ttl]
-#=> [NilClass, nil]
+#=> [Integer, 0]
 
 ## New un-saved instance of customer is not active
 @cust.active?

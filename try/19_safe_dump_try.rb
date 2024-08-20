@@ -8,6 +8,9 @@ require_relative '../lib/onetime'
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot!
 
+@email = 'tryouts-19@onetimesecret.com'
+
+
 ## By default there are no safe dump fields
 Familia::Features::SafeDump.safe_dump_fields
 #=> []
@@ -23,7 +26,7 @@ cust.safe_dump
 
 ## Implementing models like Customer do have other fields
 ## that are by default considered not safe to dump.
-cust = Onetime::Customer.new(name: 'Lucy')
+cust = Onetime::Customer.new(name: 'Lucy', custid: @email)
 
 all_non_safe_fields = cust.instance_variables.map { |el|
   el.to_s[1..-1].to_sym # slice off the leading @
