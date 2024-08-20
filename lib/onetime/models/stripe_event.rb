@@ -1,12 +1,12 @@
 
 class Onetime::StripeEvent < Familia::Horreum
-  db 10
-  prefix :stripeevent
 
   feature :safe_dump
 
+  db 10
+  prefix :stripeevent
+
   class_sorted_set :values, key: "onetime:stripeevent:values"
-  #@values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: @db
 
   identifier :secretid
 

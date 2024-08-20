@@ -157,8 +157,9 @@ sid = OT::Session.generate_id
 ## Can update fields (1 of 2)
 @sess_with_changes = OT::Session.create @ipaddress, @custid, @useragent
 @sess_with_changes.apply_fields(custid: 'tryouts', stale: 'testing')
-@sess_with_changes.commit_fields
-#=> ["OK"]
+multi_result = @sess_with_changes.commit_fields
+multi_result.tuple
+#=> [true, ["OK", true]]
 
 ## Can update fields (2 of 2)
 [@sess_with_changes.custid, @sess_with_changes.stale]
@@ -176,5 +177,6 @@ sid = OT::Session.generate_id
 #=> ["tryouts2", "testing2"]
 
 ## Can call apply_fields and chain on commit_fields
-@sess_with_changes2.apply_fields(custid: 'tryouts3', stale: 'testing3').commit_fields
-#=> ["OK"]
+multi_result = @sess_with_changes2.apply_fields(custid: 'tryouts3', stale: 'testing3').commit_fields
+multi_result.tuple
+#=> [true, ["OK", true]]

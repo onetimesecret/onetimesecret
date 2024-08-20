@@ -31,7 +31,8 @@ gem 'public_suffix'
 gem 'thin'
 
 gem 'drydock'
-  gem 'familia', '~> 1.0.0.pre.rc3'
+gem 'familia', '~> 1.0.0.pre.rc5'
+
 gem 'gibbler'
 
 gem 'otto', '~> 1.1.0.pre.alpha1'

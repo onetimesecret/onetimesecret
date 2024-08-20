@@ -10,6 +10,7 @@
 class Onetime::SplitTest < Familia::Horreum
 
   feature :safe_dump
+  feature :expiration
 
   @tests = {}
 

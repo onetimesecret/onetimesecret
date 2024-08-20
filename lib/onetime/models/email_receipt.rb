@@ -2,14 +2,15 @@
 class Onetime::EmailReceipt < Familia::Horreum
   include Gibbler::Complex
 
+  feature :safe_dump
+  feature :expiration
+
   db 8
   ttl 30.days
 
   prefix :secret
   identifier :secretid
   suffix :email
-
-  feature :safe_dump
 
   class_sorted_set :values, key: 'onetime:emailreceipt'
 

@@ -4,12 +4,12 @@ require_relative 'mixins/session_messages'
 class Onetime::Session < Familia::Horreum
   include Onetime::Models::RateLimited
 
+  feature :safe_dump
+  feature :expiration
 
   db 1
   ttl 20.minutes
   prefix :session
-
-  feature :safe_dump
 
   class_sorted_set :values, key: "onetime:session"
 
@@ -24,7 +24,6 @@ class Onetime::Session < Familia::Horreum
   field :created
   field :authenticated
   field :external_identifier
-  field :key
   field :shrimp
 
   # When set to true, the session reports itself as not authenticated

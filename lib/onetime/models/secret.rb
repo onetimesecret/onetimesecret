@@ -3,18 +3,18 @@ module Onetime
   class Secret < Familia::Horreum
     include Gibbler::Complex
 
+    feature :safe_dump
+    feature :expiration
+
     db 8
     ttl 7.days # default only, can be overridden at create time
     prefix :secret
 
     identifier :generate_id
 
-    feature :safe_dump
-
     field :custid
     field :state
     field :value
-    field :key
     field :metadata_key
     field :original_size
     field :value_checksum

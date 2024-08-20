@@ -3,10 +3,12 @@
 class Onetime::Customer < Familia::Horreum
   include Gibbler::Complex
 
+  feature :safe_dump
+  feature :expiration
+
   db 6
   prefix :customer
 
-  feature :safe_dump
 
   class_sorted_set :values, key: 'onetime:customers'
   class_hashkey :domains, key: 'onetime:customers:domains'
@@ -19,7 +21,6 @@ class Onetime::Customer < Familia::Horreum
 
   field :custid
   field :email
-  field :key
   field :role
   field :sessid
   field :apitoken # TODO: use sorted set?

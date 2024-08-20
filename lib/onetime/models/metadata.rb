@@ -3,17 +3,17 @@ module Onetime
   class Metadata < Familia::Horreum
     include Gibbler::Complex
 
+    feature :safe_dump
+    feature :expiration
+
     db 7
     ttl 14.days
     prefix :metadata
 
     identifier :generate_id
 
-    feature :safe_dump
-
     field :custid
     field :state
-    field :key
     field :secret_key
     field :secret_shortkey
     field :secret_ttl
