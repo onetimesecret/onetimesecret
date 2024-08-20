@@ -61,7 +61,9 @@ end
 
 
 class Array
-  def sum ; self.inject(0){|a,x| next if x.nil? || a.nil?; x+a} ; end
+  def sum
+    self.compact.inject(0) { |a, x| a + (x.is_a?(Numeric) ? x : 0) }
+  end
   def mean; self.sum.to_f/self.size ; end
   def median
     case self.size % 2
