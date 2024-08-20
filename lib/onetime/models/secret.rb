@@ -37,6 +37,11 @@ module Onetime
       self.state ||= 'new'
     end
 
+    def generate_id
+      @key ||= Familia.generate_id.slice(0, 31)
+      @key
+    end
+
     def age
       @age ||= Time.now.utc.to_i-updated
       @age
