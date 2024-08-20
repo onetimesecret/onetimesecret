@@ -352,8 +352,7 @@ class Onetime::Customer < Familia::Horreum
     def create custid, email=nil
       raise OT::Problem, "custid is required" if custid.to_s.empty?
       raise OT::Problem, "Customer exists" if exists?(custid)
-      cust = new custid: custid, role: 'customer'
-      cust.email = email || custid
+      cust = new custid: custid, email: email || custid, role: 'customer'
       cust.save
       add cust
       cust
