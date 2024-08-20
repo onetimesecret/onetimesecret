@@ -46,6 +46,9 @@
   </head>
 
   <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" id="{{body_class}}">
+    {{#with_github_corner}}
+      {{>partial/github_corner}}
+    {{/with_github_corner}}
     <div class="w-full h-1 bg-brand-500 fixed top-0 left-0"></div>
     <div id="broadcast">{{{i18n.COMMON.broadcast}}}</div>
 
