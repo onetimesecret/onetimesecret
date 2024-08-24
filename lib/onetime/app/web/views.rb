@@ -378,7 +378,7 @@ module Onetime
               :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
 
               :recipients => m.recipients,
-              :show_recipients => !m.recipients.empty?,
+              :show_recipients => !m.recipients.to_s.empty?,
 
               :is_received => m.state?(:received),
               :is_burned => m.state?(:burned),
