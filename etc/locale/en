@@ -66,7 +66,7 @@
     :cta_feature2: "Unlimited secret sharing"
     :cta_feature3: "Advanced privacy controls"
     :explore_premium_plans: "Explore Premium Plans"
-    :need_free_account: "Just getting started?"
+    :need_free_account: "Just getting started? Send emails with a free account."
     :sign_up_free: "Create a free account"
   :private:
     :pretext: "Share this link:"
