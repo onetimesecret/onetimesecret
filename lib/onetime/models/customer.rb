@@ -9,10 +9,11 @@ class Onetime::Customer < Familia::Horreum
   db 6
   prefix :customer
 
+  @global = nil
 
   class_sorted_set :values, key: 'onetime:customers'
   class_hashkey :domains, key: 'onetime:customers:domains'
-  class_hashkey :global, key: 'customer:GLOBAL:object'
+  #class_hashkey :global, key: 'customer:GLOBAL:object', class: self
 
   sorted_set :custom_domains
   sorted_set :metadata
@@ -25,7 +26,11 @@ class Onetime::Customer < Familia::Horreum
   field :sessid
   field :apitoken # TODO: use sorted set?
   field :verified
+
   field :secrets_created # regular hashkey string field
+  field :secrets_shared
+  field :emails_sent
+
   field :planid
   field :created
   field :updated
@@ -362,6 +367,11 @@ class Onetime::Customer < Familia::Horreum
       cust.save
       add cust
       cust
+    end
+
+    def global
+      @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
+      @global
     end
   end
 

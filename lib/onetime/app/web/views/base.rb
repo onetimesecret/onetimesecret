@@ -73,7 +73,7 @@ module Onetime
           # There's no custom domain list when the feature is disabled.
           if self[:domains_enabled]
             self[:custom_domains_record_count] = cust.custom_domains.length
-            self[:custom_domains] = cust.custom_domains_list.collect { |obj| obj[:display_domain] }.sort
+            self[:custom_domains] = cust.custom_domains_list.collect { |obj| obj.display_domain }.sort
             self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
             self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
           end

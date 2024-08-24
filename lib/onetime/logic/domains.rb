@@ -27,7 +27,7 @@ module Onetime::Logic
 
         # Only store a valid, parsed input value to @domain
         @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust) # raises OT::Problem
-        @display_domain = @parsed_domain[:display_domain]
+        @display_domain = @parsed_domain.display_domain
 
 
         # Don't need to do a bunch of validation checks here. If the input value
@@ -61,8 +61,8 @@ module Onetime::Logic
         res = OT::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
         payload = res.parsed_response
       OT.info "[AddDomain.create_vhost] %s" % payload
-        custom_domain[:vhost] = payload['data'].to_json
-        custom_domain[:updated] = OT.now.to_i
+        custom_domain.vhost = payload['data'].to_json
+        custom_domain.updated = OT.now.to_i
 
       rescue HTTParty::ResponseError => e
         OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
@@ -98,7 +98,7 @@ module Onetime::Logic
       def process
         OT.ld "[RemoveDomain] Processing #{domain_input} for #{@custom_domain.identifier}"
         @greenlighted = true
-        @display_domain = @custom_domain[:display_domain]
+        @display_domain = @custom_domain.display_domain
 
         # TODO: @custom_domain.redis.multi
 
@@ -144,7 +144,7 @@ module Onetime::Logic
 
       def process
         OT.ld "[ListDomains] Processing #{@cust.custom_domains.length}"
-        @custom_domains = @cust.custom_domains.map { |cd| cd.safe_dump }
+        @custom_domains = @cust.custom_domains_list.map { |cd| cd.safe_dump }
       end
 
       def success_data
@@ -183,9 +183,9 @@ module Onetime::Logic
       end
 
       def process
-        OT.ld "[GetDomain] Processing #{@custom_domain[:display_domain]}"
+        OT.ld "[GetDomain] Processing #{@custom_domain.display_domain}"
         @greenlighted = true
-        @display_domain = @custom_domain[:display_domain]
+        @display_domain = @custom_domain.display_domain
       end
 
       def success_data
@@ -225,8 +225,8 @@ module Onetime::Logic
         payload = res.parsed_response
         OT.info "[VerifyDomain.refresh_vhost] %s" % payload
         OT.ld ""
-        custom_domain[:vhost] = payload['data'].to_json
-        custom_domain[:updated] = OT.now.to_i
+        custom.vhost = payload['data'].to_json
+        custom.updated = OT.now.to_i
       end
     end
   end
