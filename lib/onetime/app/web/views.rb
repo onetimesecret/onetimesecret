@@ -419,13 +419,6 @@ module Onetime
             self[:contributor_since] = epochdate(cust.contributor_at)
           end
 
-          if self[:colonel]
-            if cust.passgen_token.nil?
-              cust.update_passgen_token sess.sessid.gibbler
-            end
-            self[:token] = cust.passgen_token
-          end
-
           self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
         end
       end

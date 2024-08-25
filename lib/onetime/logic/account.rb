@@ -294,7 +294,6 @@ module Onetime::Logic
         @currentp = self.class.normalize_password(params[:currentp])
         @newp = self.class.normalize_password(params[:newp])
         @newp2 = self.class.normalize_password(params[:newp2])
-        @passgen_token = self.class.normalize_password(params[:passgen_token], 60)
       end
 
       def raise_concerns
@@ -306,9 +305,6 @@ module Onetime::Logic
           raise_form_error "New password is too short" unless @newp.size >= 6
           raise_form_error "New passwords do not match" unless @newp == @newp2
         end
-        if ! @passgen_token.empty?
-          raise_form_error "Token is too short" if @passgen_token.size < 6
-        end
       end
 
       def process
@@ -316,7 +312,7 @@ module Onetime::Logic
           @greenlighted = true
           OT.info "[update-account] Password updated cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
 
-          cust.update_passphrase @newp
+          cust.update_passphrase! @newp
           @modified << :password
         end
       end
