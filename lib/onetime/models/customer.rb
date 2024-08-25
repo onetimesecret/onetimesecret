@@ -169,7 +169,7 @@ class Onetime::Customer < Familia::Horreum
     return subscriptions unless stripe_customer
 
     begin
-      subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: limit)
+      subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
 
     rescue Stripe::StripeError => e
       OT.le "Error: #{e.message}"
@@ -265,14 +265,6 @@ class Onetime::Customer < Familia::Horreum
 
   def remove_custom_domain obj
     custom_domains.rem obj.display_domain # not the object identifier
-  end
-
-  def update_passgen_token v
-    self.passgen_token = v.encrypt(:key => encryption_key)
-  end
-
-  def passgen_token
-    self.passgen_token.decrypt(:key => encryption_key) if has_key?(:passgen_token)
   end
 
   def encryption_key
