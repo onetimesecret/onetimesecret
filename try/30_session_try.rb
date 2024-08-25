@@ -123,6 +123,14 @@ pp sess.to_h
 ## Calling authenticated? will return false again b/c the instance var
 ## disable_auth is still set to true.
 sess = @sess_disabled_auth.refresh
+# NOTE: If you call refresh on an object that hasn't been saved yet or anytime
+# that the key doesn't exist, it should raise an exception. Otherwise it will
+# silently continue unchanged b/c there were no values to refresh. There might
+# be a nuance between checking exists explicitly and assuming no key from an
+# empty hgetall.
+#
+# See https://github.com/delano/familia/issues/36
+#
 pp sess.to_h
 [sess.authenticated?, sess.disable_auth]
 #=> [false, true]
