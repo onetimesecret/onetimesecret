@@ -41,11 +41,6 @@ module Onetime
       @key
     end
 
-    # Temporary until familia v1.0.0.pre-rc2
-    def hgetall(suffix = nil)
-      redis.hgetall rediskey(suffix)
-    end
-
     def age
       @age ||= Time.now.utc.to_i-updated
       @age
