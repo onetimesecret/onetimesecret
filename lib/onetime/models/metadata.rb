@@ -91,14 +91,20 @@ module Onetime
       exists?
     end
 
+    # NOTE: We override the default fast writer (bang!) methods from familia
+    # so that we can update two fields at once. To replicate the same behavior
+    # we pass update_expiration: false to save so that changing this metdata
+    # objects state doesn't affect its original expiration time.
+    #
+    # TODO: Replace with transaction (i.e. redis multi command)
     def viewed!
       # A guard to allow only a fresh, new secret to be viewed. Also ensures
       # that we don't support going from viewed back to something else.
       return unless state?(:new)
       self.state = 'viewed'
       self.viewed = Time.now.utc.to_i
-      # TODO: Confirm that the nuance bewteen being "viewed" vs "received"
-      # or "burned" is that the secret link page has been requested (via GET)
+      # The nuance bewteen being "viewed" vs "received" or "burned" is
+      # that the secret link page has been requested (via GET)
       # but the "View Secret" button hasn't been clicked yet (i.e. we haven't
       # yet received the POST request that actually reveals the contents
       # of the secret). It's a subtle but important distinction bc it
@@ -106,7 +112,7 @@ module Onetime
       # can be improved though and we'll also want to achieve parity with the
       # API by allowing a GET (or OPTIONS) for the secret as a check that it
       # is still valid -- that should set the state to viewed as well.
-      save
+      save update_expiration: false
     end
 
     def received!
@@ -116,7 +122,7 @@ module Onetime
       self.state = 'received'
       self.received = Time.now.utc.to_i
       self.secret_key = ""
-      save
+      save update_expiration: false
     end
 
     def burned!
@@ -125,7 +131,7 @@ module Onetime
       self.state = 'burned'
       self.burned = Time.now.utc.to_i
       self.secret_key = ""
-      save
+      save update_expiration: false
     end
 
     def state? guess
