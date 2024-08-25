@@ -9,10 +9,20 @@ module Onetime::Models
 
     attr_accessor :passphrase_temp
 
-    def update_passphrase val
-      self.passphrase_encryption = "1"
+    def update_passphrase! val
+      self.passphrase_encryption! "1"
+      # Hold the unencrypted passphrase in memory for a short time
+      # (which will basically be until this instance is garbage
+      # collected) in case we need to repeat the save attempt on
+      # error. TODO: Move to calling code in specific cases.
       @passphrase_temp = val
-      self.passphrase = BCrypt::Password.create(val, cost: 12).to_s
+      self.passphrase! BCrypt::Password.create(val, cost: 12).to_s
+    end
+
+    # Allow for chaining API e.g. cust.update_passphrase('plop').custid
+    def update_passphrase val
+      update_passphrase! val
+      self
     end
 
     def has_passphrase?

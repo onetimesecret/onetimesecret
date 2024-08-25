@@ -12,7 +12,9 @@
 # The tryouts use the Onetime::Secret class to demonstrate passphrase-related operations,
 # allowing for targeted testing of these specific scenarios without needing to run the full application.
 
+
 require_relative '../lib/onetime'
+Familia.debug = true
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
@@ -20,12 +22,32 @@ OT.boot!
 
 ## Can store a passphrase
 s = Onetime::Secret.new :shared
-s.passphrase = 'poop'
+s.passphrase = 'plop'
 s.passphrase
-#=> 'poop'
+#=> 'plop'
 
 ## Can store a one-way, encrypted passphrase
 s = Onetime::Secret.new :shared
-s.update_passphrase 'poop'
-[s.passphrase_encryption, s.passphrase?('poop')]
+s.update_passphrase 'plop'
+[s.passphrase_encryption, s.passphrase?('plop')]
+#=> ["1", true]
+
+## Calling update_passphrase! automatically saves the passphrase
+s = Onetime::Secret.new :shared
+s.update_passphrase! 'plop'
+
+secret_key = s.identifier
+s2 = Onetime::Secret.from_identifier secret_key
+
+[s2.passphrase_encryption, s2.passphrase?('plop')]
+#=> ["1", true]
+
+## Calling update_passphrase (without bang) automatically saves the passphrase too
+s = Onetime::Secret.new :shared
+s.update_passphrase 'plop'
+
+secret_key = s.identifier
+s2 = Onetime::Secret.from_identifier secret_key
+
+[s2.passphrase_encryption, s2.passphrase?('plop')]
 #=> ["1", true]
