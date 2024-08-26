@@ -239,8 +239,21 @@ class Onetime::Customer < Familia::Horreum
     !anonymous? && !verified? && role?('customer')  # we modify the role when destroying
   end
 
-  def load_session
-    OT::Session.load sessid unless sessid.to_s.empty?
+  # Loads an existing session or creates a new one if it doesn't exist.
+  #
+  # @param [String] ip_address The IP address of the customer.
+  # @raise [OT::Problem] if the customer is anonymous.
+  # @return [OT::Session] The loaded or newly created session.
+  def load_or_create_session(ip_address)
+    raise OT::Problem, "Customer is anonymous" if anonymous?
+    @sess = OT::Session.load(sessid) unless sessid.to_s.empty?
+    if @sess.nil?
+      @sess = OT::Session.create(ip_address, custid)
+      sessid = @sess.identifier
+      OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
+      self.sessid!(sessid)
+    end
+    @sess
   end
 
   def metadata_list

@@ -33,15 +33,15 @@ class Onetime::App
             return disabled_response(req.path) unless authentication_enabled?
 
             possible = OT::Customer.load custid
-            raise OT::Unauthorized if possible.nil?
+            raise OT::Unauthorized, "No such customer" if possible.nil?
 
             @cust = possible if possible.apitoken?(apitoken)
+            raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
 
-            unless cust.nil? || @sess = cust.load_session
-              @sess = OT::Session.create req.client_ipaddress, cust.custid
-            end
+            @sess = cust.load_or_create_session req.client_ipaddress
 
-            sess.authenticated = true unless sess.nil?
+            # Set the session as authenticated for this request
+            sess.authenticated = true
 
             OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (#{sess.authenticated?})"
 
@@ -57,8 +57,8 @@ class Onetime::App
             # already been authenticated. Otherwise this is an anonymous session.
             @cust = sess.load_customer if sess.authenticated?
 
-          #custid = @cust.custid unless @cust.nil?
-          #OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+            custid = @cust.custid unless @cust.nil?
+            OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
 
           # Otherwise, we have no credentials, so we must be anonymous. Only
           # methods that opt-in to allow anonymous sessions will be allowed to
@@ -78,9 +78,6 @@ class Onetime::App
           if cust.nil? || sess.nil?
             raise OT::Unauthorized, "[bad-cust] '#{custid}' via #{req.client_ipaddress}"
           end
-
-          # TODO: Have a look through this codepath and see if we can remove it.
-          cust.sessid = sess.sessid unless cust.anonymous?
 
           yield
         end
