@@ -366,7 +366,7 @@ class Onetime::CustomDomain < Familia::Horreum
     def load display_domain, custid
       parse(display_domain, custid).tap do |obj|
         OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.to_h}"
-        raise OT::Problem, "Domain not found" unless obj.exists?
+        raise OT::RecordNotFound, "Domain not found" unless obj.exists?
         from_rediskey(obj.rediskey)
       end
     end
