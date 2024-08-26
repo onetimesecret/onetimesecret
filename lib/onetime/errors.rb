@@ -5,6 +5,9 @@ module Onetime
   class Problem < RuntimeError
   end
 
+  class RecordNotFound < Problem
+  end
+
   class MissingSecret < Problem
   end
 
