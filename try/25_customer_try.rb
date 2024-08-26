@@ -76,9 +76,12 @@ rescue OT::Problem => e
 end
 #=> [Onetime::Problem, "Anonymous cannot be saved Onetime::Customer customer:anon:object"]
 
-## Object name and rediskey are equivalent
-@cust.rediskey.eql?(@cust.name)
-#=> true
+## Object name and rediskey are no longer equivalent.
+## This is a reference back to Familia v0.10.2 era which
+## used to have a name method that returned the key.
+@cust.respond_to?(:name) ||
+(@cust.respond_to?(:name) && @cust.name.eql?(@cust.rediskey))
+#=> false
 
 ## New un-saved instance of customer has a role of 'customer'
 @cust.role
