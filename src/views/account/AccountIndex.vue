@@ -37,7 +37,6 @@
       :stripe-subscriptions="stripe_subscriptions"
     />
 
-
     <!-- PASSWORD CHANGE -->
     <div class="dark:bg-gray-800 p-6 mb-6 bg-white rounded-lg shadow">
       <h2 class="dark:text-white flex items-center mb-4 text-xl font-semibold">

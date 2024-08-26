@@ -57,6 +57,35 @@ module Onetime::Logic
       def show_stripe_section?
         plans_enabled && !stripe_customer.nil?
       end
+
+      def safe_stripe_customer_dump
+        return nil if stripe_customer.nil?
+        safe_customer_data = {
+          id: stripe_customer.id,
+          email: stripe_customer.email,
+          description: stripe_customer.description,
+          balance: stripe_customer.balance,
+          created: stripe_customer.created,
+          metadata: stripe_customer.metadata
+        }
+      end
+
+      def safe_stripe_subscription_dump
+        return nil if stripe_subscription.nil?
+        safe_subscription_data = {
+          id: stripe_subscription.id,
+          status: stripe_subscription.status,
+          current_period_end: stripe_subscription.current_period_end,
+          items: stripe_subscription.items,
+          plan: {
+            id: stripe_subscription.plan.id,
+            amount: stripe_subscription.plan.amount,
+            currency: stripe_subscription.plan.currency,
+            interval: stripe_subscription.plan.interval,
+            product: stripe_subscription.plan.product
+          }
+        }
+      end
     end
 
     class CreateAccount < OT::Logic::Base

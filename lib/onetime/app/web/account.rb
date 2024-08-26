@@ -326,9 +326,10 @@ module Onetime
 
         view = Onetime::App::Views::Account.new req, sess, cust, locale
         if logic.show_stripe_section?
-          subscriptions = [logic.stripe_subscription].compact
-          view[:jsvars] << view.jsvar(:stripe_customer, logic.stripe_customer.id)
-          view[:jsvars] << view.jsvar(:stripe_subscriptions, subscriptions)
+          stripe_customer = logic.safe_stripe_customer_dump
+          stripe_subscriptions = [logic.safe_stripe_subscription_dump]
+          view[:jsvars] << view.jsvar(:stripe_customer, stripe_customer)
+          view[:jsvars] << view.jsvar(:stripe_subscriptions, stripe_subscriptions)
         end
 
         res.body = view.render
