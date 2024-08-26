@@ -49,12 +49,16 @@ class Onetime::Session < Familia::Horreum
     # Don't call the sessid accessor in here. We intentionally allow
     # instantiating a session without a sessid. It's a distinction
     # from create which generates an sessid _and_ saves.
-    @sessid ||= nil
+    @sessid ||= nil # rubocop:disable Naming/MemoizedInstanceVariableName
   end
 
   def sessid
     @sessid ||= self.class.generate_id
     @sessid
+  end
+
+  def to_s
+    "#{sessid}/#{external_identifier}"
   end
 
   # The external identifier is used by the rate limiter to estimate a unique
