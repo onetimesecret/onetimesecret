@@ -60,9 +60,11 @@ module Onetime::Logic
 
         res = OT::Cluster::Approximated.create_vhost(api_key, @display_domain, vhost_target, '443')
         payload = res.parsed_response
-      OT.info "[AddDomain.create_vhost] %s" % payload
+
+        OT.info "[AddDomain.create_vhost] %s" % payload
         custom_domain.vhost = payload['data'].to_json
         custom_domain.updated = OT.now.to_i
+        custom_domain.save
 
       rescue HTTParty::ResponseError => e
         OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
@@ -227,6 +229,7 @@ module Onetime::Logic
         OT.ld ""
         custom_domain.vhost = payload['data'].to_json
         custom_domain.updated = OT.now.to_i
+        custom_domain.save
       end
     end
   end
