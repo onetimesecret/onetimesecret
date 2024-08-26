@@ -225,8 +225,8 @@ module Onetime::Logic
         payload = res.parsed_response
         OT.info "[VerifyDomain.refresh_vhost] %s" % payload
         OT.ld ""
-        custom.vhost = payload['data'].to_json
-        custom.updated = OT.now.to_i
+        custom_domain.vhost = payload['data'].to_json
+        custom_domain.updated = OT.now.to_i
       end
     end
   end
