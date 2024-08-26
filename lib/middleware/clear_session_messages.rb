@@ -18,7 +18,8 @@ module Rack
       # Pass the request down the middleware stack
       status, headers, response = @app.call(env)
 
-      # Retrieve the session object after the application has processed the request
+      # Retrieve the session object after the application has processed
+      # the request. NOTE: This will be nil for API requests.
       sess = env['rack.session']
 
       # Ensure the session is properly configured before proceeding
@@ -43,7 +44,7 @@ module Rack
     # there are messages to clear.
     def check_session_messages(sess)
       unless sess
-        logger.warn("[ClearSessionMessages] Session object not found in environment")
+        logger.debug("[ClearSessionMessages] Session object not found in environment")
         return false
       end
 
