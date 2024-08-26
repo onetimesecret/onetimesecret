@@ -50,8 +50,6 @@ class Onetime::Session < Familia::Horreum
     # instantiating a session without a sessid. It's a distinction
     # from create which generates an sessid _and_ saves.
     @sessid ||= nil
-
-    OT.ld "[Session.init] Initialized session #{self}"
   end
 
   def sessid
