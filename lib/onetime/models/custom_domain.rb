@@ -126,7 +126,8 @@ class Onetime::CustomDomain < Familia::Horreum
   end
 
   def parse_vhost
-    JSON.parse(self.vhost || '{}')
+    JSON.parse(self.vhost) unless self.vhost.to_s.empty?
+
   rescue JSON::ParserError => e
     OT.le "[CustomDomain.parse_vhost] Error #{e}"
     {}
@@ -350,11 +351,16 @@ class Onetime::CustomDomain < Familia::Horreum
     # Implement a load method for CustomDomain to make sure the
     # correct derived ID is used as the key.
     def load display_domain, custid
-      parse(display_domain, custid).tap do |obj|
+      # The `parse`` method instantiates a new CustomDomain object but does
+      # not save it to Redis. We do that here to piggyback on the inital
+      # validation and parsing that the parse method does. Then we simply
+      # use the derived identifier to load the object from Redis using
+      # the built-in `load` from Familia.
+      custom_domain = parse(display_domain, custid).tap do |obj|
         OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.to_h}"
         raise OT::RecordNotFound, "Domain not found" unless obj.exists?
-        from_rediskey(obj.rediskey)
       end
+      super(custom_domain.identifier)
     end
   end
 
