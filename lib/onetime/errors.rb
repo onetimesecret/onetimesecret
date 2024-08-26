@@ -8,7 +8,7 @@ module Onetime
   class RecordNotFound < Problem
   end
 
-  class MissingSecret < Problem
+  class MissingSecret < RecordNotFound
   end
 
   class FormError < Problem

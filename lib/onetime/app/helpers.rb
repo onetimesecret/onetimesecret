@@ -75,8 +75,15 @@ class Onetime::App
         handle_form_error ex
       end
 
+    # NOTE: It's important to handle MissingSecret before RecordNotFound since
+    #       MissingSecret is a subclass of RecordNotFound. If we don't, we'll
+    #       end up with a generic error message instead of the specific one.
     rescue OT::MissingSecret => ex
       secret_not_found_response
+
+    rescue OT::RecordNotFound => ex
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path} redirect:#{redirect})"
+      not_found_response ex.message
 
     rescue OT::LimitExceeded => ex
       obscured = if cust.anonymous?
