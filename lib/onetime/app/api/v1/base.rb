@@ -32,6 +32,7 @@ class Onetime::App
 
             return disabled_response(req.path) unless authentication_enabled?
 
+            OT.ld "[authorized] Attempt for '#{custid}' via #{req.client_ipaddress} (basic auth)"
             possible = OT::Customer.load custid
             raise OT::Unauthorized, "No such customer" if possible.nil?
 
