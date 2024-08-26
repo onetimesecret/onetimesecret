@@ -1,4 +1,6 @@
 
+require 'public_suffix'
+
 # Custom Domain
 #
 # Every customer can have one or more custom domains.
@@ -23,9 +25,7 @@
 # `FQDN` = Fully Qualified Domain Names, are domain names that are written with
 # the hostname and the domain name, and include the top-level domain, the
 # format looks like [hostname].[domain].[tld]. for ex. [www].[mozilla].[org].
-
-require 'public_suffix'
-
+#
 class Onetime::CustomDomain < Familia::Horreum
   include Gibbler::Complex
 
@@ -79,37 +79,9 @@ class Onetime::CustomDomain < Familia::Horreum
     :updated
   ]
 
-  # We need a minimum of a domain and customer id to create a custom
-  # domain -- or more specifically, a custom domain indentifier. We
-  # allow instantiating a custom domain without a customer id, but
-  # instead raise a fuss if we try to save it later without one.
-  #
-  # See CustomDomain.base_domain and display_domain for details on
-  # the difference between display domain and base domain.
-  #
-  # NOTE: Interally within this class, we try not to use the
-  # unqualified term "domain" on its own since there's so much
-  # room for confusion.
-  #
-  #def initialize display_domain, custid
-  #  @prefix = :customdomain
-  #  @suffix = :object
-  #
-  #  unless display_domain.is_a?(String)
-  #    raise ArgumentError, "Domain must be a string (got #{display_domain.class})"
-  #  end
-  #
-  #  # Set the minimum number of required instance variables,
-  #  # where minimum means the ones needed to generate a valid identifier.
-  #  @display_domain = display_domain
-  #  @custid = custid.to_s
-  #
-  #  super rediskey, db: self.class.db
-  #end
-  #
   def init
     # Display domain and cust should already be set and accessible
-    # via accessor methods.
+    # via accessor methods so we should see a valid identifier logged.
     OT.ld "[CustomDomain.init] #{self.display_domain} id:#{self.identifier}"
   end
 
@@ -231,12 +203,26 @@ class Onetime::CustomDomain < Familia::Horreum
   module ClassMethods
     attr_reader :db, :values, :owners, :txt_validation_prefix
 
+    # We need a minimum of a domain and customer id to create a custom
+    # domain -- or more specifically, a custom domain indentifier. We
+    # allow instantiating a custom domain without a customer id, but
+    # instead raise a fuss if we try to save it later without one.
+    #
+    # See CustomDomain.base_domain and display_domain for details on
+    # the difference between display domain and base domain.
+    #
+    # NOTE: Interally within this class, we try not to use the
+    # unqualified term "domain" on its own since there's so much
+    # room for confusion.
+    #
     # Returns a Onetime::CustomDomain object after saving it to Redis.
     #
     # +input+ is the domain name that the customer wants to use.
     # +custid+ is the customer ID that owns this domain name.
     #
-    # Calls `parse` so it can raise Onetime::Problem.
+    # Calls `parse` to handle the validation so this method
+    # can raise Onetime::Problem if the input is bad.
+    #
     def create input, custid
       OT.ld "[CustomDomain.create] Called with #{input} and #{custid}"
 

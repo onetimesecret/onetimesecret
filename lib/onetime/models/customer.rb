@@ -67,37 +67,9 @@ class Onetime::Customer < Familia::Horreum
     { :active => ->(cust) { cust.active? } }
   ]
 
-  #  def initialize custid=nil
-  #    @custid = custid || :anon # if we use accessor methods it will sync to redis.
-  #
-  #    # WARNING: There's a gnarly bug in the awkward relationship between
-  #    # RedisHash (local lib) and RedisObject (familia gem) where a value
-  #    # can be set to an instance var, the in-memory cache in RedisHash,
-  #    # and/or the persisted value in redis. RedisHash#method_missing
-  #    # allows for calling fields as method names on the object itself;
-  #    # RedisObject (specifically Familia::HashKey in this case), relies
-  #    # on `[]` and `[]=` to access and set values in redis.
-  #    #
-  #    # The problem is that the value set by RedisHash#method_missing
-  #    # is not available to RedisObject (Familia::HashKey) until after
-  #    # the object has been initialized and `super` called in RedisObject.
-  #    # Long story short: we set these two instance vars do that the
-  #    # identifier method can produce a valid identifier string. But,
-  #    # we're relying on Customer.create to duplicate the effort
-  #    # and set the same values in the way that will persist them to
-  #    # redis. Hopefully I do'nt find myself reading this comment in
-  #    # 5 years and wondering why I can't just call `super` man.
-  #
-  #    super name, db: 6 # `name` here refers to `RedisHash#name`
-  #  end
-
   def init
     self.custid ||= :anon
     self.role ||= 'customer'
-  end
-
-  def name
-    rediskey # backwards compat for Familia v0.10.2
   end
 
   def contributor?
