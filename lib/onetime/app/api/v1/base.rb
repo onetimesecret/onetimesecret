@@ -17,7 +17,7 @@ class Onetime::App
 
       # curl -F 'ttl=7200' -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:3000/api/v1/generate
       def authorized allow_anonymous=false
-        carefully(redirect=nil, content_type='application/json') do
+        carefully(redirect=nil, content_type='application/json', app: :api) do
           check_locale!
 
           req.env['otto.auth'] ||= Rack::Auth::Basic::Request.new(req.env)

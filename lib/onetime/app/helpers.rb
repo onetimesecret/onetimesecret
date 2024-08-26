@@ -23,8 +23,8 @@ class Onetime::App
       @plan
     end
 
-    def carefully(redirect=nil, content_type=nil) # rubocop:disable Metrics/MethodLength
-      redirect ||= req.request_path
+    def carefully(redirect=nil, content_type=nil, app: :web) # rubocop:disable Metrics/MethodLength
+      redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
       # Determine the locale for the current request
