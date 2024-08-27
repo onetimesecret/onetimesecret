@@ -146,6 +146,8 @@ module Onetime::Logic
 
       def process
         OT.ld "[ListDomains] Processing #{@cust.custom_domains.length}"
+        OT.info "[ListDomains] Processing #{@cust.custom_domains.rediskey}"
+
         @custom_domains = @cust.custom_domains_list.map { |cd| cd.safe_dump }
       end
 
