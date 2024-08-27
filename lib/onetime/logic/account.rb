@@ -261,7 +261,8 @@ module Onetime::Logic
         cust = OT::Customer.load @custid
         secret = OT::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
-        secret.verification = true
+        secret.verification = "true"
+        secret.save
 
         view = OT::App::Mail::PasswordRequest.new cust, locale, secret
         view.emailer.from = OT.conf[:emailer][:from]
