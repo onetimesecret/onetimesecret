@@ -59,13 +59,14 @@
       {{#plans_enabled}}
         <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a> |
       {{/plans_enabled}}
-      <a href="/docs/api" aria-label="API documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">API</a> |
-      <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Code</a> |
-      <a href="https://github.com/onetimesecret/onetimesecret/issues" aria-label="View open issues on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Issues</a>
+      <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Code</a>
+      {{^support_host}} |
+      <a href="/docs/api" aria-label="API Documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
+      {{/support_host}}
     </div>
     <div class="prose dark:prose-invert text-base">
-      <a href="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Privacy Policy</a> |
-      <a href="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Terms &amp; Conditions</a> |
+      <a href="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Privacy</a> |
+      <a href="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Terms</a> |
       <a href="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Security</a> |
       Languages: <a href="/translations" aria-label="English language version of Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">{{locale}}</a>
     </div>

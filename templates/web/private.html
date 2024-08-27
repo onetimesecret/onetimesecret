@@ -2,11 +2,11 @@
 
 <div class="container mx-auto p-4 max-w-2xl">
 
-  {{#authenticated}}
-    {{>partial/dashboard_nav}}
-  {{/authenticated}}
+{{#authenticated}}
+  {{>partial/dashboard_nav}}
+{{/authenticated}}
 
-  {{#show_secret_link}}
+{{#show_secret_link}}
   <div class="mb-4">
     <p class="text-base text-gray-600 dark:text-gray-400 mb-2">{{i18n.page.pretext}}</p>
 
@@ -52,48 +52,46 @@
         </svg>
       </button>
     </div>
-    <script>
-      function copyToClipboard(elementId) {
-        var copyText = document.getElementById(elementId);
-        copyText.select();
-        copyText.setSelectionRange(0, 99999); /* For mobile devices */
-        document.execCommand('copy');
+  <script>
+  function copyToClipboard(elementId) {
+    var copyText = document.getElementById(elementId);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /* For mobile devices */
+    document.execCommand('copy');
 
-        // Change icon to green check
-        var copyIcon = document.getElementById('copyIcon');
-        var checkIcon = document.getElementById('checkIcon');
-        copyIcon.classList.add('hidden');
-        checkIcon.classList.remove('hidden');
+    // Change icon to green check
+    var copyIcon = document.getElementById('copyIcon');
+    var checkIcon = document.getElementById('checkIcon');
+    copyIcon.classList.add('hidden');
+    checkIcon.classList.remove('hidden');
 
-        // Revert back to copy icon after 2 seconds
-        setTimeout(function () {
-          copyIcon.classList.remove('hidden');
-          checkIcon.classList.add('hidden');
-        }, 2000);
-      }
-    </script>
-    {{#has_passphrase}}
+    // Revert back to copy icon after 2 seconds
+    setTimeout(function () {
+      copyIcon.classList.remove('hidden');
+      checkIcon.classList.add('hidden');
+    }, 2000);
+  }
+</script>
+  {{#has_passphrase}}
     <p class="mt-2 font-bold text-gray-800 dark:text-gray-200">{{i18n.page.requires_passphrase}}</p>
-    {{/has_passphrase}}
-  </div>
-  {{/show_secret_link}} {{#show_metadata}} {{#recipients}}
-  <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-    {{i18n.COMMON.sent_to}} {{to_s}}
-  </h3>
-  {{/recipients}} {{/show_metadata}} {{#show_secret}}
+  {{/has_passphrase}}
+</div>
+{{/show_secret_link}} {{#show_recipients}}
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+    {{i18n.COMMON.sent_to}} {{recipients}}
+    </h3>
+  {{/show_recipients}} {{#show_secret}}
   <div class="mb-4">
-    {{^can_decrypt}}
+  {{^can_decrypt}}
     <p class="mb-2 italic text-gray-600 dark:text-gray-400">
-      {{i18n.COMMON.secret}} ({{secret_shortkey}}):
+    {{i18n.COMMON.secret}} ({{secret_shortkey}}):
     </p>
-    <input
-      id="displayedsecret"
+    <input id="displayedsecret"
       class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-      value="{{i18n.page.this_msg_is_encrypted}}"
-      readonly />
-    {{/can_decrypt}} {{#can_decrypt}} {{#truncated}}
-    <div
-      class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 text-sm dark:bg-blue-800 dark:text-blue-200">
+      value="{{i18n.page.this_msg_is_encrypted}}" readonly />
+  {{/can_decrypt}} {{#can_decrypt}} {{#truncated}}
+      <div
+        class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 text-sm dark:bg-blue-800 dark:text-blue-200">
       <button type="button" class="float-right" onclick="this.parentElement.remove()">
         &times;
       </button>
@@ -106,18 +104,15 @@
     </div>
     {{/truncated}}
     <p class="mb-2 italic text-gray-600 dark:text-gray-400">
-      {{i18n.COMMON.secret}} ({{secret_shortkey}}):
-      <span class="text-sm text-gray-500 dark:text-gray-400">({{i18n.page.only_see_once}})</span>
+    {{i18n.COMMON.secret}} ({{secret_shortkey}}):
+    <span class="text-sm text-gray-500 dark:text-gray-400">({{i18n.page.only_see_once}})</span>
     </p>
     <textarea
       class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-      readonly
-      rows="{{display_lines}}">
-{{secret_value}}</textarea
-    >
-    {{/can_decrypt}}
+      readonly rows="{{display_lines}}">{{secret_value}}</textarea>
+  {{/can_decrypt}}
   </div>
-  {{/show_secret}} {{^show_secret}}
+{{/show_secret}} {{^show_secret}}
   <div class="mb-4">
     <p class="mb-2 text-gray-600 dark:text-gray-400">
       {{i18n.COMMON.secret}} ({{secret_shortkey}}):
@@ -127,26 +122,25 @@
       value="*******************"
       disabled />
   </div>
-  {{/show_secret}}
+{{/show_secret}}
 
-  <p class="text-gray-600 dark:text-gray-400 mb-4">
-    {{#is_received}}
-    <em>{{i18n.COMMON.received}} {{received_date}}.</em>
-    <span class="text-sm text-gray-500 dark:text-gray-400">({{received_date_utc}})</span>
-    {{/is_received}} {{#is_burned}}
-    <em>{{i18n.COMMON.burned}} {{burned_date}}.</em>
-    <span class="text-sm text-gray-500 dark:text-gray-400">({{burned_date_utc}})</span>
-    {{/is_burned}} {{^is_destroyed}}
-    <strong>{{i18n.COMMON.expires_in}} {{expiration_stamp}}</strong>.
-    <span class="text-sm text-gray-500 dark:text-gray-400">({{created_date_utc}})</span>
-    {{/is_destroyed}}
-  </p>
+<p class="text-gray-600 dark:text-gray-400 mb-4">
+{{#is_received}}
+  <em>{{i18n.COMMON.received}} {{received_date}}.</em>
+  <span class="text-sm text-gray-500 dark:text-gray-400">({{received_date_utc}})</span>
+{{/is_received}} {{#is_burned}}
+  <em>{{i18n.COMMON.burned}} {{burned_date}}.</em>
+  <span class="text-sm text-gray-500 dark:text-gray-400">({{burned_date_utc}})</span>
+{{/is_burned}} {{^is_destroyed}}
+  <strong>{{i18n.COMMON.expires_in}} {{expiration_stamp}}</strong>.
+  <span class="text-sm text-gray-500 dark:text-gray-400">({{created_date_utc}})</span>
+{{/is_destroyed}}
+</p>
 
-  <hr class="my-4 border-gray-300 dark:border-gray-600" />
+<hr class="w-full my-4 mx-auto border-gray-200 dark:border-gray-600">
 
-  {{^is_destroyed}}
-  <a
-    href="{{burn_uri}}"
+{{^is_destroyed}}
+  <a href="{{burn_uri}}"
     class="block w-full px-4 py-2 mb-4 text-center text-base
       bg-yellow-400 rounded-md text-gray-800
       hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
@@ -175,19 +169,17 @@
   <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
     * {{i18n.COMMON.burn_this_secret_hint}}.
   </p>
-  {{/is_destroyed}}
+  <hr class="w-1/4 my-4 mx-auto border-gray-200 dark:border-gray-600">
+{{/is_destroyed}}
 
-  <hr class="my-4 border-gray-300 dark:border-gray-600" />
 
-  <a
-    href="/"
-    class="block w-full px-4 py-2 mb-4 text-center rounded-md border-2 text-lg font-medium
+<a href="/"
+  class="block w-2/3 mx-auto px-4 py-2 mb-4 text-center rounded-md border-2 text-base font-medium
       bg-gray-200 text-gray-800 border-gray-300
       dark:bg-gray-700 dark:text-gray-200 dark:border-gray-800
-      hover:bg-gray-100 hover:border-grey-200 dark:hover:bg-gray-600 dark:hover:border-gray-600"
-    >Create another secret</a>
+      hover:bg-gray-100 hover:border-grey-200 dark:hover:bg-gray-600 dark:hover:border-gray-600">Create another secret</a>
 
-  {{#show_secret}}
+{{#show_secret}}
   <div class="text-sm text-gray-600 dark:text-gray-400">
     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">F.A.Q.</h3>
     {{#has_passphrase}}
@@ -195,7 +187,7 @@
     <p class="mb-4">
       We can't show it to you because we don't know what it is. When you create a secret with a
       passphrase, we immediately hash it with
-      <a href="http://en.wikipedia.org/wiki/Bcrypt" class="text-brand-500 hover:underline">bcrypt</a
+      <a href="https://en.wikipedia.org/wiki/Bcrypt" class="text-brand-500 hover:underline">bcrypt</a
       >. Since we don't store the passphrase, we have no way to show it to you. That also means when
       you include a passphrase, we have no way to decrypt your secret.
     </p>
@@ -227,7 +219,7 @@
       The secret link will be available for {{expiration_stamp}} or until it's viewed.
     </p>
   </div>
-  {{/show_secret}} {{^show_secret}}
+{{/show_secret}} {{^show_secret}}
   <div class="text-sm text-gray-600 dark:text-gray-400">
     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">F.A.Q.</h3>
     {{^show_secret_link}}
@@ -247,7 +239,7 @@
       to them like the secret never existed at all.
     </p>
   </div>
-  {{/show_secret}}
+{{/show_secret}}
 </div>
 
 {{>partial/footer}}

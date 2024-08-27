@@ -1,17 +1,24 @@
 
-class Onetime::StripeEvent < Familia::HashKey
-  @db = 10
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: @db
+class Onetime::StripeEvent < Familia::Horreum
 
-  include Onetime::Models::RedisHash
-  include Onetime::Models::SafeDump
+  feature :safe_dump
 
+  db 10
+  prefix :stripeevent
+
+  class_sorted_set :values, key: "onetime:stripeevent:values"
+
+  identifier :secretid
+
+  field :custid
+  field :eventid
+  field :message_response
 
   # e.g.
   #
   #  stripe:1234567890:event
   #
-  def initialize custid=nil, eventid=nil, message_response=nil
+  def init
     @prefix = :stripe
     @suffix = :event
     @custid = custid
@@ -19,7 +26,6 @@ class Onetime::StripeEvent < Familia::HashKey
     @custid = custid.identifier if custid.is_a?(Familia::RedisObject)
     @eventid = eventid.identifier if eventid.is_a?(Familia::RedisObject)
     @message_response = message_response
-    super name, db: 8, ttl: 30.days
   end
 
   def identifier
@@ -50,22 +56,13 @@ class Onetime::StripeEvent < Familia::HashKey
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
 
-    def exists? fobjid
-      fobj = new fobjid
-      fobj.exists?
-    end
-
-    def load fobjid
-      fobj = new fobjid
-      fobj.exists? ? fobj : nil
-    end
-
     def create(custid, secretid, message_response=nil)
-      fobj = new custid, secretid, message_response
+      fobj = new custid: custid, secretid: secretid, message_response: message_response
       OT.ld "[StripeEvent.create] #{custid} #{secretid} #{message_response}"
       raise ArgumentError, "#{name} record exists #{rediskey}" if fobj.exists?
 
-      fobj.update_fields custid: custid, secretid: secretid, message_response: message_response
+      fobj.apply_fields custid: custid, secretid: secretid, message_response: message_response
+      fobj.save
       add fobj # to the @values sorted set
       fobj
     end

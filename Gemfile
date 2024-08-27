@@ -24,21 +24,17 @@ gem 'addressable'
 
 gem 'rack'
 
+gem 'dotenv'
 gem 'multi_json'
+gem 'mustache'
 gem 'public_suffix'
 gem 'thin'
-#gem 'whois'
-gem 'yajl-ruby'
-
-gem 'mustache'
 
 gem 'drydock'
-if ENV['USE_LOCAL_WIP']
-  gem 'familia', path: '~/Projects/opensource/d/familia'
-else
-  gem 'familia', '~> 0.10.2'
-end
+gem 'familia', '~> 1.0.0.pre.rc6'
+
 gem 'gibbler'
+
 gem 'otto', '~> 1.1.0.pre.alpha1'
 gem 'redis', '~> 5.2.0'
 gem 'storable'
@@ -60,11 +56,11 @@ gem 'pry-byebug', require: false, group: :development
 gem 'rubocop', require: false, group: :development
 gem 'rubocop-performance', require: false, group: :development
 gem 'rubocop-thread_safety', require: false, group: :development
-gem "sentry-ruby", require: false, group: :development
+gem "sentry-ruby", require: false, group: :staging
 gem 'sorbet', require: false, group: :development
 gem 'sorbet-runtime'
 gem 'spoom', require: false, group: :development
-gem 'stackprof', require: false, group: :development # bundle exec stackprof --text tmp/rubocop-stackprof.dump
+gem 'stackprof', require: false, group: :staging # bundle exec stackprof --text tmp/rubocop-stackprof.dump
 gem 'stripe', require: false, group: :plans # bundle install --group plans
 gem 'tapioca', require: false, group: :development
 gem 'tryouts', require: false, group: :development

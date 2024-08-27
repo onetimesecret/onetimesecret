@@ -4,18 +4,6 @@ require_relative 'base'
 module Onetime::Logic
   module Welcome
 
-    class ExampleClass < OT::Logic::Base
-      def process_params
-      end
-
-      def raise_concerns
-        limit_action :example_class
-      end
-
-      def process
-      end
-    end
-
     class FromStripePaymentLink < OT::Logic::Base
       attr_reader :checkout_session_id, :checkout_session, :checkout_email, :update_customer_fields
 
@@ -56,7 +44,7 @@ module Onetime::Logic
           # authenticated account.
 
           # TODO: Handle case where the user is already a Stripe customer
-          cust.update_fields(**update_customer_fields)
+          cust.apply_fields(**update_customer_fields).commit_fields
 
         else
           # If the user is not authenticated, check if the email address is already
@@ -71,7 +59,7 @@ module Onetime::Logic
 
             OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.email}"
 
-            cust.update_fields(**update_customer_fields)
+            cust.apply_fields(**update_customer_fields).commit_fields
 
             raise OT::Redirect.new('/signin')
           else
@@ -82,7 +70,7 @@ module Onetime::Logic
             cust.verified = "true"
             cust.role = "customer"
             cust.update_passphrase Onetime::Utils.strand(12)
-            cust.update_fields(**update_customer_fields)
+            cust.apply_fields(**update_customer_fields).commit_fields
 
             # Create a completely new session, new id, new everything (incl
             # cookie which the controllor will implicitly do above when it
@@ -91,13 +79,11 @@ module Onetime::Logic
 
             OT.info "[FromStripePaymentLink:login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
 
-            sess.update_fields :custid => cust.custid, :authenticated => 'true'
-            sess.ttl = session_ttl if @stay
+            sess.apply_fields custid: cust.custid, authenticated: 'true'
+            sess.ttl = session_ttl if @stay # TODO
             sess.save
 
           end
-
-
 
         end
 

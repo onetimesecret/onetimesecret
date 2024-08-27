@@ -62,13 +62,17 @@ module Onetime
         @maxviews = params[:maxviews].to_i
         @maxviews = 1 if @maxviews < 1
         @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
+
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym
         end
+
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
+
         params[:recipient] = [params[:recipient]].flatten.compact.uniq
         r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
+
         @recipient = params[:recipient].collect { |email_address|
           next if email_address.to_s.empty?
           email_address.scan(r).uniq.first
@@ -102,7 +106,7 @@ module Onetime
       end
 
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
@@ -116,16 +120,20 @@ module Onetime
         secret.maxviews = maxviews
         secret.save
         metadata.save
+
         if metadata.valid? && secret.valid?
           unless cust.anonymous?
             cust.add_metadata metadata
-            cust.incr :secrets_created
+            cust.increment_field :secrets_created
           end
-          OT::Customer.global.incr :secrets_created
+
+          OT::Customer.global.increment_field :secrets_created
+
           unless recipient.nil? || recipient.empty?
             klass = OT::App::Mail::SecretLink
             metadata.deliver_by_email cust, locale, secret, recipient.first, klass
           end
+
           OT::Logic.stathat_count("Secrets", 1)
         else
           raise_form_error "Could not store your secret"
@@ -171,7 +179,7 @@ module Onetime
         end
       end
       def process
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
@@ -184,9 +192,9 @@ module Onetime
         if metadata.valid? && secret.valid?
           unless cust.anonymous?
             cust.add_metadata metadata
-            cust.incr :secrets_created
+            cust.increment :secrets_created
           end
-          OT::Customer.global.incr :secrets_created
+          OT::Customer.global.increment :secrets_created
           unless recipient.nil? || recipient.empty?
             metadata.deliver_by_email cust, locale, secret, recipient.first, OT::App::Mail::IncomingSupport, ticketno
           end
@@ -217,7 +225,7 @@ module Onetime
         owner = secret.load_customer
         if show_secret
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
-          @truncated = secret.truncated
+          @truncated = secret.truncated?
           @original_size = secret.original_size
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
@@ -228,9 +236,12 @@ module Onetime
               raise_form_error "You can't verify an account when you're already logged in."
             end
           else
-            owner.incr :secrets_shared unless owner.anonymous?
-            OT::Customer.global.incr :secrets_shared
+
+            owner.increment_field :secrets_shared unless cust.anonymous?
+            OT::Customer.global.increment_field :secrets_shared
+
             secret.received!
+
             OT::Logic.stathat_count("Viewed Secrets", 1)
           end
         elsif !correct_passphrase
@@ -279,9 +290,12 @@ module Onetime
           @greenlighted = secret.viewable? && correct_passphrase && continue
           owner = secret.load_customer
           if greenlighted
-            owner.incr :secrets_burned unless owner.anonymous?
-            OT::Customer.global.incr :secrets_burned
+
+            owner.increment_field :secrets_burned unless owner.anonymous?
+            OT::Customer.global.increment_field :secrets_burned
+
             secret.burned!
+
             OT::Logic.stathat_count('Burned Secrets', 1)
           elsif !correct_passphrase
             limit_action :failed_passphrase if secret.has_passphrase?
@@ -295,7 +309,7 @@ module Onetime
     class ShowRecentMetadata < OT::Logic::Base
       attr_reader :metadata
       def process_params
-        @metadata = cust.metadata
+        @metadata = cust.metadata_list
       end
       def raise_concerns
         limit_action :show_metadata

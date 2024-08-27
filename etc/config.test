@@ -2,7 +2,7 @@
 :site:
   :host: '127.0.0.1:3000'
   :domains:
-    :enabled: <%= ENV['DOMAINS_ENABLED'] || false %>
+    :enabled: false
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     :default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
@@ -34,7 +34,7 @@
     # to make it easier for users to sign in.
     :autoverify: false
   :plans:
-    :enabled: <%= ENV['PLANS_ENABLED'] || false %>
+    :enabled: false
 :redis:
   :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
   :config: ./try/redis.conf

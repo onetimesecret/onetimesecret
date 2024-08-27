@@ -136,7 +136,7 @@ module Onetime
           self[:metadata_shortkey] = metadata.shortkey
           self[:secret_key] = metadata.secret_key
           self[:secret_shortkey] = metadata.secret_shortkey
-          self[:recipients] = metadata.recipients
+          self[:recipients] = metadata.recipients # default is an empty str
           self[:display_feedback] = false
           self[:no_cache] = true
           # Metadata now lives twice as long as the original secret.
@@ -165,18 +165,59 @@ module Onetime
           else
             self[:maxviews] = secret.maxviews
             self[:has_maxviews] = true if self[:maxviews] > 1
-            self[:view_count] = secret.view_count
+            self[:view_count] = secret.view_count # TODO: Remove
             if secret.viewable?
               self[:has_passphrase] = !secret.passphrase.to_s.empty?
               self[:can_decrypt] = secret.can_decrypt?
               self[:secret_value] = secret.decrypted_value if self[:can_decrypt]
-              self[:truncated] = secret.truncated
+              self[:truncated] = secret.truncated?
             end
           end
+
+          # Show the secret if it exists and hasn't been seen yet.
+          #
+          # It will be true if:
+          #   1. The secret is not nil (i.e., a secret exists), AND
+          #   2. The metadata state is NOT in any of these states: viewed,
+          #      received, or burned
+          #
           self[:show_secret] = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received) || metadata.state?(:burned))
-          self[:show_secret_link] = !(metadata.state?(:received) || metadata.state?(:burned)) && (self[:show_secret] || metadata.owner?(cust)) && self[:recipients].nil?
+
+          # The secret link is shown only when appropriate, considering the
+          # state, ownership, and recipient information.
+          #
+          # It will be true if ALL of these conditions are met:
+          #   1. The metadata state is NOT received or burned, AND
+          #   2. Either the secret is showable (self[:show_secret] is true) OR
+          #      the current customer is the owner of the metadata, AND
+          #   3. There are no recipients specified (self[:recipients] is nil)
+          #
+          self[:show_secret_link] = !(metadata.state?(:received) || metadata.state?(:burned)) &&
+                                    (self[:show_secret] || metadata.owner?(cust)) &&
+                                    self[:recipients].empty?
+
+          # A simple check to show the metadata link only for newly
+          # created secrets.
+          #
           self[:show_metadata_link] = metadata.state?(:new)
+
+          # Allow the metadata to be shown if it hasn't been viewed yet OR
+          # if the current user owns it (regardless of its viewed state).
+          #
+          # It will be true if EITHER of these conditions are met:
+          #   1. The metadata state is NOT 'viewed', OR
+          #   2. The current customer is the owner of the metadata
+          #
           self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
+
+          # Recipient information is only displayed when the metadata is
+          # visible and there are actually recipients to show.
+          #
+          # It will be true if BOTH of these conditions are met:
+          #   1. The metadata should be shown (self[:show_metadata] is true), AND
+          #   2. There are recipients specified (self[:recipients] is not empty)
+          #
+          self[:show_recipients] = self[:show_metadata] && !self[:recipients].empty?
 
           domain = if self[:domains_enabled]
             metadata.share_domain || site_host
@@ -251,7 +292,7 @@ module Onetime
               self[:has_passphrase] = !secret.passphrase.to_s.empty?
               self[:can_decrypt] = secret.can_decrypt?
               self[:secret_value] = secret.decrypted_value if self[:can_decrypt]
-              self[:truncated] = secret.truncated
+              self[:truncated] = secret.truncated?
             end
           end
         end
@@ -329,7 +370,7 @@ module Onetime
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
           self[:with_analytics] = false
-          self[:metadata] = cust.metadata.collect do |m|
+          self[:metadata] = cust.metadata_list.collect do |m|
             { :uri => private_uri(m),
               :stamp => natural_time(m.updated),
               :updated => epochformat(m.updated),
@@ -337,7 +378,10 @@ module Onetime
               :shortkey => m.key.slice(0,8),
               # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
               :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
+
               :recipients => m.recipients,
+              :show_recipients => !m.recipients.to_s.empty?,
+
               :is_received => m.state?(:received),
               :is_burned => m.state?(:burned),
               :is_destroyed => (m.state?(:received) || m.state?(:burned))}
@@ -377,13 +421,6 @@ module Onetime
             self[:contributor_since] = epochdate(cust.contributor_at)
           end
 
-          if self[:colonel]
-            if cust.passgen_token.nil?
-              cust.update_passgen_token sess.sessid.gibbler
-            end
-            self[:token] = cust.passgen_token
-          end
-
           self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
         end
       end
@@ -405,7 +442,7 @@ module Onetime
 
       @translations = nil
       class Translations < Onetime::App::View
-        TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml')
+        TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml') unless defined?(TRANSLATIONS_PATH)
         class << self
           attr_accessor :translations  # class instance variable
         end

@@ -14,7 +14,9 @@ module Onetime
       # Include dynamically here at instantiation time to avoid
       # circular dependency issues. Plans are loaded very early
       # ans technically aren't models in the traditional sense.
-      self.class.include Onetime::Models::SafeDump
+      #
+      # TODO: Doublecheck directly including works as expected. i.e. without subclassing Familia::Horreum.
+      self.class.include Familia::Features::SafeDump
     end
 
     def calculated_price

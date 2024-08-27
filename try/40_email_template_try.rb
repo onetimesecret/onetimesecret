@@ -20,14 +20,14 @@ OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot!
 
 @email = 'tryouts+40@onetimesecret.com'
-@cust = OT::Customer.new @email
-@secret = OT::Secret.new @email
+@cust = OT::Customer.new custid: @email # wrong, use spawn instead
+@secret = OT::Secret.new # wrong and does generate secret key
 @locale = 'es'
 
 ## Can create a view
 view = OT::App::Mail::Welcome.new @cust, @locale, @secret
-[view.verify_uri, view[:secret].identifier]
-#=> ["/secret/#{@secret.identifier}", @secret.identifier]
+[view[:secret].identifier, view.verify_uri]
+#=> [@secret.identifier, "/secret/#{@secret.identifier}"]
 
 ## Can create a view
 view = OT::App::Mail::SecretLink.new @cust, @locale, @secret, 'tryouts+recipient@onetimesecret.com'

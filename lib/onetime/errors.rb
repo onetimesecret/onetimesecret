@@ -5,7 +5,10 @@ module Onetime
   class Problem < RuntimeError
   end
 
-  class MissingSecret < Problem
+  class RecordNotFound < Problem
+  end
+
+  class MissingSecret < RecordNotFound
   end
 
   class FormError < Problem

@@ -123,7 +123,7 @@ if (router.hasRoute(vueComponentName)) {
   app.use(router)
   app.mount('#app')
   router.push({ name: vueComponentName })
-  console.log("Router route `${vueComponentName}`")
+  console.log(`Router route ${vueComponentName}`)
 
 } else {
   console.warn(`No route found for component: ${vueComponentName}`)

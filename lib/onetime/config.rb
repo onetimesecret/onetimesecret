@@ -188,6 +188,4 @@ module Onetime
     # An example mapping for testing.
     example_internal_key: :example_external_key
   }
-
-
 end

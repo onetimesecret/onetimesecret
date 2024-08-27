@@ -31,7 +31,9 @@ module Onetime
         frontend_development = development[:enabled] || false
         frontend_host = development[:frontend_host] || ''
 
+        cust ||= OT::Customer.anonymous
         authenticated = sess && sess.authenticated? && ! cust.anonymous?
+
         self[:js], self[:css] = [], []
         self[:is_default_locale] = is_default_locale
         self[:supported_locales] = OT.conf[:locales]
@@ -49,32 +51,51 @@ module Onetime
         self[:no_cache] = false
         self[:display_sitenav] = true
         self[:jsvars] = []
+        self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
 
         if authenticated && cust
           self[:colonel] = cust.role?(:colonel)
-          self[:metadata_record_count] = cust.metadata.size
+          self[:metadata_record_count] = cust.metadata_list.length
           self[:jsvars] << jsvar(:metadata_record_count, self[:metadata_record_count])
 
           self[:domains_enabled] = domains[:enabled] || false  # only for authenticated
           self[:jsvars] << jsvar(:domains_enabled, self[:domains_enabled])
 
+          self[:jsvars] << jsvar(:custid, cust.custid)
+          self[:jsvars] << jsvar(:cust, cust.safe_dump)
+          self[:jsvars] << jsvar(:email, cust.email)
+
+          # TODO: We can remove this after we update the Account view to use
+          # the value of cust.created to calculate the customer_since value
+          # on-the-fly and in the time zone of the user.
+          self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
+
           # There's no custom domain list when the feature is disabled.
           if self[:domains_enabled]
-            self[:custom_domains_record_count] = cust.custom_domains_list.size
-            self[:custom_domains] = cust.custom_domains.collect { |obj| obj[:display_domain] }.sort
+            self[:custom_domains_record_count] = cust.custom_domains.length
+            self[:custom_domains] = cust.custom_domains_list.collect { |obj| obj.display_domain }.sort
             self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
             self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
           end
+        end
+
+        unless sess.nil?
+          self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
+
+          if cust.pending? && self.class != Onetime::App::Views::Shared
+            add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
+          else
+            add_errors sess.get_error_messages
+          end
+
+          add_messages sess.get_info_messages
+          add_form_fields sess.get_form_fields!
         end
 
         # Link to the pricing page can be seen regardless of authentication status
         self[:plans_enabled] = site.dig(:plans, :enabled) || false
         self[:jsvars] << jsvar(:plans_enabled, self[:plans_enabled])
 
-        self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
-        self[:jsvars] << jsvar(:custid, cust.custid)
-        self[:jsvars] << jsvar(:cust, cust.safe_dump)
-        self[:jsvars] << jsvar(:email, cust.email)
         self[:jsvars] << jsvar(:vue_component_name, self.vue_component_name)
         self[:jsvars] << jsvar(:locale, locale)
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
@@ -82,10 +103,6 @@ module Onetime
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])
 
-        # TODO: We can remove this after we update the Account view to use
-        # the value of cust.created to calculate the customer_since value
-        # on-the-fly and in the time zone of the user.
-        self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
 
         self[:jsvars] << jsvar(:ot_version, OT::VERSION.to_s)
         self[:jsvars] << jsvar(:ruby_version, "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
@@ -105,18 +122,6 @@ module Onetime
         self[:display_otslogo] = true
         self[:actionable_visitor] = true
 
-        unless sess.nil?
-          self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
-
-          if cust.pending? && self.class != Onetime::App::Views::Shared
-            add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
-          else
-            add_error sess.error_message!
-          end
-
-          add_message sess.info_message!
-          add_form_fields sess.get_form_fields!
-        end
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
@@ -177,11 +182,19 @@ module Onetime
       end
 
       def add_message msg
-        messages[:info] << msg unless msg.to_s.empty?
+        messages[:info] << {type: 'info', content: msg} unless msg.to_s.empty?
+      end
+
+      def add_messages *msgs
+        messages[:info].concat msgs.flatten unless msgs.flatten.empty?
       end
 
       def add_error msg
-        messages[:error] << msg unless msg.to_s.empty?
+        messages[:error] << {type: 'error', content: msg} unless msg.to_s.empty?
+      end
+
+      def add_errors *msgs
+        messages[:error].concat msgs.flatten unless msgs.flatten.empty?
       end
 
       def add_form_fields hsh

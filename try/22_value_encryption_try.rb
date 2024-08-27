@@ -33,9 +33,9 @@ s.value
 ## Can encrypt a value
 s = Onetime::Secret.new :shared
 s.encrypt_value 'poop', key: 'tryouts'
-puts "These values should match character for character. Not sure why they don't :-?"
-s.value.gibbler
-#=> '0bed39f588f66da4d40636d64b830871d8816cbc'
+puts "The value checksum is the gibbled value after being truncated (if needed)"
+s.value_checksum
+#=> 'cffab3469f0aec11d52c4b24882fb6f77149b7b7'
 
 ## Can decrypt a value
 s = Onetime::Secret.new :shared

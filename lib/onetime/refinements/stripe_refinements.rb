@@ -4,7 +4,7 @@ require 'stripe' # ensures Stripe namespace is loaded
 
 module Onetime::StripeRefinements
   refine Stripe::Subscription do
-    extend Onetime::Models::SafeDump::ClassMethods
+    extend Familia::Features::SafeDump::ClassMethods
 
     # Safe fields for Stripe Subscription object
     set_safe_dump_fields [
@@ -53,14 +53,14 @@ module Onetime::StripeRefinements
   refine Stripe::Customer do
     @safe_dump_fields = []
     @safe_dump_field_map = {}
-    extend Onetime::Models::SafeDump::ClassMethods
+    extend Familia::Features::SafeDump::ClassMethods
 
     def safe_dump
       self.class.safe_dump_field_map.transform_values do |callable|
         transformed_value = callable.call(self)
 
-        # If the value is a relative ancestor of SafeDump we can
-        # call safe_dump on it, otherwise we'll just return the value as-is.
+        # If the value is a ancestor of SafeDump we can call safe_dump
+        # on it, otherwise we'll just return the value as-is.
         if transformed_value.is_a?(SafeDump)
           transformed_value.safe_dump
         else
@@ -100,7 +100,7 @@ module Onetime::StripeRefinements
       { :metadata => lambda { |cust|
         # Only include safe metadata fields
         safe_metadata_keys = [:public_note, :preferred_language]
-        cust.metadata.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
+        cust.metadata_list.select { |k, _| safe_metadata_keys.include?(k.to_sym) }
       }}
     ]
   end

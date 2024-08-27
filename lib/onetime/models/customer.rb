@@ -1,8 +1,45 @@
 
 
-class Onetime::Customer < Familia::HashKey
-  @values = Familia::SortedSet.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 6
-  @domains = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, db: 6
+class Onetime::Customer < Familia::Horreum
+  include Gibbler::Complex
+
+  feature :safe_dump
+  feature :expiration
+
+  db 6
+  prefix :customer
+
+  @global = nil
+
+  class_sorted_set :values, key: 'onetime:customers'
+  class_hashkey :domains, key: 'onetime:customers:domains'
+
+  sorted_set :custom_domains
+  sorted_set :metadata
+
+  identifier :custid
+
+  field :custid
+  field :email
+  field :role
+  field :sessid
+  field :apitoken # TODO: use sorted set?
+  field :verified
+
+  field :secrets_created # regular hashkey string field
+  field :secrets_burned
+  field :secrets_shared
+  field :emails_sent
+
+  field :planid
+  field :created
+  field :updated
+  field :last_login
+  field :contributor
+
+  field :stripe_customer_id
+  field :stripe_subscription_id
+  field :stripe_checkout_email
 
   # NOTE: The SafeDump mixin caches the safe_dump_field_map so updating this list
   # with hot reloading in dev mode will not work. You will need to restart the
@@ -11,6 +48,7 @@ class Onetime::Customer < Familia::HashKey
     :custid,
     :role,
     :verified,
+    :last_login,
     :updated,
     :created,
 
@@ -23,46 +61,28 @@ class Onetime::Customer < Familia::HashKey
     # NOTE: The secrets_created incrementer is null until the first secret
     # is created. See CreateSecret for where the incrementer is called.
     #
-    {:secrets_created => ->(cust) { cust.secrets_created || 0 } },
+    {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
+    {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
+    {:secrets_shared => ->(cust) { cust.secrets_shared.to_s || 0 } },
+    {:emails_sent => ->(cust) { cust.emails_sent.to_s || 0 } },
 
     # We use the hash syntax here since `:active?` is not a valid symbol.
     { :active => ->(cust) { cust.active? } }
   ]
 
-  include Onetime::Models::RedisHash
-  include Onetime::Models::Passphrase
-  include Onetime::Models::SafeDump
+  def init
+    self.custid ||= :anon
+    self.role ||= 'customer'
 
-  def initialize custid=nil
-    @custid = custid || :anon # if we use accessor methods it will sync to redis.
-
-    # WARNING: There's a gnarly bug in the awkward relationship between
-    # RedisHash (local lib) and RedisObject (familia gem) where a value
-    # can be set to an instance var, the in-memory cache in RedisHash,
-    # and/or the persisted value in redis. RedisHash#method_missing
-    # allows for calling fields as method names on the object itself;
-    # RedisObject (specifically Familia::HashKey in this case), relies
-    # on `[]` and `[]=` to access and set values in redis.
-    #
-    # The problem is that the value set by RedisHash#method_missing
-    # is not available to RedisObject (Familia::HashKey) until after
-    # the object has been initialized and `super` called in RedisObject.
-    # Long story short: we set these two instance vars do that the
-    # identifier method can produce a valid identifier string. But,
-    # we're relying on Customer.create to duplicate the effort
-    # and set the same values in the way that will persist them to
-    # redis. Hopefully I do'nt find myself reading this comment in
-    # 5 years and wondering why I can't just call `super` man.
-
-    super name, db: 6 # `name` here refers to `RedisHash#name`
-  end
-
-  def custid
-    @custid || :anon
-  end
-
-  def identifier
-    @custid
+    # Initialze auto-increment fields. We do this since Redis
+    # gets grumpy about trying to increment a hashkey field
+    # that doesn't have any value at all yet. This is in
+    # contrast to the regular INCR command where a
+    # non-existant key will simply be set to 1.
+    self.secrets_created ||= 0
+    self.secrets_burned ||= 0
+    self.secrets_shared ||= 0
+    self.emails_sent ||= 0
   end
 
   def contributor?
@@ -74,7 +94,8 @@ class Onetime::Customer < Familia::HashKey
   end
 
   def regenerate_apitoken
-    self.apitoken = [OT.instance, OT.now.to_f, :apikey, custid].gibbler
+    self.apitoken! [OT.instance, OT.now.to_f, :apikey, custid].gibbler
+    self.apitoken # the fast writer bang methods don't return the value
   end
 
   def load_plan
@@ -83,6 +104,9 @@ class Onetime::Customer < Familia::HashKey
 
   def get_stripe_customer
     get_stripe_customer_by_id || get_stripe_customer_by_email
+  rescue Stripe::StripeError => e
+    OT.le "[Customer.get_stripe_customer] Error: #{e.message}: #{e.backtrace}"
+    nil
   end
 
   def get_stripe_subscription
@@ -90,7 +114,7 @@ class Onetime::Customer < Familia::HashKey
   end
 
   def get_stripe_customer_by_id customer_id=nil
-    return unless stripe_customer_id || customer_id
+    return unless stripe_customer_id || customer_id # these should be reverse, no? args override
     @stripe_customer = Stripe::Customer.retrieve(stripe_customer_id || customer_id)
 
   rescue Stripe::StripeError => e
@@ -119,6 +143,9 @@ class Onetime::Customer < Familia::HashKey
   def get_stripe_subscription_by_id subscription_id=nil
     return unless stripe_subscription_id || subscription_id
     @stripe_subscription = Stripe::Subscription.retrieve(stripe_subscription_id || subscription_id)
+  rescue Stripe::StripeError => e
+    OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message} #{e.backtrace}"
+    nil
   end
 
   def get_stripe_subscriptions stripe_customer=nil
@@ -127,7 +154,7 @@ class Onetime::Customer < Familia::HashKey
     return subscriptions unless stripe_customer
 
     begin
-      subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: limit)
+      subscriptions = Stripe::Subscription.list(customer: stripe_customer.id, limit: 1)
 
     rescue Stripe::StripeError => e
       OT.le "Error: #{e.message}"
@@ -155,13 +182,13 @@ class Onetime::Customer < Familia::HashKey
     if anonymous?
       raise OT::Problem, "Anonymous customer has no external identifier"
     end
-    elements = [custid]
+    elements = ['cust', role, custid]
     @external_identifier ||= elements.gibbler
     @external_identifier
   end
 
   def anonymous?
-    custid.to_s.eql?('anon')
+    custid.to_s.to_sym.eql?(:anon)
   end
 
   def obscure_email
@@ -174,10 +201,6 @@ class Onetime::Customer < Familia::HashKey
 
   def email
     @custid
-  end
-
-  def role
-    self.get_value(:role) || 'customer'
   end
 
   def role? guess
@@ -201,61 +224,67 @@ class Onetime::Customer < Familia::HashKey
     !anonymous? && !verified? && role?('customer')  # we modify the role when destroying
   end
 
-  def load_session
-    OT::Session.load sessid unless sessid.to_s.empty?
+  # Loads an existing session or creates a new one if it doesn't exist.
+  #
+  # @param [String] ip_address The IP address of the customer.
+  # @raise [OT::Problem] if the customer is anonymous.
+  # @return [OT::Session] The loaded or newly created session.
+  def load_or_create_session(ip_address)
+    raise OT::Problem, "Customer is anonymous" if anonymous?
+    @sess = OT::Session.load(sessid) unless sessid.to_s.empty?
+    if @sess.nil?
+      @sess = OT::Session.create(ip_address, custid)
+      sessid = @sess.identifier
+      OT.info "[load_or_create_session] adding sess #{sessid} to #{obscure_email}"
+      self.sessid!(sessid)
+    end
+    @sess
   end
 
   def metadata_list
-    if @metadata_list.nil?
-      el = [prefix, identifier, :metadata]
-      #el.unshift Familia.apiversion unless Familia.apiversion.nil?
-      @metadata_list = Familia::SortedSet.new Familia.join(el), :db => db
-    end
-    @metadata_list
-  end
-
-  def metadata
-    metadata_list.revmembers.collect { |key| OT::Metadata.load key }.compact
+    metadata.revmembers.collect do |key|
+      obj = OT::Metadata.load(key)
+      obj
+    end.compact
   end
 
   def add_metadata obj
-    metadata_list.add OT.now.to_i, obj.key
+    metadata.add OT.now.to_i, obj.key
   end
 
   def custom_domains_list
-    if @custom_domains_list.nil?
-      el = [prefix, identifier, :custom_domain]
-      #el.unshift Familia.apiversion unless Familia.apiversion.nil?
-      @custom_domains_list = Familia::SortedSet.new Familia.join(el), :db => db
-    end
-    @custom_domains_list
-  end
-
-  def custom_domains
-    custom_domains_list.revmembers.collect { |domain| OT::CustomDomain.load domain, self }.compact
+    custom_domains.revmembers.collect { |domain| OT::CustomDomain.load domain, self.custid }.compact
   end
 
   def add_custom_domain obj
     OT.ld "[add_custom_domain] adding #{obj} to #{self}"
-    custom_domains_list.add OT.now.to_i, obj[:display_domain] # not the object identifier
+    custom_domains.add OT.now.to_i, obj.display_domain # not the object identifier
   end
 
   def remove_custom_domain obj
-    custom_domains_list.rem obj[:display_domain] # not the object identifier
-  end
-
-  def update_passgen_token v
-    self['passgen_token'] = v.encrypt(:key => encryption_key)
-  end
-
-  def passgen_token
-    self['passgen_token'].decrypt(:key => encryption_key) if has_key?(:passgen_token)
+    custom_domains.rem obj.display_domain # not the object identifier
   end
 
   def encryption_key
     OT::Secret.encryption_key OT.global_secret, custid
   end
 
+  # Marks the customer account as requested for destruction.
+  #
+  # This method doesn't actually destroy the customer record but prepares it
+  # for eventual deletion after a grace period. It performs the following actions:
+  #
+  # 1. Sets a Time To Live (TTL) of 365 days on the customer record.
+  # 2. Regenerates the API token.
+  # 3. Clears the passphrase.
+  # 4. Sets the verified status to 'false'.
+  # 5. Changes the role to 'user_deleted_self'.
+  #
+  # The customer record is kept for a grace period to handle any remaining
+  # account-related tasks, such as pro-rated refunds or sending confirmation
+  # notifications.
+  #
+  # @return [void]
   def destroy_requested!
     # NOTE: we don't use cust.destroy! here since we want to keep the
     # customer record around for a grace period to take care of any
@@ -267,12 +296,24 @@ class Onetime::Customer < Familia::HashKey
     # For example if we need to send a pro-rated refund
     # or if we need to send a notification to the customer
     # to confirm the account deletion.
-    self.ttl = 7.days
+    self.ttl = 365.days
     self.regenerate_apitoken
     self.passphrase = ''
     self.verified = 'false'
     self.role = 'user_deleted_self'
     save
+  end
+
+  # Saves the customer object to the database.
+  #
+  # @raise [OT::Problem] If attempting to save an anonymous customer.
+  # @return [Boolean] Returns true if the save was successful.
+  #
+  # This method overrides the default save behavior to prevent
+  # anonymous customers from being persisted to the database.
+  def save
+    raise OT::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
+    super
   end
 
   def to_s
@@ -285,9 +326,22 @@ class Onetime::Customer < Familia::HashKey
     # unless we need to access the object's attributes (e.g., for logging or
     # debugging purposes or modifying/manipulating the object's attributes).
     #
-    # As a pilot, CustomDomain has the equivalent method and comment. See the
-    # CustomDomain class methods for usage details.
+    # As a pilot for the project, CustomDomain has the equivalent method and
+    # comment. See the CustomDomain class methods for usage details.
     identifier.to_s
+  end
+
+  def increment_field field
+    if anonymous?
+      whereami = caller(1..4)
+      OT.le "[increment_field] Refusing to increment #{field} for anon customer #{whereami}"
+      return
+    end
+
+    # Taking the class approach simply to keep it out of this busy Customer
+    # class. There's a small benefit to being able grep for "cust.method_name"
+    # which this approach affords as well. Although it's a small benefit.
+    self.class.increment_field(self, field)
   end
 
   module ClassMethods
@@ -295,43 +349,72 @@ class Onetime::Customer < Familia::HashKey
     def add cust
       self.values.add OT.now.to_i, cust.identifier
     end
+
     def all
       self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
     end
+
     def recent duration=30.days, epoint=OT.now.to_i
       spoint = OT.now.to_i-duration
       self.values.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
     end
-    def global
-      if @global.nil?
-        @global = exists?(:GLOBAL) ? load(:GLOBAL) : create(:GLOBAL)
-        @global.secrets_created ||= 0
-        @global.secrets_shared  ||= 0
-      end
-      @global
-    end
 
     def anonymous
-      cust = new
+      new(:anon).freeze
     end
-    def exists? custid
-      cust = new custid
-      cust.exists?
-    end
-    def load custid
-      cust = new custid
-      cust.exists? ? cust : nil
-    end
+
     def create custid, email=nil
-      cust = new custid
-      # force the storing of the fields to redis
-      cust.custid = custid
-      cust.role = 'customer'
+      raise OT::Problem, "custid is required" if custid.to_s.empty?
+      raise OT::Problem, "Customer exists" if exists?(custid)
+      cust = new custid: custid, email: email || custid, role: 'customer'
       cust.save
       add cust
       cust
     end
+
+    def global
+      @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
+      @global
+    end
+
+    def increment_field(cust, field)
+      curval = cust.send(field)
+      OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
+
+      cust.increment field
+
+    rescue Redis::CommandError => e
+
+      # For whatever reason, redis throws an error when trying to
+      # increment a non-existent hashkey field (rather than setting
+      # it to 1): "ERR hash value is not an integer"
+      OT.le "[increment_field] Redis error (#{curval}): #{e.message}"
+
+      # So we'll set it to 1 if it's empty. It's possible we're here
+      # due to a different error, but this value needs to be
+      # initialized either way.
+      cust.send("#{field}!", 1) if curval.to_i.zero? # nil and '' cast to 0
+    end
   end
 
+  # Mixin Placement for Field Order Control
+  #
+  # We include the SessionMessages mixin at the end of this class definition
+  # for a specific reason related to how Familia::Horreum handles fields.
+  #
+  # In Familia::Horreum subclasses (like this Customer class), fields are processed
+  # in the order they are defined. When creating a new instance with Session.new,
+  # any provided positional arguments correspond to these fields in the same order.
+  #
+  # By including SessionMessages last, we ensure that:
+  # 1. Its additional fields appear at the end of the field list.
+  # 2. These fields don't unexpectedly consume positional arguments in Session.new.
+  #
+  # e.g. `Customer.new('my@example.com')`. If we included thePassphrase
+  # module at the top, instead of populating the custid field (as the
+  # first field defined in this file), this email address would get
+  # written to the (automatically inserted) passphrase field.
+  #
+  include Onetime::Models::Passphrase
   extend ClassMethods
 end

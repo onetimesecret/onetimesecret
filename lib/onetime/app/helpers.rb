@@ -23,8 +23,8 @@ class Onetime::App
       @plan
     end
 
-    def carefully(redirect=nil, content_type=nil) # rubocop:disable Metrics/MethodLength
-      redirect ||= req.request_path
+    def carefully(redirect=nil, content_type=nil, app: :web) # rubocop:disable Metrics/MethodLength
+      redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
       # Determine the locale for the current request
@@ -75,8 +75,15 @@ class Onetime::App
         handle_form_error ex
       end
 
+    # NOTE: It's important to handle MissingSecret before RecordNotFound since
+    #       MissingSecret is a subclass of RecordNotFound. If we don't, we'll
+    #       end up with a generic error message instead of the specific one.
     rescue OT::MissingSecret => ex
       secret_not_found_response
+
+    rescue OT::RecordNotFound => ex
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path} redirect:#{redirect})"
+      not_found_response ex.message
 
     rescue OT::LimitExceeded => ex
       obscured = if cust.anonymous?
@@ -145,13 +152,13 @@ class Onetime::App
         # Regardless of the outcome, we clear the shrimp from the session
         # to prevent replay attacks. A new shrimp is generated on the
         # next page load.
-        sess.clear_shrimp!
+        sess.replace_shrimp!
       else
         ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
         ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
-        sess.clear_shrimp!
+        sess.replace_shrimp!
         raise ex
       end
     end
@@ -160,12 +167,32 @@ class Onetime::App
       return if @check_session_ran
       @check_session_ran = true
 
+
       # Load from redis or create the session
       if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
         @sess = OT::Session.load req.cookie(:sess)
       else
         @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
       end
+
+      # Set the session to rack.session
+      #
+      # The `req.env` hash is a central repository for all environment variables
+      # and request-specific data in a Rack application. By setting the session
+      # object in `req.env['rack.session']`, we make the session data accessible
+      # to all middleware and components that process the request and response.
+      # This approach ensures that the session data is consistently available
+      # throughout the entire request-response cycle, allowing middleware to
+      # read from and write to the session as needed. This is particularly
+      # useful for maintaining user state, managing authentication, and storing
+      # other session-specific information.
+      #
+      # Example:
+      #   If a middleware needs to check if a user is authenticated, it can
+      #   access the session data via `env['rack.session']` and perform the
+      #   necessary checks or updates.
+      #
+      req.env['rack.session'] = sess
 
       # Immediately check the the auth status of the session. If the site
       # configuration changes to disable authentication, the session will
@@ -176,8 +203,8 @@ class Onetime::App
       # rest of the data. This is a security feature.
       sess.disable_auth = !authentication_enabled?
 
-      # Update the session fields in redis
-      sess.update_fields  # calls update_time!
+      # Update the session fields in redis (including updated timestamp)
+      sess.save
 
       # Only set the cookie after session is for sure saved to redis
       is_secure = Onetime.conf[:site][:ssl]
@@ -192,7 +219,7 @@ class Onetime::App
       # the customer object.
       if cust.anonymous?
         sess.authenticated = false
-      elsif cust.verified.to_s != 'true' && !sess['authenticated_by']
+      elsif cust.verified.to_s != 'true'
         sess.authenticated = false
       end
 

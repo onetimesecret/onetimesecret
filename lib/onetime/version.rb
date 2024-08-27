@@ -1,3 +1,5 @@
+require 'yaml'
+
 module Onetime
   module VERSION
     def self.to_a
@@ -6,7 +8,9 @@ module Onetime
     end
 
     def self.to_s
-      to_a.join('.')
+      version = to_a.join('.')
+      version = "#{version}-#{@version[:PRE]}" if @version[:PRE]
+      version
     end
 
     def self.inspect
@@ -16,7 +20,6 @@ module Onetime
     def self.load_config
       return if @version
 
-      require 'yaml'
       @version = YAML.load_file(File.join(OT::HOME, 'VERSION.yml'))
 
       commit_hash = get_build_info

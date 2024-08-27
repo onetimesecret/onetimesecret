@@ -1,7 +1,16 @@
 
 
-class Onetime::SplitTest < Familia::HashKey
-  include Onetime::Models::RedisHash
+
+# An example of a session method to create groups.
+#
+#  def session_group groups
+#    sessid.to_i(16) % groups.to_i
+#  end
+
+class Onetime::SplitTest < Familia::Horreum
+
+  feature :safe_dump
+  feature :expiration
 
   @tests = {}
 
@@ -50,27 +59,27 @@ class Onetime::SplitTest < Familia::HashKey
         register_test name.to_s, *groups
       end
     end
+
     def register_test name, *values
       tests[name.to_s] = create(name, *values)
     end
+
     def test_running? testname
       OT::SplitTest.tests.has_key?(testname.to_s)
     end
+
     def method_missing meth, *args
       test = tests[meth.to_s]
       raise NoMethodError, meth.to_s if test.nil?
       test
     end
-    def exists? objid
-      obj = new
-      obj.testname = objid
-      obj.exists?
-    end
-    def load objid
-      obj = new
-      obj.testname = objid
-      obj.exists? ? obj : nil
-    end
+
+    #def exists? objid
+    #  obj = new
+    #  obj.testname = objid
+    #  obj.exists?
+    #end
+
     def create testname, *values
       obj = new testname
       # force the storing of the fields to redis

@@ -53,7 +53,7 @@ has_msg = content.slice('message').eql?({'message' => 'You did not provide anyth
 
 ## Can access the API generate endpoint
 response = @mock_request.post('/api/v1/generate')
-content = JSON.parse(response.body) rescue {}
+content = JSON.parse(response.body)
 [response.status, content["custid"]]
 #=> [200, 'anon']
 

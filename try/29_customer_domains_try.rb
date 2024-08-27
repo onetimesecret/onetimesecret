@@ -24,11 +24,11 @@ OT.boot! :app
 
 ## Customer has a custom domain list
 @cust.custom_domains.class
-#=> Array
+#=> Familia::SortedSet
 
 ## Customer's custom domain list is stored as a sorted set
 @cust.custom_domains_list.class
-#=> Familia::SortedSet
+#=> Array
 
 ## Customer's custom domain list is empty to start
 @cust.custom_domains.empty?
@@ -39,26 +39,26 @@ OT.boot! :app
 #=> true
 
 ## A customer's custom_domain list updates when a new domain is added
-OT::CustomDomain.create(@valid_domain, @cust)
+OT::CustomDomain.create(@valid_domain, @cust.custid)
 @cust.custom_domains.empty?
 #=> false
 
 ## A customer's custom_domain list updates when a new domain is added
-custom_domain = OT::CustomDomain.load(@valid_domain, @cust)
-[custom_domain.class, custom_domain[:display_domain]]
+custom_domain = OT::CustomDomain.load(@valid_domain, @cust.custid)
+[custom_domain.class, custom_domain.display_domain]
 #=> [OT::CustomDomain, @valid_domain]
 
 ## A customer's custom_domain list updates when a new domain is added
-@cust.custom_domains_list.first
+@cust.custom_domains.first
 #=> @valid_domain
 
 ## A customer's custom_domain list updates when a new domain is added
-custom_domain = @cust.custom_domains.first
-[custom_domain.class, custom_domain[:display_domain]]
+custom_domain = @cust.custom_domains_list.first
+[custom_domain.class, custom_domain.display_domain]
 #=> [OT::CustomDomain, @valid_domain]
 
 ## A customer's custom_domain list updates when an existing domain is removed
-custom_domain = @cust.custom_domains.first
+custom_domain = @cust.custom_domains_list.first
 @cust.remove_custom_domain(custom_domain)
 #=> true
 

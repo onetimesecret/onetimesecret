@@ -6,10 +6,13 @@ module Onetime::Logic
   module Account
 
     class ViewAccount < OT::Logic::Base
+      attr_reader :plans_enabled
       attr_reader :stripe_subscription, :stripe_customer
       using Onetime::StripeRefinements
 
       def process_params
+        site = OT.conf.fetch(:site, {})
+        @plans_enabled = site.dig(:plans, :enabled) || false
       end
 
       def raise_concerns
@@ -18,26 +21,25 @@ module Onetime::Logic
       end
 
       def process
-        plans_enabled = OT.conf[:site][:plans].fetch(:enabled, false)
 
         if plans_enabled
+
           @stripe_customer = cust.get_stripe_customer
           @stripe_subscription = cust.get_stripe_subscription
-
-          update_customer_fields = {}
 
           # Rudimentary normalization to make sure that all Onetime customers
           # that have a stripe customer and subscription record, have the
           # RedisHash fields stripe_customer_id and stripe_subscription_id
           # fields populated. The subscription section on the account screen
           # depends on these ID fields being populated.
-          if !cust.stripe_customer_id && stripe_customer
+          if stripe_customer
             OT.info "Recording stripe customer ID"
-            update_customer_fields[:stripe_customer_id] = stripe_customer.id
+            cust.stripe_customer_id = stripe_customer.id
           end
-          if !cust.stripe_subscription_id && stripe_subscription
+
+          if stripe_subscription
             OT.info "Recording stripe subscription ID"
-            update_customer_fields[:stripe_subscription_id] = stripe_subscription.id
+            cust.stripe_subscription_id = stripe_subscription.id
           end
 
           # Just incase we didn't capture the Onetime Secret planid update after
@@ -45,12 +47,44 @@ module Onetime::Logic
           # feel good to pay for something and still see "Basic Plan" at the
           # top of your account page.
           if stripe_subscription && stripe_subscription.plan
-            update_customer_fields[:planid] = 'identity' # TOOD: obviously find a better way
+            cust.planid = 'identity' # TOOD: obviously find a better way
           end
 
-          cust.update_fields(**update_customer_fields)
+          cust.save
         end
+      end
 
+      def show_stripe_section?
+        plans_enabled && !stripe_customer.nil?
+      end
+
+      def safe_stripe_customer_dump
+        return nil if stripe_customer.nil?
+        safe_customer_data = {
+          id: stripe_customer.id,
+          email: stripe_customer.email,
+          description: stripe_customer.description,
+          balance: stripe_customer.balance,
+          created: stripe_customer.created,
+          metadata: stripe_customer.metadata
+        }
+      end
+
+      def safe_stripe_subscription_dump
+        return nil if stripe_subscription.nil?
+        safe_subscription_data = {
+          id: stripe_subscription.id,
+          status: stripe_subscription.status,
+          current_period_end: stripe_subscription.current_period_end,
+          items: stripe_subscription.items,
+          plan: {
+            id: stripe_subscription.plan.id,
+            amount: stripe_subscription.plan.amount,
+            currency: stripe_subscription.plan.currency,
+            interval: stripe_subscription.plan.interval,
+            product: stripe_subscription.plan.product
+          }
+        }
       end
     end
 
@@ -89,20 +123,22 @@ module Onetime::Logic
       end
       def process
 
-
         @plan = OT::Plan.plan(planid)
         @cust = OT::Customer.create custid
 
         cust.update_passphrase password
-        sess.update_fields(custid: cust.custid)
+        sess.custid = cust.custid
+        sess.save
 
         @customer_role = if OT.conf[:colonels].member?(cust.custid)
                            'colonel'
                          else
                            'customer'
                          end
-
-        cust.update_fields(planid: @plan.planid, verified: @autoverify.to_s, role: @customer_role)
+        cust.planid = @plan.planid
+        cust.verified = @autoverify.to_s
+        cust.role = @customer_role.to_s
+        cust.save
 
         OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
         OT::Logic.stathat_count("New Customers (OTS)", 1)
@@ -118,7 +154,7 @@ module Onetime::Logic
       private
 
       def send_verification_email
-        _, secret = Onetime::Secret.spawn_pair cust.custid, [sess.external_identifier], token
+        _, secret = Onetime::Secret.spawn_pair cust.custid, token
 
         msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
 
@@ -154,21 +190,8 @@ module Onetime::Logic
         #@stay = params[:stay].to_s == "true"
         @stay = true # Keep sessions alive by default
         @session_ttl = (stay ? 30.days : 20.minutes).to_i
-        if @potential_custid.to_s.index(':as:')
-          @colonelname, @potential_custid = *@potential_custid.downcase.split(':as:')
-        else
-          @potential_custid = @potential_custid.downcase if @potential_custid
-        end
-        if @passwd.to_s.empty?
-          @cust = nil
-        elsif @colonelname && OT::Customer.exists?(@colonelname) && OT::Customer.exists?(@potential_custid)
-          OT.info "[login-as-attempt] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
-          potential = OT::Customer.load @colonelname
-          @colonel = potential if potential.passphrase?(@passwd)
-          @cust = OT::Customer.load @potential_custid if @colonel.role?(:colonel)
-          sess['authenticated_by'] = @colonel.custid
-          OT.info "[login-as-success] #{@colonelname} as #{@potential_custid} #{@sess.ipaddress}"
-        elsif (potential = OT::Customer.load(@potential_custid))
+
+        if (potential = OT::Customer.load(@potential_custid))
           @cust = potential if potential.passphrase?(@passwd)
         end
       end
@@ -182,6 +205,7 @@ module Onetime::Logic
       end
 
       def process
+
         if success?
           @greenlighted = true
 
@@ -194,7 +218,8 @@ module Onetime::Logic
 
           OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (new sessid)"
 
-          sess.update_fields :custid => cust.custid, :authenticated => 'true'
+          sess.custid = cust.custid
+          sess.authenticated = 'true'
           sess.ttl = session_ttl if @stay
           sess.save
           cust.save
@@ -236,7 +261,8 @@ module Onetime::Logic
         cust = OT::Customer.load @custid
         secret = OT::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
-        secret.verification = true
+        secret.verification = "true"
+        secret.save
 
         view = OT::App::Mail::PasswordRequest.new cust, locale, secret
         view.emailer.from = OT.conf[:emailer][:from]
@@ -298,7 +324,6 @@ module Onetime::Logic
         @currentp = self.class.normalize_password(params[:currentp])
         @newp = self.class.normalize_password(params[:newp])
         @newp2 = self.class.normalize_password(params[:newp2])
-        @passgen_token = self.class.normalize_password(params[:passgen_token], 60)
       end
 
       def raise_concerns
@@ -310,9 +335,6 @@ module Onetime::Logic
           raise_form_error "New password is too short" unless @newp.size >= 6
           raise_form_error "New passwords do not match" unless @newp == @newp2
         end
-        if ! @passgen_token.empty?
-          raise_form_error "Token is too short" if @passgen_token.size < 6
-        end
       end
 
       def process
@@ -320,7 +342,7 @@ module Onetime::Logic
           @greenlighted = true
           OT.info "[update-account] Password updated cid/#{cust.custid} r/#{cust.role} ipa/#{sess.ipaddress}"
 
-          cust.update_passphrase @newp
+          cust.update_passphrase! @newp
           @modified << :password
         end
       end
