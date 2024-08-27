@@ -54,6 +54,15 @@ module Onetime
         end
         return if req.referrer.nil? || req.referrer.match(Onetime.conf[:site][:host])
         sess.referrer ||= req.referrer
+
+        # Don't allow a pesky error here from preventing the
+        # request. Typically we don't want to be so hush hush
+        # but this method is partiaularly important for receuving
+        # redirects back from 3rd-party workflows like a new Stripe
+        # subscription.
+      rescue StandardError => ex
+        backtrace = ex.backtrace.join("\n")
+        OT.le "[check_referrer!] Caught error but continuing #{ex}: #{backtrace}"
       end
 
       # Validates a given URL and ensures it can be safely redirected to.

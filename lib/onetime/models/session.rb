@@ -26,6 +26,10 @@ class Onetime::Session < Familia::Horreum
   field :external_identifier
   field :shrimp
 
+  # We check this field in check_referrer! but we rely on this field when
+  # receiving a redirect back from Stripe subscription payment workflow.
+  field :referrer
+
   # When set to true, the session reports itself as not authenticated
   # regardless of the value of the authenticated field. This allows
   # the site to disable authentication without affecting the session
