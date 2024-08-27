@@ -23,7 +23,7 @@ GEM
     encryptor (1.1.3)
     erubi (1.13.0)
     eventmachine (1.2.7)
-    familia (1.0.0.pre.rc6)
+    familia (1.0.0.pre.rc7)
       redis (>= 4.8.1, < 6.0)
       uri-redis (~> 1.3)
     gibbler (1.0.0)
@@ -172,7 +172,7 @@ DEPENDENCIES
   dotenv
   drydock
   encryptor (= 1.1.3)
-  familia (~> 1.0.0.pre.rc6)
+  familia (~> 1.0.0.pre.rc7)
   gibbler
   httparty
   mail
