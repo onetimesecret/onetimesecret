@@ -62,6 +62,9 @@ class Onetime::Customer < Familia::Horreum
     # is created. See CreateSecret for where the incrementer is called.
     #
     {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
+    {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
+    {:secrets_shared => ->(cust) { cust.secrets_shared.to_s || 0 } },
+    {:emails_sent => ->(cust) { cust.emails_sent.to_s || 0 } },
 
     # We use the hash syntax here since `:active?` is not a valid symbol.
     { :active => ->(cust) { cust.active? } }
