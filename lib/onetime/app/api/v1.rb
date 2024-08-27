@@ -186,6 +186,22 @@ class Onetime::App
       # (for example if it was burned) then we have the metadata record's ttl.
       secret_ttl = opts[:secret_ttl] ? opts[:secret_ttl].to_i : md.realttl.to_i
 
+      # NOTE: This is a workaround for limitation in Familia where we can't add
+      # fields that clash with reserved keywords like ttl, db, etc. For the v1
+      # API, "ttl" is the requested value (i.e. the value of the ttl param when
+      # the secret was created). Since we can no longer access the "ttl" field
+      # in the redis hash we can use the value saved to secret_ttl and double
+      # it to mimic the behaviour of the CreateSecret logic class.
+      metadata_ttl = secret_ttl*2
+
+      # md.realttl is a redis command method. This makes a call to the redis server
+      # to get the current value of the ttl for the metadata object. This is the
+      # actual time left before the metadata object is deleted from the redis server.
+      #
+      # For the v1 API, this real value is what gets returned a "metadata_ttl". If
+      # you don't find that confusing, take another look through the code.
+      metadata_realttl = md.realttl.to_i
+
       recipient = [hsh['recipients']]
                   .flatten
                   .compact
@@ -196,9 +212,9 @@ class Onetime::App
         :custid => hsh['custid'],
         :metadata_key => hsh['key'],
         :secret_key => hsh['secret_key'],
-        :ttl => hsh['ttl'].to_i,
-        :metadata_ttl => md.realttl.to_i, # md.realttl is a redis command method
-        :secret_ttl => secret_ttl,
+        :ttl => metadata_ttl, # static value from redis hash field
+        :metadata_ttl => metadata_realttl, # actual number of seconds left to live
+        :secret_ttl => secret_ttl, # ditto, actual number
         :state => hsh['state'] || 'new',
         :updated => hsh['updated'].to_i,
         :created => hsh['created'].to_i,
