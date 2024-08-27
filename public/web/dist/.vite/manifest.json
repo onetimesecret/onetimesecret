@@ -1,6 +1,6 @@
 {
   "components/PasswordStrengthChecker.vue": {
-    "file": "assets/PasswordStrengthChecker-B89CTPOi.js",
+    "file": "assets/PasswordStrengthChecker-C83onRYC.js",
     "name": "PasswordStrengthChecker",
     "src": "components/PasswordStrengthChecker.vue",
     "isDynamicEntry": true,
@@ -9,7 +9,7 @@
     ]
   },
   "main.ts": {
-    "file": "assets/main-Bn6okSDG.js",
+    "file": "assets/main-B2mfUPR_.js",
     "name": "main",
     "src": "main.ts",
     "isEntry": true,
@@ -27,11 +27,11 @@
       "components/PasswordStrengthChecker.vue"
     ],
     "css": [
-      "assets/main-BG3zi8Tt.css"
+      "assets/main-SE5w_2lP.css"
     ]
   },
   "views/Dashboard.vue": {
-    "file": "assets/Dashboard-CRxY1P8m.js",
+    "file": "assets/Dashboard-CyvQnb1M.js",
     "name": "Dashboard",
     "src": "views/Dashboard.vue",
     "isDynamicEntry": true,
@@ -40,7 +40,7 @@
     ]
   },
   "views/Feedback.vue": {
-    "file": "assets/Feedback-BMV9BrFh.js",
+    "file": "assets/Feedback-CPO2xN9z.js",
     "name": "Feedback",
     "src": "views/Feedback.vue",
     "isDynamicEntry": true,
@@ -49,7 +49,7 @@
     ]
   },
   "views/PricingDual.vue": {
-    "file": "assets/PricingDual-C1TSLsFv.js",
+    "file": "assets/PricingDual-CIpHSbiq.js",
     "name": "PricingDual",
     "src": "views/PricingDual.vue",
     "isDynamicEntry": true,
@@ -57,11 +57,11 @@
       "main.ts"
     ],
     "css": [
-      "assets/PricingDual-DaUp_WGH.css"
+      "assets/PricingDual-D-_D7zu4.css"
     ]
   },
   "views/Private.vue": {
-    "file": "assets/Private-CyZAP49Q.js",
+    "file": "assets/Private-16AyPzmk.js",
     "name": "Private",
     "src": "views/Private.vue",
     "isDynamicEntry": true,
@@ -70,7 +70,7 @@
     ]
   },
   "views/Shared.vue": {
-    "file": "assets/Shared-BlZ5L_dx.js",
+    "file": "assets/Shared-DieHT-OE.js",
     "name": "Shared",
     "src": "views/Shared.vue",
     "isDynamicEntry": true,
@@ -79,7 +79,7 @@
     ]
   },
   "views/account/AccountDomainAdd.vue": {
-    "file": "assets/AccountDomainAdd-CVHjcjol.js",
+    "file": "assets/AccountDomainAdd-CkXkAQzE.js",
     "name": "AccountDomainAdd",
     "src": "views/account/AccountDomainAdd.vue",
     "isDynamicEntry": true,
@@ -88,7 +88,7 @@
     ]
   },
   "views/account/AccountDomainVerify.vue": {
-    "file": "assets/AccountDomainVerify-6XYF9tRu.js",
+    "file": "assets/AccountDomainVerify-DdCzf5B0.js",
     "name": "AccountDomainVerify",
     "src": "views/account/AccountDomainVerify.vue",
     "isDynamicEntry": true,
@@ -97,7 +97,7 @@
     ]
   },
   "views/account/AccountDomains.vue": {
-    "file": "assets/AccountDomains-CF-olVoM.js",
+    "file": "assets/AccountDomains-BQNxQXb1.js",
     "name": "AccountDomains",
     "src": "views/account/AccountDomains.vue",
     "isDynamicEntry": true,
@@ -106,7 +106,7 @@
     ]
   },
   "views/account/AccountIndex.vue": {
-    "file": "assets/AccountIndex-ROLenM-f.js",
+    "file": "assets/AccountIndex-idYGMAUf.js",
     "name": "AccountIndex",
     "src": "views/account/AccountIndex.vue",
     "isDynamicEntry": true,
