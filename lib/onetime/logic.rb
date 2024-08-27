@@ -124,10 +124,10 @@ module Onetime
         if metadata.valid? && secret.valid?
           unless cust.anonymous?
             cust.add_metadata metadata
-            cust.increment :secrets_created
+            cust.increment_field :secrets_created
           end
 
-          OT::Customer.global.increment :secrets_created
+          OT::Customer.global.increment_field :secrets_created
 
           unless recipient.nil? || recipient.empty?
             klass = OT::App::Mail::SecretLink
@@ -236,9 +236,12 @@ module Onetime
               raise_form_error "You can't verify an account when you're already logged in."
             end
           else
-            owner.incr :secrets_shared unless owner.anonymous?
-            OT::Customer.global.increment :secrets_shared
+
+            owner.increment_field :secrets_shared unless cust.anonymous?
+            OT::Customer.global.increment_field :secrets_shared
+
             secret.received!
+
             OT::Logic.stathat_count("Viewed Secrets", 1)
           end
         elsif !correct_passphrase
@@ -287,9 +290,12 @@ module Onetime
           @greenlighted = secret.viewable? && correct_passphrase && continue
           owner = secret.load_customer
           if greenlighted
-            owner.incr :secrets_burned unless owner.anonymous?
-            OT::Customer.global.increment :secrets_burned
+
+            owner.increment_field :secrets_burned unless owner.anonymous?
+            OT::Customer.global.increment_field :secrets_burned
+
             secret.burned!
+
             OT::Logic.stathat_count('Burned Secrets', 1)
           elsif !correct_passphrase
             limit_action :failed_passphrase if secret.has_passphrase?

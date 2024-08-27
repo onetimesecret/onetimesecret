@@ -13,7 +13,6 @@ class Onetime::Customer < Familia::Horreum
 
   class_sorted_set :values, key: 'onetime:customers'
   class_hashkey :domains, key: 'onetime:customers:domains'
-  #class_hashkey :global, key: 'customer:GLOBAL:object', class: self
 
   sorted_set :custom_domains
   sorted_set :metadata
@@ -28,6 +27,7 @@ class Onetime::Customer < Familia::Horreum
   field :verified
 
   field :secrets_created # regular hashkey string field
+  field :secrets_burned
   field :secrets_shared
   field :emails_sent
 
@@ -70,6 +70,16 @@ class Onetime::Customer < Familia::Horreum
   def init
     self.custid ||= :anon
     self.role ||= 'customer'
+
+    # Initialze auto-increment fields. We do this since Redis
+    # gets grumpy about trying to increment a hashkey field
+    # that doesn't have any value at all yet. This is in
+    # contrast to the regular INCR command where a
+    # non-existant key will simply be set to 1.
+    self.secrets_created ||= 0
+    self.secrets_burned ||= 0
+    self.secrets_shared ||= 0
+    self.emails_sent ||= 0
   end
 
   def contributor?
@@ -318,6 +328,19 @@ class Onetime::Customer < Familia::Horreum
     identifier.to_s
   end
 
+  def increment_field field
+    if anonymous?
+      whereami = caller(1..4)
+      OT.le "[increment_field] Refusing to increment #{field} for anon customer #{whereami}"
+      return
+    end
+
+    # Taking the class approach simply to keep it out of this busy Customer
+    # class. There's a small benefit to being able grep for "cust.method_name"
+    # which this approach affords as well. Although it's a small benefit.
+    self.class.increment_field(self, field)
+  end
+
   module ClassMethods
     attr_reader :values
     def add cust
@@ -349,6 +372,25 @@ class Onetime::Customer < Familia::Horreum
     def global
       @global ||= from_identifier(:GLOBAL) || create(:GLOBAL)
       @global
+    end
+
+    def increment_field(cust, field)
+      curval = cust.send(field)
+      OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
+
+      cust.increment field
+
+    rescue Redis::CommandError => e
+
+      # For whatever reason, redis throws an error when trying to
+      # increment a non-existent hashkey field (rather than setting
+      # it to 1): "ERR hash value is not an integer"
+      OT.le "[increment_field] Redis error (#{curval}): #{e.message}"
+
+      # So we'll set it to 1 if it's empty. It's possible we're here
+      # due to a different error, but this value needs to be
+      # initialized either way.
+      cust.send("#{field}!", 1) if curval.to_i.zero? # nil and '' cast to 0
     end
   end
 
