@@ -338,15 +338,23 @@ module Onetime
 
     def forgot
       publically do
-        if req.params[:key]
-          secret = OT::Secret.load req.params[:key]
-          if secret.nil? || secret.verification.to_s != 'true'
-            raise OT::MissingSecret if secret.nil?
-          else
+        secret_key = req.params[:key]
+        if secret_key
+          secret = OT::Secret.load secret_key
+
+          raise OT::MissingSecret, "No such secret" if secret.nil?
+
+          if secret.verification.to_s == 'true'
+            OT.le "[forgot] Viewing verification link #{secret_key}"
             view = Onetime::App::Views::Forgot.new req, sess, cust, locale
             view[:verified] = true
             res.body = view.render
+
+          else
+            OT.le "[forgot] Key #{secret_key} is not a verification link"
+            raise OT::MissingSecret, "No such forgotten link"
           end
+
         else
           view = Onetime::App::Views::Forgot.new req, sess, cust, locale
           res.body = view.render
