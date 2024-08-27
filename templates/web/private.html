@@ -78,7 +78,7 @@
 </div>
 {{/show_secret_link}} {{#show_recipients}}
     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-    {{i18n.COMMON.sent_to}} {{to_s}}
+    {{i18n.COMMON.sent_to}} {{recipients}}
     </h3>
   {{/show_recipients}} {{#show_secret}}
   <div class="mb-4">
@@ -187,7 +187,7 @@
     <p class="mb-4">
       We can't show it to you because we don't know what it is. When you create a secret with a
       passphrase, we immediately hash it with
-      <a href="http://en.wikipedia.org/wiki/Bcrypt" class="text-brand-500 hover:underline">bcrypt</a
+      <a href="https://en.wikipedia.org/wiki/Bcrypt" class="text-brand-500 hover:underline">bcrypt</a
       >. Since we don't store the passphrase, we have no way to show it to you. That also means when
       you include a passphrase, we have no way to decrypt your secret.
     </p>

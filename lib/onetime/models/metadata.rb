@@ -61,16 +61,18 @@ module Onetime
     def deliver_by_email cust, locale, secret, eaddrs, template=nil, ticketno=nil
       template ||= OT::Email::SecretLink
 
-
       if eaddrs.nil? || eaddrs.empty?
         OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} No addresses specified"
       end
 
-      OT.info "[deliver-by-email] #{cust.obscure_email} #{secret.key} (token/#{self.token})"
+      OT.info "[deliver-by-email2] #{cust.obscure_email} #{secret.key} (token/#{self.token})"
       eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
 
       eaddrs_safe = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
-      self.recipients = eaddrs_safe.join(', ')
+      eaddrs_safe_str = eaddrs_safe.join(', ')
+
+      OT.info "[deliver-by-email3] #{cust.obscure_email} #{secret.key} (#{eaddrs_safe.size}) #{eaddrs_safe_str}"
+      self.recipients! eaddrs_safe_str
 
       OT.ld "SECRET HAS MORE THAN ONE RECIPIENT #{eaddrs.size}" if eaddrs.size > 1
       eaddrs.each do |email_address|
@@ -78,7 +80,7 @@ module Onetime
         view.ticketno = ticketno if (ticketno)
         view.emailer.from = cust.custid
         view.emailer.fromname = ''
-        ret = view.deliver_email self.token  # pass the token from spawn_pair through
+        view.deliver_email self.token  # pass the token from spawn_pair through
         break # force just a single recipient
       end
     end

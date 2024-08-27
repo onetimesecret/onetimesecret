@@ -192,7 +192,9 @@ module Onetime
           #      the current customer is the owner of the metadata, AND
           #   3. There are no recipients specified (self[:recipients] is nil)
           #
-          self[:show_secret_link] = !(metadata.state?(:received) || metadata.state?(:burned)) && (self[:show_secret] || metadata.owner?(cust)) && self[:recipients].empty?
+          self[:show_secret_link] = !(metadata.state?(:received) || metadata.state?(:burned)) &&
+                                    (self[:show_secret] || metadata.owner?(cust)) &&
+                                    self[:recipients].empty?
 
           # A simple check to show the metadata link only for newly
           # created secrets.
@@ -440,7 +442,7 @@ module Onetime
 
       @translations = nil
       class Translations < Onetime::App::View
-        TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml')
+        TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml') unless defined?(TRANSLATIONS_PATH)
         class << self
           attr_accessor :translations  # class instance variable
         end
