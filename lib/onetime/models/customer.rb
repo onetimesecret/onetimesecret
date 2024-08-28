@@ -11,8 +11,8 @@ class Onetime::Customer < Familia::Horreum
 
   @global = nil
 
-  class_sorted_set :values, key: 'onetime:customers'
-  class_hashkey :domains, key: 'onetime:customers:domains'
+  class_sorted_set :values, key: 'onetime:customer'
+  class_hashkey :domains, key: 'onetime:customers:domain'
 
   sorted_set :custom_domains, suffix: 'custom_domain'
   sorted_set :metadata
