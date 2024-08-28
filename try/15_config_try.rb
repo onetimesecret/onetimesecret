@@ -146,3 +146,39 @@ OT.conf[:site][:authentication][:enabled] = true
 OT::Config.after_load(OT.conf)
 OT.conf.dig(:site, :authentication, :signin)
 #=> false
+
+## Default emailer mode is :smtp
+OT.conf[:emailer][:mode]
+#=> :smtp
+
+## Default emailer from address is "CHANGEME@example.com"
+OT.conf[:emailer][:from]
+#=> "CHANGEME@example.com"
+
+## Default emailer fromname is "Jan"
+OT.conf[:emailer][:fromname]
+#=> "Jan"
+
+## Default SMTP host is "localhost"
+OT.conf[:emailer][:host]
+#=> "localhost"
+
+## Default SMTP port is 587
+OT.conf[:emailer][:port]
+#=> 587
+
+## Default SMTP username is "CHANGEME"
+OT.conf[:emailer][:user]
+#=> nil
+
+## Default SMTP password is "CHANGEME"
+OT.conf[:emailer][:pass]
+#=> nil
+
+## Default SMTP auth is "login"
+OT.conf[:emailer][:auth]
+#=> "login"
+
+## Default SMTP TLS is true
+OT.conf[:emailer][:tls]
+#=> true

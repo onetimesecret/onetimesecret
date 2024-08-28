@@ -58,6 +58,8 @@
   :port: <%= ENV['SMTP_PORT'] || 587 %>
   :user: <%= ENV['SMTP_USERNAME'] || 'CHANGEME' %>
   :pass: <%= ENV['SMTP_PASSWORD'] || 'CHANGEME' %>
+  :pass: <%= ENV['SMTP_PASSWORD'] || 'CHANGEME' %>
+  :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
   :tls: <%= ENV['SMTP_TLS'] || true %>
 :mail:
   :truemail:

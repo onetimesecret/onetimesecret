@@ -49,6 +49,7 @@
   :tls: true
   :user:
   :pass:
+  :auth: login
 :mail:
   :truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
