@@ -136,7 +136,15 @@ module Onetime
           self[:metadata_shortkey] = metadata.shortkey
           self[:secret_key] = metadata.secret_key
           self[:secret_shortkey] = metadata.secret_shortkey
-          self[:recipients] = metadata.recipients # default is an empty str
+
+          # Default the recipients to an empty string. When a Familia::Horreum
+          # object is loaded, the fields that have no values (or that don't
+          # exist in the redis hash yet) will have a value of "" (empty string).
+          # But for a newly instantiated object, the fields will have a value
+          # of nil. Later on, we rely on being able to check for emptiness
+          # like: `self[:recipients].empty?`.
+          self[:recipients] = metadata.recipients.to_s
+
           self[:display_feedback] = false
           self[:no_cache] = true
           # Metadata now lives twice as long as the original secret.
