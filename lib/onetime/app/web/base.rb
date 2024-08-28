@@ -118,10 +118,22 @@ module Onetime
         end
       end
 
-      def server_error
-        publically do
-          error_response "You found a bug. Let us know how it happened!"
-        end
+      def server_error status=500, message=nil
+        res.status = status
+        res['Content-Type'] = 'text/html'
+        res.body = <<-HTML
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>500 Internal Server Error</title>
+        </head>
+        <body>
+            <h1>500 - Internal Server Error</h1>
+            <p>Something went wrong on our end. Please try again later.</p>
+        </body>
+        </html>
+        HTML
       end
 
       def disabled_response path

@@ -1,5 +1,7 @@
 
 GET   /                                          Onetime::App#index
+GET   /500                                       Onetime::App#basic_error
+
 POST  /share                                     Onetime::App#create_secret
 
 GET   /incoming                                  Onetime::App#incoming

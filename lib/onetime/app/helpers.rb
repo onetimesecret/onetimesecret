@@ -30,7 +30,7 @@ class Onetime::App
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.
-      redirect = '/error' if req.get? && redirect.to_s == req.request_path
+      redirect = '/500' if req.get? && redirect.to_s == req.request_path
 
       unless res.header['Content-Language']
         res.header['Content-Language'] = req.env['ots.locale'] || req.env['rack.locale'] || OT.conf[:locales].first
@@ -45,8 +45,6 @@ class Onetime::App
         custref = cust.obscure_email
         OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
       end
-
-      #OT.le "[carefully] steps #{sess.short_identifier} #{cust.obscure_email} #{req.current_absolute_uri} #{return_value}"
 
       return_value
 

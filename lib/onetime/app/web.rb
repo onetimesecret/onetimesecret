@@ -24,6 +24,10 @@ module Onetime
       end
     end
 
+    def basic_error
+      server_error 500, "Oops, something went wrong."
+    end
+
     def robots_txt
       publically do
         view = Onetime::App::Views::Meta::Robot.new req, sess, cust, locale
