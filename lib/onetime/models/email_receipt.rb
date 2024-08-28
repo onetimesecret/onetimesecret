@@ -6,7 +6,7 @@ class Onetime::EmailReceipt < Familia::Horreum
   feature :expiration
 
   db 8
-  ttl 30.days
+  ttl 14.days
 
   prefix :secret
   identifier :secretid
@@ -47,7 +47,7 @@ class Onetime::EmailReceipt < Familia::Horreum
     # fobj is a familia object
     def add fobj
       self.values.add OT.now.to_i, fobj.identifier
-      self.values.remrangebyscore 0, OT.now.to_i-2.days
+      self.values.remrangebyscore 0, OT.now.to_i-14.days # keep 14 days of email activity
     end
 
     def all

@@ -2,34 +2,34 @@
 class Onetime::StripeEvent < Familia::Horreum
 
   feature :safe_dump
+  feature :expiration
 
   db 10
+  ttl 5.years
   prefix :stripeevent
 
   class_sorted_set :values, key: "onetime:stripeevent:values"
 
-  identifier :secretid
+  #identifier :eventid
 
-  field :custid
   field :eventid
+  field :custid
   field :message_response
+  field :stripe_customer
+  field :created
+  field :updated
+
 
   # e.g.
   #
-  #  stripe:1234567890:event
+  #  stripeevent:1234567890:object
   #
   def init
-    @prefix = :stripe
-    @suffix = :event
-    @custid = custid
-    @eventid = eventid
-    @custid = custid.identifier if custid.is_a?(Familia::RedisObject)
-    @eventid = eventid.identifier if eventid.is_a?(Familia::RedisObject)
-    @message_response = message_response
+    @custid = custid.identifier if custid.is_a?(Familia::Base)
   end
 
   def identifier
-    @secretid  # Don't call the method
+    @eventid
   end
 
   def destroy! *args
@@ -44,7 +44,7 @@ class Onetime::StripeEvent < Familia::Horreum
     # fobj is a familia object
     def add fobj
       self.values.add OT.now.to_i, fobj.identifier
-      self.values.remrangebyscore 0, OT.now.to_i-2.days
+      self.values.remrangebyscore 0, OT.now.to_i-5.years # keep 5 years of stripe activity
     end
 
     def all
@@ -63,6 +63,7 @@ class Onetime::StripeEvent < Familia::Horreum
 
       fobj.apply_fields custid: custid, secretid: secretid, message_response: message_response
       fobj.save
+
       add fobj # to the @values sorted set
       fobj
     end
