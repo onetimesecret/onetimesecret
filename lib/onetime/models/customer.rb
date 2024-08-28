@@ -114,8 +114,10 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def get_stripe_customer_by_id customer_id=nil
-    return unless stripe_customer_id || customer_id # these should be reverse, no? args override
-    @stripe_customer = Stripe::Customer.retrieve(stripe_customer_id || customer_id)
+    customer_id ||= stripe_customer_id
+    return unless customer_id
+    OT.info "[Customer.get_stripe_customer_by_id] Fetching customer: #{customer_id} #{custid}"
+    @stripe_customer = Stripe::Customer.retrieve(customer_id)
 
   rescue Stripe::StripeError => e
     OT.le "[Customer.get_stripe_customer_by_id] Error: #{e.message}"
@@ -141,8 +143,10 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def get_stripe_subscription_by_id subscription_id=nil
-    return unless stripe_subscription_id || subscription_id
-    @stripe_subscription = Stripe::Subscription.retrieve(stripe_subscription_id || subscription_id)
+    subscription_id ||= stripe_subscription_id
+    return unless subscription_id
+    OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
+    @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
   rescue Stripe::StripeError => e
     OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message} #{e.backtrace}"
     nil
