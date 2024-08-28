@@ -139,3 +139,19 @@ ttl = @cust.ttl
 @cust.destroy_requested!
 @cust.verified?
 #=> false
+
+## Customer.values has the correct rediskey
+OT::Customer.values.rediskey
+#=> "onetime:customer"
+
+## Customer.domains has the correct rediskey
+OT::Customer.domains.rediskey
+#=> "onetime:customers:domain"
+
+## Customer.values is a Familia::SortedSet
+OT::Customer.values.class
+#=> Familia::SortedSet
+
+## Customer.domains is a Familia::HashKey
+OT::Customer.domains.class
+#=> Familia::HashKey
