@@ -65,3 +65,27 @@ custom_domain = @cust.custom_domains_list.first
 ## A customer's custom_domain list is empty again after removing a domain
 @cust.custom_domains.empty?
 #=> true
+
+## CustomDomain uses the correct Redis database
+OT::CustomDomain.db
+#=> 6
+
+## CustomDomain has the correct prefix
+OT::CustomDomain.prefix
+#=> :customdomain
+
+## CustomDomain.values is a Familia::SortedSet
+OT::CustomDomain.values.class
+#=> Familia::SortedSet
+
+## CustomDomain.owners is a Familia::HashKey
+OT::CustomDomain.owners.class
+#=> Familia::HashKey
+
+## CustomDomain.values Redis key is correctly prefixed
+OT::CustomDomain.values.rediskey
+#=> "customdomain:values"
+
+## CustomDomain.owners Redis key is correctly prefixed
+OT::CustomDomain.owners.rediskey
+#=> "customdomain:owners"
