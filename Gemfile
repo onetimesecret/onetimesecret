@@ -22,7 +22,7 @@ gem 'truemail'
 
 gem 'addressable'
 
-gem 'rack'
+gem 'rack', '>= 2.2', '< 3.0'
 
 gem 'dotenv'
 gem 'multi_json'
@@ -35,7 +35,8 @@ gem 'familia', '~> 1.0.0.pre.rc7'
 
 gem 'gibbler'
 
-gem 'otto', '~> 1.1.0.pre.alpha1'
+gem 'otto', '~> 1.1.0.pre.alpha3'
+
 gem 'redis', '~> 5.2.0'
 gem 'storable'
 gem 'sysinfo'

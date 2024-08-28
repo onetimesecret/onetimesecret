@@ -56,9 +56,9 @@ GEM
     net-smtp (0.5.0)
       net-protocol
     netrc (0.11.0)
-    otto (1.1.0.pre.alpha1)
-      addressable (>= 2.2.6)
-      rack (>= 1.2.1)
+    otto (1.1.0.pre.alpha3)
+      addressable (~> 2.2, < 3)
+      rack (~> 2.2, < 3.0)
     parallel (1.25.1)
     parser (3.3.3.0)
       ast (~> 2.4.1)
@@ -178,11 +178,11 @@ DEPENDENCIES
   mail
   multi_json
   mustache
-  otto (~> 1.1.0.pre.alpha1)
+  otto (~> 1.1.0.pre.alpha3)
   pry
   pry-byebug
   public_suffix
-  rack
+  rack (>= 2.2, < 3.0)
   redis (~> 5.2.0)
   rubocop
   rubocop-performance

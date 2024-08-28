@@ -244,7 +244,8 @@ class Onetime::Customer < Familia::Horreum
   def metadata_list
     metadata.revmembers.collect do |key|
       obj = OT::Metadata.load(key)
-      obj
+    rescue OT::RecordNotFound => e
+      OT.le "[metadata_list] Error: #{e.message} (#{key} / #{self.custid})"
     end.compact
   end
 
@@ -253,7 +254,11 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def custom_domains_list
-    custom_domains.revmembers.collect { |domain| OT::CustomDomain.load domain, self.custid }.compact
+    custom_domains.revmembers.collect do |domain|
+      OT::CustomDomain.load domain, self.custid
+    rescue OT::RecordNotFound => e
+      OT.le "[custom_domains_list] Error: #{e.message} (#{domain} / #{self.custid})"
+    end.compact
   end
 
   def add_custom_domain obj
