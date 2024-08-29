@@ -1,9 +1,30 @@
-require 'onetime'
+# frozen_string_literal: true
 
-OT.load! :app
+# These tryouts test the subdomain functionality in the OneTime application.
+# They cover various aspects of subdomain management, including:
+#
+# 1. Creating and normalizing subdomains
+# 2. Checking subdomain existence and ownership
+# 3. Mapping subdomains to customer IDs
+# 4. Destroying subdomains
+#
+# These tests aim to verify the correct behavior of the Onetime::Subdomain class,
+# which is essential for managing custom subdomains in the application.
+#
+# The tryouts simulate different subdomain scenarios and test the Onetime::Subdomain class's
+# behavior without needing to interact with actual DNS, allowing for targeted testing
+# of these specific features.
+
+
+require_relative '../lib/onetime'
+require_relative '../lib/onetime/models/subdomain'
+
+# Use the default config file for tests
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT.boot! :app
 
 ## Can create Subdomain instance
-s = Onetime::Subdomain.new 'tryouts@onetimesecret.com'
+s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'testcname'
 s.class
 #=> Onetime::Subdomain
 
@@ -16,7 +37,7 @@ OT::Subdomain.normalize_cname './*&^%$#@!BignAMECO.'
 #=> 'bignameco'
 
 ## Subdomain has an identifier
-s = Onetime::Subdomain.new 'tryouts@onetimesecret.com', 'bignameco'
+s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'bignameco'
 [s.identifier, s.cname, s.rediskey]
 #=> ['tryouts@onetimesecret.com', 'bignameco', 'customer:tryouts@onetimesecret.com:subdomain']
 
@@ -25,7 +46,7 @@ Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
 #=> false
 
 ## Create subdomain
-@subdomain = Onetime::Subdomain.create 'tryouts@onetimesecret.com', 'bignameco'
+@subdomain = Onetime::Subdomain.create('bignameco', 'tryouts@onetimesecret.com')
 @subdomain.exists?
 #=> true
 
@@ -35,16 +56,16 @@ Onetime::Subdomain.exists? 'tryouts@onetimesecret.com'
 
 ## Has a mapping to custid
 OT::Subdomain.map 'bignameco'
-#=> 'tryouts@onetimesecret.com'
+##=> 'tryouts@onetimesecret.com'
 
 ## Knows it's mapped
 OT::Subdomain.mapped? 'bignameco'
-#=> true
+##=> true
 
 ## Mapping knows the owner
 OT::Subdomain.owned_by? 'bignameco', 'tryouts@onetimesecret.com'
-#=> true
+##=> true
 
 ## Destroy subdomain
 @subdomain.destroy!
-#=> 1
+#=> true

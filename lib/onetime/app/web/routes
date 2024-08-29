@@ -1,6 +1,8 @@
 
 GET   /                                          Onetime::App#index
-POST  /                                          Onetime::App#create_secret
+GET   /500                                       Onetime::App#basic_error
+
+POST  /share                                     Onetime::App#create_secret
 
 GET   /incoming                                  Onetime::App#incoming
 POST  /incoming                                  Onetime::App#create_incoming
@@ -9,7 +11,6 @@ GET   /feedback                                  Onetime::App#feedback
 POST  /feedback                                  Onetime::App#receive_feedback
 
 GET   /about                                     Onetime::App#about
-GET   /logo                                      Onetime::App#logo
 
 GET   /docs/api                                  Onetime::App#show_docs
 GET   /docs/api/secrets                          Onetime::App#show_docs_secrets
@@ -29,12 +30,18 @@ GET   /info/security                             Onetime::App::Info#security
 GET   /info/terms                                Onetime::App::Info#terms
 
 GET   /pricing                                   Onetime::App#pricing
-#GET   /business                                  Onetime::App#business_pricing
 GET   /signup                                    Onetime::App#signup
 GET   /signup/:planid                            Onetime::App#signup
 POST  /signup                                    Onetime::App#create_account
+GET   /plans/:tier                               Onetime::App#plan_redirect
+GET   /plans/:tier/:billing_cycle                Onetime::App#plan_redirect
+GET   /welcome                                   Onetime::App#welcome
+POST  /welcome/stripe/webhook                    Onetime::App#welcome_webhook
+
 GET   /login                                     Onetime::App#login
-POST  /login                                     Onetime::App#authenticate
+GET   /signin                                    Onetime::App#signin
+POST  /signin                                    Onetime::App#authenticate
+
 GET   /logout                                    Onetime::App#logout
 
 GET   /forgot                                    Onetime::App#forgot
@@ -44,12 +51,13 @@ POST  /forgot/:key                               Onetime::App#request_reset
 
 GET   /dashboard                                 Onetime::App#dashboard
 POST  /dashboard                                 Onetime::App#create_secret
+GET   /recent                                    Onetime::App#recent
 
+GET   /account/domains                           Onetime::App#account_domains
+GET   /account/domains/add                       Onetime::App#account_domains_add
+GET   /account/domains/:domain/verify            Onetime::App#account_domains_verify
 GET   /account                                   Onetime::App#account
-POST  /account                                   Onetime::App#update_account
-POST  /account/passgen                           Onetime::App#update_account
-POST  /account/apikey                            Onetime::App#generate_apikey
-POST  /account/subdomain                         Onetime::App#update_subdomain
+GET   /account/billing_portal                    Onetime::App#customer_portal_redirect
 
 GET   /contributor                               Onetime::App#contributors
 POST  /contributor                               Onetime::App#contributors
@@ -60,3 +68,5 @@ GET   /translations                              Onetime::App#translations
 
 GET   /404                                       Onetime::App#not_found
 GET   /500                                       Onetime::App#server_error
+
+GET   /robots.txt                                Onetime::App#robots_txt

@@ -1,40 +1,65 @@
-require 'onetime'
+# frozen_string_literal: true
 
-OT.load! :app
+# These tryouts test the Onetime::Secret class functionality.
+# The Secret class is responsible for managing secrets in the
+# Onetime application.
+#
+# We're testing various aspects of the Secret class, including:
+# 1. Creation of Secret objects
+# 2. Consistency of Redis keys
+# 3. Spawning secret pairs (metadata and secret)
+# 4. Saving, loading, and destroying secrets
+# 5. Managing secret states (viewed, received)
+#
+# These tests aim to ensure that secrets can be correctly created,
+# stored, and managed throughout their lifecycle in the application.
+
+require 'set'
+
+require_relative '../lib/onetime'
+
+# Use the default config file for tests
+@iterations = 1000
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT.boot! :app
 
 ## Can create Secret
 s = Onetime::Secret.new :private
-s.class
-#=> Onetime::Secret
+[s.class, s.db, s.metadata_key]
+#=> [Onetime::Secret, 8, nil]
 
-## Keys are consistent for Metadata
-s = Onetime::Metadata.new :metadata, :entropy
-s.rediskey
-#=> 'metadata:8o719hhgf2t8eh15bdabkm6n98pmd97:object'
+## Keys are always unique for Secrets
+unique_values = Set.new
+@iterations.times do
+  s = Onetime::Secret.new state: :shared
+  unique_values.add(s.rediskey)
+end
+unique_values.size
+#=> @iterations
 
-## Keys are consistent for Secrets
-s = Onetime::Secret.new :shared, :entropy
-p s.name
-s.rediskey
-#=> 'secret:q6luo3pn9e8vzcl9v21uw5d084rlh6n:object'
-
-## But can be modified with entropy
-s = Onetime::Secret.new :shared, [:some, :fixed, :values]
-s.rediskey
-#=> 'secret:6genol59u9is7nuh8wr9gvokaply5h3:object'
+## And are not effected (or affected) by arguments
+unique_values = Set.new
+@iterations.times do
+  s = Onetime::Secret.new state: %i[some fixed values]
+  unique_values.add(s.rediskey)
+end
+unique_values.size
+#=> @iterations
 
 ## Generate a pair
 @metadata, @secret = Onetime::Secret.spawn_pair :anon, :tryouts
 [@metadata.nil?, @secret.nil?]
 #=> [false, false]
 
-## Private keys match
-!@secret.metadata_key.nil? && @secret.metadata_key == @metadata.key
-#=> true
+## Private metadata key matches
+p [@secret.metadata_key, @metadata.key]
+[@secret.metadata_key.nil?, @secret.metadata_key == @metadata.key]
+#=> [false, true]
 
-## Shared keys match
-!@metadata.secret_key.nil? && @metadata.secret_key == @secret.key
-#=> true
+## Shared secret key matches
+p [@secret.key, @metadata.secret_key]
+[@metadata.secret_key.nil?, @metadata.secret_key == @secret.key]
+#=> [false, true]
 
 ## Kinds are correct
 [@metadata.class, @secret.class]
@@ -50,13 +75,13 @@ s.rediskey
 
 ## A secret can be destroyed
 @metadata.destroy!
-#=> 1
+#=> true
 
 ## Can set private secret to viewed state
 metadata, secret = Onetime::Secret.spawn_pair :anon, :tryouts
 metadata.viewed!
 [metadata.viewed, metadata.state]
-#=> [Time.now.utc.to_i.to_s, 'viewed']
+#=> [Time.now.utc.to_i, 'viewed']
 
 ## Can set shared secret to viewed state
 metadata, secret = Onetime::Secret.spawn_pair :anon, :tryouts
@@ -65,4 +90,29 @@ secret.received!
 metadata = secret.load_metadata
 # NOTE: The secret no longer keeps a reference to the metadata
 [metadata.shared, metadata.state, secret.received, secret.state]
-##=> [Time.now.utc.to_i.to_s, 'shared', Time.now.utc.to_i.to_s, 'received']
+##=> [Time.now.utc.to_i, 'shared', Time.now.utc.to_i, 'received']
+
+## Secrets have a counter for views
+@secret_with_counter = Onetime::Secret.new state: :shared
+@secret_with_counter.view_count.to_i
+#=> 0
+
+## Secrets can keep a view count (1 of 2)
+@secret_with_counter.view_count.incr
+#=> 1
+
+## Secrets can keep a view count (2 of 2)
+@secret_with_counter.view_count.incr
+#=> 2
+
+## Secrets counters have their own key
+@secret_with_counter.view_count.rediskey
+#=> Familia.join(:secret, @secret_with_counter.key, :view_count)
+
+## Secrets counters have their own ttl setting
+@secret_with_counter.view_count.ttl
+#=> 1209600.0
+
+## Secrets counters have their own realttl value
+@secret_with_counter.view_count.realttl
+#=> 1209600

@@ -1,11 +1,11 @@
 
-require 'onetime'  # must be required before
-require 'onetime/app/web/base'
-require 'onetime/app/web/views'
-require 'timeout'
+require_relative 'web/base'
+require_relative 'web/views'
+require_relative 'base'  # app/base.rb
 
 module Onetime
   class App
+    include AppSettings
     include Base
     require 'onetime/app/web/info'
     require 'onetime/app/web/account'
@@ -13,8 +13,10 @@ module Onetime
     def index
       publically do
         if sess.authenticated?
-          dashboard
+          OT.ld "[homepage-dashboard] authenticated? #{sess.authenticated?}"
+          dashboard  # continues request inside dashboard>authenticated method
         else
+          OT.ld "[homepage] authenticated? #{sess.authenticated?}"
           view = Onetime::App::Views::Homepage.new req, sess, cust, locale
           sess.event_incr! :homepage
           res.body = view.render
@@ -22,19 +24,22 @@ module Onetime
       end
     end
 
-    def test_send_email
+    def basic_error
+      server_error 500, "Oops, something went wrong."
+    end
+
+    def robots_txt
       publically do
-        OT.info "test_send_email"
-        view = OT::Email::TestEmail.new cust, locale
-        view.emailer.from = cust.custid
-        view.emailer.fromname = ''
-        ret = view.deliver_email
-        res.body = view.i18n[:COMMON][:msg_check_email]
+        view = Onetime::App::Views::Meta::Robot.new req, sess, cust, locale
+          sess.event_incr! :robots_txt
+          res.header['Content-Type'] = 'text/plain'
+          res.body = view.render
       end
     end
 
     def dashboard
       authenticated do
+        no_cache!
         logic = OT::Logic::Dashboard.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
@@ -42,6 +47,37 @@ module Onetime
         res.body = view.render
       end
     end
+
+    def recent
+      authenticated do
+        logic = OT::Logic::Dashboard.new sess, cust, req.params, locale
+        logic.raise_concerns
+        logic.process
+        view = Onetime::App::Views::Recent.new req, sess, cust, locale
+        res.body = view.render
+      end
+    end
+
+    def account_domains
+      self._dashboard_component('AccountDomains')
+    end
+
+    def account_domains_add
+      self._dashboard_component('AccountDomainAdd')
+    end
+
+    def account_domains_verify
+      self._dashboard_component('AccountDomainVerify')
+    end
+
+    def _dashboard_component(component_name)
+      authenticated do
+        no_cache!
+        view = Onetime::App::Views::DashboardComponent.new component_name, req, sess, cust, locale
+        res.body = view.render
+      end
+    end
+    protected :_dashboard_component
 
     def show_docs
       publically do
@@ -155,7 +191,7 @@ module Onetime
         view = Onetime::App::Views::Burn.new req, sess, cust, locale, logic.metadata
         logic.raise_concerns
         logic.process
-        if logic.burn_secret
+        if logic.greenlighted
           res.redirect '/private/' + logic.metadata.key
         else
           view.add_error view.i18n[:COMMON][:error_passphrase] if req.post? && !logic.correct_passphrase
@@ -170,18 +206,25 @@ module Onetime
         res.body = view.render
       end
     end
-    def logo
-      publically do
-        view = Onetime::App::Views::Logo.new req, sess, cust, locale
-        res.body = view.render
-      end
-    end
+
     def feedback
       publically do
         view = Onetime::App::Views::Feedback.new req, sess, cust, locale
         res.body = view.render
       end
     end
+
+    def test_send_email
+      publically do
+        OT.info "test_send_email"
+        view = OT::Email::TestEmail.new cust, locale
+        view.emailer.from = OT.conf[:emailer][:from]
+        view.emailer.reply_to = cust.custid
+        view.emailer.fromname = ''
+        view.deliver_email token=true
+        res.body = view.i18n[:COMMON][:msg_check_email]
+      end
+    end
+
   end
 end
-

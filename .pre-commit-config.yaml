@@ -1,0 +1,114 @@
+##
+# Pre-Commit Configuration
+#
+# Initial setup:
+#
+#   0. Install the pre-commit framework (if it isn't already on your system):
+#
+#         $ pip install pre-commit
+#
+#   1. Install the git hook:
+#
+#         $ pre-commit install
+#
+#
+# Other commands:
+#
+#   Run it on all the files in this repo:
+#     $ pre-commit run --all-files
+#
+#   Updating plugin repositories:
+#     $ pre-commit autoupdate
+#
+#   Automatically enable pre-commit on repositories
+#     $ git config --global init.templateDir ~/.git-template
+#     $ pre-commit init-templatedir ~/.git-template
+#
+# See also:
+#   - https://pre-commit.com for more information
+#   - https://pre-commit.com/hooks.html for more hooks
+#
+
+default_install_hook_types:
+  - pre-commit
+  - prepare-commit-msg
+  - post-commit
+  - post-checkout
+  - post-merge
+default_stages:
+   - pre-commit
+#   - prepare-commit-msg
+
+fail_fast: true
+
+repos:
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+      - id: identity
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: detect-private-key
+      - id: mixed-line-ending
+      - id: check-added-large-files
+        args: ["--maxkb=2000"]
+      - id: no-commit-to-branch
+        args: ["--branch", "develop", "--branch", "rel/.*"]
+      - id: check-merge-conflict
+      - id: forbid-submodules
+
+  # Based on Rubocop's own pre-commit hook YAML configuration
+  # https://github.com/rubocop/rubocop/blob/d5d8828/.pre-commit-hooks.yaml
+  # NOTE: Don't enable '--autocorrect' until codebase is clean
+  - repo: https://github.com/rubocop/rubocop
+    rev: v1.64.1  # Use the ref you want to point at
+    hooks:
+      - id: rubocop
+        stages: [pre-commit]
+        name: rubocop
+        description: Enforce the community Ruby Style Guide with RuboCop
+        entry: "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning"
+        types: ['ruby']
+        # language: ruby
+        # language_version: 3.2.4
+        # args: ['--force-exclusion']
+
+  - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
+    rev: v0.0.11
+    hooks:
+      - id: add-msg-issue-prefix
+        stages: [prepare-commit-msg]
+        name: Link commit to Github issue
+        args:
+          - "--default=[UNTRACKED]"
+          - "--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}"
+          - "--template=[#{}]"
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0  # Use the latest version
+    hooks:
+      - id: eslint
+        stages: [pre-commit]
+        files: \.(js|ts|vue)$
+        types: [file]
+        additional_dependencies:
+          - eslint
+          - eslint-plugin-vue
+          - "@typescript-eslint/eslint-plugin"
+          - "@typescript-eslint/parser"
+
+  - repo: local
+    hooks:
+      - id: register-build
+        stages: [post-commit, post-checkout, post-merge]
+        name: Record the current commit hash into an untracked file
+        entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; bin/ots build;'"
+        language: system
+        always_run: true
+        pass_filenames: false

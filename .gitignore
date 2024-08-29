@@ -1,9 +1,32 @@
-.bundle/
-log/
-tmp/
-.rudy/
+# Globs
 *.env
 *.log
+*.rdb
 *.txt
+.byebug*
 .ruby-version
+spoom_*
+.commit_hash.txt
 
+# Directories
+.certs/
+.devcontainer
+.history
+.pnpm/
+.prompts/
+.vscode/
+
+.appendonlydir/
+.bundle/
+data/
+node_modules/
+vendor/
+log/
+tmp/
+etc/caddy/
+
+# Files
+.DS_Store
+!pr_agent.toml
+etc/config
+fly.toml

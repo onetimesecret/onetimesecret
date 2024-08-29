@@ -1,74 +1,130 @@
-# http://www.artviper.net/website-tools/colorfinder.php
-class Onetime::Subdomain < Familia::HashKey
-  include Onetime::Models::RedisHash
-  @values = Familia::HashKey.new name.to_s.downcase.gsub('::', Familia.delim).to_sym, :db => 6
-  class << self
+
+# Customer->Subdomain
+#
+# Every customer has or can have a subdomain. This was a feature
+# from the early years. Since there can only be 0 or 1, the redis
+# key for this object is simply `customer:custid:subdomain`. Real-
+# world example of a subdomain: mypage.github.io.
+#
+# The customer subdomain is distinct from CustomDomain (plural)
+# which is a list of domains that are managed by the customer.
+#
+class Onetime::Subdomain < Familia::Horreum
+
+  feature :safe_dump
+
+  db 6
+
+  prefix :customer
+  identifier :custid
+  suffix :subdomain
+
+  class_hashkey :values, key: 'onetime:subdomain'
+
+  field :custid
+  field :cname
+  field :created
+  field :updated
+  field :homepage
+
+  def init
+    @cname = update_cname(cname)
+  end
+
+  def update_cname cname
+    @cname = self.cname = OT::Subdomain.normalize_cname(cname)
+  end
+
+  def owner? cust
+    (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+  end
+
+  def destroy! *args
+    OT::Subdomain.rem @cname
+    super
+  end
+
+  def fulldomain
+    # Previously was:
+    #   '%s.%s' % [self['cname'], OT.conf[:site][:domain]]
+    #
+    raise NotImplementedError
+  end
+
+  def company_domain
+    return unless self.homepage
+    URI.parse(self.homepage).host
+  end
+
+  module ClassMethods
+
     attr_reader :values
     def add cname, custid
       ret = self.values.put cname, custid
       ret
     end
+
     def rem cname
-      ret = self.values.del(cname)
+      self.values.del(cname)
     end
+
     def all
       self.values.all.collect { |cname,custid| load(custid) }.compact
     end
-    def owned_by? cname, custid
+
+    ##
+    # Checks if a given CNAME is owned by a specific customer.
+    #
+    # @param cname [String] The custom domain name (CNAME) to check.
+    # @param custid [String, Integer] The customer ID to verify ownership against.
+    # @return [Boolean] true if the CNAME is mapped to the given customer ID, false otherwise.
+    def owned_by?(cname, custid)
       map(cname) == custid
     end
-    def map cname
+
+    ##
+    # Retrieves the customer ID associated with a given CNAME.
+    #
+    # @param cname [String] The custom domain name (CNAME) to look up.
+    # @return [String, Integer, nil] The customer ID mapped to the CNAME, or nil if not found.
+    #
+    # The term "map" is used here to denote the act of looking up the corresponding
+    # customer ID for a given domain. It's a concise way to express the domain-to-customer mapping.
+    def map(cname)
       self.values.get(cname)
     end
-    def mapped? cname
+
+    ##
+    # Checks if a given CNAME is mapped to any customer.
+    #
+    # @param cname [String] The custom domain name (CNAME) to check.
+    # @return [Boolean] true if the CNAME is mapped to a customer, false otherwise.
+    def mapped?(cname)
       self.values.has_key?(cname)
     end
-    def load_by_cname cname
+
+    ##
+    # Loads a customer record based on a given CNAME.
+    #
+    # @param cname [String] The custom domain name (CNAME) to use for loading.
+    # @return [Object, nil] The loaded customer object if found, nil otherwise.
+    #
+    # This method combines the mapping lookup with loading the customer record,
+    # providing a convenient way to retrieve a customer by their custom domain.
+    def load_by_cname(cname)
       load map(cname)
     end
-  end
-  attr_accessor :values
-  def initialize custid=nil, cname=nil
-    @prefix, @suffix = :customer, :subdomain
-    @cname, @custid = OT::Subdomain.normalize_cname(cname), custid
-    super name, :db => 6
-  end
-  class << self
-    def exists? objid
-      obj = new objid
-      obj.exists?
-    end
-    def load objid
-      obj = new objid
-      obj.exists? ? obj : nil
-    end
-    def create custid, cname
-      obj = new custid, cname
-      obj.update_fields :cname => normalize_cname(cname), :custid => custid
+
+    def create cname, custid
+      obj = new cname: normalize_cname(cname), custid: custid
+      obj.save
       obj
     end
+
     def normalize_cname cname
       cname.to_s.downcase.gsub(/[^a-z0-9\_]/, '')
     end
   end
-  def identifier
-    @custid  # Don't call the method
-  end
-  def update_cname cname
-    @cname = self.cname = OT::Subdomain.normalize_cname(cname)
-  end
-  def owner? cust
-    (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
-  end
-  def destroy! *args
-    OT::Subdomain.values.rem @cname
-    super
-  end
-  def fulldomain
-    '%s.%s' % [self['cname'], OT.conf[:site][:domain]]
-  end
-  def company_domain
-    return unless self['homepage']
-    URI.parse(self['homepage']).host
-  end
+
+  extend ClassMethods
 end

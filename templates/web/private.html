@@ -1,0 +1,245 @@
+{{>partial/header}}
+
+<div class="container mx-auto p-4 max-w-2xl">
+
+{{#authenticated}}
+  {{>partial/dashboard_nav}}
+{{/authenticated}}
+
+{{#show_secret_link}}
+  <div class="mb-4">
+    <p class="text-base text-gray-600 dark:text-gray-400 mb-2">{{i18n.page.pretext}}</p>
+
+    <div class="relative">
+      <input
+        id="secreturi"
+        class="w-full pr-10 px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        value="{{share_domain}}/{{share_path}}"
+        readonly />
+      <button
+        onclick="copyToClipboard('secreturi')"
+        class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        title="Copy to clipboard">
+        <svg
+          id="copyIcon"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          width="20"
+          height="20">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <svg
+          id="checkIcon"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5 text-green-500 hidden"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          width="20"
+          height="20">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7" />
+        </svg>
+      </button>
+    </div>
+  <script>
+  function copyToClipboard(elementId) {
+    var copyText = document.getElementById(elementId);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /* For mobile devices */
+    document.execCommand('copy');
+
+    // Change icon to green check
+    var copyIcon = document.getElementById('copyIcon');
+    var checkIcon = document.getElementById('checkIcon');
+    copyIcon.classList.add('hidden');
+    checkIcon.classList.remove('hidden');
+
+    // Revert back to copy icon after 2 seconds
+    setTimeout(function () {
+      copyIcon.classList.remove('hidden');
+      checkIcon.classList.add('hidden');
+    }, 2000);
+  }
+</script>
+  {{#has_passphrase}}
+    <p class="mt-2 font-bold text-gray-800 dark:text-gray-200">{{i18n.page.requires_passphrase}}</p>
+  {{/has_passphrase}}
+</div>
+{{/show_secret_link}} {{#show_recipients}}
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+    {{i18n.COMMON.sent_to}} {{recipients}}
+    </h3>
+  {{/show_recipients}} {{#show_secret}}
+  <div class="mb-4">
+  {{^can_decrypt}}
+    <p class="mb-2 italic text-gray-600 dark:text-gray-400">
+    {{i18n.COMMON.secret}} ({{secret_shortkey}}):
+    </p>
+    <input id="displayedsecret"
+      class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+      value="{{i18n.page.this_msg_is_encrypted}}" readonly />
+  {{/can_decrypt}} {{#can_decrypt}} {{#truncated}}
+      <div
+        class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 text-sm dark:bg-blue-800 dark:text-blue-200">
+      <button type="button" class="float-right" onclick="this.parentElement.remove()">
+        &times;
+      </button>
+      <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.secret_was_truncated}}
+      {{secret_value.size.to_bytes}}. {{^authenticated}}<a
+        href="/signup"
+        class="text-brand-500 hover:underline"
+        >{{i18n.COMMON.signup_for_more}}</a
+      >{{/authenticated}}.
+    </div>
+    {{/truncated}}
+    <p class="mb-2 italic text-gray-600 dark:text-gray-400">
+    {{i18n.COMMON.secret}} ({{secret_shortkey}}):
+    <span class="text-sm text-gray-500 dark:text-gray-400">({{i18n.page.only_see_once}})</span>
+    </p>
+    <textarea
+      class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+      readonly rows="{{display_lines}}">{{secret_value}}</textarea>
+  {{/can_decrypt}}
+  </div>
+{{/show_secret}} {{^show_secret}}
+  <div class="mb-4">
+    <p class="mb-2 text-gray-600 dark:text-gray-400">
+      {{i18n.COMMON.secret}} ({{secret_shortkey}}):
+    </p>
+    <input
+      class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+      value="*******************"
+      disabled />
+  </div>
+{{/show_secret}}
+
+<p class="text-gray-600 dark:text-gray-400 mb-4">
+{{#is_received}}
+  <em>{{i18n.COMMON.received}} {{received_date}}.</em>
+  <span class="text-sm text-gray-500 dark:text-gray-400">({{received_date_utc}})</span>
+{{/is_received}} {{#is_burned}}
+  <em>{{i18n.COMMON.burned}} {{burned_date}}.</em>
+  <span class="text-sm text-gray-500 dark:text-gray-400">({{burned_date_utc}})</span>
+{{/is_burned}} {{^is_destroyed}}
+  <strong>{{i18n.COMMON.expires_in}} {{expiration_stamp}}</strong>.
+  <span class="text-sm text-gray-500 dark:text-gray-400">({{created_date_utc}})</span>
+{{/is_destroyed}}
+</p>
+
+<hr class="w-full my-4 mx-auto border-gray-200 dark:border-gray-600">
+
+{{^is_destroyed}}
+  <a href="{{burn_uri}}"
+    class="block w-full px-4 py-2 mb-4 text-center text-base
+      bg-yellow-400 rounded-md text-gray-800
+      hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+    <svg
+      class="inline-block w-5 h-5 mr-2"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path>
+    </svg>
+    {{i18n.COMMON.burn_this_secret}}
+  </a>
+
+  <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+    * {{i18n.COMMON.burn_this_secret_hint}}.
+  </p>
+  <hr class="w-1/4 my-4 mx-auto border-gray-200 dark:border-gray-600">
+{{/is_destroyed}}
+
+
+<a href="/"
+  class="block w-2/3 mx-auto px-4 py-2 mb-4 text-center rounded-md border-2 text-base font-medium
+      bg-gray-200 text-gray-800 border-gray-300
+      dark:bg-gray-700 dark:text-gray-200 dark:border-gray-800
+      hover:bg-gray-100 hover:border-grey-200 dark:hover:bg-gray-600 dark:hover:border-gray-600">Create another secret</a>
+
+{{#show_secret}}
+  <div class="text-sm text-gray-600 dark:text-gray-400">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">F.A.Q.</h3>
+    {{#has_passphrase}}
+    <h4 class="font-semibold mt-4 mb-2">Why can't I see my passphrase?</h4>
+    <p class="mb-4">
+      We can't show it to you because we don't know what it is. When you create a secret with a
+      passphrase, we immediately hash it with
+      <a href="https://en.wikipedia.org/wiki/Bcrypt" class="text-brand-500 hover:underline">bcrypt</a
+      >. Since we don't store the passphrase, we have no way to show it to you. That also means when
+      you include a passphrase, we have no way to decrypt your secret.
+    </p>
+
+    <h4 class="font-semibold mt-4 mb-2">Why can't I see the secret value?</h4>
+    <p class="mb-4">
+      We display the value for you so that you can verify it but we do that once so that if someone
+      gets this private page (in your browser history or if you accidentally send the private link
+      instead of the secret one), they won't see the secret value.
+    </p>
+    {{/has_passphrase}}
+
+    <h4 class="font-semibold mt-4 mb-2">What happens when I burn a secret?</h4>
+    <p class="mb-4">
+      Burning a secret will delete it before it has been read. If you send someone a secret link and
+      burn the secret before they view it, they will not be able to read it. In fact, it will look
+      to them like the secret never existed at all.
+    </p>
+
+    <h4 class="font-semibold mt-4 mb-2">Why can I only see the secret value once?</h4>
+    <p class="mb-4">
+      We display the value for you so that you can verify it but we do that once so that if someone
+      gets this private page (in your browser history or if you accidentally send the private link
+      instead of the secret one), they won't see the secret value.
+    </p>
+
+    <h4 class="font-semibold mt-4 mb-2">How long will the secret be available?</h4>
+    <p class="mb-4">
+      The secret link will be available for {{expiration_stamp}} or until it's viewed.
+    </p>
+  </div>
+{{/show_secret}} {{^show_secret}}
+  <div class="text-sm text-gray-600 dark:text-gray-400">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">F.A.Q.</h3>
+    {{^show_secret_link}}
+    <h4 class="font-semibold mt-4 mb-2">What if I forgot to copy the shared link?</h4>
+    <p class="mb-4">You need to create a new secret. We can't retrieve it for you.</p>
+    {{/show_secret_link}}
+
+    <h4 class="font-semibold mt-4 mb-2">How long will the secret be available?</h4>
+    <p class="mb-4">
+      The secret link will be available for {{expiration_stamp}} or until it's viewed.
+    </p>
+
+    <h4 class="font-semibold mt-4 mb-2">What happens when I burn a secret?</h4>
+    <p class="mb-4">
+      Burning a secret will delete it before it has been read. If you send someone a secret link and
+      burn the secret before they view it, they will not be able to read it. In fact, it will look
+      to them like the secret never existed at all.
+    </p>
+  </div>
+{{/show_secret}}
+</div>
+
+{{>partial/footer}}

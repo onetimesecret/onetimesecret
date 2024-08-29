@@ -1,52 +1,88 @@
-# Onetime Rackup
+# frozen_string_literal: true
+
+# Rackup Configuration
 #
 # Usage:
 #
-#     $ thin -e dev -R config.ru -p 7143 start
-#     $ tail -f /var/log/system.log
+#     $ thin -e dev -R config.ru -p 3000 start
+#
 
+# Ensure immediate flushing of stdout to improve real-time logging visibility.
+# This is particularly useful in development and production environments where
+# timely log output is crucial for monitoring and debugging purposes.
+#
+# Note: This setting can have a performance impact in high-throughput environments.
+#
+# See: https://www.rubydoc.info/gems/rack/Rack/CommonLogger
+#
 $stdout.sync = true
 
-ENV['RACK_ENV'] ||= 'prod'
-ENV['APP_ROOT'] = ::File.expand_path(::File.join(::File.dirname(__FILE__)))
-$:.unshift(::File.join(ENV['APP_ROOT']))
-$:.unshift(::File.join(ENV['APP_ROOT'], 'lib'))
-$:.unshift(::File.join(ENV['APP_ROOT'], 'app'))
+ENV['RACK_ENV'] ||= 'production'
+ENV['APP_ROOT'] = File.expand_path(__dir__).freeze
+app_root = ENV['APP_ROOT']
 
-require 'otto'
-require 'onetime/app/web'
-require 'onetime/app/api'
-require 'onetime/app/colonel'
+PUBLIC_DIR = File.join(app_root, '/public/web').freeze
+APP_DIR = File.join(app_root, '/lib/onetime/app').freeze
 
-PUBLIC_DIR = "#{ENV['APP_ROOT']}/public/web"
-APP_DIR = "#{ENV['APP_ROOT']}/lib/onetime/app"
+$LOAD_PATH.unshift(File.join(app_root, 'lib'))
 
+require_relative 'lib/middleware'
+require_relative 'lib/onetime'
+
+Onetime.boot! :app
+
+# Create the Rack apps for each routes file
 apps = {
-  '/'           => Otto.new("#{APP_DIR}/web/routes"),
-  '/api'        => Otto.new("#{APP_DIR}/api/routes"),
-  '/colonel'    => Otto.new("#{APP_DIR}/colonel/routes")
-}
+  '/api'      =>  '/api/routes',
+  '/'         =>  '/web/routes',
+  '/colonel'  =>  '/colonel/routes'
+}.transform_values { |path| Otto.new(File.join(APP_DIR, path)) }
 
-Onetime.load! :app
+# Add "last resort" json responses for the API
+headers = { 'Content-Type' => 'application/json' }
+apps['/api'].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
+apps['/api'].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
 
-if Otto.env?(:dev)
-  # DEV: Run web apps with extra logging and reloading
-  apps.each_pair do |path,app|
-    map(path) {
-      use Rack::CommonLogger
-      use Rack::Reloader, 1
-      app.option[:public] = PUBLIC_DIR
-      app.add_static_path '/favicon.ico'
-      # TODO: Otto should check for not_found method instead of settign it here.
-      #otto.not_found = [404, {'Content-Type'=>'text/plain'}, ["Server error2"]]
-      run app
-    }
-  end
+# Assign an absolute path to the directory for static assets
+# for the "root" web endpoint.
+apps['/'].option[:public] = PUBLIC_DIR
+
+# Middleware Configuration
+#
+# A centralized middleware stack provides an overview of the
+# active middleware in each environment and simplifies
+# comparison and debugging. NOTE: The order is important.
+middlewares = if Otto.env?(:dev)
+  [
+    [Rack::CommonLogger],
+    [Rack::ClearSessionMessages],
+    [Rack::Reloader, 1],
+    [Rack::HandleInvalidUTF8],
+    [Rack::HandleInvalidPercentEncoding]
+  ]
 else
-  # PROD: run barebones webapps
-  apps.each_pair do |path,app|
-    app.option[:public] = PUBLIC_DIR
-    map(path) { run app }
+  [
+    [Rack::CommonLogger],
+    [Rack::ClearSessionMessages],
+    [Rack::HandleInvalidUTF8],
+    [Rack::HandleInvalidPercentEncoding]
+  ]
+end
+
+# Mount Applications
+#
+# Apply the middleware for each application and mount it to the
+# URI path it'll respond to when a request is made (e.g. /api).
+apps.each_pair do |path, app|
+  map(path) do
+    OT.info "[app] Mounting #{app.class} at #{path}"
+
+    # e.g. use Rack::CommonLogger
+    middlewares.each do |middleware_class, *args|
+      OT.ld "[middleware] Applying #{middleware_class}"
+      use middleware_class, *args
+    end
+
+    run app
   end
-  #$SAFE = 1  # http://www.rubycentral.com/pickaxe/taint.html
 end

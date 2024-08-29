@@ -1,0 +1,120 @@
+{
+  "components/PasswordStrengthChecker.vue": {
+    "file": "assets/PasswordStrengthChecker-C83onRYC.js",
+    "name": "PasswordStrengthChecker",
+    "src": "components/PasswordStrengthChecker.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "main.ts": {
+    "file": "assets/main-B2mfUPR_.js",
+    "name": "main",
+    "src": "main.ts",
+    "isEntry": true,
+    "dynamicImports": [
+      "views/account/AccountDomainVerify.vue",
+      "views/PricingDual.vue",
+      "views/Dashboard.vue",
+      "views/account/AccountDomains.vue",
+      "views/account/AccountDomainAdd.vue",
+      "views/account/AccountDomainVerify.vue",
+      "views/account/AccountIndex.vue",
+      "views/Shared.vue",
+      "views/Private.vue",
+      "views/Feedback.vue",
+      "components/PasswordStrengthChecker.vue"
+    ],
+    "css": [
+      "assets/main-SE5w_2lP.css"
+    ]
+  },
+  "views/Dashboard.vue": {
+    "file": "assets/Dashboard-CyvQnb1M.js",
+    "name": "Dashboard",
+    "src": "views/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/Feedback.vue": {
+    "file": "assets/Feedback-CPO2xN9z.js",
+    "name": "Feedback",
+    "src": "views/Feedback.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/PricingDual.vue": {
+    "file": "assets/PricingDual-CIpHSbiq.js",
+    "name": "PricingDual",
+    "src": "views/PricingDual.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ],
+    "css": [
+      "assets/PricingDual-D-_D7zu4.css"
+    ]
+  },
+  "views/Private.vue": {
+    "file": "assets/Private-16AyPzmk.js",
+    "name": "Private",
+    "src": "views/Private.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/Shared.vue": {
+    "file": "assets/Shared-DieHT-OE.js",
+    "name": "Shared",
+    "src": "views/Shared.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/account/AccountDomainAdd.vue": {
+    "file": "assets/AccountDomainAdd-CkXkAQzE.js",
+    "name": "AccountDomainAdd",
+    "src": "views/account/AccountDomainAdd.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/account/AccountDomainVerify.vue": {
+    "file": "assets/AccountDomainVerify-DdCzf5B0.js",
+    "name": "AccountDomainVerify",
+    "src": "views/account/AccountDomainVerify.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/account/AccountDomains.vue": {
+    "file": "assets/AccountDomains-BQNxQXb1.js",
+    "name": "AccountDomains",
+    "src": "views/account/AccountDomains.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ]
+  },
+  "views/account/AccountIndex.vue": {
+    "file": "assets/AccountIndex-idYGMAUf.js",
+    "name": "AccountIndex",
+    "src": "views/account/AccountIndex.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "main.ts"
+    ],
+    "css": [
+      "assets/AccountIndex-DGxx-y0y.css"
+    ]
+  }
+}

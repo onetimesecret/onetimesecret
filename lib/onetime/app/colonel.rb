@@ -1,7 +1,9 @@
-require 'onetime/app/web/base'
+require_relative 'web/base'
+require_relative 'base'  # app/base.rb
 
 class Onetime::App
   class Colonel
+    include AppSettings
     include OT::App::Base
 
     def index
@@ -34,14 +36,6 @@ class Onetime::App
       end
     end
 
-    def generate_entropy
-      colonels do
-        Onetime::Entropy.generate 5000
-        sess.set_info_message "Added 5000 elements to entropy"
-        res.redirect '/colonel' unless req.ajax?
-      end
-    end
-
     module Views
     end
 
@@ -49,6 +43,7 @@ class Onetime::App
       self.template_path = './templates/colonel'
       self.view_namespace = Onetime::App::Colonel::Views
       self.view_path = './lib/onetime/app/colonel/views'
+
       def initialize *args
         super
         self[:subtitle] = "Colonel"
@@ -57,9 +52,12 @@ class Onetime::App
 
     module Views
       class Homepage < OT::App::Colonel::View
+
         def init *args
           self[:title] = "Home"
-          self[:stathat_chart] = OT.conf[:stathat][:default_chart]
+          if OT.conf[:stathat]
+            self[:stathat_chart] = OT.conf[:stathat][:default_chart]
+          end
           self[:body_class] = :colonel
           self[:session_count] = OT::Session.recent(5.minutes).size
           self[:today_feedback] = OT::Feedback.recent(24.hours, OT.now.to_i).collect do |k,v|
@@ -70,10 +68,6 @@ class Onetime::App
           end.reverse
           self[:older_feedback] = OT::Feedback.recent(14.days, OT.now.to_i-48.hours).collect do |k,v|
             {:msg => k, :stamp => natural_time(v) }
-          end.reverse
-          self[:subdomain_count] = OT::Subdomain.values.size
-          self[:subdomains] = OT::Subdomain.all.collect do |v|
-            { :cname => v['cname'], :custid => v.custid, :fulldomain => v.fulldomain }
           end.reverse
           self[:feedback_count] = OT::Feedback.values.size
           self[:today_feedback_count] = self[:today_feedback].size
@@ -93,15 +87,16 @@ class Onetime::App
           self[:recent_customer_count] = self[:recent_customers].size
           self[:metadata_count] = OT::Metadata.new.redis.keys('metadata*:object').count
           self[:secret_count] = OT::Secret.new.redis.keys('secret*:object').count
-          self[:secrets_created] = OT::Customer.global.get_value(:secrets_created, true)
-          self[:secrets_shared] = OT::Customer.global.get_value(:secrets_shared, true)
-          self[:emails_sent] = OT::Customer.global.get_value(:emails_sent, true)
+          self[:secrets_created] = OT::Customer.global.secrets_created.to_s
+          self[:secrets_shared] = OT::Customer.global.secrets_shared.to_s
+          self[:emails_sent] = OT::Customer.global.emails_sent.to_s
           self[:split_tests] = OT::SplitTest.tests.collect do |plan|
             { :name => plan[1].testname, :values => plan[1].values, :samples => plan[1].samples }
           end
           self[:has_split_tests] = !self[:split_tests].empty?
           self[:entropy_count] = OT::Entropy.count
         end
+
         def redis_info
           Familia.redis.info.to_yaml
         end

@@ -1,0 +1,36 @@
+{{>partial/header}}
+
+<div class="container mx-auto p-4 max-w-2xl">
+
+  {{>partial/session_messages}}
+
+  <main class="min-w-[320px]">
+    <div class="flex flex-col items-center text-center">
+      {{^authenticated}}
+        <h3 class="font-base mb-2 text-gray-600 dark:text-gray-100">{{i18n.page.tagline1}}</h3>
+        <p class="mb-6 text-base text-gray-400 dark:text-gray-400 italic">{{i18n.page.tagline2}}</p>
+      {{/authenticated}}
+    </div>
+
+    <!-- Secret Form is loaded here -->
+    <div id="app"></div>
+
+    {{^authenticated}}
+    <hr class="my-4 border-gray-200 dark:border-gray-700"/>
+    <div class="flex flex-col items-center text-center my-2">
+      <p class="text-md text-gray-500 dark:text-gray-400 mb-4">
+        {{i18n.page.secret_hint}}
+      </p>
+    </div>
+
+    {{#authentication.signup}}
+      {{>partial/plans_homepage_cta}}
+
+    {{/authentication.signup}}
+
+    {{/authenticated}}
+  </main>
+
+</div>
+
+{{>partial/footer}}

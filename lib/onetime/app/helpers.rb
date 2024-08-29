@@ -1,16 +1,10 @@
 
 class Onetime::App
-  class Unauthorized < RuntimeError
-  end
-  class Redirect < RuntimeError
-    attr_reader :location, :status
-    def initialize l, s=302
-      @location, @status = l, s
-    end
-  end
+
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]
-    LOCAL_HOSTS = ['localhost', '127.0.0.1', 'www.ot.com', 'www.ots.com'].freeze
+    LOCAL_HOSTS = ['localhost', '127.0.0.1'].freeze  # TODO: Add config
+    HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
   module Helpers
@@ -18,6 +12,7 @@ class Onetime::App
     attr_reader :req, :res
     attr_reader :sess, :cust, :locale
     attr_reader :ignoreshrimp
+
     def initialize req, res
       @req, @res = req, res
     end
@@ -28,57 +23,96 @@ class Onetime::App
       @plan
     end
 
-    def carefully redirect=nil
-      redirect ||= req.request_path
+    def carefully(redirect=nil, content_type=nil, app: :web) # rubocop:disable Metrics/MethodLength
+      redirect ||= req.request_path unless app == :api
+      content_type ||= 'text/html; charset=utf-8'
+
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.
-      redirect = '/error' if req.get? && redirect.to_s == req.request_path
-      res.header['Content-Language'] = req.env['ots.locale'] unless res.header['Content-Language']
-      res.header['Content-Type'] ||= "text/html; charset=utf-8"
-      yield
+      redirect = '/500' if req.get? && redirect.to_s == req.request_path
 
-    rescue Redirect => ex
+      unless res.header['Content-Language']
+        res.header['Content-Language'] = req.env['ots.locale'] || req.env['rack.locale'] || OT.conf[:locales].first
+      end
+
+      res.header['Content-Type'] ||= content_type
+
+      return_value = yield
+
+      unless cust.anonymous?
+        reqstr = stringify_request_details(req)
+        custref = cust.obscure_email
+        OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
+      end
+
+      return_value
+
+    rescue OT::Redirect => ex
+      OT.info "[carefully] Redirecting to #{ex.location} (#{ex.status})"
       res.redirect ex.location, ex.status
 
-    rescue OT::App::Unauthorized => ex
+    rescue OT::Unauthorized => ex
       OT.info ex.message
       not_found_response "Not authorized"
 
     rescue OT::BadShrimp => ex
-      sess.set_error_message "Please go back, refresh the page, and try again."
-      res.redirect redirect
+      # If it's a json response, no need to set an error message on the session
+      if res.header['Content-Type'] == 'application/json'
+        error_response 'Please refresh the page and try again'
+      else
+        sess.set_error_message "Please go back, refresh the page, and try again."
+        res.redirect redirect
+      end
 
     rescue OT::FormError => ex
-      handle_form_error ex, redirect
+      OT.ld "[carefully] FormError: #{ex.message} (#{req.path} redirect:#{redirect})"
+      if redirect
+        handle_form_error ex, redirect
+      else
+        handle_form_error ex
+      end
 
+    # NOTE: It's important to handle MissingSecret before RecordNotFound since
+    #       MissingSecret is a subclass of RecordNotFound. If we don't, we'll
+    #       end up with a generic error message instead of the specific one.
     rescue OT::MissingSecret => ex
       secret_not_found_response
 
+    rescue OT::RecordNotFound => ex
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path} redirect:#{redirect})"
+      not_found_response ex.message
+
     rescue OT::LimitExceeded => ex
-      err "[limit-exceeded] #{cust.custid}(#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)}"
-      err req.current_absolute_uri
-      err ex.backtrace
+      obscured = if cust.anonymous?
+                   'anonymous'
+                 else
+                   OT::Utils.obscure_email(cust.custid)
+                 end
+      OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+
       error_response "Cripes! You have been rate limited."
 
     rescue Familia::NotConnected, Familia::Problem => ex
-      err "#{ex.class}: #{ex.message}"
-      err ex.backtrace
+      OT.le "#{ex.class}: #{ex.message}"
+      OT.le ex.backtrace
       error_response "An error occurred :["
 
     rescue Errno::ECONNREFUSED => ex
-      OT.info ex.message
+      OT.le ex.message
       OT.le ex.backtrace
       error_response "We'll be back shortly!"
 
-    rescue => ex
-      err "#{ex.class}: #{ex.message}"
-      err req.current_absolute_uri
-      err ex.backtrace.join("\n")
+    rescue StandardError => ex
+      custid = cust&.custid || '<notset>'
+      sessid = sess&.short_identifier || '<notset>'
+      OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
+      OT.le ex.backtrace.join("\n")
+
       error_response "An unexpected error occurred :["
 
     ensure
-      @sess ||= OT::Session.new :failover
+      @sess ||= OT::Session.new :failover, :anon
       @cust ||= OT::Customer.anonymous
     end
 
@@ -95,9 +129,9 @@ class Onetime::App
       locales = req.env['rack.locale'] || []                          # Requested list
       locales.unshift locale.split('-').first if locale.is_a?(String) # Support both en and en-US
       locales << OT.conf[:locales].first                              # Ensure at least one configured locale is available
-      locales = locales.uniq.reject { |l| !OT.locales.has_key?(l) }.compact
+      locales.uniq!
+      locales = locales.reject { |l| !OT.locales.has_key?(l) }.compact
       locale = locales.first if !OT.locales.has_key?(locale)           # Default to the first available
-      OT.ld [:locale, locale, locales, req.env['rack.locale'], OT.locales.keys].inspect
       req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
     end
 
@@ -106,14 +140,23 @@ class Onetime::App
       return if @check_shrimp_ran
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete?
-      attempted_shrimp = req.params[:shrimp]
-      ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
-      ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
-      unless sess.shrimp?(attempted_shrimp) || ignoreshrimp
-        shrimp = (sess.shrimp || '[noshrimp]').clone
-        sess.clear_shrimp!  # assume the shrimp is being tampered with
+      attempted_shrimp = req.params[:shrimp].to_s
+
+      shrimp = (sess.shrimp || '[noshrimp]').clone
+
+      if sess.shrimp?(attempted_shrimp) || ignoreshrimp
+        adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
+        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
+        # Regardless of the outcome, we clear the shrimp from the session
+        # to prevent replay attacks. A new shrimp is generated on the
+        # next page load.
+        sess.replace_shrimp!
+      else
+        ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
+        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
-        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp}"
+        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
+        sess.replace_shrimp!
         raise ex
       end
     end
@@ -121,26 +164,157 @@ class Onetime::App
     def check_session!
       return if @check_session_ran
       @check_session_ran = true
+
+
+      # Load from redis or create the session
       if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
         @sess = OT::Session.load req.cookie(:sess)
       else
-        @sess = OT::Session.create req.client_ipaddress, req.user_agent
+        @sess = OT::Session.create req.client_ipaddress, "anon", req.user_agent
       end
-      if sess
-        sess.update_fields  # calls update_time!
-        # Only set the cookie after it's been saved
-        is_secure = Onetime.conf[:site][:ssl]
-        res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
-        @cust = sess.load_customer
-      end
-      @sess ||= OT::Session.new :check_session
-      @cust ||= OT::Customer.anonymous
+
+      # Set the session to rack.session
+      #
+      # The `req.env` hash is a central repository for all environment variables
+      # and request-specific data in a Rack application. By setting the session
+      # object in `req.env['rack.session']`, we make the session data accessible
+      # to all middleware and components that process the request and response.
+      # This approach ensures that the session data is consistently available
+      # throughout the entire request-response cycle, allowing middleware to
+      # read from and write to the session as needed. This is particularly
+      # useful for maintaining user state, managing authentication, and storing
+      # other session-specific information.
+      #
+      # Example:
+      #   If a middleware needs to check if a user is authenticated, it can
+      #   access the session data via `env['rack.session']` and perform the
+      #   necessary checks or updates.
+      #
+      req.env['rack.session'] = sess
+
+      # Immediately check the the auth status of the session. If the site
+      # configuration changes to disable authentication, the session will
+      # report as not authenticated regardless of the session data.
+      #
+      # NOTE: The session keys have their own dedicated Redis DB, so they
+      # can be flushed to force everyone to logout without affecting the
+      # rest of the data. This is a security feature.
+      sess.disable_auth = !authentication_enabled?
+
+      # Update the session fields in redis (including updated timestamp)
+      sess.save
+
+      # Only set the cookie after session is for sure saved to redis
+      is_secure = Onetime.conf[:site][:ssl]
+
+      # Update the session cookie
+      res.send_cookie :sess, sess.sessid, sess.ttl, is_secure
+
+      # Re-hydrate the customer object
+      @cust = sess.load_customer || OT::Customer.anonymous
+
+      # We also force the session to be unauthenticated based on
+      # the customer object.
       if cust.anonymous?
         sess.authenticated = false
-      elsif cust.verified.to_s != 'true' && !sess['authenticated_by']
+      elsif cust.verified.to_s != 'true'
         sess.authenticated = false
       end
-      OT.ld "[sessid] #{sess.sessid} #{cust.custid}"
+
+      # Should always report false and false when disabled.
+      unless cust.anonymous?
+        custref = cust.obscure_email
+        OT.info "[sess.check_session] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
+      end
+
+    end
+
+    def authentication_enabled?
+      # NOTE: Defaulting to disabled is the Right Thing to Do™. If the site
+      #      configuration is missing, we should assume that authentication
+      #      is disabled. This is a security feature. Even though it will be
+      #      annoying for anyone upgrading to 0.15 that hasn't had a chance
+      #      to update their existing configuration yet.
+      authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
+      signin_enabled = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
+
+      # The only condition that allows a request to be authenticated is if
+      # the site has authentication enabled, and the user is signed in. If a
+      # user is signed in and the site configuration changes to disable it,
+      # the user will be signed out temporarily. If the setting is restored
+      # before the session key expires in Redis, that user will be signed in
+      # again. This is a security feature.
+      authentication_enabled && signin_enabled
+    end
+
+    def stringify_request_details(req)
+      header_details = collect_proxy_header_details(req.env)
+
+      details = [
+        req.ip,
+        "#{req.request_method} #{req.path_info}?#{req.query_string}",
+        "Proxy[#{header_details}]"
+      ]
+
+      # Convert the details array to a string for logging
+      details_str = details.join('; ')
+
+      OT.ld "[Request Details] #{details_str}"
+
+      details_str
+    end
+
+
+    # Collects and formats specific HTTP header details from the given
+    # environment hash.
+    #
+    # @param env [Hash, nil] The environment hash containing HTTP headers.
+    #   Defaults to an empty hash if not provided.
+    # @param keys [Array<String>, nil] The list of HTTP header keys to collect.
+    #   Defaults to a predefined list of common proxy-related headers if not
+    #   provided.
+    # @return [String] A single string with the requested headers formatted as
+    #   "key=value" pairs, separated by spaces.
+    #
+    # @example
+    #   env = {
+    #     "HTTP_X_FORWARDED_FOR" => "203.0.113.195",
+    #     "REMOTE_ADDR" => "192.0.2.1"
+    #   }
+    #   collect_proxy_header_details(env)
+    #   # => "HTTP_FLY_REQUEST_ID= HTTP_VIA= HTTP_X_FORWARDED_PROTO=
+    #   HTTP_X_FORWARDED_FOR=203.0.113.195 HTTP_X_FORWARDED_HOST=
+    #   HTTP_X_FORWARDED_PORT= HTTP_X_SCHEME= HTTP_X_REAL_IP=
+    #   REMOTE_ADDR=192.0.2.1"
+    def collect_proxy_header_details(env=nil, keys=nil)
+      env ||= {}
+      keys ||= %w[
+        HTTP_FLY_REQUEST_ID
+        HTTP_VIA
+        HTTP_X_FORWARDED_PROTO
+        HTTP_X_FORWARDED_FOR
+        HTTP_X_FORWARDED_HOST
+        HTTP_X_FORWARDED_PORT
+        HTTP_X_SCHEME
+        HTTP_X_REAL_IP
+        REMOTE_ADDR
+      ]
+
+      # Add any header that begins with HEADER_PREFIX
+      prefix_keys = env.keys.select { |key| key.upcase.start_with?("HTTP_#{HEADER_PREFIX}") }
+      keys.concat(prefix_keys)
+
+      OT.ld "[SELECTED KEYS] With prefix `#{HEADER_PREFIX}`: #{keys.sort}"
+
+      keys.sort.map { |key|
+        # Normalize the header name so it looks identical in the logs as it
+        # does in the browser dev console.
+        #
+        # e.g. Content-Type instead of HTTP_CONTENT_TYPE
+        #
+        pretty_name = key.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
+        "#{pretty_name}: #{env[key]}"
+      }.join(" ")
     end
 
     def secure_request?
@@ -148,8 +322,10 @@ class Onetime::App
     end
 
     def secure?
-      # X-Scheme is set by nginx
-      # X-FORWARDED-PROTO is set by elastic load balancer
+      # It's crucial to only accept header values set by known, trusted
+      # sources. See Caddy config docs re: trusted_proxies.
+      # X-Scheme is set by e.g. nginx, caddy etc
+      # X-FORWARDED-PROTO is set by load balancer e.g. ELB
       (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == "https")
     end
 
@@ -157,17 +333,10 @@ class Onetime::App
       (LOCAL_HOSTS.member?(req.env['SERVER_NAME']) && (req.client_ipaddress == '127.0.0.1'))
     end
 
-    def err *args
-      prefix = "D(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      SYSLOG.err msg
-      STDERR.puts msg
-    end
-
     def deny_agents! *agents
       BADAGENTS.flatten.each do |agent|
         if req.user_agent =~ /#{agent}/i
-          raise Redirect.new('/')
+          raise OT::Redirect.new('/')
         end
       end
     end

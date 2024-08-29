@@ -1,0 +1,52 @@
+{{>partial/header}}
+
+<div class="container mx-auto p-4 max-w-2xl">
+  <nav class="mb-6">
+    <ul class="text-xl font-brand flex space-x-4">
+      <li>
+        <a
+          href="/"
+          class="text-gray-700 dark:text-gray-300 hover:underline dark:hover:text-grey-500 transition-colors"
+          >{{i18n.COMMON.title_home}}</a
+        >
+      </li>
+      <li>
+        <a
+          href="/recent"
+          class="text-gray-700 dark:text-gray-300 hover:underline hover:text-grey-500 dark:hover:text-grey-500 transition-colors flex items-center">
+
+          <span class="block sm:hidden">{{ i18n.COMMON.secret }}</span>
+          <span class="hidden sm:block">{{ i18n.COMMON.title_recent_secrets }}</span>
+
+          <span
+            class="ml-2 bg-gray-200 font-medium dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full px-2 py-0.5 text-xs"
+            >{{metadata.size}}</span
+          >
+        </a>
+      </li>
+      {{#domains_enabled}}
+      {{#plan.paid?}}
+        <li>
+          <a href="/account/domains" class="text-gray-700 dark:text-gray-300 font-bold underline hover:underline hover:text-grey-500 dark:hover:text-grey-500 transition-colors flex items-center">
+
+            <span class="block sm:hidden">Domains</span>
+            <span class="hidden sm:block">Custom Domains</span>
+
+            <span
+              class="ml-2 bg-gray-200 font-medium dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full px-2 py-0.5 text-xs"
+              >{{custom_domains_record_count}}</span
+            >
+          </a>
+        </li>
+      {{/plan.paid?}}
+      {{/domains_enabled}}
+    </ul>
+  </nav>
+
+  <div id="app">
+    <router-view></router-view>
+  </div>
+
+</div>
+
+{{>partial/footer}}

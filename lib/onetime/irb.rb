@@ -1,5 +1,4 @@
-
 require 'onetime'
 
-Onetime.info "Calling Onetime.load!..."
-Onetime.load! :cli
+Onetime.info 'Calling Onetime.boot!...'
+Onetime.boot! :cli
