@@ -60,11 +60,41 @@
         <h2 class="text-gray-600 dark:text-gray-400">{{i18n.page.this_message_for_you}}</h2>
         {{/verification}}
 
-        <textarea
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-base leading-[1.2] tracking-wider bg-gray-100 dark:bg-gray-800 resize-none"
-          readonly
-          rows="{{display_lines}}"
-        >{{secret_value}}</textarea>
+        <div class="relative">
+          <textarea
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-base leading-[1.2] tracking-wider bg-gray-100 dark:bg-gray-800 resize-none"
+            readonly
+            rows="{{display_lines}}"
+          >{{secret_value}}</textarea>
+
+          <button
+            class="absolute top-2 right-2 p-1.5 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors duration-200"
+            onclick="copyToClipboard(this)"
+            aria-label="Copy to clipboard"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+
+        <script>
+        function copyToClipboard(button) {
+          const textarea = button.parentElement.querySelector('textarea');
+          textarea.select();
+          document.execCommand('copy');
+
+          // Change the button content to a green checkmark
+          const originalContent = button.innerHTML;
+          button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
+
+          // Revert back to the original content after 2 seconds
+          setTimeout(() => {
+            button.innerHTML = originalContent;
+          }, 2000);
+        }
+        </script>
+
 
 
         {{^verification}}
