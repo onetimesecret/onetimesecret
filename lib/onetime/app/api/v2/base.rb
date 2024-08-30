@@ -4,7 +4,7 @@ require_relative '../../app_helpers'
 class Onetime::App
   class APIV2
     module Base
-      include Onetime::App::AppHelpers
+      include Onetime::App::WebHelpers
 
 
       def json hsh

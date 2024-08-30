@@ -6,7 +6,7 @@ class Onetime::App
   class API
 
     module Base
-      include Onetime::App::AppHelpers
+      include Onetime::App::WebHelpers
 
       def publically
         carefully do

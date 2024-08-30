@@ -4,7 +4,7 @@ module Onetime
   class App
 
     module Base
-      include OT::App::AppHelpers
+      include OT::App::WebHelpers
 
       def publically redirect=nil
         carefully(redirect) do

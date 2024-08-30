@@ -7,7 +7,7 @@ class Onetime::App
     HEADER_PREFIX = ENV.fetch('HEADER_PREFIX', 'X_SECRET_').upcase
   end
 
-  module AppHelpers
+  module WebHelpers
 
     attr_reader :req, :res
     attr_reader :sess, :cust, :locale
