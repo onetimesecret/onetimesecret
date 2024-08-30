@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 /**
  * SecretContentInputArea Component
@@ -24,14 +23,14 @@
  */
 
 // 1. Imports
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
 import { Icon } from '@iconify/vue';
 
 // 2. Interface and Props
 interface Props {
   availableDomains?: string[];
   initialDomain?: string;
-  withDomainDropdown?: boolean
+  withDomainDropdown?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,6 +47,8 @@ const isOpen = ref(false);
 const selectedDomain = ref(props.initialDomain);
 const dropdownRef = ref<HTMLElement | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
+const maxHeight = 400; // Maximum height in pixels
+let watchStop: WatchStopHandle | null = null; // To store the watcher stop function
 
 // 5. Methods
 const toggleDropdown = (event: Event) => {
@@ -80,13 +81,34 @@ const handleEscapeKey = (event: KeyboardEvent) => {
 const adjustTextareaHeight = () => {
   if (textareaRef.value) {
     textareaRef.value.style.height = 'auto';
-    const newHeight = Math.min(textareaRef.value.scrollHeight, 400);
+    const newHeight = Math.min(textareaRef.value.scrollHeight, maxHeight);
     textareaRef.value.style.height = newHeight + 'px';
+
+    // If we've reached the max height, stop the watcher
+    if (newHeight >= maxHeight && watchStop) {
+      watchStop();
+      watchStop = null; // Clear the reference
+    }
   }
 };
 
+const checkContentLength = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement;
+  if (target.value.length <= localMaxLength.value) {
+    content.value = target.value;
+    charCount.value = target.value.length;
+  } else {
+    // Truncate the input if it exceeds the max length
+    content.value = target.value.slice(0, props.maxLength);
+    charCount.value = localMaxLength.value;
+    target.value = content.value; // Update the textarea value
+  }
+  adjustTextareaHeight();
+  emit('update:content', content.value);
+};
+
 // 6. Watchers
-watch(content, (newContent) => {
+watchStop = watch(content, (newContent) => {
   emit('update:content', newContent);
   adjustTextareaHeight();
 });
@@ -165,18 +187,20 @@ onUnmounted(() => {
   <div class="relative">
     <textarea ref="textareaRef"
               v-model="content"
-              @input="adjustTextareaHeight"
+              @input="checkContentLength"
+              :maxlength="maxLength"
               class="w-full min-h-[10rem] max-h-[400px] p-4 font-mono text-base leading-[1.2] tracking-wide
-    border-gray-300 rounded-md shadow-sm
-    focus:ring-brandcomp-500 focus:border-brandcomp-500
-    bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
-    placeholder-gray-400 dark:placeholder-gray-500
-    resize-none overflow-y-auto"
+              border-gray-300 rounded-md shadow-sm
+              focus:ring-brandcomp-500 focus:border-brandcomp-500
+              bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
+              placeholder-gray-400 dark:placeholder-gray-500
+                resize-none overflow-y-auto"
               name="secret"
               autofocus
               autocomplete="off"
               placeholder="Secret content goes here..."
-              aria-label="Enter the secret content to share here"></textarea>
+              aria-label="Enter the secret content to share here">
+    </textarea>
 
     <div v-if="withDomainDropdown"
          class="absolute bottom-4 right-4">
