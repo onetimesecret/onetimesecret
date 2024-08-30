@@ -1,5 +1,5 @@
 require_relative 'v1/base'
-require_relative '../base'  # app/base.rb
+require_relative '../app_settings'
 
 
 class Onetime::App

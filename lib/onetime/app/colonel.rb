@@ -1,5 +1,5 @@
-require_relative 'web/base'
-require_relative 'base'  # app/base.rb
+require_relative 'web/app_base'
+require_relative 'app_settings'
 
 class Onetime::App
   class Colonel

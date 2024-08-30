@@ -1,7 +1,7 @@
 
 
 require_relative 'base'
-require_relative '../../base'
+require_relative '../../app_settings'
 require_relative '../../../logic/domains'
 
 class Onetime::App::API
