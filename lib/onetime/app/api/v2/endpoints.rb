@@ -1,5 +1,5 @@
-require_relative 'v2/base'
-require_relative '../app_settings'
+require_relative 'base'
+require_relative '../../app_settings'
 
 class Onetime::App
   class APIV2

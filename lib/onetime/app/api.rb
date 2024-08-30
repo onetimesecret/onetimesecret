@@ -1,3 +1,3 @@
 
-require_relative 'api/v1'
-require_relative 'api/v2'
+require_relative 'api/v1/endpoints'
+require_relative 'api/v2/endpoints'
