@@ -26,11 +26,18 @@
 import { ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
 import { Icon } from '@iconify/vue';
 
+const availablePlans = window.available_plans;
+const cust = window.cust;
+const planOptions = cust?.plan.options || availablePlans?.anonymous.options;
+const maxSize = planOptions?.size || 10000; // in characters
+
+
 // 2. Interface and Props
 interface Props {
   availableDomains?: string[];
   initialDomain?: string;
   withDomainDropdown?: boolean;
+  maxLength?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -43,11 +50,13 @@ const emit = defineEmits(['update:selectedDomain', 'update:content']);
 
 // 4. Refs
 const content = ref('');
+const charCount = ref(0);
 const isOpen = ref(false);
 const selectedDomain = ref(props.initialDomain);
 const dropdownRef = ref<HTMLElement | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const maxHeight = 400; // Maximum height in pixels
+const localMaxLength = ref(props.maxLength || maxSize);
 let watchStop: WatchStopHandle | null = null; // To store the watcher stop function
 
 // 5. Methods
@@ -201,6 +210,10 @@ onUnmounted(() => {
               placeholder="Secret content goes here..."
               aria-label="Enter the secret content to share here">
     </textarea>
+
+    <div class="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400">
+      {{ charCount }} / {{ localMaxLength }}
+    </div>
 
     <div v-if="withDomainDropdown"
          class="absolute bottom-4 right-4">
