@@ -79,14 +79,15 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/account/AccountIndex.vue'),
   },
   {
-    path: '/shared',
-    name: 'Shared',
-    component: () => import('@/views/Shared.vue'),
+    path: '/secret/:secretKey',
+    name: 'Secret link',
+    component: () => import('@/views/Secret.vue'),
+    props: true,
   },
   {
-    path: '/private/:secretKey',
-    name: 'Private',
-    component: () => import('@/views/Private.vue'),
+    path: '/private/:metadataKey',
+    name: 'Metadata link',
+    component: () => import('@/views/Metadata.vue'),
     props: true,
   },
   {

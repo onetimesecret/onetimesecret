@@ -1,7 +1,3 @@
-<template>
-  <div></div>
-</template>
-
 <script setup lang="ts">
 import { defineProps } from 'vue'
 
@@ -13,3 +9,7 @@ interface Props {
 const props = defineProps<Props>()
 
 </script>
+
+<template>
+  <div></div>
+</template>

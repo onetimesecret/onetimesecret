@@ -1,7 +1,33 @@
+
 <script setup lang="ts">
+/**
+ * SecretContentInputArea Component
+ *
+ * This component provides a textarea for users to input secret content and optionally
+ * select a domain from a dropdown. It handles the input of secret text, auto-resizing
+ * of the textarea, and domain selection if enabled.
+ *
+ * Features:
+ * - Auto-resizing textarea for secret content input
+ * - Optional domain selection dropdown
+ * - Emits events for content and domain changes
+ * - Handles closing of dropdown on outside click or Escape key press
+ *
+ * Usage:
+ * <SecretContentInputArea
+ *   :availableDomains="availableDomains"
+ *   :initialDomain="selectedDomain"
+ *   :withDomainDropdown="domainsEnabled"
+ *   @update:selectedDomain="updateSelectedDomain"
+ *   @update:content="secretContent = $event"
+ * />
+ */
+
+// 1. Imports
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 
+// 2. Interface and Props
 interface Props {
   availableDomains?: string[];
   initialDomain?: string;
@@ -13,20 +39,19 @@ const props = withDefaults(defineProps<Props>(), {
   withDomainDropdown: false,
 });
 
+// 3. Emits
 const emit = defineEmits(['update:selectedDomain', 'update:content']);
 
+// 4. Refs
 const content = ref('');
-
-watch(content, (newContent) => {
-  emit('update:content', newContent);
-});
-
 const isOpen = ref(false);
 const selectedDomain = ref(props.initialDomain);
 const dropdownRef = ref<HTMLElement | null>(null);
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
 
+// 5. Methods
 const toggleDropdown = (event: Event) => {
-  event.stopPropagation(); // Stop the event from propagating to the document
+  event.stopPropagation();
   isOpen.value = !isOpen.value;
 };
 
@@ -52,20 +77,21 @@ const handleEscapeKey = (event: KeyboardEvent) => {
   }
 };
 
-const textareaRef = ref<HTMLTextAreaElement | null>(null);
-
 const adjustTextareaHeight = () => {
   if (textareaRef.value) {
     textareaRef.value.style.height = 'auto';
-    const newHeight = Math.min(textareaRef.value.scrollHeight, 400); // Max height of 400px
+    const newHeight = Math.min(textareaRef.value.scrollHeight, 400);
     textareaRef.value.style.height = newHeight + 'px';
   }
 };
 
-watch(content, () => {
+// 6. Watchers
+watch(content, (newContent) => {
+  emit('update:content', newContent);
   adjustTextareaHeight();
 });
 
+// 7. Lifecycle Hooks
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   document.addEventListener('keydown', handleEscapeKey);
@@ -76,8 +102,8 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   document.removeEventListener('keydown', handleEscapeKey);
 });
-
 </script>
+
 
 <!--
 
@@ -93,6 +119,10 @@ onUnmounted(() => {
   Escape key. The click outside functionality checks if the click target is not contained
   within the dropdown element, and if so, it closes the dropdown. The Escape key
   functionality simply closes the dropdown when the key is pressed.
+
+-->
+
+<!--
 
   TESTING:
   To test the readability and distinguishability of various characters,
