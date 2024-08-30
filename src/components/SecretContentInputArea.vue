@@ -52,9 +52,24 @@ const handleEscapeKey = (event: KeyboardEvent) => {
   }
 };
 
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+
+const adjustTextareaHeight = () => {
+  if (textareaRef.value) {
+    textareaRef.value.style.height = 'auto';
+    const newHeight = Math.min(textareaRef.value.scrollHeight, 400); // Max height of 400px
+    textareaRef.value.style.height = newHeight + 'px';
+  }
+};
+
+watch(content, () => {
+  adjustTextareaHeight();
+});
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   document.addEventListener('keydown', handleEscapeKey);
+  adjustTextareaHeight();
 });
 
 onUnmounted(() => {
@@ -79,52 +94,85 @@ onUnmounted(() => {
   within the dropdown element, and if so, it closes the dropdown. The Escape key
   functionality simply closes the dropdown when the key is pressed.
 
-  -->
+  TESTING:
+  To test the readability and distinguishability of various characters,
+  including commonly problematic ones, use the following command to generate
+  a QR code. This will help validate how different characters are rendered
+  and perceived in different contexts:
+
+    $ qrencode -t UTF8i "5uP0R s3kRU7\!"
+
+    █▀▀▀▀▀█ ▄█ █▀ █▀▀▀▀▀█
+    █ ███ █ ▀█ ▄▀ █ ███ █
+    █ ▀▀▀ █ █  ▄█ █ ▀▀▀ █
+    ▀▀▀▀▀▀▀ █▄█▄█ ▀▀▀▀▀▀▀
+    ▀█▄▀  ▀▀ ▀▀▄ ▄▀▀█ ▀▀▄
+    █  █ █▀▄▄██▄▀ ▄ ▄█▀ █
+    ▀ ▀ ▀ ▀▀▄▀█▄█ ▄ ▀█▀██
+    █▀▀▀▀▀█ ▀▄█▀█▀▀█▀█▀
+    █ ███ █ ▄▀▀██▄█▄▄▀ ▄▄
+    █ ▀▀▀ █ ▄█▄ ▀▄ ▄▀ ▀ ▀
+    ▀▀▀▀▀▀▀ ▀   ▀▀  ▀ ▀▀
+
+  Here is a comprehensive string that includes a mix of problematic
+  characters (such as 'o', '0', 'l', '1', 'I') and regular
+  characters, numbers, and symbols:
+
+    a0oO1lI2b3c4d5e6f7g8h9iIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789!
+    @#$%^&*()_+-=[]{}|;:',.<>?/~`a0oO1lI2b3c4d5e6f7g8h9iIjJkKlLmMnNoOpPqQ
+    rRsStTuUvVwWxXyYzZ0123456789!@#$%^&*()_+-=[]{}|;:',.<>?/~`a0oO1lI2b3c
+    4d5e6f7g8h9iIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789!@#$%^&*()_+
+    -=[]{}|;:',.<>?/~`
+
+  Additionally, here are some leetspeak words to further test and
+  validate character rendering:
+
+    h3ll0 w0rld 1337 c0d3 pr0gr4mm3r h4ck3r s3cur1ty 3xpl01t 5up3r s3kRU7
+
+-->
 
 <template>
   <div class="relative">
-    <textarea ref="secretContentRef" tabindex="1"
+    <textarea ref="textareaRef"
               v-model="content"
-              class="w-full h-40 p-3 font-mono
-                border border-gray-300 rounded-md
-              focus:ring-brandcompdim-500 focus:border-brandcompdim-500
-              dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              @input="adjustTextareaHeight"
+              class="w-full min-h-[10rem] max-h-[400px] p-4 font-mono text-base leading-[1.2] tracking-wide
+    border-gray-300 rounded-md shadow-sm
+    focus:ring-brandcomp-500 focus:border-brandcomp-500
+    bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
+    placeholder-gray-400 dark:placeholder-gray-500
+    resize-none overflow-y-auto"
               name="secret"
               autofocus
               autocomplete="off"
               placeholder="Secret content goes here..."
               aria-label="Enter the secret content to share here"></textarea>
 
-    <div v-if="withDomainDropdown" class="absolute bottom-4 right-2">
+    <div v-if="withDomainDropdown"
+         class="absolute bottom-4 right-4">
       <div class="relative inline-block text-left"
            ref="dropdownRef">
-        <div>
-          <button type="button" tabindex="2"
-                  class="inline-flex justify-center items-center w-full rounded-md
-                  pl-4 py-2
-                  border border-gray-300 dark:border-gray-600 shadow-sm
-                  bg-white text-lg font-medium text-gray-700
-                  dark:bg-gray-800 dark:text-gray-300
-                  hover:bg-gray-50 dark:hover:bg-gray-700
-                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800"
-                  @click="toggleDropdown">
+        <button type="button"
+                @click="toggleDropdown"
+                class="inline-flex justify-between items-center w-full rounded-md px-4 py-2
+              bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600
+              text-sm font-medium text-gray-700 dark:text-gray-300
+              hover:bg-gray-50 dark:hover:bg-gray-700
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800">
+          <span class="truncate max-w-[150px]">
+            {{ selectedDomain || 'Select Domain' }}
+          </span>
+          <Icon icon="heroicons-solid:chevron-down"
+                class="ml-2 flex-shrink-0 h-5 w-5 text-gray-400 dark:text-gray-500"
+                aria-hidden="true" />
+        </button>
 
-            <span class="text-base text-brandcomp-600 dark:text-brandcomp-400 font-bold truncate max-w-[200px]">
-              {{ selectedDomain || 'Select Domain' }}
-            </span>
-            <Icon icon="heroicons-solid:chevron-down"
-                  class="ml-2 flex-shrink-0 h-5 w-5 text-gray-400 dark:text-gray-500"
-                  aria-hidden="true" />
-          </button>
-        </div>
-
-        <!-- -class="origin-bottom-right absolute bottom-full right-0 mb-2 mt-2 w-64 rounded-md shadow-lg" -->
         <div v-if="isOpen"
-             class="origin-top-right absolute right-0 mt-2 w-64 rounded-md shadow-lg
+             class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg
               bg-white dark:bg-gray-800
               ring-1 ring-black ring-opacity-5 dark:ring-gray-700
               focus:outline-none z-50
-              max-h-60 overflow-y-auto break-words">
+              max-h-60 overflow-y-auto">
           <div class="py-1"
                role="menu"
                aria-orientation="vertical"
@@ -132,12 +180,10 @@ onUnmounted(() => {
             <a v-for="domain in availableDomains"
                :key="domain"
                href="#"
-               class="block px-5 py-3 text-base
-                text-gray-700 dark:text-gray-300
-                hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white
-                whitespace-normal break-words"
-               role="menuitem"
-               @click.prevent="selectDomain(domain)">
+               @click.prevent="selectDomain(domain)"
+               class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300
+                  hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+               role="menuitem">
               {{ domain }}
             </a>
           </div>
