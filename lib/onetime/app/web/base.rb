@@ -1,10 +1,10 @@
-require_relative '../helpers'  # app/helpers.rb
+require_relative '../app_helpers'
 
 module Onetime
   class App
 
     module Base
-      include OT::App::Helpers
+      include OT::App::AppHelpers
 
       def publically redirect=nil
         carefully(redirect) do
