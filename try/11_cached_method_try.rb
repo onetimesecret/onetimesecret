@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# These tryouts test the functionality of the cached_method in the Onetime::App::Views::Helpers module.
+# These tryouts test the functionality of the cached_method in the Onetime::App::Views::ViewHelpers module.
 # The cached_method provides a caching mechanism for method results using Redis.
 #
 # We're testing various aspects of the cached_method, including:
@@ -26,7 +26,7 @@ OT.boot!
 @num = rand(1000)
 
 class TestHelper
-  include Onetime::App::Views::Helpers
+  include Onetime::App::Views::ViewHelpers
   attr_reader :num
 
   def initialize(num)

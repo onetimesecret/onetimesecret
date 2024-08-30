@@ -1,11 +1,11 @@
 
-require_relative '../web/views/helpers'
+require_relative '../web/views/view_helpers'
 
 class Onetime::App
   module Mail
 
     class Base < Mustache
-      include Onetime::App::Views::Helpers
+      include Onetime::App::Views::ViewHelpers
       self.template_path = './templates/mail'
       self.view_namespace = Onetime::App::Mail
       self.view_path = './onetime/email'
