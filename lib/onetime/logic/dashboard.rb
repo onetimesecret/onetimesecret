@@ -4,7 +4,7 @@ require_relative 'base'
 module Onetime::Logic
   module Dashboard
 
-    class Homepage < OT::Logic::Base
+    class Index < OT::Logic::Base
       def process_params
       end
       def raise_concerns

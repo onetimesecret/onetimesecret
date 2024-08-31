@@ -40,7 +40,7 @@ module Onetime
     def dashboard
       authenticated do
         no_cache!
-        logic = OT::Logic::Dashboard.new sess, cust, req.params, locale
+        logic = OT::Logic::Dashboard::Index.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         view = Onetime::App::Views::Dashboard.new req, sess, cust, locale
@@ -102,7 +102,7 @@ module Onetime
 
     def receive_feedback
       publically do
-        logic = OT::Logic::ReceiveFeedback.new sess, cust, req.params, locale
+        logic = OT::Logic::Misc::ReceiveFeedback.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/feedback')
@@ -138,7 +138,7 @@ module Onetime
 
     def create_secret
       publically(req.request_path) do
-        logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         req.params.clear
@@ -151,7 +151,7 @@ module Onetime
       publically do
         deny_agents!
         no_cache!
-        logic = OT::Logic::ShowSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
         view = Onetime::App::Views::Shared.new req, sess, cust, locale
         logic.raise_concerns
         logic.process
@@ -174,7 +174,7 @@ module Onetime
       publically do
         deny_agents!
         no_cache!
-        logic = OT::Logic::ShowMetadata.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::ShowMetadata.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         view = Onetime::App::Views::Private.new req, sess, cust, locale, logic.metadata
@@ -187,7 +187,7 @@ module Onetime
       publically do
         deny_agents!
         no_cache!
-        logic = OT::Logic::BurnSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::BurnSecret.new sess, cust, req.params, locale
         view = Onetime::App::Views::Burn.new req, sess, cust, locale, logic.metadata
         logic.raise_concerns
         logic.process

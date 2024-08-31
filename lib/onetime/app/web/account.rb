@@ -283,7 +283,7 @@ module Onetime
         # allow the browser to refresh and re-submit the form with the login
         # credentials.
         no_cache!
-        logic = OT::Logic::Account::AuthenticateSession.new sess, cust, req.params, locale
+        logic = OT::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
         view = Onetime::App::Views::Signin.new req, sess, cust, locale
         if sess.authenticated?
           sess.set_info_message "You are already logged in."
@@ -311,7 +311,7 @@ module Onetime
 
     def logout
       authenticated do
-        logic = OT::Logic::DestroySession.new sess, cust, req.params, locale
+        logic = OT::Logic::Authentication::DestroySession.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         res.redirect app_path('/')
@@ -365,12 +365,12 @@ module Onetime
     def request_reset
       publically do
         if req.params[:key]
-          logic = OT::Logic::Account::ResetPassword.new sess, cust, req.params, locale
+          logic = OT::Logic::Authentication::ResetPassword.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/signin'
         else
-          logic = OT::Logic::Account::ResetPasswordRequest.new sess, cust, req.params, locale
+          logic = OT::Logic::Authentication::ResetPasswordRequest.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           res.redirect '/'

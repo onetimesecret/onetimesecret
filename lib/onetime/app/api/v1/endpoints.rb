@@ -28,7 +28,7 @@ class Onetime::App
     def share
       authorized(true) do
         req.params[:kind] = :share
-        logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if req.get?
@@ -45,7 +45,7 @@ class Onetime::App
     def generate
       authorized(true) do
         req.params[:kind] = :generate
-        logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if req.get?
@@ -63,7 +63,7 @@ class Onetime::App
 
     def show_metadata
       authorized(true) do
-        logic = OT::Logic::ShowMetadata.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::ShowMetadata.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         secret = logic.metadata.load_secret
@@ -84,7 +84,7 @@ class Onetime::App
 
     def show_metadata_recent
       authorized(false) do
-        logic = OT::Logic::ShowRecentMetadata.new sess, cust, req.params, locale
+        logic = OT::Logic::Dashboard::ShowRecentMetadata.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         recent_metadata = logic.metadata.collect { |md|
@@ -100,7 +100,7 @@ class Onetime::App
     def show_secret
       authorized(true) do
         req.params[:continue] = 'true'
-        logic = OT::Logic::ShowSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if logic.show_secret
@@ -122,7 +122,7 @@ class Onetime::App
     def burn_secret
       authorized(true) do
         req.params[:continue] = 'true'
-        logic = OT::Logic::BurnSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::BurnSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if logic.greenlighted
@@ -137,7 +137,7 @@ class Onetime::App
     def create
       authorized(true) do
         req.params[:kind] = :share
-        logic = OT::Logic::CreateSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
         logic.token = ''.instance_of?(String).to_s  # lol a roundabout way to get to "true"
         logic.raise_concerns
         logic.process
