@@ -103,6 +103,12 @@ module Onetime
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])
 
+        # The form fields hash is populated by handle_form_error so only when there's
+        # been a form error in the request immediately prior to this one being served
+        # now will this have any value at all. This is used to repopulate the form
+        # fields with the values that were submitted so the user can try again
+        # without having to re-enter everything.
+        self[:jsvars] << jsvar(:form_fields, self.form_fields)
 
         self[:jsvars] << jsvar(:ot_version, OT::VERSION.to_s)
         self[:jsvars] << jsvar(:ruby_version, "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")

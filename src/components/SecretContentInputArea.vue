@@ -63,6 +63,7 @@ interface Props {
   initialDomain?: string;
   withDomainDropdown?: boolean;
   maxLength?: number;
+  initialContent?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -74,7 +75,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['update:selectedDomain', 'update:content']);
 
 // 4. Refs
-const content = ref('');
+const content = ref(props.initialContent || '');
 const charCount = ref(0);
 const isOpen = ref(false);
 const selectedDomain = ref(props.initialDomain);

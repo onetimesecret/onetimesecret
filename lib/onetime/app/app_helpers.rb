@@ -165,7 +165,6 @@ class Onetime::App
       return if @check_session_ran
       @check_session_ran = true
 
-
       # Load from redis or create the session
       if req.cookie?(:sess) && OT::Session.exists?(req.cookie(:sess))
         @sess = OT::Session.load req.cookie(:sess)
@@ -257,11 +256,7 @@ class Onetime::App
       ]
 
       # Convert the details array to a string for logging
-      details_str = details.join('; ')
-
-      OT.ld "[Request Details] #{details_str}"
-
-      details_str
+      details.join('; ')
     end
 
 
@@ -302,9 +297,7 @@ class Onetime::App
 
       # Add any header that begins with HEADER_PREFIX
       prefix_keys = env.keys.select { |key| key.upcase.start_with?("HTTP_#{HEADER_PREFIX}") }
-      keys.concat(prefix_keys)
-
-      OT.ld "[SELECTED KEYS] With prefix `#{HEADER_PREFIX}`: #{keys.sort}"
+      keys.concat(prefix_keys) # the bang is silent
 
       keys.sort.map { |key|
         # Normalize the header name so it looks identical in the logs as it

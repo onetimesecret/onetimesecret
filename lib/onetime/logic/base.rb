@@ -1,5 +1,6 @@
-# typed: false
+# frozen_string_literal: true
 
+require 'stathat'
 require 'timeout'
 
 module Onetime

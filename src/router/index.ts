@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import AccountDomainAdd from '@/views/account/AccountDomainAdd.vue'
-import AccountDomains from  '@/views/account/AccountDomains.vue'
 import Homepage from '@/views/Homepage.vue'
+
+import { ref } from 'vue'
+
+const authState = ref(window.authenticated) // Assuming this is the variable name
 
 /**
  * About Auto vs Lazy loading
@@ -42,41 +44,48 @@ import Homepage from '@/views/Homepage.vue'
  */
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/account/domains/add',
-    name: 'AccountDomainAdd',
-    component: AccountDomainAdd,
-  },
-  {
-    path: '/account/domains',
-    name: 'AccountDomains',
-    component: AccountDomains,
-  },
-  {
     path: '/',
-    name: 'Homepage',
     component: Homepage,
+    beforeEnter: (to, from, next) => {
+      if (authState.value) {
+        next({ name: 'Dashboard' })
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('@/views/Dashboard.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/account/domains/:domain/verify',
     name: 'AccountDomainVerify',
     component: () => import('@/views/account/AccountDomainVerify.vue'),
+    meta: { requiresAuth: true },
     props: true,
   },
   {
-    path: '/pricing',
-    name: 'Pricing',
-    component: () => import('@/views/PricingDual.vue'),
+    path: '/account/domains/add',
+    name: 'AccountDomainAdd',
+    component: () => import('@/views/account/AccountDomainAdd.vue'),
+    meta: { requiresAuth: true },
+    props: true,
   },
   {
-    path: '/',
-    name: 'Dashboard',
-    component: () => import('@/views/Dashboard.vue'),
+    path: '/account/domains',
+    name: 'AccountDomains',
+    component: () => import('@/views/account/AccountDomains.vue'),
+    meta: { requiresAuth: true },
+    props: true,
   },
-
   {
     path: '/account',
     name: 'Account',
     component: () => import('@/views/account/AccountIndex.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/secret/:secretKey',
@@ -89,6 +98,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Metadata link',
     component: () => import('@/views/Metadata.vue'),
     props: true,
+  },
+  {
+    path: '/pricing',
+    name: 'Pricing',
+    component: () => import('@/views/PricingDual.vue'),
   },
   {
     path: '/feedback',
@@ -105,6 +119,14 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth && !authState.value) {
+    next('/')
+  } else {
+    next()
+  }
 })
 
 export default router
