@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
+# syntax=docker/dockerfile:1.4
 
 ##
 # ONETIME SECRET - DOCKER IMAGE - 2024-07-30
@@ -135,28 +135,27 @@ RUN set -eux \
 
 WORKDIR $CODE_ROOT
 
-COPY Gemfile ./
-COPY Gemfile.lock ./
+ENV NODE_PATH=$CODE_ROOT/node_modules
 
 # Install the dependencies into the environment image
+COPY --link Gemfile Gemfile.lock ./
 RUN set -eux \
     && bundle config set --local without 'development test' \
     && bundle install \
     && bundle update --bundler
 
-# Invite Vite and Vue dependencies to the environment image
-COPY package.json ./
-COPY pnpm-lock.yaml  ./
-
-RUN pnpm install --frozen-lockfile
-
-ENV NODE_PATH=$CODE_ROOT/node_modules
-
-COPY . .
+COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.mjs ./
+COPY src ./src
 
 RUN set -eux \
-    && pnpm run type-check \
-    && pnpm run build-only
+    && mkdir $CODE_ROOT/node_modules \
+    && pnpm install --frozen-lockfile
+RUN pnpm run type-check
+RUN pnpm run build-only \
+    && npm uninstall -g pnpm  # Remove pnpm after use
+
+# And finally, copy the rest of the darn owl
+COPY --link bin etc lib migrate public templates $CODE_ROOT/
 
 ##
 # APPLICATION LAYER
@@ -164,7 +163,11 @@ RUN set -eux \
 # Contains the entire application context, including the code,
 # configuration files, and all other files needed at run-time.
 #
-FROM app_env
+
+FROM ruby:3.3-slim-bookworm AS final
+# Copy only necessary files from previous stages
+COPY --from=builder /usr/local/bundle /usr/local/bundle
+COPY --from=app_env $CODE_ROOT $CODE_ROOT
 ARG CODE_ROOT
 
 LABEL Name=onetimesecret Version=0.17.0
@@ -196,6 +199,7 @@ WORKDIR $CODE_ROOT
 # example, if the config file has been previously copied
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
+COPY etc/config.example etc/
 RUN cp --preserve --no-clobber \
     etc/config.example etc/config
 
