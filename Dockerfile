@@ -1,22 +1,17 @@
 # syntax=docker/dockerfile:1.4
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2024-07-30
-#
+# ONETIME SECRET - DOCKER IMAGE - 2024-08-31
 #
 # To build and use this image, you need to copy the example
 # configuration files into place:
 #
 #     $ cp --preserve --no-clobber ./etc/config.example ./etc/config
-#
-#           - and -
-#
 #     $ cp --preserve --no-clobber .env.example .env
 #
 # The default values work as-is but it's a good practice to have
-# a look and customize as you like (partcularly the mast secret
+# a look and customize as you like (particularly the main secret
 # `SECRET` and redis password in `REDIS_URL`).
-#
 #
 # USAGE (Docker):
 #
@@ -33,10 +28,9 @@
 #
 # It will be accessible on http://localhost:3000.
 #
-#
 # USAGE (Docker Compose):
 #
-# When bringing up a frontend container for the first time, makes
+# When bringing up a frontend container for the first time, make
 # sure the database container is already running and attached.
 #
 #     $ docker-compose up -d redis
@@ -58,7 +52,6 @@
 #
 # Use `docker history <image_id>` to see the layers of an image.
 #
-#
 # PRODUCTION DEPLOYMENT:
 #
 # When deploying to production, you should protect your Redis instance with
@@ -76,10 +69,9 @@
 #     -e HOST=example.com \
 #     -e SSL=true \
 #     -e SECRET="<put your own secret here>" \
-#     -e RACK_ENV=production
+#     -e RACK_ENV=production \
 #     onetimesecret
-#
-
+##
 
 ##
 # BUILDER LAYER
@@ -92,7 +84,6 @@ ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
 FROM ruby:3.3-slim-bookworm@sha256:bc6372a998e79b5154c8132d1b3e0287dc656249f71f48487a1ecf0d46c9c080 AS base
-
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential"
@@ -109,8 +100,8 @@ COPY --from=node:22 /usr/local/bin/node /usr/local/bin/
 COPY --from=node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 # Create necessary symlinks
-RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
-    ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # Verify Node.js and npm installation
 RUN node --version && npm --version
@@ -206,8 +197,7 @@ WORKDIR $CODE_ROOT
 # example, if the config file has been previously copied
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
-RUN cp --preserve --no-clobber \
-    etc/config.example etc/config
+RUN cp --preserve --no-clobber etc/config.example etc/config
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
