@@ -1,17 +1,15 @@
 # frozen_string_literal: true
 
-# These tryouts test the email template functionality in the OneTime application.
-# They cover various aspects of email template handling, including:
+# These tryouts test the email template functionality in the OneTime application,
+# specifically for secret link emails with and without share_domain.
+# They cover:
 #
-# 1. Creating email views for different purposes (Welcome, SecretLink)
-# 2. Rendering email templates
-# 3. Handling different locales (English, Spanish)
-# 4. Verifying email subject lines
+# 1. Creating email views for SecretLink with and without share_domain
+# 2. Rendering email templates with different locales and share_domain values
+# 3. Verifying email subject lines and content
 #
-# These tests aim to ensure that email templates are correctly generated and localized,
-# which is crucial for effective communication with users in the application.
-#
-# The tryouts use the OT::Email classes
+# These tests ensure that email templates are correctly generated and localized,
+# and that the share_domain feature is properly handled in the email content.
 
 require_relative '../lib/onetime'
 
@@ -20,26 +18,53 @@ OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
 OT.boot!
 
 @email = 'tryouts+40@onetimesecret.com'
-@cust = OT::Customer.new custid: @email # wrong, use spawn instead
-@secret = OT::Secret.new # wrong and does generate secret key
-@locale = 'es'
+@cust = OT::Customer.create @email
+@secret = OT::Secret.create
+@locale = 'en'
+@recipient = 'tryouts+recipient@onetimesecret.com'
 
-## Can create a view
-view = OT::App::Mail::Welcome.new @cust, @locale, @secret
-[view[:secret].identifier, view.verify_uri]
-#=> [@secret.identifier, "/secret/#{@secret.identifier}"]
+## Can create a view for SecretLink without share_domain
+view = OT::App::Mail::SecretLink.new @cust, @locale, @secret, @recipient
+[view.uri_path, view[:secret].identifier, view[:email_address]]
+#=> ["/secret/#{@secret.identifier}", @secret.identifier, @recipient]
 
-## Can create a view
-view = OT::App::Mail::SecretLink.new @cust, @locale, @secret, 'tryouts+recipient@onetimesecret.com'
-[view.verify_uri, view[:secret].identifier, view[:email_address]]
-#=> ["/secret/#{@secret.identifier}", @secret.identifier, "tryouts+recipient@onetimesecret.com"]
-
-## Understands locale in english
-view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, 'tryouts+recipient@onetimesecret.com'
+## Renders correct subject for SecretLink without share_domain (English)
+view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, @recipient
 view.subject
 #=> "#{@email} sent you a secret"
 
-## Understands locale in spanish
-view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, 'tryouts+recipient@onetimesecret.com'
+## Renders correct subject for SecretLink without share_domain (Spanish)
+view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, @recipient
 view.subject
 #=> "#{@email} le ha enviado un secreto"
+
+## Can create a view for SecretLink with share_domain
+@secret.share_domain = 'example.com'
+@secret.save
+view = OT::App::Mail::SecretLink.new @cust, @locale, @secret, @recipient
+[view.uri_path, view[:secret].identifier, view[:email_address], view[:secret].share_domain]
+#=> ["/secret/#{@secret.identifier}", @secret.identifier, @recipient, 'example.com']
+
+## Renders correct subject for SecretLink with share_domain (English)
+view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, @recipient
+view.subject
+#=> "#{@email} sent you a secret"
+
+## Renders correct subject for SecretLink with share_domain (Spanish)
+view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, @recipient
+view.subject
+#=> "#{@email} le ha enviado un secreto"
+
+## Includes share_domain in email body (English)
+view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, @recipient
+view.render.include?("https://example.com/secret/#{@secret.key}")
+#=> true
+
+## Includes share_domain in email body (Spanish)
+view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, @recipient
+view.render.include?("https://example.com/secret/#{@secret.key}")
+#=> true
+
+# Teardown
+@secret.destroy!
+@cust.destroy!
