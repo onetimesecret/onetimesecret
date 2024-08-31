@@ -66,6 +66,7 @@ declare global {
     vue_component_name?: string;
     stripe_customer?: Stripe.Customer;
     stripe_subscriptions?: Stripe.Subscriptions[];
+    form_fields?: { [key: string]: string };
 
     // A function that's called on page load to update any email
     // addresses inside <span class="email">. Currently only the

@@ -21,9 +21,13 @@ const props = withDefaults(defineProps<Props>(), {
   withGenerate: false,
 })
 
+const formFields = window.form_fields;
 const domainsEnabled = window.domains_enabled;
 const availableDomains = window.custom_domains || [];
 const defaultDomain = window.site_host;
+
+const hasInitialContent = computed(() => Boolean(formFields?.secret));
+
 
 // Add defaultDomain to the list of available domains if it's not already there
 if (!availableDomains.includes(defaultDomain)) {
@@ -47,7 +51,9 @@ watch(selectedDomain, (newDomain) => {
 });
 
 const secretContent = ref('');
-const isFormValid = computed(() => secretContent.value.trim().length > 0);
+const isFormValid = computed(() => {
+  return (secretContent.value.length > 0 || hasInitialContent.value);
+});
 
 // Function to update the selected domain
 const updateSelectedDomain = (domain: string) => {
@@ -97,6 +103,7 @@ const updateSelectedDomain = (domain: string) => {
       -->
       <SecretContentInputArea :availableDomains="availableDomains"
                               :initialDomain="selectedDomain"
+                              :initialContent="formFields?.secret || ''"
                               :withDomainDropdown="domainsEnabled"
                               @update:selectedDomain="updateSelectedDomain"
                               @update:content="secretContent = $event" />
