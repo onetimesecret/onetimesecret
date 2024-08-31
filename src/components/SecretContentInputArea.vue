@@ -23,13 +23,38 @@
  */
 
 // 1. Imports
-import { ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
 import { Icon } from '@iconify/vue';
 
 const availablePlans = window.available_plans;
 const cust = window.cust;
 const planOptions = cust?.plan.options || availablePlans?.anonymous.options;
 const maxSize = planOptions?.size || 10000; // in characters
+
+const isHovering = ref(false);
+
+const showCounter = computed(() => {
+  return isHovering.value || charCount.value > localMaxLength.value / 2;
+});
+
+const handleMouseEnter = () => {
+  isHovering.value = true;
+};
+
+const handleMouseLeave = () => {
+  isHovering.value = false;
+};
+
+// New function to format numbers
+const formatNumber = (num: number) => {
+  return new Intl.NumberFormat().format(num);
+};
+
+// Computed property for formatted character count
+const formattedCharCount = computed(() => formatNumber(charCount.value));
+
+// Computed property for formatted max length
+const formattedMaxLength = computed(() => formatNumber(localMaxLength.value));
 
 
 // 2. Interface and Props
@@ -193,17 +218,19 @@ onUnmounted(() => {
 -->
 
 <template>
-  <div class="relative">
+  <div class="relative"
+       @mouseenter="handleMouseEnter"
+       @mouseleave="handleMouseLeave">
     <textarea ref="textareaRef"
               v-model="content"
               @input="checkContentLength"
               :maxlength="maxLength"
               class="w-full min-h-[10rem] max-h-[400px] p-4 font-mono text-base leading-[1.2] tracking-wide
-              border-gray-300 rounded-md shadow-sm
-              focus:ring-brandcomp-500 focus:border-brandcomp-500
-              bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
-              placeholder-gray-400 dark:placeholder-gray-500
-                resize-none overflow-y-auto"
+      border-gray-300 rounded-md shadow-sm
+      focus:ring-brandcomp-500 focus:border-brandcomp-500
+      bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
+      placeholder-gray-400 dark:placeholder-gray-500
+      resize-none overflow-y-auto"
               name="secret"
               autofocus
               autocomplete="off"
@@ -211,8 +238,9 @@ onUnmounted(() => {
               aria-label="Enter the secret content to share here">
     </textarea>
 
-    <div class="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400">
-      {{ charCount }} / {{ localMaxLength }}
+    <div v-if="showCounter"
+         class="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400">
+      {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
 
     <div v-if="withDomainDropdown"
