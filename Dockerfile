@@ -91,12 +91,11 @@
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
-FROM ruby:3.3-slim-bookworm@sha256:bc6372a998e79b5154c8132d1b3e0287dc656249f71f48487a1ecf0d46c9c080 AS builder
+FROM ruby:3.3-slim-bookworm@sha256:bc6372a998e79b5154c8132d1b3e0287dc656249f71f48487a1ecf0d46c9c080 AS base
+
 
 # Limit to packages needed for the system itself
-# NOTE: We only need the build tools installed if we need
-# to compile anything from source during the build.
-ARG PACKAGES="sudo nodejs npm"
+ARG PACKAGES="build-essential"
 
 # Fast fail on errors while installing system packages
 RUN set -eux \
@@ -105,12 +104,19 @@ RUN set -eux \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Base image
-FROM builder AS base
+# Copy Node.js and npm from the official image
+COPY --from=node:22 /usr/local/bin/node /usr/local/bin/
+COPY --from=node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
+
+# Create necessary symlinks
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
+    ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Verify Node.js and npm installation
+RUN node --version && npm --version
 
 # Install necessary tools
 RUN set -eux \
-    && gem update --system \
     && gem install bundler \
     && npm install -g pnpm
 
@@ -165,8 +171,9 @@ COPY VERSION.yml config.ru .commit_hash.txt $CODE_ROOT/
 # FINAL APPLICATION LAYER
 #
 FROM ruby:3.3-slim-bookworm AS final
+
 # Copy only necessary files from previous stages
-COPY --from=builder /usr/local/bundle /usr/local/bundle
+COPY --from=base /usr/local/bundle /usr/local/bundle
 COPY --from=app_env $CODE_ROOT $CODE_ROOT
 ARG CODE_ROOT
 
