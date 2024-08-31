@@ -80,11 +80,11 @@ class Onetime::Session < Familia::Horreum
   # The session data is permanent and must be kept separate to avoid leaking
   # data between users.
   def external_identifier
+    return @external_identifier if @external_identifier
     elements = []
     elements << ipaddress || 'UNKNOWNIP'
     elements << custid || 'anon'
     @external_identifier ||= elements.gibbler.base(36)
-
     OT.ld "[Session.external_identifier] sess identifier input: #{elements.inspect} (result: #{@external_identifier})"
     @external_identifier
   end
