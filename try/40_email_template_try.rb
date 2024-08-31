@@ -57,12 +57,12 @@ view.subject
 
 ## Includes share_domain in email body (English)
 view = OT::App::Mail::SecretLink.new @cust, 'en', @secret, @recipient
-view.render.include?("example.com")
+view.render.include?("https://example.com/secret/#{@secret.key}")
 #=> true
 
 ## Includes share_domain in email body (Spanish)
 view = OT::App::Mail::SecretLink.new @cust, 'es', @secret, @recipient
-view.render.include?("example.com")
+view.render.include?("https://example.com/secret/#{@secret.key}")
 #=> true
 
 # Teardown
