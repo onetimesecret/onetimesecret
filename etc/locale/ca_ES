@@ -61,7 +61,7 @@
     :secret_form_more_text2: "compte gratuït"
     :secret_form_more_text3: "afegeix frases de contrasenya per a una més gran seguretat com també amb les opcions de privadesa addicionals Fins i tot t'enviem un correu electrònic cap a l'enllaç, si ho desitges."
     :cta_title: "Utilitzeu un domini personalitzat"
-    :cta_subtitle: "Eleveu la vostra marca i compartiu amb confiança:"
+    :cta_subtitle: "Eleveu la vostra marca i compartiu amb confiança"
     :cta_feature1: "El vostre propi domini personalitzat"
     :cta_feature2: "Compartició il·limitada de secrets"
     :cta_feature3: "Controls de privadesa avançats"

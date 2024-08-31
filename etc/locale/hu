@@ -61,7 +61,7 @@
     :secret_form_more_text2: "ingyenes fiókot"
     :secret_form_more_text3: "és képes leszel elküldeni a titkot e-mailben."
     :cta_title: "Használjon egyedi domaint"
-    :cta_subtitle: "Emelje márkáját és osszon meg magabiztosan:"
+    :cta_subtitle: "Emelje márkáját és osszon meg magabiztosan"
     :cta_feature1: "Saját egyedi domain"
     :cta_feature2: "Korlátlan titokkészítés"
     :cta_feature3: "Fejlett adatvédelmi beállítások"

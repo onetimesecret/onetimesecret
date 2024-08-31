@@ -60,7 +60,7 @@
     :secret_form_more_text2: "için kaydol"
     :secret_form_more_text3: "ve daha fazla gizlilik seçeneğine sahip daha güvenli parolalar oluştur. İsterseniz sizin için linki e-posta aracılığıyla bile yollayabiliriz."
     :cta_title: "Özel Alan Adı Kullanın"
-    :cta_subtitle: "Markanızı yükseltin ve güvenle paylaşın:"
+    :cta_subtitle: "Markanızı yükseltin ve güvenle paylaşın"
     :cta_feature1: "Kendi özel alan adınız"
     :cta_feature2: "Sınırsız gizli paylaşım"
     :cta_feature3: "Gelişmiş gizlilik kontrolleri"

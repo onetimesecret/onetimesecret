@@ -1,3 +1,4 @@
+---
 :web:
   :COMMON:
     :broadcast: ""
@@ -60,14 +61,14 @@
     :secret_form_more_text2: "free account"
     :secret_form_more_text3: "and be able to send the secret by email."
     # Updated keys for the CTA section
-    :cta_title: "Use a Custom Domain"
-    :cta_subtitle: "Elevate your brand and share with confidence:"
+    :cta_title: "Increase trust & share with confidence"
+    :cta_subtitle: "Elevate your brand and share with confidence"
     :cta_feature1: "Unlimited custom domains"
     :cta_feature2: "Unlimited secret sharing"
     :cta_feature3: "Increase customer trust and engagement"
-    :explore_premium_plans: "Get start today"
+    :explore_premium_plans: "With Custom Domains"
     :need_free_account: "Just getting started? Send emails with a free account."
-    :sign_up_free: "Create a free account"
+    :sign_up_free: "Free Sign-up"
   :private:
     :pretext: "Share this link:"
     :requires_passphrase: "Requires a passphrase."

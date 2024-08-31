@@ -60,7 +60,7 @@
     :secret_form_more_text2: "compte gratuit"
     :secret_form_more_text3: "pour utiliser des mots de passe à sécurité accrue et acccéder à des options supplémentaires de confidentialité. Nous vous enverrons même le lien par email si vous le soouhaitez."
     :cta_title: "Utilisez un domaine personnalisé"
-    :cta_subtitle: "Valorisez votre marque et partagez en toute confiance :"
+    :cta_subtitle: "Valorisez votre marque et partagez en toute confiance "
     :cta_feature1: "Votre propre domaine personnalisé"
     :cta_feature2: "Partage illimité de secrets"
     :cta_feature3: "Contrôles de confidentialité avancés"
