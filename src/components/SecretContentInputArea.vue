@@ -239,7 +239,7 @@ onUnmounted(() => {
     </textarea>
 
     <div v-if="showCounter"
-         class="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400">
+         class="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 select-none pointer-events-none">
       {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
 
