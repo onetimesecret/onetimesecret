@@ -62,10 +62,10 @@
     # Updated keys for the CTA section
     :cta_title: "Use a Custom Domain"
     :cta_subtitle: "Elevate your brand and share with confidence:"
-    :cta_feature1: "Your own custom domain"
+    :cta_feature1: "Unlimited custom domains"
     :cta_feature2: "Unlimited secret sharing"
-    :cta_feature3: "Advanced privacy controls"
-    :explore_premium_plans: "Explore Premium Plans"
+    :cta_feature3: "Increase customer trust and engagement"
+    :explore_premium_plans: "Get start today"
     :need_free_account: "Just getting started? Send emails with a free account."
     :sign_up_free: "Create a free account"
   :private:
