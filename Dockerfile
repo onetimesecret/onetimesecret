@@ -54,6 +54,10 @@
 #         https://github.com/onetimesecret/docker-compose
 # ----------------------------------------------------------------
 #
+# OPTIMIZING BUILDS:
+#
+# Use `docker history <image_id>` to see the layers of an image.
+#
 #
 # PRODUCTION DEPLOYMENT:
 #
@@ -78,11 +82,11 @@
 
 
 ##
-# BASE LAYER
+# BUILDER LAYER
 #
 # Installs system packages, updates RubyGems, and prepares the
 # application's package management dependencies using a Debian
-# Ruby 3.2 base image.
+# Ruby 3.3 base image.
 #
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
@@ -92,8 +96,7 @@ FROM ruby:3.3-slim-bookworm@sha256:bc6372a998e79b5154c8132d1b3e0287dc656249f71f4
 # Limit to packages needed for the system itself
 # NOTE: We only need the build tools installed if we need
 # to compile anything from source during the build.
-# TODO: Use psycopg2-binary and remove psycopg2.
-ARG PACKAGES="build-essential autoconf m4 sudo nodejs npm"
+ARG PACKAGES="sudo nodejs npm"
 
 # Fast fail on errors while installing system packages
 RUN set -eux \
@@ -102,6 +105,10 @@ RUN set -eux \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Base image
+FROM builder AS base
+
+# Install necessary tools
 RUN set -eux \
     && gem update --system \
     && gem install bundler \
@@ -114,24 +121,14 @@ RUN set -eux \
 # system packages for userland, and installs the application's
 # dependencies using the Base Layer as a starting point.
 #
-FROM builder AS app_env
+FROM base AS app_env
 ARG CODE_ROOT
 ARG ONETIME_HOME
-
-# Limit to packages necessary for onetime and operational tasks
-ARG PACKAGES="curl netcat-openbsd vim-tiny less redis-tools"
-
-# Fast fail on errors while installing system packages
-RUN set -eux \
-    && apt-get update \
-    && apt-get install -y $PACKAGES \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
 
 # Create the directories that we need in the following image
 RUN set -eux \
     && echo "Creating directories" \
-    && mkdir -p "$CODE_ROOT $ONETIME_HOME/{log,tmp}"
+    && mkdir -p $CODE_ROOT $ONETIME_HOME/{log,tmp}
 
 WORKDIR $CODE_ROOT
 
@@ -145,25 +142,28 @@ RUN set -eux \
     && bundle update --bundler
 
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.mjs ./
-COPY src ./src
+COPY --link src ./src
 
 RUN set -eux \
-    && mkdir $CODE_ROOT/node_modules \
-    && pnpm install --frozen-lockfile
-RUN pnpm run type-check
-RUN pnpm run build-only \
+    && pnpm install --frozen-lockfile \
+    && pnpm run type-check \
+    && pnpm run build-only \
+    && pnpm prune --prod \
+    && rm -rf node_modules \
     && npm uninstall -g pnpm  # Remove pnpm after use
 
 # And finally, copy the rest of the darn owl
-COPY --link bin etc lib migrate public templates $CODE_ROOT/
+COPY --link bin $CODE_ROOT/bin
+COPY --link etc $CODE_ROOT/etc
+COPY --link lib $CODE_ROOT/lib
+COPY --link migrate $CODE_ROOT/migrate
+COPY --link public $CODE_ROOT/public
+COPY --link templates $CODE_ROOT/templates
+COPY VERSION.yml config.ru .commit_hash.txt $CODE_ROOT/
 
 ##
-# APPLICATION LAYER
+# FINAL APPLICATION LAYER
 #
-# Contains the entire application context, including the code,
-# configuration files, and all other files needed at run-time.
-#
-
 FROM ruby:3.3-slim-bookworm AS final
 # Copy only necessary files from previous stages
 COPY --from=builder /usr/local/bundle /usr/local/bundle
@@ -199,7 +199,6 @@ WORKDIR $CODE_ROOT
 # example, if the config file has been previously copied
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
-COPY etc/config.example etc/
 RUN cp --preserve --no-clobber \
     etc/config.example etc/config
 
