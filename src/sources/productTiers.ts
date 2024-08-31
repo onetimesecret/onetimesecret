@@ -34,7 +34,7 @@ export const productTiers: Array<ProductTier> = [
     //description: "Elevate your brand with secure sharing that simplifies communication.",
     //description: "Elevate your brand with secure, streamlined communication.",
     features: [
-      'Branded custom domain',
+      'Unlimited custom domains',
       'Unlimited sharing capacity',
       'Enhanced privacy features',
       'Full API access',
