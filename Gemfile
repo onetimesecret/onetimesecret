@@ -50,6 +50,10 @@ gem 'sendgrid-ruby'
 
 gem 'mail'
 
+# As of Ruby 3.4, these are no longer in the standard library
+gem 'base64', '0.2.0'
+gem 'syslog', '0.1.2'
+
 gem 'byebug', require: false, group: :development
 gem 'byebug-dap', require: false, group: :development
 gem 'pry', require: false, group: :development
@@ -59,7 +63,7 @@ gem 'rubocop-performance', require: false, group: :development
 gem 'rubocop-thread_safety', require: false, group: :development
 gem "sentry-ruby", require: false, group: :staging
 gem 'sorbet', require: false, group: :development
-gem 'sorbet-runtime'
+gem 'sorbet-runtime', require: false, group: :development
 gem 'spoom', require: false, group: :development
 gem 'stackprof', require: false, group: :staging # bundle exec stackprof --text tmp/rubocop-stackprof.dump
 gem 'stripe', require: false, group: :plans # bundle install --group plans
