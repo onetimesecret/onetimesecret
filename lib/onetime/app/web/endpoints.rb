@@ -1,7 +1,7 @@
 
-require_relative 'web/base'
-require_relative 'web/views'
-require_relative 'base'  # app/base.rb
+require_relative 'web_base'
+require_relative 'views'
+require_relative '../app_settings'
 
 module Onetime
   class App

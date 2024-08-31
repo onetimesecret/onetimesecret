@@ -1,5 +1,5 @@
-require_relative 'v1/base'
-require_relative '../base'  # app/base.rb
+require_relative 'base'
+require_relative '../../app_settings'
 
 
 class Onetime::App
@@ -239,5 +239,5 @@ class Onetime::App
 end
 
 # Require after the above to avoid circular dependency
-require_relative 'v1/account'
-require_relative 'v1/domains'
+require_relative 'account'
+require_relative 'domains'

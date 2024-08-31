@@ -3,7 +3,7 @@
 module Onetime
   class App
     module Views
-      module Helpers # rubocop:disable Style/Documentation
+      module ViewHelpers # rubocop:disable Style/Documentation
 
         def add_shrimp
           format('<input type="hidden" name="shrimp" value="%s" />', sess.add_shrimp)
