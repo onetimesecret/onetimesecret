@@ -1,7 +1,6 @@
 
 require 'mustache'
 
-
 class Onetime::App
   module Mail
 
@@ -33,7 +32,10 @@ class Onetime::App
       def subject
         i18n[:email][:subject] % [self[:custid]] # e.g. "ABC" sent you a secret
       end
-      def verify_uri
+      def display_domain
+        secret_display_domain self[:secret]
+      end
+      def uri_path
         secret_uri self[:secret]
       end
     end
