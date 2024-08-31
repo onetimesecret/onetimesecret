@@ -49,8 +49,8 @@ const DefaultApp = {
 }
 
 const app = createApp(DefaultApp)
-app.use(router)
-app.mount('#app')
+app.use(router);
+app.mount('#app');
 
 
 /**
