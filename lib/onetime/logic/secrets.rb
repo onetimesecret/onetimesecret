@@ -8,6 +8,7 @@ module Onetime::Logic
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :maxviews
       attr_reader :metadata, :secret, :share_domain
       attr_accessor :token
+
       def process_params
         @ttl = params[:ttl].to_i
         @ttl = plan.options[:ttl] if @ttl <= 0
@@ -50,9 +51,13 @@ module Onetime::Logic
         if kind == :share && secret_value.to_s.empty?
           raise_form_error "You did not provide anything to share" #
         end
-        if cust.anonymous? && !@recipient.empty?
-          raise_form_error "An account is required to send emails. Signup here: https://#{OT.conf[:site][:host]}"
+        if !@recipient.empty?
+          raise_form_error "An account is required to send emails." if cust.anonymous?
+          @recipient.each do |recip|
+            raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
+          end
         end
+
         raise OT::Problem, "Unknown type of secret" if kind.nil?
 
         # Returns the display_domain/share_domain or
@@ -98,9 +103,16 @@ module Onetime::Logic
         ['/private/', metadata.key].join
       end
 
-      private
+      #private
 
       def form_fields
+        {
+          share_domain: share_domain,
+          secret: secret_value,
+          recipient: recipient,
+          ttl: ttl,
+          kind: kind
+        }
       end
     end
 

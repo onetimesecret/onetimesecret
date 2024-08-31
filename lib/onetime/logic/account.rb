@@ -92,6 +92,7 @@ module Onetime::Logic
       attr_reader :cust, :plan, :autoverify, :customer_role
       attr_reader :planid, :custid, :password, :password2, :skill
       attr_accessor :token
+
       def process_params
         @planid = params[:planid].to_s
         @custid = params[:u].to_s.downcase.strip
@@ -121,6 +122,7 @@ module Onetime::Logic
           raise OT::Redirect.new('/?s=1') # the query string is arbitrary, for log filtering
         end
       end
+
       def process
 
         @plan = OT::Plan.plan(planid)

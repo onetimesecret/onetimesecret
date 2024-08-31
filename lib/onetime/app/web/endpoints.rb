@@ -50,7 +50,7 @@ module Onetime
 
     def recent
       authenticated do
-        logic = OT::Logic::Dashboard.new sess, cust, req.params, locale
+        logic = OT::Logic::Dashboard::Index.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         view = Onetime::App::Views::Recent.new req, sess, cust, locale
@@ -137,7 +137,7 @@ module Onetime
     end
 
     def create_secret
-      publically(req.request_path) do
+      publically('/') do
         logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process

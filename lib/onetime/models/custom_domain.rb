@@ -82,7 +82,7 @@ class Onetime::CustomDomain < Familia::Horreum
   def init
     # Display domain and cust should already be set and accessible
     # via accessor methods so we should see a valid identifier logged.
-    OT.ld "[CustomDomain.init] #{self.display_domain} id:#{self.identifier}"
+    #OT.ld "[CustomDomain.init] #{self.display_domain} id:#{self.identifier}"
   end
 
   # Generate a unique identifier for this customer's custom domain.
@@ -276,13 +276,13 @@ class Onetime::CustomDomain < Familia::Horreum
     # Can raise Onetime::Error.
     #
     def parse input, custid
-      OT.ld "[CustomDomain.parse] Called with #{input} and #{custid}"
+      #OT.ld "[CustomDomain.parse] Called with #{input} and #{custid}"
 
       # The `display_domain` method calls PublicSuffix.parse
       display_domain = OT::CustomDomain.display_domain input
 
       custom_domain = OT::CustomDomain.new(display_domain, custid)
-      OT.ld "[CustomDomain.parse2] Instantiated #{custom_domain.display_domain} and #{custom_domain.custid} (#{display_domain})"
+      #OT.ld "[CustomDomain.parse2] Instantiated #{custom_domain.display_domain} and #{custom_domain.custid} (#{display_domain})"
       custom_domain
     end
 
