@@ -1,9 +1,9 @@
-import GlobalBroadcast from '@/components/GlobalBroadcast.vue'
-import ThemeToggle from '@/components/ThemeToggle.vue'
-import router from '@/router'
-import { createApp, ref } from 'vue'
+import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
+import ThemeToggle from '@/components/ThemeToggle.vue';
+import router from '@/router';
+import { createApp, ref } from 'vue';
 
-import './style.css'
+import './style.css';
 
 
 /**
@@ -48,9 +48,9 @@ const DefaultApp = {
   template: '<div id="app"><router-view></router-view></div>'
 }
 
-const app = createApp(DefaultApp)
-app.use(router)
-app.mount('#app')
+const app = createApp(DefaultApp);
+app.use(router);
+app.mount('#app');
 
 
 /**
@@ -66,7 +66,7 @@ const broadcastApp = createApp(GlobalBroadcast, {
   content: 'This is a global broadcast',
   show: showBanner.value,
 })
-broadcastApp.mount('#broadcast')
+broadcastApp.mount('#broadcast');
 
 const themeToggleElement = document.querySelector('#theme-toggle');
 if (themeToggleElement) {
