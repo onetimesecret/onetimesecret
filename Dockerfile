@@ -1,22 +1,17 @@
-# syntax=docker/dockerfile:experimental@sha256:600e5c62eedff338b3f7a0850beb7c05866e0ef27b2d2e8c02aa468e78496ff5
+# syntax=docker/dockerfile:1.4
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2024-07-30
-#
+# ONETIME SECRET - DOCKER IMAGE - 2024-08-31
 #
 # To build and use this image, you need to copy the example
 # configuration files into place:
 #
 #     $ cp --preserve --no-clobber ./etc/config.example ./etc/config
-#
-#           - and -
-#
 #     $ cp --preserve --no-clobber .env.example .env
 #
 # The default values work as-is but it's a good practice to have
-# a look and customize as you like (partcularly the mast secret
+# a look and customize as you like (particularly the main secret
 # `SECRET` and redis password in `REDIS_URL`).
-#
 #
 # USAGE (Docker):
 #
@@ -33,10 +28,9 @@
 #
 # It will be accessible on http://localhost:3000.
 #
-#
 # USAGE (Docker Compose):
 #
-# When bringing up a frontend container for the first time, makes
+# When bringing up a frontend container for the first time, make
 # sure the database container is already running and attached.
 #
 #     $ docker-compose up -d redis
@@ -54,6 +48,9 @@
 #         https://github.com/onetimesecret/docker-compose
 # ----------------------------------------------------------------
 #
+# OPTIMIZING BUILDS:
+#
+# Use `docker history <image_id>` to see the layers of an image.
 #
 # PRODUCTION DEPLOYMENT:
 #
@@ -72,38 +69,47 @@
 #     -e HOST=example.com \
 #     -e SSL=true \
 #     -e SECRET="<put your own secret here>" \
-#     -e RACK_ENV=production
+#     -e RACK_ENV=production \
 #     onetimesecret
-#
-
+##
 
 ##
-# BASE LAYER
+# BUILDER LAYER
 #
 # Installs system packages, updates RubyGems, and prepares the
 # application's package management dependencies using a Debian
-# Ruby 3.2 base image.
+# Ruby 3.3 base image.
 #
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
-FROM ruby:3.3-slim-bookworm@sha256:bc6372a998e79b5154c8132d1b3e0287dc656249f71f48487a1ecf0d46c9c080 AS builder
+FROM ruby:3.3-slim-bookworm@sha256:bc6372a998e79b5154c8132d1b3e0287dc656249f71f48487a1ecf0d46c9c080 AS base
 
 # Limit to packages needed for the system itself
-# NOTE: We only need the build tools installed if we need
-# to compile anything from source during the build.
-# TODO: Use psycopg2-binary and remove psycopg2.
-ARG PACKAGES="build-essential autoconf m4 sudo nodejs npm"
+ARG PACKAGES="build-essential"
 
 # Fast fail on errors while installing system packages
-RUN set -eux && \
-    apt-get update && \
-    apt-get install -y $PACKAGES
+RUN set -eux \
+    && apt-get update \
+    && apt-get install -y $PACKAGES \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN gem update --system
-RUN gem install bundler
+# Copy Node.js and npm from the official image
+COPY --from=node:22 /usr/local/bin/node /usr/local/bin/
+COPY --from=node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
 
-RUN npm install -g pnpm
+# Create necessary symlinks
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Verify Node.js and npm installation
+RUN node --version && npm --version
+
+# Install necessary tools
+RUN set -eux \
+    && gem install bundler \
+    && npm install -g pnpm
 
 ##
 # ENVIRONMENT LAYER
@@ -112,51 +118,54 @@ RUN npm install -g pnpm
 # system packages for userland, and installs the application's
 # dependencies using the Base Layer as a starting point.
 #
-FROM builder AS app_env
+FROM base AS app_env
 ARG CODE_ROOT
 ARG ONETIME_HOME
 
-# Limit to packages necessary for onetime and operational tasks
-ARG PACKAGES="curl netcat-openbsd vim-tiny less redis-tools"
-
-# Fast fail on errors while installing system packages
-RUN set -eux && \
-    apt-get update && \
-    apt-get install -y $PACKAGES
-
 # Create the directories that we need in the following image
-RUN echo "Creating directories"
-RUN mkdir -p "$CODE_ROOT"
-RUN mkdir -p "$ONETIME_HOME/{log,tmp}"
+RUN set -eux \
+    && echo "Creating directories" \
+    && mkdir -p $CODE_ROOT $ONETIME_HOME/{log,tmp}
 
 WORKDIR $CODE_ROOT
 
-COPY Gemfile ./
-COPY Gemfile.lock ./
-
-# Install the dependencies into the environment image
-RUN bundle config set --local without 'development test'
-RUN bundle install
-RUN bundle update --bundler
-
-# Invite Vite and Vue dependencies to the environment image
-COPY package.json ./
-COPY pnpm-lock.yaml  ./
-RUN pnpm install --frozen-lockfile
 ENV NODE_PATH=$CODE_ROOT/node_modules
 
-COPY . .
+# Install the dependencies into the environment image
+COPY --link Gemfile Gemfile.lock ./
+RUN set -eux \
+    && bundle config set --local without 'development test' \
+    && bundle install \
+    && bundle update --bundler
 
-RUN pnpm run type-check
-RUN pnpm run build-only
+COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.mjs ./
+COPY --link src ./src
+
+RUN set -eux \
+    && pnpm install --frozen-lockfile \
+    && pnpm run type-check \
+    && pnpm run build-only \
+    && pnpm prune --prod \
+    && rm -rf node_modules \
+    && npm uninstall -g pnpm  # Remove pnpm after use
+
+# And finally, copy the rest of the darn owl
+COPY --link bin $CODE_ROOT/bin
+COPY --link etc $CODE_ROOT/etc
+COPY --link lib $CODE_ROOT/lib
+COPY --link migrate $CODE_ROOT/migrate
+COPY --link public $CODE_ROOT/public
+COPY --link templates $CODE_ROOT/templates
+COPY VERSION.yml config.ru .commit_hash.txt $CODE_ROOT/
 
 ##
-# APPLICATION LAYER
+# FINAL APPLICATION LAYER
 #
-# Contains the entire application context, including the code,
-# configuration files, and all other files needed at run-time.
-#
-FROM app_env
+FROM ruby:3.3-slim-bookworm AS final
+
+# Copy only necessary files from previous stages
+COPY --from=base /usr/local/bundle /usr/local/bundle
+COPY --from=app_env $CODE_ROOT $CODE_ROOT
 ARG CODE_ROOT
 
 LABEL Name=onetimesecret Version=0.17.0
@@ -188,8 +197,7 @@ WORKDIR $CODE_ROOT
 # example, if the config file has been previously copied
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
-RUN cp --preserve --no-clobber \
- etc/config.example etc/config
+RUN cp --preserve --no-clobber etc/config.example etc/config
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:

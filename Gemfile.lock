@@ -6,6 +6,7 @@ GEM
     ast (2.4.2)
     attic (1.0.1)
       rake (~> 13.0.6)
+    base64 (0.2.0)
     bcrypt (3.1.20)
     bigdecimal (3.1.8)
     byebug (11.1.3)
@@ -133,6 +134,7 @@ GEM
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
+    syslog (0.1.2)
     tapioca (0.14.3)
       bundler (>= 2.2.25)
       netrc (>= 0.11.0)
@@ -166,6 +168,7 @@ PLATFORMS
 
 DEPENDENCIES
   addressable
+  base64 (= 0.2.0)
   bcrypt
   byebug
   byebug-dap
@@ -196,6 +199,7 @@ DEPENDENCIES
   storable
   stripe
   sysinfo
+  syslog (= 0.1.2)
   tapioca
   thin
   truemail
