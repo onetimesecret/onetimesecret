@@ -96,14 +96,16 @@ FROM ruby:3.3-slim-bookworm@sha256:bc6372a998e79b5154c8132d1b3e0287dc656249f71f4
 ARG PACKAGES="build-essential autoconf m4 sudo nodejs npm"
 
 # Fast fail on errors while installing system packages
-RUN set -eux && \
-    apt-get update && \
-    apt-get install -y $PACKAGES
+RUN set -eux \
+    && apt-get update \
+    && apt-get install -y $PACKAGES \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN gem update --system
-RUN gem install bundler
-
-RUN npm install -g pnpm
+RUN set -eux \
+    && gem update --system \
+    && gem install bundler \
+    && npm install -g pnpm
 
 ##
 # ENVIRONMENT LAYER
@@ -120,14 +122,16 @@ ARG ONETIME_HOME
 ARG PACKAGES="curl netcat-openbsd vim-tiny less redis-tools"
 
 # Fast fail on errors while installing system packages
-RUN set -eux && \
-    apt-get update && \
-    apt-get install -y $PACKAGES
+RUN set -eux \
+    && apt-get update \
+    && apt-get install -y $PACKAGES \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create the directories that we need in the following image
-RUN echo "Creating directories"
-RUN mkdir -p "$CODE_ROOT"
-RUN mkdir -p "$ONETIME_HOME/{log,tmp}"
+RUN set -eux \
+    && echo "Creating directories" \
+    && mkdir -p "$CODE_ROOT $ONETIME_HOME/{log,tmp}"
 
 WORKDIR $CODE_ROOT
 
@@ -135,20 +139,24 @@ COPY Gemfile ./
 COPY Gemfile.lock ./
 
 # Install the dependencies into the environment image
-RUN bundle config set --local without 'development test'
-RUN bundle install
-RUN bundle update --bundler
+RUN set -eux \
+    && bundle config set --local without 'development test' \
+    && bundle install \
+    && bundle update --bundler
 
 # Invite Vite and Vue dependencies to the environment image
 COPY package.json ./
 COPY pnpm-lock.yaml  ./
+
 RUN pnpm install --frozen-lockfile
+
 ENV NODE_PATH=$CODE_ROOT/node_modules
 
 COPY . .
 
-RUN pnpm run type-check
-RUN pnpm run build-only
+RUN set -eux \
+    && pnpm run type-check \
+    && pnpm run build-only
 
 ##
 # APPLICATION LAYER
@@ -189,7 +197,7 @@ WORKDIR $CODE_ROOT
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
 RUN cp --preserve --no-clobber \
- etc/config.example etc/config
+    etc/config.example etc/config
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
