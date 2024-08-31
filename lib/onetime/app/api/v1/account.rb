@@ -1,6 +1,6 @@
 
 require_relative 'base'
-require_relative '../../base'
+require_relative '../../app_settings'
 require_relative '../../../logic/account'
 
 class Onetime::App::API

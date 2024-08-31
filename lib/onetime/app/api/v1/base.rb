@@ -1,12 +1,12 @@
 # Ensure no conflicts with Onetime::App::API::Base methods
-require_relative '../../helpers'   # app/helpers.rb
+require_relative '../../app_helpers'   # app/helpers.rb
 
 
 class Onetime::App
   class API
 
     module Base
-      include Onetime::App::Helpers
+      include Onetime::App::WebHelpers
 
       def publically
         carefully do

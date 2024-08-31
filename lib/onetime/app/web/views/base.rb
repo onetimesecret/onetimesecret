@@ -1,10 +1,10 @@
-require_relative 'helpers'
+require_relative 'view_helpers'
 require_relative 'secret_elements'
 
 module Onetime
   class App
     class View < Mustache
-      include Onetime::App::Views::Helpers
+      include Onetime::App::Views::ViewHelpers
 
       self.template_path = './templates/web'
       self.template_extension = 'html'
