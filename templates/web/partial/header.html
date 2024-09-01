@@ -1,51 +1,6 @@
-<!DOCTYPE html>
-<html lang="en" class="light">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="referrer" content="no-referrer">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="msapplication-TileColor" content="#da532c">
-    <meta name="theme-color" content="#dc4a22">
-    <meta name="apple-mobile-web-app-title" content="Onetime">
-    <meta name="application-name" content="Onetime">
-    <link rel="icon" type="image/svg+xml" href="/v3/img/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
-    <link rel="manifest" href="/site.webmanifest?v=3">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg?v=3" color="#dc4a22">
-    <link rel="shortcut icon" href="/favicon.ico?v=3">
-    <title>{{title}} - {{subtitle}}</title>
-    <meta name="description" content="{{description}}">
-    <meta name="keywords" content="{{keywords}}">
 
-    {{#no_cache}}
-    <meta http-equiv="pragma" content="no-cache">
-    <meta http-equiv="expires" content="-1">
-    {{/no_cache}}
+{{>partial/quiet_header}}
 
-    <script type="text/javascript">
-    {{#jsvars}}
-      var {{name}} = {{{value}}};
-    {{/jsvars}}
-    </script>
-
-    {{#frontend_development}}
-      <!-- if development -->
-      <!-- an entry point for each page (main == homepage) -->
-      <script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
-      <script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
-    {{/frontend_development}}
-
-    {{^frontend_development}}
-      <!-- if production -->
-      <!-- https://vitejs.dev/guide/backend-integration.html#backend-integration -->
-      {{{vite_assets}}}
-    {{/frontend_development}}
-
-  </head>
-
-  <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" id="{{body_class}}">
     {{#with_github_corner}}
       {{>partial/github_corner}}
     {{/with_github_corner}}

@@ -226,12 +226,12 @@ onUnmounted(() => {
               v-model="content"
               @input="checkContentLength"
               :maxlength="maxLength"
-              class="w-full min-h-[10rem] max-h-[400px] p-4 font-mono text-base leading-[1.2] tracking-wide
-      border-gray-300 rounded-md shadow-sm
-      focus:ring-brandcomp-500 focus:border-brandcomp-500
-      bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
-      placeholder-gray-400 dark:placeholder-gray-500
-      resize-none overflow-y-auto"
+              class="w-full min-h-[6rem] max-h-[400px] p-4 font-mono text-base leading-[1.2] tracking-wide
+            border-gray-300 rounded-md shadow-sm
+            focus:ring-brandcomp-500 focus:border-brandcomp-500
+            bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
+            placeholder-gray-400 dark:placeholder-gray-500
+              resize-none overflow-y-auto"
               name="secret"
               autofocus
               autocomplete="off"
@@ -239,10 +239,10 @@ onUnmounted(() => {
               aria-label="Enter the secret content to share here">
     </textarea>
 
-    <div v-if="showCounter"
-         class="absolute bottom-4 left-4 text-sm text-gray-500 dark:text-gray-400 select-none pointer-events-none">
+    <div v-if="showCounter" class="absolute bottom-4 left-4 bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none">
       {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
+
 
     <div v-if="withDomainDropdown"
          class="absolute bottom-4 right-4">

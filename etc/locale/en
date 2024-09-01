@@ -24,7 +24,7 @@
     :burn_this_secret_hint: "Burning a secret will delete it before it has been read (click to confirm)"
     :burn_this_secret_confirm_hint: "Burning a secret is permanent and cannot be undone"
     :msg_check_email: "Check your email"
-    :click_to_continue: "Click to continue →"
+    :click_to_continue: "Click to reveal →"
     :click_to_verify: "Continue to verify your account:"
     :error_secret: "You did not provide anything to share"
     :error_passphrase: "Double check that passphrase"

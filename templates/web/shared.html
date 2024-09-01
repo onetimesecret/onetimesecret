@@ -1,6 +1,6 @@
 {{>partial/header}}
 
-<div class="container mx-auto p-4 max-w-2xl">
+<div class="container mx-auto p-14 max-w-2xl">
 
   <!-- Page Component is loaded here -->
   <div id="app"></div>
@@ -26,7 +26,7 @@
     {{/is_owner}}
   {{/verification}}
 
-  <div class="space-y-4">
+<div class="space-y-8">
     {{^show_secret}}
     {{^has_passphrase}}
     {{#verification}}
@@ -43,10 +43,51 @@
       {{#has_passphrase}}
       <input type="password" name="passphrase" id="passField" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="{{i18n.COMMON.enter_passphrase_here}}" />
       {{/has_passphrase}}
-      <button type="submit" class="w-full px-4 py-2 text-white bg-brand-500 rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">{{i18n.COMMON.click_to_continue}}</button>
+      <button type="submit" class="w-full px-6 py-3 text-3xl font-semibold text-white bg-brand-500 rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition duration-150 ease-in-out">
+        {{i18n.COMMON.click_to_continue}}
+      </button>
+
     </form>
     {{^verification}}
-      <p class="text-sm text-gray-500 dark:text-gray-400">({{i18n.COMMON.careful_only_see_once}})</p>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{i18n.COMMON.secret_ready}}</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400 italic">{{i18n.COMMON.careful_only_see_once}}</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-900">
+      <div class="max-w-7xl mx-auto py-12 px-4 sm:py-16 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h2 class="text-base font-semibold text-brandcomp-700 dark:text-brandcomp-600 tracking-wide uppercase opacity-40">One-Time Secret</h2>
+          <h3 class="mt-1 text-3xl font-extrabold text-gray-600 dark:text-gray-300 sm:text-3xl sm:tracking-tight lg:text-4xl">You've got (secret) mail</h3>
+          <p class="max-w-xl mt-5 mx-auto text-xl text-gray-500 dark:text-gray-400">A secure, one-time message awaits you. Before you open it, here's what you should know:</p>
+
+        </div>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-900">
+      <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:py-12 lg:px-8">
+        <div class="lg:grid lg:grid-cols-3 lg:gap-8">
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">What is this?</h3>
+            <p class="mt-3 text-base text-gray-500 dark:text-gray-300">
+              Onetime Secret is a secure way to share sensitive information that self-destructs after a single viewing.
+            </p>
+          </div>
+          <div class="mt-8 lg:mt-0">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Is it secure?</h3>
+            <p class="mt-3 text-base text-gray-500 dark:text-gray-300">
+              Yes. After viewing, the secret is permanently deleted from our servers, ensuring your privacy.
+            </p>
+          </div>
+          <div class="mt-8 lg:mt-0">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white whitespace-nowrap">What happens next?</h3>
+            <p class="mt-3 text-base text-gray-500 dark:text-gray-300">
+              When ready, click the "View Secret" button at the top of the page to reveal your one-time message.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
     {{/verification}}
 
     {{/show_secret}}
@@ -67,11 +108,7 @@
             rows="{{display_lines}}"
           >{{secret_value}}</textarea>
 
-          <button
-            class="absolute top-2 right-2 p-1.5 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors duration-200"
-            onclick="copyToClipboard(this)"
-            aria-label="Copy to clipboard"
-          >
+          <button class="absolute top-2 right-2 p-1.5 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors duration-200" onclick="copyToClipboard(this)" aria-label="Copy to clipboard" id="copyButton">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
@@ -95,14 +132,12 @@
         }
         </script>
 
-
-
         {{^verification}}
         <p class="text-sm text-gray-500 dark:text-gray-400">({{i18n.COMMON.careful_only_see_once}})</p>
         {{/verification}}
 
         {{#truncated}}
-        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 text-sm dark:bg-blue-800 dark:text-blue-200">
+        <div class="bg-brandcomp-100 border-l-4 border-brandcomp-500 text-blue-700 p-4 text-sm dark:bg-blue-800 dark:text-blue-200">
           <button type="button" class="float-right" onclick="this.parentElement.remove()">&times;</button>
           <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.secret_was_truncated}} {{secret_value.size.to_bytes}}.
           {{^authenticated}}<a href="/signup" class="text-brand-500 hover:underline">{{i18n.COMMON.signup_for_more}}</a>.{{/authenticated}}
@@ -115,7 +150,6 @@
         <div class="bg-gray-100 border-l-4 border-gray-400 text-gray-700 my-16 p-4 mb-4 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300">
           <button type="button" class="float-right hover:text-gray-900 dark:hover:text-gray-100" onclick="this.parentElement.remove()">&times;</button>
           <p>Once you've finished viewing the secret, feel free to navigate away from this page or close the window.</p>
-
         </div>
         {{/verification}}
 
@@ -124,7 +158,15 @@
         {{/verification}}
 
       </div>
+      <p class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">
+        <a href="https://onetimesecret.com" class="hover:underline" target="_blank" rel="noopener noreferrer">
+          Powered by Onetime Secret
+        </a>
+      </p>
+
     {{/show_secret}}
   </div>
+
+
 </div>
-{{>partial/footer}}
+{{>partial/quiet_footer}}
