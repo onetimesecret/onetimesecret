@@ -12,6 +12,10 @@
       {{/authenticated}}
     </div>
 
+    {{#authentication.signup}}
+      {{>partial/plans_homepage_cta}}
+    {{/authentication.signup}}
+
     <!-- Secret Form is loaded here -->
     <div id="app"></div>
 
@@ -22,11 +26,6 @@
         {{i18n.page.secret_hint}}
       </p>
     </div>
-
-    {{#authentication.signup}}
-      {{>partial/plans_homepage_cta}}
-
-    {{/authentication.signup}}
 
     {{/authenticated}}
   </main>
