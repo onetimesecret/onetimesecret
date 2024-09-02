@@ -37,6 +37,7 @@ module Onetime
         self[:js], self[:css] = [], []
         self[:is_default_locale] = is_default_locale
         self[:supported_locales] = OT.conf[:locales]
+        self[:support_host] = site.dig(:support, :host) # defaults to nil
         self[:authentication] = site[:authentication]
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
