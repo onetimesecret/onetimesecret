@@ -60,15 +60,60 @@ export default defineConfig({
 
   assetsInclude: ['**/*.woff', '**/*.woff2'], // Include font files
   base: '/dist',
+
+
+  // be simpler and more efficient.
   build: {
     outDir: '../public/web/dist',
     emptyOutDir: true,
 
+    // Code Splitting vs Combined Files
+    //
+    // Code Splitting:
+    // Advantages:
+    // 1. Improved Initial Load Time: Only the necessary code for the initial page
+    // is loaded, with additional code loaded as needed.
+    // 2. Better Caching: Smaller, more granular files can be cached more
+    // effectively. Changes in one part of the application only require updating
+    // the corresponding file.
+    // 3. Parallel Loading: Modern browsers can download multiple files in
+    // parallel, speeding up the overall loading process.
+    //
+    // Disadvantages:
+    // 1. Increased Complexity: Managing multiple files can be more complex,
+    // especially with dependencies and ensuring correct load order.
+    // 2. More HTTP Requests: More files mean more HTTP requests, which can be a
+    // performance bottleneck on slower networks.
+    //
+    // Combined Files:
+    // Advantages:
+    // 1. Simplicity: A single file is easier to manage and deploy, with no
+    // concerns about missing files or incorrect load orders.
+    // 2. Fewer HTTP Requests: Combining everything into a single file reduces the
+    // number of HTTP requests, beneficial for performance on slower networks.
+    //
+    // Disadvantages:
+    // 1. Longer Initial Load Time: The entire application needs to be downloaded
+    // before it can be used, increasing initial load time.
+    // 2. Inefficient Caching: Any change in the application requires the entire
+    // bundle to be re-downloaded.
+    //
+    // Conclusion:
+    // The conventional approach in modern web development is to use code
+    // splitting for better performance and caching. However, the best approach
+    // depends on the specific use case. For larger applications, code splitting
+    // is usually preferred, while for smaller applications, combining files might
     manifest: true,
     rollupOptions: {
       input: {
         main: 'src/main.ts', // Explicitly define the entry point here
-      }
+      },
+      //output: {
+      //  manualChunks: undefined, // Disable code splitting
+      //  entryFileNames: 'assets/[name].[hash].js', // Single JS file
+      //  chunkFileNames: 'assets/[name].[hash].js', // Single JS file
+      //  assetFileNames: 'assets/[name].[hash].[ext]', // Single CSS file
+      //}
     },
 
     // https://guybedford.com/es-module-preloading-integrity
