@@ -54,19 +54,18 @@
     {{/display_feedback}}
     {{#display_links}}
     <div class="prose dark:prose-invert text-base pt-4 font-brand">
-      <a href="{{support_host}}/about" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a> |
+      <a href="{{support_host}}/blog" aria-label="Our blogging website" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Blog</a>
 
       {{#plans_enabled}}
-        <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a> |
+        | <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a>
       {{/plans_enabled}}
 
-      <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">GitHub</a>
-
-      {{^support_host}} |
-      <a href="/docs/api" aria-label="API Documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
+      {{^support_host}}
+      | <a href="/docs/api" aria-label="API Documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
       {{/support_host}}
-      {{#support_host}} |
-      <a href="{{support_host}}/docs" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
+      {{#support_host}}
+      | <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">GitHub</a>
+      | <a href="{{support_host}}/docs" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
       {{/support_host}}
     </div>
     <div class="prose dark:prose-invert text-base font-brand">
@@ -74,7 +73,9 @@
       <a href="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Terms</a> |
       <a href="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Security</a> |
       <a href="https://status.onetimesecret.com/" aria-label="Check service status" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Status</a> |
-      Languages: <a href="/translations" aria-label="English language version of Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">{{locale}}</a>
+      <a href="{{support_host}}/about" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a>
+
+
     </div>
   {{/display_links}}
 
