@@ -114,55 +114,38 @@ const updateSelectedDomain = (domain: string) => {
                                 :withExpiry="true"
                                 :withPassphrase="true" />
 
-      <button type="submit" tabindex="6"
-              class="text-xl w-full py-2 px-4 rounded mb-4
-              bg-orange-600 hover:bg-orange-700 text-white
-              font-bold2 disabled:opacity-50 disabled:cursor-not-allowed
-              duration-300 ease-in-out transform hover:scale-105"
-              name="kind"
-              value="share"
-              :disabled="!isFormValid">
-        Create a secret link<span v-if="withAsterisk">*</span>
-      </button>
+      <div class="flex w-full mb-4">
+        <button type="submit"
+                class="generate-btn text-base py-2 px-2 pr-6 rounded mr-2
+        dark:bg-brandcompdim-900 bg-brand-100
+        hover:bg-gray-600 dark:hover:bg-gray-600
+        text-white font-medium transition-all duration-300 ease-in-out transform
+        w-10 hover:w-56 overflow-hidden whitespace-nowrap group
+        disabled:opacity-50 disabled:cursor-not-allowed
+        disabled:bg-gray-400 dark:disabled:bg-gray-700
+        disabled:hover:bg-gray-400 dark:disabled:hover:bg-gray-700
+        disabled:hover:scale-100 disabled:hidden"
+                :disabled="isFormValid"
+                name="kind"
+                value="generate"
+                title="Generate Password is disabled when the form is valid">
+          <span class="inline-block transition-margin duration-300 ease-in-out mr-0 group-hover:mr-2">🔑</span>
+          <span class="opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100">Generate
+            Password</span>
+        </button>
 
-      <!--
-        To adjust the width and centering of the <hr> and button elements:
+        <button type="submit"
+                class="text-xl flex-grow py-2 px-4 rounded
+          bg-orange-600 hover:bg-orange-700 text-white
+          font-bold2 disabled:opacity-50 disabled:cursor-not-allowed
+          duration-300 ease-in-out transform hover:scale-105 disabled:hover:scale-100"
+                name="kind"
+                value="share"
+                :disabled="!isFormValid">
+          Create a secret link<span v-if="withAsterisk">*</span>
+        </button>
+      </div>
 
-        1. For the <hr> element:
-          - Use the `w-2/3` class to set the width to 2/3 of its container.
-          - Use the `mx-auto` class to center it horizontally.
-          - Example: <hr class="w-2/3 my-4 border-gray-200 mx-auto">
-
-        2. For the button element:
-          - Use the `w-2/3` class to set the width to 2/3 of its container.
-          - Use the `mx-auto` class to center it horizontally.
-          - Use the `block` class to ensure it behaves as a block-level element.
-          - Example:
-            <button type="submit"
-                    v-if="props.withGenerate"
-                    class="w-2/3 py-2 px-4 rounded mb-4
-                    text-base
-                    bg-gray-100 hover:bg-gray-400 text-gray-800
-                    dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200
-                    mx-auto block"
-                    name="kind"
-                    value="generate">
-              Or generate a random password
-            </button>
-      -->
-      <hr class="w-1/4 my-4 border-gray-200 mx-auto">
-      <button type="submit" tabindex="7"
-              v-if="props.withGenerate"
-              class="w-2/3 py-2 px-4 rounded mb-4
-              text-base
-              bg-gray-100 hover:bg-gray-400 text-gray-800
-              dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200
-              mx-auto block
-              duration-300 ease-in-out transform hover:scale-105"
-              name="kind"
-              value="generate">
-        Or generate a random password
-      </button>
     </form>
   </div>
 </template>
