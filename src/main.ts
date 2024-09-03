@@ -63,9 +63,10 @@ app.mount('#app');
  **/
 const showBanner = ref(false);
 const broadcastApp = createApp(GlobalBroadcast, {
-  content: 'This is a global broadcast',
+  content: import.meta.env.VITE_BROADCAST_CONTENT || null,
   show: showBanner.value,
 })
+
 broadcastApp.mount('#broadcast');
 
 const themeToggleElement = document.querySelector('#theme-toggle');

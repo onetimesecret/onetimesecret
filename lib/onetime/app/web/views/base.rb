@@ -37,6 +37,7 @@ module Onetime
         self[:js], self[:css] = [], []
         self[:is_default_locale] = is_default_locale
         self[:supported_locales] = OT.conf[:locales]
+        self[:support_host] = site.dig(:support, :host) # defaults to nil
         self[:authentication] = site[:authentication]
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
@@ -99,6 +100,7 @@ module Onetime
         self[:jsvars] << jsvar(:vue_component_name, self.vue_component_name)
         self[:jsvars] << jsvar(:locale, locale)
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
+        self[:jsvars] << jsvar(:supported_locales, self[:supported_locales])
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])

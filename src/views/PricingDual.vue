@@ -15,7 +15,7 @@
         <h2 class="text-base font-semibold leading-7 text-brand-600 dark:text-brand-400 sm:text-lg md:text-xl">Pricing
         </h2>
         <p
-           class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl md:text-5xl lg:text-6xl">
+           class="mt-2 text-4xl font-brand font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl lg:text-7xl">
           Secure Links, Stronger Connections
         </p>
         <p
@@ -25,7 +25,7 @@
       </div>
 
     </div>
-    <div class="mt-16 flex justify-center">
+    <div class="mt-16 flex justify-center font-serif">
       <fieldset aria-label="Payment frequency">
         <RadioGroup v-model="frequency"
                     class="grid grid-cols-2 gap-x-1 rounded-full bg-white/5 p-1 text-center text-xs font-semibold leading-5 text-white">

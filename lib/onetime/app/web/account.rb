@@ -67,7 +67,7 @@ module Onetime
         # We take the tier and billing cycle from the URL path and try to
         # get the preconfigured Stripe payment links using those values.
         tierid = req.params[:tier] ||= 'free'
-        billing_cycle = req.params[:billing_cycle] ||= 'month'
+        billing_cycle = req.params[:billing_cycle] ||= 'month' # year or month
 
         plans = OT.conf.dig(:site, :plans)
         payment_links = plans.fetch(:payment_links, {})
