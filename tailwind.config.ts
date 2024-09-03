@@ -140,25 +140,32 @@ export default {
     typography(),
 
     /* TODO: Check if we can use this in place of the fonts.css */
-    //function({ addBase, theme }) {
-    //  addBase({
-    //    '@font-face': [
-    //      {
-    //        fontFamily: 'Zilla Slab',
-    //        fontWeight: '400',
-    //        fontStyle: 'normal',
-    //        fontDisplay: 'swap',
-    //        src: 'url("/fonts/ZillaSlab-Regular.woff2") format("woff2")',
-    //      },
-    //      {
-    //        fontFamily: 'Zilla Slab',
-    //        fontWeight: '700',
-    //        fontStyle: 'normal',
-    //        fontDisplay: 'swap',
-    //        src: 'url("/fonts/ZillaSlab-Bold.woff2") format("woff2")',
-    //      },
-    //    ],
-    //  })
-    //},
+    function({ addBase, theme }) {
+      addBase({
+        '@font-face': [
+          {
+            fontFamily: 'Zilla Slab',
+            src: "url('/fonts/zs/ZillaSlab-Regular.woff2') format('woff2'), url('/fonts/zs/ZillaSlab-Regular.woff') format('woff')",
+            fontWeight: 'normal',
+            fontStyle: 'normal',
+            fontDisplay: 'fallback',
+          },
+          {
+            fontFamily: 'Zilla Slab',
+            src: "url('/fonts/zs/ZillaSlab-Bold.woff2') format('woff2'), url('/fonts/zs/ZillaSlab-Bold.woff') format('woff')",
+            fontWeight: 'bold',
+            fontStyle: 'bold',
+            fontDisplay: 'fallback',
+          },
+          {
+            fontFamily: 'Zilla Slab',
+            src: "url('/fonts/zs/ZillaSlab-Italic.woff2') format('woff2'), url('/fonts/zs/ZillaSlab-Italic.woff') format('woff')",
+            fontWeight: 'normal',
+            fontStyle: 'italic',
+            fontDisplay: 'fallback',
+          },
+        ],
+      })
+    },
   ],
 };
