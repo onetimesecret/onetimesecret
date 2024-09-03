@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "type-check": "vue-tsc --noEmit",
     "build-only": "vite build",
     "build": "pnpm run type-check && pnpm run build-only",
