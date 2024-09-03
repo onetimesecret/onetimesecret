@@ -58,9 +58,10 @@ export default defineConfig({
     }
   },
 
-  assetsInclude: ['**/*.woff', '**/*.woff2'], // Include font files
+  assetsInclude: ['assets/fonts/**/*.woff', 'assets/fonts/**/*.woff2'], // Include font files
   base: '/dist',
 
+  publicDir: 'public/web',
 
   // be simpler and more efficient.
   build: {
