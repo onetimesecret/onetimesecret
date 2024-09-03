@@ -168,7 +168,7 @@ COPY --from=base /usr/local/bundle /usr/local/bundle
 COPY --from=app_env $CODE_ROOT $CODE_ROOT
 ARG CODE_ROOT
 
-LABEL Name=onetimesecret Version=0.17.0
+LABEL Name=onetimesecret Version=0.17.1
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
