@@ -145,21 +145,21 @@ export default {
         '@font-face': [
           {
             fontFamily: 'Zilla Slab',
-            src: "url('/fonts/zs/ZillaSlab-Regular.woff2') format('woff2'), url('/fonts/zs/ZillaSlab-Regular.woff') format('woff')",
+            src: "url('./fonts/zs/ZillaSlab-Regular.woff2') format('woff2'), url('./fonts/zs/ZillaSlab-Regular.woff') format('woff')",
             fontWeight: 'normal',
             fontStyle: 'normal',
             fontDisplay: 'fallback',
           },
           {
             fontFamily: 'Zilla Slab',
-            src: "url('/fonts/zs/ZillaSlab-Bold.woff2') format('woff2'), url('/fonts/zs/ZillaSlab-Bold.woff') format('woff')",
+            src: "url('./fonts/zs/ZillaSlab-Bold.woff2') format('woff2'), url('./fonts/zs/ZillaSlab-Bold.woff') format('woff')",
             fontWeight: 'bold',
             fontStyle: 'bold',
             fontDisplay: 'fallback',
           },
           {
             fontFamily: 'Zilla Slab',
-            src: "url('/fonts/zs/ZillaSlab-Italic.woff2') format('woff2'), url('/fonts/zs/ZillaSlab-Italic.woff') format('woff')",
+            src: "url('./fonts/zs/ZillaSlab-Italic.woff2') format('woff2'), url('./fonts/zs/ZillaSlab-Italic.woff') format('woff')",
             fontWeight: 'normal',
             fontStyle: 'italic',
             fontDisplay: 'fallback',

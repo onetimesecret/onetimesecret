@@ -3,7 +3,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import router from '@/router';
 import { createApp, ref } from 'vue';
 
-import './style.css';
+import './assets/style.css';
 
 
 /**
