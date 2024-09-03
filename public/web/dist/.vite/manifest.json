@@ -1,34 +1,66 @@
 {
-  "_BasicFormAlerts-DU6U0o_L.js": {
-    "file": "assets/BasicFormAlerts-DU6U0o_L.js",
+  "_BasicFormAlerts-DggtAQ7U.js": {
+    "file": "assets/BasicFormAlerts-DggtAQ7U.js",
     "name": "BasicFormAlerts",
     "imports": [
       "main.ts"
     ]
   },
-  "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-DsOWlVOj.js": {
-    "file": "assets/DomainVerificationInfo.vue_vue_type_script_setup_true_lang-DsOWlVOj.js",
+  "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-B_MvYcXZ.js": {
+    "file": "assets/DomainVerificationInfo.vue_vue_type_script_setup_true_lang-B_MvYcXZ.js",
     "name": "DomainVerificationInfo.vue_vue_type_script_setup_true_lang",
     "imports": [
       "main.ts"
     ]
   },
-  "_formSubmission-C3qpAeX8.js": {
-    "file": "assets/formSubmission-C3qpAeX8.js",
+  "_formSubmission-CTn9yY9u.js": {
+    "file": "assets/formSubmission-CTn9yY9u.js",
     "name": "formSubmission",
     "imports": [
       "main.ts"
     ]
   },
-  "_keyboard-Ce2vuEN7.js": {
-    "file": "assets/keyboard-Ce2vuEN7.js",
+  "_keyboard-ChwqIJ8M.js": {
+    "file": "assets/keyboard-ChwqIJ8M.js",
     "name": "keyboard",
     "imports": [
       "main.ts"
     ]
   },
+  "assets/fonts/zs/ZillaSlab-Bold.woff": {
+    "file": "assets/ZillaSlab-Bold-BSphAb8W.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Bold.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Bold.woff2": {
+    "file": "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Bold.woff2"
+  },
+  "assets/fonts/zs/ZillaSlab-BoldItalic.woff": {
+    "file": "assets/ZillaSlab-BoldItalic-BG1CNiCK.woff",
+    "src": "assets/fonts/zs/ZillaSlab-BoldItalic.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-BoldItalic.woff2": {
+    "file": "assets/ZillaSlab-BoldItalic-q1iItYoI.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-BoldItalic.woff2"
+  },
+  "assets/fonts/zs/ZillaSlab-Italic.woff": {
+    "file": "assets/ZillaSlab-Italic-B4KlKyMb.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Italic.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Italic.woff2": {
+    "file": "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Italic.woff2"
+  },
+  "assets/fonts/zs/ZillaSlab-Regular.woff": {
+    "file": "assets/ZillaSlab-Regular-2Acx4doP.woff",
+    "src": "assets/fonts/zs/ZillaSlab-Regular.woff"
+  },
+  "assets/fonts/zs/ZillaSlab-Regular.woff2": {
+    "file": "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
+    "src": "assets/fonts/zs/ZillaSlab-Regular.woff2"
+  },
   "components/PasswordStrengthChecker.vue": {
-    "file": "assets/PasswordStrengthChecker-BslKqo8H.js",
+    "file": "assets/PasswordStrengthChecker-CaEbG9DX.js",
     "name": "PasswordStrengthChecker",
     "src": "components/PasswordStrengthChecker.vue",
     "isDynamicEntry": true,
@@ -37,7 +69,7 @@
     ]
   },
   "main.ts": {
-    "file": "assets/main-zVJREaYH.js",
+    "file": "assets/main-Dz73HHIq.js",
     "name": "main",
     "src": "main.ts",
     "isEntry": true,
@@ -54,11 +86,21 @@
       "components/PasswordStrengthChecker.vue"
     ],
     "css": [
-      "assets/main-Dzuq5VOJ.css"
+      "assets/main-BiNdfsTx.css"
+    ],
+    "assets": [
+      "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
+      "assets/ZillaSlab-Regular-2Acx4doP.woff",
+      "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
+      "assets/ZillaSlab-Bold-BSphAb8W.woff",
+      "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
+      "assets/ZillaSlab-Italic-B4KlKyMb.woff",
+      "assets/ZillaSlab-BoldItalic-q1iItYoI.woff2",
+      "assets/ZillaSlab-BoldItalic-BG1CNiCK.woff"
     ]
   },
   "views/Dashboard.vue": {
-    "file": "assets/Dashboard-D0cSz4ky.js",
+    "file": "assets/Dashboard-Bwcb3G9g.js",
     "name": "Dashboard",
     "src": "views/Dashboard.vue",
     "isDynamicEntry": true,
@@ -67,7 +109,7 @@
     ]
   },
   "views/Feedback.vue": {
-    "file": "assets/Feedback-dfEO4rL3.js",
+    "file": "assets/Feedback-U81ie-ZQ.js",
     "name": "Feedback",
     "src": "views/Feedback.vue",
     "isDynamicEntry": true,
@@ -76,7 +118,7 @@
     ]
   },
   "views/Metadata.vue": {
-    "file": "assets/Metadata-w8SM5hDs.js",
+    "file": "assets/Metadata-VROmU4Ug.js",
     "name": "Metadata",
     "src": "views/Metadata.vue",
     "isDynamicEntry": true,
@@ -85,20 +127,20 @@
     ]
   },
   "views/PricingDual.vue": {
-    "file": "assets/PricingDual-CLOOtsjL.js",
+    "file": "assets/PricingDual-CTvPcG5j.js",
     "name": "PricingDual",
     "src": "views/PricingDual.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_keyboard-Ce2vuEN7.js"
+      "_keyboard-ChwqIJ8M.js"
     ],
     "css": [
-      "assets/PricingDual-D-_D7zu4.css"
+      "assets/PricingDual-ByDsOrIS.css"
     ]
   },
   "views/Secret.vue": {
-    "file": "assets/Secret-DTlaJmt0.js",
+    "file": "assets/Secret-DqY5UTh8.js",
     "name": "Secret",
     "src": "views/Secret.vue",
     "isDynamicEntry": true,
@@ -107,48 +149,48 @@
     ]
   },
   "views/account/AccountDomainAdd.vue": {
-    "file": "assets/AccountDomainAdd-C2XICpa-.js",
+    "file": "assets/AccountDomainAdd-BE42THnR.js",
     "name": "AccountDomainAdd",
     "src": "views/account/AccountDomainAdd.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_BasicFormAlerts-DU6U0o_L.js",
-      "_formSubmission-C3qpAeX8.js"
+      "_BasicFormAlerts-DggtAQ7U.js",
+      "_formSubmission-CTn9yY9u.js"
     ]
   },
   "views/account/AccountDomainVerify.vue": {
-    "file": "assets/AccountDomainVerify-CC-eG8Iw.js",
+    "file": "assets/AccountDomainVerify-EsFRE1Ll.js",
     "name": "AccountDomainVerify",
     "src": "views/account/AccountDomainVerify.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_formSubmission-C3qpAeX8.js",
-      "_BasicFormAlerts-DU6U0o_L.js",
-      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-DsOWlVOj.js"
+      "_formSubmission-CTn9yY9u.js",
+      "_BasicFormAlerts-DggtAQ7U.js",
+      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-B_MvYcXZ.js"
     ]
   },
   "views/account/AccountDomains.vue": {
-    "file": "assets/AccountDomains-olx5JUfe.js",
+    "file": "assets/AccountDomains-DlevJZa3.js",
     "name": "AccountDomains",
     "src": "views/account/AccountDomains.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_formSubmission-C3qpAeX8.js",
-      "_keyboard-Ce2vuEN7.js",
-      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-DsOWlVOj.js"
+      "_formSubmission-CTn9yY9u.js",
+      "_keyboard-ChwqIJ8M.js",
+      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-B_MvYcXZ.js"
     ]
   },
   "views/account/AccountIndex.vue": {
-    "file": "assets/AccountIndex-BczNW68V.js",
+    "file": "assets/AccountIndex-CydYLDBH.js",
     "name": "AccountIndex",
     "src": "views/account/AccountIndex.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_formSubmission-C3qpAeX8.js"
+      "_formSubmission-CTn9yY9u.js"
     ],
     "css": [
       "assets/AccountIndex-DGxx-y0y.css"
