@@ -57,8 +57,9 @@ declare global {
     domains_enabled: booleam;
     email: string;
     frontend_host: string;
-    is_default_locale: boolean;
     locale: string;
+    is_default_locale: boolean;
+    supported_locales: string[];
     ot_version: string;
     ruby_version: string;
     shrimp: string;  // Our CSRF token, to be used in POST requests to the backend
