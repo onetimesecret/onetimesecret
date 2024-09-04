@@ -26,6 +26,8 @@ APP_DIR = File.join(app_root, '/lib/onetime/app').freeze
 
 $LOAD_PATH.unshift(File.join(app_root, 'lib'))
 
+require 'rack/content_length'
+
 require_relative 'lib/middleware'
 require_relative 'lib/onetime'
 
@@ -58,14 +60,16 @@ middlewares = if Otto.env?(:dev)
     [Rack::ClearSessionMessages],
     [Rack::Reloader, 1],
     [Rack::HandleInvalidUTF8],
-    [Rack::HandleInvalidPercentEncoding]
+    [Rack::HandleInvalidPercentEncoding],
+    [Rack::ContentLength]
   ]
 else
   [
     [Rack::CommonLogger],
     [Rack::ClearSessionMessages],
     [Rack::HandleInvalidUTF8],
-    [Rack::HandleInvalidPercentEncoding]
+    [Rack::HandleInvalidPercentEncoding],
+    [Rack::ContentLength]
   ]
 end
 
