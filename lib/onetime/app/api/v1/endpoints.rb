@@ -11,8 +11,8 @@ class Onetime::App
     @check_uri_encoding = true
 
     # FlexibleHashAccess is a refinement for the Hash class that enables
-    # flexible key access, allowing the use of either strings or symbols
-    # interchangeably when retrieving values from a hash.
+    # the use of either strings or symbols interchangeably when
+    # retrieving values from a hash.
     #
     # @see metadata_hsh method
     #

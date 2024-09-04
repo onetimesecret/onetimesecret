@@ -33,6 +33,9 @@
     # an instance for your team or company, you can disable this feature
     # to make it easier for users to sign in.
     :autoverify: false
+  :authenticity:
+    :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
+    :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
   :plans:
     :enabled: false
 :redis:

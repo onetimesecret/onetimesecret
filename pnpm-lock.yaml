@@ -11,6 +11,9 @@ importers:
       '@headlessui/vue':
         specifier: ^1.7.22
         version: 1.7.22(vue@3.4.32(typescript@5.5.3))
+      altcha:
+        specifier: ^1.0.0
+        version: 1.0.0
       pnpm:
         specifier: ^9.6.0
         version: 9.6.0
@@ -27,6 +30,9 @@ importers:
       '@iconify-json/heroicons':
         specifier: ^1.1.22
         version: 1.1.22
+      '@iconify-json/mdi':
+        specifier: ^1.2.0
+        version: 1.2.0
       '@iconify/vue':
         specifier: ^4.1.2
         version: 4.1.2(vue@3.4.32(typescript@5.5.3))
@@ -42,9 +48,6 @@ importers:
       '@types/node':
         specifier: ^20.14.11
         version: 20.14.11
-      '@types/stripe':
-        specifier: ^8.0.417
-        version: 8.0.417
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.16.1
         version: 7.16.1(@typescript-eslint/parser@7.16.1(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3)
@@ -105,6 +108,9 @@ packages:
   '@alloc/quick-lru@5.2.0':
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+
+  '@altcha/crypto@0.0.1':
+    resolution: {integrity: sha512-qZMdnoD3lAyvfSUMNtC2adRi666Pxdcw9zqfMU5qBOaJWqpN9K+eqQGWqeiKDMqL0SF+EytNG4kR/Pr/99GJ6g==}
 
   '@babel/helper-string-parser@7.24.8':
     resolution: {integrity: sha512-pO9KhhRcuUyGnJWwyEgnRJTSIZHiT+vMD0kPeD+so0l7mxkMT19g3pjY9GTnHySck/hDzq+dtW/4VgnMkippsQ==}
@@ -309,6 +315,9 @@ packages:
   '@iconify-json/heroicons@1.1.22':
     resolution: {integrity: sha512-UNfSBdD/JBYBvFFhce6e3FsmeqshGz8u964R36npJvIzuORhIHUXrFerulBWFmbG0V1xvMqLZVZc4bPyjP5p7A==}
 
+  '@iconify-json/mdi@1.2.0':
+    resolution: {integrity: sha512-E9/3l5Syg3wfuarorFodhn4s8YorxhH3U3U20LaNBNiqw1kFNIDWhF6HymuzAD35k7RH0OBasJ+ZUyFtVVV6eg==}
+
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
 
@@ -420,6 +429,11 @@ packages:
     cpu: [s390x]
     os: [linux]
 
+  '@rollup/rollup-linux-x64-gnu@4.18.0':
+    resolution: {integrity: sha512-xuglR2rBVHA5UsI8h8UbX4VJ470PtGCf5Vpswh7p2ukaqBGFTnsfzxUBetoWBWymHMxbIG0Cmx7Y9qDZzr648w==}
+    cpu: [x64]
+    os: [linux]
+
   '@rollup/rollup-linux-x64-gnu@4.18.1':
     resolution: {integrity: sha512-7O5u/p6oKUFYjRbZkL2FLbwsyoJAjyeXHCU3O4ndvzg2OFO2GinFPSJFGbiwFDaCFc+k7gs9CF243PwdPQFh5g==}
     cpu: [x64]
@@ -483,10 +497,6 @@ packages:
 
   '@types/node@20.14.11':
     resolution: {integrity: sha512-kprQpL8MMeszbz6ojB5/tU8PLN4kesnN8Gjzw349rDlNgsSzg90lAVj3llK99Dh7JON+t9AuscPPFW6mPbTnSA==}
-
-  '@types/stripe@8.0.417':
-    resolution: {integrity: sha512-PTuqskh9YKNENnOHGVJBm4sM0zE8B1jZw1JIskuGAPkMB+OH236QeN8scclhYGPA4nG6zTtPXgwpXdp+HPDTVw==}
-    deprecated: This is a stub types definition. stripe provides its own type definitions, so you do not need this installed.
 
   '@typescript-eslint/eslint-plugin@7.16.1':
     resolution: {integrity: sha512-SxdPak/5bO0EnGktV05+Hq8oatjAYVY3Zh2bye9pGZy6+jwyR3LG3YKkV4YatlsgqXP28BTeVm9pqwJM96vf2A==}
@@ -639,6 +649,9 @@ packages:
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
+
+  altcha@1.0.0:
+    resolution: {integrity: sha512-USavcU/e/2pJtLXyWRYDZV63+OvTKGSntQlqQbF5feeChaTj8Hc1TtH8CbQi4OwX3ffeQiHuW+LCzwCgn+JvZg==}
 
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
@@ -1757,6 +1770,8 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
+  '@altcha/crypto@0.0.1': {}
+
   '@babel/helper-string-parser@7.24.8': {}
 
   '@babel/helper-validator-identifier@7.24.7': {}
@@ -1890,6 +1905,10 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
+  '@iconify-json/mdi@1.2.0':
+    dependencies:
+      '@iconify/types': 2.0.0
+
   '@iconify/types@2.0.0': {}
 
   '@iconify/vue@4.1.2(vue@3.4.32(typescript@5.5.3))':
@@ -1986,6 +2005,9 @@ snapshots:
   '@rollup/rollup-linux-s390x-gnu@4.18.1':
     optional: true
 
+  '@rollup/rollup-linux-x64-gnu@4.18.0':
+    optional: true
+
   '@rollup/rollup-linux-x64-gnu@4.18.1':
     optional: true
 
@@ -2036,10 +2058,6 @@ snapshots:
   '@types/node@20.14.11':
     dependencies:
       undici-types: 5.26.5
-
-  '@types/stripe@8.0.417':
-    dependencies:
-      stripe: 16.6.0
 
   '@typescript-eslint/eslint-plugin@7.16.1(@typescript-eslint/parser@7.16.1(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3)':
     dependencies:
@@ -2252,6 +2270,12 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
+
+  altcha@1.0.0:
+    dependencies:
+      '@altcha/crypto': 0.0.1
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.18.0
 
   ansi-regex@5.0.1: {}
 

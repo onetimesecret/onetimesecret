@@ -27,6 +27,8 @@ class Onetime::App
       redirect ||= req.request_path unless app == :api
       content_type ||= 'text/html; charset=utf-8'
 
+      cust ||= OT::Customer.anonymous
+
       # Determine the locale for the current request
       # We check get here to stop an infinite redirect loop.
       # Pages redirecting from a POST can get by with the same page once.

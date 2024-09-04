@@ -37,6 +37,10 @@ gem 'gibbler'
 
 gem 'otto', '~> 1.1.0.pre.alpha3'
 
+gem 'altcha', '~> 0.1.0'
+
+gem 'sinatra', '~> 3.2'
+
 gem 'redis', '~> 5.2.0'
 gem 'storable'
 gem 'sysinfo'

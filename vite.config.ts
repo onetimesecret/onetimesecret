@@ -15,6 +15,10 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
+          // Be cool and chill about 3rd party components. Alternatvely can use
+          // `app.config.compilerOptions.isCustomElement = tag => tag.startsWith('altcha-')`
+          // in main.ts.
+          isCustomElement: tag => tag.includes('altcha-')
 
         }
       }
@@ -66,7 +70,13 @@ export default defineConfig({
   // be simpler and more efficient.
   build: {
     outDir: '../public/web/dist',
-    emptyOutDir: true,
+
+    // It's important in staging to keep the previous files around during and
+    // for an hour after fly deploy: during the deploy so that requests coming
+    // in going to one or the other machines can continue serving the previous
+    // version, and for an hour after the deploy for the redis cache to expire
+    // (or be manually deleted). The key is template:global:vite_assets in db 0.
+    emptyOutDir: false,
 
     // Code Splitting vs Combined Files
     //

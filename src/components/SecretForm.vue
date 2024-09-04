@@ -116,20 +116,20 @@ const updateSelectedDomain = (domain: string) => {
 
       <div class="flex w-full mb-4">
         <button type="submit"
-                class="generate-btn text-base py-2 px-2 pr-6 rounded mr-2
-        dark:bg-brandcompdim-900 bg-brand-100
-        hover:bg-gray-600 dark:hover:bg-gray-600
-        text-white font-medium transition-all duration-300 ease-in-out transform
-        w-10 hover:w-56 overflow-hidden whitespace-nowrap group
-        disabled:opacity-50 disabled:cursor-not-allowed
-        disabled:bg-gray-400 dark:disabled:bg-gray-700
-        disabled:hover:bg-gray-400 dark:disabled:hover:bg-gray-700
-        disabled:hover:scale-100 disabled:hidden"
+                class="generate-btn text-base py-2 px-4 pr-6 rounded mr-2
+                dark:bg-gray-700 bg-brand-100
+                hover:bg-gray-600 dark:hover:bg-gray-600
+                text-white font-medium transition-all duration-300 ease-in-out transform
+                  w-12 hover:w-56 overflow-hidden whitespace-nowrap group
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                disabled:bg-gray-400 dark:disabled:bg-gray-700
+                disabled:hover:bg-gray-400 dark:disabled:hover:bg-gray-700
+                  disabled:hover:scale-100 disabled:hidden"
                 :disabled="isFormValid"
                 name="kind"
                 value="generate"
                 title="Generate Password is disabled when the form is valid">
-          <span class="inline-block transition-margin duration-300 ease-in-out mr-0 group-hover:mr-2">🔑</span>
+          <span class="inline-block transition-margin duration-300 ease-in-out mr-0 group-hover:mr-2 opacity-80">🔑</span>
           <span class="opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100">Generate
             Password</span>
         </button>
