@@ -12,6 +12,9 @@ const props = withDefaults(defineProps<Props>(), {
   shrimp: null,
 })
 
+// We use this to determine whether to include the authenticity check
+const cust = window.cust;
+
 </script>
 
 <template>
@@ -20,33 +23,36 @@ const props = withDefaults(defineProps<Props>(), {
           action="/feedback"
           method="post">
       <input type="hidden"
-                   name="utf8"
-                   value="✓" />
+             name="utf8"
+             value="✓" />
       <input type="hidden"
-              name="shrimp"
-              :value="shrimp" />
+             name="shrimp"
+             :value="shrimp" />
       <div class="flex mb-4">
 
-        <AltchaChallenge />
+        <AltchaChallenge v-if="!cust" />
 
-        <input type="text"
-               name="msg"
-               class="flex-grow px-4 py-2 border rounded-l-md
-          border-gray-300 focus:ring-gray-300 focus:border-transparent
-          dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200
-          focus:outline-none focus:ring-2"
-               autocomplete="off"
-               placeholder="{{i18n.COMMON.feedback_text}}">
+        <div class="flex flex-grow focus-within:ring-1 focus-within:ring-brandcomp-500 rounded-md overflow-hidden">
+          <input type="text"
+                 name="msg"
+                 class="flex-grow px-4 py-2 border-y border-l
+                              focus:border-brandcomp-500
+                              dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200
+                              focus:outline-none"
+                 autocomplete="off"
+                 placeholder="">
+                 <!--i18n.COMMON.feedback_text-->
 
-        <button class="px-4 py-2 font-light rounded-r-md
-            bg-gray-300
-            dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200
-            hover:bg-gray-400"
-                type="submit">
-          <!--{{i18n.COMMON.button_send_feedback}}-->
-          Send Feedback
-        </button>
-
+          <button class="px-4 py-2 font-light
+                               bg-gray-500 hover:bg-gray-600
+                               dark:bg-gray-600 dark:hover:bg-gray-700
+                               text-white
+                               transition duration-150 ease-in-out"
+                  type="submit">
+            <!--{{i18n.COMMON.button_send_feedback}}-->
+            Send Feedback
+          </button>
+        </div>
       </div>
     </form>
   </div>

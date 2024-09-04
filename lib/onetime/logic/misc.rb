@@ -17,8 +17,11 @@ module Onetime::Logic
         limit_action :send_feedback
 
         raise_form_error "You can be more original than that!" if @msg.empty?
-        raise_form_error "You need to be carbon-based to do that" if altcha_payload.empty?
-        raise_form_error "Invalid Altcha payload" unless verify_altcha_payload
+
+        if cust.anonymous?
+          raise_form_error "You need to be carbon-based to do that" if altcha_payload.empty?
+          raise_form_error "Invalid Altcha payload" unless verify_altcha_payload
+        end
       end
 
       def verify_altcha_payload
