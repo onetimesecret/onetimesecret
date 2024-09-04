@@ -3,6 +3,7 @@ GEM
   specs:
     addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
+    altcha (0.1.0)
     ast (2.4.2)
     attic (1.0.1)
       rake (~> 13.0.6)
@@ -47,6 +48,8 @@ GEM
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
     mustache (1.1.1)
+    mustermann (3.0.3)
+      ruby2_keywords (~> 0.0.1)
     net-imap (0.4.13)
       date
       net-protocol
@@ -74,6 +77,9 @@ GEM
     public_suffix (5.1.0)
     racc (1.8.0)
     rack (2.2.9)
+    rack-protection (3.2.0)
+      base64 (>= 0.1.0)
+      rack (~> 2.2, >= 2.2.4)
     rainbow (3.1.1)
     rake (13.0.6)
     rbi (0.1.13)
@@ -106,6 +112,7 @@ GEM
       rubocop (>= 0.90.0)
     ruby-dap (0.1.3)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
@@ -113,6 +120,11 @@ GEM
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
     simpleidn (0.2.3)
+    sinatra (3.2.0)
+      mustermann (~> 3.0)
+      rack (~> 2.2, >= 2.2.4)
+      rack-protection (= 3.2.0)
+      tilt (~> 2.0)
     sorbet (0.5.11435)
       sorbet-static (= 0.5.11435)
     sorbet-runtime (0.5.11435)
@@ -149,6 +161,7 @@ GEM
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
     thor (1.3.1)
+    tilt (2.4.0)
     timeout (0.4.1)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
@@ -168,6 +181,7 @@ PLATFORMS
 
 DEPENDENCIES
   addressable
+  altcha (~> 0.1.0)
   base64 (= 0.2.0)
   bcrypt
   byebug
@@ -192,6 +206,7 @@ DEPENDENCIES
   rubocop-thread_safety
   sendgrid-ruby
   sentry-ruby
+  sinatra (~> 3.2)
   sorbet
   sorbet-runtime
   spoom
