@@ -1,5 +1,6 @@
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import FeedbackForm from '@/components/FeedbackForm.vue';
 import router from '@/router';
 import { createApp, ref } from 'vue';
 
@@ -62,19 +63,34 @@ app.mount('#app');
  *
  **/
 const showBanner = ref(false);
-const broadcastApp = createApp(GlobalBroadcast, {
-  content: import.meta.env.VITE_BROADCAST_CONTENT || null,
-  show: showBanner.value,
-})
+const broadcastElement = document.querySelector('#broadcast');
+if (broadcastElement) {
+  const broadcastApp = createApp(GlobalBroadcast, {
+    content: import.meta.env.VITE_BROADCAST_CONTENT || null,
+    show: showBanner.value,
+  })
+  broadcastApp.mount(broadcastElement);
+}
 
-broadcastApp.mount('#broadcast');
+const feedbackFormElement = document.querySelector('#feedback-form');
+if (feedbackFormElement) {
+  const toggleApp = createApp(FeedbackForm, {
+    shrimp: window.shrimp,
+  });
+  toggleApp.mount(feedbackFormElement);
+}
 
 const themeToggleElement = document.querySelector('#theme-toggle');
 if (themeToggleElement) {
   const toggleApp = createApp(ThemeToggle);
-  toggleApp.mount('#theme-toggle');
+  toggleApp.mount(themeToggleElement);
 }
 
+
+/*
+* Old-school global function. Actually the Altcha lib has a replacement
+* for this, so we can 86 this in the future.
+*/
 function deobfuscateEmails(): void {
   document.querySelectorAll<HTMLElement>('.email').forEach(el => {
     const email = el.textContent?.replace(/ &#65;&#84; /g, "@").replace(/ AT /g, "@").replace(/ D0T /g, ".") || '';
@@ -86,4 +102,6 @@ function deobfuscateEmails(): void {
 
 // Call this function when the DOM is ready or after dynamic content is loaded
 document.addEventListener('DOMContentLoaded', deobfuscateEmails);
+
+// Add it to the global scope for use in other scripts
 window.deobfuscateEmails = deobfuscateEmails;
