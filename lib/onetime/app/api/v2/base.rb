@@ -6,7 +6,6 @@ class Onetime::App
     module Base
       include Onetime::App::WebHelpers
 
-
       def json hsh
         res.header['Content-Type'] = "application/json; charset=utf-8"
         res.body = hsh.to_json
@@ -29,6 +28,7 @@ class Onetime::App
 
       def error_response msg, hsh={}
         hsh[:message] = msg
+        hsh[:success] = false
         res.status = 403 # Forbidden
         json hsh
       end
