@@ -6,11 +6,11 @@ module Onetime::Logic
   module Misc
 
     class ReceiveFeedback < OT::Logic::Base
-      attr_reader :msg, :altcha_payload, :verified, :verification_data
+      attr_reader :msg, :authenticity_payload, :verified, :verification_data
 
       def process_params
         @msg = params[:msg].to_s.slice(0, 999)
-        @altcha_payload = params[:altcha].to_s.slice(0, 999)
+        @authenticity_payload = params[:authenticity_payload].to_s.slice(0, 999)
       end
 
       def raise_concerns
@@ -19,17 +19,18 @@ module Onetime::Logic
         raise_form_error "You can be more original than that!" if @msg.empty?
 
         if cust.anonymous?
-          raise_form_error "You need to be carbon-based to do that" if altcha_payload.empty?
-          raise_form_error "Invalid Altcha payload" unless verify_altcha_payload
+          raise_form_error "Cannot skip authenticity check" if authenticity_payload.empty?
+          raise_form_error "You need to be carbon-based to do that" unless verify_authenticity_payload
         end
       end
 
-      def verify_altcha_payload
-        @verified = Altcha.verify_solution(altcha_payload, secret_key)
+      def verify_authenticity_payload
+        @verified = Altcha.verify_solution(authenticity_payload, secret_key)
       end
 
-      def filter_spam_altcha_payload
-        @verified, @verification_data = Altcha.verify_server_signature(altcha_payload, secret_key)
+      def filter_spam_authenticity_payload
+        # authenticity_payload is a base64 encoded JSON string.
+        @verified, @verification_data = Altcha.verify_server_signature(authenticity_payload, secret_key)
 
         fields_verified = Altcha.verify_fields_hash(
           params,

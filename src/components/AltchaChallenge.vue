@@ -1,3 +1,4 @@
+<!-- Based on https://github.com/altcha-org/altcha-starter-vue-ts/blob/main/src/components/Altcha.vue -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 // Importing altcha package will introduce a new element <altcha-widget>.
@@ -53,11 +54,13 @@ onUnmounted(() => {
 
 <template>
   <!-- See docs: https://altcha.org/docs/website-integration/#using-altcha-widget -->
+  <!-- See all Web Component options in the README here: https://github.com/altcha-org/altcha-->
   <!-- https://altcha.org/docs/floating-ui/ -->
   <!-- https://altcha.org/docs/website-integration/ -->
   <div class="flex">
     <altcha-widget ref="altchaWidget"
                    challengeurl="/api/v2/altcha/challenge"
+                   name="authenticity_payload"
                    :floating="isFloating"
                    floatinganchor="bottom-right"
                    hidelogo
