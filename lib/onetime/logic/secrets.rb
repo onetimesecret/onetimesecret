@@ -1,6 +1,8 @@
 
 require_relative 'base'
 
+DEFAULT_SECRET_KIND = :share unless defined?(DEFAULT_SECRET_KIND)
+
 module Onetime::Logic
   module Secrets
 
@@ -21,7 +23,7 @@ module Onetime::Logic
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym
         end
-        @kind = :share if kind.nil? # assume share, not sonny
+        @kind = DEFAULT_SECRET_KIND if kind.nil? # assume share, not sonny
 
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
