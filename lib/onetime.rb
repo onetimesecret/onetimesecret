@@ -22,6 +22,16 @@ require 'sysinfo'
 
 require_relative 'onetime/core_ext'
 
+# Ensure immediate flushing of stdout to improve real-time logging visibility.
+# This is particularly useful in development and production environments where
+# timely log output is crucial for monitoring and debugging purposes.
+#
+# Enabling sync can have a performance impact in high-throughput environments.
+#
+# NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
+#
+STDOUT.sync = ENV['STDOUT_SYNC'] && %w[true yes 1].include?(ENV['STDOUT_SYNC'])
+
 # Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
 # the app. It is the main namespace for the application.
@@ -131,7 +141,7 @@ module Onetime
     def print_banner
       redis_info = Familia.redis.info
       info "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 10}"
-      info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
+      info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION}) sync:#{$stdout.sync}"
       info "Config: #{OT::Config.path}"
       info "Redis (#{redis_info['redis_version']}): #{Familia.uri.serverid}" # servid doesn't print the password
       info "Familia: #{Familia::VERSION}"

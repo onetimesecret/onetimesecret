@@ -7,16 +7,6 @@
 #     $ thin -e dev -R config.ru -p 3000 start
 #
 
-# Ensure immediate flushing of stdout to improve real-time logging visibility.
-# This is particularly useful in development and production environments where
-# timely log output is crucial for monitoring and debugging purposes.
-#
-# Note: This setting can have a performance impact in high-throughput environments.
-#
-# See: https://www.rubydoc.info/gems/rack/Rack/CommonLogger
-#
-$stdout.sync = true
-
 ENV['RACK_ENV'] ||= 'production'
 ENV['APP_ROOT'] = File.expand_path(__dir__).freeze
 app_root = ENV['APP_ROOT']
