@@ -15,6 +15,10 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
+          // Be cool and chill about 3rd party components. Alternatvely can use
+          // `app.config.compilerOptions.isCustomElement = tag => tag.startsWith('altcha-')`
+          // in main.ts.
+          isCustomElement: tag => tag.includes('altcha-')
 
         }
       }

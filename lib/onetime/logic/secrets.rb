@@ -1,6 +1,8 @@
 
 require_relative 'base'
 
+DEFAULT_SECRET_KIND = :share unless defined?(DEFAULT_SECRET_KIND)
+
 module Onetime::Logic
   module Secrets
 
@@ -21,6 +23,7 @@ module Onetime::Logic
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym
         end
+        @kind = DEFAULT_SECRET_KIND if kind.nil? # assume share, not sonny
 
         @secret_value = kind == :share ? params[:secret] : Onetime::Utils.strand(12)
         @passphrase = params[:passphrase].to_s
@@ -58,7 +61,7 @@ module Onetime::Logic
           end
         end
 
-        raise OT::Problem, "Unknown type of secret" if kind.nil?
+        raise_form_error "Unknown type of secret" if kind.nil?
 
         # Returns the display_domain/share_domain or
         @share_domain = OT::CustomDomain.display_domain(@share_domain) if share_domain

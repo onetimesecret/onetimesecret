@@ -5,31 +5,9 @@
 
   {{>partial/session_messages}}
 
-  <form class="mb-8" action="/feedback" method="post">
-    {{{add_shrimp}}}
-    <div class="flex">
-      <input
-        id="feedbackInput"
-        type="text"
-        name="msg"
-        class="flex-grow px-4 py-2 border rounded-l-md
-        border-gray-300
-        dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200
-        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent "
-        autocomplete="off"
-        placeholder="{{feedback_text}}"
-      >
-      <button
-        class="px-4 py-2 rounded-r-md
-        bg-brand-500 text-white
-        dark:focus:ring-offset-gray-800
-        hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-        type="submit"
-      >
-        {{i18n.COMMON.button_send_feedback}}
-      </button>
-    </div>
-  </form>
+  <div>
+    <div id="feedback-form" data-show-red-button="true"></div>
+  </div>
 
   <ul class="space-y-2">
     {{#popular_feedback}}

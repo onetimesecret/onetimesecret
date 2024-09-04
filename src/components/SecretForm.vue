@@ -117,14 +117,14 @@ const updateSelectedDomain = (domain: string) => {
       <div class="flex w-full mb-4">
         <button type="submit"
                 class="generate-btn text-base py-2 px-2 pr-6 rounded mr-2
-        dark:bg-brandcompdim-900 bg-brand-100
-        hover:bg-gray-600 dark:hover:bg-gray-600
-        text-white font-medium transition-all duration-300 ease-in-out transform
-        w-10 hover:w-56 overflow-hidden whitespace-nowrap group
-        disabled:opacity-50 disabled:cursor-not-allowed
-        disabled:bg-gray-400 dark:disabled:bg-gray-700
-        disabled:hover:bg-gray-400 dark:disabled:hover:bg-gray-700
-        disabled:hover:scale-100 disabled:hidden"
+                dark:bg-brandcompdim-900 bg-brand-100
+                hover:bg-gray-600 dark:hover:bg-gray-600
+                text-white font-medium transition-all duration-300 ease-in-out transform
+                  w-10 hover:w-56 overflow-hidden whitespace-nowrap group
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                disabled:bg-gray-400 dark:disabled:bg-gray-700
+                disabled:hover:bg-gray-400 dark:disabled:hover:bg-gray-700
+                  disabled:hover:scale-100 disabled:hidden"
                 :disabled="isFormValid"
                 name="kind"
                 value="generate"

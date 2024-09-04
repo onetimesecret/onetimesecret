@@ -31,3 +31,7 @@ GET    /v1/account/domains                      Onetime::App::API::Domains#list_
 ## API v2
 GET    /v2/status                               Onetime::App::APIV2#status
 GET    /v2/version                              Onetime::App::APIV2#version
+
+GET    /v2/altcha/challenge                     Onetime::App::APIV2#altcha_challenge
+POST   /v2/altcha/verify                        Onetime::App::APIV2#altcha_verify
+POST   /v2/altcha/verify_spam                   Onetime::App::APIV2#altcha_verify_spam

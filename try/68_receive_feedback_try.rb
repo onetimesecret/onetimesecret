@@ -95,18 +95,49 @@ count_after = @model_class.recent.count
 count_after - count_before
 #=> 1
 
-## Sending feedback as an anonymous user raises a concern
+## Sending feedback as an anonymous user without verification raises a concern
 cust = OT::Customer.anonymous
 sess = OT::Session.new 'id123', cust, "tryouts"
+sess.event_clear! :send_feedback
 params = { msg: 'This is a test feedback' }
 obj = OT::Logic::Misc::ReceiveFeedback.new sess, cust, params
-sess.event_clear! :send_feedback
 begin
   obj.raise_concerns
 rescue Onetime::FormError => e
   [e.class, e.message]
 end
-#=> [Onetime::FormError, "You need an account to do that"]
+#=> [Onetime::FormError, "Cannot skip authenticity check"]
+
+## Sending feedback as an anonymous user with a bad verification raises a concern
+cust = OT::Customer.anonymous
+sess = OT::Session.new 'id123', cust, "tryouts"
+sess.event_clear! :send_feedback
+params = { msg: 'This is a test feedback', authenticity_payload: "123" }
+obj = OT::Logic::Misc::ReceiveFeedback.new sess, cust, params
+begin
+  obj.raise_concerns
+rescue Onetime::FormError => e
+  [e.class, e.message]
+end
+#=> [Onetime::FormError, "You need to be carbon-based to do that"]
+
+## Sending feedback as an anonymous user with a verification works
+cust = OT::Customer.anonymous
+sess = OT::Session.new 'id123', cust, "tryouts"
+sess.event_clear! :send_feedback
+challenge = Onetime::App::APIV2.generate_authenticity_challenge(5000) # very low
+solution = Onetime::App::APIV2.solve_authenticity_challenge(challenge.challenge, challenge.salt, challenge.algorithm, challenge.maxnumber, 0)
+payload = Onetime::App::APIV2._authenticity_challenge_payload(challenge, solution.number)
+payload_encoded = Base64.encode64(payload.to_json)
+p [:challenge, challenge]
+p [:solution, solution]
+p [:payload_encoded, payload_encoded]
+params = { msg: 'This is a test feedback', authenticity_payload: payload_encoded }
+obj = OT::Logic::Misc::ReceiveFeedback.new sess, cust, params
+obj.process_params
+obj.raise_concerns
+obj.verified
+#=> true
 
 ## Feedback model exposes a recent method
 recent_feedback = @model_class.recent
