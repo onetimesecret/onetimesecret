@@ -10,20 +10,23 @@
 
     {{#display_links}}
     <div class="prose dark:prose-invert text-base pt-4 font-brand">
-      <a href="{{support_host}}/blog" aria-label="Our blogging website" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Blog</a>
+      {{#support_host}}
+      <a href="{{support_host}}/blog" aria-label="Our blogging website" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Blog</a> |
+      {{/support_host}}
 
       {{#plans_enabled}}
-        | <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a>
+        <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a>
       {{/plans_enabled}}
 
-      {{^support_host}}
-      | <a href="/docs/api" aria-label="API Documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
-      {{/support_host}}
       | <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">GitHub</a>
       {{#support_host}}
       | <a href="{{support_host}}/docs/rest-api" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
       | <a href="{{support_host}}/docs" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
       {{/support_host}}
+      {{^support_host}}
+      | <a href="/docs/api" aria-label="API Documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
+      {{/support_host}}
+
     </div>
     <div class="prose dark:prose-invert text-base font-brand">
       <a href="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Privacy</a> |
