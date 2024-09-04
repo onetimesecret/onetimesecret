@@ -4,7 +4,7 @@ require 'base64'
 
 require_relative 'base'
 require_relative '../../app_settings'
-require_relative '../../../../altcha'
+
 
 class Onetime::App
   class APIV2
@@ -31,44 +31,51 @@ class Onetime::App
     #   'Access-Control-Allow-Headers' => '*'
     #
     def altcha_challenge
-      options = Altcha::ChallengeOptions.new
-      options.max_number = 50_000
-      options.hmac_key = self.class.secret_key
-      challenge = Altcha.create_challenge(options)
-      json challenge
+      publically do
+        # The library defaults to 1_000_000, we default to 100_000 in the
+        # generate method. Let's start with an even easier challenge and
+        # work our way up.
+        max_number = 50_000
+        challenge = self.class.generate_authenticity_challenge(max_number)
+        json challenge
+      end
     end
 
     def altcha_verify
-      payload = params['altcha']
-      error_response message: 'Altcha payload missing' if payload.nil?
+      publically do
+        payload = params['authenticity_payload']
+        error_response message: 'Altcha payload missing' if payload.nil?
 
-      verified = Altcha.verify_solution(payload, self.class.secret_key)
-      if verified
-        json data: params
-      else
-        error_response message: 'Invalid Altcha payload'
+        verified = Altcha.verify_solution(payload, self.class.secret_key)
+        if verified
+          json data: params
+        else
+          error_response message: 'Invalid Altcha payload'
+        end
       end
     end
 
     def altcha_verify_spam
-      payload = params['altcha']
-      error_response message: 'Altcha payload missing' if payload.nil?
+      publically do
+        payload = params['authenticity_payload']
+        error_response message: 'Altcha payload missing' if payload.nil?
 
-      verified, verification_data = Altcha.verify_server_signature(
-        payload,
-        self.class.secret_key
-      )
-      fields_verified = Altcha.verify_fields_hash(
-        params,
-        verification_data.fields,
-        verification_data.fields_hash,
-        'SHA-256'
-      )
+        verified, verification_data = Altcha.verify_server_signature(
+          payload,
+          self.class.secret_key
+        )
+        fields_verified = Altcha.verify_fields_hash(
+          params,
+          verification_data.fields,
+          verification_data.fields_hash,
+          'SHA-256'
+        )
 
-      if verified && fields_verified
-        { success: true, form_data: params, verification_data: verification_data }.to_json
-      else
-        error_response message: 'Invalid Altcha payload'
+        if verified && fields_verified
+          { success: true, form_data: params, verification_data: verification_data }.to_json
+        else
+          error_response message: 'Invalid Altcha payload'
+        end
       end
     end
 

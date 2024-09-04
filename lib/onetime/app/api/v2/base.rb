@@ -1,10 +1,18 @@
 require_relative '../../app_helpers'
 
+require_relative '../../../../altcha'
 
 class Onetime::App
   class APIV2
     module Base
       include Onetime::App::WebHelpers
+
+      def publically
+        carefully do
+          check_locale!
+          yield
+        end
+      end
 
       def json hsh
         res.header['Content-Type'] = "application/json; charset=utf-8"
