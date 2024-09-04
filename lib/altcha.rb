@@ -232,7 +232,6 @@ module Altcha
     # Decode and parse base64 JSON string if it's a String
     if payload.is_a?(String)
       decoded_payload = Base64.decode64(payload)
-      p [:verify_solution, decoded_payload]
       payload = JSON.parse(decoded_payload, object_class: Payload)
     end
 
