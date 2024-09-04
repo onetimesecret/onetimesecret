@@ -74,8 +74,10 @@ if (broadcastElement) {
 
 const feedbackFormElement = document.querySelector('#feedback-form');
 if (feedbackFormElement) {
+  const showRedButton = feedbackFormElement.getAttribute('data-show-red-button') === 'true';
   const toggleApp = createApp(FeedbackForm, {
     shrimp: window.shrimp,
+    showRedButton: showRedButton,
   });
   toggleApp.mount(feedbackFormElement);
 }
