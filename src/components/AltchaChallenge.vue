@@ -52,10 +52,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- Configure your `challengeurl` and remove the `test` attribute, see docs: https://altcha.org/docs/website-integration/#using-altcha-widget -->
+  <!-- See docs: https://altcha.org/docs/website-integration/#using-altcha-widget -->
   <!-- https://altcha.org/docs/floating-ui/ -->
   <!-- https://altcha.org/docs/website-integration/ -->
-  <div class="flex ">
+  <div class="flex">
     <altcha-widget ref="altchaWidget"
                    challengeurl="/api/v2/altcha/challenge"
                    :floating="isFloating"
