@@ -42,7 +42,7 @@
     :autoverify: <%= ENV['AUTH_AUTOVERIFY'] || false %>
   :authenticity:
     :type: <%= ENV['AUTHENTICITY_TYPE'] || 'altcha' %>
-    :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
+    :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || '<REPLACE_WITH_STRONG_HMAC_KEY>' %>
   :plans:
     :enabled: <%= ENV['PLANS_ENABLED'] || false %>
     :stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
