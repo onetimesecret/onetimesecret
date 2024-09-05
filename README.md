@@ -303,7 +303,7 @@ If you're having trouble cloning via SSH, you can double check your SSH config l
   * Optionally you can customize the text used throughout the site and emails
   * You can also edit the `:broadcast` string to display a brief message at the top of every page
 
-### Running
+### Running your own
 
 There are many ways to run the webapp. The default web server we use is [thin](https://github.com/macournoyer/thin). It's a Rack app so any server in the ruby ecosystem that supports Rack apps will work.
 
@@ -324,10 +324,34 @@ Graceful restart:
   bundle exec thin --onebyone -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 4 -D restart
 ```
 
+## Similar Services
+
+
+| URL | Service | Description | Killer Feature |
+|-----|---------|-------------|----------------|
+| https://pwpush.com/ | Password Pusher | A tool that uses browser cookies to help you share passwords and other sensitive information. | Temporary, self-destructing links for password sharing |
+| https://scrt.link/en | Share a secret | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing |
+| https://cryptgeon.com/ | Cryptgeon | A service for sharing secrets and passwords securely. | Offers a secret generator, password generator, and secret vault |
+| https://www.vanish.so/ | Vanish | A service for sharing secrets and passwords securely. | Self-destructing messages with strong encryption |
+| https://password.link/en | Password.link | A service for securely sending and receiving sensitive information. | Secure link creation for sensitive information sharing |
+| https://sebsauvage.net/ | sebsauvage.net | A website offering various information and services. | Software to recover stolen computers |
+| https://www.sharesecret.co/ | ShareSecret | A service for securely sharing passwords in Slack and email. | Secure password sharing with Slack and email integration |
+| https://teampassword.com/ | TeamPassword | A password manager for teams. | Fast, easy-to-use, and secure team password management |
+| https://secretshare.io/ | Secret Share | A service for sharing passwords securely. | Strong encryption for data in transit and at rest |
+| https://retriever.corgea.io/ | Retriever | A service for requesting secrets securely. | Secure secret request and retrieval with encryption |
+| https://winden.app/s | Winden | A service for sharing secrets and passwords securely. | Securely transfers files with end-to-end encryption |
+| https://www.snote.app/ | SNote | A privacy-focused workspace with end-to-end encryption. | Secure collaboration on projects, to-dos, tasks, and shared files |
+| https://www.burnafterreading.me/ | Burn After Reading | A service for sharing various types of sensitive information. | Self-destructing messages with diceware passphrase encryption |
+| https://pvtnote.com/en/ | PvtNote | A service for sending private, self-destructing messages. | Clean design with self-destructing messages |
+| https://k9crypt.xyz/ | K9Crypt | A secure and anonymous messaging platform. | End-to-end encryption with 2-hour message deletion |
+
+_Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blog/command-r-plus-microsoft-azure), formatted by [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet), and proofread by [GitHub Copilot](https://github.com/features/copilot)._
+
+
 ## Generating a global secret
 
 We include a global secret in the encryption key so it needs to be long and secure. One approach for generating a secret:
 
 ```bash
-  dd if=/dev/urandom bs=20 count=1 | openssl sha256
+  $ dd if=/dev/urandom bs=20 count=1 | openssl sha256
 ```
