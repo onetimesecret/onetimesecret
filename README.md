@@ -327,7 +327,7 @@ Graceful restart:
 ## Similar Services
 
 
-| URL | Service | Description | Killer Feature |
+| URL | Service | Description | Distinctive Feature |
 |-----|---------|-------------|----------------|
 | https://pwpush.com/ | Password Pusher | A tool that uses browser cookies to help you share passwords and other sensitive information. | Temporary, self-destructing links for password sharing |
 | https://scrt.link/en | Share a secret | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing |
