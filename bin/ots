@@ -25,7 +25,7 @@ class OT::CLI::Definition
   end
 
   about 'Ruby irb with Onetime preloaded'
-  command :irb do
+  command :console do
     cmd = format('irb -I%s -ronetime/irb', File.join(OT::HOME, 'lib'))
     OT.ld cmd
     Kernel.exec cmd
