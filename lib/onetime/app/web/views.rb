@@ -265,6 +265,22 @@ module Onetime
 
       class Burn < Onetime::App::View
         def init metadata
+
+          if metadata.nil?
+            # There are errors in production where metadtaa is passed in as
+            # nil. This temporary logging is to help shed some light.
+            #
+            # See https://github.com/onetimesecret/onetimesecret/issues/611
+            #
+            exists = begin
+              OT::Metadata.exists?(req.params[:key])
+            rescue StandardError => e
+              OT.le "[Burn.init] Metadata.exists? raised an exception. #{e}"
+              nil
+            end
+            OT.le "[Burn.init] Nil metadata passed to view. #{req.path} #{req.params[:key]} exists:#{exists}"
+          end
+
           self[:title] = "You saved a secret"
           self[:body_class] = :generate
           self[:metadata_key] = metadata.key
