@@ -27,11 +27,6 @@ module Onetime
           Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
         end
 
-        def baseotsuri
-          scheme = base_scheme
-          [scheme, Onetime.conf[:site][:host]].join
-        end
-
         def jsvar(name, value)
           value = case value.class.to_s
                   when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'

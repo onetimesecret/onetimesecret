@@ -40,6 +40,23 @@ class Onetime::App
       end
     end
 
+    class SupportMessage < OT::App::Mail::Base
+      attr_reader :subject
+      def init from_name, subject
+        @subject = subject
+        self[:custid] = cust.custid
+        self[:email_address] = cust.custid
+        self[:from_name] = from_name
+        self[:from] = OT.conf[:emailer][:from]
+        self[:signature_link] = baseuri
+        emailer.fromname = from_name
+      end
+
+      def special_fortune
+        OT::Utils.random_fortune
+      end
+    end
+
     class PasswordRequest < OT::App::Mail::Base
       def init secret
         self[:secret] = secret
