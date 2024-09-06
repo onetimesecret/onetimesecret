@@ -267,7 +267,7 @@ module Onetime
         def init metadata
 
           if metadata.nil?
-            # There are errors in production where metadtaa is passed in as
+            # There are errors in production where metadata is passed in as
             # nil. This temporary logging is to help shed some light.
             #
             # See https://github.com/onetimesecret/onetimesecret/issues/611
