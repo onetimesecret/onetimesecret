@@ -112,13 +112,13 @@ RUN set -eux \
     && npm install -g pnpm
 
 ##
-# ENVIRONMENT LAYER
+# DEPENDENCIES LAYER
 #
 # Sets up the necessary directories, installs additional
 # system packages for userland, and installs the application's
 # dependencies using the Base Layer as a starting point.
 #
-FROM base AS app_env
+FROM base AS app_deps
 ARG CODE_ROOT
 ARG ONETIME_HOME
 
@@ -133,40 +133,52 @@ ENV NODE_PATH=$CODE_ROOT/node_modules
 
 # Install the dependencies into the environment image
 COPY --link Gemfile Gemfile.lock ./
+COPY package.json pnpm-lock.yaml ./
+
 RUN set -eux \
     && bundle config set --local without 'development test' \
+    && bundle update --bundler \
     && bundle install \
-    && bundle update --bundler
+    && pnpm install --frozen-lockfile
 
+##
+# BUILD LAYER
+#
+FROM app_deps as build
+ARG CODE_ROOT
+
+WORKDIR $CODE_ROOT
+
+COPY --link public $CODE_ROOT/public
+COPY --link templates $CODE_ROOT/templates
+COPY --link src $CODE_ROOT/src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.mjs ./
-COPY --link src ./src
 
 RUN set -eux \
-    && pnpm install --frozen-lockfile \
     && pnpm run type-check \
     && pnpm run build-only \
     && pnpm prune --prod \
     && rm -rf node_modules \
     && npm uninstall -g pnpm  # Remove pnpm after use
 
-# And finally, copy the rest of the darn owl
+##
+# APPLICATION LAYER (FINAL)
+#
+FROM ruby:3.3-slim-bookworm as final
+ARG CODE_ROOT
+
+WORKDIR $CODE_ROOT
+
+## Copy only necessary files from previous stages
+COPY --link --from=build /usr/local/bundle /usr/local/bundle
+COPY --link --from=build $CODE_ROOT/public $CODE_ROOT/public
+COPY --link --from=build $CODE_ROOT/templates $CODE_ROOT/templates
+COPY --link --from=build $CODE_ROOT/src $CODE_ROOT/src
 COPY --link bin $CODE_ROOT/bin
 COPY --link etc $CODE_ROOT/etc
 COPY --link lib $CODE_ROOT/lib
 COPY --link migrate $CODE_ROOT/migrate
-COPY --link public $CODE_ROOT/public
-COPY --link templates $CODE_ROOT/templates
-COPY VERSION.yml config.ru .commit_hash.txt $CODE_ROOT/
-
-##
-# FINAL APPLICATION LAYER
-#
-FROM ruby:3.3-slim-bookworm AS final
-
-# Copy only necessary files from previous stages
-COPY --from=base /usr/local/bundle /usr/local/bundle
-COPY --from=app_env $CODE_ROOT $CODE_ROOT
-ARG CODE_ROOT
+COPY VERSION.yml config.ru .commit_hash.txt Gemfile Gemfile.lock $CODE_ROOT/
 
 LABEL Name=onetimesecret Version=0.17.1
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
