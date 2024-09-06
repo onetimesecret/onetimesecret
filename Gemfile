@@ -39,7 +39,6 @@ gem 'otto', '~> 1.1.0.pre.alpha3'
 
 gem 'altcha', '~> 0.1.0'
 
-gem 'sinatra', '~> 3.2'
 
 gem 'redis', '~> 5.2.0'
 gem 'storable'
@@ -55,8 +54,19 @@ gem 'sendgrid-ruby'
 gem 'mail'
 
 # As of Ruby 3.4, these are no longer in the standard library
-gem 'base64', '0.2.0'
-gem 'syslog', '0.1.2'
+#
+# These gems are included to suppress warnings about certain libraries
+# no longer being part of the default gems starting from Ruby 3.5.0.
+# Including them explicitly ensures they are part of the application's
+# dependencies and silences the warnings.
+gem 'base64'
+gem 'syslog'
+
+# As of Ruby 3.5, these are no longer in the standard library
+gem 'fiddle'   # Fiddle library for handling dynamic libraries (required by reline)
+gem 'logger'   # Logger library for logging messages (required by truemail)
+gem 'ostruct'  # OpenStruct library for creating data objects (required by json)
+gem 'rdoc'     # IRB
 
 gem 'byebug', require: false, group: :development
 gem 'byebug-dap', require: false, group: :development
