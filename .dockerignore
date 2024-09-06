@@ -32,9 +32,10 @@
 .pnpm/
 .prompts/
 .ruby-version
-/etc/caddy
+.appendonlydir
 appendonlydir
 data/
+etc/caddy
 log
 sorbet/
 spoom_data/
