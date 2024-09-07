@@ -1,86 +1,130 @@
+{{>../web/partial/quiet_header}}
 {{>../web/partial/header}}
 
-  <div class="container mx-auto p-4 max-w-2xl">
+<div class="container mx-auto p-4 max-w-4xl">
+  <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+    <div id="primaryTabs" class="border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+      <nav class="flex overflow-x-auto">
+        <a class="text-gray-600 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-400 px-3 py-2 font-medium text-sm" href="#stats">
+          Stats
+        </a>
+        <a class="text-gray-600 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-400 px-3 py-2 font-medium text-sm" href="#customers">
+          Customers ({{recent_customer_count}})
+        </a>
+        <a class="text-gray-600 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-400 px-3 py-2 font-medium text-sm" href="#feedback">
+          Feedback ({{today_feedback_count}})
+        </a>
+        <a class="text-gray-600 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-400 px-3 py-2 font-medium text-sm" href="#misc">
+          Misc
+        </a>
+      </nav>
+    </div>
 
-    <div id="primaryTabs">
-      <ul>
-        <li><a href="#stats"><strong>Stats</strong></a></li>
-        <li><a href="#customers"><strong>Customers ({{recent_customer_count}})</strong></a></li>
-        <li><a href="#feedback"><strong>Feedback ({{today_feedback_count}})</strong></a></li>
-        <li><a href="#misc"><strong>Misc</strong></a></li>
-      </ul>
-      <div id="stats">
 
-        {{>partial/session_messages}}
+    <div class="p-6">
+      <div id="stats" class="mb-8">
+        {{>../web/partial/session_messages}}
 
-        <p>Sessions: {{session_count}} (active in the past 5 minutes)</p>
+        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-4">
+          <p class="text-gray-800 dark:text-gray-200">Sessions: <span class="font-bold">{{session_count}}</span> (active in the past 5 minutes)</p>
+        </div>
 
-        <h3>Secrets ({{secret_count}})</h3>
+        <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">Secrets ({{secret_count}})</h3>
 
-        <p><a href="/colonel/metadata">Metadata</a>/<a href="/colonel/secrets">Secrets</a>: {{metadata_count}}/{{secret_count}} ({{secrets_created}}/{{secrets_shared}}/{{emails_sent}} total)</p>
-
+        <p class="text-gray-800 dark:text-gray-200">
+          <a href="/colonel/metadata" class="text-brand-500 hover:text-brand-700">Metadata</a> /
+          <a href="/colonel/secrets" class="text-brand-500 hover:text-brand-700">Secrets</a>:
+          {{metadata_count}}/{{secret_count}} ({{secrets_created}}/{{secrets_shared}}/{{emails_sent}} total)
+        </p>
       </div>
 
-      <div id="feedback">
-        Total: {{feedback_count}}
+      <div id="feedback" class="mb-8">
+  <h3 class="text-lg font-bold mb-2 text-gray-800 dark:text-gray-200">User Feedback (Total: {{feedback_count}})</h3>
 
-        <ul class="smaller">
-          <li>Most recent ({{today_feedback_count}})
-          <ul>
+  <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg text-sm">
+    <div class="divide-y divide-gray-200 dark:divide-gray-700">
+      <!-- Today's Feedback -->
+      <div class="p-2">
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Today ({{today_feedback_count}})</h4>
+        <ul class="space-y-1">
           {{#today_feedback}}
-            <li><strong>{{msg}}</strong> <em class="lighter">{{stamp}}</em></li>
+          <li class="bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 flex justify-between items-start">
+            <span class="text-gray-800 dark:text-gray-200 flex-grow">{{msg}}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 whitespace-nowrap">{{stamp}}</span>
+          </li>
           {{/today_feedback}}
-          </ul>
-          </li>
+        </ul>
+      </div>
 
-          <li>Yesterday ({{yesterday_feedback_count}})
-          <ul>
+      <!-- Yesterday's Feedback -->
+      <div class="p-2">
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Yesterday ({{yesterday_feedback_count}})</h4>
+        <ul class="space-y-1">
           {{#yesterday_feedback}}
-            <li><strong>{{msg}}</strong> <em class="lighter">{{stamp}}</em></li>
+          <li class="bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 flex justify-between items-start">
+            <span class="text-gray-800 dark:text-gray-200 flex-grow">{{msg}}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 whitespace-nowrap">{{stamp}}</span>
+          </li>
           {{/yesterday_feedback}}
-          </ul>
-          </li>
+        </ul>
+      </div>
 
-          <li>Past 14 days ({{older_feedback_count}})
-          <ul>
+      <!-- Past 14 Days Feedback -->
+      <div class="p-2">
+        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Past 14 Days ({{older_feedback_count}})</h4>
+        <ul class="space-y-1">
           {{#older_feedback}}
-            <li><strong>{{msg}}</strong> <em class="lighter">{{stamp}}</em></li>
-          {{/older_feedback}}
-          </ul>
+          <li class="bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 flex justify-between items-start">
+            <span class="text-gray-800 dark:text-gray-200 flex-grow">{{msg}}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 whitespace-nowrap">{{stamp}}</span>
           </li>
+          {{/older_feedback}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+      <div id="customers" class="mb-8">
+        <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">Customers ({{recent_customer_count}} of {{customer_count}})</h3>
+        <ul class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
+          {{#recent_customers}}
+          <li class="px-4 py-3 sm:px-6" title="{{^verified}}not{{/verified}} verified">
+            <div class="flex items-center justify-between">
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <strong>{{custid}}</strong>{{#colonel}}*{{/colonel}}
+              </p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{secrets_created}}/{{secrets_shared}}/{{emails_sent}} [{{planid}}]
+              </p>
+            </div>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <em>{{stamp}}</em>{{^verified}}?{{/verified}}
+            </p>
+          </li>
+          {{/recent_customers}}
         </ul>
       </div>
 
-      <div id="customers">
-        <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
-        <ul class="smaller">
-        {{#recent_customers}}
-          <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} {{secrets_created}}/{{secrets_shared}}/{{emails_sent}} [{{planid}}] <em class="lighter">{{stamp}}</em></li>
-        {{/recent_customers}}
-        </ul>
-      </div>
-
-      <div id="misc">
-
-        <h3>Entropy</h3>
-
-        <p>{{entropy_count}} values. <a href="/colonel/entropy/generate" class="entropy-generate" alt="Generating...">Generate more</a></p>
-
+      <div id="misc" class="mb-8">
         {{#has_split_tests}}
-        <h3>Split tests</h3>
-        <ul>
-        {{#split_tests}}
-          <li>{{name}} {{samples}} {{scores}}</li>
-        {{/split_tests}}
+        <h3 class="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">Split tests</h3>
+        <ul class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg divide-y divide-gray-200 dark:divide-gray-700">
+          {{#split_tests}}
+          <li class="px-4 py-3 sm:px-6">
+            <p class="text-sm text-gray-900 dark:text-gray-100">{{name}} {{samples}} {{scores}}</p>
+          </li>
+          {{/split_tests}}
         </ul>
         {{/has_split_tests}}
 
-        <h3>Redis Info</h3>
-
-        <pre>{{redis_info}}</pre>
+        <h3 class="text-xl font-bold mt-6 mb-2 text-gray-800 dark:text-gray-200">Redis Info</h3>
+        <pre class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 dark:text-gray-200">{{redis_info}}</pre>
       </div>
-
     </div>
   </div>
+</div>
 
-{{>../web/partialfooter}}
+{{>../web/partial/footer_outro}}
+{{>../web/partial/footer}}

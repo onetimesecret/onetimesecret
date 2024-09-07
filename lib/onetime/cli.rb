@@ -7,23 +7,6 @@ class OT::CLI < Drydock::Command
     OT.boot! :cli
   end
 
-  def entropy
-    puts OT::Entropy.count
-  end
-
-  def clear_entropy
-    require_sudo
-    OT::Entropy.values.clear
-    entropy
-  end
-
-  def generate_entropy
-    # require_sudo
-    option.count = 100_000 if option.count.to_i > 100_000
-    OT::Entropy.generate option.count
-    entropy
-  end
-
   def move_keys
     sourcedb, targetdb, filter = *argv
     raise 'No target database supplied' unless sourcedb && targetdb
@@ -51,5 +34,4 @@ class OT::CLI < Drydock::Command
     return if Process.uid.zero?
     raise 'Must run as root or with sudo'
   end
-
 end

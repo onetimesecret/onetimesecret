@@ -25,29 +25,10 @@ class OT::CLI::Definition
   end
 
   about 'Ruby irb with Onetime preloaded'
-  command :irb do
-    cmd = format('irb -I%s -ronetime/irb', File.join(OT::HOME, 'lib'))
+  command :console do
+    cmd = format('irb -I%s -ronetime/console', File.join(OT::HOME, 'lib'))
     OT.ld cmd
     Kernel.exec cmd
-  end
-
-  about 'Run this after installing'
-  command :init do
-    dirs_needed = []
-    ['/var/log/onetime',
-     '/var/run/onetime',
-     '/var/lib/onetime'].each do |dirpath|
-      next if File.directory? dirpath
-
-      dirs_needed << dirpath
-    end
-    if dirs_needed.empty?
-      # TODO
-    else
-      Onetime.info 'Run the following:'
-      Onetime.info format('sudo mkdir %s', dirs_needed.join(' '))
-      Onetime.info format('sudo chown %s %s', ENV.fetch('USER', nil), dirs_needed.join(' '))
-    end
   end
 
   usage 'ots version'
@@ -56,30 +37,11 @@ class OT::CLI::Definition
   end
   alias_command :build, :version
 
-  usage 'ots entropy'
-  usage 'ots entropy -G [-c NUM]'
-  option :c, :count, Integer, 'Number of entropies to create (use with -G)'
-  action :D, :clear, 'Destroy existing entropy'
-  action :G, :generate, 'Generate entropy'
-  command entropy: OT::CLI
-
   usage 'ots move-keys SOURCEDB TARGETDB [filter]'
   command move_keys: OT::CLI
 
   usage 'ots customers'
   command customers: OT::CLI
-
-  action :stop
-  action :start
-  action :save
-  action :bgsave
-  action :bgrewriteaof
-  command redis: OT::CLI
-
-  # usage "ots colonels"
-  # usage "ots colonels -C <CUSTID>"
-  # action :C, :create, "Create a new colonel"
-  # command :colonels => OT::CLI
 end
 
 begin

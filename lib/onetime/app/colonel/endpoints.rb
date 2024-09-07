@@ -75,13 +75,14 @@ class Onetime::App
           self[:older_feedback_count] = self[:older_feedback].size
           self[:recent_customers] = OT::Customer.recent.collect do |this_cust|
             next if this_cust.nil?
-            { :custid => this_cust.custid,
-              :planid => this_cust.planid,
-              :colonel => this_cust.role?(:colonel),
-              :secrets_created => this_cust.secrets_created,
-              :secrets_shared => this_cust.secrets_shared,
-              :emails_sent => this_cust.emails_sent,
-              :stamp => natural_time(this_cust.created) || '[no create stamp]' }
+            { custid: this_cust.custid,
+              planid: this_cust.planid,
+              colonel: this_cust.role?(:colonel),
+              secrets_created: this_cust.secrets_created,
+              secrets_shared: this_cust.secrets_shared,
+              emails_sent: this_cust.emails_sent,
+              verified: this_cust.verified?,
+              stamp: natural_time(this_cust.created) || '[no create stamp]' }
           end.reverse
           self[:customer_count] = OT::Customer.values.size
           self[:recent_customer_count] = self[:recent_customers].size
@@ -98,7 +99,18 @@ class Onetime::App
         end
 
         def redis_info
-          Familia.redis.info.to_yaml
+          # Fetch Redis INFO
+          info = Familia.redis.info
+
+          # Extract relevant information
+          db_info = info.select { |key, _| key.start_with?('db') }
+          memory_info = info.slice('used_memory', 'used_memory_human', 'used_memory_peak', 'used_memory_peak_human')
+
+          # Combine the extracted information
+          filtered_info = db_info.merge(memory_info)
+
+          # Convert to YAML and print
+          filtered_info.to_yaml
         end
 
       end
