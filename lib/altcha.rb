@@ -7,7 +7,6 @@
 # including them here temporarily for convenience while
 # working any other kinks out.
 
-require 'altcha/version'
 require 'openssl'
 require 'base64'
 require 'json'
