@@ -99,7 +99,18 @@ class Onetime::App
         end
 
         def redis_info
-          Familia.redis.info.to_yaml
+          # Fetch Redis INFO
+          info = Familia.redis.info
+
+          # Extract relevant information
+          db_info = info.select { |key, _| key.start_with?('db') }
+          memory_info = info.slice('used_memory', 'used_memory_human', 'used_memory_peak', 'used_memory_peak_human')
+
+          # Combine the extracted information
+          filtered_info = db_info.merge(memory_info)
+
+          # Convert to YAML and print
+          filtered_info.to_yaml
         end
 
       end
