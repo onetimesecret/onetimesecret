@@ -3,7 +3,6 @@ GEM
   specs:
     addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
-    altcha (0.1.0)
     ast (2.4.2)
     attic (1.0.1)
       rake (~> 13.0.6)
@@ -28,6 +27,7 @@ GEM
     familia (1.0.0.pre.rc7)
       redis (>= 4.8.1, < 6.0)
       uri-redis (~> 1.3)
+    fiddle (1.1.1)
     gibbler (1.0.0)
       attic (~> 1.0)
       rake (~> 13.0)
@@ -37,6 +37,7 @@ GEM
       multi_xml (>= 0.5.2)
     json (2.7.2)
     language_server-protocol (3.17.0.3)
+    logger (1.6.1)
     mail (2.8.1)
       mini_mime (>= 0.1.1)
       net-imap
@@ -48,8 +49,6 @@ GEM
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
     mustache (1.1.1)
-    mustermann (3.0.3)
-      ruby2_keywords (~> 0.0.1)
     net-imap (0.4.13)
       date
       net-protocol
@@ -60,9 +59,11 @@ GEM
     net-smtp (0.5.0)
       net-protocol
     netrc (0.11.0)
-    otto (1.1.0.pre.alpha3)
+    ostruct (0.5.5)
+    otto (1.1.0.pre.alpha4)
       addressable (~> 2.2, < 3)
       rack (~> 2.2, < 3.0)
+      rexml (>= 3.3.6)
     parallel (1.25.1)
     parser (3.3.3.0)
       ast (~> 2.4.1)
@@ -74,18 +75,19 @@ GEM
     pry-byebug (3.10.1)
       byebug (~> 11.0)
       pry (>= 0.13, < 0.15)
+    psych (5.1.2)
+      stringio
     public_suffix (5.1.0)
     racc (1.8.0)
     rack (2.2.9)
-    rack-protection (3.2.0)
-      base64 (>= 0.1.0)
-      rack (~> 2.2, >= 2.2.4)
     rainbow (3.1.1)
     rake (13.0.6)
     rbi (0.1.13)
       prism (>= 0.18.0, < 1.0.0)
       sorbet-runtime (>= 0.5.9204)
-    redis (5.2.0)
+    rdoc (6.7.0)
+      psych (>= 4.0.0)
+    redis (5.3.0)
       redis-client (>= 0.22.0)
     redis-client (0.22.2)
       connection_pool
@@ -112,7 +114,6 @@ GEM
       rubocop (>= 0.90.0)
     ruby-dap (0.1.3)
     ruby-progressbar (1.13.0)
-    ruby2_keywords (0.0.5)
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
@@ -120,11 +121,6 @@ GEM
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
     simpleidn (0.2.3)
-    sinatra (3.2.0)
-      mustermann (~> 3.0)
-      rack (~> 2.2, >= 2.2.4)
-      rack-protection (= 3.2.0)
-      tilt (~> 2.0)
     sorbet (0.5.11435)
       sorbet-static (= 0.5.11435)
     sorbet-runtime (0.5.11435)
@@ -141,6 +137,7 @@ GEM
       thor (>= 0.19.2)
     stackprof (0.2.26)
     storable (0.10.0)
+    stringio (3.1.1)
     stripe (12.4.0)
     strscan (3.1.0)
     sysinfo (0.10.0)
@@ -161,7 +158,6 @@ GEM
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
     thor (1.3.1)
-    tilt (2.4.0)
     timeout (0.4.1)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
@@ -181,8 +177,7 @@ PLATFORMS
 
 DEPENDENCIES
   addressable
-  altcha (~> 0.1.0)
-  base64 (= 0.2.0)
+  base64
   bcrypt
   byebug
   byebug-dap
@@ -190,23 +185,26 @@ DEPENDENCIES
   drydock
   encryptor (= 1.1.3)
   familia (~> 1.0.0.pre.rc7)
+  fiddle
   gibbler
   httparty
+  logger
   mail
   multi_json
   mustache
-  otto (~> 1.1.0.pre.alpha3)
+  ostruct
+  otto (~> 1.1.0.pre.alpha4)
   pry
   pry-byebug
   public_suffix
   rack (>= 2.2, < 3.0)
-  redis (~> 5.2.0)
+  rdoc
+  redis (~> 5.3.0)
   rubocop
   rubocop-performance
   rubocop-thread_safety
   sendgrid-ruby
   sentry-ruby
-  sinatra (~> 3.2)
   sorbet
   sorbet-runtime
   spoom
@@ -214,7 +212,7 @@ DEPENDENCIES
   storable
   stripe
   sysinfo
-  syslog (= 0.1.2)
+  syslog
   tapioca
   thin
   truemail
