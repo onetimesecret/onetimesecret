@@ -55,16 +55,15 @@
         <h3>Customers ({{recent_customer_count}} of {{customer_count}})</h3>
         <ul class="smaller">
         {{#recent_customers}}
-          <li><strong>{{custid}}</strong>{{#colonel}}*{{/colonel}} {{secrets_created}}/{{secrets_shared}}/{{emails_sent}} [{{planid}}] <em class="lighter">{{stamp}}</em></li>
+          <li title="{{^verified}}not{{/verified}} verified">
+            <strong>{{custid}}</strong>{{#colonel}}*{{/colonel}}
+            ({{secrets_created}}/{{secrets_shared}}/{{emails_sent}} [{{planid}}] <em class="lighter">{{stamp}}</em>{{^verified}}?{{/verified}}
+          </li>
         {{/recent_customers}}
         </ul>
       </div>
 
       <div id="misc">
-
-        <h3>Entropy</h3>
-
-        <p>{{entropy_count}} values. <a href="/colonel/entropy/generate" class="entropy-generate" alt="Generating...">Generate more</a></p>
 
         {{#has_split_tests}}
         <h3>Split tests</h3>
@@ -83,4 +82,4 @@
     </div>
   </div>
 
-{{>../web/partialfooter}}
+{{>../web/partial/footer}}
