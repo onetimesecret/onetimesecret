@@ -3,7 +3,6 @@ GEM
   specs:
     addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
-    altcha (0.1.0)
     ast (2.4.2)
     attic (1.0.1)
       rake (~> 13.0.6)
@@ -61,9 +60,10 @@ GEM
       net-protocol
     netrc (0.11.0)
     ostruct (0.5.5)
-    otto (1.1.0.pre.alpha3)
+    otto (1.1.0.pre.alpha4)
       addressable (~> 2.2, < 3)
       rack (~> 2.2, < 3.0)
+      rexml (>= 3.3.6)
     parallel (1.25.1)
     parser (3.3.3.0)
       ast (~> 2.4.1)
@@ -87,7 +87,7 @@ GEM
       sorbet-runtime (>= 0.5.9204)
     rdoc (6.7.0)
       psych (>= 4.0.0)
-    redis (5.2.0)
+    redis (5.3.0)
       redis-client (>= 0.22.0)
     redis-client (0.22.2)
       connection_pool
@@ -177,7 +177,6 @@ PLATFORMS
 
 DEPENDENCIES
   addressable
-  altcha (~> 0.1.0)
   base64
   bcrypt
   byebug
@@ -194,13 +193,13 @@ DEPENDENCIES
   multi_json
   mustache
   ostruct
-  otto (~> 1.1.0.pre.alpha3)
+  otto (~> 1.1.0.pre.alpha4)
   pry
   pry-byebug
   public_suffix
   rack (>= 2.2, < 3.0)
   rdoc
-  redis (~> 5.2.0)
+  redis (~> 5.3.0)
   rubocop
   rubocop-performance
   rubocop-thread_safety

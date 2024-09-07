@@ -35,12 +35,9 @@ gem 'familia', '~> 1.0.0.pre.rc7'
 
 gem 'gibbler'
 
-gem 'otto', '~> 1.1.0.pre.alpha3'
+gem 'otto', '~> 1.1.0.pre.alpha4'
 
-gem 'altcha', '~> 0.1.0'
-
-
-gem 'redis', '~> 5.2.0'
+gem 'redis', '~> 5.3.0'
 gem 'storable'
 gem 'sysinfo'
 gem 'uri-redis', '~> 1.3.0'
