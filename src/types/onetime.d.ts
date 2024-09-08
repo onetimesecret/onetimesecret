@@ -43,6 +43,14 @@ export interface Plan extends BaseApiRecord {
   };
 }
 
+// Define the interface for the authentication settings object
+interface AuthenticationSettings {
+  enabled: boolean;
+  signup: boolean;
+  signin: boolean;
+  autoverify: boolean;
+}
+
 export interface ApproximatedVHost {
   apx_hit: boolean;
   created_at: string;
