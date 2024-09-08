@@ -179,8 +179,7 @@ module Onetime::Logic
         raise OT::MissingSecret if metadata.nil?
       end
       def process
-        @secret = metadata.load_secret
-        metadata.viewed!
+        @secret = @metadata.load_secret
       end
     end
 

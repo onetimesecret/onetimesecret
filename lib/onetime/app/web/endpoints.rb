@@ -179,6 +179,11 @@ module Onetime
         logic.process
         view = Onetime::App::Views::Private.new req, sess, cust, locale, logic.metadata
         res.body = view.render
+        #
+        #
+        # logic.metadata.viewed!
+        #
+        #
       end
     end
 
