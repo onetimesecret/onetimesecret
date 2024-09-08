@@ -1,5 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
+
+const changeLanguage = async (lang: string) => {
+  const { setLanguage } = await import('@/i18n')
+  await setLanguage(lang)
+}
+
+console.log(locale.value, t('web.COMMON.button_create_secret'))
 
 import CustomDomainPreview from './CustomDomainPreview.vue';
 import SecretContentInputArea from './SecretContentInputArea.vue';
@@ -142,7 +152,7 @@ const updateSelectedDomain = (domain: string) => {
                 name="kind"
                 value="share"
                 :disabled="!isFormValid">
-          Create a secret link<span v-if="withAsterisk">*</span>
+          {{ $t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
         </button>
       </div>
 
