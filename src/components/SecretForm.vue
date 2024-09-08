@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n'
-
-const { t, locale } = useI18n()
-
-
-
-console.log(locale.value, t('web.COMMON.button_create_secret'))
 
 import CustomDomainPreview from './CustomDomainPreview.vue';
 import SecretContentInputArea from './SecretContentInputArea.vue';
 import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
+import GenerateButton from './secrets/GenerateButton.vue';
+import CreateButton from './secrets/CreateButton.vue';
 
 export interface Props {
   enabled?: boolean;
@@ -67,6 +62,9 @@ const updateSelectedDomain = (domain: string) => {
   selectedDomain.value = domain;
 };
 
+const isGenerateDisabled = computed(() => isFormValid.value);
+const isCreateDisabled = computed(() => !isFormValid.value);
+
 </script>
 
 <template>
@@ -121,36 +119,16 @@ const updateSelectedDomain = (domain: string) => {
                                 :withExpiry="true"
                                 :withPassphrase="true" />
 
-      <div class="flex w-full mb-4">
-        <button type="submit"
-                class="generate-btn text-base py-2 px-4 pr-6 rounded mr-2
-                dark:bg-gray-700 bg-brand-100
-                hover:bg-gray-600 dark:hover:bg-gray-600
-                text-white font-medium transition-all duration-300 ease-in-out transform
-                  w-12 hover:w-56 overflow-hidden whitespace-nowrap group
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                disabled:bg-gray-400 dark:disabled:bg-gray-700
-                disabled:hover:bg-gray-400 dark:disabled:hover:bg-gray-700
-                  disabled:hover:scale-100 disabled:hidden"
-                :disabled="isFormValid"
-                name="kind"
-                value="generate"
-                title="Generate Password is disabled when the form is valid">
-          <span class="inline-block transition-margin duration-300 ease-in-out mr-0 group-hover:mr-2 opacity-80">🔑</span>
-          <span class="opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100">Generate
-            Password</span>
-        </button>
-
-        <button type="submit"
-                class="text-xl flex-grow py-2 px-4 rounded
-          bg-orange-600 hover:bg-orange-700 text-white
-          font-bold2 disabled:opacity-50 disabled:cursor-not-allowed
-          duration-300 ease-in-out transform hover:scale-105 disabled:hover:scale-100"
-                name="kind"
-                value="share"
-                :disabled="!isFormValid">
-          {{ $t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
-        </button>
+      <div class="flex w-full mb-4 space-x-2">
+        <GenerateButton
+          :disabled="isGenerateDisabled"
+          @click="$emit('generate')"
+        />
+        <CreateButton
+          :disabled="isCreateDisabled"
+          :with-asterisk="withAsterisk"
+          @click="$emit('create')"
+        />
       </div>
 
     </form>
