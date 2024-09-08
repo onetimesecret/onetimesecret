@@ -19,10 +19,12 @@
   "license": "MIT",
   "dependencies": {
     "@headlessui/vue": "^1.7.22",
+    "@types/vue-i18n": "^7.0.0",
     "altcha": "^1.0.0",
     "pnpm": "^9.6.0",
     "stripe": "^16.6.0",
-    "vue": "^3.4.32"
+    "vue": "^3.4.32",
+    "vue-i18n": "10.0.0-rc.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.7.0",
