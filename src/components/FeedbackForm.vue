@@ -42,7 +42,7 @@ const cust = window.cust;
                               dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200
                               focus:outline-none"
                  autocomplete="off"
-                 placeholder="">
+                 placeholder="Have a question or comment?">
                  <!--i18n.COMMON.feedback_text-->
 
           <button :class="[
