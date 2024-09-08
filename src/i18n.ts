@@ -38,7 +38,12 @@ export async function setLanguage(lang: string): Promise<void> {
   }
 }
 
-const browserLocale = navigator.language.split('-')[0];
+export const browserLocale = navigator.language.split('-')[0];
 if (browserLocale !== 'en') {
   setLanguage(browserLocale);
+}
+
+export const changeLanguage = async (lang: string) => {
+  const { setLanguage } = await import('@/i18n')
+  await setLanguage(lang)
 }

@@ -4,10 +4,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t, locale } = useI18n()
 
-const changeLanguage = async (lang: string) => {
-  const { setLanguage } = await import('@/i18n')
-  await setLanguage(lang)
-}
+
 
 console.log(locale.value, t('web.COMMON.button_create_secret'))
 
