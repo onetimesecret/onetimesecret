@@ -173,12 +173,10 @@
         <button type="button" class="float-right" onclick="this.parentElement.remove()">
           &times;
         </button>
-        <strong>{{i18n.COMMON.warning}}</strong> {{i18n.page.secret_was_truncated}}
-        {{secret_value.size.to_bytes}}. {{^authenticated}}<a
-          href="/signup"
-          class="text-brand-500 hover:underline"
-          >{{i18n.COMMON.signup_for_more}}</a
-        >.{{/authenticated}}
+        <strong>{{i18n.COMMON.warning}}</strong>
+        {{i18n.page.secret_was_truncated}} {{secret_value.size.to_bytes}}. {{^authenticated}}
+        <a href="/signup" class="text-brand-500 hover:underline">{{i18n.COMMON.signup_for_more}}</a>
+        .{{/authenticated}}
       </div>
       {{/truncated}}
     </div>
@@ -200,9 +198,9 @@
       {{/verification}} {{#verification}}
       <a
         href="/signin"
-        class="block w-full px-4 py-2 text-center text-brand-500 bg-white border border-brand-500 rounded-md hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-brand-400 dark:border-brand-400 dark:hover:bg-gray-700"
-        >{{i18n.COMMON.login_to_your_account}}</a
-      >
+        class="block w-full px-4 py-2 text-center text-brand-500 bg-white border border-brand-500 rounded-md hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-brand-400 dark:border-brand-400 dark:hover:bg-gray-700">
+        {{i18n.COMMON.login_to_your_account}}
+      </a>
       {{/verification}}
     </div>
     <p class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">

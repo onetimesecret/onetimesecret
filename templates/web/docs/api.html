@@ -6,29 +6,57 @@
 
     <nav>
       <ul class="flex space-x-4">
-        <li><a href="/docs/api" class="text-brand font-semibold dark:text-brand-100">Overview</a></li>
-        <li><a href="/docs/api/secrets" class="text-gray-600 hover:text-brand dark:text-gray-300 dark:hover:text-brand-100">Secrets</a></li>
-        <li><a href="/docs/api/libs" class="text-gray-600 hover:text-brand dark:text-gray-300 dark:hover:text-brand-100">Client Libraries</a></li>
+        <li>
+          <a href="/docs/api" class="text-brand font-semibold dark:text-brand-100">Overview</a>
+        </li>
+        <li>
+          <a
+            href="/docs/api/secrets"
+            class="text-gray-600 hover:text-brand dark:text-gray-300 dark:hover:text-brand-100"
+            >Secrets</a
+          >
+        </li>
+        <li>
+          <a
+            href="/docs/api/libs"
+            class="text-gray-600 hover:text-brand dark:text-gray-300 dark:hover:text-brand-100"
+            >Client Libraries</a
+          >
+        </li>
       </ul>
     </nav>
 
     <p class="text-center">
-      <em class="text-lg">BETA API - updated 2022-01-14 (<a href="#feedback" class="text-brand hover:underline dark:text-brand-100">Have a question?</a>)</em>
+      <em class="text-lg"
+        >BETA API - updated 2022-01-14 (<a
+          href="#feedback"
+          class="text-brand hover:underline dark:text-brand-100"
+          >Have a question?</a
+        >)</em
+      >
     </p>
 
     <div class="space-y-8">
       <section>
-        <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">Base URI</h3>
+        <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">
+          Base URI
+        </h3>
         <span class="text-sm text-gray-600 dark:text-gray-400 block mb-2">{{baseuri}}/api</span>
 
         <p class="text-gray-800 dark:text-gray-200">
-          All API access is over HTTPS and starts with <code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded">/api</code>. All responses are JSON.
+          All API access is over HTTPS and starts with
+          <code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded">/api</code>. All responses
+          are JSON.
         </p>
       </section>
 
       <section>
-        <h4 class="text-xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">Authentication</h4>
-        <span class="text-sm text-gray-600 dark:text-gray-400 block mb-2">{{baseuri_httpauth}}/api</span>
+        <h4 class="text-xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">
+          Authentication
+        </h4>
+        <span class="text-sm text-gray-600 dark:text-gray-400 block mb-2"
+          >{{baseuri_httpauth}}/api</span
+        >
 
         <p class="text-gray-800 dark:text-gray-200 mb-2">
           We use HTTP Basic Authentication for all requests and require a username and password.
@@ -40,8 +68,12 @@
       </section>
 
       <section>
-        <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">System Status</h3>
-        <span class="text-sm text-gray-600 dark:text-gray-400 block mb-2">GET {{baseuri}}/api/v1/status</span>
+        <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800 dark:text-gray-200">
+          System Status
+        </h3>
+        <span class="text-sm text-gray-600 dark:text-gray-400 block mb-2"
+          >GET {{baseuri}}/api/v1/status</span
+        >
 
         <p class="text-gray-800 dark:text-gray-200 mb-4">Current status of the system.</p>
 
@@ -51,15 +83,20 @@
         </div>
 
         <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm mb-4">
-$ curl -u 'USERNAME:APITOKEN' {{baseuri}}/api/v1/status</pre>
+$ curl -u 'USERNAME:APITOKEN' {{baseuri}}/api/v1/status</pre
+        >
 
         <pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm mb-4">
-{"status":"nominal"}</pre>
+{"status":"nominal"}</pre
+        >
 
         <div>
           <strong class="block mb-2 font-semibold">Attributes</strong>
           <ul class="list-disc pl-5 space-y-1 text-gray-800 dark:text-gray-200">
-            <li><span class="font-medium">status</span>: The current system status. One of: nominal, offline.</li>
+            <li>
+              <span class="font-medium">status</span>: The current system status. One of: nominal,
+              offline.
+            </li>
           </ul>
         </div>
       </section>
