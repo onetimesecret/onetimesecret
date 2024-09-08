@@ -14,7 +14,6 @@
         <a
           href="/recent"
           class="text-gray-700 dark:text-gray-300 font-bold underline hover:underline hover:text-grey-500 dark:hover:text-grey-500 transition-colors flex items-center">
-
           <span class="block sm:hidden">{{ i18n.COMMON.secret }}</span>
           <span class="hidden sm:block">{{ i18n.COMMON.title_recent_secrets }}</span>
 
@@ -24,22 +23,21 @@
           >
         </a>
       </li>
-      {{#domains_enabled}}
-      {{#plan.paid?}}
-        <li>
-          <a href="/account/domains" class="text-gray-700 dark:text-gray-300 hover:underline hover:text-grey-500 dark:hover:text-grey-500 transition-colors flex items-center">
+      {{#domains_enabled}} {{#plan.paid?}}
+      <li>
+        <a
+          href="/account/domains"
+          class="text-gray-700 dark:text-gray-300 hover:underline hover:text-grey-500 dark:hover:text-grey-500 transition-colors flex items-center">
+          <span class="block sm:hidden">Domains</span>
+          <span class="hidden sm:block">Custom Domains</span>
 
-            <span class="block sm:hidden">Domains</span>
-            <span class="hidden sm:block">Custom Domains</span>
-
-            <span
-              class="ml-2 bg-gray-200 font-medium dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full px-2 py-0.5 text-xs"
-              >{{custom_domains_record_count}}</span
-            >
-          </a>
-        </li>
-      {{/plan.paid?}}
-      {{/domains_enabled}}
+          <span
+            class="ml-2 bg-gray-200 font-medium dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full px-2 py-0.5 text-xs"
+            >{{custom_domains_record_count}}</span
+          >
+        </a>
+      </li>
+      {{/plan.paid?}} {{/domains_enabled}}
     </ul>
   </nav>
 
@@ -73,9 +71,7 @@
       <p class="text-gray-600 dark:text-gray-400 italic">{{i18n.COMMON.word_none}}</p>
       {{/has_received}}
     </section>
-    {{/has_secrets}}
-
-    {{^has_secrets}}
+    {{/has_secrets}} {{^has_secrets}}
     <section>
       <h3 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
         {{i18n.page.title_no_recent_secrets}}

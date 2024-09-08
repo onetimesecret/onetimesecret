@@ -443,10 +443,6 @@ module Onetime
           self[:price] = plan.calculated_price
           self[:is_paid] = plan.paid?
           self[:customer_since] = epochdom(cust.created)
-          self[:contributor] = cust.contributor?
-          if self[:contributor]
-            self[:contributor_since] = epochdate(cust.contributor_at)
-          end
 
           self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
         end

@@ -59,9 +59,6 @@ GET   /account/domains/:domain/verify            Onetime::App#account_domains_ve
 GET   /account                                   Onetime::App#account
 GET   /account/billing_portal                    Onetime::App#customer_portal_redirect
 
-GET   /contributor                               Onetime::App#contributors
-POST  /contributor                               Onetime::App#contributors
-
 GET   /translations                              Onetime::App#translations
 
 #GET   /email                                     Onetime::App#test_send_email

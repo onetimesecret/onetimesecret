@@ -10,37 +10,6 @@ module Onetime
       end
     end
 
-    def contributors # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize
-      publically do # rubocop:disable Metrics/BlockLength
-        if !sess.authenticated? && req.post?
-          sess.set_error_message "You'll need to sign in before agreeing."
-          res.redirect '/signin'
-        end
-        if sess.authenticated? && req.post?
-          if cust.contributor?
-            sess.set_info_message "You are already a contributor!"
-            res.redirect "/"
-          else
-            if !req.params[:contributor].to_s.empty? # rubocop:disable Style/NegatedIfElseCondition
-              if !cust.contributor_at
-                cust.contributor = req.params[:contributor]
-                cust.contributor_at = Onetime.now.to_i unless cust.contributor_at
-                cust.save
-              end
-              sess.set_info_message "You are now a contributor!"
-              res.redirect "/"
-            else
-              sess.set_error_message "You need to check the confirm box."
-              res.redirect '/contributor'
-            end
-          end
-        else
-          view = Onetime::App::Views::Contributor.new req, sess, cust, locale
-          res.body = view.render
-        end
-      end
-    end
-
     # Redirects users to the appropriate Stripe Payment Link based on selected plan
     #
     # This endpoint processes the user's plan selection from the pricing page and
