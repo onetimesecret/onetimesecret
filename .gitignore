@@ -31,4 +31,5 @@ etc/caddy/
 .DS_Store
 !pr_agent.toml
 etc/config
+etc/config.yaml
 fly.toml

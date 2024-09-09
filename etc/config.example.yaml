@@ -48,6 +48,8 @@
     :stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
   :support:
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
+  :regions:
+    :enabled: false
 :redis:
   :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
 :colonels:
@@ -62,7 +64,6 @@
   :host: <%= ENV['SMTP_HOST'] || 'localhost' %>
   :port: <%= ENV['SMTP_PORT'] || 587 %>
   :user: <%= ENV['SMTP_USERNAME'] || 'CHANGEME' %>
-  :pass: <%= ENV['SMTP_PASSWORD'] || 'CHANGEME' %>
   :pass: <%= ENV['SMTP_PASSWORD'] || 'CHANGEME' %>
   :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
   :tls: <%= ENV['SMTP_TLS'] || true %>
@@ -132,8 +133,8 @@
     :logger:
       # One of: :error (default), :unrecognized_error,
       # :recognized_error, :all.
-      tracking_event: :error
-      stdout: true
+      :tracking_event: :error
+      :stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
 :locales:
   # A list of ISO language codes (e.g., 'en' for English, 'es'
