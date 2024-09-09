@@ -21,14 +21,11 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
-const handleSubmit = () => {
-  // Handle form submission
-  console.log('Form submitted', { email: email.value, password: password.value, rememberMe: rememberMe.value });
-};
+
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit"
+  <form action="/signin" method="POST"
         class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
     <input type="hidden"
            name="utf8"

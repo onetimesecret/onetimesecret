@@ -27,7 +27,6 @@ const shrimp = window.shrimp;
                 :withAsterisk="true"
                 :withGenerate="true" />
 
-
     <div v-if="!authenticated"
          class="flex flex-col items-center text-center my-6">
         <p class="text-sm text-gray-400 italic dark:text-gray-400 mb-4">{{ $t('web.homepage.secret_hint') }}</p>

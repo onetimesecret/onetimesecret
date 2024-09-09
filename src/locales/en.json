@@ -5,6 +5,11 @@
       "generate_password_disabled": "Generate Password is disabled when the form is valid",
       "email_placeholder": "e.g. tom{'@'}myspace.com",
       "password_placeholder": "Enter your password",
+      "custom_domains_title": "Custom Domains",
+      "custom_domains_description": "Strengthen connections and build trust with your own branded secret links.",
+      "get_started_button": "Get Started",
+      "confirm_password_placeholder": "Confirm your password",
+      "skill_placeholder": "",
 
 
       "broadcast": "",

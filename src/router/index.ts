@@ -120,15 +120,15 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/Signin.vue'),
   },
   {
-    path: '/signup',
-    name: 'Sign Up',
-    component: () => import('@/views/Signup.vue'),
-  },
-  {
     path: '/signup/:planCode',
     name: 'Sign Up',
     component: () => import('@/views/Signup.vue'),
     props: true,
+  },
+  {
+    path: '/signup',
+    name: 'Sign Up',
+    component: () => import('@/views/Signup.vue'),
   },
 ]
 
