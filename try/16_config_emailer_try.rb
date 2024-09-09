@@ -2,7 +2,7 @@
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.example')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.example.yaml')
 OT.boot! :cli
 
 ## Default emailer mode is :smtp

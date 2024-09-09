@@ -17,7 +17,7 @@ require_relative '../lib/onetime'
 require_relative './test_helpers'
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot!
 
 @api_key = ENV.fetch('APPROXIMATED_API_KEY', '')

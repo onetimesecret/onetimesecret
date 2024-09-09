@@ -3,7 +3,7 @@
 # These tryouts test the authentication-related routes
 # and how they respond based on the authentication
 # settings in etc/config. (NOTE: In test the file is
-# etc/config.test).
+# etc/config.test.yaml).
 #
 # The tryouts for POST requests are disabled because
 # are returning 302 nil location responses.
@@ -15,7 +15,7 @@ require 'rack/mock'
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :tryouts
 
 # Initialize the Rack application and create a mock request

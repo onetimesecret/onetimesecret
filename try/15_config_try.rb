@@ -15,7 +15,7 @@
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :cli
 
 @email_address = OT.conf[:emailer][:from]
@@ -23,7 +23,7 @@ OT.boot! :cli
 
 ## Finds a config path
 Onetime::Config.path.gsub("#{__dir__}/", '')
-#=> "../etc/config.test"
+#=> "../etc/config.test.yaml"
 
 ## Can load config
 @config = Onetime::Config.load
@@ -56,8 +56,8 @@ Onetime::Config.mapped_key(:every_developer_a_key)
 #=> :every_developer_a_key
 
 ## Config.find_configs returns an array of paths
-paths = Onetime::Config.find_configs('config.test')
-path = File.expand_path(File.join(__dir__, '..', 'etc', 'config.test'))
+paths = Onetime::Config.find_configs('config.test.yaml')
+path = File.expand_path(File.join(__dir__, '..', 'etc', 'config.test.yaml'))
 paths.include?(path)
 #=> true
 
