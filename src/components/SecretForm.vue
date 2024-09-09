@@ -68,8 +68,6 @@ const isCreateDisabled = computed(() => !isFormValid.value);
 
 <template>
   <main class="min-w-[320px]">
-
-
     <div class="">
 
       <form id="createSecret"

@@ -114,6 +114,22 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Forgot',
     component: () => import('@/components/PasswordStrengthChecker.vue'),
   },
+  {
+    path: '/signin',
+    name: 'Sign In',
+    component: () => import('@/views/Signin.vue'),
+  },
+  {
+    path: '/signup',
+    name: 'Sign Up',
+    component: () => import('@/views/Signup.vue'),
+  },
+  {
+    path: '/signup/:planCode',
+    name: 'Sign Up',
+    component: () => import('@/views/Signup.vue'),
+    props: true,
+  },
 ]
 
 const router = createRouter({

@@ -3,6 +3,9 @@
     "COMMON": {
       "button_generate_secret_short": "Generate Password",
       "generate_password_disabled": "Generate Password is disabled when the form is valid",
+      "email_placeholder": "e.g. tom{'@'}myspace.com",
+      "password_placeholder": "Enter your password",
+
 
       "broadcast": "",
       "description": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
@@ -96,7 +99,8 @@
       "need_an_account": "Need an account?",
       "forgot_your_password": "Forgot your password?",
       "button_sign_in": "Sign In",
-      "enter_your_credentials": "Enter your credentials"
+      "enter_your_credentials": "Enter your credentials",
+      "remember_me": "Rembember me"
     },
     "incoming": {
       "tagline1": "Paste a password, secret message or private link below.",
