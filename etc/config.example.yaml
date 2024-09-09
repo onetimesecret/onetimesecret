@@ -48,6 +48,8 @@
     :stripe_key: <%= ENV['STRIPE_KEY'] || nil %>
   :support:
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
+  :regions:
+    :enabled: false
 :redis:
   :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
 :colonels:
@@ -131,8 +133,8 @@
     :logger:
       # One of: :error (default), :unrecognized_error,
       # :recognized_error, :all.
-      tracking_event: :error
-      stdout: true
+      :tracking_event: :error
+      :stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
 :locales:
   # A list of ISO language codes (e.g., 'en' for English, 'es'
