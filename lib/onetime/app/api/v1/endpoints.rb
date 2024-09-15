@@ -182,17 +182,23 @@ class Onetime::App
     def metadata_hsh md, opts={}
       hsh = md.refresh.to_h
 
-      # Show the secret's actual real ttl as of now if we have it. If we don't
-      # (for example if it was burned) then we have the metadata record's ttl.
-      secret_ttl = opts[:secret_ttl] ? opts[:secret_ttl].to_i : md.realttl.to_i
-
       # NOTE: This is a workaround for limitation in Familia where we can't add
       # fields that clash with reserved keywords like ttl, db, etc. For the v1
       # API, "ttl" is the requested value (i.e. the value of the ttl param when
-      # the secret was created). Since we can no longer access the "ttl" field
-      # in the redis hash we can use the value saved to secret_ttl and double
-      # it to mimic the behaviour of the CreateSecret logic class.
-      metadata_ttl = secret_ttl*2
+      # the secret was created). Although this is getting the value from a
+      # different field than the 0.16.x and earlier, it reads better (as in "the
+      # secret has a ttl of 123") vs an ambiguous field called just ttl. It's
+      # just confusing with the API response fields where `secret_ttl` is the
+      # real value.
+      #
+      # Also note that the ttl used for metadata at creation time is secret_ttl*2
+      # so that the creator has time to keep retreiving them metadata after the
+      # secret itself has expired. Otherwise there'd be no record of whether the
+      # secret was seen or not.
+      metadata_ttl = (md.secret_ttl || 0).to_i
+
+      # Show the secret's actual real ttl as of now if we have it.
+      secret_realttl = opts[:secret_ttl] ? opts[:secret_ttl].to_i : nil
 
       # md.realttl is a redis command method. This makes a call to the redis server
       # to get the current value of the ttl for the metadata object. This is the
@@ -214,7 +220,7 @@ class Onetime::App
         :secret_key => hsh['secret_key'],
         :ttl => metadata_ttl, # static value from redis hash field
         :metadata_ttl => metadata_realttl, # actual number of seconds left to live
-        :secret_ttl => secret_ttl, # ditto, actual number
+        :secret_ttl => secret_realttl, # ditto, actual number
         :state => hsh['state'] || 'new',
         :updated => hsh['updated'].to_i,
         :created => hsh['created'].to_i,
