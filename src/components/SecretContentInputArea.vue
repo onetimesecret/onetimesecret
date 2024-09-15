@@ -177,10 +177,6 @@ onUnmounted(() => {
   within the dropdown element, and if so, it closes the dropdown. The Escape key
   functionality simply closes the dropdown when the key is pressed.
 
--->
-
-<!--
-
   TESTING:
   To test the readability and distinguishability of various characters,
   including commonly problematic ones, use the following command to generate
