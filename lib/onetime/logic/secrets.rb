@@ -120,7 +120,7 @@ module Onetime::Logic
     end
 
     class ShowSecret < OT::Logic::Base
-      attr_reader :key, :passphrase, :continue
+      attr_reader :key, :passphrase, :continue, :share_domain
       attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size, :verification, :correct_passphrase
       def process_params
         @key = params[:key].to_s
@@ -136,6 +136,8 @@ module Onetime::Logic
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret = secret.viewable? && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
+        @share_domain = secret.share_domain
+
         owner = secret.load_customer
 
         if show_secret
