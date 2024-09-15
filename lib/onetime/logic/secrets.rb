@@ -76,12 +76,12 @@ module Onetime::Logic
 
           # Is the custom domain is nil, it either doesn't exist in the system
           # or it doesn't exist in the system for this customer.
-          raise_form_error "Unknown share domain" if custom_domain.nil?
+          raise_form_error "Unknown share domain (#{@share_domain})" if @custom_domain.nil?
 
           # We should never get here in theory since the domain won't load unless
           # the domain+custid matches. However, due to bugs and unofrseen circumstances
           # we may get here in practice.
-          raise_form_error "Invalid share domain" unless custom_domain.owner?(cust)
+          raise_form_error "Invalid share domain (#{@share_domain})" unless @custom_domain.owner?(@cust)
         end
       end
 
