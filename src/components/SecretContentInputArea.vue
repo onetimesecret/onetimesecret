@@ -235,10 +235,9 @@ onUnmounted(() => {
               aria-label="Enter the secret content to share here">
     </textarea>
 
-    <div v-if="showCounter" class="absolute bottom-4 left-4 bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none">
+    <div v-if="showCounter" class="hidden bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none">
       {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
-
 
     <div v-if="withDomainDropdown"
          class="absolute bottom-4 right-4">
