@@ -104,7 +104,9 @@ class Onetime::App
         logic.raise_concerns
         logic.process
         if logic.show_secret
-          json :value => logic.secret_value, :secret_key => req.params[:key]
+          json :value => logic.secret_value,
+               :secret_key => req.params[:key],
+               :share_domain => logic.share_domain
 
           # Immediately mark the secret as viewed, so that it
           # can't be shown again. If there's a network failure
@@ -233,7 +235,8 @@ class Onetime::App
           :updated => hsh['updated']&.to_i,
           :created => hsh['created']&.to_i,
           :received => hsh['received']&.to_i, # empty fields become 0
-          :recipient => recipient
+          :recipient => recipient,
+          :share_domain => hsh['share_domain']
         }
         if ret[:state] == 'received'
           ret.delete :secret_ttl
