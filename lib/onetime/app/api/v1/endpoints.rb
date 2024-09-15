@@ -181,6 +181,13 @@ class Onetime::App
       #   puts result[:secret_ttl] # => 3600
       #
       def metadata_hsh md, opts={}
+
+        # The to_h method comes from Familia::Horreum which is concerned with
+        # preparing values for storage in redis. As a result, the hash returned
+        # has had its values passed through `to_redis` where everything becomes
+        # a string. e.g. nil becomes ''. We not only allow but encourage this
+        # behaviour since the values will become strings in Redis anyway so
+        # better to be explicit about it.
         hsh = md.to_h
 
         # NOTE: This is a workaround for limitation in Familia where we can't add
@@ -196,10 +203,10 @@ class Onetime::App
         # so that the creator has time to keep retreiving them metadata after the
         # secret itself has expired. Otherwise there'd be no record of whether the
         # secret was seen or not.
-        metadata_ttl = (md.secret_ttl || 0).to_i
+        metadata_ttl = md.secret_ttl&.to_i
 
         # Show the secret's actual real ttl as of now if we have it.
-        secret_realttl = opts[:secret_ttl] ? opts[:secret_ttl].to_i : nil
+        secret_realttl = opts[:secret_ttl]&.to_i
 
         # md.realttl is a redis command method. This makes a call to the redis server
         # to get the current value of the ttl for the metadata object. This is the
@@ -207,7 +214,7 @@ class Onetime::App
         #
         # For the v1 API, this real value is what gets returned a "metadata_ttl". If
         # you don't find that confusing, take another look through the code.
-        metadata_realttl = md.realttl.to_i
+        metadata_realttl = md.realttl&.to_i
 
         recipient = [hsh['recipients']]
                     .flatten
@@ -223,9 +230,9 @@ class Onetime::App
           :metadata_ttl => metadata_realttl, # actual number of seconds left to live
           :secret_ttl => secret_realttl, # ditto, actual number
           :state => hsh['state'] || 'new',
-          :updated => hsh['updated'].to_i,
-          :created => hsh['created'].to_i,
-          :received => hsh['received'].to_i,
+          :updated => hsh['updated']&.to_i,
+          :created => hsh['created']&.to_i,
+          :received => hsh['received']&.to_i, # empty fields become 0
           :recipient => recipient
         }
         if ret[:state] == 'received'
