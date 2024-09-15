@@ -1,4 +1,4 @@
-# Onetime Secret - v0.17.1
+# Onetime Secret - v0.17.2
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
