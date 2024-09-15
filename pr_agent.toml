@@ -36,7 +36,7 @@ require_can_be_split_review=false
 require_soc2_ticket=false
 soc2_ticket_prompt="Does the PR description include a link to ticket in a project management system (e.g., Jira, Asana, Trello, etc.) ?"
 # general options
-num_code_suggestions=4
+num_code_suggestions=0
 inline_code_comments = true
 inline_code_comments_max_lines = 25
 ask_and_reflect=true
@@ -80,23 +80,6 @@ include_generated_by_header=true
 
 [pr_questions] # /ask #
 enable_help_text=true
-
-
-[pr_code_suggestions] # /improve #
-max_context_tokens=10000
-num_code_suggestions=5
-summarize = true
-extra_instructions = ""
-rank_suggestions = true
-enable_help_text=true
-persistent_comment=false
-# params for '/improve --extended' mode
-auto_extended_mode=true
-num_code_suggestions_per_chunk=5
-max_number_of_calls = 3
-parallel_calls = true
-rank_extended_suggestions = false
-final_clip_factor = 0.8
 
 [pr_add_docs] # /add_docs #
 extra_instructions = ""
