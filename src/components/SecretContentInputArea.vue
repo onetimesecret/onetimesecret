@@ -235,6 +235,12 @@ onUnmounted(() => {
               aria-label="Enter the secret content to share here">
     </textarea>
 
+    <!--
+      Generally speaking, v-if has higher toggle costs while v-show has higher
+      initial render costs. So prefer v-show if you need to toggle something
+      very often, and prefer v-if if the condition is unlikely to change at
+      runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
+    -->
     <div v-if="showCounter" class="hidden bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none">
       {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
