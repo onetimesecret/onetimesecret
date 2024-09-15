@@ -8,7 +8,7 @@ module Onetime::Logic
 
     class CreateSecret < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :maxviews
-      attr_reader :metadata, :secret, :share_domain
+      attr_reader :metadata, :secret, :share_domain, :custom_domain
       attr_accessor :token
 
       def process_params
@@ -44,7 +44,14 @@ module Onetime::Logic
         # chance in a lion's den of being a custom domain anyway.
         potential_domain = params[:share_domain].to_s
         if potential_domain && OT::CustomDomain.valid?(potential_domain)
-          @share_domain = potential_domain
+
+          # If the given domain is the same as the site's host domain, then
+          # we simply skip the share domain stuff altogether.
+          if OT::CustomDomain.default_domain?(potential_domain)
+            OT.info "[CreateSecret] Skipping share domain: #{potential_domain}"
+          else
+            @share_domain = potential_domain
+          end
         end
       end
 
@@ -64,7 +71,18 @@ module Onetime::Logic
         raise_form_error "Unknown type of secret" if kind.nil?
 
         # Returns the display_domain/share_domain or
-        @share_domain = OT::CustomDomain.display_domain(@share_domain) if share_domain
+        if share_domain
+          @custom_domain = OT::CustomDomain.load(@share_domain, cust.custid)
+
+          # Is the custom domain is nil, it either doesn't exist in the system
+          # or it doesn't exist in the system for this customer.
+          raise_form_error "Unknown share domain" if custom_domain.nil?
+
+          # We should never get here in theory since the domain won't load unless
+          # the domain+custid matches. However, due to bugs and unofrseen circumstances
+          # we may get here in practice.
+          raise_form_error "Invalid share domain" unless custom_domain.owner?(cust)
+        end
       end
 
       def process
