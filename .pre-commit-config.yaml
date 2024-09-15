@@ -75,9 +75,6 @@ repos:
         description: Enforce the community Ruby Style Guide with RuboCop
         entry: "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning"
         types: ['ruby']
-        #language_version: 3.3.0
-        # language: ruby
-        # args: ['--force-exclusion']
 
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
     rev: v0.0.11
