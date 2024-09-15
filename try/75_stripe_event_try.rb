@@ -18,7 +18,7 @@ require_relative '../lib/onetime'
 require_relative '../lib/onetime/models/stripe_event'
 
 # Load the app
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :app
 
 # Setup

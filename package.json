@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "optimize": "vite optimize",
     "lint": "eslint",
+    "oursync": "rsync -av --ignore-existing public/web/ /var/www/public/",
     "clean": "rimraf public/web/dist"
   },
   "keywords": [],

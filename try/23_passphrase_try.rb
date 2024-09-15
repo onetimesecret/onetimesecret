@@ -17,7 +17,7 @@ require_relative '../lib/onetime'
 Familia.debug = false
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot!
 
 ## Can store a passphrase
