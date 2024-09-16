@@ -43,8 +43,8 @@ module Onetime::Logic
         # most basic of checks, then whatever this is never had a whisker's
         # chance in a lion's den of being a custom domain anyway.
         potential_domain = params[:share_domain].to_s
-        if potential_domain && OT::CustomDomain.valid?(potential_domain)
 
+        if potential_domain && OT::CustomDomain.valid?(potential_domain)
           # If the given domain is the same as the site's host domain, then
           # we simply skip the share domain stuff altogether.
           if OT::CustomDomain.default_domain?(potential_domain)
@@ -190,14 +190,17 @@ module Onetime::Logic
     class ShowMetadata < OT::Logic::Base
       attr_reader :key
       attr_reader :metadata, :secret, :show_secret
+
       def process_params
         @key = params[:key].to_s
         @metadata = Onetime::Metadata.load key
       end
+
       def raise_concerns
         limit_action :show_metadata
         raise OT::MissingSecret if metadata.nil?
       end
+
       def process
         @secret = @metadata.load_secret
       end

@@ -161,7 +161,9 @@ module Onetime
           else
             '%d days' % ttl.in_days
           end
+
           secret = metadata.load_secret
+
           if secret.nil?
             self[:is_received] = metadata.state?(:received)
             self[:is_burned] = metadata.state?(:burned)
@@ -228,7 +230,11 @@ module Onetime
           self[:show_recipients] = self[:show_metadata] && !self[:recipients].empty?
 
           domain = if self[:domains_enabled]
-            metadata.share_domain || site_host
+            if metadata.share_domain.to_s.empty?
+              site_host
+            else
+              metadata.share_domain
+            end
           else
             site_host
           end
