@@ -6,7 +6,7 @@
 # To build and use this image, you need to copy the example
 # configuration files into place:
 #
-#     $ cp --preserve --no-clobber ./etc/config.example ./etc/config
+#     $ cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
 #     $ cp --preserve --no-clobber .env.example .env
 #
 # The default values work as-is but it's a good practice to have
@@ -178,7 +178,7 @@ COPY --link bin $CODE_ROOT/bin
 COPY --link etc $CODE_ROOT/etc
 COPY --link lib $CODE_ROOT/lib
 COPY --link migrate $CODE_ROOT/migrate
-COPY VERSION.yml config.ru .commit_hash.txt Gemfile Gemfile.lock $CODE_ROOT/
+COPY VERSION.yml config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
 LABEL Name=onetimesecret Version=0.17.2
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
@@ -209,7 +209,9 @@ WORKDIR $CODE_ROOT
 # example, if the config file has been previously copied
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
-RUN cp --preserve --no-clobber etc/config.example etc/config
+RUN set -eux \
+    && cp --preserve --no-clobber etc/config.example.yaml etc/config \
+    && touch .commit_hash.txt
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:

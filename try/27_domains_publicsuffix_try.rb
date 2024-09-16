@@ -7,7 +7,7 @@ require 'public_suffix'
 require_relative '../lib/onetime'
 
 # Load the app
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :app
 
 # Setup
