@@ -49,7 +49,7 @@ p [:email, @email_address]
 ## Can "create" an anonymous user (more like simulate)
 @anonymous = OT::Customer.anonymous
 @anonymous.custid
-#=> :anon
+#=> 'anon'
 
 ## Anonymous is a Customer class
 @anonymous.class

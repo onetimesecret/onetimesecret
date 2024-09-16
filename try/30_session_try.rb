@@ -67,8 +67,8 @@ ipaddress = @sess.ipaddress
 #=> [String, @ipaddress]
 
 ## Sessions don't get unique IDs when instantiated
-s1 = OT::Session.new '255.255.255.255', :anon
-s2 = OT::Session.new '255.255.255.255', :anon
+s1 = OT::Session.new '255.255.255.255', 'anon'
+s2 = OT::Session.new '255.255.255.255', 'anon'
 # Don't call s1.sessid by accessor method b/c that will generate one
 s1.instance_variable_get(:@sessid).eql?(s2.instance_variable_get(:@sessid))
 #=> true

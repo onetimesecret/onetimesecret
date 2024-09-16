@@ -52,6 +52,32 @@ custom_domain = OT::CustomDomain.load(@valid_domain, @cust.custid)
 @cust.custom_domains.first
 #=> @valid_domain
 
+## A custom domain has an owner (via model instance)
+custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain.owner?(@cust)
+#=> true
+
+## A custom domain has an owner (via email string)
+custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain.owner?(@cust.custid)
+#=> true
+
+## A custom domain has an owner (nil)
+custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain.owner?(nil)
+#=> false
+
+## A custom domain has an owner (via different email string)
+custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain.owner?('anothercustomer@onetimesecret.com')
+#=> false
+
+## A custom domain has an owner (via different customer)
+cust = OT::Customer.create("anothercustome+#{@now.to_i}r@onetimesecret.com")
+custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain.owner?(cust)
+#=> false
+
 ## A customer's custom_domain list updates when a new domain is added
 custom_domain = @cust.custom_domains_list.first
 [custom_domain.class, custom_domain.display_domain]

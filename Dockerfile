@@ -180,7 +180,7 @@ COPY --link lib $CODE_ROOT/lib
 COPY --link migrate $CODE_ROOT/migrate
 COPY VERSION.yml config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
-LABEL Name=onetimesecret Version=0.17.1
+LABEL Name=onetimesecret Version=0.17.2
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
