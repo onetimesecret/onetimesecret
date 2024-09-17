@@ -67,6 +67,10 @@
   :pass: <%= ENV['SMTP_PASSWORD'] || 'CHANGEME' %>
   :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
   :tls: <%= ENV['SMTP_TLS'] || true %>
+:incoming:
+  :enabled: false
+  :email: CHANGEME@example.com
+  :passphrase: abacus
 :mail:
   :truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
