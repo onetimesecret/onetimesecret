@@ -180,7 +180,7 @@ COPY --link lib $CODE_ROOT/lib
 COPY --link migrate $CODE_ROOT/migrate
 COPY VERSION.yml config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
-LABEL Name=onetimesecret Version=0.17.2
+LABEL Name=onetimesecret Version=0.17.3
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
@@ -210,7 +210,7 @@ WORKDIR $CODE_ROOT
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
 RUN set -eux \
-    && cp --preserve --no-clobber etc/config.example.yaml etc/config \
+    && cp --preserve --no-clobber etc/config.example.yaml etc/config.yaml \
     && touch .commit_hash.txt
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
