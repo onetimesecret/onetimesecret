@@ -49,7 +49,9 @@ vendor
 Caddyfile
 fly.toml
 etc/config
-!etc/config.example
+etc/config.yaml
+!etc/config.example.yaml
+!etc/config.test.yaml
 !.env.empty
 !.env.example
 *.rdb
@@ -60,4 +62,3 @@ etc/config
 !postcss.config.mjs
 !tailwind.config.ts
 !eslint.config.mjs
-!src/

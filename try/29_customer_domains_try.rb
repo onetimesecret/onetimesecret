@@ -6,7 +6,7 @@
 require_relative '../lib/onetime'
 
 # Load the app
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :app
 
 # Setup some variables for these tryouts
@@ -73,7 +73,7 @@ custom_domain.owner?('anothercustomer@onetimesecret.com')
 #=> false
 
 ## A custom domain has an owner (via different customer)
-cust = OT::Customer.create('anothercustomer@onetimesecret.com')
+cust = OT::Customer.create("anothercustome+#{@now.to_i}r@onetimesecret.com")
 custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
 custom_domain.owner?(cust)
 #=> false

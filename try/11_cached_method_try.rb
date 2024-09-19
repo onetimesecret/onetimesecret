@@ -20,7 +20,7 @@ require_relative '../lib/onetime'
 # Familia.debug = true
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot!
 
 @num = rand(1000)

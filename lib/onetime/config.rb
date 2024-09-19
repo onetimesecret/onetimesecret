@@ -23,13 +23,7 @@ module Onetime
 
       YAML.load(ERB.new(File.read(path)).result)
     rescue StandardError => e
-      OT.ld e.message
-      msg = if path =~ /locale/
-              "Error loading locale: #{path} (#{e.message})"
-            else
-              "Error loading config: #{path}"
-            end
-      OT.le msg
+      OT.le "Error loading config: #{path}"
       OT.le e.message
       OT.ld e.backtrace.join("\n")
       Kernel.exit(1)
@@ -164,7 +158,7 @@ module Onetime
     end
 
     def find_configs(filename = nil)
-      filename ||= 'config'
+      filename ||= 'config.yaml'
       paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
       paths.collect do |f|
         f = File.join File.expand_path(f), filename

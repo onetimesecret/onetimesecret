@@ -205,7 +205,7 @@ NOTE: The redis-server service should start automatically after installing it. Y
 ```bash
   $ cd onetimesecret
 
-  $ cp --preserve --no-clobber ./etc/config.example ./etc/config
+  $ cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
   $ cp --preserve --no-clobber .env.example .env
 ```
 
