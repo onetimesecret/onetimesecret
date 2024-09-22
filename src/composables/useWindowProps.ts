@@ -16,19 +16,19 @@ To summarize:
 The cached version is generally the better choice for most applications, as it optimizes memory usage and ensures consistency across your app.
 **/
 
-const cache: Partial<Record<keyof Window, ReturnType<typeof ref>>> = {};
+const cache: Partial<Record<keyof Window, Ref<Window[keyof Window]>>> = {};
 
-export const useWindowProps = <T extends keyof Window>(props: T[]) => {
-  const result: Partial<Record<T, ReturnType<typeof ref>>> = {};
+export const useWindowProps = <T extends keyof Window>(props: T[]): { [K in T]: Readonly<Ref<Window[K]>> } => {
+  const result: Partial<Record<T, Readonly<Ref<Window[T]>>>> = {};
 
   props.forEach((prop) => {
     if (!cache[prop]) {
       cache[prop] = ref(window[prop]);
     }
-    result[prop] = cache[prop];
+    result[prop] = readonly(cache[prop] as Ref<Window[T]>);
   });
 
-  return result as { [K in T]: ReturnType<typeof readonly> };
+  return result as { [K in T]: Readonly<Ref<Window[K]>> };
 };
 
 // Helper function for type safety
@@ -36,5 +36,5 @@ export const useWindowProp = <T extends keyof Window>(prop: T): Readonly<Ref<Win
   if (!cache[prop]) {
     cache[prop] = ref(window[prop]);
   }
-  return readonly(cache[prop]);
+  return readonly(cache[prop] as Ref<Window[T]>);
 };

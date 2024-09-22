@@ -19,15 +19,15 @@
 <!-- App-wide setup lives here -->
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router'
 import { useWindowProps } from '@/composables/useWindowProps';
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import QuietLayout from '@/layouts/QuietLayout.vue'
 
-
+const { locale } = useI18n();
 const route = useRoute()
-const { cust } = useWindowProps(['supported_locales']);
-console.log(cust)
+const { cust, is_default_locale, authentication, authenticated } = useWindowProps(['cust', 'is_default_locale', 'authentication', 'authenticated']);
 
 // Layout Switching: In the script section, the layout computed property
 // determines which layout component should be used based on the current
@@ -49,18 +49,13 @@ const layout = computed(() => {
 
 // Define the props you want to pass to the layouts
 const layoutProps = computed(() => ({
-  displayMasthead: true,
-  authenticated: false, // You might want to compute this based on your auth state
+  authenticated: authenticated.value,
+  authentication: authentication.value,
   colonel: false, // This might also be computed based on user role
-  defaultLocale: 'en', // You might want to get this from your i18n setup
   cust: cust,
-
-  authentication: {
-    enabled: true,
-    signup: true,
-    signin: true
-  },
-  isDefaultLocale: true, // This might be computed based on current locale
+  defaultLocale: locale.value, // You might want to get this from your i18n setup
+  displayMasthead: true,
+  isDefaultLocale: is_default_locale.value, // This might be computed based on current locale
   // Add any other props your layouts need
 }))
 </script>

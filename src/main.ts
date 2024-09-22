@@ -1,54 +1,24 @@
-
 import App from './App.vue'
 import router from '@/router';
-import i18n from './i18n';
+import i18n from '@/i18n';
 import { createApp } from 'vue';
 
 import './assets/style.css';
 
 /**
- * Hybrid SPA / Server-Rendered Page Initialization
+ * Vue Application Initialization
  *
- * This code handles the initialization of our application, which uses a hybrid
- * approach combining Single Page Application (SPA) features with traditional
- * server-rendered pages. This approach allows for a gradual transition from a
- * fully server-rendered site to a more modern SPA architecture.
+ * This code initializes our Vue application with the following features:
+ * - Routing: Using Vue Router for client-side navigation
+ * - Internationalization: Using i18n for multi-language support
+ * - Global styles: Importing the main style.css file
  *
- * The process works as follows:
- *
- * 1. If the current page has a corresponding Vue route:
- *    - We initialize the full Vue app with routing capabilities.
- *    - This allows for client-side navigation between Vue-powered pages.
- *
- * 2. If the current page doesn't have a Vue route, but has a Vue component:
- *    - We fall back to the older method of mounting a single Vue component.
- *    - This preserves functionality for pages that have been partially
- *      upgraded.
- *
- * 3. If neither a route nor a component exists:
- *    - The page remains a traditional server-rendered page.
- *
- * Short-term benefits:
- * - Allows use of Vue Router for navigation on new, Vue-powered pages.
- * - Maintains compatibility with existing server-rendered and partially-
- *   upgraded pages.
- * - Enables incremental migration to a full SPA architecture.
- *
- * Long-term considerations:
- * - This hybrid approach may lead to inconsistent user experiences between
- *   different parts of the site.
- * - As more pages are converted to Vue components, the codebase should be
- *   refactored towards a full SPA model.
- *
- * @param {string} vueComponentName - The name of the Vue component for the
- *                                    current page, set by the server.
+ * The application is created and mounted to the '#app' element in the DOM.
  */
-
 const app = createApp(App);
 app.use(i18n)
 app.use(router);
 app.mount('#app');
-
 
 /*
 * Old-school global function. Actually the Altcha lib has a replacement
