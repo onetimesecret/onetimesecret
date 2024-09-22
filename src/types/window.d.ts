@@ -61,6 +61,7 @@ declare global {
     is_default_locale: boolean;
     supported_locales: string[];
     ot_version: string;
+    plans_enabled: boolean;
     ruby_version: string;
     shrimp: string;  // Our CSRF token, to be used in POST requests to the backend
     site_host: string;
@@ -70,11 +71,19 @@ declare global {
     form_fields?: { [key: string]: string };
     authentication: AuthenticationSettings;
 
+    support_host?: string;
+
     // Display site links in footer
     display_links: boolean;
 
     // Display logo and top nav
     display_masthead: boolean;
+
+    metadata_record_count: number;
+
+    plan: Plan;
+    is_paid: boolean;
+    default_plan: string;
 
     // A function that's called on page load to update any email
     // addresses inside <span class="email">. Currently only the

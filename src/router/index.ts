@@ -57,7 +57,13 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/Dashboard.vue'),
+    component: () => import('@/views/dashboard/DashboardIndex.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/recent',
+    name: 'Recents',
+    component: () => import('@/views/dashboard/DashboardRecent.vue'),
     meta: { requiresAuth: true }
   },
   {
