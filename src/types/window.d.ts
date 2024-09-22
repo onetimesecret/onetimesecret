@@ -40,7 +40,7 @@
  * IDEs.
  */
 
-import { AuthenticationSettings, Cust, Plan } from './onetime';
+import { AuthenticationSettings, Cust, Plan, Metadata } from './onetime';
 import type Stripe from 'stripe';
 
 declare global {
@@ -84,6 +84,12 @@ declare global {
     plan: Plan;
     is_paid: boolean;
     default_plan: string;
+
+    received: Metadata[];
+    notreceived: Metadata[];
+    has_secrets: boolean;
+    has_received: boolean;
+    has_notreceived: boolean;
 
     // A function that's called on page load to update any email
     // addresses inside <span class="email">. Currently only the

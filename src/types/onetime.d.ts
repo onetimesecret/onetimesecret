@@ -146,3 +146,40 @@ export type FormSubmissionOptions = {
   onError?: (data: ApiErrorResponse) => void | Promise<void>;
   handleShrimp?: (shrimp: string) => void | Promise<void>
 };
+
+// Metadata interface
+export interface Metadata {
+  custid: string;
+  state: string;
+  secret_key: string;
+  secret_shortkey: string;
+  secret_ttl: number;
+  share_domain: string;
+  passphrase: string;
+  viewed: boolean;
+  received: boolean;
+  shared: boolean;
+  burned: boolean;
+  created: string;
+  updated: string;
+  recipients: string[];
+  truncate: boolean;
+}
+
+// Secret interface
+export interface Secret {
+  custid: string;
+  state: string;
+  value: string;
+  metadata_key: string;
+  original_size: number;
+  value_checksum: string;
+  value_encryption: string;
+  lifespan: number;
+  share_domain: string;
+  verification: string;
+  updated: string;
+  created: string;
+  truncated: boolean;
+  maxviews: number; // always 1 (here for backwards compat)
+}

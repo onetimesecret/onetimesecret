@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { useWindowProps } from '@/composables/useWindowProps';
 
-
 const { metadata_record_count, domains_enabled, plan, custom_domains_record_count } = useWindowProps(['shrimp', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
-
 </script>
 
 <template>

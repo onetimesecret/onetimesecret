@@ -51,9 +51,8 @@ module Onetime
         def init
 
           self[:title] = "Your Dashboard"
-          self[:body_class] = :dashboard
-          self[:with_analytics] = false
-          self[:metadata] = cust.metadata_list.collect do |m|
+
+          metadata = cust.metadata_list.collect do |m|
             { :uri => private_uri(m),
               :stamp => natural_time(m.updated),
               :updated => epochformat(m.updated),
@@ -69,19 +68,16 @@ module Onetime
               :is_burned => m.state?(:burned),
               :is_destroyed => (m.state?(:received) || m.state?(:burned))}
           end.compact
-          self[:received],self[:notreceived] =
-            *self[:metadata].partition{ |m| m[:is_destroyed] }
-          self[:received].sort!{ |a,b| b[:updated] <=> a[:updated] }
-          self[:has_secrets] = !self[:metadata].empty?
-          self[:has_received] = !self[:received].empty?
-          self[:has_notreceived] = !self[:notreceived].empty?
-        end
-      end
+          received, notreceived = *metadata.partition{ |m| m[:is_destroyed] }
+          received.sort!{ |a,b| b[:updated] <=> a[:updated] }
 
-      class Recent < Onetime::App::Views::Dashboard
-        self.template_name = :vue_point
-        # Use the same locale as the dashboard
-        self.pagename = :dashboard # used for locale content
+          self[:jsvars] << jsvar(:received, received)
+          self[:jsvars] << jsvar(:notreceived, notreceived)
+          self[:jsvars] << jsvar(:has_secrets, !metadata.empty?)
+          self[:jsvars] << jsvar(:has_received, !received.empty?)
+          self[:jsvars] << jsvar(:has_notreceived, !notreceived.empty?)
+
+        end
       end
 
       class DashboardComponent < Onetime::App::Views::Dashboard
@@ -92,7 +88,6 @@ module Onetime
           super req, sess, cust, locale, *args
         end
       end
-
 
       class Incoming < Onetime::App::View
         def init *args
