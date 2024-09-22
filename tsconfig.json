@@ -14,6 +14,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
 
     "useDefineForClassFields": true,
     "jsx": "preserve",

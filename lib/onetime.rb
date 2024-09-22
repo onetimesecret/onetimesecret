@@ -175,9 +175,9 @@ module Onetime
 
     def load_locales(locales = OT.conf[:locales] || ['en'])
       confs = locales.collect do |locale|
-        path = File.join(OT::Config.dirname, 'locale', locale)
+        path = File.join(Onetime::HOME, 'src', 'locales', "#{locale}.json")
         OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
-        conf = OT::Config.load(path)
+        conf = JSON.parse(File.read(path), symbolize_names: true)
         [locale, conf]
       end
 

@@ -23,7 +23,8 @@ module Onetime
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change.
         site = OT.conf.fetch(:site, {})
-        domains = OT.conf.dig(:site, :domains) || {}
+        domains = site.fetch(:domains, {})
+        authentication = site.fetch(:authentication, {})
 
         # If not set, the frontend_host is the same as the site_host and
         # we can leave the absolute path empty as-is without a host.
@@ -51,7 +52,10 @@ module Onetime
         self[:frontend_development] = frontend_development
         self[:no_cache] = false
         self[:display_sitenav] = true
+
         self[:jsvars] = []
+        # Pass the authentication flag settings to the frontends.
+        self[:jsvars] << jsvar(:authentication, authentication)
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
 
         if authenticated && cust
