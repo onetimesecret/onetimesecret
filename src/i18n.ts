@@ -1,7 +1,4 @@
-import { createI18n } from 'vue-i18n';
-import en from '@/locales/en.json';
-
-type MessageSchema = typeof en;
+import { createI18n, I18nOptions } from 'vue-i18n';
 
 /**
  * This setup accomplishes the following:
@@ -13,18 +10,23 @@ type MessageSchema = typeof en;
  * If loading fails (e.g., the file doesn't exist), it falls back to English.
  **/
 
-export const i18n = createI18n<[MessageSchema], 'en'>({
-  locale: 'en',
-  fallbackLocale: 'en',
-  messages: { en },
-});
+// Import the type only, not the actual module
+type MessageSchema = typeof import('@/locales/en.json');
+
+// Define the type for the i18n options
+const i18nOptions: I18nOptions = {
+  locale: 'en', // set default locale
+  messages: {} as Record<string, MessageSchema>, // initialize with empty messages
+};
+
+const i18n = createI18n(i18nOptions);
+
+export default i18n;
 
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
   try {
-    console.log(`Attempting to load locale: ${locale}`);
     const messages = await import(`@/locales/${locale}.json`);
-    console.log(`Successfully loaded locale: ${locale}`);
-    return messages.default as MessageSchema;
+    return messages;
   } catch (error) {
     console.error(`Failed to load locale: ${locale}`, error);
     return null;
@@ -36,13 +38,12 @@ export async function setLanguage(lang: string): Promise<void> {
   const messages = await loadLocaleMessages(lang);
   if (messages) {
     i18n.global.setLocaleMessage(lang, messages);
-    i18n.global.locale = lang as "en";
+    i18n.global.locale = lang;
     console.log(`Language set to: ${lang}`);
   } else {
     console.log(`Failed to set language to: ${lang}. Falling back to default.`);
   }
 }
-
 
 export const browserLocale = navigator.language.split('-')[0];
 console.log(`Detected browser locale: ${browserLocale}`);
