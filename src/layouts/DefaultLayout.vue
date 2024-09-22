@@ -5,6 +5,7 @@ import FeedbackForm from '@/components/FeedbackForm.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
+import { AuthenticationSettings } from '@/types/onetime';
 
 const shrimp = window.shrimp;
 const onetimeVersion = window.ot_version;
@@ -15,12 +16,12 @@ interface Props {
   authenticated: boolean
   colonel: boolean
   defaultLocale: string
-  authentication: {
-    enabled: boolean
-    signup: boolean
-    signin: boolean
-  }
+  authentication: AuthenticationSettings
   isDefaultLocale: boolean
+  support_host?: string
+  plans_enabled?: boolean
+  display_links?: boolean
+
 }
 
 withDefaults(defineProps<Props>(), {
@@ -31,7 +32,8 @@ withDefaults(defineProps<Props>(), {
   authentication: () => ({
     enabled: true,
     signup: true,
-    signin: true
+    signin: true,
+    autoverify: false
   }),
   isDefaultLocale: true
 })
@@ -86,6 +88,7 @@ withDefaults(defineProps<Props>(), {
         </div>
       </div>
     </header>
+
     <main class="container mx-auto p-4 max-w-2xl">
       <slot></slot>
     </main>
@@ -96,6 +99,33 @@ withDefaults(defineProps<Props>(), {
 
         <div>
           <FeedbackForm :shrimp="shrimp" :showRedButton="false" />
+        </div>
+
+        <div v-if="display_links" class="prose dark:prose-invert text-base pt-4 font-brand">
+          <template v-if="support_host">
+            <a :href="`${support_host}/blog`" aria-label="Our blogging website" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Blog</a> |
+          </template>
+
+          <template v-if="plansEnabled">
+            <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a> |
+          </template>
+
+          <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">GitHub</a> |
+
+          <template v-if="support_host">
+            <a :href="`${support_host}/docs/rest-api`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a> |
+            <a :href="`${support_host}/docs`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
+          </template>
+          <template v-else>
+            <a href="/docs/api" aria-label="API Documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
+          </template>
+        </div>
+        <div v-if="display_links" class="prose dark:prose-invert text-base font-brand">
+          <a href="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Privacy</a> |
+          <a href="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Terms</a> |
+          <a href="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Security</a> |
+          <a href="https://status.onetimesecret.com/" aria-label="Check service status" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Status</a> |
+          <a :href="`${support_host}/about`" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a>
         </div>
 
         <!-- Dark mode toggle in t  he bottom left corner -->
