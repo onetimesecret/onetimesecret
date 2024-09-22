@@ -22,7 +22,7 @@ require_relative '../lib/onetime'
 #Familia.debug = true
 
 # Load the app
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :app
 
 # Setup some variables for these tryouts
@@ -49,7 +49,7 @@ p [:email, @email_address]
 ## Can "create" an anonymous user (more like simulate)
 @anonymous = OT::Customer.anonymous
 @anonymous.custid
-#=> :anon
+#=> 'anon'
 
 ## Anonymous is a Customer class
 @anonymous.class

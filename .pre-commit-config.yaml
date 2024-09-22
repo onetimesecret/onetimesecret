@@ -75,9 +75,6 @@ repos:
         description: Enforce the community Ruby Style Guide with RuboCop
         entry: "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning"
         types: ['ruby']
-        # language: ruby
-        # language_version: 3.2.4
-        # args: ['--force-exclusion']
 
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
     rev: v0.0.11
@@ -108,7 +105,7 @@ repos:
       - id: register-build
         stages: [post-commit, post-checkout, post-merge]
         name: Record the current commit hash into an untracked file
-        entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; bin/ots build;'"
+        entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; cat .commit_hash.txt VERSION.yml'"
         language: system
         always_run: true
         pass_filenames: false

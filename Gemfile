@@ -2,7 +2,7 @@
 # typed: false
 
 #
-# Recommended: Ruby 3.2+
+# Recommended: Ruby 3.3+
 #
 # status: normal maintenance
 # release date: 2022-12-25

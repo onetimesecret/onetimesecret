@@ -37,10 +37,19 @@ export interface Plan extends BaseApiRecord {
     ttl: number;
     size: number;
     api: boolean;
+    name: string;
     cname?: boolean;
     private?: boolean;
-    name: string;
+    email?: boolean;
   };
+}
+
+// Define the interface for the authentication settings object
+interface AuthenticationSettings {
+  enabled: boolean;
+  signup: boolean;
+  signin: boolean;
+  autoverify: boolean;
 }
 
 export interface ApproximatedVHost {

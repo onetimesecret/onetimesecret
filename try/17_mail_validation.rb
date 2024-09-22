@@ -25,7 +25,7 @@ Dotenv.load('.env')
 # e.g. Make sure to set these in your .env file:
 
 require_relative '../lib/onetime'
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :app
 
 @now = DateTime.now

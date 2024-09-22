@@ -5,7 +5,7 @@
 require_relative '../lib/onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot!
 
 @email = 'tryouts-19@onetimesecret.com'
@@ -22,7 +22,7 @@ Onetime::Customer.safe_dump_fields
 ## Implementing models like Customer can safely dump their fields
 cust = Onetime::Customer.new
 cust.safe_dump
-#=> {:custid=>:anon, :role=>"customer", :verified=>nil, :last_login=>nil, :updated=>nil, :created=>nil, :stripe_customer_id=>nil, :stripe_subscription_id=>nil, :stripe_checkout_email=>nil, :plan=>{:planid=>nil, :source=>"parts_unknown"}, :secrets_created=>"0", :secrets_burned=>"0", :secrets_shared=>"0", :emails_sent=>"0", :active=>false}
+#=> {:custid=>"anon", :role=>"customer", :verified=>nil, :last_login=>nil, :updated=>nil, :created=>nil, :stripe_customer_id=>nil, :stripe_subscription_id=>nil, :stripe_checkout_email=>nil, :plan=>{:planid=>nil, :source=>"parts_unknown"}, :secrets_created=>"0", :secrets_burned=>"0", :secrets_shared=>"0", :emails_sent=>"0", :active=>false}
 
 ## Implementing models like Customer do have other fields
 ## that are by default considered not safe to dump.
@@ -59,7 +59,7 @@ all_non_safe_fields = cust.instance_variables.map { |el|
 #
 #   class Customer
 #     def init
-#       self.custid ||= :anon
+#       self.custid ||= 'anon'
 #       self.role ||= 'customer'
 #
 #       # counter fields also added -- Aug 26

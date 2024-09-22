@@ -147,7 +147,7 @@ class Onetime::Session < Familia::Horreum
   end
 
   def anonymous?
-    disable_auth || sessid.to_s.to_sym == :anon || sessid.to_s.empty?
+    disable_auth || sessid.to_s == 'anon' || sessid.to_s.empty?
   end
 
   def load_customer

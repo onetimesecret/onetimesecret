@@ -123,7 +123,7 @@ module Onetime
     def create_incoming
       publically(req.request_path) do
         if OT.conf[:incoming] && OT.conf[:incoming][:enabled]
-          logic = OT::Logic::CreateIncoming.new sess, cust, req.params, locale
+          logic = OT::Logic::Incoming::CreateIncoming.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           req.params.clear

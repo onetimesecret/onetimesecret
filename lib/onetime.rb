@@ -175,9 +175,9 @@ module Onetime
 
     def load_locales(locales = OT.conf[:locales] || ['en'])
       confs = locales.collect do |locale|
-        path = File.join(OT::Config.dirname, 'locale', locale)
+        path = File.join(Onetime::HOME, 'src', 'locales', "#{locale}.json")
         OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
-        conf = OT::Config.load(path)
+        conf = JSON.parse(File.read(path), symbolize_names: true)
         [locale, conf]
       end
 
@@ -195,12 +195,16 @@ module Onetime
     end
 
     def stdout(prefix, msg)
+      return if STDOUT.closed?
+
       stamp = Time.now.to_i
       logline = "%s(%s): %s" % [prefix, stamp, msg]
       STDOUT.puts(logline)
     end
 
     def stderr(prefix, msg)
+      return if STDERR.closed?
+
       stamp = Time.now.to_i
       logline = "%s(%s): %s" % [prefix, stamp, msg]
       STDERR.puts(logline)

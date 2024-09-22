@@ -1,0 +1,124 @@
+:site: include(':site')
+:redis: include(':redis')
+:colonels: list(str(), required=True)
+:emailer: include(':emailer')
+:mail: include(':mail')
+:locales: list(str())
+:services: include(':services')
+:limits: include(':limits')
+:development: include(':development')
+
+---
+:site:
+  :host: str()
+  :domains: include(':domains')
+  :ssl: any()
+  :secret: str()
+  :authentication: include(':authentication')
+  :authenticity: include(':authenticity')
+  :plans: include(':plans')
+  :support: include(':support')
+  :regions:
+    :enabled: bool()
+    :default: str(required=False)
+:domains:
+  :enabled: any()
+  :default: str(required=False)
+  :cluster:
+    :type: str(required=False)
+    :api_key: str(required=False)
+    :cluster_ip: str()
+    :cluster_name: str()
+    :vhost_target: str()
+
+:authentication:
+  :enabled: any()
+  :signup: any()
+  :signin: any()
+  :autoverify: any()
+
+:authenticity:
+  :type: str()
+  :secret_key: str()
+
+:plans:
+  :enabled: any()
+  :stripe_key: str(required=False)
+  :webook_signing_secret: str(required=False)
+  :payment_links: any(required=False)
+:support:
+  :host: str(required=False)
+
+:redis:
+  :uri: str()
+
+:emailer:
+  :mode: str()
+  :from: str()
+  :fromname: str()
+  :host: str()
+  :port: any()
+  :user: str()
+  :pass: str()
+  :auth: str()
+  :tls: any()
+
+:mail:
+  :truemail:
+    :default_validation_type: str()
+    :verifier_email: str()
+    :verifier_domain: str(required=False)
+    :connection_timeout: int(required=False)
+    :response_timeout: int(required=False)
+    :connection_attempts: int(required=False)
+    :validation_type_for: any(required=False)
+    :allowed_domains_only: bool()
+    :allowed_emails: list(str(), required=False)
+    :blocked_emails: list(str(), required=False)
+    :allowed_domains: list(str(), required=False)
+    :blocked_domains: list(str(), required=False)
+    :blocked_mx_ip_addresses: list(str(), required=False)
+    :dns: list(str())
+    :smtp_port: int(required=False)
+    :smtp_fail_fast: bool()
+    :smtp_safe_check: bool()
+    :not_rfc_mx_lookup_flow: bool()
+    :email_pattern: str(required=False)
+    :smtp_error_body_pattern: str(required=False)
+    :logger:
+      :tracking_event: str()
+      :stdout: bool()
+      :log_absolute_path: str(required=False)
+
+:services:
+  :sentry:
+    :dsn: str()
+    :enabled: any()
+
+:limits:
+  :create_secret: int()
+  :create_account: int()
+  :update_account: int()
+  :email_recipient: int()
+  :send_feedback: int()
+  :authenticate_session: int()
+  :homepage: int()
+  :dashboard: int()
+  :failed_passphrase: int()
+  :show_metadata: int()
+  :show_secret: int()
+  :burn_secret: int()
+  :destroy_account: int()
+  :forgot_password_request: int()
+  :forgot_password_reset: int()
+  :generate_apikey: int()
+  :add_domain: int()
+  :remove_domain: int()
+  :list_domains: int()
+  :get_domain: int()
+  :verify_domain: int()
+
+:development:
+  :enabled: any()
+  :debug: any()
+  :frontend_host: str()

@@ -20,7 +20,7 @@ require_relative '../lib/onetime'
 
 # Use the default config file for tests
 @iterations = 1000
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :app
 
 ## Can create Secret
@@ -47,7 +47,7 @@ unique_values.size
 #=> @iterations
 
 ## Generate a pair
-@metadata, @secret = Onetime::Secret.spawn_pair :anon, :tryouts
+@metadata, @secret = Onetime::Secret.spawn_pair 'anon', :tryouts
 [@metadata.nil?, @secret.nil?]
 #=> [false, false]
 
@@ -78,13 +78,13 @@ p [@secret.key, @metadata.secret_key]
 #=> true
 
 ## Can set private secret to viewed state
-metadata, secret = Onetime::Secret.spawn_pair :anon, :tryouts
+metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
 metadata.viewed!
 [metadata.viewed, metadata.state]
 #=> [Time.now.utc.to_i, 'viewed']
 
 ## Can set shared secret to viewed state
-metadata, secret = Onetime::Secret.spawn_pair :anon, :tryouts
+metadata, secret = Onetime::Secret.spawn_pair 'anon', :tryouts
 metadata.save && secret.save
 secret.received!
 metadata = secret.load_metadata

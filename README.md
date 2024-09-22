@@ -1,11 +1,14 @@
-# Onetime Secret - v0.17.1
+# Onetime Secret - v0.18 (alpha)
+
+NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3`](https://github.com/onetimesecret/onetimesecret/tree/v0.17.3) for a more stable experience.
+
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
-### Latest releases
+## Latest releases
 
 * **Ruby 3+ (recommended): [latest](https://github.com/onetimesecret/onetimesecret/releases/latest)**
-* Ruby 2.7, 2.6: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
+* Ruby 2.7, 2.6: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1) (legacy)
 
 ---
 
@@ -28,7 +31,7 @@ When you send people sensitive info like passwords and private links via email o
 
 * Any recent linux disto (we use debian) or *BSD
 * System dependencies:
-  * Ruby 3.2, 3.1, 3.0, 2.7.8
+  * Ruby 3.3, 3.2, 3.1, 3.0, 2.7.8
   * Redis server 5+
 * Minimum specs:
   * 2 core CPU (or equivalent)
@@ -205,7 +208,7 @@ NOTE: The redis-server service should start automatically after installing it. Y
 ```bash
   $ cd onetimesecret
 
-  $ cp --preserve --no-clobber ./etc/config.example ./etc/config
+  $ cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
   $ cp --preserve --no-clobber .env.example .env
 ```
 

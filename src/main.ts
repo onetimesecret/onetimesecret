@@ -4,6 +4,8 @@ import FeedbackForm from '@/components/FeedbackForm.vue';
 import router from '@/router';
 import { createApp, ref } from 'vue';
 
+import { i18n } from './i18n';
+
 import './assets/style.css';
 
 
@@ -50,6 +52,7 @@ const DefaultApp = {
 }
 
 const app = createApp(DefaultApp);
+app.use(i18n)
 app.use(router);
 app.mount('#app');
 
@@ -69,22 +72,25 @@ if (broadcastElement) {
     content: import.meta.env.VITE_BROADCAST_CONTENT || null,
     show: showBanner.value,
   })
+  broadcastApp.use(i18n)
   broadcastApp.mount(broadcastElement);
 }
 
 const feedbackFormElement = document.querySelector('#feedback-form');
 if (feedbackFormElement) {
   const showRedButton = feedbackFormElement.getAttribute('data-show-red-button') === 'true';
-  const toggleApp = createApp(FeedbackForm, {
+  const feedbackApp = createApp(FeedbackForm, {
     shrimp: window.shrimp,
     showRedButton: showRedButton,
   });
-  toggleApp.mount(feedbackFormElement);
+  feedbackApp.use(i18n)
+  feedbackApp.mount(feedbackFormElement);
 }
 
 const themeToggleElement = document.querySelector('#theme-toggle');
 if (themeToggleElement) {
   const toggleApp = createApp(ThemeToggle);
+  toggleApp.use(i18n)
   toggleApp.mount(themeToggleElement);
 }
 

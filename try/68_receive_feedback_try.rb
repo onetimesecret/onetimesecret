@@ -18,14 +18,14 @@
 require_relative '../lib/onetime'
 
 # Load the app
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot! :app
 
 # Setup some variables for these tryouts
 @now = DateTime.now
 @model_class = OT::Feedback
 @email_address = "tryouts+#{@now}@onetimesecret.com"
-@sess = OT::Session.new '255.255.255.255', :anon
+@sess = OT::Session.new '255.255.255.255', 'anon'
 @cust = OT::Customer.new @email_address
 @sess.event_clear! :send_feedback
 @params = {
@@ -87,7 +87,7 @@ count_after - count_before
 ## Sending populates the Feedback model's sorted set key in redis
 count_before = @model_class.recent.count
 email_address = "tryouts2+#{@now}@onetimesecret.com"
-sess = OT::Session.new '255.255.255.255', :anon
+sess = OT::Session.new '255.255.255.255', 'anon'
 cust = OT::Customer.new email_address
 obj = OT::Logic::Misc::ReceiveFeedback.new sess, cust, { msg: 'Some feedback' }
 obj.process
