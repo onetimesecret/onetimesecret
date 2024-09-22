@@ -1,5 +1,4 @@
 require_relative 'view_helpers'
-require_relative 'secret_elements'
 
 module Onetime
   class App
