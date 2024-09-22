@@ -2,11 +2,9 @@
 import App from './App.vue'
 import router from '@/router';
 import i18n from './i18n';
-import { createApp, ref } from 'vue';
-
+import { createApp } from 'vue';
 
 import './assets/style.css';
-
 
 /**
  * Hybrid SPA / Server-Rendered Page Initialization
@@ -51,36 +49,6 @@ app.use(i18n)
 app.use(router);
 app.mount('#app');
 
-
-/**
- * Common components in the Header and Footer
- *
- * These are components mounted within the layout of the page, such as
- * in the header or footer. They are not tied to a specific page and
- * are always present on the site.
- *
- **/
-const showBanner = ref(false);
-const broadcastElement = document.querySelector('#broadcast');
-if (broadcastElement) {
-  const broadcastApp = createApp(GlobalBroadcast, {
-    content: import.meta.env.VITE_BROADCAST_CONTENT || null,
-    show: showBanner.value,
-  })
-  broadcastApp.use(i18n)
-  broadcastApp.mount(broadcastElement);
-}
-
-const feedbackFormElement = document.querySelector('#feedback-form');
-if (feedbackFormElement) {
-  const showRedButton = feedbackFormElement.getAttribute('data-show-red-button') === 'true';
-  const feedbackApp = createApp(FeedbackForm, {
-    shrimp: window.shrimp,
-    showRedButton: showRedButton,
-  });
-  feedbackApp.use(i18n)
-  feedbackApp.mount(feedbackFormElement);
-}
 
 /*
 * Old-school global function. Actually the Altcha lib has a replacement
