@@ -124,14 +124,12 @@ module Onetime
         self[:jsvars] << jsvar(:available_plans, plans)
 
         self[:display_links] = true
-        self[:display_options] = true
-        self[:display_recipients] = sess.authenticated?
         self[:display_masthead] = true
 
         self[:subtitle] = "Onetime"
-        self[:display_faq] = true
-        self[:display_otslogo] = true
-        self[:actionable_visitor] = true
+
+        self[:jsvars] << jsvar(:display_links, self[:display_links])
+        self[:jsvars] << jsvar(:display_masthead, self[:display_masthead])
 
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')

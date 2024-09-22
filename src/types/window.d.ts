@@ -70,6 +70,12 @@ declare global {
     form_fields?: { [key: string]: string };
     authentication: AuthenticationSettings;
 
+    // Display site links in footer
+    display_links: boolean;
+
+    // Display logo and top nav
+    display_masthead: boolean;
+
     // A function that's called on page load to update any email
     // addresses inside <span class="email">. Currently only the
     // server-rendered templates contain these.
