@@ -3,9 +3,9 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import FeedbackForm from '@/components/FeedbackForm.vue';
 import App from './App.vue'
 import router from '@/router';
+import i18n from './i18n';
 import { createApp, ref } from 'vue';
 
-import i18n from './i18n';
 
 import './assets/style.css';
 
