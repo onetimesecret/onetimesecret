@@ -1,5 +1,4 @@
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
 import FeedbackForm from '@/components/FeedbackForm.vue';
 import App from './App.vue'
 import router from '@/router';
@@ -83,14 +82,6 @@ if (feedbackFormElement) {
   feedbackApp.use(i18n)
   feedbackApp.mount(feedbackFormElement);
 }
-
-const themeToggleElement = document.querySelector('#theme-toggle');
-if (themeToggleElement) {
-  const toggleApp = createApp(ThemeToggle);
-  toggleApp.use(i18n)
-  toggleApp.mount(themeToggleElement);
-}
-
 
 /*
 * Old-school global function. Actually the Altcha lib has a replacement
