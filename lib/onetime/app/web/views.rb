@@ -25,6 +25,20 @@ module Onetime
     require_relative 'views/base'
 
     module Views
+
+      #
+      # The VuePoint class serves as a bridge between the Ruby Rack application
+      # and the Vue.js frontend. It is responsible for initializing and passing
+      # JavaScript variables from the backend to the frontend.
+      #
+      # Example usage:
+      #   view = Onetime::App::Views::VuePoint.new
+      #
+      class VuePoint < Onetime::App::View
+        def init *args
+        end
+      end
+
       class Homepage < Onetime::App::View
         def init *args
           self[:title] = "Share a secret"
