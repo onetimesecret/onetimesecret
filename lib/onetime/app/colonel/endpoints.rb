@@ -52,7 +52,7 @@ class Onetime::App
 
     module Views
       class Homepage < OT::App::Colonel::View
-
+        #self.template_name = '../web/vue_point'
         def init *args
           self[:title] = "Home"
           if OT.conf[:stathat]

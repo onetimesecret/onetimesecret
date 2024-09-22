@@ -46,6 +46,54 @@ module Onetime
         end
       end
 
+      class Dashboard < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+
+          self[:title] = "Your Dashboard"
+          self[:body_class] = :dashboard
+          self[:with_analytics] = false
+          self[:metadata] = cust.metadata_list.collect do |m|
+            { :uri => private_uri(m),
+              :stamp => natural_time(m.updated),
+              :updated => epochformat(m.updated),
+              :key => m.key,
+              :shortkey => m.key.slice(0,8),
+              # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
+              :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
+
+              :recipients => m.recipients,
+              :show_recipients => !m.recipients.to_s.empty?,
+
+              :is_received => m.state?(:received),
+              :is_burned => m.state?(:burned),
+              :is_destroyed => (m.state?(:received) || m.state?(:burned))}
+          end.compact
+          self[:received],self[:notreceived] =
+            *self[:metadata].partition{ |m| m[:is_destroyed] }
+          self[:received].sort!{ |a,b| b[:updated] <=> a[:updated] }
+          self[:has_secrets] = !self[:metadata].empty?
+          self[:has_received] = !self[:received].empty?
+          self[:has_notreceived] = !self[:notreceived].empty?
+        end
+      end
+
+      class Recent < Onetime::App::Views::Dashboard
+        self.template_name = :vue_point
+        # Use the same locale as the dashboard
+        self.pagename = :dashboard # used for locale content
+      end
+
+      class DashboardComponent < Onetime::App::Views::Dashboard
+        self.template_name = :vue_point
+        self.pagename = :dashboard
+        def initialize component, req, sess=nil, cust=nil, locale=nil, *args
+          @vue_component_name = component
+          super req, sess, cust, locale, *args
+        end
+      end
+
+
       class Incoming < Onetime::App::View
         def init *args
           self[:title] = "Share a secret"
@@ -407,49 +455,6 @@ module Onetime
         def plan2;  self[@plans[1].to_s]; end
         def plan3;  self[@plans[2].to_s]; end
         def plan4;  self[@plans[3].to_s]; end
-      end
-
-      class Dashboard < Onetime::App::View
-        def init
-          self[:title] = "Your Dashboard"
-          self[:body_class] = :dashboard
-          self[:with_analytics] = false
-          self[:metadata] = cust.metadata_list.collect do |m|
-            { :uri => private_uri(m),
-              :stamp => natural_time(m.updated),
-              :updated => epochformat(m.updated),
-              :key => m.key,
-              :shortkey => m.key.slice(0,8),
-              # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
-              :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
-
-              :recipients => m.recipients,
-              :show_recipients => !m.recipients.to_s.empty?,
-
-              :is_received => m.state?(:received),
-              :is_burned => m.state?(:burned),
-              :is_destroyed => (m.state?(:received) || m.state?(:burned))}
-          end.compact
-          self[:received],self[:notreceived] =
-            *self[:metadata].partition{ |m| m[:is_destroyed] }
-          self[:received].sort!{ |a,b| b[:updated] <=> a[:updated] }
-          self[:has_secrets] = !self[:metadata].empty?
-          self[:has_received] = !self[:received].empty?
-          self[:has_notreceived] = !self[:notreceived].empty?
-        end
-      end
-
-      class Recent < Onetime::App::Views::Dashboard
-        # Use the same locale as the dashboard
-        self.pagename = :dashboard # used for locale content
-      end
-
-      class DashboardComponent < Onetime::App::Views::Dashboard
-        self.pagename = :dashboard
-        def initialize component, req, sess=nil, cust=nil, locale=nil, *args
-          @vue_component_name = component
-          super req, sess, cust, locale, *args
-        end
       end
 
       class Account < Onetime::App::View

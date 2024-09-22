@@ -102,8 +102,10 @@ module Onetime
 
         self[:jsvars] << jsvar(:vue_component_name, self.vue_component_name)
         self[:jsvars] << jsvar(:locale, locale)
+
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
         self[:jsvars] << jsvar(:supported_locales, self[:supported_locales])
+        self[:jsvars] << jsvar(:support_host, self[:support_host])
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])
@@ -135,8 +137,14 @@ module Onetime
         @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
 
+        self[:jsvars] << jsvar(:plan, plan.safe_dump)
+        self[:jsvars] << jsvar(:is_paid, @is_paid)
+        self[:jsvars] << jsvar(:default_plan, 'basic')
+
         # So the list of template vars shows up sorted variable name
         self[:jsvars] = self[:jsvars].sort_by { |item| item[:name] }
+
+        #setup_plan_variables
 
         init(*args) if respond_to? :init
       end
