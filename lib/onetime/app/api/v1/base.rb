@@ -66,12 +66,18 @@ class Onetime::App
           # proceed.
           else
 
-            if allow_anonymous
-              @cust = OT::Customer.anonymous
-              @sess = OT::Session.new req.client_ipaddress, cust.custid
-              OT.info "[authorized] Anonymous session via #{req.client_ipaddress} (new session #{sess.sessid})"
-            else
+            unless allow_anonymous
               raise OT::Unauthorized, "No session or credentials"
+            end
+
+            @cust = OT::Customer.anonymous
+            @sess = OT::Session.new req.client_ipaddress, cust.custid
+
+            if OT.debug?
+              ip_address = req.client_ipaddress.to_s
+              session_id = sess.sessid.to_s
+              message = "[authorized] Anonymous session via #{ip_address} (new session #{session_id})"
+              OT.ld message
             end
 
           end

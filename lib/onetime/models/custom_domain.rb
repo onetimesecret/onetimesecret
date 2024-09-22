@@ -109,9 +109,9 @@ class Onetime::CustomDomain < Familia::Horreum
   #
   # @param cust [OT::Customer, String] The customer object or customer ID to check
   # @return [Boolean] true if the customer is the owner, false otherwise
-  #def owner?(cust)
-  #  (cust.is_a?(OT::Customer) ? cust.custid : cust).eql?(custid)
-  #end
+  def owner?(cust)
+    (cust.is_a?(OT::Customer) ? cust.custid : cust).eql?(custid)
+  end
 
   # Destroy the custom domain record
   #
@@ -327,6 +327,14 @@ class Onetime::CustomDomain < Familia::Horreum
       PublicSuffix.valid?(input, default_rule: nil)
     end
 
+    def default_domain? input
+      display_domain = OT::CustomDomain.display_domain(input)
+      display_domain.eql?(OT.conf.dig(:site, :host))
+    rescue PublicSuffix::Error => e
+      OT.ld "[CustomDomain.default_domain?] #{e.message} for `#{input}"
+      false
+    end
+
     def add fobj
       #self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
       self.values.add OT.now.to_i, fobj.to_s # created time, identifier
@@ -358,7 +366,7 @@ class Onetime::CustomDomain < Familia::Horreum
       # the built-in `load` from Familia.
       custom_domain = parse(display_domain, custid).tap do |obj|
         OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.to_h}"
-        raise OT::RecordNotFound, "Domain not found" unless obj.exists?
+        raise OT::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
       end
       super(custom_domain.identifier)
     end

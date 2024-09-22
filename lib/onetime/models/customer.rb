@@ -71,7 +71,7 @@ class Onetime::Customer < Familia::Horreum
   ]
 
   def init
-    self.custid ||= :anon
+    self.custid ||= 'anon'
     self.role ||= 'customer'
 
     # Initialze auto-increment fields. We do this since Redis
@@ -186,13 +186,18 @@ class Onetime::Customer < Familia::Horreum
     if anonymous?
       raise OT::Problem, "Anonymous customer has no external identifier"
     end
+    # Changing the type, order or value of the elements in this array will
+    # change the external identifier. This is used to identify customers
+    # primarily in logs and other external systems where the actual customer
+    # ID is not needed or otherwise not appropriate to use. Keeping the
+    # value consistent is generally preferred.
     elements = ['cust', role, custid]
     @external_identifier ||= elements.gibbler
     @external_identifier
   end
 
   def anonymous?
-    custid.to_s.to_sym.eql?(:anon)
+    custid.to_s.eql?('anon')
   end
 
   def obscure_email
@@ -369,7 +374,7 @@ class Onetime::Customer < Familia::Horreum
     end
 
     def anonymous
-      new(:anon).freeze
+      new('anon').freeze
     end
 
     def create custid, email=nil

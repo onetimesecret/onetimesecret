@@ -26,7 +26,7 @@ OT.boot! :app
 @now = DateTime.now
 @from_address = OT.conf.dig(:emailer, :from)
 @email_address = 'tryouts@onetimesecret.com'
-@sess = OT::Session.new '255.255.255.255', :anon
+@sess = OT::Session.new '255.255.255.255', 'anon'
 @cust = OT::Customer.new @email_address
 @sess.event_clear! :send_feedback
 @params = {}
@@ -74,7 +74,7 @@ end
 #=> true
 
 ## Can create account and it's not verified by default.
-sess = OT::Session.create '255.255.255.255', :anon
+sess = OT::Session.create '255.255.255.255', 'anon'
 cust = OT::Customer.new
 logic = OT::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'
 logic.raise_concerns
@@ -83,7 +83,7 @@ logic.process
 #=> [false, 'false', false]
 
 ## Can create account and have it auto-verified.
-sess = OT::Session.create '255.255.255.255', :anon
+sess = OT::Session.create '255.255.255.255', 'anon'
 cust = OT::Customer.new
 OT.conf[:site][:authentication][:autoverify] = true # force the config to be true
 logic = OT::Logic::Account::CreateAccount.new sess, cust, @valid_params.call, 'en'

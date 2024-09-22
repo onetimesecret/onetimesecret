@@ -1,27 +1,27 @@
 {
-  "_BasicFormAlerts-DPHXw5mv.js": {
-    "file": "assets/BasicFormAlerts-DPHXw5mv.js",
+  "_BasicFormAlerts-m_HWDBhy.js": {
+    "file": "assets/BasicFormAlerts-m_HWDBhy.js",
     "name": "BasicFormAlerts",
     "imports": [
       "main.ts"
     ]
   },
-  "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-BB1WjiBb.js": {
-    "file": "assets/DomainVerificationInfo.vue_vue_type_script_setup_true_lang-BB1WjiBb.js",
+  "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-C_BLRcox.js": {
+    "file": "assets/DomainVerificationInfo.vue_vue_type_script_setup_true_lang-C_BLRcox.js",
     "name": "DomainVerificationInfo.vue_vue_type_script_setup_true_lang",
     "imports": [
       "main.ts"
     ]
   },
-  "_formSubmission-Do9DHymT.js": {
-    "file": "assets/formSubmission-Do9DHymT.js",
+  "_formSubmission-Q3hlCUsf.js": {
+    "file": "assets/formSubmission-Q3hlCUsf.js",
     "name": "formSubmission",
     "imports": [
       "main.ts"
     ]
   },
-  "_keyboard-D_-Lm0HP.js": {
-    "file": "assets/keyboard-D_-Lm0HP.js",
+  "_keyboard-Dz5hsx3u.js": {
+    "file": "assets/keyboard-Dz5hsx3u.js",
     "name": "keyboard",
     "imports": [
       "main.ts"
@@ -60,7 +60,7 @@
     "src": "assets/fonts/zs/ZillaSlab-Regular.woff2"
   },
   "components/PasswordStrengthChecker.vue": {
-    "file": "assets/PasswordStrengthChecker-Co9s4JiY.js",
+    "file": "assets/PasswordStrengthChecker-wU31vgON.js",
     "name": "PasswordStrengthChecker",
     "src": "components/PasswordStrengthChecker.vue",
     "isDynamicEntry": true,
@@ -69,7 +69,7 @@
     ]
   },
   "main.ts": {
-    "file": "assets/main-CPMAd0V9.js",
+    "file": "assets/main-BSXUZJnf.js",
     "name": "main",
     "src": "main.ts",
     "isEntry": true,
@@ -86,7 +86,7 @@
       "components/PasswordStrengthChecker.vue"
     ],
     "css": [
-      "assets/main-eeeZrJ2H.css"
+      "assets/main-CAXqJkr8.css"
     ],
     "assets": [
       "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
@@ -100,7 +100,7 @@
     ]
   },
   "views/Dashboard.vue": {
-    "file": "assets/Dashboard-B9sg90xr.js",
+    "file": "assets/Dashboard-DS75jKaD.js",
     "name": "Dashboard",
     "src": "views/Dashboard.vue",
     "isDynamicEntry": true,
@@ -109,7 +109,7 @@
     ]
   },
   "views/Feedback.vue": {
-    "file": "assets/Feedback-xisxnJRj.js",
+    "file": "assets/Feedback-DVIvauV9.js",
     "name": "Feedback",
     "src": "views/Feedback.vue",
     "isDynamicEntry": true,
@@ -118,7 +118,7 @@
     ]
   },
   "views/Metadata.vue": {
-    "file": "assets/Metadata-BgCShJrq.js",
+    "file": "assets/Metadata-JFD6yLPJ.js",
     "name": "Metadata",
     "src": "views/Metadata.vue",
     "isDynamicEntry": true,
@@ -127,20 +127,20 @@
     ]
   },
   "views/PricingDual.vue": {
-    "file": "assets/PricingDual-CyZBuRRN.js",
+    "file": "assets/PricingDual-DsHCIdJ1.js",
     "name": "PricingDual",
     "src": "views/PricingDual.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_keyboard-D_-Lm0HP.js"
+      "_keyboard-Dz5hsx3u.js"
     ],
     "css": [
       "assets/PricingDual-ByDsOrIS.css"
     ]
   },
   "views/Secret.vue": {
-    "file": "assets/Secret-OyxLMsus.js",
+    "file": "assets/Secret-CwK6Xao1.js",
     "name": "Secret",
     "src": "views/Secret.vue",
     "isDynamicEntry": true,
@@ -149,48 +149,48 @@
     ]
   },
   "views/account/AccountDomainAdd.vue": {
-    "file": "assets/AccountDomainAdd-uZwYcoW0.js",
+    "file": "assets/AccountDomainAdd-CqFn1BHg.js",
     "name": "AccountDomainAdd",
     "src": "views/account/AccountDomainAdd.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_BasicFormAlerts-DPHXw5mv.js",
-      "_formSubmission-Do9DHymT.js"
+      "_BasicFormAlerts-m_HWDBhy.js",
+      "_formSubmission-Q3hlCUsf.js"
     ]
   },
   "views/account/AccountDomainVerify.vue": {
-    "file": "assets/AccountDomainVerify-DKbiGEQL.js",
+    "file": "assets/AccountDomainVerify-C6kqOyao.js",
     "name": "AccountDomainVerify",
     "src": "views/account/AccountDomainVerify.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_formSubmission-Do9DHymT.js",
-      "_BasicFormAlerts-DPHXw5mv.js",
-      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-BB1WjiBb.js"
+      "_formSubmission-Q3hlCUsf.js",
+      "_BasicFormAlerts-m_HWDBhy.js",
+      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-C_BLRcox.js"
     ]
   },
   "views/account/AccountDomains.vue": {
-    "file": "assets/AccountDomains-9r_nXjss.js",
+    "file": "assets/AccountDomains-RNWePzVY.js",
     "name": "AccountDomains",
     "src": "views/account/AccountDomains.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_formSubmission-Do9DHymT.js",
-      "_keyboard-D_-Lm0HP.js",
-      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-BB1WjiBb.js"
+      "_formSubmission-Q3hlCUsf.js",
+      "_keyboard-Dz5hsx3u.js",
+      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-C_BLRcox.js"
     ]
   },
   "views/account/AccountIndex.vue": {
-    "file": "assets/AccountIndex-C_ZCipOM.js",
+    "file": "assets/AccountIndex-821AbI0j.js",
     "name": "AccountIndex",
     "src": "views/account/AccountIndex.vue",
     "isDynamicEntry": true,
     "imports": [
       "main.ts",
-      "_formSubmission-Do9DHymT.js"
+      "_formSubmission-Q3hlCUsf.js"
     ],
     "css": [
       "assets/AccountIndex-DGxx-y0y.css"

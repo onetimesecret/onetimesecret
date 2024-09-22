@@ -1,4 +1,4 @@
-# Onetime Secret - v0.17.1
+# Onetime Secret - v0.17
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
@@ -28,7 +28,7 @@ When you send people sensitive info like passwords and private links via email o
 
 * Any recent linux disto (we use debian) or *BSD
 * System dependencies:
-  * Ruby 3.2, 3.1, 3.0, 2.7.8
+  * Ruby 3.3, 3.2, 3.1, 3.0, 2.7.8
   * Redis server 5+
 * Minimum specs:
   * 2 core CPU (or equivalent)

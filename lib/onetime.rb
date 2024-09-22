@@ -195,12 +195,16 @@ module Onetime
     end
 
     def stdout(prefix, msg)
+      return if STDOUT.closed?
+
       stamp = Time.now.to_i
       logline = "%s(%s): %s" % [prefix, stamp, msg]
       STDOUT.puts(logline)
     end
 
     def stderr(prefix, msg)
+      return if STDERR.closed?
+
       stamp = Time.now.to_i
       logline = "%s(%s): %s" % [prefix, stamp, msg]
       STDERR.puts(logline)
