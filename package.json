@@ -19,18 +19,18 @@
   "license": "MIT",
   "dependencies": {
     "@headlessui/vue": "^1.7.22",
-    "@types/vue-i18n": "^7.0.0",
     "altcha": "^1.0.0",
     "pnpm": "^9.6.0",
     "stripe": "^16.6.0",
     "vue": "^3.4.32",
-    "vue-i18n": "10.0.0-rc.1"
+    "vue-i18n": "10.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.7.0",
     "@iconify-json/heroicons": "^1.1.22",
     "@iconify-json/mdi": "^1.2.0",
     "@iconify/vue": "^4.1.2",
+    "@intlify/eslint-plugin-vue-i18n": "^3.0.0",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.13",
     "@tsconfig/node22": "^22.0.0",
