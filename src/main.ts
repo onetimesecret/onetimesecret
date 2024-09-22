@@ -1,10 +1,11 @@
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import FeedbackForm from '@/components/FeedbackForm.vue';
+import App from './App.vue'
 import router from '@/router';
 import { createApp, ref } from 'vue';
 
-import { i18n } from './i18n';
+import i18n from './i18n';
 
 import './assets/style.css';
 
@@ -47,11 +48,7 @@ import './assets/style.css';
  *                                    current page, set by the server.
  */
 
-const DefaultApp = {
-  template: '<div id="app"><router-view></router-view></div>'
-}
-
-const app = createApp(DefaultApp);
+const app = createApp(App);
 app.use(i18n)
 app.use(router);
 app.mount('#app');
