@@ -26,7 +26,6 @@ module Onetime
 
     module Views
       class Homepage < Onetime::App::View
-        include CreateSecretElements
         def init *args
           self[:title] = "Share a secret"
           self[:with_analytics] = false
@@ -34,7 +33,6 @@ module Onetime
       end
 
       class Incoming < Onetime::App::View
-        include CreateSecretElements
         def init *args
           self[:title] = "Share a secret"
           self[:with_analytics] = false
@@ -398,7 +396,6 @@ module Onetime
       end
 
       class Dashboard < Onetime::App::View
-        include CreateSecretElements
         def init
           self[:title] = "Your Dashboard"
           self[:body_class] = :dashboard
