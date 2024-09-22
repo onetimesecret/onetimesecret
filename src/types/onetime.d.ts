@@ -37,9 +37,10 @@ export interface Plan extends BaseApiRecord {
     ttl: number;
     size: number;
     api: boolean;
+    name: string;
     cname?: boolean;
     private?: boolean;
-    name: string;
+    email?: boolean;
   };
 }
 

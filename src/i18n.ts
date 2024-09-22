@@ -14,7 +14,6 @@ type MessageSchema = typeof en;
  **/
 
 export const i18n = createI18n<[MessageSchema], 'en'>({
-  legacy: false,
   locale: 'en',
   fallbackLocale: 'en',
   messages: { en },
@@ -34,7 +33,7 @@ export async function setLanguage(lang: string): Promise<void> {
   const messages = await loadLocaleMessages(lang);
   if (messages) {
     i18n.global.setLocaleMessage(lang, messages);
-    i18n.global.locale.value = lang;
+    i18n.global.locale = lang as "en";
   }
 }
 
