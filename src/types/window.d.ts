@@ -54,7 +54,7 @@ declare global {
     customer_since?: string;
     custom_domains_record_count?: number;
     custom_domains?: string[];
-    domains_enabled: booleam;
+    domains_enabled: boolean;
     email: string;
     frontend_host: string;
     locale: string;

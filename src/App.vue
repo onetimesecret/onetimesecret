@@ -8,7 +8,7 @@
        (like DefaultLayout and QuietLayout) based on the requirements of
        each route, without having to manually manage this in each individual
        page component. -->
-  <component :is="layout">
+  <component :is="layout" v-bind="layoutProps">
     <!-- Wrapper for Router View: The dynamic layout component wraps around
          the <router-view>, allowing different layouts to be applied to
          different pages or sections of your application. -->
@@ -20,10 +20,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useWindowProps } from '@/composables/useWindowProps';
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import QuietLayout from '@/layouts/QuietLayout.vue'
 
+
 const route = useRoute()
+const { cust } = useWindowProps(['supported_locales']);
+console.log(cust)
 
 // Layout Switching: In the script section, the layout computed property
 // determines which layout component should be used based on the current
@@ -42,4 +46,21 @@ const layout = computed(() => {
   // Default to DefaultLayout if no specific conditions are met
   return DefaultLayout
 })
+
+// Define the props you want to pass to the layouts
+const layoutProps = computed(() => ({
+  displayMasthead: true,
+  authenticated: false, // You might want to compute this based on your auth state
+  colonel: false, // This might also be computed based on user role
+  defaultLocale: 'en', // You might want to get this from your i18n setup
+  cust: cust,
+
+  authentication: {
+    enabled: true,
+    signup: true,
+    signin: true
+  },
+  isDefaultLocale: true, // This might be computed based on current locale
+  // Add any other props your layouts need
+}))
 </script>
