@@ -1,65 +1,43 @@
 
-{{>partial/quiet_header}}
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#dc4a22">
+  <meta name="apple-mobile-web-app-title" content="Onetime">
+  <meta name="application-name" content="Onetime">
+  <link rel="icon" type="image/svg+xml" href="/v3/img/favicon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+  <link rel="manifest" href="/site.webmanifest?v=3">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg?v=3" color="#dc4a22">
+  <link rel="shortcut icon" href="/favicon.ico?v=3">
+  <title>{{title}} - {{subtitle}}</title>
+  <meta name="description" content="{{description}}">
+  <meta name="keywords" content="{{keywords}}">
 
-    {{#with_github_corner}}
-      {{>partial/github_corner}}
-    {{/with_github_corner}}
-    <div class="w-full h-1 bg-brand-500 fixed top-0 left-0"></div>
-    <div id="broadcast">{{{i18n.COMMON.broadcast}}}</div>
+  {{#no_cache}}
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="expires" content="-1">
+  {{/no_cache}}
+  <script type="text/javascript">
+  {{#jsvars}}
+    var {{name}} = {{{value}}};
+  {{/jsvars}}
+  </script>
 
-    <div class="container mx-auto mt-1 p-2 max-w-2xl">
-      {{#display_masthead}}
+  {{#frontend_development}}
+  <!-- if development -->
+  <!-- an entry point for each page (main == homepage) -->
+  <script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
+  <script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
+  {{/frontend_development}}
+  {{^frontend_development}}
+    <!-- if production -->
+    <!-- https://vitejs.dev/guide/backend-integration.html#backend-integration -->
+    {{{vite_assets}}}
+  {{/frontend_development}}
 
-      <header class="min-w-[320px]">
-        <div class="flex flex-col sm:flex-row justify-between items-center">
-          <div class="mb-6 sm:mb-0"><a href="/"><img id="logo" src="/v3/img/onetime-logo-v3-xl.svg" class="" width="64" height="64"></a></div>
-              <div class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-base font-brand">
-
-            {{#authenticated}}
-              <div class="hidden sm:flex items-center">
-                <a href="/" class="text-gray-400 hover:text-gray-300 transition">
-                  <span id="userEmail">{{cust.custid}}</span>
-                </a>
-                {{#colonel}}
-                  <a href="/colonel/" title="" class="ml-2 text-gray-400 hover:text-gray-300 transition">
-                    <Icon icon="mdi:star" class="w-4 h-4" />
-                  </a>
-                {{/colonel}}
-                <span class="mx-2 text-gray-400">|</span>
-              </div>
-
-              <a href="/account" class="underline" title="Your Account">{{i18n.COMMON.header_dashboard}}</a> <span class="mx-0 text-gray-400">|</span>
-              <a href="/logout" class="underline" title="Log out of Onetime Secret">{{i18n.COMMON.header_logout}}</a>
-            {{/authenticated}}
-
-            {{^authenticated}}
-              {{#authentication.enabled}}
-
-                {{#authentication.signup}}
-                <a href="/signup" title="Signup - Individual and Business plans" class="underline font-bold mx-0 px-0">{{i18n.COMMON.header_create_account}}</a><span class="mx-0">|</span>
-                {{/authentication.signup}}
-                <a href="/about" title="About Onetime Secret" class="underline">{{i18n.COMMON.header_about}}</a><span class="mx-0">|</span>
-
-                {{#authentication.signin}}
-                  <a href="/signin" title="Log in to Onetime Secret" class="underline">{{i18n.COMMON.header_sign_in}}</a>
-                {{/authentication.signin}}
-
-              {{/authentication.enabled}}
-
-              {{^authentication.enabled}}
-                <a href="/about" title="About Onetime Secret" class="underline">{{i18n.COMMON.header_about}}</a>
-              {{/authentication.enabled}}
-
-            {{/authenticated}}
-
-            {{^is_default_locale}}
-              <span class="mx-0">|</span> <a href="?locale={{i18n.default}}" title="View site in {{i18n.default}}">{{i18n.default}}</a>
-            {{/is_default_locale}}
-
-
-          </div>
-        </div>
-      </header>
-
-      {{/display_masthead}}
-    </div>
+</head>

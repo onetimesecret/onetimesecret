@@ -1,5 +1,4 @@
-import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
-import FeedbackForm from '@/components/FeedbackForm.vue';
+
 import App from './App.vue'
 import router from '@/router';
 import i18n from './i18n';

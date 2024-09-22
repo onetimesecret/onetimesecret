@@ -115,7 +115,7 @@ module Onetime
         # without having to re-enter everything.
         self[:jsvars] << jsvar(:form_fields, self.form_fields)
 
-        self[:jsvars] << jsvar(:ot_version, OT::VERSION.to_s)
+        self[:jsvars] << jsvar(:ot_version, OT::VERSION.inspect)
         self[:jsvars] << jsvar(:ruby_version, "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
 
         plans = Onetime::Plan.plans.transform_values do |plan|

@@ -1,8 +1,8 @@
-
-{{>partial/header}}
-
-{{>partial/session_messages}}
-
-<div id="app"><router-view></router-view></div>
-
-{{>partial/footer}}
+<!doctype html>
+<html lang="en" class="light">
+  {{>partial/header}}
+  <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    {{>partial/session_messages}}
+    <div id="app"><router-view></router-view></div>
+  </body>
+</html>
