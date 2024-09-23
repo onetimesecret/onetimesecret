@@ -30,7 +30,7 @@ module Onetime
 
     def robots_txt
       publically do
-        view = Onetime::App::Views::Meta::Robot.new req, sess, cust, locale
+        view = Onetime::App::Views::RobotsTxt.new req, sess, cust, locale
           sess.event_incr! :robots_txt
           res.header['Content-Type'] = 'text/plain'
           res.body = view.render

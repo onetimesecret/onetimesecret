@@ -12,7 +12,7 @@ module Onetime
       end
 
       class Dashboard < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init
 
           self[:title] = "Your Dashboard"
@@ -41,7 +41,7 @@ module Onetime
       end
 
       class DashboardComponent < Onetime::App::Views::Dashboard
-        self.template_name = :vue_point
+        self.template_name = :index
         self.pagename = :dashboard
         def initialize component, req, sess=nil, cust=nil, locale=nil, *args
           @vue_component_name = component
@@ -50,7 +50,7 @@ module Onetime
       end
 
       class Pricing < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init
           self[:title] = "Create an Account"
           self[:body_class] = 'entrypoint/main-full-width'
@@ -64,7 +64,7 @@ module Onetime
       end
 
       class Account < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init
           self[:title] = "Your Account"
 
@@ -82,7 +82,7 @@ module Onetime
       end
 
       class About < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init *args
           self[:title] = "About Us"
         end
@@ -114,7 +114,7 @@ module Onetime
       end
 
       class UnknownSecret < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init
           self[:title] = "No such secret"
           self[:display_feedback] = false
@@ -123,7 +123,7 @@ module Onetime
       end
 
       class Signin < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         self.pagename = :login # used for locale content
         def init
           self[:title] = "Sign In"
@@ -139,7 +139,7 @@ module Onetime
       end
 
       class Signup < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init
           self[:title] = "Create an account"
           self[:body_class] = :signup
@@ -167,7 +167,7 @@ module Onetime
       end
 
       class Feedback < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init *args
           self[:title] = "Your Feedback"
           self[:body_class] = :info
@@ -180,7 +180,7 @@ module Onetime
       end
 
       class Incoming < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init *args
           self[:title] = "Share a secret"
           self[:with_analytics] = false
@@ -192,7 +192,7 @@ module Onetime
 
       module Info
         class Privacy < Onetime::App::View
-          self.template_name = :vue_point
+          self.template_name = :index
           def init *args
             self[:title] = "Privacy Policy"
             self[:with_analytics] = false
@@ -200,7 +200,7 @@ module Onetime
         end
 
         class Security < Onetime::App::View
-          self.template_name = :vue_point
+          self.template_name = :index
           def init *args
             self[:title] = "Security Policy"
             self[:with_analytics] = false
@@ -208,7 +208,7 @@ module Onetime
         end
 
         class Terms < Onetime::App::View
-          self.template_name = :vue_point
+          self.template_name = :index
           def init *args
             self[:title] = "Terms and Conditions"
             self[:with_analytics] = false
@@ -240,7 +240,7 @@ module Onetime
       end
 
       class Private < Onetime::App::View
-        self.template_name = :vue_point
+        self.template_name = :index
         def init metadata
           self[:title] = "You saved a secret"
           self[:body_class] = :generate
@@ -380,6 +380,72 @@ module Onetime
           self[:secret_value].to_s.scan(/\n/).size.zero?
         end
       end
+
+      class Burn < Onetime::App::View
+        self.template_name = :index
+        def init metadata
+          return handle_nil_metadata if metadata.nil?
+
+          self[:title] = "You saved a secret"
+          self[:body_class] = :generate
+          self[:metadata_key] = metadata.key
+          self[:metadata_shortkey] = metadata.shortkey
+          self[:secret_key] = metadata.secret_key
+          self[:secret_shortkey] = metadata.secret_shortkey
+          self[:state] = metadata.state
+          self[:recipients] = metadata.recipients
+          self[:display_feedback] = false
+          self[:no_cache] = true
+          self[:show_metadata] = !metadata.state?(:viewed) || metadata.owner?(cust)
+          secret = metadata.load_secret
+          ttl = metadata.ttl.to_i  # the real ttl is always a whole number
+          self[:expiration_stamp] = if ttl <= 1.minute
+            '%d seconds' % ttl
+          elsif ttl <= 1.hour
+            '%d minutes' % ttl.in_minutes
+          elsif ttl <= 1.day
+            '%d hours' % ttl.in_hours
+          else
+            '%d days' % ttl.in_days
+          end
+          if secret.nil?
+            self[:is_received] = metadata.state?(:received)
+            self[:is_burned] = metadata.state?(:burned)
+            self[:is_destroyed] = self[:is_burned] || self[:is_received]
+            self[:received_date] = natural_time(metadata.received.to_i || 0)
+            self[:received_date_utc] = epochformat(metadata.received.to_i || 0)
+            self[:burned_date] = natural_time(   metadata.burned.to_i || 0)
+            self[:burned_date_utc] = epochformat(metadata.burned.to_i || 0)
+          else
+            if secret.viewable?
+              self[:has_passphrase] = !secret.passphrase.to_s.empty?
+              self[:can_decrypt] = secret.can_decrypt?
+              self[:secret_value] = secret.decrypted_value if self[:can_decrypt]
+              self[:truncated] = secret.truncated?
+            end
+          end
+        end
+
+        def metadata_uri
+          [baseuri, :private, self[:metadata_key]].join('/')
+        end
+
+        def handle_nil_metadata
+          # There are errors in production where metadata is passed in as
+          # nil. This temporary logging is to help shed some light.
+          #
+          # See https://github.com/onetimesecret/onetimesecret/issues/611
+          #
+          exists = begin
+            OT::Metadata.exists?(req.params[:key])
+          rescue StandardError => e
+            OT.le "[Burn.handle_nil_metadata] Metadata.exists? raised an exception. #{e}"
+            nil
+          end
+          OT.le "[Burn.handle_nil_metadata] Nil metadata passed to view. #{req.path} #{req.params[:key]} exists:#{exists}"
+        end
+      end
+
     end
   end
 end
