@@ -44,22 +44,21 @@ export const productTiers: Array<ProductTier> = [
     featured: false,
   },
   {
-    id: 'tier-dedication',
+    id: 'tier-dedicated',
     name: 'Global Elite',
-    href: '/plans/dedication',
+    href: '/plans/dedicated',
     cta: 'Coming this fall',
     price: {
-      monthly: '$111',
-      annually: '$000'
+      monthly: '$245',
+      annually: '$2545'
     },
-    description: 'Dedicated infrastructure with data-compliance controls and SLAs.',
-    //description: 'Enterprise-grade infrastructure for data-compliance and deep integrations.',
+    description: 'Dedicated infrastructure for data-compliance and deep integrations.',
     features: [
       'Private cloud environment',
-      'Unlimited usage and scaling',
-      'Advanced team management',
-      'Multiple data locations (EU, US, AU)',
-      'Service level agreements',
+      'Fully customizable',
+      'Enterprise-grade security and compliance',
+      'Data locality options (EU, US)',
+      'Scheduled delivery within 2-4 business days',
     ],
 
     featured: true,
