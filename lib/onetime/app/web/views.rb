@@ -268,11 +268,13 @@ module Onetime
           self[:display_masthead] = false
           self[:no_cache] = true
         end
+
         def display_lines
           v = self[:secret_value].to_s
           ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
           ret = ret > 30 ? 30 : ret
         end
+
         def one_liner
           v = self[:secret_value].to_s
           v.scan(/\n/).size.zero?
@@ -280,6 +282,7 @@ module Onetime
       end
 
       class Private < Onetime::App::View
+        self.template_name = :vue_point
         def init metadata
           self[:title] = "You saved a secret"
           self[:body_class] = :generate
