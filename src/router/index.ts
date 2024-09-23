@@ -94,6 +94,24 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/info/privacy',
+    name: 'Privacy Policy',
+    component: () => import('@/views/info/PrivacyDoc.vue'),
+    props: true,
+  },
+  {
+    path: '/info/terms',
+    name: 'Terms of Use',
+    component: () => import('@/views/info/TermsDoc.vue'),
+    props: true,
+  },
+  {
+    path: '/info/security',
+    name: 'Security Policy',
+    component: () => import('@/views/info/SecurityDoc.vue'),
+    props: true,
+  },
+  {
     path: '/secret/:secretKey',
     name: 'Secret link',
     component: () => import('@/views/Secret.vue'),

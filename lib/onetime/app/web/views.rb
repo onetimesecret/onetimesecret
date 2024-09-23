@@ -234,6 +234,7 @@ module Onetime
 
       module Info
         class Privacy < Onetime::App::View
+          self.template_name = :vue_point
           def init *args
             self[:title] = "Privacy Policy"
             self[:with_analytics] = false
@@ -241,6 +242,7 @@ module Onetime
         end
 
         class Security < Onetime::App::View
+          self.template_name = :vue_point
           def init *args
             self[:title] = "Security Policy"
             self[:with_analytics] = false
@@ -248,6 +250,7 @@ module Onetime
         end
 
         class Terms < Onetime::App::View
+          self.template_name = :vue_point
           def init *args
             self[:title] = "Terms and Conditions"
             self[:with_analytics] = false
