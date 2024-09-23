@@ -2,6 +2,7 @@ require_relative 'view_helpers'
 
 module Onetime
   class App
+
     class View < Mustache
       include Onetime::App::Views::ViewHelpers
 
