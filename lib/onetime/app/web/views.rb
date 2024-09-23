@@ -123,6 +123,72 @@ module Onetime
         end
       end
 
+      class UnknownSecret < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+          self[:title] = "No such secret"
+          self[:display_feedback] = false
+          self[:display_masthead] = false
+        end
+      end
+
+      class Signin < Onetime::App::View
+        self.template_name = :vue_point
+        self.pagename = :login # used for locale content
+        def init
+          self[:title] = "Sign In"
+          self[:body_class] = :login
+          self[:with_analytics] = false
+          if req.params[:custid]
+            add_form_fields :custid => req.params[:custid]
+          end
+          if sess.authenticated?
+            add_message "You are already logged in."
+          end
+        end
+      end
+
+      class Signup < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+          self[:title] = "Create an account"
+          self[:body_class] = :signup
+          self[:with_analytics] = false
+          planid = req.params[:planid]
+          planid = 'basic' unless OT::Plan.plan?(planid)
+          self[:planid] = planid
+          plan = OT::Plan.plan(self[:planid])
+          self[:plan] = {
+            :price => plan.price.zero? ? 'Free' : plan.calculated_price,
+            :original_price => plan.price.to_i,
+            :ttl => plan.options[:ttl].in_days.to_i,
+            :size => plan.options[:size].to_bytes.to_i,
+            :api => plan.options[:api].to_s == 'true',
+            :name => plan.options[:name],
+            :private => plan.options[:private].to_s == 'true',
+            :cname => plan.options[:cname].to_s == 'true',
+            :custom_domains => plan.options[:custom_domains].to_s == 'true',
+            :dark_mode => plan.options[:dark_mode].to_s == 'true',
+            :is_paid => plan.paid?,
+            :planid => self[:planid]
+          }
+          setup_plan_variables
+        end
+      end
+
+      class Feedback < Onetime::App::View
+        self.template_name = :vue_point
+        def init *args
+          self[:title] = "Your Feedback"
+          self[:body_class] = :info
+          self[:with_analytics] = false
+          self[:display_feedback] = false
+          #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
+          #  {:msg => k, :stamp => natural_time(v) }
+          #end
+        end
+      end
+
       class Incoming < Onetime::App::View
         def init *args
           self[:title] = "Share a secret"
@@ -186,13 +252,6 @@ module Onetime
             self[:title] = "Terms and Conditions"
             self[:with_analytics] = false
           end
-        end
-      end
-
-      class UnknownSecret < Onetime::App::View
-        def init
-          self[:title] = "No such secret"
-          self[:display_feedback] = false
         end
       end
 
@@ -431,48 +490,6 @@ module Onetime
         end
       end
 
-      class Signin < Onetime::App::View
-        self.pagename = :login # used for locale content
-        def init
-          self[:title] = "Sign In"
-          self[:body_class] = :login
-          self[:with_analytics] = false
-          if req.params[:custid]
-            add_form_fields :custid => req.params[:custid]
-          end
-          if sess.authenticated?
-            add_message "You are already logged in."
-          end
-        end
-      end
-
-      class Signup < Onetime::App::View
-        def init
-          self[:title] = "Create an account"
-          self[:body_class] = :signup
-          self[:with_analytics] = false
-          planid = req.params[:planid]
-          planid = 'basic' unless OT::Plan.plan?(planid)
-          self[:planid] = planid
-          plan = OT::Plan.plan(self[:planid])
-          self[:plan] = {
-            :price => plan.price.zero? ? 'Free' : plan.calculated_price,
-            :original_price => plan.price.to_i,
-            :ttl => plan.options[:ttl].in_days.to_i,
-            :size => plan.options[:size].to_bytes.to_i,
-            :api => plan.options[:api].to_s == 'true',
-            :name => plan.options[:name],
-            :private => plan.options[:private].to_s == 'true',
-            :cname => plan.options[:cname].to_s == 'true',
-            :custom_domains => plan.options[:custom_domains].to_s == 'true',
-            :dark_mode => plan.options[:dark_mode].to_s == 'true',
-            :is_paid => plan.paid?,
-            :planid => self[:planid]
-          }
-          setup_plan_variables
-        end
-      end
-
       class Error < Onetime::App::View
         def init *args
           self[:title] = "Oh cripes!"
@@ -504,17 +521,6 @@ module Onetime
         end
       end
 
-      class Feedback < Onetime::App::View
-        def init *args
-          self[:title] = "Your Feedback"
-          self[:body_class] = :info
-          self[:with_analytics] = false
-          self[:display_feedback] = false
-          #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
-          #  {:msg => k, :stamp => natural_time(v) }
-          #end
-        end
-      end
     end
   end
 end

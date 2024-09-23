@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
+import UnknownSecret from './secrets/UnknownSecret.vue';
 
 interface Props {
   secretKey: string;
@@ -11,5 +12,7 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <div></div>
+  <UnknownSecret>
+
+  </UnknownSecret>
 </template>
