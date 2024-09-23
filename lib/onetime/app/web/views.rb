@@ -118,6 +118,14 @@ module Onetime
         end
       end
 
+      class NotFound < Onetime::App::View
+        def init *args
+          self[:title] = "Page not found"
+          self[:body_class] = :info
+          self[:with_analytics] = false
+        end
+      end
+
       @translations = nil
       class Translations < Onetime::App::View
         TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml') unless defined?(TRANSLATIONS_PATH)
@@ -132,14 +140,6 @@ module Onetime
           # Load translations YAML file from etc/translations.yaml
           self.class.translations ||= OT::Config.load(TRANSLATIONS_PATH)
           self[:translations] = self.class.translations
-        end
-      end
-
-      class NotFound < Onetime::App::View
-        def init *args
-          self[:title] = "Page not found"
-          self[:body_class] = :info
-          self[:with_analytics] = false
         end
       end
 
