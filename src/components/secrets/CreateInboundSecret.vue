@@ -14,7 +14,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
 
-
   <form id="createSecret"
         method="post"
         autocomplete="off"

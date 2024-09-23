@@ -55,6 +55,12 @@ const routes: Array<RouteRecordRaw> = [
     }
   },
   {
+    path: '/incoming',
+    name: 'Inbound Secrets',
+    component: () => import('@/views/secrets/InboundSecret.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/dashboard',
     name: 'Dashboard',
     component: () => import('@/views/dashboard/DashboardIndex.vue'),
@@ -158,6 +164,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/about',
     name: 'About',
     component: () => import('@/views/About.vue'),
+  },
+  {
+    path: '/translations',
+    name: 'Translations',
+    component: () => import('@/views/Translations.vue'),
   },
   {
     path: '/logout',

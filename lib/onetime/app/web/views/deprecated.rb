@@ -88,6 +88,31 @@ module Onetime
         end
       end
 
+      @translations = nil
+      class Translations < Onetime::App::View
+        TRANSLATIONS_PATH = File.join(OT::HOME, 'etc', 'translations.yaml') unless defined?(TRANSLATIONS_PATH)
+        class << self
+          attr_accessor :translations  # class instance variable
+        end
+        def init *args
+          self[:title] = "Help us translate"
+          self[:body_class] = :info
+          self[:with_github_corner] = true
+          self[:with_analytics] = false
+          # Load translations YAML file from etc/translations.yaml
+          self.class.translations ||= OT::Config.load(TRANSLATIONS_PATH)
+          self[:translations] = self.class.translations
+        end
+      end
+
+      class Forgot < Onetime::App::View
+        def init
+          self[:title] = "Forgotten Password"
+          self[:body_class] = :login
+          self[:with_analytics] = false
+        end
+      end
+
       class UnknownSecret < Onetime::App::View
         self.template_name = :vue_point
         def init
