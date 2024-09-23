@@ -38,7 +38,7 @@ console.log(props.authentication)
 <template>
   <div>
 
-    <div class="w-full h-1 bg-brand-500 fixed top-0 left-0"></div>
+    <div class="w-full h-1 bg-brand-500 fixed top-0 left-0 z-50"></div>
     <GlobalBroadcast :show="false" content="" />
 
     <!-- Your header content -->
