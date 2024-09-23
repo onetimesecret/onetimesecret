@@ -84,6 +84,45 @@ module Onetime
         end
       end
 
+      class Pricing < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+          self[:title] = "Create an Account"
+          self[:body_class] = 'entrypoint/main-full-width'
+          self.pagename = 'entrypoint/main-full-width.html'
+          setup_plan_variables
+        end
+        def plan1;  self[@plans[0].to_s]; end
+        def plan2;  self[@plans[1].to_s]; end
+        def plan3;  self[@plans[2].to_s]; end
+        def plan4;  self[@plans[3].to_s]; end
+      end
+
+      class Account < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+          self[:title] = "Your Account"
+
+          self[:jsvars] << jsvar(:price, plan.calculated_price)
+          self[:jsvars] << jsvar(:is_paid, plan.paid?)
+          self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
+          self[:jsvars] << jsvar(:contributor, cust.contributor?)
+          if cust.contributor?
+            self[:jsvars] << jsvar(:contributor_since, epochdate(cust.contributor_at))
+          end
+
+          self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
+
+        end
+      end
+
+      class About < Onetime::App::View
+        self.template_name = :vue_point
+        def init *args
+          self[:title] = "About Us"
+        end
+      end
+
       class Incoming < Onetime::App::View
         def init *args
           self[:title] = "Share a secret"
@@ -434,48 +473,9 @@ module Onetime
         end
       end
 
-      class Pricing < Onetime::App::View
-        def init
-          self[:title] = "Create an Account"
-          self[:body_class] = 'entrypoint/main-full-width'
-          self.pagename = 'entrypoint/main-full-width.html'
-          setup_plan_variables
-        end
-        def plan1;  self[@plans[0].to_s]; end
-        def plan2;  self[@plans[1].to_s]; end
-        def plan3;  self[@plans[2].to_s]; end
-        def plan4;  self[@plans[3].to_s]; end
-      end
-
-      class Account < Onetime::App::View
-        def init
-          self[:title] = "Your Account"
-          self[:body_class] = :account
-          self[:with_analytics] = false
-          self[:price] = plan.calculated_price
-          self[:is_paid] = plan.paid?
-          self[:customer_since] = epochdom(cust.created)
-          self[:contributor] = cust.contributor?
-          if self[:contributor]
-            self[:contributor_since] = epochdate(cust.contributor_at)
-          end
-
-          self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
-        end
-      end
-
       class Error < Onetime::App::View
         def init *args
           self[:title] = "Oh cripes!"
-        end
-      end
-
-      class About < Onetime::App::View
-        def init *args
-          self[:title] = "About Us"
-          self[:body_class] = :info
-          self[:with_analytics] = false
-          setup_plan_variables
         end
       end
 

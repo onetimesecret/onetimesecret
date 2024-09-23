@@ -139,7 +139,7 @@ module Onetime
 
         self[:jsvars] << jsvar(:plan, plan.safe_dump)
         self[:jsvars] << jsvar(:is_paid, @is_paid)
-        self[:jsvars] << jsvar(:default_plan, 'basic')
+        self[:jsvars] << jsvar(:default_planid, 'basic')
 
         # So the list of template vars shows up sorted variable name
         self[:jsvars] = self[:jsvars].sort_by { |item| item[:name] }
@@ -178,9 +178,9 @@ module Onetime
 
         @plans = [:basic, :identity, :dedicated]
 
-        self[:default_plan] = self[@plans.first.to_s] || self['basic']
+        self[:default_planid] = self[@plans.first.to_s] || self['basic']
 
-        self[:planid] = self[:default_plan][:planid]
+        self[:planid] = self[:default_planid][:planid]
       end
 
       def get_split_test_values testname

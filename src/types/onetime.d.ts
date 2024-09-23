@@ -11,7 +11,7 @@ export interface BaseApiRecord {
   updated: string;
 }
 
-// Define the cust model
+// Define the customer model
 export interface Cust extends BaseApiRecord {
   custid: string;
   role: string;

@@ -49,7 +49,7 @@ declare global {
     authenticated: boolean;
     available_plans?: { [key: string]: Plan };
     baseuri: string;
-    cust: Cust;
+    cust: Cust | undefined | null;
     custid: string;
     customer_since?: string;
     custom_domains_record_count?: number;
@@ -71,6 +71,7 @@ declare global {
     form_fields?: { [key: string]: string };
     authentication: AuthenticationSettings;
 
+    available_plans: Plan[];
     support_host?: string;
 
     // Display site links in footer
@@ -83,7 +84,7 @@ declare global {
 
     plan: Plan;
     is_paid: boolean;
-    default_plan: string;
+    default_planid: string;
 
     received: Metadata[];
     notreceived: Metadata[];
