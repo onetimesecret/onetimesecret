@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { useWindowProps } from '@/composables/useWindowProps';
 
+
 const { metadata_record_count, domains_enabled, plan, custom_domains_record_count } = useWindowProps(['shrimp', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
+
+const paidPlan = plan.value.planid === 'paid';
+
 </script>
 
 <template>
@@ -24,7 +28,7 @@ const { metadata_record_count, domains_enabled, plan, custom_domains_record_coun
         </router-link>
       </li>
 
-      <li v-if="domains_enabled && plan.paid">
+      <li v-if="domains_enabled && paidPlan">
         <router-link to="/account/domains"
                      class="text-gray-700 dark:text-gray-300 hover:underline hover:text-grey-500 dark:hover:text-grey-500 transition-colors flex items-center">
           <span class="block sm:hidden">Domains</span>

@@ -27,7 +27,7 @@ import QuietLayout from '@/layouts/QuietLayout.vue'
 
 const { locale } = useI18n();
 const route = useRoute()
-const { cust, is_default_locale, authentication, authenticated } = useWindowProps(['cust', 'is_default_locale', 'authentication', 'authenticated']);
+const { shrimp, ot_version, cust, is_default_locale, authentication, authenticated } = useWindowProps(['shrimp', 'ot_version', 'cust', 'is_default_locale', 'authentication', 'authenticated']);
 
 // Layout Switching: In the script section, the layout computed property
 // determines which layout component should be used based on the current
@@ -52,7 +52,9 @@ const layoutProps = computed(() => ({
   authenticated: authenticated.value,
   authentication: authentication.value,
   colonel: false, // This might also be computed based on user role
-  cust: cust,
+  cust: cust.value,
+  shrimp: shrimp.value,
+  onetimeVersion: ot_version.value,
   defaultLocale: locale.value, // You might want to get this from your i18n setup
   displayMasthead: true,
   isDefaultLocale: is_default_locale.value, // This might be computed based on current locale

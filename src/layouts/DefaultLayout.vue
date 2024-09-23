@@ -5,18 +5,18 @@ import FeedbackForm from '@/components/FeedbackForm.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
-import { AuthenticationSettings } from '@/types/onetime';
+import { AuthenticationSettings, Cust } from '@/types/onetime';
 
-const shrimp = window.shrimp;
-const onetimeVersion = window.ot_version;
-const cust = window.cust;
 
 interface Props {
+  shrimp: string
+  cust?: Cust
+  onetimeVersion: string
   displayMasthead: boolean
   authenticated: boolean
+  authentication: AuthenticationSettings
   colonel: boolean
   defaultLocale: string
-  authentication: AuthenticationSettings
   isDefaultLocale: boolean
   support_host?: string
   plans_enabled?: boolean
@@ -24,19 +24,15 @@ interface Props {
 
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   displayMasthead: true,
   authenticated: false,
   colonel: false,
   defaultLocale: 'en',
-  authentication: () => ({
-    enabled: true,
-    signup: true,
-    signin: true,
-    autoverify: false
-  }),
   isDefaultLocale: true
 })
+
+console.log(props.authentication)
 </script>
 
 <template>
@@ -50,37 +46,37 @@ withDefaults(defineProps<Props>(), {
       <div class="container mx-auto mt-1 p-2 max-w-2xl">
         <div v-if="displayMasthead" class="min-w-[320px]">
           <div class="flex flex-col sm:flex-row justify-between items-center">
-            <div class="mb-6 sm:mb-0"><a href="/"><img id="logo" src="@/assets/img/onetime-logo-v3-xl.svg" class="" width="64" height="64" alt="Logo"></a></div>
+            <div class="mb-6 sm:mb-0"><router-link to="/"><img id="logo" src="@/assets/img/onetime-logo-v3-xl.svg" class="" width="64" height="64" alt="Logo"></router-link></div>
             <nav class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-base font-brand">
 
               <template v-if="authenticated">
                 <div class="hidden sm:flex items-center">
-                  <a href="/" class="text-gray-400 hover:text-gray-300 transition">
+                  <router-link to="/" class="text-gray-400 hover:text-gray-300 transition">
                     <span id="userEmail">{{ cust.custid }}</span>
-                  </a>
-                  <a v-if="colonel" href="/colonel/" title="" class="ml-2 text-gray-400 hover:text-gray-300 transition">
+                  </router-link>
+                  <router-link v-if="colonel" to="/colonel/" title="" class="ml-2 text-gray-400 hover:text-gray-300 transition">
                     <Icon icon="mdi:star" class="w-4 h-4" />
-                  </a>
+                  </router-link>
                   <span class="mx-2 text-gray-400">|</span>
                 </div>
 
-                <a href="/account" class="underline" title="Your Account">{{ $t('web.COMMON.header_dashboard') }}</a> <span class="mx-0 text-gray-400">|</span>
-                <a href="/logout" class="underline" title="Log out of Onetime Secret">{{ $t('web.COMMON.header_logout') }}</a>
+                <router-link to="/account" class="underline" title="Your Account">{{ $t('web.COMMON.header_dashboard') }}</router-link> <span class="mx-0 text-gray-400">|</span>
+                <router-link to="/logout" class="underline" title="Log out of Onetime Secret">{{ $t('web.COMMON.header_logout') }}</router-link>
               </template>
 
               <template v-else>
                 <template v-if="authentication.enabled">
-                  <a v-if="authentication.signup" href="/signup" title="Signup - Individual and Business plans" class="underline font-bold mx-0 px-0">{{ $t('web.COMMON.header_create_account') }}</a><span class="mx-0">|</span>
-                  <a href="/about" title="About Onetime Secret" class="underline">{{ $t('web.COMMON.header_about') }}</a><span class="mx-0">|</span>
+                  <router-link v-if="authentication.signup" to="/signup" title="Signup - Individual and Business plans" class="underline font-bold mx-0 px-0">{{ $t('web.COMMON.header_create_account') }}</router-link><span class="mx-0">|</span>
+                  <router-link to="/about" title="About Onetime Secret" class="underline">{{ $t('web.COMMON.header_about') }}</router-link><span class="mx-0">|</span>
 
-                  <a v-if="authentication.signin" href="/signin" title="Log in to Onetime Secret" class="underline">{{ $t('web.COMMON.header_sign_in') }}</a>
+                  <router-link v-if="authentication.signin" to="/signin" title="Log in to Onetime Secret" class="underline">{{ $t('web.COMMON.header_sign_in') }}</router-link>
                 </template>
 
-                <a v-else href="/about" title="About Onetime Secret" class="underline">{{ $t('web.COMMON.header_about') }}</a>
+                <router-link v-else to="/about" title="About Onetime Secret" class="underline">{{ $t('web.COMMON.header_about') }}</router-link>
               </template>
 
               <template v-if="!isDefaultLocale">
-                <span class="mx-0">|</span> <a :href="`?locale=${defaultLocale}`" :title="`View site in ${defaultLocale}`">{{ defaultLocale }}</a>
+                <span class="mx-0">|</span> <router-link :to="`?locale=${defaultLocale}`" :title="`View site in ${defaultLocale}`">{{ defaultLocale }}</router-link>
               </template>
 
             </nav>
