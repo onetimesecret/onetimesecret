@@ -147,8 +147,19 @@ export type FormSubmissionOptions = {
   handleShrimp?: (shrimp: string) => void | Promise<void>
 };
 
-// Metadata interface
-export interface Metadata {
+export interface DashboardMetadata extends BaseApiRecord {
+  // Extra keys added to Metadata records by Dashboard
+  // view. Can be moved to the ts model.
+  shortkey: string;
+  show_recipients: boolean;
+  stamp: string;
+  uri: string;
+  is_received: boolean;
+  is_burned: boolean;
+  is_destroyed: boolean;
+}
+
+export interface Metadata extends DashboardMetadata {
   custid: string;
   state: string;
   secret_key: string;
@@ -160,14 +171,13 @@ export interface Metadata {
   received: boolean;
   shared: boolean;
   burned: boolean;
-  created: string;
-  updated: string;
   recipients: string[];
   truncate: boolean;
+  key: string;
 }
 
 // Secret interface
-export interface Secret {
+export interface Secret extends BaseApiRecord {
   custid: string;
   state: string;
   value: string;
@@ -178,8 +188,6 @@ export interface Secret {
   lifespan: number;
   share_domain: string;
   verification: string;
-  updated: string;
-  created: string;
   truncated: boolean;
   maxviews: number; // always 1 (here for backwards compat)
 }

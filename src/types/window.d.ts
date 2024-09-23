@@ -87,9 +87,7 @@ declare global {
 
     received: Metadata[];
     notreceived: Metadata[];
-    has_secrets: boolean;
-    has_received: boolean;
-    has_notreceived: boolean;
+    has_items: boolean;
 
     // A function that's called on page load to update any email
     // addresses inside <span class="email">. Currently only the

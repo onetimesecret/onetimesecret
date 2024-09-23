@@ -58,8 +58,6 @@ module Onetime
               :updated => epochformat(m.updated),
               :key => m.key,
               :shortkey => m.key.slice(0,8),
-              # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
-              :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
 
               :recipients => m.recipients,
               :show_recipients => !m.recipients.to_s.empty?,
@@ -73,10 +71,7 @@ module Onetime
 
           self[:jsvars] << jsvar(:received, received)
           self[:jsvars] << jsvar(:notreceived, notreceived)
-          self[:jsvars] << jsvar(:has_secrets, !metadata.empty?)
-          self[:jsvars] << jsvar(:has_received, !received.empty?)
-          self[:jsvars] << jsvar(:has_notreceived, !notreceived.empty?)
-
+          self[:jsvars] << jsvar(:has_items, !metadata.empty?)
         end
       end
 
