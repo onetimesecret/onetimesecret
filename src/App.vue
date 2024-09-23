@@ -8,7 +8,8 @@
        (like DefaultLayout and QuietLayout) based on the requirements of
        each route, without having to manually manage this in each individual
        page component. -->
-  <component :is="layout" v-bind="layoutProps">
+  <component :is="layout"
+             v-bind="layoutProps">
     <!-- Wrapper for Router View: The dynamic layout component wraps around
          the <router-view>, allowing different layouts to be applied to
          different pages or sections of your application. -->
@@ -27,7 +28,29 @@ import QuietLayout from '@/layouts/QuietLayout.vue'
 
 const { locale } = useI18n();
 const route = useRoute()
-const { shrimp, ot_version, cust, is_default_locale, authentication, authenticated } = useWindowProps(['shrimp', 'ot_version', 'cust', 'is_default_locale', 'authentication', 'authenticated']);
+const {
+  shrimp,
+  ot_version,
+  cust,
+  is_default_locale,
+  authentication,
+  authenticated,
+  display_links,
+  plans_enabled,
+  support_host,
+  display_masthead,
+} = useWindowProps([
+  'shrimp',
+  'ot_version',
+  'cust',
+  'is_default_locale',
+  'authentication',
+  'authenticated',
+  'display_links',
+  'plans_enabled',
+  'support_host',
+  'display_masthead',
+]);
 
 // Layout Switching: In the script section, the layout computed property
 // determines which layout component should be used based on the current
@@ -56,8 +79,10 @@ const layoutProps = computed(() => ({
   shrimp: shrimp.value,
   onetimeVersion: ot_version.value,
   defaultLocale: locale.value, // You might want to get this from your i18n setup
-  displayMasthead: true,
+  displayMasthead: display_masthead.value,
+  displayLinks: display_links.value,
+  plansEnabled: plans_enabled.value,
   isDefaultLocale: is_default_locale.value, // This might be computed based on current locale
-  // Add any other props your layouts need
+  supportHost: support_host.value,
 }))
 </script>

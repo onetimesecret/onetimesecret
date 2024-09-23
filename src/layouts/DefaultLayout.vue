@@ -18,21 +18,18 @@ interface Props {
   colonel: boolean
   defaultLocale: string
   isDefaultLocale: boolean
-  support_host?: string
-  plans_enabled?: boolean
-  display_links?: boolean
-
+  supportHost?: string
+  plansEnabled?: boolean
+  displayLinks: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  displayMasthead: true,
+withDefaults(defineProps<Props>(), {
   authenticated: false,
   colonel: false,
   defaultLocale: 'en',
   isDefaultLocale: true
 })
 
-console.log(props.authentication)
 </script>
 
 <template>
@@ -49,7 +46,7 @@ console.log(props.authentication)
             <div class="mb-6 sm:mb-0"><router-link to="/"><img id="logo" src="@/assets/img/onetime-logo-v3-xl.svg" class="" width="64" height="64" alt="Logo"></router-link></div>
             <nav class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-base font-brand">
 
-              <template v-if="authenticated">
+              <template v-if="authenticated && cust">
                 <div class="hidden sm:flex items-center">
                   <router-link to="/" class="text-gray-400 hover:text-gray-300 transition">
                     <span id="userEmail">{{ cust.custid }}</span>
@@ -97,9 +94,9 @@ console.log(props.authentication)
           <FeedbackForm :shrimp="shrimp" :showRedButton="false" />
         </div>
 
-        <div v-if="display_links" class="prose dark:prose-invert text-base pt-4 font-brand">
-          <template v-if="support_host">
-            <a :href="`${support_host}/blog`" aria-label="Our blogging website" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Blog</a> |
+        <div v-if="displayLinks" class="prose dark:prose-invert text-base pt-4 font-brand">
+          <template v-if="supportHost">
+            <a :href="`${supportHost}/blog`" aria-label="Our blogging website" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Blog</a> |
           </template>
 
           <template v-if="plansEnabled">
@@ -108,20 +105,20 @@ console.log(props.authentication)
 
           <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">GitHub</a> |
 
-          <template v-if="support_host">
-            <a :href="`${support_host}/docs/rest-api`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a> |
-            <a :href="`${support_host}/docs`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
+          <template v-if="supportHost">
+            <a :href="`${supportHost}/docs/rest-api`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a> |
+            <a :href="`${supportHost}/docs`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
           </template>
           <template v-else>
             <a href="/docs/api" aria-label="API Documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
           </template>
         </div>
-        <div v-if="display_links" class="prose dark:prose-invert text-base font-brand">
+        <div v-if="displayLinks" class="prose dark:prose-invert text-base font-brand">
           <a href="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Privacy</a> |
           <a href="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Terms</a> |
           <a href="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Security</a> |
           <a href="https://status.onetimesecret.com/" aria-label="Check service status" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Status</a> |
-          <a :href="`${support_host}/about`" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a>
+          <a :href="`${supportHost}/about`" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a>
         </div>
 
         <!-- Dark mode toggle in t  he bottom left corner -->
