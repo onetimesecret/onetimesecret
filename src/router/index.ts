@@ -136,6 +136,19 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Sign Up',
     component: () => import('@/views/Signup.vue'),
   },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/About.vue'),
+  },
+  {
+    path: '/logout',
+    name: 'Logout',
+    component: { render: () => null }, // Dummy component
+    beforeEnter: () => {
+      window.location.href = '/logout'
+    }
+  },
 ]
 
 const router = createRouter({
