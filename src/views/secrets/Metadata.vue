@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import { defineProps } from 'vue'
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';

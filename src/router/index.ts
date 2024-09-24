@@ -120,19 +120,19 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/secret/:secretKey',
     name: 'Secret link',
-    component: () => import('@/views/Secret.vue'),
+    component: () => import('@/views/secrets/Secret.vue'),
     props: true,
   },
   {
     path: '/private/:metadataKey',
     name: 'Metadata link',
-    component: () => import('@/views/Metadata.vue'),
+    component: () => import('@/views/secrets/Metadata.vue'),
     props: true,
   },
   {
     path: '/pricing',
     name: 'Pricing',
-    component: () => import('@/views/PricingDual.vue'),
+    component: () => import('@/views/pricing/PricingDual.vue'),
   },
   {
     path: '/feedback',
@@ -142,23 +142,23 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/forgot',
     name: 'Forgot',
-    component: () => import('@/components/PasswordStrengthChecker.vue'),
+    component: () => import('@/views/auth/PasswordReset.vue'),
   },
   {
     path: '/signin',
     name: 'Sign In',
-    component: () => import('@/views/Signin.vue'),
+    component: () => import('@/views/auth/Signin.vue'),
   },
   {
     path: '/signup/:planCode',
     name: 'Sign Up',
-    component: () => import('@/views/Signup.vue'),
+    component: () => import('@/views/auth/Signup.vue'),
     props: true,
   },
   {
     path: '/signup',
     name: 'Sign Up',
-    component: () => import('@/views/Signup.vue'),
+    component: () => import('@/views/auth/Signup.vue'),
   },
   {
     path: '/about',
