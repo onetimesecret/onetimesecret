@@ -87,8 +87,8 @@ withDefaults(defineProps<Props>(), {
     </main>
 
     <!-- Your footer content -->
-    <div class="container mx-auto p-4 max-w-2xl">
-      <footer class="min-w-[320px] text-sm text-center space-y-2">
+    <footer class="min-w-[320px] text-sm text-center space-y-2">
+      <div class="container mx-auto p-4 max-w-2xl">
 
         <div>
           <FeedbackForm :shrimp="shrimp" :showRedButton="false" />
@@ -145,7 +145,7 @@ withDefaults(defineProps<Props>(), {
           v{{onetimeVersion}}
         </div>
 
-      </footer>
-    </div>
+      </div>
+    </footer>
   </div>
 </template>
