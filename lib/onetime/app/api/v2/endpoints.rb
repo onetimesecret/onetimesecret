@@ -82,5 +82,12 @@ module Onetime::App
     def self.secret_key
       OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
     end
+
+    require_relative 'class_methods'
+    extend ClassMethods
   end
 end
+
+# Require after the above to avoid circular dependency
+require_relative 'account'
+require_relative 'domains'

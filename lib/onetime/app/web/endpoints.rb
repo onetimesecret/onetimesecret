@@ -55,48 +55,6 @@ module Onetime
         end
       end
 
-      def account_domains
-        self._dashboard_component('AccountDomains')
-      end
-
-      def account_domains_add
-        self._dashboard_component('AccountDomainAdd')
-      end
-
-      def account_domains_verify
-        self._dashboard_component('AccountDomainVerify')
-      end
-
-      def _dashboard_component(component_name)
-        authenticated do
-          no_cache!
-          view = Onetime::App::Views::DashboardComponent.new component_name, req, sess, cust, locale
-          res.body = view.render
-        end
-      end
-      protected :_dashboard_component
-
-      def show_docs
-        publically do
-          view = Onetime::App::Views::Docs::Api.new req, sess, cust, locale
-          res.body = view.render
-        end
-      end
-
-      def show_docs_secrets
-        publically do
-          view = Onetime::App::Views::Docs::Api::Secrets.new req, sess, cust, locale
-          res.body = view.render
-        end
-      end
-
-      def show_docs_libs
-        publically do
-          view = Onetime::App::Views::Docs::Api::Libs.new req, sess, cust, locale
-          res.body = view.render
-        end
-      end
-
       def receive_feedback
         publically do
           logic = OT::Logic::Misc::ReceiveFeedback.new sess, cust, req.params, locale
@@ -201,31 +159,6 @@ module Onetime
         end
       end
 
-      def about
-        publically do
-          view = Onetime::App::Views::About.new req, sess, cust, locale
-          res.body = view.render
-        end
-      end
-
-      def feedback
-        publically do
-          view = Onetime::App::Views::Feedback.new req, sess, cust, locale
-          res.body = view.render
-        end
-      end
-
-      def test_send_email
-        publically do
-          OT.info "test_send_email"
-          view = OT::Email::TestEmail.new cust, locale
-          view.emailer.from = OT.conf[:emailer][:from]
-          view.emailer.reply_to = cust.custid
-          view.emailer.fromname = ''
-          view.deliver_email token=true
-          res.body = view.i18n[:COMMON][:msg_check_email]
-        end
-      end
     end
 
   end

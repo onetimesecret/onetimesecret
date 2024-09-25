@@ -90,64 +90,6 @@ module Onetime::App
         end
       end
 
-      # Retrieves and lists records of the specified class. Also used for single
-      # records. It's up to the logic class what it wants to return via
-      # `logic.success_data`` (i.e. `record: {...}` or `records: [...]`` ).
-      #
-      # @param record_class [Class] The ActiveRecord class of the records to be retrieved.
-      # @param error_message [String] The error message to display if retrieval fails.
-      #
-      # @return [void]
-      #
-      # @example
-      #   retrieve_records(User, "Unable to retrieve users")
-      #
-      def retrieve_records(logic_class)
-        authorized do
-          OT.ld "[retrieve] #{logic_class}"
-          logic = logic_class.new(sess, cust, req.params, locale)
-          logic.raise_concerns
-          logic.process
-          json success: true, **logic.success_data
-        end
-      end
-
-      # Processes an action using the specified logic class and handles the response.
-      #
-      # @param logic_class [Class] The class implementing the action logic.
-      # @param error_message [String] The error message to display if the action fails.
-      #
-      # The logic class must implement the following methods:
-      # - raise_concerns
-      # - process_params
-      # - process
-      # - greenlighted
-      # - success_data
-      #
-      # @yield [logic] Gives access to the logic object for custom success handling.
-      # @yieldparam logic [Object] The instantiated logic object after processing.
-      #
-      # @return [void]
-      #
-      # @example
-      #   process_action(OT::Logic::GenerateAPIkey, "API Key could not be generated.") do |logic|
-      #     json_success(custid: cust.custid, apikey: logic.apikey)
-      #   end
-      #
-      def process_action(logic_class, success_message, error_message)
-        authorized do
-          logic = logic_class.new(sess, cust, req.params, locale)
-          logic.raise_concerns
-          logic.process
-          OT.ld "[process_action] #{logic_class} success=#{logic.greenlighted}"
-          if logic.greenlighted
-            json_success(custid: cust.custid, **logic.success_data)
-          else
-            error_response(error_message)
-          end
-        end
-      end
-
       # Find the locale of the request based on req.env['rack.locale'],
       # which is set automatically by Otto v0.4.0 and greater.
       #

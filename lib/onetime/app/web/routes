@@ -25,10 +25,6 @@ POST  /secret/:key                               Onetime::App::Data#secret_uri
 GET   /private/:key/burn                         Onetime::App::Data#burn_secret
 POST  /private/:key/burn                         Onetime::App::Data#burn_secret
 
-GET   /info/privacy                              Onetime::App::Info#privacy
-GET   /info/security                             Onetime::App::Info#security
-GET   /info/terms                                Onetime::App::Info#terms
-
 GET   /pricing                                   Onetime::App::Data#pricing
 GET   /signup                                    Onetime::App::Data#signup
 GET   /signup/:planid                            Onetime::App::Data#signup
