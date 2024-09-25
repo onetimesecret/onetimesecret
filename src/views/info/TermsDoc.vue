@@ -11,7 +11,7 @@
         between you and onetimesecret.com ("Onetime Secret", "Onetime Secret" "we", "us" or "our")
         setting forth, among other things, the terms of service for your access and use of the
         onetimesecret.com website, and any related sub-domains, operated by Onetime Secret (the
-        "Website" or "OneTimeSecret").
+        "Website" or "Onetime Secret").
       </p>
       <p class="prose dark:text-gray-300">
         PLEASE READ ALL THE TERMS OF USE CAREFULLY Use of the Website. By using the Website, you
@@ -193,7 +193,7 @@
       <h3 class="dark:text-gray-300">8. Intellectual Property</h3>
       <p class="prose dark:text-gray-300">
         <span class="font-bold dark:text-gray-300">Trade-marks and Copyright.</span> The following are trade-marks (registered or not)
-        of Onetime Secret: "Onetime Secret", "Onetime Secret", "OneTimeSecret" as well as certain
+        of Onetime Secret: "Onetime Secret", "OneTimeSecret", "OnetimeSecret" as well as certain
         other Onetime Secret trade-marks, service marks, graphics, and logos (collectively, the
         "Trade-marks") used in connection with the Website and the provision of Services. The Website
         may also contain third-party trade-marks, service marks, graphics, and logos (collectively,

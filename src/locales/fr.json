@@ -119,8 +119,8 @@
       "body_tagline": "Si vous ne connaissez pas l'expéditeur ou croyez qu'il s'agit de spam, merci de nous contacter en fournissant les détails à : "
     },
     "welcome": {
-      "subject": "Vérifiez votre compte sur OneTimeSecret.com",
-      "body1": "Bienvenue sur OneTimeSecret.com. On a un secret pour vous !",
+      "subject": "Vérifiez votre compte sur OnetimeSecret.com",
+      "body1": "Bienvenue sur OnetimeSecret.com. On a un secret pour vous !",
       "please_verify": "Vérifier votre compte, s'il vous plaît:",
       "postscript1": "Ce email a été envoyé à",
       "postscript2": "Si vous n’avez pas créé ce compte, supprimez ce message et nous ne vous contacterons plus."
