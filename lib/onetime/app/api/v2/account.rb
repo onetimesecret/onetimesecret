@@ -11,7 +11,7 @@ class Onetime::App::APIV2
     @check_utf8 = true
     @check_uri_encoding = true
 
-    # Endpoints for interactive UI (v1)
+    # Endpoints for interactive UI (v2)
     #
     # The response objects are minimal, and are intended to be used
     # by the client to determine the next step in the UI flow. The
@@ -22,9 +22,13 @@ class Onetime::App::APIV2
     # while we transition to a V2 API that will be more feature-rich.
     #
 
-    def generate_apikey
+    def get_account
+      retrieve_records(OT::Logic::Account::GetAccount)
+    end
+
+    def generate_apitoken
       process_action(
-        OT::Logic::Account::GenerateAPIkey,
+        OT::Logic::Account::GenerateAPIToken,
         "API Key generated successfully.",
         "API Key could not be generated."
       )

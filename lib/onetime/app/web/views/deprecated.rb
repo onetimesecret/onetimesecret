@@ -63,24 +63,6 @@ module Onetime
         def plan4;  self[@plans[3].to_s]; end
       end
 
-      class Account < Onetime::App::View
-        self.template_name = :index
-        def init
-          self[:title] = "Your Account"
-
-          self[:jsvars] << jsvar(:price, plan.calculated_price)
-          self[:jsvars] << jsvar(:is_paid, plan.paid?)
-          self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
-          self[:jsvars] << jsvar(:contributor, cust.contributor?)
-          if cust.contributor?
-            self[:jsvars] << jsvar(:contributor_since, epochdate(cust.contributor_at))
-          end
-
-          self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
-
-        end
-      end
-
       class About < Onetime::App::View
         self.template_name = :index
         def init *args

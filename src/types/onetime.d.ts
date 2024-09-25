@@ -4,6 +4,9 @@
  *
  **/
 
+import type Stripe from 'stripe';
+
+
 // Base interface for common properties
 export interface BaseApiRecord {
   identifier: string;
@@ -101,9 +104,16 @@ export interface CustomDomainCluster extends BaseApiRecord {
   vhost_target: string;
 }
 
-export interface ApiKey extends BaseApiRecord {
-  apikey: string;
+export interface ApiToken extends BaseApiRecord {
+  apitoken: string;
   active: boolean;
+}
+
+export interface Account {
+  cust: Cust;
+  apitoken?: string;
+  stripe_customer: Stripe.Customer;
+  stripe_subscriptions: Stripe.Subscription[];
 }
 
 export interface BaseApiResponse {
@@ -129,8 +139,9 @@ export interface ApiRecordResponse<T extends BaseApiRecord> extends BaseApiRespo
   details?: { [key: string]: never };
 }
 
-export type ApiKeyApiResponse = ApiRecordResponse<ApiKey>;
+export type ApiTokenApiResponse = ApiRecordResponse<ApiToken>;
 export type CustomDomainApiResponse = ApiRecordResponse<CustomDomain>;
+export type AccountApiResponse = ApiRecordResponse<Account>;
 
 /**
  * Front-end Vue App

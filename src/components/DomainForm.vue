@@ -47,7 +47,7 @@ const {
   success,
   submitForm
 } = useFormSubmission({
-  url: '/api/v1/account/domains/add',
+  url: '/api/v2/account/domains/add',
   successMessage: 'Domain added successfully.',
   onSuccess: (data: CustomDomainApiResponse) => {
     console.log('Domain added:', data);

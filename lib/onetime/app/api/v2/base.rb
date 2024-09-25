@@ -4,7 +4,7 @@ require_relative '../../../../altcha'
 module Onetime::App
   class APIV2
     module Base
-      include Onetime::App::WebHelpers
+      include Onetime::App::API::Base
 
       def publically
         carefully do
@@ -53,8 +53,8 @@ module Onetime::App
       # @return [void]
       #
       # @example
-      #   process_action(OT::Logic::GenerateAPIkey, "API Key could not be generated.") do |logic|
-      #     json_success(custid: cust.custid, apikey: logic.apikey)
+      #   process_action(OT::Logic::GenerateAPIToken, "API Token could not be generated.") do |logic|
+      #     json_success(custid: cust.custid, apitoken: logic.apitoken)
       #   end
       #
       def process_action(logic_class, success_message, error_message)

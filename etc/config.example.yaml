@@ -198,7 +198,7 @@
   :destroy_account: 2
   :forgot_password_request: 2
   :forgot_password_reset: 3
-  :generate_apikey: 10
+  :generate_apitoken: 10
   :add_domain: 30
   :remove_domain: 30
   :list_domains: 100

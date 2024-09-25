@@ -65,7 +65,7 @@ console.log("VerifyDomain.ts", route.params.domain );
 const fetchDomain = async (): Promise<void> => {
   const domainName: string = route.params.domain as string;
   try {
-    const response: Response = await fetch(`/api/v1/account/domains/${domainName}`);
+    const response: Response = await fetch(`/api/v2/account/domains/${domainName}`);
     if (!response.ok) {
       throw new Error('Failed to fetch domain information');
     }

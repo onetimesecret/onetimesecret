@@ -6,53 +6,59 @@ GET   /robots.txt                                Onetime::App::Page#robots_txt
 
 POST  /share                                     Onetime::App::Data#create_secret
 
-GET   /incoming                                  Onetime::App::Data#incoming
+GET   /incoming                                  Onetime::App::Page#index
 POST  /incoming                                  Onetime::App::Data#create_incoming
 
-GET   /feedback                                  Onetime::App::Data#feedback
+GET   /feedback                                  Onetime::App::Page#index
 POST  /feedback                                  Onetime::App::Data#receive_feedback
 
-GET   /about                                     Onetime::App::Data#about
+GET   /about                                     Onetime::App::Page#index
 
-GET   /docs/api                                  Onetime::App::Data#show_docs
-GET   /docs/api/secrets                          Onetime::App::Data#show_docs_secrets
-GET   /docs/api/libs                             Onetime::App::Data#show_docs_libs
+GET   /docs/api                                  Onetime::App::Page#index
+GET   /docs/api/secrets                          Onetime::App::Page#index
+GET   /docs/api/libs                             Onetime::App::Page#index
 
 GET   /private/:key                              Onetime::App::Data#private_uri
+GET   /shared/:key                               Onetime::App::Data#secret_uri
+POST  /shared/:key                               Onetime::App::Data#secret_uri
 GET   /secret/:key                               Onetime::App::Data#secret_uri
 POST  /secret/:key                               Onetime::App::Data#secret_uri
 
 GET   /private/:key/burn                         Onetime::App::Data#burn_secret
 POST  /private/:key/burn                         Onetime::App::Data#burn_secret
 
-GET   /pricing                                   Onetime::App::Data#pricing
-GET   /signup                                    Onetime::App::Data#signup
-GET   /signup/:planid                            Onetime::App::Data#signup
+GET   /info/privacy                              Onetime::App::Page#index
+GET   /info/security                             Onetime::App::Page#index
+GET   /info/terms                                Onetime::App::Page#index
+
+GET   /pricing                                   Onetime::App::Page#index
+GET   /signup                                    Onetime::App::Page#index
+GET   /signup/:planid                            Onetime::App::Page#index
 POST  /signup                                    Onetime::App::Data#create_account
 GET   /plans/:tier                               Onetime::App::Data#plan_redirect
 GET   /plans/:tier/:billing_cycle                Onetime::App::Data#plan_redirect
 GET   /welcome                                   Onetime::App::Data#welcome
 POST  /welcome/stripe/webhook                    Onetime::App::Data#welcome_webhook
 
-GET   /login                                     Onetime::App::Data#login
-GET   /signin                                    Onetime::App::Data#signin
+GET   /login                                     Onetime::App::Page#index
+GET   /signin                                    Onetime::App::Page#index
 POST  /signin                                    Onetime::App::Data#authenticate
 
 GET   /logout                                    Onetime::App::Data#logout
 
-GET   /forgot                                    Onetime::App::Data#forgot
-GET   /forgot/:key                               Onetime::App::Data#forgot
+GET   /forgot                                    Onetime::App::Page#index
+GET   /forgot/:key                               Onetime::App::Page#index
 POST  /forgot                                    Onetime::App::Data#request_reset
 POST  /forgot/:key                               Onetime::App::Data#request_reset
 
-GET   /dashboard                                 Onetime::App::Data#dashboard
+GET   /dashboard                                 Onetime::App::Data#index
 POST  /dashboard                                 Onetime::App::Data#create_secret
-GET   /recent                                    Onetime::App::Data#recent
+GET   /recent                                    Onetime::App::Page#index
 
-GET   /account/domains                           Onetime::App::Data#account_domains
-GET   /account/domains/add                       Onetime::App::Data#account_domains_add
-GET   /account/domains/:domain/verify            Onetime::App::Data#account_domains_verify
-GET   /account                                   Onetime::App::Data#account
+GET   /account/domains                           Onetime::App::Page#index
+GET   /account/domains/add                       Onetime::App::Page#index
+GET   /account/domains/:domain/verify            Onetime::App::Page#index
+GET   /account                                   Onetime::App::Page#index
 GET   /account/billing_portal                    Onetime::App::Data#customer_portal_redirect
 
-GET   /translations                              Onetime::App::Data#translations
+GET   /translations                              Onetime::App::Page#index

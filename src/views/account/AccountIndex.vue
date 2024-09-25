@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-2xl p-4 mx-auto">
     <h1 class="dark:text-white mb-6 text-3xl font-bold">Your Account</h1>
-    <p class="dark:text-gray-300 mb-4 text-lg">Account type: {{ accountType }}</p>
+    <p class="dark:text-gray-300 mb-4 text-lg">Account type: {{ plan?.options?.name }}</p>
 
     <!-- API KEY -->
     <div class="dark:bg-gray-800 p-6 mb-6 bg-white rounded-lg shadow">
@@ -10,32 +10,15 @@
         <span class="flex-1">API Key</span>
       </h2>
       <div class="pl-3">
-        <form @submit.prevent="generateAPIKey">
-          <input type="hidden"
-                 name="shrimp"
-                 :value="shrimp" />
 
-          <APIKeyCard :token="apitoken" />
+        <APIKeyForm :apitoken="account?.apitoken" :shrimp="shrimp" />
 
-          <div v-if="apiKeyError"
-               class="mb-4 text-red-500">{{ apiKeyError }}</div>
-          <div v-if="apiKeySuccess"
-               class="mb-4 text-green-500">{{ apiKeySuccess }}</div>
-
-          <button type="submit"
-                  class="hover:bg-gray-600 flex items-center justify-center w-full px-4 py-2 text-white bg-gray-500 rounded">
-            <i class="fas fa-trash-alt mr-2"></i> {{ isGeneratingAPIKey ? 'Generating...' : 'Generate Key' }}
-          </button>
-          <p class="dark:text-gray-400 mt-2 text-sm text-gray-500"></p>
-        </form>
       </div>
     </div>
 
     <!-- BILLING INFO -->
-    <AccountBillingSection
-      :stripe-customer="stripe_customer"
-      :stripe-subscriptions="stripe_subscriptions"
-    />
+    <AccountBillingSection :stripe-customer="account?.stripe_customer"
+                           :stripe-subscriptions="account?.stripe_subscriptions" />
 
     <!-- PASSWORD CHANGE -->
     <div class="dark:bg-gray-800 p-6 mb-6 bg-white rounded-lg shadow">
@@ -170,7 +153,7 @@
     </div>
 
     <p class="dark:text-gray-400 mt-6 text-sm text-gray-600">
-      Created {{ secretsCount }} secrets since {{ creationDate }}.
+      Created {{ account?.cust?.secrets_created }} secrets since {{ account?.cust?.customer_since }}.
     </p>
 
     <!-- Delete Account Confirmation Modal -->
@@ -252,27 +235,22 @@
 </template>
 
 <script setup lang="ts">
-import AccountBillingSection from '@/components/AccountBillingSection.vue';
-import APIKeyCard from '@/components/APIKeyCard.vue';
-import { ApiKeyApiResponse, Cust } from '@/types/onetime';
+import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
+import APIKeyForm from '@/components/account/APIKeyForm.vue';
+import { AccountApiResponse, Account } from '@/types/onetime';
 import { useFormSubmission } from '@/utils/formSubmission';
 import { Icon } from '@iconify/vue';
-import { reactive, ref } from 'vue';
-import { getStripeCustomer, getStripeSubscriptions } from '@/utils/stripe';
+import { reactive, ref, onMounted } from 'vue';
 
-const custid = window.custid;
-const cust: Cust = window.cust as Cust;
-const customer_since = window.customer_since;
-const shrimp = ref(window.shrimp);
-const apitoken = ref(window.apitoken);
+import { useWindowProps } from '@/composables/useWindowProps';
 
-const stripe_customer = ref(getStripeCustomer());
-const stripe_subscriptions = ref(getStripeSubscriptions());
+const { shrimp, plan, custid } = useWindowProps(['shrimp', 'plan', 'custid']);
+
 
 // Props or state management would typically be used here
-const accountType = ref(cust.plan?.options?.name)
-const secretsCount = ref(cust.secrets_created)
-const creationDate = ref(customer_since)
+const accountType = ref()
+const secretsCount = ref('')
+const creationDate = ref('')
 
 const currentPassword = ref('');
 const newPassword = ref('');
@@ -297,7 +275,7 @@ const {
   success: deleteSuccess,
   submitForm: submitDeleteAccount
 } = useFormSubmission({
-  url: '/api/v1/account/destroy',
+  url: '/api/v2/account/destroy',
   successMessage: 'Account deleted successfully.',
   onSuccess: () => {
     showDeleteModal.value = false;
@@ -315,20 +293,7 @@ const closeDeleteModal = () => {
   deletePassword.value = '';
 };
 
-const {
-  isSubmitting: isGeneratingAPIKey,
-  error: apiKeyError,
-  success: apiKeySuccess,
-  submitForm: generateAPIKey
-} = useFormSubmission({
-  url: '/api/v1/account/apikey',
-  successMessage: 'Key generated.',
-  onSuccess: async (data: ApiKeyApiResponse) => {
-    // @ts-expect-error "data.record" is defined only as BaseApiRecord
-    apitoken.value = (data as ApiRecordResponse).record?.apikey || '';
-  },
-  handleShrimp: handleShrimp,
-});
+
 
 const {
   isSubmitting: isUpdatingPassword,
@@ -336,7 +301,7 @@ const {
   success: passwordSuccess,
   submitForm: updatePassword
 } = useFormSubmission({
-  url: '/api/v1/account/change-password',
+  url: '/api/v2/account/change-password',
   successMessage: 'Password updated successfully.',
   handleShrimp: handleShrimp,
 });
@@ -344,5 +309,48 @@ const {
 const togglePassword = (field: 'current' | 'new' | 'confirm') => {
   showPassword[field] = !showPassword[field];
 };
+
+const account = ref<Account | null>(null)
+const isLoading = ref(false)
+const error = ref('')
+
+//const accountType = ref(cust.plan?.options?.name)
+//const secretsCount = ref(cust.secrets_created)
+//const creationDate = ref(customer_since)
+
+const fetchAccount = async () => {
+  isLoading.value = true
+  error.value = ''
+
+  try {
+    const response = await fetch('/api/v2/account', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch account')
+    }
+
+    const jsonData: AccountApiResponse = await response.json()
+    account.value = jsonData.record;
+    console.log(account.value.cust)
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      error.value = err.message
+    } else {
+      console.error('An unexpected error occurred', err)
+      error.value = 'An unexpected error occurred'
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchAccount()
+})
 
 </script>

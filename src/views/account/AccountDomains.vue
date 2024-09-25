@@ -23,7 +23,7 @@ const fetchDomains = async () => {
   error.value = ''
 
   try {
-    const response = await fetch('/api/v1/account/domains', {
+    const response = await fetch('/api/v2/account/domains', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

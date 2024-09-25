@@ -60,7 +60,7 @@
                   </MenuItem>
 
                   <form @submit.prevent="(event) => submitForm(event)"
-                        :action="`/api/v1/account/domains/${domain.display_domain}/remove`">
+                        :action="`/api/v2/account/domains/${domain.display_domain}/remove`">
                     <input type="hidden"
                            name="shrimp"
                            :value="shrimp" />
