@@ -3,7 +3,6 @@ import SecretForm from '@/components/SecretForm.vue';
 import HomepagePlansCTA from '@/components/ctas/HomepagePlansCTA.vue';
 import HomepageTaglines from '@/components/HomepageTaglines.vue';
 
-
 const authenticated = window.authenticated;
 const authenticationSettings = window.authentication;
 
@@ -12,7 +11,7 @@ const shrimp = window.shrimp;
 
 <template>
 
-  <HomepageTaglines v-if="authenticated" />
+  <HomepageTaglines v-if="!authenticated" />
 
   <HomepagePlansCTA v-if="authenticationSettings.signup" />
 
