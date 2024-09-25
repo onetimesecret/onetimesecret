@@ -1,62 +1,73 @@
 require_relative '../../app_helpers'
-
 require_relative '../../../../altcha'
 
-class Onetime::App
+module Onetime::App
   class APIV2
     module Base
       include Onetime::App::WebHelpers
-
-      module ClassMethods
-        def secret_key
-          OT.conf.dig(:site, :authenticity, :secret_key)
-        end
-
-        # This challenge is then serializd into a JSON string and base64 encoded
-        # by the AltchaChallenge and then resubmitted with the solution
-        # number for verification (aka the "payload")
-        def generate_authenticity_challenge(max_number=100_000)
-          options = Altcha::ChallengeOptions.new
-          options.max_number = max_number # 1m is the lib default
-          options.hmac_key = secret_key
-          Altcha.create_challenge(options)
-        end
-
-        # See: https://github.com/altcha-org/altcha-lib-rb
-        def solve_authenticity_challenge(challenge, salt, algorithm, max, start)
-          # Solves a challenge by iterating over possible solutions.
-          # @param challenge [String] The challenge to solve.
-          # @param salt [String] The salt used in the challenge.
-          # @param algorithm [String] The hashing algorithm used.
-          # @param max [Integer] The maximum number to try.
-          # @param start [Integer] The starting number to try.
-          # @return [Solution, nil] The solution if found, or nil if not.
-          Altcha.solve_challenge(challenge, salt, algorithm, max, start)
-        end
-
-        def verify_authenticity_challenge(challenge, number, check_expires)
-          hmac_key = secret_key
-          payload = _authenticity_challenge_payload(challenge, number)
-          Altcha.verify_solution(payload, hmac_key, check_expires)
-        end
-
-        # Like the challenge, this hash is serialized to JSON and base64
-        # encoded. This payload is then ready to be verified by the server.
-        def _authenticity_challenge_payload(challenge, number)
-          {
-            algorithm: challenge.algorithm,
-            challenge: challenge.challenge,
-            number: number,
-            salt: challenge.salt,
-            signature: challenge.signature
-          }
-        end
-      end
 
       def publically
         carefully do
           check_locale!
           yield
+        end
+      end
+
+      # Retrieves and lists records of the specified class. Also used for single
+      # records. It's up to the logic class what it wants to return via
+      # `logic.success_data`` (i.e. `record: {...}` or `records: [...]`` ).
+      #
+      # @param record_class [Class] The ActiveRecord class of the records to be retrieved.
+      # @param error_message [String] The error message to display if retrieval fails.
+      #
+      # @return [void]
+      #
+      # @example
+      #   retrieve_records(User, "Unable to retrieve users")
+      #
+      def retrieve_records(logic_class)
+        authorized do
+          OT.ld "[retrieve] #{logic_class}"
+          logic = logic_class.new(sess, cust, req.params, locale)
+          logic.raise_concerns
+          logic.process
+          json success: true, **logic.success_data
+        end
+      end
+
+      # Processes an action using the specified logic class and handles the response.
+      #
+      # @param logic_class [Class] The class implementing the action logic.
+      # @param error_message [String] The error message to display if the action fails.
+      #
+      # The logic class must implement the following methods:
+      # - raise_concerns
+      # - process_params
+      # - process
+      # - greenlighted
+      # - success_data
+      #
+      # @yield [logic] Gives access to the logic object for custom success handling.
+      # @yieldparam logic [Object] The instantiated logic object after processing.
+      #
+      # @return [void]
+      #
+      # @example
+      #   process_action(OT::Logic::GenerateAPIkey, "API Key could not be generated.") do |logic|
+      #     json_success(custid: cust.custid, apikey: logic.apikey)
+      #   end
+      #
+      def process_action(logic_class, success_message, error_message)
+        authorized do
+          logic = logic_class.new(sess, cust, req.params, locale)
+          logic.raise_concerns
+          logic.process
+          OT.ld "[process_action] #{logic_class} success=#{logic.greenlighted}"
+          if logic.greenlighted
+            json_success(custid: cust.custid, **logic.success_data)
+          else
+            error_response(error_message)
+          end
         end
       end
 
@@ -87,10 +98,6 @@ class Onetime::App
         json hsh
       end
 
-      def self.included base
-        # e.g. Onetime::App::APIV2.generate_authenticity_challenge
-        base.extend ClassMethods
-      end
     end
   end
 end

@@ -3,7 +3,7 @@ require 'mail'  # gem 'mail', here referred to as ::Mail
 require_relative 'base_mailer'
 
 
-class Onetime::App
+module Onetime::App
   module Mail
 
     class SMTPMailer < BaseMailer

@@ -1,0 +1,17 @@
+
+## API v2
+POST   /v2/account/destroy                      Onetime::App::APIV2::Account#destroy_account
+POST   /v2/account/change-password              Onetime::App::APIV2::Account#change_account_password
+POST   /v2/account/apikey                       Onetime::App::APIV2::Account#generate_apikey
+POST   /v2/account/domains/add                  Onetime::App::APIV2::Domains#add_domain
+POST   /v2/account/domains/:domain/remove       Onetime::App::APIV2::Domains#remove_domain
+GET    /v2/account/domains/:domain              Onetime::App::APIV2::Domains#get_domain
+POST   /v2/account/domains/:domain/verify       Onetime::App::APIV2::Domains#verify_domain
+GET    /v2/account/domains                      Onetime::App::APIV2::Domains#list_domains
+
+GET    /v2/status                               Onetime::App::APIV2#status
+GET    /v2/version                              Onetime::App::APIV2#version
+
+GET    /v2/altcha/challenge                     Onetime::App::APIV2#altcha_challenge
+POST   /v2/altcha/verify                        Onetime::App::APIV2#altcha_verify
+POST   /v2/altcha/verify_spam                   Onetime::App::APIV2#altcha_verify_spam

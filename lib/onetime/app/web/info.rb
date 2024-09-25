@@ -1,9 +1,9 @@
 
 module Onetime
-  class App
+  class App::Data
 
     class Info
-      include Base
+      include Onetime::App::Base
       def privacy
         publically do
           view = Onetime::App::Views::Info::Privacy.new req, sess, cust, locale

@@ -25,15 +25,18 @@ Onetime.boot! :app
 
 # Create the Rack apps for each routes file
 apps = {
-  '/api'      =>  '/api/routes',
+  '/api/v1'   =>  '/api/v1/routes',
+  '/api/v2'   =>  '/api/v2/routes',
   '/'         =>  '/web/routes',
   '/colonel'  =>  '/colonel/routes'
 }.transform_values { |path| Otto.new(File.join(APP_DIR, path)) }
 
 # Add "last resort" json responses for the API
 headers = { 'Content-Type' => 'application/json' }
-apps['/api'].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
-apps['/api'].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
+apps['/api/v1'].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
+apps['/api/v1'].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
+apps['/api/v2'].not_found = apps['/api/v1'].not_found
+apps['/api/v2'].server_error = apps['/api/v1'].server_error
 
 # Assign an absolute path to the directory for static assets
 # for the "root" web endpoint.

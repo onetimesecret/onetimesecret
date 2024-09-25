@@ -6,7 +6,7 @@ require_relative 'base'
 require_relative '../../app_settings'
 
 
-class Onetime::App
+module Onetime::App
   class APIV2
     include AppSettings
     include Onetime::App::APIV2::Base
@@ -82,5 +82,12 @@ class Onetime::App
     def self.secret_key
       OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
     end
+
+    require_relative 'class_methods'
+    extend ClassMethods
   end
 end
+
+# Require after the above to avoid circular dependency
+require_relative 'account'
+require_relative 'domains'

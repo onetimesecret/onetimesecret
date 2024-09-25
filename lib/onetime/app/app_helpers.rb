@@ -1,5 +1,5 @@
 
-class Onetime::App
+module Onetime::App
 
   unless defined?(Onetime::App::BADAGENTS)
     BADAGENTS = [:facebook, :google, :yahoo, :bing, :stella, :baidu, :bot, :curl, :wget]

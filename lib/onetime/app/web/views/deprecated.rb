@@ -1,6 +1,6 @@
 
 module Onetime
-  class App
+  module App
 
     module Views
 

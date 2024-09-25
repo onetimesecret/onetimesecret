@@ -4,7 +4,7 @@ import { defineProps } from 'vue'
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
 import DisplayCase from '@/components/secrets/DisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
-
+import DashboardTabNav from  '@/components/dashboard/DashboardTabNav.vue';
 
 interface Props {
 
@@ -26,6 +26,8 @@ defineProps<Props>()
 
 <template>
   <div>
+
+    <DashboardTabNav />
 
     <!-- if show_secret_link -->
     <SecretLink>
