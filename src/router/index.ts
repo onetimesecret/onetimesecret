@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Homepage from '@/views/Homepage.vue'
+import WideLayout from '@/layouts/WideLayout.vue'
 
 import { ref } from 'vue'
 
@@ -133,6 +134,8 @@ const routes: Array<RouteRecordRaw> = [
     path: '/pricing',
     name: 'Pricing',
     component: () => import('@/views/pricing/PricingDual.vue'),
+    meta: { requiresAuth: false, layout: WideLayout },
+    props: true,
   },
   {
     path: '/feedback',

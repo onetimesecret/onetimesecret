@@ -24,7 +24,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router'
 import { useWindowProps } from '@/composables/useWindowProps';
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import QuietLayout from '@/layouts/QuietLayout.vue'
+
 
 const { locale } = useI18n();
 const route = useRoute()
@@ -61,9 +61,9 @@ const layout = computed(() => {
     // Use DefaultLayout for routes that require authentication
     return DefaultLayout
 
-  } else if (route.meta.quiet) {
-    // Use QuietLayout for routes marked as 'quiet'
-    return QuietLayout
+  } else if (route.meta.layout) {
+    // Allow view components to define their own layouts
+    return route.meta.layout
   }
 
   // Default to DefaultLayout if no specific conditions are met
