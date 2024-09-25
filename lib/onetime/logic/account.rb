@@ -17,13 +17,11 @@ module Onetime::Logic
 
       def raise_concerns
         limit_action :show_account
-
       end
 
       def process
 
         if plans_enabled
-
           @stripe_customer = cust.get_stripe_customer
           @stripe_subscription = cust.get_stripe_subscription
 
@@ -102,10 +100,10 @@ module Onetime::Logic
         }
 
         if show_stripe_section?
-          ret[:record][:stripe_customer] = safe_stripe_customer_dump,
-                                           ret[:record][:stripe_subscriptions] = [
-                                             safe_stripe_subscription_dump
-                                           ]
+          ret[:record][:stripe_customer] = safe_stripe_customer_dump
+          ret[:record][:stripe_subscriptions] = [
+            safe_stripe_subscription_dump
+          ]
         end
 
         ret
