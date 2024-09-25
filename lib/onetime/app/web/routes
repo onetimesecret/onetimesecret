@@ -51,7 +51,7 @@ GET   /forgot/:key                               Onetime::App::Page#index
 POST  /forgot                                    Onetime::App::Data#request_reset
 POST  /forgot/:key                               Onetime::App::Data#request_reset
 
-GET   /dashboard                                 Onetime::App::Data#index
+GET   /dashboard                                 Onetime::App::Page#index
 POST  /dashboard                                 Onetime::App::Data#create_secret
 GET   /recent                                    Onetime::App::Page#index
 
