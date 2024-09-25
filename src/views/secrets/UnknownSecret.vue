@@ -1,6 +1,9 @@
-{{>partial/quiet_header}}
 
-<div class="container mx-auto mt-16 mb-8 px-4 max-w-2xl">
+<script setup lang="ts">
+
+</script>
+
+<template>
   <div id="coremessage" class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-8">
     <div class="text-center mb-8">
       <svg
@@ -43,6 +46,4 @@
       Return to Home
     </a>
   </div>
-</div>
-
-{{>partial/quiet_footer}}
+</template>

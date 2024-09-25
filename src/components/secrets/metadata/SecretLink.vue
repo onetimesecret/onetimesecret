@@ -1,7 +1,7 @@
 <template>
 
   <div class="mb-4">
-      <p class="text-base text-gray-600 dark:text-gray-400 mb-2">{{i18n.page.pretext}}</p>
+      <p class="text-base text-gray-600 dark:text-gray-400 mb-2">{{$t('web.private.pretext')}}</p>
 
       <div class="relative">
         <input
@@ -47,29 +47,12 @@
       </div>
 
       <!--{{#has_passphrase}}-->
-      <p class="mt-2 font-bold text-gray-800 dark:text-gray-200">{{i18n.page.requires_passphrase}}</p>
+      <p class="mt-2 font-bold text-gray-800 dark:text-gray-200">{{$t('web.private.requires_passphrase')}}</p>
       <!--{{/has_passphrase}}-->
     </div>
 
 </template>
 
 <script setup lang="ts">
-function copyToClipboard(elementId) {
-  var copyText = document.getElementById(elementId);
-  copyText.select();
-  copyText.setSelectionRange(0, 99999); /* For mobile devices */
-  document.execCommand('copy');
-
-  // Change icon to green check
-  var copyIcon = document.getElementById('copyIcon');
-  var checkIcon = document.getElementById('checkIcon');
-  copyIcon.classList.add('hidden');
-  checkIcon.classList.remove('hidden');
-
-  // Revert back to copy icon after 2 seconds
-  setTimeout(function () {
-    copyIcon.classList.remove('hidden');
-    checkIcon.classList.add('hidden');
-  }, 2000);
-}
+// Was here: copyToClipboard
 </script>

@@ -40,7 +40,7 @@
  * IDEs.
  */
 
-import { AuthenticationSettings, Cust, Plan } from './onetime';
+import { AuthenticationSettings, Cust, Plan, Metadata } from './onetime';
 import type Stripe from 'stripe';
 
 declare global {
@@ -49,18 +49,19 @@ declare global {
     authenticated: boolean;
     available_plans?: { [key: string]: Plan };
     baseuri: string;
-    cust: Cust;
+    cust: Cust | undefined | null;
     custid: string;
     customer_since?: string;
     custom_domains_record_count?: number;
     custom_domains?: string[];
-    domains_enabled: booleam;
+    domains_enabled: boolean;
     email: string;
     frontend_host: string;
     locale: string;
     is_default_locale: boolean;
     supported_locales: string[];
     ot_version: string;
+    plans_enabled: boolean;
     ruby_version: string;
     shrimp: string;  // Our CSRF token, to be used in POST requests to the backend
     site_host: string;
@@ -69,6 +70,25 @@ declare global {
     stripe_subscriptions?: Stripe.Subscriptions[];
     form_fields?: { [key: string]: string };
     authentication: AuthenticationSettings;
+
+    available_plans: Plan[];
+    support_host?: string;
+
+    // Display site links in footer
+    display_links: boolean;
+
+    // Display logo and top nav
+    display_masthead: boolean;
+
+    metadata_record_count: number;
+
+    plan: Plan;
+    is_paid: boolean;
+    default_planid: string;
+
+    received: Metadata[];
+    notreceived: Metadata[];
+    has_items: boolean;
 
     // A function that's called on page load to update any email
     // addresses inside <span class="email">. Currently only the

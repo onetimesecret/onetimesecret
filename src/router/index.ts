@@ -57,7 +57,13 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/Dashboard.vue'),
+    component: () => import('@/views/dashboard/DashboardIndex.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/recent',
+    name: 'Recents',
+    component: () => import('@/views/dashboard/DashboardRecent.vue'),
     meta: { requiresAuth: true }
   },
   {
@@ -86,6 +92,24 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Account',
     component: () => import('@/views/account/AccountIndex.vue'),
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/info/privacy',
+    name: 'Privacy Policy',
+    component: () => import('@/views/info/PrivacyDoc.vue'),
+    props: true,
+  },
+  {
+    path: '/info/terms',
+    name: 'Terms of Use',
+    component: () => import('@/views/info/TermsDoc.vue'),
+    props: true,
+  },
+  {
+    path: '/info/security',
+    name: 'Security Policy',
+    component: () => import('@/views/info/SecurityDoc.vue'),
+    props: true,
   },
   {
     path: '/secret/:secretKey',
@@ -129,6 +153,19 @@ const routes: Array<RouteRecordRaw> = [
     path: '/signup',
     name: 'Sign Up',
     component: () => import('@/views/Signup.vue'),
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/About.vue'),
+  },
+  {
+    path: '/logout',
+    name: 'Logout',
+    component: { render: () => null }, // Dummy component
+    beforeEnter: () => {
+      window.location.href = '/logout'
+    }
   },
 ]
 

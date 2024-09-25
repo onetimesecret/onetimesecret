@@ -1,5 +1,4 @@
 require_relative 'view_helpers'
-require_relative 'secret_elements'
 
 module Onetime
   class App
@@ -103,8 +102,10 @@ module Onetime
 
         self[:jsvars] << jsvar(:vue_component_name, self.vue_component_name)
         self[:jsvars] << jsvar(:locale, locale)
+
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
         self[:jsvars] << jsvar(:supported_locales, self[:supported_locales])
+        self[:jsvars] << jsvar(:support_host, self[:support_host])
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])
@@ -116,7 +117,7 @@ module Onetime
         # without having to re-enter everything.
         self[:jsvars] << jsvar(:form_fields, self.form_fields)
 
-        self[:jsvars] << jsvar(:ot_version, OT::VERSION.to_s)
+        self[:jsvars] << jsvar(:ot_version, OT::VERSION.inspect)
         self[:jsvars] << jsvar(:ruby_version, "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
 
         plans = Onetime::Plan.plans.transform_values do |plan|
@@ -125,21 +126,25 @@ module Onetime
         self[:jsvars] << jsvar(:available_plans, plans)
 
         self[:display_links] = true
-        self[:display_options] = true
-        self[:display_recipients] = sess.authenticated?
         self[:display_masthead] = true
 
         self[:subtitle] = "Onetime"
-        self[:display_faq] = true
-        self[:display_otslogo] = true
-        self[:actionable_visitor] = true
+
+        self[:jsvars] << jsvar(:display_links, self[:display_links])
+        self[:jsvars] << jsvar(:display_masthead, self[:display_masthead])
 
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
 
+        self[:jsvars] << jsvar(:plan, plan.safe_dump)
+        self[:jsvars] << jsvar(:is_paid, @is_paid)
+        self[:jsvars] << jsvar(:default_planid, 'basic')
+
         # So the list of template vars shows up sorted variable name
         self[:jsvars] = self[:jsvars].sort_by { |item| item[:name] }
+
+        #setup_plan_variables
 
         init(*args) if respond_to? :init
       end
@@ -173,9 +178,9 @@ module Onetime
 
         @plans = [:basic, :identity, :dedicated]
 
-        self[:default_plan] = self[@plans.first.to_s] || self['basic']
+        self[:default_planid] = self[@plans.first.to_s] || self['basic']
 
-        self[:planid] = self[:default_plan][:planid]
+        self[:planid] = self[:default_planid][:planid]
       end
 
       def get_split_test_values testname

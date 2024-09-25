@@ -25,16 +25,171 @@ module Onetime
     require_relative 'views/base'
 
     module Views
+
+      #
+      # The VuePoint class serves as a bridge between the Ruby Rack application
+      # and the Vue.js frontend. It is responsible for initializing and passing
+      # JavaScript variables from the backend to the frontend.
+      #
+      # Example usage:
+      #   view = Onetime::App::Views::VuePoint.new
+      #
+      class VuePoint < Onetime::App::View
+        def init *args
+        end
+      end
+
       class Homepage < Onetime::App::View
-        include CreateSecretElements
         def init *args
           self[:title] = "Share a secret"
           self[:with_analytics] = false
         end
       end
 
+      class Dashboard < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+
+          self[:title] = "Your Dashboard"
+
+          metadata = cust.metadata_list.collect do |m|
+            { :uri => private_uri(m),
+              :stamp => natural_time(m.updated),
+              :updated => epochformat(m.updated),
+              :key => m.key,
+              :shortkey => m.key.slice(0,8),
+
+              :recipients => m.recipients,
+              :show_recipients => !m.recipients.to_s.empty?,
+
+              :is_received => m.state?(:received),
+              :is_burned => m.state?(:burned),
+              :is_destroyed => (m.state?(:received) || m.state?(:burned))}
+          end.compact
+          received, notreceived = *metadata.partition{ |m| m[:is_destroyed] }
+          received.sort!{ |a,b| b[:updated] <=> a[:updated] }
+
+          self[:jsvars] << jsvar(:received, received)
+          self[:jsvars] << jsvar(:notreceived, notreceived)
+          self[:jsvars] << jsvar(:has_items, !metadata.empty?)
+        end
+      end
+
+      class DashboardComponent < Onetime::App::Views::Dashboard
+        self.template_name = :vue_point
+        self.pagename = :dashboard
+        def initialize component, req, sess=nil, cust=nil, locale=nil, *args
+          @vue_component_name = component
+          super req, sess, cust, locale, *args
+        end
+      end
+
+      class Pricing < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+          self[:title] = "Create an Account"
+          self[:body_class] = 'entrypoint/main-full-width'
+          self.pagename = 'entrypoint/main-full-width.html'
+          setup_plan_variables
+        end
+        def plan1;  self[@plans[0].to_s]; end
+        def plan2;  self[@plans[1].to_s]; end
+        def plan3;  self[@plans[2].to_s]; end
+        def plan4;  self[@plans[3].to_s]; end
+      end
+
+      class Account < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+          self[:title] = "Your Account"
+
+          self[:jsvars] << jsvar(:price, plan.calculated_price)
+          self[:jsvars] << jsvar(:is_paid, plan.paid?)
+          self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
+          self[:jsvars] << jsvar(:contributor, cust.contributor?)
+          if cust.contributor?
+            self[:jsvars] << jsvar(:contributor_since, epochdate(cust.contributor_at))
+          end
+
+          self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
+
+        end
+      end
+
+      class About < Onetime::App::View
+        self.template_name = :vue_point
+        def init *args
+          self[:title] = "About Us"
+        end
+      end
+
+      class UnknownSecret < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+          self[:title] = "No such secret"
+          self[:display_feedback] = false
+          self[:display_masthead] = false
+        end
+      end
+
+      class Signin < Onetime::App::View
+        self.template_name = :vue_point
+        self.pagename = :login # used for locale content
+        def init
+          self[:title] = "Sign In"
+          self[:body_class] = :login
+          self[:with_analytics] = false
+          if req.params[:custid]
+            add_form_fields :custid => req.params[:custid]
+          end
+          if sess.authenticated?
+            add_message "You are already logged in."
+          end
+        end
+      end
+
+      class Signup < Onetime::App::View
+        self.template_name = :vue_point
+        def init
+          self[:title] = "Create an account"
+          self[:body_class] = :signup
+          self[:with_analytics] = false
+          planid = req.params[:planid]
+          planid = 'basic' unless OT::Plan.plan?(planid)
+          self[:planid] = planid
+          plan = OT::Plan.plan(self[:planid])
+          self[:plan] = {
+            :price => plan.price.zero? ? 'Free' : plan.calculated_price,
+            :original_price => plan.price.to_i,
+            :ttl => plan.options[:ttl].in_days.to_i,
+            :size => plan.options[:size].to_bytes.to_i,
+            :api => plan.options[:api].to_s == 'true',
+            :name => plan.options[:name],
+            :private => plan.options[:private].to_s == 'true',
+            :cname => plan.options[:cname].to_s == 'true',
+            :custom_domains => plan.options[:custom_domains].to_s == 'true',
+            :dark_mode => plan.options[:dark_mode].to_s == 'true',
+            :is_paid => plan.paid?,
+            :planid => self[:planid]
+          }
+          setup_plan_variables
+        end
+      end
+
+      class Feedback < Onetime::App::View
+        self.template_name = :vue_point
+        def init *args
+          self[:title] = "Your Feedback"
+          self[:body_class] = :info
+          self[:with_analytics] = false
+          self[:display_feedback] = false
+          #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
+          #  {:msg => k, :stamp => natural_time(v) }
+          #end
+        end
+      end
+
       class Incoming < Onetime::App::View
-        include CreateSecretElements
         def init *args
           self[:title] = "Share a secret"
           self[:with_analytics] = false
@@ -79,6 +234,7 @@ module Onetime
 
       module Info
         class Privacy < Onetime::App::View
+          self.template_name = :vue_point
           def init *args
             self[:title] = "Privacy Policy"
             self[:with_analytics] = false
@@ -86,6 +242,7 @@ module Onetime
         end
 
         class Security < Onetime::App::View
+          self.template_name = :vue_point
           def init *args
             self[:title] = "Security Policy"
             self[:with_analytics] = false
@@ -93,17 +250,11 @@ module Onetime
         end
 
         class Terms < Onetime::App::View
+          self.template_name = :vue_point
           def init *args
             self[:title] = "Terms and Conditions"
             self[:with_analytics] = false
           end
-        end
-      end
-
-      class UnknownSecret < Onetime::App::View
-        def init
-          self[:title] = "No such secret"
-          self[:display_feedback] = false
         end
       end
 
@@ -117,11 +268,13 @@ module Onetime
           self[:display_masthead] = false
           self[:no_cache] = true
         end
+
         def display_lines
           v = self[:secret_value].to_s
           ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
           ret = ret > 30 ? 30 : ret
         end
+
         def one_liner
           v = self[:secret_value].to_s
           v.scan(/\n/).size.zero?
@@ -129,6 +282,7 @@ module Onetime
       end
 
       class Private < Onetime::App::View
+        self.template_name = :vue_point
         def init metadata
           self[:title] = "You saved a secret"
           self[:body_class] = :generate
@@ -342,130 +496,9 @@ module Onetime
         end
       end
 
-      class Signin < Onetime::App::View
-        self.pagename = :login # used for locale content
-        def init
-          self[:title] = "Sign In"
-          self[:body_class] = :login
-          self[:with_analytics] = false
-          if req.params[:custid]
-            add_form_fields :custid => req.params[:custid]
-          end
-          if sess.authenticated?
-            add_message "You are already logged in."
-          end
-        end
-      end
-
-      class Signup < Onetime::App::View
-        def init
-          self[:title] = "Create an account"
-          self[:body_class] = :signup
-          self[:with_analytics] = false
-          planid = req.params[:planid]
-          planid = 'basic' unless OT::Plan.plan?(planid)
-          self[:planid] = planid
-          plan = OT::Plan.plan(self[:planid])
-          self[:plan] = {
-            :price => plan.price.zero? ? 'Free' : plan.calculated_price,
-            :original_price => plan.price.to_i,
-            :ttl => plan.options[:ttl].in_days.to_i,
-            :size => plan.options[:size].to_bytes.to_i,
-            :api => plan.options[:api].to_s == 'true',
-            :name => plan.options[:name],
-            :private => plan.options[:private].to_s == 'true',
-            :cname => plan.options[:cname].to_s == 'true',
-            :custom_domains => plan.options[:custom_domains].to_s == 'true',
-            :dark_mode => plan.options[:dark_mode].to_s == 'true',
-            :is_paid => plan.paid?,
-            :planid => self[:planid]
-          }
-          setup_plan_variables
-        end
-      end
-
-      class Pricing < Onetime::App::View
-        def init
-          self[:title] = "Create an Account"
-          self[:body_class] = 'entrypoint/main-full-width'
-          self.pagename = 'entrypoint/main-full-width.html'
-          setup_plan_variables
-        end
-        def plan1;  self[@plans[0].to_s]; end
-        def plan2;  self[@plans[1].to_s]; end
-        def plan3;  self[@plans[2].to_s]; end
-        def plan4;  self[@plans[3].to_s]; end
-      end
-
-      class Dashboard < Onetime::App::View
-        include CreateSecretElements
-        def init
-          self[:title] = "Your Dashboard"
-          self[:body_class] = :dashboard
-          self[:with_analytics] = false
-          self[:metadata] = cust.metadata_list.collect do |m|
-            { :uri => private_uri(m),
-              :stamp => natural_time(m.updated),
-              :updated => epochformat(m.updated),
-              :key => m.key,
-              :shortkey => m.key.slice(0,8),
-              # Backwards compatible for metadata created prior to Dec 5th, 2014 (14 days)
-              :secret_shortkey => m.secret_shortkey.to_s.empty? ? nil : m.secret_shortkey,
-
-              :recipients => m.recipients,
-              :show_recipients => !m.recipients.to_s.empty?,
-
-              :is_received => m.state?(:received),
-              :is_burned => m.state?(:burned),
-              :is_destroyed => (m.state?(:received) || m.state?(:burned))}
-          end.compact
-          self[:received],self[:notreceived] =
-            *self[:metadata].partition{ |m| m[:is_destroyed] }
-          self[:received].sort!{ |a,b| b[:updated] <=> a[:updated] }
-          self[:has_secrets] = !self[:metadata].empty?
-          self[:has_received] = !self[:received].empty?
-          self[:has_notreceived] = !self[:notreceived].empty?
-        end
-      end
-
-      class Recent < Onetime::App::Views::Dashboard
-        # Use the same locale as the dashboard
-        self.pagename = :dashboard # used for locale content
-      end
-
-      class DashboardComponent < Onetime::App::Views::Dashboard
-        self.pagename = :dashboard
-        def initialize component, req, sess=nil, cust=nil, locale=nil, *args
-          @vue_component_name = component
-          super req, sess, cust, locale, *args
-        end
-      end
-
-      class Account < Onetime::App::View
-        def init
-          self[:title] = "Your Account"
-          self[:body_class] = :account
-          self[:with_analytics] = false
-          self[:price] = plan.calculated_price
-          self[:is_paid] = plan.paid?
-          self[:customer_since] = epochdom(cust.created)
-
-          self[:jsvars] << jsvar(:apitoken, cust.apitoken) # apitoken/apikey confusion
-        end
-      end
-
       class Error < Onetime::App::View
         def init *args
           self[:title] = "Oh cripes!"
-        end
-      end
-
-      class About < Onetime::App::View
-        def init *args
-          self[:title] = "About Us"
-          self[:body_class] = :info
-          self[:with_analytics] = false
-          setup_plan_variables
         end
       end
 
@@ -494,17 +527,6 @@ module Onetime
         end
       end
 
-      class Feedback < Onetime::App::View
-        def init *args
-          self[:title] = "Your Feedback"
-          self[:body_class] = :info
-          self[:with_analytics] = false
-          self[:display_feedback] = false
-          #self[:popular_feedback] = OT::Feedback.popular.collect do |k,v|
-          #  {:msg => k, :stamp => natural_time(v) }
-          #end
-        end
-      end
     end
   end
 end

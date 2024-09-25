@@ -11,7 +11,7 @@ export interface BaseApiRecord {
   updated: string;
 }
 
-// Define the cust model
+// Define the customer model
 export interface Cust extends BaseApiRecord {
   custid: string;
   role: string;
@@ -146,3 +146,48 @@ export type FormSubmissionOptions = {
   onError?: (data: ApiErrorResponse) => void | Promise<void>;
   handleShrimp?: (shrimp: string) => void | Promise<void>
 };
+
+export interface DashboardMetadata extends BaseApiRecord {
+  // Extra keys added to Metadata records by Dashboard
+  // view. Can be moved to the ts model.
+  shortkey: string;
+  show_recipients: boolean;
+  stamp: string;
+  uri: string;
+  is_received: boolean;
+  is_burned: boolean;
+  is_destroyed: boolean;
+}
+
+export interface Metadata extends DashboardMetadata {
+  custid: string;
+  state: string;
+  secret_key: string;
+  secret_shortkey: string;
+  secret_ttl: number;
+  share_domain: string;
+  passphrase: string;
+  viewed: boolean;
+  received: boolean;
+  shared: boolean;
+  burned: boolean;
+  recipients: string[];
+  truncate: boolean;
+  key: string;
+}
+
+// Secret interface
+export interface Secret extends BaseApiRecord {
+  custid: string;
+  state: string;
+  value: string;
+  metadata_key: string;
+  original_size: number;
+  value_checksum: string;
+  value_encryption: string;
+  lifespan: number;
+  share_domain: string;
+  verification: string;
+  truncated: boolean;
+  maxviews: number; // always 1 (here for backwards compat)
+}

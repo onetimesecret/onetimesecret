@@ -76,7 +76,7 @@ export default defineConfig({
     // in going to one or the other machines can continue serving the previous
     // version, and for an hour after the deploy for the redis cache to expire
     // (or be manually deleted). The key is template:global:vite_assets in db 0.
-    emptyOutDir: false,
+    emptyOutDir: true,
 
     // Code Splitting vs Combined Files
     //
@@ -118,6 +118,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: 'src/main.ts', // Explicitly define the entry point here
+        //index: 'src/index.html'
       },
       //output: {
       //  manualChunks: undefined, // Disable code splitting
