@@ -141,7 +141,7 @@ module Onetime
       end
 
       def not_found_response message
-        view = Onetime::App::Views::NotFound.new req, sess, cust, locale
+        view = Onetime::App::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 404
         res.body = view.render

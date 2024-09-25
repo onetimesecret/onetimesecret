@@ -63,7 +63,7 @@ class Onetime::App
         self[:email_address] = cust.email
       end
       def subject
-        "Reset your password (OneTimeSecret.com)"
+        "Reset your password (OnetimeSecret.com)"
       end
       def forgot_path
         '/forgot/%s' % self[:secret].key

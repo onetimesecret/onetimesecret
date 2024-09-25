@@ -1,6 +1,7 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import { defineProps } from 'vue'
-import UnknownSecret from './secrets/UnknownSecret.vue';
+import UnknownSecret from './UnknownSecret.vue';
 
 interface Props {
   secretKey: string;

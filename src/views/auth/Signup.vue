@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import PlansElevateCta from '@/components/ctas/PlansElevateCta.vue';
 import SignUpForm from '@/components/auth/SignUpForm.vue';

@@ -1,6 +1,6 @@
 <template>
 
-  <div class="mb-4">
+    <div class="mb-4">
       <p class="text-base text-gray-600 dark:text-gray-400 mb-2">{{$t('web.private.pretext')}}</p>
 
       <div class="relative">

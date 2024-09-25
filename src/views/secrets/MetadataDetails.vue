@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import { defineProps } from 'vue'
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
@@ -62,9 +63,6 @@ defineProps<Props>()
       <span class="text-sm text-gray-500 dark:text-gray-400">({{created_date_utc}})</span>
       <!--{{/is_destroyed}}-->
     </p>
-
-
-
 
     <MetadataFAQ />
 

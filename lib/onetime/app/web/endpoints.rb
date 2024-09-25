@@ -17,7 +17,7 @@ module Onetime
           dashboard  # continues request inside dashboard>authenticated method
         else
           OT.ld "[homepage] authenticated? #{sess.authenticated?}"
-          view = Onetime::App::Views::VuePoint.new req, sess, cust, locale
+          view = Onetime::App::Views::Index.new req, sess, cust, locale
           sess.event_incr! :homepage
           res.body = view.render
         end
@@ -30,7 +30,7 @@ module Onetime
 
     def robots_txt
       publically do
-        view = Onetime::App::Views::Meta::Robot.new req, sess, cust, locale
+        view = Onetime::App::Views::RobotsTxt.new req, sess, cust, locale
           sess.event_incr! :robots_txt
           res.header['Content-Type'] = 'text/plain'
           res.body = view.render
