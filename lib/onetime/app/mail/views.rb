@@ -1,7 +1,7 @@
 
 require 'mustache'
 
-class Onetime::App
+module Onetime::App
   module Mail
 
     require_relative 'base'

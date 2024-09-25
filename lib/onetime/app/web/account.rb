@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Onetime
-  class App # rubocop:disable
+  class App::Data
 
     def translations
       publically do

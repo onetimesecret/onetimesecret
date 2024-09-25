@@ -2,7 +2,7 @@
 require_relative '../../app_helpers'   # app/helpers.rb
 
 
-class Onetime::App
+module Onetime::App
   class API
 
     module Base

@@ -1,7 +1,7 @@
 require_relative '../app_helpers'
 
 module Onetime
-  class App
+  module App
 
     module Base
       include OT::App::WebHelpers

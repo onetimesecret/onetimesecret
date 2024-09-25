@@ -20,7 +20,7 @@ class Mustache
 end
 
 module Onetime
-  class App
+  module App
 
     require_relative 'views/base'
 
@@ -39,6 +39,10 @@ module Onetime
         end
       end
 
+      class Config < Onetime::App::View
+        def init *args
+        end
+      end
 
       class Error < Onetime::App::View
         def init *args

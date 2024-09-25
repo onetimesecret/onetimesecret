@@ -1,7 +1,7 @@
 require_relative '../web/web_base'
 require_relative '../app_settings'
 
-class Onetime::App
+module Onetime::App
   class Colonel
     include AppSettings
     include OT::App::Base

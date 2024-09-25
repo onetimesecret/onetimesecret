@@ -352,7 +352,7 @@ class Onetime::Customer < Familia::Horreum
       return
     end
 
-    # Taking the class approach simply to keep it out of this busy Customer
+    # Taking the module Approach simply to keep it out of this busy Customer
     # class. There's a small benefit to being able grep for "cust.method_name"
     # which this approach affords as well. Although it's a small benefit.
     self.class.increment_field(self, field)

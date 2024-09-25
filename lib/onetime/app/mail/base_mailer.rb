@@ -1,5 +1,5 @@
 
-class Onetime::App
+module Onetime::App
   module Mail
     MAIL_ERROR = """
     We're experiencing an email delivery issues. You can

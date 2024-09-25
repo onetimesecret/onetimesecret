@@ -1,7 +1,7 @@
 
 require_relative '../web/views/view_helpers'
 
-class Onetime::App
+module Onetime::App
   module Mail
 
     class Base < Mustache

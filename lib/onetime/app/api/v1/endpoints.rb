@@ -2,7 +2,7 @@ require_relative 'base'
 require_relative '../../app_settings'
 
 
-class Onetime::App
+module Onetime::App
   class API
     include AppSettings
     include Onetime::App::API::Base

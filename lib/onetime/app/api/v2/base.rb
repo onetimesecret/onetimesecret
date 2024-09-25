@@ -2,7 +2,7 @@ require_relative '../../app_helpers'
 
 require_relative '../../../../altcha'
 
-class Onetime::App
+module Onetime::App
   class APIV2
     module Base
       include Onetime::App::WebHelpers

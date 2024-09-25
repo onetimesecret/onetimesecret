@@ -1,4 +1,4 @@
-class Onetime::App
+module Onetime::App
   #
   # AppSettings module provides configuration options for UTF-8 and URI
   # encoding middleware checks.

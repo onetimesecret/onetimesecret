@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Onetime
-  class App
+  module App
     module Views
       module ViewHelpers # rubocop:disable Style/Documentation
 
