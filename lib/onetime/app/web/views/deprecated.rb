@@ -345,13 +345,13 @@ module Onetime
         def metadata_path
           [:private, self[:metadata_key]].join('/')
         end
-        def share_uri
+        def share_url
           [baseuri, share_path].flatten.join('/')
         end
-        def metadata_uri
+        def metadata_url
           [baseuri, metadata_path].flatten.join('/')
         end
-        def burn_uri
+        def burn_url
           [baseuri, burn_path].flatten.join('/')
         end
         def display_lines
@@ -408,7 +408,7 @@ module Onetime
           end
         end
 
-        def metadata_uri
+        def metadata_url
           [baseuri, :private, self[:metadata_key]].join('/')
         end
 

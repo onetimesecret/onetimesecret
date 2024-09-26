@@ -15,8 +15,8 @@ module Onetime::Logic
             :has_passphrase, :can_decrypt, :secret_value, :truncated,
             :show_secret, :show_secret_link, :show_metadata_link, :show_metadata,
             :show_recipients, :share_domain
-      attr_reader :share_path, :burn_path, :metadata_path, :share_uri,
-            :metadata_uri, :burn_uri, :display_lines
+      attr_reader :share_path, :burn_path, :metadata_path, :share_url,
+            :metadata_url, :burn_url, :display_lines
 
       def process_params
         @key = params[:key].to_s
@@ -163,9 +163,9 @@ module Onetime::Logic
         @share_path = build_path(:secret, secret_key)
         @burn_path = build_path(:private, metadata_key, 'burn')
         @metadata_path = build_path(:private, metadata_key)
-        @share_uri = build_uri(@share_path)
-        @metadata_uri = build_uri(@metadata_path)
-        @burn_uri = build_uri(@burn_path)
+        @share_url = build_url(@share_path)
+        @metadata_url = build_url(@metadata_path)
+        @burn_url = build_url(@burn_path)
 
         @display_lines = calculate_display_lines
       end
@@ -187,9 +187,9 @@ module Onetime::Logic
           share_path: @share_path,
           burn_path: @burn_path,
           metadata_path: @metadata_path,
-          share_uri: @share_uri,
-          metadata_uri: @metadata_uri,
-          burn_uri: @burn_uri,
+          share_url: @share_url,
+          metadata_url: @metadata_url,
+          burn_url: @burn_url,
           share_domain: @share_domain
         }
       end

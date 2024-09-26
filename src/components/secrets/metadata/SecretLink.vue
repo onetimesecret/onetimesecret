@@ -6,7 +6,7 @@
     <div class="relative">
       <input id="secreturi"
              class="w-full pr-10 px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                         :value="`${metadata?.share_domain}/${metadata?.share_path}`"
+                         :value="`${metadata.share_url}`"
              readonly />
       <button onclick="copyToClipboard('secreturi')"
               class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"

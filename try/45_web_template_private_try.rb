@@ -79,7 +79,7 @@ view[:authenticated]
 
 ## Generates correct share URI
 @this_view = OT::App::Views::Private.new(@req, @sess, @cust, 'en', @metadata)
-@this_view.share_uri
+@this_view.share_url
 #=> "#{@this_view.baseuri}/secret/#{@secret.key}"
 
 ## Sets locale correctly

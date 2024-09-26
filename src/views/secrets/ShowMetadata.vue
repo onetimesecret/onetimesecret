@@ -6,8 +6,7 @@
     <div v-else-if="error">Error: {{ error }}</div>
     <div v-else-if="record && details">
       <!-- if show_secret_link -->
-      <SecretLink v-if="details.show_secret_link" :metadata="record">
-      </SecretLink>
+      <SecretLink v-if="details.show_secret_link" :metadata="record" :details="details" />
 
       <!-- if show_recipients -->
       <h3 v-if="details.show_recipients" class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">

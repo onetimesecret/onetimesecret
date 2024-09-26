@@ -7,7 +7,7 @@
 
   <!--{{^is_destroyed}}-->
   <a
-    href="{{burn_uri}}"
+    href="{{burn_url}}"
     class="block w-full px-4 py-2 mb-4 text-center text-base bg-yellow-400 rounded-md text-gray-800 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
     <svg
       class="inline-block w-5 h-5 mr-2"

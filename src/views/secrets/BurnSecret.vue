@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
       <!--{{/is_burned}}-->
     </span>
   </div>
-  <a href="{{metadata_uri}}"
+  <a href="{{metadata_url}}"
      class="block w-full py-2 px-4 bg-gray-200 text-gray-700 rounded text-center hover:bg-gray-300 transition duration-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Back</a>
   <!--{{/is_destroyed}} -->
 
@@ -72,7 +72,7 @@ const props = withDefaults(defineProps<Props>(), {
       </svg>
       {{ $t('web.COMMON.word_confirm') }}: {{ $t('web.COMMON.burn_this_secret') }}
     </button>
-    <a href="{{metadata_uri}}"
+    <a href="{{metadata_url}}"
        class="block w-full py-2 px-4 bg-gray-200 text-gray-700 rounded text-center hover:bg-gray-300 transition duration-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">{{ $t('web.COMMON.word_cancel') }}</a>
     <hr class="border-gray-300 dark:border-gray-600" />
     <p class="text-md text-gray-600 dark:text-gray-400">

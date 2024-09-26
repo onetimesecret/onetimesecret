@@ -40,7 +40,7 @@ module Onetime
         components.join('/')
       end
 
-      def build_uri(path)
+      def build_url(path)
         [baseuri, path].flatten.join('/')
       end
 

@@ -150,9 +150,9 @@ export interface MetadataData extends BaseApiRecord {
   share_path: string;
   burn_path: string;
   metadata_path: string;
-  share_uri: string;
-  metadata_uri: string;
-  burn_uri: string;
+  share_url: string;
+  metadata_url: string;
+  burn_url: string;
   share_domain: string;
 }
 
