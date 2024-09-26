@@ -12,7 +12,7 @@ module Onetime::Logic
             :created_date_utc, :expiration_stamp, :is_received, :is_burned,
             :is_destroyed, :received_date, :received_date_utc, :burned_date,
             :burned_date_utc, :maxviews, :has_maxviews, :view_count,
-            :has_passphrase, :can_decrypt, :secret_value, :truncated,
+            :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
             :show_secret, :show_secret_link, :show_metadata_link, :show_metadata,
             :show_recipients, :share_domain
       attr_reader :share_path, :burn_path, :metadata_path, :share_url,
@@ -82,7 +82,7 @@ module Onetime::Logic
             @has_passphrase = !secret.passphrase.to_s.empty?
             @can_decrypt = secret.can_decrypt?
             @secret_value = secret.decrypted_value if @can_decrypt
-            @truncated = secret.truncated?
+            @is_truncated = secret.truncated?
           end
         end
 
@@ -214,7 +214,7 @@ module Onetime::Logic
           has_passphrase: @has_passphrase,
           can_decrypt: @can_decrypt,
           secret_value: @secret_value,
-          truncated: @truncated,
+          is_truncated: @is_truncated,
           show_secret: @show_secret,
           show_secret_link: @show_secret_link,
           show_metadata_link: @show_metadata_link,

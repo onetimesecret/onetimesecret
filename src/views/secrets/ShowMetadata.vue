@@ -13,19 +13,7 @@
         {{$t('web.COMMON.sent_to')}} {{record.recipients}}
       </h3>
 
-      <!-- if show_secret -->
-      <DisplayCase v-if="details.show_secret" :metadata="record" :details="details" ></DisplayCase>
-
-      <!-- else -->
-      <div v-else class="mb-4">
-        <p class="mb-2 text-gray-600 dark:text-gray-400">
-          {{$t('web.COMMON.secret')}} ({{record.secret_shortkey}}):
-        </p>
-        <input
-          class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          value="*******************"
-          disabled />
-      </div>
+      <DisplayCase :metadata="record" :details="details" ></DisplayCase>
 
       <p class="text-gray-600 dark:text-gray-400 mb-4">
         <template v-if="details.is_received">
@@ -42,7 +30,7 @@
         </template>
       </p>
 
-      <MetadataFAQ />
+      <MetadataFAQ :metadata="record" :details="details" />
     </div>
   </div>
 </template>

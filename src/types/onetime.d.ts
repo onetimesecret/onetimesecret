@@ -179,7 +179,7 @@ export interface MetadataDetails extends DetailsType {
   show_secret_link: boolean;
   show_secret: boolean;
   title: string;
-  truncated: boolean;
+  is_truncated: boolean;
   view_count: number;
 }
 
@@ -274,6 +274,6 @@ export interface Secret extends BaseApiRecord {
   lifespan: number;
   share_domain: string;
   verification: string;
-  truncated: boolean;
+  is_truncated: boolean;
   maxviews: number; // always 1 (here for backwards compat)
 }

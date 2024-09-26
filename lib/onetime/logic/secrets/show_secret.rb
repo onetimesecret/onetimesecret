@@ -6,7 +6,7 @@ module Onetime::Logic
 
     class ShowSecret < OT::Logic::Base
       attr_reader :key, :passphrase, :continue, :share_domain
-      attr_reader :secret, :show_secret, :secret_value, :truncated, :original_size, :verification, :correct_passphrase
+      attr_reader :secret, :show_secret, :secret_value, :is_truncated, :original_size, :verification, :correct_passphrase
       def process_params
         @key = params[:key].to_s
         @secret = Onetime::Secret.load key
@@ -27,7 +27,7 @@ module Onetime::Logic
 
         if show_secret
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
-          @truncated = secret.truncated?
+          @is_truncated = secret.truncated?
           @original_size = secret.original_size
 
           if verification
