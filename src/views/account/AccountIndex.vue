@@ -50,8 +50,8 @@
 </template>
 
 <script setup lang="ts">
-import { AccountApiResponse, Account } from '@/types/onetime';
-import { ref, onMounted } from 'vue';
+import { Account } from '@/types/onetime';
+import { onMounted } from 'vue';
 import { useWindowProps } from '@/composables/useWindowProps';
 import AccountChangePasswordForm from '@/components/account/AccountChangePasswordForm.vue';
 import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
@@ -62,46 +62,18 @@ import APIKeyForm from '@/components/account/APIKeyForm.vue';
 // preformatted template variables (i.e. the jsvars from Onetime::App::View)
 // rather than re-implement them here in Vue. We'll replace all of them
 // eventually, but for now, this is a good way to keep momentum going.
-const { shrimp, plan, cust, customer_since} = useWindowProps(['shrimp', 'plan', 'cust', 'customer_since' ]);
+const { shrimp, plan, cust, customer_since } = useWindowProps([ 'shrimp', 'plan', 'cust', 'customer_since' ]);
 
-const account = ref<Account | null>(null)
-const isLoading = ref(false)
-const error = ref('')
+import { useFetchDataRecord } from '@/utils/fetchData';
 
-
-const fetchAccount = async () => {
-  isLoading.value = true
-  error.value = ''
-
-  try {
-    const response = await fetch('/api/v2/account', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch account')
+const { record: account, fetchData: fetchAccount } = useFetchDataRecord<Account>({
+  url: '/api/v2/account',
+  onSuccess: (data) => {
+    if (data[0]) {
+      //console.log(data[0].cust);
     }
+  },
+});
 
-    const jsonData: AccountApiResponse = await response.json()
-    account.value = jsonData.record;
-    console.log(account.value.cust)
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      error.value = err.message
-    } else {
-      console.error('An unexpected error occurred', err)
-      error.value = 'An unexpected error occurred'
-    }
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchAccount()
-})
-
+onMounted(fetchAccount);
 </script>

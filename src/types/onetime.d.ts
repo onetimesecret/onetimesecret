@@ -109,14 +109,14 @@ export interface ApiToken extends BaseApiRecord {
   active: boolean;
 }
 
-export interface Account {
+export interface Account extends BaseApiRecord {
   cust: Cust;
   apitoken?: string;
   stripe_customer: Stripe.Customer;
   stripe_subscriptions: Stripe.Subscription[];
 }
 
-export interface ColonelData {
+export interface ColonelData extends BaseApiRecord {
   recent_customers: Cust[];
   today_feedback: Feedback[];
   yesterday_feedback: Feedback[];

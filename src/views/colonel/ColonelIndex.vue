@@ -99,13 +99,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { onMounted, computed } from 'vue';
 import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
-import { ColonelData, ColonelDataApiResponse } from '@/types/onetime'
+import { ColonelData } from '@/types/onetime'
 
-const colonelData = ref<ColonelData | null>(null);
-const isLoading = ref(false);
-const error = ref('');
 
 const tabs = [
   { name: 'Stats', href: '#stats' },
@@ -123,37 +120,12 @@ const feedbackSections = computed(() => {
   ];
 });
 
-const fetchColonelData = async () => {
-  isLoading.value = true;
-  error.value = '';
+import { useFetchDataRecord } from '@/utils/fetchData';
 
-  try {
-    const response = await fetch('/api/v2/colonel', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch colonel data');
-    }
-
-    const jsonData: ColonelDataApiResponse = await response.json();
-    colonelData.value = jsonData.record;
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      error.value = err.message;
-    } else {
-      console.error('An unexpected error occurred', err);
-      error.value = 'An unexpected error occurred';
-    }
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchColonelData();
+const { record: colonelData, fetchData: fetchColonelData } = useFetchDataRecord<ColonelData>({
+  url: '/api/v2/colonel',
 });
+
+onMounted(fetchColonelData);
 </script>
