@@ -64,7 +64,7 @@ import APIKeyForm from '@/components/account/APIKeyForm.vue';
 // eventually, but for now, this is a good way to keep momentum going.
 const { shrimp, plan, cust, customer_since } = useWindowProps([ 'shrimp', 'plan', 'cust', 'customer_since' ]);
 
-import { useFetchDataRecord } from '@/utils/fetchData';
+import { useFetchDataRecord } from '@/composables/useFetchData';
 
 const { record: account, fetchData: fetchAccount } = useFetchDataRecord<Account>({
   url: '/api/v2/account',

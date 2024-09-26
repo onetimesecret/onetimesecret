@@ -95,7 +95,7 @@
 import { Icon } from '@iconify/vue';
 
 import type { CustomDomain } from '@/types/onetime';
-import { useFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import { MenuItem } from '@headlessui/vue';
 import { ref } from 'vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';

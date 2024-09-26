@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Cust } from '@/types/onetime';
 
 interface Props {

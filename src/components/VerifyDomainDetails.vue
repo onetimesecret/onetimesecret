@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
-import { useFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';

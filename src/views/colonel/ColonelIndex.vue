@@ -120,7 +120,7 @@ const feedbackSections = computed(() => {
   ];
 });
 
-import { useFetchDataRecord } from '@/utils/fetchData';
+import { useFetchDataRecord } from '@/composables/useFetchData';
 
 
 const { record: colonelData, fetchData: fetchColonelData } = useFetchDataRecord<ColonelData>({

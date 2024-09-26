@@ -11,7 +11,7 @@
 import { ref, onMounted } from 'vue';
 import { CustomDomain } from '@/types/onetime';
 import DomainsTable from '@/components/DomainsTable.vue';
-import { useFetchData } from '@/utils/fetchData';
+import { useFetchData } from '@/composables/useFetchData';
 
 const shrimp = ref(window.shrimp);
 

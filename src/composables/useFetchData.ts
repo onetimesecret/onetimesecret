@@ -1,17 +1,16 @@
-// src/utils/fetchData.ts
+// src/composables/useFetchData.ts
 import { ref, Ref, computed } from 'vue';
-import type { ApiRecordResponse, ApiRecordsResponse, BaseApiRecord } from '@/types/onetime.d.ts';
-
-// Use the more specific types like ColonelDataApiResponse?
+import type { ApiRecordResponse, ApiRecordsResponse, BaseApiRecord, DetailsType } from '@/types/onetime.d.ts';
 
 interface FetchDataOptions<T extends BaseApiRecord> {
   url: string;
-  onSuccess?: (data: T[]) => void;
+  onSuccess?: (data: T[], details?: DetailsType) => void;
   onError?: (error: Error) => void;
 }
 
 export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError }: FetchDataOptions<T>) {
   const records = ref<T[]>([]) as Ref<T[]>;
+  const details = ref<DetailsType>(null);
   const isLoading = ref(false);
   const error = ref('');
   const count = ref<number>(0);
@@ -38,16 +37,18 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
       if ('record' in jsonData) {
         records.value = [jsonData.record];
         count.value = 1;
+        details.value = jsonData.details || null;
       } else if ('records' in jsonData) {
         records.value = jsonData.records;
         count.value = jsonData.count;
         custid.value = jsonData.custid;
+        details.value = jsonData.details || null;
       } else {
         throw new Error('Unexpected response format');
       }
 
       if (onSuccess) {
-        onSuccess(records.value);
+        onSuccess(records.value, details.value);
       }
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -67,6 +68,7 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
 
   return {
     records,
+    details,
     isLoading,
     error,
     count,
@@ -76,12 +78,13 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
 }
 
 export function useFetchDataRecord<T extends BaseApiRecord>(options: FetchDataOptions<T>) {
-  const { records, isLoading, error, count, custid, fetchData } = useFetchData<T>(options);
+  const { records, details, isLoading, error, count, custid, fetchData } = useFetchData<T>(options);
 
   const record = computed(() => records.value[0] || null);
 
   return {
     record,
+    details,
     isLoading,
     error,
     count,

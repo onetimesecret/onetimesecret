@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue';
 import APIKeyCard from '@/components/account/APIKeyCard.vue';
 import { ApiTokenApiResponse } from '@/types/onetime';
-import { useFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 
 interface Props {
   apitoken?: string;

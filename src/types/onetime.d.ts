@@ -139,6 +139,44 @@ export interface ColonelData extends BaseApiRecord {
   };
 }
 
+export interface MetadataData extends BaseApiRecord {
+  record: {
+    key: string;
+    shortkey: string;
+    secret_key: string;
+    secret_shortkey: string;
+    recipients: string[];
+    created_date_utc: string;
+    expiration_stamp: string;
+  };
+  details: {
+    title: string;
+    body_class: string;
+    display_feedback: boolean;
+    no_cache: boolean;
+    is_received: boolean;
+    is_burned: boolean;
+    is_destroyed: boolean;
+    received_date: string;
+    received_date_utc: string;
+    burned_date: string;
+    burned_date_utc: string;
+    maxviews: number;
+    has_maxviews: boolean;
+    view_count: number;
+    has_passphrase: boolean;
+    can_decrypt: boolean;
+    secret_value: string;
+    truncated: boolean;
+    show_secret: boolean;
+    show_secret_link: boolean;
+    show_metadata_link: boolean;
+    show_metadata: boolean;
+    show_recipients: boolean;
+    share_domain: string;
+  };
+}
+
 export interface Feedback {
   msg: string;
   stamp: string;
@@ -148,23 +186,25 @@ export interface BaseApiResponse {
   success: boolean;
 }
 
+export type DetailsType = ApiRecordResponse<BaseApiRecord>['details'];
+
 export interface ApiErrorResponse<T extends BaseApiRecord> extends BaseApiResponse {
   message: string;
   code?: number;
   record?: T | null;
-  details?: { [key: string]: never };
+  details?: DetailsType;
 }
 
 export interface ApiRecordsResponse<T extends BaseApiRecord> extends BaseApiResponse {
   custid: string;
   records: T[];
   count: number;
-  details?: { [key: string]: never };
+  details?: DetailsType;
 }
 
 export interface ApiRecordResponse<T extends BaseApiRecord> extends BaseApiResponse {
   record: T;
-  details?: { [key: string]: never };
+  details?: DetailsType;
 }
 
 export type ApiTokenApiResponse = ApiRecordResponse<ApiToken>;
