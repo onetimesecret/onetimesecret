@@ -65,7 +65,6 @@ declare global {
     ruby_version: string;
     shrimp: string;  // Our CSRF token, to be used in POST requests to the backend
     site_host: string;
-    vue_component_name?: string;
     stripe_customer?: Stripe.Customer;
     stripe_subscriptions?: Stripe.Subscriptions[];
     form_fields?: { [key: string]: string };

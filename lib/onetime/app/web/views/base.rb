@@ -35,36 +35,24 @@ module Onetime
         cust ||= OT::Customer.anonymous
         authenticated = sess && sess.authenticated? && ! cust.anonymous?
 
-        self[:js], self[:css] = [], []
-        self[:is_default_locale] = is_default_locale
-        self[:supported_locales] = OT.conf[:locales]
-        self[:support_host] = site.dig(:support, :host) # defaults to nil
-        self[:authentication] = site[:authentication]
+        # Regular template vars used one
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
-        self[:ot_version] = OT::VERSION.inspect
-        self[:ruby_version] = "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}"
-        self[:authenticated] = authenticated
-        self[:display_promo] = false
-        self[:display_feedback] = true
-        self[:feedback_text] = i18n[:COMMON][:feedback_text]
+        self[:subtitle] = "Onetime"
         self[:frontend_host] = frontend_host
         self[:frontend_development] = frontend_development
         self[:no_cache] = false
-        self[:display_sitenav] = true
 
         self[:jsvars] = []
         # Pass the authentication flag settings to the frontends.
         self[:jsvars] << jsvar(:authentication, authentication)
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
 
-        if authenticated && cust
-          self[:colonel] = cust.role?(:colonel)
-          self[:metadata_record_count] = cust.metadata_list.length
-          self[:jsvars] << jsvar(:metadata_record_count, self[:metadata_record_count])
+        domains_enabled = domains[:enabled] || false
 
-          self[:domains_enabled] = domains[:enabled] || false  # only for authenticated
-          self[:jsvars] << jsvar(:domains_enabled, self[:domains_enabled])
+        if authenticated && cust
+          self[:jsvars] << jsvar(:metadata_record_count, cust.metadata_list.length)
+          self[:jsvars] << jsvar(:domains_enabled, domains_enabled) # only for authenticated
 
           self[:jsvars] << jsvar(:custid, cust.custid)
           self[:jsvars] << jsvar(:cust, cust.safe_dump)
@@ -76,17 +64,13 @@ module Onetime
           self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
 
           # There's no custom domain list when the feature is disabled.
-          if self[:domains_enabled]
-            self[:custom_domains_record_count] = cust.custom_domains.length
-            self[:custom_domains] = cust.custom_domains_list.collect { |obj| obj.display_domain }.sort
-            self[:jsvars] << jsvar(:custom_domains_record_count, self[:custom_domains_record_count])
-            self[:jsvars] << jsvar(:custom_domains, self[:custom_domains])
+          if domains_enabled
+            self[:jsvars] << jsvar(:custom_domains_record_count, cust.custom_domains.length)
+            self[:jsvars] << jsvar(:custom_domains, cust.custom_domains_list.collect { |obj| obj.display_domain }.sort)
           end
         end
 
         unless sess.nil?
-          self[:gravatar_uri] = gravatar(cust.email) unless cust.anonymous?
-
           if cust.pending? && self.class != Onetime::App::Views::Shared
             add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
           else
@@ -98,10 +82,8 @@ module Onetime
         end
 
         # Link to the pricing page can be seen regardless of authentication status
-        self[:plans_enabled] = site.dig(:plans, :enabled) || false
-        self[:jsvars] << jsvar(:plans_enabled, self[:plans_enabled])
+        self[:jsvars] << jsvar(:plans_enabled, site.dig(:plans, :enabled) || false)
 
-        self[:jsvars] << jsvar(:vue_component_name, self.vue_component_name)
         self[:jsvars] << jsvar(:locale, locale)
 
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
@@ -125,8 +107,6 @@ module Onetime
           plan.safe_dump
         end
         self[:jsvars] << jsvar(:available_plans, plans)
-
-        self[:subtitle] = "Onetime"
 
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')
@@ -213,24 +193,8 @@ module Onetime
         (self.form_fields ||= {}).merge! hsh unless hsh.nil?
       end
 
-      # Each page has exactly one #app element and each view can have its
-      # own Vue component. This method allows setting the component name
-      # that is created and mounted in main.ts. If not set, the component
-      # name is derived from the view class name.
-      attr_writer :vue_component_name
-      def vue_component_name
-        @vue_component_name || self.class.vue_component_name
-      end
-
       class << self
-        attr_accessor :pagename, :vue_component_name
-
-        # Set the Vue component at the class level. Each view instance
-        # can override this value with its own #vue_component_name method.
-        attr_writer :vue_component_name
-        def vue_component_name
-          @vue_component_name || self.name.split('::').last
-        end
+        attr_accessor :pagename # can be removed with deprecated.rb
       end
 
     end

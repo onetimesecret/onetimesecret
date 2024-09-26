@@ -26,7 +26,6 @@ const onDomainAdded = async (domain: string) => {
   isNavigating.value = true;
   try {
     console.info('Navigation to verify', domain);
-    window.vue_component_name = 'AccountDomainVerify';
     await router.replace({ name: 'AccountDomainVerify', params: { domain } });
     await nextTick();
   } catch (error) {
