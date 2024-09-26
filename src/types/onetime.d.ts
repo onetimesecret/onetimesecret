@@ -116,6 +116,34 @@ export interface Account {
   stripe_subscriptions: Stripe.Subscription[];
 }
 
+export interface ColonelData {
+  recent_customers: Cust[];
+  today_feedback: Feedback[];
+  yesterday_feedback: Feedback[];
+  older_feedback: Feedback[];
+  redis_info: string;
+  plans_enabled: boolean;
+  counts: {
+    session_count: number;
+    customer_count: number;
+    recent_customer_count: number;
+    metadata_count: number;
+    secret_count: number;
+    secrets_created: number;
+    secrets_shared: number;
+    emails_sent: number;
+    feedback_count: number;
+    today_feedback_count: number;
+    yesterday_feedback_count: number;
+    older_feedback_count: number;
+  };
+}
+
+export interface Feedback {
+  msg: string;
+  stamp: string;
+}
+
 export interface BaseApiResponse {
   success: boolean;
 }
@@ -142,6 +170,7 @@ export interface ApiRecordResponse<T extends BaseApiRecord> extends BaseApiRespo
 export type ApiTokenApiResponse = ApiRecordResponse<ApiToken>;
 export type CustomDomainApiResponse = ApiRecordResponse<CustomDomain>;
 export type AccountApiResponse = ApiRecordResponse<Account>;
+export type ColonelDataApiResponse = ApiRecordResponse<ColonelData>;
 
 /**
  * Front-end Vue App

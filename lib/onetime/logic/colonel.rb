@@ -31,13 +31,10 @@ module Onetime::Logic
         process_feedback
         process_customers
         process_statistics
-        process_split_tests
 
         @redis_info = redis_info
         @entropy_count = OT::Entropy.count
       end
-
-      private
 
       def process_feedback
         now = OT.now.to_i
@@ -50,12 +47,14 @@ module Onetime::Logic
         @yesterday_feedback_count = @yesterday_feedback.size
         @older_feedback_count = @older_feedback.size
       end
+      private :process_feedback
 
       def process_feedback_for_period(period, end_time)
         OT::Feedback.recent(period, end_time).collect do |k, v|
           { msg: k, stamp: natural_time(v) }
         end.reverse
       end
+      private :process_feedback_for_period
 
       def process_customers
         @recent_customers = OT::Customer.recent.collect do |this_cust|
@@ -75,6 +74,7 @@ module Onetime::Logic
         @customer_count = OT::Customer.values.size
         @recent_customer_count = @recent_customers.size
       end
+      private :process_customers
 
       def process_statistics
         @metadata_count = OT::Metadata.new.redis.keys('metadata*:object').count
@@ -83,6 +83,7 @@ module Onetime::Logic
         @secrets_shared = OT::Customer.global.secrets_shared.to_s
         @emails_sent = OT::Customer.global.emails_sent.to_s
       end
+      private :process_statistics
 
       def redis_info
         # Fetch Redis INFO
@@ -98,6 +99,7 @@ module Onetime::Logic
         # Convert to YAML and print
         filtered_info.to_yaml
       end
+      private :redis_info
 
       def success_data
         {
@@ -106,9 +108,7 @@ module Onetime::Logic
             today_feedback: today_feedback,
             yesterday_feedback: yesterday_feedback,
             older_feedback: older_feedback,
-            redis_info: redis_info
-          },
-          details: {
+            redis_info: redis_info,
             plans_enabled: plans_enabled,
             counts: {
               session_count: session_count,
@@ -124,10 +124,43 @@ module Onetime::Logic
               yesterday_feedback_count: yesterday_feedback_count,
               older_feedback_count: older_feedback_count
             }
+          },
+          details: {
           }
         }
       end
 
+      def natural_time(time_in_s)
+        return if time_in_s.nil?
+
+        val = Time.now.utc.to_i - time_in_s.to_i
+        # puts val
+        if val < 10
+          result = 'a moment ago'
+        elsif val < 40
+          result = "about #{(val * 1.5).to_i.to_s.slice(0, 1)}0 seconds ago"
+        elsif val < 60
+          result = 'about a minute ago'
+        elsif val < 60 * 1.3
+          result = '1 minute ago'
+        elsif val < 60 * 2
+          result = '2 minutes ago'
+        elsif val < 60 * 50
+          result = "#{(val / 60).to_i} minutes ago"
+        elsif val < 3600 * 1.4
+          result = 'about 1 hour ago'
+        elsif val < 3600 * (24 / 1.02)
+          result = "about #{(val / 60 / 60 * 1.02).to_i} hours ago"
+        elsif val < 3600 * 24 * 1.6
+          result = Time.at(time_in_s.to_i).strftime('yesterday').downcase
+        elsif val < 3600 * 24 * 7
+          result = Time.at(time_in_s.to_i).strftime('on %A').downcase
+        else
+          weeks = (val / 3600.0 / 24.0 / 7).to_i
+          result = Time.at(time_in_s.to_i).strftime("#{weeks} #{'week'.plural(weeks)} ago").downcase
+        end
+        result
+      end
     end
   end
 end

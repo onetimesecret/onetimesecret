@@ -11,7 +11,7 @@ class Onetime::App::APIV2
     @check_uri_encoding = true
 
     def get_index
-      retrieve_records(OT::Logic::Account::GetAccount, :colonels)
+      retrieve_records(OT::Logic::Colonel::GetColonel, auth_type: :colonels)
     end
 
   end

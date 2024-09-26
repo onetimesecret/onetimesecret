@@ -35,6 +35,7 @@ module Onetime
           res.body = view.render
         end
       end
+
       def robots_txt
         publically do
           view = Onetime::App::Views::RobotsTxt.new req, sess, cust, locale
