@@ -1,34 +1,30 @@
 <script setup lang="ts">
 import BaseLayout from './BaseLayout.vue';
-import { AuthenticationSettings, Cust } from '@/types/onetime';
+import type { Props as BaseLayoutProps } from '@/layouts/BaseLayout.vue';
 
-interface Props {
-  shrimp: string
-  cust?: Cust
-  onetimeVersion: string
-  displayMasthead: boolean
-  authenticated: boolean
-  authentication: AuthenticationSettings
-  colonel: boolean
-  defaultLocale: string
-  isDefaultLocale: boolean
-  supportHost?: string
-  plansEnabled?: boolean
-  displayLinks: boolean
+// Define the props for this layout, extending the BaseLayout props
+interface ImplementingLayoutProps extends BaseLayoutProps {
+  // Add any additional props specific to this layout
+  //additionalProp?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  authenticated: false,
-  colonel: false,
-  defaultLocale: 'en',
-  isDefaultLocale: true
-})
+const props = withDefaults(defineProps<ImplementingLayoutProps>(), {
+  // Override BaseLayout defaults if needed
+  // defaultLocale: 'fr',
+
+  // You can also add defaults for optional BaseLayout props
+  displayMasthead: true,
+  displayLinks: true,
+  displayFeedback: true,
+  isDefaultLocale: true,
+});
+
 </script>
 
 <template>
   <BaseLayout v-bind="props">
     <template #main>
-      <main class="container mx-auto p-4 max-w-2xl">
+      <main class="container mx-auto p-4 max-w-2xl" name="DefaultLayout">
         <slot></slot>
       </main>
     </template>

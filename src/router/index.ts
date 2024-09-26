@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Homepage from '@/views/Homepage.vue'
 import WideLayout from '@/layouts/WideLayout.vue'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
 
 import { ref } from 'vue'
 
@@ -53,7 +54,15 @@ const routes: Array<RouteRecordRaw> = [
       } else {
         next()
       }
-    }
+    },
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: true,
+      }
+    },
+
   },
   {
     path: '/incoming',
@@ -101,6 +110,13 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/colonel',
+    name: 'Colonel',
+    component: () => import('@/views/colonel/ColonelIndex.vue'),
+    meta: { requiresAuth: true, layout: DefaultLayout },
+    props: true,
+  },
+  {
     path: '/info/privacy',
     name: 'Privacy Policy',
     component: () => import('@/views/info/PrivacyDoc.vue'),
@@ -134,13 +150,20 @@ const routes: Array<RouteRecordRaw> = [
     path: '/pricing',
     name: 'Pricing',
     component: () => import('@/views/pricing/PricingDual.vue'),
-    meta: { requiresAuth: false, layout: WideLayout },
+    meta: { layout: WideLayout },
     props: true,
   },
   {
     path: '/feedback',
     name: 'Feedback',
     component: () => import('@/views/Feedback.vue'),
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: false,
+      }
+    }
   },
   {
     path: '/forgot',

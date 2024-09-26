@@ -7,8 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
 import { AuthenticationSettings, Cust } from '@/types/onetime';
 
-
-interface Props {
+export interface Props {
   shrimp: string
   cust?: Cust
   onetimeVersion: string
@@ -21,13 +20,15 @@ interface Props {
   supportHost?: string
   plansEnabled?: boolean
   displayLinks: boolean
+  displayFeedback: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   authenticated: false,
   colonel: false,
   defaultLocale: 'en',
-  isDefaultLocale: true
+  isDefaultLocale: true,
+  displayMasthead: false
 })
 
 </script>
@@ -89,7 +90,7 @@ withDefaults(defineProps<Props>(), {
     <footer class="min-w-[320px] text-sm text-center space-y-2">
       <div class="container mx-auto p-4 max-w-2xl">
 
-        <div>
+        <div v-if="displayFeedback">
           <FeedbackForm :shrimp="shrimp" :showRedButton="false" />
         </div>
 

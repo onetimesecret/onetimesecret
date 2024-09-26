@@ -1,14 +1,30 @@
 <script setup lang="ts">
 import BaseLayout from './BaseLayout.vue';
+import type { Props as BaseLayoutProps } from '@/layouts/BaseLayout.vue';
 
-// Pass through all props from BaseLayout
-//const props = defineProps<InstanceType<typeof BaseLayout>['$props']>();
+// Define the props for this layout, extending the BaseLayout props
+interface ImplementingLayoutProps extends BaseLayoutProps {
+  // Add any additional props specific to this layout
+  additionalProp?: string;
+}
+
+const props = withDefaults(defineProps<ImplementingLayoutProps>(), {
+  // Override BaseLayout defaults if needed
+  // defaultLocale: 'fr',
+
+  // You can also add defaults for optional BaseLayout props
+  displayMasthead: true,
+  displayLinks: true,
+  displayFeedback: true,
+  isDefaultLocale: true,
+});
+
 </script>
 
 <template>
   <BaseLayout v-bind="props">
     <template #main>
-      <main class="container mx-auto p-4">
+      <main class="container mx-auto p-4" name="WideLayout">
         <slot></slot>
       </main>
     </template>
