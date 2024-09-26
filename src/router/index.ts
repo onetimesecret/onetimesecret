@@ -145,6 +145,8 @@ const routes: Array<RouteRecordRaw> = [
         displayLinks: false,
         displayFeedback: false,
         displaySitenav: false,
+        displayVersion: false,
+        displayPoweredBy: true,
         noCache: true,
       }
     },

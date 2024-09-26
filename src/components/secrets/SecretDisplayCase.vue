@@ -48,19 +48,39 @@
 
   </div>
 
-  <div v-if="!secret.verification"
-    class="bg-gray-100 border-l-4 border-gray-400 text-gray-700 my-16 p-4 mb-4 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300">
-    <button
-      type="button"
-      class="float-right hover:text-gray-900 dark:hover:text-gray-100"
-      onclick="this.parentElement.remove()">
-      &times;
-    </button>
-    <p>
-      Once you've finished viewing the secret, feel free to navigate away from this page or
-      close the window.
-    </p>
+  <div class="mt-4">
+    <div v-if="!secret.verification"
+      class="bg-gray-100 border-l-4 border-gray-400 text-gray-700 my-16 p-4 mb-4 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300">
+      <button
+        type="button"
+        class="float-right hover:text-gray-900 dark:hover:text-gray-100"
+        onclick="this.parentElement.remove()">
+        &times;
+      </button>
+      <p>
+        Once you've finished viewing the secret, feel free to navigate away from this page or
+        close the window.
+      </p>
+    </div>
+    <div v-else>
+      <a
+        href="/signin"
+        class="block w-full px-4 py-2 text-center text-brand-500 bg-white border border-brand-500 rounded-md hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-brand-400 dark:border-brand-400 dark:hover:bg-gray-700">
+        {{$t('web.COMMON.login_to_your_account')}}
+      </a>
+    </div>
   </div>
+
+  <div class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">
+    <a
+      href="https://onetimesecret.com"
+      class="hover:underline"
+      target="_blank"
+      rel="noopener noreferrer">
+      Powered by Onetime Secret
+    </a>
+  </div>
+
 </template>
 
 <script setup lang="ts">

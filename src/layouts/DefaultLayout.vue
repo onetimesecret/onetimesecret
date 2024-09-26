@@ -16,6 +16,7 @@ const props = withDefaults(defineProps<ImplementingLayoutProps>(), {
   displayMasthead: true,
   displayLinks: true,
   displayFeedback: true,
+  displayVersion: true,
   isDefaultLocale: true,
 });
 

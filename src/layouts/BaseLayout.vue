@@ -8,19 +8,20 @@ import { Icon } from '@iconify/vue';
 import { AuthenticationSettings, Cust } from '@/types/onetime';
 
 export interface Props {
-  shrimp: string
-  cust?: Cust
-  onetimeVersion: string
-  displayMasthead: boolean
   authenticated: boolean
   authentication: AuthenticationSettings
   colonel: boolean
+  cust?: Cust
   defaultLocale: string
-  isDefaultLocale: boolean
-  supportHost?: string
-  plansEnabled?: boolean
-  displayLinks: boolean
   displayFeedback: boolean
+  displayLinks: boolean
+  displayMasthead: boolean
+  displayVersion: boolean
+  isDefaultLocale: boolean
+  onetimeVersion: string
+  plansEnabled?: boolean
+  shrimp: string
+  supportHost?: string
 }
 
 withDefaults(defineProps<Props>(), {
@@ -28,7 +29,6 @@ withDefaults(defineProps<Props>(), {
   colonel: false,
   defaultLocale: 'en',
   isDefaultLocale: true,
-  displayMasthead: false
 })
 
 </script>
@@ -141,7 +141,7 @@ withDefaults(defineProps<Props>(), {
           </div>
         </div>
 
-        <div v-if="onetimeVersion" class="text-gray-400 dark:text-gray-500 mt-4 pt-4">
+        <div v-if="displayVersion" class="text-gray-400 dark:text-gray-500 mt-4 pt-4">
           v{{onetimeVersion}}
         </div>
 

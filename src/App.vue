@@ -76,6 +76,7 @@ const layoutProps = computed(() => {
     defaultLocale: locale.value,
     displayMasthead: true,
     displayLinks: true,
+    displayVersion: true,
     displayFeedback: true,
     isDefaultLocale: true,
   };
