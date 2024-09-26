@@ -102,29 +102,28 @@ module Onetime::Logic
       def success_data
         {
           record: {
-            recent_customers:,
-            today_feedback:,
-            yesterday_feedback:,
-            older_feedback:,
-            redis_info:
+            recent_customers: recent_customers,
+            today_feedback: today_feedback,
+            yesterday_feedback: yesterday_feedback,
+            older_feedback: older_feedback,
+            redis_info: redis_info
           },
           details: {
-            plans_enabled:,
+            plans_enabled: plans_enabled,
             counts: {
-              session_count:,
-              customer_count:,
-              recent_customer_count:,
-              metadata_count:,
-              secret_count:,
-              secrets_created:,
-              secrets_shared:,
-              emails_sent:,
-              feedback_count:,
-              today_feedback_count:,
-              yesterday_feedback_count:,
-              older_feedback_count:
+              session_count: session_count,
+              customer_count: customer_count,
+              recent_customer_count: recent_customer_count,
+              metadata_count: metadata_count,
+              secret_count: secret_count,
+              secrets_created: secrets_created,
+              secrets_shared: secrets_shared,
+              emails_sent: emails_sent,
+              feedback_count: feedback_count,
+              today_feedback_count: today_feedback_count,
+              yesterday_feedback_count: yesterday_feedback_count,
+              older_feedback_count: older_feedback_count
             }
-
           }
         }
       end
