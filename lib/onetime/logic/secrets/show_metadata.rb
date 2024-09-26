@@ -15,6 +15,8 @@ module Onetime::Logic
             :has_passphrase, :can_decrypt, :secret_value, :truncated,
             :show_secret, :show_secret_link, :show_metadata_link, :show_metadata,
             :show_recipients, :share_domain
+      attr_reader :share_path, :burn_path, :metadata_path, :share_uri,
+            :metadata_uri, :burn_uri, :display_lines
 
       def process_params
         @key = params[:key].to_s
@@ -35,6 +37,7 @@ module Onetime::Logic
         @metadata_shortkey = metadata.shortkey
         @secret_key = metadata.secret_key
         @secret_shortkey = metadata.secret_shortkey
+        @share_domain = metadata.share_domain
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't
@@ -139,35 +142,8 @@ module Onetime::Logic
         end
 
         @share_domain = [base_scheme, domain].join
-      end
 
-      def share_path
-        [:secret, secret_key].join('/')
-      end
-
-      def burn_path
-        [:private, metadata_key, 'burn'].join('/')
-      end
-
-      def metadata_path
-        [:private, metadata_key].join('/')
-      end
-
-      def share_uri
-        [baseuri, share_path].flatten.join('/')
-      end
-
-      def metadata_uri
-        [baseuri, metadata_path].flatten.join('/')
-      end
-
-      def burn_uri
-        [baseuri, burn_path].flatten.join('/')
-      end
-
-      def display_lines
-        ret = secret_value.to_s.scan(/\n/).size + 2
-        ret = ret > 20 ? 20 : ret
+        process_uris
       end
 
       def one_liner
@@ -183,6 +159,22 @@ module Onetime::Logic
 
       private
 
+      def process_uris
+        @share_path = build_path(:secret, secret_key)
+        @burn_path = build_path(:private, metadata_key, 'burn')
+        @metadata_path = build_path(:private, metadata_key)
+        @share_uri = build_uri(@share_path)
+        @metadata_uri = build_uri(@metadata_path)
+        @burn_uri = build_uri(@burn_path)
+
+        @display_lines = calculate_display_lines
+      end
+
+      def calculate_display_lines
+        ret = secret_value.to_s.scan(/\n/).size + 2
+        ret > 20 ? 20 : ret
+      end
+
       def metadata_attributes
         {
           key: @metadata_key,
@@ -191,7 +183,14 @@ module Onetime::Logic
           secret_shortkey: @secret_shortkey,
           recipients: @recipients,
           created_date_utc: @created_date_utc,
-          expiration_stamp: @expiration_stamp
+          expiration_stamp: @expiration_stamp,
+          share_path: @share_path,
+          burn_path: @burn_path,
+          metadata_path: @metadata_path,
+          share_uri: @share_uri,
+          metadata_uri: @metadata_uri,
+          burn_uri: @burn_uri,
+          share_domain: @share_domain
         }
       end
 
@@ -199,6 +198,7 @@ module Onetime::Logic
         {
           title: @title,
           body_class: @body_class,
+          display_lines: @display_lines,
           display_feedback: @display_feedback,
           no_cache: @no_cache,
           is_received: @is_received,
@@ -219,8 +219,7 @@ module Onetime::Logic
           show_secret_link: @show_secret_link,
           show_metadata_link: @show_metadata_link,
           show_metadata: @show_metadata,
-          show_recipients: @show_recipients,
-          share_domain: @share_domain
+          show_recipients: @show_recipients
         }
       end
 

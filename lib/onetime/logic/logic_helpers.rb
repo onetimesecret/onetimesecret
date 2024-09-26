@@ -36,6 +36,14 @@ module Onetime
         [scheme, host].join
       end
 
+      def build_path(*components)
+        components.join('/')
+      end
+
+      def build_uri(path)
+        [baseuri, path].flatten.join('/')
+      end
+
       def secure_request?
         !local? || secure?
       end

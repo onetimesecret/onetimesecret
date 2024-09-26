@@ -140,41 +140,47 @@ export interface ColonelData extends BaseApiRecord {
 }
 
 export interface MetadataData extends BaseApiRecord {
-  record: {
-    key: string;
-    shortkey: string;
-    secret_key: string;
-    secret_shortkey: string;
-    recipients: string[];
-    created_date_utc: string;
-    expiration_stamp: string;
-  };
-  details: {
-    title: string;
-    body_class: string;
-    display_feedback: boolean;
-    no_cache: boolean;
-    is_received: boolean;
-    is_burned: boolean;
-    is_destroyed: boolean;
-    received_date: string;
-    received_date_utc: string;
-    burned_date: string;
-    burned_date_utc: string;
-    maxviews: number;
-    has_maxviews: boolean;
-    view_count: number;
-    has_passphrase: boolean;
-    can_decrypt: boolean;
-    secret_value: string;
-    truncated: boolean;
-    show_secret: boolean;
-    show_secret_link: boolean;
-    show_metadata_link: boolean;
-    show_metadata: boolean;
-    show_recipients: boolean;
-    share_domain: string;
-  };
+  key: string;
+  shortkey: string;
+  secret_key: string;
+  secret_shortkey: string;
+  recipients: string[];
+  created_date_utc: string;
+  expiration_stamp: string;
+  share_path: string;
+  burn_path: string;
+  metadata_path: string;
+  share_uri: string;
+  metadata_uri: string;
+  burn_uri: string;
+  share_domain: string;
+}
+
+export interface MetadataDetails extends DetailsType {
+  body_class: string;
+  burned_date_utc: string;
+  burned_date: string;
+  can_decrypt: boolean;
+  display_feedback: boolean;
+  display_lines: number;
+  has_maxviews: boolean;
+  has_passphrase: boolean;
+  is_burned: boolean;
+  is_destroyed: boolean;
+  is_received: boolean;
+  maxviews: number;
+  no_cache: boolean;
+  received_date_utc: string;
+  received_date: string;
+  secret_value: string;
+  show_metadata_link: boolean;
+  show_metadata: boolean;
+  show_recipients: boolean;
+  show_secret_link: boolean;
+  show_secret: boolean;
+  title: string;
+  truncated: boolean;
+  view_count: number;
 }
 
 export interface Feedback {

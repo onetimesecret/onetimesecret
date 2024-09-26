@@ -137,13 +137,13 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/secret/:secretKey',
     name: 'Secret link',
-    component: () => import('@/views/secrets/SecretDetails.vue'),
+    component: () => import('@/views/secrets/ShowSecret.vue'),
     props: true,
   },
   {
     path: '/private/:metadataKey',
     name: 'Metadata link',
-    component: () => import('@/views/secrets/MetadataDetails.vue'),
+    component: () => import('@/views/secrets/ShowMetadata.vue'),
     props: true,
   },
   {
