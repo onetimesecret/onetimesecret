@@ -9,21 +9,10 @@ POST  /share                                     Onetime::App::Data#create_secre
 GET   /incoming                                  Onetime::App::Page#index
 POST  /incoming                                  Onetime::App::Data#create_incoming
 
-GET   /feedback                                  Onetime::App::Page#index
-POST  /feedback                                  Onetime::App::Data#receive_feedback
-
-GET   /about                                     Onetime::App::Page#index
-
-GET   /docs/api                                  Onetime::App::Page#index
-GET   /docs/api/secrets                          Onetime::App::Page#index
-GET   /docs/api/libs                             Onetime::App::Page#index
-
-GET   /private/:key                              Onetime::App::Data#private_uri
-GET   /shared/:key                               Onetime::App::Data#secret_uri
-POST  /shared/:key                               Onetime::App::Data#secret_uri
-GET   /secret/:key                               Onetime::App::Data#secret_uri
+GET   /secret/:key                               Onetime::App::Page#index
 POST  /secret/:key                               Onetime::App::Data#secret_uri
 
+GET   /private/:key                              Onetime::App::Page#index
 GET   /private/:key/burn                         Onetime::App::Data#burn_secret
 POST  /private/:key/burn                         Onetime::App::Data#burn_secret
 
@@ -44,6 +33,11 @@ GET   /login                                     Onetime::App::Page#index
 GET   /signin                                    Onetime::App::Page#index
 POST  /signin                                    Onetime::App::Data#authenticate
 
+GET   /feedback                                  Onetime::App::Page#index
+POST  /feedback                                  Onetime::App::Data#receive_feedback
+
+GET   /about                                     Onetime::App::Page#index
+
 GET   /logout                                    Onetime::App::Data#logout
 
 GET   /forgot                                    Onetime::App::Page#index
@@ -52,8 +46,8 @@ POST  /forgot                                    Onetime::App::Data#request_rese
 POST  /forgot/:key                               Onetime::App::Data#request_reset
 
 GET   /dashboard                                 Onetime::App::Page#customers_only
-POST  /dashboard                                 Onetime::App::Data#create_secret
 GET   /recent                                    Onetime::App::Page#customers_only
+POST  /dashboard                                 Onetime::App::Data#create_secret
 
 GET   /account/domains                           Onetime::App::Page#customers_only
 GET   /account/domains/add                       Onetime::App::Page#customers_only

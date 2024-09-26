@@ -183,6 +183,26 @@ export interface MetadataDetails extends DetailsType {
   view_count: number;
 }
 
+export interface SecretData extends BaseApiRecord {
+  key: string;
+  secret_key: string;
+  secret_shortkey: string;
+  is_truncated: boolean;
+  original_size: number;
+  verification: string;
+  share_domain: string;
+  is_owner: boolean;
+  has_passphrase: boolean;
+}
+
+export interface SecretDetails extends DetailsType {
+  continue: boolean;
+  show_secret: boolean;
+  correct_passphrase: boolean;
+  display_lines: number;
+  one_liner: boolean;
+}
+
 export interface Feedback {
   msg: string;
   stamp: string;

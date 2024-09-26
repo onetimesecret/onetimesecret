@@ -44,6 +44,7 @@ import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue'
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue'
 import { MetadataData } from '@/types/onetime'
 
+// This prop is passed from vue-router b/c the route has `prop: true`.
 interface Props {
   metadataKey: string
 }

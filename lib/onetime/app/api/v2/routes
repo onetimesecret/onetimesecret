@@ -11,6 +11,7 @@ GET    /account/domains                      Onetime::App::APIV2::Domains#list_d
 GET    /account                              Onetime::App::APIV2::Account#get_account
 
 GET    /private/:key                         Onetime::App::APIV2::Secrets#get_metadata
+GET    /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
 
 GET    /status                               Onetime::App::APIV2#status
 GET    /version                              Onetime::App::APIV2#version

@@ -32,7 +32,6 @@ module Onetime::Logic
         @secret = @metadata.load_secret
 
         @title = "You saved a secret"
-        @body_class = :generate
         @metadata_key = metadata.key
         @metadata_shortkey = metadata.shortkey
         @secret_key = metadata.secret_key
@@ -159,22 +158,6 @@ module Onetime::Logic
 
       private
 
-      def process_uris
-        @share_path = build_path(:secret, secret_key)
-        @burn_path = build_path(:private, metadata_key, 'burn')
-        @metadata_path = build_path(:private, metadata_key)
-        @share_url = build_url(@share_path)
-        @metadata_url = build_url(@metadata_path)
-        @burn_url = build_url(@burn_path)
-
-        @display_lines = calculate_display_lines
-      end
-
-      def calculate_display_lines
-        ret = secret_value.to_s.scan(/\n/).size + 2
-        ret > 20 ? 20 : ret
-      end
-
       def metadata_attributes
         {
           key: @metadata_key,
@@ -221,6 +204,22 @@ module Onetime::Logic
           show_metadata: @show_metadata,
           show_recipients: @show_recipients
         }
+      end
+
+      def process_uris
+        @share_path = build_path(:secret, secret_key)
+        @burn_path = build_path(:private, metadata_key, 'burn')
+        @metadata_path = build_path(:private, metadata_key)
+        @share_url = build_url(@share_path)
+        @metadata_url = build_url(@metadata_path)
+        @burn_url = build_url(@burn_path)
+
+        @display_lines = calculate_display_lines
+      end
+
+      def calculate_display_lines
+        ret = secret_value.to_s.scan(/\n/).size + 2
+        ret > 20 ? 20 : ret
       end
 
     end

@@ -139,6 +139,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Secret link',
     component: () => import('@/views/secrets/ShowSecret.vue'),
     props: true,
+    meta: {
+      layoutProps: {
+        displayMasthead: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displaySitenav: false,
+        noCache: true,
+      }
+    },
   },
   {
     path: '/private/:metadataKey',
