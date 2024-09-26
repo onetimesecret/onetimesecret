@@ -1,5 +1,6 @@
 <template>
   <div class="max-w-2xl p-4 mx-auto">
+    <DashboardTabNav />
     <h1 class="dark:text-white mb-6 text-3xl font-bold">Your Account</h1>
     <p class="dark:text-gray-300 mb-4 text-lg">Account type: {{ plan?.options?.name }}</p>
 
@@ -53,10 +54,12 @@
 import { Account } from '@/types/onetime';
 import { onMounted } from 'vue';
 import { useWindowProps } from '@/composables/useWindowProps';
+import { useFetchDataRecord } from '@/composables/useFetchData';
 import AccountChangePasswordForm from '@/components/account/AccountChangePasswordForm.vue';
 import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
 import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
 import APIKeyForm from '@/components/account/APIKeyForm.vue';
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 
 // Grabbing values from the window properties is a convenient way to get
 // preformatted template variables (i.e. the jsvars from Onetime::App::View)
@@ -64,7 +67,6 @@ import APIKeyForm from '@/components/account/APIKeyForm.vue';
 // eventually, but for now, this is a good way to keep momentum going.
 const { shrimp, plan, cust, customer_since } = useWindowProps([ 'shrimp', 'plan', 'cust', 'customer_since' ]);
 
-import { useFetchDataRecord } from '@/composables/useFetchData';
 
 const { record: account, fetchData: fetchAccount } = useFetchDataRecord<Account>({
   url: '/api/v2/account',

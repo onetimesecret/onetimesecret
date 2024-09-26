@@ -92,3 +92,4 @@ end
 require_relative 'account'
 require_relative 'colonel'
 require_relative 'domains'
+require_relative 'secrets'
