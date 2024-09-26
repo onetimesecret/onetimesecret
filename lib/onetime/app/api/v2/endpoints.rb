@@ -88,6 +88,7 @@ module Onetime::App
   end
 end
 
-# Require after the above to avoid circular dependency
+# Requires at the end to avoid circular dependency
 require_relative 'account'
+require_relative 'colonel'
 require_relative 'domains'

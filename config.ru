@@ -27,8 +27,7 @@ Onetime.boot! :app
 apps = {
   '/api/v1'   =>  '/api/v1/routes',
   '/api/v2'   =>  '/api/v2/routes',
-  '/'         =>  '/web/routes',
-  '/colonel'  =>  '/colonel/routes'
+  '/'         =>  '/web/routes'
 }.transform_values { |path| Otto.new(File.join(APP_DIR, path)) }
 
 # Add "last resort" json responses for the API

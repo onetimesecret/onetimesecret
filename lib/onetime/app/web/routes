@@ -51,14 +51,16 @@ GET   /forgot/:key                               Onetime::App::Page#index
 POST  /forgot                                    Onetime::App::Data#request_reset
 POST  /forgot/:key                               Onetime::App::Data#request_reset
 
-GET   /dashboard                                 Onetime::App::Page#index
+GET   /dashboard                                 Onetime::App::Page#customers_only
 POST  /dashboard                                 Onetime::App::Data#create_secret
-GET   /recent                                    Onetime::App::Page#index
+GET   /recent                                    Onetime::App::Page#customers_only
 
-GET   /account/domains                           Onetime::App::Page#index
-GET   /account/domains/add                       Onetime::App::Page#index
-GET   /account/domains/:domain/verify            Onetime::App::Page#index
-GET   /account                                   Onetime::App::Page#index
+GET   /account/domains                           Onetime::App::Page#customers_only
+GET   /account/domains/add                       Onetime::App::Page#customers_only
+GET   /account/domains/:domain/verify            Onetime::App::Page#customers_only
+GET   /account                                   Onetime::App::Page#customers_only
 GET   /account/billing_portal                    Onetime::App::Data#customer_portal_redirect
 
 GET   /translations                              Onetime::App::Page#index
+
+GET   /colonel                                   Onetime::App::Page#colonels_only

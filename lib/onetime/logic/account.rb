@@ -94,9 +94,7 @@ module Onetime::Logic
             stripe_customer: nil,
             stripe_subscriptions: nil
           },
-          details: {
-            apitoken: cust.apitoken
-          }
+          details: {}
         }
 
         if show_stripe_section?

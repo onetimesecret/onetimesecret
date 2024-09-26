@@ -16,3 +16,5 @@ GET    /version                              Onetime::App::APIV2#version
 GET    /altcha/challenge                     Onetime::App::APIV2#altcha_challenge
 POST   /altcha/verify                        Onetime::App::APIV2#altcha_verify
 POST   /altcha/verify_spam                   Onetime::App::APIV2#altcha_verify_spam
+
+GET    /colonel                              Onetime::App::APIV2::Colonel#get_index

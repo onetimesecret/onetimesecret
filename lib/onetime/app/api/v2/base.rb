@@ -13,20 +13,30 @@ module Onetime::App
         end
       end
 
+      def colonels
+        authorized do
+          raise OT::Unauthorized, "No such customer" unless cust.role?(:colonel)
+          yield
+        end
+      end
+
       # Retrieves and lists records of the specified class. Also used for single
       # records. It's up to the logic class what it wants to return via
       # `logic.success_data`` (i.e. `record: {...}` or `records: [...]`` ).
       #
-      # @param record_class [Class] The ActiveRecord class of the records to be retrieved.
-      # @param error_message [String] The error message to display if retrieval fails.
+      # @param logic_class [Class] The logic class for processing the request.
+      # @param auth_type [Symbol] The authorization type to use (:authorized or :colonels).
       #
       # @return [void]
       #
       # @example
-      #   retrieve_records(User, "Unable to retrieve users")
+      #   retrieve_records(UserLogic)
+      #   retrieve_records(SecretDocumentLogic, auth_type: :colonels)
       #
-      def retrieve_records(logic_class)
-        authorized do
+      def retrieve_records(logic_class, auth_type: :authorized)
+        auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
+
+        auth_method.call do
           OT.ld "[retrieve] #{logic_class}"
           logic = logic_class.new(sess, cust, req.params, locale)
           logic.raise_concerns

@@ -35,14 +35,20 @@ module Onetime
 
       def colonels redirect=nil
         carefully(redirect) do
+          no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
 
-          # See explanation in `authenticated` method
+          # We need the session so that cust is set to anonymous (and not
+          # nil); we want locale too so that we know what language to use.
+          # If this is a POST request, we don't need to check the shrimp
+          # since it wouldn't change our response either way.
           return disabled_response(req.path) unless authentication_enabled?
 
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
+
+          is_allowed = sess.authenticated? && cust.role?(:colonel)
+          is_allowed ? yield : raise(OT::Unauthorized, "Colonels only")
         end
       end
 

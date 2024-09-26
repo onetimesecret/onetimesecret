@@ -11,13 +11,30 @@ module Onetime
 
       def index
         publically do
-          OT.ld "[homepage] authenticated? #{sess.authenticated?}"
+          OT.ld "[index] authenticated? #{sess.authenticated?}"
           view = Onetime::App::Views::Index.new req, sess, cust, locale
-          sess.event_incr! :homepage
+          sess.event_incr! :get_page
           res.body = view.render
         end
       end
 
+      def customers_only
+        authenticated do
+          OT.ld "[customers_only] authenticated? #{sess.authenticated?}"
+          view = Onetime::App::Views::Index.new req, sess, cust, locale
+          sess.event_incr! :get_page
+          res.body = view.render
+        end
+      end
+
+      def colonels_only
+        colonels do
+          OT.ld "[colonels_only] authenticated? #{sess.authenticated?}"
+          view = Onetime::App::Views::Index.new req, sess, cust, locale
+          sess.event_incr! :get_page
+          res.body = view.render
+        end
+      end
       def robots_txt
         publically do
           view = Onetime::App::Views::RobotsTxt.new req, sess, cust, locale
