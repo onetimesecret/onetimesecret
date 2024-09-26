@@ -61,7 +61,6 @@ const layout = computed(() => {
   return DefaultLayout;
 });
 
-
 // Define the props you want to pass to the layouts
 const layoutProps = computed(() => {
   // Default props
@@ -75,6 +74,10 @@ const layoutProps = computed(() => {
     supportHost: support_host.value,
     plansEnabled: plans_enabled.value,
     defaultLocale: locale.value,
+    displayMasthead: true,
+    displayLinks: true,
+    displayFeedback: true,
+    isDefaultLocale: true,
   };
 
   // Merge with route.meta.layoutProps if they exist
