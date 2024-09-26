@@ -193,6 +193,7 @@ export interface SecretData extends BaseApiRecord {
   share_domain: string;
   is_owner: boolean;
   has_passphrase: boolean;
+  secret_value?: string;
 }
 
 export interface SecretDetails extends DetailsType {
@@ -237,7 +238,8 @@ export type ApiTokenApiResponse = ApiRecordResponse<ApiToken>;
 export type CustomDomainApiResponse = ApiRecordResponse<CustomDomain>;
 export type AccountApiResponse = ApiRecordResponse<Account>;
 export type ColonelDataApiResponse = ApiRecordResponse<ColonelData>;
-
+export type MetadataDataApiResponse = ApiRecordResponse<MetadataData>;
+export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
 /**
  * Front-end Vue App
  *

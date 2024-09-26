@@ -10,7 +10,6 @@ GET   /incoming                                  Onetime::App::Page#index
 POST  /incoming                                  Onetime::App::Data#create_incoming
 
 GET   /secret/:key                               Onetime::App::Page#index
-POST  /secret/:key                               Onetime::App::Data#secret_uri
 
 GET   /private/:key                              Onetime::App::Page#index
 GET   /private/:key/burn                         Onetime::App::Data#burn_secret

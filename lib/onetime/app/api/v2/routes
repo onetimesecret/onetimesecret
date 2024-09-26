@@ -12,6 +12,7 @@ GET    /account                              Onetime::App::APIV2::Account#get_ac
 
 GET    /private/:key                         Onetime::App::APIV2::Secrets#get_metadata
 GET    /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
+POST   /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
 
 GET    /status                               Onetime::App::APIV2#status
 GET    /version                              Onetime::App::APIV2#version

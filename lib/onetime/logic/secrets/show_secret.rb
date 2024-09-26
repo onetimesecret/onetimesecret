@@ -4,10 +4,6 @@
 module Onetime::Logic
   module Secrets
 
-    # /ruby Make all of the `self[:VARNAME]` instance variables, with the same VARNAME and att_reader. Work one variable at a time step by step to make sure no logic is modified
-
-    # /ruby Return all of the instance vars as a hash, where `record` is the primary data object and details is ancilliary. This is in support of an for viewing the metadata model. That's the primary data object. All other instance vars go into details
-    #
     class ShowSecret < OT::Logic::Base
       attr_reader :key, :passphrase, :continue, :share_domain
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
@@ -74,12 +70,11 @@ module Onetime::Logic
       end
 
       def success_data
-        {
+        ret = {
           record: {
             key: @secret_key,
             secret_key: @secret_key,
             secret_shortkey: @secret_shortkey,
-            #secret: @secret,
             #secret_value: @secret_value,
             is_truncated: @is_truncated,
             original_size: @original_size,
@@ -89,7 +84,6 @@ module Onetime::Logic
             has_passphrase: @has_passphrase
           },
           details: {
-            #passphrase: @passphrase,
             continue: @continue,
             show_secret: @show_secret,
             correct_passphrase: @correct_passphrase,
@@ -97,6 +91,13 @@ module Onetime::Logic
             one_liner: @one_liner
           }
         }
+
+        # Add the secret_value only if the secret is viewable
+        if show_secret && secret_value
+          ret[:record][:secret_value] = secret_value
+        end
+
+        ret
       end
 
       def display_lines
