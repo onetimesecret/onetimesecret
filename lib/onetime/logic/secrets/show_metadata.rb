@@ -144,7 +144,7 @@ module Onetime::Logic
 
         process_uris
 
-        metadata.received!
+        metadata.viewed!
       end
 
       def one_liner

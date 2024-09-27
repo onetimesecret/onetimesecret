@@ -25,7 +25,7 @@
         {{ record?.secret_shortkey }}</span>
       <h2 v-if="details?.has_passphrase"
           class="text-xl font-semibold mt-2 text-gray-800 dark:text-gray-200">
-        {{ $t('web.page.requires_passphrase') }}
+        {{ $t('web.private.requires_passphrase') }}
       </h2>
     </div>
 

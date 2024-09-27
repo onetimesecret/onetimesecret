@@ -156,7 +156,14 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Metadata link',
     component: () => import('@/views/secrets/ShowMetadata.vue'),
     props: true,
+    meta: {
+      layoutProps: {
+        displayFeedback: false,
+        noCache: true,
+      }
+    },
   },
+
   {
     path: '/private/:metadataKey/burn',
     name: 'Burn secret',
