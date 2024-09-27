@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { defineProps } from 'vue'
 import type { MetadataData, MetadataDetails } from '@/types/onetime'
 
 interface Props {
@@ -13,13 +12,12 @@ defineProps<Props>()
 
 <template>
 
-  <div v-if="!details.show_secret"
+  <div v-if="details.show_secret"
        class="mb-4">
 
     <div v-if="details.can_decrypt">
       <p class="mb-2 italic text-gray-600 dark:text-gray-400">
         {{ $t('web.COMMON.secret') }} ({{ metadata.secret_shortkey }}):
-
       </p>
       <textarea class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white font-mono text-base leading-[1.2] tracking-wider resize-none"
                 readonly

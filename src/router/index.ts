@@ -158,6 +158,17 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/private/:metadataKey/burn',
+    name: 'Burn secret',
+    component: () => import('@/views/secrets/BurnSecret.vue'),
+    props: true,
+    meta: {
+      layoutProps: {
+        displayFeedback: false,
+      }
+    }
+  },
+  {
     path: '/pricing',
     name: 'Pricing',
     component: () => import('@/views/pricing/PricingDual.vue'),

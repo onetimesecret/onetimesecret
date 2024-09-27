@@ -143,6 +143,8 @@ module Onetime::Logic
         @share_domain = [base_scheme, domain].join
 
         process_uris
+
+        metadata.received!
       end
 
       def one_liner
