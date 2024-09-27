@@ -38,11 +38,11 @@ export const useCsrfStore = defineStore('csrf', {
      * Updates the CSRF token (shrimp).
      * @param {string} newShrimp - The new CSRF token.
      */
-    updateShrimp(newShrimp: string) {
-      this.shrimp = newShrimp;
-      window.shrimp = newShrimp;
-      this.isValid = true;
-    },
+      updateShrimp(newShrimp: string) {
+        this.shrimp = newShrimp;
+        window.shrimp = newShrimp;
+        this.isValid = true;
+      },
 
     /**
      * Checks the validity of the current CSRF token with the server.

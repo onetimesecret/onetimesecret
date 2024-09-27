@@ -53,6 +53,7 @@ export const useLanguageStore = defineStore('language', {
       this.isLoading = true;
       this.error = null;
       const csrfStore = useCsrfStore();
+      let returnSuccess = false;
 
       try {
         const response = await axios.post('/api/v2/account/update-locale', {
@@ -61,6 +62,8 @@ export const useLanguageStore = defineStore('language', {
         });
         this.setCurrentLocale(newLocale);
 
+        returnSuccess = true;
+
         // Update the CSRF shrimp if it's returned in the response
         if (response.data && response.data.shrimp) {
           csrfStore.updateShrimp(response.data.shrimp);
@@ -68,10 +71,27 @@ export const useLanguageStore = defineStore('language', {
 
       } catch (error) {
         this.error = 'Failed to update language';
-        throw error; // Re-throw the error for the component to handle
+
+        // Check if the error is due to an invalid CSRF token
+        if (axios.isAxiosError(error) && error.response?.status === 403) {
+          console.log('CSRF token might be invalid. Checking validity...');
+          await csrfStore.checkShrimpValidity();
+
+          if (!csrfStore.isValid) {
+            console.log('CSRF token is invalid. Please refresh the page or try again.');
+          }
+        }
+
+        // Instead of re-throwing, we'll allow this function
+        // to return false to indicate failure.
+
       } finally {
         this.isLoading = false;
+        returnSuccess = true;
       }
+
+      // If we reach here, it means the update was successful
+      return returnSuccess;
     },
 
     setCurrentLocale(locale: string) {
