@@ -47,7 +47,6 @@ declare global {
   interface Window {
     apitoken?: string;
     authenticated: boolean;
-    available_plans?: { [key: string]: Plan };
     baseuri: string;
     cust: Cust | undefined | null;
     custid: string;

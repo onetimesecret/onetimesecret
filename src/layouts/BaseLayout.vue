@@ -6,6 +6,9 @@ import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
 import { AuthenticationSettings, Cust } from '@/types/onetime';
+import { useWindowProp } from  '@/composables/useWindowProps';
+
+const supportedLocales = useWindowProp('supported_locales');
 
 export interface Props {
   authenticated: boolean
@@ -134,7 +137,7 @@ withDefaults(defineProps<Props>(), {
 
             <LanguageToggle
               :isDefaultLocale="false"
-              :supportedLocales="['en', 'fr', 'es']"
+              :supportedLocales="supportedLocales"
             />
 
           </div>

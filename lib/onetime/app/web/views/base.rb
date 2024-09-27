@@ -19,12 +19,14 @@ module Onetime
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
         @messages = { :info => [], :error => [] }
         is_default_locale = OT.conf[:locales].first.to_s == locale
+        supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
 
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change.
         site = OT.conf.fetch(:site, {})
         domains = site.fetch(:domains, {})
         authentication = site.fetch(:authentication, {})
+        support_host = site.dig(:support, :host) # defaults to nil
 
         # If not set, the frontend_host is the same as the site_host and
         # we can leave the absolute path empty as-is without a host.
@@ -85,10 +87,10 @@ module Onetime
         self[:jsvars] << jsvar(:plans_enabled, site.dig(:plans, :enabled) || false)
 
         self[:jsvars] << jsvar(:locale, locale)
-
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
-        self[:jsvars] << jsvar(:supported_locales, self[:supported_locales])
-        self[:jsvars] << jsvar(:support_host, self[:support_host])
+        self[:jsvars] << jsvar(:supported_locales, supported_locales)
+
+        self[:jsvars] << jsvar(:support_host, support_host)
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])
@@ -118,8 +120,6 @@ module Onetime
 
         # So the list of template vars shows up sorted variable name
         self[:jsvars] = self[:jsvars].sort_by { |item| item[:name] }
-
-        #setup_plan_variables
 
         init(*args) if respond_to? :init
       end
