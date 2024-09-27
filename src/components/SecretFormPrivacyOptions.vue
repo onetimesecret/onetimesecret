@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Icon } from '@iconify/vue';
+import { useWindowProp } from '@/composables/useWindowProps';
 import SecretFormDrawer from './SecretFormDrawer.vue';
+
+const plan = useWindowProp('plan');
 
 interface Props {
   enabled?: boolean;
@@ -32,6 +35,11 @@ const lifetimeOptions = [
   { value: '1800.0', label: '30 minutes' },
   { value: '300.0', label: '5 minutes' },
 ];
+
+const filteredLifetimeOptions = computed(() => {
+  const planTtl = plan.value?.options?.ttl || 0;
+  return lifetimeOptions.filter(option => parseFloat(option.value) <= planTtl);
+});
 
 const togglePassphrase = () => {
   showPassphrase.value = !showPassphrase.value;
@@ -79,7 +87,7 @@ const togglePassphrase = () => {
                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-brandcomp-500 focus:border-brandcomp-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             <option value=""
                     disabled>Select duration</option>
-            <option v-for="option in lifetimeOptions"
+            <option v-for="option in filteredLifetimeOptions"
                     :key="option.value"
                     :value="option.value">
               <span class="text-gray-500">Expires in</span> {{ option.label }}

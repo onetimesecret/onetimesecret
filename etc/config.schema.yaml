@@ -111,7 +111,7 @@
   :destroy_account: int()
   :forgot_password_request: int()
   :forgot_password_reset: int()
-  :generate_apikey: int()
+  :generate_apitoken: int()
   :add_domain: int()
   :remove_domain: int()
   :list_domains: int()

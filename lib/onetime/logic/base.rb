@@ -3,11 +3,15 @@
 require 'stathat'
 require 'timeout'
 
+require_relative 'logic_helpers'
+
 module Onetime
   module Logic
     class Base
+      include LogicHelpers
 
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
+      attr_reader :site, :authentication, :domains_enabled
 
       def initialize(sess, cust, params = nil, locale = nil)
         @sess = sess
@@ -15,7 +19,16 @@ module Onetime
         @params = params
         @locale = locale
         @processed_params ||= {} # TODO: Remove
+        process_settings
         process_params if respond_to?(:process_params) && @params
+      end
+
+      def process_settings
+        @site = OT.conf.fetch(:site, {})
+        domains = site.fetch(:domains, {})
+        @authentication = site.fetch(:authentication, {})
+        domains = site.fetch(:domains, {})
+        @domains_enabled = domains[:enabled] || false
       end
 
       def valid_email?(guess)

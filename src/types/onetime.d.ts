@@ -4,6 +4,9 @@
  *
  **/
 
+import type Stripe from 'stripe';
+
+
 // Base interface for common properties
 export interface BaseApiRecord {
   identifier: string;
@@ -101,37 +104,142 @@ export interface CustomDomainCluster extends BaseApiRecord {
   vhost_target: string;
 }
 
-export interface ApiKey extends BaseApiRecord {
-  apikey: string;
+export interface ApiToken extends BaseApiRecord {
+  apitoken: string;
   active: boolean;
+}
+
+export interface Account extends BaseApiRecord {
+  cust: Cust;
+  apitoken?: string;
+  stripe_customer: Stripe.Customer;
+  stripe_subscriptions: Stripe.Subscription[];
+}
+
+export interface ColonelData extends BaseApiRecord {
+  recent_customers: Cust[];
+  today_feedback: Feedback[];
+  yesterday_feedback: Feedback[];
+  older_feedback: Feedback[];
+  redis_info: string;
+  plans_enabled: boolean;
+  counts: {
+    session_count: number;
+    customer_count: number;
+    recent_customer_count: number;
+    metadata_count: number;
+    secret_count: number;
+    secrets_created: number;
+    secrets_shared: number;
+    emails_sent: number;
+    feedback_count: number;
+    today_feedback_count: number;
+    yesterday_feedback_count: number;
+    older_feedback_count: number;
+  };
+}
+
+export interface MetadataData extends BaseApiRecord {
+  key: string;
+  shortkey: string;
+  secret_key: string;
+  secret_shortkey: string;
+  recipients: string[];
+  created_date_utc: string;
+  expiration_stamp: string;
+  share_path: string;
+  burn_path: string;
+  metadata_path: string;
+  share_url: string;
+  metadata_url: string;
+  burn_url: string;
+  share_domain: string;
+}
+
+export interface MetadataDetails extends DetailsType {
+  body_class: string;
+  burned_date_utc: string;
+  burned_date: string;
+  can_decrypt: boolean;
+  display_feedback: boolean;
+  display_lines: number;
+  has_maxviews: boolean;
+  has_passphrase: boolean;
+  is_burned: boolean;
+  is_destroyed: boolean;
+  is_received: boolean;
+  maxviews: number;
+  no_cache: boolean;
+  received_date_utc: string;
+  received_date: string;
+  secret_value: string;
+  show_metadata_link: boolean;
+  show_metadata: boolean;
+  show_recipients: boolean;
+  show_secret_link: boolean;
+  show_secret: boolean;
+  title: string;
+  is_truncated: boolean;
+  view_count: number;
+}
+
+export interface SecretData extends BaseApiRecord {
+  key: string;
+  secret_key: string;
+  secret_shortkey: string;
+  is_truncated: boolean;
+  original_size: number;
+  verification: string;
+  share_domain: string;
+  is_owner: boolean;
+  has_passphrase: boolean;
+  secret_value?: string;
+}
+
+export interface SecretDetails extends DetailsType {
+  continue: boolean;
+  show_secret: boolean;
+  correct_passphrase: boolean;
+  display_lines: number;
+  one_liner: boolean;
+}
+
+export interface Feedback {
+  msg: string;
+  stamp: string;
 }
 
 export interface BaseApiResponse {
   success: boolean;
 }
 
+export type DetailsType = ApiRecordResponse<BaseApiRecord>['details'];
+
 export interface ApiErrorResponse<T extends BaseApiRecord> extends BaseApiResponse {
   message: string;
   code?: number;
   record?: T | null;
-  details?: { [key: string]: never };
+  details?: DetailsType;
 }
 
 export interface ApiRecordsResponse<T extends BaseApiRecord> extends BaseApiResponse {
   custid: string;
   records: T[];
   count: number;
-  details?: { [key: string]: never };
+  details?: DetailsType;
 }
 
 export interface ApiRecordResponse<T extends BaseApiRecord> extends BaseApiResponse {
   record: T;
-  details?: { [key: string]: never };
+  details?: DetailsType;
 }
 
-export type ApiKeyApiResponse = ApiRecordResponse<ApiKey>;
+export type ApiTokenApiResponse = ApiRecordResponse<ApiToken>;
 export type CustomDomainApiResponse = ApiRecordResponse<CustomDomain>;
-
+export type AccountApiResponse = ApiRecordResponse<Account>;
+export type ColonelDataApiResponse = ApiRecordResponse<ColonelData>;
+export type MetadataDataApiResponse = ApiRecordResponse<MetadataData>;
+export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
 /**
  * Front-end Vue App
  *
@@ -188,6 +296,6 @@ export interface Secret extends BaseApiRecord {
   lifespan: number;
   share_domain: string;
   verification: string;
-  truncated: boolean;
+  is_truncated: boolean;
   maxviews: number; // always 1 (here for backwards compat)
 }

@@ -1,17 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useWindowProps } from '@/composables/useWindowProps';
 
+const { authenticated, metadata_record_count, domains_enabled, plan, custom_domains_record_count } = useWindowProps(['authenticated', 'shrimp', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
 
-const { metadata_record_count, domains_enabled, plan, custom_domains_record_count } = useWindowProps(['shrimp', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
-
-const paidPlan = plan.value.planid === 'paid';
+const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
 
 </script>
 
 <template>
 
   <nav class="mb-6">
-    <ul class="text-xl font-brand flex space-x-4">
+    <ul v-if="authenticated" class="text-xl font-brand flex space-x-4">
       <li>
         <router-link to="/"
                      class="text-gray-700 font-bold underline dark:text-gray-300 hover:underline dark:hover:text-grey-500 transition-colors">
@@ -28,7 +28,7 @@ const paidPlan = plan.value.planid === 'paid';
         </router-link>
       </li>
 
-      <li v-if="domains_enabled && paidPlan">
+      <li v-if="domains_enabled && planAllowsCustomDomains">
         <router-link to="/account/domains"
                      class="text-gray-700 dark:text-gray-300 hover:underline hover:text-grey-500 dark:hover:text-grey-500 transition-colors flex items-center">
           <span class="block sm:hidden">Domains</span>

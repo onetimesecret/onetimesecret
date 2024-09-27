@@ -39,11 +39,6 @@ module Onetime
         end
       end
 
-      class Config < Onetime::App::View
-        def init *args
-        end
-      end
-
       class Error < Onetime::App::View
         def init *args
           self[:title] = "I'm afraid there's been an error"

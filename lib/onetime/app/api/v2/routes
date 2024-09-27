@@ -1,17 +1,25 @@
 
 ## API v2
-POST   /v2/account/destroy                      Onetime::App::APIV2::Account#destroy_account
-POST   /v2/account/change-password              Onetime::App::APIV2::Account#change_account_password
-POST   /v2/account/apikey                       Onetime::App::APIV2::Account#generate_apikey
-POST   /v2/account/domains/add                  Onetime::App::APIV2::Domains#add_domain
-POST   /v2/account/domains/:domain/remove       Onetime::App::APIV2::Domains#remove_domain
-GET    /v2/account/domains/:domain              Onetime::App::APIV2::Domains#get_domain
-POST   /v2/account/domains/:domain/verify       Onetime::App::APIV2::Domains#verify_domain
-GET    /v2/account/domains                      Onetime::App::APIV2::Domains#list_domains
+POST   /account/destroy                      Onetime::App::APIV2::Account#destroy_account
+POST   /account/change-password              Onetime::App::APIV2::Account#change_account_password
+POST   /account/apitoken                     Onetime::App::APIV2::Account#generate_apitoken
+POST   /account/domains/add                  Onetime::App::APIV2::Domains#add_domain
+POST   /account/domains/:domain/remove       Onetime::App::APIV2::Domains#remove_domain
+GET    /account/domains/:domain              Onetime::App::APIV2::Domains#get_domain
+POST   /account/domains/:domain/verify       Onetime::App::APIV2::Domains#verify_domain
+GET    /account/domains                      Onetime::App::APIV2::Domains#list_domains
+GET    /account                              Onetime::App::APIV2::Account#get_account
 
-GET    /v2/status                               Onetime::App::APIV2#status
-GET    /v2/version                              Onetime::App::APIV2#version
+GET    /private/recent                       Onetime::App::APIV2::Secrets#list_metadata
+GET    /private/:key                         Onetime::App::APIV2::Secrets#get_metadata
+GET    /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
+POST   /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
 
-GET    /v2/altcha/challenge                     Onetime::App::APIV2#altcha_challenge
-POST   /v2/altcha/verify                        Onetime::App::APIV2#altcha_verify
-POST   /v2/altcha/verify_spam                   Onetime::App::APIV2#altcha_verify_spam
+GET    /status                               Onetime::App::APIV2#status
+GET    /version                              Onetime::App::APIV2#version
+
+GET    /altcha/challenge                     Onetime::App::APIV2::Challenges#altcha_challenge
+POST   /altcha/verify                        Onetime::App::APIV2::Challenges#altcha_verify
+POST   /altcha/verify_spam                   Onetime::App::APIV2::Challenges#altcha_verify_spam
+
+GET    /colonel                              Onetime::App::APIV2::Colonel#get_index

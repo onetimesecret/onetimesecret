@@ -4,7 +4,7 @@
 </script>
 
 <template>
-  <div id="coremessage" class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-8">
+  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-8">
     <div class="text-center mb-8">
       <svg
         class="mx-auto w-20 h-20 text-brand-500"

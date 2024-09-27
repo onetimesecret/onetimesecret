@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Homepage from '@/views/Homepage.vue'
+import WideLayout from '@/layouts/WideLayout.vue'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
 
 import { ref } from 'vue'
 
@@ -52,7 +54,15 @@ const routes: Array<RouteRecordRaw> = [
       } else {
         next()
       }
-    }
+    },
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: true,
+      }
+    },
+
   },
   {
     path: '/incoming',
@@ -83,7 +93,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains/add',
     name: 'AccountDomainAdd',
     component: () => import('@/views/account/AccountDomainAdd.vue'),
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayFeedback: false,
+      }
+    },
     props: true,
   },
   {
@@ -98,6 +113,13 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Account',
     component: () => import('@/views/account/AccountIndex.vue'),
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/colonel',
+    name: 'Colonel',
+    component: () => import('@/views/colonel/ColonelIndex.vue'),
+    meta: { requiresAuth: true, layout: DefaultLayout },
+    props: true,
   },
   {
     path: '/info/privacy',
@@ -120,24 +142,62 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/secret/:secretKey',
     name: 'Secret link',
-    component: () => import('@/views/secrets/SecretDetails.vue'),
+    component: () => import('@/views/secrets/ShowSecret.vue'),
     props: true,
+    meta: {
+      layoutProps: {
+        displayMasthead: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displaySitenav: false,
+        displayVersion: false,
+        displayPoweredBy: true,
+        noCache: true,
+      }
+    },
   },
   {
     path: '/private/:metadataKey',
     name: 'Metadata link',
-    component: () => import('@/views/secrets/MetadataDetails.vue'),
+    component: () => import('@/views/secrets/ShowMetadata.vue'),
     props: true,
+    meta: {
+      layoutProps: {
+        displayFeedback: false,
+        noCache: true,
+      }
+    },
+  },
+
+  {
+    path: '/private/:metadataKey/burn',
+    name: 'Burn secret',
+    component: () => import('@/views/secrets/BurnSecret.vue'),
+    props: true,
+    meta: {
+      layoutProps: {
+        displayFeedback: false,
+      }
+    }
   },
   {
     path: '/pricing',
     name: 'Pricing',
     component: () => import('@/views/pricing/PricingDual.vue'),
+    meta: { layout: WideLayout },
+    props: true,
   },
   {
     path: '/feedback',
     name: 'Feedback',
     component: () => import('@/views/Feedback.vue'),
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: false,
+      }
+    }
   },
   {
     path: '/forgot',

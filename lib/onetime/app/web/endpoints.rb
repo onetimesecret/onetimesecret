@@ -11,9 +11,27 @@ module Onetime
 
       def index
         publically do
-          OT.ld "[homepage] authenticated? #{sess.authenticated?}"
+          OT.ld "[index] authenticated? #{sess.authenticated?}"
           view = Onetime::App::Views::Index.new req, sess, cust, locale
-          sess.event_incr! :homepage
+          sess.event_incr! :get_page
+          res.body = view.render
+        end
+      end
+
+      def customers_only
+        authenticated do
+          OT.ld "[customers_only] authenticated? #{sess.authenticated?}"
+          view = Onetime::App::Views::Index.new req, sess, cust, locale
+          sess.event_incr! :get_page
+          res.body = view.render
+        end
+      end
+
+      def colonels_only
+        colonels do
+          OT.ld "[colonels_only] authenticated? #{sess.authenticated?}"
+          view = Onetime::App::Views::Index.new req, sess, cust, locale
+          sess.event_incr! :get_page
           res.body = view.render
         end
       end
@@ -99,46 +117,6 @@ module Onetime
           req.params.clear
           req.params[:key] = logic.metadata.key
           res.redirect logic.redirect_uri
-        end
-      end
-
-      def secret_uri
-        publically do
-          deny_agents!
-          no_cache!
-          logic = OT::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
-          view = Onetime::App::Views::Shared.new req, sess, cust, locale
-          logic.raise_concerns
-          logic.process
-          view[:is_owner] = logic.secret.owner?(cust)
-          view[:has_passphrase] = logic.secret.has_passphrase?
-          view[:verification] = logic.verification
-          if logic.show_secret
-            view[:show_secret] = true
-            view[:secret_value] = logic.secret_value
-            view[:original_size] = logic.original_size
-            view[:truncated] = logic.truncated
-          elsif req.post? && !logic.correct_passphrase
-            view.add_error view.i18n[:COMMON][:error_passphrase]
-          end
-          res.body = view.render
-        end
-      end
-
-      def private_uri
-        publically do
-          deny_agents!
-          no_cache!
-          logic = OT::Logic::Secrets::ShowMetadata.new sess, cust, req.params, locale
-          logic.raise_concerns
-          logic.process
-          view = Onetime::App::Views::Private.new req, sess, cust, locale, logic.metadata
-          res.body = view.render
-          #
-          #
-          # logic.metadata.viewed!
-          #
-          #
         end
       end
 

@@ -1,9 +1,9 @@
 <!-- src/components/ApiTokenDisplay.vue -->
 <template>
-  <div v-if="token" class="mb-4 p-4 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 rounded-lg shadow-lg">
+  <div v-if="apitoken" class="mb-4 p-4 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 rounded-lg shadow-lg">
     <div class="font-mono text-lg text-white">
       <div class="bg-black bg-opacity-20 p-3 rounded flex items-center overflow-x-auto relative">
-        <span class="break-all pr-10">{{ token }}</span>
+        <span class="break-all pr-10">{{ apitoken }}</span>
         <button
           @click.stop="handleCopy"
           type="button"
@@ -23,19 +23,19 @@ import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 
 interface Props {
-  token: string;
+  apitoken: string | undefined;
   onCopy?: () => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  token: '',
+  apitoken: '',
   onCopy: () => {}
 });
 
 const copied = ref(false);
 
 const handleCopy = () => {
-  navigator.clipboard.writeText(props.token)
+  navigator.clipboard.writeText(props.apitoken)
     .then(() => {
       copied.value = true;
       setTimeout(() => {

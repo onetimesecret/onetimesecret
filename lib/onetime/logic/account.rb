@@ -5,7 +5,7 @@ require_relative '../refinements/stripe_refinements'
 module Onetime::Logic
   module Account
 
-    class ViewAccount < OT::Logic::Base
+    class GetAccount < OT::Logic::Base
       attr_reader :plans_enabled
       attr_reader :stripe_subscription, :stripe_customer
       using Onetime::StripeRefinements
@@ -17,13 +17,11 @@ module Onetime::Logic
 
       def raise_concerns
         limit_action :show_account
-
       end
 
       def process
 
         if plans_enabled
-
           @stripe_customer = cust.get_stripe_customer
           @stripe_subscription = cust.get_stripe_subscription
 
@@ -60,7 +58,7 @@ module Onetime::Logic
 
       def safe_stripe_customer_dump
         return nil if stripe_customer.nil?
-        safe_customer_data = {
+        {
           id: stripe_customer.id,
           email: stripe_customer.email,
           description: stripe_customer.description,
@@ -72,7 +70,7 @@ module Onetime::Logic
 
       def safe_stripe_subscription_dump
         return nil if stripe_subscription.nil?
-        safe_subscription_data = {
+        {
           id: stripe_subscription.id,
           status: stripe_subscription.status,
           current_period_end: stripe_subscription.current_period_end,
@@ -85,6 +83,28 @@ module Onetime::Logic
             product: stripe_subscription.plan.product
           }
         }
+      end
+
+      def success_data
+        ret = {
+          custid: cust.custid,
+          record: {
+            apitoken: cust.apitoken,
+            cust: cust.safe_dump,
+            stripe_customer: nil,
+            stripe_subscriptions: nil
+          },
+          details: {}
+        }
+
+        if show_stripe_section?
+          ret[:record][:stripe_customer] = safe_stripe_customer_dump
+          ret[:record][:stripe_subscriptions] = [
+            safe_stripe_subscription_dump
+          ]
+        end
+
+        ret
       end
     end
 
@@ -303,14 +323,14 @@ module Onetime::Logic
 
     end
 
-    class GenerateAPIkey < OT::Logic::Base
-      attr_reader :apikey, :greenlighted
+    class GenerateAPIToken < OT::Logic::Base
+      attr_reader :apitoken, :greenlighted
 
       def process_params
       end
 
       def raise_concerns
-        limit_action :generate_apikey
+        limit_action :generate_apitoken
 
         if (!sess.authenticated?) || (cust.anonymous?)
           raise_form_error "Sorry, we don't support that"
@@ -318,13 +338,13 @@ module Onetime::Logic
       end
 
       def process
-        @apikey = cust.regenerate_apitoken
+        @apitoken = cust.regenerate_apitoken
         @greenlighted = true
       end
 
       # The data returned from this method is passed back to the client.
       def success_data
-        { record: { apikey: apikey, active: true } }
+        { record: { apitoken: apitoken, active: true } }
       end
     end
 

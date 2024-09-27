@@ -60,7 +60,7 @@
                   </MenuItem>
 
                   <form @submit.prevent="(event) => submitForm(event)"
-                        :action="`/api/v1/account/domains/${domain.display_domain}/remove`">
+                        :action="`/api/v2/account/domains/${domain.display_domain}/remove`">
                     <input type="hidden"
                            name="shrimp"
                            :value="shrimp" />
@@ -95,7 +95,7 @@
 import { Icon } from '@iconify/vue';
 
 import type { CustomDomain } from '@/types/onetime';
-import { useFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import { MenuItem } from '@headlessui/vue';
 import { ref } from 'vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';

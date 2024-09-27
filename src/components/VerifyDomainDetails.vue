@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
-import { useFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';
@@ -99,7 +99,7 @@ const handleShrimp = (freshShrimp: string) => {
 }
 
 const { isSubmitting, error, success, submitForm } = useFormSubmission({
-  url: `/api/v1/account/domains/${props.domain.display_domain}/verify`,
+  url: `/api/v2/account/domains/${props.domain.display_domain}/verify`,
   successMessage: 'Domain verification initiated successfully.',
   getFormData: () => new URLSearchParams({
     domain: props.domain.display_domain,

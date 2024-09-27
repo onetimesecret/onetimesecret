@@ -287,24 +287,6 @@ module Onetime
       end
     end
 
-    def account
-      authenticated do
-        logic = OT::Logic::Account::ViewAccount.new sess, cust, req.params, locale
-        logic.raise_concerns
-        logic.process
-
-        view = Onetime::App::Views::Account.new req, sess, cust, locale
-        if logic.show_stripe_section?
-          stripe_customer = logic.safe_stripe_customer_dump
-          stripe_subscriptions = [logic.safe_stripe_subscription_dump]
-          view[:jsvars] << view.jsvar(:stripe_customer, stripe_customer)
-          view[:jsvars] << view.jsvar(:stripe_subscriptions, stripe_subscriptions)
-        end
-
-        res.body = view.render
-      end
-    end
-
     def forgot
       publically do
         secret_key = req.params[:key]

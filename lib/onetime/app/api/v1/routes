@@ -1,20 +1,20 @@
 
 ## API v1
-GET    /v1/status                               Onetime::App::API#status
+GET    /status                               Onetime::App::API#status
 
-POST   /v1/share                                Onetime::App::API#share
-POST   /v1/generate                             Onetime::App::API#generate
+POST   /share                                Onetime::App::API#share
+POST   /generate                             Onetime::App::API#generate
 
-POST   /v1/create                               Onetime::App::API#create
+POST   /create                               Onetime::App::API#create
 
-POST   /v1/secret/:key                          Onetime::App::API#show_secret
+POST   /secret/:key                          Onetime::App::API#show_secret
 
-GET    /v1/private/recent                       Onetime::App::API#show_metadata_recent
-GET    /v1/metadata/recent                      Onetime::App::API#show_metadata_recent
+GET    /private/recent                       Onetime::App::API#show_metadata_recent
+GET    /metadata/recent                      Onetime::App::API#show_metadata_recent
 
-GET    /v1/private/:key                         Onetime::App::API#show_metadata
-POST   /v1/private/:key                         Onetime::App::API#show_metadata
-GET    /v1/metadata/:key                        Onetime::App::API#show_metadata
-POST   /v1/metadata/:key                        Onetime::App::API#show_metadata
+GET    /private/:key                         Onetime::App::API#show_metadata
+POST   /private/:key                         Onetime::App::API#show_metadata
+GET    /metadata/:key                        Onetime::App::API#show_metadata
+POST   /metadata/:key                        Onetime::App::API#show_metadata
 
-POST   /v1/private/:key/burn                    Onetime::App::API#burn_secret
+POST   /private/:key/burn                    Onetime::App::API#burn_secret
