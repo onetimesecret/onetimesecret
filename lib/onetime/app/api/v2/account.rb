@@ -3,7 +3,7 @@ require_relative 'base'
 require_relative '../../app_settings'
 require_relative '../../../logic/account'
 
-class Onetime::App::APIV2::Account
+class Onetime::App::APIV2
   class Account
     include Onetime::App::AppSettings
     include Onetime::App::APIV2::Base

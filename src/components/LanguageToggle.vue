@@ -44,21 +44,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { setLanguage } from '@/i18n';
+import { useLanguageStore } from '@/stores/languageStore';
 
-const props = defineProps<{
-  isDefaultLocale: boolean;
-  supportedLocales: string[];
-}>();
-
-const { locale } = useI18n();
+const languageStore = useLanguageStore();
 
 const isMenuOpen = ref(false);
 const menuItems = ref<HTMLElement[]>([]);
 
 // Compute the current locale
-const currentLocale = computed(() => locale.value);
+const currentLocale = computed(() => languageStore.getCurrentLocale);
+const supportedLocales = computed(() => languageStore.getSupportedLocales);
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -85,13 +81,19 @@ const focusPreviousItem = () => {
 };
 
 const changeLocale = async (newLocale: string) => {
-  if (props.supportedLocales.includes(newLocale)) {
-    await setLanguage(newLocale);
-    closeMenu();
+  if (supportedLocales.value.includes(newLocale)) {
+    try {
+      await languageStore.updateLanguage(newLocale);
+      await setLanguage(newLocale);
+      closeMenu();
+    } catch (err) {
+      console.error('Failed to update language:', err);
+    }
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
+  await languageStore.fetchSupportedLocales();
 });
 </script>

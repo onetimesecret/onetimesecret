@@ -1,4 +1,4 @@
-import { ref, readonly, Ref } from 'vue';
+import { ref, readonly, Ref, unref } from 'vue';
 
 /**
  * With this caching mechanism:
@@ -37,4 +37,10 @@ export const useWindowProp = <T extends keyof Window>(prop: T): Readonly<Ref<Win
     cache[prop] = ref(window[prop]);
   }
   return readonly(cache[prop] as Ref<Window[T]>);
+};
+
+// New helper function to return unref'd window props
+export const useUnrefWindowProp = <T extends keyof Window>(prop: T): Window[T] => {
+  const windowPropRef = useWindowProp(prop);
+  return unref(windowPropRef);
 };
