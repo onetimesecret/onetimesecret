@@ -80,6 +80,7 @@ GEM
     public_suffix (5.1.0)
     racc (1.8.0)
     rack (2.2.9)
+    rack-json (0.5.1)
     rainbow (3.1.1)
     rake (13.0.6)
     rbi (0.1.13)
@@ -198,6 +199,7 @@ DEPENDENCIES
   pry-byebug
   public_suffix
   rack (>= 2.2, < 3.0)
+  rack-json (>= 0.5.1, < 0.6.0)
   rdoc
   redis (~> 5.3.0)
   rubocop

@@ -21,6 +21,7 @@ $LOAD_PATH.unshift(File.join(app_root, 'lib'))
 
 # Required Libraries
 require 'rack/content_length'
+require 'rack/json'
 require_relative 'lib/middleware'
 require_relative 'lib/onetime'
 
@@ -38,34 +39,37 @@ apps = {
 headers = { 'Content-Type' => 'application/json' }
 
 # API Error Responses
-[1, 2].each do |version|
-  apps["/api/v#{version}"].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
-  apps["/api/v#{version}"].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
+%w[v1 v2].each do |version|
+  apps["/api/#{version}"].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
+  apps["/api/#{version}"].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
 end
 
 # Public Directory for Root Endpoint
 apps['/'].option[:public] = PUBLIC_DIR
 
-# Middleware Stack Configuration
-middleware_stack = [
-  [Rack::CommonLogger],
-  [Rack::ClearSessionMessages],
-  [Rack::HandleInvalidUTF8],
-  [Rack::HandleInvalidPercentEncoding],
-  [Rack::ContentLength]
+# Common Middleware
+common_middleware = [
+  Rack::CommonLogger,
+  Rack::ClearSessionMessages,
+  Rack::HandleInvalidUTF8,
+  Rack::HandleInvalidPercentEncoding,
+  Rack::ContentLength
 ]
-middleware_stack.insert(2, [Rack::Reloader, 1]) if Otto.env?(:dev)
+use Rack::Reloader, 1 if Otto.env?(:dev)
 
 # Mount Applications with Middleware
-apps.each_pair do |path, app|
-  map(path) do
-    OT.info "Mounting #{app.class} at #{path}"
+mount_app = lambda do |path, &block|
+  map path do
+    OT.info "Mounting #{apps[path].class} at #{path}"
+    common_middleware.each { |middleware| use middleware }
 
-    middleware_stack.each do |middleware_class, *args|
-      OT.ld "[middleware] Applying #{middleware_class}"
-      use middleware_class, *args
-    end
+    # Run application-specific block
+    instance_eval(&block) if block_given?
 
-    run app
+    run apps[path]
   end
 end
+
+mount_app.call('/api/v2') { use Rack::JSON }
+mount_app.call('/api/v1')
+mount_app.call('/')
