@@ -16,9 +16,11 @@ interface LanguageState {
   error: string | null;
 }
 
+const LOCAL_STORAGE_KEY = 'selected.locale';
+
 export const useLanguageStore = defineStore('language', {
   state: (): LanguageState => ({
-    currentLocale: 'en', // default language
+    currentLocale: localStorage.getItem(LOCAL_STORAGE_KEY) || 'en', // Use stored locale or default
     defaultLocale: 'en',
     supportedLocales: supportedLocales,
     isLoading: false,
@@ -38,7 +40,7 @@ export const useLanguageStore = defineStore('language', {
         const { locales, default_locale, locale } = response.data;
         this.supportedLocales = locales;
         this.defaultLocale = default_locale;
-        this.currentLocale = locale;
+        this.setCurrentLocale(locale);
       } catch (error) {
         console.error('Failed to fetch supported locales:', error);
         this.error = 'Failed to fetch supported locales';
@@ -57,7 +59,7 @@ export const useLanguageStore = defineStore('language', {
           locale: newLocale,
           shrimp: csrfStore.shrimp
         });
-        this.currentLocale = newLocale;
+        this.setCurrentLocale(newLocale);
 
         // Update the CSRF shrimp if it's returned in the response
         if (response.data && response.data.shrimp) {
@@ -74,6 +76,8 @@ export const useLanguageStore = defineStore('language', {
 
     setCurrentLocale(locale: string) {
       this.currentLocale = locale;
+      // Store the locale in localStorage
+      localStorage.setItem(LOCAL_STORAGE_KEY, locale);
     },
   },
 });
