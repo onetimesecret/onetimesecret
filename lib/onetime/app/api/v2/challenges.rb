@@ -8,7 +8,7 @@ require_relative '../../app_settings'
 
 class Onetime::App::APIV2
   class Challenges
-    include AppSettings
+    include Onetime::App::AppSettings
     include Onetime::App::APIV2::Base
 
     # NOTE: Based on https://github.com/altcha-org/altcha-starter-rb
@@ -69,6 +69,10 @@ class Onetime::App::APIV2
           error_response message: 'Invalid Altcha payload'
         end
       end
+    end
+
+    def self.secret_key
+      OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
     end
   end
 end

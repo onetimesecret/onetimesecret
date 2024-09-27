@@ -32,6 +32,28 @@ module Onetime
     # into a hidden field which is something a regular person would not do.
     field :token
 
+    @safe_dump_fields = [
+      :key,
+      :custid,
+      :state,
+      :secret_shortkey,
+      :secret_ttl,
+      :share_domain,
+      :created,
+      :updated,
+      :recipients,
+
+      { :shortkey => ->(m) { m.key.slice(0, 8) } },
+      { :show_recipients => ->(m) { !m.recipients.to_s.empty? } },
+
+      { :is_received => ->(m) { m.state?(:received) } },
+      { :is_burned => ->(m) { m.state?(:burned) } },
+      { :is_destroyed => ->(m) { m.state?(:received) || m.state?(:burned) } },
+
+      # We use the hash syntax here since `:truncated?` is not a valid symbol.
+      { :is_truncated => ->(m) { m.truncated? } }
+    ]
+
     def init
       self.state ||= 'new'
     end
@@ -138,6 +160,10 @@ module Onetime
 
     def state? guess
       state.to_s == guess.to_s
+    end
+
+    def truncated?
+      truncate.to_s == 'true'
     end
 
     def load_secret
