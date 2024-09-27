@@ -89,11 +89,12 @@ const focusPreviousItem = () => {
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
-      await setLanguage(newLocale);
       await languageStore.updateLanguage(newLocale);
-      closeMenu();
+      await setLanguage(newLocale);
     } catch (err) {
       console.error('Failed to update language:', err);
+    } finally {
+      closeMenu();
     }
   }
 };
