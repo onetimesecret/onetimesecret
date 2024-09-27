@@ -12,29 +12,21 @@ class Onetime::App::APIV2
     @check_utf8 = true
     @check_uri_encoding = true
 
-    def add_secrets
-      OT.ld "[APIV2::Secrets] add_secrets #{req.params}"
-      process_action(
-        OT::Logic::Secrets::AddSecret,
-        "Secret added successfully.",
-        "Secret could not be added."
-      )
-    end
-
     def burn_secrets
       process_action(
         OT::Logic::Secrets::BurnSecret,
         "Secret burned successfully.",
-        "Secret could not be removed."
+        "Secret could not be removed.",
+        allow_anonymous: true
       )
     end
 
     def get_metadata
-      retrieve_records(OT::Logic::Secrets::ShowMetadata)
+      retrieve_records(OT::Logic::Secrets::ShowMetadata, allow_anonymous: true)
     end
 
     def get_secret
-      retrieve_records(OT::Logic::Secrets::ShowSecret)
+      retrieve_records(OT::Logic::Secrets::ShowSecret, allow_anonymous: true)
     end
 
     def list_metadata

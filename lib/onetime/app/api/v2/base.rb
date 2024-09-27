@@ -33,10 +33,10 @@ module Onetime::App
       #   retrieve_records(UserLogic)
       #   retrieve_records(SecretDocumentLogic, auth_type: :colonels)
       #
-      def retrieve_records(logic_class, auth_type: :authorized)
+      def retrieve_records(logic_class, auth_type: :authorized, allow_anonymous: false)
         auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
 
-        auth_method.call do
+        auth_method.call(allow_anonymous) do
           OT.ld "[retrieve] #{logic_class}"
           logic = logic_class.new(sess, cust, req.params, locale)
           logic.raise_concerns
@@ -67,8 +67,8 @@ module Onetime::App
       #     json_success(custid: cust.custid, apitoken: logic.apitoken)
       #   end
       #
-      def process_action(logic_class, success_message, error_message)
-        authorized(false) do
+      def process_action(logic_class, success_message, error_message, allow_anonymous: false)
+        authorized(allow_anonymous) do
           logic = logic_class.new(sess, cust, req.params, locale)
           logic.raise_concerns
           logic.process
