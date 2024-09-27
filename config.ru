@@ -55,21 +55,21 @@ common_middleware = [
   Rack::HandleInvalidPercentEncoding,
   Rack::ContentLength
 ]
+
+# Apply common middleware to all apps
+common_middleware.each { |middleware| use middleware }
 use Rack::Reloader, 1 if Otto.env?(:dev)
 
-# Mount Applications with Middleware
-mount_app = lambda do |path, &block|
-  map path do
-    OT.info "Mounting #{apps[path].class} at #{path}"
-    common_middleware.each { |middleware| use middleware }
-
-    # Run application-specific block
-    instance_eval(&block) if block_given?
-
-    run apps[path]
-  end
+# Mount Applications
+map '/api/v2' do
+  use Rack::JSON
+  run apps['/api/v2']
 end
 
-mount_app.call('/api/v2') { use Rack::JSON }
-mount_app.call('/api/v1')
-mount_app.call('/')
+map '/api/v1' do
+  run apps['/api/v1']
+end
+
+map '/' do
+  run apps['/']
+end

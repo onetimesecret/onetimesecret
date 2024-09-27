@@ -67,7 +67,7 @@ repos:
   # https://github.com/rubocop/rubocop/blob/d5d8828/.pre-commit-hooks.yaml
   # NOTE: Don't enable '--autocorrect' until codebase is clean
   - repo: https://github.com/rubocop/rubocop
-    rev: v1.64.1  # Use the ref you want to point at
+    rev: v1.66.1  # Use the ref you want to point at
     hooks:
       - id: rubocop
         stages: [pre-commit]
@@ -88,7 +88,7 @@ repos:
           - "--template=[#{}]"
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.56.0  # Use the latest version
+    rev: v9.11.1  # Use the latest version
     hooks:
       - id: eslint
         stages: [pre-commit]
