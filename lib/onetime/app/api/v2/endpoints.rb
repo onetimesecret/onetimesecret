@@ -12,11 +12,23 @@ module Onetime::App
     include Onetime::App::APIV2::Base
 
     def status
-      json status: :nominal, locale: locale
+      authorized do
+        json status: :nominal, locale: locale
+      end
     end
 
     def version
-      json version: OT::VERSION.to_a, locale: locale
+      publically do
+        json version: OT::VERSION.to_a, locale: locale
+      end
+    end
+
+    def get_supported_locales
+      publically do
+        supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+        default_locale = supported_locales.first
+        json locales: supported_locales, default_locale: default_locale, locale: locale
+      end
     end
 
     require_relative 'class_methods'

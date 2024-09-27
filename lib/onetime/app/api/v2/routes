@@ -2,6 +2,7 @@
 ## API v2
 POST   /account/destroy                      Onetime::App::APIV2::Account#destroy_account
 POST   /account/change-password              Onetime::App::APIV2::Account#change_account_password
+POST   /account/update-locale                Onetime::App::APIV2::Account#update_locale
 POST   /account/apitoken                     Onetime::App::APIV2::Account#generate_apitoken
 POST   /account/domains/add                  Onetime::App::APIV2::Domains#add_domain
 POST   /account/domains/:domain/remove       Onetime::App::APIV2::Domains#remove_domain
@@ -14,6 +15,8 @@ GET    /private/recent                       Onetime::App::APIV2::Secrets#list_m
 GET    /private/:key                         Onetime::App::APIV2::Secrets#get_metadata
 GET    /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
 POST   /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
+
+GET    /supported-locales                    Onetime::App::APIV2#get_supported_locales
 
 GET    /status                               Onetime::App::APIV2#status
 GET    /version                              Onetime::App::APIV2#version
