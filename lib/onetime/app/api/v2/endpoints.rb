@@ -49,8 +49,6 @@ module Onetime::App
       end
     end
 
-    require_relative 'class_methods'
-    extend ClassMethods
   end
 end
 
