@@ -68,7 +68,7 @@ module Onetime::App
       #   end
       #
       def process_action(logic_class, success_message, error_message)
-        authorized do
+        authorized(false) do
           logic = logic_class.new(sess, cust, req.params, locale)
           logic.raise_concerns
           logic.process

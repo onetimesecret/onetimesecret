@@ -138,30 +138,38 @@ module Onetime::App
     end
 
     # Check XSRF value submitted with POST requests (aka shrimp)
-    def check_shrimp!
+    def check_shrimp!(replace=true)
       return if @check_shrimp_ran
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete?
       attempted_shrimp = req.params[:shrimp].to_s
 
-      shrimp = (sess.shrimp || '[noshrimp]').clone
+      # No news is good news for successful shrimp; by default
+      # it'll simply add a fresh shrimp to the session. But
+      # in the case of failure this will raise an exception.
+      validate_shrimp(attempted_shrimp)
+    end
 
+    def validate_shrimp(attempted_shrimp, replace=true)
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
         adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
         OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
         # Regardless of the outcome, we clear the shrimp from the session
         # to prevent replay attacks. A new shrimp is generated on the
         # next page load.
-        sess.replace_shrimp!
+        sess.replace_shrimp! if replace
+        true
       else
         ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
         ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
+        shrimp = (sess.shrimp || '[noshrimp]').clone
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
         OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
         sess.replace_shrimp!
         raise ex
       end
     end
+    protected :validate_shrimp
 
     def check_session!
       return if @check_session_ran

@@ -10,6 +10,12 @@ module Onetime::Logic
         @old_locale = cust.locale
       end
 
+      def raise_concerns
+        if (!sess.authenticated?) || (cust.anonymous?)
+          raise_form_error "Sorry, we don't support that"
+        end
+      end
+
       def success_data
         {
           new_locale: new_locale,
