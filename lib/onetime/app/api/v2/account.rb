@@ -25,7 +25,7 @@ class Onetime::App::APIV2
 
     def change_account_password
       process_action(
-        OT::Logic::Account::UpdateAccount,
+        OT::Logic::Account::UpdatePassword,
         "Password changed successfully.",
         "Password could not be changed."
       )

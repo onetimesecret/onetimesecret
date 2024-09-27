@@ -2,7 +2,7 @@
 module Onetime::Logic
   module Account
 
-    # The UpdateAccount class handles the logic for updating a user's account information,
+    # The UpdatePassword class handles the logic for updating a user's account information,
     # specifically focusing on password updates. It inherits from OT::Logic::Base.
     class UpdatePassword < OT::Logic::Base
       # @!attribute [r] modified

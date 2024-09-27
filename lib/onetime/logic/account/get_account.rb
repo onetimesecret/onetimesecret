@@ -1,5 +1,5 @@
 
-require_relative '../refinements/stripe_refinements'
+require_relative '../../refinements/stripe_refinements'
 
 module Onetime::Logic
   module Account
