@@ -38,7 +38,7 @@ class Onetime::App::APIV2
     end
 
     def list_metadata
-      retrieve_records(OT::Logic::Secrets::ListMetadata)
+      retrieve_records(OT::Logic::Secrets::ShowMetadataList)
     end
 
   end
