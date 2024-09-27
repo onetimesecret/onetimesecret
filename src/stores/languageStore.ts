@@ -1,12 +1,9 @@
 // src/stores/languageStore.ts
 
 import { defineStore } from 'pinia';
-import { useUnrefWindowProp } from '@/composables/useWindowProps.js';
 import { useCsrfStore } from '@/stores/csrfStore';
-
 import axios from 'axios';
 
-const supportedLocales = useUnrefWindowProp('supported_locales');
 
 interface LanguageState {
   currentLocale: string;
@@ -20,9 +17,9 @@ const LOCAL_STORAGE_KEY = 'selected.locale';
 
 export const useLanguageStore = defineStore('language', {
   state: (): LanguageState => ({
-    currentLocale: localStorage.getItem(LOCAL_STORAGE_KEY) || 'en', // Use stored locale or default
+    currentLocale: localStorage.getItem(LOCAL_STORAGE_KEY) || 'en',
     defaultLocale: 'en',
-    supportedLocales: supportedLocales,
+    supportedLocales: [],
     isLoading: false,
     error: null,
   }),
@@ -33,23 +30,10 @@ export const useLanguageStore = defineStore('language', {
   },
 
   actions: {
-    async fetchSupportedLocales(initialLocale?: string) {
-      this.isLoading = true;
-      try {
-        const response = await axios.get('/api/v2/supported-locales');
-        const { locales, default_locale, locale } = response.data;
-        this.supportedLocales = locales;
-        this.defaultLocale = default_locale;
-
-        // Use the initialLocale if provided, otherwise use the locale from the API
-        const localeToSet = initialLocale || locale;
-        this.setCurrentLocale(localeToSet);
-      } catch (error) {
-        console.error('Failed to fetch supported locales:', error);
-        this.error = 'Failed to fetch supported locales';
-      } finally {
-        this.isLoading = false;
-      }
+    initializeStore(initialLocale: string, supportedLocales: string[], defaultLocale: string = 'en') {
+      this.supportedLocales = supportedLocales;
+      this.defaultLocale = defaultLocale;
+      this.setCurrentLocale(initialLocale);
     },
 
     async updateLanguage(newLocale: string) {
@@ -98,9 +82,12 @@ export const useLanguageStore = defineStore('language', {
     },
 
     setCurrentLocale(locale: string) {
-      this.currentLocale = locale;
-      // Store the locale in localStorage
-      localStorage.setItem(LOCAL_STORAGE_KEY, locale);
+      if (this.supportedLocales.includes(locale)) {
+        this.currentLocale = locale;
+        localStorage.setItem(LOCAL_STORAGE_KEY, locale);
+      } else {
+        console.warn(`Unsupported locale: ${locale}`);
+      }
     },
   },
 });

@@ -56,9 +56,11 @@ const menuItems = ref<HTMLElement[]>([]);
 // Use window.locale if available, otherwise fallback to store value
 const windowLocale = useUnrefWindowProp('locale');
 const cust = useWindowProp('cust');
-const initialLocale = computed(() => cust?.value?.locale || windowLocale);
+const supportedLocales = useUnrefWindowProp('supported_locales');
+const defaultLocale = 'en';
+
+const initialLocale = computed(() => cust?.value?.locale || windowLocale || defaultLocale);
 const currentLocale = computed(() => languageStore.getCurrentLocale);
-const supportedLocales = computed(() => languageStore.getSupportedLocales);
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -87,12 +89,11 @@ const focusPreviousItem = () => {
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
-      await setLanguage(newLocale); // update the UI first and fore-meowst
+      await setLanguage(newLocale);
       await languageStore.updateLanguage(newLocale);
       closeMenu();
     } catch (err) {
       console.error('Failed to update language:', err);
-      // Later: handle the error here (e.g., show a user-friendly message)
     }
   }
 };
@@ -100,16 +101,10 @@ const changeLocale = async (newLocale: string) => {
 onMounted(async () => {
   menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
 
-  // Fetch supported locales first
-  await languageStore.fetchSupportedLocales(initialLocale.value);
+  // Initialize the language store with the data from the server
+  languageStore.initializeStore(initialLocale.value, supportedLocales, defaultLocale);
 
-  // If the initial locale from window is different from the store, update the store and set the language
-  if (initialLocale.value && initialLocale.value !== languageStore.getCurrentLocale) {
-    await languageStore.setCurrentLocale(initialLocale.value);
-    await setLanguage(initialLocale.value);
-  } else {
-    // If the locale hasn't changed, still ensure that the i18n system is updated
-    await setLanguage(languageStore.getCurrentLocale);
-  }
+  // Ensure that the i18n system is updated
+  await setLanguage(languageStore.getCurrentLocale);
 });
 </script>
