@@ -54,9 +54,16 @@ module Onetime::App
             check_session!
             check_shrimp!
 
+            unless sess.authenticated? || allow_anonymous
+              raise OT::Unauthorized, "Session not authenticated"
+            end
+
             # Only attempt to load the customer object if the session has
             # already been authenticated. Otherwise this is an anonymous session.
             @cust = sess.load_customer if sess.authenticated?
+            @cust ||= Customer.anonymous if allow_anonymous
+
+            raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
 
             custid = @cust.custid unless @cust.nil?
             OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
