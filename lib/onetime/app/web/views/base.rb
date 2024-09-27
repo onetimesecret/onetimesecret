@@ -27,6 +27,7 @@ module Onetime
         domains = site.fetch(:domains, {})
         authentication = site.fetch(:authentication, {})
         support_host = site.dig(:support, :host) # defaults to nil
+        incoming_recipient = OT.conf.dig(:incoming, :email)
 
         # If not set, the frontend_host is the same as the site_host and
         # we can leave the absolute path empty as-is without a host.
@@ -90,6 +91,7 @@ module Onetime
         self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
         self[:jsvars] << jsvar(:supported_locales, supported_locales)
 
+        self[:jsvars] << jsvar(:incoming_recipient, incoming_recipient)
         self[:jsvars] << jsvar(:support_host, support_host)
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
         self[:jsvars] << jsvar(:authenticated, authenticated)
