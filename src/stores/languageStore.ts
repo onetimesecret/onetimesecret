@@ -6,7 +6,6 @@ import { useCsrfStore } from '@/stores/csrfStore';
 
 import axios from 'axios';
 
-
 const supportedLocales = useUnrefWindowProp('supported_locales');
 
 interface LanguageState {
@@ -54,11 +53,16 @@ export const useLanguageStore = defineStore('language', {
       const csrfStore = useCsrfStore();
 
       try {
-        await axios.post('/api/v2/account/update-locale', {
+        const response = await axios.post('/api/v2/account/update-locale', {
           locale: newLocale,
           shrimp: csrfStore.shrimp
         });
         this.currentLocale = newLocale;
+
+        // Update the CSRF shrimp if it's returned in the response
+        if (response.data && response.data.shrimp) {
+          csrfStore.updateShrimp(response.data.shrimp);
+        }
 
       } catch (error) {
         this.error = 'Failed to update language';

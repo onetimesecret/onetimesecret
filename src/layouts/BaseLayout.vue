@@ -131,9 +131,7 @@ withDefaults(defineProps<Props>(), {
         <div class="fixed text-left bottom-4 right-4 z-50 opacity-60 hover:opacity-100" aria-label="Change language">
           <div class="relative">
 
-            <LanguageToggle
-              :isDefaultLocale="false"
-            />
+            <LanguageToggle />
 
           </div>
         </div>
