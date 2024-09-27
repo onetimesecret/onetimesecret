@@ -90,26 +90,52 @@ module Onetime::App
         end
       end
 
-      # Find the locale of the request based on req.env['rack.locale'],
-      # which is set automatically by Otto v0.4.0 and greater.
+      # Determine and set the locale for the current request.
       #
-      # If `locale` is specified, it will override if the locale is supported.
-      # If the `locale` query param is set, it will override.
+      # This method prioritizes locales in the following order:
+      # 1. Query parameter 'locale'
+      # 2. Provided 'locale' argument
+      # 3. Rack environment's 'rack.locale'
+      # 4. Customer's locale (if available)
+      # 5. First configured locale
       #
-      # @param locale [String] the locale to use, defaults to nil
+      # The method also ensures that only supported locales are used.
+      #
+      # @param locale [String, nil] Optional locale to use (overridden by query parameter)
       # @return [void]
-      def check_locale! locale=nil
+      def check_locale!(locale = nil)
+        # Check for locale in query parameters
         unless req.params[:locale].to_s.empty?
-          locale = req.params[:locale]                                 # Use query param
-          res.send_cookie :locale, locale, 30.days, Onetime.conf[:site][:ssl]
+          locale = req.params[:locale]
+          # Set locale cookie if query parameter is present
+          is_secure = Onetime.conf.dig(:site, :ssl)
+          res.send_cookie :locale, locale, 30.days, is_secure
         end
-        locales = req.env['rack.locale'] || []                          # Requested list
-        locales.unshift locale.split('-').first if locale.is_a?(String) # Support both en and en-US
-        locales << OT.conf[:locales].first                              # Ensure at least one configured locale is available
-        locales = locales.uniq.reject { |l| !OT.locales.has_key?(l) }.compact
-        locale = locales.first if !OT.locales.has_key?(locale)           # Default to the first available
-        req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
+
+        # Initialize locales array
+        locales = req.env['rack.locale'] || []  # Requested list from Rack
+
+        # Add provided locale to the beginning of the list
+        # Support both en and en-US
+        locales.unshift(locale.split('-').first) if locale.is_a?(String)
+
+        # Add customer's locale if available
+        locales << cust.locale if cust&.locale?
+
+        # Ensure at least one configured locale is available
+        locales << OT.conf[:locales].first
+
+        # Filter and clean up locales
+        locales = locales.uniq.reject { |l| !OT.locales.key?(l) }.compact
+
+        # Set default locale if the current one is not supported
+        locale = locales.first unless OT.locales.key?(locale)
+
+        # Set locale in the request environment
+        req.env['ots.locale'] = @locale = locale
+        req.env['ots.locales'] = locales
       end
+
 
       def json hsh
         res.header['Content-Type'] = "application/json; charset=utf-8"

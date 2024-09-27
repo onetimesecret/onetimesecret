@@ -39,8 +39,13 @@ response.status
 
 # API Routes
 
-## Can access the API status
+## Can access the v1 API status
 response = @mock_request.get('/api/v1/status')
+[response.status, response.body]
+#=> [200, '{"status":"nominal","locale":"en"}']
+
+## Can access the v2 API status
+response = @mock_request.get('/api/v2/status')
 [response.status, response.body]
 #=> [200, '{"status":"nominal","locale":"en"}']
 
@@ -58,19 +63,9 @@ content = JSON.parse(response.body)
 #=> [200, 'anon']
 
 
-# Colonel Routes
+# API v2 Routes
 
-## Can access the colonel dashboard
-response = @mock_request.get('/colonel')
-response.status
-#=> 302
-
-## Can access the colonel customers page
-response = @mock_request.get('/colonel/customers')
-response.status
-#=> 404
-
-## Can access the colonel stats page
-response = @mock_request.get('/colonel/stats')
+## Cannot access the colonel dashboard when not authenticated
+response = @mock_request.get('/api/v2/colonel')
 response.status
 #=> 404
