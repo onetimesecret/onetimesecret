@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import FeedbackForm from '@/components/FeedbackForm.vue';
 
-const shrimp = window.shrimp;
 </script>
 
 <template>
@@ -11,6 +10,6 @@ const shrimp = window.shrimp;
         Give us your feedback
     </h3>
 
-    <FeedbackForm :shrimp="shrimp" :showRedButton="true" />
+    <FeedbackForm :showRedButton="true" />
   </section>
 </template>

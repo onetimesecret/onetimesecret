@@ -45,7 +45,7 @@
               class="space-y-4">
           <input name="shrimp"
                  type="hidden"
-                 :value="shrimp" />
+                 :value="csrfStore.shrimp" />
           <input name="continue"
                  type="hidden"
                  value="true" />
@@ -144,10 +144,12 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useFetchDataRecord } from '@/composables/useFetchData'
 import { useFormSubmission } from '@/composables/useFormSubmission'
 import { SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime'
-import { useWindowProps } from '@/composables/useWindowProps'
 import UnknownSecret from '@/views/secrets/UnknownSecret.vue'
 import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue'
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
 
 interface Props {
   secretKey: string
@@ -156,7 +158,6 @@ interface Props {
 const props = defineProps<Props>()
 
 const passphrase = ref('')
-const { shrimp } = useWindowProps(['shrimp'])
 
 const {
   record: initialRecord,
@@ -197,8 +198,6 @@ const {
   onError: (data) => {
     console.error('Error fetching secret:', data)
   },
-  // We don't handleShrimp here because the form can only be
-  // submitted once so there's no need for a new shrimp.
 })
 
 // Compute the current state based on initial and final data

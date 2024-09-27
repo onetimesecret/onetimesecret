@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-
 import CustomDomainPreview from './CustomDomainPreview.vue';
 import SecretContentInputArea from './SecretContentInputArea.vue';
 import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
 import GenerateButton from './secrets/GenerateButton.vue';
 import CreateButton from './secrets/CreateButton.vue';
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
 
 export interface Props {
   enabled?: boolean;
-  shrimp: string | null;
   withRecipient?: boolean;
   withAsterisk?: boolean;
   withGenerate?: boolean;
@@ -17,7 +18,6 @@ export interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
-  shrimp: null,
   withRecipient: false,
   withAsterisk: false,
   withGenerate: false,
@@ -81,7 +81,7 @@ const isCreateDisabled = computed(() => !isFormValid.value);
                value="✓" />
         <input type="hidden"
                name="shrimp"
-               :value="shrimp" />
+               :value="csrfStore.shrimp" />
         <input type="hidden"
                name="share_domain"
                :value="selectedDomain" />

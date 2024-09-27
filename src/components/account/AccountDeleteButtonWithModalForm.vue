@@ -1,29 +1,21 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Cust } from '@/types/onetime';
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
 
 interface Props {
   apitoken?: string;
-  shrimp: string | undefined;
   cust: Cust;
 }
 
-const props = defineProps<Props>();
-const emit = defineEmits(['delete:account', 'update:shrimp']);
+defineProps<Props>();
+const emit = defineEmits(['delete:account']);
 
-const localShrimp = ref(props.shrimp);
-
-watch(() => props.shrimp, (newValue) => {
-  localShrimp.value = newValue;
-});
 const showDeleteModal = ref(false);
 const deletePassword = ref('');
-
-const handleShrimp = (freshShrimp: string) => {
-  localShrimp.value = freshShrimp;
-  emit('update:shrimp', freshShrimp);
-}
 
 const {
   isSubmitting: isDeleting,
@@ -38,7 +30,6 @@ const {
     showDeleteModal.value = false;
     window.location.href = '/';
   },
-  handleShrimp: handleShrimp,
 });
 
 const openDeleteModal = () => {
@@ -49,8 +40,6 @@ const closeDeleteModal = () => {
   showDeleteModal.value = false;
   deletePassword.value = '';
 };
-
-
 </script>
 
 <template>
@@ -74,7 +63,7 @@ const closeDeleteModal = () => {
           class="w-full max-w-md">
       <input type="hidden"
               name="shrimp"
-              :value="localShrimp" />
+              :value="csrfStore.shrimp" />
 
       <div class="dark:bg-gray-800 p-6 bg-white rounded-lg shadow-lg">
         <h3 class="dark:text-white mb-4 text-xl font-bold text-gray-900">Confirm Account Deletion</h3>

@@ -63,7 +63,7 @@
                         :action="`/api/v2/account/domains/${domain.display_domain}/remove`">
                     <input type="hidden"
                            name="shrimp"
-                           :value="shrimp" />
+                           :value="csrfStore.shrimp" />
                     <MenuItem v-slot="{ active }"
                               class="text-red-500">
                     <button type="submit"
@@ -93,16 +93,15 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-
 import type { CustomDomain } from '@/types/onetime';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { MenuItem } from '@headlessui/vue';
-import { ref } from 'vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
 import { useRouter } from 'vue-router';
 import DomainVerificationInfo from './DomainVerificationInfo.vue';
+import { useCsrfStore } from '@/stores/csrfStore';
 
-const shrimp = ref(window.shrimp);
+const csrfStore = useCsrfStore();
 
 const router = useRouter();
 
@@ -110,9 +109,6 @@ defineProps<{
   domains: CustomDomain[];
 }>();
 
-const handleShrimp = (freshShrimp: string) => {
-  shrimp.value = freshShrimp;
-}
 
 const { isSubmitting, submitForm } = useFormSubmission({
   successMessage: 'Domain removed successfully',
@@ -120,7 +116,6 @@ const { isSubmitting, submitForm } = useFormSubmission({
     // Refresh the current route
     router.go(0);
   },
-  handleShrimp: handleShrimp,
 });
 
 const formatRelativeTime = (epochSeconds: number): string => {

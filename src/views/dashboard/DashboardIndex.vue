@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import SecretForm from '@/components/SecretForm.vue';
-import { useWindowProps } from '@/composables/useWindowProps';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-
-const { shrimp } = useWindowProps(['shrimp']);
-
 
 </script>
 
@@ -12,7 +8,7 @@ const { shrimp } = useWindowProps(['shrimp']);
   <div>
     <DashboardTabNav />
 
-    <SecretForm :shrimp="shrimp"
+    <SecretForm
                 :withGenerate="true"
                 :withRecipient="true" />
   </div>

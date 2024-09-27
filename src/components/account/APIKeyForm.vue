@@ -3,30 +3,22 @@ import { ref, watch } from 'vue';
 import APIKeyCard from '@/components/account/APIKeyCard.vue';
 import { ApiTokenApiResponse } from '@/types/onetime';
 import { useFormSubmission } from '@/composables/useFormSubmission';
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
 
 interface Props {
   apitoken?: string;
-  shrimp: string | undefined;
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(['update:apitoken', 'update:shrimp']);
+const emit = defineEmits(['update:apitoken']);
 
 const localApiToken = ref(props.apitoken);
-const localShrimp = ref(props.shrimp);
 
 watch(() => props.apitoken, (newValue) => {
   localApiToken.value = newValue;
 });
-
-watch(() => props.shrimp, (newValue) => {
-  localShrimp.value = newValue;
-});
-
-const handleShrimp = (freshShrimp: string) => {
-  localShrimp.value = freshShrimp;
-  emit('update:shrimp', freshShrimp);
-}
 
 const {
   isSubmitting: isGeneratingAPIKey,
@@ -42,7 +34,6 @@ const {
     localApiToken.value = newToken;
     emit('update:apitoken', newToken);
   },
-  handleShrimp: handleShrimp,
 });
 
 </script>
@@ -51,7 +42,7 @@ const {
   <form @submit.prevent="generateAPIKey">
     <input type="hidden"
            name="shrimp"
-           :value="localShrimp" />
+           :value="csrfStore.shrimp" />
 
     <APIKeyCard :apitoken="localApiToken" />
 

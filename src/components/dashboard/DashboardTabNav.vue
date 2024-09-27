@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useWindowProps } from '@/composables/useWindowProps';
 
-const { authenticated, metadata_record_count, domains_enabled, plan, custom_domains_record_count } = useWindowProps(['authenticated', 'shrimp', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
+const { authenticated, metadata_record_count, domains_enabled, plan, custom_domains_record_count } = useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
 
 const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
 

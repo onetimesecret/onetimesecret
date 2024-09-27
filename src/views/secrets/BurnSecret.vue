@@ -34,7 +34,7 @@
             class="space-y-4">
         <input type="hidden"
               name="shrimp"
-              :value="shrimp" />
+              :value="csrfStore.shrimp" />
         <input type="hidden"
               name="continue"
               value="true" />
@@ -78,11 +78,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import type { MetadataData } from '@/types/onetime'
 import { useFetchDataRecord } from '@/composables/useFetchData'
+import { useCsrfStore } from '@/stores/csrfStore';
 
-const shrimp = ref(window.shrimp);
+const csrfStore = useCsrfStore();
 
 // This prop is passed from vue-router b/c the route has `prop: true`.
 interface Props {

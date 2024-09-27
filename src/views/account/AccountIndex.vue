@@ -14,7 +14,7 @@
       </h2>
       <div class="pl-3">
 
-        <APIKeyForm :apitoken="account?.apitoken" :shrimp="shrimp" />
+        <APIKeyForm :apitoken="account?.apitoken" />
 
       </div>
     </div>
@@ -29,7 +29,7 @@
         <i class="fas fa-lock mr-2"></i> Update Password
       </h2>
       <div class="pl-3"> <!-- Added padding-left to align with the title text -->
-        <AccountChangePasswordForm :shrimp="shrimp" />
+        <AccountChangePasswordForm />
       </div>
     </div>
 
@@ -40,7 +40,7 @@
       </h2>
       <div class="pl-3"> <!-- Added padding-left to align with the title text -->
 
-        <AccountDeleteButtonWithModalForm :shrimp="shrimp" :cust="cust" />
+        <AccountDeleteButtonWithModalForm :cust="cust" />
 
       </div>
     </div>
@@ -67,7 +67,7 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 // preformatted template variables (i.e. the jsvars from Onetime::App::View)
 // rather than re-implement them here in Vue. We'll replace all of them
 // eventually, but for now, this is a good way to keep momentum going.
-const { shrimp, plan, cust, customer_since } = useWindowProps([ 'shrimp', 'plan', 'cust', 'customer_since' ]);
+const { plan, cust, customer_since } = useWindowProps([ 'plan', 'cust', 'customer_since' ]);
 
 
 const { record: account, fetchData: fetchAccount } = useFetchDataRecord<Account>({

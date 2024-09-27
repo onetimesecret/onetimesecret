@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import SignInForm from '@/components/auth/SignInForm.vue';
 
-const shrimp = window.shrimp;
 </script>
 
 <template>
@@ -13,7 +12,7 @@ const shrimp = window.shrimp;
         {{ $t('web.login.enter_your_credentials') }}
       </h3>
 
-      <SignInForm :shrimp="shrimp" />
+      <SignInForm />
     </section>
 
     <div class="text-center">

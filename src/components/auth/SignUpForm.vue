@@ -1,20 +1,19 @@
 <!-- signup_form_basic.vue -->
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
 
 export interface Props {
-  shrimp: string | null;
   enabled?: boolean;
   planid?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
-  shrimp: null,
   planid: 'basic',
 })
-
-
 
 const email = ref('');
 const password = ref('');
@@ -43,7 +42,7 @@ const togglePasswordVisibility = (field: 'password' | 'confirmPassword') => {
            value="✓" />
     <input type="hidden"
            name="shrimp"
-           :value="props.shrimp" />
+           :value="csrfStore.shrimp" />
     <input type="hidden"
            name="planid"
            :value="props.planid" />

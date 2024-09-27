@@ -20,7 +20,6 @@ export interface Props {
   isDefaultLocale: boolean
   onetimeVersion: string
   plansEnabled?: boolean
-  shrimp: string
   supportHost?: string
 }
 
@@ -91,7 +90,7 @@ withDefaults(defineProps<Props>(), {
       <div class="container mx-auto p-4 max-w-2xl">
 
         <div v-if="displayFeedback">
-          <FeedbackForm :shrimp="shrimp" :showRedButton="false" />
+          <FeedbackForm :showRedButton="false" />
         </div>
 
         <div v-if="displayLinks" class="prose dark:prose-invert text-base pt-4 font-brand">

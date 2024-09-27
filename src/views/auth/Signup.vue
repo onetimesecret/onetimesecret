@@ -4,10 +4,8 @@ import PlansElevateCta from '@/components/ctas/PlansElevateCta.vue';
 import SignUpForm from '@/components/auth/SignUpForm.vue';
 
 const currentPlanId = 'basic';
-const availablePlans = window.available_plans ?? {};
+const availablePlans = window.available_plans;
 const defaultPlan = availablePlans[currentPlanId];
-
-const shrimp = window.shrimp ?? null;
 
 </script>
 
@@ -27,7 +25,7 @@ const shrimp = window.shrimp ?? null;
       <PlansElevateCta />
     <!--{{/hide_cta}}-->
 
-    <SignUpForm :shrimp="shrimp" :planid="currentPlanId" />
+    <SignUpForm :planid="currentPlanId" />
 
     <div class="mt-6 text-center">
       <a href="/signin" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">

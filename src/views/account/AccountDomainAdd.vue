@@ -1,7 +1,7 @@
 <template>
   <div class="">
     <h1 class="text-3xl font-bold mb-6 dark:text-white">Add your domain</h1>
-    <DomainForm :shrimp="shrimp" @domain-added="onDomainAdded" :disabled="isNavigating" />
+    <DomainForm @domain-added="onDomainAdded" :disabled="isNavigating" />
     <p v-if="isNavigating" class="mt-4 text-gray-600 dark:text-gray-400">Navigating to verification page...</p>
   </div>
 </template>
@@ -11,7 +11,6 @@ import { nextTick, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import DomainForm from '@/components/DomainForm.vue';
 
-const shrimp = ref(window.shrimp);
 const router = useRouter();
 const isNavigating = ref(false);
 
