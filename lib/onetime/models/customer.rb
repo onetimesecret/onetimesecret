@@ -51,6 +51,7 @@ class Onetime::Customer < Familia::Horreum
     :role,
     :verified,
     :last_login,
+    :locale,
     :updated,
     :created,
 

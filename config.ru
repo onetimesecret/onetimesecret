@@ -21,7 +21,7 @@ $LOAD_PATH.unshift(File.join(app_root, 'lib'))
 
 # Required Libraries
 require 'rack/content_length'
-require 'rack/json'
+require 'rack/contrib'
 require_relative 'lib/middleware'
 require_relative 'lib/onetime'
 
@@ -39,10 +39,8 @@ apps = {
 headers = { 'Content-Type' => 'application/json' }
 
 # API Error Responses
-%w[v1 v2].each do |version|
-  apps["/api/#{version}"].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
-  apps["/api/#{version}"].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
-end
+apps["/api/v1"].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
+apps["/api/v1"].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
 
 # Public Directory for Root Endpoint
 apps['/'].option[:public] = PUBLIC_DIR
@@ -62,7 +60,7 @@ use Rack::Reloader, 1 if Otto.env?(:dev)
 
 # Mount Applications
 map '/api/v2' do
-  use Rack::JSON
+  use Rack::JSONBodyParser
   run apps['/api/v2']
 end
 

@@ -32,7 +32,7 @@ module Onetime::Logic
       end
 
       def perform_update
-        cust.update_locale!(new_locale) # update the single field
+        cust.locale!(new_locale) # update the single field
       end
 
       def valid_locale?(locale)
