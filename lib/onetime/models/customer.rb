@@ -26,6 +26,8 @@ class Onetime::Customer < Familia::Horreum
   field :apitoken # TODO: use sorted set?
   field :verified
 
+  field :locale
+
   field :secrets_created # regular hashkey string field
   field :secrets_burned
   field :secrets_shared

@@ -3,7 +3,7 @@ require_relative 'base'
 require_relative '../../app_settings'
 require_relative '../../../logic/account'
 
-class Onetime::App::APIV2
+class Onetime::App::APIV2::Account
   class Account
     include Onetime::App::AppSettings
     include Onetime::App::APIV2::Base
@@ -28,6 +28,14 @@ class Onetime::App::APIV2
         OT::Logic::Account::UpdatePassword,
         "Password changed successfully.",
         "Password could not be changed."
+      )
+    end
+
+    def update_locale
+      process_action(
+        OT::Logic::Account::UpdateLocale,
+        "Locale updated successfully.",
+        "Locale could not be updated."
       )
     end
 

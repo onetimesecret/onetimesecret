@@ -23,6 +23,7 @@ module Onetime::Logic
         if valid_update?
           @greenlighted = true
           log_update
+          # TODO: Run in redis transaction
           perform_update
           @modified << field_name
         end
