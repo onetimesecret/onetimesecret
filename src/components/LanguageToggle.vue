@@ -83,8 +83,8 @@ const focusPreviousItem = () => {
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
+      await setLanguage(newLocale); // update the UI first and fore-meowst
       await languageStore.updateLanguage(newLocale);
-      await setLanguage(newLocale);
       closeMenu();
     } catch (err) {
       console.error('Failed to update language:', err);
