@@ -16,11 +16,12 @@ const { notreceived, received, has_items } = useWindowProps(['notreceived', 'rec
 </script>
 
 <template>
-  <DashboardTabNav />
+  <div>
+    <DashboardTabNav />
 
-  <SecretMetadataTable :hasItems="has_items"
-                       :notReceived="notreceived"
-                       :received="received"
-                       title="Received" />
-
+    <SecretMetadataTable :hasItems="has_items"
+                        :notReceived="notreceived"
+                        :received="received"
+                        title="Received" />
+  </div>
 </template>

@@ -1,6 +1,9 @@
 
 <template>
-  <main class="container mx-auto px-4 py-8">
+  <div class="">
+
+    <DashboardTabNav />
+
     <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Verify your domain</h1>
 
     <DomainVerificationInfo
@@ -45,7 +48,7 @@
     />
     <p v-else class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
 
-  </main>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -55,6 +58,9 @@ import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/ty
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+
+
 
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);

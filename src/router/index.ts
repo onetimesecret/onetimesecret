@@ -93,7 +93,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains/add',
     name: 'AccountDomainAdd',
     component: () => import('@/views/account/AccountDomainAdd.vue'),
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayFeedback: false,
+      }
+    },
     props: true,
   },
   {

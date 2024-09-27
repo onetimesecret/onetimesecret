@@ -1,6 +1,8 @@
 <template>
-  <div class="max-w-2xl p-4 mx-auto">
+  <div class="">
+
     <DashboardTabNav />
+
     <h1 class="dark:text-white mb-6 text-3xl font-bold">Your Account</h1>
     <p class="dark:text-gray-300 mb-4 text-lg">Account type: {{ plan?.options?.name }}</p>
 

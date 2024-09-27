@@ -1,10 +1,8 @@
 <template>
-  <main>
-    <div class="py-4 mb-16">
-
-      <DomainsTable :shrimp="shrimp" :domains="domains" />
-    </div>
-  </main>
+  <div class="">
+    <DashboardTabNav />
+    <DomainsTable :shrimp="shrimp" :domains="domains" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -12,6 +10,7 @@ import { ref, onMounted } from 'vue';
 import { CustomDomain } from '@/types/onetime';
 import DomainsTable from '@/components/DomainsTable.vue';
 import { useFetchData } from '@/composables/useFetchData';
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 
 const shrimp = ref(window.shrimp);
 

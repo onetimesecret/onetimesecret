@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-14 max-w-2xl">
+  <div class="">
     <div v-if="isLoading">Loading...</div>
     <!--<div v-else-if="error">Error: {{ error }}</div>-->
     <div v-else-if="record && details"

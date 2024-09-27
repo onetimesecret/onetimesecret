@@ -9,11 +9,11 @@ const { shrimp } = useWindowProps(['shrimp']);
 </script>
 
 <template>
+  <div>
+    <DashboardTabNav />
 
-  <DashboardTabNav />
-
-  <SecretForm :shrimp="shrimp"
-              :withGenerate="true"
-              :withRecipient="true" />
-
+    <SecretForm :shrimp="shrimp"
+                :withGenerate="true"
+                :withRecipient="true" />
+  </div>
 </template>
