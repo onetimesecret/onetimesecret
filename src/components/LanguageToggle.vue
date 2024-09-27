@@ -81,13 +81,14 @@ const focusPreviousItem = () => {
 };
 
 const changeLocale = async (newLocale: string) => {
-  if (supportedLocales.value.includes(newLocale)) {
+  if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
       await languageStore.updateLanguage(newLocale);
       await setLanguage(newLocale);
       closeMenu();
     } catch (err) {
       console.error('Failed to update language:', err);
+      // Later: handle the error here (e.g., show a user-friendly message)
     }
   }
 };

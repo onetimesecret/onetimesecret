@@ -13,6 +13,7 @@ interface LanguageState {
   defaultLocale: string;
   isLoading: boolean;
   error: string | null;
+  shrimp: string;
 }
 
 export const useLanguageStore = defineStore('language', {
@@ -22,11 +23,13 @@ export const useLanguageStore = defineStore('language', {
     supportedLocales: supportedLocales,
     isLoading: false,
     error: null,
+    shrimp: shrimp.value,
   }),
 
   getters: {
     getCurrentLocale: (state) => state.currentLocale,
     getSupportedLocales: (state) => state.supportedLocales,
+    getShrimp: (state) => state.shrimp,
   },
 
   actions: {
@@ -50,17 +53,29 @@ export const useLanguageStore = defineStore('language', {
       this.isLoading = true;
       this.error = null;
       try {
-        await axios.post('/api/v2/account/update-locale', {
+        const response = await axios.post('/api/v2/account/update-locale', {
           locale: newLocale,
-          shrimp: shrimp.value // Include the shrimp value in the request
+          shrimp: this.shrimp
         });
         this.currentLocale = newLocale;
+
+        // Handle the new shrimp value
+        if (response.data && response.data.shrimp) {
+          this.updateShrimp(response.data.shrimp);
+        }
       } catch (error) {
-        console.error('Failed to update language:', error);
         this.error = 'Failed to update language';
-        throw error;
+        throw error; // Re-throw the error for the component to handle
       } finally {
         this.isLoading = false;
+      }
+    },
+
+    updateShrimp(freshShrimp: string) {
+      this.shrimp = freshShrimp;
+      // Update the window.shrimp value as well
+      if (typeof window !== 'undefined') {
+        window.shrimp = freshShrimp;
       }
     },
 

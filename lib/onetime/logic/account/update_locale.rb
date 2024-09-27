@@ -5,7 +5,7 @@ module Onetime::Logic
       attr_reader :new_locale, :old_locale
 
       def process_params
-        OT.ld "[UpdateLocale#process_params] params: #{params.inspect}"
+        OT.ld "[UpdateLocale#process_params] params: #{params.inspect}" # careful w/ logging params
         @new_locale = params[:locale]
         @old_locale = cust.locale
       end
