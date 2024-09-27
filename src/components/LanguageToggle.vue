@@ -46,13 +46,17 @@
 import { ref, onMounted, computed } from 'vue';
 import { setLanguage } from '@/i18n';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useWindowProp, useUnrefWindowProp } from '@/composables/useWindowProps.js';
 
 const languageStore = useLanguageStore();
 
 const isMenuOpen = ref(false);
 const menuItems = ref<HTMLElement[]>([]);
 
-// Compute the current locale
+// Use window.locale if available, otherwise fallback to store value
+const windowLocale = useUnrefWindowProp('locale');
+const cust = useWindowProp('cust');
+const initialLocale = computed(() => cust?.value?.locale || windowLocale);
 const currentLocale = computed(() => languageStore.getCurrentLocale);
 const supportedLocales = computed(() => languageStore.getSupportedLocales);
 
@@ -95,6 +99,17 @@ const changeLocale = async (newLocale: string) => {
 
 onMounted(async () => {
   menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
-  await languageStore.fetchSupportedLocales();
+
+  // Fetch supported locales first
+  await languageStore.fetchSupportedLocales(initialLocale.value);
+
+  // If the initial locale from window is different from the store, update the store and set the language
+  if (initialLocale.value && initialLocale.value !== languageStore.getCurrentLocale) {
+    await languageStore.setCurrentLocale(initialLocale.value);
+    await setLanguage(initialLocale.value);
+  } else {
+    // If the locale hasn't changed, still ensure that the i18n system is updated
+    await setLanguage(languageStore.getCurrentLocale);
+  }
 });
 </script>

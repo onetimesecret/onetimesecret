@@ -33,14 +33,17 @@ export const useLanguageStore = defineStore('language', {
   },
 
   actions: {
-    async fetchSupportedLocales() {
+    async fetchSupportedLocales(initialLocale?: string) {
       this.isLoading = true;
       try {
         const response = await axios.get('/api/v2/supported-locales');
         const { locales, default_locale, locale } = response.data;
         this.supportedLocales = locales;
         this.defaultLocale = default_locale;
-        this.setCurrentLocale(locale);
+
+        // Use the initialLocale if provided, otherwise use the locale from the API
+        const localeToSet = initialLocale || locale;
+        this.setCurrentLocale(localeToSet);
       } catch (error) {
         console.error('Failed to fetch supported locales:', error);
         this.error = 'Failed to fetch supported locales';
