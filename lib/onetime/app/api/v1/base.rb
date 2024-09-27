@@ -50,9 +50,7 @@ module Onetime::App
           # like API requests coming from hybrid Vue components.
           elsif req.cookie?(:sess)
 
-            # Anytime we allow session cookies, we must also check shrimp.
             check_session!
-            check_shrimp!
 
             unless sess.authenticated? || allow_anonymous
               raise OT::Unauthorized, "Session not authenticated"
@@ -67,6 +65,12 @@ module Onetime::App
 
             custid = @cust.custid unless @cust.nil?
             OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+
+            # Anytime we allow session cookies, we must also check shrimp. This will
+            # run only for POST etc requests (i.e. not GET) and it's important to
+            # check the shrimp after checking auth. Otherwise we'll chrun through
+            # shrimp even though weren't going to complete the request anyway.
+            check_shrimp!
 
           # Otherwise, we have no credentials, so we must be anonymous. Only
           # methods that opt-in to allow anonymous sessions will be allowed to
