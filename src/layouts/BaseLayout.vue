@@ -134,7 +134,6 @@ withDefaults(defineProps<Props>(), {
 
             <LanguageToggle
               :isDefaultLocale="false"
-              currentLocale="en"
               :supportedLocales="['en', 'fr', 'es']"
             />
 
