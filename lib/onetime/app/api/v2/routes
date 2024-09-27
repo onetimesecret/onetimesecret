@@ -20,7 +20,7 @@ GET    /supported-locales                    Onetime::App::APIV2#get_supported_l
 
 GET    /status                               Onetime::App::APIV2#status
 GET    /version                              Onetime::App::APIV2#version
-GET    /validate-shrimp                      Onetime::App::APIV2#validate_shrimp
+GET    /validate-shrimp                      Onetime::App::APIV2#get_validate_shrimp
 
 GET    /altcha/challenge                     Onetime::App::APIV2::Challenges#altcha_challenge
 POST   /altcha/verify                        Onetime::App::APIV2::Challenges#altcha_verify

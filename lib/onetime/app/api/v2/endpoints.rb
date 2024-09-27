@@ -31,14 +31,14 @@ module Onetime::App
       end
     end
 
-    def validate_shrimp
+    def get_validate_shrimp
       publically do
         shrimp = request.env['HTTP_O_SHRIMP'].to_s
         halt(400, json(error: 'Missing O-Shrimp header')) if shrimp.empty?
 
         begin
           # Attempt to validate the shrimp
-          is_valid = validate_shrimp(shrimp)
+          is_valid = validate_shrimp(shrimp, replace=false)
         rescue OT::BadShrimp => e
           # If a BadShrimp exception is raised, log it and set is_valid to false
           OT.ld "BadShrimp exception: #{e.message}"
