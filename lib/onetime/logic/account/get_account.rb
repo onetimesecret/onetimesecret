@@ -10,6 +10,7 @@ module Onetime::Logic
       using Onetime::StripeRefinements
 
       def process_params
+        OT.ld "[GetAccount#process_params] params: #{params.inspect}"
         site = OT.conf.fetch(:site, {})
         @plans_enabled = site.dig(:plans, :enabled) || false
       end

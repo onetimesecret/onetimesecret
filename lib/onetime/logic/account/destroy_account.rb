@@ -8,6 +8,7 @@ module Onetime::Logic
 
       def process_params
         return if params.nil?
+        OT.ld "[DestroyAccount#process_params] params: #{params.inspect}"
         @confirmation = self.class.normalize_password(params[:confirmation])
       end
 

@@ -6,6 +6,7 @@ module Onetime::Logic
       attr_reader :apitoken, :greenlighted
 
       def process_params
+        OT.ld "[GenerateAPIToken#process_params] params: #{params.inspect}"
       end
 
       def raise_concerns

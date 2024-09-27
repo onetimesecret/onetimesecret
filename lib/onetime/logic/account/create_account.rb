@@ -9,6 +9,7 @@ module Onetime::Logic
       attr_accessor :token
 
       def process_params
+        OT.ld "[CreateAccount#process_params] params: #{params.inspect}"
         @planid = params[:planid].to_s
         @custid = params[:u].to_s.downcase.strip
 
