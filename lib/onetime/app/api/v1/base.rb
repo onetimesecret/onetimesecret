@@ -192,6 +192,13 @@ module Onetime::App
         json hsh
       end
 
+      # The v1 API historically returned 404 for auth errors
+      def not_authorized_error hsh={}
+        hsh[:message] = "Not authorized"
+        res.status = 404
+        json hsh
+      end
+
       def error_response msg, hsh={}
         hsh[:message] = msg
         res.status = 404
