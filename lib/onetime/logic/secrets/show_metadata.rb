@@ -36,7 +36,6 @@ module Onetime::Logic
         @metadata_shortkey = metadata.shortkey
         @secret_key = metadata.secret_key
         @secret_shortkey = metadata.secret_shortkey
-        @share_domain = metadata.share_domain
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't
@@ -81,6 +80,11 @@ module Onetime::Logic
           if secret.viewable?
             @has_passphrase = !secret.passphrase.to_s.empty?
             @can_decrypt = secret.can_decrypt?
+            # If we can't decrypt the secret (i.e. if we can't access it) then
+            # then we leave secret_value nil. We do this so that after creating
+            # a secret we can show the received contents on the "/private/metadata_key"
+            # page one time. Particularly for generated passwords which are not
+            # shown any other time.
             @secret_value = secret.decrypted_value if @can_decrypt
             @is_truncated = secret.truncated?
           end
@@ -132,14 +136,14 @@ module Onetime::Logic
         @show_recipients = @show_metadata && !@recipients.empty?
 
         domain = if domains_enabled
-          if metadata.share_domain.to_s.empty?
-            site_host
-          else
-            metadata.share_domain
-          end
-        else
-          site_host
-        end
+                    if metadata.share_domain.to_s.empty?
+                      site_host
+                    else
+                      metadata.share_domain
+                    end
+                  else
+                    site_host
+                  end
 
         @share_domain = [base_scheme, domain].join
 
@@ -149,7 +153,7 @@ module Onetime::Logic
       end
 
       def one_liner
-        return if secret_value.to_s.empty? # return nil
+        return if secret_value.to_s.empty? # return nil when the value is empty
         secret_value.to_s.scan(/\n/).size.zero?
       end
 

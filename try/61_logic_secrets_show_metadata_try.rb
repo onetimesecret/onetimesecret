@@ -128,6 +128,39 @@ params = {
 @this_logic.share_url
 #=> "#{@this_logic.baseuri}/secret/#{@this_logic.secret.key}"
 
+## Share domain in site.host by default
+metadata = @create_metadata.call
+params = {
+  key: metadata.key
+}
+@this_logic = Onetime::Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+@this_logic.process
+"https://#{@this_logic.site[:host]}"
+#=> @this_logic.share_domain
+
+## Share domain is still site.host even when the metadata has it set if domains is not enabled
+metadata = @create_metadata.call
+metadata.share_domain! "example.com"
+params = {
+  key: metadata.key
+}
+@this_logic = Onetime::Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+@this_logic.process
+["https://#{@this_logic.site[:host]}", @this_logic.domains_enabled]
+#=> [@this_logic.share_domain, false]
+
+## Share domain is processed correctly when the metadata has it set and domains is enabled
+metadata = @create_metadata.call
+metadata.share_domain! "example.com"
+params = {
+  key: metadata.key
+}
+@this_logic = Onetime::Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
+@this_logic.instance_variable_set(:@domains_enabled, true)
+@this_logic.process
+["https://example.com", @this_logic.domains_enabled]
+#=> [@this_logic.share_domain, true]
+
 ## Sets locale correctly
 logic = Onetime::Logic::Secrets::ShowMetadata.new(@sess, @cust, {}, 'es')
 logic.locale
