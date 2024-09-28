@@ -46,8 +46,8 @@ const closeDeleteModal = () => {
   <p class="dark:text-gray-300 mb-4">Please be advised:</p>
   <ul class="dark:text-gray-300 mb-4 list-disc list-inside">
     <li><span class="font-bold">Secrets will remain active until they expire.</span></li>
-    <li>Any secrets you wish to remove, <a href="#"
-         class="underline">burn them before continuing</a>.</li>
+    <li>Any secrets you wish to remove, <span
+         class="underline">burn them before continuing</span>.</li>
     <li>Deleting your account is <span class="italic">permanent and non-reversible.</span></li>
   </ul>
   <button @click="openDeleteModal"

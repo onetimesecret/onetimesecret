@@ -2,10 +2,12 @@
 <script setup lang="ts">
 import PlansElevateCta from '@/components/ctas/PlansElevateCta.vue';
 import SignUpForm from '@/components/auth/SignUpForm.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
 
 const currentPlanId = 'basic';
 const availablePlans = window.available_plans;
 const defaultPlan = availablePlans[currentPlanId];
+const supportHost = useWindowProp('support_host');
 
 </script>
 
@@ -17,20 +19,18 @@ const defaultPlan = availablePlans[currentPlanId];
       <ul class="list-disc pl-6 text-gray-700 dark:text-gray-300">
         <li>secrets that live up to <span class="font-bold text-brand-600 dark:text-brand-400">{{defaultPlan.options.ttl/3600/24}} days</span>.</li>
         <li v-if="defaultPlan.options.email">to send secret links via <span class="font-bold text-brand-600 dark:text-brand-400">email</span>.</li>
-        <li v-if="defaultPlan.options.api">access to the <a href="/docs/api" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">API</a>.</li>
+        <li v-if="defaultPlan.options.api">access to the <a :href="`${supportHost}/docs/rest-api`" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">API</a>.</li>
       </ul>
     </section>
 
-    <!--{{^hide_cta}}-->
-      <PlansElevateCta />
-    <!--{{/hide_cta}}-->
+    <PlansElevateCta />
 
     <SignUpForm :planid="currentPlanId" />
 
     <div class="mt-6 text-center">
-      <a href="/signin" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">
+      <router-link to="/signin" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">
         Already have an account? <strong class="font-medium text-gray-900 dark:text-gray-200">Sign In</strong>
-      </a>
+      </router-link>
     </div>
   </div>
 </template>

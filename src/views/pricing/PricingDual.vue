@@ -168,10 +168,10 @@
             </p>
           </div>
           <div class="mt-8 lg:mt-0 lg:ml-10 flex flex-col space-y-4">
-            <a href="/signup/basic"
-               class="font-brand inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brandcomp-500 hover:bg-brandcomp-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 transition-colors duration-200">
+            <router-link to="/signup/basic"
+                         class="font-brand inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brandcomp-500 hover:bg-brandcomp-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 transition-colors duration-200">
               Get Started for Free
-            </a>
+            </router-link>
             <a href="https://github.com/onetimesecret/onetimesecret"
                ref="noopener noreferrer"
                class="font-brand inline-flex items-center justify-center px-5 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 transition-colors duration-200">
@@ -181,8 +181,6 @@
         </div>
       </div>
     </div>
-
-
 
   </div>
 </template>

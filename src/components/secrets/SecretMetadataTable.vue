@@ -28,7 +28,7 @@ defineProps<Props>();
           </ul>
           <p v-else class="text-gray-600 dark:text-gray-400 italic">
             Go on then.
-              <a href="/" class="text-brand-500 hover:underline">{{ $t('web.COMMON.share_a_secret') }}!</a>
+              <router-link to="/" class="text-brand-500 hover:underline">{{ $t('web.COMMON.share_a_secret') }}</router-link>!
           </p>
         </section>
 
@@ -53,7 +53,7 @@ defineProps<Props>();
           </h3>
           <p class="text-gray-600 dark:text-gray-400 italic">
             Go on then.
-            <a href="/" class="text-brand-500 hover:underline">{{ $t('web.COMMON.share_a_secret') }}!</a>
+            <router-link to="/" class="text-brand-500 hover:underline">{{ $t('web.COMMON.share_a_secret') }}</router-link>!
           </p>
         </section>
       </template>
