@@ -27,7 +27,6 @@ module Onetime::Logic
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret = secret.viewable? && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
-        @share_domain = secret.share_domain
         @secret_key = @secret.key
         @secret_shortkey = @secret.shortkey
 
@@ -65,6 +64,17 @@ module Onetime::Logic
           #   view.add_error view.i18n[:COMMON][:error_passphrase]
         end
 
+        domain = if domains_enabled
+                  if secret.share_domain.to_s.empty?
+                    site_host
+                  else
+                    secret.share_domain
+                  end
+                else
+                  site_host
+                end
+
+        @share_domain = [base_scheme, domain].join
         @is_owner = @secret.owner?(cust)
         @has_passphrase = @secret.has_passphrase?
         @display_lines = calculate_display_lines
