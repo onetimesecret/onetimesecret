@@ -99,7 +99,9 @@ withDefaults(defineProps<Props>(), {
           </template>
 
           <template v-if="plansEnabled">
-            <a href="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Pricing</a> |
+            <router-link to="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+              Pricing
+            </router-link> |
           </template>
 
           <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">GitHub</a> |
@@ -108,14 +110,17 @@ withDefaults(defineProps<Props>(), {
             <a :href="`${supportHost}/docs/rest-api`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a> |
             <a :href="`${supportHost}/docs`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
           </template>
-          <template v-else>
-            <a href="/docs/api" aria-label="API Documentation" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a>
-          </template>
         </div>
         <div v-if="displayLinks" class="prose dark:prose-invert text-base font-brand">
-          <a href="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Privacy</a> |
-          <a href="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Terms</a> |
-          <a href="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">Security</a> |
+          <router-link to="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+            Privacy
+          </router-link> |
+          <router-link to="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+            Terms
+          </router-link> |
+          <router-link to="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+            Security
+          </router-link> |
           <a href="https://status.onetimesecret.com/" aria-label="Check service status" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Status</a> |
           <a :href="`${supportHost}/about`" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a>
         </div>

@@ -23,17 +23,17 @@
           {{i18n.page.cta_feature3}}
         </li>
       </ul>
-      <a href="/pricing" class="font-brand inline-flex items-center px-6 py-3 bg-brand-600 text-white font-semibold rounded-md hover:bg-brand-700 transition duration-300">
+      <router-link :to="/pricing" class="font-brand inline-flex items-center px-6 py-3 bg-brand-600 text-white font-semibold rounded-md hover:bg-brand-700 transition duration-300">
         {{i18n.page.explore_premium_plans}}
         <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" height="20" width="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
         </svg>
-      </a>
+      </router-link>
     </div>
     <div class="w-full md:w-1/3 md:border-l md:border-gray-200 dark:md:border-gray-700 md:pl-8 mt-20 md:mt-20">
       <p class="text-gray-600 dark:text-gray-300 mb-4">{{i18n.page.need_free_account}}</p>
 
-      <a href="/signup" class="font-brand inline-block w-full text-base text-center px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white font-semibold rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-300">
+      <router-link :to="/signup" class="font-brand inline-block w-full text-base text-center px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white font-semibold rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-300">
         {{i18n.page.sign_up_free}}
       </a>
 

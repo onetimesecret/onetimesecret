@@ -22,12 +22,12 @@
           </span>
         </div>
         <div class="flex w-full sm:w-auto font-brand">
-          <a href="/pricing"
-             class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 sm:py-2 md:px-4
-             md:py-1 text-xl sm:text-base md:text-xs font-semibold text-brand-500 bg-white
-             hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
-             rounded-md border border-brand-500 transition duration-150 animate-throb
-             dark:text-white dark:bg-brand-500 dark:hover:bg-brand-600">
+          <router-link to="/pricing"
+                       class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 sm:py-2 md:px-4
+              md:py-1 text-xl sm:text-base md:text-xs font-semibold text-brand-500 bg-white
+              hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
+              rounded-md border border-brand-500 transition duration-150 animate-throb
+              dark:text-white dark:bg-brand-500 dark:hover:bg-brand-600">
             <span class="sm:hidden">Now with custom domains</span>
             <span class="hidden sm:inline">{{ $t('web.homepage.explore_premium_plans') }}</span>
             <svg class="ml-2 w-5 h-5 md:w-4 md:h-4"
@@ -42,7 +42,7 @@
                     stroke-width="2"
                     d="M9 5l7 7-7 7"></path>
             </svg>
-          </a>
+          </router-link>
         </div>
       </div>
     </div>
@@ -50,8 +50,6 @@
 </template>
 
 <script setup lang="ts">
-
-
 </script>
 
 <style scoped>
@@ -65,6 +63,7 @@
   50% {
     transform: scale(1.05);
   }
+
 }
 
 .animate-throb {

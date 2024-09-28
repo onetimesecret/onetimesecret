@@ -127,7 +127,7 @@ onMounted(() => {
       and we don't keep access logs beyond the minimum necessary. This means that in most cases, we
       simply don't have any data to provide in response to such requests. For more details, please
       review our
-      <a href="/info/privacy">privacy policy</a>.
+      <router-link to="/info/privacy">privacy policy</router-link>.
     </p>
 
     <h4>Why should I trust you?</h4>

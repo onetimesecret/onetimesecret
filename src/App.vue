@@ -67,7 +67,6 @@ const layoutProps = computed(() => {
     authentication: authentication.value,
     colonel: false,
     cust: cust.value,
-    shrimp: shrimp.value,
     onetimeVersion: ot_version.value,
     supportHost: support_host.value,
     plansEnabled: plans_enabled.value,

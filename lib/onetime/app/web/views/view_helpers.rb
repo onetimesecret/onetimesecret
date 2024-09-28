@@ -13,7 +13,11 @@ module Onetime
         def jsvar(name, value)
           value = case value.class.to_s
                   when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
-                    "'#{Rack::Utils.escape_html(value)}'"
+                    if value.to_s.match?(/\A(https?):\/\/[^\s\/$.?#].[^\s]*\z/)
+                      "'#{value}'" # escaping URLs really kills the vibe
+                    else
+                      "'#{Rack::Utils.escape_html(value)}'"
+                    end
                   when 'Array', 'Hash'
                     value.to_json
                   when 'NilClass'

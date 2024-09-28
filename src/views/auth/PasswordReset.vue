@@ -103,7 +103,9 @@ const props = withDefaults(defineProps<Props>(), {
   <!--{{/verified}}-->
 
   <div class="text-center mt-6">
-    <a href="/signin"
-       class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">Back to Sign-in</a>
+    <router-link to="/signin"
+                 class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+      Back to Sign-in
+    </router-link>
   </div>
 </template>

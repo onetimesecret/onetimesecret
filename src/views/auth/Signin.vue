@@ -18,18 +18,18 @@ import SignInForm from '@/components/auth/SignInForm.vue';
     <div class="text-center">
       <ul class="space-y-2">
         <li>
-          <a href="/signup"
-             class="text-sm text-gray-600 dark:text-gray-400 hover:underline transition duration-300 ease-in-out"
-             aria-label="Sign Up">
+          <router-link to="/signup"
+                       class="text-sm text-gray-600 dark:text-gray-400 hover:underline transition duration-300 ease-in-out"
+                       aria-label="Sign Up">
             {{ $t('web.login.need_an_account') }}
-          </a>
+          </router-link>
         </li>
         <li>
-          <a href="/forgot"
-             class="text-sm text-gray-600 dark:text-gray-400 hover:underline transition duration-300 ease-in-out"
-             aria-label="Forgot Password">
+          <router-link to="/forgot"
+                       class="text-sm text-gray-600 dark:text-gray-400 hover:underline transition duration-300 ease-in-out"
+                       aria-label="Forgot Password">
             {{ $t('web.login.forgot_your_password') }}
-          </a>
+          </router-link>
         </li>
       </ul>
     </div>

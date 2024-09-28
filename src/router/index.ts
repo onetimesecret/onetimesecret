@@ -212,15 +212,20 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/auth/Signin.vue'),
   },
   {
-    path: '/signup/:planCode',
-    name: 'Sign Up',
-    component: () => import('@/views/auth/Signup.vue'),
-    props: true,
-  },
-  {
     path: '/signup',
-    name: 'Sign Up',
-    component: () => import('@/views/auth/Signup.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Sign Up',
+        component: () => import('@/views/auth/Signup.vue'),
+      },
+      {
+        path: ':planCode',
+        name: 'Sign Up with Plan',
+        component: () => import('@/views/auth/Signup.vue'),
+        props: true,
+      },
+    ],
   },
   {
     path: '/about',
