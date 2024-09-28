@@ -13,8 +13,10 @@ module Onetime::App
         end
       end
 
-      def colonels
-        authorized do
+      # Ignores the allow_anonymous argument passed in
+      def colonels _
+        allow_anonymous = false
+        authorized(allow_anonymous) do
           raise OT::Unauthorized, "No such customer" unless cust.role?(:colonel)
           yield
         end
@@ -48,7 +50,10 @@ module Onetime::App
       # Processes an action using the specified logic class and handles the response.
       #
       # @param logic_class [Class] The class implementing the action logic.
+      # @param success_message [String] The success message to display if the action succeeds.
       # @param error_message [String] The error message to display if the action fails.
+      # @param auth_type [Symbol] The type of authentication to use (:authorized or :colonels). Defaults to :authorized.
+      # @param allow_anonymous [Boolean] Whether to allow anonymous access. Defaults to false.
       #
       # The logic class must implement the following methods:
       # - raise_concerns
@@ -63,12 +68,14 @@ module Onetime::App
       # @return [void]
       #
       # @example
-      #   process_action(OT::Logic::GenerateAPIToken, "API Token could not be generated.") do |logic|
+      #   process_action(OT::Logic::GenerateAPIToken, "API Token generated successfully.", "API Token could not be generated.") do |logic|
       #     json_success(custid: cust.custid, apitoken: logic.apitoken)
       #   end
       #
-      def process_action(logic_class, success_message, error_message, allow_anonymous: false)
-        authorized(allow_anonymous) do
+      def process_action(logic_class, success_message, error_message, auth_type: :authorized, allow_anonymous: false)
+        auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
+
+        auth_method.call(allow_anonymous) do
           logic = logic_class.new(sess, cust, req.params, locale)
           logic.raise_concerns
           logic.process
@@ -101,10 +108,16 @@ module Onetime::App
         json hsh
       end
 
+      def not_authorized_error hsh={}
+        hsh[:message] = "Not authorized"
+        res.status = 403
+        json hsh
+      end
+
       def error_response msg, hsh={}
         hsh[:message] = msg
         hsh[:success] = false
-        res.status = 403 # Forbidden
+        res.status = 400 # Bad Request
         json hsh
       end
 

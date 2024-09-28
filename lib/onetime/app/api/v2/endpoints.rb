@@ -12,8 +12,14 @@ module Onetime::App
     include Onetime::App::APIV2::Base
 
     def status
-      authorized do
+      publically do
         json status: :nominal, locale: locale
+      end
+    end
+
+    def authcheck
+      authorized do
+        json authenticated: sess.authenticated?
       end
     end
 

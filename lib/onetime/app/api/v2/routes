@@ -19,6 +19,7 @@ POST   /secret/:key                          Onetime::App::APIV2::Secrets#get_se
 GET    /supported-locales                    Onetime::App::APIV2#get_supported_locales
 
 GET    /status                               Onetime::App::APIV2#status
+GET    /authcheck                            Onetime::App::APIV2#authcheck
 GET    /version                              Onetime::App::APIV2#version
 GET    /validate-shrimp                      Onetime::App::APIV2#get_validate_shrimp
 

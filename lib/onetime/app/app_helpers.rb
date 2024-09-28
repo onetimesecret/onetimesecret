@@ -56,7 +56,7 @@ module Onetime::App
 
     rescue OT::Unauthorized => ex
       OT.info ex.message
-      not_found_response "Not authorized"
+      not_authorized_error
 
     rescue OT::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
