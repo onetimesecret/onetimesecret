@@ -15,7 +15,7 @@ module Onetime::Logic
         @key = params[:key].to_s
         @secret = Onetime::Secret.load key
         @passphrase = params[:passphrase].to_s
-        @continue = params[:continue] == 'true'
+        @continue = params[:continue].to_s == 'true'
       end
 
       def raise_concerns
@@ -34,6 +34,8 @@ module Onetime::Logic
         owner = secret.load_customer
 
         if show_secret
+          # If we can't decrypt that's great! We just set secret_value to
+          # the encrypted string.
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
           @is_truncated = secret.truncated?
           @original_size = secret.original_size
@@ -65,7 +67,7 @@ module Onetime::Logic
 
         @is_owner = @secret.owner?(cust)
         @has_passphrase = @secret.has_passphrase?
-        @display_lines = display_lines
+        @display_lines = calculate_display_lines
         @one_liner = one_liner
       end
 
@@ -75,7 +77,6 @@ module Onetime::Logic
             key: @secret_key,
             secret_key: @secret_key,
             secret_shortkey: @secret_shortkey,
-            #secret_value: @secret_value,
             is_truncated: @is_truncated,
             original_size: @original_size,
             verification: @verification,
@@ -100,18 +101,17 @@ module Onetime::Logic
         ret
       end
 
-      def display_lines
-        v = @secret_value.to_s
+      def calculate_display_lines
+        v = secret_value.to_s
         ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
         ret = ret > 30 ? 30 : ret
       end
 
       def one_liner
-        v = @secret_value.to_s
-        v.scan(/\n/).size.zero?
+        return if secret_value.to_s.empty? # return nil when the value is empty
+        secret_value.to_s.scan(/\n/).size.zero?
       end
     end
-
 
   end
 end
