@@ -222,12 +222,12 @@ module Onetime::Logic
       end
 
       def calculate_display_lines
-        ret = secret_value.to_s.scan(/\n/).size + 2
-        ret > 20 ? 20 : ret
+        v = secret_value.to_s
+        ret = ((80+v.size)/80) + (v.scan(/\n/).size) + 3
+        ret = ret > 30 ? 30 : ret
       end
 
     end
-
 
   end
 end

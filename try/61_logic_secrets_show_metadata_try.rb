@@ -241,7 +241,7 @@ params = {
 logic = Onetime::Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
 logic.display_lines
-#=> 7
+#=> 9
 
 # Teardown
 @metadata.destroy!
