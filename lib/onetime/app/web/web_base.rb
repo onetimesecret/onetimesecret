@@ -28,8 +28,8 @@ module Onetime
           # since it wouldn't change our response either way.
           return disabled_response(req.path) unless authentication_enabled?
 
-          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           sess.authenticated? ? yield : res.redirect(('/'))
+          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session and auth check)
         end
       end
 

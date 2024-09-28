@@ -6,7 +6,6 @@ import HomepageTaglines from '@/components/HomepageTaglines.vue';
 const authenticated = window.authenticated;
 const authenticationSettings = window.authentication;
 
-const shrimp = window.shrimp;
 </script>
 
 <template>
@@ -15,7 +14,7 @@ const shrimp = window.shrimp;
 
   <HomepagePlansCTA v-if="authenticationSettings.signup" />
 
-  <SecretForm :shrimp="shrimp"
+  <SecretForm
               :withRecipient="false"
               :withAsterisk="true"
               :withGenerate="true" />

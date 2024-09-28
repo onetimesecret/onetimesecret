@@ -12,15 +12,49 @@ module Onetime::App
     include Onetime::App::APIV2::Base
 
     def status
-      json status: :nominal, locale: locale
+      publically do
+        json status: :nominal, locale: locale
+      end
+    end
+
+    def authcheck
+      authorized do
+        json authenticated: sess.authenticated?
+      end
     end
 
     def version
-      json version: OT::VERSION.to_a, locale: locale
+      publically do
+        json version: OT::VERSION.to_a, locale: locale
+      end
     end
 
-    require_relative 'class_methods'
-    extend ClassMethods
+    def get_supported_locales
+      publically do
+        supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+        default_locale = supported_locales.first
+        json locales: supported_locales, default_locale: default_locale, locale: locale
+      end
+    end
+
+    def get_validate_shrimp
+      publically do
+        shrimp = request.env['HTTP_O_SHRIMP'].to_s
+        halt(400, json(error: 'Missing O-Shrimp header')) if shrimp.empty?
+
+        begin
+          # Attempt to validate the shrimp
+          is_valid = validate_shrimp(shrimp, replace=false)
+        rescue OT::BadShrimp => e
+          # If a BadShrimp exception is raised, log it and set is_valid to false
+          OT.ld "BadShrimp exception: #{e.message}"
+          is_valid = false
+        end
+
+        json isValid: is_valid
+      end
+    end
+
   end
 end
 

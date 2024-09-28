@@ -25,6 +25,13 @@ module Onetime::App
       end
     end
 
+    def authcheck
+      authorized(false) do
+        sess.event_incr! :check_status
+        json :status => :nominal, :locale => locale
+      end
+    end
+
     def share
       authorized(true) do
         req.params[:kind] = :share

@@ -26,6 +26,8 @@ class Onetime::Customer < Familia::Horreum
   field :apitoken # TODO: use sorted set?
   field :verified
 
+  field :locale
+
   field :secrets_created # regular hashkey string field
   field :secrets_burned
   field :secrets_shared
@@ -49,6 +51,7 @@ class Onetime::Customer < Familia::Horreum
     :role,
     :verified,
     :last_login,
+    :locale,
     :updated,
     :created,
 
@@ -74,6 +77,12 @@ class Onetime::Customer < Familia::Horreum
     self.custid ||= 'anon'
     self.role ||= 'customer'
 
+    # When an instance is first created, any field that doesn't have a
+    # value set will be nil. We need to ensure that these fields are
+    # set to an empty string to match the default values when loading
+    # from redis (i.e. all values in core redis data types are strings).
+    self.locale ||= ''
+
     # Initialze auto-increment fields. We do this since Redis
     # gets grumpy about trying to increment a hashkey field
     # that doesn't have any value at all yet. This is in
@@ -87,6 +96,10 @@ class Onetime::Customer < Familia::Horreum
 
   def contributor?
     self.contributor.to_s == "true"
+  end
+
+  def locale?
+    !locale.to_s.empty?
   end
 
   def apitoken? guess

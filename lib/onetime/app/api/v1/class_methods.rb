@@ -1,5 +1,12 @@
 module Onetime::App
   class API
+    # FlexibleHashAccess is a refinement for the Hash class that enables
+    # the use of either strings or symbols interchangeably when
+    # retrieving values from a hash.
+    #
+    # @see metadata_hsh method
+    #
+    using FlexibleHashAccess
 
     module ClassMethods
       # Transforms metadata into a structured hash with enhanced information.

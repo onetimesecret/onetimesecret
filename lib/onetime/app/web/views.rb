@@ -34,7 +34,8 @@ module Onetime
       # Example usage:
       #   view = Onetime::App::Views::VuePoint.new
       #
-      class Index < Onetime::App::View
+      class VuePoint < Onetime::App::View
+        self.template_name = 'index'
         def init *args
         end
       end

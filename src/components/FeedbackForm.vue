@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
 
 export interface Props {
   enabled?: boolean;
-  shrimp: string | null;
   showRedButton: boolean | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
-  shrimp: null,
   showRedButton: false,
 })
 
@@ -29,7 +30,7 @@ const cust = window.cust;
              value="✓" />
       <input type="hidden"
              name="shrimp"
-             :value="shrimp" />
+             :value="csrfStore.shrimp" />
       <div class="flex mb-4">
         <AltchaChallenge v-if="!cust" />
         <div class="flex flex-grow">

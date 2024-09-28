@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive } from 'vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Icon } from '@iconify/vue';
+import { useCsrfStore } from '@/stores/csrfStore';
 
+const csrfStore = useCsrfStore();
 
 const currentPassword = ref('');
 const newPassword = ref('');
@@ -17,22 +19,10 @@ const showPassword = reactive({
 
 interface Props {
   apitoken?: string;
-  shrimp: string | undefined;
 }
 
-const props = defineProps<Props>();
-const emit = defineEmits(['update:password', 'update:shrimp']);
-
-const localShrimp = ref(props.shrimp);
-
-watch(() => props.shrimp, (newValue) => {
-  localShrimp.value = newValue;
-});
-
-const handleShrimp = (freshShrimp: string) => {
-  localShrimp.value = freshShrimp;
-  emit('update:shrimp', freshShrimp);
-}
+defineProps<Props>();
+const emit = defineEmits(['update:password']);
 
 
 const {
@@ -46,15 +36,11 @@ const {
   onSuccess() {
     emit('update:password');
   },
-  handleShrimp: handleShrimp,
 });
 
 const togglePassword = (field: 'current' | 'new' | 'confirm') => {
   showPassword[field] = !showPassword[field];
 };
-
-
-
 </script>
 
 <template>
@@ -62,7 +48,7 @@ const togglePassword = (field: 'current' | 'new' | 'confirm') => {
   <form @submit.prevent="updatePassword">
     <input type="hidden"
            name="shrimp"
-           :value="shrimp" />
+           :value="csrfStore.shrimp" />
 
     <!-- Visually Hidden Fields -->
     <div class="hidden">

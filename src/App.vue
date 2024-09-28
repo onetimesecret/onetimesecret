@@ -28,7 +28,6 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 const { locale } = useI18n();
 const route = useRoute()
 const {
-  shrimp,
   ot_version,
   cust,
   authentication,
@@ -36,7 +35,6 @@ const {
   plans_enabled,
   support_host,
 } = useWindowProps([
-  'shrimp',
   'ot_version',
   'cust',
   'is_default_locale',

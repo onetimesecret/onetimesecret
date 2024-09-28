@@ -40,14 +40,13 @@
  * IDEs.
  */
 
-import { AuthenticationSettings, Cust, Plan, Metadata } from './onetime';
+import { AuthenticationSettings, Cust, Plan, Metadata, AvailablePlans } from './onetime';
 import type Stripe from 'stripe';
 
 declare global {
   interface Window {
     apitoken?: string;
     authenticated: boolean;
-    available_plans?: { [key: string]: Plan };
     baseuri: string;
     cust: Cust | undefined | null;
     custid: string;
@@ -63,14 +62,20 @@ declare global {
     ot_version: string;
     plans_enabled: boolean;
     ruby_version: string;
-    shrimp: string;  // Our CSRF token, to be used in POST requests to the backend
+
+    // Our CSRF token, to be used in POST requests to the backend. The
+    // Ruby app plops the current shrimp at the time of page load into
+    // the window object here but it will change if something on the
+    // page makes a POST request. Use useCsrfStore() to stay cool and current.
+    shrimp: string;
+
     site_host: string;
     stripe_customer?: Stripe.Customer;
     stripe_subscriptions?: Stripe.Subscriptions[];
     form_fields?: { [key: string]: string };
     authentication: AuthenticationSettings;
 
-    available_plans: Plan[];
+    available_plans: AvailablePlans;
     support_host?: string;
 
     // Display site links in footer
@@ -88,6 +93,8 @@ declare global {
     received: Metadata[];
     notreceived: Metadata[];
     has_items: boolean;
+
+    incoming_recipient: string;
 
     // A function that's called on page load to update any email
     // addresses inside <span class="email">. Currently only the

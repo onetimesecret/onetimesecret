@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
+
 export interface Props {
   enabled?: boolean;
-  shrimp: string | null | undefined;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,7 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
           id="resetRequestForm">
       <input type="hidden"
              name="shrimp"
-             :value="shrimp" />
+             :value="csrfStore.shrimp" />
 
       <div class="mb-4">
         <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
@@ -61,7 +64,7 @@ const props = withDefaults(defineProps<Props>(), {
           id="passwordResetForm">
       <input type="hidden"
              name="shrimp"
-             :value="shrimp" />
+             :value="csrfStore.shrimp" />
       <div class="mb-4">
         <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
                for="passField">

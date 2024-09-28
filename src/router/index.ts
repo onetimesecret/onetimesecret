@@ -2,6 +2,8 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Homepage from '@/views/Homepage.vue'
 import WideLayout from '@/layouts/WideLayout.vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import { useLanguageStore } from '@/stores/languageStore';
+import { useCsrfStore } from '@/stores/csrfStore';
 
 import { ref } from 'vue'
 
@@ -235,7 +237,21 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Logout',
     component: { render: () => null }, // Dummy component
     beforeEnter: () => {
-      window.location.href = '/logout'
+      // Clear all local storage
+      localStorage.clear();
+
+      // Reset stores
+      const languageStore = useLanguageStore();
+      const csrfStore = useCsrfStore();
+
+      languageStore.$reset();
+      csrfStore.$reset();
+
+      // Set auth state to false
+      authState.value = false;
+
+      // Redirect to logout URL
+      window.location.href = '/logout';
     }
   },
 ]

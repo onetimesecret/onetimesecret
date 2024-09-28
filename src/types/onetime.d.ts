@@ -31,24 +31,32 @@ export interface Cust extends BaseApiRecord {
   stripe_customer_id?: string;
 }
 
+export interface PlanOptions {
+  ttl: number;
+  size: number;
+  api: boolean;
+  name: string;
+  email?: boolean;
+  custom_domains?: boolean;
+  dark_mode?: boolean;
+  cname?: boolean;
+  private?: boolean;
+}
+
 // Define the plan model
 export interface Plan extends BaseApiRecord {
   planid: string;
   price: number;
   discount: number;
-  options: {
-    ttl: number;
-    size: number;
-    api: boolean;
-    name: string;
-    cname?: boolean;
-    private?: boolean;
-    email?: boolean;
-  };
+  options: PlanOptions;
+}
+
+export interface AvailablePlans {
+  [key: string]: Plan;
 }
 
 // Define the interface for the authentication settings object
-interface AuthenticationSettings {
+export interface AuthenticationSettings {
   enabled: boolean;
   signup: boolean;
   signin: boolean;
@@ -252,7 +260,6 @@ export type FormSubmissionOptions = {
   getFormData?: () => FormData | URLSearchParams;
   onSuccess?: (data: ApiRecordsResponse | ApiRecordResponse) => void | Promise<void>;
   onError?: (data: ApiErrorResponse) => void | Promise<void>;
-  handleShrimp?: (shrimp: string) => void | Promise<void>
 };
 
 export interface DashboardMetadata extends BaseApiRecord {

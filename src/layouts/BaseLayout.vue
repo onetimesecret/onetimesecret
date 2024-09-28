@@ -20,7 +20,6 @@ export interface Props {
   isDefaultLocale: boolean
   onetimeVersion: string
   plansEnabled?: boolean
-  shrimp: string
   supportHost?: string
 }
 
@@ -91,7 +90,7 @@ withDefaults(defineProps<Props>(), {
       <div class="container mx-auto p-4 max-w-2xl">
 
         <div v-if="displayFeedback">
-          <FeedbackForm :shrimp="shrimp" :showRedButton="false" />
+          <FeedbackForm :showRedButton="false" />
         </div>
 
         <div v-if="displayLinks" class="prose dark:prose-invert text-base pt-4 font-brand">
@@ -132,11 +131,7 @@ withDefaults(defineProps<Props>(), {
         <div class="fixed text-left bottom-4 right-4 z-50 opacity-60 hover:opacity-100" aria-label="Change language">
           <div class="relative">
 
-            <LanguageToggle
-              :isDefaultLocale="false"
-              currentLocale="en"
-              :supportedLocales="['en', 'fr', 'es']"
-            />
+            <LanguageToggle />
 
           </div>
         </div>

@@ -1,7 +1,9 @@
 // src/utils/formSubmission.ts
-// src/utils/formSubmission.ts
+
 import { ref } from 'vue';
 import type { FormSubmissionOptions } from '@/types/onetime.d.ts';
+import { useCsrfStore } from '@/stores/csrfStore';
+
 
 export function useFormSubmission(options: FormSubmissionOptions) {
   const isSubmitting = ref(false);
@@ -49,6 +51,9 @@ export function useFormSubmission(options: FormSubmissionOptions) {
         ? formData
         : new URLSearchParams(formData as never);
 
+      const csrfStore = useCsrfStore();
+      urlSearchParams.append('shrimp', csrfStore.shrimp);
+
       const response = await fetch(submissionUrl, {
         method: 'POST',
         headers: {
@@ -72,9 +77,8 @@ export function useFormSubmission(options: FormSubmissionOptions) {
 
       // If the json response includes a new shrimp,
       // let's update our shrimp state to reflect it.
-      if (jsonData?.shrimp && options.handleShrimp) {
-        options.handleShrimp(jsonData.shrimp);
-        console.debug('Updating shrimp');
+      if (jsonData?.shrimp) {
+        csrfStore.updateShrimp(jsonData.shrimp);
       }
 
       if (!response.ok) {

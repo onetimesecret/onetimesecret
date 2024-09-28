@@ -19,21 +19,22 @@ const bytesToKB = (bytes: number) => {
   return bytes != null ? Math.round(bytes / 1024) : 0;
 };
 
+// Anonymous users can create secrets that last up to {{ anonymousTtlDays }} days
+// and have a maximum size of {{ anonymousSizeKB }} KB. Free account holders get
+// extended benefits: secrets can last up to {{ defaultTtlDays }} days and can be
+// up to {{ defaultSizeKB }} KB in size. Account holders also get access to
+// additional features like burn-before-reading options, which allow senders to
+// delete secrets before they're received.
 const anonymousTtlDays = computed(() => secondsToDays(anonymousPlan.value?.options?.ttl));
 const anonymousSizeKB = computed(() => bytesToKB(anonymousPlan.value?.options?.size));
 const defaultTtlDays = computed(() => secondsToDays(defaultPlan.value?.options?.ttl));
 const defaultSizeKB = computed(() => bytesToKB(defaultPlan.value?.options?.size));
 
 onMounted(() => {
-
   if (available_plans.value && default_planid.value) {
     defaultPlan.value = available_plans.value[default_planid.value] ?? null;
     anonymousPlan.value = available_plans.value.anonymous;
-
-
-    // Anonymous users can create secrets that last up to {{anonymousPlan?.options?.ttl}} days and have a maximum size of {{anonymousPlan?.options?.size}}. Free account holders get extended benefits: secrets can last up to {{defaultPlan?.options?.ttl}} days and can be up to {{defaultPlan?.options?.size}} in size. Account holders also get access to additional features like burn-before-reading options, which allow senders to delete secrets before they're received.
   }
-  console.log('About page mounted', defaultPlan.value);
 });
 
 </script>
