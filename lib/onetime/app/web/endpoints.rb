@@ -12,7 +12,7 @@ module Onetime
       def index
         publically do
           OT.ld "[index] authenticated? #{sess.authenticated?}"
-          view = Onetime::App::Views::Index.new req, sess, cust, locale
+          view = Onetime::App::Views::VuePoint.new req, sess, cust, locale
           sess.event_incr! :get_page
           res.body = view.render
         end
@@ -21,7 +21,7 @@ module Onetime
       def customers_only
         authenticated do
           OT.ld "[customers_only] authenticated? #{sess.authenticated?}"
-          view = Onetime::App::Views::Index.new req, sess, cust, locale
+          view = Onetime::App::Views::VuePoint.new req, sess, cust, locale
           sess.event_incr! :get_page
           res.body = view.render
         end
@@ -30,7 +30,7 @@ module Onetime
       def colonels_only
         colonels do
           OT.ld "[colonels_only] authenticated? #{sess.authenticated?}"
-          view = Onetime::App::Views::Index.new req, sess, cust, locale
+          view = Onetime::App::Views::VuePoint.new req, sess, cust, locale
           sess.event_incr! :get_page
           res.body = view.render
         end
@@ -55,7 +55,7 @@ module Onetime
       def dashboard
         authenticated do
           no_cache!
-          logic = OT::Logic::Dashboard::Index.new sess, cust, req.params, locale
+          logic = OT::Logic::Dashboard::VuePoint.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           view = Onetime::App::Views::Dashboard.new req, sess, cust, locale
@@ -65,7 +65,7 @@ module Onetime
 
       def recent
         authenticated do
-          logic = OT::Logic::Dashboard::Index.new sess, cust, req.params, locale
+          logic = OT::Logic::Dashboard::VuePoint.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           view = Onetime::App::Views::Recent.new req, sess, cust, locale
