@@ -66,7 +66,7 @@ varied_ids.uniq.length == varied_ids.length
 #=> true
 
 ## Verify that IDs are URL-safe and don't contain any special characters
-url_unsafe_chars = /[^a-zA-Z0-9-_]/
+url_unsafe_chars = /[^a-zA-Z0-9\-_]/
 @session_ids.any? { |id| id =~ url_unsafe_chars }
 #=> false
 
