@@ -53,6 +53,7 @@ module Onetime::Logic
         # default to using the metadata ttl.
         ttl = (metadata.secret_ttl || metadata.ttl).to_i
         @created_date_utc = epochformat(metadata.created.to_i)
+
         @expiration_stamp = if ttl <= 1.minute
           '%d seconds' % ttl
         elsif ttl <= 1.hour
@@ -148,6 +149,7 @@ module Onetime::Logic
       end
 
       def one_liner
+        return if secret_value.to_s.empty? # return nil
         secret_value.to_s.scan(/\n/).size.zero?
       end
 

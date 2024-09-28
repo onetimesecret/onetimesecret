@@ -176,8 +176,6 @@ class Onetime::Session < Familia::Horreum
     def create ipaddress, custid, useragent=nil
       sess = new ipaddress: ipaddress, custid: custid, useragent: useragent
 
-      OT.ld "[Session.create] Creating new session #{sess}"
-
       sess.save
       add sess # to the class-level values relation (sorted set)
       sess
