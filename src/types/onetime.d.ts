@@ -15,7 +15,7 @@ export interface BaseApiRecord {
 }
 
 // Define the customer model
-export interface Cust extends BaseApiRecord {
+export interface Customer extends BaseApiRecord {
   custid: string;
   role: string;
   planid?: string;
@@ -25,6 +25,7 @@ export interface Cust extends BaseApiRecord {
   created: number;
   secrets_created: number;
   active: string;
+  locale: string;
 
   stripe_checkout_email?: string;
   stripe_subscription_id?: string;
@@ -118,14 +119,14 @@ export interface ApiToken extends BaseApiRecord {
 }
 
 export interface Account extends BaseApiRecord {
-  cust: Cust;
+  cust: Customer;
   apitoken?: string;
   stripe_customer: Stripe.Customer;
   stripe_subscriptions: Stripe.Subscription[];
 }
 
 export interface ColonelData extends BaseApiRecord {
-  recent_customers: Cust[];
+  recent_customers: Customer[];
   today_feedback: Feedback[];
   yesterday_feedback: Feedback[];
   older_feedback: Feedback[];

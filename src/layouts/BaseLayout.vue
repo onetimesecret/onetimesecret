@@ -5,13 +5,13 @@ import FeedbackForm from '@/components/FeedbackForm.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
-import { AuthenticationSettings, Cust } from '@/types/onetime';
+import { AuthenticationSettings, Customer } from '@/types/onetime';
 
 export interface Props {
   authenticated: boolean
   authentication: AuthenticationSettings
   colonel: boolean
-  cust?: Cust
+  cust?: Customer
   defaultLocale: string
   displayFeedback: boolean
   displayLinks: boolean
