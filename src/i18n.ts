@@ -41,18 +41,17 @@ async function loadLocaleMessages(locale: string): Promise<MessageSchema | null>
 export async function setLanguage(lang: string): Promise<void> {
   console.log(`Setting language to: ${lang}`);
   if (lang === 'en') {
-    i18n.global.locale = 'en';
+    i18n.global.locale.value = 'en';
     console.log(`Language set to: ${lang}`);
     return;
   }
   const messages = await loadLocaleMessages(lang);
   if (messages) {
     i18n.global.setLocaleMessage(lang, messages);
-    i18n.global.locale = lang;
+    i18n.global.locale.value = lang;
     console.log(`Language set to: ${lang}`);
   } else {
     console.log(`Failed to set language to: ${lang}. Falling back to default.`);
   }
 }
-
 export default i18n;
