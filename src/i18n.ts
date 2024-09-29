@@ -1,6 +1,7 @@
+
 import { createI18n } from 'vue-i18n';
 import en from '@/locales/en.json' assert { type: 'json' };
-const supportedLocales = window.supported_locales || [];
+
 
 
 /**
@@ -13,18 +14,32 @@ const supportedLocales = window.supported_locales || [];
  * If loading fails (e.g., the file doesn't exist), it falls back to English.
  **/
 
+const supportedLocales = window.supported_locales || [];
+
 export type MessageSchema = typeof en;
 export type SupportedLocale = typeof supportedLocales[number];
 
-const i18n = createI18n<[MessageSchema], SupportedLocale>({
-  legacy: false,
-  locale: supportedLocales[0] || 'en', // 1st supported locale is assumed to be the default
+declare module '@intlify/core' {
+  interface GeneratedTypeConfig {
+    locale: SupportedLocale;
+  }
+}
+
+// First supported locale is assumed to be the default
+const locale = supportedLocales[0] || 'en';
+
+const i18n = createI18n<{ message: typeof en }, SupportedLocale>({
+  //legacy: false,
+  locale: locale,
   fallbackLocale: 'en',
   messages: {
     en,
   },
   availableLocales: supportedLocales,
 });
+
+
+export default i18n;
 
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
   console.log(`Attempting to load locale: ${locale}`);
@@ -41,17 +56,16 @@ async function loadLocaleMessages(locale: string): Promise<MessageSchema | null>
 export async function setLanguage(lang: string): Promise<void> {
   console.log(`Setting language to: ${lang}`);
   if (lang === 'en') {
-    i18n.global.locale.value = 'en';
+    i18n.global.locale = 'en';
     console.log(`Language set to: ${lang}`);
     return;
   }
   const messages = await loadLocaleMessages(lang);
   if (messages) {
     i18n.global.setLocaleMessage(lang, messages);
-    i18n.global.locale.value = lang;
+    i18n.global.locale = lang;
     console.log(`Language set to: ${lang}`);
   } else {
     console.log(`Failed to set language to: ${lang}. Falling back to default.`);
   }
 }
-export default i18n;

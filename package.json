@@ -19,6 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@headlessui/vue": "^1.7.22",
+    "@intlify/core": "^9.14.1",
     "altcha": "^1.0.0",
     "axios": "^1.7.7",
     "pinia": "^2.2.2",

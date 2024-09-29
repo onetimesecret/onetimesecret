@@ -11,6 +11,9 @@ importers:
       '@headlessui/vue':
         specifier: ^1.7.22
         version: 1.7.22(vue@3.4.32(typescript@5.5.3))
+      '@intlify/core':
+        specifier: ^9.14.1
+        version: 9.14.1
       altcha:
         specifier: ^1.0.0
         version: 1.0.0
@@ -354,6 +357,14 @@ packages:
     resolution: {integrity: sha512-zJn0imh9HIsZZUtt9v8T16PeVstPv6bP2YzlrYJwoF8F30gs4brZBwW2KK6EI5WYKFi3NeqX6+UU4gniz5TkGg==}
     engines: {node: '>= 16'}
 
+  '@intlify/core-base@9.14.1':
+    resolution: {integrity: sha512-rG5/hlNW6Qfve41go37szEf0mVLcfhYuOu83JcY0jZKasnwsrcZYYWDzebCcuO5I/6Sy1JFWo9p+nvkQS1Dy+w==}
+    engines: {node: '>= 16'}
+
+  '@intlify/core@9.14.1':
+    resolution: {integrity: sha512-AT3x7F9YqcWRUBC2maPYven4dTeavJCBYEkDqy1WTif/qtVasDASayKLFf95DsFz7ajhu/3ep9IzTAZayvW9sA==}
+    engines: {node: '>= 16'}
+
   '@intlify/eslint-plugin-vue-i18n@3.0.0':
     resolution: {integrity: sha512-s4fe+VOiqMZGhDrXWnL1xLyHbcFWBcEBeD/KpVrkOtL+utH2LPTi7uZ8RvWSthMS0mUL/7L74hFJ//OUU7AYww==}
     engines: {node: '>=18.0.0'}
@@ -368,12 +379,20 @@ packages:
     resolution: {integrity: sha512-sXNsoMI0YsipSXW8SR75drmVK56tnJHoYbPXUv2Cf9lz6FzvwsosFm6JtC1oQZI/kU+n7qx0qRrEWkeYFTgETA==}
     engines: {node: '>= 16'}
 
+  '@intlify/message-compiler@9.14.1':
+    resolution: {integrity: sha512-MY8hwukJBnXvGAncVKlHsqKDQ5ZcQx4peqEmI8wBUTXn4pezrtTGYXNoz81cLyEEHB+L/zlKWVBSh5TiX4gYoQ==}
+    engines: {node: '>= 16'}
+
   '@intlify/shared@10.0.3':
     resolution: {integrity: sha512-PWxrCb6fDlnoGLnXLlWu6d7o/HdWACB9TjRnpLro+9uyfqgWA9hvqg5vekcPRyraTieV5srCbTk/ldYw9V3LHw==}
     engines: {node: '>= 16'}
 
   '@intlify/shared@9.14.0':
     resolution: {integrity: sha512-r+N8KRQL7LgN1TMTs1A2svfuAU0J94Wu9wWdJVJqYsoMMLIeJxrPjazihfHpmJqfgZq0ah3Y9Q4pgWV2O90Fyg==}
+    engines: {node: '>= 16'}
+
+  '@intlify/shared@9.14.1':
+    resolution: {integrity: sha512-XjHu6PEQup9MnP1x0W9y0nXXfq9jFftAYSfV11hryjtH4XqXP8HrzMvXI+ZVifF+jZLszaTzIhvukllplxTQTg==}
     engines: {node: '>= 16'}
 
   '@isaacs/cliui@8.0.2':
@@ -2109,6 +2128,16 @@ snapshots:
       '@intlify/message-compiler': 9.14.0
       '@intlify/shared': 9.14.0
 
+  '@intlify/core-base@9.14.1':
+    dependencies:
+      '@intlify/message-compiler': 9.14.1
+      '@intlify/shared': 9.14.1
+
+  '@intlify/core@9.14.1':
+    dependencies:
+      '@intlify/core-base': 9.14.1
+      '@intlify/shared': 9.14.1
+
   '@intlify/eslint-plugin-vue-i18n@3.0.0(eslint@8.57.0)':
     dependencies:
       '@eslint/eslintrc': 3.1.0
@@ -2144,9 +2173,16 @@ snapshots:
       '@intlify/shared': 9.14.0
       source-map-js: 1.2.0
 
+  '@intlify/message-compiler@9.14.1':
+    dependencies:
+      '@intlify/shared': 9.14.1
+      source-map-js: 1.2.0
+
   '@intlify/shared@10.0.3': {}
 
   '@intlify/shared@9.14.0': {}
+
+  '@intlify/shared@9.14.1': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:
