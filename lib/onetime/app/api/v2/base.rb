@@ -8,6 +8,7 @@ module Onetime::App
 
       def publically
         carefully do
+          check_session!
           check_locale!
           yield
         end

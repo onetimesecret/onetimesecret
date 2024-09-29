@@ -39,7 +39,7 @@ module Onetime::App
 
     def get_validate_shrimp
       publically do
-        shrimp = request.env['HTTP_O_SHRIMP'].to_s
+        shrimp = req.env['HTTP_O_SHRIMP'].to_s
         halt(400, json(error: 'Missing O-Shrimp header')) if shrimp.empty?
 
         begin
