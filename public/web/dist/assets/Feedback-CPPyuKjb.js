@@ -1,1 +1,0 @@
-import{d as e,o as t,c as a,i as s,b as o,X as c}from"./main-DAdj96k2.js";const r={class:"mb-8"},n=o("h3",{class:"text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100","aria-label":"Feedback Form"}," Give us your feedback ",-1),l=e({__name:"Feedback",setup(_){return(d,i)=>(t(),a("section",r,[n,s(c,{showRedButton:!0})]))}});export{l as default};

@@ -1,1 +1,0 @@
-import{r as t}from"./main-DAdj96k2.js";function c(){const o=t(!1);return{isCopied:o,copyToClipboard:async e=>{try{await navigator.clipboard.writeText(e),o.value=!0,setTimeout(()=>{o.value=!1},2e3)}catch(r){console.error("Failed to copy text: ",r)}}}}export{c as u};
