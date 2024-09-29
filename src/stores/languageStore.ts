@@ -3,8 +3,8 @@
 import { defineStore } from 'pinia';
 const supportedLocales = window.supported_locales;
 const defaultLocale = 'en';
-//import { useCsrfStore } from '@/stores/csrfStore';
-//import axios from 'axios';
+import axios from 'axios';
+import api from '@/utils/api';
 
 interface LanguageState {
   storedLocale: string | null;
@@ -73,10 +73,34 @@ export const useLanguageStore = defineStore('language', {
     async updateLanguage(newLocale: string) {
       this.isLoading = true;
       this.error = null;
-      //const csrfStore = undefined; // = useCsrfStore();
 
       // Update local state immediately
       this.setCurrentLocale(newLocale);
+
+      try {
+        // Update the language for the user using the api instance
+        await api.post('/api/v2/account/update-locale', {
+          locale: newLocale
+        });
+
+        // The CSRF token (shrimp) will be automatically updated by the api interceptor
+
+        this.isLoading = false;
+      } catch (error) {
+        this.isLoading = false;
+        if (axios.isAxiosError(error)) {
+          if (error.response && error.response.status >= 400 && error.response.status < 500) {
+            // Handle 4XX errors
+            this.error = `Failed to update language: ${error.response.data.message || 'Unknown error'}`;
+          } else {
+            // Handle other errors
+            this.error = 'An unexpected error occurred while updating the language';
+          }
+        } else {
+          this.error = 'An unexpected error occurred';
+        }
+        console.error('Error updating language:', error);
+      }
 
     },
 

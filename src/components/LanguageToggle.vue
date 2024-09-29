@@ -117,3 +117,4 @@ onMounted(async () => {
   // customer.locale value is different from the current locale.
   await setLanguage(currentLocale.value);
 });
+</script>
