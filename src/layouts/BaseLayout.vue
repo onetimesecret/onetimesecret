@@ -12,12 +12,10 @@ export interface Props {
   authentication: AuthenticationSettings
   colonel: boolean
   cust?: Customer
-  defaultLocale: string
   displayFeedback: boolean
   displayLinks: boolean
   displayMasthead: boolean
   displayVersion: boolean
-  isDefaultLocale: boolean
   onetimeVersion: string
   plansEnabled?: boolean
   supportHost?: string
@@ -26,8 +24,6 @@ export interface Props {
 withDefaults(defineProps<Props>(), {
   authenticated: false,
   colonel: false,
-  defaultLocale: 'en',
-  isDefaultLocale: true,
 })
 
 </script>
@@ -70,10 +66,6 @@ withDefaults(defineProps<Props>(), {
                 </template>
 
                 <router-link v-else to="/about" title="About Onetime Secret" class="underline">{{ $t('web.COMMON.header_about') }}</router-link>
-              </template>
-
-              <template v-if="!isDefaultLocale">
-                <span class="mx-0">|</span> <router-link :to="`?locale=${defaultLocale}`" :title="`View site in ${defaultLocale}`">{{ defaultLocale }}</router-link>
               </template>
 
             </nav>

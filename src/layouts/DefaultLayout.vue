@@ -9,15 +9,13 @@ interface ImplementingLayoutProps extends BaseLayoutProps {
 }
 
 const props = withDefaults(defineProps<ImplementingLayoutProps>(), {
-  // Override BaseLayout defaults if needed
-  // defaultLocale: 'fr',
 
   // You can also add defaults for optional BaseLayout props
   displayMasthead: true,
   displayLinks: true,
   displayFeedback: true,
   displayVersion: true,
-  isDefaultLocale: true,
+
 });
 
 </script>
