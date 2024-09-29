@@ -1,3 +1,7 @@
+import { createI18n } from 'vue-i18n';
+import en from '@/locales/en.json' assert { type: 'json' };
+const supportedLocales = window.supported_locales;
+
 
 /**
  * This setup accomplishes the following:
@@ -8,10 +12,6 @@
  * If the browser locale file is successfully loaded, it sets that as the active locale.
  * If loading fails (e.g., the file doesn't exist), it falls back to English.
  **/
-
-import { createI18n } from 'vue-i18n';
-import en from '@/locales/en.json' assert { type: 'json' };
-const supportedLocales = window.supported_locales;
 
 export type MessageSchema = typeof en;
 export type SupportedLocale = typeof supportedLocales[number];
@@ -25,6 +25,7 @@ const i18n = createI18n<[MessageSchema], SupportedLocale>({
   },
   availableLocales: supportedLocales,
 });
+
 
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
   try {
@@ -51,10 +52,6 @@ export async function setLanguage(lang: string): Promise<void> {
   } else {
     console.log(`Failed to set language to: ${lang}. Falling back to default.`);
   }
-}
-
-export function t(key: string): string {
-  return i18n.global.t(key);
 }
 
 export default i18n;

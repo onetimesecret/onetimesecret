@@ -46,21 +46,20 @@
 import { ref, onMounted, computed } from 'vue';
 import { setLanguage } from '@/i18n';
 import { useLanguageStore } from '@/stores/languageStore';
-import { useUnrefWindowProp } from '@/composables/useWindowProps.js';
+import { useWindowProp } from '@/composables/useWindowProps.js';
 
 const languageStore = useLanguageStore();
-
-const isMenuOpen = ref(false);
-const menuItems = ref<HTMLElement[]>([]);
+const supportedLocales = languageStore.getSupportedLocales;
 
 // Use window.locale if available, otherwise fallback to store value
 //const windowLocale = useUnrefWindowProp('locale');
-//const cust = useWindowProp('cust');
-const supportedLocales = useUnrefWindowProp('supported_locales');
-const defaultLocale = 'en';
+const cust = useWindowProp('cust');
 
 //const initialLocale = computed(() => cust?.value?.locale || windowLocale || defaultLocale);
-const currentLocale = computed(() => languageStore.getCurrentLocale);
+const currentLocale = computed(() => languageStore.determineLocale(cust?.value?.locale));
+
+const isMenuOpen = ref(false);
+const menuItems = ref<HTMLElement[]>([]);
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -102,10 +101,7 @@ const changeLocale = async (newLocale: string) => {
 onMounted(async () => {
   menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
 
-  // Initialize the language store with the data from the server
-  languageStore.initializeStore(supportedLocales, defaultLocale);
-
   // Ensure that the i18n system is updated
-  await setLanguage(languageStore.getCurrentLocale);
+  await setLanguage(currentLocale.value);
 });
 </script>

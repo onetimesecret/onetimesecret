@@ -37,20 +37,15 @@ async function initializeApp() {
   // Initialize language store
   const languageStore = useLanguageStore();
 
-  // Determine initial locale
-  // Priority: 1. Stored preference, 2. Browser language, 3. Default locale
-  const storedLocale = localStorage.getItem('selected.locale');
-  const initialLocale = storedLocale || navigator.language.split('-')[0] || 'en';
+  // Give the store knowledge of the device's language
+  // so it can determine the initial locale to load.
+  const initialLocale = languageStore.initializeCurrentLocale(navigator.language);
 
   // Set language before mounting the app
   // This ensures correct translations are available for the initial render
   await setLanguage(initialLocale);
 
-  // Update language store to maintain consistency across the app
-  languageStore.setCurrentLocale(initialLocale);
-
   // Apply other plugins
-  // i18n is applied after setting the language to ensure it uses the correct locale
   app.use(i18n);
   app.use(router);
 
