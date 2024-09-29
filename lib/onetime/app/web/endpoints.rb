@@ -49,29 +49,7 @@ module Onetime
     class Data
       include AppSettings
       include Base
-      require 'onetime/app/web/info'
       require 'onetime/app/web/account'
-
-      def dashboard
-        authenticated do
-          no_cache!
-          logic = OT::Logic::Dashboard::VuePoint.new sess, cust, req.params, locale
-          logic.raise_concerns
-          logic.process
-          view = Onetime::App::Views::Dashboard.new req, sess, cust, locale
-          res.body = view.render
-        end
-      end
-
-      def recent
-        authenticated do
-          logic = OT::Logic::Dashboard::VuePoint.new sess, cust, req.params, locale
-          logic.raise_concerns
-          logic.process
-          view = Onetime::App::Views::Recent.new req, sess, cust, locale
-          res.body = view.render
-        end
-      end
 
       def receive_feedback
         publically do
@@ -79,17 +57,6 @@ module Onetime
           logic.raise_concerns
           logic.process
           res.redirect app_path('/feedback')
-        end
-      end
-
-      def incoming
-        publically do
-          if OT.conf[:incoming] && OT.conf[:incoming][:enabled]
-            view = Onetime::App::Views::Incoming.new req, sess, cust, locale
-            res.body = view.render
-          else
-            res.redirect '/'
-          end
         end
       end
 
