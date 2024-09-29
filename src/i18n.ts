@@ -1,5 +1,3 @@
-import { createI18n, I18nOptions } from 'vue-i18n';
-import enMessages from '@/locales/en.json';
 
 /**
  * This setup accomplishes the following:
@@ -11,21 +9,22 @@ import enMessages from '@/locales/en.json';
  * If loading fails (e.g., the file doesn't exist), it falls back to English.
  **/
 
+import { createI18n } from 'vue-i18n';
+import en from '@/locales/en.json' assert { type: 'json' };
+const supportedLocales = window.supported_locales;
 
-type MessageSchema = typeof enMessages;
+export type MessageSchema = typeof en;
+export type SupportedLocale = typeof supportedLocales[number];
 
-const i18nOptions: I18nOptions = {
-  legacy: false, // You must set `false`, to use Composition API
-  locale: 'en', // set default locale
-  fallbackLocale: 'en', // set fallback locale
+const i18n = createI18n<[MessageSchema], SupportedLocale>({
+  legacy: false,
+  locale: 'en',
+  fallbackLocale: 'en',
   messages: {
-    en: enMessages, // Load English messages by default
+    en,
   },
-};
-
-const i18n = createI18n(i18nOptions);
-
-export default i18n;
+  availableLocales: supportedLocales,
+});
 
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
   try {
@@ -40,18 +39,22 @@ async function loadLocaleMessages(locale: string): Promise<MessageSchema | null>
 export async function setLanguage(lang: string): Promise<void> {
   console.log(`Setting language to: ${lang}`);
   if (lang === 'en') {
-    i18n.global.locale.value = 'en';
+    i18n.global.locale = 'en';
     console.log(`Language set to: ${lang}`);
     return;
   }
   const messages = await loadLocaleMessages(lang);
   if (messages) {
     i18n.global.setLocaleMessage(lang, messages);
-    i18n.global.locale.value = lang;
+    i18n.global.locale = lang;
     console.log(`Language set to: ${lang}`);
   } else {
     console.log(`Failed to set language to: ${lang}. Falling back to default.`);
   }
 }
 
-// ... rest of the file remains the same ...
+export function t(key: string): string {
+  return i18n.global.t(key);
+}
+
+export default i18n;
