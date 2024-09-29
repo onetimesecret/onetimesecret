@@ -69,8 +69,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/incoming',
     name: 'Inbound Secrets',
-    component: () => import('@/views/secrets/InboundSecret.vue'),
-    meta: { requiresAuth: true }
+    component: () => import('@/views/secrets/IncomingSupportSecret.vue'),
+    meta: { requiresAuth: false }
   },
   {
     path: '/dashboard',

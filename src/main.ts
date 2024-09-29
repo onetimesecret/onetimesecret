@@ -1,42 +1,73 @@
+import { createApp, watch } from 'vue';
+import { createPinia } from 'pinia';
 import router from '@/router';
-import i18n from '@/i18n';
-import { createApp } from 'vue';
-import { createPinia } from 'pinia'
-import App from './App.vue'
+import i18n, { setLanguage } from '@/i18n';
+import App from './App.vue';
+import { useLanguageStore } from '@/stores/languageStore';
+//import { useCsrfStore } from '@/stores/csrfStore';
 
 import './assets/style.css';
 
 /**
- * Vue Application Initialization
+ * Initialize and mount the Vue application with proper language settings.
  *
- * This code initializes our Vue application with the following features:
- * - Routing: Using Vue Router for client-side navigation
- * - Internationalization: Using i18n for multi-language support
- * - Global styles: Importing the main style.css file
+ * The initialization process follows these steps:
+ * 1. Create the Vue app instance and Pinia store.
+ * 2. Determine the initial locale based on user preference or system settings.
+ * 3. Set the application language before mounting.
+ * 4. Update the language store for consistency.
+ * 5. Apply plugins (i18n, router).
+ * 6. Mount the application.
  *
- * The application is created and mounted to the '#app' element in the DOM.
+ * This order ensures that:
+ * - The correct language is available from the first render.
+ * - User language preferences are respected.
+ * - The language store is consistent with the actual app language.
+ * - All components have access to the correct translations immediately.
+ *
+ * Using an async function allows us to wait for language loading
+ * before mounting the app, preventing any flash of untranslated content.
  */
-const app = createApp(App);
-app.use(i18n);
-app.use(router);
-app.use(createPinia());
-app.mount('#app');
+async function initializeApp() {
+  // Create Vue app instance and Pinia store
+  const app = createApp(App);
+  const pinia = createPinia();
+  app.use(pinia);
 
-/*
-* Old-school global function. Actually the Altcha lib has a replacement
-* for this, so we can 86 this in the future.
-*/
-function deobfuscateEmails(): void {
-  document.querySelectorAll<HTMLElement>('.email').forEach(el => {
-    const email = el.textContent?.replace(/ &#65;&#84; /g, "@").replace(/ AT /g, "@").replace(/ D0T /g, ".") || '';
-    const subject = el.getAttribute('data-subject');
-    const subjectParam = subject ? `?subject=${encodeURIComponent(subject)}` : '';
-    el.innerHTML = `<a class="dark:text-gray-300" href="mailto:${encodeURIComponent(email)}${subjectParam}">${email}</a>`;
-  });
+  // Initialize language store
+  const languageStore = useLanguageStore();
+
+  // Get the initial locale and use it to set the language
+  const initialLocale = languageStore.initializeCurrentLocale(navigator.language);
+  console.log('Initial locale:', initialLocale);
+
+  // Set language before mounting the app
+  // This ensures correct translations are available for the initial render
+  await setLanguage(initialLocale);
+
+  // Update the store's currentLocale to ensure consistency
+  languageStore.setCurrentLocale(initialLocale);
+
+  // Add a watcher to react to language changes
+  watch(
+    () => languageStore.currentLocale,
+    async (newLocale) => {
+      if (newLocale) { // Type guard to ensure newLocale is not null
+        console.log('Language changed to:', newLocale);
+        await setLanguage(newLocale);
+        // Optionally, you can add more logic here to update other parts of your app
+      }
+    }
+  );
+
+  // Apply other plugins
+  app.use(i18n);
+  app.use(router);
+
+  // Mount the application
+  // This is done last to ensure all setup is complete before rendering
+  app.mount('#app');
 }
 
-// Call this function when the DOM is ready or after dynamic content is loaded
-document.addEventListener('DOMContentLoaded', deobfuscateEmails);
-
-// Add it to the global scope for use in other scripts
-window.deobfuscateEmails = deobfuscateEmails;
+// Start the application initialization process
+initializeApp();

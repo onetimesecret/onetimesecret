@@ -40,7 +40,8 @@
       </h2>
       <div class="pl-3"> <!-- Added padding-left to align with the title text -->
 
-        <AccountDeleteButtonWithModalForm :cust="cust" />
+        <!-- Ensure cust is not null or undefined before rendering the component -->
+        <AccountDeleteButtonWithModalForm v-if="cust" :cust="cust" />
 
       </div>
     </div>

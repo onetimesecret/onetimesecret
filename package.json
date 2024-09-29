@@ -19,13 +19,14 @@
   "license": "MIT",
   "dependencies": {
     "@headlessui/vue": "^1.7.22",
+    "@intlify/core": "^9.14.1",
     "altcha": "^1.0.0",
     "axios": "^1.7.7",
     "pinia": "^2.2.2",
     "pnpm": "^9.6.0",
     "stripe": "^16.6.0",
     "vue": "^3.4.32",
-    "vue-i18n": "10.0.2"
+    "vue-i18n": "10.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.7.0",

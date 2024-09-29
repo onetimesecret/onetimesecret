@@ -40,7 +40,7 @@
  * IDEs.
  */
 
-import { AuthenticationSettings, Cust, Plan, Metadata, AvailablePlans } from './onetime';
+import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans } from './onetime';
 import type Stripe from 'stripe';
 
 declare global {
@@ -48,7 +48,7 @@ declare global {
     apitoken?: string;
     authenticated: boolean;
     baseuri: string;
-    cust: Cust | undefined | null;
+    cust: Customer | undefined | null;
     custid: string;
     customer_since?: string;
     custom_domains_record_count?: number;
@@ -95,10 +95,5 @@ declare global {
     has_items: boolean;
 
     incoming_recipient: string;
-
-    // A function that's called on page load to update any email
-    // addresses inside <span class="email">. Currently only the
-    // server-rendered templates contain these.
-    deobfuscateEmails: () => void;
   }
 }

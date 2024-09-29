@@ -5,19 +5,17 @@ import FeedbackForm from '@/components/FeedbackForm.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
-import { AuthenticationSettings, Cust } from '@/types/onetime';
+import { AuthenticationSettings, Customer } from '@/types/onetime';
 
 export interface Props {
   authenticated: boolean
   authentication: AuthenticationSettings
   colonel: boolean
-  cust?: Cust
-  defaultLocale: string
+  cust?: Customer
   displayFeedback: boolean
   displayLinks: boolean
   displayMasthead: boolean
   displayVersion: boolean
-  isDefaultLocale: boolean
   onetimeVersion: string
   plansEnabled?: boolean
   supportHost?: string
@@ -26,8 +24,6 @@ export interface Props {
 withDefaults(defineProps<Props>(), {
   authenticated: false,
   colonel: false,
-  defaultLocale: 'en',
-  isDefaultLocale: true,
 })
 
 </script>
@@ -70,10 +66,6 @@ withDefaults(defineProps<Props>(), {
                 </template>
 
                 <router-link v-else to="/about" title="About Onetime Secret" class="underline">{{ $t('web.COMMON.header_about') }}</router-link>
-              </template>
-
-              <template v-if="!isDefaultLocale">
-                <span class="mx-0">|</span> <router-link :to="`?locale=${defaultLocale}`" :title="`View site in ${defaultLocale}`">{{ defaultLocale }}</router-link>
               </template>
 
             </nav>

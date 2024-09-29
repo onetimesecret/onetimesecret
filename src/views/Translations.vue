@@ -1,6 +1,3 @@
-<script setup lang="ts">
-import GithubCorner from '@/components/GithubCorner.vue';
-</script>
 
 <template>
 
@@ -86,8 +83,10 @@ import GithubCorner from '@/components/GithubCorner.vue';
         <a href="https://github.com/onetimesecret/onetimesecret/blob/develop/etc/locale/en"
            class="text-brand-500 dark:text-brand-400 hover:underline">english</a>
         -- and send a text file via email to
-        <span class="email"
-              data-subject="Translations">contribute &#65;&#84; onetimesecret D0T com</span>.
+        <EmailObfuscator
+          email="contribute@onetimesecret.com"
+          subject="Translations"
+        />.
       </p>
 
       <p class="mb-4">
@@ -99,3 +98,8 @@ import GithubCorner from '@/components/GithubCorner.vue';
     </article>
 
 </template>
+
+<script setup lang="ts">
+import GithubCorner from '@/components/GithubCorner.vue';
+import EmailObfuscator from '@/components/EmailObfuscator.vue';
+</script>
