@@ -48,6 +48,8 @@ import { setLanguage } from '@/i18n';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useWindowProp } from '@/composables/useWindowProps.js';
 
+const emit = defineEmits(['localeChanged']);
+
 const languageStore = useLanguageStore();
 const supportedLocales = languageStore.getSupportedLocales;
 
@@ -55,8 +57,18 @@ const supportedLocales = languageStore.getSupportedLocales;
 //const windowLocale = useUnrefWindowProp('locale');
 const cust = useWindowProp('cust');
 
-//const initialLocale = computed(() => cust?.value?.locale || windowLocale || defaultLocale);
-const currentLocale = computed(() => languageStore.determineLocale(cust?.value?.locale));
+const currentLocale = computed(() => {
+  const storeLocale = languageStore.getCurrentLocale;
+  const custLocale = cust?.value?.locale;
+
+  // First, try to use the customer-specific locale if it's supported
+  if (custLocale && supportedLocales.includes(custLocale)) {
+    return custLocale;
+  }
+
+  // If not, fall back to the store's current locale
+  return storeLocale || languageStore.defaultLocale;
+});
 
 const isMenuOpen = ref(false);
 const menuItems = ref<HTMLElement[]>([]);
@@ -85,11 +97,13 @@ const focusPreviousItem = () => {
   menuItems.value[previousIndex].focus();
 };
 
+
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
       await languageStore.updateLanguage(newLocale);
       await setLanguage(newLocale);
+      emit('localeChanged', newLocale);
     } catch (err) {
       console.error('Failed to update language:', err);
     } finally {
@@ -98,10 +112,46 @@ const changeLocale = async (newLocale: string) => {
   }
 };
 
+
 onMounted(async () => {
   menuItems.value = Array.from(document.querySelectorAll('[role="menuitem"]')) as HTMLElement[];
 
   // Ensure that the i18n system is updated
-  await setLanguage(currentLocale.value);
+  //await setLanguage(currentLocale.value);
 });
+
+/**
+DON'T DELETE
+
+//      try {
+//        const response = await axios.post('/api/v2/account/update-locale', {
+//          locale: newLocale,
+//          shrimp: csrfStore.shrimp
+//        });
+//
+//        // Update the CSRF shrimp if it's returned in the response
+//        if (response.data && response.data.shrimp) {
+//          csrfStore.updateShrimp(response.data.shrimp);
+//        }
+//
+//        return true;
+//      } catch (error) {
+//        // Set error, but don't revert the local change
+//        this.error = 'Failed to update language on server';
+//
+//        // Check if the error is due to an invalid CSRF token
+//        if (axios.isAxiosError(error) && error.response?.status === 403) {
+//          console.log('CSRF token might be invalid. Checking validity...');
+//          await csrfStore.checkShrimpValidity();
+//
+//          if (!csrfStore.isValid) {
+//            console.log('CSRF token is invalid. Please refresh the page or try again.');
+//          }
+//        }
+//
+//        return false;
+//      } finally {
+//        this.isLoading = false;
+//      }
+*/
 </script>

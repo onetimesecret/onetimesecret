@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n';
 import en from '@/locales/en.json' assert { type: 'json' };
-const supportedLocales = window.supported_locales;
+const supportedLocales = window.supported_locales || [];
 
 
 /**
@@ -18,7 +18,7 @@ export type SupportedLocale = typeof supportedLocales[number];
 
 const i18n = createI18n<[MessageSchema], SupportedLocale>({
   legacy: false,
-  locale: 'en',
+  locale: supportedLocales[0] || 'en', // 1st supported locale is assumed to be the default
   fallbackLocale: 'en',
   messages: {
     en,
@@ -26,11 +26,12 @@ const i18n = createI18n<[MessageSchema], SupportedLocale>({
   availableLocales: supportedLocales,
 });
 
-
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
+  console.log(`Attempting to load locale: ${locale}`);
   try {
     const messages = await import(`@/locales/${locale}.json`);
-    return messages.default; // Note the .default here
+    console.log(`Successfully loaded locale: ${locale}`);
+    return messages.default;
   } catch (error) {
     console.error(`Failed to load locale: ${locale}`, error);
     return null;

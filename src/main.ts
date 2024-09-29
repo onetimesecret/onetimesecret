@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, watch } from 'vue';
 import { createPinia } from 'pinia';
 import router from '@/router';
 import i18n, { setLanguage } from '@/i18n';
@@ -37,13 +37,26 @@ async function initializeApp() {
   // Initialize language store
   const languageStore = useLanguageStore();
 
-  // Give the store knowledge of the device's language
-  // so it can determine the initial locale to load.
+  // Get the initial locale and use it to set the language
   const initialLocale = languageStore.initializeCurrentLocale(navigator.language);
+  console.log('Initial locale:', initialLocale);
 
   // Set language before mounting the app
   // This ensures correct translations are available for the initial render
   await setLanguage(initialLocale);
+
+  // Update the store's currentLocale to ensure consistency
+  languageStore.setCurrentLocale(initialLocale);
+
+  // Add a watcher to react to language changes
+  watch(
+    () => languageStore.currentLocale,
+    async (newLocale) => {
+      console.log('Language changed to:', newLocale);
+      await setLanguage(newLocale);
+      // Optionally, you can add more logic here to update other parts of your app
+    }
+  );
 
   // Apply other plugins
   app.use(i18n);
