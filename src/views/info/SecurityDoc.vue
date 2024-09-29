@@ -43,10 +43,13 @@
      <h4 class="text-lg font-semibold mb-2 dark:text-white">How to Report</h4>
      <ol class="list-decimal pl-6 mb-4 dark:text-gray-300">
        <li class="mb-2">
-         <strong>Email</strong>: Send an email to
-         <span class="email" data-subject="Security Report">security &#65;&#84; onetimesecret D0T com</span> with the
-         subject line &quot;Vulnerability Report: [Brief Description]&quot;.
-       </li>
+          <strong>Email</strong>: Send an email to
+          <EmailObfuscator
+            email="security@onetimesecret.com"
+            subject="Vulnerability Report: [Brief Description]"
+          />
+          with the subject line "Vulnerability Report: [Brief Description]".
+        </li>
        <li>
          <strong>Details</strong>: Include as much information as possible about
          the vulnerability. This should include:
@@ -96,3 +99,7 @@
      <p class="prose dark:text-gray-300">Thank you for helping us keep Onetime Secret secure and excellent!</p>
    </article>
 </template>
+
+<script setup lang="ts">
+import EmailObfuscator from '@/components/EmailObfuscator.vue';
+</script>

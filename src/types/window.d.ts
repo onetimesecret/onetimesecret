@@ -95,10 +95,5 @@ declare global {
     has_items: boolean;
 
     incoming_recipient: string;
-
-    // A function that's called on page load to update any email
-    // addresses inside <span class="email">. Currently only the
-    // server-rendered templates contain these.
-    deobfuscateEmails: () => void;
   }
 }
