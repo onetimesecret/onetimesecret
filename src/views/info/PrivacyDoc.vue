@@ -245,10 +245,8 @@
       <p class="prose dark:text-gray-300">
         If you have concerns about the way onetimesecret.com is handling your User Personal
         Information, please let us know immediately. We want to help. You may email us directly at
-        <span class="email" data-subject="Resolving Complaints"
-          >support &#65;&#84; onetimesecret D0T com</span
-        >
-        with the subject line &quot;Privacy Concerns.&quot; We will respond within 45 days at the
+        <EmailObfuscator email="support@onetimesecret.com" subject="Resolving Complaints" />
+        with the subject line "Privacy Concerns." We will respond within 45 days at the
         latest.
       </p>
       <h2 class="dark:text-gray-300">How we respond to compelled disclosure</h2>
@@ -266,12 +264,10 @@
       </p>
       <h2 class="dark:text-gray-300">How you can access and control the information we collect</h2>
       <p class="prose dark:text-gray-300">
-        If you&#39;re already a onetimesecret.com user, you may access, update, alter, or delete your
+        If you're already a onetimesecret.com user, you may access, update, alter, or delete your
         basic user profile information by
         <a class="dark:text-gray-300" href="https://onetimesecret.com.com/account">editing your user profile</a> or contacting
-        <span class="email" data-subject="Account Update Request"
-          >support &#65;&#84; onetimesecret D0T com</span
-        >.
+        <EmailObfuscator email="support@onetimesecret.com" subject="Account Update Request" />.
       </p>
       <h3 class="dark:text-gray-300">Data Retention and Deletion</h3>
       <p class="prose dark:text-gray-300">
@@ -283,12 +279,11 @@
         its deletion. For example, we don’t automatically delete inactive user accounts, so unless you
         choose to delete your account, we will retain your account information indefinitely.
       </p>
-      <p class="prose dark:text-gray-300">
+            <p class="prose dark:text-gray-300">
         If you would like to cancel your account or delete your User Personal Information, you may do
         so by emailing
-        <span class="email" data-subject="Delete Account Request"
-          >support &#65;&#84; onetimesecret D0T com</span
-        >. We will retain and use your information as necessary to comply with our legal obligations,
+        <EmailObfuscator email="support@onetimesecret.com" subject="Delete Account Request" />.
+        We will retain and use your information as necessary to comply with our legal obligations,
         resolve disputes, and enforce our agreements, but barring legal requirements, we will delete
         your full profile (within reason) within 30 days.
       </p>
@@ -331,13 +326,15 @@
       </p>
       <h2 class="dark:text-gray-300">Contacting onetimesecret.com</h2>
       <p class="prose dark:text-gray-300">
-        Questions regarding onetimesecret.com&#39;s Privacy Statement or information practices should
+        Questions regarding onetimesecret.com's Privacy Statement or information practices should
         be directed to
-        <span class="email" data-subject="Privacy Questions"
-          >support &#65;&#84; onetimesecret D0T com</span
-        >.
+        <EmailObfuscator email="support@onetimesecret.com" subject="Privacy Questions" />.
       </p>
     </article>
   </div>
 
 </template>
+
+<script setup lang="ts">
+import EmailObfuscator from '@/components/EmailObfuscator.vue';
+</script>
