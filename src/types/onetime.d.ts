@@ -32,6 +32,17 @@ export interface Customer extends BaseApiRecord {
   stripe_customer_id?: string;
 }
 
+export interface ColonelCustomer {
+  custid: string;
+  planid?: string;
+  colonel: boolean;
+  secrets_created: number;
+  secrets_shared: number;
+  emails_sent: number;
+  verified: boolean;
+  stamp: string;
+}
+
 export interface PlanOptions {
   ttl: number;
   size: number;
@@ -126,7 +137,7 @@ export interface Account extends BaseApiRecord {
 }
 
 export interface ColonelData extends BaseApiRecord {
-  recent_customers: Customer[];
+  recent_customers: ColonelCustomer[];
   today_feedback: Feedback[];
   yesterday_feedback: Feedback[];
   older_feedback: Feedback[];

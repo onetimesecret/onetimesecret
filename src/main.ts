@@ -52,9 +52,11 @@ async function initializeApp() {
   watch(
     () => languageStore.currentLocale,
     async (newLocale) => {
-      console.log('Language changed to:', newLocale);
-      await setLanguage(newLocale);
-      // Optionally, you can add more logic here to update other parts of your app
+      if (newLocale) { // Type guard to ensure newLocale is not null
+        console.log('Language changed to:', newLocale);
+        await setLanguage(newLocale);
+        // Optionally, you can add more logic here to update other parts of your app
+      }
     }
   );
 
