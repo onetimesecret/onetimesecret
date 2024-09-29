@@ -25,7 +25,7 @@
     "pnpm": "^9.6.0",
     "stripe": "^16.6.0",
     "vue": "^3.4.32",
-    "vue-i18n": "10.0.2"
+    "vue-i18n": "10.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.7.0",
