@@ -56,18 +56,10 @@ const supportedLocales = languageStore.getSupportedLocales;
 // Use window.locale if available, otherwise fallback to store value
 const cust = useWindowProp('cust');
 
-const currentLocale = computed(() => {
-  const storeLocale = languageStore.getCurrentLocale;
-  const custLocale = cust?.value?.locale;
+const selectedLocale = ref(languageStore.determineLocale(cust?.value?.locale));
 
-  // First, try to use the customer-specific locale if it's supported
-  if (custLocale && supportedLocales.includes(custLocale)) {
-    return custLocale;
-  }
+const currentLocale = computed(() => selectedLocale.value);
 
-  // If not, fall back to the store's current locale
-  return storeLocale || languageStore.defaultLocale;
-});
 
 const isMenuOpen = ref(false);
 const menuItems = ref<HTMLElement[]>([]);
@@ -99,8 +91,12 @@ const focusPreviousItem = () => {
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
+      if (cust.value) {
+        cust.value.locale = newLocale;
+      }
       await languageStore.updateLanguage(newLocale);
       await setLanguage(newLocale);
+      selectedLocale.value = newLocale; // Update the selectedLocale
       emit('localeChanged', newLocale);
     } catch (err) {
       console.error('Failed to update language:', err);
@@ -115,6 +111,6 @@ onMounted(async () => {
 
   // Ensure that the i18n system is updated if the
   // customer.locale value is different from the current locale.
-  await setLanguage(currentLocale.value);
+  await setLanguage(selectedLocale.value);
 });
 </script>
