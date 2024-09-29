@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useWindowProps } from '@/composables/useWindowProps';
-import CreateInboundSecret from '@/components/secrets/CreateInboundSecret.vue';
+import InboundSecretForm from '@/components/secrets/InboundSecretForm.vue';
 import HomepageTaglines from '@/components/HomepageTaglines.vue';
 
 const { authenticated } = useWindowProps(['authenticated']);
@@ -11,6 +11,6 @@ const { authenticated } = useWindowProps(['authenticated']);
   <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
     <HomepageTaglines v-if="authenticated" />
 
-    <CreateInboundSecret />
+    <InboundSecretForm :enabled="true" title="Support Details" />
   </div>
 </template>
