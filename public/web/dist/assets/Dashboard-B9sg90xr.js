@@ -1,1 +1,0 @@
-import{d as a,c as n,a as r,u as t,_ as s,o}from"./main-CPMAd0V9.js";const _=a({__name:"Dashboard",setup(i){const e=window.shrimp;return(c,m)=>(o(),n("main",null,[r(s,{shrimp:t(e),withGenerate:!0,withRecipient:!0},null,8,["shrimp"])]))}});export{_ as default};
