@@ -164,6 +164,9 @@ const {
   },
   onError: (data) => {
     console.error('Error fetching secret:', data)
+
+    // Let's try to get a new shrimp right away
+    csrfStore.checkShrimpValidity();
   },
   getFormData: () => {
     const form = document.getElementById('createSecret') as HTMLFormElement;

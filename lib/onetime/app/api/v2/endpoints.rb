@@ -51,7 +51,13 @@ module Onetime::App
           is_valid = false
         end
 
-        json isValid: is_valid
+        sess.replace_shrimp! unless is_valid
+
+        ret = {
+          isValid: is_valid,
+          shrimp: sess.shrimp
+        }
+        json ret
       end
     end
 
