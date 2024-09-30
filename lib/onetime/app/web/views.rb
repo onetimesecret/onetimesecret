@@ -52,9 +52,15 @@ module Onetime
         self.template_extension = 'txt'
       end
 
+      class UnknownSecret < Onetime::App::View
+        self.template_name = :index
+        def init
+          self[:title] = "No such secret"
+          self[:display_feedback] = false
+          self[:display_masthead] = false
+        end
+      end
+
     end
   end
 end
-
-# These deprecated views have been suplanted by Vue.js components.
-require_relative 'views/deprecated'

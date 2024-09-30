@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import SecretFormDrawer from './SecretFormDrawer.vue';
+import SecretFormDrawer from './secrets/form/SecretFormDrawer.vue';
 
 const props = defineProps({
   default_domain: {

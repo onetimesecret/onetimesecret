@@ -1,5 +1,8 @@
 <template>
   <div>
+    <BasicFormAlerts :success="success"
+                     :error="error" />
+
     <div v-if="details?.is_destroyed"
         class="px-4 py-3 rounded relative border
         bg-red-100 border-red-400 text-red-700 dark:bg-red-800 dark:border-red-600 dark:text-red-100 mb-4">
@@ -31,6 +34,7 @@
       </div>
 
       <form method="POST"
+            @submit.prevent="submitForm"
             class="space-y-4">
         <input type="hidden"
               name="shrimp"
@@ -48,6 +52,7 @@
                 placeholder="Enter the passphrase here" />
         </div>
         <button type="submit"
+                :disabled="isSubmitting"
                 class="w-full py-2 px-4 rounded-md
                 bg-yellow-400 text-gray-800
                 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800
@@ -79,9 +84,12 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import type { MetadataData } from '@/types/onetime'
+import type { MetadataData, MetadataDataApiResponse } from '@/types/onetime'
 import { useFetchDataRecord } from '@/composables/useFetchData'
 import { useCsrfStore } from '@/stores/csrfStore';
+import { useRouter } from 'vue-router'
+import { useFormSubmission } from '@/composables/useFormSubmission'
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
 
 const csrfStore = useCsrfStore();
 
@@ -96,6 +104,29 @@ const { record, details, fetchData: fetchMetadata } = useFetchDataRecord<Metadat
   url: `/api/v2/private/${props.metadataKey}`,
 })
 
+
+const router = useRouter();
+
+const {
+  isSubmitting,
+  error,
+  success,
+  submitForm
+} = useFormSubmission({
+  url: `/api/v2/private/${props.metadataKey}/burn`,
+  successMessage: '',
+  onSuccess: (data: MetadataDataApiResponse) => {
+    // Use router to redirect to the private metadata page
+    router.push({
+      name: 'Metadata link',
+      params: { metadataKey: data.record.key },
+    })
+
+  },
+  onError: (data) => {
+    console.error('Error fetching secret:', data)
+  },
+});
 onMounted(fetchMetadata)
 
 </script>

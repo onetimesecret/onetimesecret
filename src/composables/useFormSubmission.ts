@@ -31,7 +31,6 @@ export function useFormSubmission(options: FormSubmissionOptions) {
         const form = event.target as HTMLFormElement;
         formData = new FormData(form);
 
-
         // Use the form's action attribute if no url
         // was passed in the options.
         if (!url) {

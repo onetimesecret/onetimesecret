@@ -29,7 +29,7 @@ export const useCsrfStore = defineStore('csrf', {
     /** The current CSRF token */
     shrimp: window.shrimp || '',
     /** Whether the current token is valid */
-    isValid: true,
+    isValid: false,
     /** ID of the interval timer for periodic checks */
     checkInterval: null as number | null,
   }),
@@ -76,6 +76,14 @@ export const useCsrfStore = defineStore('csrf', {
         if (response.ok) {
           const data = await response.json();
           this.isValid = data.isValid;
+
+
+          // If the json response includes a new shrimp,
+          // let's update our shrimp state to reflect it.
+          if (data?.shrimp) {
+            this.updateShrimp(data.shrimp);
+          }
+
         } else {
           this.isValid = false;
         }

@@ -12,9 +12,12 @@ GET    /account/domains                      Onetime::App::APIV2::Domains#list_d
 GET    /account                              Onetime::App::APIV2::Account#get_account
 
 GET    /private/recent                       Onetime::App::APIV2::Secrets#list_metadata
+POST   /private/:key/burn                    Onetime::App::APIV2::Secrets#burn_secret
 GET    /private/:key                         Onetime::App::APIV2::Secrets#get_metadata
 GET    /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
 POST   /secret/:key                          Onetime::App::APIV2::Secrets#get_secret
+
+POST   /secret/conceal                       Onetime::App::APIV2::Secrets#conceal_secret
 
 GET    /supported-locales                    Onetime::App::APIV2#get_supported_locales
 

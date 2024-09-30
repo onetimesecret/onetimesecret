@@ -21,24 +21,40 @@ module Onetime::Logic
       end
 
       def process
-        @secret = @metadata.load_secret
-        if secret
-          @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
-          @greenlighted = secret.viewable? && correct_passphrase && continue
-          owner = secret.load_customer
+        potential_secret = @metadata.load_secret
+        if potential_secret
+          @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
+          @greenlighted = potential_secret.viewable? && correct_passphrase && continue
           if greenlighted
+            @secret = potential_secret
 
-            owner.increment_field :secrets_burned unless owner.anonymous?
-            OT::Customer.global.increment_field :secrets_burned
-
+            owner = secret.load_customer
             secret.burned!
 
+            owner.increment_field :secrets_burned unless owner.anonymous?
+
+            OT::Customer.global.increment_field :secrets_burned
+
             OT::Logic.stathat_count('Burned Secrets', 1)
+
           elsif !correct_passphrase
+            # If the passphrase is incorrect, we don't want to show the secret
+            # obviously be we do want to count the attempt towards the rate limit.
             limit_action :failed_passphrase if secret.has_passphrase?
-            # do nothing
+
+            raise_form_error view.i18n[:COMMON][:error_passphrase]
           end
         end
+      end
+
+      def success_data
+        {
+          success: greenlighted,
+          record: {
+            metadata: metadata.safe_dump
+          },
+          details: {}
+        }
       end
 
     end

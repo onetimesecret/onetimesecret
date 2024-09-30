@@ -146,7 +146,7 @@ module Onetime::Logic
                   end
 
         @share_domain = [base_scheme, domain].join
-
+        OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
         metadata.viewed!
@@ -218,10 +218,9 @@ module Onetime::Logic
         @share_path = build_path(:secret, secret_key)
         @burn_path = build_path(:private, metadata_key, 'burn')
         @metadata_path = build_path(:private, metadata_key)
-        @share_url = build_url(@share_path)
-        @metadata_url = build_url(@metadata_path)
-        @burn_url = build_url(@burn_path)
-
+        @share_url = build_url(share_domain, @share_path)
+        @metadata_url = build_url(baseuri, @metadata_path)
+        @burn_url = build_url(baseuri, @burn_path)
         @display_lines = calculate_display_lines
       end
 

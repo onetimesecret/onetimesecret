@@ -329,9 +329,11 @@ class Onetime::CustomDomain < Familia::Horreum
 
     def default_domain? input
       display_domain = OT::CustomDomain.display_domain(input)
-      display_domain.eql?(OT.conf.dig(:site, :host))
+      site_host = OT.conf.dig(:site, :host)
+      OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
+      display_domain.eql?(site_host)
     rescue PublicSuffix::Error => e
-      OT.ld "[CustomDomain.default_domain?] #{e.message} for `#{input}"
+      OT.le "[CustomDomain.default_domain?] #{e.message} for `#{input}"
       false
     end
 
@@ -365,7 +367,7 @@ class Onetime::CustomDomain < Familia::Horreum
       # use the derived identifier to load the object from Redis using
       # the built-in `load` from Familia.
       custom_domain = parse(display_domain, custid).tap do |obj|
-        OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.to_h}"
+        OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
         raise OT::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
       end
       super(custom_domain.identifier)

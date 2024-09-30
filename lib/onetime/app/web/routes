@@ -4,16 +4,12 @@ GET   /404                                       Onetime::App::Page#not_found
 GET   /500                                       Onetime::App::Page#server_error
 GET   /robots.txt                                Onetime::App::Page#robots_txt
 
-POST  /share                                     Onetime::App::Data#create_secret
-
 GET   /incoming                                  Onetime::App::Page#index
 POST  /incoming                                  Onetime::App::Data#create_incoming
 
 GET   /secret/:key                               Onetime::App::Page#index
-
 GET   /private/:key                              Onetime::App::Page#index
-GET   /private/:key/burn                         Onetime::App::Data#burn_secret
-POST  /private/:key/burn                         Onetime::App::Data#burn_secret
+GET   /private/:key/burn                         Onetime::App::Page#index
 
 GET   /info/privacy                              Onetime::App::Page#index
 GET   /info/security                             Onetime::App::Page#index

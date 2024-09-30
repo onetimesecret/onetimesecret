@@ -62,7 +62,7 @@ class Onetime::Customer < Familia::Horreum
     {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
 
     # NOTE: The secrets_created incrementer is null until the first secret
-    # is created. See CreateSecret for where the incrementer is called.
+    # is created. See ConcealSecret for where the incrementer is called.
     #
     {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
     {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
