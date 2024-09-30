@@ -76,34 +76,6 @@ module Onetime
         end
       end
 
-      def create_secret
-        publically('/') do
-          logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
-          logic.raise_concerns
-          logic.process
-          req.params.clear
-          req.params[:key] = logic.metadata.key
-          res.redirect logic.redirect_uri
-        end
-      end
-
-      def burn_secret
-        publically do
-          deny_agents!
-          no_cache!
-          logic = OT::Logic::Secrets::BurnSecret.new sess, cust, req.params, locale
-          view = Onetime::App::Views::Burn.new req, sess, cust, locale, logic.metadata
-          logic.raise_concerns
-          logic.process
-          if logic.greenlighted
-            res.redirect '/private/' + logic.metadata.key
-          else
-            view.add_error view.i18n[:COMMON][:error_passphrase] if req.post? && !logic.correct_passphrase
-            res.body = view.render
-          end
-        end
-      end
-
     end
 
   end
