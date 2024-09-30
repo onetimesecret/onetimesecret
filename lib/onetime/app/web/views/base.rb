@@ -74,7 +74,7 @@ module Onetime
         end
 
         unless sess.nil?
-          if cust.pending? && self.class != Onetime::App::Views::Shared
+          if cust.pending?
             add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
           else
             add_errors sess.get_error_messages
