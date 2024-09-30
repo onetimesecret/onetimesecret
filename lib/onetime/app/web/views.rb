@@ -64,6 +64,3 @@ module Onetime
     end
   end
 end
-
-# These deprecated views have been suplanted by Vue.js components.
-require_relative 'views/deprecated'

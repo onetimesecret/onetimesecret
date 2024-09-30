@@ -157,7 +157,10 @@ module Onetime
       end
 
       class << self
-        attr_accessor :pagename # can be removed with deprecated.rb
+        # pagename must stay here while we use i18n method above. It populates
+        # the i18n[:web][:pagename] hash with the locale translations, provided
+        # the view being used has a matching name in the locales file.
+        attr_accessor :pagename
       end
 
     end
