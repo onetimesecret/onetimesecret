@@ -72,7 +72,11 @@ module Onetime
             return '<script>console.warn("Vite manifest not found. Run `pnpm run build`")</script>'
           end
 
-          manifest = JSON.parse(File.read(manifest_path))
+          # Cache the contents of the manifest file to avoid unnecessary I/O
+          # on every request. The manifest file is only updated when the assets
+          # are rebuilt, so it's safe to cache the contents for the lifetime of
+          # the application process.
+          @manifest_cache ||= JSON.parse(File.read(manifest_path))
 
           assets = []
 
