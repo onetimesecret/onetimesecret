@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useWindowProps } from '@/composables/useWindowProps';
-import InboundSecretForm from '@/components/secrets/InboundSecretForm.vue';
+import InboundSecretForm from '@/components/secrets/form/InboundSecretForm.vue';
 import HomepageTaglines from '@/components/HomepageTaglines.vue';
 
 const { authenticated } = useWindowProps(['authenticated']);

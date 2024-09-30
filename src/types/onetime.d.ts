@@ -204,6 +204,7 @@ export interface MetadataDetails extends DetailsType {
 }
 
 export interface SecretData extends BaseApiRecord {
+
   key: string;
   secret_key: string;
   secret_shortkey: string;
@@ -222,6 +223,18 @@ export interface SecretDetails extends DetailsType {
   correct_passphrase: boolean;
   display_lines: number;
   one_liner: boolean;
+}
+
+export interface ConcealData {
+  metadata: MetadataData;
+  secret: SecretData;
+  share_domain: string;
+}
+
+export interface ConcealDetails {
+  kind: string,
+  recipient: string,
+  recipient_safe: string
 }
 
 export interface Feedback {
@@ -260,6 +273,8 @@ export type AccountApiResponse = ApiRecordResponse<Account>;
 export type ColonelDataApiResponse = ApiRecordResponse<ColonelData>;
 export type MetadataDataApiResponse = ApiRecordResponse<MetadataData>;
 export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
+export type ConcealDataApiResponse = ApiRecordResponse<ConcealData>;
+
 /**
  * Front-end Vue App
  *

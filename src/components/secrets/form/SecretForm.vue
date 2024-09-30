@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import CustomDomainPreview from './CustomDomainPreview.vue';
+import CustomDomainPreview from './../../CustomDomainPreview.vue';
 import SecretContentInputArea from './SecretContentInputArea.vue';
 import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
-import GenerateButton from './secrets/GenerateButton.vue';
-import CreateButton from './secrets/CreateButton.vue';
+import GenerateButton from './GenerateButton.vue';
+import CreateButton from './CreateButton.vue';
 import { useCsrfStore } from '@/stores/csrfStore';
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import { ConcealDataApiResponse } from '@/types/onetime';
+import { useRouter } from 'vue-router';
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 
 const csrfStore = useCsrfStore();
 
@@ -64,16 +68,42 @@ const updateSelectedDomain = (domain: string) => {
 const isGenerateDisabled = computed(() => isFormValid.value);
 const isCreateDisabled = computed(() => !isFormValid.value);
 
+const router = useRouter();
+
+const {
+  isSubmitting,
+  error,
+  success,
+  submitForm
+} = useFormSubmission({
+  url: '/api/v2/secret/conceal',
+  successMessage: '',
+  onSuccess: (data: ConcealDataApiResponse) => {
+    // Use router to redirect to the private metadata page
+    router.push({
+      name: 'Metadata link',
+      params: { metadataKey: data.record.metadata.key },
+    })
+
+  },
+  onError: (data) => {
+    console.error('Error fetching secret:', data)
+  },
+})
+
+
 </script>
 
 <template>
   <main class="min-w-[320px]">
     <div class="">
-
+      <BasicFormAlerts :success="success"
+                       :error="error" />
       <form id="createSecret"
             method="post"
             autocomplete="off"
-            action="/share"
+            @submit.prevent="submitForm"
+            action="/api/v2/secret/conceal"
             class="form-horizontal"
             :disabled="!props.enabled">
         <input type="hidden"
@@ -120,9 +150,9 @@ const isCreateDisabled = computed(() => !isFormValid.value);
                                   :withPassphrase="true" />
 
         <div class="flex w-full mb-4 space-x-2">
-          <GenerateButton :disabled="isGenerateDisabled"
+          <GenerateButton :disabled="isGenerateDisabled || isSubmitting"
                           @click="$emit('generate')" />
-          <CreateButton :disabled="isCreateDisabled"
+          <CreateButton :disabled="isCreateDisabled || isSubmitting"
                         :with-asterisk="withAsterisk"
                         @click="$emit('create')" />
         </div>

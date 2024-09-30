@@ -2,8 +2,9 @@
   <div>
     <DashboardTabNav />
 
+    <BasicFormAlerts :error="error" />
+
     <div v-if="isLoading">Loading...</div>
-    <div v-else-if="error">Error: {{ error }}</div>
     <div v-else-if="record && details">
       <SecretLink v-if="details.show_secret_link" :metadata="record" :details="details" />
 
@@ -51,6 +52,7 @@ import SecretLink from '@/components/secrets/metadata/SecretLink.vue'
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue'
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue'
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue'
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
 
 // This prop is passed from vue-router b/c the route has `prop: true`.
 interface Props {
