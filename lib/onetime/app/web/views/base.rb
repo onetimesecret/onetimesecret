@@ -136,45 +136,6 @@ module Onetime
         }
       end
 
-      def setup_plan_variables
-        Onetime::Plan.plans.each_pair do |planid,plan|
-          self[plan.planid] = {
-            :price => plan.price.zero? ? 'Free' : plan.calculated_price,
-            :original_price => plan.price.to_i,
-            :ttl => plan.options[:ttl].in_days.to_i,
-            :size => plan.options[:size].to_i,
-            :api => plan.options[:api],
-            :name => plan.options[:name],
-            :dark_mode => plan.options[:dark_mode],
-            :custom_domains => plan.options[:custom_domains],
-            :email => plan.options[:email],
-            :planid => planid
-          }
-          self[plan.planid][:price_adjustment] = (plan.calculated_price.to_i != plan.price.to_i)
-        end
-
-        @plans = [:basic, :identity, :dedicated]
-
-        self[:default_planid] = self[@plans.first.to_s] || self['basic']
-
-        self[:planid] = self[:default_planid][:planid]
-      end
-
-      def get_split_test_values testname
-        varname = "#{testname}_group"
-        if OT::SplitTest.test_running? testname
-          group_idx = cust.get_persistent_value sess, varname
-          if group_idx.nil?
-            group_idx = OT::SplitTest.send(testname).register_visitor!
-            OT.info "Split test visitor: #{sess.sessid} is in group #{group_idx}"
-            cust.set_persistent_value sess, varname, group_idx
-          end
-          @plans = *OT::SplitTest.send(testname).sample!(group_idx.to_i)
-        else
-          @plans = yield # TODO: not tested
-        end
-      end
-
       def add_message msg
         messages[:info] << {type: 'info', content: msg} unless msg.to_s.empty?
       end
