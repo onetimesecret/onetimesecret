@@ -35,7 +35,7 @@ module Onetime::App
     def share
       authorized(true) do
         req.params[:kind] = :share
-        logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if req.get?
@@ -52,7 +52,7 @@ module Onetime::App
     def generate
       authorized(true) do
         req.params[:kind] = :generate
-        logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
         if req.get?
@@ -146,7 +146,7 @@ module Onetime::App
     def create
       authorized(true) do
         req.params[:kind] = :share
-        logic = OT::Logic::Secrets::CreateSecret.new sess, cust, req.params, locale
+        logic = OT::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
         logic.token = ''.instance_of?(String).to_s  # lol a roundabout way to get to "true"
         logic.raise_concerns
         logic.process

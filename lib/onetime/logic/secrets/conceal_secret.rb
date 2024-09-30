@@ -5,8 +5,8 @@ DEFAULT_SECRET_KIND = :share unless defined?(DEFAULT_SECRET_KIND)
 module Onetime::Logic
   module Secrets
 
-    class CreateSecret < OT::Logic::Base
-      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :maxviews
+    class ConcealSecret < OT::Logic::Base
+      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain
       attr_accessor :token
 
@@ -15,9 +15,6 @@ module Onetime::Logic
         @ttl = plan.options[:ttl] if @ttl <= 0
         @ttl = plan.options[:ttl] if @ttl >= plan.options[:ttl]
         @ttl = 5.minutes if @ttl < 1.minute
-        @maxviews = params[:maxviews].to_i
-        @maxviews = 1 if @maxviews < 1
-        @maxviews = (plan.options[:maxviews] || 100) if @maxviews > (plan.options[:maxviews] || 100)  # TODO
 
         if ['share', 'generate'].member?(params[:kind].to_s)
           @kind = params[:kind].to_s.to_sym
@@ -47,7 +44,7 @@ module Onetime::Logic
           # If the given domain is the same as the site's host domain, then
           # we simply skip the share domain stuff altogether.
           if OT::CustomDomain.default_domain?(potential_domain)
-            OT.info "[CreateSecret] Skipping share domain: #{potential_domain}"
+            OT.info "[ConcealSecret] Skipping share domain: #{potential_domain}"
           else
             @share_domain = potential_domain
           end
@@ -57,9 +54,11 @@ module Onetime::Logic
       def raise_concerns
         limit_action :create_secret
         limit_action :email_recipient unless recipient.empty?
+
         if kind == :share && secret_value.to_s.empty?
           raise_form_error "You did not provide anything to share" #
         end
+
         if !@recipient.empty?
           raise_form_error "An account is required to send emails." if cust.anonymous?
           @recipient.each do |recip|
@@ -86,21 +85,24 @@ module Onetime::Logic
 
       def process
         @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
+
         if !passphrase.empty?
           secret.update_passphrase passphrase
           metadata.passphrase = secret.passphrase
         end
+
         secret.encrypt_value secret_value, :size => plan.options[:size]
         metadata.ttl, secret.ttl = ttl*2, ttl
         metadata.secret_shortkey = secret.shortkey
         metadata.secret_ttl = secret.ttl
         metadata.share_domain = share_domain
         secret.share_domain = share_domain
-        secret.maxviews = maxviews
         secret.save
         metadata.save
 
-        if metadata.valid? && secret.valid?
+        @greenlighted = metadata.valid? && secret.valid?
+
+        if greenlighted
           unless cust.anonymous?
             cust.add_metadata metadata
             cust.increment_field :secrets_created
@@ -123,7 +125,21 @@ module Onetime::Logic
         ['/private/', metadata.key].join
       end
 
-      #private
+      def success_data
+        {
+          success: greenlighted,
+          record: {
+            metadata: metadata.safe_dump,
+            secret: secret.safe_dump,
+            share_domain: share_domain
+          },
+          details: {
+            kind: kind,
+            recipient: recipient,
+            recipient_safe: recipient_safe
+          }
+        }
+      end
 
       def form_fields
         {
