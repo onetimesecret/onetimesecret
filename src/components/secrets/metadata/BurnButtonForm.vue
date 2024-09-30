@@ -3,8 +3,8 @@
 
   <div v-if="!details.is_destroyed">
 
-    <a
-      :href="metadata.burn_url"
+    <router-link
+      :to="{ name: 'Burn secret', params: { metadataKey: metadata.key } }"
       class="block w-full px-4 py-2 mb-4 text-center text-base
       bg-yellow-400 rounded-md text-gray-800
       hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
@@ -28,7 +28,7 @@
           d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path>
       </svg>
       {{$t('web.COMMON.burn_this_secret')}}
-    </a>
+    </router-link>
 
     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
       * {{$t('web.COMMON.burn_this_secret_hint')}}.
