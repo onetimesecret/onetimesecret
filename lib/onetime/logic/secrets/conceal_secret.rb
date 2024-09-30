@@ -48,6 +48,8 @@ module Onetime::Logic
           else
             @share_domain = potential_domain
           end
+        elsif potential_domain
+          OT.info "[ConcealSecret] Invalid share domain: #{OT::CustomDomain.valid?(potential_domain)}"
         end
       end
 
@@ -103,6 +105,8 @@ module Onetime::Logic
         @greenlighted = metadata.valid? && secret.valid?
 
         if greenlighted
+          OT.ld "[ConcealSecret] Secret created: #{metadata.key} (#{share_domain})"
+
           unless cust.anonymous?
             cust.add_metadata metadata
             cust.increment_field :secrets_created

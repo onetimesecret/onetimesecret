@@ -40,8 +40,8 @@ module Onetime
         components.join('/')
       end
 
-      def build_url(path)
-        [baseuri, path].flatten.join('/')
+      def build_url(domain, path)
+        [domain, path].flatten.join('/')
       end
 
       def secure_request?
