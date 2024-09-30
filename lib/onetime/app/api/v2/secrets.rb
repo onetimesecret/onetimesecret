@@ -12,7 +12,7 @@ class Onetime::App::APIV2
     @check_utf8 = true
     @check_uri_encoding = true
 
-    def conceal
+    def conceal_secret
       process_action(
         OT::Logic::Secrets::ConcealSecret,
         "Secret concealed successfully.",
@@ -21,7 +21,7 @@ class Onetime::App::APIV2
       )
     end
 
-    def burn
+    def burn_secret
       process_action(
         OT::Logic::Secrets::BurnSecret,
         "Secret burned successfully.",

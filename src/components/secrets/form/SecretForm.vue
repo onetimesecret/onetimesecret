@@ -89,77 +89,76 @@ const {
   onError: (data) => {
     console.error('Error fetching secret:', data)
   },
-})
+});
 
 
 </script>
 
 <template>
-  <main class="min-w-[320px]">
-    <div class="">
-      <BasicFormAlerts :success="success"
-                       :error="error" />
-      <form id="createSecret"
-            method="post"
-            autocomplete="off"
-            @submit.prevent="submitForm"
-            action="/api/v2/secret/conceal"
-            class="form-horizontal"
-            :disabled="!props.enabled">
-        <input type="hidden"
-               name="utf8"
-               value="✓" />
-        <input type="hidden"
-               name="shrimp"
-               :value="csrfStore.shrimp" />
-        <input type="hidden"
-               name="share_domain"
-               :value="selectedDomain" />
 
-        <!--
-            v-model:selectedDomain is equivalent to:
-              :selectedDomain="selectedDomain"
-              @update:selectedDomain="selectedDomain = $event"
-        -->
+  <div class="min-w-[320px]">
+    <BasicFormAlerts :success="success"
+                     :error="error" />
 
-        <!--
-          Domain selection and persistence logic:
-            - getSavedDomain() retrieves the saved domain from localStorage or defaults
-              to the first available domain
-                  - selectedDomain is initialized with getSavedDomain()
-                  - A watcher saves selectedDomain to localStorage on changes
-            - updateSelectedDomain() updates the selectedDomain ref when the child
-              component emits an update
-            - The template passes initialDomain to SecretContentInputArea and listens
-              for update:selectedDomain events
-            This setup allows SecretForm to manage domain state and persistence while
-            SecretContentInputArea handles the dropdown UI. The selected domain
-            persists across sessions and can be overridden when needed.
-        -->
-        <SecretContentInputArea :availableDomains="availableDomains"
-                                :initialDomain="selectedDomain"
-                                :initialContent="formFields?.secret || ''"
-                                :withDomainDropdown="domainsEnabled"
-                                @update:selectedDomain="updateSelectedDomain"
-                                @update:content="secretContent = $event" />
+    <form id="createSecret"
+          method="post"
+          autocomplete="off"
+          @submit.prevent="submitForm"
+          action="/api/v2/secret/conceal"
+          class="form-horizontal"
+          :disabled="!props.enabled">
+      <input type="hidden"
+              name="utf8"
+              value="✓" />
+      <input type="hidden"
+              name="shrimp"
+              :value="csrfStore.shrimp" />
+      <input type="hidden"
+              name="share_domain"
+              :value="selectedDomain" />
 
-        <CustomDomainPreview :default_domain="selectedDomain" />
+      <!--
+          v-model:selectedDomain is equivalent to:
+            :selectedDomain="selectedDomain"
+            @update:selectedDomain="selectedDomain = $event"
+      -->
 
-        <SecretFormPrivacyOptions :withRecipient="props.withRecipient"
-                                  :withExpiry="true"
-                                  :withPassphrase="true" />
+      <!--
+        Domain selection and persistence logic:
+          - getSavedDomain() retrieves the saved domain from localStorage or defaults
+            to the first available domain
+                - selectedDomain is initialized with getSavedDomain()
+                - A watcher saves selectedDomain to localStorage on changes
+          - updateSelectedDomain() updates the selectedDomain ref when the child
+            component emits an update
+          - The template passes initialDomain to SecretContentInputArea and listens
+            for update:selectedDomain events
+          This setup allows SecretForm to manage domain state and persistence while
+          SecretContentInputArea handles the dropdown UI. The selected domain
+          persists across sessions and can be overridden when needed.
+      -->
+      <SecretContentInputArea :availableDomains="availableDomains"
+                              :initialDomain="selectedDomain"
+                              :initialContent="formFields?.secret || ''"
+                              :withDomainDropdown="domainsEnabled"
+                              @update:selectedDomain="updateSelectedDomain"
+                              @update:content="secretContent = $event" />
 
-        <div class="flex w-full mb-4 space-x-2">
-          <GenerateButton :disabled="isGenerateDisabled || isSubmitting"
-                          @click="$emit('generate')" />
-          <CreateButton :disabled="isCreateDisabled || isSubmitting"
-                        :with-asterisk="withAsterisk"
-                        @click="$emit('create')" />
-        </div>
+      <CustomDomainPreview :default_domain="selectedDomain" />
 
-      </form>
-    </div>
+      <SecretFormPrivacyOptions :withRecipient="props.withRecipient"
+                                :withExpiry="true"
+                                :withPassphrase="true" />
 
-  </main>
+      <div class="flex w-full mb-4 space-x-2">
+        <GenerateButton :disabled="isGenerateDisabled || isSubmitting"
+                        @click="$emit('generate')" />
+        <CreateButton :disabled="isCreateDisabled || isSubmitting"
+                      :with-asterisk="withAsterisk"
+                      @click="$emit('create')" />
+      </div>
+
+    </form>
+  </div>
 
 </template>
