@@ -19,9 +19,9 @@ import BaseLayout from './BaseLayout.vue';
 
 // Define the props for this layout, extending the BaseLayout props
 export interface Props extends BaseProps {
-  displayFeedback: boolean
-  displayLinks: boolean
-  displayVersion: boolean
+  displayFeedback?: boolean
+  displayLinks?: boolean
+  displayVersion?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
