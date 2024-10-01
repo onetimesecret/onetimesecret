@@ -1,6 +1,26 @@
 <!doctype html>
 <html lang="en" class="light">
-  {{>partial/head}}
+  <head>
+    <script>
+      // This script runs immediately and sets the initial theme
+      (function() {
+        var darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        var isDarkMode = darkModeMediaQuery.matches;
+        var htmlElement = document.documentElement;
+
+        if (isDarkMode) {
+          htmlElement.style.setProperty('--bg-color', 'rgb(17 24 39)');
+          htmlElement.style.setProperty('--text-color', '#ffffff');
+          htmlElement.classList.add('dark-mode');
+        } else {
+          htmlElement.style.setProperty('--bg-color', '#ffffff');
+          htmlElement.style.setProperty('--text-color', 'rgb(17 24 39)');
+          htmlElement.classList.remove('dark-mode');
+        }
+      })();
+    </script>
+    {{>partial/head}}
+  </head>
   <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     {{>partial/session_messages}}
     <div id="app"><router-view></router-view></div>
