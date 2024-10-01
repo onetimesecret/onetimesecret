@@ -50,15 +50,9 @@ const {
 // determines which layout component should be used based on the current
 // route's metadata:
 const layout = computed(() => {
+  return route.meta.layout ||DefaultLayout;
+})
 
-  // Check if the route has a specific layout defined
-  if (route.meta.layout) {
-    return route.meta.layout;
-  }
-
-  // Default to DefaultLayout if no specific layout is defined
-  return DefaultLayout;
-});
 
 // Define the props you want to pass to the layouts
 const layoutProps = computed(() => {
