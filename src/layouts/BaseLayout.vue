@@ -38,13 +38,13 @@ withDefaults(defineProps<Props>(), {
     <!-- Good morning Vietnam -->
     <GlobalBroadcast :show="false" content="" />
 
-    <!-- Header content, like logo & top nav -->
+    <!-- Header content, Ramos territory -->
     <slot name="header"></slot>
 
     <!-- Main page content, only in Japan -->
     <slot name="main"></slot>
 
-    <!-- Footer content, like term of use & privacy policy -->
+    <!-- Footer content, Haaland maybe? -->
     <slot name="footer"></slot>
 
   </div>

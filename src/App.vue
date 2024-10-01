@@ -67,11 +67,19 @@ const layoutProps = computed(() => {
     supportHost: support_host.value,
     plansEnabled: plans_enabled.value,
     defaultLocale: locale.value,
-    displayMasthead: true,
-    displayLinks: true,
-    displayVersion: true,
-    displayFeedback: true,
     isDefaultLocale: true,
+
+    // Initially display the default layout with everything in the
+    // header and footer hidden. These can be overridden by the
+    // route.meta.layoutProps object or in the layout components
+    // themselves. This prevents the header and footer from being
+    // displayed on pages where they are not needed, esp in the ca
+    // case where a slow connection causes the default layout to
+    // be displayed before the route-specific layout is loaded.
+    displayMasthead: false,
+    displayLinks: false,
+    displayVersion: false,
+    displayFeedback: false,
   };
 
   // Merge with route.meta.layoutProps if they exist
