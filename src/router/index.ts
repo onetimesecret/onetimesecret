@@ -16,6 +16,15 @@ import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
 
 const authState = ref(window.authenticated) // Assuming this is the variable name
 
+declare module 'vue-router' {
+  interface RouteMeta {
+    // is optional
+    isAdmin?: boolean
+    // must be declared by every route
+    requiresAuth?: boolean
+  }
+}
+
 /**
  * About Auto vs Lazy loading
  *
@@ -176,13 +185,19 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account',
     name: 'Account',
     component: () => import('@/views/account/AccountIndex.vue'),
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true
+    },
   },
   {
     path: '/colonel',
     name: 'Colonel',
     component: () => import('@/views/colonel/ColonelIndex.vue'),
-    meta: { requiresAuth: true, layout: DefaultLayout },
+    meta: {
+      isAdmin: true,
+      requiresAuth: true,
+      layout: DefaultLayout,
+    },
     props: true,
   },
   {
@@ -207,7 +222,17 @@ const routes: Array<RouteRecordRaw> = [
     path: '/pricing',
     name: 'Pricing',
     component: () => import('@/views/pricing/PricingDual.vue'),
-    meta: { layout: WideLayout },
+    meta: {
+      layout: WideLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: true,
+        displaySitenav: true,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
+    },
     props: true,
   },
   {
@@ -286,12 +311,20 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
-
-router.beforeEach((to, from, next) => {
+// NOTE: This doesn't override the server pages which redirect
+// when not authenticated.
+// https://router.vuejs.org/guide/advanced/meta.html
+router.beforeEach((to) => {
+  // instead of having to check every route record with
+  // to.matched.some(record => record.meta.requiresAuth)
   if (to.meta.requiresAuth && !authState.value) {
-    next('/')
-  } else {
-    next()
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+    return {
+      path: '/login',
+      // save the location we were at to come back later
+      query: { redirect: to.fullPath },
+    }
   }
 })
 

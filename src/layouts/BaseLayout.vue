@@ -1,34 +1,4 @@
 
-<script setup lang="ts">
-import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
-import { AuthenticationSettings, Customer } from '@/types/onetime';
-
-export interface Props {
-  authentication: AuthenticationSettings
-  cust?: Customer
-  onetimeVersion: string
-  supportHost?: string
-  colonel: boolean
-  authenticated: boolean
-  displayFeedback: boolean
-  displayLinks: boolean
-  displayMasthead: boolean
-  displayVersion: boolean
-  plansEnabled?: boolean
-}
-
-withDefaults(defineProps<Props>(), {
-  colonel: false,
-  authenticated: false,
-  displayFeedback: false,
-  displayLinks: false,
-  displayMasthead: false,
-  displayVersion: false,
-  plansEnabled: false,
-})
-
-</script>
-
 <template>
   <div>
 
@@ -49,3 +19,25 @@ withDefaults(defineProps<Props>(), {
 
   </div>
 </template>
+
+<script setup lang="ts">
+import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
+import { AuthenticationSettings, Customer } from '@/types/onetime';
+
+export interface Props {
+  authentication: AuthenticationSettings
+  cust?: Customer
+  onetimeVersion: string
+  supportHost?: string
+  colonel: boolean
+  authenticated: boolean
+  plansEnabled?: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  colonel: false,
+  authenticated: false,
+  plansEnabled: false,
+})
+
+</script>

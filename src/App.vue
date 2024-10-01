@@ -50,9 +50,8 @@ const {
 // determines which layout component should be used based on the current
 // route's metadata:
 const layout = computed(() => {
-  return route.meta.layout ||DefaultLayout;
+  return route.meta.layout || DefaultLayout;
 })
-
 
 // Define the props you want to pass to the layouts
 const layoutProps = computed(() => {
@@ -76,16 +75,21 @@ const layoutProps = computed(() => {
     // displayed on pages where they are not needed, esp in the ca
     // case where a slow connection causes the default layout to
     // be displayed before the route-specific layout is loaded.
-    displayMasthead: false,
-    displayLinks: false,
-    displayVersion: false,
-    displayFeedback: false,
+    //displayMasthead: false,
+    //displayLinks: false,
+    //displayVersion: false,
+    //displayFeedback: false,
   };
 
   // Merge with route.meta.layoutProps if they exist
   if (route.meta.layoutProps) {
-    return { ...defaultProps, ...route.meta.layoutProps };
+    const mergedProps = { ...defaultProps, ...route.meta.layoutProps };
+    console.log('Merged layout props:', mergedProps);
+    return mergedProps;
+
+
   }
+  console.log('App.vue layout props:', defaultProps);
 
   return defaultProps;
 });

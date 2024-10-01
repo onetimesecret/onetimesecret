@@ -18,7 +18,8 @@
           <p
               class="max-w-xl mt-5 mx-auto text-xl
               text-gray-400 dark:text-gray-400">
-            A secure, one-time message awaits you. Before you open it, here's what you should know:
+            A secure, one-time message awaits you. <br>
+            Before you open it, here's what you should know:
           </p>
         </div>
       </div>

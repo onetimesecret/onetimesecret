@@ -5,26 +5,28 @@
         <slot></slot>
       </main>
     </template>
+
+    <template #footer>
+      <DefaultFooter v-bind="props"/>
+    </template>
   </BaseLayout>
 </template>
 
 <script setup lang="ts">
+import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 import BaseLayout from './BaseLayout.vue';
-import type { Props as BaseLayoutProps } from '@/layouts/BaseLayout.vue';
 
 // Define the props for this layout, extending the BaseLayout props
-interface ImplementingLayoutProps extends BaseLayoutProps {
-  // Add any additional props specific to this layout
-  //additionalProp?: string;
+export interface Props extends BaseProps {
+  displayFeedback: boolean
+  displayLinks: boolean
+  displayVersion: boolean
 }
 
-const props = withDefaults(defineProps<ImplementingLayoutProps>(), {
-
-  // You can also add defaults for optional BaseLayout props
-  displayMasthead: false,
-  displayLinks: false,
+const props = withDefaults(defineProps<Props>(), {
   displayFeedback: false,
+  displayLinks: false,
   displayVersion: false,
-
 });
 </script>

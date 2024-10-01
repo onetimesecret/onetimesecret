@@ -1,8 +1,8 @@
 <template>
-  <div class="">
+  <div class="mt-24">
     <div v-if="isLoading">Loading...</div>
     <div v-else-if="record && details"
-         class="space-y-8">
+         class="space-y-20">
       <!-- Owner warning -->
       <div v-if="!details.verification && details.is_owner && !details.show_secret"
            class="bg-amber-50 border-l-4 border-amber-400 text-amber-700 p-4 mb-4 dark:bg-amber-900 dark:border-amber-500 dark:text-amber-100">
@@ -28,7 +28,7 @@
 
       <!-- Secret confirmation form -->
       <div v-if="!details.show_secret">
-        <div class="mt-20">
+        <div class="">
           <BasicFormAlerts :success="success"
                            :error="error" />
 
