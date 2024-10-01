@@ -1,11 +1,5 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-4">
-      <p class="text-sm text-gray-500 dark:text-gray-400 italic">
-        {{ $t('web.COMMON.careful_only_see_once') }}
-      </p>
-    </div>
-
     <div class="bg-white dark:bg-gray-900">
       <div class="max-w-7xl mx-auto py-12 px-4 sm:py-16 sm:px-6 lg:px-8">
         <div class="text-center">

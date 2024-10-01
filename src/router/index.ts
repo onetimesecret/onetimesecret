@@ -53,6 +53,8 @@ const authState = ref(window.authenticated) // Assuming this is the variable nam
  * @see [Vue3 documentation on dynamic imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import#dynamic_imports)
  * @see [Vue3 documentation on `defineAsyncComponent`](https://v3.vuejs.org/guide/component-dynamic-async.html#async-components)
  */
+import { fetchInitialSecret, AsyncDataResult } from '@/api/secrets';
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -89,6 +91,17 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: false,
         displayPoweredBy: true,
         noCache: true,
+      },
+    },
+    beforeEnter: async (to, from, next): Promise<AsyncDataResult | void> => {
+      try {
+        const secretKey = to.params.secretKey as string;
+        const initialData = await fetchInitialSecret(secretKey);
+        to.params.initialData = initialData;
+        next();
+      } catch (error) {
+        console.error('Error fetching initial page data:', error);
+        next(new Error('Failed to fetch initial page data'));
       }
     },
   },
