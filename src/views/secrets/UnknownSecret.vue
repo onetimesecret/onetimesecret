@@ -1,8 +1,4 @@
 
-<script setup lang="ts">
-
-</script>
-
 <template>
   <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-8">
     <div class="text-center mb-8">
@@ -39,11 +35,14 @@
         for more information.
       </p>
     </div>
-    <a
-      href="/"
+    <router-link
+      to="/"
       class="inline-block bg-white font-brand hover:border-brand-600 text-brand-500 font-medium py-3 px-6 border-2 rounded-lg transition duration-300 ease-in-out text-lg"
       aria-label="Return to home page">
       Return to Home
-    </a>
+    </router-link>
   </div>
 </template>
+
+<script setup lang="ts">
+</script>
