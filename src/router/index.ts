@@ -2,10 +2,17 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Homepage from '@/views/Homepage.vue'
 import WideLayout from '@/layouts/WideLayout.vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import QuietLayout from '@/layouts/QuietLayout.vue'
 import { useLanguageStore } from '@/stores/languageStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 
 import { ref } from 'vue'
+import ShowSecret from '@/views/secrets/ShowSecret.vue'
+import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
+import BurnSecret from '@/views/secrets/BurnSecret.vue';
+import DashboardIndex from '@/views/dashboard/DashboardIndex.vue';
+import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
+import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
 
 const authState = ref(window.authenticated) // Assuming this is the variable name
 
@@ -67,22 +74,64 @@ const routes: Array<RouteRecordRaw> = [
 
   },
   {
-    path: '/incoming',
-    name: 'Inbound Secrets',
-    component: () => import('@/views/secrets/IncomingSupportSecret.vue'),
-    meta: { requiresAuth: false }
+    path: '/secret/:secretKey',
+    name: 'Secret link',
+    component: ShowSecret,
+    //component: () => import('@/views/secrets/ShowSecret.vue'),
+    props: true,
+    meta: {
+      layout: QuietLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displaySitenav: false,
+        displayVersion: false,
+        displayPoweredBy: true,
+        noCache: true,
+      }
+    },
+  },
+  {
+    path: '/private/:metadataKey',
+    name: 'Metadata link',
+    component: ShowMetadata,
+    props: true,
+    meta: {
+      layoutProps: {
+        displayFeedback: false,
+        noCache: true,
+      }
+    },
+  },
+  {
+    path: '/private/:metadataKey/burn',
+    name: 'Burn secret',
+    component: BurnSecret,
+    props: true,
+    meta: {
+      layoutProps: {
+        displayFeedback: false,
+      }
+    }
   },
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/dashboard/DashboardIndex.vue'),
+    component: DashboardIndex,
     meta: { requiresAuth: true }
   },
   {
     path: '/recent',
     name: 'Recents',
-    component: () => import('@/views/dashboard/DashboardRecent.vue'),
+    component: DashboardRecent,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/incoming',
+    name: 'Inbound Secrets',
+    component: IncomingSupportSecret,
+    meta: { requiresAuth: false }
   },
   {
     path: '/account/domains/:domain/verify',
@@ -140,47 +189,6 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Security Policy',
     component: () => import('@/views/info/SecurityDoc.vue'),
     props: true,
-  },
-  {
-    path: '/secret/:secretKey',
-    name: 'Secret link',
-    component: () => import('@/views/secrets/ShowSecret.vue'),
-    props: true,
-    meta: {
-      layoutProps: {
-        displayMasthead: false,
-        displayLinks: false,
-        displayFeedback: false,
-        displaySitenav: false,
-        displayVersion: false,
-        displayPoweredBy: true,
-        noCache: true,
-      }
-    },
-  },
-  {
-    path: '/private/:metadataKey',
-    name: 'Metadata link',
-    component: () => import('@/views/secrets/ShowMetadata.vue'),
-    props: true,
-    meta: {
-      layoutProps: {
-        displayFeedback: false,
-        noCache: true,
-      }
-    },
-  },
-
-  {
-    path: '/private/:metadataKey/burn',
-    name: 'Burn secret',
-    component: () => import('@/views/secrets/BurnSecret.vue'),
-    props: true,
-    meta: {
-      layoutProps: {
-        displayFeedback: false,
-      }
-    }
   },
   {
     path: '/pricing',
