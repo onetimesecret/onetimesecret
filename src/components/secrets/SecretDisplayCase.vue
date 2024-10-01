@@ -75,7 +75,6 @@
     <a
       href="https://onetimesecret.com"
       class="hover:underline"
-      target="_blank"
       rel="noopener noreferrer">
       Powered by Onetime Secret
     </a>
