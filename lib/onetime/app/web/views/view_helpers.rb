@@ -81,27 +81,27 @@ module Onetime
           assets = []
 
           # Add CSS files directly referenced in the manifest
-          css_files = manifest.values.select { |v| v['file'].end_with?('.css') }
+          css_files = @manifest_cache.values.select { |v| v['file'].end_with?('.css') }
           assets << css_files.map do |css|
             %(<link rel="stylesheet" href="/dist/#{css['file']}">)
           end
 
           # Add CSS files referenced in the 'css' key of manifest entries
-          css_linked_files = manifest.values.flat_map { |v| v['css'] || [] }
+          css_linked_files = @manifest_cache.values.flat_map { |v| v['css'] || [] }
           assets << css_linked_files.map do |css_file|
             %(<link rel="stylesheet" href="/dist/#{css_file}">)
           end
 
           # Add JS files
-          js_files = manifest.values.select { |v| v['file'].end_with?('.js') }
+          js_files = @manifest_cache.values.select { |v| v['file'].end_with?('.js') }
           assets << js_files.map do |js|
             %(<script type="module" src="/dist/#{js['file']}"></script>)
           end
 
           # Add preload directives for imported modules
-          import_files = manifest.values.flat_map { |v| v['imports'] || [] }.uniq
+          import_files = @manifest_cache.values.flat_map { |v| v['imports'] || [] }.uniq
           preload_links = import_files.map do |import_file|
-            %(<link rel="modulepreload" href="/dist/#{manifest[import_file]['file']}">)
+            %(<link rel="modulepreload" href="/dist/#{@manifest_cache[import_file]['file']}">)
           end
           assets << preload_links
 
