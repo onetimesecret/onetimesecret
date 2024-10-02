@@ -12,7 +12,7 @@ defineProps<Props>();
           class="text-xl flex-grow py-2 px-4 rounded
            bg-orange-600 hover:bg-orange-700 text-white
            font-bold disabled:opacity-50 disabled:cursor-not-allowed
-           duration-300 ease-in-out transform hover:scale-105 disabled:hover:scale-100"
+           transition-all duration-200 ease-in-out transform hover:scale-105 disabled:hover:scale-100"
           :disabled="disabled"
           :aria-label="$t('web.COMMON.button_create_secret')"
           name="kind"

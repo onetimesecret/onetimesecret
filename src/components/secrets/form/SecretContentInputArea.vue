@@ -227,7 +227,7 @@ onUnmounted(() => {
             focus:ring-brandcomp-500 focus:border-brandcomp-500
             bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
             placeholder-gray-400 dark:placeholder-gray-500
-              resize-none overflow-y-auto"
+            resize-none overflow-y-auto transition-colors duration-200"
               name="secret"
               autofocus
               autocomplete="off"
@@ -241,7 +241,7 @@ onUnmounted(() => {
       very often, and prefer v-if if the condition is unlikely to change at
       runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
     -->
-    <div v-if="showCounter" class="hidden bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none">
+    <div v-if="showCounter" class="hidden bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none transition-colors duration-200">
       {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
 
@@ -255,7 +255,8 @@ onUnmounted(() => {
               bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600
               text-sm font-medium text-gray-700 dark:text-gray-300
               hover:bg-gray-50 dark:hover:bg-gray-700
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800">
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800
+              transition-colors duration-200">
           <span class="truncate max-w-[150px]">
             {{ selectedDomain || 'Select Domain' }}
           </span>
@@ -279,7 +280,8 @@ onUnmounted(() => {
                href="#"
                @click.prevent="selectDomain(domain)"
                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300
-                  hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                  hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white
+                  transition-colors duration-200"
                role="menuitem">
               {{ domain }}
             </a>
@@ -289,6 +291,7 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 /* Ensure the dropdown container has a higher z-index than the input field */
