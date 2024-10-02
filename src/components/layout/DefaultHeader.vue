@@ -4,8 +4,8 @@
       <div v-if="displayMasthead" class="min-w-[320px]">
         <div class="flex flex-col sm:flex-row justify-between items-center">
           <div class="mb-6 sm:mb-0"><router-link to="/"><img id="logo" src="@/assets/img/onetime-logo-v3-xl.svg" class="" width="64" height="64" alt="Logo"></router-link></div>
-          <nav class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-base font-brand">
 
+          <nav v-if="displayNavigation" class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-base font-brand">
             <template v-if="authenticated && cust">
               <div class="hidden sm:flex items-center">
                 <router-link to="/" class="text-gray-400 hover:text-gray-300 transition">
@@ -31,8 +31,8 @@
 
               <router-link v-else to="/about" title="About Onetime Secret" class="underline">{{ $t('web.COMMON.header_about') }}</router-link>
             </template>
-
           </nav>
+
         </div>
       </div>
     </div>

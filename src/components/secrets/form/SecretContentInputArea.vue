@@ -1,3 +1,134 @@
+
+<!--
+
+  FEATURE: Closing dropdown on click outside or Escape key press
+
+  1. Added `ref="dropdownRef"` to the dropdown container div.
+  2. Created a `closeDropdown` function to close the dropdown.
+  3. Added `handleClickOutside` function to check if a click occurred outside the dropdown.
+  4. Added `handleEscapeKey` function to close the dropdown when the Escape key is pressed.
+  5. Set up event listeners in the `onMounted` hook and removed them in the `onUnmounted` hook.
+
+  These changes will make the dropdown close when clicking outside of it or pressing the
+  Escape key. The click outside functionality checks if the click target is not contained
+  within the dropdown element, and if so, it closes the dropdown. The Escape key
+  functionality simply closes the dropdown when the key is pressed.
+
+  TESTING:
+  To test the readability and distinguishability of various characters,
+  including commonly problematic ones, use the following command to generate
+  a QR code. This will help validate how different characters are rendered
+  and perceived in different contexts:
+
+    $ qrencode -t UTF8i "5uP0R s3kRU7\!"
+
+    █▀▀▀▀▀█ ▄█ █▀ █▀▀▀▀▀█
+    █ ███ █ ▀█ ▄▀ █ ███ █
+    █ ▀▀▀ █ █  ▄█ █ ▀▀▀ █
+    ▀▀▀▀▀▀▀ █▄█▄█ ▀▀▀▀▀▀▀
+    ▀█▄▀  ▀▀ ▀▀▄ ▄▀▀█ ▀▀▄
+    █  █ █▀▄▄██▄▀ ▄ ▄█▀ █
+    ▀ ▀ ▀ ▀▀▄▀█▄█ ▄ ▀█▀██
+    █▀▀▀▀▀█ ▀▄█▀█▀▀█▀█▀
+    █ ███ █ ▄▀▀██▄█▄▄▀ ▄▄
+    █ ▀▀▀ █ ▄█▄ ▀▄ ▄▀ ▀ ▀
+    ▀▀▀▀▀▀▀ ▀   ▀▀  ▀ ▀▀
+
+  Here is a comprehensive string that includes a mix of problematic
+  characters (such as 'o', '0', 'l', '1', 'I') and regular
+  characters, numbers, and symbols:
+
+    a0oO1lI2b3c4d5e6f7g8h9iIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789!
+    @#$%^&*()_+-=[]{}|;:',.<>?/~`a0oO1lI2b3c4d5e6f7g8h9iIjJkKlLmMnNoOpPqQ
+    rRsStTuUvVwWxXyYzZ0123456789!@#$%^&*()_+-=[]{}|;:',.<>?/~`a0oO1lI2b3c
+    4d5e6f7g8h9iIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789!@#$%^&*()_+
+    -=[]{}|;:',.<>?/~`
+
+  Additionally, here are some leetspeak words to further test and
+  validate character rendering:
+
+    h3ll0 w0rld 1337 c0d3 pr0gr4mm3r h4ck3r s3cur1ty 3xpl01t 5up3r s3kRU7
+
+-->
+
+<template>
+  <div class="relative"
+       @mouseenter="handleMouseEnter"
+       @mouseleave="handleMouseLeave">
+    <textarea ref="textareaRef"
+              v-model="content"
+              @input="checkContentLength"
+              :maxlength="maxLength"
+              class="w-full min-h-[6rem] max-h-[400px] p-4 font-mono text-base leading-[1.2] tracking-wide
+            border-gray-300 rounded-md shadow-sm
+            focus:ring-brandcomp-500 focus:border-brandcomp-500
+            bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
+            placeholder-gray-400 dark:placeholder-gray-500
+            resize-none overflow-y-auto transition-colors duration-200"
+              name="secret"
+              autofocus
+              autocomplete="off"
+              placeholder="Secret content goes here..."
+              aria-label="Enter the secret content to share here">
+    </textarea>
+
+    <!--
+      Generally speaking, v-if has higher toggle costs while v-show has higher
+      initial render costs. So prefer v-show if you need to toggle something
+      very often, and prefer v-if if the condition is unlikely to change at
+      runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
+    -->
+    <div v-if="showCounter" class="hidden bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none transition-colors duration-200">
+      {{ formattedCharCount }} / {{ formattedMaxLength }} chars
+    </div>
+
+    <div v-if="withDomainDropdown"
+         class="absolute bottom-4 right-4">
+      <div class="relative inline-block text-left"
+           ref="dropdownRef">
+        <button type="button"
+                @click="toggleDropdown"
+                class="inline-flex justify-between items-center w-full rounded-md px-4 py-2
+              bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600
+              text-sm font-medium text-gray-700 dark:text-gray-300
+              hover:bg-gray-50 dark:hover:bg-gray-700
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800
+              transition-colors duration-200">
+          <span class="truncate max-w-[150px]">
+            {{ selectedDomain || 'Select Domain' }}
+          </span>
+          <Icon icon="heroicons-solid:chevron-down"
+                class="ml-2 flex-shrink-0 h-5 w-5 text-gray-400 dark:text-gray-500"
+                aria-hidden="true" />
+        </button>
+
+        <div v-if="isOpen"
+             class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg
+              bg-white dark:bg-gray-800
+              ring-1 ring-black ring-opacity-5 dark:ring-gray-700
+              focus:outline-none z-50
+              max-h-60 overflow-y-auto">
+          <div class="py-1"
+               role="menu"
+               aria-orientation="vertical"
+               aria-labelledby="options-menu">
+            <a v-for="domain in availableDomains"
+               :key="domain"
+               href="#"
+               @click.prevent="selectDomain(domain)"
+               class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300
+                  hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white
+                  transition-colors duration-200"
+               role="menuitem">
+              {{ domain }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 /**
  * SecretContentInputArea Component
@@ -160,135 +291,6 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleEscapeKey);
 });
 </script>
-
-
-<!--
-
-  FEATURE: Closing dropdown on click outside or Escape key press
-
-  1. Added `ref="dropdownRef"` to the dropdown container div.
-  2. Created a `closeDropdown` function to close the dropdown.
-  3. Added `handleClickOutside` function to check if a click occurred outside the dropdown.
-  4. Added `handleEscapeKey` function to close the dropdown when the Escape key is pressed.
-  5. Set up event listeners in the `onMounted` hook and removed them in the `onUnmounted` hook.
-
-  These changes will make the dropdown close when clicking outside of it or pressing the
-  Escape key. The click outside functionality checks if the click target is not contained
-  within the dropdown element, and if so, it closes the dropdown. The Escape key
-  functionality simply closes the dropdown when the key is pressed.
-
-  TESTING:
-  To test the readability and distinguishability of various characters,
-  including commonly problematic ones, use the following command to generate
-  a QR code. This will help validate how different characters are rendered
-  and perceived in different contexts:
-
-    $ qrencode -t UTF8i "5uP0R s3kRU7\!"
-
-    █▀▀▀▀▀█ ▄█ █▀ █▀▀▀▀▀█
-    █ ███ █ ▀█ ▄▀ █ ███ █
-    █ ▀▀▀ █ █  ▄█ █ ▀▀▀ █
-    ▀▀▀▀▀▀▀ █▄█▄█ ▀▀▀▀▀▀▀
-    ▀█▄▀  ▀▀ ▀▀▄ ▄▀▀█ ▀▀▄
-    █  █ █▀▄▄██▄▀ ▄ ▄█▀ █
-    ▀ ▀ ▀ ▀▀▄▀█▄█ ▄ ▀█▀██
-    █▀▀▀▀▀█ ▀▄█▀█▀▀█▀█▀
-    █ ███ █ ▄▀▀██▄█▄▄▀ ▄▄
-    █ ▀▀▀ █ ▄█▄ ▀▄ ▄▀ ▀ ▀
-    ▀▀▀▀▀▀▀ ▀   ▀▀  ▀ ▀▀
-
-  Here is a comprehensive string that includes a mix of problematic
-  characters (such as 'o', '0', 'l', '1', 'I') and regular
-  characters, numbers, and symbols:
-
-    a0oO1lI2b3c4d5e6f7g8h9iIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789!
-    @#$%^&*()_+-=[]{}|;:',.<>?/~`a0oO1lI2b3c4d5e6f7g8h9iIjJkKlLmMnNoOpPqQ
-    rRsStTuUvVwWxXyYzZ0123456789!@#$%^&*()_+-=[]{}|;:',.<>?/~`a0oO1lI2b3c
-    4d5e6f7g8h9iIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ0123456789!@#$%^&*()_+
-    -=[]{}|;:',.<>?/~`
-
-  Additionally, here are some leetspeak words to further test and
-  validate character rendering:
-
-    h3ll0 w0rld 1337 c0d3 pr0gr4mm3r h4ck3r s3cur1ty 3xpl01t 5up3r s3kRU7
-
--->
-
-<template>
-  <div class="relative"
-       @mouseenter="handleMouseEnter"
-       @mouseleave="handleMouseLeave">
-    <textarea ref="textareaRef"
-              v-model="content"
-              @input="checkContentLength"
-              :maxlength="maxLength"
-              class="w-full min-h-[6rem] max-h-[400px] p-4 font-mono text-base leading-[1.2] tracking-wide
-            border-gray-300 rounded-md shadow-sm
-            focus:ring-brandcomp-500 focus:border-brandcomp-500
-            bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
-            placeholder-gray-400 dark:placeholder-gray-500
-              resize-none overflow-y-auto"
-              name="secret"
-              autofocus
-              autocomplete="off"
-              placeholder="Secret content goes here..."
-              aria-label="Enter the secret content to share here">
-    </textarea>
-
-    <!--
-      Generally speaking, v-if has higher toggle costs while v-show has higher
-      initial render costs. So prefer v-show if you need to toggle something
-      very often, and prefer v-if if the condition is unlikely to change at
-      runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
-    -->
-    <div v-if="showCounter" class="hidden bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none">
-      {{ formattedCharCount }} / {{ formattedMaxLength }} chars
-    </div>
-
-    <div v-if="withDomainDropdown"
-         class="absolute bottom-4 right-4">
-      <div class="relative inline-block text-left"
-           ref="dropdownRef">
-        <button type="button"
-                @click="toggleDropdown"
-                class="inline-flex justify-between items-center w-full rounded-md px-4 py-2
-              bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600
-              text-sm font-medium text-gray-700 dark:text-gray-300
-              hover:bg-gray-50 dark:hover:bg-gray-700
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800">
-          <span class="truncate max-w-[150px]">
-            {{ selectedDomain || 'Select Domain' }}
-          </span>
-          <Icon icon="heroicons-solid:chevron-down"
-                class="ml-2 flex-shrink-0 h-5 w-5 text-gray-400 dark:text-gray-500"
-                aria-hidden="true" />
-        </button>
-
-        <div v-if="isOpen"
-             class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg
-              bg-white dark:bg-gray-800
-              ring-1 ring-black ring-opacity-5 dark:ring-gray-700
-              focus:outline-none z-50
-              max-h-60 overflow-y-auto">
-          <div class="py-1"
-               role="menu"
-               aria-orientation="vertical"
-               aria-labelledby="options-menu">
-            <a v-for="domain in availableDomains"
-               :key="domain"
-               href="#"
-               @click.prevent="selectDomain(domain)"
-               class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300
-                  hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-               role="menuitem">
-              {{ domain }}
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 /* Ensure the dropdown container has a higher z-index than the input field */

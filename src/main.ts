@@ -1,10 +1,18 @@
-import { createApp, watch } from 'vue';
-import { createPinia } from 'pinia';
-import router from '@/router';
+/**
+ * Description: Main entry point for the Vue application.
+ */
+
+// Ensures modulepreload works in all browsers, improving
+// performance by preloading modules.
+import 'vite/modulepreload-polyfill'
+
 import i18n, { setLanguage } from '@/i18n';
-import App from './App.vue';
+import router from '@/router';
 import { useLanguageStore } from '@/stores/languageStore';
-//import { useCsrfStore } from '@/stores/csrfStore';
+import { createPinia } from 'pinia';
+import { createApp, watch } from 'vue';
+import App from './App.vue';
+
 
 import './assets/style.css';
 
@@ -80,3 +88,13 @@ async function initializeApp() {
 
 // Start the application initialization process
 initializeApp();
+
+// http://patorjk.com/software/taag/#p=display&f=Tmplr&t=ONETIME
+const notice = `
+┏┓┳┓┏┓┏┳┓┳┳┳┓┏┓
+┃┃┃┃┣  ┃ ┃┃┃┃┣
+┗┛┛┗┗┛ ┻ ┻┛ ┗┗┛
+
+`;
+
+console.debug(notice);

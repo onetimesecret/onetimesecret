@@ -5,7 +5,7 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 </script>
 
 <template>
-  <div>
+  <div class="my-6">
     <DashboardTabNav />
 
     <SecretForm
