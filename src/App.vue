@@ -1,22 +1,17 @@
 <template>
-  <!-- Dynamic Component: The <component> element is a built-in Vue
-       component that allows you to dynamically render different components.
-       :is Binding: The :is attribute is bound to the layout computed
-       property. This binding determines which component should be rendered.
-       This approach allows for flexible layout management in a Vue
-       application, where you can easily switch between different layouts
-       (like DefaultLayout and QuietLayout) based on the requirements of
-       each route, without having to manually manage this in each individual
-       page component. -->
   <QuietLayout v-bind="layoutProps">
-    <!-- Wrapper for Router View: The dynamic layout component wraps around
-         the <router-view>, allowing different layouts to be applied to
-         different pages or sections of your application. -->
+    <!-- Router View Structure:
+         - Named views allow multiple <router-view> components in a single layout.
+         - The unnamed <router-view> is the default view for each route.
+         - Named views ("header" and "footer") can display different components
+           based on the current route configuration.
+         - layoutProps are passed to each view for consistent styling and behavior. -->
     <router-view name="header" v-bind="layoutProps"></router-view>
     <router-view></router-view>
     <router-view name="footer" v-bind="layoutProps"></router-view>
   </QuietLayout>
 </template>
+
 
 <!-- App-wide setup lives here -->
 <script setup lang="ts">
@@ -29,22 +24,19 @@ import QuietLayout from '@/layouts/QuietLayout.vue'
 const { locale } = useI18n();
 const route = useRoute()
 const {
-  ot_version,
-  cust,
-  authentication,
   authenticated,
+  authentication,
+  cust,
+  ot_version,
   plans_enabled,
   support_host,
 } = useWindowProps([
-  'ot_version',
-  'cust',
-  'is_default_locale',
-  'authentication',
   'authenticated',
-  'display_links',
+  'authentication',
+  'cust',
+  'ot_version',
   'plans_enabled',
   'support_host',
-  'display_masthead',
 ]);
 
 // Define the props you want to pass to the layouts
