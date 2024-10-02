@@ -1,7 +1,7 @@
-
-import Homepage from '@/views/Homepage.vue'
-import { RouteRecordRaw } from 'vue-router'
-import { ref } from 'vue'
+import Homepage from '@/views/Homepage.vue';
+import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
+import { ref } from 'vue';
+import { RouteRecordRaw } from 'vue-router';
 
 const authState = ref(window.authenticated);
 
@@ -23,6 +23,15 @@ const routes: Array<RouteRecordRaw> = [
         displayLinks: true,
         displayFeedback: true,
       }
+    },
+  },
+
+  {
+    path: '/incoming',
+    name: 'Inbound Secrets',
+    component: IncomingSupportSecret,
+    meta: {
+      requiresAuth: false
     },
   },
 

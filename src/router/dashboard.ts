@@ -1,158 +1,117 @@
-import { ref } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
-import publicRoutes from '@/router/public'
-import accountRoutes from '@/router/account'
-import productRoutes from '@/router/product'
-import dashboardRoutes from '@/router/dashboard'
-import authRoutes from '@/router/auth'
+import { AsyncDataResult, fetchInitialSecret } from '@/api/secrets'
+import { SecretDataApiResponse } from '@/types/onetime'
+import DashboardIndex from '@/views/dashboard/DashboardIndex.vue'
+import DashboardRecent from '@/views/dashboard/DashboardRecent.vue'
+import BurnSecret from '@/views/secrets/BurnSecret.vue'
+import ShowMetadata from '@/views/secrets/ShowMetadata.vue'
+import ShowSecret from '@/views/secrets/ShowSecret.vue'
+import { RouteRecordRaw } from 'vue-router'
+import DefaultHeader from '@/components/layout/DefaultHeader.vue'
+import DefaultFooter from '@/components/layout/DefaultFooter.vue'
 
-declare module 'vue-router' {
-  interface RouteMeta {
-    isAdmin?: boolean
-    requiresAuth?: boolean
-  }
-}
+const routes: Array<RouteRecordRaw> = [
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    ...publicRoutes,
-    ...productRoutes,
-    ...dashboardRoutes,
-    ...authRoutes,
-    ...accountRoutes,
-  ]
-})
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    components: {
+      default: DashboardIndex,
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: true,
+        displayLinks: true,
+        displayFeedback: false,
+        displayVersion: false,
+      },
+    },
+  },
+  {
+    path: '/recent',
+    name: 'Recents',
+    component: DashboardRecent,
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
+    },
+  },
 
-// NOTE: This doesn't override the server pages which redirect
-// when not authenticated.
-const authState = ref(window.authenticated);
-router.beforeEach((to) => {
-  // Redirect unless logged in
-  if (to.meta.requiresAuth && !authState.value) {
-    return {
-      path: '/login',
-      // Save the location we were at to come back later
-      query: { redirect: to.fullPath },
+  {
+    path: '/secret/:secretKey',
+    name: 'Secret link',
+    components: {
+      default: ShowSecret,
+      //header: DefaultHeader,
+      //footer: DefaultFooter,
+    },
+    props: true,
+    meta: {
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
+    },
+    beforeEnter: async (to, from, next) => {
+      try {
+        const secretKey = to.params.secretKey as string;
+        const initialData: AsyncDataResult<SecretDataApiResponse> = await fetchInitialSecret(secretKey);
+        to.meta.initialData = initialData;
+        next();
+      } catch (error) {
+        console.error('Error fetching initial page data:', error);
+        next(new Error('Failed to fetch initial page data'));
+      }
+    },
+  },
+  {
+    path: '/private/:metadataKey',
+    name: 'Metadata link',
+    component: ShowMetadata,
+    props: true,
+    meta: {
+      layoutProps: {
+        noCache: true,
+        displayMasthead: false,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
+    },
+  },
+  {
+    path: '/private/:metadataKey/burn',
+    name: 'Burn secret',
+    component: BurnSecret,
+    props: true,
+    meta: {
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
     }
-  }
-})
+  },
 
-export default router
+]
 
-/**
- * About Auto vs Lazy loading
- *
- * When components are auto-loaded instead of lazy-loaded, there are a few
- * potential reasons why they might not display correctly:
- *
- * 1. **Dependencies and Timing:**
- *    Auto-loaded components are imported and initialized immediately when the
- *    application starts. If these components have dependencies that are not
- *    yet available or initialized, they might not function correctly.
- *
- * 2. **Component Lifecycle:**
- *    Lazy-loaded components are only imported when they are needed, which can
- *    help ensure that all necessary dependencies and context are available.
- *    Auto-loading might bypass some of these checks.
- *
- * 3. **Route Parameters and Initialization:**
- *    Components that rely on route parameters (e.g., to determine the active
- *    domain) might encounter issues if they are auto-loaded. This is because
- *    the route parameters might not be available or fully resolved at the time
- *    the component is initialized. Lazy loading ensures that the component is
- *    only initialized after the route has been fully resolved, preventing such
- *    issues.
- *
- * 4. **Code Splitting and Bundle Size:**
- *   Lazy loading helps reduce the initial bundle size by splitting the
- *   application into smaller chunks that are only loaded when needed.
- *
- * When to use `defineAsyncComponent` vs dynamic imports:
- *   Use `defineAsyncComponent` for lazy loading components with additional
- *   features like handling loading and error states, or when using Suspense.
- *   Use dynamic imports (`() => import('./MyPage.vue')`) for simpler lazy
- *   loading when additional features are not needed.
- *
- * @see [Vue3 documentation on dynamic imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import#dynamic_imports)
- * @see [Vue3 documentation on `defineAsyncComponent`](https://v3.vuejs.org/guide/component-dynamic-async.html#async-components)
- */
-import { ref } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
-import publicRoutes from '@/router/public'
-import accountRoutes from '@/router/account'
-import productRoutes from '@/router/product'
-import secretRoutes from '@/router/secrets'
-import authRoutes from '@/router/auth'
-
-declare module 'vue-router' {
-  interface RouteMeta {
-    isAdmin?: boolean
-    requiresAuth?: boolean
-  }
-}
-
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    ...publicRoutes,
-    ...productRoutes,
-    ...secretRoutes,
-    ...authRoutes,
-    ...accountRoutes,
-  ]
-})
-
-// NOTE: This doesn't override the server pages which redirect
-// when not authenticated.
-const authState = ref(window.authenticated);
-router.beforeEach((to) => {
-  // Redirect unless logged in
-  if (to.meta.requiresAuth && !authState.value) {
-    return {
-      path: '/login',
-      // Save the location we were at to come back later
-      query: { redirect: to.fullPath },
-    }
-  }
-})
-
-export default router
-
-/**
- * About Auto vs Lazy loading
- *
- * When components are auto-loaded instead of lazy-loaded, there are a few
- * potential reasons why they might not display correctly:
- *
- * 1. **Dependencies and Timing:**
- *    Auto-loaded components are imported and initialized immediately when the
- *    application starts. If these components have dependencies that are not
- *    yet available or initialized, they might not function correctly.
- *
- * 2. **Component Lifecycle:**
- *    Lazy-loaded components are only imported when they are needed, which can
- *    help ensure that all necessary dependencies and context are available.
- *    Auto-loading might bypass some of these checks.
- *
- * 3. **Route Parameters and Initialization:**
- *    Components that rely on route parameters (e.g., to determine the active
- *    domain) might encounter issues if they are auto-loaded. This is because
- *    the route parameters might not be available or fully resolved at the time
- *    the component is initialized. Lazy loading ensures that the component is
- *    only initialized after the route has been fully resolved, preventing such
- *    issues.
- *
- * 4. **Code Splitting and Bundle Size:**
- *   Lazy loading helps reduce the initial bundle size by splitting the
- *   application into smaller chunks that are only loaded when needed.
- *
- * When to use `defineAsyncComponent` vs dynamic imports:
- *   Use `defineAsyncComponent` for lazy loading components with additional
- *   features like handling loading and error states, or when using Suspense.
- *   Use dynamic imports (`() => import('./MyPage.vue')`) for simpler lazy
- *   loading when additional features are not needed.
- *
- * @see [Vue3 documentation on dynamic imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import#dynamic_imports)
- * @see [Vue3 documentation on `defineAsyncComponent`](https://v3.vuejs.org/guide/component-dynamic-async.html#async-components)
- */
+export default routes;

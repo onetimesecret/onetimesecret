@@ -8,13 +8,14 @@
        (like DefaultLayout and QuietLayout) based on the requirements of
        each route, without having to manually manage this in each individual
        page component. -->
-  <component :is="layout"
-             v-bind="layoutProps">
+  <QuietLayout v-bind="layoutProps">
     <!-- Wrapper for Router View: The dynamic layout component wraps around
          the <router-view>, allowing different layouts to be applied to
          different pages or sections of your application. -->
+    <router-view name="header" v-bind="layoutProps"></router-view>
     <router-view></router-view>
-  </component>
+    <router-view name="footer" v-bind="layoutProps"></router-view>
+  </QuietLayout>
 </template>
 
 <!-- App-wide setup lives here -->
@@ -23,7 +24,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router'
 import { useWindowProps } from '@/composables/useWindowProps';
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import QuietLayout from '@/layouts/QuietLayout.vue'
 
 const { locale } = useI18n();
 const route = useRoute()
@@ -46,14 +47,8 @@ const {
   'display_masthead',
 ]);
 
-// Layout Switching: In the script section, the layout computed property
-// determines which layout component should be used based on the current
-// route's metadata:
-const layout = computed(() => {
-  return route.meta.layout || DefaultLayout;
-})
-
 // Define the props you want to pass to the layouts
+// and named view components (e.g. DefaultHeader).
 const layoutProps = computed(() => {
 
   // Default props
@@ -67,26 +62,12 @@ const layoutProps = computed(() => {
     plansEnabled: plans_enabled.value,
     defaultLocale: locale.value,
     isDefaultLocale: true,
-
-    // Initially display the default layout with everything in the
-    // header and footer hidden. These can be overridden by the
-    // route.meta.layoutProps object or in the layout components
-    // themselves. This prevents the header and footer from being
-    // displayed on pages where they are not needed, esp in the ca
-    // case where a slow connection causes the default layout to
-    // be displayed before the route-specific layout is loaded.
-    //displayMasthead: false,
-    //displayLinks: false,
-    //displayVersion: false,
-    //displayFeedback: false,
   };
 
   // Merge with route.meta.layoutProps if they exist
   if (route.meta.layoutProps) {
     const mergedProps = { ...defaultProps, ...route.meta.layoutProps };
     return mergedProps;
-
-
   }
 
   return defaultProps;

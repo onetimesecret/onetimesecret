@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import publicRoutes from '@/router/public'
 import accountRoutes from '@/router/account'
 import productRoutes from '@/router/product'
-import secretRoutes from '@/router/secrets'
+import dashboardRoutes from '@/router/dashboard'
 import authRoutes from '@/router/auth'
 
 declare module 'vue-router' {
@@ -18,7 +18,7 @@ const router = createRouter({
   routes: [
     ...publicRoutes,
     ...productRoutes,
-    ...secretRoutes,
+    ...dashboardRoutes,
     ...authRoutes,
     ...accountRoutes,
   ]
