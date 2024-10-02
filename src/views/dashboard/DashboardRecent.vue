@@ -5,6 +5,7 @@
     <SecretMetadataTable :hasItems="details?.has_items"
                         :notReceived="details?.notreceived"
                         :received="details?.received"
+                        :isLoading="isLoading"
                         title="Received" />
   </div>
 </template>
@@ -16,7 +17,7 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
 import { MetadataData } from '@/types/onetime';
 
-const { details, fetchData: fetchDomains } = useFetchData<MetadataData>({
+const { details, fetchData: fetchDomains, isLoading } = useFetchData<MetadataData>({
   url: '/api/v2/private/recent',
 });
 
