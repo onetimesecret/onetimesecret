@@ -2,6 +2,7 @@ import Homepage from '@/views/Homepage.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
 import { ref } from 'vue';
 import { RouteRecordRaw } from 'vue-router';
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
 
 const authState = ref(window.authenticated);
 
@@ -18,6 +19,7 @@ const routes: Array<RouteRecordRaw> = [
       }
     },
     meta: {
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayLinks: true,

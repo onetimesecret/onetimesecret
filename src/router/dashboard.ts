@@ -8,6 +8,7 @@ import ShowSecret from '@/views/secrets/ShowSecret.vue'
 import { RouteRecordRaw } from 'vue-router'
 import DefaultHeader from '@/components/layout/DefaultHeader.vue'
 import DefaultFooter from '@/components/layout/DefaultFooter.vue'
+import QuietLayout from '@/layouts/QuietLayout.vue'
 
 const routes: Array<RouteRecordRaw> = [
 
@@ -57,6 +58,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
     meta: {
+      layout: QuietLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
@@ -85,11 +87,10 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
     meta: {
       layoutProps: {
-        noCache: true,
-        displayMasthead: false,
-        displayNavigation: false,
-        displayLinks: false,
-        displayFeedback: false,
+        displayMasthead: true,
+        displayNavigation: true,
+        displayLinks: true,
+        displayFeedback: true,
         displayVersion: true,
         displayPoweredBy: true,
       },

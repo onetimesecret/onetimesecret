@@ -1,10 +1,20 @@
 <template>
-  <QuietLayout v-bind="layoutProps">
+
+  <!-- Dynamic Component: The <component> element is a built-in Vue
+       component that allows you to dynamically render different components.
+       :is Binding: The :is attribute is bound to the layout computed
+       property. This binding determines which component should be rendered.
+       This approach allows for flexible layout management in a Vue
+       application, where you can easily switch between different layouts
+       (like DefaultLayout and QuietLayout) based on the requirements of
+       each route, without having to manually manage this in each individual
+       page component. -->
+  <Component :is="layout"
+             v-bind="layoutProps">
     <!-- See QuietLayout.vue for named views -->
     <router-view></router-view>
-  </QuietLayout>
+  </component>
 </template>
-
 
 <!-- App-wide setup lives here -->
 <script setup lang="ts">
@@ -31,6 +41,13 @@ const {
   'plans_enabled',
   'support_host',
 ]);
+
+// Layout Switching: In the script section, the layout computed property
+// determines which layout component should be used based on the current
+// route's metadata:
+const layout = computed(() => {
+  return route.meta.layout || QuietLayout;
+})
 
 // Define the props you want to pass to the layouts
 // and named view components (e.g. DefaultHeader).
