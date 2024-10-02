@@ -65,9 +65,6 @@ const routes: Array<RouteRecordRaw> = [
       languageStore.$reset();
       csrfStore.$reset();
 
-      // Set auth state to false
-      authState.value = false;
-
       // Redirect to logout URL
       window.location.href = '/logout';
     }
