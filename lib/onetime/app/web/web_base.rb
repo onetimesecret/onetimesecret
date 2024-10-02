@@ -143,14 +143,32 @@ module Onetime
       end
 
       def disabled_response path
-         not_found_response "#{path} is not available"
+        error_response "#{path} is not available"
       end
 
-      def not_found_response message
-        view = Onetime::App::Views::Error.new req, sess, cust, locale
-        view.add_error message
-        res.status = 404
-        res.body = view.render
+      # Handles requests for routes that don't match any defined server-side
+      # routes. Instead of returning a 404 status, it serves the entrypoint
+      # HTML for the Vue.js SPA.
+      #
+      # @param message [String, nil] An optional error message to be added to the view.
+      #
+      # @return [void]
+      #
+      # This method follows the best practice for serving Single Page Applications:
+      # 1. It returns a 200 status code instead of 404 for unknown web routes.
+      # 2. It serves the same entrypoint HTML for all non-API routes.
+      # 3. It allows the Vue.js router to handle client-side routing and 404 logic.
+      #
+      # Rationale:
+      # - Enables deep linking and direct access to any SPA route.
+      # - Supports client-side routing without server knowledge of Vue.js routes.
+      # - Simplifies server configuration and maintenance.
+      # - Allows for proper handling of 404s within the Vue.js application.
+      def not_found_response(message)
+        view = Onetime::App::Views::VuePoint.new(req, sess, cust, locale)
+        view.add_error(message) unless message&.empty?
+        res.status = 200  # Always return 200 OK for SPA routes
+        res.body = view.render  # Render the entrypoint HTML
       end
 
       def error_response message
