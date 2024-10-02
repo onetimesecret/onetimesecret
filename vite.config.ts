@@ -125,7 +125,8 @@ export default defineConfig({
       //  entryFileNames: 'assets/[name].[hash].js', // Single JS file
       //  chunkFileNames: 'assets/[name].[hash].js', // Single JS file
       //  assetFileNames: 'assets/[name].[hash].[ext]', // Single CSS file
-      //}
+      //},
+
     },
 
     // https://guybedford.com/es-module-preloading-integrity
@@ -144,7 +145,9 @@ export default defineConfig({
     include: [
       // List dependencies that you want to pre-bundle here
       // Example: 'vue', 'axios'
-      //'vue'
+      'vue',
+      'vue-router',
+      'axios',
     ]
   },
 
