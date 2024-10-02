@@ -72,46 +72,41 @@ module Onetime
             return '<script>console.warn("Vite manifest not found. Run `pnpm run build`")</script>'
           end
 
-          # Cache the contents of the manifest file to avoid unnecessary I/O
-          # on every request. The manifest file is only updated when the assets
-          # are rebuilt, so it's safe to cache the contents for the lifetime of
-          # the application process.
           @manifest_cache ||= JSON.parse(File.read(manifest_path))
 
           assets = []
 
-          # Add CSS files directly referenced in the manifest
-          css_files = @manifest_cache.values.select { |v| v['file'].end_with?('.css') }
-          assets << css_files.map do |css|
-            %(<link rel="stylesheet" href="/dist/#{css['file']}">)
-          end
+          # Find the main entry point (assuming it's named "main.ts" in your manifest)
+          main_entry = @manifest_cache["main.ts"]
 
-          # Add CSS files referenced in the 'css' key of manifest entries
-          css_linked_files = @manifest_cache.values.flat_map { |v| v['css'] || [] }
-          assets << css_linked_files.map do |css_file|
-            %(<link rel="stylesheet" href="/dist/#{css_file}">)
-          end
+          if main_entry
+            # Add the main JavaScript file
+            assets << %(<script type="module" src="/dist/#{main_entry['file']}"></script>)
 
-          # Add JS files
-          js_files = @manifest_cache.values.select { |v| v['file'].end_with?('.js') }
-          assets << js_files.map do |js|
-            %(<script type="module" src="/dist/#{js['file']}"></script>)
-          end
+            # Add the main CSS file if it exists
+            if main_entry['css'] && main_entry['css'].first
+              assets << %(    <link rel="stylesheet" href="/dist/#{main_entry['css'].first}">)
+            end
 
-          # Add preload directives for imported modules
-          import_files = @manifest_cache.values.flat_map { |v| v['imports'] || [] }.uniq
-          preload_links = import_files.map do |import_file|
-            %(<link rel="modulepreload" href="/dist/#{@manifest_cache[import_file]['file']}">)
+            # Add preloads for font files
+            font_files = @manifest_cache.values.select { |v| v['file'] =~ /\.(woff2?|ttf|otf|eot)$/ }
+            font_files.each do |font|
+              file_extension = File.extname(font['file']).delete('.')
+              assets << %(    <link rel="preload" href="/dist/#{font['file']}" as="font" type="font/#{file_extension}" crossorigin>)
+            end
+          else
+            OT.le "Main entry point not found in Vite manifest at #{manifest_path}"
+            return '<script>console.warn("Main entry point not found in Vite manifest")</script>'
           end
-          assets << preload_links
 
           if assets.empty?
-            OT.le "No assets found in Vite manifest at #{manifest_path}"
-            return '<script>console.warn("No assets found in Vite manifest")</script>'
+            OT.le "No assets found for main entry point in Vite manifest at #{manifest_path}"
+            return '<script>console.warn("No assets found for main entry point in Vite manifest")</script>'
           end
 
-          assets.flatten.compact.join("\n")
+          assets.join("\n")
         end
+
 
       end
     end
