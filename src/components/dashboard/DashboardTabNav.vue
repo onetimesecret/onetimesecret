@@ -57,6 +57,4 @@ const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domain
 const route = useRoute()
 
 const isActiveRoute = (path: string) => route.path === path
-
-console.debug('plop', isActiveRoute('/account/domains'))
 </script>
