@@ -39,5 +39,4 @@ const props = withDefaults(defineProps<Props>(), {
   displayVersion: true,
 })
 
-console.log('default loading with props:', props)
 </script>

@@ -33,7 +33,6 @@ const i18n = createI18n<{ message: typeof en }, SupportedLocale>({
   availableLocales: supportedLocales,
 });
 
-
 export default i18n;
 
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {

@@ -1,18 +1,19 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import Homepage from '@/views/Homepage.vue'
-import WideLayout from '@/layouts/WideLayout.vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import QuietLayout from '@/layouts/QuietLayout.vue'
-import { useLanguageStore } from '@/stores/languageStore';
-import { useCsrfStore } from '@/stores/csrfStore';
+import WideLayout from '@/layouts/WideLayout.vue'
+import { useCsrfStore } from '@/stores/csrfStore'
+import { useLanguageStore } from '@/stores/languageStore'
+import { SecretDataApiResponse } from '@/types/onetime'
+import Homepage from '@/views/Homepage.vue'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
-import { ref } from 'vue'
+import DashboardIndex from '@/views/dashboard/DashboardIndex.vue'
+import DashboardRecent from '@/views/dashboard/DashboardRecent.vue'
+import BurnSecret from '@/views/secrets/BurnSecret.vue'
+import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue'
+import ShowMetadata from '@/views/secrets/ShowMetadata.vue'
 import ShowSecret from '@/views/secrets/ShowSecret.vue'
-import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
-import BurnSecret from '@/views/secrets/BurnSecret.vue';
-import DashboardIndex from '@/views/dashboard/DashboardIndex.vue';
-import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
-import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
+import { ref } from 'vue'
 
 const authState = ref(window.authenticated) // Assuming this is the variable name
 
@@ -62,7 +63,7 @@ declare module 'vue-router' {
  * @see [Vue3 documentation on dynamic imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import#dynamic_imports)
  * @see [Vue3 documentation on `defineAsyncComponent`](https://v3.vuejs.org/guide/component-dynamic-async.html#async-components)
  */
-import { fetchInitialSecret, AsyncDataResult } from '@/api/secrets';
+import { AsyncDataResult, fetchInitialSecret } from '@/api/secrets'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -102,11 +103,11 @@ const routes: Array<RouteRecordRaw> = [
         noCache: true,
       },
     },
-    beforeEnter: async (to, from, next): Promise<AsyncDataResult | void> => {
+    beforeEnter: async (to, from, next) => {
       try {
         const secretKey = to.params.secretKey as string;
-        const initialData = await fetchInitialSecret(secretKey);
-        to.params.initialData = initialData;
+        const initialData: AsyncDataResult<SecretDataApiResponse> = await fetchInitialSecret(secretKey);
+        to.meta.initialData = initialData;
         next();
       } catch (error) {
         console.error('Error fetching initial page data:', error);

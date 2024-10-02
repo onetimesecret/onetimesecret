@@ -84,12 +84,10 @@ const layoutProps = computed(() => {
   // Merge with route.meta.layoutProps if they exist
   if (route.meta.layoutProps) {
     const mergedProps = { ...defaultProps, ...route.meta.layoutProps };
-    console.log('Merged layout props:', mergedProps);
     return mergedProps;
 
 
   }
-  console.log('App.vue layout props:', defaultProps);
 
   return defaultProps;
 });
