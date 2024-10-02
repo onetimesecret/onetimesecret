@@ -82,12 +82,12 @@ response = @mock_request.post('/signup')
 [response.status, response.headers["Location"]]
 ##=> 404
 
-## With auth disabled, dashboard redirects to sign-in
+## With auth disabled, dashboard returns 401
 response = @mock_request.get('/dashboard')
 response.status
-#=> 404
+#=> 401
 
-# API Routes
+# API v1 Routes
 
 ## Can access the API status
 response = @mock_request.get('/api/v1/status')
@@ -113,20 +113,16 @@ content = JSON.parse(response.body)
 [response.status, content["custid"]]
 #=> [404, nil]
 
+# API v2 Routes
 
-# Colonel Routes
+## Can access the API status
+response = @mock_request.get('/api/v2/status')
+[response.status, response.body]
+#=> [200, '{"status":"nominal","locale":"en"}']
 
-## Can access the colonel dashboard
-response = @mock_request.get('/colonel')
-response.status
-#=> 404
-
-## Can access the colonel customers page
-response = @mock_request.get('/colonel/customers')
-response.status
-#=> 404
-
-## Can access the colonel stats page
-response = @mock_request.get('/colonel/stats')
-response.status
-#=> 404
+## Can access the API share endpoint
+response = @mock_request.post('/api/v2/secret/conceal')
+content = JSON.parse(response.body)
+message = content.delete('message')
+[response.status, message]
+#=> [400, "You did not provide anything to share"]
