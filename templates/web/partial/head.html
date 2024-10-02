@@ -6,7 +6,8 @@
 <meta name="theme-color" content="#dc4a22">
 <meta name="apple-mobile-web-app-title" content="Onetime">
 <meta name="application-name" content="Onetime">
-<link rel="icon" type="image/svg+xml" href="/v3/img/favicon.svg" />
+<link rel="icon" type="image/png" href="/img/favicon.png" />
+<link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
@@ -28,13 +29,11 @@
 </script>
 
 {{#frontend_development}}
-<!-- if development -->
-<!-- an entry point for each page (main == homepage) -->
+{{! <!-- if development --> }}
 <script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
 <script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
 {{/frontend_development}}
 {{^frontend_development}}
-  <!-- if production -->
-  <!-- https://vitejs.dev/guide/backend-integration.html#backend-integration -->
-  {{{vite_assets}}}
+{{! <!-- if production --> }}
+{{{vite_assets}}}
 {{/frontend_development}}
