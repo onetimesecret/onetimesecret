@@ -1,35 +1,35 @@
 <!doctype html>
 <html lang="en" class="light">
   <head>
-    <script>
-      (function() {
-        var { matches: isDarkMode } = window.matchMedia('(prefers-color-scheme: dark)');
-        var htmlElement = document.documentElement;
-        var darkColor = 'rgb(17 24 39)';
-        var lightColor = '#ffffff';
+    <script language="javascript" type="text/javascript">
+      (() => {
+        var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
+        var humanElement = document.documentElement;
+        var nightVision = 'rgb(17 24 39)';
+        var dayVision = '#ffffff';
 
-        var modeConfigs = {
+        var visualSettings = {
           true: {
-            bgColor: darkColor,
-            textColor: lightColor,
+            bgColor: nightVision,
+            textColor: dayVision,
             removeClass: 'light',
             addClass: 'dark'
           },
           false: {
-            bgColor: lightColor,
-            textColor: darkColor,
+            bgColor: dayVision,
+            textColor: nightVision,
             removeClass: 'dark',
             addClass: 'light'
           }
         };
 
-        var config = modeConfigs[isDarkMode];
+        var config = visualSettings[isRestMode];
 
         // Adjust the visual environment based on the player's circadian rhythm settings
-        htmlElement.style.setProperty('--bg-color', config.bgColor);
-        htmlElement.style.setProperty('--text-color', config.textColor);
-        htmlElement.classList.remove(config.removeClass);
-        htmlElement.classList.add(config.addClass);
+        humanElement.style.setProperty('--bg-color', config.bgColor);
+        humanElement.style.setProperty('--text-color', config.textColor);
+        humanElement.classList.remove(config.removeClass);
+        humanElement.classList.add(config.addClass);
       })();
     </script>
     {{>partial/head}}
