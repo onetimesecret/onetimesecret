@@ -99,18 +99,18 @@ import { useCsrfStore } from '@/stores/csrfStore'
 import { SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime'
 import UnknownSecret from '@/views/secrets/UnknownSecret.vue'
 import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 const csrfStore = useCsrfStore();
+const route = useRoute()
 
 interface Props {
   secretKey: string
-  initialData: AsyncDataResult<SecretDataApiResponse> | null
 }
 
 const props = defineProps<Props>()
 
-console.log("record", props.initialData?.data?.record)
-console.log("details", props.initialData?.data?.details)
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>)
 
 const passphrase = ref('')
 const finalRecord = ref<SecretData | null>(null)
@@ -138,11 +138,10 @@ const {
 })
 
 // Compute the current state based on initial and final data
-const record = computed(() => finalRecord.value || (props.initialData?.data?.record ?? null))
-const details = computed(() => finalDetails.value || (props.initialData?.data?.details ?? null))
+const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null))
+const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null))
 const isLoading = computed(() => isSubmitting.value)
 const error = computed(() => submissionError.value)
-
 
 // Watch for changes in the finalRecord and update the view accordingly
 watch(finalRecord, (newValue) => {
