@@ -1,7 +1,6 @@
 import WideLayout from '@/layouts/WideLayout.vue'
 import { RouteRecordRaw } from 'vue-router'
 
-
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/pricing',

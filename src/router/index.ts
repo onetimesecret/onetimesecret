@@ -1,10 +1,10 @@
-import { ref } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
-import publicRoutes from '@/router/public'
+import { useWindowProp } from '@/composables/useWindowProps'
 import accountRoutes from '@/router/account'
-import productRoutes from '@/router/product'
-import dashboardRoutes from '@/router/dashboard'
 import authRoutes from '@/router/auth'
+import dashboardRoutes from '@/router/dashboard'
+import productRoutes from '@/router/product'
+import publicRoutes from '@/router/public'
+import { createRouter, createWebHistory } from 'vue-router'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -26,7 +26,7 @@ const router = createRouter({
 
 // NOTE: This doesn't override the server pages which redirect
 // when not authenticated.
-const authState = ref(window.authenticated);
+const authState = useWindowProp('authenticated');
 router.beforeEach((to) => {
   // Redirect unless logged in
   if (to.meta.requiresAuth && !authState.value) {

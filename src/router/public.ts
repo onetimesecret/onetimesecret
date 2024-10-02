@@ -1,10 +1,10 @@
 import Homepage from '@/views/Homepage.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
-import { ref } from 'vue';
+import { useWindowProp } from '@/composables/useWindowProps';
 import { RouteRecordRaw } from 'vue-router';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 
-const authState = ref(window.authenticated);
+const authState = useWindowProp('authenticated');
 
 const routes: Array<RouteRecordRaw> = [
 
@@ -33,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Inbound Secrets',
     component: IncomingSupportSecret,
     meta: {
-      requiresAuth: false
+      layout: DefaultLayout,
     },
   },
 
@@ -41,45 +41,67 @@ const routes: Array<RouteRecordRaw> = [
     path: '/info/privacy',
     name: 'Privacy Policy',
     component: () => import('@/views/info/PrivacyDoc.vue'),
-    props: true,
+    meta: {
+      layout: DefaultLayout,
+    },
   },
   {
     path: '/info/terms',
     name: 'Terms of Use',
     component: () => import('@/views/info/TermsDoc.vue'),
-    props: true,
+    meta: {
+      layout: DefaultLayout,
+    },
   },
   {
     path: '/info/security',
     name: 'Security Policy',
     component: () => import('@/views/info/SecurityDoc.vue'),
-    props: true,
+    meta: {
+      layout: DefaultLayout,
+    },
   },
-
 
   {
     path: '/feedback',
     name: 'Feedback',
     component: () => import('@/views/Feedback.vue'),
     meta: {
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayLinks: true,
         displayFeedback: false,
-      }
-    }
+      },
+    },
   },
 
   {
     path: '/about',
     name: 'About',
     component: () => import('@/views/About.vue'),
+    meta: {
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: true,
+      },
+    },
   },
 
   {
     path: '/translations',
     name: 'Translations',
     component: () => import('@/views/Translations.vue'),
+    meta: {
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: true,
+      },
+    },
   },
 
 ]

@@ -8,6 +8,7 @@ import ShowSecret from '@/views/secrets/ShowSecret.vue'
 import { RouteRecordRaw } from 'vue-router'
 import DefaultHeader from '@/components/layout/DefaultHeader.vue'
 import DefaultFooter from '@/components/layout/DefaultFooter.vue'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import QuietLayout from '@/layouts/QuietLayout.vue'
 
 const routes: Array<RouteRecordRaw> = [
@@ -26,8 +27,8 @@ const routes: Array<RouteRecordRaw> = [
         displayMasthead: true,
         displayNavigation: true,
         displayLinks: true,
-        displayFeedback: false,
-        displayVersion: false,
+        displayFeedback: true,
+        displayVersion: true,
       },
     },
   },
@@ -37,13 +38,9 @@ const routes: Array<RouteRecordRaw> = [
     component: DashboardRecent,
     meta: {
       requiresAuth: true,
+      layout: DefaultLayout,
       layoutProps: {
-        displayMasthead: false,
-        displayNavigation: false,
-        displayLinks: false,
-        displayFeedback: false,
-        displayVersion: true,
-        displayPoweredBy: true,
+
       },
     },
   },
@@ -53,8 +50,6 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Secret link',
     components: {
       default: ShowSecret,
-      //header: DefaultHeader,
-      //footer: DefaultFooter,
     },
     props: true,
     meta: {
@@ -86,6 +81,7 @@ const routes: Array<RouteRecordRaw> = [
     component: ShowMetadata,
     props: true,
     meta: {
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -102,6 +98,7 @@ const routes: Array<RouteRecordRaw> = [
     component: BurnSecret,
     props: true,
     meta: {
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,

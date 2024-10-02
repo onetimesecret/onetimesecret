@@ -8,7 +8,10 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains/:domain/verify',
     name: 'AccountDomainVerify',
     component: () => import('@/views/account/AccountDomainVerify.vue'),
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      layout: DefaultLayout,
+    },
     props: true,
   },
   {
@@ -17,6 +20,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/account/AccountDomainAdd.vue'),
     meta: {
       requiresAuth: true,
+      layout: DefaultLayout,
       layoutProps: {
         displayFeedback: false,
       }
@@ -27,7 +31,10 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains',
     name: 'AccountDomains',
     component: () => import('@/views/account/AccountDomains.vue'),
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      layout: DefaultLayout,
+    },
     props: true,
   },
   {
@@ -35,7 +42,8 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Account',
     component: () => import('@/views/account/AccountIndex.vue'),
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
+      layout: DefaultLayout,
     },
   },
   {

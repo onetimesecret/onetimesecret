@@ -1,7 +1,8 @@
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import QuietLayout from '@/layouts/QuietLayout.vue';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteRecordRaw } from 'vue-router';
-
 
 const routes: Array<RouteRecordRaw> = [
 
@@ -10,7 +11,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Sign In',
     component: () => import('@/views/auth/Signin.vue'),
     meta: {
-      //layout: WideLayout,
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
@@ -36,6 +37,7 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
     meta: {
+      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
@@ -49,11 +51,25 @@ const routes: Array<RouteRecordRaw> = [
     path: '/forgot',
     name: 'Forgot',
     component: () => import('@/views/auth/PasswordReset.vue'),
+    meta: {
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: true,
+        displayVersion: false,
+      }
+    },
   },
   {
     path: '/logout',
     name: 'Logout',
     component: { render: () => null }, // Dummy component
+    meta: {
+      layout: QuietLayout,
+      layoutProps: {}
+    },
     beforeEnter: () => {
       // Clear all local storage
       localStorage.clear();
