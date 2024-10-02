@@ -1,51 +1,3 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Icon } from '@iconify/vue';
-import { useWindowProp } from '@/composables/useWindowProps';
-import SecretFormDrawer from './SecretFormDrawer.vue';
-
-const plan = useWindowProp('plan');
-
-interface Props {
-  enabled?: boolean;
-  withRecipient?: boolean;
-  withPassphrase?: boolean;
-  withExpiry?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  enabled: true,
-  withRecipient: false,
-  withPassphrase: true,
-  withExpiry: true,
-})
-
-const showPassphrase = ref(false);
-const currentPassphrase = ref('');
-const selectedLifetime = ref('604800.0');
-
-const lifetimeOptions = [
-  { value: '1209600.0', label: '14 days' },
-  { value: '604800.0', label: '7 days' },
-  { value: '259200.0', label: '3 days' },
-  { value: '86400.0', label: '1 day' },
-  { value: '43200.0', label: '12 hours' },
-  { value: '14400.0', label: '4 hours' },
-  { value: '3600.0', label: '1 hour' },
-  { value: '1800.0', label: '30 minutes' },
-  { value: '300.0', label: '5 minutes' },
-];
-
-const filteredLifetimeOptions = computed(() => {
-  const planTtl = plan.value?.options?.ttl || 0;
-  return lifetimeOptions.filter(option => parseFloat(option.value) <= planTtl);
-});
-
-const togglePassphrase = () => {
-  showPassphrase.value = !showPassphrase.value;
-};
-
-</script>
 
 <template>
   <SecretFormDrawer title="Privacy Options">
@@ -123,3 +75,52 @@ const togglePassphrase = () => {
     </div>
   </SecretFormDrawer>
 </template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { Icon } from '@iconify/vue';
+import { useWindowProp } from '@/composables/useWindowProps';
+import SecretFormDrawer from './SecretFormDrawer.vue';
+
+const plan = useWindowProp('plan');
+
+interface Props {
+  enabled?: boolean;
+  withRecipient?: boolean;
+  withPassphrase?: boolean;
+  withExpiry?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  enabled: true,
+  withRecipient: false,
+  withPassphrase: true,
+  withExpiry: true,
+})
+
+const showPassphrase = ref(false);
+const currentPassphrase = ref('');
+const selectedLifetime = ref('604800.0');
+
+const lifetimeOptions = [
+  { value: '1209600.0', label: '14 days' },
+  { value: '604800.0', label: '7 days' },
+  { value: '259200.0', label: '3 days' },
+  { value: '86400.0', label: '1 day' },
+  { value: '43200.0', label: '12 hours' },
+  { value: '14400.0', label: '4 hours' },
+  { value: '3600.0', label: '1 hour' },
+  { value: '1800.0', label: '30 minutes' },
+  { value: '300.0', label: '5 minutes' },
+];
+
+const filteredLifetimeOptions = computed(() => {
+  const planTtl = plan.value?.options?.ttl || 0;
+  return lifetimeOptions.filter(option => parseFloat(option.value) <= planTtl);
+});
+
+const togglePassphrase = () => {
+  showPassphrase.value = !showPassphrase.value;
+};
+
+</script>

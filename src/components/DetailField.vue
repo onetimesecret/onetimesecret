@@ -1,15 +1,3 @@
-<script setup lang="ts">
-import CopyButton from './CopyButton.vue';
-
-interface Props {
-  label: string;
-  value: string;
-  appendix?: string;
-}
-
-defineProps<Props>();
-
-</script>
 
 <template>
   <div class="flex bg-white dark:bg-gray-600 rounded-md">
@@ -29,7 +17,15 @@ defineProps<Props>();
   </div>
 </template>
 
+<script setup lang="ts">
+import CopyButton from './CopyButton.vue';
 
-<style scoped>
+interface Props {
+  label: string;
+  value: string;
+  appendix?: string;
+}
 
-</style>
+defineProps<Props>();
+
+</script>

@@ -13,7 +13,6 @@
   </SecretFormDrawer>
 </template>
 
-
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import SecretFormDrawer from './secrets/form/SecretFormDrawer.vue';

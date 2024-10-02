@@ -1,11 +1,3 @@
-<script setup lang="ts">
-interface Props {
-  disabled: boolean;
-  withAsterisk: boolean;
-}
-
-defineProps<Props>();
-</script>
 
 <template>
   <button type="submit"
@@ -20,3 +12,12 @@ defineProps<Props>();
     {{ $t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
   </button>
 </template>
+
+<script setup lang="ts">
+interface Props {
+  disabled: boolean;
+  withAsterisk: boolean;
+}
+
+defineProps<Props>();
+</script>

@@ -1,24 +1,3 @@
-<script setup lang="ts">
-import AltchaChallenge from '@/components/AltchaChallenge.vue';
-import { useCsrfStore } from '@/stores/csrfStore';
-
-const csrfStore = useCsrfStore();
-
-export interface Props {
-  enabled?: boolean;
-  showRedButton: boolean | null;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const props = withDefaults(defineProps<Props>(), {
-  enabled: true,
-  showRedButton: false,
-})
-
-// We use this to determine whether to include the authenticity check
-const cust = window.cust;
-
-</script>
 
 <template>
   <div class="container">
@@ -55,3 +34,25 @@ const cust = window.cust;
     </form>
   </div>
 </template>
+
+<script setup lang="ts">
+import AltchaChallenge from '@/components/AltchaChallenge.vue';
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
+
+export interface Props {
+  enabled?: boolean;
+  showRedButton: boolean | null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const props = withDefaults(defineProps<Props>(), {
+  enabled: true,
+  showRedButton: false,
+})
+
+// We use this to determine whether to include the authenticity check
+const cust = window.cust;
+
+</script>
