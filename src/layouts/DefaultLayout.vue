@@ -1,31 +1,43 @@
-<script setup lang="ts">
-import BaseLayout from './BaseLayout.vue';
-import type { Props as BaseLayoutProps } from '@/layouts/BaseLayout.vue';
-
-// Define the props for this layout, extending the BaseLayout props
-interface ImplementingLayoutProps extends BaseLayoutProps {
-  // Add any additional props specific to this layout
-  //additionalProp?: string;
-}
-
-const props = withDefaults(defineProps<ImplementingLayoutProps>(), {
-
-  // You can also add defaults for optional BaseLayout props
-  displayMasthead: true,
-  displayLinks: true,
-  displayFeedback: true,
-  displayVersion: true,
-
-});
-
-</script>
 
 <template>
   <BaseLayout v-bind="props">
+    <template #header>
+      <DefaultHeader v-bind="props"/>
+    </template>
+
     <template #main>
       <main class="container mx-auto p-4 max-w-2xl" name="DefaultLayout">
         <slot></slot>
       </main>
     </template>
+
+    <template #footer>
+      <DefaultFooter v-bind="props"/>
+    </template>
+
   </BaseLayout>
 </template>
+
+<script setup lang="ts">
+import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
+import BaseLayout from './BaseLayout.vue';
+
+// Define the props for this layout, extending the BaseLayout props
+export interface Props extends BaseProps {
+  displayFeedback?: boolean
+  displayLinks?: boolean
+  displayMasthead?: boolean
+  displayVersion?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  displayFeedback: true,
+  displayLinks: true,
+  displayMasthead: true,
+  displayVersion: true,
+})
+
+console.log('default loading with props:', props)
+</script>

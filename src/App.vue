@@ -50,15 +50,8 @@ const {
 // determines which layout component should be used based on the current
 // route's metadata:
 const layout = computed(() => {
-
-  // Check if the route has a specific layout defined
-  if (route.meta.layout) {
-    return route.meta.layout;
-  }
-
-  // Default to DefaultLayout if no specific layout is defined
-  return DefaultLayout;
-});
+  return route.meta.layout || DefaultLayout;
+})
 
 // Define the props you want to pass to the layouts
 const layoutProps = computed(() => {
@@ -73,17 +66,30 @@ const layoutProps = computed(() => {
     supportHost: support_host.value,
     plansEnabled: plans_enabled.value,
     defaultLocale: locale.value,
-    displayMasthead: true,
-    displayLinks: true,
-    displayVersion: true,
-    displayFeedback: true,
     isDefaultLocale: true,
+
+    // Initially display the default layout with everything in the
+    // header and footer hidden. These can be overridden by the
+    // route.meta.layoutProps object or in the layout components
+    // themselves. This prevents the header and footer from being
+    // displayed on pages where they are not needed, esp in the ca
+    // case where a slow connection causes the default layout to
+    // be displayed before the route-specific layout is loaded.
+    //displayMasthead: false,
+    //displayLinks: false,
+    //displayVersion: false,
+    //displayFeedback: false,
   };
 
   // Merge with route.meta.layoutProps if they exist
   if (route.meta.layoutProps) {
-    return { ...defaultProps, ...route.meta.layoutProps };
+    const mergedProps = { ...defaultProps, ...route.meta.layoutProps };
+    console.log('Merged layout props:', mergedProps);
+    return mergedProps;
+
+
   }
+  console.log('App.vue layout props:', defaultProps);
 
   return defaultProps;
 });

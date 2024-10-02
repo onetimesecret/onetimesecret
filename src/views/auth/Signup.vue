@@ -34,7 +34,7 @@ import { useWindowProp } from '@/composables/useWindowProps';
 
 // This prop is passed from vue-router b/c the route has `prop: true`.
 interface Props {
-  planCode: string
+  planCode?: string
 }
 
 const props = defineProps<Props>()
