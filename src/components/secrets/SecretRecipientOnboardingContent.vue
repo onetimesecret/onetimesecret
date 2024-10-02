@@ -53,8 +53,18 @@
         </div>
       </div>
     </div>
+
+    <div class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">
+      <a :href="`https://${siteHost}`"
+         class="hover:underline"
+         rel="noopener noreferrer">
+        Powered by Onetime Secret
+      </a>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useWindowProp } from '@/composables/useWindowProps';
+const siteHost = useWindowProp('site_host');
 </script>

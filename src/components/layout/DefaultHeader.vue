@@ -40,17 +40,25 @@
 </template>
 
 <script setup lang="ts">
-import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
+import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 import { Icon } from '@iconify/vue';
 
-// Define the props for this layout, extending the DefaultLayout props
-export interface Props extends DefaultProps {
-  // Add any additional props specific to this layout
-  //additionalProp?: string;
-
+// Define the props for this layout, extending the BaseLayout props
+export interface Props extends BaseProps {
+  displayMasthead?: boolean
+  displayNavigation?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
-
+const props = withDefaults(defineProps<Props>(), {
+  // Haaland all features by default. These can be overridden by the
+  // route.meta.layoutProps object or in the layout components
+  // themselves. This prevents the header and footer from being
+  // displayed on pages where they are not needed, esp in the ca
+  // case where a slow connection causes the default layout to
+  // be displayed before the route-specific layout is loaded.
+  displayMasthead: true,
+  displayNavigation: true,
 });
+
+console.debug(props)
 </script>

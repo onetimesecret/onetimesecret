@@ -68,12 +68,14 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 
 // Define the props for this layout, extending the DefaultLayout props
 export interface Props extends DefaultProps {
-  // Add any additional props specific to this layout
-  //additionalProp?: string;
-
+  displayFeedback?: boolean
+  displayLinks?: boolean
+  displayVersion?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
-
+  displayFeedback: true,
+  displayLinks: true,
+  displayVersion: true,
 });
 </script>
