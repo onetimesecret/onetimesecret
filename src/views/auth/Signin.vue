@@ -5,8 +5,8 @@ import SignInForm from '@/components/auth/SignInForm.vue';
 </script>
 
 <template>
-  <div>
-    <section class="mb-8">
+  <div class="my-20">
+    <section class="my-8">
       <h3 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100"
           aria-label="Sign In">
         {{ $t('web.login.enter_your_credentials') }}

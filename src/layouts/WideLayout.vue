@@ -29,6 +29,7 @@ export interface Props extends BaseProps {
   displayFeedback?: boolean
   displayLinks?: boolean
   displayMasthead?: boolean
+  displayNavigation?: boolean
   displayVersion?: boolean
 }
 
@@ -36,6 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
   displayFeedback: true,
   displayLinks: true,
   displayMasthead: true,
+  displayNavigation: true,
   displayVersion: true,
 });
 

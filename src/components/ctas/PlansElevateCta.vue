@@ -15,7 +15,7 @@ const pricingLink = computed(() => router.resolve({ name: 'Pricing' }).href);
     <h4 class="text-xl font-semibold mb-2 text-white">{{ $t('web.COMMON.custom_domains_title') }}</h4>
     <p class="mb-4 text-white/90 dark:text-white/80">{{ $t('web.COMMON.custom_domains_description') }}</p>
     <a :href="pricingLink"
-       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-brand-600 bg-white
+       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-brand rounded-md text-brand-600 bg-white
        dark:bg-gray-800 dark:text-brand-400 hover:bg-gray-50 dark:hover:bg-gray-700
        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-brand-400
        transition-colors duration-200">

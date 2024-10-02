@@ -97,7 +97,6 @@ const routes: Array<RouteRecordRaw> = [
         displayMasthead: false,
         displayLinks: false,
         displayFeedback: false,
-        displaySitenav: false,
         displayVersion: false,
         displayPoweredBy: true,
         noCache: true,
@@ -202,6 +201,46 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/signin',
+    name: 'Sign In',
+    component: () => import('@/views/auth/Signin.vue'),
+    meta: {
+      //layout: WideLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: false,
+      },
+    },
+  },
+  {
+    path: '/signup',
+    children: [
+      {
+        path: '',
+        name: 'Sign Up',
+        component: () => import('@/views/auth/Signup.vue'),
+      },
+      {
+        path: ':planCode',
+        name: 'Sign Up with Plan',
+        component: () => import('@/views/auth/Signup.vue'),
+        props: true,
+      },
+    ],
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: false,
+      },
+    },
+  },
+  {
     path: '/info/privacy',
     name: 'Privacy Policy',
     component: () => import('@/views/info/PrivacyDoc.vue'),
@@ -229,7 +268,6 @@ const routes: Array<RouteRecordRaw> = [
         displayMasthead: true,
         displayLinks: true,
         displayFeedback: true,
-        displaySitenav: true,
         displayVersion: true,
         displayPoweredBy: true,
       },
@@ -252,27 +290,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/forgot',
     name: 'Forgot',
     component: () => import('@/views/auth/PasswordReset.vue'),
-  },
-  {
-    path: '/signin',
-    name: 'Sign In',
-    component: () => import('@/views/auth/Signin.vue'),
-  },
-  {
-    path: '/signup',
-    children: [
-      {
-        path: '',
-        name: 'Sign Up',
-        component: () => import('@/views/auth/Signup.vue'),
-      },
-      {
-        path: ':planCode',
-        name: 'Sign Up with Plan',
-        component: () => import('@/views/auth/Signup.vue'),
-        props: true,
-      },
-    ],
   },
   {
     path: '/about',
