@@ -1,1 +1,0 @@
-import{d as t,o as a,c as n,i as e,_ as r}from"./main-CBJljsce.js";import{_ as o}from"./DashboardTabNav.vue_vue_type_script_setup_true_lang-Cn6XvrkK.js";const p=t({__name:"DashboardIndex",setup(s){return(_,c)=>(a(),n("div",null,[e(o),e(r,{withGenerate:!0,withRecipient:!0})]))}});export{p as default};
