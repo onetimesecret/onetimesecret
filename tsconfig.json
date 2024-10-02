@@ -11,8 +11,8 @@
       "dom"
     ],
     "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
+    "esModuleInterop": true,
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
 
@@ -27,7 +27,7 @@
       // The `@` alias. For this to work seamlessly in TypeScript,
       // ensure that both the Vue project configuration and TypeScript
       // configuration are correctly set up to recognize this alias.
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "types": [
       "@types/node"

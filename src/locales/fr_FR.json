@@ -120,8 +120,8 @@
       "body_tagline": "Si vous ne connaissez pas le destinateur ou croyez qu'il s'agit de spam, envoyez-nous les détails ici :"
     },
     "welcome": {
-      "subject": "Vérifier votre compte OneTime-Secret",
-      "body1": "Bienvenue sur OneTime-Secret. Nous avons un secret pour vous !",
+      "subject": "Vérifier votre compte Onetime-Secret",
+      "body1": "Bienvenue sur Onetime-Secret. Nous avons un secret pour vous !",
       "please_verify": "Veuillez vérifier votre compte :",
       "postscript1": "Cet e-mail a été envoyé à"
     }

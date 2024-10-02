@@ -26,6 +26,8 @@ class Onetime::Customer < Familia::Horreum
   field :apitoken # TODO: use sorted set?
   field :verified
 
+  field :locale
+
   field :secrets_created # regular hashkey string field
   field :secrets_burned
   field :secrets_shared
@@ -49,6 +51,7 @@ class Onetime::Customer < Familia::Horreum
     :role,
     :verified,
     :last_login,
+    :locale,
     :updated,
     :created,
 
@@ -59,7 +62,7 @@ class Onetime::Customer < Familia::Horreum
     {:plan => ->(cust) { cust.load_plan } }, # safe_dump will be called automatically
 
     # NOTE: The secrets_created incrementer is null until the first secret
-    # is created. See CreateSecret for where the incrementer is called.
+    # is created. See ConcealSecret for where the incrementer is called.
     #
     {:secrets_created => ->(cust) { cust.secrets_created.to_s || 0 } },
     {:secrets_burned => ->(cust) { cust.secrets_burned.to_s || 0 } },
@@ -73,6 +76,12 @@ class Onetime::Customer < Familia::Horreum
   def init
     self.custid ||= 'anon'
     self.role ||= 'customer'
+
+    # When an instance is first created, any field that doesn't have a
+    # value set will be nil. We need to ensure that these fields are
+    # set to an empty string to match the default values when loading
+    # from redis (i.e. all values in core redis data types are strings).
+    self.locale ||= ''
 
     # Initialze auto-increment fields. We do this since Redis
     # gets grumpy about trying to increment a hashkey field
@@ -89,12 +98,16 @@ class Onetime::Customer < Familia::Horreum
     self.contributor.to_s == "true"
   end
 
+  def locale?
+    !locale.to_s.empty?
+  end
+
   def apitoken? guess
     self.apitoken.to_s == guess.to_s
   end
 
   def regenerate_apitoken
-    self.apitoken! [OT.instance, OT.now.to_f, :apikey, custid].gibbler
+    self.apitoken! [OT.instance, OT.now.to_f, :apitoken, custid].gibbler
     self.apitoken # the fast writer bang methods don't return the value
   end
 
@@ -352,7 +365,7 @@ class Onetime::Customer < Familia::Horreum
       return
     end
 
-    # Taking the class approach simply to keep it out of this busy Customer
+    # Taking the module Approach simply to keep it out of this busy Customer
     # class. There's a small benefit to being able grep for "cust.method_name"
     # which this approach affords as well. Although it's a small benefit.
     self.class.increment_field(self, field)

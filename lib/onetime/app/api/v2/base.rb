@@ -1,62 +1,91 @@
 require_relative '../../app_helpers'
-
 require_relative '../../../../altcha'
 
-class Onetime::App
+module Onetime::App
   class APIV2
     module Base
-      include Onetime::App::WebHelpers
-
-      module ClassMethods
-        def secret_key
-          OT.conf.dig(:site, :authenticity, :secret_key)
-        end
-
-        # This challenge is then serializd into a JSON string and base64 encoded
-        # by the AltchaChallenge and then resubmitted with the solution
-        # number for verification (aka the "payload")
-        def generate_authenticity_challenge(max_number=100_000)
-          options = Altcha::ChallengeOptions.new
-          options.max_number = max_number # 1m is the lib default
-          options.hmac_key = secret_key
-          Altcha.create_challenge(options)
-        end
-
-        # See: https://github.com/altcha-org/altcha-lib-rb
-        def solve_authenticity_challenge(challenge, salt, algorithm, max, start)
-          # Solves a challenge by iterating over possible solutions.
-          # @param challenge [String] The challenge to solve.
-          # @param salt [String] The salt used in the challenge.
-          # @param algorithm [String] The hashing algorithm used.
-          # @param max [Integer] The maximum number to try.
-          # @param start [Integer] The starting number to try.
-          # @return [Solution, nil] The solution if found, or nil if not.
-          Altcha.solve_challenge(challenge, salt, algorithm, max, start)
-        end
-
-        def verify_authenticity_challenge(challenge, number, check_expires)
-          hmac_key = secret_key
-          payload = _authenticity_challenge_payload(challenge, number)
-          Altcha.verify_solution(payload, hmac_key, check_expires)
-        end
-
-        # Like the challenge, this hash is serialized to JSON and base64
-        # encoded. This payload is then ready to be verified by the server.
-        def _authenticity_challenge_payload(challenge, number)
-          {
-            algorithm: challenge.algorithm,
-            challenge: challenge.challenge,
-            number: number,
-            salt: challenge.salt,
-            signature: challenge.signature
-          }
-        end
-      end
+      include Onetime::App::API::Base
 
       def publically
         carefully do
+          check_session!
           check_locale!
           yield
+        end
+      end
+
+      # Ignores the allow_anonymous argument passed in
+      def colonels _
+        allow_anonymous = false
+        authorized(allow_anonymous) do
+          raise OT::Unauthorized, "No such customer" unless cust.role?(:colonel)
+          yield
+        end
+      end
+
+      # Retrieves and lists records of the specified class. Also used for single
+      # records. It's up to the logic class what it wants to return via
+      # `logic.success_data`` (i.e. `record: {...}` or `records: [...]`` ).
+      #
+      # @param logic_class [Class] The logic class for processing the request.
+      # @param auth_type [Symbol] The authorization type to use (:authorized or :colonels).
+      #
+      # @return [void]
+      #
+      # @example
+      #   retrieve_records(UserLogic)
+      #   retrieve_records(SecretDocumentLogic, auth_type: :colonels)
+      #
+      def retrieve_records(logic_class, auth_type: :authorized, allow_anonymous: false)
+        auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
+
+        auth_method.call(allow_anonymous) do
+          OT.ld "[retrieve] #{logic_class}"
+          logic = logic_class.new(sess, cust, req.params, locale)
+          logic.raise_concerns
+          logic.process
+          json success: true, **logic.success_data
+        end
+      end
+
+      # Processes an action using the specified logic class and handles the response.
+      #
+      # @param logic_class [Class] The class implementing the action logic.
+      # @param success_message [String] The success message to display if the action succeeds.
+      # @param error_message [String] The error message to display if the action fails.
+      # @param auth_type [Symbol] The type of authentication to use (:authorized or :colonels). Defaults to :authorized.
+      # @param allow_anonymous [Boolean] Whether to allow anonymous access. Defaults to false.
+      #
+      # The logic class must implement the following methods:
+      # - raise_concerns
+      # - process_params
+      # - process
+      # - greenlighted
+      # - success_data
+      #
+      # @yield [logic] Gives access to the logic object for custom success handling.
+      # @yieldparam logic [Object] The instantiated logic object after processing.
+      #
+      # @return [void]
+      #
+      # @example
+      #   process_action(OT::Logic::GenerateAPIToken, "API Token generated successfully.", "API Token could not be generated.") do |logic|
+      #     json_success(custid: cust.custid, apitoken: logic.apitoken)
+      #   end
+      #
+      def process_action(logic_class, success_message, error_message, auth_type: :authorized, allow_anonymous: false)
+        auth_method = auth_type == :colonels ? method(:colonels) : method(:authorized)
+
+        auth_method.call(allow_anonymous) do
+          logic = logic_class.new(sess, cust, req.params, locale)
+          logic.raise_concerns
+          logic.process
+          OT.ld "[process_action] #{logic_class} success=#{logic.greenlighted}"
+          if logic.greenlighted
+            json_success(custid: cust.custid, **logic.success_data)
+          else
+            error_response(error_message)
+          end
         end
       end
 
@@ -80,17 +109,19 @@ class Onetime::App
         json hsh
       end
 
-      def error_response msg, hsh={}
-        hsh[:message] = msg
-        hsh[:success] = false
-        res.status = 403 # Forbidden
+      def not_authorized_error hsh={}
+        hsh[:message] = "Not authorized"
+        res.status = 403
         json hsh
       end
 
-      def self.included base
-        # e.g. Onetime::App::APIV2.generate_authenticity_challenge
-        base.extend ClassMethods
+      def error_response msg, hsh={}
+        hsh[:message] = msg
+        hsh[:success] = false
+        res.status = 400 # Bad Request
+        json hsh
       end
+
     end
   end
 end

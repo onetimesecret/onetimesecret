@@ -6,81 +6,67 @@ require_relative 'base'
 require_relative '../../app_settings'
 
 
-class Onetime::App
+module Onetime::App
   class APIV2
     include AppSettings
     include Onetime::App::APIV2::Base
 
     def status
-      json status: :nominal, locale: locale
+      publically do
+        json status: :nominal, locale: locale
+      end
+    end
+
+    def authcheck
+      authorized do
+        json authenticated: sess.authenticated?
+      end
     end
 
     def version
-      json version: OT::VERSION.to_a, locale: locale
-    end
-
-    # NOTE: Based on https://github.com/altcha-org/altcha-starter-rb
-    #
-    # When running externally, integrating the Altcha endpoints relies
-    # on the CORS settings being amenable to the situation. Incorporating
-    # the endpoints into our API avoids that.
-    #
-    # e.g.
-    #   'Access-Control-Allow-Origin' => '*',
-    #   'Access-Control-Allow-Methods' => %w[GET POST OPTIONS],
-    #   'Access-Control-Allow-Headers' => '*'
-    #
-    def altcha_challenge
       publically do
-        # The library defaults to 1_000_000, we default to 100_000 in the
-        # generate method. Let's start with an even easier challenge and
-        # work our way up.
-        max_number = 50_000
-        challenge = self.class.generate_authenticity_challenge(max_number)
-        json challenge
+        json version: OT::VERSION.to_a, locale: locale
       end
     end
 
-    def altcha_verify
+    def get_supported_locales
       publically do
-        payload = params['authenticity_payload']
-        error_response message: 'Altcha payload missing' if payload.nil?
+        supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+        default_locale = supported_locales.first
+        json locales: supported_locales, default_locale: default_locale, locale: locale
+      end
+    end
 
-        verified = Altcha.verify_solution(payload, self.class.secret_key)
-        if verified
-          json data: params
-        else
-          error_response message: 'Invalid Altcha payload'
+    def get_validate_shrimp
+      publically do
+        shrimp = req.env['HTTP_O_SHRIMP'].to_s
+        halt(400, json(error: 'Missing O-Shrimp header')) if shrimp.empty?
+
+        begin
+          # Attempt to validate the shrimp
+          is_valid = validate_shrimp(shrimp, replace=false)
+        rescue OT::BadShrimp => e
+          # If a BadShrimp exception is raised, log it and set is_valid to false
+          OT.ld "BadShrimp exception: #{e.message}"
+          is_valid = false
         end
+
+        sess.replace_shrimp! unless is_valid
+
+        ret = {
+          isValid: is_valid,
+          shrimp: sess.shrimp
+        }
+        json ret
       end
     end
 
-    def altcha_verify_spam
-      publically do
-        payload = params['authenticity_payload']
-        error_response message: 'Altcha payload missing' if payload.nil?
-
-        verified, verification_data = Altcha.verify_server_signature(
-          payload,
-          self.class.secret_key
-        )
-        fields_verified = Altcha.verify_fields_hash(
-          params,
-          verification_data.fields,
-          verification_data.fields_hash,
-          'SHA-256'
-        )
-
-        if verified && fields_verified
-          { success: true, form_data: params, verification_data: verification_data }.to_json
-        else
-          error_response message: 'Invalid Altcha payload'
-        end
-      end
-    end
-
-    def self.secret_key
-      OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
-    end
   end
 end
+
+# Requires at the end to avoid circular dependency
+require_relative 'account'
+require_relative 'challenges'
+require_relative 'colonel'
+require_relative 'domains'
+require_relative 'secrets'

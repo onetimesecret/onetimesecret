@@ -125,6 +125,10 @@ ttl = @cust.ttl
 @cust.role
 #=> 'customer'
 
+## New saved instance has no specific locale
+@cust.locale
+#=> ''
+
 ## Destroyed customer is no longer active
 @cust.destroy_requested!
 @cust.active?

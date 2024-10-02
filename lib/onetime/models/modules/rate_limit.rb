@@ -18,7 +18,6 @@ class Onetime::RateLimit < Familia::String
 
   module ClassMethods
     def incr! identifier, event
-      OT.ld "RateLimit.incr! #{identifier} #{event}"
       lmtr = new identifier, event
       count = lmtr.increment
       lmtr.update_expiration

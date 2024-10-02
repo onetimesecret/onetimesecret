@@ -39,10 +39,25 @@ response.status
 
 # API Routes
 
-## Can access the API status
+## Can access the v1 API status
 response = @mock_request.get('/api/v1/status')
 [response.status, response.body]
 #=> [200, '{"status":"nominal","locale":"en"}']
+
+## Cannot access the v1 API auth check endpoint
+response = @mock_request.get('/api/v1/authcheck')
+[response.status, response.body]
+#=> [404, "{\"message\":\"Not authorized\"}"]
+
+## Can access the v2 API status
+response = @mock_request.get('/api/v2/status')
+[response.status, response.body]
+#=> [200, '{"status":"nominal","locale":"en"}']
+
+## Cannot access the v2 API auth check endpoint
+response = @mock_request.get('/api/v2/authcheck')
+[response.status, response.body]
+#=> [403, "{\"message\":\"Not authorized\"}"]
 
 ## Can access the API share endpoint
 response = @mock_request.post('/api/v1/create')
@@ -58,19 +73,9 @@ content = JSON.parse(response.body)
 #=> [200, 'anon']
 
 
-# Colonel Routes
+# API v2 Routes
 
-## Can access the colonel dashboard
-response = @mock_request.get('/colonel')
+## Cannot access the colonel dashboard when not authenticated
+response = @mock_request.get('/api/v2/colonel')
 response.status
-#=> 302
-
-## Can access the colonel customers page
-response = @mock_request.get('/colonel/customers')
-response.status
-#=> 404
-
-## Can access the colonel stats page
-response = @mock_request.get('/colonel/stats')
-response.status
-#=> 404
+#=> 403

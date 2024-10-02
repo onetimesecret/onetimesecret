@@ -1,9 +1,9 @@
 <template>
-  <main class="container mx-auto px-4 py-8">
+  <div class="">
     <h1 class="text-3xl font-bold mb-6 dark:text-white">Add your domain</h1>
-    <DomainForm :shrimp="shrimp" @domain-added="onDomainAdded" :disabled="isNavigating" />
+    <DomainForm @domain-added="onDomainAdded" :disabled="isNavigating" />
     <p v-if="isNavigating" class="mt-4 text-gray-600 dark:text-gray-400">Navigating to verification page...</p>
-  </main>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -11,7 +11,6 @@ import { nextTick, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import DomainForm from '@/components/DomainForm.vue';
 
-const shrimp = ref(window.shrimp);
 const router = useRouter();
 const isNavigating = ref(false);
 
@@ -26,7 +25,6 @@ const onDomainAdded = async (domain: string) => {
   isNavigating.value = true;
   try {
     console.info('Navigation to verify', domain);
-    window.vue_component_name = 'AccountDomainVerify';
     await router.replace({ name: 'AccountDomainVerify', params: { domain } });
     await nextTick();
   } catch (error) {

@@ -1,14 +1,7 @@
 # frozen_string_literal: true
 
 module Onetime
-  class App # rubocop:disable
-
-    def translations
-      publically do
-        view = Onetime::App::Views::Translations.new req, sess, cust, locale
-        res.body = view.render
-      end
-    end
+  class App::Data
 
     # Redirects users to the appropriate Stripe Payment Link based on selected plan
     #
@@ -175,41 +168,6 @@ module Onetime
       end
     end
 
-    def pricing
-      publically do
-        view = Onetime::App::Views::Pricing.new req, sess, cust, locale
-        view[:business] = true
-        res.body = view.render
-      end
-    end
-
-    def signup
-      publically do
-        unless _auth_settings[:enabled] && _auth_settings[:signup]
-          return disabled_response(req.path)
-        end
-
-        # If a plan has been selected, the next onboarding step is the actual signup
-        if OT::Plan.plan?(req.params[:planid])
-          sess.set_error_message "You're already signed up" if sess.authenticated?
-          view = Onetime::App::Views::Signup.new req, sess, cust, locale
-
-          # For signup pages that include a call-to-action regarding other
-          # plan options, we want to hide it when the user is already on a
-          # page for a specific plan.
-          view[:hide_cta] = true
-
-          res.body = view.render
-
-        # Otherwise we default to showing the various account plans available
-        else
-          view = Onetime::App::Views::Signup.new req, sess, cust, locale
-          res.body = view.render
-
-        end
-      end
-    end
-
     def create_account
       publically do
         unless _auth_settings[:enabled] && _auth_settings[:signup]
@@ -219,27 +177,7 @@ module Onetime
         logic = OT::Logic::Account::CreateAccount.new sess, cust, req.params, locale
         logic.raise_concerns
         logic.process
-        if logic.autoverify
-          sess = logic.sess
-          cust = logic.cust
-        end
         res.redirect '/'
-      end
-    end
-
-    def login
-      publically do
-        res.redirect '/signin'
-      end
-    end
-
-    def signin
-      publically do
-        unless _auth_settings[:enabled] && _auth_settings[:signin]
-          return disabled_response(req.path)
-        end
-        view = Onetime::App::Views::Signin.new req, sess, cust, locale
-        res.body = view.render
       end
     end
 
@@ -253,7 +191,6 @@ module Onetime
         # credentials.
         no_cache!
         logic = OT::Logic::Authentication::AuthenticateSession.new sess, cust, req.params, locale
-        view = Onetime::App::Views::Signin.new req, sess, cust, locale
         if sess.authenticated?
           sess.set_info_message "You are already logged in."
           res.redirect '/'
@@ -270,9 +207,6 @@ module Onetime
             else
               res.redirect '/'
             end
-          else
-            view.cust = OT::Customer.anonymous
-            res.body = view.render
           end
         end
       end
@@ -284,50 +218,6 @@ module Onetime
         logic.raise_concerns
         logic.process
         res.redirect app_path('/')
-      end
-    end
-
-    def account
-      authenticated do
-        logic = OT::Logic::Account::ViewAccount.new sess, cust, req.params, locale
-        logic.raise_concerns
-        logic.process
-
-        view = Onetime::App::Views::Account.new req, sess, cust, locale
-        if logic.show_stripe_section?
-          stripe_customer = logic.safe_stripe_customer_dump
-          stripe_subscriptions = [logic.safe_stripe_subscription_dump]
-          view[:jsvars] << view.jsvar(:stripe_customer, stripe_customer)
-          view[:jsvars] << view.jsvar(:stripe_subscriptions, stripe_subscriptions)
-        end
-
-        res.body = view.render
-      end
-    end
-
-    def forgot
-      publically do
-        secret_key = req.params[:key]
-        if secret_key
-          secret = OT::Secret.load secret_key
-
-          raise OT::MissingSecret, "No such secret" if secret.nil?
-
-          if secret.verification.to_s == 'true'
-            OT.le "[forgot] Viewing verification link #{secret_key}"
-            view = Onetime::App::Views::Forgot.new req, sess, cust, locale
-            view[:verified] = true
-            res.body = view.render
-
-          else
-            OT.le "[forgot] Key #{secret_key} is not a verification link"
-            raise OT::MissingSecret, "No such forgotten link"
-          end
-
-        else
-          view = Onetime::App::Views::Forgot.new req, sess, cust, locale
-          res.body = view.render
-        end
       end
     end
 

@@ -1,6 +1,0 @@
-
-
-GET   /                       Onetime::App::Colonel#index
-
-GET   /secrets                Onetime::App::Colonel#secrets
-GET   /metadata               Onetime::App::Colonel#metadata

@@ -40,7 +40,7 @@ module Onetime
     #
     # It uses the HTTParty gem to make HTTP requests.
     #
-    class Approximated
+    module Approximated
       include HTTParty
       base_uri 'https://cloud.approximated.app/api'
       headers 'Content-Type' => 'application/json'

@@ -6,7 +6,7 @@
     <form @submit.prevent="submitForm" class="space-y-6">
       <input type="hidden"
              name="shrimp"
-             :value="shrimp" />
+             :value="csrfStore.shrimp" />
 
       <DomainInput v-model="domain"
                    :is-valid="true"
@@ -29,17 +29,13 @@
 import { ref } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DomainInput from './DomainInput.vue';
-import { useFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import type { CustomDomainApiResponse } from '@/types/onetime';
+import { useCsrfStore } from '@/stores/csrfStore';
 
-const emit = defineEmits(['domain-added']);
-
+const csrfStore = useCsrfStore();
 const domain = ref('');
-const shrimp = ref(window.shrimp);
-
-const handleShrimp = (freshShrimp: string) => {
-  shrimp.value = freshShrimp;
-}
+const emit = defineEmits(['domain-added']);
 
 const {
   isSubmitting,
@@ -47,7 +43,7 @@ const {
   success,
   submitForm
 } = useFormSubmission({
-  url: '/api/v1/account/domains/add',
+  url: '/api/v2/account/domains/add',
   successMessage: 'Domain added successfully.',
   onSuccess: (data: CustomDomainApiResponse) => {
     console.log('Domain added:', data);
@@ -64,6 +60,5 @@ const {
   onError: (data) => {
     console.error('Error adding domain:', data);
   },
-  handleShrimp: handleShrimp,
 });
 </script>

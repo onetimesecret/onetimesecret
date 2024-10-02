@@ -1,9 +1,29 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Homepage from '@/views/Homepage.vue'
+import WideLayout from '@/layouts/WideLayout.vue'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import QuietLayout from '@/layouts/QuietLayout.vue'
+import { useLanguageStore } from '@/stores/languageStore';
+import { useCsrfStore } from '@/stores/csrfStore';
 
 import { ref } from 'vue'
+import ShowSecret from '@/views/secrets/ShowSecret.vue'
+import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
+import BurnSecret from '@/views/secrets/BurnSecret.vue';
+import DashboardIndex from '@/views/dashboard/DashboardIndex.vue';
+import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
+import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
 
 const authState = ref(window.authenticated) // Assuming this is the variable name
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    // is optional
+    isAdmin?: boolean
+    // must be declared by every route
+    requiresAuth?: boolean
+  }
+}
 
 /**
  * About Auto vs Lazy loading
@@ -42,6 +62,8 @@ const authState = ref(window.authenticated) // Assuming this is the variable nam
  * @see [Vue3 documentation on dynamic imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import#dynamic_imports)
  * @see [Vue3 documentation on `defineAsyncComponent`](https://v3.vuejs.org/guide/component-dynamic-async.html#async-components)
  */
+import { fetchInitialSecret, AsyncDataResult } from '@/api/secrets';
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -52,13 +74,86 @@ const routes: Array<RouteRecordRaw> = [
       } else {
         next()
       }
+    },
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: true,
+      }
+    },
+
+  },
+  {
+    path: '/secret/:secretKey',
+    name: 'Secret link',
+    component: ShowSecret,
+    //component: () => import('@/views/secrets/ShowSecret.vue'),
+    props: true,
+    meta: {
+      layout: QuietLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displaySitenav: false,
+        displayVersion: false,
+        displayPoweredBy: true,
+        noCache: true,
+      },
+    },
+    beforeEnter: async (to, from, next): Promise<AsyncDataResult | void> => {
+      try {
+        const secretKey = to.params.secretKey as string;
+        const initialData = await fetchInitialSecret(secretKey);
+        to.params.initialData = initialData;
+        next();
+      } catch (error) {
+        console.error('Error fetching initial page data:', error);
+        next(new Error('Failed to fetch initial page data'));
+      }
+    },
+  },
+  {
+    path: '/private/:metadataKey',
+    name: 'Metadata link',
+    component: ShowMetadata,
+    props: true,
+    meta: {
+      layoutProps: {
+        displayFeedback: false,
+        noCache: true,
+      }
+    },
+  },
+  {
+    path: '/private/:metadataKey/burn',
+    name: 'Burn secret',
+    component: BurnSecret,
+    props: true,
+    meta: {
+      layoutProps: {
+        displayFeedback: false,
+      }
     }
   },
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/Dashboard.vue'),
+    component: DashboardIndex,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/recent',
+    name: 'Recents',
+    component: DashboardRecent,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/incoming',
+    name: 'Inbound Secrets',
+    component: IncomingSupportSecret,
+    meta: { requiresAuth: false }
   },
   {
     path: '/account/domains/:domain/verify',
@@ -71,7 +166,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains/add',
     name: 'AccountDomainAdd',
     component: () => import('@/views/account/AccountDomainAdd.vue'),
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayFeedback: false,
+      }
+    },
     props: true,
   },
   {
@@ -85,50 +185,125 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account',
     name: 'Account',
     component: () => import('@/views/account/AccountIndex.vue'),
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true
+    },
   },
   {
-    path: '/secret/:secretKey',
-    name: 'Secret link',
-    component: () => import('@/views/Secret.vue'),
+    path: '/colonel',
+    name: 'Colonel',
+    component: () => import('@/views/colonel/ColonelIndex.vue'),
+    meta: {
+      isAdmin: true,
+      requiresAuth: true,
+      layout: DefaultLayout,
+    },
     props: true,
   },
   {
-    path: '/private/:metadataKey',
-    name: 'Metadata link',
-    component: () => import('@/views/Metadata.vue'),
+    path: '/info/privacy',
+    name: 'Privacy Policy',
+    component: () => import('@/views/info/PrivacyDoc.vue'),
+    props: true,
+  },
+  {
+    path: '/info/terms',
+    name: 'Terms of Use',
+    component: () => import('@/views/info/TermsDoc.vue'),
+    props: true,
+  },
+  {
+    path: '/info/security',
+    name: 'Security Policy',
+    component: () => import('@/views/info/SecurityDoc.vue'),
     props: true,
   },
   {
     path: '/pricing',
     name: 'Pricing',
-    component: () => import('@/views/PricingDual.vue'),
+    component: () => import('@/views/pricing/PricingDual.vue'),
+    meta: {
+      layout: WideLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: true,
+        displaySitenav: true,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
+    },
+    props: true,
   },
   {
     path: '/feedback',
     name: 'Feedback',
     component: () => import('@/views/Feedback.vue'),
+    meta: {
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: false,
+      }
+    }
   },
   {
     path: '/forgot',
     name: 'Forgot',
-    component: () => import('@/components/PasswordStrengthChecker.vue'),
+    component: () => import('@/views/auth/PasswordReset.vue'),
   },
   {
     path: '/signin',
     name: 'Sign In',
-    component: () => import('@/views/Signin.vue'),
-  },
-  {
-    path: '/signup/:planCode',
-    name: 'Sign Up',
-    component: () => import('@/views/Signup.vue'),
-    props: true,
+    component: () => import('@/views/auth/Signin.vue'),
   },
   {
     path: '/signup',
-    name: 'Sign Up',
-    component: () => import('@/views/Signup.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Sign Up',
+        component: () => import('@/views/auth/Signup.vue'),
+      },
+      {
+        path: ':planCode',
+        name: 'Sign Up with Plan',
+        component: () => import('@/views/auth/Signup.vue'),
+        props: true,
+      },
+    ],
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/About.vue'),
+  },
+  {
+    path: '/translations',
+    name: 'Translations',
+    component: () => import('@/views/Translations.vue'),
+  },
+  {
+    path: '/logout',
+    name: 'Logout',
+    component: { render: () => null }, // Dummy component
+    beforeEnter: () => {
+      // Clear all local storage
+      localStorage.clear();
+
+      // Reset stores
+      const languageStore = useLanguageStore();
+      const csrfStore = useCsrfStore();
+
+      languageStore.$reset();
+      csrfStore.$reset();
+
+      // Set auth state to false
+      authState.value = false;
+
+      // Redirect to logout URL
+      window.location.href = '/logout';
+    }
   },
 ]
 
@@ -136,12 +311,20 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
-
-router.beforeEach((to, from, next) => {
+// NOTE: This doesn't override the server pages which redirect
+// when not authenticated.
+// https://router.vuejs.org/guide/advanced/meta.html
+router.beforeEach((to) => {
+  // instead of having to check every route record with
+  // to.matched.some(record => record.meta.requiresAuth)
   if (to.meta.requiresAuth && !authState.value) {
-    next('/')
-  } else {
-    next()
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+    return {
+      path: '/login',
+      // save the location we were at to come back later
+      query: { redirect: to.fullPath },
+    }
   }
 })
 

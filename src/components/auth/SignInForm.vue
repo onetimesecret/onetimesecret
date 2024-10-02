@@ -1,15 +1,16 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
 
 export interface Props {
   enabled?: boolean;
-  shrimp: string | null;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   enabled: true,
-  shrimp: null,
 })
 
 const email = ref('');
@@ -32,7 +33,7 @@ const togglePasswordVisibility = () => {
            value="✓" />
     <input type="hidden"
            name="shrimp"
-           :value="props.shrimp" />
+           :value="csrfStore.shrimp" />
 
     <fieldset>
       <div class="mb-4 relative">

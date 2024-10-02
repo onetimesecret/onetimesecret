@@ -2,7 +2,7 @@
 require_relative '../../app_helpers'   # app/helpers.rb
 
 
-class Onetime::App
+module Onetime::App
   class API
 
     module Base
@@ -15,7 +15,7 @@ class Onetime::App
         end
       end
 
-      # curl -F 'ttl=7200' -u 'EMAIL:APIKEY' http://LOCALHOSTNAME:3000/api/v1/generate
+      # curl -F 'ttl=7200' -u 'EMAIL:APITOKEN' http://LOCALHOSTNAME:3000/api/v1/generate
       def authorized allow_anonymous=false
         carefully(redirect=nil, content_type='application/json', app: :api) do
           check_locale!
@@ -50,16 +50,27 @@ class Onetime::App
           # like API requests coming from hybrid Vue components.
           elsif req.cookie?(:sess)
 
-            # Anytime we allow session cookies, we must also check shrimp.
             check_session!
-            check_shrimp!
+
+            unless sess.authenticated? || allow_anonymous
+              raise OT::Unauthorized, "Session not authenticated"
+            end
 
             # Only attempt to load the customer object if the session has
             # already been authenticated. Otherwise this is an anonymous session.
             @cust = sess.load_customer if sess.authenticated?
+            @cust ||= Customer.anonymous if allow_anonymous
+
+            raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
 
             custid = @cust.custid unless @cust.nil?
             OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+
+            # Anytime we allow session cookies, we must also check shrimp. This will
+            # run only for POST etc requests (i.e. not GET) and it's important to
+            # check the shrimp after checking auth. Otherwise we'll chrun through
+            # shrimp even though weren't going to complete the request anyway.
+            check_shrimp!
 
           # Otherwise, we have no credentials, so we must be anonymous. Only
           # methods that opt-in to allow anonymous sessions will be allowed to
@@ -90,84 +101,52 @@ class Onetime::App
         end
       end
 
-      # Retrieves and lists records of the specified class. Also used for single
-      # records. It's up to the logic class what it wants to return via
-      # `logic.success_data`` (i.e. `record: {...}` or `records: [...]`` ).
+      # Determine and set the locale for the current request.
       #
-      # @param record_class [Class] The ActiveRecord class of the records to be retrieved.
-      # @param error_message [String] The error message to display if retrieval fails.
+      # This method prioritizes locales in the following order:
+      # 1. Query parameter 'locale'
+      # 2. Provided 'locale' argument
+      # 3. Rack environment's 'rack.locale'
+      # 4. Customer's locale (if available)
+      # 5. First configured locale
       #
+      # The method also ensures that only supported locales are used.
+      #
+      # @param locale [String, nil] Optional locale to use (overridden by query parameter)
       # @return [void]
-      #
-      # @example
-      #   retrieve_records(User, "Unable to retrieve users")
-      #
-      def retrieve_records(logic_class)
-        authorized do
-          OT.ld "[retrieve] #{logic_class}"
-          logic = logic_class.new(sess, cust, req.params, locale)
-          logic.raise_concerns
-          logic.process
-          json success: true, **logic.success_data
-        end
-      end
-
-      # Processes an action using the specified logic class and handles the response.
-      #
-      # @param logic_class [Class] The class implementing the action logic.
-      # @param error_message [String] The error message to display if the action fails.
-      #
-      # The logic class must implement the following methods:
-      # - raise_concerns
-      # - process_params
-      # - process
-      # - greenlighted
-      # - success_data
-      #
-      # @yield [logic] Gives access to the logic object for custom success handling.
-      # @yieldparam logic [Object] The instantiated logic object after processing.
-      #
-      # @return [void]
-      #
-      # @example
-      #   process_action(OT::Logic::GenerateAPIkey, "API Key could not be generated.") do |logic|
-      #     json_success(custid: cust.custid, apikey: logic.apikey)
-      #   end
-      #
-      def process_action(logic_class, success_message, error_message)
-        authorized do
-          logic = logic_class.new(sess, cust, req.params, locale)
-          logic.raise_concerns
-          logic.process
-          OT.ld "[process_action] #{logic_class} success=#{logic.greenlighted}"
-          if logic.greenlighted
-            json_success(custid: cust.custid, **logic.success_data)
-          else
-            error_response(error_message)
-          end
-        end
-      end
-
-      # Find the locale of the request based on req.env['rack.locale'],
-      # which is set automatically by Otto v0.4.0 and greater.
-      #
-      # If `locale` is specified, it will override if the locale is supported.
-      # If the `locale` query param is set, it will override.
-      #
-      # @param locale [String] the locale to use, defaults to nil
-      # @return [void]
-      def check_locale! locale=nil
+      def check_locale!(locale = nil)
+        # Check for locale in query parameters
         unless req.params[:locale].to_s.empty?
-          locale = req.params[:locale]                                 # Use query param
-          res.send_cookie :locale, locale, 30.days, Onetime.conf[:site][:ssl]
+          locale = req.params[:locale]
+          # Set locale cookie if query parameter is present
+          is_secure = Onetime.conf.dig(:site, :ssl)
+          res.send_cookie :locale, locale, 30.days, is_secure
         end
-        locales = req.env['rack.locale'] || []                          # Requested list
-        locales.unshift locale.split('-').first if locale.is_a?(String) # Support both en and en-US
-        locales << OT.conf[:locales].first                              # Ensure at least one configured locale is available
-        locales = locales.uniq.reject { |l| !OT.locales.has_key?(l) }.compact
-        locale = locales.first if !OT.locales.has_key?(locale)           # Default to the first available
-        req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
+
+        # Initialize locales array
+        locales = req.env['rack.locale'] || []  # Requested list from Rack
+
+        # Add provided locale to the beginning of the list
+        # Support both en and en-US
+        locales.unshift(locale.split('-').first) if locale.is_a?(String)
+
+        # Add customer's locale if available
+        locales << cust.locale if cust&.locale?
+
+        # Ensure at least one configured locale is available
+        locales << OT.conf[:locales].first
+
+        # Filter and clean up locales
+        locales = locales.uniq.reject { |l| !OT.locales.key?(l) }.compact
+
+        # Set default locale if the current one is not supported
+        locale = locales.first unless OT.locales.key?(locale)
+
+        # Set locale in the request environment
+        req.env['ots.locale'] = @locale = locale
+        req.env['ots.locales'] = locales
       end
+
 
       def json hsh
         res.header['Content-Type'] = "application/json; charset=utf-8"
@@ -209,6 +188,13 @@ class Onetime::App
 
       def not_found_response msg, hsh={}
         hsh[:message] = msg
+        res.status = 404
+        json hsh
+      end
+
+      # The v1 API historically returned 404 for auth errors
+      def not_authorized_error hsh={}
+        hsh[:message] = "Not authorized"
         res.status = 404
         json hsh
       end

@@ -31,6 +31,7 @@ on:
     branches:
       - main
       - develop
+      - feature/*
   workflow_dispatch:
     inputs:
       debug_enabled:

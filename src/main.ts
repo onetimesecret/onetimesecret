@@ -1,115 +1,82 @@
-import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import FeedbackForm from '@/components/FeedbackForm.vue';
+import { createApp, watch } from 'vue';
+import { createPinia } from 'pinia';
 import router from '@/router';
-import { createApp, ref } from 'vue';
-
-import { i18n } from './i18n';
+import i18n, { setLanguage } from '@/i18n';
+import App from './App.vue';
+import { useLanguageStore } from '@/stores/languageStore';
+//import { useCsrfStore } from '@/stores/csrfStore';
 
 import './assets/style.css';
 
-
 /**
- * Hybrid SPA / Server-Rendered Page Initialization
+ * Initialize and mount the Vue application with proper language settings.
  *
- * This code handles the initialization of our application, which uses a hybrid
- * approach combining Single Page Application (SPA) features with traditional
- * server-rendered pages. This approach allows for a gradual transition from a
- * fully server-rendered site to a more modern SPA architecture.
+ * The initialization process follows these steps:
+ * 1. Create the Vue app instance and Pinia store.
+ * 2. Determine the initial locale based on user preference or system settings.
+ * 3. Set the application language before mounting.
+ * 4. Update the language store for consistency.
+ * 5. Apply plugins (i18n, router).
+ * 6. Mount the application.
  *
- * The process works as follows:
+ * This order ensures that:
+ * - The correct language is available from the first render.
+ * - User language preferences are respected.
+ * - The language store is consistent with the actual app language.
+ * - All components have access to the correct translations immediately.
  *
- * 1. If the current page has a corresponding Vue route:
- *    - We initialize the full Vue app with routing capabilities.
- *    - This allows for client-side navigation between Vue-powered pages.
- *
- * 2. If the current page doesn't have a Vue route, but has a Vue component:
- *    - We fall back to the older method of mounting a single Vue component.
- *    - This preserves functionality for pages that have been partially
- *      upgraded.
- *
- * 3. If neither a route nor a component exists:
- *    - The page remains a traditional server-rendered page.
- *
- * Short-term benefits:
- * - Allows use of Vue Router for navigation on new, Vue-powered pages.
- * - Maintains compatibility with existing server-rendered and partially-
- *   upgraded pages.
- * - Enables incremental migration to a full SPA architecture.
- *
- * Long-term considerations:
- * - This hybrid approach may lead to inconsistent user experiences between
- *   different parts of the site.
- * - As more pages are converted to Vue components, the codebase should be
- *   refactored towards a full SPA model.
- *
- * @param {string} vueComponentName - The name of the Vue component for the
- *                                    current page, set by the server.
+ * Using an async function allows us to wait for language loading
+ * before mounting the app, preventing any flash of untranslated content.
  */
+async function initializeApp() {
+  // Create Vue app instance and Pinia store
+  const app = createApp(App);
+  const pinia = createPinia();
+  app.use(pinia);
 
-const DefaultApp = {
-  template: '<div id="app"><router-view></router-view></div>'
+  // Initialize language store
+  const languageStore = useLanguageStore();
+
+  // Get the initial locale and use it to set the language
+  const initialLocale = languageStore.initializeCurrentLocale(navigator.language);
+  console.log('Initial locale:', initialLocale);
+
+  // Set language before mounting the app
+  // This ensures correct translations are available for the initial render
+  await setLanguage(initialLocale);
+
+  // Update the store's currentLocale to ensure consistency
+  languageStore.setCurrentLocale(initialLocale);
+
+  // Add a watcher to react to language changes
+  watch(
+    () => languageStore.currentLocale,
+    async (newLocale) => {
+      if (newLocale) { // Type guard to ensure newLocale is not null
+        console.log('Language changed to:', newLocale);
+        await setLanguage(newLocale);
+
+        // Future considerations:
+        // 1. API requests: Include language in request headers
+        // axios.defaults.headers.common['Accept-Language'] = newLocale;
+
+        // 2. SEO: Update URL to include language code
+        // router.push(`/${newLocale}${router.currentRoute.value.path}`);
+
+        // 3. SSR: If using SSR, ensure server-side logic is updated
+        // This might involve server-side routing or state management
+      }
+    }
+  );
+
+  // Apply other plugins
+  app.use(i18n);
+  app.use(router);
+
+  // Mount the application
+  // This is done last to ensure all setup is complete before rendering
+  app.mount('#app');
 }
 
-const app = createApp(DefaultApp);
-app.use(i18n)
-app.use(router);
-app.mount('#app');
-
-
-/**
- * Common components in the Header and Footer
- *
- * These are components mounted within the layout of the page, such as
- * in the header or footer. They are not tied to a specific page and
- * are always present on the site.
- *
- **/
-const showBanner = ref(false);
-const broadcastElement = document.querySelector('#broadcast');
-if (broadcastElement) {
-  const broadcastApp = createApp(GlobalBroadcast, {
-    content: import.meta.env.VITE_BROADCAST_CONTENT || null,
-    show: showBanner.value,
-  })
-  broadcastApp.use(i18n)
-  broadcastApp.mount(broadcastElement);
-}
-
-const feedbackFormElement = document.querySelector('#feedback-form');
-if (feedbackFormElement) {
-  const showRedButton = feedbackFormElement.getAttribute('data-show-red-button') === 'true';
-  const feedbackApp = createApp(FeedbackForm, {
-    shrimp: window.shrimp,
-    showRedButton: showRedButton,
-  });
-  feedbackApp.use(i18n)
-  feedbackApp.mount(feedbackFormElement);
-}
-
-const themeToggleElement = document.querySelector('#theme-toggle');
-if (themeToggleElement) {
-  const toggleApp = createApp(ThemeToggle);
-  toggleApp.use(i18n)
-  toggleApp.mount(themeToggleElement);
-}
-
-
-/*
-* Old-school global function. Actually the Altcha lib has a replacement
-* for this, so we can 86 this in the future.
-*/
-function deobfuscateEmails(): void {
-  document.querySelectorAll<HTMLElement>('.email').forEach(el => {
-    const email = el.textContent?.replace(/ &#65;&#84; /g, "@").replace(/ AT /g, "@").replace(/ D0T /g, ".") || '';
-    const subject = el.getAttribute('data-subject');
-    const subjectParam = subject ? `?subject=${encodeURIComponent(subject)}` : '';
-    el.innerHTML = `<a class="dark:text-gray-300" href="mailto:${encodeURIComponent(email)}${subjectParam}">${email}</a>`;
-  });
-}
-
-// Call this function when the DOM is ready or after dynamic content is loaded
-document.addEventListener('DOMContentLoaded', deobfuscateEmails);
-
-// Add it to the global scope for use in other scripts
-window.deobfuscateEmails = deobfuscateEmails;
+// Start the application initialization process
+initializeApp();

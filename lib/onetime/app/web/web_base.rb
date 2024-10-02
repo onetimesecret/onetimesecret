@@ -1,7 +1,7 @@
 require_relative '../app_helpers'
 
 module Onetime
-  class App
+  module App
 
     module Base
       include OT::App::WebHelpers
@@ -28,21 +28,27 @@ module Onetime
           # since it wouldn't change our response either way.
           return disabled_response(req.path) unless authentication_enabled?
 
-          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           sess.authenticated? ? yield : res.redirect(('/'))
+          check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session and auth check)
         end
       end
 
       def colonels redirect=nil
         carefully(redirect) do
+          no_cache!
           check_session!     # 1. Load or create the session, load customer (or anon)
           check_locale!      # 2. Check the request for the desired locale
 
-          # See explanation in `authenticated` method
+          # We need the session so that cust is set to anonymous (and not
+          # nil); we want locale too so that we know what language to use.
+          # If this is a POST request, we don't need to check the shrimp
+          # since it wouldn't change our response either way.
           return disabled_response(req.path) unless authentication_enabled?
 
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
-          sess.authenticated? && cust.role?(:colonel) ? yield : res.redirect(('/'))
+
+          is_allowed = sess.authenticated? && cust.role?(:colonel)
+          is_allowed ? yield : raise(OT::Unauthorized, "Colonels only")
         end
       end
 
@@ -141,7 +147,7 @@ module Onetime
       end
 
       def not_found_response message
-        view = Onetime::App::Views::NotFound.new req, sess, cust, locale
+        view = Onetime::App::Views::Error.new req, sess, cust, locale
         view.add_error message
         res.status = 404
         res.body = view.render

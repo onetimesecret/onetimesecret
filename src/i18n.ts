@@ -1,7 +1,8 @@
-import { createI18n } from 'vue-i18n';
-import en from '@/locales/en.json';
 
-type MessageSchema = typeof en;
+import { createI18n } from 'vue-i18n';
+import en from '@/locales/en.json' assert { type: 'json' };
+
+
 
 /**
  * This setup accomplishes the following:
@@ -13,18 +14,34 @@ type MessageSchema = typeof en;
  * If loading fails (e.g., the file doesn't exist), it falls back to English.
  **/
 
-export const i18n = createI18n<[MessageSchema], 'en'>({
-  locale: 'en',
+const supportedLocales = window.supported_locales || [];
+
+export type MessageSchema = typeof en;
+export type SupportedLocale = typeof supportedLocales[number];
+
+
+// First supported locale is assumed to be the default
+const locale = supportedLocales[0] || 'en';
+
+const i18n = createI18n<{ message: typeof en }, SupportedLocale>({
+  //legacy: false,
+  locale: locale,
   fallbackLocale: 'en',
-  messages: { en },
+  messages: {
+    en,
+  },
+  availableLocales: supportedLocales,
 });
 
+
+export default i18n;
+
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
+  console.log(`Attempting to load locale: ${locale}`);
   try {
-    console.log(`Attempting to load locale: ${locale}`);
     const messages = await import(`@/locales/${locale}.json`);
     console.log(`Successfully loaded locale: ${locale}`);
-    return messages.default as MessageSchema;
+    return messages.default;
   } catch (error) {
     console.error(`Failed to load locale: ${locale}`, error);
     return null;
@@ -32,33 +49,23 @@ async function loadLocaleMessages(locale: string): Promise<MessageSchema | null>
 }
 
 export async function setLanguage(lang: string): Promise<void> {
+  if (i18n.global.locale === lang) {
+    console.log(`Language is already set to ${lang}. No change needed.`);
+    return;
+  }
+
   console.log(`Setting language to: ${lang}`);
+  if (lang === 'en') {
+    i18n.global.locale = 'en';
+    console.log(`Language set to: ${lang}`);
+    return;
+  }
   const messages = await loadLocaleMessages(lang);
   if (messages) {
     i18n.global.setLocaleMessage(lang, messages);
-    i18n.global.locale = lang as "en";
+    i18n.global.locale = lang;
     console.log(`Language set to: ${lang}`);
   } else {
     console.log(`Failed to set language to: ${lang}. Falling back to default.`);
   }
-}
-
-
-export const browserLocale = navigator.language.split('-')[0];
-console.log(`Detected browser locale: ${browserLocale}`);
-if (browserLocale !== 'en') {
-  setLanguage(browserLocale);
-}
-
-export const changeLanguage = async (lang: string) => {
-  console.log(`Language change requested to: ${lang}`);
-  await setLanguage(lang);
-}
-
-// Add a function to get available languages
-export async function getAvailableLanguages(): Promise<string[]> {
-  // This is a placeholder. In a real-world scenario, you might want to
-  // dynamically fetch this list from your server or generate it based on
-  // available translation files.
-  return ['en', 'fr', 'es', 'de'];
 }

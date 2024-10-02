@@ -25,7 +25,7 @@ OT.boot!
 @metadata.save
 @secret.save
 
-## Basic metadata transformation
+## Basic metadata transformation (this doubles as a check for FlexibleHashAccess)
 result = OT::App::API.metadata_hsh(@metadata)
 p [result[:custid], result[:metadata_key], result[:secret_key]]
 p [@metadata.custid, @metadata.key, @metadata.secret_key]

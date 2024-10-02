@@ -12,13 +12,13 @@
         <p class="mb-2 text-gray-600 dark:text-gray-300">Add this hostname to your DNS configuration:</p>
 
         <div class="space-y-2">
-          <DetailField label="Type" value="TXT" />
-          <DetailField
-            label="Host"
-            :value="domain.txt_validation_host"
-            :appendix="`.${domain.base_domain}`"
-          />
-          <DetailField label="Value" :value="domain.txt_validation_value" />
+          <DetailField label="Type"
+                       value="TXT" />
+          <DetailField label="Host"
+                       :value="domain.txt_validation_host"
+                       :appendix="`.${domain.base_domain}`" />
+          <DetailField label="Value"
+                       :value="domain.txt_validation_value" />
         </div>
 
       </li>
@@ -26,28 +26,30 @@
         <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">2. Create the A record</h3>
 
         <div class="space-y-2">
-          <DetailField label="Type" value="A" />
-          <DetailField
-            label="Host"
-            :value="domain?.trd ? domain.trd : '@'"
-            :appendix="`.${domain?.base_domain}`"
-          />
-          <DetailField label="Value" :value="cluster?.cluster_ip" />
+          <DetailField label="Type"
+                       value="A" />
+          <DetailField label="Host"
+                       :value="domain?.trd ? domain.trd : '@'"
+                       :appendix="`.${domain?.base_domain}`" />
+          <DetailField label="Value"
+                       :value="cluster?.cluster_ip" />
         </div>
 
       </li>
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
         <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">3. Wait for propagation</h3>
-        <p class="text-gray-600 dark:text-gray-300">DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect.</p>
+        <p class="text-gray-600 dark:text-gray-300">DNS changes can take as little as 60 seconds -- or up to 24 hours --
+          to take effect.</p>
       </li>
     </ol>
 
-    <BasicFormAlerts :success="success" :error="error" />
+    <BasicFormAlerts :success="success"
+                     :error="error" />
 
     <button v-if="withVerifyCTA"
-          @click="verify"
-          :disabled="isButtonDisabled"
-          class="w-full sm:w-auto px-6 py-3 text-lg font-semibold
+            @click="verify"
+            :disabled="isButtonDisabled"
+            class="w-full sm:w-auto px-6 py-3 text-lg font-semibold
             text-white bg-brand-500
             disabled:bg-gray-400 disabled:cursor-not-allowed
             hover:bg-brand-600
@@ -69,7 +71,7 @@
 
 <script setup lang="ts">
 import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
-import { useFormSubmission } from '@/utils/formSubmission';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';
@@ -93,17 +95,11 @@ const emit = defineEmits<{
   (e: 'domainVerify', data: CustomDomainApiResponse): void;
 }>();
 
-const shrimp = ref(window.shrimp);
-const handleShrimp = (freshShrimp: string) => {
-  shrimp.value = freshShrimp;
-}
-
 const { isSubmitting, error, success, submitForm } = useFormSubmission({
-  url: `/api/v1/account/domains/${props.domain.display_domain}/verify`,
+  url: `/api/v2/account/domains/${props.domain.display_domain}/verify`,
   successMessage: 'Domain verification initiated successfully.',
   getFormData: () => new URLSearchParams({
     domain: props.domain.display_domain,
-    shrimp: shrimp.value,
   }),
   onSuccess: (data) => {
     console.log('Verification initiated:', data);
@@ -112,7 +108,6 @@ const { isSubmitting, error, success, submitForm } = useFormSubmission({
   onError: (data) => {
     console.error('Verification failed:', data);
   },
-  handleShrimp: handleShrimp,
 });
 
 const buttonDisabledDelay = ref(false);

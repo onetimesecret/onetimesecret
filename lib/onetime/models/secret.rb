@@ -176,7 +176,8 @@ module Onetime
       # A guard to allow only a fresh, new secret to be received. Also ensures that
       # we don't support going from :viewed back to something else.
       return unless state?(:new)
-      load_metadata.received!
+      md = load_metadata
+      md.received! unless md.nil?
       @passphrase_temp = nil
       self.destroy!
     end
