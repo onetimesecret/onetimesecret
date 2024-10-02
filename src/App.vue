@@ -1,14 +1,7 @@
 <template>
   <QuietLayout v-bind="layoutProps">
-    <!-- Router View Structure:
-         - Named views allow multiple <router-view> components in a single layout.
-         - The unnamed <router-view> is the default view for each route.
-         - Named views ("header" and "footer") can display different components
-           based on the current route configuration.
-         - layoutProps are passed to each view for consistent styling and behavior. -->
-    <router-view name="header" v-bind="layoutProps"></router-view>
+    <!-- See QuietLayout.vue for named views -->
     <router-view></router-view>
-    <router-view name="footer" v-bind="layoutProps"></router-view>
   </QuietLayout>
 </template>
 
