@@ -1,12 +1,14 @@
-import { defineConfig } from 'vite'
 //import { createHtmlPlugin } from 'vite-plugin-html'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import vue from '@vitejs/plugin-vue';
+import path from 'path';
+import { defineConfig } from 'vite';
+import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
 // environment variables to the client-side code.
 const apiBaseUrl = process.env.VITE_API_BASE_URL || 'https://dev.onetimesecret.com';
+
 
 export default defineConfig({
   root: "./src",
@@ -23,42 +25,29 @@ export default defineConfig({
         }
       }
     }),
-    // Uncomment and adjust the createHtmlPlugin configuration as needed
-    // TODO: Doesn't add the preload <link> to the output index.html
-    //       but it does process the html b/c minify: true works.
-    //       Might be handy for some use cases. Leaving for now.
-    // Corresponds with the following in the input index.html:
-    //
-    //  <%~ preloadFonts.map(font => `<link rel="preload" href="${font}" as="font" type="font/woff2">`) %>
-    //
-    //createHtmlPlugin({
-    //  minify: false,
-    //  entry: 'main.ts',
-    //  template: 'index.html',
-    //  inject: {
-    //    data: {
-    //      preloadFonts: [
-    //        '/dist/assets/ZillaSlab-Regular.woff2',
-    //        '/dist/assets/ZillaSlab-Regular.woff',
-    //        '/dist/assets/ZillaSlab-Bold.woff2',
-    //        '/dist/assets/ZillaSlab-Bold.woff',
-    //      ]
-    //    }
-    //  }
-    //})
+
+    /**
+     * Makes sure all text output files have a trailing newline.
+     *
+     * After running the build, some files like manifest.json
+     * and main.map are generated with a trailing last line. Not
+     * a big deal really, just that it triggers standard lint
+     * rules. I wouldn't think this is necessary but here we are.
+     *
+     * This plugin processes files during the build phase:
+     * - Checks each generated file for a trailing newline.
+     * - Adds a newline if it's missing.
+     * - Ignores binary files to avoid corruption.
+     *
+     * @see ./src/build/plugins/addTrailingNewline.ts for implementation details.
+     */
+    addTrailingNewline(),
   ],
 
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
 
-      // Resolves browser console warning:
-      //
-      //    [Vue warn]: Component provided template option but runtime compilation is
-      //    not supported in this build of Vue. Configure your bundler to alias "vue"
-      //    to "vue/dist/vue.esm-bundler.js".
-      //
-      'vue': 'vue/dist/vue.esm-bundler.js'
     }
   },
 
