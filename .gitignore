@@ -26,6 +26,7 @@ vendor/
 log/
 tmp/
 etc/caddy/
+coverage/
 
 # Files
 .DS_Store
