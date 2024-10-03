@@ -62,3 +62,4 @@ etc/config.yaml
 !postcss.config.mjs
 !tailwind.config.ts
 !eslint.config.mjs
+!.commit_hash.txt
