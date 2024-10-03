@@ -30,8 +30,6 @@ import baseConfig from './vite.config.ts';
  */
 export default mergeConfig(baseConfig, defineConfig({
   build: {
-    // Disable minification for better readability
-    minify: false,
     // Generate sourcemaps for easier debugging
     sourcemap: true,
     rollupOptions: {
