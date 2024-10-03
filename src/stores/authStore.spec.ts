@@ -121,7 +121,7 @@ describe('Auth Store', () => {
     store.stopAuthCheck()
 
     const checkAuthStatusSpy = vi.spyOn(store, 'checkAuthStatus')
-    vi.advanceTimersByTime(16 * 60 * 1000)
+    vi.advanceTimersByTime(30 * 60 * 1000) // fast forward
 
     expect(checkAuthStatusSpy).not.toHaveBeenCalled()
   })
