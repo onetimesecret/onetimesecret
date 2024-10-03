@@ -49,7 +49,7 @@ export interface Props extends BaseProps {
   displayNavigation?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   // Haaland all features by default. These can be overridden by the
   // route.meta.layoutProps object or in the layout components
   // themselves. This prevents the header and footer from being
@@ -60,5 +60,4 @@ const props = withDefaults(defineProps<Props>(), {
   displayNavigation: true,
 });
 
-console.debug(props)
 </script>

@@ -1,9 +1,9 @@
-import { useWindowProp } from '@/composables/useWindowProps'
 import accountRoutes from '@/router/account'
 import authRoutes from '@/router/auth'
 import dashboardRoutes from '@/router/dashboard'
 import productRoutes from '@/router/product'
 import publicRoutes from '@/router/public'
+import { useAuthStore } from '@/stores/authStore'
 import { createRouter, createWebHistory } from 'vue-router'
 
 declare module 'vue-router' {
@@ -26,14 +26,18 @@ const router = createRouter({
 
 // NOTE: This doesn't override the server pages which redirect
 // when not authenticated.
-const authState = useWindowProp('authenticated');
-router.beforeEach((to) => {
-  // Redirect unless logged in
-  if (to.meta.requiresAuth && !authState.value) {
-    return {
-      path: '/login',
-      // Save the location we were at to come back later
-      query: { redirect: to.fullPath },
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    // Perform a fresh check before redirecting
+    await authStore.checkAuthStatus()
+
+    if (!authStore.isAuthenticated) {
+      return {
+        path: '/signin',
+        query: { redirect: to.fullPath },
+      }
     }
   }
 })
