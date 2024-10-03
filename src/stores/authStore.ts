@@ -2,8 +2,10 @@ import router from '@/router'
 import { Customer } from '@/types/onetime'
 import axios from 'axios'
 import { defineStore } from 'pinia'
+import { CheckAuthDataApiResponse, CheckAuthDetails } from '@/types/onetime'
 
 const AUTH_CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+const AUTH_CHECK_ENDPOINT = '/api/v2/authcheck';
 
 /**
  * Authentication store for managing user authentication state.
@@ -70,9 +72,9 @@ export const useAuthStore = defineStore('auth', {
      */
     async checkAuthStatus() {
       try {
-        const response = await axios.get('/api/v2/authcheck')
-        this.isAuthenticated = response.data.authenticated
-        this.customer = response.data.customer
+        const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT)
+        this.isAuthenticated = response.data.details.authorized
+        this.customer = response.data.record
       } catch (error) {
         this.logout()
       }
@@ -106,12 +108,15 @@ export const useAuthStore = defineStore('auth', {
     /**
      * Returns a fuzzy authentication check interval.
      * Adds or subtracts up to 90 seconds to the base duration.
+     * Ensures the returned interval is never less than 15 seconds.
      * @returns {number} Fuzzy authentication check interval in milliseconds.
      */
     getFuzzyAuthCheckInterval(): number {
       const maxFuzz = 90 * 1000; // 90 seconds in milliseconds
+      const minInterval = 15 * 1000; // 15 seconds in milliseconds
       const fuzz = Math.floor(Math.random() * (2 * maxFuzz + 1)) - maxFuzz;
-      return AUTH_CHECK_INTERVAL_MS + fuzz;
+      const interval = Math.max(AUTH_CHECK_INTERVAL_MS + fuzz, minInterval);
+      return interval;
     },
 
     /**

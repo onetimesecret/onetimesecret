@@ -19,7 +19,11 @@ module Onetime::App
 
     def authcheck
       authorized do
-        json authenticated: sess.authenticated?
+        response = {
+          record: cust.safe_dump,
+          details: { authenticated: sess.authenticated? }
+        }
+        json response
       end
     end
 
