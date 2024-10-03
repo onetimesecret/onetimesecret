@@ -1,20 +1,14 @@
 
-<script setup lang="ts">
-import { Metadata } from '@/types/onetime';
-import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
-
-interface Props {
-  hasItems?: boolean;
-  notReceived?: Metadata[];
-  received?: Metadata[];
-}
-
-defineProps<Props>();
-</script>
-
 <template>
   <!-- Move to a separate component -->
-    <div class="space-y-8">
+  <div class="space-y-8" v-cloak>
+    <template v-if="isLoading">
+      <!-- Add a loading indicator here -->
+      <div class="text-justify">
+        <p class="text-gray-600 dark:text-gray-400">Loading...</p>
+      </div>
+    </template>
+    <template v-else>
       <template v-if="hasItems">
         <section>
           <h3 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
@@ -57,5 +51,20 @@ defineProps<Props>();
           </p>
         </section>
       </template>
-    </div>
+    </template>
+  </div>
 </template>
+
+<script setup lang="ts">
+import { Metadata } from '@/types/onetime';
+import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
+
+interface Props {
+  hasItems?: boolean;
+  notReceived?: Metadata[];
+  received?: Metadata[];
+  isLoading: boolean;
+}
+
+defineProps<Props>();
+</script>

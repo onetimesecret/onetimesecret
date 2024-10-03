@@ -25,18 +25,18 @@ import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import { AuthenticationSettings, Customer } from '@/types/onetime';
 
 export interface Props {
+  authenticated: boolean
   authentication: AuthenticationSettings
+  colonel?: boolean
   cust?: Customer
   onetimeVersion: string
-  supportHost?: string
-  colonel: boolean
-  authenticated: boolean
   plansEnabled?: boolean
+  supportHost?: string
 }
 
 withDefaults(defineProps<Props>(), {
-  colonel: false,
   authenticated: false,
+  colonel: false,
   plansEnabled: false,
 })
 

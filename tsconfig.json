@@ -33,6 +33,12 @@
       "@types/node"
     ]
   },
-  "include": ["src/**/*.ts", "src/types/**/*.d.ts", "src/**/*.tsx", "src/**/*.mjs", "src/**/*.vue"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/router/**/*.ts"  // Add this line
+  ],
   "exclude": ["node_modules"]
 }
