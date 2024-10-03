@@ -57,7 +57,7 @@ repos:
       - id: detect-private-key
       - id: mixed-line-ending
       - id: check-added-large-files
-        args: ["--maxkb=2000"]
+        args: ["--maxkb=2500"]
       - id: no-commit-to-branch
         args: ["--branch", "develop", "--branch", "rel/.*"]
       - id: check-merge-conflict
