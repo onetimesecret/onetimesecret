@@ -110,8 +110,8 @@ content = JSON.parse(response.body)
 ## Can post to a bogus endpoint and get a 404
 response = @mock_request.post('/api/v1/generate2')
 content = JSON.parse(response.body)
-[response.status, content["custid"]]
-#=> [404, nil]
+[response.status, content["error"]]
+#=> [404, 'Not Found']
 
 # API v2 Routes
 
@@ -126,3 +126,15 @@ content = JSON.parse(response.body)
 message = content.delete('message')
 [response.status, message]
 #=> [400, "You did not provide anything to share"]
+
+## Can post to a bogus endpoint and get a 404
+response = @mock_request.post('/api/v2/generate2')
+content = JSON.parse(response.body)
+[response.status, content["success"], content["message"]]
+#=> [404, nil, 'Not Found']
+
+## Can post to a bogus endpoint and get a 404
+response = @mock_request.post('/api/v2/colonel')
+content = JSON.parse(response.body)
+[response.status, content["success"], content["custid"]]
+#=> [404, nil, nil]

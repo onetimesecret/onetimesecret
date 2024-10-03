@@ -41,6 +41,8 @@ headers = { 'Content-Type' => 'application/json' }
 # API Error Responses
 apps["/api/v1"].not_found = [404, headers, [{ error: 'Not Found' }.to_json]]
 apps["/api/v1"].server_error = [500, headers, [{ error: 'Internal Server Error' }.to_json]]
+apps["/api/v2"].not_found = [404, headers, [{ message: 'Not Found' }.to_json]]
+apps["/api/v2"].server_error = [500, headers, [{ message: 'Internal Server Error' }.to_json]]
 
 # Public Directory for Root Endpoint
 apps['/'].option[:public] = PUBLIC_DIR
