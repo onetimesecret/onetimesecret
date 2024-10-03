@@ -57,12 +57,16 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           tags: |
-            # set latest tag for master branch
+            # set latest tag for develop branch
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
+            # set next tag for develop branch
             type=raw,value=next,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
-            type=semver,pattern={{raw}}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            # use git tag if available
+            type=ref,event=tag
+            # use short SHA for pull requests
+            type=sha,format=short,prefix=pr-,enable=${{ github.event_name == 'pull_request' }}
+            # use branch name for push events
+            type=ref,event=branch
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
             ${{ env.DOCKERHUB_IMAGE_NAME }}
