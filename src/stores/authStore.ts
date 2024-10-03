@@ -1,10 +1,39 @@
 import router from '@/router'
-import { Customer } from '@/types/onetime'
+import { Customer, CheckAuthDataApiResponse, CheckAuthDetails } from '@/types/onetime'
 import axios from 'axios'
 import { defineStore } from 'pinia'
-import { CheckAuthDataApiResponse, CheckAuthDetails } from '@/types/onetime'
 
-const AUTH_CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+/**
+ * Backoff Logic Summary:
+ *
+ * 1. Initial interval: Starts at BASE_AUTH_CHECK_INTERVAL_MS (15 minutes).
+ *
+ * 2. On successful auth check:
+ *    - Reset failedAuthChecks to 0
+ *    - Reset currentBackoffInterval to BASE_AUTH_CHECK_INTERVAL_MS
+ *
+ * 3. On failed auth check:
+ *    - Increment failedAuthChecks
+ *    - Double the currentBackoffInterval (capped at MAX_AUTH_CHECK_INTERVAL_MS)
+ *    - If failedAuthChecks reaches 3, trigger logout
+ *
+ * 4. Fuzzy interval:
+ *    - Add/subtract up to 90 seconds from currentBackoffInterval
+ *    - Ensure final interval is between BASE_AUTH_CHECK_INTERVAL_MS and MAX_AUTH_CHECK_INTERVAL_MS
+ *
+ * 5. Next check scheduling:
+ *    - Always schedule next check after current check completes (success or failure)
+ *    - Use setTimeout with the calculated fuzzy interval
+ *
+ * This approach provides exponential backoff on failures, quick recovery on success,
+ * and randomization to prevent synchronized requests from multiple clients.
+ */
+
+/** Base interval for authentication checks (15 minutes) */
+const BASE_AUTH_CHECK_INTERVAL_MS = 15 * 60 * 1000;
+/** Maximum interval for authentication checks (1 hour) */
+const MAX_AUTH_CHECK_INTERVAL_MS = 60 * 60 * 1000;
+/** Endpoint for authentication checks */
 const AUTH_CHECK_ENDPOINT = '/api/v2/authcheck';
 
 /**
@@ -42,8 +71,12 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: false,
     /** The currently authenticated customer, if any. */
     customer: undefined as Customer | undefined,
-    /** Interval for periodic authentication checks. */
-    authCheckInterval: null as ReturnType<typeof setInterval> | null,
+    /** Timeout for periodic authentication checks. */
+    authCheckInterval: null as ReturnType<typeof setTimeout> | null,
+    /** Current backoff interval for authentication checks. */
+    currentBackoffInterval: BASE_AUTH_CHECK_INTERVAL_MS,
+    /** Number of consecutive failed auth checks. */
+    failedAuthChecks: 0,
   }),
   actions: {
     /**
@@ -69,19 +102,32 @@ export const useAuthStore = defineStore('auth', {
 
     /**
      * Checks the current authentication status with the server.
+     * Implements exponential backoff on failures and resets on success.
      */
     async checkAuthStatus() {
       try {
         const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT)
-        this.isAuthenticated = response.data.details.authorized
-        this.customer = response.data.record
+        this.isAuthenticated = response.data.details.authorized;
+        this.customer = response.data.record;
+        this.failedAuthChecks = 0;
+        this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
       } catch (error) {
-        this.logout()
+        this.failedAuthChecks++;
+        this.currentBackoffInterval = Math.min(
+          this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
+          MAX_AUTH_CHECK_INTERVAL_MS
+        );
+        if (this.failedAuthChecks >= 3) {
+          this.logout()
+        }
+      } finally {
+        this.startAuthCheck(); // Schedule the next check
       }
     },
 
     /**
      * Logs out the current user and resets the auth state.
+     * Stops auth checks and redirects to the signin page.
      */
     logout() {
       this.isAuthenticated = false
@@ -92,45 +138,47 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * Starts the periodic authentication check.
+     * Starts the periodic authentication check with exponential backoff.
+     * Uses a fuzzy interval to prevent synchronized requests from multiple clients.
      */
     startAuthCheck() {
-      const intervalMillisVanillis = this.getFuzzyAuthCheckInterval();
-      console.debug(`Starting auth check interval: ${intervalMillisVanillis}ms`);
+      const intervalMillis = this.getFuzzyAuthCheckInterval();
+      console.debug(`Starting auth check interval: ${intervalMillis}ms`);
 
       if (this.authCheckInterval === null) {
-        this.authCheckInterval = setInterval(() => {
+        this.authCheckInterval = setTimeout(() => {
           this.checkAuthStatus();
-        }, intervalMillisVanillis); // Use fuzzy interval
+        }, intervalMillis);
       }
     },
 
     /**
-     * Returns a fuzzy authentication check interval.
-     * Adds or subtracts up to 90 seconds to the base duration.
-     * Ensures the returned interval is never less than 15 seconds.
+     * Returns a fuzzy authentication check interval with exponential backoff.
+     * Adds or subtracts up to 90 seconds to the current backoff interval.
+     * Ensures the returned interval is between BASE_AUTH_CHECK_INTERVAL_MS and MAX_AUTH_CHECK_INTERVAL_MS.
      * @returns {number} Fuzzy authentication check interval in milliseconds.
      */
     getFuzzyAuthCheckInterval(): number {
       const maxFuzz = 90 * 1000; // 90 seconds in milliseconds
-      const minInterval = 15 * 1000; // 15 seconds in milliseconds
       const fuzz = Math.floor(Math.random() * (2 * maxFuzz + 1)) - maxFuzz;
-      const interval = Math.max(AUTH_CHECK_INTERVAL_MS + fuzz, minInterval);
-      return interval;
+      const interval = Math.min(this.currentBackoffInterval + fuzz, MAX_AUTH_CHECK_INTERVAL_MS);
+      return Math.max(interval, BASE_AUTH_CHECK_INTERVAL_MS);
     },
 
     /**
      * Stops the periodic authentication check.
+     * Clears the existing timeout and resets the authCheckInterval.
      */
     stopAuthCheck() {
       if (this.authCheckInterval !== null) {
-        clearInterval(this.authCheckInterval)
+        clearTimeout(this.authCheckInterval)
         this.authCheckInterval = null
       }
     },
 
     /**
      * Sets up an Axios interceptor to handle 401 errors.
+     * Automatically logs out the user on receiving a 401 response.
      */
     setupAxiosInterceptor() {
       axios.interceptors.response.use(
@@ -146,13 +194,16 @@ export const useAuthStore = defineStore('auth', {
 
     /**
      * Initializes the auth store.
+     * Sets up the Axios interceptor, sets initial auth state, and customer data.
      */
     initialize() {
       this.setupAxiosInterceptor()
       const initialAuthState = window.authenticated ?? false
       this.setAuthenticated(initialAuthState)
 
-      this.setCustomer(window.cust as Customer | undefined)
+      if (window.cust) {
+        this.setCustomer(window.cust as Customer)
+      }
     }
   }
 })
