@@ -25,6 +25,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4.2.0
 
+      - name: Record commit hash and display version info
+        run: |
+          git rev-parse --short HEAD > .commit_hash.txt
+          echo Commit hash recorded
+          cat .commit_hash.txt VERSION.yml
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0
         with:
