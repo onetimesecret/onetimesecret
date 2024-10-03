@@ -154,12 +154,14 @@ COPY --link templates $CODE_ROOT/templates
 COPY --link src $CODE_ROOT/src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.mjs ./
 
+# Remove pnpm after use
 RUN set -eux \
     && pnpm run type-check \
     && pnpm run build-only \
     && pnpm prune --prod \
     && rm -rf node_modules \
-    && npm uninstall -g pnpm  # Remove pnpm after use
+    && npm uninstall -g pnpm \
+    && touch .commit_hash.txt  # avoid ignorable error later on
 
 ##
 # APPLICATION LAYER (FINAL)
@@ -178,7 +180,7 @@ COPY --link bin $CODE_ROOT/bin
 COPY --link etc $CODE_ROOT/etc
 COPY --link lib $CODE_ROOT/lib
 COPY --link migrate $CODE_ROOT/migrate
-COPY VERSION.yml config.ru Gemfile Gemfile.lock $CODE_ROOT/
+COPY VERSION.yml config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
 
 LABEL Name=onetimesecret Version=0.18.0
 LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
@@ -210,8 +212,7 @@ WORKDIR $CODE_ROOT
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
 RUN set -eux \
-    && cp --preserve --no-clobber etc/config.example.yaml etc/config.yaml \
-    && touch .commit_hash.txt
+    && cp --preserve --no-clobber etc/config.example.yaml etc/config.yaml
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:
