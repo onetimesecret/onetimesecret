@@ -12,7 +12,12 @@
     "optimize": "vite optimize",
     "lint": "eslint",
     "oursync": "rsync -av --ignore-existing public/web/ /var/www/public/",
-    "clean": "rimraf public/web/dist"
+    "clean": "rimraf public/web/dist",
+    "dev:local": "vite --config vite.config.local.ts --host",
+    "build-only:local": "vite build --config vite.config.local.ts",
+    "build:local": "pnpm run type-check && pnpm run build-only:local",
+    "preview:local": "vite preview --config vite.config.local.ts",
+    "optimize:local": "vite optimize --config vite.config.local.ts"
   },
   "keywords": [],
   "author": "",

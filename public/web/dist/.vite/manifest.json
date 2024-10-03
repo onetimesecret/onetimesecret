@@ -1,423 +1,60 @@
 {
-  "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-hA7AedZu.js": {
-    "file": "assets/DomainVerificationInfo.vue_vue_type_script_setup_true_lang-hA7AedZu.js",
-    "name": "DomainVerificationInfo.vue_vue_type_script_setup_true_lang",
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "_EmailObfuscator.vue_vue_type_script_setup_true_lang-0OuKZ5YA.js": {
-    "file": "assets/EmailObfuscator.vue_vue_type_script_setup_true_lang-0OuKZ5YA.js",
-    "name": "EmailObfuscator.vue_vue_type_script_setup_true_lang",
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "_keyboard-D999-BwX.js": {
-    "file": "assets/keyboard-D999-BwX.js",
-    "name": "keyboard",
-    "imports": [
-      "main.ts"
-    ]
-  },
   "assets/fonts/zs/ZillaSlab-Bold.woff": {
-    "file": "assets/ZillaSlab-Bold-BSphAb8W.woff",
+    "file": "assets/ZillaSlab-Bold.woff",
     "src": "assets/fonts/zs/ZillaSlab-Bold.woff"
   },
   "assets/fonts/zs/ZillaSlab-Bold.woff2": {
-    "file": "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
+    "file": "assets/ZillaSlab-Bold.woff2",
     "src": "assets/fonts/zs/ZillaSlab-Bold.woff2"
   },
   "assets/fonts/zs/ZillaSlab-BoldItalic.woff": {
-    "file": "assets/ZillaSlab-BoldItalic-BG1CNiCK.woff",
+    "file": "assets/ZillaSlab-BoldItalic.woff",
     "src": "assets/fonts/zs/ZillaSlab-BoldItalic.woff"
   },
   "assets/fonts/zs/ZillaSlab-BoldItalic.woff2": {
-    "file": "assets/ZillaSlab-BoldItalic-q1iItYoI.woff2",
+    "file": "assets/ZillaSlab-BoldItalic.woff2",
     "src": "assets/fonts/zs/ZillaSlab-BoldItalic.woff2"
   },
   "assets/fonts/zs/ZillaSlab-Italic.woff": {
-    "file": "assets/ZillaSlab-Italic-B4KlKyMb.woff",
+    "file": "assets/ZillaSlab-Italic.woff",
     "src": "assets/fonts/zs/ZillaSlab-Italic.woff"
   },
   "assets/fonts/zs/ZillaSlab-Italic.woff2": {
-    "file": "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
+    "file": "assets/ZillaSlab-Italic.woff2",
     "src": "assets/fonts/zs/ZillaSlab-Italic.woff2"
   },
   "assets/fonts/zs/ZillaSlab-Regular.woff": {
-    "file": "assets/ZillaSlab-Regular-2Acx4doP.woff",
+    "file": "assets/ZillaSlab-Regular.woff",
     "src": "assets/fonts/zs/ZillaSlab-Regular.woff"
   },
   "assets/fonts/zs/ZillaSlab-Regular.woff2": {
-    "file": "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
+    "file": "assets/ZillaSlab-Regular.woff2",
     "src": "assets/fonts/zs/ZillaSlab-Regular.woff2"
   },
   "assets/img/delano-g.png": {
-    "file": "assets/delano-g-BO6n6DH-.png",
+    "file": "assets/delano-g.png",
     "src": "assets/img/delano-g.png"
   },
   "assets/img/onetime-logo-v3-xl.svg": {
-    "file": "assets/onetime-logo-v3-xl-CelDEh9e.svg",
+    "file": "assets/onetime-logo-v3-xl.svg",
     "src": "assets/img/onetime-logo-v3-xl.svg"
   },
-  "locales/ar.json": {
-    "file": "assets/ar-DkeaQM-C.js",
-    "name": "ar",
-    "src": "locales/ar.json",
-    "isDynamicEntry": true
-  },
-  "locales/bg.json": {
-    "file": "assets/bg-ClMiG9bU.js",
-    "name": "bg",
-    "src": "locales/bg.json",
-    "isDynamicEntry": true
-  },
-  "locales/ca_ES.json": {
-    "file": "assets/ca_ES-Co_TVrcn.js",
-    "name": "ca_ES",
-    "src": "locales/ca_ES.json",
-    "isDynamicEntry": true
-  },
-  "locales/cn.json": {
-    "file": "assets/cn-2beBOnWq.js",
-    "name": "cn",
-    "src": "locales/cn.json",
-    "isDynamicEntry": true
-  },
-  "locales/cs.json": {
-    "file": "assets/cs-DvZ6aLQr.js",
-    "name": "cs",
-    "src": "locales/cs.json",
-    "isDynamicEntry": true
-  },
-  "locales/da_DK.json": {
-    "file": "assets/da_DK-CBwH5ylw.js",
-    "name": "da_DK",
-    "src": "locales/da_DK.json",
-    "isDynamicEntry": true
-  },
-  "locales/de.json": {
-    "file": "assets/de-euyZrRVI.js",
-    "name": "de",
-    "src": "locales/de.json",
-    "isDynamicEntry": true
-  },
-  "locales/el_GR.json": {
-    "file": "assets/el_GR-BH_PvBnI.js",
-    "name": "el_GR",
-    "src": "locales/el_GR.json",
-    "isDynamicEntry": true
-  },
-  "locales/es.json": {
-    "file": "assets/es-zyvvQZFH.js",
-    "name": "es",
-    "src": "locales/es.json",
-    "isDynamicEntry": true
-  },
-  "locales/fr.json": {
-    "file": "assets/fr-BI2iqSPT.js",
-    "name": "fr",
-    "src": "locales/fr.json",
-    "isDynamicEntry": true
-  },
-  "locales/fr_FR.json": {
-    "file": "assets/fr_FR-B5Fo-Szv.js",
-    "name": "fr_FR",
-    "src": "locales/fr_FR.json",
-    "isDynamicEntry": true
-  },
-  "locales/he.json": {
-    "file": "assets/he-B4pcl2oN.js",
-    "name": "he",
-    "src": "locales/he.json",
-    "isDynamicEntry": true
-  },
-  "locales/hu.json": {
-    "file": "assets/hu-Ckcfe4tg.js",
-    "name": "hu",
-    "src": "locales/hu.json",
-    "isDynamicEntry": true
-  },
-  "locales/it_IT.json": {
-    "file": "assets/it_IT-Djw7UEzU.js",
-    "name": "it_IT",
-    "src": "locales/it_IT.json",
-    "isDynamicEntry": true
-  },
-  "locales/nl.json": {
-    "file": "assets/nl-BEqX5WMe.js",
-    "name": "nl",
-    "src": "locales/nl.json",
-    "isDynamicEntry": true
-  },
-  "locales/pl.json": {
-    "file": "assets/pl-CZ3dUMGE.js",
-    "name": "pl",
-    "src": "locales/pl.json",
-    "isDynamicEntry": true
-  },
-  "locales/pt_BR.json": {
-    "file": "assets/pt_BR-53MXWfEL.js",
-    "name": "pt_BR",
-    "src": "locales/pt_BR.json",
-    "isDynamicEntry": true
-  },
-  "locales/pt_PT.json": {
-    "file": "assets/pt_PT-yL7p9uu2.js",
-    "name": "pt_PT",
-    "src": "locales/pt_PT.json",
-    "isDynamicEntry": true
-  },
-  "locales/ru.json": {
-    "file": "assets/ru-jSrH7MhD.js",
-    "name": "ru",
-    "src": "locales/ru.json",
-    "isDynamicEntry": true
-  },
-  "locales/sl_SI.json": {
-    "file": "assets/sl_SI-Cflf4-tn.js",
-    "name": "sl_SI",
-    "src": "locales/sl_SI.json",
-    "isDynamicEntry": true
-  },
-  "locales/sv_SE.json": {
-    "file": "assets/sv_SE-BXl3QTI5.js",
-    "name": "sv_SE",
-    "src": "locales/sv_SE.json",
-    "isDynamicEntry": true
-  },
-  "locales/tr.json": {
-    "file": "assets/tr-CNRVSFXK.js",
-    "name": "tr",
-    "src": "locales/tr.json",
-    "isDynamicEntry": true
-  },
-  "locales/uk.json": {
-    "file": "assets/uk-GyTQjW8R.js",
-    "name": "uk",
-    "src": "locales/uk.json",
-    "isDynamicEntry": true
-  },
-  "locales/vi.json": {
-    "file": "assets/vi-cEgV8b19.js",
-    "name": "vi",
-    "src": "locales/vi.json",
-    "isDynamicEntry": true
-  },
   "main.ts": {
-    "file": "assets/main-C3z6sMGR.js",
+    "file": "assets/main.js",
     "name": "main",
     "src": "main.ts",
     "isEntry": true,
-    "dynamicImports": [
-      "locales/ar.json",
-      "locales/bg.json",
-      "locales/ca_ES.json",
-      "locales/cn.json",
-      "locales/cs.json",
-      "locales/da_DK.json",
-      "locales/de.json",
-      "locales/el_GR.json",
-      "locales/es.json",
-      "locales/fr.json",
-      "locales/fr_FR.json",
-      "locales/he.json",
-      "locales/hu.json",
-      "locales/it_IT.json",
-      "locales/nl.json",
-      "locales/pl.json",
-      "locales/pt_BR.json",
-      "locales/pt_PT.json",
-      "locales/ru.json",
-      "locales/sl_SI.json",
-      "locales/sv_SE.json",
-      "locales/tr.json",
-      "locales/uk.json",
-      "locales/vi.json",
-      "views/account/AccountDomainVerify.vue",
-      "views/account/AccountDomainAdd.vue",
-      "views/account/AccountDomains.vue",
-      "views/account/AccountIndex.vue",
-      "views/colonel/ColonelIndex.vue",
-      "views/info/PrivacyDoc.vue",
-      "views/info/TermsDoc.vue",
-      "views/info/SecurityDoc.vue",
-      "views/pricing/PricingDual.vue",
-      "views/Feedback.vue",
-      "views/auth/PasswordReset.vue",
-      "views/auth/Signin.vue",
-      "views/auth/Signup.vue",
-      "views/auth/Signup.vue",
-      "views/About.vue",
-      "views/Translations.vue"
-    ],
-    "css": [
-      "assets/main-DXsVwr7A.css"
-    ],
     "assets": [
-      "assets/onetime-logo-v3-xl-CelDEh9e.svg",
-      "assets/ZillaSlab-Regular-CpTS5Ubm.woff2",
-      "assets/ZillaSlab-Regular-2Acx4doP.woff",
-      "assets/ZillaSlab-Bold-CZCnI8e7.woff2",
-      "assets/ZillaSlab-Bold-BSphAb8W.woff",
-      "assets/ZillaSlab-Italic-DQuJfL-3.woff2",
-      "assets/ZillaSlab-Italic-B4KlKyMb.woff",
-      "assets/ZillaSlab-BoldItalic-q1iItYoI.woff2",
-      "assets/ZillaSlab-BoldItalic-BG1CNiCK.woff"
-    ]
-  },
-  "views/About.vue": {
-    "file": "assets/About-BgMG1Tlm.js",
-    "name": "About",
-    "src": "views/About.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ],
-    "assets": [
-      "assets/delano-g-BO6n6DH-.png"
-    ]
-  },
-  "views/Feedback.vue": {
-    "file": "assets/Feedback-Cj6RdS7K.js",
-    "name": "Feedback",
-    "src": "views/Feedback.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "views/Translations.vue": {
-    "file": "assets/Translations-BLTfdlqd.js",
-    "name": "Translations",
-    "src": "views/Translations.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts",
-      "_EmailObfuscator.vue_vue_type_script_setup_true_lang-0OuKZ5YA.js"
-    ],
-    "css": [
-      "assets/Translations-DaDiKlrr.css"
-    ]
-  },
-  "views/account/AccountDomainAdd.vue": {
-    "file": "assets/AccountDomainAdd-2eys8vJF.js",
-    "name": "AccountDomainAdd",
-    "src": "views/account/AccountDomainAdd.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "views/account/AccountDomainVerify.vue": {
-    "file": "assets/AccountDomainVerify-CO4NZY--.js",
-    "name": "AccountDomainVerify",
-    "src": "views/account/AccountDomainVerify.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts",
-      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-hA7AedZu.js"
-    ]
-  },
-  "views/account/AccountDomains.vue": {
-    "file": "assets/AccountDomains-Dg5uMzvm.js",
-    "name": "AccountDomains",
-    "src": "views/account/AccountDomains.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts",
-      "_keyboard-D999-BwX.js",
-      "_DomainVerificationInfo.vue_vue_type_script_setup_true_lang-hA7AedZu.js"
-    ]
-  },
-  "views/account/AccountIndex.vue": {
-    "file": "assets/AccountIndex-Yr0W4zZM.js",
-    "name": "AccountIndex",
-    "src": "views/account/AccountIndex.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ],
-    "css": [
-      "assets/AccountIndex-DuY6j5Zv.css"
-    ]
-  },
-  "views/auth/PasswordReset.vue": {
-    "file": "assets/PasswordReset-D8CdoAcV.js",
-    "name": "PasswordReset",
-    "src": "views/auth/PasswordReset.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "views/auth/Signin.vue": {
-    "file": "assets/Signin-BPJsFu0y.js",
-    "name": "Signin",
-    "src": "views/auth/Signin.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "views/auth/Signup.vue": {
-    "file": "assets/Signup-D9VW8ujU.js",
-    "name": "Signup",
-    "src": "views/auth/Signup.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "views/colonel/ColonelIndex.vue": {
-    "file": "assets/ColonelIndex-j2N3H8yr.js",
-    "name": "ColonelIndex",
-    "src": "views/colonel/ColonelIndex.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "views/info/PrivacyDoc.vue": {
-    "file": "assets/PrivacyDoc-B1PSc4Sg.js",
-    "name": "PrivacyDoc",
-    "src": "views/info/PrivacyDoc.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts",
-      "_EmailObfuscator.vue_vue_type_script_setup_true_lang-0OuKZ5YA.js"
-    ]
-  },
-  "views/info/SecurityDoc.vue": {
-    "file": "assets/SecurityDoc-qYgr9SDm.js",
-    "name": "SecurityDoc",
-    "src": "views/info/SecurityDoc.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts",
-      "_EmailObfuscator.vue_vue_type_script_setup_true_lang-0OuKZ5YA.js"
-    ]
-  },
-  "views/info/TermsDoc.vue": {
-    "file": "assets/TermsDoc-Sg2p9-PG.js",
-    "name": "TermsDoc",
-    "src": "views/info/TermsDoc.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts"
-    ]
-  },
-  "views/pricing/PricingDual.vue": {
-    "file": "assets/PricingDual-C3KWlJl5.js",
-    "name": "PricingDual",
-    "src": "views/pricing/PricingDual.vue",
-    "isDynamicEntry": true,
-    "imports": [
-      "main.ts",
-      "_keyboard-D999-BwX.js"
-    ],
-    "css": [
-      "assets/PricingDual-vQ_qOMXk.css"
+      "assets/onetime-logo-v3-xl.svg",
+      "assets/delano-g.png",
+      "assets/ZillaSlab-Regular.woff2",
+      "assets/ZillaSlab-Regular.woff",
+      "assets/ZillaSlab-Bold.woff2",
+      "assets/ZillaSlab-Bold.woff",
+      "assets/ZillaSlab-Italic.woff2",
+      "assets/ZillaSlab-Italic.woff",
+      "assets/ZillaSlab-BoldItalic.woff2",
+      "assets/ZillaSlab-BoldItalic.woff"
     ]
   }
 }
