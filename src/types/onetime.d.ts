@@ -237,6 +237,13 @@ export interface ConcealDetails {
   recipient_safe: string
 }
 
+export interface CheckAuthData extends Customer {
+}
+
+export interface CheckAuthDetails {
+  authorized: boolean;
+}
+
 export interface Feedback {
   msg: string;
   stamp: string;
@@ -274,6 +281,7 @@ export type ColonelDataApiResponse = ApiRecordResponse<ColonelData>;
 export type MetadataDataApiResponse = ApiRecordResponse<MetadataData>;
 export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
 export type ConcealDataApiResponse = ApiRecordResponse<ConcealData>;
+export type CheckAuthDataApiResponse = ApiRecordResponse<CheckAuthData>;
 
 /**
  * Front-end Vue App

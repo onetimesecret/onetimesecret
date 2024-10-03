@@ -1,5 +1,6 @@
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import QuietLayout from '@/layouts/QuietLayout.vue';
+import { useAuthStore } from '@/stores/authStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteRecordRaw } from 'vue-router';
@@ -19,6 +20,15 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayVersion: false,
       },
+    },
+    beforeEnter: (to, from, next) => {
+      const authStore = useAuthStore();
+      if (authStore.isAuthenticated) {
+        // Redirect to home page or dashboard if already signed in
+        next({ name: 'Home' }); // Replace 'Home' with your desired route name
+      } else {
+        next();
+      }
     },
   },
   {
@@ -71,18 +81,21 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {}
     },
     beforeEnter: () => {
+      const authStore = useAuthStore()
+      authStore.logout()
+
       // Clear all local storage
-      localStorage.clear();
+      localStorage.clear()
 
       // Reset stores
-      const languageStore = useLanguageStore();
-      const csrfStore = useCsrfStore();
+      const languageStore = useLanguageStore()
+      const csrfStore = useCsrfStore()
 
-      languageStore.$reset();
-      csrfStore.$reset();
+      languageStore.$reset()
+      csrfStore.$reset()
 
       // Redirect to logout URL
-      window.location.href = '/logout';
+      window.location.href = '/logout'
     }
   },
 ]

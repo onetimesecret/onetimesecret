@@ -1,10 +1,10 @@
 // src/stores/languageStore.ts
 
+import api from '@/utils/api';
+import axios from 'axios';
 import { defineStore } from 'pinia';
 const supportedLocales = window.supported_locales;
 const defaultLocale = 'en';
-import axios from 'axios';
-import api from '@/utils/api';
 
 interface LanguageState {
   storedLocale: string | null;

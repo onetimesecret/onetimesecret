@@ -4,10 +4,11 @@
 
 // Ensures modulepreload works in all browsers, improving
 // performance by preloading modules.
-import 'vite/modulepreload-polyfill'
+import 'vite/modulepreload-polyfill';
 
 import i18n, { setLanguage } from '@/i18n';
 import router from '@/router';
+import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
@@ -41,6 +42,9 @@ async function initializeApp() {
   const app = createApp(App);
   const pinia = createPinia();
   app.use(pinia);
+
+  const authStore = useAuthStore()
+  authStore.initialize()
 
   // Initialize language store
   const languageStore = useLanguageStore();
