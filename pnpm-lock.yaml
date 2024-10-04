@@ -25,7 +25,7 @@ importers:
         version: 2.2.4(typescript@5.5.3)(vue@3.4.32(typescript@5.5.3))
       pnpm:
         specifier: ^9.6.0
-        version: 9.6.0
+        version: 9.12.0
       stripe:
         specifier: ^16.6.0
         version: 16.6.0
@@ -1792,8 +1792,8 @@ packages:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
     engines: {node: '>= 6'}
 
-  pnpm@9.6.0:
-    resolution: {integrity: sha512-ONxvuo26NbOTQLlwARLC/h4S8QsXE0cVpKqYzPe7A152/Zgc8Ls4TfqY+NavVIHCvvL0Jmokv6IMNOtxR84LXg==}
+  pnpm@9.12.0:
+    resolution: {integrity: sha512-Sr9yUITXvLr71yi/x77mHy95H5d/2HVCs1edyyNQTRcNRjN5ReTGZIXNEtWIoMDlcO2cR358zdhQfPBfP5Lqyg==}
     engines: {node: '>=18.12'}
     hasBin: true
 
@@ -4035,7 +4035,7 @@ snapshots:
 
   pirates@4.0.6: {}
 
-  pnpm@9.6.0: {}
+  pnpm@9.12.0: {}
 
   postcss-import@15.1.0(postcss@8.4.39):
     dependencies:
