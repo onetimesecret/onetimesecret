@@ -30,6 +30,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+    environment: fly.io
     steps:
       # Step 1: Check this out
       - name: Checkout repository
