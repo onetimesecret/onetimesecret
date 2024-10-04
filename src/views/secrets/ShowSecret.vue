@@ -31,12 +31,11 @@
         <div class="">
           <BasicFormAlerts :success="success"
                            :error="error" />
-
-          <p v-if="details.verification && !details.has_passphrase"
+          <p v-if="details.verification && !record.has_passphrase"
              class="text-md text-gray-600 dark:text-gray-400">
             {{ $t('web.COMMON.click_to_verify') }}
           </p>
-          <h2 v-if="details.has_passphrase"
+          <h2 v-if="record.has_passphrase"
               class="text-xl font-bold text-gray-800 dark:text-gray-200">
             {{ $t('web.shared.requires_passphrase') }}
           </h2>
@@ -49,11 +48,13 @@
             <input name="continue"
                    type="hidden"
                    value="true" />
-            <input v-if="details.has_passphrase"
+            <input v-if="record.has_passphrase"
                    type="password"
                    v-model="passphrase"
                    name="passphrase"
                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                   autocomplete="switch"
+                   aria-label="Secret Passphrase"
                    :placeholder="$t('web.COMMON.enter_passphrase_here')" />
             <button type="submit"
                     :disabled="isSubmitting"
@@ -133,7 +134,8 @@ const {
     finalDetails.value = data.details
   },
   onError: (data) => {
-    console.error('Error fetching secret:', data)
+    console.debug('Error fetching secret:', data.message)
+    throw new Error(data.message);
   },
 })
 
