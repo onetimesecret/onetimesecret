@@ -38,6 +38,10 @@ class Onetime::App::APIV2
       retrieve_records(OT::Logic::Secrets::ShowSecret, allow_anonymous: true)
     end
 
+    def reveal_secret
+      retrieve_records(OT::Logic::Secrets::RevealSecret, allow_anonymous: true)
+    end
+
     def list_metadata
       retrieve_records(OT::Logic::Secrets::ShowMetadataList)
     end
