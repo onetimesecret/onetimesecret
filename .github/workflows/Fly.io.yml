@@ -16,8 +16,7 @@ on:
     branches:
       - develop
     types:
-      - opened
-      - edited
+      - closed
 
   # Automatic trigger on pushes to feature and work-in-progress branches
   # Allows for continuous integration and testing of new features
@@ -30,7 +29,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: fly.io
+    environment: Fly.io
     steps:
       # Step 1: Check this out
       - name: Checkout repository
