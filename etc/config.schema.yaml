@@ -1,3 +1,13 @@
+# Configuration Schema for Onetime
+#
+# This YAML file defines the schema for the Onetime Ruby application config
+# It uses the Yamale schema validation format (https://github.com/23andMe/Yamale).
+#
+# Usage:
+# 1. Define your actual configuration in a separate YAML file (e.g., config.yaml)
+# 2. Validate your configuration against this schema using Yamale:
+#    yamale -s config.schema.yaml config.yaml
+
 :site: include(':site')
 :redis: include(':redis')
 :colonels: list(str(), required=True)
