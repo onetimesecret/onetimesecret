@@ -33,4 +33,4 @@ coverage/
 !pr_agent.toml
 etc/config
 etc/config.yaml
-fly.toml
+!fly.toml
