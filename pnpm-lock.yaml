@@ -27,8 +27,8 @@ importers:
         specifier: ^9.12.0
         version: 9.12.0
       stripe:
-        specifier: ^16.12.0
-        version: 16.12.0
+        specifier: ^17.1.0
+        version: 17.1.0
       vue:
         specifier: ^3.5.11
         version: 3.5.11(typescript@5.6.2)
@@ -1927,8 +1927,8 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  stripe@16.12.0:
-    resolution: {integrity: sha512-H7eFVLDxeTNNSn4JTRfL2//LzCbDrMSZ+2q1c7CanVWgK2qIW5TwS+0V7N9KcKZZNpYh/uCqK0PyZh/2UsaAtQ==}
+  stripe@17.1.0:
+    resolution: {integrity: sha512-sNRsJx7LPP2Gg6cBJoHJqhr+UoBVZZRes2BDqbrg+1FDBxJc4Yn+LkrpJ/VnL3XQ3+6I5GrOUnSSFfE/joDFjw==}
     engines: {node: '>=12.*'}
 
   sucrase@3.35.0:
@@ -4106,7 +4106,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  stripe@16.12.0:
+  stripe@17.1.0:
     dependencies:
       '@types/node': 20.16.10
       qs: 6.13.0
