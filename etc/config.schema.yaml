@@ -1,6 +1,17 @@
+# Configuration Schema for Onetime
+#
+# This YAML file defines the schema for the Onetime Ruby application config
+# It uses the Yamale schema validation format (https://github.com/23andMe/Yamale).
+#
+# Usage:
+# 1. Define your actual configuration in a separate YAML file (e.g., config.yaml)
+# 2. Validate your configuration against this schema using Yamale:
+#    yamale -s config.schema.yaml config.yaml
+
 :site: include(':site')
 :redis: include(':redis')
 :colonels: list(str(), required=True)
+:incoming: include(':incoming')
 :emailer: include(':emailer')
 :mail: include(':mail')
 :locales: list(str())
@@ -48,6 +59,10 @@
   :payment_links: any(required=False)
 :support:
   :host: str(required=False)
+:incoming:
+  :enabled: bool()
+  :email: str()
+  :passphrase: str()
 
 :redis:
   :uri: str()
@@ -102,7 +117,7 @@
   :email_recipient: int()
   :send_feedback: int()
   :authenticate_session: int()
-  :homepage: int()
+  :get_page: int()
   :dashboard: int()
   :failed_passphrase: int()
   :show_metadata: int()

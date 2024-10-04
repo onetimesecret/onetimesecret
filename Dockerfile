@@ -86,7 +86,7 @@ ARG ONETIME_HOME=/opt/onetime
 FROM ruby:3.3-slim-bookworm AS base
 
 # Limit to packages needed for the system itself
-ARG PACKAGES="build-essential"
+ARG PACKAGES="build-essential rsync netcat-openbsd"
 
 # Fast fail on errors while installing system packages
 RUN set -eux \

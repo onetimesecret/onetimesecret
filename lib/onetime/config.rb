@@ -21,11 +21,28 @@ module Onetime
       raise ArgumentError, "Missing config file" if path.nil?
       raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
 
-      YAML.load(ERB.new(File.read(path)).result)
+      parsed_template = ERB.new(File.read(path))
+
+      YAML.load(parsed_template.result)
     rescue StandardError => e
       OT.le "Error loading config: #{path}"
+      OT.le
+
+      # Log the contents of the parsed template for debugging purposes.
+      # This helps identify issues with template rendering and provides
+      # context for the error, making it easier to diagnose config
+      # problems, especially when the error involves environment vars.
+      if parsed_template
+        template_content = parsed_template.result
+        template_lines = template_content.split("\n")
+
+        template_lines.each_with_index do |line, index|
+          OT.ld "Line #{index + 1}: #{line}"
+        end
+      end
+
       OT.le e.message
-      OT.ld e.backtrace.join("\n")
+      OT.le e.backtrace.join("\n")
       Kernel.exit(1)
     end
 

@@ -49,7 +49,7 @@
             <option v-for="option in filteredLifetimeOptions"
                     :key="option.value"
                     :value="option.value">
-              <span class="text-gray-500">Expires in</span> {{ option.label }}
+              Expires in {{ option.label }}
             </option>
           </select>
         </div>
