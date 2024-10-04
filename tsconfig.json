@@ -27,7 +27,7 @@
       // The `@` alias. For this to work seamlessly in TypeScript,
       // ensure that both the Vue project configuration and TypeScript
       // configuration are correctly set up to recognize this alias.
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     },
     "types": [
       "@types/node"
@@ -38,6 +38,7 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
+    "src/router/**/*.ts"  // Add this line
   ],
   "exclude": ["node_modules"]
 }
