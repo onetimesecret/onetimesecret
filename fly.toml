@@ -81,6 +81,7 @@ url_prefix = '/static'
 [env]
 SSL = 'true'
 RACK_ENV = 'production'
+EMAILER_MODE = 'smtp'
 
 ##
 # RE: private networking between machines

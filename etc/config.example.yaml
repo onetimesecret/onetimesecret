@@ -58,7 +58,7 @@
   # accounts will have full control over the system.
   - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
 :emailer:
-  :mode: <%= ENV['EMAILER_MODE'] || :smtp %>
+  :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   :from: <%= ENV['FROM'] || 'CHANGEME@example.com' %>
   :fromname: <%= ENV['FROMNAME'] || 'Jan' %>
   :host: <%= ENV['SMTP_HOST'] || 'localhost' %>

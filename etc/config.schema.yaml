@@ -1,6 +1,7 @@
 :site: include(':site')
 :redis: include(':redis')
 :colonels: list(str(), required=True)
+:incoming: include(':incoming')
 :emailer: include(':emailer')
 :mail: include(':mail')
 :locales: list(str())
@@ -48,6 +49,10 @@
   :payment_links: any(required=False)
 :support:
   :host: str(required=False)
+:incoming:
+  :enabled: bool()
+  :email: str()
+  :passphrase: str()
 
 :redis:
   :uri: str()
@@ -102,7 +107,7 @@
   :email_recipient: int()
   :send_feedback: int()
   :authenticate_session: int()
-  :homepage: int()
+  :get_page: int()
   :dashboard: int()
   :failed_passphrase: int()
   :show_metadata: int()
