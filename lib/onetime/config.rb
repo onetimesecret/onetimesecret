@@ -25,7 +25,7 @@ module Onetime
     rescue StandardError => e
       OT.le "Error loading config: #{path}"
       OT.le e.message
-      OT.ld e.backtrace.join("\n")
+      OT.le e.backtrace.join("\n")
       Kernel.exit(1)
     end
 
