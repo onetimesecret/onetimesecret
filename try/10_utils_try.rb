@@ -1,11 +1,27 @@
 # frozen_string_literal: true
 
+# These tryouts test the functionality of the Onetime::Utils module.
+# The Utils module provides various utility functions used throughout
+# the Onetime application.
+#
+# We're testing various aspects of the Utils module, including:
+# 1. Generation of random strands
+# 2. Email address obfuscation
+#
+# These tests aim to ensure that the utility functions work correctly,
+# which is crucial for various operations in the Onetime application,
+# such as generating unique identifiers and protecting user privacy.
+#
+# The tryouts simulate different scenarios of using the Utils module
+# without needing to run the full application, allowing for targeted
+# testing of these specific functionalities.
+
 require_relative '../lib/onetime'
 
 # Familia.debug = true
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test')
+OT::Config.path = File.join(__dir__, '..', 'etc', 'config.test.yaml')
 OT.boot!
 
 ## Create a strand

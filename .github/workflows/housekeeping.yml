@@ -21,9 +21,9 @@ jobs:
     steps:
     - uses: actions/stale@28ca1036281a5e5922ead5184a1bbf96e5fc984e # v9
       with:
-        stale-issue-message: 'Just a heads up -- this issue is now stale (open 90 days with no activity). It will close automatically in a few weeks. You can comment or remove the stale label to restart the clock.'
+        stale-issue-message: 'Just a heads up -- this issue is being marked stale (open 90 days with no activity). It will close automatically in a few weeks. You can comment or remove the stale label to restart the clock.'
         close-issue-message: 'This issue is now closed. 🌻'
-        stale-pr-message: 'Just a heads up -- this PR is now stale (open 45 days with no activity). It will close automatically in a couple weeks. You can comment or remove the stale label to restart the clock.'
+        stale-pr-message: 'Just a heads up -- this PR is being marked stale (open 45 days with no activity). It will close automatically in a couple weeks. You can comment or remove the stale label to restart the clock.'
         close-pr-message: 'This PR is now closed.'
         days-before-issue-stale: 90
         days-before-issue-close: 28
@@ -34,5 +34,3 @@ jobs:
         exempt-draft-pr: true
         stale-issue-label: Stale Boetticher
         stale-pr-label: Stale Boetticher
-        
-          

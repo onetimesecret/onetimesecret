@@ -1,11 +1,9 @@
 # typed: false
 
-# rubocop:disable Metrics/ModuleLength
-# https://github.com/shuber/encryptor
-
 require 'bundler/setup'
+require 'securerandom'
 
-require 'onetime/core_ext'
+require 'truemail'
 
 require 'erb'
 require 'syslog'
@@ -13,19 +11,28 @@ require 'syslog'
 require 'encryptor'
 require 'bcrypt'
 
-require 'sysinfo'
+require 'sendgrid-ruby'
+
+require 'rack'
+require 'otto'
 require 'gibbler/mixins'
 require 'familia'
 require 'storable'
-require 'sendgrid-ruby'
+require 'sysinfo'
 
-require 'truemail'
+require_relative 'onetime/core_ext'
 
-SYSLOG = Syslog.open('onetime') unless defined?(SYSLOG)
+# Ensure immediate flushing of stdout to improve real-time logging visibility.
+# This is particularly useful in development and production environments where
+# timely log output is crucial for monitoring and debugging purposes.
+#
+# Enabling sync can have a performance impact in high-throughput environments.
+#
+# NOTE: Use STDOUT the immuntable constant here, not $stdout (global var).
+#
+STDOUT.sync = ENV['STDOUT_SYNC'] && %w[true yes 1].include?(ENV['STDOUT_SYNC'])
 
-Familia.apiversion = nil
-
-# Onetime is the core of the One-Time Secret application.
+# Onetime is the core of the Onetime Secret application.
 # It contains the core classes and modules that make up
 # the app. It is the main namespace for the application.
 #
@@ -35,7 +42,8 @@ module Onetime
     ERRNO = {}
   end
   @mode = :app
-  class << self
+
+  module ClassMethods
     attr_accessor :mode
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret
     attr_writer :debug
@@ -44,12 +52,12 @@ module Onetime
       @debug || ((@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true') || ENV['ONETIME_DEBUG'].to_i == 1)
     end
 
-    def mode?(guess)
-      @mode.to_s == guess.to_s
+    def debug?
+      !!debug # force a boolean
     end
 
-    def errno(name)
-      name.gibbler.short
+    def mode?(guess)
+      @mode.to_s == guess.to_s
     end
 
     def now
@@ -63,58 +71,116 @@ module Onetime
     def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
       @conf = OT::Config.load # load config before anything else.
+      OT::Config.after_load(@conf)
 
-      OT::Config.after_load
-
-      @locales = OT.load_locales
+      Familia.uri = OT.conf[:redis][:uri]
       @sysinfo ||= SysInfo.new.freeze
       @instance ||= [OT.sysinfo.hostname, OT.sysinfo.user, $$, OT::VERSION.to_s, OT.now.to_i].gibbler.freeze
-      @emailer = OT::SMTPEmailer
-      OT::SMTPEmailer.setup
+
+      load_locales
+      set_global_secret
+      prepare_emailers
+      prepare_rate_limits
+      load_fortunes
+      load_plans
+      connect_databases
+      print_banner
+
+      @conf # return the config
+
+    rescue OT::Problem => e
+      OT.le "Problem booting: #{e.message}"
+      exit 1
+    rescue Redis::CannotConnectError => e
+      OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"
+      exit 10
+    rescue StandardError => e
+      OT.le "Unexpected error `#{e}` (#{e.class})"
+      exit 99
+    end
+
+    def info(*msgs)
+      return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
+      msg = msgs.join("#{$/}")
+      stdout("I", msg)
+    end
+
+    def le(*msgs)
+      msg = msgs.join("#{$/}")
+      stderr("E", msg)
+    end
+
+    def ld(*msgs)
+      return unless Onetime.debug
+      msg = msgs.join("#{$/}")
+      stderr("D", msg)
+    end
+
+    private
+
+    def prepare_emailers
+      @emailer = Onetime::App::Mail::SMTPMailer
+      @emailer.setup
+    end
+
+    def set_global_secret
       @global_secret = OT.conf[:site][:secret] || 'CHANGEME'
-      Gibbler.secret = global_secret.freeze unless Gibbler.secret && Gibbler.secret.frozen?
-      Familia.uri = OT.conf[:redis][:uri]
-      OT::RateLimit.register_events OT.conf[:limits]
-      OT::ERRNO.freeze unless OT::ERRNO && OT::ERRNO.frozen?
-      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
-      info "---  ONETIME #{OT.mode} v#{OT::VERSION}  -----------------------------------"
-      info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION})"
-      info "Config: #{OT::Config.path}"
-      ld "Redis:  #{Familia.uri.serverid}" # doesn't print the password
-      ld "Limits: #{OT::RateLimit.events}"
-      ld "Colonels: #{OT.conf[:colonels]}"
-      OT::Plan.load_plans!
-      # Digest lazy-loads classes. We need to make sure these
-      # are loaded so we can increase the $SAFE level.
-      Digest::SHA256
-      Digest::SHA384
-      Digest::SHA512
-      # Seed the random number generator
-      Kernel.srand
-      begin
-        # Make sure we're able to connect to separate Redis databases.
-        # Some services like Upstash provide only db 0.
-        16.times { |idx|
-          uri = Familia.redis.id
-          ping_result = Familia.redis(idx).ping
-          OT.ld format('Connecting to %s (%s)', uri, ping_result)
-        }
-      rescue Redis::CannotConnectError => e
-        OT.le "Cannot connect to redis #{Familia.id} (#{e.class})"
-        exit 1
-      rescue StandardError => e
-        OT.le "Unexpected error `#{e}` (#{e.class})"
-        exit 99
+      unless Gibbler.secret && Gibbler.secret.frozen?
+        Gibbler.secret = global_secret.freeze
       end
-      @conf
+    end
+
+    def prepare_rate_limits
+      OT::RateLimit.register_events OT.conf[:limits]
+    end
+
+    def load_fortunes
+      OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
+    end
+
+    def print_banner
+      redis_info = Familia.redis.info
+      info "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 10}"
+      info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION}) sync:#{$stdout.sync}"
+      info "Config: #{OT::Config.path}"
+      info "Redis (#{redis_info['redis_version']}): #{Familia.uri.serverid}" # servid doesn't print the password
+      info "Familia: #{Familia::VERSION}"
+      info "Colonels: #{OT.conf[:colonels]}"
+      if OT.conf[:site].key?(:authentication)
+        info "Authentication: #{OT.conf[:site][:authentication]}"
+      end
+      if OT.conf[:site].key?(:domains)
+        info "Domains: #{OT.conf[:site][:domains]}"
+      end
+      if OT.conf[:development][:enabled]
+        info "Frontend: #{OT.conf[:development][:frontend_host]}"
+      end
+      info "Loaded locales: #{@locales.keys.join(', ')}"
+      info "Limits: #{OT::RateLimit.events}"
+    end
+
+    def load_plans
+      OT::Plan.load_plans!
+    end
+
+    def connect_databases
+      # Make sure we're able to connect to separate Redis databases. Some
+      # services provide only db 0 and this is a good way to check early.
+      16.times { |idx|
+        uri = Familia.redis.id
+        ping_result = Familia.redis(idx).ping
+        OT.ld "Connecting to #{uri} (#{ping_result})"
+      }
     end
 
     def load_locales(locales = OT.conf[:locales] || ['en'])
       confs = locales.collect do |locale|
-        OT.ld 'Loading locale: %s' % locale
-        conf = OT::Config.load format('%s/locale/%s', OT::Config.dirname, locale)
+        path = File.join(Onetime::HOME, 'src', 'locales', "#{locale}.json")
+        OT.ld "Loading locale #{locale}: #{File.exist?(path)}"
+        conf = JSON.parse(File.read(path), symbolize_names: true)
         [locale, conf]
       end
+
       # Convert the zipped array to a hash
       locales = confs.to_h
       # Make sure the default locale is first
@@ -125,307 +191,35 @@ module Onetime
       locales.each do |key, locale|
         locales[key] = OT::Utils.deep_merge(default_locale, locale) if default_locale != locale
       end
-      locales
+      @locales = locales
     end
 
-    def to_file(content, filename, mode, chmod = 0o744)
-      mode = mode == :append ? 'a' : 'w'
-      f = File.open(filename, mode)
-      f.puts content
-      f.close
+    def stdout(prefix, msg)
+      return if STDOUT.closed?
 
-      raise OT::Problem("Provided chmod is not an Integer (#{chmod})") unless chmod.is_a?(Integer)
-
-      File.chmod(chmod, filename)
+      stamp = Time.now.to_i
+      logline = "%s(%s): %s" % [prefix, stamp, msg]
+      STDOUT.puts(logline)
     end
 
-    def info(*msg)
-      # prefix = "I(#{Time.now.to_i}):  "
-      # msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      msg = msg.join($/)
-      return unless mode?(:app) || mode?(:cli)
+    def stderr(prefix, msg)
+      return if STDERR.closed?
 
-      warn(msg) if STDOUT.tty?
-      SYSLOG.info msg
-    end
-
-    def le(*msg)
-      prefix = "E(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      warn(msg) if STDOUT.tty?
-      SYSLOG.err msg
-    end
-
-    def ld(*msg)
-      return unless Onetime.debug
-
-      prefix = "D(#{Time.now.to_i}):  "
-      msg = "#{prefix}" << msg.join("#{$/}#{prefix}")
-      if STDOUT.tty?
-        warn(msg)
-      else
-        SYSLOG.crit msg
-      end
-    end
-  end
-  module Config
-    extend self
-    attr_writer :path
-
-    SERVICE_PATHS = %w[/etc/onetime ./etc].freeze
-    UTILITY_PATHS = %w[~/.onetime /etc/onetime ./etc].freeze
-    attr_reader :env, :base, :bootstrap
-
-    def load(path = self.path)
-      raise ArgumentError, "Bad path (#{path})" unless File.readable?(path)
-
-      YAML.load(ERB.new(File.read(path)).result)
-    rescue StandardError => e
-      SYSLOG.err e.message
-      msg = if path =~ /locale/
-              "Error loading locale: #{path} (#{e.message})"
-            else
-              "Error loading config: #{path}"
-            end
-      Onetime.info msg
-      Kernel.exit(1)
-    end
-
-    def after_load(email_address = nil)
-      email_address ||= OT.conf[:emailer][:from]
-      OT.info "Setting TrueMail verifier email to #{email_address}"
-
-      Truemail.configure do |config|
-        config.verifier_email = email_address
-        # config.connection_timeout = 2 # Set the timeout to 2 seconds
-        config.smtp_fail_fast = true
-        config.not_rfc_mx_lookup_flow = true
-        config.dns = %w[208.67.222.222 8.8.8.8 8.8.4.4 208.67.220.220]
-      end
-    end
-
-    def exists?
-      !config_path.nil?
-    end
-
-    def dirname
-      @dirname ||= File.dirname(path)
-    end
-
-    def path
-      @path ||= find_configs.first
-    end
-
-    def find_configs
-      paths = Onetime.mode?(:cli) ? UTILITY_PATHS : SERVICE_PATHS
-      paths.collect do |f|
-        f = File.join File.expand_path(f), 'config'
-        Onetime.ld "Looking for #{f}"
-        f if File.exist?(f)
-      end.compact
+      stamp = Time.now.to_i
+      logline = "%s(%s): %s" % [prefix, stamp, msg]
+      STDERR.puts(logline)
     end
   end
 
-  module VERSION
-    def self.to_a
-      load_config
-      [@version[:MAJOR], @version[:MINOR], @version[:PATCH]]
-    end
-
-    def self.to_s
-      to_a[0..-2].join('.')
-    end
-
-    def self.inspect
-      to_a.join('.')
-    end
-
-    def self.increment!(msg = nil)
-      load_config
-      @version[:BUILD] = (@version[:BUILD] || '000').to_s.succ!.to_s
-      @version[:STAMP] = Time.now.utc.to_i
-      OT.to_file @version.to_yaml, File.join(OT::HOME, 'BUILD.yml'), 'w'
-      @version
-    end
-
-    def self.load_config
-      return if @version
-
-      require 'yaml'
-      @version = YAML.load_file(File.join(OT::HOME, 'BUILD.yml'))
-    end
-  end
-
-  module Utils
-    extend self
-    unless defined?(VALID_CHARS)
-      VALID_CHARS = [('a'..'z').to_a, ('A'..'Z').to_a, ('0'..'9').to_a, %w[* $ ! ? ( )]].flatten
-      VALID_CHARS_SAFE = VALID_CHARS.clone
-      VALID_CHARS_SAFE.delete_if { |v| %w[i l o 1 0].member?(v) }
-      VALID_CHARS.freeze
-      VALID_CHARS_SAFE.freeze
-    end
-    attr_accessor :fortunes
-
-    def self.random_fortune
-      @fortunes.random.to_s.strip
-    rescue StandardError
-      'A house is full of games and puzzles.'
-    end
-
-    def strand(len = 12, safe = true)
-      chars = safe ? VALID_CHARS_SAFE : VALID_CHARS
-      (1..len).collect { chars[rand(chars.size - 1)] }.join
-    end
-
-    def indifferent_params(params)
-      if params.is_a?(Hash)
-        params = indifferent_hash.merge(params)
-        params.each do |key, value|
-          next unless value.is_a?(Hash) || value.is_a?(Array)
-
-          params[key] = indifferent_params(value)
-        end
-      elsif params.is_a?(Array)
-        params.collect! do |value|
-          if value.is_a?(Hash) || value.is_a?(Array)
-            indifferent_params(value)
-          else
-            value
-          end
-        end
-      end
-    end
-
-    # Creates a Hash with indifferent access.
-    def indifferent_hash
-      Hash.new { |hash, key| hash[key.to_s] if key.is_a?(Symbol) }
-    end
-
-    def deep_merge(default, overlay)
-      merger = proc { |_key, v1, v2| v1.is_a?(Hash) && v2.is_a?(Hash) ? v1.merge(v2, &merger) : v2 }
-      default.merge(overlay, &merger)
-    end
-
-    def obscure_email(text)
-      regex = /(\b(([A-Z0-9]{1,2})[A-Z0-9._%-]*)([A-Z0-9])?(@([A-Z0-9])[A-Z0-9.-]+(\.[A-Z]{2,4}\b)))/i
-      el = text.split('@')
-      text.gsub regex, '\\3*****\\4@\\6*****\\7'
-    end
-  end
-
-  class Plan
-    class << self
-      attr_reader :plans
-
-      def add_plan(planid, *args)
-        @plans ||= {}
-        new_plan = new(planid, *args)
-        plans[new_plan.planid] = new_plan
-        plans[new_plan.planid.gibbler.short] = new_plan
-      end
-
-      def normalize(planid)
-        planid.to_s.downcase
-      end
-
-      def plan(planid)
-        plans[normalize(planid)]
-      end
-
-      def plan?(planid)
-        plans.member?(normalize(planid))
-      end
-
-      def load_plans!
-        add_plan :anonymous, 0, 0, ttl: 7.days, size: 1_000_000, api: false, name: 'Anonymous'
-        add_plan :personal_v1, 5.0, 1, ttl: 14.days, size: 1_000_000, api: false, name: 'Personal'
-        add_plan :personal_v2, 10.0, 0.5, ttl: 30.days, size: 1_000_000, api: true, name: 'Personal'
-        add_plan :personal_v3, 5.0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Personal'
-        add_plan :professional_v1, 30.0, 0.50, ttl: 30.days, size: 1_000_000, api: true, cname: true,
-                                               name: 'Professional'
-        add_plan :professional_v2, 30.0, 0.333333, ttl: 30.days, size: 1_000_000, api: true, cname: true,
-                                                   name: 'Professional'
-        add_plan :agency_v1, 100.0, 0.25, ttl: 30.days, size: 1_000_000, api: true, private: true,
-                                          name: 'Agency'
-        add_plan :agency_v2, 75.0, 0.33333333, ttl: 30.days, size: 1_000_000, api: true, private: true,
-                                               name: 'Agency'
-        # Hacker News special
-        add_plan :personal_hn, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'HN Special'
-        # Reddit special
-        add_plan :personal_reddit, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Reddit Special'
-        # Added 2011-12-24s
-        add_plan :basic_v1, 10.0, 0.5, ttl: 30.days, size: 1_000_000, api: true, name: 'Basic'
-        add_plan :individual_v1, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Individual'
-        # Added 2012-01-27
-        add_plan :nonprofit_v1, 0, 0, ttl: 30.days, size: 1_000_000, api: true, cname: true,
-                                      name: 'Non Profit'
-      end
-    end
-    attr_reader :planid, :price, :discount, :options
-
-    def initialize(planid, price, discount, options = {})
-      @planid = self.class.normalize(planid)
-      @price = price
-      @discount = discount
-      @options = options
-    end
-
-    def calculated_price
-      (price * (1 - discount)).to_i
-    end
-
-    def paid?
-      !free?
-    end
-
-    def free?
-      calculated_price.zero?
-    end
-  end
-
-  class Problem < RuntimeError
-  end
-
-  class MissingSecret < Problem
-  end
-
-  class FormError < Problem
-    attr_accessor :form_fields, :message
-  end
-
-  class BadShrimp < Problem
-    attr_reader :path, :user, :got, :wanted
-
-    def initialize(path, user, got, wanted)
-      @path = path
-      @user = user
-      @got = got.to_s
-      @wanted = wanted.to_s
-    end
-
-    def report
-      "BAD SHRIMP FOR #{@path}: #{@user}: #{got.shorten(16)}/#{wanted.shorten(16)}"
-    end
-
-    def message
-      'Sorry, bad shrimp'
-    end
-  end
-
-  class LimitExceeded < RuntimeError
-    attr_accessor :event, :message, :cust
-    attr_reader :identifier, :event, :count
-
-    def initialize(identifier, event, count)
-      @identifier = identifier
-      @event = event
-      @count = count
-    end
-  end
+  extend ClassMethods
 end
 
+require_relative 'onetime/errors'
+require_relative 'onetime/utils'
+require_relative 'onetime/version'
+require_relative 'onetime/config'
+require_relative 'onetime/plan'
 require_relative 'onetime/alias'
 require_relative 'onetime/models'
 require_relative 'onetime/logic'
-require_relative 'onetime/email'
+require_relative 'onetime/app'

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" class="light">
+  <head>
+    <script language="javascript" type="text/javascript">
+      (() => {
+        var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
+        var humanElement = document.documentElement;
+        var nightVision = 'rgb(17 24 39)';
+        var dayVision = '#ffffff';
+
+        var visualSettings = {
+          true: {
+            bgColor: nightVision,
+            textColor: dayVision,
+            removeClass: 'light',
+            addClass: 'dark'
+          },
+          false: {
+            bgColor: dayVision,
+            textColor: nightVision,
+            removeClass: 'dark',
+            addClass: 'light'
+          }
+        };
+
+        var config = visualSettings[isRestMode];
+
+        // Adjust the visual environment based on the player's circadian rhythm settings
+        humanElement.style.setProperty('--bg-color', config.bgColor);
+        humanElement.style.setProperty('--text-color', config.textColor);
+        humanElement.classList.remove(config.removeClass);
+        humanElement.classList.add(config.addClass);
+      })();
+    </script>
+    {{>partial/head}}
+  </head>
+  <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    {{>partial/session_messages}}
+    <div id="app"><router-view></router-view></div>
+  </body>
+</html>

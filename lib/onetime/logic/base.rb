@@ -1,10 +1,17 @@
-# typed: false
+# frozen_string_literal: true
+
+require 'stathat'
+require 'timeout'
+
+require_relative 'logic_helpers'
 
 module Onetime
   module Logic
     class Base
+      include LogicHelpers
 
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
+      attr_reader :site, :authentication, :domains_enabled
 
       def initialize(sess, cust, params = nil, locale = nil)
         @sess = sess
@@ -12,12 +19,34 @@ module Onetime
         @params = params
         @locale = locale
         @processed_params ||= {} # TODO: Remove
+        process_settings
         process_params if respond_to?(:process_params) && @params
+      end
+
+      def process_settings
+        @site = OT.conf.fetch(:site, {})
+        domains = site.fetch(:domains, {})
+        @authentication = site.fetch(:authentication, {})
+        domains = site.fetch(:domains, {})
+        @domains_enabled = domains[:enabled] || false
       end
 
       def valid_email?(guess)
         OT.ld "[valid_email?] Guess: #{guess}"
-        Truemail.validate(guess, with: :regex).result.valid?
+
+        begin
+          validator = Truemail.validate(guess)
+
+        rescue StandardError => e
+          OT.le "Email validation error: #{e.message}"
+          OT.le e.backtrace
+          false
+        else
+          valid = validator.result.valid?
+          validation_str = validator.as_json
+          OT.info "[valid_email?] Validator (#{valid}): #{validation_str}"
+          valid
+        end
       end
 
       protected
@@ -27,30 +56,39 @@ module Onetime
       end
 
       def form_fields
-        OT.ld "No form_fields method for #{self.class}"
+        OT.ld "No form_fields method for #{self.class} via:", caller[0..2].join("\n")
         {}
       end
 
       def raise_form_error(msg)
         ex = OT::FormError.new
         ex.message = msg
-        ex.form_fields = form_fields
+        ex.form_fields = form_fields if respond_to?(:form_fields)
         raise ex
       end
 
       def plan
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')
+        @plan
       end
 
       def limit_action(event)
-        return if plan.paid?
+        return if plan && plan.paid?
 
         sess.event_incr! event
       end
+
+      module ClassMethods
+        def normalize_password(password, max_length = 128)
+          password.to_s.strip.slice(0, max_length)
+        end
+      end
+
+      extend ClassMethods
     end
 
-    class << self
+    module ClassMethods
       attr_writer :stathat_apikey, :stathat_enabled
 
       def stathat_apikey
@@ -92,5 +130,7 @@ module Onetime
         end
       end
     end
+
+    extend ClassMethods
   end
 end

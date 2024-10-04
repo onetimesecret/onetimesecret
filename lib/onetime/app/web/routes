@@ -1,62 +1,34 @@
 
-GET   /                                          Onetime::App#index
-POST  /                                          Onetime::App#create_secret
+GET   /                                          Onetime::App::Page#index
+GET   /404                                       Onetime::App::Page#not_found
+GET   /500                                       Onetime::App::Page#server_error
+GET   /robots.txt                                Onetime::App::Page#robots_txt
 
-GET   /incoming                                  Onetime::App#incoming
-POST  /incoming                                  Onetime::App#create_incoming
+POST  /incoming                                  Onetime::App::Data#create_incoming
 
-GET   /feedback                                  Onetime::App#feedback
-POST  /feedback                                  Onetime::App#receive_feedback
+POST  /signup                                    Onetime::App::Data#create_account
+GET   /plans/:tier                               Onetime::App::Data#plan_redirect
+GET   /plans/:tier/:billing_cycle                Onetime::App::Data#plan_redirect
+GET   /welcome                                   Onetime::App::Data#welcome
+POST  /welcome/stripe/webhook                    Onetime::App::Data#welcome_webhook
 
-GET   /about                                     Onetime::App#about
-GET   /logo                                      Onetime::App#logo
+POST  /signin                                    Onetime::App::Data#authenticate
 
-GET   /docs/api                                  Onetime::App#show_docs
-GET   /docs/api/secrets                          Onetime::App#show_docs_secrets
-GET   /docs/api/libs                             Onetime::App#show_docs_libs
+POST  /feedback                                  Onetime::App::Data#receive_feedback
 
-GET   /private/:key                              Onetime::App#private_uri
-GET   /shared/:key                               Onetime::App#secret_uri
-POST  /shared/:key                               Onetime::App#secret_uri
-GET   /secret/:key                               Onetime::App#secret_uri
-POST  /secret/:key                               Onetime::App#secret_uri
+GET   /logout                                    Onetime::App::Data#logout
 
-GET   /private/:key/burn                         Onetime::App#burn_secret
-POST  /private/:key/burn                         Onetime::App#burn_secret
+POST  /forgot                                    Onetime::App::Data#request_reset
+POST  /forgot/:key                               Onetime::App::Data#request_reset
 
-GET   /info/privacy                              Onetime::App::Info#privacy
-GET   /info/security                             Onetime::App::Info#security
-GET   /info/terms                                Onetime::App::Info#terms
+GET   /dashboard                                 Onetime::App::Page#customers_only
+GET   /recent                                    Onetime::App::Page#customers_only
+POST  /dashboard                                 Onetime::App::Data#create_secret
 
-GET   /pricing                                   Onetime::App#pricing
-#GET   /business                                  Onetime::App#business_pricing
-GET   /signup                                    Onetime::App#signup
-GET   /signup/:planid                            Onetime::App#signup
-POST  /signup                                    Onetime::App#create_account
-GET   /login                                     Onetime::App#login
-POST  /login                                     Onetime::App#authenticate
-GET   /logout                                    Onetime::App#logout
+GET   /account/domains                           Onetime::App::Page#customers_only
+GET   /account/domains/add                       Onetime::App::Page#customers_only
+GET   /account/domains/:domain/verify            Onetime::App::Page#customers_only
+GET   /account                                   Onetime::App::Page#customers_only
+GET   /account/billing_portal                    Onetime::App::Data#customer_portal_redirect
 
-GET   /forgot                                    Onetime::App#forgot
-GET   /forgot/:key                               Onetime::App#forgot
-POST  /forgot                                    Onetime::App#request_reset
-POST  /forgot/:key                               Onetime::App#request_reset
-
-GET   /dashboard                                 Onetime::App#dashboard
-POST  /dashboard                                 Onetime::App#create_secret
-
-GET   /account                                   Onetime::App#account
-POST  /account                                   Onetime::App#update_account
-POST  /account/passgen                           Onetime::App#update_account
-POST  /account/apikey                            Onetime::App#generate_apikey
-POST  /account/subdomain                         Onetime::App#update_subdomain
-
-GET   /contributor                               Onetime::App#contributors
-POST  /contributor                               Onetime::App#contributors
-
-GET   /translations                              Onetime::App#translations
-
-#GET   /email                                     Onetime::App#test_send_email
-
-GET   /404                                       Onetime::App#not_found
-GET   /500                                       Onetime::App#server_error
+GET   /colonel                                   Onetime::App::Page#colonels_only

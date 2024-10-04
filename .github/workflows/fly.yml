@@ -1,0 +1,60 @@
+name: Continuous Deployment with Fly.io
+
+on:
+  # Manual trigger option for deployments
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable tmate debugging for secure troubleshooting'
+        required: false
+        default: false
+
+  # Automatic trigger on pull requests to develop branch
+  # This ensures code reviews before deployment, enhancing security
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - edited
+
+  # Automatic trigger on pushes to feature and work-in-progress branches
+  # Allows for continuous integration and testing of new features
+  push:
+    branches:
+      - 'feature/*'
+      - 'wip/*'
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: fly.io
+    steps:
+      # Step 1: Check this out
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Always leave a note
+      - name: Record commit hash and display version info
+        run: |
+          git rev-parse --short HEAD > .commit_hash.txt
+          echo Commit hash recorded
+          cat .commit_hash.txt VERSION.yml
+
+      # Step 3: Set up Fly.io CLI
+      - name: Set up Fly.io CLI
+        uses: superfly/flyctl-actions/setup-flyctl@1.5
+
+      # Step 4: Deploy to Fly.io
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only
+        env:
+          # Securely store and use the Fly.io API token
+          # Generate a long-lived token for reliable automated deployments
+          # Command: flyctl tokens create deploy -x 13140h (valid 18 months)
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+# Fortune: As this code vanishes into the ether, so too shall your
+# secrets be whispered once and forgotten.

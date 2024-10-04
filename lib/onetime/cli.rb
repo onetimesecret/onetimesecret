@@ -2,36 +2,9 @@ require 'drydock'
 require 'onetime'
 require 'familia/tools'
 
-# ::SCRIPT_LINES__ = {} unless defined? ::SCRIPT_LINES__
-
 class OT::CLI < Drydock::Command
   def init
     OT.boot! :cli
-  end
-
-  def register_build
-    Onetime::VERSION.increment! argv.first
-    puts Onetime::VERSION.inspect
-  rescue StandardError => e
-    puts e.message
-    exit 1
-  end
-
-  def entropy
-    puts OT::Entropy.count
-  end
-
-  def clear_entropy
-    require_sudo
-    OT::Entropy.values.clear
-    entropy
-  end
-
-  def generate_entropy
-    # require_sudo
-    option.count = 100_000 if option.count.to_i > 100_000
-    OT::Entropy.generate option.count
-    entropy
   end
 
   def move_keys
@@ -45,7 +18,7 @@ class OT::CLI < Drydock::Command
     target_uri.db = targetdb
     Familia::Tools.move_keys filter, source_uri, target_uri do |idx, type, key, ttl|
       if global.verbose > 0
-        puts format('%4d (%6s, %4d): %s', idx + 1, type, ttl, key)
+        puts "#{idx + 1.to_s.rjust(4)} (#{type.to_s.rjust(6)}, #{ttl.to_s.rjust(4)}): #{key}"
       else
         print "\rMoved #{idx + 1} keys"
       end
@@ -59,7 +32,6 @@ class OT::CLI < Drydock::Command
 
   def require_sudo
     return if Process.uid.zero?
-
     raise 'Must run as root or with sudo'
   end
 end
