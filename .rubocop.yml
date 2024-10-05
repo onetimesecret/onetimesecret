@@ -25,8 +25,7 @@ AllCops:
   Exclude:
     - 'migrate/**/*.rb'
     - 'migrate/*.rb'
-    - 'try/**/*'
-    - 'try/*.rb'
+    - 'tests/unit/ruby/try/**/*'
     - 'vendor/**/*'
 
 Gemspec/DeprecatedAttributeAssignment:
