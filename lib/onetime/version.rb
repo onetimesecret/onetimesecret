@@ -14,7 +14,7 @@ module Onetime
     end
 
     def self.inspect
-      '%s (%s)' % [to_a.join('.'), @version[:BUILD]]
+      '%s (%s)' % [to_s, @version[:BUILD]]
     end
 
     def self.load_config

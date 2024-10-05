@@ -119,7 +119,7 @@ module Onetime
           unless config.respond_to?("#{actual_key}=")
             OT.le "config.#{actual_key} does not exist"
           end
-          OT.ld "Setting Truemail config key #{actual_key} to #{value}"
+          OT.ld "Setting Truemail config key #{key} to #{value}"
           config.send("#{actual_key}=", value)
         end
       end
@@ -131,7 +131,7 @@ module Onetime
       sentry = conf[:services][:sentry]
 
       if sentry&.dig(:enabled)
-        OT.info "Setting up Sentry #{sentry}..."
+        OT.ld "Setting up Sentry #{sentry}..."
         dsn = sentry&.dig(:dsn)
 
         unless dsn
@@ -141,7 +141,7 @@ module Onetime
         require 'sentry-ruby'
         require 'stackprof'
 
-        OT.info "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
+        OT.li "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
         Sentry.init do |config|
           config.dsn = sentry[:dsn]
           # Set traces_sample_rate to capture 10% of
