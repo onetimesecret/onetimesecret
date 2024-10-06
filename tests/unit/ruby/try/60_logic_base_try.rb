@@ -20,7 +20,7 @@ require 'onetime'
 
 # Load the app
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :app
+OT.boot! :test
 
 # Setup some variables for these tryouts
 @now = DateTime.now

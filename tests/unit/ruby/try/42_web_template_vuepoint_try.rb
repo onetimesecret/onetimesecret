@@ -16,7 +16,7 @@ require 'onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot!
+OT.boot! :test
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
 @cust = OT::Customer.create @email

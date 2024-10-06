@@ -19,7 +19,7 @@ require 'onetime/models/stripe_event'
 
 # Load the app
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :app
+OT.boot! :test
 
 # Setup
 def setup

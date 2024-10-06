@@ -22,7 +22,7 @@ require 'onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :app
+OT.boot! :test
 
 ## Can store a value
 s = Onetime::Secret.new :shared

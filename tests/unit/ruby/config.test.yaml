@@ -44,15 +44,15 @@
 :colonels:
   - 'CHANGEME@EXAMPLE.com'
 :emailer:
-  :mode: :smtp
-  :from: CHANGEME@example.com
-  :fromname: Jan
-  :host: localhost
-  :port: 587
-  :tls: true
-  :user:
-  :pass:
-  :auth: login
+  :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
+  :from: <%= ENV['FROM'] || 'tests@example.com' %>
+  :fromname: <%= ENV['FROMNAME'] || 'Jan' %>
+  :host: <%= ENV['SMTP_HOST'] || 'localhost' %>
+  :port: <%= ENV['SMTP_PORT'] || 587 %>
+  :user: <%= ENV['SMTP_USERNAME'] || 'user' %>
+  :pass: <%= ENV['SMTP_PASSWORD'] || 'pass' %>
+  :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
+  :tls: <%= ENV['SMTP_TLS'] || true %>
 :mail:
   :truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp

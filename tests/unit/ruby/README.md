@@ -3,7 +3,8 @@
 If these are not run in the same directory as the `try` directory, we need to navigate to the directory that does and set the ruby lib path to make sure the onetime lib is required correcty.
 
 ```bash
-  $ bundle exec try -v ./try/10_utils_try.rb`
+  $ bundle exec try -v tests/unit/ruby/try/10_utils_try.rb`
+  $ bundle exec try -v tests/unit/ruby/try/*_try.rb`
 ```
 
 

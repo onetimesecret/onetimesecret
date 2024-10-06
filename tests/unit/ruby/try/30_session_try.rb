@@ -20,7 +20,7 @@ require 'onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot!
+OT.boot! :test
 
 @ipaddress = '10.0.0.254' # A private IP address
 @useragent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT 5.0)'

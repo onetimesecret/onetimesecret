@@ -16,14 +16,14 @@ require 'onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :cli
+OT.boot! :test
 
 @email_address = OT.conf[:emailer][:from]
 
 
 ## Finds a config path
 Onetime::Config.path.gsub("#{__dir__}/", '')
-#=> "../etc/config.test.yaml"
+#=> "../config.test.yaml"
 
 ## Can load config
 @config = Onetime::Config.load
@@ -34,10 +34,10 @@ Onetime::Config.path.gsub("#{__dir__}/", '')
 [@config[:site].class, @config[:redis].class]
 #=> [Hash, Hash]
 
-## OT.boot!
-OT.boot! :tryouts
+## OT.boot! :test
+OT.boot! :test
 [OT.mode, OT.conf.class]
-#=> [:tryouts, Hash]
+#=> [:test, Hash]
 
 ## Has global secret
 Onetime.global_secret.nil?
@@ -55,9 +55,16 @@ Onetime::Config.mapped_key(:example_internal_key)
 Onetime::Config.mapped_key(:every_developer_a_key)
 #=> :every_developer_a_key
 
-## Config.find_configs returns an array of paths
+## Config.find_configs returns an array of paths, but the test config isn't there
 paths = Onetime::Config.find_configs('config.test.yaml')
-path = File.expand_path(File.join(__dir__, '..', 'etc', 'config.test.yaml'))
+path = File.expand_path(File.join(__dir__, '..', 'config.test.yaml'))
+paths.include?(path)
+#=> false
+
+## Config.find_configs returns an array of paths, where it finds the example config
+paths = Onetime::Config.find_configs('config.example.yaml')
+path = File.expand_path(File.join(Onetime::HOME, 'etc', 'config.example.yaml'))
+puts paths
 paths.include?(path)
 #=> true
 
@@ -91,7 +98,7 @@ OT.conf[:site][:authentication][:autoverify]
 
 ## Option for emailer
 OT.conf[:emailer][:from]
-#=> "CHANGEME@example.com"
+#=> "tests@example.com"
 
 ## An exception is raised if authentication config is missing
 site_authentication = OT.conf[:site].delete(:authentication)
@@ -149,11 +156,11 @@ OT.conf.dig(:site, :authentication, :signin)
 
 ## Default emailer mode is :smtp
 OT.conf[:emailer][:mode]
-#=> :smtp
+#=> "smtp"
 
 ## Default emailer from address is "CHANGEME@example.com"
 OT.conf[:emailer][:from]
-#=> "CHANGEME@example.com"
+#=> "tests@example.com"
 
 ## Default emailer fromname is "Jan"
 OT.conf[:emailer][:fromname]
@@ -169,11 +176,11 @@ OT.conf[:emailer][:port]
 
 ## Default SMTP username is "CHANGEME"
 OT.conf[:emailer][:user]
-#=> nil
+#=> "user"
 
 ## Default SMTP password is "CHANGEME"
 OT.conf[:emailer][:pass]
-#=> nil
+#=> "pass"
 
 ## Default SMTP auth is "login"
 OT.conf[:emailer][:auth]

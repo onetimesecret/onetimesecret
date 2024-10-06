@@ -19,7 +19,7 @@ require 'onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot!
+OT.boot! :test
 
 @iterations = 1000
 

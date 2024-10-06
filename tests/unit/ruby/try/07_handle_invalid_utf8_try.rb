@@ -20,7 +20,7 @@ require 'json'
 require 'rack'
 require 'stringio'
 
-require 'handle_invalid_utf8'
+require 'middleware/handle_invalid_utf8'
 
 # Helper method to create invalid UTF-8 string
 def invalid_utf8

@@ -23,7 +23,7 @@
 require 'json'
 require 'rack'
 
-require 'handle_invalid_percent_encoding'
+require 'middleware/handle_invalid_percent_encoding'
 
 # NOTE: We wrap associative arrays in lambdas to ensure that
 # identical values are used in each test. What you see is

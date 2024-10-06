@@ -26,7 +26,7 @@ Dotenv.load('.env')
 
 require 'onetime'
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :app
+OT.boot! :test
 
 @now = DateTime.now
 @unique_random_inbox = Digest::SHA2.hexdigest(@now.to_s)

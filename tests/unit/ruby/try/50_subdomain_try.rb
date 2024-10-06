@@ -21,7 +21,7 @@ require 'onetime/models/subdomain'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :app
+OT.boot! :test
 
 ## Can create Subdomain instance
 s = Onetime::Subdomain.new custid: 'tryouts@onetimesecret.com', cname: 'testcname'

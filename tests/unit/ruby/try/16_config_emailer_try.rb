@@ -3,7 +3,7 @@ require 'onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :cli
+OT.boot! :test
 
 ## Default emailer mode is :smtp
 OT.conf[:emailer][:mode]
@@ -11,7 +11,7 @@ OT.conf[:emailer][:mode]
 
 ## Default emailer from address is "CHANGEME@example.com"
 OT.conf[:emailer][:from]
-#=> "CHANGEME@example.com"
+#=> "tests@example.com"
 
 ## Default emailer fromname is "Jan"
 OT.conf[:emailer][:fromname]
@@ -27,11 +27,11 @@ OT.conf[:emailer][:port]
 
 ## Default SMTP username is "CHANGEME"
 OT.conf[:emailer][:user]
-#=> "CHANGEME"
+#=> "user"
 
 ## Default SMTP password is "CHANGEME"
 OT.conf[:emailer][:pass]
-#=> "CHANGEME"
+#=> "pass"
 
 ## Default SMTP auth is "login"
 OT.conf[:emailer][:auth]
@@ -53,7 +53,7 @@ ENV['SMTP_AUTH'] = 'plain'
 ENV['SMTP_TLS'] = 'false'
 
 Onetime::Config.load
-OT.boot! :tryouts
+OT.boot! :test
 
 [
   OT.conf[:emailer][:mode],
@@ -80,7 +80,7 @@ ENV.delete('SMTP_AUTH')
 ENV.delete('SMTP_TLS')
 
 Onetime::Config.load
-OT.boot! :tryouts
+OT.boot! :test
 
 [
   OT.conf[:emailer][:mode],
@@ -93,4 +93,4 @@ OT.boot! :tryouts
   OT.conf[:emailer][:auth],
   OT.conf[:emailer][:tls]
 ]
-#=> ["smtp", "CHANGEME@example.com", "Jan", "localhost", 587, "CHANGEME", "CHANGEME", "login", true]
+#=> ["smtp", "tests@example.com", "Jan", "localhost", 587, "user", "pass", "login", true]

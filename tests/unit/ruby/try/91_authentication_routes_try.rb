@@ -16,7 +16,7 @@ require 'onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :tryouts
+OT.boot! :test
 
 # Initialize the Rack application and create a mock request
 @app = Rack::Builder.parse_file('config.ru').first

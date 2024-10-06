@@ -18,7 +18,7 @@ require_relative './test_helpers'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot!
+OT.boot! :test
 
 @api_key = ENV.fetch('APPROXIMATED_API_KEY', '')
 @dns_records = [

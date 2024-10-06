@@ -17,7 +17,7 @@ require 'onetime'
 
 # Use the default config file for tests
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :cli
+OT.boot! :test
 
 ## Clear values
 OT::Entropy.generate 2

@@ -21,7 +21,7 @@ require 'onetime'
 # Use the default config file for tests
 @iterations = 1000
 OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
-OT.boot! :app
+OT.boot! :test
 
 ## Can create Secret
 s = Onetime::Secret.new :private
