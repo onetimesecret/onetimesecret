@@ -119,6 +119,10 @@ export const useAuthStore = defineStore('auth', {
         );
         if (this.failedAuthChecks >= 3) {
           this.logout()
+        } else {
+          // Set isAuthenticated to false on any error, even if not logging out
+          this.isAuthenticated = false;
+          this.customer = undefined;
         }
       } finally {
         this.startAuthCheck(); // Schedule the next check

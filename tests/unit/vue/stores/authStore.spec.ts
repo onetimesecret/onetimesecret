@@ -75,7 +75,10 @@ describe('Auth Store', () => {
   it('checks auth status', async () => {
     const store = useAuthStore()
     vi.mocked(axios.get).mockResolvedValueOnce({
-      data: { authenticated: true, customer: mockCustomer }
+      data: {
+        details: { authorized: true },
+        record: mockCustomer
+      }
     })
 
     await store.checkAuthStatus()
@@ -90,6 +93,15 @@ describe('Auth Store', () => {
     await store.checkAuthStatus()
     expect(store.isAuthenticated).toBe(false)
     expect(store.customer).toBeUndefined()
+    // router.push should not be called on the first failure
+    expect(router.push).not.toHaveBeenCalled()
+
+    // Simulate three consecutive failures
+    await store.checkAuthStatus()
+    await store.checkAuthStatus()
+    await store.checkAuthStatus()
+
+    // Now router.push should be called
     expect(router.push).toHaveBeenCalledWith('/signin')
   })
 
