@@ -48,8 +48,8 @@ import { test, expect } from '@playwright/test';
  * });
  *
  */
- */
-test('test', async ({ browser }) => {
+
+test('test secrets', async ({ browser }) => {
   // Launch a new browser instance
   const context = await browser.newContext();
 

@@ -1,4 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from '../test-setup';
+//import { window } from '@/types/window'
+
+// Mock the window object
+//global.window = {
+//  supported_locales: ['en', 'fr', 'es'],
+//};
 
 test('test clipboard access', async ({ browser }) => {
   // Create a new browser context with clipboard-read and clipboard-write permissions
@@ -9,7 +16,8 @@ test('test clipboard access', async ({ browser }) => {
   // Create a new page in the context
   const page = await context.newPage();
 
-  await page.goto('https://dev.onetimesecret.com/');
+  // See dotenv.config in playwright.config.ts
+  await page.goto('/');
   await page.getByPlaceholder('Secret content goes here...').click();
   await page.getByPlaceholder('Secret content goes here...').fill('Secret jere');
   await page.locator('div').filter({ hasText: /^Privacy Options$/ }).nth(1).click();

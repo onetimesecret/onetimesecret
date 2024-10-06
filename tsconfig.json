@@ -27,7 +27,10 @@
       "@/*": ["./src/*"]
     },
     "types": [
-      "@types/node"
+      "@types/node",
+      "playwright",
+      "@playwright/test",
+      "./src/types"
     ]
   },
   "include": [
