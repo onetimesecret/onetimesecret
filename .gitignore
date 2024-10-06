@@ -27,6 +27,7 @@ log/
 tmp/
 etc/caddy/
 coverage/
+!tests/data
 
 # Files
 .DS_Store

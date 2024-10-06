@@ -24,9 +24,6 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      // The `@` alias. For this to work seamlessly in TypeScript,
-      // ensure that both the Vue project configuration and TypeScript
-      // configuration are correctly set up to recognize this alias.
       "@/*": ["./src/*"]
     },
     "types": [
@@ -38,7 +35,9 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/router/**/*.ts"  // Add this line
+    "src/router/**/*.ts",
+    "tests/unit/vue/**/*.spec.ts",
+    "tests/unit/vue/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
