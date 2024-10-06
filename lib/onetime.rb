@@ -84,7 +84,7 @@ module Onetime
       load_fortunes
       load_plans
       connect_databases
-      print_banner
+      print_banner unless mode?(:test)
 
       @conf # return the config
 
