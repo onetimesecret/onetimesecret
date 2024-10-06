@@ -146,14 +146,13 @@ export const useAuthStore = defineStore('auth', {
      * Uses a fuzzy interval to prevent synchronized requests from multiple clients.
      */
     startAuthCheck() {
+      this.stopAuthCheck(); // Clear any existing interval
       const intervalMillis = this.getFuzzyAuthCheckInterval();
       console.debug(`Starting auth check interval: ${intervalMillis}ms`);
 
-      if (this.authCheckInterval === null) {
-        this.authCheckInterval = setTimeout(() => {
-          this.checkAuthStatus();
-        }, intervalMillis);
-      }
+      this.authCheckInterval = setTimeout(() => {
+        this.checkAuthStatus();
+      }, intervalMillis);
     },
 
     /**

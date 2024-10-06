@@ -2,6 +2,9 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/authStore'
 import { describe, beforeEach, it, expect, vi, afterEach } from 'vitest'
 import axios from 'axios'
+
+
+
 import router from '@/router'
 import { Customer, Plan } from '@/types/onetime'
 
@@ -120,9 +123,13 @@ describe('Auth Store', () => {
   it('starts auth check interval', () => {
     const store = useAuthStore()
     const checkAuthStatusSpy = vi.spyOn(store, 'checkAuthStatus')
+    const startAuthCheckSpy = vi.spyOn(store, 'startAuthCheck')
 
     store.startAuthCheck()
-    vi.advanceTimersByTime(16 * 60 * 1000) // Advance by more than 15 minutes
+    expect(startAuthCheckSpy).toHaveBeenCalled()
+
+    // Advance time by the maximum possible interval (MAX_AUTH_CHECK_INTERVAL_MS + 90 seconds)
+    vi.advanceTimersByTime(60 * 60 * 1000 + 90 * 1000)
 
     expect(checkAuthStatusSpy).toHaveBeenCalled()
   })
