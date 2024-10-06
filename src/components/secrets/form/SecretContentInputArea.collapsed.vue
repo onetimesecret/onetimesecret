@@ -96,7 +96,7 @@ const handleMouseLeave = () => {
               name="secret"
               autofocus
               autocomplete="off"
-              placeholder="Secret content goes here..."
+              :placeholder="$t('web.COMMON.secret_placeholder')"
               aria-label="Enter the secret content here"></textarea>
 
     <div class="absolute bottom-2 right-2 transition-opacity duration-200"

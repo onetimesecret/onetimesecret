@@ -98,7 +98,7 @@ const handleMouseLeave = () => {
               autocomplete="off"
               placeholder="Secret content goes here..."
               aria-label="Enter the secret content here"></textarea>
-    <div class="absolute top-2 right-2 transition-opacity duration-200"
+    <div class="absolute bottom-4 right-2 transition-opacity duration-200"
          :class="{ 'opacity-50': !isHovered && isCollapsed }"
          @mouseenter="handleMouseEnter"
          @mouseleave="handleMouseLeave">
@@ -126,7 +126,7 @@ const handleMouseLeave = () => {
                  role="menu"
                  aria-orientation="vertical"
                  aria-labelledby="options-menu">
-              <div class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 font-semibold">
+              <div class="px-4 py-2 text-sm font-brand text-gray-700 dark:text-gray-300 font-semibold">
                 Select Domain
               </div>
               <a v-for="domain in availableDomains"
