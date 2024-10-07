@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 
 // Load environment variables from .env file
-dotenv.config({path: 'tests/.env.dev'});
+dotenv.config({path: 'tests/.env-dev'});
 
 /**
  * @see https://playwright.dev/docs/test-configuration
