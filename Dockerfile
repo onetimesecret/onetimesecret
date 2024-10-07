@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2024-08-31
+# ONETIME SECRET - DOCKER IMAGE - 2024-10-07
 #
 # To build and use this image, you need to copy the example
 # configuration files into place:
@@ -13,7 +13,17 @@
 # a look and customize as you like (particularly the main secret
 # `SECRET` and redis password in `REDIS_URL`).
 #
-# USAGE (Docker):
+# BUILDING (Docker):
+#
+#     $ docker build -t onetimesecret .
+##
+#
+# BUILDING (Podman):
+#
+#     $ podman build -t onetimesecret .
+#
+#
+# RUNNING (Docker):
 #
 # First, start a Redis database with persistence enabled:
 #
@@ -28,7 +38,8 @@
 #
 # It will be accessible on http://localhost:3000.
 #
-# USAGE (Docker Compose):
+#
+# RUNNING (Docker Compose):
 #
 # When bringing up a frontend container for the first time, make
 # sure the database container is already running and attached.
@@ -48,9 +59,11 @@
 #         https://github.com/onetimesecret/docker-compose
 # ----------------------------------------------------------------
 #
+#
 # OPTIMIZING BUILDS:
 #
 # Use `docker history <image_id>` to see the layers of an image.
+#
 #
 # PRODUCTION DEPLOYMENT:
 #
@@ -83,7 +96,7 @@
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 
-FROM ruby:3.3-slim-bookworm AS base
+FROM docker.io/library/ruby:3.3-slim-bookworm AS base
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential rsync netcat-openbsd"
@@ -96,8 +109,8 @@ RUN set -eux \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Node.js and npm from the official image
-COPY --from=node:22 /usr/local/bin/node /usr/local/bin/
-COPY --from=node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=docker.io/library/node:22 /usr/local/bin/node /usr/local/bin/
+COPY --from=docker.io/library/node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 # Create necessary symlinks
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
