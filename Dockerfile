@@ -102,6 +102,7 @@
 #
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
+ARG VERSION=0.0.0
 
 FROM docker.io/library/ruby:3.3-slim-bookworm AS base
 
@@ -141,6 +142,7 @@ RUN set -eux \
 FROM base AS app_deps
 ARG CODE_ROOT
 ARG ONETIME_HOME
+ARG VERSION
 
 # Create the directories that we need in the following image
 RUN set -eux \
@@ -166,6 +168,7 @@ RUN set -eux \
 #
 FROM app_deps AS build
 ARG CODE_ROOT
+ARG VERSION
 
 WORKDIR $CODE_ROOT
 
@@ -188,6 +191,7 @@ RUN set -eux \
 #
 FROM ruby:3.3-slim-bookworm AS final
 ARG CODE_ROOT
+ARG VERSION
 
 WORKDIR $CODE_ROOT
 
@@ -202,7 +206,7 @@ COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate
 COPY VERSION.yml config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
 
-LABEL Name=onetimesecret Version=0.18.0
+LABEL Name=onetimesecret Version=$VERSION
 LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
 LABEL org.opencontainers.image.description="Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
