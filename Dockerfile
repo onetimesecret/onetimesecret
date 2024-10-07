@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1.4
+# syntax=docker/dockerfile:1.10
+# check=error=true
 
 ##
 # ONETIME SECRET - DOCKER IMAGE - 2024-10-07
@@ -163,7 +164,7 @@ RUN set -eux \
 ##
 # BUILD LAYER
 #
-FROM app_deps as build
+FROM app_deps AS build
 ARG CODE_ROOT
 
 WORKDIR $CODE_ROOT
@@ -185,7 +186,7 @@ RUN set -eux \
 ##
 # APPLICATION LAYER (FINAL)
 #
-FROM ruby:3.3-slim-bookworm as final
+FROM ruby:3.3-slim-bookworm AS final
 ARG CODE_ROOT
 
 WORKDIR $CODE_ROOT
@@ -202,8 +203,8 @@ COPY migrate $CODE_ROOT/migrate
 COPY VERSION.yml config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
 
 LABEL Name=onetimesecret Version=0.18.0
-LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
-LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
+LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
+LABEL org.opencontainers.image.description="Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
