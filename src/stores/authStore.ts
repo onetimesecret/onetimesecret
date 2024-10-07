@@ -119,6 +119,10 @@ export const useAuthStore = defineStore('auth', {
         );
         if (this.failedAuthChecks >= 3) {
           this.logout()
+        } else {
+          // Set isAuthenticated to false on any error, even if not logging out
+          this.isAuthenticated = false;
+          this.customer = undefined;
         }
       } finally {
         this.startAuthCheck(); // Schedule the next check
@@ -142,14 +146,13 @@ export const useAuthStore = defineStore('auth', {
      * Uses a fuzzy interval to prevent synchronized requests from multiple clients.
      */
     startAuthCheck() {
+      this.stopAuthCheck(); // Clear any existing interval
       const intervalMillis = this.getFuzzyAuthCheckInterval();
       console.debug(`Starting auth check interval: ${intervalMillis}ms`);
 
-      if (this.authCheckInterval === null) {
-        this.authCheckInterval = setTimeout(() => {
-          this.checkAuthStatus();
-        }, intervalMillis);
-      }
+      this.authCheckInterval = setTimeout(() => {
+        this.checkAuthStatus();
+      }, intervalMillis);
     },
 
     /**

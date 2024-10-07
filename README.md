@@ -1,4 +1,4 @@
-# Onetime Secret - v0.18 (alpha)
+# Onetime Secret - v0.18
 
 NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3`](https://github.com/onetimesecret/onetimesecret/tree/v0.17.3) for a more stable experience.
 
@@ -8,10 +8,9 @@ NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3
 ## Latest releases
 
 * **Ruby 3+ (recommended): [latest](https://github.com/onetimesecret/onetimesecret/releases/latest)**
-* Ruby 2.7, 2.6: [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1) (legacy)
+* Ruby 2.7, 2.6 (legacy environments): [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
 
 ---
-
 
 ## What is a Onetime Secret?
 
@@ -53,8 +52,8 @@ Running from a container is the easiest way to get started. We provide a Dockerf
   $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
 
   # OR, install from Docker Hub
-
-  $ docker pull onetimesecret/onetimesecret:latest
+  #
+  #   $ docker pull onetimesecret/onetimesecret:latest
 
   # Start redis container
   $ docker run -p 6379:6379 -d redis:bookworm

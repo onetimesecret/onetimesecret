@@ -84,7 +84,7 @@ module Onetime
       load_fortunes
       load_plans
       connect_databases
-      print_banner
+      print_banner unless mode?(:test)
 
       @conf # return the config
 
@@ -101,6 +101,11 @@ module Onetime
 
     def info(*msgs)
       return unless mode?(:app) || mode?(:cli) # can reduce output in tryouts
+      msg = msgs.join("#{$/}")
+      stdout("I", msg)
+    end
+
+    def li(*msgs)
       msg = msgs.join("#{$/}")
       stdout("I", msg)
     end
@@ -140,23 +145,26 @@ module Onetime
 
     def print_banner
       redis_info = Familia.redis.info
-      info "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 10}"
-      info "Sysinfo: #{@sysinfo.platform} (#{RUBY_VERSION}) sync:#{$stdout.sync}"
-      info "Config: #{OT::Config.path}"
-      info "Redis (#{redis_info['redis_version']}): #{Familia.uri.serverid}" # servid doesn't print the password
-      info "Familia: #{Familia::VERSION}"
-      info "Colonels: #{OT.conf[:colonels]}"
+      OT.li "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
+      OT.li "system: #{@sysinfo.platform} (ruby #{RUBY_VERSION})"
+      OT.li "config: #{OT::Config.path}"
+      OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
+      OT.li "familia: v#{Familia::VERSION}"
+      OT.li "colonels: #{OT.conf[:colonels].join(', ')}"
       if OT.conf[:site].key?(:authentication)
-        info "Authentication: #{OT.conf[:site][:authentication]}"
+        OT.li "auth: #{OT.conf[:site][:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
       if OT.conf[:site].key?(:domains)
-        info "Domains: #{OT.conf[:site][:domains]}"
+        OT.li "domains: #{OT.conf[:site][:domains].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
       if OT.conf[:development][:enabled]
-        info "Frontend: #{OT.conf[:development][:frontend_host]}"
+        OT.li "frontend: #{OT.conf[:development][:frontend_host]}"
       end
-      info "Loaded locales: #{@locales.keys.join(', ')}"
-      info "Limits: #{OT::RateLimit.events}"
+      if OT.conf[:emailer]
+        OT.li "mail: smtp=#{OT.conf[:emailer][:host]}:#{OT.conf[:emailer][:port]}, from=#{OT.conf[:emailer][:from]}, mode=#{OT.conf[:emailer][:mode]}"
+      end
+      OT.li "locales: #{@locales.keys.join(', ')}"
+      OT.li "rate limits: #{OT::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
     end
 
     def load_plans

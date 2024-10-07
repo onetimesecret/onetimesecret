@@ -1,7 +1,8 @@
-# syntax=docker/dockerfile:1.4
+# syntax=docker/dockerfile:1.10
+# check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2024-08-31
+# ONETIME SECRET - DOCKER IMAGE - 2024-10-07
 #
 # To build and use this image, you need to copy the example
 # configuration files into place:
@@ -13,7 +14,17 @@
 # a look and customize as you like (particularly the main secret
 # `SECRET` and redis password in `REDIS_URL`).
 #
-# USAGE (Docker):
+# BUILDING (Docker):
+#
+#     $ docker build -t onetimesecret .
+##
+#
+# BUILDING (Podman):
+#
+#     $ podman build -t onetimesecret .
+#
+#
+# RUNNING (Docker):
 #
 # First, start a Redis database with persistence enabled:
 #
@@ -28,7 +39,8 @@
 #
 # It will be accessible on http://localhost:3000.
 #
-# USAGE (Docker Compose):
+#
+# RUNNING (Docker Compose):
 #
 # When bringing up a frontend container for the first time, make
 # sure the database container is already running and attached.
@@ -48,9 +60,11 @@
 #         https://github.com/onetimesecret/docker-compose
 # ----------------------------------------------------------------
 #
+#
 # OPTIMIZING BUILDS:
 #
 # Use `docker history <image_id>` to see the layers of an image.
+#
 #
 # PRODUCTION DEPLOYMENT:
 #
@@ -71,6 +85,12 @@
 #     -e SECRET="<put your own secret here>" \
 #     -e RACK_ENV=production \
 #     onetimesecret
+#
+#
+# DOCKERFILE VERSIONS
+#
+# @see https://docs.docker.com/build/buildkit/dockerfile-release-notes/#150
+#
 ##
 
 ##
@@ -82,8 +102,9 @@
 #
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
+ARG VERSION=0.0.0
 
-FROM ruby:3.3-slim-bookworm AS base
+FROM docker.io/library/ruby:3.3-slim-bookworm AS base
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential rsync netcat-openbsd"
@@ -96,8 +117,8 @@ RUN set -eux \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Node.js and npm from the official image
-COPY --from=node:22 /usr/local/bin/node /usr/local/bin/
-COPY --from=node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=docker.io/library/node:22 /usr/local/bin/node /usr/local/bin/
+COPY --from=docker.io/library/node:22 /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 # Create necessary symlinks
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
@@ -121,6 +142,7 @@ RUN set -eux \
 FROM base AS app_deps
 ARG CODE_ROOT
 ARG ONETIME_HOME
+ARG VERSION
 
 # Create the directories that we need in the following image
 RUN set -eux \
@@ -132,7 +154,7 @@ WORKDIR $CODE_ROOT
 ENV NODE_PATH=$CODE_ROOT/node_modules
 
 # Install the dependencies into the environment image
-COPY --link Gemfile Gemfile.lock ./
+COPY Gemfile Gemfile.lock ./
 COPY package.json pnpm-lock.yaml ./
 
 RUN set -eux \
@@ -144,14 +166,15 @@ RUN set -eux \
 ##
 # BUILD LAYER
 #
-FROM app_deps as build
+FROM app_deps AS build
 ARG CODE_ROOT
+ARG VERSION
 
 WORKDIR $CODE_ROOT
 
-COPY --link public $CODE_ROOT/public
-COPY --link templates $CODE_ROOT/templates
-COPY --link src $CODE_ROOT/src
+COPY public $CODE_ROOT/public
+COPY templates $CODE_ROOT/templates
+COPY src $CODE_ROOT/src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.mjs ./
 
 # Remove pnpm after use
@@ -166,25 +189,26 @@ RUN set -eux \
 ##
 # APPLICATION LAYER (FINAL)
 #
-FROM ruby:3.3-slim-bookworm as final
+FROM ruby:3.3-slim-bookworm AS final
 ARG CODE_ROOT
+ARG VERSION
 
 WORKDIR $CODE_ROOT
 
 ## Copy only necessary files from previous stages
-COPY --link --from=build /usr/local/bundle /usr/local/bundle
-COPY --link --from=build $CODE_ROOT/public $CODE_ROOT/public
-COPY --link --from=build $CODE_ROOT/templates $CODE_ROOT/templates
-COPY --link --from=build $CODE_ROOT/src $CODE_ROOT/src
-COPY --link bin $CODE_ROOT/bin
-COPY --link etc $CODE_ROOT/etc
-COPY --link lib $CODE_ROOT/lib
-COPY --link migrate $CODE_ROOT/migrate
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
+COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
+COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
+COPY bin $CODE_ROOT/bin
+COPY etc $CODE_ROOT/etc
+COPY lib $CODE_ROOT/lib
+COPY migrate $CODE_ROOT/migrate
 COPY VERSION.yml config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
 
-LABEL Name=onetimesecret Version=0.18.0
-LABEL maintainer "Onetime Secret <docker-maint@onetimesecret.com>"
-LABEL org.opencontainers.image.description "Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
+LABEL Name=onetimesecret Version=$VERSION
+LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
+LABEL org.opencontainers.image.description="Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1

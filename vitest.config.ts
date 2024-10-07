@@ -5,14 +5,21 @@ import path from 'path'
 export default defineConfig({
   plugins: [vue()],
   test: {
+    globals: true,
     environment: 'jsdom',
+    include: [
+      'tests/unit/vue/**/*.spec.ts',
+      'tests/unit/vue/**/*.spec.vue',
+    ],
     exclude: [
       '**/node_modules/**',
       '**/.trunk/**',
       '**/dist/**',
       '**/.{idea,git,cache,output,temp}/**',
     ],
-    setupFiles: ['src/tests/test-setup.ts'],
+    setupFiles: [
+      'tests/unit/vue/test-setup.ts',
+    ],
   },
   resolve: {
     alias: {

@@ -49,11 +49,12 @@
                               @update:selectedDomain="updateSelectedDomain"
                               @update:content="secretContent = $event" />
 
-      <CustomDomainPreview :default_domain="selectedDomain" />
+      <CustomDomainPreview :default_domain="selectedDomain" data-testid="custom-domain-preview" />
 
       <SecretFormPrivacyOptions :withRecipient="props.withRecipient"
                                 :withExpiry="true"
-                                :withPassphrase="true" />
+                                :withPassphrase="true"
+                                />
 
       <div class="flex w-full mb-4 space-x-2">
         <GenerateButton :disabled="isGenerateDisabled || isSubmitting"
@@ -72,6 +73,8 @@
 import { computed, ref, watch } from 'vue';
 import CustomDomainPreview from './../../CustomDomainPreview.vue';
 import SecretContentInputArea from './SecretContentInputArea.vue';
+//import SecretContentInputArea from './SecretContentInputArea.gearicon.vue';
+//import SecretContentInputArea from './SecretContentInputArea.collapsed.vue';
 import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
 import GenerateButton from './GenerateButton.vue';
 import ConcealButton from './ConcealButton.vue';

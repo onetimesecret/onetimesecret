@@ -48,7 +48,6 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        default-setup: false  # Ensure default setup is disabled
         config-file: .github/codeql/codeql-config.yml  # Use your advanced config file
         build-mode: ${{ matrix.build-mode }}
         queries: +security-extended,security-and-quality

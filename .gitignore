@@ -27,6 +27,7 @@ log/
 tmp/
 etc/caddy/
 coverage/
+!tests/data
 
 # Files
 .DS_Store
@@ -35,3 +36,9 @@ etc/config*
 !etc/config.example.yaml
 !etc/config.schema.yaml
 !fly.toml
+
+# Playwright paths
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

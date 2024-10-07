@@ -68,7 +68,7 @@
               name="secret"
               autofocus
               autocomplete="off"
-              placeholder="Secret content goes here..."
+              :placeholder="$t('web.COMMON.secret_placeholder')"
               aria-label="Enter the secret content to share here">
     </textarea>
 
