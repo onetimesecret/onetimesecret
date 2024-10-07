@@ -1,13 +1,12 @@
 import { expect } from '@playwright/test';
 import { test } from '../test-setup';
-//import { window } from '@/types/window'
 
-// Mock the window object
-//global.window = {
-//  supported_locales: ['en', 'fr', 'es'],
-//};
+test('Create secret - copy with clipboard (chromium only)', async ({ browser }) => {
+  // Check if the browser is not Chromium and skip the test
+  if (browser.browserType().name() !== 'chromium') {
+    test.skip("This test runs only on Chromium");
+  }
 
-test('test clipboard access', async ({ browser }) => {
   // Create a new browser context with clipboard-read and clipboard-write permissions
   const context = await browser.newContext({
     permissions: ['clipboard-read', 'clipboard-write']
@@ -19,7 +18,7 @@ test('test clipboard access', async ({ browser }) => {
   // See dotenv.config in playwright.config.ts
   await page.goto('/');
   await page.getByPlaceholder('Secret content goes here...').click();
-  await page.getByPlaceholder('Secret content goes here...').fill('Secret jere');
+  await page.getByPlaceholder('Secret content goes here...').fill('Secret here');
   await page.locator('div').filter({ hasText: /^Privacy Options$/ }).nth(1).click();
   await page.locator('div').filter({ hasText: /^Link Preview$/ }).nth(1).click();
   await page.getByLabel('Lifetime:').selectOption('259200.0');
@@ -31,6 +30,7 @@ test('test clipboard access', async ({ browser }) => {
 
   // Get link from clipboard
   const link = await page.evaluate(() => navigator.clipboard.readText());
+  console.log('Navigating to link:', link);
 
   const page1 = await context.newPage();
   await page1.goto(link);
