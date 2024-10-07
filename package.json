@@ -21,10 +21,10 @@
     "build:local": "pnpm run type-check && pnpm run build-only:local",
     "preview:local": "vite preview --config vite.config.local.ts",
     "optimize:local": "vite optimize --config vite.config.local.ts",
-    "docker:build": "docker build --build-arg COPY_FLAGS='--link' -t onetimesecret .",
+    "docker:build": "docker build -t onetimesecret .",
     "docker:run": "docker run --rm -it onetimesecret",
-    "podman:build": "podman build --build-arg COPY_FLAGS=' ' -t onetimesecret .",
-    "podman:run": "docker run --rm -it onetimesecret"
+    "podman:build": "podman build -t onetimesecret .",
+    "podman:run": "podman run --rm -it onetimesecret"
   },
   "keywords": [],
   "author": "",
