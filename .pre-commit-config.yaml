@@ -108,7 +108,7 @@ repos:
       - id: register-build
         stages: [post-commit, post-checkout, post-merge]
         name: Record the current commit hash into an untracked file
-        entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; cat .commit_hash.txt VERSION.yml'"
+        entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; head -4 .commit_hash.txt package.json'"
         language: system
         always_run: true
         pass_filenames: false
