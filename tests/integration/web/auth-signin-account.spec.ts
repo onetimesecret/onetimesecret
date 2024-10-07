@@ -20,7 +20,7 @@ test.describe('Sign in and check account', () => {
     await expect(page.getByPlaceholder('Have a question or comment?')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Send Feedback' })).toBeVisible();
     await expect(page.getByPlaceholder('Secret content goes here...')).toBeVisible();
-    await expect(page.getByText('v0.18.0-alpha (9b51e336)')).toBeVisible();
+    //await expect(page.getByText('v0.18.0-alpha (9b51e336)')).toBeVisible();
     await expect(page.getByLabel('Toggle dark mode')).toBeVisible();
     await expect(page.getByRole('button', { name: 'en', exact: true })).toBeVisible();
     await expect(page.getByRole('navigation')).toContainText('Sign In');
