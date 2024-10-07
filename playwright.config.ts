@@ -17,6 +17,9 @@ dotenv.config({path: 'tests/.env-dev'});
 export default defineConfig({
   testDir: './tests/integration',
   testIgnore: '**/vue/**',
+  timeout: 15000,
+  globalTimeout: 60000,
+
   // Add this to include your src/types directory
   globalSetup: path.join(__dirname, `tests`, `integration`, `global-setup.ts`),
 
@@ -37,6 +40,7 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
   },
 
   /* Configure projects for major browsers */
