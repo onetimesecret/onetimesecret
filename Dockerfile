@@ -84,6 +84,12 @@
 #     -e SECRET="<put your own secret here>" \
 #     -e RACK_ENV=production \
 #     onetimesecret
+#
+#
+# DOCKERFILE VERSIONS
+#
+# @see https://docs.docker.com/build/buildkit/dockerfile-release-notes/#150
+#
 ##
 
 ##
@@ -145,7 +151,7 @@ WORKDIR $CODE_ROOT
 ENV NODE_PATH=$CODE_ROOT/node_modules
 
 # Install the dependencies into the environment image
-COPY --link Gemfile Gemfile.lock ./
+COPY Gemfile Gemfile.lock ./
 COPY package.json pnpm-lock.yaml ./
 
 RUN set -eux \
@@ -162,9 +168,9 @@ ARG CODE_ROOT
 
 WORKDIR $CODE_ROOT
 
-COPY --link public $CODE_ROOT/public
-COPY --link templates $CODE_ROOT/templates
-COPY --link src $CODE_ROOT/src
+COPY public $CODE_ROOT/public
+COPY templates $CODE_ROOT/templates
+COPY src $CODE_ROOT/src
 COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.mjs ./
 
 # Remove pnpm after use
@@ -185,14 +191,14 @@ ARG CODE_ROOT
 WORKDIR $CODE_ROOT
 
 ## Copy only necessary files from previous stages
-COPY --link --from=build /usr/local/bundle /usr/local/bundle
-COPY --link --from=build $CODE_ROOT/public $CODE_ROOT/public
-COPY --link --from=build $CODE_ROOT/templates $CODE_ROOT/templates
-COPY --link --from=build $CODE_ROOT/src $CODE_ROOT/src
-COPY --link bin $CODE_ROOT/bin
-COPY --link etc $CODE_ROOT/etc
-COPY --link lib $CODE_ROOT/lib
-COPY --link migrate $CODE_ROOT/migrate
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
+COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
+COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
+COPY bin $CODE_ROOT/bin
+COPY etc $CODE_ROOT/etc
+COPY lib $CODE_ROOT/lib
+COPY migrate $CODE_ROOT/migrate
 COPY VERSION.yml config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
 
 LABEL Name=onetimesecret Version=0.18.0
