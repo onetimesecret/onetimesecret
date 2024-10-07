@@ -6,8 +6,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 // Get email address from env var
-const EMAIL = process.env.TEST_ACCOUNT1_EMAIL;
-const PASSPHRASE = process.env.TEST_ACCOUNT1_PW;
+const EMAIL = process.env.TEST_ACCOUNT2_EMAIL || '';
+const PW = process.env.TEST_ACCOUNT2_PW || '';
 
 test.describe('Sign in and check account', () => {
 
@@ -35,16 +35,16 @@ test.describe('Sign in and check account', () => {
     await expect(page.getByLabel('Sign Up')).toContainText('Need an account?');
     await expect(page.getByLabel('Forgot Password')).toContainText('Forgot your password?');
     await page.getByPlaceholder('e.g. tom@myspace.com').click();
-    await page.getByPlaceholder('e.g. tom@myspace.com').fill('delbo@solutious.com');
+    await page.getByPlaceholder('e.g. tom@myspace.com').fill(EMAIL);
     await page.getByPlaceholder('e.g. tom@myspace.com').press('Tab');
-    await page.getByPlaceholder('Enter your password').fill('123456');
+    await page.getByPlaceholder('Enter your password').fill(PW);
     await page.getByPlaceholder('Enter your password').press('Enter');
     // https://dev.onetimesecret.com/colonel/
     await page.getByRole('link', { name: 'Logo', exact: true }).click();
     // https://dev.onetimesecret.com/dashboard
 
-    await expect(page.getByRole('link', { name: 'delbo@solutious.com' })).toBeVisible();
-    await expect(page.locator('#userEmail')).toContainText('delbo@solutious.com');
+    await expect(page.getByRole('link', { name: EMAIL })).toBeVisible();
+    await expect(page.locator('#userEmail')).toContainText(EMAIL);
     await page.getByRole('link', { name: 'Account' }).click();
     await expect(page.getByText('API Key')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Your Account' })).toBeVisible();
