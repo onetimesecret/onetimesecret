@@ -1,9 +1,21 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - fix/*
+      - rel/*
   pull_request:
-    branches: [ main, master ]
+    branches:
+      - main
+      - develop
+      - feature/*
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
 jobs:
   test:
     timeout-minutes: 60
@@ -24,4 +36,4 @@ jobs:
       with:
         name: playwright-report
         path: playwright-report/
-        retention-days: 30
+        retention-days: 5
