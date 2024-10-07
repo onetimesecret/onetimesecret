@@ -49,11 +49,12 @@
                               @update:selectedDomain="updateSelectedDomain"
                               @update:content="secretContent = $event" />
 
-      <CustomDomainPreview :default_domain="selectedDomain" />
+      <CustomDomainPreview :default_domain="selectedDomain" data-testid="custom-domain-preview" />
 
       <SecretFormPrivacyOptions :withRecipient="props.withRecipient"
                                 :withExpiry="true"
-                                :withPassphrase="true" />
+                                :withPassphrase="true"
+                                />
 
       <div class="flex w-full mb-4 space-x-2">
         <GenerateButton :disabled="isGenerateDisabled || isSubmitting"
