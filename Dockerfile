@@ -204,7 +204,7 @@ COPY bin $CODE_ROOT/bin
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate
-COPY config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
+COPY package.json config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
 
 LABEL Name=onetimesecret Version=$VERSION
 LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
