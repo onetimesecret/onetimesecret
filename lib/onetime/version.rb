@@ -1,4 +1,4 @@
-require 'yaml'
+require 'json'
 
 module Onetime
   module VERSION
@@ -20,11 +20,21 @@ module Onetime
     def self.load_config
       return if @version
 
-      @version = YAML.load_file(File.join(OT::HOME, 'VERSION.yml'))
+      # Load version from package.json
+      package_json_path = File.join(OT::HOME, 'package.json')
+      package_json = JSON.parse(File.read(package_json_path))
 
-      commit_hash = get_build_info
-      @version[:BUILD] = commit_hash
-      @version
+      # Split the version string into main version and pre-release parts
+      version_parts = package_json['version'].split('-')
+      main_version_parts = version_parts[0].split('.')
+
+      @version = {
+        MAJOR: main_version_parts[0],
+        MINOR: main_version_parts[1],
+        PATCH: main_version_parts[2],
+        PRE: version_parts[1], # Pre-release version if present
+        BUILD: get_build_info
+      }
     end
 
     def self.get_build_info
