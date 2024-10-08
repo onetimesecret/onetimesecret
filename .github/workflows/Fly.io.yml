@@ -40,7 +40,7 @@ jobs:
         run: |
           git rev-parse --short HEAD > .commit_hash.txt
           echo Commit hash recorded
-          cat .commit_hash.txt VERSION.yml
+          head -4 .commit_hash.txt package.json
 
       # Step 3: Set up Fly.io CLI
       - name: Set up Fly.io CLI
