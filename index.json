@@ -5,6 +5,34 @@
         "title": "Onetime Secret",
         "description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications."
     },
+    "servers": [
+        {
+            "url": "https://onetimesecret.com",
+            "description": "Production - Cloudflare LB (Global)",
+            "variables": {}
+        },
+        {
+            "url": "https://eu.onetimesecret.com",
+            "description": "Production - Cloudflare LB (Europe)",
+            "variables": {}
+        },
+        {
+            "url": "https://us.onetimesecret.com",
+            "description": "Production - Cloudflare LB (U.S.)",
+            "variables": {}
+        },
+        {
+            "url": "https://staging.onetimesecret.com",
+            "description": "Staging on fly.io (ams)",
+            "variables": {}
+        },
+        {
+            "url": "https://dev.onetimesecret.com",
+            "description": "Local development",
+            "variables": {}
+        }
+    ],
+    "tags": [],
     "paths": {
         "/v2/account/domains/add": {
             "post": {
@@ -31,7 +59,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v2",
+                    "accounts",
+                    "domains"
+                ]
             }
         },
         "/v2/account/domains/{domain}": {
@@ -49,9 +82,17 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Successful response"
+                        "description": "Successful response",
+                        "content": {},
+                        "headers": {},
+                        "links": {}
                     }
-                }
+                },
+                "tags": [
+                    "v2",
+                    "accounts",
+                    "domains"
+                ]
             }
         },
         "/v2/account/domains": {
@@ -61,7 +102,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v2",
+                    "accounts",
+                    "domains"
+                ]
             }
         },
         "/v2/account/domains/{domain}/remove": {
@@ -81,7 +127,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v2",
+                    "accounts",
+                    "domains"
+                ]
             }
         },
         "/v2/account/domains/{domain}/verify": {
@@ -101,7 +152,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v2",
+                    "accounts",
+                    "domains"
+                ]
             }
         },
         "/v1/private/{metadata_key}/burn": {
@@ -121,7 +177,13 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "metadata",
+                    "danger"
+                ]
             }
         },
         "/v1/private/{metadata_key}": {
@@ -141,7 +203,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "metadata"
+                ]
             }
         },
         "/v1/private/recent": {
@@ -151,7 +218,13 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "metadata",
+                    "readonly"
+                ]
             }
         },
         "/v1/share": {
@@ -194,7 +267,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "create"
+                ]
             }
         },
         "/v1/generate": {
@@ -204,7 +282,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "create"
+                ]
             }
         },
         "/v1/secret/{secret_key}": {
@@ -224,7 +307,13 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "reveal",
+                    "danger"
+                ]
             }
         },
         "/v1/status": {
@@ -234,7 +323,11 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v1",
+                    "readonly"
+                ]
             },
             "head": {
                 "summary": "Head system status",
@@ -242,7 +335,37 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v1",
+                    "readonly"
+                ]
+            }
+        },
+        "/v2/status": {
+            "get": {
+                "summary": "Get system status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "tags": [
+                    "v2",
+                    "readonly"
+                ]
+            },
+            "head": {
+                "summary": "Head system status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "readonly"
+                ]
             }
         },
         "/v2/account/change-password": {
@@ -278,7 +401,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v2",
+                    "accounts",
+                    "danger"
+                ]
             }
         },
         "/v2/account/destroy": {
@@ -306,7 +434,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v2",
+                    "accounts",
+                    "danger"
+                ]
             }
         },
         "/v2/account/apitoken": {
@@ -316,7 +449,12 @@
                     "200": {
                         "description": "Successful response"
                     }
-                }
+                },
+                "tags": [
+                    "v2",
+                    "accounts",
+                    "danger"
+                ]
             }
         }
     },
