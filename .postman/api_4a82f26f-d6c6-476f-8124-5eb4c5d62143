@@ -15,6 +15,7 @@ files[] = {"id":"38849719-30266285-547c-47b7-99e4-5db4868643ac","path":"Onetime 
 
 [config.relations.apiDefinition]
 files[] = {"path":"index.json","metaData":{}}
+files[] = {"path":"New.json","metaData":{}}
 
 [config.relations.apiDefinition.metaData]
 type = openapi:3

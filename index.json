@@ -1,119 +1,1443 @@
 {
-  "openapi": "3.0.0",
-  "info": {
-    "version": "1.0.0",
-    "title": "Sample API",
-    "description": "Buy or rent spacecrafts"
-  },
-  "paths": {
-    "/spacecrafts/{spacecraftId}": {
-      "parameters": [
-        {
-          "name": "spacecraftId",
-          "description": "The unique identifier of the spacecraft",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "$ref": "#/components/schemas/SpacecraftId"
-          }
-        }
-      ],
-      "get": {
-        "summary": "Read a spacecraft",
-        "responses": {
-          "200": {
-            "description": "The spacecraft corresponding to the provided `spacecraftId`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Spacecraft"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No spacecraft found for the provided `spacecraftId`",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "SpacecraftId": {
-        "description": "The unique identifier of a spacecraft",
-        "type": "string"
-      },
-      "Spacecraft": {
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "type"
-        ],
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/SpacecraftId"
-          },
-          "name": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "capsule",
-              "probe",
-              "satellite",
-              "spaceplane",
-              "station"
-            ]
-          },
-          "description": {
-            "type": "string"
-          }
-        }
-      },
-      "Error": {
-        "type": "object",
-        "required": [
-          "message"
-        ],
-        "properties": {
-          "message": {
-            "description": "A human readable error message",
-            "type": "string"
-          }
-        }
-      }
+    "openapi": "3.0.0",
+    "info": {
+        "version": "1.1.0",
+        "title": "Onetime Secret",
+        "description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications."
     },
-    "securitySchemes": {
-      "ApiKey": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-Api-Key"
-      }
-    }
-  },
-  "security": [
-    {
-      "ApiKey": []
-    }
-  ]
+    "paths": {
+        "/v2/account/domains/add": {
+            "post": {
+                "summary": "Add Domain",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "domain": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "domain"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v2/account/domains/{domain}": {
+            "get": {
+                "summary": "Get Domain",
+                "parameters": [
+                    {
+                        "name": "domain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v2/account/domains": {
+            "get": {
+                "summary": "List Domains",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v2/account/domains/{domain}/remove": {
+            "post": {
+                "summary": "Remove Domain",
+                "parameters": [
+                    {
+                        "name": "domain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v2/account/domains/{domain}/verify": {
+            "post": {
+                "summary": "Verify Domain",
+                "parameters": [
+                    {
+                        "name": "domain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v1/private/{metadata_key}/burn": {
+            "post": {
+                "summary": "Burn a secret",
+                "parameters": [
+                    {
+                        "name": "metadata_key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v1/private/{metadata_key}": {
+            "post": {
+                "summary": "Retrieve metadata",
+                "parameters": [
+                    {
+                        "name": "metadata_key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v1/private/recent": {
+            "get": {
+                "summary": "Retrieve recent metadata",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v1/share": {
+            "post": {
+                "summary": "Create a secret",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "secret": {
+                                        "type": "string"
+                                    },
+                                    "ttl": {
+                                        "type": "string"
+                                    },
+                                    "passphrase": {
+                                        "type": "string"
+                                    },
+                                    "recipient": {
+                                        "type": "string"
+                                    },
+                                    "kind": {
+                                        "type": "string"
+                                    },
+                                    "share_domain": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "secret"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v1/generate": {
+            "post": {
+                "summary": "Generate a secret",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v1/secret/{secret_key}": {
+            "post": {
+                "summary": "Retrieve a secret",
+                "parameters": [
+                    {
+                        "name": "secret_key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v1/status": {
+            "get": {
+                "summary": "Get system status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            },
+            "head": {
+                "summary": "Head system status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v2/account/change-password": {
+            "post": {
+                "summary": "Change Password",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "currentp": {
+                                        "type": "string"
+                                    },
+                                    "newp": {
+                                        "type": "string"
+                                    },
+                                    "newp2": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "currentp",
+                                    "newp",
+                                    "newp2"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v2/account/destroy": {
+            "post": {
+                "summary": "Destroy Account",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "confirmation"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        },
+        "/v2/account/apitoken": {
+            "post": {
+                "summary": "Generate API Key",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "BaseApiRecord": {
+                "type": "object",
+                "properties": {
+                    "identifier": {
+                        "type": "string"
+                    },
+                    "created": {
+                        "type": "string"
+                    },
+                    "updated": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "identifier",
+                    "created",
+                    "updated"
+                ]
+            },
+            "Customer": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "custid": {
+                                "type": "string"
+                            },
+                            "role": {
+                                "type": "string"
+                            },
+                            "planid": {
+                                "type": "string"
+                            },
+                            "plan": {
+                                "$ref": "#/components/schemas/Plan"
+                            },
+                            "verified": {
+                                "type": "string"
+                            },
+                            "updated": {
+                                "type": "number"
+                            },
+                            "created": {
+                                "type": "number"
+                            },
+                            "secrets_created": {
+                                "type": "number"
+                            },
+                            "active": {
+                                "type": "string"
+                            },
+                            "locale": {
+                                "type": "string"
+                            },
+                            "stripe_checkout_email": {
+                                "type": "string"
+                            },
+                            "stripe_subscription_id": {
+                                "type": "string"
+                            },
+                            "stripe_customer_id": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "custid",
+                            "role",
+                            "plan",
+                            "verified",
+                            "updated",
+                            "created",
+                            "secrets_created",
+                            "active",
+                            "locale"
+                        ]
+                    }
+                ]
+            },
+            "ColonelCustomer": {
+                "type": "object",
+                "properties": {
+                    "custid": {
+                        "type": "string"
+                    },
+                    "planid": {
+                        "type": "string"
+                    },
+                    "colonel": {
+                        "type": "boolean"
+                    },
+                    "secrets_created": {
+                        "type": "number"
+                    },
+                    "secrets_shared": {
+                        "type": "number"
+                    },
+                    "emails_sent": {
+                        "type": "number"
+                    },
+                    "verified": {
+                        "type": "boolean"
+                    },
+                    "stamp": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "custid",
+                    "colonel",
+                    "secrets_created",
+                    "secrets_shared",
+                    "emails_sent",
+                    "verified",
+                    "stamp"
+                ]
+            },
+            "PlanOptions": {
+                "type": "object",
+                "properties": {
+                    "ttl": {
+                        "type": "number"
+                    },
+                    "size": {
+                        "type": "number"
+                    },
+                    "api": {
+                        "type": "boolean"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "boolean"
+                    },
+                    "custom_domains": {
+                        "type": "boolean"
+                    },
+                    "dark_mode": {
+                        "type": "boolean"
+                    },
+                    "cname": {
+                        "type": "boolean"
+                    },
+                    "private": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "ttl",
+                    "size",
+                    "api",
+                    "name"
+                ]
+            },
+            "Plan": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "planid": {
+                                "type": "string"
+                            },
+                            "price": {
+                                "type": "number"
+                            },
+                            "discount": {
+                                "type": "number"
+                            },
+                            "options": {
+                                "$ref": "#/components/schemas/PlanOptions"
+                            }
+                        },
+                        "required": [
+                            "planid",
+                            "price",
+                            "discount",
+                            "options"
+                        ]
+                    }
+                ]
+            },
+            "AvailablePlans": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/Plan"
+                }
+            },
+            "AuthenticationSettings": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "signup": {
+                        "type": "boolean"
+                    },
+                    "signin": {
+                        "type": "boolean"
+                    },
+                    "autoverify": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "signup",
+                    "signin",
+                    "autoverify"
+                ]
+            },
+            "ApproximatedVHost": {
+                "type": "object",
+                "properties": {
+                    "apx_hit": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "dns_pointed_at": {
+                        "type": "string"
+                    },
+                    "has_ssl": {
+                        "type": "boolean"
+                    },
+                    "id": {
+                        "type": "number"
+                    },
+                    "incoming_address": {
+                        "type": "string"
+                    },
+                    "is_resolving": {
+                        "type": "boolean"
+                    },
+                    "keep_host": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "last_monitored_humanized": {
+                        "type": "string"
+                    },
+                    "last_monitored_unix": {
+                        "type": "number"
+                    },
+                    "ssl_active_from": {
+                        "type": "string"
+                    },
+                    "ssl_active_until": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "status_message": {
+                        "type": "string"
+                    },
+                    "target_address": {
+                        "type": "string"
+                    },
+                    "target_ports": {
+                        "type": "string"
+                    },
+                    "user_message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "apx_hit",
+                    "created_at",
+                    "dns_pointed_at",
+                    "has_ssl",
+                    "id",
+                    "incoming_address",
+                    "is_resolving",
+                    "last_monitored_humanized",
+                    "last_monitored_unix",
+                    "ssl_active_from",
+                    "ssl_active_until",
+                    "status",
+                    "status_message",
+                    "target_address",
+                    "target_ports",
+                    "user_message"
+                ]
+            },
+            "CustomDomain": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "domainid": {
+                                "type": "string"
+                            },
+                            "custid": {
+                                "type": "string"
+                            },
+                            "display_domain": {
+                                "type": "string"
+                            },
+                            "base_domain": {
+                                "type": "string"
+                            },
+                            "subdomain": {
+                                "type": "string"
+                            },
+                            "trd": {
+                                "type": "string"
+                            },
+                            "tld": {
+                                "type": "string"
+                            },
+                            "sld": {
+                                "type": "string"
+                            },
+                            "verified": {
+                                "type": "boolean"
+                            },
+                            "_original_value": {
+                                "type": "string"
+                            },
+                            "txt_validation_host": {
+                                "type": "string"
+                            },
+                            "txt_validation_value": {
+                                "type": "string"
+                            },
+                            "vhost": {
+                                "$ref": "#/components/schemas/ApproximatedVHost"
+                            }
+                        },
+                        "required": [
+                            "domainid",
+                            "custid",
+                            "display_domain",
+                            "base_domain",
+                            "subdomain",
+                            "trd",
+                            "tld",
+                            "sld",
+                            "verified",
+                            "_original_value",
+                            "txt_validation_host",
+                            "txt_validation_value"
+                        ]
+                    }
+                ]
+            },
+            "CustomDomainCluster": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string"
+                            },
+                            "cluster_ip": {
+                                "type": "string"
+                            },
+                            "cluster_name": {
+                                "type": "string"
+                            },
+                            "vhost_target": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "type",
+                            "cluster_ip",
+                            "cluster_name",
+                            "vhost_target"
+                        ]
+                    }
+                ]
+            },
+            "ApiToken": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "apitoken": {
+                                "type": "string"
+                            },
+                            "active": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "apitoken",
+                            "active"
+                        ]
+                    }
+                ]
+            },
+            "Account": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "cust": {
+                                "$ref": "#/components/schemas/Customer"
+                            },
+                            "apitoken": {
+                                "type": "string"
+                            },
+                            "stripe_customer": {
+                                "type": "object"
+                            },
+                            "stripe_subscriptions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "required": [
+                            "cust",
+                            "stripe_customer",
+                            "stripe_subscriptions"
+                        ]
+                    }
+                ]
+            },
+            "ColonelData": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "recent_customers": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ColonelCustomer"
+                                }
+                            },
+                            "today_feedback": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Feedback"
+                                }
+                            },
+                            "yesterday_feedback": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Feedback"
+                                }
+                            },
+                            "older_feedback": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Feedback"
+                                }
+                            },
+                            "redis_info": {
+                                "type": "string"
+                            },
+                            "plans_enabled": {
+                                "type": "boolean"
+                            },
+                            "counts": {
+                                "type": "object",
+                                "properties": {
+                                    "session_count": {
+                                        "type": "number"
+                                    },
+                                    "customer_count": {
+                                        "type": "number"
+                                    },
+                                    "recent_customer_count": {
+                                        "type": "number"
+                                    },
+                                    "metadata_count": {
+                                        "type": "number"
+                                    },
+                                    "secret_count": {
+                                        "type": "number"
+                                    },
+                                    "secrets_created": {
+                                        "type": "number"
+                                    },
+                                    "secrets_shared": {
+                                        "type": "number"
+                                    },
+                                    "emails_sent": {
+                                        "type": "number"
+                                    },
+                                    "feedback_count": {
+                                        "type": "number"
+                                    },
+                                    "today_feedback_count": {
+                                        "type": "number"
+                                    },
+                                    "yesterday_feedback_count": {
+                                        "type": "number"
+                                    },
+                                    "older_feedback_count": {
+                                        "type": "number"
+                                    }
+                                },
+                                "required": [
+                                    "session_count",
+                                    "customer_count",
+                                    "recent_customer_count",
+                                    "metadata_count",
+                                    "secret_count",
+                                    "secrets_created",
+                                    "secrets_shared",
+                                    "emails_sent",
+                                    "feedback_count",
+                                    "today_feedback_count",
+                                    "yesterday_feedback_count",
+                                    "older_feedback_count"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "recent_customers",
+                            "today_feedback",
+                            "yesterday_feedback",
+                            "older_feedback",
+                            "redis_info",
+                            "plans_enabled",
+                            "counts"
+                        ]
+                    }
+                ]
+            },
+            "MetadataData": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "shortkey": {
+                                "type": "string"
+                            },
+                            "secret_key": {
+                                "type": "string"
+                            },
+                            "secret_shortkey": {
+                                "type": "string"
+                            },
+                            "recipients": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "created_date_utc": {
+                                "type": "string"
+                            },
+                            "expiration_stamp": {
+                                "type": "string"
+                            },
+                            "share_path": {
+                                "type": "string"
+                            },
+                            "burn_path": {
+                                "type": "string"
+                            },
+                            "metadata_path": {
+                                "type": "string"
+                            },
+                            "share_url": {
+                                "type": "string"
+                            },
+                            "metadata_url": {
+                                "type": "string"
+                            },
+                            "burn_url": {
+                                "type": "string"
+                            },
+                            "share_domain": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "key",
+                            "shortkey",
+                            "secret_key",
+                            "secret_shortkey",
+                            "recipients",
+                            "created_date_utc",
+                            "expiration_stamp",
+                            "share_path",
+                            "burn_path",
+                            "metadata_path",
+                            "share_url",
+                            "metadata_url",
+                            "burn_url",
+                            "share_domain"
+                        ]
+                    }
+                ]
+            },
+            "MetadataDetails": {
+                "type": "object",
+                "properties": {
+                    "body_class": {
+                        "type": "string"
+                    },
+                    "burned_date_utc": {
+                        "type": "string"
+                    },
+                    "burned_date": {
+                        "type": "string"
+                    },
+                    "can_decrypt": {
+                        "type": "boolean"
+                    },
+                    "display_feedback": {
+                        "type": "boolean"
+                    },
+                    "display_lines": {
+                        "type": "number"
+                    },
+                    "has_maxviews": {
+                        "type": "boolean"
+                    },
+                    "has_passphrase": {
+                        "type": "boolean"
+                    },
+                    "is_burned": {
+                        "type": "boolean"
+                    },
+                    "is_destroyed": {
+                        "type": "boolean"
+                    },
+                    "is_received": {
+                        "type": "boolean"
+                    },
+                    "maxviews": {
+                        "type": "number"
+                    },
+                    "no_cache": {
+                        "type": "boolean"
+                    },
+                    "received_date_utc": {
+                        "type": "string"
+                    },
+                    "received_date": {
+                        "type": "string"
+                    },
+                    "secret_value": {
+                        "type": "string"
+                    },
+                    "show_metadata_link": {
+                        "type": "boolean"
+                    },
+                    "show_metadata": {
+                        "type": "boolean"
+                    },
+                    "show_recipients": {
+                        "type": "boolean"
+                    },
+                    "show_secret_link": {
+                        "type": "boolean"
+                    },
+                    "show_secret": {
+                        "type": "boolean"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "is_truncated": {
+                        "type": "boolean"
+                    },
+                    "view_count": {
+                        "type": "number"
+                    }
+                }
+            },
+            "SecretData": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "secret_key": {
+                                "type": "string"
+                            },
+                            "secret_shortkey": {
+                                "type": "string"
+                            },
+                            "is_truncated": {
+                                "type": "boolean"
+                            },
+                            "original_size": {
+                                "type": "number"
+                            },
+                            "verification": {
+                                "type": "string"
+                            },
+                            "share_domain": {
+                                "type": "string"
+                            },
+                            "is_owner": {
+                                "type": "boolean"
+                            },
+                            "has_passphrase": {
+                                "type": "boolean"
+                            },
+                            "secret_value": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "key",
+                            "secret_key",
+                            "secret_shortkey",
+                            "is_truncated",
+                            "original_size",
+                            "verification",
+                            "share_domain",
+                            "is_owner",
+                            "has_passphrase"
+                        ]
+                    }
+                ]
+            },
+            "SecretDetails": {
+                "type": "object",
+                "properties": {
+                    "continue": {
+                        "type": "boolean"
+                    },
+                    "show_secret": {
+                        "type": "boolean"
+                    },
+                    "correct_passphrase": {
+                        "type": "boolean"
+                    },
+                    "display_lines": {
+                        "type": "number"
+                    },
+                    "one_liner": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ConcealData": {
+                "type": "object",
+                "properties": {
+                    "metadata": {
+                        "$ref": "#/components/schemas/MetadataData"
+                    },
+                    "secret": {
+                        "$ref": "#/components/schemas/SecretData"
+                    },
+                    "share_domain": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "metadata",
+                    "secret",
+                    "share_domain"
+                ]
+            },
+            "ConcealDetails": {
+                "type": "object",
+                "properties": {
+                    "kind": {
+                        "type": "string"
+                    },
+                    "recipient": {
+                        "type": "string"
+                    },
+                    "recipient_safe": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "kind",
+                    "recipient",
+                    "recipient_safe"
+                ]
+            },
+            "CheckAuthData": {
+                "$ref": "#/components/schemas/Customer"
+            },
+            "CheckAuthDetails": {
+                "type": "object",
+                "properties": {
+                    "authorized": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "authorized"
+                ]
+            },
+            "Feedback": {
+                "type": "object",
+                "properties": {
+                    "msg": {
+                        "type": "string"
+                    },
+                    "stamp": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "msg",
+                    "stamp"
+                ]
+            },
+            "BaseApiResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            },
+            "ApiErrorResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "message": {
+                                "type": "string"
+                            },
+                            "code": {
+                                "type": "number"
+                            },
+                            "record": {
+                                "$ref": "#/components/schemas/BaseApiRecord"
+                            },
+                            "details": {
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "message"
+                        ]
+                    }
+                ]
+            },
+            "ApiRecordsResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "custid": {
+                                "type": "string"
+                            },
+                            "records": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/BaseApiRecord"
+                                }
+                            },
+                            "count": {
+                                "type": "number"
+                            },
+                            "details": {
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "custid",
+                            "records",
+                            "count"
+                        ]
+                    }
+                ]
+            },
+            "ApiRecordResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "record": {
+                                "$ref": "#/components/schemas/BaseApiRecord"
+                            },
+                            "details": {
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "record"
+                        ]
+                    }
+                ]
+            },
+            "DashboardMetadata": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "shortkey": {
+                                "type": "string"
+                            },
+                            "show_recipients": {
+                                "type": "boolean"
+                            },
+                            "stamp": {
+                                "type": "string"
+                            },
+                            "uri": {
+                                "type": "string"
+                            },
+                            "is_received": {
+                                "type": "boolean"
+                            },
+                            "is_burned": {
+                                "type": "boolean"
+                            },
+                            "is_destroyed": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "shortkey",
+                            "show_recipients",
+                            "stamp",
+                            "uri",
+                            "is_received",
+                            "is_burned",
+                            "is_destroyed"
+                        ]
+                    }
+                ]
+            },
+            "Metadata": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/DashboardMetadata"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "custid": {
+                                "type": "string"
+                            },
+                            "state": {
+                                "type": "string"
+                            },
+                            "secret_key": {
+                                "type": "string"
+                            },
+                            "secret_shortkey": {
+                                "type": "string"
+                            },
+                            "secret_ttl": {
+                                "type": "number"
+                            },
+                            "share_domain": {
+                                "type": "string"
+                            },
+                            "passphrase": {
+                                "type": "string"
+                            },
+                            "viewed": {
+                                "type": "boolean"
+                            },
+                            "received": {
+                                "type": "boolean"
+                            },
+                            "shared": {
+                                "type": "boolean"
+                            },
+                            "burned": {
+                                "type": "boolean"
+                            },
+                            "recipients": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "truncate": {
+                                "type": "boolean"
+                            },
+                            "key": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "custid",
+                            "state",
+                            "secret_key",
+                            "secret_shortkey",
+                            "secret_ttl",
+                            "share_domain",
+                            "passphrase",
+                            "viewed",
+                            "received",
+                            "shared",
+                            "burned",
+                            "recipients",
+                            "truncate",
+                            "key"
+                        ]
+                    }
+                ]
+            },
+            "Secret": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiRecord"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "custid": {
+                                "type": "string"
+                            },
+                            "state": {
+                                "type": "string"
+                            },
+                            "value": {
+                                "type": "string"
+                            },
+                            "metadata_key": {
+                                "type": "string"
+                            },
+                            "original_size": {
+                                "type": "number"
+                            },
+                            "value_checksum": {
+                                "type": "string"
+                            },
+                            "value_encryption": {
+                                "type": "string"
+                            },
+                            "lifespan": {
+                                "type": "number"
+                            },
+                            "share_domain": {
+                                "type": "string"
+                            },
+                            "verification": {
+                                "type": "string"
+                            },
+                            "is_truncated": {
+                                "type": "boolean"
+                            },
+                            "maxviews": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "custid",
+                            "state",
+                            "value",
+                            "metadata_key",
+                            "original_size",
+                            "value_checksum",
+                            "value_encryption",
+                            "lifespan",
+                            "share_domain",
+                            "verification",
+                            "is_truncated",
+                            "maxviews"
+                        ]
+                    }
+                ]
+            }
+        },
+        "securitySchemes": {
+            "ApiKey": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-Api-Key"
+            }
+        }
+    },
+    "security": [
+        {
+            "ApiKey": []
+        }
+    ]
 }
