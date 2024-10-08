@@ -359,6 +359,58 @@
 				},
 				{
 					"name": "/v2/status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "57250e91-e4b8-483a-8dea-2f21335ad13e",
+								"type": "text/javascript",
+								"packages": {
+									"@dev444-0594/onetime-postman": {
+										"id": "01926c81-785b-74a2-a01e-eaa01dc767dc"
+									}
+								},
+								"exec": [
+									"const onetimePostman = pm.require('@dev444-0594/onetime-postman');",
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response time is within an acceptable range\", function () {",
+									"  pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response has the required fields - status and locale\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.status).to.exist;",
+									"  pm.expect(responseData.locale).to.exist;",
+									"});",
+									"",
+									"",
+									"pm.test(\"Status is a non-empty string\", function () {",
+									"  const responseData = pm.response.json();",
+									"  ",
+									"  pm.expect(responseData).to.be.an('object');",
+									"  pm.expect(responseData.status).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Status should not be empty\");",
+									"});",
+									"",
+									"",
+									"pm.test(\"Locale is in a valid format\", function () {",
+									"    const responseData = pm.response.json();",
+									"    ",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.locale).to.match(/[a-zA-Z]{2}(_[a-zA-Z]{2})?/);",
+									"});",
+									""
+								]
+							}
+						}
+					],
 					"id": "08ba19d7-c0aa-46a9-b7dd-f9e9682c238a",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
@@ -3715,30 +3767,42 @@
 		}
 	],
 	"auth": {
-		"type": "apikey",
-		"apikey": [
+		"type": "basic",
+		"basic": [
 			{
-				"key": "key",
-				"value": "X-Api-Key",
+				"key": "password",
+				"value": "{{apikey}}",
 				"type": "string"
 			},
 			{
-				"key": "value",
-				"value": "{{apiKey}}",
-				"type": "string"
-			},
-			{
-				"key": "in",
-				"value": "header",
+				"key": "username",
+				"value": "{{custid}}",
 				"type": "string"
 			}
 		]
 	},
-	"variable": [
+	"event": [
 		{
-			"id": "d1994d2a-bd6e-4017-81e0-bab3cfbfc6d7",
-			"key": "baseUrl",
-			"value": "https://onetimesecret.com"
+			"listen": "prerequest",
+			"script": {
+				"id": "28fa151a-f2c2-4681-b10e-63ff09af17d2",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "6daa13b3-ef14-4dfa-8d97-927970280359",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }
