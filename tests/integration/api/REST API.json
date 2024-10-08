@@ -760,28 +760,6 @@
 						}
 					],
 					"id": "5b31e795-f747-400c-bf05-6f9f072aeaae"
-				},
-				{
-					"name": "authcheck",
-					"id": "99a1af14-d794-4cb0-b423-58577d9c4baf",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/v2/authcheck",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"v2",
-								"authcheck"
-							]
-						}
-					},
-					"response": []
 				}
 			],
 			"id": "f5d1b7fb-2f82-47b0-89e3-5cb7a0bf0bbf"
@@ -1421,7 +1399,8 @@
 		{
 			"id": "4d3c8eb6-bbf0-46a3-9290-df63650805cc",
 			"key": "baseUrl",
-			"value": "https://onetimesecret.com"
+			"value": "https://onetimesecret.com",
+			"type": "any"
 		}
 	]
 }

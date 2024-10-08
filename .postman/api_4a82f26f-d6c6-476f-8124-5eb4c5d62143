@@ -15,7 +15,6 @@ files[] = {"id":"38849719-3d3496f1-39bb-46d3-bf45-f0fb5ba56549","path":"REST API
 
 [config.relations.apiDefinition]
 files[] = {"path":"index.json","metaData":{}}
-files[] = {"path":"New.json","metaData":{}}
 
 [config.relations.apiDefinition.metaData]
 type = openapi:3
