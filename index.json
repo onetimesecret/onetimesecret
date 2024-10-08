@@ -265,9 +265,17 @@
         },
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareV1ApiResponse"
+                }
+              }
+            }
           }
-        },
+        }
+        ,
         "tags": [
           "v1",
           "secrets",
@@ -280,9 +288,17 @@
         "summary": "Generate a secret",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConcealDataApiResponse"
+                }
+              }
+            }
           }
-        },
+        }
+        ,
         "tags": [
           "v1",
           "secrets",
@@ -305,9 +321,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretDataApiResponse"
+                }
+              }
+            }
           }
-        },
+        }
+        ,
         "tags": [
           "v1",
           "secrets",
@@ -321,9 +345,17 @@
         "summary": "Get system status",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
-        },
+        }
+        ,
         "tags": [
           "v1",
           "readonly"
@@ -347,7 +379,14 @@
         "summary": "Get system status",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -359,7 +398,14 @@
         "summary": "Head system status",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -399,7 +445,14 @@
         },
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -432,7 +485,14 @@
         },
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -447,7 +507,14 @@
         "summary": "Generate API Key",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -462,7 +529,14 @@
         "summary": "Get Account",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -476,7 +550,14 @@
         "summary": "Update Account Locale",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -490,7 +571,15 @@
         "summary": "List Recent Metadata",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiRecordsResponse",
+                  "x-generic": "MetadataData"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -515,7 +604,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -540,7 +636,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataDataApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -565,7 +668,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretDataApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -587,7 +697,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretDataApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -602,7 +719,14 @@
         "summary": "Conceal Secret",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConcealDataApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -617,7 +741,14 @@
         "summary": "Auth Check",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAuthDataApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -631,7 +762,15 @@
         "summary": "Get Supported Locales",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiRecordsResponse",
+                  "x-generic": "string"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -645,7 +784,14 @@
         "summary": "Get Version",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -659,7 +805,14 @@
         "summary": "Validate Shrimp",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -673,7 +826,14 @@
         "summary": "Get Altcha Challenge",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -687,7 +847,14 @@
         "summary": "Verify Altcha",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -701,7 +868,14 @@
         "summary": "Verify Altcha Spam",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaseApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -715,7 +889,14 @@
         "summary": "Get Colonel Index",
         "responses": {
           "200": {
-            "description": "Successful response"
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColonelDataApiResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -727,7 +908,7 @@
   },
   "components": {
     "schemas": {
-      "BaseApiRecord": {
+      "BaseApiV2Record": {
         "type": "object",
         "properties": {
           "identifier": {
@@ -749,7 +930,7 @@
       "Customer": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -887,7 +1068,7 @@
       "Plan": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1021,7 +1202,7 @@
       "CustomDomain": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1086,7 +1267,7 @@
       "CustomDomainCluster": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1116,7 +1297,7 @@
       "ApiToken": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1138,7 +1319,7 @@
       "Account": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1170,7 +1351,7 @@
       "ColonelData": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1276,7 +1457,7 @@
       "MetadataData": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1426,7 +1607,7 @@
       "SecretData": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1589,7 +1770,7 @@
                 "type": "number"
               },
               "record": {
-                "$ref": "#/components/schemas/BaseApiRecord"
+                "$ref": "#/components/schemas/BaseApiV2Record"
               },
               "details": {
                 "type": "object"
@@ -1615,7 +1796,7 @@
               "records": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/BaseApiRecord"
+                  "$ref": "#/components/schemas/BaseApiV2Record"
                 }
               },
               "count": {
@@ -1642,7 +1823,7 @@
             "type": "object",
             "properties": {
               "record": {
-                "$ref": "#/components/schemas/BaseApiRecord"
+                "$ref": "#/components/schemas/BaseApiV2Record"
               },
               "details": {
                 "type": "object"
@@ -1657,7 +1838,7 @@
       "DashboardMetadata": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
@@ -1772,7 +1953,7 @@
       "Secret": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiRecord"
+            "$ref": "#/components/schemas/BaseApiV2Record"
           },
           {
             "type": "object",
