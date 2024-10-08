@@ -760,6 +760,28 @@
 						}
 					],
 					"id": "5b31e795-f747-400c-bf05-6f9f072aeaae"
+				},
+				{
+					"name": "authcheck",
+					"id": "99a1af14-d794-4cb0-b423-58577d9c4baf",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v2/authcheck",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v2",
+								"authcheck"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"id": "f5d1b7fb-2f82-47b0-89e3-5cb7a0bf0bbf"
@@ -1357,28 +1379,47 @@
 		}
 	],
 	"auth": {
-		"type": "apikey",
-		"apikey": [
+		"type": "basic",
+		"basic": [
 			{
-				"key": "key",
-				"value": "X-Api-Key",
+				"key": "password",
+				"value": "{{apikey}}",
 				"type": "string"
 			},
 			{
-				"key": "value",
-				"value": "{{apiKey}}",
-				"type": "string"
-			},
-			{
-				"key": "in",
-				"value": "header",
+				"key": "username",
+				"value": "{{custid}}",
 				"type": "string"
 			}
 		]
 	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "598e2e97-2a78-4e5e-9c3c-5becebcd5af2",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "73371cbd-e8c0-4860-9da5-f39d3d936e5c",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
 	"variable": [
 		{
-			"id": "09554ec1-054a-4439-97d1-f6f227e8188e",
+			"id": "4d3c8eb6-bbf0-46a3-9290-df63650805cc",
 			"key": "baseUrl",
 			"value": "https://onetimesecret.com"
 		}
