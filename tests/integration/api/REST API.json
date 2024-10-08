@@ -1,0 +1,1386 @@
+{
+	"info": {
+		"_postman_id": "3d3496f1-39bb-46d3-bf45-f0fb5ba56549",
+		"name": "REST API",
+		"description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "38849719-3d3496f1-39bb-46d3-bf45-f0fb5ba56549"
+	},
+	"item": [
+		{
+			"name": "v2",
+			"item": [
+				{
+					"name": "account",
+					"item": [
+						{
+							"name": "domains",
+							"item": [
+								{
+									"name": "add",
+									"item": [
+										{
+											"name": "/v2/account/domains/add",
+											"id": "6c37450f-7b16-4653-9b87-5f13d8a91f96",
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/x-www-form-urlencoded"
+													}
+												],
+												"body": {
+													"mode": "urlencoded",
+													"urlencoded": [
+														{
+															"description": "(Required) ",
+															"key": "domain",
+															"value": "<string>"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/domains/add",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"domains",
+														"add"
+													]
+												}
+											},
+											"response": [
+												{
+													"id": "672691b6-e03c-4900-8647-b2e46bca5d17",
+													"name": "Successful response",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/x-www-form-urlencoded"
+															},
+															{
+																"description": "Added as a part of security scheme: apikey",
+																"key": "X-Api-Key",
+																"value": "<API Key>"
+															}
+														],
+														"body": {
+															"mode": "urlencoded",
+															"urlencoded": [
+																{
+																	"description": "(Required) ",
+																	"key": "domain",
+																	"value": "<string>"
+																}
+															]
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v2/account/domains/add",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v2",
+																"account",
+																"domains",
+																"add"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": []
+												}
+											]
+										}
+									],
+									"id": "b61cb4e2-5b69-4377-9aba-9d9c7ff22622"
+								},
+								{
+									"name": "{domain}",
+									"item": [
+										{
+											"name": "remove",
+											"item": [
+												{
+													"name": "/v2/account/domains/:domain/remove",
+													"id": "3bd1228c-e404-48ab-8e3c-06d4c5dd2267",
+													"protocolProfileBehavior": {
+														"disableBodyPruning": true
+													},
+													"request": {
+														"method": "POST",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v2/account/domains/:domain/remove",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v2",
+																"account",
+																"domains",
+																":domain",
+																"remove"
+															],
+															"variable": [
+																{
+																	"key": "domain",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"id": "945d4c54-5117-4618-90e1-e6451083cf33",
+															"name": "Successful response",
+															"originalRequest": {
+																"method": "POST",
+																"header": [
+																	{
+																		"description": "Added as a part of security scheme: apikey",
+																		"key": "X-Api-Key",
+																		"value": "<API Key>"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/v2/account/domains/:domain/remove",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v2",
+																		"account",
+																		"domains",
+																		":domain",
+																		"remove"
+																	],
+																	"variable": [
+																		{
+																			"key": "domain"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "text",
+															"header": [],
+															"cookie": []
+														}
+													]
+												}
+											],
+											"id": "444b11af-beaa-4d36-a5e3-077342099868"
+										},
+										{
+											"name": "verify",
+											"item": [
+												{
+													"name": "/v2/account/domains/:domain/verify",
+													"id": "47ccc474-88b7-40a1-b0a6-490b3aaf4c87",
+													"protocolProfileBehavior": {
+														"disableBodyPruning": true
+													},
+													"request": {
+														"method": "POST",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v2/account/domains/:domain/verify",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v2",
+																"account",
+																"domains",
+																":domain",
+																"verify"
+															],
+															"variable": [
+																{
+																	"key": "domain",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"id": "9b40f54e-bacb-4132-b6e1-e7f6184c04e7",
+															"name": "Successful response",
+															"originalRequest": {
+																"method": "POST",
+																"header": [
+																	{
+																		"description": "Added as a part of security scheme: apikey",
+																		"key": "X-Api-Key",
+																		"value": "<API Key>"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/v2/account/domains/:domain/verify",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v2",
+																		"account",
+																		"domains",
+																		":domain",
+																		"verify"
+																	],
+																	"variable": [
+																		{
+																			"key": "domain"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "text",
+															"header": [],
+															"cookie": []
+														}
+													]
+												}
+											],
+											"id": "2e5e0c7f-2b7b-4474-bf08-a87e82f14bfb"
+										},
+										{
+											"name": "/v2/account/domains/:domain",
+											"id": "102ea51c-e15d-4d41-be1b-25393f1de54d",
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"method": "GET",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/domains/:domain",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"domains",
+														":domain"
+													],
+													"variable": [
+														{
+															"key": "domain",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"id": "18bc6c0d-9790-4015-a76d-992a658653fc",
+													"name": "Successful response",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"description": "Added as a part of security scheme: apikey",
+																"key": "X-Api-Key",
+																"value": "<API Key>"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v2/account/domains/:domain",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v2",
+																"account",
+																"domains",
+																":domain"
+															],
+															"variable": [
+																{
+																	"key": "domain"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": []
+												}
+											]
+										}
+									],
+									"id": "8057a3c3-d997-4f95-b02f-2c82d00daa76"
+								},
+								{
+									"name": "/v2/account/domains",
+									"id": "4909e1f7-5766-463b-9c5b-e0234a5caa17",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/domains",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"domains"
+											]
+										}
+									},
+									"response": [
+										{
+											"id": "711efdfa-29bb-4526-aec3-11c7fd669415",
+											"name": "Successful response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "X-Api-Key",
+														"value": "<API Key>"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/domains",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"domains"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": []
+										}
+									]
+								}
+							],
+							"id": "d24c3c43-7bd5-40d9-9a58-538e48900c0c"
+						},
+						{
+							"name": "change-password",
+							"item": [
+								{
+									"name": "/v2/account/change-password",
+									"id": "bca9ff9d-c638-4ce8-a972-cb443d87d04b",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/x-www-form-urlencoded"
+											}
+										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"description": "(Required) ",
+													"key": "currentp",
+													"value": "<string>"
+												},
+												{
+													"description": "(Required) ",
+													"key": "newp",
+													"value": "<string>"
+												},
+												{
+													"description": "(Required) ",
+													"key": "newp2",
+													"value": "<string>"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/change-password",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"change-password"
+											]
+										}
+									},
+									"response": [
+										{
+											"id": "ecdcae6c-e41c-426c-8f5c-647121d188fe",
+											"name": "Successful response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/x-www-form-urlencoded"
+													},
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "X-Api-Key",
+														"value": "<API Key>"
+													}
+												],
+												"body": {
+													"mode": "urlencoded",
+													"urlencoded": [
+														{
+															"description": "(Required) ",
+															"key": "currentp",
+															"value": "<string>"
+														},
+														{
+															"description": "(Required) ",
+															"key": "newp",
+															"value": "<string>"
+														},
+														{
+															"description": "(Required) ",
+															"key": "newp2",
+															"value": "<string>"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/change-password",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"change-password"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": []
+										}
+									]
+								}
+							],
+							"id": "8ea12bc5-2841-456a-b387-1f3a394bfa33"
+						},
+						{
+							"name": "destroy",
+							"item": [
+								{
+									"name": "/v2/account/destroy",
+									"id": "2cd3554e-8e04-4c1f-8df3-f3e25bdfeeb3",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/x-www-form-urlencoded"
+											}
+										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"description": "(Required) ",
+													"key": "confirmation",
+													"value": "<string>"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/destroy",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"destroy"
+											]
+										}
+									},
+									"response": [
+										{
+											"id": "fe629020-eb20-41e0-983b-fd1c3ba61482",
+											"name": "Successful response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/x-www-form-urlencoded"
+													},
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "X-Api-Key",
+														"value": "<API Key>"
+													}
+												],
+												"body": {
+													"mode": "urlencoded",
+													"urlencoded": [
+														{
+															"description": "(Required) ",
+															"key": "confirmation",
+															"value": "<string>"
+														}
+													]
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/destroy",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"destroy"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": []
+										}
+									]
+								}
+							],
+							"id": "b93e15b3-60ba-4a72-9a71-eecd22475b9c"
+						},
+						{
+							"name": "apitoken",
+							"item": [
+								{
+									"name": "/v2/account/apitoken",
+									"id": "dd2d03bd-e90f-444c-b9aa-3307317eaafb",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/apitoken",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"apitoken"
+											]
+										}
+									},
+									"response": [
+										{
+											"id": "3f73668e-6d02-41b3-8c88-632371ccd9c8",
+											"name": "Successful response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "X-Api-Key",
+														"value": "<API Key>"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/apitoken",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"apitoken"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": []
+										}
+									]
+								}
+							],
+							"id": "c9c1171f-fc29-4463-810c-98ed49c541ab"
+						}
+					],
+					"id": "1da019d8-0ae3-4bf0-9c61-08f572d4d5e3"
+				},
+				{
+					"name": "status",
+					"item": [
+						{
+							"name": "/v2/status",
+							"id": "be4e2d8d-98ec-4c81-b838-ca348c4588d8",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v2/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"status"
+									]
+								}
+							},
+							"response": [
+								{
+									"id": "eee173e9-3b9d-47ed-9f6a-1a535853fd0c",
+									"name": "Successful response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "X-Api-Key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v2/status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"status"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": []
+								}
+							]
+						},
+						{
+							"name": "/v2/status",
+							"id": "76fd6037-68fd-4636-b5bf-494904232fcf",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "HEAD",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v2/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"status"
+									]
+								}
+							},
+							"response": [
+								{
+									"id": "635fd0a9-6540-4d01-9e85-dcf49f173b8d",
+									"name": "Successful response",
+									"originalRequest": {
+										"method": "HEAD",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "X-Api-Key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v2/status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"status"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": []
+								}
+							]
+						}
+					],
+					"id": "5b31e795-f747-400c-bf05-6f9f072aeaae"
+				}
+			],
+			"id": "f5d1b7fb-2f82-47b0-89e3-5cb7a0bf0bbf"
+		},
+		{
+			"name": "v1",
+			"item": [
+				{
+					"name": "private",
+					"item": [
+						{
+							"name": "{metadata_key}",
+							"item": [
+								{
+									"name": "burn",
+									"item": [
+										{
+											"name": "/v1/private/:metadata_key/burn",
+											"id": "08285b3b-428b-4e7f-90dd-6c382f5521e1",
+											"protocolProfileBehavior": {
+												"disableBodyPruning": true
+											},
+											"request": {
+												"method": "POST",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/private/:metadata_key/burn",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"private",
+														":metadata_key",
+														"burn"
+													],
+													"variable": [
+														{
+															"key": "metadata_key",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"id": "7315b602-caa5-4de0-a36c-3a995e29ae13",
+													"name": "Successful response",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"description": "Added as a part of security scheme: apikey",
+																"key": "X-Api-Key",
+																"value": "<API Key>"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/private/:metadata_key/burn",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"private",
+																":metadata_key",
+																"burn"
+															],
+															"variable": [
+																{
+																	"key": "metadata_key"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "text",
+													"header": [],
+													"cookie": []
+												}
+											]
+										}
+									],
+									"id": "e3844d16-f44a-4ee7-85b8-159979f6d1cb"
+								},
+								{
+									"name": "/v1/private/:metadata_key",
+									"id": "ab7d6658-2f99-48bf-87f5-0fd41b34941b",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/private/:metadata_key",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"private",
+												":metadata_key"
+											],
+											"variable": [
+												{
+													"key": "metadata_key",
+													"value": "<string>",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"id": "331549db-fa20-4425-8b85-ea76bb825ce2",
+											"name": "Successful response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "X-Api-Key",
+														"value": "<API Key>"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/private/:metadata_key",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"private",
+														":metadata_key"
+													],
+													"variable": [
+														{
+															"key": "metadata_key"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": []
+										}
+									]
+								}
+							],
+							"id": "5d2e5799-7ab4-4637-9a21-011d8fbcdf8b"
+						},
+						{
+							"name": "recent",
+							"item": [
+								{
+									"name": "/v1/private/recent",
+									"id": "5dc5fd59-45cb-4101-83f1-aaf0413fb153",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/private/recent",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"private",
+												"recent"
+											]
+										}
+									},
+									"response": [
+										{
+											"id": "d7d2a179-1924-4c35-8dac-4772aa8deb78",
+											"name": "Successful response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "X-Api-Key",
+														"value": "<API Key>"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/private/recent",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"private",
+														"recent"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": []
+										}
+									]
+								}
+							],
+							"id": "fa4a4bc7-4630-4fcf-8b2c-00a131377132"
+						}
+					],
+					"id": "b2de4c46-ad0e-4568-8e20-958e303c9cdb"
+				},
+				{
+					"name": "share",
+					"item": [
+						{
+							"name": "/v1/share",
+							"id": "96c99e33-3c9b-4027-a264-eaf505325b44",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/x-www-form-urlencoded"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"description": "(Required) ",
+											"key": "secret",
+											"value": "<string>"
+										},
+										{
+											"key": "ttl",
+											"value": "<string>"
+										},
+										{
+											"key": "passphrase",
+											"value": "<string>"
+										},
+										{
+											"key": "recipient",
+											"value": "<string>"
+										},
+										{
+											"key": "kind",
+											"value": "<string>"
+										},
+										{
+											"key": "share_domain",
+											"value": "<string>"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{baseUrl}}/v1/share",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"share"
+									]
+								}
+							},
+							"response": [
+								{
+									"id": "126e9fda-a830-4ba9-ac09-372b9fe62369",
+									"name": "Successful response",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/x-www-form-urlencoded"
+											},
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "X-Api-Key",
+												"value": "<API Key>"
+											}
+										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"description": "(Required) ",
+													"key": "secret",
+													"value": "<string>"
+												},
+												{
+													"key": "ttl",
+													"value": "<string>"
+												},
+												{
+													"key": "passphrase",
+													"value": "<string>"
+												},
+												{
+													"key": "recipient",
+													"value": "<string>"
+												},
+												{
+													"key": "kind",
+													"value": "<string>"
+												},
+												{
+													"key": "share_domain",
+													"value": "<string>"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v1/share",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"share"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": []
+								}
+							]
+						}
+					],
+					"id": "df5c67c5-3972-494d-8b60-1c4fca43fb7e"
+				},
+				{
+					"name": "generate",
+					"item": [
+						{
+							"name": "/v1/generate",
+							"id": "df03c638-6001-49f5-b1fc-68ace95c0daa",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v1/generate",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"generate"
+									]
+								}
+							},
+							"response": [
+								{
+									"id": "21a88bb2-e404-4ad2-94bb-64954313cbd3",
+									"name": "Successful response",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "X-Api-Key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v1/generate",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"generate"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": []
+								}
+							]
+						}
+					],
+					"id": "2909913b-4825-4d25-adae-a488aecf5bb4"
+				},
+				{
+					"name": "secret",
+					"item": [
+						{
+							"name": "{secret_key}",
+							"item": [
+								{
+									"name": "/v1/secret/:secret_key",
+									"id": "ed28e5e4-2ea8-49e6-a9d4-a3d4c07c6ece",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/secret/:secret_key",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"secret",
+												":secret_key"
+											],
+											"variable": [
+												{
+													"key": "secret_key",
+													"value": "<string>",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"id": "2ff83a21-db6f-45c8-82b8-51f9a2b70193",
+											"name": "Successful response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"description": "Added as a part of security scheme: apikey",
+														"key": "X-Api-Key",
+														"value": "<API Key>"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/secret/:secret_key",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"secret",
+														":secret_key"
+													],
+													"variable": [
+														{
+															"key": "secret_key"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "text",
+											"header": [],
+											"cookie": []
+										}
+									]
+								}
+							],
+							"id": "4de0aabd-e3d6-4186-b352-a67fff6f9047"
+						}
+					],
+					"id": "dc6189a3-2cea-4556-a403-33c875065531"
+				},
+				{
+					"name": "status",
+					"item": [
+						{
+							"name": "/v1/status",
+							"id": "e38013be-17ef-4e49-9515-942449b89796",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v1/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"status"
+									]
+								}
+							},
+							"response": [
+								{
+									"id": "8736bb40-a031-46f0-82b6-84db9f95c4c3",
+									"name": "Successful response",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "X-Api-Key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v1/status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"status"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": []
+								}
+							]
+						},
+						{
+							"name": "/v1/status",
+							"id": "5d7e6744-508e-4204-9418-88d0e4be5948",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "HEAD",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v1/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"status"
+									]
+								}
+							},
+							"response": [
+								{
+									"id": "58e1ef12-3be6-4dfb-8f8b-aa36cc50ad98",
+									"name": "Successful response",
+									"originalRequest": {
+										"method": "HEAD",
+										"header": [
+											{
+												"description": "Added as a part of security scheme: apikey",
+												"key": "X-Api-Key",
+												"value": "<API Key>"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v1/status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"status"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "text",
+									"header": [],
+									"cookie": []
+								}
+							]
+						}
+					],
+					"id": "805dbd7b-791f-4644-be2f-e7b1402e461b"
+				}
+			],
+			"id": "622575d2-7f25-4764-a994-049198d8f97b"
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "X-Api-Key",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "{{apiKey}}",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"id": "09554ec1-054a-4439-97d1-f6f227e8188e",
+			"key": "baseUrl",
+			"value": "https://onetimesecret.com"
+		}
+	]
+}
