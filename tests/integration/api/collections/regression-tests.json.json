@@ -254,5 +254,36 @@
 			],
 			"id": "b11d32af-b50e-46e8-b8fc-1c0d61987eae"
 		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": {
+			"password": "{{apikey}}",
+			"username": "{{custid}}"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "10e537b6-c780-43b7-a45c-2dc79f333105",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "83d12899-3090-4745-8e7b-a9610b0c4847",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
 	]
 }
