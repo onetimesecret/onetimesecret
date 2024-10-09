@@ -2333,11 +2333,44 @@
 			"password": "{{basicAuthPassword}}"
 		}
 	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "ee58c026-df8a-43bf-a7aa-13a9e3816154",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "a3e68ec1-4ed6-466f-83c5-61744b89f06f",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
 	"variable": [
 		{
-			"id": "105fe168-83af-406a-9a14-b7923037f20f",
 			"key": "baseUrl",
 			"value": "https://onetimesecret.com/api"
+		},
+		{
+			"key": "basicAuthUsername",
+			"value": "{{custid}}",
+			"type": "string"
+		},
+		{
+			"key": "basicAuthPassword",
+			"value": "{{apikey}}",
+			"type": "string"
 		}
 	]
 }
