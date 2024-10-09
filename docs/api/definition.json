@@ -1,8 +1,8 @@
 {
-    "openapi": "3.0.0",
+    "openapi": "3.0.3",
     "info": {
         "version": "2.1.0",
-        "title": "Onetime Secret",
+        "title": "Onetime Secret API [2024-10-09]",
         "description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications."
     },
     "servers": [
@@ -691,7 +691,6 @@
                 ]
             }
         },
-
         "/v1/private/{metadata_key}/burn": {
             "post": {
                 "summary": "Burn a secret",
