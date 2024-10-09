@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "36dfd834-c62f-4d68-9b4f-9ab73ecadc77",
+		"_postman_id": "7ada5232-041d-4fc6-b72b-dfabfa91532c",
 		"name": "Regression tests - Edge Cases",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_uid": "38849719-36dfd834-c62f-4d68-9b4f-9ab73ecadc77"
+		"_uid": "38849719-7ada5232-041d-4fc6-b72b-dfabfa91532c"
 	},
 	"item": [
 		{
@@ -11,7 +11,7 @@
 			"item": [
 				{
 					"name": "Create Secret",
-					"id": "0fe2dc2d-ce23-41e1-a42b-7cffb29276e4",
+					"id": "7b135895-baa2-46b9-bd9f-a59ba33b0496",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -59,7 +59,7 @@
 				},
 				{
 					"name": "Retrieve secret",
-					"id": "a37327ba-c2d2-478d-9924-0ca891a53cc8",
+					"id": "4527f137-c835-4c86-8974-ce6427a14e31",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -82,7 +82,7 @@
 				},
 				{
 					"name": "Retrieve metadata",
-					"id": "fc51dd95-0784-4338-a978-1dec971ce044",
+					"id": "6da9cd1b-853c-4540-8462-59695d82a777",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -104,14 +104,14 @@
 					"response": []
 				}
 			],
-			"id": "4d502062-6479-445c-8d2f-c281696478db"
+			"id": "9bbe27b0-1072-498c-9d78-f304efdbd7d4"
 		},
 		{
 			"name": "Misc",
 			"item": [
 				{
 					"name": "Create a secret with a missing passphrase",
-					"id": "1fb13e45-c83a-45f2-adf9-7b794ac2a9cf",
+					"id": "b7870314-a7fe-49a2-8f73-1dbf2b6063f6",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -159,7 +159,7 @@
 				},
 				{
 					"name": "Create a secret with a passphrase",
-					"id": "4b0c2c24-35c3-4a44-acd8-a9d1874c2015",
+					"id": "e7310457-b7b1-40c6-89c9-1a7c49ae1b14",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -211,7 +211,7 @@
 				},
 				{
 					"name": "Create a secret with an empty passphrase",
-					"id": "38b44564-2899-4783-b902-bccb195f8b31",
+					"id": "816bb1e0-5a2f-4e85-82fd-1795545eb695",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -263,7 +263,7 @@
 				},
 				{
 					"name": "Create a secret with bogus domain",
-					"id": "82fd4841-83fa-42f9-b9a1-1e6f550383c1",
+					"id": "6451f96c-3331-4a4f-a4fe-2a9af6e81c08",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -318,7 +318,7 @@
 					"response": []
 				}
 			],
-			"id": "c1ac18dd-f244-4063-8577-5d754743f2b6"
+			"id": "b728043c-4de1-42a6-ad88-7069a095e422"
 		}
 	],
 	"auth": {
@@ -340,7 +340,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "289f3a84-1a5c-4e47-ad0f-a22171048a7b",
+				"id": "e9b4bc7d-b506-431e-b5e3-658a97e071e8",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -351,7 +351,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "65c64d82-6c94-4ff2-860d-0555fe1ac1d2",
+				"id": "959df6d8-4ea8-487e-9241-cbb893156909",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [

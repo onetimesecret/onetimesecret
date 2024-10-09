@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "ad4cb2f4-a040-40e4-bc53-e2a5630ec422",
+		"_postman_id": "cbe8fc6c-5ba7-4c8b-aa92-40dd47ffdc04",
 		"name": "Onetime Secret API - Integration Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_uid": "38849719-ad4cb2f4-a040-40e4-bc53-e2a5630ec422"
+		"_uid": "38849719-cbe8fc6c-5ba7-4c8b-aa92-40dd47ffdc04"
 	},
 	"item": [
 		{
@@ -17,7 +17,7 @@
 							"item": [
 								{
 									"name": "/v2/account/domains/add",
-									"id": "f0039435-f564-42ed-8561-9ac08e61cac8",
+									"id": "c77fc1fd-46a3-49f9-b99b-04c53f783d8b",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -54,7 +54,7 @@
 									},
 									"response": [
 										{
-											"id": "c508a9c4-9410-46e4-8abd-8e3ab666f858",
+											"id": "830fff81-fe93-4c78-a93d-5ea0a5fde242",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -104,7 +104,7 @@
 									]
 								}
 							],
-							"id": "786ec351-7aa3-4606-b7ce-f78e16c21813"
+							"id": "b39470d7-089d-42fd-8a2d-095b38c62ca3"
 						},
 						{
 							"name": "{domain} Copy",
@@ -114,7 +114,7 @@
 									"item": [
 										{
 											"name": "/v2/account/domains/:domain/remove",
-											"id": "6d1b0c59-9d38-46d9-90aa-54c4b42c0fff",
+											"id": "096b7fa3-99e4-4067-8abb-ccf08e61ba0a",
 											"protocolProfileBehavior": {
 												"disableBodyPruning": true
 											},
@@ -144,7 +144,7 @@
 											},
 											"response": [
 												{
-													"id": "94d99ecc-92dc-4e7c-a91d-eb86a284075c",
+													"id": "061da6ba-a531-420a-b71c-4595f99e4598",
 													"name": "Successful response",
 													"originalRequest": {
 														"method": "POST",
@@ -186,14 +186,14 @@
 											]
 										}
 									],
-									"id": "1a7b623b-5fc7-46ac-ae48-b1043165ddcc"
+									"id": "bca42650-8800-4b27-a6b7-77da6b26b47c"
 								},
 								{
 									"name": "verify",
 									"item": [
 										{
 											"name": "/v2/account/domains/:domain/verify",
-											"id": "0b0ecc4c-b99e-4cf1-861c-d5486899db68",
+											"id": "5a74e863-f0af-4693-8e6e-203adb4dbc5a",
 											"protocolProfileBehavior": {
 												"disableBodyPruning": true
 											},
@@ -223,7 +223,7 @@
 											},
 											"response": [
 												{
-													"id": "2f2bdffa-3463-460e-be5e-5d2bc56bff86",
+													"id": "63168c80-c36c-406e-a862-0c8dc9d4ddbc",
 													"name": "Successful response",
 													"originalRequest": {
 														"method": "POST",
@@ -265,11 +265,11 @@
 											]
 										}
 									],
-									"id": "7cbf17a5-b3c1-476e-8d98-dc702da4dbc8"
+									"id": "b6326a66-c680-4f20-8bb0-d511495e827b"
 								},
 								{
 									"name": "/v2/account/domains/:domain",
-									"id": "702f0d16-5576-4f49-b23f-d9cfc530d5f3",
+									"id": "3aa0d241-f35d-4562-b5f0-879ddb011c9f",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -298,7 +298,7 @@
 									},
 									"response": [
 										{
-											"id": "67fae4fa-4fed-4787-90d3-a9e4dfbc987d",
+											"id": "df99e85b-4585-44ba-b6a6-cb01c673beda",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "GET",
@@ -339,10 +339,10 @@
 									]
 								}
 							],
-							"id": "39bc5693-8c49-4adc-8cef-cb084d4e0296"
+							"id": "00601e04-426b-4770-ad2c-fcc4fee080cd"
 						}
 					],
-					"id": "0f3164d4-f3b5-4fde-9afd-c53786ccd101"
+					"id": "eb752586-c2b8-46a0-aa23-37e93e4790d5"
 				},
 				{
 					"name": "Change Password",
@@ -352,7 +352,7 @@
 							"item": [
 								{
 									"name": "/v2/account/change-password",
-									"id": "f65fb272-d7a5-4d79-a1d5-2d661e3b8fd1",
+									"id": "40edb670-d9bd-4684-b0a2-490b7e6abc4b",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -402,7 +402,7 @@
 									},
 									"response": [
 										{
-											"id": "23a44e49-e95f-48fd-82b6-c4a976cd967b",
+											"id": "dc47ec1a-6b76-4f23-9526-0e0e0873e0b7",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -470,10 +470,10 @@
 									]
 								}
 							],
-							"id": "0766a1a5-196e-4079-865a-ecb4b679ba06"
+							"id": "5d058200-26ab-482d-b953-c22c93d415a0"
 						}
 					],
-					"id": "9fba7418-a68e-42c3-acae-98c3ae8cef32"
+					"id": "350a895b-81ca-4f22-b07e-2f4f2a389b05"
 				},
 				{
 					"name": "Regenerate API Key",
@@ -483,7 +483,7 @@
 							"item": [
 								{
 									"name": "/v2/account/apitoken",
-									"id": "e3fb845b-882f-4fe3-9219-6c3856ab3c25",
+									"id": "016226b4-d1c4-4eab-a2d9-192a8a38bbf0",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -509,7 +509,7 @@
 									},
 									"response": [
 										{
-											"id": "8a99caca-3468-4bcd-a21c-c494eb2f401a",
+											"id": "258671fd-30fa-4ce9-9c91-0b792777607a",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -553,17 +553,17 @@
 									]
 								}
 							],
-							"id": "30c4082d-615b-4490-90a2-6633cdba744c"
+							"id": "1e79ba1e-2bce-42af-8f43-8b755ec66430"
 						}
 					],
-					"id": "85d4a879-ef3a-4fa0-a972-9baee4172096"
+					"id": "ac4f18d0-6c13-40a8-98bc-c7510865e8ad"
 				},
 				{
 					"name": "Destroy Account",
 					"item": [
 						{
 							"name": "/v2/account/destroy Copy",
-							"id": "26bffaf7-f58d-4e93-9878-0f90e5660567",
+							"id": "ede3838b-a19b-487e-b29e-4fc143206cf1",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -603,7 +603,7 @@
 							},
 							"response": [
 								{
-									"id": "20221aa0-b1a4-4f3c-ad4d-32a1dde6eace",
+									"id": "4dcf5734-2c03-41b3-8009-0163bdc419af",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -661,14 +661,14 @@
 							]
 						}
 					],
-					"id": "3899442f-735f-4b6d-9d84-2162a43def42"
+					"id": "b35e5f00-f941-466a-a10b-4221aef3690d"
 				},
 				{
 					"name": "update-locale Copy",
 					"item": [
 						{
 							"name": "/v2/account/update-locale",
-							"id": "7398507e-74e0-46f3-b73f-2b61e8fe57ad",
+							"id": "dae6585d-2720-4493-b232-ec3be69c412c",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -694,7 +694,7 @@
 							},
 							"response": [
 								{
-									"id": "db86fa29-78b0-4592-98a2-01c483166273",
+									"id": "99a24d46-2758-44f4-8e67-5806fd5e94e7",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -738,20 +738,20 @@
 							]
 						}
 					],
-					"id": "50ba9a65-b869-4c27-801b-fc9e58879f68"
+					"id": "9bc618db-69f9-4d01-a9cc-1c5539ac8696"
 				}
 			],
-			"id": "918ee128-2f60-4a74-81da-6d55b98f109f"
+			"id": "978242f6-44ef-4770-b655-d5eeb7d72837"
 		},
 		{
 			"name": "Not-authenticated",
 			"item": [],
-			"id": "7eb6c676-29ec-422c-ba3f-6bf2a6b81ebd"
+			"id": "6bedb7f7-40ef-4be1-97de-c5e704f6511d"
 		},
 		{
 			"name": "Dashboard",
 			"item": [],
-			"id": "474a1fd8-3e39-47ae-b97e-a9bc016428cd"
+			"id": "6fcc0461-8ff5-4a9f-85bc-55daa0b4cf5a"
 		},
 		{
 			"name": "Secrets - v1",
@@ -761,7 +761,7 @@
 					"item": [
 						{
 							"name": "/v1/private/recent Copy",
-							"id": "b8c28c56-bb2f-48d0-8354-4f1a4a81fd47",
+							"id": "7b63ae3f-2d6f-48e6-a833-fd148e1ad7da",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -782,7 +782,7 @@
 							},
 							"response": [
 								{
-									"id": "4f2d241d-592c-4d07-8588-a3929f59e087",
+									"id": "b13d46eb-a96a-458a-bf3b-13a4f51c9bd7",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -818,7 +818,7 @@
 						},
 						{
 							"name": "/v1/private/:metadata_key Copy",
-							"id": "67560a4f-d286-4276-b323-670791e6bd16",
+							"id": "4d91c362-691b-4566-baa4-fef4ea87675f",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -846,7 +846,7 @@
 							},
 							"response": [
 								{
-									"id": "f5166b57-03d7-4ab0-b833-feccdfea31a8",
+									"id": "9b762d78-7982-48a0-99e5-42af03eefd1d",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -887,7 +887,7 @@
 						},
 						{
 							"name": "/v1/share Copy",
-							"id": "7500c16b-2ad0-4d00-87db-4842e7e2fbbb",
+							"id": "414bc5a3-b202-4903-97ed-bab035cfa4ac",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -946,7 +946,7 @@
 							},
 							"response": [
 								{
-									"id": "ab6df4f4-2d10-4d50-99ac-da8521f98a14",
+									"id": "21810135-a93e-4d52-a3a1-ecd622b2e6de",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1024,7 +1024,7 @@
 						},
 						{
 							"name": "/v1/secret/:secret_key Copy",
-							"id": "cee078d1-fbc5-4edc-9569-240fb200be8d",
+							"id": "5a162b31-85ee-4cc1-89bf-8c942a315059",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1057,7 +1057,7 @@
 							},
 							"response": [
 								{
-									"id": "508e167c-103c-4f56-9747-e93873bfefe2",
+									"id": "5364053f-9e62-4c23-9ff0-ce58b5afcf07",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1106,14 +1106,14 @@
 							]
 						}
 					],
-					"id": "c9c65718-03c9-4e6d-9af9-af8eff691def"
+					"id": "0c0d8e42-b716-4e2a-8377-90b2c228cc28"
 				},
 				{
 					"name": "Generate",
 					"item": [
 						{
 							"name": "/v1/private/recent Copy",
-							"id": "d713af51-ffc1-4b93-80be-0343a79b1ad1",
+							"id": "29a39948-ce6d-4f89-8e50-16d0e01d27d1",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1134,7 +1134,7 @@
 							},
 							"response": [
 								{
-									"id": "8aefb87e-05b6-4837-ab9e-385588a7e725",
+									"id": "a67a31e0-6fbe-4be6-90fd-8a8cab898c5c",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -1170,7 +1170,7 @@
 						},
 						{
 							"name": "/v1/private/:metadata_key Copy",
-							"id": "10ee4a9a-b5c1-473e-9b5d-eef4323e667f",
+							"id": "30ee508d-029f-4fda-a983-a0143d6f2724",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1198,7 +1198,7 @@
 							},
 							"response": [
 								{
-									"id": "3647afa1-ea3b-4272-9144-91fe008579f8",
+									"id": "26913d10-6594-4645-ad2c-400b1bf3e59d",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1239,7 +1239,7 @@
 						},
 						{
 							"name": "/v1/generate Copy",
-							"id": "4605ae0e-53e4-411b-9fe4-bad7a1401d35",
+							"id": "9cf30d92-7dd2-4e21-9156-8c0928c2cb16",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1264,7 +1264,7 @@
 							},
 							"response": [
 								{
-									"id": "c7e94de7-a16d-476f-a392-252b36e50801",
+									"id": "32360d2d-0ec8-4f70-ac49-6fce921b963e",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1308,7 +1308,7 @@
 						},
 						{
 							"name": "/v1/secret/:secret_key Copy",
-							"id": "3aff1a96-8ac3-4f7a-af9b-aba83274bdda",
+							"id": "cb287189-5200-4f11-8e52-63032aca1b4a",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1341,7 +1341,7 @@
 							},
 							"response": [
 								{
-									"id": "c587251d-dffd-48e9-bc26-2f66ec6acecc",
+									"id": "5bfedf22-2bbe-410d-9fcd-3b6df17028ae",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1390,14 +1390,14 @@
 							]
 						}
 					],
-					"id": "64bc57bd-981f-4e5d-aa9d-1420425ae34f"
+					"id": "f236bcb0-ef63-4b5e-aa3c-68ea9add9ca2"
 				},
 				{
 					"name": "Burn",
 					"item": [
 						{
 							"name": "/v1/private/:metadata_key/burn Copy",
-							"id": "f70d0117-82c3-4fce-9930-f44e9689fda1",
+							"id": "97b23285-aedd-4c63-a4ee-db1979234902",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1426,7 +1426,7 @@
 							},
 							"response": [
 								{
-									"id": "319ed382-119a-4b1f-a0b0-4277e9c8410e",
+									"id": "022b7567-886d-4306-a63f-64a360ceeadd",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1468,7 +1468,7 @@
 						},
 						{
 							"name": "/v1/generate Copy 2",
-							"id": "b2e13207-c02a-46c3-9bb5-97d277b7cccb",
+							"id": "1245849a-888d-439b-84c5-b0da840b1f1a",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1493,7 +1493,7 @@
 							},
 							"response": [
 								{
-									"id": "82d8e130-fabb-4e2d-bd78-dcc30911b6ad",
+									"id": "c5fe3e48-4b94-48bb-a2f2-b57839020c98",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1536,11 +1536,11 @@
 							]
 						}
 					],
-					"id": "77edc764-8053-47bd-858d-92af731b2aba"
+					"id": "04f3a9b4-2108-4f6f-a315-4c2facf958c6"
 				},
 				{
 					"name": "/v1/private/recent Copy",
-					"id": "786d70ce-2c65-4b27-9106-ba088f4e2e5d",
+					"id": "17da49e6-3498-434e-8bc7-353bbf4c7735",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -1561,7 +1561,7 @@
 					},
 					"response": [
 						{
-							"id": "575983b5-7897-41a3-831d-78d4a2c5298a",
+							"id": "9c3bb18f-a527-442b-9846-f8b05d54fa96",
 							"name": "Successful response",
 							"originalRequest": {
 								"method": "GET",
@@ -1596,7 +1596,7 @@
 					]
 				}
 			],
-			"id": "facf1924-aa72-4253-95d7-cff3c17dbe6a"
+			"id": "e8feef00-8689-4703-a6c4-6dac7f0ba210"
 		},
 		{
 			"name": "Secrets - v2",
@@ -1606,7 +1606,7 @@
 					"item": [
 						{
 							"name": "/v2/secret/:key Copy",
-							"id": "5db5a768-7f99-4ca6-98a8-79d8bd705f9a",
+							"id": "682c40d0-2a45-4ed6-b947-0aea3ec5fc3a",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1639,7 +1639,7 @@
 							},
 							"response": [
 								{
-									"id": "d564ed3c-fc62-4831-98a2-73ab9c409dcb",
+									"id": "e7a9694a-39f1-41a7-8315-421143ba7e8d",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -1689,7 +1689,7 @@
 						},
 						{
 							"name": "/v2/secret/:key Copy",
-							"id": "6fa9b7ef-d003-4dc3-b08c-2411b5706af0",
+							"id": "32acdb8b-f04f-4b87-99a9-7ab642e546ea",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1722,7 +1722,7 @@
 							},
 							"response": [
 								{
-									"id": "9f404688-b712-4e4f-95a3-116fbdfefab5",
+									"id": "d19ffa23-b2dc-4825-90e5-52d1f956f4c7",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1772,7 +1772,7 @@
 						},
 						{
 							"name": "/v2/secret/conceal Copy",
-							"id": "1861643a-ae35-4083-94d5-fc81c16463c4",
+							"id": "8eb14cd9-092d-4431-b379-07b9a44d586e",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1798,7 +1798,7 @@
 							},
 							"response": [
 								{
-									"id": "758ce41a-0e42-4a30-9928-30e35fdd5511",
+									"id": "bbc2ba36-1c9b-49b8-88cb-1144a20747c3",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1843,7 +1843,7 @@
 						},
 						{
 							"name": "/v2/private/recent Copy",
-							"id": "0f90f779-2e80-4b17-8321-86303c7e4e26",
+							"id": "45028015-f147-4d06-9043-115c7f374edd",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1869,7 +1869,7 @@
 							},
 							"response": [
 								{
-									"id": "e21afbc6-4b2a-4612-b905-3c35d187d931",
+									"id": "e8950eee-9b95-4541-ac14-98fee65c10dc",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -1914,7 +1914,7 @@
 						},
 						{
 							"name": "/v2/private/:key/burn Copy",
-							"id": "f65d2f5e-2da4-46fe-a974-9af35aac52b7",
+							"id": "961958cc-edaa-43ee-958d-6e716f94f4c3",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1948,7 +1948,7 @@
 							},
 							"response": [
 								{
-									"id": "535c7265-d680-4e58-979c-3aac6882df99",
+									"id": "9c700cb9-2497-4e3c-9f77-3264496e146c",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1999,7 +1999,7 @@
 						},
 						{
 							"name": "/v2/private/:key Copy",
-							"id": "a89ee4b2-efe4-4612-b452-04333e994860",
+							"id": "467989f1-09d4-40fc-a2d1-c78f74ed2012",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2032,7 +2032,7 @@
 							},
 							"response": [
 								{
-									"id": "e009fb65-58af-424b-84b5-cafc84c556f8",
+									"id": "39d3c3a1-ce4e-4e30-8ac4-f3040071a2f6",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -2081,14 +2081,14 @@
 							]
 						}
 					],
-					"id": "11c33b56-02ea-44f0-b94e-8051ff444982"
+					"id": "6ebe8631-23b8-4d6c-92a4-ae7b2b8742a4"
 				},
 				{
 					"name": "Generate Secret",
 					"item": [
 						{
 							"name": "/v2/secret/:key Copy",
-							"id": "a0df0cb3-4ac0-4dae-b12b-21667b2ba8a6",
+							"id": "4fc74eac-eaa7-4e4c-904c-5af739210807",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2121,7 +2121,7 @@
 							},
 							"response": [
 								{
-									"id": "2a1dacff-dc5e-4fee-aaa7-79ab961d75e1",
+									"id": "1acee5e0-127e-489d-80df-ea03da4b4d63",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -2171,7 +2171,7 @@
 						},
 						{
 							"name": "/v2/secret/:key Copy",
-							"id": "46f9fb8c-2eca-45b7-b7f1-6c10e88019f8",
+							"id": "a5723443-1205-4099-9fe6-fdbb40f971b5",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2204,7 +2204,7 @@
 							},
 							"response": [
 								{
-									"id": "31aa9c7c-5612-4876-8631-6fd0cf3cea28",
+									"id": "649ad54b-098f-470a-8ee4-cfcb7ed1032b",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2254,7 +2254,7 @@
 						},
 						{
 							"name": "/v2/secret/conceal Copy",
-							"id": "2f694a39-a398-464c-855f-d0882a0daec7",
+							"id": "3f33f7b8-8fd3-4d5c-967c-18443dc878b3",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2280,7 +2280,7 @@
 							},
 							"response": [
 								{
-									"id": "f3bcdfde-9a62-4e7e-91d1-657c9b62cce5",
+									"id": "87af7731-bac2-4f04-96be-fc127e66eaa3",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2325,7 +2325,7 @@
 						},
 						{
 							"name": "/v2/private/recent Copy",
-							"id": "8622b8ce-df20-42bf-aeb7-1c623117514c",
+							"id": "02074a77-48bc-420e-9e69-9aab3f31623f",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2351,7 +2351,7 @@
 							},
 							"response": [
 								{
-									"id": "4a0b47f9-2ca7-4c17-b940-d8125188135c",
+									"id": "a36f0a57-9d6c-40c4-8f39-90554a8a7e7c",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -2396,7 +2396,7 @@
 						},
 						{
 							"name": "/v2/private/:key/burn Copy",
-							"id": "c30030d9-06a4-4dce-b510-cfd815cfe527",
+							"id": "2e221bc7-1da2-4995-8357-a272031b3a3c",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2430,7 +2430,7 @@
 							},
 							"response": [
 								{
-									"id": "6f590b52-4c7c-42d8-8d8b-24766770aeab",
+									"id": "a3c53ed7-702c-4a0b-87bc-5cf7b3bd1dd8",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2481,7 +2481,7 @@
 						},
 						{
 							"name": "/v2/private/:key Copy",
-							"id": "8b59679d-2639-4427-8e3d-fe3197c8d9b3",
+							"id": "2a7f7501-ef5b-41ae-a039-80e35524f677",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2514,7 +2514,7 @@
 							},
 							"response": [
 								{
-									"id": "3e215655-e712-43fb-8b8b-74f76b2344ec",
+									"id": "d43892d8-16d8-4d53-ab0c-54e8bc2ccd61",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -2563,14 +2563,14 @@
 							]
 						}
 					],
-					"id": "25a91b92-59a8-46e8-8c8e-0b5ef83078bf"
+					"id": "53be4b34-9382-44fa-a536-fb2551f9785e"
 				},
 				{
 					"name": "Receive Secret",
 					"item": [
 						{
 							"name": "/v2/secret/conceal Copy",
-							"id": "056f3eb7-4307-478b-ab8b-4d3ee2650e4f",
+							"id": "746137a6-3f72-4093-b1b8-31eb654d621b",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2596,7 +2596,7 @@
 							},
 							"response": [
 								{
-									"id": "2aec09dc-0df1-49fe-87cd-1734961ebddf",
+									"id": "2ec9c631-d622-424d-ba3b-e00818f6eb8c",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2641,7 +2641,7 @@
 						},
 						{
 							"name": "/v2/secret/conceal Copy",
-							"id": "6406214c-e217-4b86-811c-3952ed29d9a7",
+							"id": "0a957990-05cc-4da2-8478-9d374ff5ab4b",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2667,7 +2667,7 @@
 							},
 							"response": [
 								{
-									"id": "bb45b82a-097f-4ead-9c3c-cb4dcd8a021d",
+									"id": "1f377589-3ad0-4e94-84ac-0eba3cb48309",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2712,7 +2712,7 @@
 						},
 						{
 							"name": "/v2/secret/:key Copy",
-							"id": "f17e6a51-8e57-47ad-84f4-fe3be20c5658",
+							"id": "8429bef6-9d50-4f9e-b4a8-9335d1c44d9f",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2745,7 +2745,7 @@
 							},
 							"response": [
 								{
-									"id": "290fa5bc-ec11-455e-9b5a-315af6adad74",
+									"id": "a3a21909-e1c1-4988-adc8-c9a3cae1cd18",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -2795,7 +2795,7 @@
 						},
 						{
 							"name": "/v2/secret/:key Copy",
-							"id": "4be35817-dcb5-4a15-86f2-71ab54b35493",
+							"id": "e3ecc143-2eba-4b09-aa6f-f4505c7abf6e",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2828,7 +2828,7 @@
 							},
 							"response": [
 								{
-									"id": "c5995bf9-584b-4f7b-ab98-f505f97b1e0d",
+									"id": "548dc49d-d400-43ac-bbde-726d6c6a26c1",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2877,14 +2877,14 @@
 							]
 						}
 					],
-					"id": "b515035a-b9a5-4e3c-81db-a9b12524f93d"
+					"id": "220801a9-0d51-4f38-aaa7-b18d1a4d497a"
 				},
 				{
 					"name": "Burn Secret",
 					"item": [
 						{
 							"name": "/v2/private/:key/burn Copy",
-							"id": "94642ba3-863e-4022-b3ac-7e797fbf3cc2",
+							"id": "47375e5d-1276-4ed7-bb8a-3d3ed77ab2c6",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2918,7 +2918,7 @@
 							},
 							"response": [
 								{
-									"id": "2dd91e7a-3502-4357-9f3e-05910f9f4a4e",
+									"id": "01fd250c-85b4-433a-bc50-2f58fb7ab567",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2969,7 +2969,7 @@
 						},
 						{
 							"name": "/v2/private/:key Copy",
-							"id": "a1c447f1-b5cc-4dd8-87b1-d5baa8aa3e0b",
+							"id": "fb814ddc-c504-4ed8-b00a-3d77c42476fa",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -3002,7 +3002,7 @@
 							},
 							"response": [
 								{
-									"id": "506f53e4-7b2a-43cb-8a39-2b4635767983",
+									"id": "c443342d-3c97-4fe6-b3c8-725b3a062897",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -3051,17 +3051,17 @@
 							]
 						}
 					],
-					"id": "37008b8c-2686-475e-85c8-8193e62938b1"
+					"id": "0efcabf5-24d9-4db2-be2e-45eef7260513"
 				}
 			],
-			"id": "a044cde8-f4bb-43a7-90a6-d86ef88f861d"
+			"id": "7b5c82b7-b38d-4fa0-accb-6be02eea7fed"
 		},
 		{
 			"name": "Authentication",
 			"item": [
 				{
 					"name": "/v2/authcheck Copy",
-					"id": "ef36ff6a-e832-45cc-bec0-2f4d0f01caee",
+					"id": "83f5bb52-628a-4863-9c42-1f68ef9922cf",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -3086,7 +3086,7 @@
 					},
 					"response": [
 						{
-							"id": "02e5ced5-e8f1-4140-9841-2bfe2201d0d6",
+							"id": "19f026ee-f30e-4bdb-9581-300e40aa2012",
 							"name": "Successful response",
 							"originalRequest": {
 								"method": "GET",
@@ -3129,7 +3129,7 @@
 					]
 				}
 			],
-			"id": "3ba17616-56dd-4648-a50d-f20ab3842ea4"
+			"id": "7f579ca1-aad5-40fe-a320-aae9eb928006"
 		},
 		{
 			"name": "Admins Only (keep out)",
@@ -3139,7 +3139,7 @@
 					"item": [
 						{
 							"name": "/v2/colonel",
-							"id": "e7402445-c220-4127-a9f2-3307cd0f4b35",
+							"id": "2e4d2d69-1577-48a4-b34a-3306137180a2",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -3164,7 +3164,7 @@
 							},
 							"response": [
 								{
-									"id": "fa89b9f8-74dc-43c5-8b9a-3f192f2ab08a",
+									"id": "2737206d-97da-49a8-a768-b0c0c21206c4",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -3207,14 +3207,14 @@
 							]
 						}
 					],
-					"id": "9f69a7a9-7304-4fe1-b3ba-12f19e775a66"
+					"id": "27740cd0-9bb7-4b30-947a-70c6c4410ff9"
 				}
 			],
-			"id": "8b4c0c4e-8f7f-49cb-9342-279a1c3df4d7"
+			"id": "cae242da-81d5-4c2f-8f8b-c023024976a5"
 		},
 		{
 			"name": "/v1/status Copy",
-			"id": "a27a2cc9-5922-47da-a184-78e8a32c0393",
+			"id": "26f68997-acc6-494c-9fc0-e96095a361c2",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -3239,7 +3239,7 @@
 			},
 			"response": [
 				{
-					"id": "d0ac5d9f-6335-47dd-ace9-df781a7c7472",
+					"id": "6bbfd550-2623-49d5-bf9d-b7e08094700a",
 					"name": "Successful response",
 					"originalRequest": {
 						"method": "GET",
@@ -3283,7 +3283,7 @@
 		},
 		{
 			"name": "/v2/status Copy",
-			"id": "f876b167-d108-4938-9afc-b10402be12aa",
+			"id": "cb0760db-bd76-47de-97bd-5e451482fec5",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -3308,7 +3308,7 @@
 			},
 			"response": [
 				{
-					"id": "f7686b04-e3f8-4f45-b653-26fcdad3a584",
+					"id": "1739ff5f-3200-4f0a-8543-f739caf7d5dc",
 					"name": "Successful response",
 					"originalRequest": {
 						"method": "GET",
@@ -3352,7 +3352,7 @@
 		},
 		{
 			"name": "/v2/version Copy",
-			"id": "4d670381-663e-4129-a330-668482ffc6a2",
+			"id": "b4f3ef1e-0b11-450f-a3de-6aaf0fbc433c",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -3377,7 +3377,7 @@
 			},
 			"response": [
 				{
-					"id": "15b7f463-c8ae-49b5-8850-1f0ed7363a82",
+					"id": "311c8081-8645-4911-b038-3b6e1963647c",
 					"name": "Successful response",
 					"originalRequest": {
 						"method": "GET",
@@ -3421,7 +3421,7 @@
 		},
 		{
 			"name": "/v2/supported-locales Copy",
-			"id": "30463cce-25b7-41dd-a249-d1e5a6960964",
+			"id": "c9060f6e-d6f2-414a-8ae8-ac45558d73f8",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -3446,7 +3446,7 @@
 			},
 			"response": [
 				{
-					"id": "9873ccc3-f13f-4679-a2fa-7fbdbb8b5a66",
+					"id": "c13c049f-e6c2-430b-94ff-f1b15bc16e03",
 					"name": "Successful response",
 					"originalRequest": {
 						"method": "GET",
@@ -3490,7 +3490,7 @@
 		},
 		{
 			"name": "/v2/validate-shrimp Copy",
-			"id": "f55ec290-c2d2-4a7a-bcf7-df352d3ab891",
+			"id": "970b227c-89b9-4e5c-a661-040dfbcba576",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
 			},
@@ -3515,7 +3515,7 @@
 			},
 			"response": [
 				{
-					"id": "9dfead81-6b09-454e-abad-047444003852",
+					"id": "e630c8fd-3423-44fb-8283-934993d5ed76",
 					"name": "Successful response",
 					"originalRequest": {
 						"method": "POST",
@@ -3577,7 +3577,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "cf694205-6d65-4e30-98b9-8b5ccd0017bd",
+				"id": "37f9a566-449c-4836-b734-cd90ee0eb02b",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -3588,7 +3588,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "499f5b60-5719-4193-9955-b36847c4b385",
+				"id": "c4f3b505-7ce4-433d-8b2d-016fa327e3b6",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
