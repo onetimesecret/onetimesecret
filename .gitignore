@@ -14,7 +14,7 @@ spoom_*
 .history
 .pnpm/
 .prompts/
-.prompts
+.prompts*
 .vscode/
 
 .appendonlydir/

@@ -1,2 +1,4 @@
 *
 !.gitignore
+!api/
+!/api/*
