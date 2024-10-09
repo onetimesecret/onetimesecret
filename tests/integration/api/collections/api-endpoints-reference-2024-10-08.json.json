@@ -1543,6 +1543,81 @@
 									"cookie": [],
 									"responseTime": null,
 									"body": "{\n  \"success\": \"<boolean>\"\n}"
+								},
+								{
+									"id": "97941f0a-a111-48c5-af70-6d6835c7736f",
+									"name": "BadShrimp",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											},
+											{
+												"key": "O-Shrimp",
+												"value": "1",
+												"type": "text"
+											}
+										],
+										"url": "{{baseUrl}}/v2/validate-shrimp"
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Alt-Svc",
+											"value": "h3=\":443\"; ma=2592000"
+										},
+										{
+											"key": "Content-Language",
+											"value": "en"
+										},
+										{
+											"key": "Content-Length",
+											"value": "78"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Onetime-Id",
+											"value": "5e22c7d4-c29a-4a48-a5c5-48847e94b53e"
+										},
+										{
+											"key": "Referrer-Policy",
+											"value": "same-origin"
+										},
+										{
+											"key": "Server",
+											"value": "Caddy"
+										},
+										{
+											"key": "Server",
+											"value": "Proxied Server Name (api)"
+										},
+										{
+											"key": "Set-Cookie",
+											"value": "sess=3sj1rowckcylz080im6aq1we3ydilzjqipolexeqfhfl1z61if; path=/; expires=Wed, 09 Oct 2024 03:47:32 GMT"
+										},
+										{
+											"key": "X-Content-Type-Options",
+											"value": "nosniff"
+										},
+										{
+											"key": "X-Frame-Options",
+											"value": "DENY"
+										},
+										{
+											"key": "Date",
+											"value": "Wed, 09 Oct 2024 03:27:22 GMT"
+										}
+									],
+									"cookie": [],
+									"responseTime": null,
+									"body": "{\n    \"isValid\": false,\n    \"shrimp\": \"wbc361fud7i9i5tvvz0cd7yru4jxi4ejcdwg3pf61drhn0wq7\"\n}"
 								}
 							]
 						}
@@ -2367,7 +2442,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "84eabc32-0f34-4fa7-8ef8-92358e853c0f",
+				"id": "d12857b2-5956-4c99-b829-dd4b835ddadc",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -2378,7 +2453,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "b7dcf68a-2006-4f65-a874-3f5d2bd051ae",
+				"id": "bbdda698-5c82-4f97-a60b-ea171abb6d45",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -2400,6 +2475,11 @@
 		{
 			"key": "basicAuthPassword",
 			"value": "7d8c736e47580595ff3c6a9e8d16c8ca5b085df2\n\n",
+			"type": "string"
+		},
+		{
+			"key": "shrimp",
+			"value": "",
 			"type": "string"
 		}
 	]
