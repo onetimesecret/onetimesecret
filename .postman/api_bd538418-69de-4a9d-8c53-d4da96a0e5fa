@@ -8,10 +8,7 @@ id = bd538418-69de-4a9d-8c53-d4da96a0e5fa
 [config.relations]
 
 [config.relations.collections]
-rootDirectory = tests/integration/api
-files[] = {"id":"38849719-735ce630-6d07-4ed8-932f-b1637832dedc","path":"collections/api-endpoints-reference-2024-10-08.json","metaData":{"generateCollectionPreferences":"{\"updateCollectionSync\":false}"}}
-files[] = {"id":"38849719-cbe8fc6c-5ba7-4c8b-aa92-40dd47ffdc04","path":"collections/integration-tests.json","metaData":{"generateCollectionPreferences":"{\"updateCollectionSync\":false}"}}
-files[] = {"id":"38849719-7ada5232-041d-4fc6-b72b-dfabfa91532c","path":"collections/regression-tests.json","metaData":{"generateCollectionPreferences":"{\"updateCollectionSync\":false}"}}
+rootDirectory = docs/api/collections
 
 [config.relations.collections.metaData]
 
