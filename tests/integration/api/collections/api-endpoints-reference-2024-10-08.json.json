@@ -829,7 +829,8 @@
 									"name": "/v2/private/recent",
 									"id": "5e90d7e7-1042-4e88-8c8f-27b94577038b",
 									"protocolProfileBehavior": {
-										"disableBodyPruning": true
+										"disableBodyPruning": true,
+										"protocolVersion": "http2"
 									},
 									"request": {
 										"method": "GET",
