@@ -1322,10 +1322,20 @@
 							"name": "/v2/authcheck",
 							"id": "f889ce9e-570c-4bbf-b54c-8bd74b199485",
 							"protocolProfileBehavior": {
-								"disableBodyPruning": true
+								"disableBodyPruning": true,
+								"strictSSL": false,
+								"removeRefererHeaderOnRedirect": true,
+								"insecureHTTPParser": false
 							},
 							"request": {
-								"method": "GET",
+								"auth": {
+									"type": "basic",
+									"basic": {
+										"password": "{{basicAuthPassword}}",
+										"username": "{{basicAuthUsername}}"
+									}
+								},
+								"method": "POST",
 								"header": [
 									{
 										"key": "Accept",
@@ -2357,7 +2367,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "ee58c026-df8a-43bf-a7aa-13a9e3816154",
+				"id": "84eabc32-0f34-4fa7-8ef8-92358e853c0f",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -2368,7 +2378,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "a3e68ec1-4ed6-466f-83c5-61744b89f06f",
+				"id": "b7dcf68a-2006-4f65-a874-3f5d2bd051ae",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -2384,12 +2394,12 @@
 		},
 		{
 			"key": "basicAuthUsername",
-			"value": "{{custid}}",
+			"value": "delbo@solutious.com",
 			"type": "string"
 		},
 		{
 			"key": "basicAuthPassword",
-			"value": "{{apikey}}",
+			"value": "7d8c736e47580595ff3c6a9e8d16c8ca5b085df2\n\n",
 			"type": "string"
 		}
 	]
