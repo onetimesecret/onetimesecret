@@ -7,27 +7,27 @@
   },
   "servers": [
     {
-      "url": "https://onetimesecret.com",
+      "url": "https://onetimesecret.com/api",
       "description": "Production - Cloudflare LB (Global)",
       "variables": {}
     },
     {
-      "url": "https://eu.onetimesecret.com",
+      "url": "https://eu.onetimesecret.com/api",
       "description": "Production - Cloudflare LB (Europe)",
       "variables": {}
     },
     {
-      "url": "https://us.onetimesecret.com",
+      "url": "https://us.onetimesecret.com/api",
       "description": "Production - Cloudflare LB (U.S.)",
       "variables": {}
     },
     {
-      "url": "https://staging.onetimesecret.com",
+      "url": "https://staging.onetimesecret.com/api",
       "description": "Staging on fly.io (ams)",
       "variables": {}
     },
     {
-      "url": "https://dev.onetimesecret.com",
+      "url": "https://dev.onetimesecret.com/api",
       "description": "Local development",
       "variables": {}
     }
