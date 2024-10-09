@@ -160,256 +160,6 @@
                 ]
             }
         },
-        "/v1/private/{metadata_key}/burn": {
-            "post": {
-                "summary": "Burn a secret",
-                "parameters": [
-                    {
-                        "name": "metadata_key",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    }
-                },
-                "tags": [
-                    "v1",
-                    "secrets",
-                    "metadata",
-                    "danger"
-                ]
-            }
-        },
-        "/v1/private/{metadata_key}": {
-            "post": {
-                "summary": "Retrieve metadata",
-                "parameters": [
-                    {
-                        "name": "metadata_key",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    }
-                },
-                "tags": [
-                    "v1",
-                    "secrets",
-                    "metadata"
-                ]
-            }
-        },
-        "/v1/private/recent": {
-            "get": {
-                "summary": "Retrieve recent metadata",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    }
-                },
-                "tags": [
-                    "v1",
-                    "secrets",
-                    "metadata",
-                    "readonly"
-                ]
-            }
-        },
-        "/v1/share": {
-            "post": {
-                "summary": "Create a secret",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "secret": {
-                                        "type": "string"
-                                    },
-                                    "ttl": {
-                                        "type": "string"
-                                    },
-                                    "passphrase": {
-                                        "type": "string"
-                                    },
-                                    "recipient": {
-                                        "type": "string"
-                                    },
-                                    "kind": {
-                                        "type": "string"
-                                    },
-                                    "share_domain": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "secret"
-                                ]
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ShareV1ApiResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "v1",
-                    "secrets",
-                    "create"
-                ]
-            }
-        },
-        "/v1/generate": {
-            "post": {
-                "summary": "Generate a secret",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConcealDataApiResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "v1",
-                    "secrets",
-                    "create"
-                ]
-            }
-        },
-        "/v1/secret/{secret_key}": {
-            "post": {
-                "summary": "Retrieve a secret",
-                "parameters": [
-                    {
-                        "name": "secret_key",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/SecretDataApiResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "v1",
-                    "secrets",
-                    "reveal",
-                    "danger"
-                ]
-            }
-        },
-        "/v1/status": {
-            "get": {
-                "summary": "Get system status",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BaseApiResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "v1",
-                    "readonly"
-                ]
-            },
-            "head": {
-                "summary": "Head system status",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    }
-                },
-                "tags": [
-                    "v1",
-                    "readonly"
-                ]
-            }
-        },
-        "/v2/status": {
-            "get": {
-                "summary": "Get system status",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BaseApiResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "v2",
-                    "readonly"
-                ]
-            },
-            "head": {
-                "summary": "Head system status",
-                "responses": {
-                    "200": {
-                        "description": "Successful response",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BaseApiResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "v2",
-                    "readonly"
-                ]
-            }
-        },
         "/v2/account/change-password": {
             "post": {
                 "summary": "Change Password",
@@ -753,6 +503,27 @@
                 ]
             }
         },
+        "/v2/validate-shrimp": {
+            "post": {
+                "summary": "Validate Shrimp",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BaseApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "v2",
+                    "system"
+                ]
+            }
+        },
         "/v2/supported-locales": {
             "get": {
                 "summary": "Get Supported Locales",
@@ -796,9 +567,9 @@
                 ]
             }
         },
-        "/v2/validate-shrimp": {
-            "post": {
-                "summary": "Validate Shrimp",
+        "/v2/status": {
+            "get": {
+                "summary": "Get system status",
                 "responses": {
                     "200": {
                         "description": "Successful response",
@@ -813,7 +584,26 @@
                 },
                 "tags": [
                     "v2",
-                    "system"
+                    "readonly"
+                ]
+            },
+            "head": {
+                "summary": "Head system status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BaseApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "v2",
+                    "readonly"
                 ]
             }
         },
@@ -898,6 +688,217 @@
                 "tags": [
                     "v2",
                     "colonel"
+                ]
+            }
+        },
+
+        "/v1/private/{metadata_key}/burn": {
+            "post": {
+                "summary": "Burn a secret",
+                "parameters": [
+                    {
+                        "name": "metadata_key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "metadata",
+                    "danger"
+                ]
+            }
+        },
+        "/v1/private/{metadata_key}": {
+            "post": {
+                "summary": "Retrieve metadata",
+                "parameters": [
+                    {
+                        "name": "metadata_key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "metadata"
+                ]
+            }
+        },
+        "/v1/private/recent": {
+            "get": {
+                "summary": "Retrieve recent metadata",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "metadata",
+                    "readonly"
+                ]
+            }
+        },
+        "/v1/share": {
+            "post": {
+                "summary": "Create a secret",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "secret": {
+                                        "type": "string"
+                                    },
+                                    "ttl": {
+                                        "type": "string"
+                                    },
+                                    "passphrase": {
+                                        "type": "string"
+                                    },
+                                    "recipient": {
+                                        "type": "string"
+                                    },
+                                    "kind": {
+                                        "type": "string"
+                                    },
+                                    "share_domain": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "secret"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ShareV1ApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "create"
+                ]
+            }
+        },
+        "/v1/generate": {
+            "post": {
+                "summary": "Generate a secret",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConcealDataApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "create"
+                ]
+            }
+        },
+        "/v1/secret/{secret_key}": {
+            "post": {
+                "summary": "Retrieve a secret",
+                "parameters": [
+                    {
+                        "name": "secret_key",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SecretDataApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "secrets",
+                    "reveal",
+                    "danger"
+                ]
+            }
+        },
+        "/v1/status": {
+            "get": {
+                "summary": "Get system status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BaseApiResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "readonly"
+                ]
+            },
+            "head": {
+                "summary": "Head system status",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                },
+                "tags": [
+                    "v1",
+                    "readonly"
                 ]
             }
         }
