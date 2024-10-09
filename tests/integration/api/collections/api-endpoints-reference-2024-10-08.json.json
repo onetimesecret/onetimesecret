@@ -1508,6 +1508,11 @@
 									{
 										"key": "Accept",
 										"value": "application/json"
+									},
+									{
+										"key": "O-Shrimp",
+										"value": "1",
+										"type": "text"
 									}
 								],
 								"url": "{{baseUrl}}/v2/validate-shrimp"
