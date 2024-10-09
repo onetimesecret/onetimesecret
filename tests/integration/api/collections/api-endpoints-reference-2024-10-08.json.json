@@ -1253,6 +1253,26 @@
 												"value": "application/json"
 											}
 										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"key": "secret",
+													"value": "{{$randomAdjective}} {{$randomNoun}}",
+													"type": "text"
+												},
+												{
+													"key": "ttl",
+													"value": "3600",
+													"type": "text"
+												},
+												{
+													"key": "kind",
+													"value": "share",
+													"type": "text"
+												}
+											]
+										},
 										"url": "{{baseUrl}}/v2/secret/conceal"
 									},
 									"response": [
