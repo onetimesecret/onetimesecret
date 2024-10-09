@@ -3070,5 +3070,36 @@
 				}
 			]
 		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": {
+			"password": "{{apikey}}",
+			"username": "{{custid}}"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "28f8f772-08f2-43a6-a396-d42e7c9df9d0",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "b3cec8cb-42cf-4753-86db-6ab428ff9da0",
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
 	]
 }
