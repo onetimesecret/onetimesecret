@@ -8,14 +8,16 @@ id = bd538418-69de-4a9d-8c53-d4da96a0e5fa
 [config.relations]
 
 [config.relations.collections]
-rootDirectory = tests/integration/api/v2
+rootDirectory = tests/integration/api
+files[] = {"id":"38849719-ef875fde-f609-4756-bfa8-327bd56379ba","path":"collections/api-endpoints-reference-2024-10-08.json.json","metaData":{"generateCollectionPreferences":"{\"updateCollectionSync\":true}"}}
+files[] = {"id":"38849719-ad4cb2f4-a040-40e4-bc53-e2a5630ec422","path":"collections/integration-tests.json.json","metaData":{"generateCollectionPreferences":"{\"updateCollectionSync\":true}"}}
+files[] = {"id":"38849719-36dfd834-c62f-4d68-9b4f-9ab73ecadc77","path":"collections/regression-tests.json.json","metaData":{}}
 
 [config.relations.collections.metaData]
 
 [config.relations.apiDefinition]
 files[] = {"path":"index.json","metaData":{}}
-files[] = {"path":"tests/integration/api/v2/index.json","metaData":{}}
 
 [config.relations.apiDefinition.metaData]
 type = openapi:3
-rootFiles[] = tests/integration/api/v2/index.json
+rootFiles[] = index.json

@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "b72a9e1d-5e1a-43e1-8777-b9205bc79b69",
+		"_postman_id": "ef875fde-f609-4756-bfa8-327bd56379ba",
 		"name": "Onetime Secret API - Endpoint Reference (2024-10-08)",
 		"description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "38849719-ef875fde-f609-4756-bfa8-327bd56379ba"
 	},
 	"item": [
 		{
@@ -20,7 +21,7 @@
 									"item": [
 										{
 											"name": "/v2/account/domains/add",
-											"id": "8d7b6a6a-f282-4cc4-bd2e-dd11b557aae1",
+											"id": "c7d6708c-4f02-4fcb-a6ae-b1e6a372b111",
 											"protocolProfileBehavior": {
 												"disableBodyPruning": true
 											},
@@ -42,11 +43,22 @@
 														}
 													]
 												},
-												"url": "{{baseUrl}}/v2/account/domains/add"
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/domains/add",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"domains",
+														"add"
+													]
+												}
 											},
 											"response": [
 												{
-													"id": "a6547eba-fe69-4ad2-a80b-1a59ebd4f162",
+													"id": "2f116f7c-bcb9-4ef2-a6bf-26fcf905e017",
 													"name": "Successful response",
 													"originalRequest": {
 														"method": "POST",
@@ -71,11 +83,23 @@
 																}
 															]
 														},
-														"url": "{{baseUrl}}/v2/account/domains/add"
+														"url": {
+															"raw": "{{baseUrl}}/v2/account/domains/add",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v2",
+																"account",
+																"domains",
+																"add"
+															]
+														}
 													},
 													"status": "OK",
 													"code": 200,
 													"_postman_previewlanguage": "text",
+													"_postman_previewtype": "html",
 													"header": [],
 													"cookie": [],
 													"responseTime": null,
@@ -84,7 +108,7 @@
 											]
 										}
 									],
-									"id": "d70e5436-58e9-4690-b130-9078cfea0b4d"
+									"id": "f8b04e22-48fa-427a-b4b0-204fa2bdd222"
 								},
 								{
 									"name": "{domain}",
@@ -94,7 +118,7 @@
 											"item": [
 												{
 													"name": "/v2/account/domains/:domain/remove",
-													"id": "a0c20c9f-ada3-42cd-b36b-c813bc188ace",
+													"id": "169a1b6f-01cf-4df0-941e-8a33dfafe8d2",
 													"protocolProfileBehavior": {
 														"disableBodyPruning": true
 													},
@@ -115,7 +139,6 @@
 															],
 															"variable": [
 																{
-																	"id": "2e3e3dff-a106-4d9f-bb1f-7c0a2b5e58a3",
 																	"key": "domain",
 																	"value": "<string>",
 																	"description": "(Required) "
@@ -125,7 +148,7 @@
 													},
 													"response": [
 														{
-															"id": "60803893-2d0e-420e-b5a5-62f43cead0b2",
+															"id": "24feab1c-41d5-4532-9664-abf56a91384c",
 															"name": "Successful response",
 															"originalRequest": {
 																"method": "POST",
@@ -158,6 +181,7 @@
 															"status": "OK",
 															"code": 200,
 															"_postman_previewlanguage": "text",
+															"_postman_previewtype": "html",
 															"header": [],
 															"cookie": [],
 															"responseTime": null,
@@ -166,14 +190,14 @@
 													]
 												}
 											],
-											"id": "e30db281-35bd-4b62-9422-43d65ecd4e1a"
+											"id": "4fb003ba-ca28-4659-8de8-0771ab040450"
 										},
 										{
 											"name": "verify",
 											"item": [
 												{
 													"name": "/v2/account/domains/:domain/verify",
-													"id": "36afa305-16c2-41c7-8776-c1bc87205fe7",
+													"id": "d455b0c7-8040-4547-92be-1028c8d8f205",
 													"protocolProfileBehavior": {
 														"disableBodyPruning": true
 													},
@@ -194,7 +218,6 @@
 															],
 															"variable": [
 																{
-																	"id": "d12422c1-3ed8-4b5c-ad22-dac6771dddb2",
 																	"key": "domain",
 																	"value": "<string>",
 																	"description": "(Required) "
@@ -204,7 +227,7 @@
 													},
 													"response": [
 														{
-															"id": "808904c1-aa51-4821-868d-8d2743b7c82a",
+															"id": "981eb9e6-154f-44c4-952a-5c61f4e49844",
 															"name": "Successful response",
 															"originalRequest": {
 																"method": "POST",
@@ -237,6 +260,7 @@
 															"status": "OK",
 															"code": 200,
 															"_postman_previewlanguage": "text",
+															"_postman_previewtype": "html",
 															"header": [],
 															"cookie": [],
 															"responseTime": null,
@@ -245,11 +269,11 @@
 													]
 												}
 											],
-											"id": "ff61c47b-3107-4253-92e3-d5c2490d88b5"
+											"id": "5b5b0b5b-fb64-46a3-a768-ee117d281222"
 										},
 										{
 											"name": "/v2/account/domains/:domain",
-											"id": "3c1e4a77-3470-4a62-9077-07c9d866b243",
+											"id": "80008ff8-dec5-4c78-bd4b-3c804e950cb2",
 											"protocolProfileBehavior": {
 												"disableBodyPruning": true
 											},
@@ -269,7 +293,6 @@
 													],
 													"variable": [
 														{
-															"id": "05b7296e-d30a-4092-ad36-ee8a7c69b301",
 															"key": "domain",
 															"value": "<string>",
 															"description": "(Required) "
@@ -279,7 +302,7 @@
 											},
 											"response": [
 												{
-													"id": "b7b9f079-45b6-4593-9909-de25c700581a",
+													"id": "db72d0e0-522b-4351-a5a5-5081e0bf95c5",
 													"name": "Successful response",
 													"originalRequest": {
 														"method": "GET",
@@ -311,6 +334,7 @@
 													"status": "OK",
 													"code": 200,
 													"_postman_previewlanguage": "text",
+													"_postman_previewtype": "html",
 													"header": [],
 													"cookie": [],
 													"responseTime": null,
@@ -319,22 +343,32 @@
 											]
 										}
 									],
-									"id": "2962e761-1104-441d-88c3-790fc51cf481"
+									"id": "6d36a60a-9d4b-462d-a3b9-c4a3bdd5d428"
 								},
 								{
 									"name": "/v2/account/domains",
-									"id": "65355006-1a62-49a7-a8c9-37545002003b",
+									"id": "5824a975-d208-4794-bf25-fba3444850bb",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
 									"request": {
 										"method": "GET",
 										"header": [],
-										"url": "{{baseUrl}}/v2/account/domains"
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/domains",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"domains"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "bd2561b1-82c9-42c0-8489-334e679a7b30",
+											"id": "ae6aa24e-a8e1-4dda-a529-0331fe322f43",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "GET",
@@ -345,11 +379,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v2/account/domains"
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/domains",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"domains"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "text",
+											"_postman_previewtype": "html",
 											"header": [],
 											"cookie": [],
 											"responseTime": null,
@@ -358,14 +403,14 @@
 									]
 								}
 							],
-							"id": "abe6621c-d7d1-4605-a6db-5581fa0dea0c"
+							"id": "cd6064a8-e11f-4aef-800a-9e2e2d03e1f3"
 						},
 						{
 							"name": "change-password",
 							"item": [
 								{
 									"name": "/v2/account/change-password",
-									"id": "e2edd388-ba0f-4258-b5ec-d7c7235ec377",
+									"id": "793caa03-5db3-47d3-97de-3895112f8ecc",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -401,11 +446,21 @@
 												}
 											]
 										},
-										"url": "{{baseUrl}}/v2/account/change-password"
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/change-password",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"change-password"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "5ba1e619-dc0f-4a24-a789-badb418bcea5",
+											"id": "80ec56e3-6e5f-49b3-9cc2-6bf2e1bbb3e0",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -444,11 +499,22 @@
 														}
 													]
 												},
-												"url": "{{baseUrl}}/v2/account/change-password"
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/change-password",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"change-password"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -462,14 +528,14 @@
 									]
 								}
 							],
-							"id": "0c7c2f2b-775c-432a-ac3e-c33581c82779"
+							"id": "2f18d330-0f03-4d26-b77e-c7530426297a"
 						},
 						{
 							"name": "destroy",
 							"item": [
 								{
 									"name": "/v2/account/destroy",
-									"id": "391ee893-08a4-42ec-96f8-559d320e3c47",
+									"id": "ae92e00d-3feb-4210-8faf-7dced4eaae61",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -495,11 +561,21 @@
 												}
 											]
 										},
-										"url": "{{baseUrl}}/v2/account/destroy"
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/destroy",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"destroy"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "aa541307-63cd-4322-8843-caa4189ac857",
+											"id": "5ed1bf90-1da0-47a0-8253-8db2172bdc46",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -528,11 +604,22 @@
 														}
 													]
 												},
-												"url": "{{baseUrl}}/v2/account/destroy"
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/destroy",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"destroy"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -546,14 +633,14 @@
 									]
 								}
 							],
-							"id": "c71f39c7-190e-4ec4-aaa1-7d4c2fe91ee9"
+							"id": "c23c862d-3496-49e0-93dc-abfa448a2518"
 						},
 						{
 							"name": "apitoken",
 							"item": [
 								{
 									"name": "/v2/account/apitoken",
-									"id": "4406e830-2820-4dc4-8ef2-e778bc961e9a",
+									"id": "aeb02f54-c02e-42ff-86d5-69eeafd7b42c",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -565,11 +652,21 @@
 												"value": "application/json"
 											}
 										],
-										"url": "{{baseUrl}}/v2/account/apitoken"
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/apitoken",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"apitoken"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "e4a65aca-af14-4294-b19a-8c75d187b02c",
+											"id": "afec6b70-9f70-4e02-a89f-43562a18eca3",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -584,11 +681,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v2/account/apitoken"
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/apitoken",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"apitoken"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -602,14 +710,14 @@
 									]
 								}
 							],
-							"id": "9fa3f377-6c8f-40e2-ad2f-d68114d10ffb"
+							"id": "222d8334-38c7-4654-afec-fe3fb5e520e9"
 						},
 						{
 							"name": "update-locale",
 							"item": [
 								{
 									"name": "/v2/account/update-locale",
-									"id": "9b0118ce-7db2-4e27-bfdf-0fad0e6a1b21",
+									"id": "838563ae-e365-4db2-99c5-b9ecce425a69",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -621,11 +729,21 @@
 												"value": "application/json"
 											}
 										],
-										"url": "{{baseUrl}}/v2/account/update-locale"
+										"url": {
+											"raw": "{{baseUrl}}/v2/account/update-locale",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account",
+												"update-locale"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "8c1d91f2-23e4-4d16-abed-0f4ba88f24ac",
+											"id": "d1eac955-167e-4b03-b68a-eec788839bb6",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -640,11 +758,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v2/account/update-locale"
+												"url": {
+													"raw": "{{baseUrl}}/v2/account/update-locale",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"account",
+														"update-locale"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -658,11 +787,11 @@
 									]
 								}
 							],
-							"id": "86766784-5836-4e37-85a9-8d1cf6ed5df5"
+							"id": "070f36d3-c374-4740-86db-1af2195f4a83"
 						},
 						{
 							"name": "/v2/account",
-							"id": "52319dda-0043-414b-8a37-593ffa4d4ff7",
+							"id": "15580955-c3d1-4ee0-b566-744d80163858",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -674,11 +803,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v2/account"
+								"url": {
+									"raw": "{{baseUrl}}/v2/account",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"account"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "e4e8902e-2d06-4600-8ad3-6d6ff4291715",
+									"id": "3793c3b8-c3bd-4089-925e-59cdc1a726ae",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -693,11 +831,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v2/account"
+										"url": {
+											"raw": "{{baseUrl}}/v2/account",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"account"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -711,14 +859,14 @@
 							]
 						}
 					],
-					"id": "9b79c31e-9915-43ad-a678-fc13b0ab7ec3"
+					"id": "e77a0b60-bff6-4e04-9796-b14a41a42f4c"
 				},
 				{
 					"name": "status",
 					"item": [
 						{
 							"name": "/v2/status",
-							"id": "2f25ec0e-a9e7-42e8-9ad2-464b57960a89",
+							"id": "34a64c78-f741-4ef3-bee3-c9d695733a55",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -730,11 +878,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v2/status"
+								"url": {
+									"raw": "{{baseUrl}}/v2/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"status"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "d5b3aaf2-03fd-4102-b7dc-f736f96ffbcb",
+									"id": "3b87e44a-567c-4e76-820d-c06f6da55850",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -749,11 +906,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v2/status"
+										"url": {
+											"raw": "{{baseUrl}}/v2/status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"status"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -768,7 +935,7 @@
 						},
 						{
 							"name": "/v2/status",
-							"id": "08b1c164-b7f6-4ab9-bc24-09d53ec6cfdf",
+							"id": "faba7148-f56f-4fb5-b040-2cb4e4d298f8",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -780,11 +947,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v2/status"
+								"url": {
+									"raw": "{{baseUrl}}/v2/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"status"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "21e0b0eb-92cf-4361-bcf2-6bfdff1d3b78",
+									"id": "e68da44b-ff56-4280-a2a9-cb1a16aca4a7",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "HEAD",
@@ -799,11 +975,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v2/status"
+										"url": {
+											"raw": "{{baseUrl}}/v2/status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"status"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -817,7 +1003,7 @@
 							]
 						}
 					],
-					"id": "f7033897-68cf-40d2-898b-2977826c9a25"
+					"id": "d1f5dea8-d1b6-4bdb-92e0-4dc67bf6330f"
 				},
 				{
 					"name": "private",
@@ -827,7 +1013,7 @@
 							"item": [
 								{
 									"name": "/v2/private/recent",
-									"id": "5e90d7e7-1042-4e88-8c8f-27b94577038b",
+									"id": "a151e433-410f-4ea1-9e96-9e21beccb502",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true,
 										"protocolVersion": "http1"
@@ -840,11 +1026,21 @@
 												"value": "application/json"
 											}
 										],
-										"url": "{{baseUrl}}/v2/private/recent"
+										"url": {
+											"raw": "{{baseUrl}}/v2/private/recent",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"private",
+												"recent"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "3e428156-ce3b-4c88-90aa-2c16017f97e6",
+											"id": "3662584c-a75c-4c1e-a857-921062bde024",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "GET",
@@ -859,11 +1055,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v2/private/recent"
+												"url": {
+													"raw": "{{baseUrl}}/v2/private/recent",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"private",
+														"recent"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -877,7 +1084,7 @@
 									]
 								}
 							],
-							"id": "d99aab9b-7f35-4235-8c5a-949185b047d8"
+							"id": "0ec670e5-b299-49ee-83a4-20d30896d9ce"
 						},
 						{
 							"name": "{key}",
@@ -887,7 +1094,7 @@
 									"item": [
 										{
 											"name": "/v2/private/:key/burn",
-											"id": "36cfb295-4991-4edb-aba8-728295bc10b4",
+											"id": "9042e366-c80f-4d47-a8c9-523cc6ade211",
 											"protocolProfileBehavior": {
 												"disableBodyPruning": true
 											},
@@ -912,7 +1119,6 @@
 													],
 													"variable": [
 														{
-															"id": "94923376-59d4-4a50-9a3f-deafe5d5fe4b",
 															"key": "key",
 															"value": "<string>",
 															"description": "(Required) "
@@ -922,7 +1128,7 @@
 											},
 											"response": [
 												{
-													"id": "e6e73c5e-1b1f-43eb-b0ea-09811e4e88dc",
+													"id": "875a6251-fcc7-45d0-ba37-e2731e3b2f66",
 													"name": "Successful response",
 													"originalRequest": {
 														"method": "POST",
@@ -958,6 +1164,7 @@
 													"status": "OK",
 													"code": 200,
 													"_postman_previewlanguage": "json",
+													"_postman_previewtype": "html",
 													"header": [
 														{
 															"key": "Content-Type",
@@ -971,11 +1178,11 @@
 											]
 										}
 									],
-									"id": "fa391e13-8000-4f47-acf0-cde865725122"
+									"id": "c8617b65-d56e-4a47-986c-1e8196a1551b"
 								},
 								{
 									"name": "/v2/private/:key",
-									"id": "1ba280b8-770c-4b88-993f-a9aa4e66c91e",
+									"id": "cc872f8b-dccb-4537-8509-c7a77165c487",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -999,7 +1206,6 @@
 											],
 											"variable": [
 												{
-													"id": "3e71c557-6b3e-4d2c-967e-30a755f712d7",
 													"key": "key",
 													"value": "<string>",
 													"description": "(Required) "
@@ -1009,7 +1215,7 @@
 									},
 									"response": [
 										{
-											"id": "b771e67e-4494-40e9-ba28-21cb4143bfc1",
+											"id": "f3d906ac-d4f2-461a-9e46-b729d3c7f6e7",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "GET",
@@ -1044,6 +1250,7 @@
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -1057,10 +1264,10 @@
 									]
 								}
 							],
-							"id": "601fc407-d538-4e69-9085-2866b93d0acd"
+							"id": "9020523a-47c1-455b-9814-cebda4b0e1e3"
 						}
 					],
-					"id": "3db9dd1f-d2b7-41cf-815f-d762e171d0ed"
+					"id": "197a557a-55f4-40c5-aba8-5bd207dfb557"
 				},
 				{
 					"name": "secret",
@@ -1070,7 +1277,7 @@
 							"item": [
 								{
 									"name": "/v2/secret/:key",
-									"id": "4bd77761-a107-475a-aaf2-3b05f7c802b5",
+									"id": "bba71306-28b1-4a2f-9868-30ed7ab3b25e",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -1094,7 +1301,6 @@
 											],
 											"variable": [
 												{
-													"id": "f11e4ea1-c54e-45ff-8620-264d9fcc4b99",
 													"key": "key",
 													"value": "<string>",
 													"description": "(Required) "
@@ -1104,7 +1310,7 @@
 									},
 									"response": [
 										{
-											"id": "cabef2e6-f9eb-4ca1-82ab-f1dc9dd3350c",
+											"id": "d3edc2d9-4077-4c56-8851-fe152b1f7fa1",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "GET",
@@ -1139,6 +1345,7 @@
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -1153,7 +1360,7 @@
 								},
 								{
 									"name": "/v2/secret/:key",
-									"id": "60bd2efc-0607-48be-a542-cc81d588bc60",
+									"id": "6697295d-87b5-4cea-9cfc-6aa3424c3a99",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -1177,7 +1384,6 @@
 											],
 											"variable": [
 												{
-													"id": "5bba75ef-aa61-43f4-b3b4-1f8bfe1c7171",
 													"key": "key",
 													"value": "<string>",
 													"description": "(Required) "
@@ -1187,7 +1393,7 @@
 									},
 									"response": [
 										{
-											"id": "99b33a91-0bef-4f86-b091-dc78b65a8090",
+											"id": "e9aa44d8-987d-4a5b-9bec-084e760bff61",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -1222,6 +1428,7 @@
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -1235,14 +1442,14 @@
 									]
 								}
 							],
-							"id": "1d099a76-6172-459a-9e5c-f562f3b2feb0"
+							"id": "68d06b93-f865-4ca8-a301-a2a1659872e8"
 						},
 						{
 							"name": "conceal",
 							"item": [
 								{
 									"name": "/v2/secret/conceal",
-									"id": "e3290e82-012b-4f39-b8ad-bd0b67c37e2f",
+									"id": "4b776d89-558e-497f-acbc-c5ba71f0bf81",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -1274,11 +1481,21 @@
 												}
 											]
 										},
-										"url": "{{baseUrl}}/v2/secret/conceal"
+										"url": {
+											"raw": "{{baseUrl}}/v2/secret/conceal",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"secret",
+												"conceal"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "73f32794-f577-4e32-99ca-aec20efc8f50",
+											"id": "f087c5e7-64a3-41d5-87ae-feeb5362879a",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -1293,11 +1510,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v2/secret/conceal"
+												"url": {
+													"raw": "{{baseUrl}}/v2/secret/conceal",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"secret",
+														"conceal"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -1311,17 +1539,17 @@
 									]
 								}
 							],
-							"id": "cdef31bf-aeda-45a2-9757-1edb7f012ab5"
+							"id": "890400b8-0dd8-4938-acfd-2bce8467ff3a"
 						}
 					],
-					"id": "6616a6ee-464d-4519-afb6-66434b552e8f"
+					"id": "93c56afe-b518-492a-9c10-63f85cf1e042"
 				},
 				{
 					"name": "authcheck",
 					"item": [
 						{
 							"name": "/v2/authcheck",
-							"id": "f889ce9e-570c-4bbf-b54c-8bd74b199485",
+							"id": "e41c30d8-2e71-4ec6-b2ab-095654204ead",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true,
 								"strictSSL": false,
@@ -1331,10 +1559,18 @@
 							"request": {
 								"auth": {
 									"type": "basic",
-									"basic": {
-										"password": "{{basicAuthPassword}}",
-										"username": "{{basicAuthUsername}}"
-									}
+									"basic": [
+										{
+											"key": "password",
+											"value": "{{basicAuthPassword}}",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "{{basicAuthUsername}}",
+											"type": "string"
+										}
+									]
 								},
 								"method": "POST",
 								"header": [
@@ -1343,11 +1579,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v2/authcheck"
+								"url": {
+									"raw": "{{baseUrl}}/v2/authcheck",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"authcheck"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "5be21c12-c98d-4ec9-a6b3-4786f9313d21",
+									"id": "0c9b4469-da55-4103-8a25-6d8cd2e79cfa",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -1362,11 +1607,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v2/authcheck"
+										"url": {
+											"raw": "{{baseUrl}}/v2/authcheck",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"authcheck"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -1380,14 +1635,14 @@
 							]
 						}
 					],
-					"id": "005d8eb5-5936-4f16-a5d5-f6d31353d62f"
+					"id": "db22f7f8-ddc0-45c4-a7fa-ab47c93f9f0b"
 				},
 				{
 					"name": "supported-locales",
 					"item": [
 						{
 							"name": "/v2/supported-locales",
-							"id": "494ea211-0bc2-4a96-908a-d9950a39f360",
+							"id": "f99646e9-ceeb-4f53-8b0b-86032b7bc8bd",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1399,11 +1654,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v2/supported-locales"
+								"url": {
+									"raw": "{{baseUrl}}/v2/supported-locales",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"supported-locales"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "e1921467-d59f-4345-a377-fee8f2641153",
+									"id": "175c618a-b169-44ed-bf78-69e4b5bde007",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -1418,11 +1682,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v2/supported-locales"
+										"url": {
+											"raw": "{{baseUrl}}/v2/supported-locales",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"supported-locales"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -1436,14 +1710,14 @@
 							]
 						}
 					],
-					"id": "910c717c-be73-4da8-8ad6-c048cfa49f25"
+					"id": "412066bb-ab31-49a2-a1ad-23c36ccbe5ac"
 				},
 				{
 					"name": "version",
 					"item": [
 						{
 							"name": "/v2/version",
-							"id": "53d52d69-1e1b-40d9-947a-b2e1bbaed2b2",
+							"id": "3c7e0d13-3b11-4be0-979e-8be41537a170",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1455,11 +1729,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v2/version"
+								"url": {
+									"raw": "{{baseUrl}}/v2/version",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"version"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "aba82b0b-658d-4a39-88da-bfdade509301",
+									"id": "70067dfb-e255-4e7e-bd9b-827e6f76b643",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -1474,11 +1757,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v2/version"
+										"url": {
+											"raw": "{{baseUrl}}/v2/version",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"version"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -1492,7 +1785,7 @@
 							]
 						}
 					],
-					"id": "e6d506da-7f22-42e6-9a4f-fd86562af6ec"
+					"id": "c1b7be02-cd1b-4fad-ba59-9f60d9f64ead"
 				},
 				{
 					"name": "validate-shrimp",
@@ -1503,7 +1796,7 @@
 								{
 									"listen": "test",
 									"script": {
-										"id": "53dcd182-9ce1-4f22-8946-9938294a8330",
+										"id": "25917d0d-f54c-4b97-ae4a-03dc8516457d",
 										"exec": [
 											"var template = `",
 											"<style type=\"text/css\">",
@@ -1537,7 +1830,7 @@
 									}
 								}
 							],
-							"id": "2fa9e561-9b1b-4a79-b43e-fcddbe9c2f37",
+							"id": "40524e38-269f-4270-982d-b8467c90ec87",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1554,11 +1847,20 @@
 										"type": "text"
 									}
 								],
-								"url": "{{baseUrl}}/v2/validate-shrimp"
+								"url": {
+									"raw": "{{baseUrl}}/v2/validate-shrimp",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"validate-shrimp"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "783d6821-8788-4edb-ab37-5cafe54a8543",
+									"id": "cee3d701-0154-42b3-9700-fdc7b9ef6c18",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -1573,11 +1875,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v2/validate-shrimp"
+										"url": {
+											"raw": "{{baseUrl}}/v2/validate-shrimp",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"validate-shrimp"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -1589,7 +1901,7 @@
 									"body": "{\n  \"success\": \"<boolean>\"\n}"
 								},
 								{
-									"id": "97941f0a-a111-48c5-af70-6d6835c7736f",
+									"id": "d85047ca-e581-4802-8690-e213b978fbc0",
 									"name": "BadShrimp",
 									"originalRequest": {
 										"method": "POST",
@@ -1604,11 +1916,21 @@
 												"type": "text"
 											}
 										],
-										"url": "{{baseUrl}}/v2/validate-shrimp"
+										"url": {
+											"raw": "{{baseUrl}}/v2/validate-shrimp",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"validate-shrimp"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Alt-Svc",
@@ -1666,7 +1988,7 @@
 							]
 						}
 					],
-					"id": "7b34e962-dd3b-45ca-bb74-2f147c64059b"
+					"id": "2dc37053-5cac-413b-b7f7-cccf47331980"
 				},
 				{
 					"name": "altcha",
@@ -1676,7 +1998,7 @@
 							"item": [
 								{
 									"name": "/v2/altcha/challenge",
-									"id": "4eed8de3-2425-4920-b16f-4179ef334e05",
+									"id": "122b9137-48c3-4ea6-8711-069fedaf22f2",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -1688,11 +2010,21 @@
 												"value": "application/json"
 											}
 										],
-										"url": "{{baseUrl}}/v2/altcha/challenge"
+										"url": {
+											"raw": "{{baseUrl}}/v2/altcha/challenge",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"altcha",
+												"challenge"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "05841461-5f98-42a9-891c-effafa57a062",
+											"id": "7cbaa148-3430-40f6-a6be-b6f4f48df275",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "GET",
@@ -1707,11 +2039,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v2/altcha/challenge"
+												"url": {
+													"raw": "{{baseUrl}}/v2/altcha/challenge",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"altcha",
+														"challenge"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -1725,14 +2068,14 @@
 									]
 								}
 							],
-							"id": "2e381bf5-b418-4fb2-b466-7854fa1ab84e"
+							"id": "d5f89256-093d-4c0b-a963-0c962bac4084"
 						},
 						{
 							"name": "verify",
 							"item": [
 								{
 									"name": "/v2/altcha/verify",
-									"id": "cfcb2f90-b305-4b7b-8ec8-504c2ccdbb21",
+									"id": "449da7b6-010d-49b4-b2da-2705c344b839",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -1744,11 +2087,21 @@
 												"value": "application/json"
 											}
 										],
-										"url": "{{baseUrl}}/v2/altcha/verify"
+										"url": {
+											"raw": "{{baseUrl}}/v2/altcha/verify",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"altcha",
+												"verify"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "62acc80c-7d13-4e80-ada5-a58f001d9189",
+											"id": "da2619fe-4872-4cd1-b85f-008ee06bf63d",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -1763,11 +2116,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v2/altcha/verify"
+												"url": {
+													"raw": "{{baseUrl}}/v2/altcha/verify",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"altcha",
+														"verify"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -1781,14 +2145,14 @@
 									]
 								}
 							],
-							"id": "ddd05312-1828-48ae-9ba4-f4032693d007"
+							"id": "f917def3-d2d7-4c3b-b31f-812e0f11037c"
 						},
 						{
 							"name": "verify-spam",
 							"item": [
 								{
 									"name": "/v2/altcha/verify-spam",
-									"id": "f25cc7d6-c80d-43a2-acb6-8fa90dafbace",
+									"id": "bc6f2937-5167-4339-949c-4bcb849b1090",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -1800,11 +2164,21 @@
 												"value": "application/json"
 											}
 										],
-										"url": "{{baseUrl}}/v2/altcha/verify-spam"
+										"url": {
+											"raw": "{{baseUrl}}/v2/altcha/verify-spam",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"altcha",
+												"verify-spam"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "d2c6c28b-09bd-4767-a1d2-862030b9078c",
+											"id": "a3d84551-2dd8-4049-9ece-4cfecd7c1b35",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -1819,11 +2193,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v2/altcha/verify-spam"
+												"url": {
+													"raw": "{{baseUrl}}/v2/altcha/verify-spam",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v2",
+														"altcha",
+														"verify-spam"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -1837,17 +2222,17 @@
 									]
 								}
 							],
-							"id": "b0818833-6045-4005-b03a-79143ddb4dde"
+							"id": "d12a08a7-fb3d-46a0-9f8e-50b3b609a6bf"
 						}
 					],
-					"id": "cf9873d6-0074-4a43-a3a1-dfdad63ad9e4"
+					"id": "823f2cad-3281-41f4-b51d-81eeb7585ff0"
 				},
 				{
 					"name": "colonel",
 					"item": [
 						{
 							"name": "/v2/colonel",
-							"id": "4d1ad61d-7c00-4015-866f-ff9f01514f8d",
+							"id": "86077445-fe37-4146-83be-75b8f980d02f",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -1859,11 +2244,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v2/colonel"
+								"url": {
+									"raw": "{{baseUrl}}/v2/colonel",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v2",
+										"colonel"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "dbfc4add-8c4d-4527-9222-04f2336d8e6e",
+									"id": "245dc4c8-191b-4d78-a039-7e908d42f14f",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -1878,11 +2272,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v2/colonel"
+										"url": {
+											"raw": "{{baseUrl}}/v2/colonel",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v2",
+												"colonel"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -1896,10 +2300,10 @@
 							]
 						}
 					],
-					"id": "ac105417-0fd5-4b31-9007-fc9771a0b503"
+					"id": "b91be1b0-829f-4d74-8f62-abde1847d4fd"
 				}
 			],
-			"id": "f31a7085-9110-4f08-a384-83fc3ab7f83f"
+			"id": "52c0375e-d291-4515-ac80-544a3c005bbf"
 		},
 		{
 			"name": "v1",
@@ -1915,7 +2319,7 @@
 									"item": [
 										{
 											"name": "/v1/private/:metadata_key/burn",
-											"id": "68c70768-b1cb-4b04-96c4-bcdbac7ebb3b",
+											"id": "69fda87f-4b51-441a-b6e7-2840cf9a8640",
 											"protocolProfileBehavior": {
 												"disableBodyPruning": true
 											},
@@ -1935,7 +2339,6 @@
 													],
 													"variable": [
 														{
-															"id": "2ae25559-f6c3-4a8e-8955-b750f2dbd55c",
 															"key": "metadata_key",
 															"value": "<string>",
 															"description": "(Required) "
@@ -1945,7 +2348,7 @@
 											},
 											"response": [
 												{
-													"id": "56ab67b2-aaca-44c7-8952-3e72171b8b47",
+													"id": "2bd3d375-f46c-494c-89a7-2e90658194a5",
 													"name": "Successful response",
 													"originalRequest": {
 														"method": "POST",
@@ -1977,6 +2380,7 @@
 													"status": "OK",
 													"code": 200,
 													"_postman_previewlanguage": "text",
+													"_postman_previewtype": "html",
 													"header": [],
 													"cookie": [],
 													"responseTime": null,
@@ -1985,11 +2389,11 @@
 											]
 										}
 									],
-									"id": "a413e926-1f83-4a22-88e7-50590ed09ee4"
+									"id": "8b8b42c9-7001-43fb-847a-f6c394bb4388"
 								},
 								{
 									"name": "/v1/private/:metadata_key",
-									"id": "3ad9824d-2c41-49d0-937c-78e626da612b",
+									"id": "e26544a8-9bf1-41e9-a57d-05b4d0ab2e93",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -2008,7 +2412,6 @@
 											],
 											"variable": [
 												{
-													"id": "26f4e25d-3159-428d-9d4d-b345bfc7d4b8",
 													"key": "metadata_key",
 													"value": "<string>",
 													"description": "(Required) "
@@ -2018,7 +2421,7 @@
 									},
 									"response": [
 										{
-											"id": "3f5c6759-8339-4f63-9e5a-2c5755d91172",
+											"id": "a713ca1a-10b1-482a-b875-0585826041ac",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -2049,6 +2452,7 @@
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "text",
+											"_postman_previewtype": "html",
 											"header": [],
 											"cookie": [],
 											"responseTime": null,
@@ -2057,25 +2461,35 @@
 									]
 								}
 							],
-							"id": "ae374528-e784-4cb2-8b20-2c91cab218b7"
+							"id": "81a09aaf-5e2e-471e-8173-18ca252f31fb"
 						},
 						{
 							"name": "recent",
 							"item": [
 								{
 									"name": "/v1/private/recent",
-									"id": "4d7700e6-6af1-404a-b64d-b88d693cd519",
+									"id": "9a5f9a85-fbf7-4166-9e1c-bd89c2b2383d",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
 									"request": {
 										"method": "GET",
 										"header": [],
-										"url": "{{baseUrl}}/v1/private/recent"
+										"url": {
+											"raw": "{{baseUrl}}/v1/private/recent",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"private",
+												"recent"
+											]
+										}
 									},
 									"response": [
 										{
-											"id": "e9211843-a525-481d-b827-2514aa2faa1e",
+											"id": "c0135f6c-aa68-46f7-ba95-4120aefcf925",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "GET",
@@ -2086,11 +2500,22 @@
 														"value": "Basic <credentials>"
 													}
 												],
-												"url": "{{baseUrl}}/v1/private/recent"
+												"url": {
+													"raw": "{{baseUrl}}/v1/private/recent",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"private",
+														"recent"
+													]
+												}
 											},
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "text",
+											"_postman_previewtype": "html",
 											"header": [],
 											"cookie": [],
 											"responseTime": null,
@@ -2099,17 +2524,17 @@
 									]
 								}
 							],
-							"id": "3d65b6d8-0feb-473c-9a65-98c241d536df"
+							"id": "19c8fca3-2f73-45e1-b291-72324f452e54"
 						}
 					],
-					"id": "5a8b410e-2189-4fb3-a671-f12cee596316"
+					"id": "e9b9df07-02f0-44b3-8417-3b82c23feaa6"
 				},
 				{
 					"name": "share",
 					"item": [
 						{
 							"name": "/v1/share",
-							"id": "b68a47ef-a0f8-4bd3-a137-c766109d097d",
+							"id": "76534641-413b-4e8e-8503-f92c70e0e6a8",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2155,11 +2580,20 @@
 										}
 									]
 								},
-								"url": "{{baseUrl}}/v1/share"
+								"url": {
+									"raw": "{{baseUrl}}/v1/share",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"share"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "06f7bb57-49f4-45e1-83a2-eaa495fc8183",
+									"id": "11a62c7c-cc38-4981-9d22-84a032d464b0",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2208,11 +2642,21 @@
 												}
 											]
 										},
-										"url": "{{baseUrl}}/v1/share"
+										"url": {
+											"raw": "{{baseUrl}}/v1/share",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"share"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -2226,14 +2670,14 @@
 							]
 						}
 					],
-					"id": "fa4b821e-f47b-496f-a585-c8ca3d3b8593"
+					"id": "fc59e440-e68d-4fd4-87f5-6ef4481f7c2c"
 				},
 				{
 					"name": "generate",
 					"item": [
 						{
 							"name": "/v1/generate",
-							"id": "a78f568b-fec7-48b1-bc87-b80921225305",
+							"id": "6907d2ea-b1ca-4cd1-b397-63724cfea69d",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2245,11 +2689,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v1/generate"
+								"url": {
+									"raw": "{{baseUrl}}/v1/generate",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"generate"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "e93faef8-a013-483f-83f3-59d21b30aa17",
+									"id": "03868634-a924-4661-9614-a2e08bf2394b",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "POST",
@@ -2264,11 +2717,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v1/generate"
+										"url": {
+											"raw": "{{baseUrl}}/v1/generate",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"generate"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -2282,7 +2745,7 @@
 							]
 						}
 					],
-					"id": "44487982-258b-43ba-814b-b14d57d2b020"
+					"id": "2d3f32a8-f131-4ab2-b54a-8a9d3a075196"
 				},
 				{
 					"name": "secret",
@@ -2292,7 +2755,7 @@
 							"item": [
 								{
 									"name": "/v1/secret/:secret_key",
-									"id": "a886922b-5e52-4832-84b9-018914bd878e",
+									"id": "8fcdbb4d-9f02-443b-a79a-065a599ed04e",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
 									},
@@ -2316,7 +2779,6 @@
 											],
 											"variable": [
 												{
-													"id": "0dc6e0b2-58d0-49f0-a41c-7e54d2f7e2aa",
 													"key": "secret_key",
 													"value": "<string>",
 													"description": "(Required) "
@@ -2326,7 +2788,7 @@
 									},
 									"response": [
 										{
-											"id": "9041a277-59fc-422c-8022-8e5a638c17e1",
+											"id": "70245424-92c2-4dc6-9b48-380675592e5a",
 											"name": "Successful response",
 											"originalRequest": {
 												"method": "POST",
@@ -2361,6 +2823,7 @@
 											"status": "OK",
 											"code": 200,
 											"_postman_previewlanguage": "json",
+											"_postman_previewtype": "html",
 											"header": [
 												{
 													"key": "Content-Type",
@@ -2374,17 +2837,17 @@
 									]
 								}
 							],
-							"id": "49eb4ba6-1a74-49f1-bd09-52531b1926e9"
+							"id": "52e96975-fb9d-416c-a47a-ad42a724c0f3"
 						}
 					],
-					"id": "c7f1276a-23cb-49e2-b9d8-07ff293d091f"
+					"id": "38f7e9e8-8d5c-4dae-ac7a-c9ba24867084"
 				},
 				{
 					"name": "status",
 					"item": [
 						{
 							"name": "/v1/status",
-							"id": "89bc097c-9f85-4dee-859b-357a4cdbf51e",
+							"id": "3f6dc6e0-0cdf-4fe2-b4ec-b57dfd755051",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
@@ -2396,11 +2859,20 @@
 										"value": "application/json"
 									}
 								],
-								"url": "{{baseUrl}}/v1/status"
+								"url": {
+									"raw": "{{baseUrl}}/v1/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"status"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "f4aaf531-22f3-4da6-a0da-fbf05279268b",
+									"id": "a0018f4f-36c6-4d7d-82ee-9de7c7efe2c3",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "GET",
@@ -2415,11 +2887,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v1/status"
+										"url": {
+											"raw": "{{baseUrl}}/v1/status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"status"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "json",
+									"_postman_previewtype": "html",
 									"header": [
 										{
 											"key": "Content-Type",
@@ -2434,18 +2916,27 @@
 						},
 						{
 							"name": "/v1/status",
-							"id": "de49a546-a222-4016-9f9f-7f483a5141f7",
+							"id": "6a0f2b2e-4f3f-4fdd-ae2a-cd99cc6511e6",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
 							"request": {
 								"method": "HEAD",
 								"header": [],
-								"url": "{{baseUrl}}/v1/status"
+								"url": {
+									"raw": "{{baseUrl}}/v1/status",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"status"
+									]
+								}
 							},
 							"response": [
 								{
-									"id": "ee290c52-c1f5-4b60-b361-4033ab4351a8",
+									"id": "db88921f-9e93-4d1e-b3aa-252aa713e8d4",
 									"name": "Successful response",
 									"originalRequest": {
 										"method": "HEAD",
@@ -2456,11 +2947,21 @@
 												"value": "Basic <credentials>"
 											}
 										],
-										"url": "{{baseUrl}}/v1/status"
+										"url": {
+											"raw": "{{baseUrl}}/v1/status",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"status"
+											]
+										}
 									},
 									"status": "OK",
 									"code": 200,
 									"_postman_previewlanguage": "text",
+									"_postman_previewtype": "html",
 									"header": [],
 									"cookie": [],
 									"responseTime": null,
@@ -2469,24 +2970,32 @@
 							]
 						}
 					],
-					"id": "cea4dfc6-fd5e-4f78-9fb6-6be95f48a697"
+					"id": "07318006-786c-4731-b94d-d571ca454555"
 				}
 			],
-			"id": "f54cf039-63fa-4ee4-b3a9-8fe4d15f866e"
+			"id": "cecf94b9-bdf1-49bc-97f5-d82d7b345928"
 		}
 	],
 	"auth": {
 		"type": "basic",
-		"basic": {
-			"username": "{{basicAuthUsername}}",
-			"password": "{{basicAuthPassword}}"
-		}
+		"basic": [
+			{
+				"key": "username",
+				"value": "{{basicAuthUsername}}",
+				"type": "string"
+			},
+			{
+				"key": "password",
+				"value": "{{basicAuthPassword}}",
+				"type": "string"
+			}
+		]
 	},
 	"event": [
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "d12857b2-5956-4c99-b829-dd4b835ddadc",
+				"id": "01d31fc0-f847-4b8d-bd04-7f866f6e4190",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -2497,7 +3006,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "bbdda698-5c82-4f97-a60b-ea171abb6d45",
+				"id": "4a404424-a41c-4fc9-97d9-187253c15d35",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -2508,20 +3017,24 @@
 	],
 	"variable": [
 		{
+			"id": "c42ce29d-76aa-4c69-aa37-5298384cb1f6",
 			"key": "baseUrl",
 			"value": "https://onetimesecret.com/api"
 		},
 		{
+			"id": "7c4a702d-551d-4425-992e-13eb14f31b11",
 			"key": "basicAuthUsername",
 			"value": "delbo@solutious.com",
 			"type": "string"
 		},
 		{
+			"id": "206d1e4b-47c2-480a-9240-0a1afe30bb77",
 			"key": "basicAuthPassword",
 			"value": "7d8c736e47580595ff3c6a9e8d16c8ca5b085df2\n\n",
 			"type": "string"
 		},
 		{
+			"id": "e9fa3efc-8bf5-48b2-8e3b-770cc2c08442",
 			"key": "shrimp",
 			"value": "",
 			"type": "string"

@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "30590ffd-589d-4839-a7a9-9d3272e28135",
+		"_postman_id": "36dfd834-c62f-4d68-9b4f-9ab73ecadc77",
 		"name": "Regression tests - Edge Cases",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "38849719-36dfd834-c62f-4d68-9b4f-9ab73ecadc77"
 	},
 	"item": [
 		{
@@ -10,7 +11,7 @@
 			"item": [
 				{
 					"name": "Create Secret",
-					"id": "875c38e0-4e72-4a7a-9c5d-892b95759724",
+					"id": "0fe2dc2d-ce23-41e1-a42b-7cffb29276e4",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -43,45 +44,74 @@
 								}
 							]
 						},
-						"url": "{{host}}/v1/share"
+						"url": {
+							"raw": "{{host}}/v1/share",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Retrieve secret",
-					"id": "0fa083f7-cd08-4781-bd37-c57a18dce7b2",
+					"id": "a37327ba-c2d2-478d-9924-0ca891a53cc8",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
 					"request": {
 						"method": "POST",
 						"header": [],
-						"url": "{{host}}/v1/shared/{{secret_key}}"
+						"url": {
+							"raw": "{{host}}/v1/shared/{{secret_key}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"shared",
+								"{{secret_key}}"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Retrieve metadata",
-					"id": "1df20133-c597-4b82-9315-b69ab7d61a22",
+					"id": "fc51dd95-0784-4338-a978-1dec971ce044",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
 					"request": {
 						"method": "POST",
 						"header": [],
-						"url": "{{host}}/v1/private/{{metadata_key}}"
+						"url": {
+							"raw": "{{host}}/v1/private/{{metadata_key}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"private",
+								"{{metadata_key}}"
+							]
+						}
 					},
 					"response": []
 				}
 			],
-			"id": "99bb522e-62eb-4149-a11d-176cb5f5c926"
+			"id": "4d502062-6479-445c-8d2f-c281696478db"
 		},
 		{
 			"name": "Misc",
 			"item": [
 				{
 					"name": "Create a secret with a missing passphrase",
-					"id": "fb226071-a92c-4587-b02b-6e089be2555e",
+					"id": "1fb13e45-c83a-45f2-adf9-7b794ac2a9cf",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -114,13 +144,22 @@
 								}
 							]
 						},
-						"url": "{{host}}/v1/share"
+						"url": {
+							"raw": "{{host}}/v1/share",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Create a secret with a passphrase",
-					"id": "7ef3d9bc-3893-491d-9ad4-ddd7a04dc59c",
+					"id": "4b0c2c24-35c3-4a44-acd8-a9d1874c2015",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -157,13 +196,22 @@
 								}
 							]
 						},
-						"url": "{{host}}/v1/share"
+						"url": {
+							"raw": "{{host}}/v1/share",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Create a secret with an empty passphrase",
-					"id": "0fcb6920-f0b1-4ef9-9c88-983807db3ec7",
+					"id": "38b44564-2899-4783-b902-bccb195f8b31",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -200,13 +248,22 @@
 								}
 							]
 						},
-						"url": "{{host}}/v1/share"
+						"url": {
+							"raw": "{{host}}/v1/share",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
 					},
 					"response": []
 				},
 				{
 					"name": "Create a secret with bogus domain",
-					"id": "72d06f18-ae3f-4c69-9a20-bf7ff08f8f76",
+					"id": "82fd4841-83fa-42f9-b9a1-1e6f550383c1",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -247,26 +304,43 @@
 								}
 							]
 						},
-						"url": "{{host}}/v1/share"
+						"url": {
+							"raw": "{{host}}/v1/share",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"share"
+							]
+						}
 					},
 					"response": []
 				}
 			],
-			"id": "b11d32af-b50e-46e8-b8fc-1c0d61987eae"
+			"id": "c1ac18dd-f244-4063-8577-5d754743f2b6"
 		}
 	],
 	"auth": {
 		"type": "basic",
-		"basic": {
-			"password": "{{apikey}}",
-			"username": "{{custid}}"
-		}
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{apikey}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{custid}}",
+				"type": "string"
+			}
+		]
 	},
 	"event": [
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "10e537b6-c780-43b7-a45c-2dc79f333105",
+				"id": "289f3a84-1a5c-4e47-ad0f-a22171048a7b",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -277,7 +351,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "83d12899-3090-4745-8e7b-a9610b0c4847",
+				"id": "65c64d82-6c94-4ff2-860d-0555fe1ac1d2",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
