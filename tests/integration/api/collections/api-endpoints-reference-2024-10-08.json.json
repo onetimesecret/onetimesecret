@@ -830,7 +830,7 @@
 									"id": "5e90d7e7-1042-4e88-8c8f-27b94577038b",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true,
-										"protocolVersion": "http2"
+										"protocolVersion": "http1"
 									},
 									"request": {
 										"method": "GET",
@@ -1499,6 +1499,44 @@
 					"item": [
 						{
 							"name": "/v2/validate-shrimp",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "53dcd182-9ce1-4f22-8946-9938294a8330",
+										"exec": [
+											"var template = `",
+											"<style type=\"text/css\">",
+											"    .tftable {font-size:14px;color:#333333;width:100%;border-width: 1px;border-color: #87ceeb;border-collapse: collapse;}",
+											"    .tftable th {font-size:18px;background-color:#87ceeb;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;text-align:left;}",
+											"    .tftable tr {background-color:#ffffff;}",
+											"    .tftable td {font-size:14px;border-width: 1px;padding: 8px;border-style: solid;border-color: #87ceeb;}",
+											"    .tftable tr:hover {background-color:#e0ffff;}",
+											"</style>",
+											"",
+											"<table class=\"tftable\" border=\"1\">",
+											"    <tr>",
+											"        <th>isValid</th>",
+											"        <th>shrimp</th>",
+											"    </tr>",
+											"    <tr>",
+											"        <td>{{response.isValid}}</td>",
+											"        <td>{{response.shrimp}}</td>",
+											"    </tr>",
+											"</table>",
+											"`;",
+											"",
+											"function constructVisualizerPayload() {",
+											"    return { response: pm.response.json() }",
+											"}",
+											"",
+											"pm.visualizer.set(template, constructVisualizerPayload());"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
 							"id": "2fa9e561-9b1b-4a79-b43e-fcddbe9c2f37",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
