@@ -418,6 +418,43 @@ We use the `pre-commit` framework to maintain code quality. To set it up:
 
 This will ensure that the pre-commit hooks run before each commit, helping to maintain code quality and consistency.
 
+##### Optimizing Docker Builds
+
+To see the layers of an image and optimize your builds, use:
+
+```bash
+docker history <image_id>
+```
+
+#### Production Deployment
+
+When deploying to production, ensure you:
+
+1. Protect your Redis instance with authentication or Redis networks.
+2. Enable Redis persistence and save the data securely.
+3. Change the secret to a strong, unique value.
+4. Specify the correct domain it will be deployed on.
+
+Example production deployment:
+
+```bash
+export HOST=example.com
+export SSL=true
+export COLONEL=admin@example.com
+export REDIS_URL=redis://username:password@hostname:6379/0
+export RACK_ENV=production
+
+docker run -p 3000:3000 -d --name onetimesecret \
+  -e REDIS_URL=$REDIS_URL \
+  -e COLONEL=$COLONEL \
+  -e HOST=$HOST \
+  -e SSL=$SSL \
+  -e RACK_ENV=$RACK_ENV \
+  onetimesecret
+```
+
+Ensure all sensitive information is properly secured and not exposed in your deployment scripts or environment.
+
 
 ## Similar Services
 
