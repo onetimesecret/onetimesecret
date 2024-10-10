@@ -7,11 +7,13 @@ Onetime Secret is a service that allows you to share sensitive information secur
 To run Onetime Secret using Docker:
 
 1. Start a Redis container:
+
    ```bash
    docker run -p 6379:6379 -d redis:bookworm
    ```
 
 2. Set essential environment variables:
+
    ```bash
    export HOST=localhost:3000
    export SSL=false
@@ -23,6 +25,7 @@ To run Onetime Secret using Docker:
    Note: `host.docker.internal` is specific to Docker Desktop for Mac and Windows. For Linux, use the host's IP address or `172.17.0.1` instead.
 
 3. Run the Onetime Secret container:
+
    ```bash
    docker run -p 3000:3000 -d --name onetimesecret \
      -e REDIS_URL=$REDIS_URL \
@@ -52,7 +55,6 @@ Onetime Secret can be configured using environment variables. Key variables incl
 - `RACK_ENV`: Application environment (production/development)
 
 For more detailed configuration options, refer to the [GitHub README](https://github.com/onetimesecret/onetimesecret#configuration).
-
 
 ## System Requirements
 
@@ -87,18 +89,18 @@ docker run -p 3000:3000 -d --name onetimesecret \
   onetimesecret/onetimesecret:latest
 ```
 
-
-
 ## Updating the Docker Image
 
 To update your Onetime Secret Docker deployment to the latest version:
 
 1. Pull the latest image:
+
    ```bash
    docker pull onetimesecret/onetimesecret:latest
    ```
 
 2. Stop and remove the existing container:
+
    ```bash
    docker stop onetimesecret
    docker rm onetimesecret
@@ -113,7 +115,7 @@ Onetime Secret Docker images are tagged for different versions:
 - `latest`: The most recent stable release (Ruby 3+)
 - `v0.18.1` (and similar version numbers): Specific release versions
 
-These version numbers (e.g., v0.18.1) correspond to the releases on our GitHub repository. You can find the full list of releases and their details at https://github.com/onetimesecret/onetimesecret/releases.
+These version numbers (e.g., v0.18.1) correspond to the releases on our GitHub repository. You can find the full list of releases and their details at <https://github.com/onetimesecret/onetimesecret/releases>.
 
 To use a specific version, replace `onetimesecret/onetimesecret:latest` with the desired tag, for example:
 

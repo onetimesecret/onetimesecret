@@ -3,7 +3,6 @@
 
 NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3`](https://github.com/onetimesecret/onetimesecret/tree/v0.17.3) for a more stable experience.
 
-
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
 ## Latest releases
@@ -17,57 +16,55 @@ NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3
 
 A onetime secret is a link that can be viewed only once. A single-use URL.
 
-Try it out on <a class="msg" href="https://onetimesecret.com/">OnetimeSecret.com</a>!
-
+Try it out on [OnetimeSecret.com](https://onetimesecret.com/)!
 
 ### Why would I want to use it?
 
 When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
-
-- [Onetime Secret - Secure One-Time Message Sharing](#onetime-secret---secure-one-time-message-sharing)
-  - [Latest releases](#latest-releases)
-  - [What is a Onetime Secret?](#what-is-a-onetime-secret)
-    - [Why would I want to use it?](#why-would-i-want-to-use-it)
-  - [Installation](#installation)
-    - [System Requirements](#system-requirements)
-    - [Docker Installation](#docker-installation)
-      - [1. Using Pre-built Images](#1-using-pre-built-images)
-      - [2. Building the Image Locally](#2-building-the-image-locally)
-      - [3. Multi-platform Builds](#3-multi-platform-builds)
-    - [Running the Container](#running-the-container)
-  - [Configuration](#configuration)
-    - [Basic Setup](#basic-setup)
-    - [Configuration Options](#configuration-options)
-      - [1. Using config.yaml (Required)](#1-using-configyaml-required)
-      - [2. Using Environment Variables (Optional)](#2-using-environment-variables-optional)
-      - [3. Using a .env File (Optional)](#3-using-a-env-file-optional)
-    - [Important Notes](#important-notes)
-    - [Manual Installation](#manual-installation)
-      - [1. Get the Code](#1-get-the-code)
-      - [2. Install System Dependencies](#2-install-system-dependencies)
-      - [3. Set Up the Project](#3-set-up-the-project)
-      - [4. Install Ruby Dependencies](#4-install-ruby-dependencies)
-      - [5. Install JavaScript Dependencies](#5-install-javascript-dependencies)
-      - [6. Run the Web Application](#6-run-the-web-application)
-        - [Option A: Without Vite Dev Server (Production-like or Simple Development)](#option-a-without-vite-dev-server-production-like-or-simple-development)
-        - [Option B: With Vite Dev Server (Active Frontend Development)](#option-b-with-vite-dev-server-active-frontend-development)
-  - [Miscellaneous](#miscellaneous)
-    - [Docker-related Tips](#docker-related-tips)
-      - [Container Name Already in Use](#container-name-already-in-use)
-      - [Docker Compose](#docker-compose)
-    - [Security and Configuration](#security-and-configuration)
-      - [Generating a Global Secret](#generating-a-global-secret)
-      - [Securing Configuration Files](#securing-configuration-files)
-    - [Troubleshooting](#troubleshooting)
-      - [SSH Issues with GitHub](#ssh-issues-with-github)
-    - [Development Tips](#development-tips)
-      - [Debugging](#debugging)
-      - [Front-end Development](#front-end-development)
-      - [Setting up pre-commit hooks](#setting-up-pre-commit-hooks)
-        - [Optimizing Docker Builds](#optimizing-docker-builds)
-      - [Production Deployment](#production-deployment)
-  - [Similar Services](#similar-services)
+* [Onetime Secret - Secure One-Time Message Sharing](#onetime-secret---secure-one-time-message-sharing)
+  * [Latest releases](#latest-releases)
+  * [What is a Onetime Secret?](#what-is-a-onetime-secret)
+    * [Why would I want to use it?](#why-would-i-want-to-use-it)
+  * [Installation](#installation)
+    * [System Requirements](#system-requirements)
+    * [Docker Installation](#docker-installation)
+      * [1. Using Pre-built Images](#1-using-pre-built-images)
+      * [2. Building the Image Locally](#2-building-the-image-locally)
+      * [3. Multi-platform Builds](#3-multi-platform-builds)
+    * [Running the Container](#running-the-container)
+  * [Configuration](#configuration)
+    * [Basic Setup](#basic-setup)
+    * [Configuration Options](#configuration-options)
+      * [1. Using config.yaml (Required)](#1-using-configyaml-required)
+      * [2. Using Environment Variables (Optional)](#2-using-environment-variables-optional)
+      * [3. Using a .env File (Optional)](#3-using-a-env-file-optional)
+    * [Important Notes](#important-notes)
+    * [Manual Installation](#manual-installation)
+      * [1. Get the Code](#1-get-the-code)
+      * [2. Install System Dependencies](#2-install-system-dependencies)
+      * [3. Set Up the Project](#3-set-up-the-project)
+      * [4. Install Ruby Dependencies](#4-install-ruby-dependencies)
+      * [5. Install JavaScript Dependencies](#5-install-javascript-dependencies)
+      * [6. Run the Web Application](#6-run-the-web-application)
+        * [Option A: Without Vite Dev Server (Production-like or Simple Development)](#option-a-without-vite-dev-server-production-like-or-simple-development)
+        * [Option B: With Vite Dev Server (Active Frontend Development)](#option-b-with-vite-dev-server-active-frontend-development)
+  * [Miscellaneous](#miscellaneous)
+    * [Docker-related Tips](#docker-related-tips)
+      * [Container Name Already in Use](#container-name-already-in-use)
+      * [Docker Compose](#docker-compose)
+    * [Security and Configuration](#security-and-configuration)
+      * [Generating a Global Secret](#generating-a-global-secret)
+      * [Securing Configuration Files](#securing-configuration-files)
+    * [Troubleshooting](#troubleshooting)
+      * [SSH Issues with GitHub](#ssh-issues-with-github)
+    * [Development Tips](#development-tips)
+      * [Debugging](#debugging)
+      * [Front-end Development](#front-end-development)
+      * [Setting up pre-commit hooks](#setting-up-pre-commit-hooks)
+        * [Optimizing Docker Builds](#optimizing-docker-builds)
+      * [Production Deployment](#production-deployment)
+  * [Similar Services](#similar-services)
 
 ## Installation
 
@@ -83,10 +80,9 @@ When you send people sensitive info like passwords and private links via email o
   * 4GB disk
 
 For front-end development, you'll also need:
+
 * Node.js 18+
 * pnpm 9.0.0+
-
-
 
 ### Docker Installation
 
@@ -129,11 +125,13 @@ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
 Regardless of how you obtained or built the image, follow these steps to run OnetimeSecret:
 
 1. Start a Redis container:
+
    ```bash
    docker run -p 6379:6379 -d redis:bookworm
    ```
 
 2. Set essential environment variables:
+
    ```bash
    export HOST=localhost:3000
    export SSL=false
@@ -145,6 +143,7 @@ Regardless of how you obtained or built the image, follow these steps to run One
    Note: The `COLONEL` variable sets the admin account email. It's a playful combination of "colonel" (someone in charge) and "kernel" (as in Linux), representing the system administrator.
 
 3. Run the OnetimeSecret container:
+
    ```bash
    docker run -p 3000:3000 -d --name onetimesecret \
      -e REDIS_URL=$REDIS_URL \
@@ -159,8 +158,6 @@ Regardless of how you obtained or built the image, follow these steps to run One
 
 OnetimeSecret should now be running and accessible at `http://localhost:3000`.
 
-
-
 ## Configuration
 
 OnetimeSecret requires a `config.yaml` file for all installations. Environment variables can be used to override specific settings, but the `config.yaml` file must always be present.
@@ -168,6 +165,7 @@ OnetimeSecret requires a `config.yaml` file for all installations. Environment v
 ### Basic Setup
 
 1. Create the configuration file:
+
    ```bash
    cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
    ```
@@ -189,15 +187,17 @@ The `./etc/config.yaml` file is the primary configuration method. It uses ERB sy
 ```
 
 In this format:
-- If an environment variable (e.g., `HOST`) is set, its value will be used.
-- If the environment variable is not set, the fallback value (e.g., 'localhost:7143') will be used.
-- If you remove the ERB syntax and environment variable reference, only the literal value in the config will be used.
+
+* If an environment variable (e.g., `HOST`) is set, its value will be used.
+* If the environment variable is not set, the fallback value (e.g., 'localhost:7143') will be used.
+* If you remove the ERB syntax and environment variable reference, only the literal value in the config will be used.
 
 Key areas to configure in `config.yaml`:
-- SMTP or SendGrid for email
-- Rate limits
-- Enabled locales
-- Redis connection details
+
+* SMTP or SendGrid for email
+* Rate limits
+* Enabled locales
+* Redis connection details
 
 #### 2. Using Environment Variables (Optional)
 
@@ -216,6 +216,7 @@ export RACK_ENV=production
 For various deployment scenarios, including Docker setups and local development, you can use a `.env` file to set environment variables:
 
 1. Create the .env file:
+
    ```bash
    cp --preserve --no-clobber .env.example .env
    ```
@@ -223,17 +224,22 @@ For various deployment scenarios, including Docker setups and local development,
 2. Edit the `.env` file with your desired configuration.
 
 3. Usage depends on your setup:
-   - For local development, load the variables before running the application:
+   * For local development, load the variables before running the application:
+
      ```bash
      set -a
      source .env
      set +a
      ```
-   - For Docker deployments, you can use the `--env-file` option:
+
+   * For Docker deployments, you can use the `--env-file` option:
+
      ```bash
      docker run --env-file .env your-image-name
      ```
-   - In docker-compose, you can specify the .env file in your docker-compose.yml:
+
+   * In docker-compose, you can specify the .env file in your docker-compose.yml:
+
      ```yaml
      services:
        your-service:
@@ -245,13 +251,12 @@ The .env file is versatile and can be used in various deployment scenarios, offe
 
 ### Important Notes
 
-- The `config.yaml` file must always be present, even if you're using environment variables.
-- Environment variables defined in your shell or `.env` file will override the corresponding values in `config.yaml`.
-- Choose either direct environment variables or the `.env` file method, but not both, to avoid confusion.
-- If you remove environment variable references from `config.yaml`, only the literal values in the config will be used.
+* The `config.yaml` file must always be present, even if you're using environment variables.
+* Environment variables defined in your shell or `.env` file will override the corresponding values in `config.yaml`.
+* Choose either direct environment variables or the `.env` file method, but not both, to avoid confusion.
+* If you remove environment variable references from `config.yaml`, only the literal values in the config will be used.
 
 For a full list of available configuration options, refer to the comments in the `config.example.yaml` file.
-
 
 ### Manual Installation
 
@@ -263,6 +268,7 @@ Choose one of these methods:
 
 * Download the [latest release](https://github.com/onetimesecret/onetimesecret/archive/refs/tags/latest.tar.gz)
 * Clone the repository:
+
   ```bash
   git clone https://github.com/onetimesecret/onetimesecret.git
   ```
@@ -320,7 +326,6 @@ bundle install
 pnpm install
 pnpm run build
 ```
-
 
 #### 6. Run the Web Application
 
@@ -391,7 +396,6 @@ In production mode, it uses the built files in `dist/assets`:
 
 Choose the option that best fits your development workflow and needs.
 
-
 ## Miscellaneous
 
 ### Docker-related Tips
@@ -442,12 +446,14 @@ chmod -R o-rwx ./etc
 If you're having trouble cloning via SSH, verify your SSH config:
 
 With a GitHub account:
+
 ```bash
 ssh -T git@github.com
 # Expected output: Hi username! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 
 Without a GitHub account:
+
 ```bash
 ssh -T git@github.com
 # Expected output: Warning: Permanently added the RSA host key for IP address '0.0.0.0/0' to the list of known hosts.
@@ -468,17 +474,18 @@ ONETIME_DEBUG=true bundle exec thin -e dev start
 
 When running the Vite server in development mode, it will automatically reload when files change. Ensure that `RACK_ENV` is set to `development` or `development.enabled` in `etc/config` is set to `false`.
 
-
 #### Setting up pre-commit hooks
 
 We use the `pre-commit` framework to maintain code quality. To set it up:
 
 1. Install pre-commit:
+
    ```bash
    pip install pre-commit
    ```
 
 2. Install the git hooks:
+
    ```bash
    pre-commit install
    ```
@@ -522,31 +529,30 @@ docker run -p 3000:3000 -d --name onetimesecret \
 
 Ensure all sensitive information is properly secured and not exposed in your deployment scripts or environment.
 
-
 ## Similar Services
 
 This section provides an overview of services similar to our project, highlighting their unique features and how they compare. These alternatives may be useful for users looking for specific functionalities or wanting to explore different options in the same domain. By presenting this information, we aim to give our users a comprehensive view of the available options in the secure information sharing space.
 
 **Note:** Our in-house legal counsel ([codium-pr-agent-pro bot](https://github.com/onetimesecret/onetimesecret/pull/610#issuecomment-2333317937)) suggested adding this introduction and the disclaimer at the end.
 
-| URL | Service | Description | Distinctive Feature |
-|-----|---------|-------------|---------------------|
-| https://pwpush.com/ | Password Pusher | A tool that uses browser cookies to help you share passwords and other sensitive information. | Temporary, self-destructing links for password sharing |
-| https://scrt.link/en | Share a Secret | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing |
-| https://cryptgeon.com/ | Cryptgeon | A service for sharing secrets and passwords securely. | Offers a secret generator, password generator, and secret vault |
-| https://www.vanish.so/ | Vanish | A service for sharing secrets and passwords securely. | Self-destructing messages with strong encryption |
-| https://password.link/en | Password.link | A service for securely sending and receiving sensitive information. | Secure link creation for sensitive information sharing |
-| https://sebsauvage.net/ | sebsauvage.net | A website offering various information and services. | Software to recover stolen computers |
-| https://www.sharesecret.co/ | ShareSecret | A service for securely sharing passwords in Slack and email. | Secure password sharing with Slack and email integration |
-| https://teampassword.com/ | TeamPassword | A password manager for teams. | Fast, easy-to-use, and secure team password management |
-| https://secretshare.io/ | Secret Share | A service for sharing passwords securely. | Strong encryption for data in transit and at rest |
-| https://retriever.corgea.io/ | Retriever | A service for requesting secrets securely. | Secure secret request and retrieval with encryption |
-| https://winden.app/s | Winden | A service for sharing secrets and passwords securely. | Securely transfers files with end-to-end encryption |
-| https://www.snote.app/ | SNote | A privacy-focused workspace with end-to-end encryption. | Secure collaboration on projects, to-dos, tasks, and shared files |
-| https://www.burnafterreading.me/ | Burn After Reading | A service for sharing various types of sensitive information. | Self-destructing messages with diceware passphrase encryption |
-| https://pvtnote.com/en/ | PvtNote | A service for sending private, self-destructing messages. | Clean design with self-destructing messages |
-| https://k9crypt.xyz/ | K9Crypt | A secure and anonymous messaging platform. | End-to-end encryption with 2-hour message deletion |
+| URL                              | Service            | Description                                                                                                                                                     | Distinctive Feature                                               |
+| -------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| <https://pwpush.com/>              | Password Pusher    | A tool that uses browser cookies to help you share passwords and other sensitive information.                                                                   | Temporary, self-destructing links for password sharing            |
+| <https://scrt.link/en>             | Share a Secret     | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing                       |
+| <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault   |
+| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.                                                                                                           | Self-destructing messages with strong encryption                  |
+| <https://password.link/en>         | Password.link      | A service for securely sending and receiving sensitive information.                                                                                             | Secure link creation for sensitive information sharing            |
+| <https://sebsauvage.net/>          | sebsauvage.net     | A website offering various information and services.                                                                                                            | Software to recover stolen computers                              |
+| <https://www.sharesecret.co/>      | ShareSecret        | A service for securely sharing passwords in Slack and email.                                                                                                    | Secure password sharing with Slack and email integration          |
+| <https://teampassword.com/>        | TeamPassword       | A password manager for teams.                                                                                                                                   | Fast, easy-to-use, and secure team password management            |
+| <https://secretshare.io/>          | Secret Share       | A service for sharing passwords securely.                                                                                                                       | Strong encryption for data in transit and at rest                 |
+| <https://retriever.corgea.io/>     | Retriever          | A service for requesting secrets securely.                                                                                                                      | Secure secret request and retrieval with encryption               |
+| <https://winden.app/s>             | Winden             | A service for sharing secrets and passwords securely.                                                                                                           | Securely transfers files with end-to-end encryption               |
+| <https://www.snote.app/>           | SNote              | A privacy-focused workspace with end-to-end encryption.                                                                                                         | Secure collaboration on projects, to-dos, tasks, and shared files |
+| <https://www.burnafterreading.me/> | Burn After Reading | A service for sharing various types of sensitive information.                                                                                                   | Self-destructing messages with diceware passphrase encryption     |
+| <https://pvtnote.com/en/>          | PvtNote            | A service for sending private, self-destructing messages.                                                                                                       | Clean design with self-destructing messages                       |
+| <https://k9crypt.xyz/>             | K9Crypt            | A secure and anonymous messaging platform.                                                                                                                      | End-to-end encryption with 2-hour message deletion                |
 
-_Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blog/command-r-plus-microsoft-azure), formatted by [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet), and proofread by [GitHub Copilot](https://github.com/features/copilot)._
+*Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blog/command-r-plus-microsoft-azure), formatted by [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet), and proofread by [GitHub Copilot](https://github.com/features/copilot).*
 
 The inclusion of these services in this list does not imply endorsement. Users are encouraged to conduct their own research and due diligence before using any of the listed services, especially when handling sensitive information.
