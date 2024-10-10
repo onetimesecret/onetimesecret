@@ -163,38 +163,45 @@ OnetimeSecret should now be running and accessible at `http://localhost:3000`.
 
 ## Configuration
 
-OnetimeSecret offers multiple methods for configuration:
+OnetimeSecret requires a `config.yaml` file for all installations. Environment variables can be used to override specific settings, but the `config.yaml` file must always be present.
 
-1. **config.yaml file**: The file `./etc/config.yaml` must exist and can be edited for detailed configuration.
+### Basic Setup
 
-2. **Environment Variables**: For quick setup or container deployments, you can configure essential settings using environment variables.
-
-3. **.env file**: For manual installations, you can use a `.env` file to set environment variables.
-
-### Using config.yaml
-
-1. Ensure the configuration file exists:
+1. Create the configuration file:
    ```bash
    cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
    ```
 
-2. Edit `./etc/config.yaml` for configurations:
-   - Update the secret key (back it up securely)
-   - Configure SMTP or SendGrid for email
-   - Adjust rate limits
-   - Enable/disable locales
-   - Set Redis details, for example:
-     ```yaml
-     redis:
-       url: redis://username:password@hostname:6379/0
-     ```
-     Replace `username`, `password`, `hostname`, and `6379` with your specific Redis configuration details.
+2. Review and edit `./etc/config.yaml` as needed. At minimum, update the secret key and back it up securely.
 
-3. Optionally customize the language JSON files in `./src/locales`
+### Configuration Options
 
-### Using Environment Variables
+#### 1. Using config.yaml (Required)
 
-You can configure OnetimeSecret quickly by setting essential environment variables directly in your shell:
+The `./etc/config.yaml` file is the primary configuration method. It uses ERB syntax to incorporate environment variables, allowing for flexible configuration:
+
+```yaml
+---
+:site:
+  :host: <%= ENV['HOST'] || 'localhost:7143' %>
+:domains:
+  :enabled: <%= ENV['DOMAINS_ENABLED'] || false %>
+```
+
+In this format:
+- If an environment variable (e.g., `HOST`) is set, its value will be used.
+- If the environment variable is not set, the fallback value (e.g., 'localhost:7143') will be used.
+- If you remove the ERB syntax and environment variable reference, only the literal value in the config will be used.
+
+Key areas to configure in `config.yaml`:
+- SMTP or SendGrid for email
+- Rate limits
+- Enabled locales
+- Redis connection details
+
+#### 2. Using Environment Variables (Optional)
+
+For quick setups or container deployments, you can use environment variables to override `config.yaml` settings:
 
 ```bash
 export HOST=localhost:3000
@@ -204,34 +211,46 @@ export REDIS_URL=redis://username:password@hostname:6379/0
 export RACK_ENV=production
 ```
 
-Replace `username`, `password`, `hostname`, and `6379` in the `REDIS_URL` with your specific Redis configuration details.
+#### 3. Using a .env File (Optional)
 
-### Using .env File (Manual Installation)
+For various deployment scenarios, including Docker setups and local development, you can use a `.env` file to set environment variables:
 
-For manual installations, you can use a `.env` file to set environment variables:
-
-1. Copy the example .env file:
+1. Create the .env file:
    ```bash
    cp --preserve --no-clobber .env.example .env
    ```
 
-2. Edit the `.env` file with your desired configuration, including Redis details:
-   ```
-   REDIS_URL=redis://username:password@hostname:6379/0
-   ```
+2. Edit the `.env` file with your desired configuration.
 
-3. Before running the application, load the variables into your shell:
-   ```bash
-   set -a
-   source .env
-   set +a
-   ```
+3. Usage depends on your setup:
+   - For local development, load the variables before running the application:
+     ```bash
+     set -a
+     source .env
+     set +a
+     ```
+   - For Docker deployments, you can use the `--env-file` option:
+     ```bash
+     docker run --env-file .env your-image-name
+     ```
+   - In docker-compose, you can specify the .env file in your docker-compose.yml:
+     ```yaml
+     services:
+       your-service:
+         env_file:
+           - .env
+     ```
 
-Note: Choose either direct environment variables or the `.env` file method, but not both, to avoid confusion. Environment variables take precedence over `config.yaml` settings, allowing for easy overrides in container environments or for quick testing.
+The .env file is versatile and can be used in various deployment scenarios, offering flexibility in how you manage your environment variables.
+
+### Important Notes
+
+- The `config.yaml` file must always be present, even if you're using environment variables.
+- Environment variables defined in your shell or `.env` file will override the corresponding values in `config.yaml`.
+- Choose either direct environment variables or the `.env` file method, but not both, to avoid confusion.
+- If you remove environment variable references from `config.yaml`, only the literal values in the config will be used.
 
 For a full list of available configuration options, refer to the comments in the `config.example.yaml` file.
-
-
 
 
 ### Manual Installation
@@ -281,7 +300,11 @@ For other operating systems, please refer to the official documentation for each
 
 ```bash
 cd onetimesecret
+git rev-parse --short HEAD > .commit_hash.txt
 cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
+
+# Optional
+
 ```
 
 #### 4. Install Ruby Dependencies
