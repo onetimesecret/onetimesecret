@@ -7,8 +7,19 @@ NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3
 
 ## Latest releases
 
-* **Ruby 3+ (recommended): [latest](https://github.com/onetimesecret/onetimesecret/releases/latest)**
-* Ruby 2.7, 2.6 (legacy environments): [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
+* **Ruby 3+ (Recommended): [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest)**
+  * This is the actively developed and maintained version with the most recent features and security updates.
+
+* **Ruby 3 without Node.js: [v0.15.0](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.15.0)**
+  * If you prefer a simpler setup with just Ruby dependencies (i.e. without Node.js dependencies) this is the most recent version.
+  * No security updates or bug fixes will be provided for this version.
+
+* **Ruby 2.7, 2.6 (Legacy - Not Supported): [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)**
+  * ⚠️ **Warning**: This version is no longer maintained or supported.
+  * Only use if you absolutely cannot run Ruby 3+.
+  * No security updates or bug fixes will be provided for this version.
+
+We strongly recommend using the latest release with Ruby 3+ for the best performance, security, and feature set. Legacy Ruby 2.x versions are provided for reference only and should be avoided in production environments.
 
 ---
 
