@@ -59,19 +59,31 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/forgot',
-    name: 'Forgot',
-    component: () => import('@/views/auth/PasswordReset.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Forgot Password',
+        component: () => import('@/views/auth/PasswordResetRequest.vue'),
+      },
+      {
+        path: ':resetKey',
+        name: 'Reset Password',
+        component: () => import('@/views/auth/PasswordReset.vue'),
+        props: true,
+      },
+    ],
     meta: {
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
         displayLinks: false,
-        displayFeedback: true,
+        displayFeedback: false,
         displayVersion: false,
-      }
+      },
     },
   },
+
   {
     path: '/logout',
     name: 'Logout',
