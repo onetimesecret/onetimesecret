@@ -238,7 +238,6 @@ For other operating systems, please refer to the official documentation for each
 ```bash
 cd onetimesecret
 cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
-cp --preserve --no-clobber .env.example .env
 ```
 
 #### 4. Install Ruby Dependencies
@@ -255,45 +254,76 @@ pnpm install
 pnpm run build
 ```
 
+
 #### 6. Run the Web Application
 
-```bash
-bundle exec thin -R config.ru -p 3000 start
+There are two main ways to run the application, depending on your development needs:
+
+##### Option A: Without Vite Dev Server (Production-like or Simple Development)
+
+1. For production or simple development without frontend changes:
+
+   ```bash
+   RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
+   ```
+
+   Or, for a development-like environment without live reloading:
+
+   ```bash
+   RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
+   ```
+
+   Ensure `development.enabled` is set to `false` in `etc/config.yaml`:
+
+   ```yaml
+   :development:
+     :enabled: false
+   ```
+
+   This uses pre-built frontend assets in the `dist/assets` directory.
+
+##### Option B: With Vite Dev Server (Active Frontend Development)
+
+1. Set `development.enabled` to `true` in `etc/config.yaml`:
+
+   ```yaml
+   :development:
+     :enabled: true
+   ```
+
+2. Run the Thin server in development mode:
+
+   ```bash
+   RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
+   ```
+
+3. In a separate terminal, start the Vite dev server:
+
+   ```bash
+   pnpm run dev
+   ```
+
+   This enables live reloading of frontend assets.
+
+The application determines whether to use development or production assets based on the `RACK_ENV` and `development.enabled` settings. In development mode with the Vite server running, frontend assets are loaded dynamically:
+
+```html
+{{#frontend_development}}
+<script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
+<script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
+{{/frontend_development}}
 ```
 
-For development, run the Vite dev server in a separate terminal:
+In production mode, it uses the built files in `dist/assets`:
 
-```bash
-pnpm run dev
+```html
+{{^frontend_development}}
+{{{vite_assets}}}
+{{/frontend_development}}
 ```
 
-Note: Ensure `RACK_ENV` is set to `development` or `development.enabled` in `etc/config` is set to `false` for automatic reloading.
+Choose the option that best fits your development workflow and needs.
 
-### Configuration
-
-1. Edit `./etc/config.yaml`:
-   - Update the secret key (back it up securely)
-   - Configure SMTP or SendGrid for email
-   - Adjust rate limits
-   - Enable/disable locales
-
-2. Ensure `./etc/redis.conf` settings match your Redis configuration
-
-3. Optionally customize the language JSON files in `./src/locales`.
-
-### Running in Production
-
-For server deployment:
-
-```bash
-bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 start
-```
-
-For graceful restart:
-
-```bash
-bundle exec thin --onebyone -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 4 -D restart
-```
 
 ## Miscellaneous
 
