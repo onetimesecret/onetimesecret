@@ -38,293 +38,252 @@ When you send people sensitive info like passwords and private links via email o
   * 4GB disk
 
 For front-end development, you'll also need:
+
 * Node.js 18+
-* pnpm 7.0.0+
+* pnpm 9.0.0+
 
 
-### Docker
 
-Running from a container is the easiest way to get started. We provide a Dockerfile that you can use to build your own image, or you can use one of the pre-built images from our container repositories.
+### Docker Installation
 
+There are multiple ways to run OnetimeSecret using Docker. Choose the method that best suits your needs:
 
-```bash
-  # Install from the GitHub Container Registry
-  $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
+#### 1. Using Pre-built Images
 
-  # OR, install from Docker Hub
-  #
-  #   $ docker pull onetimesecret/onetimesecret:latest
-
-  # Start redis container
-  $ docker run -p 6379:6379 -d redis:bookworm
-
-  # Set essential environment variables
-  HOST=localhost:3000
-  SSL=false
-  COLONEL=admin@example.com
-  REDIS_URL=redis://host.docker.internal:6379/0
-  RACK_ENV=production
-
-  # Create and run a container named `onetimesecret`
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-      -e REDIS_URL=$REDIS_URL \
-      -e COLONEL=$COLONEL \
-      -e HOST=$HOST \
-      -e SSL=$SSL \
-      -e RACK_ENV=$RACK_ENV \
-      onetimesecret/onetimesecret:latest
-```
-
-#### Building image locally
+We offer pre-built images on both GitHub Container Registry and Docker Hub.
 
 ```bash
-  $ docker build -t onetimesecret .
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-      -e REDIS_URL=$REDIS_URL \
-      -e COLONEL=$COLONEL \
-      -e HOST=$HOST \
-      -e SSL=$SSL \
-      -e RACK_ENV=$RACK_ENV \
-      onetimesecret
+# Pull from GitHub Container Registry
+docker pull ghcr.io/onetimesecret/onetimesecret:latest
+
+# OR, pull from Docker Hub
+docker pull onetimesecret/onetimesecret:latest
 ```
 
-#### Optional Bundle Install
+#### 2. Building the Image Locally
 
-By default, the `bundle install` command is not run when starting the container. If you want it to run at startup (e.g., to re-install new dependencies added to the Gemfile without rebuilding the image), you can set the `BUNDLE_INSTALL` environment variable to `true`. Here's how you can do this:
+If you prefer to build the image yourself:
 
 ```bash
-$ docker run -p 3000:3000 -d --name onetimesecret \
-    -e BUNDLE_INSTALL=true \
-    -e REDIS_URL=$REDIS_URL \
-    -e COLONEL=$COLONEL \
-    -e HOST=$HOST \
-    -e SSL=$SSL \
-    -e RACK_ENV=$RACK_ENV \
-    onetimesecret/onetimesecret:latest
+git clone https://github.com/onetimesecret/onetimesecret.git
+cd onetimesecret
+docker build -t onetimesecret .
 ```
 
-This will cause the container to run bundle install each time it starts up. Note that this may increase the startup time of your container.
+#### 3. Multi-platform Builds
 
-
-#### Multi-platform builds
-
-Docker's buildx command is a powerful tool that allows you to create Docker images for multiple platforms simultaneously. Use buildx to build a Docker image that can run on both amd64 (standard Intel/AMD CPUs) and arm64 (ARM CPUs, like those in the Apple M1 chip) platforms.
+For environments requiring multi-architecture support:
 
 ```bash
-  $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
+git clone https://github.com/onetimesecret/onetimesecret.git
+cd onetimesecret
+docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
 ```
 
-#### "The container name "/onetimesecret" is already in use"
+### Running the Container
 
-```bash
-  # If the container already exists, you can simply start it again:
-  $ docker start onetimesecret
+Regardless of how you obtained or built the image, follow these steps to run OnetimeSecret:
 
-  # OR, remove the existing container
-  $ docker rm onetimesecret
-```
+1. Start a Redis container:
+   ```bash
+   docker run -p 6379:6379 -d redis:bookworm
+   ```
 
-After the container has been removed, the regular `docker run` command will work again.
+2. Set essential environment variables:
+   ```bash
+   export HOST=localhost:3000
+   export SSL=false
+   export COLONEL=admin@example.com
+   export REDIS_URL=redis://host.docker.internal:6379/0
+   export RACK_ENV=production
+   ```
 
+3. Run the OnetimeSecret container:
+   ```bash
+   docker run -p 3000:3000 -d --name onetimesecret \
+     -e REDIS_URL=$REDIS_URL \
+     -e COLONEL=$COLONEL \
+     -e HOST=$HOST \
+     -e SSL=$SSL \
+     -e RACK_ENV=$RACK_ENV \
+     onetimesecret/onetimesecret:latest
+   ```
 
-#### Container repositories
+   Note: Replace `onetimesecret/onetimesecret:latest` with your image name if you built it locally.
 
+OnetimeSecret should now be running and accessible at `http://localhost:3000`.
 
-##### [GitHub Container Registry](https://ghcr.io/onetimesecret/onetimesecret)
+### Manual Installation
 
-```bash
-  $ docker run -p 6379:6379 --name redis -d redis
-  $ REDIS_URL="redis://172.17.0.2:6379/0"
+If you prefer not to use Docker, you can install OnetimeSecret manually. Follow these steps:
 
-  $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-    -e REDIS_URL=$REDIS_URL \
-    ghcr.io/onetimesecret/onetimesecret:latest
-```
+#### 1. Get the Code
 
-##### [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)
-
-```bash
-  $ docker run -p 6379:6379 --name redis -d redis
-  $ REDIS_URL="redis://172.17.0.2:6379/0"
-
-  $ docker pull onetimesecret/onetimesecret:latest
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-    -e REDIS_URL=$REDIS_URL \
-    onetimesecret/onetimesecret:latest
-```
-
-### Docker Compose
-
-See the dedicated [Docker Compose repo](https://github.com/onetimesecret/docker-compose/).
-
-
-### Manually
-
-Get the code, one of:
+Choose one of these methods:
 
 * Download the [latest release](https://github.com/onetimesecret/onetimesecret/archive/refs/tags/latest.tar.gz)
-* Clone this repo:
+* Clone the repository:
+  ```bash
+  git clone https://github.com/onetimesecret/onetimesecret.git
+  ```
+
+#### 2. Install System Dependencies
+
+For Debian/Ubuntu:
 
 ```bash
-  $ git clone https://github.com/onetimesecret/onetimesecret.git
+sudo apt update
+sudo apt install -y git curl sudo ruby-full redis-server
 ```
 
-### For a fresh install
+Note: Ensure Redis is running with `service redis-server status`. Start it if needed with `service redis-server start`.
 
-If you're installing on a fresh system, you'll need to install a few system dependencies before you can run the webapp.
-
-#### 0. Install system dependencies
-
-The official Ruby docs have a great guide on [installing Ruby](https://www.ruby-lang.org/en/documentation/installation/). Here's a quick guide for Debian/Ubuntu:
-
-
-For Debian / Ubuntu:
+#### 3. Set Up the Project
 
 ```bash
-
-  # Make sure you have the latest packages (even if you're on a fresh install)
-  $ sudo apt update
-
-  # Install the basic tools of life
-  $ sudo apt install -y git curl sudo
-
-  # Install Ruby (3) and Redis
-  $ sudo apt install -y ruby-full redis-server
+cd onetimesecret
+cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
+cp --preserve --no-clobber .env.example .env
 ```
 
-NOTE: The redis-server service should start automatically after installing it. You can check that it's up by running: `service redis-server status`. If it's not running, you can start it with `service redis-server start`.
-
-#### 1. Now get the code via git:
+#### 4. Install Ruby Dependencies
 
 ```bash
-  $ git clone https://github.com/onetimesecret/onetimesecret.git
+sudo gem install bundler
+bundle install
 ```
 
-
-#### 2. Copy the configuration files into place and modify as needed:
+#### 5. Install JavaScript Dependencies
 
 ```bash
-  $ cd onetimesecret
-
-  $ cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
-  $ cp --preserve --no-clobber .env.example .env
+pnpm install
+pnpm run build
 ```
 
-
-#### 3. Install ruby dependencies
+#### 6. Run the Web Application
 
 ```bash
-
-  # We use bundler manage the rest of the ruby dependencies
-  $ sudo gem install bundler
-
-  # Install the rubygems listing inthe Gemfile
-  $ bundle install
+bundle exec thin -R config.ru -p 3000 start
 ```
 
-#### 4. Install javascript dependencies
+For development, run the Vite dev server in a separate terminal:
 
 ```bash
-  $ pnpm install
+pnpm run dev
 ```
 
-And build the assets:
+Note: Ensure `RACK_ENV` is set to `development` or `development.enabled` in `etc/config` is set to `false` for automatic reloading.
+
+### Debugging
+
+To run in debug mode:
 
 ```bash
-  $ pnpm run build
-```
-
-
-#### 5. Run the webapp
-
-```bash
-  $ bundle exec thin -R config.ru -p 3000 start
-
-  ---  ONETIME app  ----------------------------------------
-  Config: /Users/d/Projects/opensource/onetimesecret/etc/config
-  2024-04-10 22:39:15 -0700 Thin web server (v1.8.2 codename Ruby Razor)
-  2024-04-10 22:39:15 -0700 Maximum connections set to 1024
-  2024-04-10 22:39:15 -0700 Listening on 0.0.0.0:3000, CTRL+C to stop
-```
-
-See the [Ruby CI workflow](.github/workflows/ruby.yaml) for another example of the steps.
-
-In a separate terminal window, run the Vite dev server:
-
-```bash
-  $ pnpm run dev
-```
-
-NOTE: When running the Vite server in development mode, it will automatically reload when files change. Make sure that `RACK_ENV` is either set to `development` or `development.enabled` in etc/config is false. Otherwise the ruby application will attempt to lad the JS/CSS etc from the pre-built files in `public/web/dist`.
-
-
-## Debugging
-
-To run in debug mode set `ONETIME_DEBUG=true`.
-
-```bash
-  $ ONETIME_DEBUG=true bundle exec thin -e dev start`
-```
-
-If you're having trouble cloning via SSH, you can double check your SSH config like this:
-
-**With a github account**
-```bash
-  ssh -T git@github.com
-  Hi delano! You've successfully authenticated, but GitHub does not provide shell access.
-```
-
-**Without a github account**
-```bash
-  ssh -T git@github.com
-  Warning: Permanently added the RSA host key for IP address '0.0.0.0/0' to the list of known hosts.
-  git@github.com: Permission denied (publickey).
-```
-
-*NOTE: you can also use the etc directory from here instead of copying it to the system. Just be sure to secure the permissions on it*
-
-```bash
-  chown -R ots ./etc
-  chmod -R o-rwx ./etc
+ONETIME_DEBUG=true bundle exec thin -e dev start
 ```
 
 ### Configuration
 
-1. `./etc/config`
-  * Update your secret key
-    * Back up your secret key (e.g. in your password manager). If you lose it, you won't be able to decrypt any existing secrets.
-  * Update the SMTP or SendGrid credentials for email sending
-    * Update the from address (it's used for all sent emails)
-  * Update the rate limits at the bottom of the file
-    * The numbers refer to the number of times each action can occur for unauthenticated users.
-  * Enable or disable the available locales.
-1. `./etc/redis.conf`
-  * The host, port, and password need to match
-1. `/etc/onetime/locale/*`
-  * Optionally you can customize the text used throughout the site and emails
-  * You can also edit the `:broadcast` string to display a brief message at the top of every page
+1. Edit `./etc/config`:
+   - Update the secret key (back it up securely)
+   - Configure SMTP or SendGrid for email
+   - Adjust rate limits
+   - Enable/disable locales
 
-### Running your own
+2. Ensure `./etc/redis.conf` settings match your Redis configuration
 
-There are many ways to run the webapp. The default web server we use is [thin](https://github.com/macournoyer/thin). It's a Rack app so any server in the ruby ecosystem that supports Rack apps will work.
+3. Optionally customize text in `/etc/onetime/locale/*`
 
-**To run locally:**
+### Running in Production
+
+For server deployment:
 
 ```bash
-  bundle exec thin -e dev -R config.ru -p 3000 start
+bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 start
 ```
 
-**To run on a server:**
+For graceful restart:
 
 ```bash
-  bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 start
+bundle exec thin --onebyone -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 4 -D restart
 ```
 
-Graceful restart:
+## Miscellaneous
+
+### Docker-related Tips
+
+#### Container Name Already in Use
+
+If you encounter the error "The container name '/onetimesecret' is already in use":
+
 ```bash
-  bundle exec thin --onebyone -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 4 -D restart
+# If the container already exists, you can simply start it again:
+docker start onetimesecret
+
+# OR, remove the existing container
+docker rm onetimesecret
 ```
+
+After removing the container, you can run the regular `docker run` command again.
+
+#### Docker Compose
+
+For Docker Compose setup, see the dedicated [Docker Compose repo](https://github.com/onetimesecret/docker-compose/).
+
+### Security and Configuration
+
+#### Generating a Global Secret
+
+Generate a secure global secret with:
+
+```bash
+dd if=/dev/urandom bs=20 count=1 | openssl sha256
+```
+
+Include this secret in your encryption key configuration.
+
+#### Securing Configuration Files
+
+If you're using the `etc` directory from the repo, ensure proper permissions:
+
+```bash
+chown -R ots ./etc
+chmod -R o-rwx ./etc
+```
+
+### Troubleshooting
+
+#### SSH Issues with GitHub
+
+If you're having trouble cloning via SSH, verify your SSH config:
+
+With a GitHub account:
+```bash
+ssh -T git@github.com
+# Expected output: Hi username! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+Without a GitHub account:
+```bash
+ssh -T git@github.com
+# Expected output: Warning: Permanently added the RSA host key for IP address '0.0.0.0/0' to the list of known hosts.
+# git@github.com: Permission denied (publickey).
+```
+
+### Development Tips
+
+#### Debugging
+
+To run in debug mode:
+
+```bash
+ONETIME_DEBUG=true bundle exec thin -e dev start
+```
+
+#### Front-end Development
+
+When running the Vite server in development mode, it will automatically reload when files change. Ensure that `RACK_ENV` is set to `development` or `development.enabled` in `etc/config` is set to `false`.
+
 
 ## Similar Services
 
@@ -353,12 +312,3 @@ This section provides an overview of services similar to our project, highlighti
 _Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blog/command-r-plus-microsoft-azure), formatted by [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet), and proofread by [GitHub Copilot](https://github.com/features/copilot)._
 
 The inclusion of these services in this list does not imply endorsement. Users are encouraged to conduct their own research and due diligence before using any of the listed services, especially when handling sensitive information.
-
-
-## Generating a global secret
-
-We include a global secret in the encryption key so it needs to be long and secure. One approach for generating a secret:
-
-```bash
-  $ dd if=/dev/urandom bs=20 count=1 | openssl sha256
-```
