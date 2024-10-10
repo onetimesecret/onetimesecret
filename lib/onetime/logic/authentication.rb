@@ -150,7 +150,7 @@ module Onetime::Logic
           secret.destroy!
 
           # Log the success message
-          OT.info "Password successfully changed for customer #{cust.id}"
+          OT.info "Password successfully changed for customer #{cust.custid}"
 
         else
           # Log the failure message
