@@ -28,7 +28,7 @@ When you send people sensitive info like passwords and private links via email o
 
 ### System Requirements
 
-* Any recent linux disto (we use debian) or *BSD
+* Any recent linux distro (we use debian) or *BSD
 * System dependencies:
   * Ruby 3.3, 3.2, 3.1, 3.0, 2.7.8
   * Redis server 5+
@@ -98,6 +98,8 @@ Regardless of how you obtained or built the image, follow these steps to run One
    export RACK_ENV=production
    ```
 
+   Note: The `COLONEL` variable sets the admin account email. It's a playful combination of "colonel" (someone in charge) and "kernel" (as in Linux), representing the system administrator.
+
 3. Run the OnetimeSecret container:
    ```bash
    docker run -p 3000:3000 -d --name onetimesecret \
@@ -112,6 +114,79 @@ Regardless of how you obtained or built the image, follow these steps to run One
    Note: Replace `onetimesecret/onetimesecret:latest` with your image name if you built it locally.
 
 OnetimeSecret should now be running and accessible at `http://localhost:3000`.
+
+
+
+## Configuration
+
+OnetimeSecret offers multiple methods for configuration:
+
+1. **config.yaml file**: The file `./etc/config.yaml` must exist and can be edited for detailed configuration.
+
+2. **Environment Variables**: For quick setup or container deployments, you can configure essential settings using environment variables.
+
+3. **.env file**: For manual installations, you can use a `.env` file to set environment variables.
+
+### Using config.yaml
+
+1. Ensure the configuration file exists:
+   ```bash
+   cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
+   ```
+
+2. Edit `./etc/config.yaml` for configurations:
+   - Update the secret key (back it up securely)
+   - Configure SMTP or SendGrid for email
+   - Adjust rate limits
+   - Enable/disable locales
+   - Set Redis details, for example:
+     ```yaml
+     redis:
+       url: redis://username:password@hostname:6379/0
+     ```
+     Replace `username`, `password`, `hostname`, and `6379` with your specific Redis configuration details.
+
+3. Optionally customize the language JSON files in `./src/locales`
+
+### Using Environment Variables
+
+You can configure OnetimeSecret quickly by setting essential environment variables directly in your shell:
+
+```bash
+export HOST=localhost:3000
+export SSL=false
+export COLONEL=admin@example.com
+export REDIS_URL=redis://username:password@hostname:6379/0
+export RACK_ENV=production
+```
+
+Replace `username`, `password`, `hostname`, and `6379` in the `REDIS_URL` with your specific Redis configuration details.
+
+### Using .env File (Manual Installation)
+
+For manual installations, you can use a `.env` file to set environment variables:
+
+1. Copy the example .env file:
+   ```bash
+   cp --preserve --no-clobber .env.example .env
+   ```
+
+2. Edit the `.env` file with your desired configuration, including Redis details:
+   ```
+   REDIS_URL=redis://username:password@hostname:6379/0
+   ```
+
+3. Before running the application, load the variables into your shell:
+   ```bash
+   set -a
+   source .env
+   set +a
+   ```
+
+Note: Choose either direct environment variables or the `.env` file method, but not both, to avoid confusion. Environment variables take precedence over `config.yaml` settings, allowing for easy overrides in container environments or for quick testing.
+
+For a full list of available configuration options, refer to the comments in the `config.example.yaml` file.
+
 
 
 
@@ -158,7 +233,6 @@ Note: After installation, ensure Redis is running with `service redis-server sta
 
 For other operating systems, please refer to the official documentation for each dependency to install the correct versions.
 
-
 #### 3. Set Up the Project
 
 ```bash
@@ -195,17 +269,9 @@ pnpm run dev
 
 Note: Ensure `RACK_ENV` is set to `development` or `development.enabled` in `etc/config` is set to `false` for automatic reloading.
 
-### Debugging
-
-To run in debug mode:
-
-```bash
-ONETIME_DEBUG=true bundle exec thin -e dev start
-```
-
 ### Configuration
 
-1. Edit `./etc/config`:
+1. Edit `./etc/config.yaml`:
    - Update the secret key (back it up securely)
    - Configure SMTP or SendGrid for email
    - Adjust rate limits
@@ -213,7 +279,7 @@ ONETIME_DEBUG=true bundle exec thin -e dev start
 
 2. Ensure `./etc/redis.conf` settings match your Redis configuration
 
-3. Optionally customize text in `/etc/onetime/locale/*`
+3. Optionally customize the language JSON files in `./src/locales`.
 
 ### Running in Production
 
@@ -306,9 +372,26 @@ ONETIME_DEBUG=true bundle exec thin -e dev start
 When running the Vite server in development mode, it will automatically reload when files change. Ensure that `RACK_ENV` is set to `development` or `development.enabled` in `etc/config` is set to `false`.
 
 
+#### Setting up pre-commit hooks
+
+We use the `pre-commit` framework to maintain code quality. To set it up:
+
+1. Install pre-commit:
+   ```bash
+   pip install pre-commit
+   ```
+
+2. Install the git hooks:
+   ```bash
+   pre-commit install
+   ```
+
+This will ensure that the pre-commit hooks run before each commit, helping to maintain code quality and consistency.
+
+
 ## Similar Services
 
-This section provides an overview of services similar to our project, highlighting their unique features and how they compare. These alternatives may be useful for users looking for specific functionalities or wanting to explore different options in the same domain.
+This section provides an overview of services similar to our project, highlighting their unique features and how they compare. These alternatives may be useful for users looking for specific functionalities or wanting to explore different options in the same domain. By presenting this information, we aim to give our users a comprehensive view of the available options in the secure information sharing space.
 
 **Note:** Our in-house legal counsel ([codium-pr-agent-pro bot](https://github.com/onetimesecret/onetimesecret/pull/610#issuecomment-2333317937)) suggested adding this introduction and the disclaimer at the end.
 
