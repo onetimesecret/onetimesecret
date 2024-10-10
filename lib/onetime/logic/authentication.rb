@@ -113,7 +113,7 @@ module Onetime::Logic
     end
 
     class ResetPassword < OT::Logic::Base
-      attr_reader :secret
+      attr_reader :secret, :is_confirmed
       def process_params
         @secret = OT::Secret.load params[:key].to_s
         @newp = self.class.normalize_password(params[:newp])
@@ -124,9 +124,9 @@ module Onetime::Logic
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
         limit_action :forgot_password_reset
-        raise_form_error "New passwords do not match" unless @newp == @newp2
+        @is_confirmed = Rack::Utils.secure_compare(@newp, @newp2)
+        raise_form_error "New passwords do not match" unless is_confirmed
         raise_form_error "New password is too short" unless @newp.size >= 6
-        raise_form_error "New password cannot match current password" if @newp == @currentp
       end
 
       def process
