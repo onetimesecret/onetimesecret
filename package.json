@@ -1,6 +1,6 @@
 {
   "name": "onetimesecret",
-  "version": "0.18.1",
+  "version": "0.18.2-rc1",
   "description": "",
   "type": "module",
   "scripts": {
