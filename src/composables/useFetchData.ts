@@ -4,8 +4,20 @@ import type { ApiRecordResponse, ApiRecordsResponse, BaseApiRecord, DetailsType 
 
 interface FetchDataOptions<T extends BaseApiRecord> {
   url: string;
+
+  /**
+   * Type definition for the onSuccess callback function.
+   * @param data - The array of data items of type T.
+   * @param details - Additional details of type DetailsType, which is optional.
+   */
   onSuccess?: (data: T[], details?: DetailsType) => void;
-  onError?: (error: Error) => void;
+
+  /**
+   * Type definition for the onError callback function.
+   * @param error - The error object.
+   * @param status - The HTTP status code, which is optional.
+   */
+  onError?: (error: Error, status?: number | null) => void;
 }
 
 export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError }: FetchDataOptions<T>) {
@@ -15,10 +27,12 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
   const error = ref('');
   const count = ref<number>(0);
   const custid = ref<string | null>(null);
+  const status = ref<number | null>(null);
 
   const fetchData = async () => {
     isLoading.value = true;
     error.value = '';
+    status.value = null;
 
     try {
       const response = await fetch(url, {
@@ -27,6 +41,8 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
           'Content-Type': 'application/json',
         },
       });
+
+      status.value = response.status;
 
       if (!response.ok) {
         throw new Error(`Failed to fetch data from ${url}`);
@@ -38,11 +54,13 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
         records.value = [jsonData.record];
         count.value = 1;
         details.value = jsonData.details || null;
+
       } else if ('records' in jsonData) {
         records.value = jsonData.records;
         count.value = jsonData.count;
         custid.value = jsonData.custid;
         details.value = jsonData.details || null;
+
       } else {
         throw new Error('Unexpected response format');
       }
@@ -50,6 +68,7 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
       if (onSuccess) {
         onSuccess(records.value, details.value);
       }
+
     } catch (err: unknown) {
       if (err instanceof Error) {
         error.value = err.message;
@@ -59,8 +78,9 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
       }
 
       if (onError) {
-        onError(err as Error);
+        onError(err as Error, status.value);
       }
+
     } finally {
       isLoading.value = false;
     }
@@ -73,12 +93,13 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
     error,
     count,
     custid,
+    status,
     fetchData,
   };
 }
 
 export function useFetchDataRecord<T extends BaseApiRecord>(options: FetchDataOptions<T>) {
-  const { records, details, isLoading, error, count, custid, fetchData } = useFetchData<T>(options);
+  const { records, details, isLoading, error, count, custid, status, fetchData } = useFetchData<T>(options);
 
   const record = computed(() => records.value[0] || null);
 
@@ -89,6 +110,7 @@ export function useFetchDataRecord<T extends BaseApiRecord>(options: FetchDataOp
     error,
     count,
     custid,
+    status,
     fetchData,
   };
 }

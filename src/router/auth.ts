@@ -66,7 +66,7 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/auth/PasswordResetRequest.vue'),
       },
       {
-        path: ':key',
+        path: ':resetKey',
         name: 'Reset Password',
         component: () => import('@/views/auth/PasswordReset.vue'),
         props: true,
