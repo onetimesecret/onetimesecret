@@ -76,7 +76,8 @@ module Onetime::Logic
       end
 
       def raise_concerns
-        limit_action :forgot_password_request
+        limit_action :forgot_password_request # limit requests
+
         raise_form_error "Not a valid email address" unless valid_email?(@custid)
         raise_form_error "No account found" unless OT::Customer.exists?(@custid)
       end
@@ -123,17 +124,39 @@ module Onetime::Logic
       def raise_concerns
         raise OT::MissingSecret if secret.nil?
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
-        limit_action :forgot_password_reset
+
+        limit_action :forgot_password_reset # limit reset attempts
+
         @is_confirmed = Rack::Utils.secure_compare(@newp, @newp2)
+
         raise_form_error "New passwords do not match" unless is_confirmed
         raise_form_error "New password is too short" unless @newp.size >= 6
       end
 
       def process
-        cust = secret.load_customer
-        cust.update_passphrase @newp
-        sess.set_info_message "Password changed"
-        secret.destroy!
+        if is_confirmed
+          # Load the customer information from the premade secret
+          cust = secret.load_customer
+
+          # Update the customer's passphrase
+          cust.update_passphrase @newp
+
+          # Set a success message in the session
+          sess.set_info_message "Password changed"
+
+          # Destroy the secret on successful attempt only. Otherwise
+          # the user will need to make a new request if the passwords
+          # don't match. We use rate limiting to discourage abuse.
+          secret.destroy!
+
+          # Log the success message
+          OT.info "Password successfully changed for customer #{cust.id}"
+
+        else
+          # Log the failure message
+          OT.info "Password change failed: password confirmation not received"
+        end
+
       end
 
       def success_data
