@@ -163,12 +163,23 @@ module Onetime::App
       OT.ld "Final locale: #{@locale}, Final locales: #{locales}"
     end
 
-    # Check XSRF value submitted with POST requests (aka shrimp)
+    # Check CSRF value submitted with POST requests (aka shrimp)
+    #
+    # Note: This method is called only for session authenticated
+    # requests. Requests via basic auth (/api), may check for a
+    # valid shrimp, but they don't regenerate a fresh every time
+    # a successful validation occurs.
     def check_shrimp!(replace=true)
       return if @check_shrimp_ran
       @check_shrimp_ran = true
       return unless req.post? || req.put? || req.delete?
-      attempted_shrimp = req.params[:shrimp].to_s
+
+      # Check for shrimp in params and in the O-Shrimp header
+      header_shrimp = (req.env['HTTP_O_SHRIMP'] || req.env['HTTP_ONETIME_SHRIMP']).to_s
+      params_shrimp = req.params[:shrimp].to_s
+
+      # Use the header shrimp if it's present, otherwise use the param shrimp
+      attempted_shrimp = header_shrimp.empty? ? params_shrimp : header_shrimp
 
       # No news is good news for successful shrimp; by default
       # it'll simply add a fresh shrimp to the session. But
