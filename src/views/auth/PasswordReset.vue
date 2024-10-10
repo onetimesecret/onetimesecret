@@ -29,6 +29,15 @@ const props = withDefaults(defineProps<Props>(), {
       <input type="hidden"
              name="shrimp"
              :value="csrfStore.shrimp" />
+
+      <!-- Username field for accessibility -->
+      <div class="mb-4 hidden">
+        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="email">
+          Email address
+        </label>
+        <input type="text" name="email" id="usernameField" autocomplete="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="" />
+      </div>
+
       <div class="mb-4">
         <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
                for="passField">
