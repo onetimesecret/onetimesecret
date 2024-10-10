@@ -2,7 +2,23 @@
 # check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2024-10-07
+# ONETIME SECRET - DOCKER IMAGE - 2024-10-10
+#
+# For detailed instructions on building, running, and deploying this Docker image,
+# please refer to our comprehensive Docker guide:
+#
+#     docs/DOCKER.md
+#
+# This guide includes information on:
+# - Quick start instructions
+# - Configuration options
+# - Production deployment considerations
+# - Updating the Docker image
+# - Using specific version tags
+#
+# For more detailed configuration options, you can also refer to the README.md file.
+#
+# GETTING STARTED:
 #
 # To build and use this image, you need to copy the example
 # configuration files into place:

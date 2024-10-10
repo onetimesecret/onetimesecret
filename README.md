@@ -1,4 +1,5 @@
-# Onetime Secret - v0.18
+
+# Onetime Secret - Secure One-Time Message Sharing
 
 NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3`](https://github.com/onetimesecret/onetimesecret/tree/v0.17.3) for a more stable experience.
 
@@ -24,13 +25,57 @@ Try it out on <a class="msg" href="https://onetimesecret.com/">OnetimeSecret.com
 When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
 
+- [Onetime Secret - Secure One-Time Message Sharing](#onetime-secret---secure-one-time-message-sharing)
+  - [Latest releases](#latest-releases)
+  - [What is a Onetime Secret?](#what-is-a-onetime-secret)
+    - [Why would I want to use it?](#why-would-i-want-to-use-it)
+  - [Installation](#installation)
+    - [System Requirements](#system-requirements)
+    - [Docker Installation](#docker-installation)
+      - [1. Using Pre-built Images](#1-using-pre-built-images)
+      - [2. Building the Image Locally](#2-building-the-image-locally)
+      - [3. Multi-platform Builds](#3-multi-platform-builds)
+    - [Running the Container](#running-the-container)
+  - [Configuration](#configuration)
+    - [Basic Setup](#basic-setup)
+    - [Configuration Options](#configuration-options)
+      - [1. Using config.yaml (Required)](#1-using-configyaml-required)
+      - [2. Using Environment Variables (Optional)](#2-using-environment-variables-optional)
+      - [3. Using a .env File (Optional)](#3-using-a-env-file-optional)
+    - [Important Notes](#important-notes)
+    - [Manual Installation](#manual-installation)
+      - [1. Get the Code](#1-get-the-code)
+      - [2. Install System Dependencies](#2-install-system-dependencies)
+      - [3. Set Up the Project](#3-set-up-the-project)
+      - [4. Install Ruby Dependencies](#4-install-ruby-dependencies)
+      - [5. Install JavaScript Dependencies](#5-install-javascript-dependencies)
+      - [6. Run the Web Application](#6-run-the-web-application)
+        - [Option A: Without Vite Dev Server (Production-like or Simple Development)](#option-a-without-vite-dev-server-production-like-or-simple-development)
+        - [Option B: With Vite Dev Server (Active Frontend Development)](#option-b-with-vite-dev-server-active-frontend-development)
+  - [Miscellaneous](#miscellaneous)
+    - [Docker-related Tips](#docker-related-tips)
+      - [Container Name Already in Use](#container-name-already-in-use)
+      - [Docker Compose](#docker-compose)
+    - [Security and Configuration](#security-and-configuration)
+      - [Generating a Global Secret](#generating-a-global-secret)
+      - [Securing Configuration Files](#securing-configuration-files)
+    - [Troubleshooting](#troubleshooting)
+      - [SSH Issues with GitHub](#ssh-issues-with-github)
+    - [Development Tips](#development-tips)
+      - [Debugging](#debugging)
+      - [Front-end Development](#front-end-development)
+      - [Setting up pre-commit hooks](#setting-up-pre-commit-hooks)
+        - [Optimizing Docker Builds](#optimizing-docker-builds)
+      - [Production Deployment](#production-deployment)
+  - [Similar Services](#similar-services)
+
 ## Installation
 
 ### System Requirements
 
-* Any recent linux distro (we use debian) or *BSD
+* Any recent linux distro (we use debian) or *BSD or MacOS
 * System dependencies:
-  * Ruby 3.3, 3.2, 3.1, 3.0, 2.7.8
+  * Ruby 3.3, 3.2, 3.1
   * Redis server 5+
 * Minimum specs:
   * 2 core CPU (or equivalent)
@@ -38,7 +83,6 @@ When you send people sensitive info like passwords and private links via email o
   * 4GB disk
 
 For front-end development, you'll also need:
-
 * Node.js 18+
 * pnpm 9.0.0+
 
