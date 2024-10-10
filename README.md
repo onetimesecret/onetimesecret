@@ -113,9 +113,11 @@ Regardless of how you obtained or built the image, follow these steps to run One
 
 OnetimeSecret should now be running and accessible at `http://localhost:3000`.
 
+
+
 ### Manual Installation
 
-If you prefer not to use Docker, you can install OnetimeSecret manually. Follow these steps:
+If you prefer to work with the source code directly, you can install OnetimeSecret manually. Follow these steps:
 
 #### 1. Get the Code
 
@@ -129,20 +131,39 @@ Choose one of these methods:
 
 #### 2. Install System Dependencies
 
-For Debian/Ubuntu:
+Follow these general steps to install the required system dependencies:
+
+1. Update your system's package list
+2. Install git, curl, sudo, and redis-server
+3. Install Ruby (version 3.3, 3.2, 3.1)
+4. Install Node.js 18+ and pnpm 9.2+
+
+For Debian/Ubuntu systems, you can use the following commands:
 
 ```bash
+# Update package list and install basic dependencies
 sudo apt update
-sudo apt install -y git curl sudo ruby-full redis-server
+sudo apt install -y git curl sudo redis-server
+
+# Install Ruby (choose one version)
+sudo apt install -y ruby3.3  # or ruby3.2, ruby3.1
+
+# Install Node.js and pnpm
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pnpm@latest
 ```
 
-Note: Ensure Redis is running with `service redis-server status`. Start it if needed with `service redis-server start`.
+Note: After installation, ensure Redis is running with `service redis-server status`. Start it if needed with `service redis-server start`.
+
+For other operating systems, please refer to the official documentation for each dependency to install the correct versions.
+
 
 #### 3. Set Up the Project
 
 ```bash
 cd onetimesecret
-cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
+cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
 cp --preserve --no-clobber .env.example .env
 ```
 
