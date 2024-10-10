@@ -200,11 +200,12 @@ COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
 COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
 COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
+COPY --from=build $CODE_ROOT/.commit_hash.txt $CODE_ROOT/
 COPY bin $CODE_ROOT/bin
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate
-COPY package.json config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
+COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
 LABEL Name=onetimesecret Version=$VERSION
 LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
