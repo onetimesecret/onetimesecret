@@ -14,84 +14,61 @@
 # a look and customize as you like (particularly the main secret
 # `SECRET` and redis password in `REDIS_URL`).
 #
-# BUILDING (Docker):
+# BUILDING:
 #
 #     $ docker build -t onetimesecret .
-##
 #
-# BUILDING (Podman):
+# For multi-platform builds:
 #
-#     $ podman build -t onetimesecret .
+#     $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
 #
+# RUNNING:
 #
-# RUNNING (Docker):
+# First, start a Redis server (version 5+) with persistence enabled:
 #
-# First, start a Redis database with persistence enabled:
+#     $ docker run -p 6379:6379 -d redis:bookworm
 #
-#     $ docker run -p 6379:6379 --name redis -d redis
+# Then set essential environment variables:
 #
-# Then build and run this image, specifying the redis URL:
+#     $ export HOST=localhost:3000
+#     $ export SSL=false
+#     $ export COLONEL=admin@example.com
+#     $ export REDIS_URL=redis://host.docker.internal:6379/0
+#     $ export RACK_ENV=production
+#
+# Run the OnetimeSecret container:
 #
 #     $ docker run -p 3000:3000 -d --name onetimesecret \
-#       -e REDIS_URL="redis://172.17.0.2:6379/0" \
-#       -e RACK_ENV=production \
+#       -e REDIS_URL=$REDIS_URL \
+#       -e COLONEL=$COLONEL \
+#       -e HOST=$HOST \
+#       -e SSL=$SSL \
+#       -e RACK_ENV=$RACK_ENV \
 #       onetimesecret
 #
 # It will be accessible on http://localhost:3000.
 #
-#
-# RUNNING (Docker Compose):
-#
-# When bringing up a frontend container for the first time, make
-# sure the database container is already running and attached.
-#
-#     $ docker-compose up -d redis
-#     $ docker-compose up --attach-dependencies --build onetime
-#
-# If you ever need to force rebuild a container:
-#
-#     $ docker-compose build --no-cache onetime
-#
-# ----------------------------------------------------------------
-#   NOTE: All Docker Compose configuration (including the service
-#         definitions in docker-compose.yml) have moved to a
-#         dedicated repo:
-#
-#         https://github.com/onetimesecret/docker-compose
-# ----------------------------------------------------------------
-#
-#
-# OPTIMIZING BUILDS:
-#
-# Use `docker history <image_id>` to see the layers of an image.
-#
-#
 # PRODUCTION DEPLOYMENT:
 #
-# When deploying to production, you should protect your Redis instance with
-# authentication or Redis networks. You should also enable persistence and
-# save the data somewhere, to make sure it doesn't get lost when the
-# server restarts.
+# When deploying to production, protect your Redis instance with
+# authentication and enable persistence. Also, change the secret and
+# specify the domain it will be deployed on. For example:
 #
-# You should also change the secret to something else, and specify the
-# domain it will be deployed on. For instance, if OTS will be accessible
-# from https://example.com:
+#   $ export HOST=example.com
+#   $ export SSL=true
+#   $ export COLONEL=admin@example.com
+#   $ export REDIS_URL=redis://username:password@hostname:6379/0
+#   $ export RACK_ENV=production
 #
-#   $ docker run -p 3000:3000 -d \
-#     -e REDIS_URL="redis://user:password@host:port/0" \
-#     -e COLONEL="admin@example.com" \
-#     -e HOST=example.com \
-#     -e SSL=true \
-#     -e SECRET="<put your own secret here>" \
-#     -e RACK_ENV=production \
+#   $ docker run -p 3000:3000 -d --name onetimesecret \
+#     -e REDIS_URL=$REDIS_URL \
+#     -e COLONEL=$COLONEL \
+#     -e HOST=$HOST \
+#     -e SSL=$SSL \
+#     -e RACK_ENV=$RACK_ENV \
 #     onetimesecret
 #
-#
-# DOCKERFILE VERSIONS
-#
-# @see https://docs.docker.com/build/buildkit/dockerfile-release-notes/#150
-#
-##
+# For more detailed configuration options, refer to the README.md file.
 
 ##
 # BUILDER LAYER
@@ -200,11 +177,12 @@ COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
 COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
 COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
+COPY --from=build $CODE_ROOT/.commit_hash.txt $CODE_ROOT/
 COPY bin $CODE_ROOT/bin
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate
-COPY package.json config.ru Gemfile Gemfile.lock .commit_hash.txt $CODE_ROOT/
+COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
 LABEL Name=onetimesecret Version=$VERSION
 LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
