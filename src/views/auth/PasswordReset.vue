@@ -1,16 +1,40 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useCsrfStore } from '@/stores/csrfStore';
+import { useFetchDataRecord } from '@/composables/useFetchData';
+import { SecretData } from '@/types/onetime'
+import { useRouter } from 'vue-router';
 
 const csrfStore = useCsrfStore();
+const router = useRouter();
 
 export interface Props {
   enabled?: boolean;
+  resetKey: string;
 }
+
+/**
+ * Handles errors by redirecting to '/' if the status is 404.
+ * @param error - The error object.
+ * @param status - The HTTP status code.
+ */
+ const onError = (error: Error, status?: number | null) => {
+  if (status === 404) {
+    router.push('/');
+  }
+};
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })
+
+const { fetchData: fetchSecret } = useFetchDataRecord<SecretData>({
+  url: `/api/v2/secret/${props.resetKey}`,
+  onError,
+});
+
+onMounted(fetchSecret)
 
 </script>
 
@@ -48,6 +72,7 @@ const props = withDefaults(defineProps<Props>(), {
                id="passField"
                required
                minlength="6"
+               autocomplete="new-password"
                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                placeholder="" />
       </div>
@@ -61,6 +86,7 @@ const props = withDefaults(defineProps<Props>(), {
                id="pass2Field"
                required
                minlength="6"
+               autocomplete="new-password"
                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                placeholder="" />
       </div>
