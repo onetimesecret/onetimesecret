@@ -1326,6 +1326,17 @@
     },
     "components": {
         "schemas": {
+            "BaseApiV1Response": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            },
             "BaseApiV2Record": {
                 "type": "object",
                 "properties": {
@@ -1345,7 +1356,75 @@
                     "updated"
                 ]
             },
-            "Customer": {
+            "BaseCustomer": {
+                "type": "object",
+                "properties": {
+                    "custid": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "type": "string"
+                    },
+                    "planid": {
+                        "type": "string"
+                    },
+                    "verified": {
+                        "type": "string"
+                    },
+                    "active": {
+                        "type": "string"
+                    },
+                    "locale": {
+                        "type": "string"
+                    },
+                    "secrets_created": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "custid",
+                    "role",
+                    "verified",
+                    "active",
+                    "locale",
+                    "secrets_created"
+                ]
+            },
+            "BaseMetadata": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiV2Record"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "shortkey": {
+                                "type": "string"
+                            },
+                            "secret_key": {
+                                "type": "string"
+                            },
+                            "secret_shortkey": {
+                                "type": "string"
+                            },
+                            "share_domain": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "key",
+                            "shortkey",
+                            "secret_key",
+                            "secret_shortkey",
+                            "share_domain"
+                        ]
+                    }
+                ]
+            },
+            "BaseSecret": {
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/BaseApiV2Record"
@@ -1356,32 +1435,117 @@
                             "custid": {
                                 "type": "string"
                             },
-                            "role": {
+                            "state": {
                                 "type": "string"
                             },
-                            "planid": {
+                            "value": {
                                 "type": "string"
                             },
-                            "plan": {
-                                "$ref": "#/components/schemas/Plan"
+                            "metadata_key": {
+                                "type": "string"
+                            },
+                            "original_size": {
+                                "type": "number"
+                            },
+                            "value_checksum": {
+                                "type": "string"
+                            },
+                            "value_encryption": {
+                                "type": "string"
+                            },
+                            "lifespan": {
+                                "type": "number"
+                            },
+                            "share_domain": {
+                                "type": "string"
+                            },
+                            "verification": {
+                                "type": "string"
+                            },
+                            "is_truncated": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "custid",
+                            "state",
+                            "value",
+                            "metadata_key",
+                            "original_size",
+                            "value_checksum",
+                            "value_encryption",
+                            "lifespan",
+                            "share_domain",
+                            "verification",
+                            "is_truncated"
+                        ]
+                    }
+                ]
+            },
+            "BaseApiDetails": {
+                "type": "object",
+                "properties": {
+                    "body_class": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    }
+                }
+            },
+            "BaseDomain": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiV2Record"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "custid": {
+                                "type": "string"
+                            },
+                            "display_domain": {
+                                "type": "string"
+                            },
+                            "base_domain": {
+                                "type": "string"
+                            },
+                            "subdomain": {
+                                "type": "string"
                             },
                             "verified": {
-                                "type": "string"
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "custid",
+                            "display_domain",
+                            "base_domain",
+                            "subdomain",
+                            "verified"
+                        ]
+                    }
+                ]
+            },
+            "Customer": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiV2Record"
+                    },
+                    {
+                        "$ref": "#/components/schemas/BaseCustomer"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "plan": {
+                                "$ref": "#/components/schemas/Plan"
                             },
                             "updated": {
                                 "type": "number"
                             },
                             "created": {
                                 "type": "number"
-                            },
-                            "secrets_created": {
-                                "type": "number"
-                            },
-                            "active": {
-                                "type": "string"
-                            },
-                            "locale": {
-                                "type": "string"
                             },
                             "stripe_checkout_email": {
                                 "type": "string"
@@ -1394,55 +1558,73 @@
                             }
                         },
                         "required": [
-                            "custid",
-                            "role",
                             "plan",
-                            "verified",
                             "updated",
-                            "created",
-                            "secrets_created",
-                            "active",
-                            "locale"
+                            "created"
                         ]
                     }
                 ]
             },
             "ColonelCustomer": {
-                "type": "object",
-                "properties": {
-                    "custid": {
-                        "type": "string"
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseCustomer"
                     },
-                    "planid": {
-                        "type": "string"
-                    },
-                    "colonel": {
-                        "type": "boolean"
-                    },
-                    "secrets_created": {
-                        "type": "number"
-                    },
-                    "secrets_shared": {
-                        "type": "number"
-                    },
-                    "emails_sent": {
-                        "type": "number"
-                    },
-                    "verified": {
-                        "type": "boolean"
-                    },
-                    "stamp": {
-                        "type": "string"
+                    {
+                        "type": "object",
+                        "properties": {
+                            "colonel": {
+                                "type": "boolean"
+                            },
+                            "secrets_shared": {
+                                "type": "number"
+                            },
+                            "emails_sent": {
+                                "type": "number"
+                            },
+                            "stamp": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "colonel",
+                            "secrets_shared",
+                            "emails_sent",
+                            "stamp"
+                        ]
                     }
-                },
-                "required": [
-                    "custid",
-                    "colonel",
-                    "secrets_created",
-                    "secrets_shared",
-                    "emails_sent",
-                    "verified",
-                    "stamp"
+                ]
+            },
+            "Account": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseApiV2Record"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "cust": {
+                                "$ref": "#/components/schemas/Customer"
+                            },
+                            "apitoken": {
+                                "type": "string"
+                            },
+                            "stripe_customer": {
+                                "type": "object"
+                            },
+                            "stripe_subscriptions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "required": [
+                            "cust",
+                            "stripe_customer",
+                            "stripe_subscriptions"
+                        ]
+                    }
                 ]
             },
             "PlanOptions": {
@@ -1730,38 +1912,6 @@
                         "required": [
                             "apitoken",
                             "active"
-                        ]
-                    }
-                ]
-            },
-            "Account": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/BaseApiV2Record"
-                    },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "cust": {
-                                "$ref": "#/components/schemas/Customer"
-                            },
-                            "apitoken": {
-                                "type": "string"
-                            },
-                            "stripe_customer": {
-                                "type": "object"
-                            },
-                            "stripe_subscriptions": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object"
-                                }
-                            }
-                        },
-                        "required": [
-                            "cust",
-                            "stripe_customer",
-                            "stripe_subscriptions"
                         ]
                     }
                 ]
@@ -2162,21 +2312,10 @@
                     "stamp"
                 ]
             },
-            "BaseApiResponse": {
-                "type": "object",
-                "properties": {
-                    "success": {
-                        "type": "boolean"
-                    }
-                },
-                "required": [
-                    "success"
-                ]
-            },
             "ApiErrorResponse": {
                 "allOf": [
                     {
-                        "$ref": "#/components/schemas/BaseApiResponse"
+                        "$ref": "#/components/schemas/BaseApiV1Response"
                     },
                     {
                         "type": "object",
@@ -2203,7 +2342,7 @@
             "ApiRecordsResponse": {
                 "allOf": [
                     {
-                        "$ref": "#/components/schemas/BaseApiResponse"
+                        "$ref": "#/components/schemas/BaseApiV1Response"
                     },
                     {
                         "type": "object",
@@ -2235,7 +2374,7 @@
             "ApiRecordResponse": {
                 "allOf": [
                     {
-                        "$ref": "#/components/schemas/BaseApiResponse"
+                        "$ref": "#/components/schemas/BaseApiV1Response"
                     },
                     {
                         "type": "object",
