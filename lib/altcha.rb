@@ -286,10 +286,23 @@ module Altcha
   end
 
   # Verifies the server's signature.
-  # @param payload [String, ServerSignaturePayload] The payload to verify, either as a base64 encoded JSON string or a ServerSignaturePayload instance.
+  #
+  # @param payload [String, ServerSignaturePayload] The payload to verify,
+  #   either as a base64 encoded JSON string or a ServerSignaturePayload
+  #   instance.
+  #
   # @param hmac_key [String] The key used for HMAC verification.
-  # @return [Array<Boolean, ServerSignatureVerificationData>] A tuple where the first element is true if the signature is valid, and the second element is the verification data.
+  #
+  # @return [Array<Boolean, ServerSignatureVerificationData>] A tuple where
+  #   the first element is true if the signature is valid, and the second
+  #   element is the verification data.
+  #
   def self.verify_server_signature(payload, hmac_key)
+    if payload.nil?
+      OT.ld "[verify_server_signature] Payload is nil"
+      return [false, nil]
+    end
+
     # Decode and parse base64 JSON string if it's a String
     if payload.is_a?(String)
       decoded_payload = Base64.decode64(payload)

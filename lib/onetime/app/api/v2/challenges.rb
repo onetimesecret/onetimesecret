@@ -35,12 +35,12 @@ class Onetime::App::APIV2
 
     def altcha_verify
       publically do
-        payload = params['authenticity_payload']
+        payload = req.params['authenticity_payload']
         error_response message: 'Altcha payload missing' if payload.nil?
 
         verified = Altcha.verify_solution(payload, self.class.secret_key)
         if verified
-          json data: params
+          json data: req.params
         else
           error_response message: 'Invalid Altcha payload'
         end
@@ -49,22 +49,27 @@ class Onetime::App::APIV2
 
     def altcha_verify_spam
       publically do
-        payload = params['authenticity_payload']
+        payload = req.params['authenticity_payload']
         error_response message: 'Altcha payload missing' if payload.nil?
 
+        # When verified=false, verification_data can be nil
         verified, verification_data = Altcha.verify_server_signature(
           payload,
           self.class.secret_key
         )
+
+
+        return error_response message: 'Bad Altcha payload' unless verified
+
         fields_verified = Altcha.verify_fields_hash(
-          params,
+          req.params,
           verification_data.fields,
           verification_data.fields_hash,
           'SHA-256'
         )
 
-        if verified && fields_verified
-          { success: true, form_data: params, verification_data: verification_data }.to_json
+        if fields_verified
+          { success: true, form_data: req.params, verification_data: verification_data }.to_json
         else
           error_response message: 'Invalid Altcha payload'
         end
