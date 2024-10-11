@@ -113,8 +113,8 @@ module Onetime
     #
     def welcome_webhook
       @ignoreshrimp = true
-      # Ignore CSRF shrimp but we should check the signature against
-      # Stripe's webhook signing secret.
+      # We ignore CSRF shrimp since it's a calling coming from outside the house
+      # but we do verify the Stripe webhook signature in StripeWebhook#raise_concerns.
       publically do
         logic = OT::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
         logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
