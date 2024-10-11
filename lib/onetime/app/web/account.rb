@@ -103,7 +103,7 @@ module Onetime
       end
     end
 
-    # Recieves users from the Stripe Webhook after a successful payment for a new
+    # Receives users from the Stripe Webhook after a successful payment for a new
     # subscription. The redirect can optionally include a CHECKOUT_SESSION_ID which
     # allows this webhook to call the Stripe API for the checkout details.
     #
