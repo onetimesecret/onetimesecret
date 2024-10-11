@@ -133,7 +133,9 @@ class Onetime::Session < Familia::Horreum
 
   def shrimp? guess
     shrimp = self.shrimp.to_s
-    (!shrimp.empty?) && shrimp == guess.to_s
+    guess = guess.to_s
+    OT.ld "[Sess#shrimp?] Checking with a constant time comparison"
+    (!shrimp.empty?) && Rack::Utils.secure_compare(shrimp, guess)
   end
 
   def add_shrimp

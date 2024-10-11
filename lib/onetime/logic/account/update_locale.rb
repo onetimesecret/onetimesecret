@@ -6,12 +6,14 @@ module Onetime::Logic
 
       def process_params
         OT.ld "[UpdateLocale#process_params] params: #{params.inspect}" # careful w/ logging params
-        @new_locale = params[:locale]
+        @new_locale = params[field_name] # i.e. :locale
         @old_locale = cust.locale
       end
 
       def raise_concerns
+        # TODO: if new_locale == old_locale, no update needed
         if (!sess.authenticated?) || (cust.anonymous?)
+          OT.le "[UpdateLocale#raise-concerns] sess.authenticated?=#{sess.authenticated?} cust.anonymous?=#{cust.anonymous?}"
           raise_form_error "Sorry, we don't support that"
         end
       end
@@ -34,7 +36,7 @@ module Onetime::Logic
       end
 
       def valid_update?
-        valid_locale?(new_locale) && new_locale != old_locale
+        valid_locale?(new_locale)
       end
 
       def perform_update
