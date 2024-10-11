@@ -4,6 +4,9 @@
       "ApiResponse": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "number"
+          }
         },
         "required": [
         ]
@@ -354,7 +357,12 @@
           "ttl",
           "size",
           "api",
-          "name"
+          "name",
+          "email",
+          "custom_domains",
+          "dark_mode",
+          "cname",
+          "private"
         ]
       },
       "Plan": {
