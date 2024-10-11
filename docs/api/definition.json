@@ -34,6 +34,408 @@
     ],
     "tags": [],
     "paths": {
+        "/incoming": {
+          "post": {
+            "summary": "Create Incoming Secret",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/x-www-form-urlencoded": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "secret": {
+                        "type": "string",
+                        "description": "The secret value to be stored"
+                      },
+                      "ticketno": {
+                        "type": "string",
+                        "description": "A valid ticket number"
+                      },
+                      "recipient": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "description": "Email addresses of recipients"
+                      }
+                    },
+                    "required": ["secret", "ticketno"]
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Successful response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/BaseApiResponse"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  }
+                }
+              }
+            },
+            "tags": [
+              "secrets"
+            ]
+          }
+        },
+        "/signup": {
+          "post": {
+            "summary": "Create Account",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/x-www-form-urlencoded": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "u": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "User's email address (used as username)"
+                      },
+                      "p": {
+                        "type": "string",
+                        "description": "User's password"
+                      },
+                      "p2": {
+                        "type": "string",
+                        "description": "Password confirmation"
+                      },
+                      "planid": {
+                        "type": "string",
+                        "description": "ID of the selected plan"
+                      },
+                      "skill": {
+                        "type": "string",
+                        "description": "Hidden field for bot detection (should be empty)"
+                      }
+                    },
+                    "required": ["u", "p", "p2", "planid"]
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Successful response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/BaseApiResponse"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  }
+                }
+              }
+            },
+            "tags": [
+              "accounts"
+            ]
+          }
+        },
+        "/signin": {
+          "post": {
+            "summary": "Authenticate User",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/x-www-form-urlencoded": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "u": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "User's email address"
+                      },
+                      "p": {
+                        "type": "string",
+                        "description": "User's password"
+                      }
+                    },
+                    "required": ["u", "p"]
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Successful response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/BaseApiResponse"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  }
+                }
+              }
+            },
+            "tags": [
+              "authentication"
+            ]
+          }
+        },
+        "/welcome/stripe/webhook": {
+          "post": {
+            "summary": "Handle Stripe Webhook",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "payload": {
+                        "type": "object",
+                        "description": "Stripe event payload"
+                      }
+                    },
+                    "required": ["payload"]
+                  }
+                }
+              }
+            },
+            "parameters": [
+              {
+                "in": "header",
+                "name": "Stripe-Signature",
+                "schema": {
+                  "type": "string"
+                },
+                "required": true,
+                "description": "Stripe webhook signature"
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "Successful response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "welcome": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  }
+                }
+              }
+            },
+            "tags": [
+              "webhooks",
+              "stripe"
+            ]
+          }
+        },
+        "/feedback": {
+          "post": {
+            "summary": "Submit Feedback",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/x-www-form-urlencoded": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "msg": {
+                        "type": "string",
+                        "maxLength": 999,
+                        "description": "Feedback message"
+                      },
+                      "authenticity_payload": {
+                        "type": "string",
+                        "maxLength": 999,
+                        "description": "Authenticity payload for spam prevention"
+                      }
+                    },
+                    "required": ["msg"]
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Successful response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/BaseApiResponse"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  }
+                }
+              }
+            },
+            "tags": [
+              "feedback"
+            ]
+          }
+        },
+        "/forgot": {
+          "post": {
+            "summary": "Request Password Reset",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/x-www-form-urlencoded": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "u": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "User's email address"
+                      }
+                    },
+                    "required": ["u"]
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Successful response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/BaseApiResponse"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  }
+                }
+              }
+            },
+            "tags": [
+              "authentication"
+            ]
+          }
+        },
+        "/forgot/{key}": {
+          "post": {
+            "summary": "Reset Password",
+            "parameters": [
+              {
+                "name": "key",
+                "in": "path",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Reset password key"
+              }
+            ],
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/x-www-form-urlencoded": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "newp": {
+                        "type": "string",
+                        "description": "New password"
+                      },
+                      "newp2": {
+                        "type": "string",
+                        "description": "New password confirmation"
+                      }
+                    },
+                    "required": ["newp", "newp2"]
+                  }
+                }
+              }
+            },
+            "responses": {
+              "200": {
+                "description": "Successful response",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/BaseApiResponse"
+                    }
+                  }
+                }
+              },
+              "400": {
+                "description": "Bad request",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    }
+                  }
+                }
+              }
+            },
+            "tags": [
+              "authentication"
+            ]
+          }
+        },
         "/v2/account/domains/add": {
             "post": {
                 "summary": "Add Domain",
