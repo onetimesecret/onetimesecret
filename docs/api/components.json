@@ -1,38 +1,7 @@
 {
   "components": {
     "schemas": {
-      "ApiResponse": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "number"
-          }
-        },
-        "required": [
-        ]
-      },
-      "BaseApiV1Response": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ApiRecord"
-          }
-        ],
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ]
-      },
       "BaseApiV2Record": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ApiRecord"
-          }
-        ],
         "type": "object",
         "properties": {
           "identifier": {
@@ -401,29 +370,6 @@
           "$ref": "#/components/schemas/Plan"
         }
       },
-      "AuthenticationSettings": {
-        "type": "object",
-        "properties": {
-          "enabled": {
-            "type": "boolean"
-          },
-          "signup": {
-            "type": "boolean"
-          },
-          "signin": {
-            "type": "boolean"
-          },
-          "autoverify": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "enabled",
-          "signup",
-          "signin",
-          "autoverify"
-        ]
-      },
       "ApproximatedVHost": {
         "type": "object",
         "properties": {
@@ -502,24 +448,12 @@
       "CustomDomain": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiV2Record"
+            "$ref": "#/components/schemas/BaseDomain"
           },
           {
             "type": "object",
             "properties": {
               "domainid": {
-                "type": "string"
-              },
-              "custid": {
-                "type": "string"
-              },
-              "display_domain": {
-                "type": "string"
-              },
-              "base_domain": {
-                "type": "string"
-              },
-              "subdomain": {
                 "type": "string"
               },
               "trd": {
@@ -530,9 +464,6 @@
               },
               "sld": {
                 "type": "string"
-              },
-              "verified": {
-                "type": "boolean"
               },
               "_original_value": {
                 "type": "string"
@@ -549,14 +480,9 @@
             },
             "required": [
               "domainid",
-              "custid",
-              "display_domain",
-              "base_domain",
-              "subdomain",
               "trd",
               "tld",
               "sld",
-              "verified",
               "_original_value",
               "txt_validation_host",
               "txt_validation_value"
@@ -567,7 +493,7 @@
       "CustomDomainCluster": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/BaseApiV2Record"
+            "$ref": "#/components/schemas/BaseDomain"
           },
           {
             "type": "object",
@@ -592,6 +518,330 @@
               "vhost_target"
             ]
           }
+        ]
+      },
+      "MetadataData": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseMetadata"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "recipients": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "created_date_utc": {
+                "type": "string"
+              },
+              "expiration_stamp": {
+                "type": "string"
+              },
+              "share_path": {
+                "type": "string"
+              },
+              "burn_path": {
+                "type": "string"
+              },
+              "metadata_path": {
+                "type": "string"
+              },
+              "share_url": {
+                "type": "string"
+              },
+              "metadata_url": {
+                "type": "string"
+              },
+              "burn_url": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "body_class": {
+                    "type": "string"
+                  },
+                  "burned_date_utc": {
+                    "type": "string"
+                  },
+                  "burned_date": {
+                    "type": "string"
+                  },
+                  "can_decrypt": {
+                    "type": "boolean"
+                  },
+                  "display_feedback": {
+                    "type": "boolean"
+                  },
+                  "display_lines": {
+                    "type": "number"
+                  },
+                  "has_maxviews": {
+                    "type": "boolean"
+                  },
+                  "has_passphrase": {
+                    "type": "boolean"
+                  },
+                  "is_burned": {
+                    "type": "boolean"
+                  },
+                  "is_destroyed": {
+                    "type": "boolean"
+                  },
+                  "is_received": {
+                    "type": "boolean"
+                  },
+                  "maxviews": {
+                    "type": "number"
+                  },
+                  "no_cache": {
+                    "type": "boolean"
+                  },
+                  "received_date_utc": {
+                    "type": "string"
+                  },
+                  "received_date": {
+                    "type": "string"
+                  },
+                  "show_metadata_link": {
+                    "type": "boolean"
+                  },
+                  "show_metadata": {
+                    "type": "boolean"
+                  },
+                  "show_recipients": {
+                    "type": "boolean"
+                  },
+                  "show_secret_link": {
+                    "type": "boolean"
+                  },
+                  "show_secret": {
+                    "type": "boolean"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "view_count": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            "required": [
+              "recipients",
+              "created_date_utc",
+              "expiration_stamp",
+              "share_path",
+              "burn_path",
+              "metadata_path",
+              "share_url",
+              "metadata_url",
+              "burn_url"
+            ]
+          }
+        ]
+      },
+      "SecretData": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseSecret"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "is_owner": {
+                "type": "boolean"
+              },
+              "has_passphrase": {
+                "type": "boolean"
+              },
+              "secret_value": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "continue": {
+                    "type": "boolean"
+                  },
+                  "show_secret": {
+                    "type": "boolean"
+                  },
+                  "correct_passphrase": {
+                    "type": "boolean"
+                  },
+                  "display_lines": {
+                    "type": "number"
+                  },
+                  "one_liner": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "required": [
+              "is_owner",
+              "has_passphrase"
+            ]
+          }
+        ]
+      },
+      "ConcealData": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "$ref": "#/components/schemas/MetadataData"
+          },
+          "secret": {
+            "$ref": "#/components/schemas/SecretData"
+          },
+          "share_domain": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "recipient": {
+                "type": "string"
+              },
+              "recipient_safe": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "recipient",
+              "recipient_safe"
+            ]
+          }
+        },
+        "required": [
+          "metadata",
+          "secret",
+          "share_domain"
+        ]
+      },
+      "BaseApiResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "ApiErrorResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "code": {
+                "type": "number"
+              },
+              "record": {
+                "$ref": "#/components/schemas/BaseApiV2Record"
+              },
+              "details": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "message"
+            ]
+          }
+        ]
+      },
+      "ApiRecordsResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "custid": {
+                "type": "string"
+              },
+              "records": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BaseApiV2Record"
+                }
+              },
+              "count": {
+                "type": "number"
+              },
+              "details": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "custid",
+              "records",
+              "count"
+            ]
+          }
+        ]
+      },
+      "ApiRecordResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "record": {
+                "$ref": "#/components/schemas/BaseApiV2Record"
+              },
+              "details": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "record"
+            ]
+          }
+        ]
+      },
+      "AuthenticationSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "signup": {
+            "type": "boolean"
+          },
+          "signin": {
+            "type": "boolean"
+          },
+          "autoverify": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled",
+          "signup",
+          "signin",
+          "autoverify"
         ]
       },
       "ApiToken": {
@@ -722,267 +972,6 @@
           }
         ]
       },
-      "MetadataData": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseApiV2Record"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "key": {
-                "type": "string"
-              },
-              "shortkey": {
-                "type": "string"
-              },
-              "secret_key": {
-                "type": "string"
-              },
-              "secret_shortkey": {
-                "type": "string"
-              },
-              "recipients": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "created_date_utc": {
-                "type": "string"
-              },
-              "expiration_stamp": {
-                "type": "string"
-              },
-              "share_path": {
-                "type": "string"
-              },
-              "burn_path": {
-                "type": "string"
-              },
-              "metadata_path": {
-                "type": "string"
-              },
-              "share_url": {
-                "type": "string"
-              },
-              "metadata_url": {
-                "type": "string"
-              },
-              "burn_url": {
-                "type": "string"
-              },
-              "share_domain": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "key",
-              "shortkey",
-              "secret_key",
-              "secret_shortkey",
-              "recipients",
-              "created_date_utc",
-              "expiration_stamp",
-              "share_path",
-              "burn_path",
-              "metadata_path",
-              "share_url",
-              "metadata_url",
-              "burn_url",
-              "share_domain"
-            ]
-          }
-        ]
-      },
-      "MetadataDetails": {
-        "type": "object",
-        "properties": {
-          "body_class": {
-            "type": "string"
-          },
-          "burned_date_utc": {
-            "type": "string"
-          },
-          "burned_date": {
-            "type": "string"
-          },
-          "can_decrypt": {
-            "type": "boolean"
-          },
-          "display_feedback": {
-            "type": "boolean"
-          },
-          "display_lines": {
-            "type": "number"
-          },
-          "has_maxviews": {
-            "type": "boolean"
-          },
-          "has_passphrase": {
-            "type": "boolean"
-          },
-          "is_burned": {
-            "type": "boolean"
-          },
-          "is_destroyed": {
-            "type": "boolean"
-          },
-          "is_received": {
-            "type": "boolean"
-          },
-          "maxviews": {
-            "type": "number"
-          },
-          "no_cache": {
-            "type": "boolean"
-          },
-          "received_date_utc": {
-            "type": "string"
-          },
-          "received_date": {
-            "type": "string"
-          },
-          "secret_value": {
-            "type": "string"
-          },
-          "show_metadata_link": {
-            "type": "boolean"
-          },
-          "show_metadata": {
-            "type": "boolean"
-          },
-          "show_recipients": {
-            "type": "boolean"
-          },
-          "show_secret_link": {
-            "type": "boolean"
-          },
-          "show_secret": {
-            "type": "boolean"
-          },
-          "title": {
-            "type": "string"
-          },
-          "is_truncated": {
-            "type": "boolean"
-          },
-          "view_count": {
-            "type": "number"
-          }
-        }
-      },
-      "SecretData": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseApiV2Record"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "key": {
-                "type": "string"
-              },
-              "secret_key": {
-                "type": "string"
-              },
-              "secret_shortkey": {
-                "type": "string"
-              },
-              "is_truncated": {
-                "type": "boolean"
-              },
-              "original_size": {
-                "type": "number"
-              },
-              "verification": {
-                "type": "string"
-              },
-              "share_domain": {
-                "type": "string"
-              },
-              "is_owner": {
-                "type": "boolean"
-              },
-              "has_passphrase": {
-                "type": "boolean"
-              },
-              "secret_value": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "key",
-              "secret_key",
-              "secret_shortkey",
-              "is_truncated",
-              "original_size",
-              "verification",
-              "share_domain",
-              "is_owner",
-              "has_passphrase"
-            ]
-          }
-        ]
-      },
-      "SecretDetails": {
-        "type": "object",
-        "properties": {
-          "continue": {
-            "type": "boolean"
-          },
-          "show_secret": {
-            "type": "boolean"
-          },
-          "correct_passphrase": {
-            "type": "boolean"
-          },
-          "display_lines": {
-            "type": "number"
-          },
-          "one_liner": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ConcealData": {
-        "type": "object",
-        "properties": {
-          "metadata": {
-            "$ref": "#/components/schemas/MetadataData"
-          },
-          "secret": {
-            "$ref": "#/components/schemas/SecretData"
-          },
-          "share_domain": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "metadata",
-          "secret",
-          "share_domain"
-        ]
-      },
-      "ConcealDetails": {
-        "type": "object",
-        "properties": {
-          "kind": {
-            "type": "string"
-          },
-          "recipient": {
-            "type": "string"
-          },
-          "recipient_safe": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "kind",
-          "recipient",
-          "recipient_safe"
-        ]
-      },
       "CheckAuthData": {
         "$ref": "#/components/schemas/Customer"
       },
@@ -1010,263 +999,6 @@
         "required": [
           "msg",
           "stamp"
-        ]
-      },
-      "ApiErrorResponse": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseApiV1Response"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "message": {
-                "type": "string"
-              },
-              "code": {
-                "type": "number"
-              },
-              "record": {
-                "$ref": "#/components/schemas/BaseApiV2Record"
-              },
-              "details": {
-                "type": "object"
-              }
-            },
-            "required": [
-              "message"
-            ]
-          }
-        ]
-      },
-      "ApiRecordsResponse": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseApiV1Response"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "custid": {
-                "type": "string"
-              },
-              "records": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/BaseApiV2Record"
-                }
-              },
-              "count": {
-                "type": "number"
-              },
-              "details": {
-                "type": "object"
-              }
-            },
-            "required": [
-              "custid",
-              "records",
-              "count"
-            ]
-          }
-        ]
-      },
-      "ApiRecordResponse": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseApiV1Response"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "record": {
-                "$ref": "#/components/schemas/BaseApiV2Record"
-              },
-              "details": {
-                "type": "object"
-              }
-            },
-            "required": [
-              "record"
-            ]
-          }
-        ]
-      },
-      "DashboardMetadata": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseApiV2Record"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "shortkey": {
-                "type": "string"
-              },
-              "show_recipients": {
-                "type": "boolean"
-              },
-              "stamp": {
-                "type": "string"
-              },
-              "uri": {
-                "type": "string"
-              },
-              "is_received": {
-                "type": "boolean"
-              },
-              "is_burned": {
-                "type": "boolean"
-              },
-              "is_destroyed": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "shortkey",
-              "show_recipients",
-              "stamp",
-              "uri",
-              "is_received",
-              "is_burned",
-              "is_destroyed"
-            ]
-          }
-        ]
-      },
-      "Metadata": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/DashboardMetadata"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "custid": {
-                "type": "string"
-              },
-              "state": {
-                "type": "string"
-              },
-              "secret_key": {
-                "type": "string"
-              },
-              "secret_shortkey": {
-                "type": "string"
-              },
-              "secret_ttl": {
-                "type": "number"
-              },
-              "share_domain": {
-                "type": "string"
-              },
-              "passphrase": {
-                "type": "string"
-              },
-              "viewed": {
-                "type": "boolean"
-              },
-              "received": {
-                "type": "boolean"
-              },
-              "shared": {
-                "type": "boolean"
-              },
-              "burned": {
-                "type": "boolean"
-              },
-              "recipients": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "truncate": {
-                "type": "boolean"
-              },
-              "key": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "custid",
-              "state",
-              "secret_key",
-              "secret_shortkey",
-              "secret_ttl",
-              "share_domain",
-              "passphrase",
-              "viewed",
-              "received",
-              "shared",
-              "burned",
-              "recipients",
-              "truncate",
-              "key"
-            ]
-          }
-        ]
-      },
-      "Secret": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/BaseApiV2Record"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "custid": {
-                "type": "string"
-              },
-              "state": {
-                "type": "string"
-              },
-              "value": {
-                "type": "string"
-              },
-              "metadata_key": {
-                "type": "string"
-              },
-              "original_size": {
-                "type": "number"
-              },
-              "value_checksum": {
-                "type": "string"
-              },
-              "value_encryption": {
-                "type": "string"
-              },
-              "lifespan": {
-                "type": "number"
-              },
-              "share_domain": {
-                "type": "string"
-              },
-              "verification": {
-                "type": "string"
-              },
-              "is_truncated": {
-                "type": "boolean"
-              },
-              "maxviews": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "custid",
-              "state",
-              "value",
-              "metadata_key",
-              "original_size",
-              "value_checksum",
-              "value_encryption",
-              "lifespan",
-              "share_domain",
-              "verification",
-              "is_truncated",
-              "maxviews"
-            ]
-          }
         ]
       }
     },
