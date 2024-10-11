@@ -1,23 +1,30 @@
 
 # Onetime Secret - Secure One-Time Message Sharing
 
-NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3`](https://github.com/onetimesecret/onetimesecret/tree/v0.17.3) for a more stable experience.
-
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
+
+> [!NOTE]
+> Skip to [Installation instructions](#installation).
+
 
 ## Latest releases
 
-* **Ruby 3+ (Recommended): [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest)**
-  * This is the actively developed and maintained version with the most recent features and security updates.
+### **Ruby 3+ (Recommended): [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest)**
 
-* **Ruby 3 without Node.js: [v0.15.0](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.15.0)**
-  * If you prefer a simpler setup with just Ruby dependencies (i.e. without Node.js dependencies) this is the most recent version.
-  * No security updates or bug fixes will be provided for this version.
+This is the actively developed and maintained version with the most recent features and security updates.
 
-* **Ruby 2.7, 2.6 (Legacy - Not Supported): [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)**
-  * ⚠️ **Warning**: This version is no longer maintained or supported.
-  * Only use if you absolutely cannot run Ruby 3+.
-  * No security updates or bug fixes will be provided for this version.
+### Older releases
+
+**Ruby 3 without Node.js: [v0.15.0](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.15.0)**
+
+* If you prefer a simpler setup with just Ruby dependencies (i.e. without Node.js dependencies) this is the most recent version.
+* No security updates or bug fixes will be provided for this version.
+
+**Ruby 2.7, 2.6 (Legacy - Not Supported): [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)**
+
+* ⚠️ **Warning**: This version is no longer maintained or supported.
+* Only use if you absolutely cannot run Ruby 3+.
+* No security updates or bug fixes will be provided for this version.
 
 We strongly recommend using the latest release with Ruby 3+ for the best performance, security, and feature set. Legacy Ruby 2.x versions are provided for reference only and should be avoided in production environments.
 
@@ -33,25 +40,26 @@ Try it out on [OnetimeSecret.com](https://onetimesecret.com/)!
 
 When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
-* [Onetime Secret - Secure One-Time Message Sharing](#onetime-secret---secure-one-time-message-sharing)
-  * [Latest releases](#latest-releases)
-  * [What is a Onetime Secret?](#what-is-a-onetime-secret)
-    * [Why would I want to use it?](#why-would-i-want-to-use-it)
-  * [Installation](#installation)
-    * [System Requirements](#system-requirements)
-    * [Docker Installation](#docker-installation)
-    * [Running the Container](#running-the-container)
-    * [Manual Installation](#manual-installation)
-  * [Configuration](#configuration)
-    * [Basic Setup](#basic-setup)
-    * [Configuration Options](#configuration-options)
-    * [Important Notes](#important-notes)
-  * [Miscellaneous](#miscellaneous)
-    * [Docker-related Tips](#docker-related-tips)
-    * [Security and Configuration](#security-and-configuration)
-    * [Troubleshooting](#troubleshooting)
-    * [Development Tips](#development-tips)
-  * [Similar Services](#similar-services)
+* [Latest releases](#latest-releases)
+  * [**Ruby 3+ (Recommended): Latest Release**](#ruby-3-recommended-latest-release)
+  * [Older releases](#older-releases)
+* [What is a Onetime Secret?](#what-is-a-onetime-secret)
+  * [Why would I want to use it?](#why-would-i-want-to-use-it)
+* [Installation](#installation)
+  * [System Requirements](#system-requirements)
+  * [Docker Installation](#docker-installation)
+  * [Running the Container](#running-the-container)
+  * [Manual Installation](#manual-installation)
+* [Configuration](#configuration)
+  * [Basic Setup](#basic-setup)
+  * [Configuration Options](#configuration-options)
+  * [Important Notes](#important-notes)
+  * [Generating a Secure Random Key](#generating-a-secure-random-key)
+* [Miscellaneous](#miscellaneous)
+  * [Docker-related Tips](#docker-related-tips)
+  * [Development Tips](#development-tips)
+  * [Production Deployment](#production-deployment)
+* [Similar Services](#similar-services)
 
 ## Installation
 
@@ -145,7 +153,6 @@ Regardless of how you obtained or built the image, follow these steps to run One
 
 OnetimeSecret should now be running and accessible at `http://localhost:3000`.
 
-
 ### Manual Installation
 
 If you prefer to work with the source code directly, you can install OnetimeSecret manually. Follow these steps:
@@ -165,17 +172,16 @@ Choose one of these methods:
 
 Follow these general steps to install the required system dependencies:
 
-1. Update your system's package list
-2. Install git, curl, sudo, and redis-server
-3. Install Ruby (version 3.3, 3.2, 3.1)
-4. Install Node.js 18+ and pnpm 9.2+
+1. Install [Redis Server 5+](https://redis.io/download)
+2. Install [Ruby 3](https://www.ruby-lang.org/en/downloads/) and [bundler 2.5*](https://bundler.io/)
+3. Install [Node.js 18+](https://nodejs.org/en/download/) and [pnpm 9.2+](https://pnpm.io/installation)
 
 For Debian/Ubuntu systems, you can use the following commands:
 
 ```bash
 # Update package list and install basic dependencies
 sudo apt update
-sudo apt install -y git curl sudo redis-server
+sudo apt install -y git redis-server
 
 # Install Ruby (choose one version)
 sudo apt install -y ruby3.3  # or ruby3.2, ruby3.1
@@ -186,19 +192,16 @@ sudo apt install -y nodejs
 sudo npm install -g pnpm@latest
 ```
 
-Note: After installation, ensure Redis is running with `service redis-server status`. Start it if needed with `service redis-server start`.
+Note: After installation, make sure Redis is running with `service redis-server status`. Start it if needed with `service redis-server start`.
 
 For other operating systems, please refer to the official documentation for each dependency to install the correct versions.
 
-#### 3. Set Up the Project
+#### 3. Initialize the config files
 
 ```bash
 cd onetimesecret
 git rev-parse --short HEAD > .commit_hash.txt
 cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
-
-# Optional
-
 ```
 
 #### 4. Install Ruby Dependencies
@@ -227,7 +230,7 @@ There are two main ways to run the application, depending on your development ne
    RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
    ```
 
-   Or, for a development-like environment without live reloading:
+   Or, for a development environment with a static frontend and Ruby live reloading:
 
    ```bash
    RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
@@ -265,7 +268,7 @@ There are two main ways to run the application, depending on your development ne
 
    This enables live reloading of frontend assets.
 
-The application determines whether to use development or production assets based on the `RACK_ENV` and `development.enabled` settings. In development mode with the Vite server running, frontend assets are loaded dynamically:
+The application determines whether to use development or production assets based on the `development.enabled` setting. In development mode with the Vite server running, frontend assets are loaded dynamically:
 
 ```html
 {{#frontend_development}}
@@ -283,7 +286,6 @@ In production mode, it uses the built files in `dist/assets`:
 ```
 
 Choose the option that best fits your development workflow and needs.
-
 
 ## Configuration
 
@@ -322,9 +324,9 @@ In this format:
 Key areas to configure in `config.yaml`:
 
 * SMTP or SendGrid for email
+* Redis connection details
 * Rate limits
 * Enabled locales
-* Redis connection details
 
 #### 2. Using Environment Variables (Optional)
 
@@ -378,12 +380,30 @@ The .env file is versatile and can be used in various deployment scenarios, offe
 
 ### Important Notes
 
-* The `config.yaml` file must always be present, even if you're using environment variables.
-* Environment variables defined in your shell or `.env` file will override the corresponding values in `config.yaml`.
+* The `config.yaml` file is always required, even when using environment variables.
 * Choose either direct environment variables or the `.env` file method, but not both, to avoid confusion.
 * If you remove environment variable references from `config.yaml`, only the literal values in the config will be used.
 
+> [!IMPORTANT]
+> Use a secure value for the `SECRET` key as an environment variable or as `site.secret` in `etc/config.yaml`. Once set, do not change this value. Create and store a backup in a secure offsite location. Changing the secret may prevent decryption of existing secrets.
+
 For a full list of available configuration options, refer to the comments in the `config.example.yaml` file.
+
+### Generating a Secure Random Key
+
+To generate a secure, random 256-bit (32-byte) secret key, you can use the following command with OpenSSL:
+
+```bash
+openssl rand -hex 32
+```
+
+If OpenSSL is not installed, you can use the `dd` command as a fallback:
+
+```bash
+dd if=/dev/urandom bs=32 count=1 2>/dev/null | xxd -p -c 32
+```
+
+Note: While the `dd` command provides a reasonable alternative, using OpenSSL is recommended for cryptographic purposes.
 
 ## Miscellaneous
 
@@ -406,48 +426,6 @@ After removing the container, you can run the regular `docker run` command again
 #### Docker Compose
 
 For Docker Compose setup, see the dedicated [Docker Compose repo](https://github.com/onetimesecret/docker-compose/).
-
-### Security and Configuration
-
-#### Generating a Global Secret
-
-Generate a secure global secret with:
-
-```bash
-dd if=/dev/urandom bs=20 count=1 | openssl sha256
-```
-
-Include this secret in your encryption key configuration.
-
-#### Securing Configuration Files
-
-If you're using the `etc` directory from the repo, ensure proper permissions:
-
-```bash
-chown -R ots ./etc
-chmod -R o-rwx ./etc
-```
-
-### Troubleshooting
-
-#### SSH Issues with GitHub
-
-If you're having trouble cloning via SSH, verify your SSH config:
-
-With a GitHub account:
-
-```bash
-ssh -T git@github.com
-# Expected output: Hi username! You've successfully authenticated, but GitHub does not provide shell access.
-```
-
-Without a GitHub account:
-
-```bash
-ssh -T git@github.com
-# Expected output: Warning: Permanently added the RSA host key for IP address '0.0.0.0/0' to the list of known hosts.
-# git@github.com: Permission denied (publickey).
-```
 
 ### Development Tips
 
@@ -489,7 +467,7 @@ To see the layers of an image and optimize your builds, use:
 docker history <image_id>
 ```
 
-#### Production Deployment
+### Production Deployment
 
 When deploying to production, ensure you:
 
@@ -524,8 +502,8 @@ This section provides an overview of services similar to our project, highlighti
 
 **Note:** Our in-house legal counsel ([codium-pr-agent-pro bot](https://github.com/onetimesecret/onetimesecret/pull/610#issuecomment-2333317937)) suggested adding this introduction and the disclaimer at the end.
 
-| URL                              | Service            | Description                                                                                                                                                     | Distinctive Feature                                               |
-| -------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| URL                                | Service            | Description                                                                                                                                                     | Distinctive Feature                                               |
+| ---------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | <https://pwpush.com/>              | Password Pusher    | A tool that uses browser cookies to help you share passwords and other sensitive information.                                                                   | Temporary, self-destructing links for password sharing            |
 | <https://scrt.link/en>             | Share a Secret     | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing                       |
 | <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault   |

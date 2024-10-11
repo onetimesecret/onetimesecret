@@ -18,8 +18,9 @@
   # Turns https/http on or off when generating links
   :ssl: <%= ENV['SSL'] == 'true' %>
   # IMPORTANT: After setting the secret, it should not be changed.
-  # Ensure to create and store a backup in a secure offsite
-  # location. Changing the secret can lead to unforeseen issues.
+  # Be sure to create and store a backup in a secure offsite
+  # location. Changing the secret can lead to unforeseen issues
+  # like not being able to decrypt existing secrets.
   :secret: <%= ENV['SECRET'] || 'CHANGEME' %>
   # Registration and Authentication settings
   :authentication:
