@@ -1,7 +1,19 @@
 {
   "components": {
     "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+        },
+        "required": [
+        ]
+      },
       "BaseApiV1Response": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiRecord"
+          }
+        ],
         "type": "object",
         "properties": {
           "success": {
@@ -13,6 +25,11 @@
         ]
       },
       "BaseApiV2Record": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiRecord"
+          }
+        ],
         "type": "object",
         "properties": {
           "identifier": {
