@@ -5,10 +5,43 @@
 > [!NOTE]
 > Skip to [Installation instructions](#installation).
 
+---
+
+## What is a Onetime Secret?
+
+A onetime secret is a link that can be viewed only once. A single-use URL.
+
+Try it out on [OnetimeSecret.com](https://onetimesecret.com/)!
+
+### Why would I want to use it?
+
+When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
+
+* [What is a Onetime Secret?](#what-is-a-onetime-secret)
+  * [Why would I want to use it?](#why-would-i-want-to-use-it)
+* [Latest releases](#latest-releases)
+  * [**Get the Latest Release** (Recommended)](#get-the-latest-release-recommended)
+  * [Older releases](#older-releases)
+* [Installation](#installation)
+  * [System Requirements](#system-requirements)
+  * [Docker Installation](#docker-installation)
+  * [Running the Container](#running-the-container)
+  * [Manual Installation](#manual-installation)
+* [Configuration](#configuration)
+  * [Basic Setup](#basic-setup)
+  * [Configuration Options](#configuration-options)
+  * [Important Notes](#important-notes)
+  * [Generating a Secure Random Key](#generating-a-secure-random-key)
+* [Miscellaneous](#miscellaneous)
+  * [Docker-related Tips](#docker-related-tips)
+  * [Development Tips](#development-tips)
+  * [Production Deployment](#production-deployment)
+* [Similar Services](#similar-services)
+
 
 ## Latest releases
 
-### **Ruby 3+ (Recommended): [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest)**
+### **Get the [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest)** (Recommended)
 
 This is the actively developed and maintained version with the most recent features and security updates.
 
@@ -26,39 +59,6 @@ This is the actively developed and maintained version with the most recent featu
 * No security updates or bug fixes will be provided for this version.
 
 We strongly recommend using the latest release with Ruby 3+ for the best performance, security, and feature set. Legacy Ruby 2.x versions are provided for reference only and should be avoided in production environments.
-
----
-
-## What is a Onetime Secret?
-
-A onetime secret is a link that can be viewed only once. A single-use URL.
-
-Try it out on [OnetimeSecret.com](https://onetimesecret.com/)!
-
-### Why would I want to use it?
-
-When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
-
-* [Latest releases](#latest-releases)
-  * [**Ruby 3+ (Recommended): Latest Release**](#ruby-3-recommended-latest-release)
-  * [Older releases](#older-releases)
-* [What is a Onetime Secret?](#what-is-a-onetime-secret)
-  * [Why would I want to use it?](#why-would-i-want-to-use-it)
-* [Installation](#installation)
-  * [System Requirements](#system-requirements)
-  * [Docker Installation](#docker-installation)
-  * [Running the Container](#running-the-container)
-  * [Manual Installation](#manual-installation)
-* [Configuration](#configuration)
-  * [Basic Setup](#basic-setup)
-  * [Configuration Options](#configuration-options)
-  * [Important Notes](#important-notes)
-  * [Generating a Secure Random Key](#generating-a-secure-random-key)
-* [Miscellaneous](#miscellaneous)
-  * [Docker-related Tips](#docker-related-tips)
-  * [Development Tips](#development-tips)
-  * [Production Deployment](#production-deployment)
-* [Similar Services](#similar-services)
 
 ## Installation
 
