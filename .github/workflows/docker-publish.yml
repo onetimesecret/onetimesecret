@@ -8,6 +8,10 @@ on:
     branches: [ "develop", "feature/*", "rel/*" ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-and-publish-main:
     uses: ./.github/workflows/.docker-build-publish-reusable.yml
