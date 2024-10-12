@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div class="flex items-center relative">
     <button
       type="button"
       class="inline-flex items-center justify-center w-full rounded-md border
