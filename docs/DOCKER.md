@@ -2,6 +2,9 @@
 
 Onetime Secret is a service that allows you to share sensitive information securely using single-use URLs. This guide provides instructions for deploying Onetime Secret using Docker.
 
+> [!NOTE]
+> For information on our "lite" Docker image, which offers an ephemeral "leave no trace" option, see [DOCKER-lite.md](DOCKER-lite.md).
+
 ## Quick Start
 
 To run Onetime Secret using Docker:
@@ -124,6 +127,27 @@ docker run ... onetimesecret/onetimesecret:v0.18.1
 ```
 
 Using a specific version tag allows you to maintain consistency across deployments and easily roll back if needed.
+
+## Lite Docker Image
+
+We also offer a "lite" version of the Onetime Secret Docker image, which embraces the philosophy of "leave no trace" by default. This version ensures that all secrets vanish once the container stops, providing enhanced privacy and simplified cleanup.
+
+To use the lite version, replace the image tag in your Docker commands with `latest-lite`:
+
+```bash
+docker run -p 3000:3000 -d --name onetimesecret \
+  -e REDIS_URL=$REDIS_URL \
+  -e COLONEL=$COLONEL \
+  -e HOST=$HOST \
+  -e SSL=$SSL \
+  -e RACK_ENV=$RACK_ENV \
+  onetimesecret/onetimesecret:latest-lite
+```
+
+> [!TIP]
+> The ephemeral nature of the lite version is a feature, not a bug. It provides an extra layer of security and simplifies management.
+
+For more detailed information about the lite Docker image, please refer to the [DOCKER-lite.md](DOCKER-lite.md) file in the docs directory.
 
 ## More Information
 
