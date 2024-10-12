@@ -65,6 +65,23 @@
       "button_send_feedback": "Send Feedback",
       "verification_sent_to": "A verification was sent to"
     },
+    "UNITS": {
+      "ttl": {
+        "duration": "{count} {unit}",
+        "time": {
+          "day": "day | days",
+          "hour": "hour | hours",
+          "minute": "minute | minutes",
+          "second": "second | seconds"
+        },
+        "noOptionsAvailable": "---"
+      }
+    },
+    "secrets": {
+      "privacyOptions": "Privacy Options",
+      "selectDuration": "Select duration",
+      "expiresIn": "Expires in {duration}"
+    },
     "homepage": {
       "tagline1": "Paste a password, secret message or private link below.",
       "tagline2": "Keep sensitive info out of your email and chat logs.",
