@@ -73,6 +73,23 @@ module Onetime
         conf[:site][:regions] = { enabled: false }
       end
 
+      unless conf[:site]&.key?(:secret_options)
+        conf[:site][:secret_options] = {
+          default_ttl: 7.days,
+          ttl_options: [
+            5.minutes,      # 300
+            30.minutes,     # 1800
+            1.hour,         # 3600
+            4.hours,        # 14400
+            12.hours,       # 43200
+            1.day,          # 86400
+            3.days,         # 259200
+            1.week,         # 604800
+            2.weeks         # 1209600
+          ]
+        }
+      end
+
       # Disable all authentication sub-features when main feature is off for
       # consistency, security, and to prevent unexpected behavior. Ensures clean
       # config state.
@@ -94,6 +111,13 @@ module Onetime
         unless klass.api_key
           raise OT::Problem, "No `site.domains.cluster` api key (#{klass.api_key})"
         end
+      end
+
+      # if conf[:site][:secret_options] is a string, split it by spaces where any
+      # number of spaces or newlines is considered one delimiter to allow for
+      # flexible formatting.
+      if OT.conf.dig(:site, :secret_options).is_a?(String)
+        conf[:site][:secret_options] = OT.conf.dig(:site, :secret_options).split(/\s+/)
       end
 
       if OT.conf.dig(:site, :plans, :enabled).to_s == "true"
