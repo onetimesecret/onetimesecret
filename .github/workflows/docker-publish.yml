@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-publish-main:
-    uses: ./.github/workflows/docker-build-publish-reusable.yml
+    uses: ./.github/workflows/.docker-build-publish-reusable.yml
     with:
       image-suffix: ''
       dockerfile: 'Dockerfile'
@@ -18,7 +18,7 @@ jobs:
 
   build-and-publish-lite:
     needs: build-and-publish-main
-    uses: ./.github/workflows/docker-build-publish-reusable.yml
+    uses: ./.github/workflows/.docker-build-publish-reusable.yml
     with:
       image-suffix: '-lite'
       dockerfile: 'Dockerfile-lite'
