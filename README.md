@@ -1,4 +1,3 @@
-
 # Onetime Secret - Secure One-Time Message Sharing
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
@@ -114,6 +113,20 @@ git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
 docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
 ```
+
+#### 4. Lite Docker Image
+
+We also offer a "lite" version of the Docker image, which is optimized for quicker deployment and reduced resource usage. To use the lite version:
+
+```bash
+# Pull the lite image
+docker pull ghcr.io/onetimesecret/onetimesecret:latest-lite
+
+# OR, build it locally
+docker build -f Dockerfile-lite -t onetimesecret:lite .
+```
+
+For more information on the lite Docker image, refer to the [DOCKER-lite.md](docs/DOCKER-lite.md) documentation.
 
 ### Running the Container
 

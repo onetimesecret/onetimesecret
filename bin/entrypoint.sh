@@ -19,6 +19,9 @@
 # Stop at the first sign of trouble
 set -e
 
+# Set PORT to the existing value or default to 3000
+PORT=${PORT:-3000}
+
 if [ "$ONETIME_DEBUG" = "true" ] || [ "$ONETIME_DEBUG" = "1" ]; then
   # Prints commands and their arguments as they are executed. This allows
   # for more verbose output, helping with debugging and troubleshooting.
@@ -58,7 +61,7 @@ fi
 # in the docker-compose.yaml file, or a default if none is
 # provided. See Dockerfile for more details.
 if [ -z "$@" ]; then
-  exec bundle exec thin -R config.ru -p 3000 start
+  exec bundle exec thin -R config.ru -p $PORT start
 else
   exec bundle exec "$@"
 fi
