@@ -3,7 +3,7 @@
 ## Quick Start
 
 ```bash
-docker run -d -p 7143:7143 --name onetimesecret-lite ghcr.io/onetimsecret/onetimesecret-lite
+docker run -d -p 7143:3000 --name onetimesecret-lite ghcr.io/onetimesecret/onetimesecret-lite:latest
 ```
 
 > [!WARNING]
@@ -38,7 +38,7 @@ While the ephemeral nature is a key feature, we understand the importance of pre
 For scenarios requiring data retention across container restarts:
 
 ```bash
-docker run -d -p 7143:7143 -v ots-data:/var/lib/redis --name onetimesecret-lite onetimesecret-lite
+docker run -d -p 7143:3000 -v ots-data:/var/lib/redis --name onetimesecret-lite onetimesecret-lite
 ```
 
 This command creates a Docker volume, allowing data to persist even if the container is stopped or removed.
@@ -80,7 +80,7 @@ By default, this container is designed to be ephemeral, aligning with the tempor
 
 - **Starting the container**:
   ```bash
-  docker run -d -p 7143:7143 --name onetimesecret-lite onetimesecret-lite
+  docker run -d -p 7143:3000 --name onetimesecret-lite onetimesecret-lite
   ```
 
 - **Security considerations**:
