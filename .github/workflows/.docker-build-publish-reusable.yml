@@ -11,7 +11,7 @@ on:
         required: false
         type: string
         default: 'Dockerfile'
-      docker_tags:
+      image_tags:
         required: false
         type: string
         default: ''
@@ -69,7 +69,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           tags: |
-            ${{ inputs.docker_tags != '' && inputs.docker_tags || format('type=ref,event=branch') }}
+            ${{ inputs.image_tags != '' && inputs.image_tags || format('type=ref,event=branch') }}
           images: |
             ${{ env.REGISTRY }}/${{ github.repository }}${{ inputs.image-suffix }}
             ${{ github.repository }}${{ inputs.image-suffix }}
