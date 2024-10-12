@@ -1,66 +1,70 @@
 <template>
-  <footer class="min-w-[320px] text-sm text-center space-y-2">
-    <div class="container mx-auto p-4 max-w-2xl">
-
-      <div v-if="displayFeedback">
+  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 overflow-visible w-full">
+    <div class="container mx-auto px-4 max-w-2xl">
+      <div v-if="displayFeedback && authentication.enabled" class="mb-8">
         <FeedbackForm :showRedButton="false" />
       </div>
 
-      <div v-if="displayLinks" class="prose dark:prose-invert text-base pt-4 font-brand">
-        <template v-if="supportHost">
-          <a :href="`${supportHost}/blog`" aria-label="Our blogging website" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Blog</a> |
-        </template>
+      <div v-if="displayLinks" class="grid grid-cols-2 gap-8 mb-8">
+        <div class="space-y-4">
+          <h3 class="font-semibold text-gray-700 dark:text-gray-300">Company</h3>
+          <ul class="space-y-2">
+            <li v-if="plansEnabled && authentication.enabled">
+              <router-link to="/pricing" class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors" aria-label="Onetime Secret Subscription Pricing">Pricing</router-link>
+            </li>
+            <li>
+              <a href="https://github.com/onetimesecret/onetimesecret" class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors" aria-label="View source code on GitHub" rel="noopener noreferrer">GitHub</a>
+            </li>
+            <li>
+              <router-link to="/about" class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors" aria-label="About Onetime Secret">About</router-link>
+            </li>
+            <li v-if="supportHost">
+              <a :href="`${supportHost}/blog`" class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors" aria-label="Our blogging website">Blog</a>
+            </li>
+          </ul>
+        </div>
 
-        <template v-if="plansEnabled">
-          <router-link to="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
-            Pricing
-          </router-link> |
-        </template>
-
-        <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">GitHub</a> |
-
-        <template v-if="supportHost">
-          <a :href="`${supportHost}/docs/rest-api`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a> |
-          <a :href="`${supportHost}/docs`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
-        </template>
+        <div class="space-y-4">
+          <h3 class="font-semibold text-gray-700 dark:text-gray-300">Legal & Status</h3>
+          <ul class="space-y-2">
+            <li>
+              <router-link to="/info/privacy" class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors" aria-label="Read our Privacy Policy">Privacy</router-link>
+            </li>
+            <li>
+              <router-link to="/info/terms" class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors" aria-label="Read our Terms and Conditions">Terms</router-link>
+            </li>
+            <li>
+              <router-link to="/info/security" class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors" aria-label="View security information">Security</router-link>
+            </li>
+            <li>
+              <a href="https://status.onetimesecret.com/" class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors" aria-label="Check service status" rel="noopener noreferrer">Status</a>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div v-if="displayLinks" class="prose dark:prose-invert text-base font-brand">
-        <router-link to="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
-          Privacy
-        </router-link> |
-        <router-link to="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
-          Terms
-        </router-link> |
-        <router-link to="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
-          Security
-        </router-link> |
-        <a href="https://status.onetimesecret.com/" aria-label="Check service status" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Status</a> |
-        <a :href="`${supportHost}/about`" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a>
-      </div>
 
-      <!-- Dark mode toggle in the bottom left corner -->
-      <div class="fixed bottom-4 left-4 z-50">
-        <div class="mt-2 text-slate-300">
+      <div class="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div v-if="displayVersion" class="text-sm text-gray-500 dark:text-gray-400">
+          v{{ onetimeVersion }}
+        </div>
+
+        <div class="flex items-center space-x-4">
           <ThemeToggle />
+          <div class="relative z-50"
+              :class="{ 'opacity-60 hover:opacity-100': !isLanguageMenuOpen }"
+              aria-label="Change language">
+            <LanguageToggle @menu-toggled="handleMenuToggled" />
+          </div>
         </div>
       </div>
-
-      <!-- Languages dropdown in the bottom right corner -->
-      <div class="fixed text-left bottom-4 right-4 z-50 opacity-60 hover:opacity-100" aria-label="Change language">
-        <div class="relative">
-          <LanguageToggle />
-        </div>
-      </div>
-
-      <div v-if="displayVersion" class="text-gray-400 dark:text-gray-500 mt-4 pt-4">
-        v{{onetimeVersion}}
-      </div>
-
     </div>
   </footer>
 </template>
 
+
 <script setup lang="ts">
+import { ref } from 'vue';
+
 import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
 import FeedbackForm from '@/components/FeedbackForm.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
@@ -78,4 +82,10 @@ withDefaults(defineProps<Props>(), {
   displayLinks: true,
   displayVersion: true,
 });
+
+const isLanguageMenuOpen = ref(false);
+
+const handleMenuToggled = (isOpen: boolean) => {
+  isLanguageMenuOpen.value = isOpen;
+};
 </script>
