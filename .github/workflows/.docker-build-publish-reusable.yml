@@ -11,6 +11,10 @@ on:
         required: false
         type: string
         default: 'Dockerfile'
+      docker_tags:
+        required: false
+        type: string
+        default: ''
 
 env:
   REGISTRY: ghcr.io
@@ -65,16 +69,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           tags: |
-            # set latest tag for develop branch
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
-            # set next tag for develop branch
-            type=raw,value=next,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
-            # use git tag if available
-            type=ref,event=tag
-            # use short SHA for pull requests
-            type=sha,format=short,prefix=pr-,enable=${{ github.event_name == 'pull_request' }}
-            # use branch name for push events
-            type=ref,event=branch
+            ${{ inputs.docker_tags != '' && inputs.docker_tags || format('type=ref,event=branch') }}
           images: |
             ${{ env.REGISTRY }}/${{ github.repository }}${{ inputs.image-suffix }}
             ${{ github.repository }}${{ inputs.image-suffix }}

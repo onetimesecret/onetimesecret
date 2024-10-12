@@ -13,17 +13,38 @@ permissions:
   packages: write
 
 jobs:
+  set-docker-tags:
+    runs-on: ubuntu-latest
+    outputs:
+      docker_tags: ${{ steps.set-tags.outputs.docker_tags }}
+    steps:
+      - name: Set Docker tags
+        id: set-tags
+        run: |
+          if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "docker_tags=type=raw,value=latest,enable=true" >> $GITHUB_OUTPUT
+            echo "docker_tags=type=ref,event=tag" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.ref }} =~ ^refs/tags/v.*-rc[0-9]+$ ]]; then
+            echo "docker_tags=type=raw,value=next,enable=true" >> $GITHUB_OUTPUT
+            echo "docker_tags=type=ref,event=tag" >> $GITHUB_OUTPUT
+          else
+            echo "docker_tags=type=ref,event=branch" >> $GITHUB_OUTPUT
+          fi
+
   build-and-publish-main:
+    needs: set-docker-tags
     uses: ./.github/workflows/.docker-build-publish-reusable.yml
     with:
       image-suffix: ''
       dockerfile: 'Dockerfile'
+      docker_tags: ${{ needs.set-docker-tags.outputs.docker_tags }}
     secrets: inherit
 
   build-and-publish-lite:
-    needs: build-and-publish-main
+    needs: [set-docker-tags, build-and-publish-main]
     uses: ./.github/workflows/.docker-build-publish-reusable.yml
     with:
       image-suffix: '-lite'
       dockerfile: 'Dockerfile-lite'
+      docker_tags: ${{ needs.set-docker-tags.outputs.docker_tags }}
     secrets: inherit
