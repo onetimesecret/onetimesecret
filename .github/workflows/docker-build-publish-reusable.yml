@@ -1,17 +1,19 @@
-name: Docker
+name: Docker Build and Publish (Reusable)
 
 on:
-  push:
-    tags: [ "v*" ]
-  pull_request:
-    types: [closed]
-    branches: [ "develop", "feature/*", "rel/*" ]
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      image-suffix:
+        required: false
+        type: string
+        default: ''
+      dockerfile:
+        required: false
+        type: string
+        default: 'Dockerfile'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  DOCKERHUB_IMAGE_NAME: ${{ github.repository }}
   RACK_ENV: production
 
 jobs:
@@ -74,14 +76,15 @@ jobs:
             # use branch name for push events
             type=ref,event=branch
           images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            ${{ env.DOCKERHUB_IMAGE_NAME }}
+            ${{ env.REGISTRY }}/${{ github.repository }}${{ inputs.image-suffix }}
+            ${{ github.repository }}${{ inputs.image-suffix }}
 
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v6.9.0
         with:
           context: .
+          file: ${{ inputs.dockerfile }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

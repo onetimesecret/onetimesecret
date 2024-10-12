@@ -1,0 +1,25 @@
+name: Docker Build and Publish
+
+on:
+  push:
+    tags: [ "v*" ]
+  pull_request:
+    types: [closed]
+    branches: [ "develop", "feature/*", "rel/*" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-publish-main:
+    uses: ./.github/workflows/docker-build-publish-reusable.yml
+    with:
+      image-suffix: ''
+      dockerfile: 'Dockerfile'
+    secrets: inherit
+
+  build-and-publish-lite:
+    needs: build-and-publish-main
+    uses: ./.github/workflows/docker-build-publish-reusable.yml
+    with:
+      image-suffix: '-lite'
+      dockerfile: 'Dockerfile-lite'
+    secrets: inherit
