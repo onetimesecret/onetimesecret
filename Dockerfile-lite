@@ -41,7 +41,7 @@ EOF
 # Write the startup script
 # Note: We use quoted EOF ('EOF') to prevent variable expansion in the heredoc.
 # This preserves potential variables (like $PATH) as literal text, to be evaluated when the script runs.
-RUN <<-'EOF' cat > /lite.sh
+RUN <<-'EOF' cat > /onetime.sh
 #!/bin/bash
 set -e
 # Print welcome message
@@ -76,7 +76,7 @@ exec /app/bin/entrypoint.sh
 EOF
 
 # Ensure the script has the correct line endings and is executable
-RUN chmod +x /lite.sh
+RUN chmod +x /onetime.sh
 
 # Set environment variables
 ENV HOST=127.0.0.1:3000
@@ -90,4 +90,4 @@ ENV AUTH_ENABLED=false
 
 EXPOSE 3000
 
-CMD ["/lite.sh"]
+CMD ["/onetime.sh"]
