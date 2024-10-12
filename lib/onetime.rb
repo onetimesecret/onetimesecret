@@ -164,6 +164,7 @@ module Onetime
         OT.li "mail: smtp=#{OT.conf[:emailer][:host]}:#{OT.conf[:emailer][:port]}, from=#{OT.conf[:emailer][:from]}, mode=#{OT.conf[:emailer][:mode]}"
       end
       OT.li "locales: #{@locales.keys.join(', ')}"
+      OT.li "secret options: #{OT.conf.dig(:site, :secret_options)}"
       OT.li "rate limits: #{OT::RateLimit.events.map { |k,v| "#{k}=#{v}" }.join(', ')}"
     end
 

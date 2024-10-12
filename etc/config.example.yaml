@@ -55,12 +55,11 @@
   :secret_options:
     # Default Time-To-Live (TTL) for secrets in seconds
     # This value is used if no specific TTL is provided when creating a secret
-    :default_ttl: <%= ENV['DEFAULT_TTL'] || '604800' %>  # 7 days in seconds
+    :default_ttl: <%= ENV['DEFAULT_TTL'] || nil %>
     # Available TTL options for secret creation (in seconds)
     # These options will be presented to users when they create a new secret
-    # Format: Array of integers representing seconds
-    # Default: 5 minutes, 30 minutes, 1 hour, 4 hours, 12 hours, 1 day, 3 days, 1 week, 2 weeks
-    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '300 1800 3600 14400 43200 86400 259200 604800 1209600') %>
+    # Format: String of integers representing seconds
+    :ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
 :redis:
   :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
 :colonels:
