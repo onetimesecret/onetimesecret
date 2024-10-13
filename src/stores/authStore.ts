@@ -1,6 +1,6 @@
 import router from '@/router'
 import { Customer, CheckAuthDataApiResponse, CheckAuthDetails } from '@/types/onetime'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios';
 import { defineStore } from 'pinia'
 
 /**
@@ -80,52 +80,74 @@ export const useAuthStore = defineStore('auth', {
   }),
   actions: {
     /**
-     * Sets the authentication status and manages the auth check interval.
-     * @param status - The new authentication status.
+     * Initializes the auth store.
+     * Sets up the Axios interceptor, sets initial auth state, and customer data.
      */
-    setAuthenticated(status: boolean) {
-      this.isAuthenticated = status
-      if (status) {
-        this.startAuthCheck()
-      } else {
-        this.stopAuthCheck()
+    initialize() {
+      this.setupAxiosInterceptor()
+      const initialAuthState = window.authenticated ?? false
+      this.setAuthenticated(initialAuthState)
+
+      if (window.cust) {
+        this.setCustomer(window.cust as Customer)
       }
     },
 
     /**
-     * Sets the current customer.
-     * @param customer - The customer object to set.
-     */
-    setCustomer(customer: Customer | undefined) {
-      this.customer = customer
-    },
-
-    /**
      * Checks the current authentication status with the server.
-     * Implements exponential backoff on failures and resets on success.
+     *
+     * @description
+     * This method implements a robust authentication check mechanism:
+     * 1. Exponential backoff: Increases wait time between checks on consecutive failures.
+     * 2. Graceful degradation: Handles authentication failures with increasing severity.
+     * 3. Auto-recovery: Resets failure count and backoff interval on successful checks.
+     *
+     * @throws {AxiosError} Propagates network or server errors after 3 failed attempts.
      */
     async checkAuthStatus() {
       try {
         const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT)
+        // Update auth state and reset failure counters on success
         this.isAuthenticated = response.data.details.authorized;
         this.customer = response.data.record;
         this.failedAuthChecks = 0;
         this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
-      } catch (error) {
+      } catch (error: unknown) {
         this.failedAuthChecks++;
+        // Calculate next backoff interval with exponential increase, capped at maximum
         this.currentBackoffInterval = Math.min(
           this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
           MAX_AUTH_CHECK_INTERVAL_MS
         );
+
         if (this.failedAuthChecks >= 3) {
-          this.logout()
+          // After 3 failures, escalate to error handling (likely logout)
+          this.handleHttpError(error as AxiosError, true);
+
         } else {
-          // Set isAuthenticated to false on any error, even if not logging out
+          // For first 2 failures, temporarily mark as unauthenticated
+          // This allows for potential auto-recovery on next successful check
           this.isAuthenticated = false;
           this.customer = undefined;
         }
       } finally {
-        this.startAuthCheck(); // Schedule the next check
+        // Ensure next check is always scheduled, regardless of outcome
+        this.startAuthCheck();
+      }
+    },
+
+    /**
+     * Handles HTTP error responses, logging out the user if the status is 401 or 403.
+     * This function can be extended to handle additional status codes as needed.
+     *
+     * @param error - The error object containing the HTTP response.
+     */
+    handleHttpError(error: AxiosError, withPessimism?: boolean): void {
+      const status = error.response?.status || 0;
+      const logoutStatuses = [401, 403];
+
+      if (logoutStatuses.includes(status) || withPessimism) {
+        this.logout();
       }
     },
 
@@ -134,11 +156,35 @@ export const useAuthStore = defineStore('auth', {
      * Stops auth checks and redirects to the signin page.
      */
     logout() {
-      this.isAuthenticated = false
-      this.customer = undefined
-      this.stopAuthCheck()
+      this.stopAuthCheck();
+      this.clearAuthenticationData();
       // Perform any additional logout actions (e.g., clearing local storage, cookies)
       router.push('/signin')
+    },
+
+    /**
+     * Clears authentication state and storage.
+     */
+    clearAuthenticationData() {
+      // Reset store state
+      this.$reset()
+
+      // Clear localStorage
+      this.isAuthenticated = false
+      this.customer = undefined
+
+      // Clear sessionStorage if used
+      sessionStorage.clear()
+
+      // Stop any ongoing auth checks
+      this.stopAuthCheck()
+
+      // Reset related stores if necessary
+      // const otherStore = useOtherStore()
+      // otherStore.$reset()
+
+      // Redirect to login page or home page
+      // router.push('/login')  // Uncomment if using Vue Router
     },
 
     /**
@@ -187,12 +233,31 @@ export const useAuthStore = defineStore('auth', {
       axios.interceptors.response.use(
         (response) => response,
         (error) => {
-          if (error.response && error.response.status === 401) {
-            this.logout()
-          }
+          this.handleHttpError(error)
           return Promise.reject(error)
         }
       )
+    },
+
+    /**
+     * Sets the authentication status and manages the auth check interval.
+     * @param status - The new authentication status.
+     */
+    setAuthenticated(status: boolean) {
+      this.isAuthenticated = status
+      if (status) {
+        this.startAuthCheck()
+      } else {
+        this.stopAuthCheck()
+      }
+    },
+
+    /**
+     * Sets the current customer.
+     * @param customer - The customer object to set.
+     */
+    setCustomer(customer: Customer | undefined) {
+      this.customer = customer
     },
 
     /**
