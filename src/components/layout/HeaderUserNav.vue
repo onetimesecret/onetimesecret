@@ -10,7 +10,8 @@
 
     </router-link>
 
-    <FancyIcon ariaLabel="Click this lightning bolt to upgrade for custom domains" />
+    <FancyIcon v-if="domains_enabled && !planAllowsCustomDomains"
+               ariaLabel="Click this lightning bolt to upgrade for custom domains" />
 
     <router-link v-if="colonel"
                  to="/colonel/"
@@ -26,9 +27,13 @@
 
 <script setup lang="ts">
 import FancyIcon from '@/components/ctas/FancyIcon.vue';
+import { useWindowProps } from '@/composables/useWindowProps';
 import { Customer } from '@/types/onetime';
 import { Icon } from '@iconify/vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+const { domains_enabled, plan } = useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
+
+const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
 
 // Allows for highlighting feature to user just one
 // time to false after user has seen it once. Setting
