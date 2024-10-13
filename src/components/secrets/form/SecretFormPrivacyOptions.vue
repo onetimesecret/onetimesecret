@@ -106,7 +106,7 @@ const showPassphrase = ref(false);
 const currentPassphrase = ref('');
 
 const selectedLifetime = ref(secretOptions.value?.default_ttl?.toString() || 604800); // Default to 7 days if not set
-console.log('Initial selectedLifetime:', selectedLifetime.value);
+console.debug('Initial selectedLifetime:', selectedLifetime.value);
 
 const lifetimeOptions = computed(() => {
   const options = secretOptions.value?.ttl_options;
@@ -122,6 +122,7 @@ const lifetimeOptions = computed(() => {
 
     return option;
   });
+  console.debug('Mapped lifetime options:', mappedOptions);
   return mappedOptions;
 });
 
@@ -131,7 +132,7 @@ const lifetimeOptions = computed(() => {
  * @returns {string} - The formatted duration string.
  */
 const formatDuration = (seconds: number): string => {
-  console.log('Formatting duration for seconds:', seconds);
+  console.debug('Formatting duration for seconds:', seconds);
   const units = [
     { key: 'day', seconds: 86400 },
     { key: 'hour', seconds: 3600 },
@@ -143,20 +144,20 @@ const formatDuration = (seconds: number): string => {
     const quotient = Math.floor(seconds / unit.seconds);
     if (quotient >= 1) {
       const result = t('web.UNITS.ttl.duration', { count: quotient, unit: t(`web.UNITS.ttl.time.${unit.key}`, quotient) });
-      console.log('Formatted duration:', result);
+      console.debug('Formatted duration:', result);
       return result;
     }
   }
 
   const result = t('web.UNITS.ttl.duration', { count: seconds, unit: t('web.UNITS.ttl.time.second', seconds) });
-  console.log('Formatted duration:', result);
+  console.debug('Formatted duration:', result);
   return result;
 };
 
 const filteredLifetimeOptions = computed(() => {
-  console.log('Computing filteredLifetimeOptions');
+  console.debug('Computing filteredLifetimeOptions');
   const planTtl = plan.value?.options?.ttl || 0;
-  console.log('Plan TTL:', planTtl);
+  console.debug('Plan TTL:', planTtl);
   if (!Array.isArray(lifetimeOptions.value)) {
     console.warn('lifetimeOptions is not an array:', lifetimeOptions.value);
     return [];
@@ -164,14 +165,12 @@ const filteredLifetimeOptions = computed(() => {
   const filtered = lifetimeOptions.value.filter(option => {
     const optionValue = parseFloat(option.value);
     const isValid = !isNaN(optionValue) && optionValue <= planTtl;
-    console.log('Filtering option:', option, 'Is valid:', isValid);
+    console.debug('Filtering option:', option, 'Is valid:', isValid);
     return isValid;
   });
-  console.log('Final filteredLifetimeOptions:', filtered);
+  console.debug('Final filteredLifetimeOptions:', filtered);
   return filtered;
 });
-
-
 
 const togglePassphrase = () => {
   showPassphrase.value = !showPassphrase.value;
