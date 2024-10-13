@@ -1,4 +1,3 @@
-
 module Onetime
   module Config
     extend self
@@ -23,7 +22,9 @@ module Onetime
 
       parsed_template = ERB.new(File.read(path))
 
-      YAML.load(parsed_template.result)
+      c = YAML.load(parsed_template.result)
+      p [:plop, c.dig(:site, :secret_options)]
+      c
     rescue StandardError => e
       OT.le "Error loading config: #{path}"
       OT.le
