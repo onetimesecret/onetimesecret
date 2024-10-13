@@ -22,8 +22,10 @@ module Onetime
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
 
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
-        # across release versions where the config may change.
+        # across release versions where the config may change and existing
+        # installs may not have had a chance to update theirs yet.
         site = OT.conf.fetch(:site, {})
+        secret_options = site.fetch(:secret_options, {})
         domains = site.fetch(:domains, {})
         authentication = site.fetch(:authentication, {})
         support_host = site.dig(:support, :host) # defaults to nil
@@ -93,6 +95,7 @@ module Onetime
 
         self[:jsvars] << jsvar(:incoming_recipient, incoming_recipient)
         self[:jsvars] << jsvar(:support_host, support_host)
+        self[:jsvars] << jsvar(:secret_options, secret_options)
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])

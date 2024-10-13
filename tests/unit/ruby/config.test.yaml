@@ -38,6 +38,10 @@
     :secret_key: <%= ENV['AUTHENTICITY_SECRET_KEY'] || 'your-secret-key' %>
   :plans:
     :enabled: false
+  :secret_options:
+    :default_ttl: <%= ENV['DEFAULT_TTL'] || '43200' %>  # 7 days in seconds
+    # Default: 5 minutes, 30 minutes, 1 hour, 4 hours, 12 hours, 1 day, 3 days, 1 week, 2 weeks
+    :ttl_options: <%= (ENV['TTL_OPTIONS'] || '1800 43200 604800') %>
 :redis:
   :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
   :config: ./try/redis.conf

@@ -80,12 +80,15 @@
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex flex-col sm:flex-row justify-between items-center pt-4
+                  border-t border-gray-200 dark:border-gray-700">
         <div v-if="displayVersion"
-             class="text-sm text-center sm:text-left text-gray-500 dark:text-gray-400 mb-4 sm:mb-0 order-2 sm:order-1">
+             class="text-sm text-center sm:text-left mb-4 sm:mb-0 order-2 sm:order-1
+                  text-gray-500 dark:text-gray-400">
           &copy; {{ new Date().getFullYear() }} OnetimeSecret.com - v{{ onetimeVersion }}
         </div>
-        <div class="flex items-center space-x-4 mb-4 sm:mb-0 order-1 sm:order-2">
+        <div v-if="displayToggles"
+             class="flex items-center space-x-4 mb-4 sm:mb-0 order-1 sm:order-2">
           <FeedbackToggle v-if="displayFeedback && authentication.enabled" />
           <ThemeToggle />
           <div class="relative z-50"
@@ -98,10 +101,6 @@
     </div>
   </footer>
 </template>
-
-
-
-
 
 <script setup lang="ts">
 import { ref } from 'vue';
@@ -116,12 +115,14 @@ export interface Props extends DefaultProps {
   displayFeedback?: boolean
   displayLinks?: boolean
   displayVersion?: boolean
+  displayToggles?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   displayFeedback: true,
   displayLinks: true,
   displayVersion: true,
+  displayToggles: true,
 });
 
 const isLanguageMenuOpen = ref(false);

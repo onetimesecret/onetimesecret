@@ -51,7 +51,6 @@ async function initializeApp() {
 
   // Get the initial locale and use it to set the language
   const initialLocale = languageStore.initializeCurrentLocale(navigator.language);
-  console.log('Initial locale:', initialLocale);
 
   // Set language before mounting the app
   // This ensures correct translations are available for the initial render
@@ -93,7 +92,7 @@ async function initializeApp() {
 // Start the application initialization process
 initializeApp();
 
-// http://patorjk.com/software/taag/#p=display&f=Tmplr&t=ONETIME
+// Created with http://patorjk.com/software/taag/#p=display&f=Tmplr&t=ONETIME
 const notice = `
 ┏┓┳┓┏┓┏┳┓┳┳┳┓┏┓
 ┃┃┃┃┣  ┃ ┃┃┃┃┣
@@ -101,4 +100,4 @@ const notice = `
 
 `;
 
-console.debug(notice);
+console.log(notice);

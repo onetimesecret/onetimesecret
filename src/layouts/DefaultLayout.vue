@@ -31,6 +31,7 @@ export interface Props extends BaseProps {
   displayMasthead?: boolean
   displayNavigation?: boolean
   displayVersion?: boolean
+  displayToggles?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -39,6 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   displayMasthead: true,
   displayNavigation: true,
   displayVersion: true,
+  displayToggles: true,
 })
 
 </script>

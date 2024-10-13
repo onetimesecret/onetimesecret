@@ -40,7 +40,7 @@
  * IDEs.
  */
 
-import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans } from './onetime';
+import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions } from './onetime';
 import type Stripe from 'stripe';
 
 declare global {
@@ -74,6 +74,7 @@ declare global {
     stripe_subscriptions?: Stripe.Subscriptions[];
     form_fields?: { [key: string]: string };
     authentication: AuthenticationSettings;
+    secret_options: SecretOptions | undefined | null;
 
     available_plans: AvailablePlans;
     support_host?: string;

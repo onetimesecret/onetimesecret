@@ -18,7 +18,8 @@ const routes: Array<RouteRecordRaw> = [
         displayNavigation: false,
         displayLinks: false,
         displayFeedback: false,
-        displayVersion: false,
+        displayVersion: true,
+        displayToggles: true,
       },
     },
     beforeEnter: (to, from, next) => {

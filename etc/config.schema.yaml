@@ -32,6 +32,8 @@
   :regions:
     :enabled: bool()
     :default: str(required=False)
+  :secret_options: include(':secret_options')
+
 :domains:
   :enabled: any()
   :default: str(required=False)
@@ -51,6 +53,10 @@
 :authenticity:
   :type: str()
   :secret_key: str()
+
+:secret_options:
+  :default_ttl: str()
+  :ttl_options: any(str(), list(str()))
 
 :plans:
   :enabled: any()

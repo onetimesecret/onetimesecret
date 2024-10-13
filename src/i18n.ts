@@ -2,8 +2,6 @@
 import { createI18n } from 'vue-i18n';
 import en from '@/locales/en.json' assert { type: 'json' };
 
-
-
 /**
  * This setup accomplishes the following:
  *
@@ -36,10 +34,10 @@ const i18n = createI18n<{ message: typeof en }, SupportedLocale>({
 export default i18n;
 
 async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
-  console.log(`Attempting to load locale: ${locale}`);
+  console.debug(`Attempting to load locale: ${locale}`);
   try {
     const messages = await import(`@/locales/${locale}.json`);
-    console.log(`Successfully loaded locale: ${locale}`);
+    console.debug(`Successfully loaded locale: ${locale}`);
     return messages.default;
   } catch (error) {
     console.error(`Failed to load locale: ${locale}`, error);
@@ -49,21 +47,20 @@ async function loadLocaleMessages(locale: string): Promise<MessageSchema | null>
 
 export async function setLanguage(lang: string): Promise<void> {
   if (i18n.global.locale === lang) {
-    console.log(`Language is already set to ${lang}. No change needed.`);
+    console.debug(`Language is already set to ${lang}. No change needed.`);
     return;
   }
 
-  console.log(`Setting language to: ${lang}`);
   if (lang === 'en') {
     i18n.global.locale = 'en';
-    console.log(`Language set to: ${lang}`);
+    console.debug(`Language set to: ${lang}`);
     return;
   }
   const messages = await loadLocaleMessages(lang);
   if (messages) {
     i18n.global.setLocaleMessage(lang, messages);
     i18n.global.locale = lang;
-    console.log(`Language set to: ${lang}`);
+    console.debug(`Language set to: ${lang}`);
   } else {
     console.log(`Failed to set language to: ${lang}. Falling back to default.`);
   }
