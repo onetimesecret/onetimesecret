@@ -37,7 +37,6 @@ default_install_hook_types:
   - post-merge
 default_stages:
    - pre-commit
-#   - prepare-commit-msg
 
 fail_fast: true
 
@@ -111,4 +110,10 @@ repos:
         entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; head -4 .commit_hash.txt package.json'"
         language: system
         always_run: true
+        pass_filenames: false
+      - id: run-pnpm-test
+        stages: [pre-commit]
+        name: Run pnpm tests
+        entry: "pnpm run test"
+        language: system
         pass_filenames: false
