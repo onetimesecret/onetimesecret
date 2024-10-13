@@ -22,9 +22,7 @@ module Onetime
 
       parsed_template = ERB.new(File.read(path))
 
-      c = YAML.load(parsed_template.result)
-      p [:plop, c.dig(:site, :secret_options)]
-      c
+      YAML.load(parsed_template.result)
     rescue StandardError => e
       OT.le "Error loading config: #{path}"
       OT.le
@@ -121,6 +119,11 @@ module Onetime
       if ttl_options.is_a?(String)
         conf[:site][:secret_options][:ttl_options] = ttl_options.split(/\s+/)
       end
+      ttl_options = OT.conf.dig(:site, :secret_options, :ttl_options)
+      if ttl_options.is_a?(Array)
+        conf[:site][:secret_options][:ttl_options] = ttl_options.map(&:to_i)
+      end
+
       if default_ttl.is_a?(String)
         conf[:site][:secret_options][:default_ttl] = default_ttl.to_i
       end
