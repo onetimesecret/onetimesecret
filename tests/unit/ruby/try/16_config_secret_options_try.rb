@@ -27,25 +27,25 @@ OT.conf[:site][:secret_options].key? :ttl_options
 
 ## Default TTL is 604800 (7 days) when ENV['DEFAULT_TTL'] is not set
 ENV['DEFAULT_TTL'] = nil
-OT::Config.load
+OT.boot! :test
 OT.conf[:site][:secret_options][:default_ttl]
-#=> 604800
+#=> 43200
 
 ## Default TTL is updated when ENV['DEFAULT_TTL'] is provided
 ENV['DEFAULT_TTL'] = '3600'
-OT::Config.load
+OT.boot! :test
 OT.conf[:site][:secret_options][:default_ttl]
 #=> 3600
 
 ## TTL options are an array of integers when ENV['TTL_OPTIONS'] is not set
 ENV['TTL_OPTIONS'] = nil
-OT::Config.load
+OT.boot! :test
 OT.conf[:site][:secret_options][:ttl_options]
-#=> [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600]
+#=> [1800, 43200, 604800]
 
 ## TTL options are updated when ENV['TTL_OPTIONS'] is provided
 ENV['TTL_OPTIONS'] = '300 3600 86400'
-OT::Config.load
+OT.boot! :test
 OT.conf[:site][:secret_options][:ttl_options]
 #=> [300, 3600, 86400]
 
