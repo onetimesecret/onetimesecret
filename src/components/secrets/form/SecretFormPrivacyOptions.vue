@@ -1,4 +1,3 @@
-
 <template>
   <SecretFormDrawer title="Privacy Options">
     <div class="space-y-6 mt-4">
@@ -44,13 +43,15 @@
                   border-gray-300 focus:ring-brandcomp-500 focus:border-brandcomp-500
                   dark:bg-gray-700 dark:border-gray-600 dark:text-white
                   transition-colors duration-200">
-            <option value=""
-                    disabled>Select duration</option>
-            <option v-for="option in filteredLifetimeOptions"
-                    :key="option.value"
-                    :value="option.value">
-              Expires in {{ option.label }}
-            </option>
+            <option value="" disabled>{{ t('web.secrets.selectDuration') }}</option>
+            <template v-if="filteredLifetimeOptions.length > 0">
+              <option v-for="option in filteredLifetimeOptions"
+                      :key="option.value"
+                      :value="option.value">
+                {{ $t('web.secrets.expiresIn', { duration: option.label }) }}
+              </option>
+            </template>
+            <option v-else value="" disabled>{{ $t('web.UNITS.ttl.noOptionsAvailable') }}</option>
           </select>
         </div>
       </div>
@@ -77,12 +78,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { useWindowProps } from '@/composables/useWindowProps';
 import { Icon } from '@iconify/vue';
-import { useWindowProp } from '@/composables/useWindowProps';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import SecretFormDrawer from './SecretFormDrawer.vue';
 
-const plan = useWindowProp('plan');
+const { plan, secret_options: secretOptions } = useWindowProps(['plan', 'secret_options']);
 
 interface Props {
   enabled?: boolean;
@@ -98,26 +100,78 @@ const props = withDefaults(defineProps<Props>(), {
   withExpiry: true,
 })
 
+const { t } = useI18n();
+
 const showPassphrase = ref(false);
 const currentPassphrase = ref('');
-const selectedLifetime = ref('604800.0');
 
-const lifetimeOptions = [
-  { value: '1209600.0', label: '14 days' },
-  { value: '604800.0', label: '7 days' },
-  { value: '259200.0', label: '3 days' },
-  { value: '86400.0', label: '1 day' },
-  { value: '43200.0', label: '12 hours' },
-  { value: '14400.0', label: '4 hours' },
-  { value: '3600.0', label: '1 hour' },
-  { value: '1800.0', label: '30 minutes' },
-  { value: '300.0', label: '5 minutes' },
-];
+const selectedLifetime = ref(secretOptions.value?.default_ttl?.toString() || 604800); // Default to 7 days if not set
+console.log('Initial selectedLifetime:', selectedLifetime.value);
+
+const lifetimeOptions = computed(() => {
+  const options = secretOptions.value?.ttl_options;
+  if (!Array.isArray(options)) {
+    console.warn('ttl_options is not an array:', options);
+    return [];
+  }
+  const mappedOptions = options.map(seconds => {
+    const option = {
+      value: seconds.toString(),
+      label: formatDuration(seconds)
+    };
+
+    return option;
+  });
+  return mappedOptions;
+});
+
+/**
+ * Formats the duration from seconds to a human-readable string.
+ * @param {number} seconds - The duration in seconds.
+ * @returns {string} - The formatted duration string.
+ */
+const formatDuration = (seconds: number): string => {
+  console.log('Formatting duration for seconds:', seconds);
+  const units = [
+    { key: 'day', seconds: 86400 },
+    { key: 'hour', seconds: 3600 },
+    { key: 'minute', seconds: 60 },
+    { key: 'second', seconds: 1 }
+  ];
+
+  for (const unit of units) {
+    const quotient = Math.floor(seconds / unit.seconds);
+    if (quotient >= 1) {
+      const result = t('web.UNITS.ttl.duration', { count: quotient, unit: t(`web.UNITS.ttl.time.${unit.key}`, quotient) });
+      console.log('Formatted duration:', result);
+      return result;
+    }
+  }
+
+  const result = t('web.UNITS.ttl.duration', { count: seconds, unit: t('web.UNITS.ttl.time.second', seconds) });
+  console.log('Formatted duration:', result);
+  return result;
+};
 
 const filteredLifetimeOptions = computed(() => {
+  console.log('Computing filteredLifetimeOptions');
   const planTtl = plan.value?.options?.ttl || 0;
-  return lifetimeOptions.filter(option => parseFloat(option.value) <= planTtl);
+  console.log('Plan TTL:', planTtl);
+  if (!Array.isArray(lifetimeOptions.value)) {
+    console.warn('lifetimeOptions is not an array:', lifetimeOptions.value);
+    return [];
+  }
+  const filtered = lifetimeOptions.value.filter(option => {
+    const optionValue = parseFloat(option.value);
+    const isValid = !isNaN(optionValue) && optionValue <= planTtl;
+    console.log('Filtering option:', option, 'Is valid:', isValid);
+    return isValid;
+  });
+  console.log('Final filteredLifetimeOptions:', filtered);
+  return filtered;
 });
+
+
 
 const togglePassphrase = () => {
   showPassphrase.value = !showPassphrase.value;
