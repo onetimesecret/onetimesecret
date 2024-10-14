@@ -53,7 +53,7 @@
 
     <UpgradeIdentityModal
       :is-open="isUpgradeModalOpen"
-      :to="'/upgrade'"
+      to="/plans/identity"
       @close="closeUpgradeModal"
       @upgrade="handleUpgrade"
     />
@@ -80,7 +80,6 @@ const showUpgradeNudge = computed(() => {
 
 const isUpgradeModalOpen = ref(false)
 
-
 const openUpgradeModal = () => {
   isUpgradeModalOpen.value = true
 }
@@ -90,9 +89,7 @@ const closeUpgradeModal = () => {
 }
 
 const handleUpgrade = () => {
-  // Handle the upgrade action
-  console.log('User wants to upgrade');
-  // You can add any additional logic here, such as redirecting to the upgrade page
+  // Handle any additional logic here when the user has clicked the upgrade button.
 };
 
 </script>
