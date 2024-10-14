@@ -9,13 +9,12 @@
          aria-modal="true">
       <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <!-- Modal panel -->
-        <div
-             class="inline-block w-full max-w-md p-6 my-56 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl dark:bg-gray-800 sm:max-w-lg">
+        <div class="inline-block w-full max-w-md p-6 my-56 overflow-hidden text-left align-middle transition-all transform
+                  bg-white shadow-xl rounded-2xl dark:bg-gray-800 sm:max-w-lg">
           <div class="sm:flex sm:items-start">
-            <div
-                 class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto
-                 bg-brandcomp-100 rounded-full sm:mx-0 sm:h-10 sm:w-10 dark:bg-brandcomp-900">
-              <svg class="w-6 h-6 text-brandcomp-600 dark:text-brandcomp-300"
+            <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto
+                 bg-brand-100 rounded-full sm:mx-0 sm:h-10 sm:w-10 dark:bg-brand-900">
+              <svg class="w-6 h-6 text-brand-600 dark:text-brand-300"
                    fill="none"
                    stroke="currentColor"
                    viewBox="0 0 24 24"
@@ -58,14 +57,20 @@
             <router-link :to="to"
                          @click="upgradeNow"
                          type="button"
-                         class="w-full px-4 py-2 text-base font-medium text-white bg-brandcomp-600 border border-transparent rounded-md shadow-sm hover:bg-brandcomp-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 sm:w-auto sm:text-sm dark:bg-brandcomp-500 dark:hover:bg-brandcomp-600"
+                         class="w-full px-4 py-2 text-base font-brand font-medium
+                         text-white bg-brand-600 border border-transparent rounded-md shadow-sm hover:bg-brand-700
+                         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 sm:w-auto sm:text-sm
+                         dark:bg-brand-500 dark:hover:bg-brand-600"
                          aria-label="Upgrade account">
               Upgrade Now
             </router-link>
             <div class="mt-3 sm:mt-0 sm:mr-3">
               <button @click="closeModal"
                       type="button"
-                      class="w-full px-4 py-2 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 sm:w-auto sm:text-sm dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:border-gray-600"
+                      class="w-full px-4 py-2 text-base font-medium
+                      text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50
+                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 sm:w-auto sm:text-sm
+                      dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:border-gray-600"
                       aria-label="Close modal">
                 Maybe Later
               </button>

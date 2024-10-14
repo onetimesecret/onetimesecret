@@ -11,6 +11,7 @@
     </router-link>
 
     <FancyIcon v-if="domains_enabled && !planAllowsCustomDomains"
+               to="/pricing"
                ariaLabel="Click this lightning bolt to upgrade for custom domains" />
 
     <router-link v-if="colonel"
