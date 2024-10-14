@@ -55,16 +55,12 @@
           </div>
 
           <!-- Pricing -->
-          <div class="mt-4 text-center">
+          <div class="mt-4 pb-5 text-center">
             <p class="text-4xl font-bold text-gray-900 dark:text-white">
               {{ productTiers[0].price[frequency] }}
               <span class="text-lg font-normal text-gray-500 dark:text-gray-400">
                 {{ getPriceSuffix(frequency) }}
               </span>
-            </p>
-            <p v-if="frequency === 'annually'"
-               class="mt-2 text-sm text-green-600 dark:text-green-400">
-              Save {{ calculateYearlySavings() }} with annual billing
             </p>
           </div>
 
@@ -129,7 +125,7 @@
               Maybe Later
             </button>
 
-            <a :href="productTiers[0].href"
+            <a :href="`${productTiers[0].href}${getPriceSuffix(frequency)}`"
                @click.stop="upgradeNow"
                class="inline-flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 sm:w-auto sm:text-sm dark:bg-brand-500 dark:hover:bg-brand-600"
                type="button"
@@ -173,13 +169,6 @@ const frequency = ref('monthly')
 
 const toggleFrequency = (newFrequency: string) => {
   frequency.value = newFrequency
-}
-
-const calculateYearlySavings = () => {
-  const monthlyPrice = parseFloat(productTiers[0].price.monthly.replace('$', ''))
-  const yearlyPrice = parseFloat(productTiers[0].price.annually.replace('$', ''))
-  const savings = (monthlyPrice * 12) - yearlyPrice
-  return `$${savings.toFixed(2)}`
 }
 
 // Methods
