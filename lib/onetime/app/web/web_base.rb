@@ -171,6 +171,13 @@ module Onetime
         res.body = view.render  # Render the entrypoint HTML
       end
 
+      def not_authorized_error hsh={}
+        view = Onetime::App::Views::Error.new req, sess, cust, locale
+        view.add_error "Not authorized"
+        res.status = 401
+        res.body = view.render
+      end
+
       def error_response message
         view = Onetime::App::Views::Error.new req, sess, cust, locale
         view.add_error message
