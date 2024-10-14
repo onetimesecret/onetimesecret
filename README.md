@@ -66,7 +66,7 @@ We strongly recommend using the latest release with Ruby 3+ for the best perform
 
 * Any recent linux distro (we use debian) or *BSD or MacOS
 * System dependencies:
-  * Ruby 3.3 (3.2 or 3.1 may work but are not officially supported)
+  * Ruby 3.1+ (3.0 may work but is not officially supported)
   * Redis server 5+
   * Node.js 22+ (for front-end development)
   * pnpm 9.0.0+
