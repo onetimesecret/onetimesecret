@@ -28,7 +28,7 @@ module Onetime
           # since it wouldn't change our response either way.
           return disabled_response(req.path) unless authentication_enabled?
 
-          sess.authenticated? ? yield : res.redirect(('/'))
+          sess.authenticated? ? yield : res.redirect('/')
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session and auth check)
         end
       end
@@ -48,7 +48,7 @@ module Onetime
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
 
           is_allowed = sess.authenticated? && cust.role?(:colonel)
-          is_allowed ? yield : raise(OT::Unauthorized, "Colonels only")
+          is_allowed ? yield : res.redirect('/')
         end
       end
 
