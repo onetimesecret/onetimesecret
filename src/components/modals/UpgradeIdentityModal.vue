@@ -56,7 +56,7 @@
 
           <!-- Pricing -->
           <div class="mt-4 pb-5 text-center">
-            <p class="text-4xl font-bold text-gray-900 dark:text-white">
+            <p class="text-4xl font-brand font-bold text-gray-900 dark:text-white">
               {{ productTiers[0].price[frequency] }}
               <span class="text-lg font-normal text-gray-500 dark:text-gray-400">
                 {{ getPriceSuffix(frequency) }}
@@ -114,25 +114,29 @@
           </div>
 
           <!-- CTA -->
-          <div class="mt-8 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-4">
-
+          <div class="mt-8 flex flex-col sm:flex-row sm:justify-end sm:space-x-4">
             <button @click="closeModal"
-                    class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300
+                    class="mb-3 sm:mb-0 inline-flex items-center justify-center rounded-md border border-gray-300
                     bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm
                     hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                    sm:mt-0 sm:w-auto sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                    sm:w-auto dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                     type="button">
               Maybe Later
             </button>
 
             <a :href="`${productTiers[0].href}${getPriceSuffix(frequency)}`"
                @click.stop="upgradeNow"
-               class="inline-flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 sm:w-auto sm:text-sm dark:bg-brand-500 dark:hover:bg-brand-600"
+               class="inline-flex items-center justify-center font-brand rounded-md border border-transparent
+               bg-brand-600 px-4 py-2 text-lg font-bold text-white shadow-sm
+               hover:bg-brand-700
+               focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 sm:w-auto
+               dark:bg-brand-500 dark:hover:bg-brand-600"
                type="button"
                aria-label="Upgrade account">
               {{ productTiers[0].cta }}
             </a>
           </div>
+
 
           <!-- Disclaimer -->
           <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
