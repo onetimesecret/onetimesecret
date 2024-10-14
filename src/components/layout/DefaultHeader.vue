@@ -7,15 +7,8 @@
 
           <nav v-if="displayNavigation" class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-base font-brand">
             <template v-if="authenticated && cust">
-              <div class="hidden sm:flex items-center">
-                <router-link to="/" class="text-gray-400 hover:text-gray-300 transition">
-                  <span id="userEmail">{{ cust.custid }}</span>
-                </router-link>
-                <router-link v-if="colonel" to="/colonel/" title="" class="ml-2 text-gray-400 hover:text-gray-300 transition">
-                  <Icon icon="mdi:star" class="w-4 h-4" />
-                </router-link>
-                <span class="mx-2 text-gray-400">|</span>
-              </div>
+
+              <HeaderUserNav :cust="cust" :colonel="colonel" />
 
               <router-link to="/account" class="underline" title="Your Account">{{ $t('web.COMMON.header_dashboard') }}</router-link> <span class="mx-0 text-gray-400">|</span>
               <router-link to="/logout" class="underline" title="Log out of Onetime Secret">{{ $t('web.COMMON.header_logout') }}</router-link>
@@ -31,6 +24,7 @@
 
               <router-link v-else to="/about" title="About Onetime Secret" class="underline">{{ $t('web.COMMON.header_about') }}</router-link>
             </template>
+
           </nav>
 
         </div>
@@ -41,7 +35,7 @@
 
 <script setup lang="ts">
 import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
-import { Icon } from '@iconify/vue';
+import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
 
 // Define the props for this layout, extending the BaseLayout props
 export interface Props extends BaseProps {

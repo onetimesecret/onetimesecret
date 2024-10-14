@@ -5,6 +5,7 @@ import productRoutes from '@/router/product'
 import publicRoutes from '@/router/public'
 import { useAuthStore } from '@/stores/authStore'
 import { createRouter, createWebHistory } from 'vue-router'
+import NotFound from '@/views/NotFound.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -21,6 +22,13 @@ const router = createRouter({
     ...dashboardRoutes,
     ...authRoutes,
     ...accountRoutes,
+
+    // Add this catch-all 404 route at the end
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: NotFound
+    }
   ]
 })
 
@@ -55,29 +63,4 @@ export default router
  *    application starts. If these components have dependencies that are not
  *    yet available or initialized, they might not function correctly.
  *
- * 2. **Component Lifecycle:**
- *    Lazy-loaded components are only imported when they are needed, which can
- *    help ensure that all necessary dependencies and context are available.
- *    Auto-loading might bypass some of these checks.
- *
- * 3. **Route Parameters and Initialization:**
- *    Components that rely on route parameters (e.g., to determine the active
- *    domain) might encounter issues if they are auto-loaded. This is because
- *    the route parameters might not be available or fully resolved at the time
- *    the component is initialized. Lazy loading ensures that the component is
- *    only initialized after the route has been fully resolved, preventing such
- *    issues.
- *
- * 4. **Code Splitting and Bundle Size:**
- *   Lazy loading helps reduce the initial bundle size by splitting the
- *   application into smaller chunks that are only loaded when needed.
- *
- * When to use `defineAsyncComponent` vs dynamic imports:
- *   Use `defineAsyncComponent` for lazy loading components with additional
- *   features like handling loading and error states, or when using Suspense.
- *   Use dynamic imports (`() => import('./MyPage.vue')`) for simpler lazy
- *   loading when additional features are not needed.
- *
- * @see [Vue3 documentation on dynamic imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import#dynamic_imports)
- * @see [Vue3 documentation on `defineAsyncComponent`](https://v3.vuejs.org/guide/component-dynamic-async.html#async-components)
  */
