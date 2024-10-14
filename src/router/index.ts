@@ -5,6 +5,7 @@ import productRoutes from '@/router/product'
 import publicRoutes from '@/router/public'
 import { useAuthStore } from '@/stores/authStore'
 import { createRouter, createWebHistory } from 'vue-router'
+import NotFound from '@/views/NotFound.vue'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -22,11 +23,12 @@ const router = createRouter({
     ...authRoutes,
     ...accountRoutes,
 
-    // Catch-all route to handle 404 and redirect to Home
+    // Add this catch-all 404 route at the end
     {
       path: '/:pathMatch(.*)*',
-      redirect: { name: 'Home' },
-    },
+      name: 'NotFound',
+      component: NotFound
+    }
   ]
 })
 
