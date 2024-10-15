@@ -4,8 +4,7 @@
     <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
       <div class="p-6">
         <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Submit Your Feedback</h2>
-        <form action="/feedback"
-              method="post"
+        <form @submit.prevent="submitForm"
               class="space-y-4">
           <input type="hidden"
                  name="utf8"
@@ -19,6 +18,7 @@
               <label for="feedback-message"
                      class="sr-only">Your feedback</label>
               <input id="feedback-message"
+                     v-model="feedbackMessage"
                      type="text"
                      name="msg"
                      class="w-full px-4 py-2 border border-gray-300 rounded-md
@@ -29,19 +29,26 @@
                      aria-label="Enter your feedback">
             </div>
             <button type="submit"
+                    :disabled="isSubmitting"
                     :class="[
                       'px-6 py-2 font-medium text-white transition duration-150 ease-in-out rounded-md',
                       showRedButton
                         ? 'bg-brand-600 hover:bg-brand-700 focus:ring-brand-500'
-                        : 'bg-gray-500 hover:bg-gray-600 focus:ring-gray-400'
+                        : 'bg-gray-500 hover:bg-gray-600 focus:ring-gray-400',
+                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
                     ]"
                     aria-label="Send feedback">
-              {{ $t('web.COMMON.button_send_feedback') }}
+              {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
             </button>
           </div>
 
           <AltchaChallenge v-if="!cust" />
         </form>
+
+        <div v-if="error"
+             class="mt-4 text-red-600 dark:text-red-400">{{ error }}</div>
+        <div v-if="success"
+             class="mt-4 text-green-600 dark:text-green-400">{{ success }}</div>
       </div>
 
       <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4">
@@ -86,12 +93,9 @@
             </svg>
             Website Version: v{{ ot_version }}
           </li>
-
         </ul>
       </div>
     </div>
-
-
   </div>
 </template>
 
@@ -100,6 +104,7 @@ import { ref, onMounted } from 'vue';
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useWindowProps } from '@/composables/useWindowProps';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 
 const csrfStore = useCsrfStore();
 
@@ -115,6 +120,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const userTimezone = ref('');
+const feedbackMessage = ref('');
+
+const resetForm = () => {
+  feedbackMessage.value = '';
+  // Reset other non-hidden form fields here if you have any
+};
 
 onMounted(() => {
   userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -123,4 +134,23 @@ onMounted(() => {
 // We use this to determine whether to include the authenticity check
 const { cust, ot_version } = useWindowProps(['cust', 'ot_version']);
 
+const emit = defineEmits(['feedback-sent']);
+
+const {
+  isSubmitting,
+  error,
+  success,
+  submitForm
+} = useFormSubmission({
+  url: '/api/v2/feedback',
+  successMessage: 'Feedback received.',
+  onSuccess: (data: unknown) => {
+    console.debug('Feedback sent:', data);
+    emit('feedback-sent');
+    resetForm();
+  },
+  onError: (data) => {
+    console.error('Error sending feedback:', data);
+  },
+});
 </script>
