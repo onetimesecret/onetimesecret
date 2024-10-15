@@ -29,8 +29,8 @@
 
         <FeedbackForm :showRedButton="true" @submitted="close" />
 
-        <p class="mt-6 text-xs text-center text-gray-500 dark:text-gray-400">
-          Your feedback helps us improve. Especially the annoyances!
+        <p class="mt-6 text-xs text-center text-gray-500 dark:text-gray-400 italic">
+          Your feedback <router-link to="/feedback" class="underline"> helps us improve</router-link>. Especially the annoyances!
         </p>
       </div>
     </div>
