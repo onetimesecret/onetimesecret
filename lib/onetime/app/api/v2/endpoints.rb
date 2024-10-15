@@ -37,7 +37,8 @@ module Onetime::App
       process_action(
         OT::Logic::Misc::ReceiveFeedback,
         "Feedback received. Send as much as you like.",
-        "Sorry we were not able to receive your feedback (it's us, not you)."
+        "Sorry we were not able to receive your feedback (it's us, not you).",
+        allow_anonymous: true
       )
     end
 

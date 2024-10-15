@@ -27,6 +27,13 @@
                      autocomplete="off"
                      :placeholder="$t('web.COMMON.feedback_text')"
                      aria-label="Enter your feedback">
+              <input type="hidden"
+                     name="tz"
+                     :value="userTimezone" />
+              <input type="hidden"
+                     name="version"
+                     :value="ot_version" />
+
             </div>
             <button type="submit"
                     :disabled="isSubmitting"
@@ -100,11 +107,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { useWindowProps } from '@/composables/useWindowProps';
 import { useFormSubmission } from '@/composables/useFormSubmission';
+import { useWindowProps } from '@/composables/useWindowProps';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { onMounted, ref } from 'vue';
 
 const csrfStore = useCsrfStore();
 
@@ -130,6 +137,7 @@ const resetForm = () => {
 onMounted(() => {
   userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
 });
+
 
 // We use this to determine whether to include the authenticity check
 const { cust, ot_version } = useWindowProps(['cust', 'ot_version']);
