@@ -4,7 +4,7 @@
     <button @click="toggleDarkMode"
             aria-label="Toggle dark mode"
             :aria-pressed="isDarkMode"
-            class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 opacity-50">
+            class="rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 opacity-80 text-gray-400 dark:text-gray-400 transition-colors p-1">
       <svg v-if="isDarkMode"
           aria-hidden="true"
           class="w-6 h-6"
