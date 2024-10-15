@@ -49,6 +49,10 @@ module Onetime
         end
       end
 
+      def success_data
+        raise NotImplementedError
+      end
+
       protected
 
       def process_params

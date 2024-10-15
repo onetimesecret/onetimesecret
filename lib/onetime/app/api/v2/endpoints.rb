@@ -33,6 +33,14 @@ module Onetime::App
       end
     end
 
+    def receive_feedback
+      process_action(
+        OT::Logic::Misc::ReceiveFeedback,
+        "Feedback received. Send as much as you like.",
+        "Sorry we were not able to receive your feedback (it's us, not you)."
+      )
+    end
+
     def get_supported_locales
       publically do
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
