@@ -1,4 +1,3 @@
-
 <template>
   <div class="container">
     <form class="form form-inline"
