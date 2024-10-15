@@ -85,7 +85,7 @@
         <div v-if="displayVersion"
              class="text-sm text-center sm:text-left mb-4 sm:mb-0 order-2 sm:order-1
                   text-gray-500 dark:text-gray-400">
-          &copy; {{ new Date().getFullYear() }} OnetimeSecret.com - v{{ onetimeVersion }}
+          &copy; {{ new Date().getFullYear() }} OnetimeSecret.com
         </div>
         <div v-if="displayToggles"
              class="flex items-center space-x-4 mb-4 sm:mb-0 order-1 sm:order-2">
