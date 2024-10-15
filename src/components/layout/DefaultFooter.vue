@@ -89,13 +89,10 @@
         </div>
         <div v-if="displayToggles"
              class="flex items-center space-x-4 mb-4 sm:mb-0 order-1 sm:order-2">
+          <JurisdictionToggle />
           <FeedbackToggle v-if="displayFeedback && authentication.enabled" />
           <ThemeToggle />
-          <div class="relative z-50"
-               :class="{ 'opacity-60 hover:opacity-100': !isLanguageMenuOpen }"
-               aria-label="Change language">
-            <LanguageToggle @menu-toggled="handleMenuToggled" />
-          </div>
+          <LanguageToggle @menu-toggled="handleMenuToggled" />
         </div>
       </div>
     </div>
@@ -109,6 +106,7 @@ import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
 
 // Define the props for this layout, extending the DefaultLayout props
 export interface Props extends DefaultProps {

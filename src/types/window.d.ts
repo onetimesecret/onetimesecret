@@ -96,5 +96,7 @@ declare global {
     has_items: boolean;
 
     incoming_recipient: string;
+
+    available_jurisdictions: string[];
   }
 }
