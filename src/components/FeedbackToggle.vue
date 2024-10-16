@@ -1,14 +1,17 @@
 <template>
   <div class="relative">
-    <button @click="toggleFeedbackModal"
-            class="group flex items-center space-x-2 rounded-md
-            bg-gray-200 dark:bg-gray-700
-            px-3 py-1.5 text-sm font-medium
-            text-gray-600 dark:text-gray-300 transition-all
-            hover:bg-brand-200 dark:hover:bg-brand-900
-            focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-            dark:focus:ring-brand-400"
-            aria-label="Open feedback form">
+<button @click="toggleFeedbackModal"
+        class="group flex items-center space-x-2 rounded-md
+               px-3 py-1.5
+               text-sm font-medium
+               bg-gray-200 dark:bg-gray-700
+               text-gray-600 dark:text-gray-300
+               hover:bg-brand-200 dark:hover:bg-brand-900
+               focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+               dark:focus:ring-brand-400
+               transition-all"
+        aria-label="Open feedback form">
+
       <span class="inline">Feedback</span>
       <svg xmlns="http://www.w3.org/2000/svg"
            class="h-4 w-4 text-gray-500 transition-colors group-hover:text-brand-500 dark:text-gray-400 dark:group-hover:text-brand-400"

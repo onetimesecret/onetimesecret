@@ -3,7 +3,8 @@
     <div class="container my-4 mx-auto px-4 max-w-2xl">
       <FooterLinkLists v-if="displayLinks" v-bind="$props" />
 
-      <div class="flex flex-col sm:flex-row justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-6">
+      <div class="flex flex-col sm:flex-row justify-between items-center pt-6">
+        <!-- Footer content goes here -->
         <div v-if="displayVersion" class="text-sm text-center sm:text-left mb-4 sm:mb-0 text-gray-600 dark:text-gray-300">
           &copy; {{ new Date().getFullYear() }} {{ companyName }}. All rights reserved.
         </div>
@@ -22,8 +23,6 @@
     </div>
   </footer>
 </template>
-
-
 
 <script setup lang="ts">
 import { ref } from 'vue'
