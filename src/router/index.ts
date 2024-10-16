@@ -1,11 +1,12 @@
 import accountRoutes from '@/router/account'
 import authRoutes from '@/router/auth'
 import dashboardRoutes from '@/router/dashboard'
+import { setupRouterGuards } from '@/router/guards'
 import productRoutes from '@/router/product'
 import publicRoutes from '@/router/public'
-import { useAuthStore } from '@/stores/authStore'
-import { createRouter, createWebHistory } from 'vue-router'
 import NotFound from '@/views/NotFound.vue'
+import type { RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -14,15 +15,18 @@ declare module 'vue-router' {
   }
 }
 
+const routes: RouteRecordRaw[] = [
+  ...publicRoutes,
+  ...productRoutes,
+  ...dashboardRoutes,
+  ...authRoutes,
+  ...accountRoutes,
+]
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    ...publicRoutes,
-    ...productRoutes,
-    ...dashboardRoutes,
-    ...authRoutes,
-    ...accountRoutes,
-
+    ...routes,
     // Add this catch-all 404 route at the end
     {
       path: '/:pathMatch(.*)*',
@@ -32,23 +36,7 @@ const router = createRouter({
   ]
 })
 
-// NOTE: This doesn't override the server pages which redirect
-// when not authenticated.
-router.beforeEach(async (to) => {
-  const authStore = useAuthStore()
-
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    // Perform a fresh check before redirecting
-    await authStore.checkAuthStatus()
-
-    if (!authStore.isAuthenticated) {
-      return {
-        path: '/signin',
-        query: { redirect: to.fullPath },
-      }
-    }
-  }
-})
+setupRouterGuards(router)
 
 export default router
 
