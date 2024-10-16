@@ -2,7 +2,7 @@
   <div class="space-y-8">
     <!-- Feedback Form -->
     <form @submit.prevent="submitForm"
-          class="space-y-4">
+          class="space-y-6">
       <input type="hidden"
              name="utf8"
              value="✓" />
@@ -11,15 +11,19 @@
              :value="csrfStore.shrimp" />
 
       <div>
-        <label for="feedback-message"
-               class="sr-only">Your feedback</label>
+        <label for="feedback-message" class="sr-only">Your feedback</label>
         <textarea id="feedback-message"
-                  v-model="feedbackMessage"
-                  name="msg"
-                  rows="3"
-                  class="w-full px-3 py-2 bg-gray-700 text-white placeholder-gray-400 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                  :placeholder="$t('web.COMMON.feedback_text')"
-                  aria-label="Enter your feedback"></textarea>
+          v-model="feedbackMessage"
+          class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+          name="msg"
+          rows="4"
+          required
+          @keydown="handleKeydown"
+          :placeholder="$t('web.COMMON.feedback_text')"
+          aria-label="Enter your feedback"></textarea>
+        <div class="flex justify-end mt-2 text-gray-500 dark:text-gray-400">
+          <span v-if="isDesktop">{{ submitWithText }}</span>
+        </div>
       </div>
 
       <input type="hidden"
@@ -31,7 +35,7 @@
 
       <button type="submit"
               :disabled="isSubmitting"
-              class="w-full px-4 py-2 font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full px-4 py-2 font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="Send feedback">
         {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
       </button>
@@ -40,12 +44,12 @@
     </form>
 
     <div v-if="error"
-         class="mt-4 text-red-400">{{ error }}</div>
+         class="mt-4 text-red-600 dark:text-red-400">{{ error }}</div>
     <div v-if="success"
-         class="mt-4 text-green-400">{{ success }}</div>
+         class="mt-4 text-green-600 dark:text-green-400">{{ success }}</div>
 
-    <div class="mt-6 text-sm text-gray-400">
-      <h3 class="font-medium mb-2">Information included with your feedback:</h3>
+    <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+      <h3 class="font-medium text-lg mb-2 text-gray-500">Information included with your feedback:</h3>
       <ul class="space-y-1">
         <li v-if="cust">• Customer ID: {{ cust?.custid }}</li>
         <li>• Timezone: {{ userTimezone }}</li>
@@ -87,7 +91,6 @@ onMounted(() => {
   userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
 });
 
-
 // We use this to determine whether to include the authenticity check
 const { cust, ot_version } = useWindowProps(['cust', 'ot_version']);
 
@@ -110,4 +113,47 @@ const {
     console.error('Error sending feedback:', data);
   },
 });
+
+// New function to handle keydown events
+const handleKeydown = (event: KeyboardEvent) => {
+  // Check if the key pressed is Enter and if Command (Mac) or Control (Windows) is held
+  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+    event.preventDefault(); // Prevent default behavior (new line in textarea)
+    submitForm(); // Submit the form
+  }
+};
+
+// Submit form UI
+
+
+
+import { computed } from 'vue';
+
+/**
+ * Computed property to determine the submit key combination text based on the platform
+ */
+const submitWithText = computed(() => {
+  return navigator.platform.includes('Mac') ? '⌘ + Enter' : 'Ctrl + Enter';
+});
+
+/**
+ * State to track if the device is a desktop
+ */
+const isDesktop = ref(false);
+
+/**
+ * Function to detect if the device is a desktop
+ */
+const detectDesktop = () => {
+  isDesktop.value = !/Mobi|Android/i.test(navigator.userAgent);
+};
+
+/**
+ * Lifecycle hook to run the detectDesktop function on component mount
+ */
+onMounted(() => {
+  detectDesktop();
+  window.addEventListener('resize', detectDesktop);
+});
+
 </script>

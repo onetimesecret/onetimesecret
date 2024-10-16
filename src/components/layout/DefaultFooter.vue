@@ -65,7 +65,7 @@
 
         <!-- Legal links -->
         <div class="space-y-4 col-span-2 md:col-span-1">
-          <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl">Legal</h3>
+          <h3 class="font-semibold text-gray-800 dark:text-gray-200 text-xl">Legals</h3>
           <ul class="space-y-2">
             <li>
               <router-link to="/info/privacy"

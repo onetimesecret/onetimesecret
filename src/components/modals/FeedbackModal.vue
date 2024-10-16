@@ -22,7 +22,7 @@
         <FeedbackModalForm :showRedButton="true" />
 
         <p class="mt-6 text-sm text-center text-gray-500 dark:text-gray-400 italic">
-          Your <RouterLink to="/feedback" class="underline">feedback helps us</RouterLink> improve. Especially the annoyances!
+          Your feedback <RouterLink to="/feedback" class="underline">helps us improve</RouterLink>. Especially the annoyances!
         </p>
       </div>
     </div>
