@@ -17,14 +17,14 @@
 
               <HeaderUserNav :cust="cust"
                              :colonel="colonel" />
+              <a href="#"
+                 @click="openSettingsModal"
+                 class="underline"
+                 title="Your Account">{{ $t('web.COMMON.header_settings') }}</a>
 
+              <SettingsModal :is-open="isSettingsModalOpen"
+                             @close="closeSettingsModal" />
 
-              <a href="#" @click="openSettingsModal"
-                           class="underline"
-                           title="Your Account">{{ $t('web.COMMON.header_settings') }}</a>
-              <SettingsModal       :is-open="isSettingsModalOpen"
-              @close="closeSettingsModal"
-              />
               <span class="mx-0 text-gray-400">|</span>
               <router-link to="/logout"
                            class="underline"
@@ -64,8 +64,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
+import SettingsModal from '@/components/modals/SettingsModal3.vue';
+import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 import { computed, ref } from 'vue';
 
 // Define the props for this layout, extending the BaseLayout props
@@ -88,7 +89,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const colonel = computed(() => props.cust?.role === 'colonel');
 
-import SettingsModal from '@/components/modals/SettingsModal.vue';
+
 
 // Reactive state
 const isSettingsModalOpen = ref(false);
