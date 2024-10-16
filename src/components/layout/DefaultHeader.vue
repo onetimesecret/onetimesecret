@@ -6,7 +6,9 @@
         <div class="flex flex-col sm:flex-row justify-between items-center">
           <div class="mb-6 sm:mb-0"><router-link to="/"><img id="logo"
                    src="@/assets/img/onetime-logo-v3-xl.svg"
-                   class=""
+                   class=" rounded-md"
+                   aria-label="Onetime Secret"
+
                    width="64"
                    height="64"
                    alt="Logo"></router-link></div>
