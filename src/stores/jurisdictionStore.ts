@@ -38,9 +38,8 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
       return this.currentJurisdiction;
     },
 
-    determineJurisdiction(preferredJurisdiction?: string): string {
+    determineJurisdiction(): string {
       const jurisdictions = [
-        preferredJurisdiction,
         this.currentJurisdiction,
         this.storedJurisdiction,
       ];

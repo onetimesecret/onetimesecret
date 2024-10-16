@@ -89,10 +89,9 @@
         </div>
         <div v-if="displayToggles"
              class="flex items-center space-x-4 mb-4 sm:mb-0 order-1 sm:order-2">
-          <JurisdictionToggle />
+
           <FeedbackToggle v-if="displayFeedback && authentication.enabled" />
-          <ThemeToggle />
-          <LanguageToggle @menu-toggled="handleMenuToggled" />
+
         </div>
       </div>
     </div>
@@ -100,13 +99,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 
 import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
-import LanguageToggle from '@/components/LanguageToggle.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
 
 // Define the props for this layout, extending the DefaultLayout props
 export interface Props extends DefaultProps {
@@ -123,10 +118,6 @@ withDefaults(defineProps<Props>(), {
   displayToggles: true,
 });
 
-const isLanguageMenuOpen = ref(false);
 
-const handleMenuToggled = (isOpen: boolean) => {
-  isLanguageMenuOpen.value = isOpen;
-};
 
 </script>

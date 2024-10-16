@@ -1,6 +1,6 @@
 <template>
   <div class="hidden sm:flex items-center">
-    <router-link to="/"
+    <router-link to="/account"
                  class="text-gray-400 hover:text-gray-300 transition group">
       <span id="userEmail"
             :class="{ 'animate-pulse': isNewFeature }"
@@ -19,9 +19,9 @@
                  title=""
                  class="ml-2 text-gray-400 hover:text-gray-300 transition">
       <Icon icon="mdi:star"
-            class="w-4 h-4" />
+            class="w-4 h-4 text-brand-400 " />
     </router-link>
-    <span class="mx-2 text-gray-400">|</span>
+    <span class="ml-2 text-gray-400">|</span>
   </div>
 
 </template>
@@ -46,7 +46,6 @@ const isNewFeature = ref(false)
 defineProps<{
   cust: Customer;
   colonel?: boolean;
-
 }>();
 
 </script>

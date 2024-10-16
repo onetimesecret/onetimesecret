@@ -11,7 +11,7 @@
       "confirm_password_placeholder": "Confirm your password",
       "skill_placeholder": "",
 
-
+      "header_settings": "Settings",
       "broadcast": "",
       "description": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
       "keywords": "secret,password generator,share a secret,onetime",
