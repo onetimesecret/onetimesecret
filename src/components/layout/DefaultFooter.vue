@@ -1,5 +1,5 @@
 <template>
-  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-900 py-8 overflow-visible w-full transition-all duration-300">
+  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 overflow-visible w-full transition-all duration-300">
     <div class="container my-4 mx-auto px-4 max-w-2xl">
       <div v-if="displayLinks"
            class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8 py-10 pl-4 sm:pl-8 md:pl-16">
