@@ -17,19 +17,24 @@
               aria-hidden="true" />
       </div>
       <div class="text-center">
-        <h2 class="mt-6 text-4xl font-extrabold text-gray-900 dark:text-white">
+        <h2 id="signup-heading"
+            class="mt-6 text-4xl font-extrabold text-gray-900 dark:text-white">
           Create your account
         </h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Located in {{ currentRegion.identifier }}
+        <p class="mt-2 text-base text-gray-600 dark:text-gray-400 flex items-center justify-center">
+          <span class="mr-1">
+            Serving you from the <span lang="en">{{ currentRegion.identifier }}</span>
+          </span>
         </p>
       </div>
+
 
       <div class="mt-8 rounded-lg p-8 shadow-xl bg-white dark:bg-gray-800">
         <SignUpForm :planid="currentPlanId"
                     :region="currentRegion" />
 
-        <div class="mt-6">
+        <!-- Alternate sign up methods -->
+        <div class="mt-6 hidden">
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
               <div class="w-full border-t border-gray-300 dark:border-gray-700"></div>
@@ -41,20 +46,28 @@
             </div>
           </div>
 
-          <div class="mt-6 grid grid-cols-3 gap-3">
+          <div class="mt-8 grid grid-cols-3 gap-3 relative">
+            <div class="absolute inset-0 flex items-center justify-center z-10">
+              <div
+                   class="roudned rounded-md font-brand dark:bg-brand-400 text-white dark:text-gray-700 px-4 py-2 text-lg font-bold transform rotate-[-15deg] shadow-lg opacity-65">
+                Coming Soon
+              </div>
+            </div>
+            <div class="absolute inset-0 bg-gray-200 bg-opacity-50 dark:bg-gray-800 dark:bg-opacity-50 z-5"></div>
             <button v-for="provider in socialProviders"
                     :key="provider.name"
                     class="inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium
-                           shadow-sm bg-white hover:bg-gray-50 text-gray-500 border-gray-300
-                           dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 dark:border-gray-700
-                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
-                           transition-colors duration-200"
-                    :aria-label="`Sign up with ${provider.name}`">
+                           shadow-sm bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed
+                         dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700
+                           focus:outline-none transition-colors duration-200"
+                    :aria-label="`Sign up with ${provider.name} (coming soon)`"
+                    disabled>
               <Icon :icon="provider.icon"
                     class="h-5 w-5"
                     aria-hidden="true" />
             </button>
           </div>
+
         </div>
       </div>
 
@@ -69,8 +82,6 @@
     </div>
   </div>
 </template>
-
-
 
 
 <script setup lang="ts">

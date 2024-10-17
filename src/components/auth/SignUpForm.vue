@@ -100,6 +100,7 @@
       </div>
     </div>
 
+    <!-- Submit button -->
     <div>
       <button type="submit"
               class="group relative w-full flex justify-center
@@ -113,6 +114,7 @@
         Sign up
       </button>
     </div>
+
   </form>
 </template>
 
