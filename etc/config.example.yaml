@@ -52,6 +52,7 @@
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
   :regions:
     :enabled: false
+    :current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
   # Configuration options for secret management
   :secret_options:
     # Default Time-To-Live (TTL) for secrets in seconds

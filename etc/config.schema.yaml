@@ -73,6 +73,7 @@
 
 :regions:
   :enabled: bool()
+  :current_jurisdiction: str(required=False)
   :jurisdictions: list(include(':jurisdiction'), required=False)
 
 :jurisdiction:

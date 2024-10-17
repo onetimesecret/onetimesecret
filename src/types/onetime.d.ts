@@ -268,6 +268,7 @@ export interface Jurisdiction {
 
 export interface Regions {
   enabled: boolean;
+  current_jurisdiction: str
   jurisdictions: Jurisdiction[];
 }
 
