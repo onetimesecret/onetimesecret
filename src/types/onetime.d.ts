@@ -259,6 +259,16 @@ export interface Feedback {
   stamp: string;
 }
 
+export interface Jurisdiction {
+  display_name: str;
+  domain: str;
+}
+
+export interface Regions {
+  enabled: boolean;
+  jurisdictions: Jurisdiction[];
+}
+
 export interface BaseApiResponse {
   success: boolean;
 }
