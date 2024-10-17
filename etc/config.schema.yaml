@@ -76,8 +76,10 @@
   :jurisdictions: list(include(':jurisdiction'), required=False)
 
 :jurisdiction:
+  :identifier: str()
   :display_name: str()
   :domain: str()
+  :icon: str()
 
 :incoming:
   :enabled: bool()

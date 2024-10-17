@@ -260,8 +260,10 @@ export interface Feedback {
 }
 
 export interface Jurisdiction {
+  identifier: str;
   display_name: str;
   domain: str;
+  icon: str;
 }
 
 export interface Regions {
