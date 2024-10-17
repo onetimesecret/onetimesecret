@@ -21,8 +21,17 @@
          href="#"
          @click.prevent="changeJurisdiction(jurisdiction)"
          :class="[
-          'block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100',
-          jurisdiction === currentJurisdiction ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-gray-100 dark:bg-gray-700' : 'text-gray-700 dark:text-gray-300'
+          'block',
+          'px-4 py-2',
+          'text-sm',
+          jurisdiction === currentJurisdiction
+            ? 'text-indigo-600 font-bold bg-gray-100'
+            : 'text-gray-700',
+          jurisdiction === currentJurisdiction
+            ? 'dark:text-indigo-400 dark:bg-gray-700'
+            : 'dark:text-gray-300',
+          'hover:bg-gray-100 hover:text-gray-900',
+          'dark:hover:bg-gray-700 dark:hover:text-gray-100'
         ]"
          role="menuitem">
         {{ jurisdiction }}

@@ -1,11 +1,13 @@
 <template>
   <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 overflow-visible w-full transition-all duration-300">
     <div class="container my-4 mx-auto px-4 max-w-2xl">
-      <FooterLinkLists v-if="displayLinks" v-bind="$props" />
+      <FooterLinkLists v-if="displayLinks"
+                       v-bind="$props" />
 
       <div class="flex flex-col sm:flex-row justify-between items-center pt-6">
         <!-- Footer content goes here -->
-        <div v-if="displayVersion" class="text-sm text-center sm:text-left mb-4 sm:mb-0 text-gray-600 dark:text-gray-300">
+        <div v-if="displayVersion"
+             class="text-sm text-center sm:text-left mb-4 sm:mb-0 text-gray-600 dark:text-gray-300">
           &copy; {{ new Date().getFullYear() }} {{ companyName }}. All rights reserved.
         </div>
         <div v-if="displayToggles"
@@ -38,7 +40,7 @@ import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
-//import JurisdictionFooterNotice from '../JurisdictionFooterNotice.vue';
+import JurisdictionFooterNotice from '../JurisdictionFooterNotice.vue';
 import { useWindowProps } from '@/composables/useWindowProps';
 
 // Define the props for this layout, extending the DefaultLayout props
