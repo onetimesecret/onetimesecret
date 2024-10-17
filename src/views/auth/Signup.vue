@@ -1,28 +1,33 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+  <div class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8
+              bg-gray-50 dark:bg-gray-900">
     <!-- Background Icon -->
-    <div class="absolute inset-0 opacity-5 dark:opacity-10 overflow-hidden">
+    <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-10">
       <Icon :icon="currentRegion.icon"
-            class="absolute top-0 left-1/2 w-full h-auto object-cover object-center transform -translate-x-1/2 translate-y-0 scale-150 blur-x"
+            class="absolute top-0 left-1/2 h-auto w-full transform -translate-x-1/2 translate-y-0 scale-150
+                   object-cover object-center blur-x backdrop-invert"
             aria-hidden="true" />
     </div>
 
-    <div class="max-w-md w-full space-y-8 relative z-10">
+    <div class="relative z-10 w-full max-w-md space-y-8">
       <div class="flex flex-col items-center">
-        <Icon :icon="currentRegion.icon" class="h-48 w-48 text-brand-600 dark:text-brand-400 mb-32" aria-hidden="true" />
+        <Icon :icon="currentRegion.icon"
+              class="mb-32 h-48 w-48 text-brand-600 dark:text-brand-400"
+              aria-hidden="true" />
       </div>
       <div class="text-center">
         <h2 class="mt-6 text-4xl font-extrabold text-gray-900 dark:text-white">
           Create your account
         </h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Join us in {{ currentRegion.display_name }}
+          Located in {{ currentRegion.identifier }}
         </p>
       </div>
 
-      <div class="mt-8 bg-white dark:bg-gray-800 shadow-xl rounded-lg p-8">
-        <SignUpForm :planid="currentPlanId" :region="currentRegion" />
+      <div class="mt-8 rounded-lg p-8 shadow-xl bg-white dark:bg-gray-800">
+        <SignUpForm :planid="currentPlanId"
+                    :region="currentRegion" />
 
         <div class="mt-6">
           <div class="relative">
@@ -30,31 +35,41 @@
               <div class="w-full border-t border-gray-300 dark:border-gray-700"></div>
             </div>
             <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+              <span class="px-2 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800">
                 Or continue with
               </span>
             </div>
           </div>
 
           <div class="mt-6 grid grid-cols-3 gap-3">
-            <button v-for="provider in socialProviders" :key="provider.name"
-                    class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors duration-200"
+            <button v-for="provider in socialProviders"
+                    :key="provider.name"
+                    class="inline-flex w-full justify-center rounded-md border px-4 py-2 text-sm font-medium
+                           shadow-sm bg-white hover:bg-gray-50 text-gray-500 border-gray-300
+                           dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-300 dark:border-gray-700
+                           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
+                           transition-colors duration-200"
                     :aria-label="`Sign up with ${provider.name}`">
-              <Icon :icon="provider.icon" class="h-5 w-5" aria-hidden="true" />
+              <Icon :icon="provider.icon"
+                    class="h-5 w-5"
+                    aria-hidden="true" />
             </button>
           </div>
         </div>
       </div>
 
-      <div class="text-center mt-4">
+      <div class="mt-4 text-center">
         <router-link to="/signin"
-                     class="font-medium text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 transition-colors duration-200">
+                     class="font-medium text-brand-600 hover:text-brand-500
+                            dark:text-brand-400 dark:hover:text-brand-300
+                            transition-colors duration-200">
           Already have an account? Sign in
         </router-link>
       </div>
     </div>
   </div>
 </template>
+
 
 
 
