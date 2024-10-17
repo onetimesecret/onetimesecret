@@ -1,12 +1,16 @@
+##
 # Configuration Schema for Onetime
 #
 # This YAML file defines the schema for the Onetime Ruby application config
 # It uses the Yamale schema validation format (https://github.com/23andMe/Yamale).
 #
 # Usage:
-# 1. Define your actual configuration in a separate YAML file (e.g., config.yaml)
-# 2. Validate your configuration against this schema using Yamale:
-#    yamale -s config.schema.yaml config.yaml
+#
+#   1. Define your actual configuration in a separate YAML file (e.g., config.yaml)
+#
+#   2. Validate your configuration against this schema using Yamale:
+#      yamale -s etc/config.schema.yaml etc/config.yaml
+#
 
 :site: include(':site')
 :redis: include(':redis')
@@ -29,10 +33,9 @@
   :authenticity: include(':authenticity')
   :plans: include(':plans')
   :support: include(':support')
-  :regions:
-    :enabled: bool()
-    :default: str(required=False)
+  :regions: include(':regions')
   :secret_options: include(':secret_options')
+
 
 :domains:
   :enabled: any()
@@ -63,8 +66,18 @@
   :stripe_key: str(required=False)
   :webook_signing_secret: str(required=False)
   :payment_links: any(required=False)
+
 :support:
   :host: str(required=False)
+
+:regions:
+  :enabled: bool()
+  :jurisdictions: list(include(':jurisdiction'), required=False)
+
+:jurisdiction:
+  :display_name: str()
+  :domain: str()
+
 :incoming:
   :enabled: bool()
   :email: str()
