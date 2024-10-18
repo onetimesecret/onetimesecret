@@ -38,7 +38,7 @@
 
           <div class="space-y-4">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Jurisdiction</h3>
-            <JurisdictionToggle />
+            {{ currentJurisdiction.display_name }}
           </div>
 
           <div class="space-y-4">
@@ -66,11 +66,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import JurisdictionToggle from '@/components/JurisdictionToggle.vue';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 
 // Props
 defineProps<{
@@ -83,6 +83,10 @@ const emit = defineEmits<{
 }>();
 
 const isLanguageMenuOpen = ref(false);
+const jurisdictionStore = useJurisdictionStore();
+
+//const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
+const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
 
 const handleMenuToggled = (isOpen: boolean) => {
   isLanguageMenuOpen.value = isOpen;

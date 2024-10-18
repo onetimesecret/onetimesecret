@@ -1,5 +1,5 @@
 <template>
-  <div class="relative inline-flex items-center space-x-2 px-3 py-1 rounded-full
+  <div ref="dropdownRef" class="relative inline-flex items-center space-x-2 px-3 py-1 rounded-full
            bg-gray-100 text-base font-medium text-gray-700 shadow-sm
            dark:bg-gray-800 dark:text-gray-300
            transition-all duration-100 ease-in-out hover:shadow-md">
@@ -10,7 +10,9 @@
              dark:focus:ring-brand-400"
             :aria-expanded="isOpen"
             aria-haspopup="listbox">
-      <Icon :icon="currentJurisdiction.icon" class="h-5 w-5" aria-hidden="true" />
+      <Icon :icon="currentJurisdiction.icon"
+            class="h-5 w-5"
+            aria-hidden="true" />
       <span>{{ currentJurisdiction.display_name }}</span>
 
       <svg xmlns="http://www.w3.org/2000/svg"
@@ -45,38 +47,42 @@
             :class="{ 'bg-brand-50 dark:bg-brand-500': currentJurisdiction.identifier === jurisdiction.identifier }"
             role="option"
             :aria-selected="currentJurisdiction.identifier === jurisdiction.identifier">
-          <span class="flex items-center">
-            <Icon :icon="jurisdiction.icon" class="mr-2 h-5 w-5" aria-hidden="true" />
-            <span class="block truncate"
-                  :class="{ 'font-semibold': currentJurisdiction.identifier === jurisdiction.identifier }">
-              {{ jurisdiction.display_name }}
+          <a :href="`https://${jurisdiction.domain}/signup`"
+             :title="`Continue to ${jurisdiction.domain}`">
+            <span class="flex items-center">
+
+              <Icon :icon="jurisdiction.icon"
+                    class="mr-2 h-5 w-5"
+                    aria-hidden="true" />
+              <span class="block truncate"
+                    :class="{ 'font-semibold': currentJurisdiction.identifier === jurisdiction.identifier }">
+                {{ jurisdiction.display_name }}
+              </span>
             </span>
-          </span>
-          <span v-if="currentJurisdiction.identifier === jurisdiction.identifier"
-                class="absolute inset-y-0 right-0 flex items-center pr-4 text-brand-600
+            <span v-if="currentJurisdiction.identifier === jurisdiction.identifier"
+                  class="absolute inset-y-0 right-0 flex items-center pr-4 text-brand-600
                    dark:text-brand-300">
-            <svg class="h-5 w-5"
-                 xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 20 20"
-                 fill="currentColor"
-                 aria-hidden="true">
-              <path fill-rule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clip-rule="evenodd" />
-            </svg>
-          </span>
+              <svg class="h-5 w-5"
+                   xmlns="http://www.w3.org/2000/svg"
+                   viewBox="0 0 20 20"
+                   fill="currentColor"
+                   aria-hidden="true">
+                <path fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd" />
+              </svg>
+            </span>
+          </a>
         </li>
       </ul>
     </transition>
   </div>
 </template>
 
-
-
 <script setup lang="ts">
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { Icon } from '@iconify/vue';
-
+import { useClickOutside } from '@/composables/useClickOutside';
 import { computed, ref } from 'vue';
 
 const jurisdictionStore = useJurisdictionStore();
@@ -84,8 +90,15 @@ const jurisdictionStore = useJurisdictionStore();
 const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
 const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
 const isOpen = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
 
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
 };
+
+const closeDropdown = () => {
+  isOpen.value = false;
+};
+
+useClickOutside(dropdownRef, closeDropdown);
 </script>
