@@ -13,7 +13,7 @@
       <AccountDomainBrandForm
         v-else
         :brandSettings="brandSettings"
-        @settingsSaved="handleSettingsSaved"
+        @updateBrandSettings="updateBrandSettings"
       />
     </template>
   </AuthView>
@@ -30,18 +30,18 @@ const domainId = route.params.domain as string;
 
 interface CustomDomainBrand {
   logo: string;
-  primaryColor: string;
+  primary_color: string;
   description: string;
-  fontFamily: string;
-  buttonStyle: string;
+  font_family: string;
+  button_style: string;
 }
 
 const brandSettings = ref<CustomDomainBrand>({
   logo: '',
-  primaryColor: '#000000',
+  primary_color: '#000000',
   description: '',
-  fontFamily: 'sans-serif',
-  buttonStyle: 'rounded'
+  font_family: 'sans-serif',
+  button_style: 'rounded'
 });
 
 const loading = ref(true);
@@ -56,7 +56,7 @@ const fetchBrandSettings = async () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    brandSettings.value = data;
+    updateBrandSettings(data);
   } catch (err) {
     console.error('Error fetching brand settings:', err);
     error.value = 'Failed to fetch brand settings. Please try again.';
@@ -65,10 +65,9 @@ const fetchBrandSettings = async () => {
   }
 };
 
-const handleSettingsSaved = (newSettings: CustomDomainBrand) => {
+const updateBrandSettings = (newSettings: CustomDomainBrand) => {
   brandSettings.value = newSettings;
-  // You can add a success message or perform any other actions here
-  console.log('Brand settings saved successfully');
+  console.log('Brand settings updated', newSettings);
 };
 
 onMounted(fetchBrandSettings);

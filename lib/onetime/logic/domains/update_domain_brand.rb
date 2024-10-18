@@ -25,16 +25,16 @@ module Onetime::Logic
           raise_form_error "Invalid logo URL" unless valid_url?(@brand_settings[:logo])
         end
 
-        if @brand_settings[:primaryColor]
-          raise_form_error "Invalid primary color" unless valid_color?(@brand_settings[:primaryColor])
+        if @brand_settings[:primary_color]
+          raise_form_error "Invalid primary color" unless valid_color?(@brand_settings[:primary_color])
         end
 
-        if @brand_settings[:fontFamily]
-          raise_form_error "Invalid font family" unless valid_font_family?(@brand_settings[:fontFamily])
+        if @brand_settings[:font_family]
+          raise_form_error "Invalid font family" unless valid_font_family?(@brand_settings[:font_family])
         end
 
-        if @brand_settings[:buttonStyle]
-          raise_form_error "Invalid button style" unless valid_button_style?(@brand_settings[:buttonStyle])
+        if @brand_settings[:button_style]
+          raise_form_error "Invalid button style" unless valid_button_style?(@brand_settings[:button_style])
         end
 
         # You might want to add a check here to ensure the domain exists
@@ -62,7 +62,7 @@ module Onetime::Logic
 
       # Update the brand settings for the custom domain
       def update_brand_settings
-        valid_keys = [:logo, :primaryColor, :description, :fontFamily, :buttonStyle]
+        valid_keys = [:logo, :primary_color, :description, :font_family, :button_style]
         @brand_settings.each do |key, value|
           if valid_keys.include?(key.to_sym)
             @custom_domain.brand[key.to_s] = value

@@ -51,6 +51,10 @@ class Onetime::App::APIV2
       retrieve_records(OT::Logic::Domains::GetDomainBrand)
     end
 
+    def get_domain_logo
+      retrieve_records(OT::Logic::Domains::GetDomainLogo)
+    end
+
     def update_domain_logo
       process_action(
         OT::Logic::Domains::UpdateDomainLogo,

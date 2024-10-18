@@ -1,6 +1,7 @@
 <template>
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold mb-6 dark:text-white">Customization - {{ domainId }}</h1>
+    <BasicFormAlerts :success="success" :error="error" />
     <form @submit.prevent="submitForm" class="space-y-6">
       <input type="hidden" name="shrimp" :value="csrfStore.shrimp" />
 
@@ -25,7 +26,7 @@
         </label>
         <input type="color"
                id="primaryColor"
-               v-model="localBrandSettings.primaryColor"
+               v-model="localBrandSettings.primary_color"
                class="mt-1 block w-full h-10 rounded-md">
       </div>
       <div>
@@ -44,10 +45,11 @@
           Font Family
         </label>
         <select id="fontFamily"
-                v-model="localBrandSettings.fontFamily"
+                v-model="localBrandSettings.font_family"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
-                       focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50
-                       dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                      focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50
+                      dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+
           <option value="sans-serif">Sans-serif</option>
           <option value="serif">Serif</option>
           <option value="monospace">Monospace</option>
@@ -57,11 +59,13 @@
         <label for="buttonStyle" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
           Button Style
         </label>
-        <select id="buttonStyle"
-                v-model="localBrandSettings.buttonStyle"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
-                       focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50
-                       dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+
+<select id="buttonStyle"
+        v-model="localBrandSettings.button_style"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
+               focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50
+               dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+
           <option value="rounded">Rounded</option>
           <option value="square">Square</option>
           <option value="pill">Pill</option>
@@ -79,7 +83,7 @@
         </button>
       </div>
     </form>
-    <BasicFormAlerts :success="success" :error="error" />
+
   </div>
 </template>
 
@@ -96,10 +100,10 @@ const csrfStore = useCsrfStore();
 
 interface BrandSettings {
   logo: string;
-  primaryColor: string;
+  primary_color: string;
   description: string;
-  fontFamily: string;
-  buttonStyle: string;
+  font_family: string;
+  button_style: string;
 }
 
 const props = defineProps<{
@@ -108,7 +112,13 @@ const props = defineProps<{
 
 const emit = defineEmits(['settingsSaved']);
 
-const localBrandSettings = ref<BrandSettings>({ ...props.brandSettings });
+const localBrandSettings = ref<BrandSettings>({
+  logo: props.brandSettings.logo,
+  primary_color: props.brandSettings.primary_color,
+  description: props.brandSettings.description,
+  font_family: props.brandSettings.font_family,
+  button_style: props.brandSettings.button_style
+});
 
 
 const {
@@ -138,7 +148,7 @@ const handleLogoUpload = async (event: Event) => {
       const response = await fetch(`/api/v2/account/domains/${domainId}/logo`, {
         method: 'POST',
         headers: {
-          'X-CSRF-Token': csrfStore.shrimp,
+          'O-Shrimp': csrfStore.shrimp,
         },
         body: formData,
       });
