@@ -1,92 +1,85 @@
 // src/stores/jurisdictionStore.ts
 
 import { defineStore } from 'pinia';
+import type { Jurisdiction, Regions } from '@/types/onetime';
 
-// Assuming these are available globally or imported from a config file
-const supportedJurisdictions = window.available_jurisdictions || ['US', 'EU', 'UK', 'CA', 'AU'];
-const defaultJurisdiction = 'US';
 
 interface JurisdictionState {
-  storedJurisdiction: string | null;
-  currentJurisdiction: string | null;
-  supportedJurisdictions: string[];
-  defaultJurisdiction: string;
+  enabled: boolean;
+  currentJurisdiction: Jurisdiction;
+  jurisdictions: Jurisdiction[];
   isLoading: boolean;
   error: string | null;
 }
 
-const LOCAL_STORAGE_KEY = 'selected.jurisdiction';
 
 export const useJurisdictionStore = defineStore('jurisdiction', {
   state: (): JurisdictionState => ({
-    storedJurisdiction: localStorage.getItem(LOCAL_STORAGE_KEY),
-    currentJurisdiction: null,
-    supportedJurisdictions,
-    defaultJurisdiction,
+    enabled: true,
+    currentJurisdiction: {
+      identifier: '',
+      display_name: '',
+      domain: '',
+      icon: ''
+    },
     isLoading: false,
     error: null,
+    jurisdictions: [],
   }),
 
   getters: {
-    getCurrentJurisdiction: (state) => state.currentJurisdiction,
-    getSupportedJurisdictions: (state) => state.supportedJurisdictions,
+    getCurrentJurisdiction(): Jurisdiction {
+      return this.currentJurisdiction ?? {
+        identifier: '',
+        display_name: '',
+        domain: '',
+        icon: ''
+      };
+    },
+    getAllJurisdictions: (state): Jurisdiction[] => {
+      return state.jurisdictions;
+    },
+
   },
 
   actions: {
-    initializeCurrentJurisdiction(deviceJurisdiction: string) {
-      this.currentJurisdiction = this.storedJurisdiction || deviceJurisdiction || this.defaultJurisdiction;
-      return this.currentJurisdiction;
-    },
+    initializeStore(regionsConfig: Regions) {
+      this.jurisdictions = regionsConfig.jurisdictions;
 
-    determineJurisdiction(): string {
-      const jurisdictions = [
-        this.currentJurisdiction,
-        this.storedJurisdiction,
-      ];
+      // For the time being (i.e. for our first few locations), the region and
+      // jurisdiction are the same. EU is EU, US is US. They will differentiate
+      // once we get to for example, "California" is US and also California. The
+      // reason we make the distinction is that there can be (and are) "layers"
+      // of regulations and market forces involved. If I have a business in the
+      // US, I probably would prefer to use a US data center given the choice
+      // even if the business I'm in is not a regulated industry. I find it
+      // helpful to think of it as "compliant by default".
+      this.currentJurisdiction = this.findJurisdiction(regionsConfig.current_jurisdiction);
 
-      return jurisdictions.find(jurisdiction =>
-        jurisdiction && this.supportedJurisdictions.includes(jurisdiction)
-      ) ?? this.defaultJurisdiction;
-    },
-
-    async updateJurisdiction(newJurisdiction: string) {
-      this.isLoading = true;
-      this.error = null;
-
-      // Update local state immediately
-      this.setCurrentJurisdiction(newJurisdiction);
-
-      /**
-      try {
-        // Update the jurisdiction for the user using the api instance
-        await api.post('/api/v2/account/update-jurisdiction', {
-          jurisdiction: newJurisdiction
-        });
-
-        this.isLoading = false;
-      } catch (error) {
-        this.isLoading = false;
-        if (axios.isAxiosError(error)) {
-          if (error.response && error.response.status >= 400 && error.response.status < 500) {
-            this.error = `Failed to update jurisdiction: ${error.response.data.message || 'Unknown error'}`;
-          } else {
-            this.error = 'An unexpected error occurred while updating the jurisdiction';
-          }
-        } else {
-          this.error = 'An unexpected error occurred';
-        }
-        console.error('Error updating jurisdiction:', error);
-      }
-      */
-    },
-
-    setCurrentJurisdiction(jurisdiction: string) {
-      if (this.supportedJurisdictions.includes(jurisdiction)) {
-        this.currentJurisdiction = jurisdiction;
-        localStorage.setItem(LOCAL_STORAGE_KEY, jurisdiction);
-      } else {
-        console.warn(`Unsupported jurisdiction: ${jurisdiction}`);
+      // If regions are not enabled, ensure we have at least one region
+      if (!regionsConfig.enabled && this.jurisdictions.length === 0) {
+        const jurisdiction = regionsConfig.jurisdictions[0];
+        this.jurisdictions = [{
+          identifier: jurisdiction.identifier,
+          display_name: jurisdiction.display_name,
+          domain: jurisdiction.domain,
+          icon: jurisdiction.icon,
+        }];
       }
     },
+    /**
+     * Find a jurisdiction by its identifier.
+     * @param identifier - The identifier of the jurisdiction to find.
+     * @returns The jurisdiction with the given identifier.
+     * @throws Will throw an error if no jurisdiction is found with the given identifier.
+     */
+    findJurisdiction(identifier: string): Jurisdiction {
+      const jurisdiction = this.jurisdictions.find((jurisdiction: Jurisdiction) => jurisdiction.identifier === identifier);
+      if (!jurisdiction) {
+        throw new Error(`Jurisdiction with identifier "${identifier}" not found.`);
+      }
+      return jurisdiction;
+    },
+
   },
 });

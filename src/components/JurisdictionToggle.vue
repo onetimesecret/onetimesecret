@@ -16,22 +16,16 @@
       {{ currentJurisdiction }}
     </template>
     <template #menu-items>
-      <a v-for="jurisdiction in supportedJurisdictions"
-         :key="jurisdiction"
-         href="#"
-         @click.prevent="changeJurisdiction(jurisdiction)"
+      <a v-for="jurisdiction in availableJurisdictions"
+         :key="jurisdiction.identifier"
+         :href="`${jurisdiction.domain}/signup`"
          :class="[
           'block',
           'px-4 py-2',
-          'text-sm',
+          'text-base',
           jurisdiction === currentJurisdiction
-            ? 'text-indigo-600 font-bold bg-gray-100'
-            : 'text-gray-700',
-          jurisdiction === currentJurisdiction
-            ? 'dark:text-indigo-400 dark:bg-gray-700'
-            : 'dark:text-gray-300',
-          'hover:bg-gray-100 hover:text-gray-900',
-          'dark:hover:bg-gray-700 dark:hover:text-gray-100'
+            ? 'text-brand-600 font-bold bg-gray-100 dark:text-brand-400 dark:bg-gray-700'
+            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100',
         ]"
          role="menuitem">
         {{ jurisdiction }}
@@ -41,38 +35,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { onMounted, ref } from 'vue';
 import DropdownToggle from './DropdownToggle.vue';
 
-const emit = defineEmits(['jurisdictionChanged', 'updateCustomer']);
-
 const jurisdictionStore = useJurisdictionStore();
-const supportedJurisdictions = jurisdictionStore.getSupportedJurisdictions;
+const availableJurisdictions = jurisdictionStore.getAllJurisdictions;
 
-const selectedJurisdiction = ref(jurisdictionStore.determineJurisdiction());
-
-const currentJurisdiction = computed(() => selectedJurisdiction.value);
+const currentJurisdiction = ref(jurisdictionStore.getCurrentJurisdiction);
 
 const dropdownRef = ref<InstanceType<typeof DropdownToggle> | null>(null);
-
-const changeJurisdiction = async (newJurisdiction: string) => {
-  if (jurisdictionStore.getSupportedJurisdictions.includes(newJurisdiction)) {
-    try {
-      await jurisdictionStore.updateJurisdiction(newJurisdiction);
-      selectedJurisdiction.value = newJurisdiction;
-      emit('jurisdictionChanged', newJurisdiction);
-
-      // Instead of directly modifying cust.value, emit an event or call a method
-      // to update the customer object in the parent component or global state
-      emit('updateCustomer', { jurisdiction: newJurisdiction });
-    } catch (err) {
-      console.error('Failed to update jurisdiction:', err);
-    } finally {
-      dropdownRef.value?.closeMenu();
-    }
-  }
-};
 
 onMounted(() => {
   // Any initialization logic for jurisdiction, if needed

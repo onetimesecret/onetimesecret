@@ -259,13 +259,32 @@ export interface Feedback {
   stamp: string;
 }
 
-export interface Jurisdiction {
-  identifier: str;
-  display_name: str;
-  domain: str;
-  icon: str;
+// Base class with common properties
+export class BaseEntity {
+  identifier: string;
+  display_name: string;
+  domain: string;
+  icon: string;
+
+  constructor(identifier: string, display_name: string, domain: string, icon: string) {
+    this.identifier = identifier;
+    this.display_name = display_name;
+    this.domain = domain;
+    this.icon = icon;
+  }
 }
 
+// Jurisdiction class extending BaseEntity
+export class Jurisdiction extends BaseEntity {
+  // Additional properties specific to Jurisdiction can be added here
+}
+
+// Region class extending BaseEntity
+export class Region extends BaseEntity {
+  // Additional properties specific to Region can be added here
+}
+
+// Note: "Regions" is not a list of Region objects. It represents the site settings for all regions. A better name would be RegionsConfig.
 export interface Regions {
   enabled: boolean;
   current_jurisdiction: str
