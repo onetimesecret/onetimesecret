@@ -1,5 +1,5 @@
 <template>
-  <AuthView :heading="`Customize - ${domainId}`" headingId="signin-heading">
+  <AuthView :heading="`Customize - ${domainId}`" headingId="domain-brand">
     <template #form>
       <AccountDomainBrandForm />
       <div class="mt-6 text-center">
@@ -15,12 +15,7 @@
       </div>
     </template>
     <template #footer>
-      <router-link to="/signup"
-                   class="font-medium text-brand-600 hover:text-brand-500
-                          dark:text-brand-400 dark:hover:text-brand-300
-                          transition-colors duration-200">
-        {{ $t('web.login.need_an_account') }}
-      </router-link>
+
     </template>
   </AuthView>
 
