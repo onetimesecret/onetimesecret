@@ -4,7 +4,7 @@
               bg-gray-50 dark:bg-gray-900">
     <!-- Background Icon -->
     <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-10">
-      <Icon :icon="currentRegion.icon"
+      <Icon :icon="currentJurisdiction.icon"
             class="absolute top-0 left-1/2 h-auto w-full transform -translate-x-1/2 translate-y-0 scale-150
                    object-cover object-center blur-x backdrop-invert"
             aria-hidden="true" />
@@ -12,7 +12,7 @@
 
     <div class="relative z-10 w-full max-w-md space-y-8">
       <div class="flex flex-col items-center">
-        <Icon :icon="currentRegion.icon"
+        <Icon :icon="currentJurisdiction.icon"
               class="mb-32 h-48 w-48 text-brand-600 dark:text-brand-400"
               aria-hidden="true" />
       </div>
@@ -23,7 +23,7 @@
         </h2>
         <p class="mt-2 text-base text-gray-600 dark:text-gray-400 flex items-center justify-center">
           <span class="mr-1">
-            Serving you from the <span lang="en">{{ currentRegion.identifier }}</span>
+            Serving you from the <span lang="en">{{ currentJurisdiction.identifier }}</span>
           </span>
         </p>
       </div>
@@ -31,7 +31,7 @@
 
       <div class="mt-8 rounded-lg p-8 shadow-xl bg-white dark:bg-gray-800">
         <SignUpForm :planid="currentPlanId"
-                    :region="currentRegion" />
+                    :jurisdiction="currentJurisdiction" />
 
         <!-- Alternate sign up methods -->
         <div class="mt-6 hidden">
@@ -83,26 +83,28 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Icon } from '@iconify/vue';
+import { computed, ref } from 'vue';
 import SignUpForm from '@/components/auth/SignUpForm.vue';
 import { useWindowProps } from '@/composables/useWindowProps';
-import type { Jurisdiction } from '@/types/onetime';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { Icon } from '@iconify/vue';
+import { storeToRefs } from 'pinia';
 
-const { regions_enabled: regionsEnabled, regions } = useWindowProps(['regions_enabled', 'regions']);
+const jurisdictionStore = useJurisdictionStore();
+const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
-const currentPlanId = ref('basic');
+const { default_planid } = useWindowProps(['default_planid']);
 
-const currentRegion = computed(() => {
-  if (regionsEnabled && regions.value.current_jurisdiction) {
-    const defaultJurisdiction = regions.value.current_jurisdiction;
-    const jurisdiction: Jurisdiction | undefined = regions.value.jurisdictions.find(j => j.identifier === defaultJurisdiction) || regions.value.jurisdictions[0];
-    return jurisdiction;
-  } else {
-    throw new Error('No jurisdictions found or regions are not enabled.');
-  }
+const currentPlanId = ref(default_planid)
+
+// Use computed properties to access the current region and jurisdiction
+
+const currentJurisdiction = computed(() => getCurrentJurisdiction.value || {
+  identifier: 'Unknown Jurisdiction',
+  display_name: 'Unknown Jurisdiction',
+  domain: '',
+  icon: 'mdi:help-circle',
 });
 
 const socialProviders = [
