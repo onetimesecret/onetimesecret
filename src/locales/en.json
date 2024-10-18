@@ -121,11 +121,14 @@
       "title_no_recent_secrets": "No recent secrets"
     },
     "login": {
-      "need_an_account": "Need an account?",
+      "need_an_account": "Or, create your account today",
       "forgot_your_password": "Forgot your password?",
       "button_sign_in": "Sign In",
       "enter_your_credentials": "Enter your credentials",
       "remember_me": "Rembember me"
+    },
+    "signup": {
+      "have_an_account": "Or, sign in to your account"
     },
     "incoming": {
       "tagline1": "Paste a password, secret message or private link below.",

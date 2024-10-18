@@ -11,7 +11,7 @@
                    class="font-medium text-brand-600 hover:text-brand-500
                           dark:text-brand-400 dark:hover:text-brand-300
                           transition-colors duration-200">
-        Already have an account? Sign in
+        {{ $t('web.signup.have_an_account') }}
       </router-link>
     </template>
   </AuthView>
