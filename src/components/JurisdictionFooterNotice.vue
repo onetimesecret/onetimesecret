@@ -40,6 +40,12 @@
           role="listbox"
           aria-labelledby="listbox-label"
           aria-activedescendant="listbox-option-0">
+
+        <!-- Add the title header here -->
+        <li class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          Regions
+        </li>
+
         <li v-for="jurisdiction in jurisdictions"
             :key="jurisdiction.identifier"
             class="relative py-2 pl-3 pr-9 cursor-default select-none font-brand text-base
@@ -102,3 +108,9 @@ const closeDropdown = () => {
 
 useClickOutside(dropdownRef, closeDropdown);
 </script>
+
+<style scoped>
+.invert-colors {
+  filter: invert(1);
+}
+</style>

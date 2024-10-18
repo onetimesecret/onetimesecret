@@ -44,6 +44,10 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
 
   actions: {
     initializeStore(regionsConfig: Regions) {
+      if (!regionsConfig) {
+        this.enabled = false;
+        return;
+      }
       this.jurisdictions = regionsConfig.jurisdictions;
 
       // For the time being (i.e. for our first few locations), the region and
