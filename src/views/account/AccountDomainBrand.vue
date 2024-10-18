@@ -1,24 +1,22 @@
 <template>
   <AuthView :heading="`Customize - ${domainId}`" headingId="domain-brand">
     <template #form>
-      <AccountDomainBrandForm />
-      <div class="mt-6 text-center">
-        <ul class="space-y-2">
-          <li>
-            <router-link to="/forgot"
-                         class="text-sm text-gray-600 dark:text-gray-400 hover:underline transition duration-300 ease-in-out"
-                         aria-label="Forgot Password">
-              {{ $t('web.login.forgot_your_password') }}
-            </router-link>
-          </li>
-        </ul>
+      <div v-if="loading" class="text-center">
+        <p>Loading brand settings...</p>
       </div>
-    </template>
-    <template #footer>
-
+      <div v-else-if="error" class="text-center text-red-600">
+        <p>{{ error }}</p>
+        <button @click="fetchBrandSettings" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          Retry
+        </button>
+      </div>
+      <AccountDomainBrandForm
+        v-else
+        :brandSettings="brandSettings"
+        @settingsSaved="handleSettingsSaved"
+      />
     </template>
   </AuthView>
-
 </template>
 
 <script setup lang="ts">
@@ -46,18 +44,31 @@ const brandSettings = ref<CustomDomainBrand>({
   buttonStyle: 'rounded'
 });
 
+const loading = ref(true);
+const error = ref<string | null>(null);
+
 const fetchBrandSettings = async () => {
+  loading.value = true;
+  error.value = null;
   try {
     const response = await fetch(`/api/v2/account/domains/${domainId}/brand`);
     if (!response.ok) {
-      throw new Error('Failed to fetch brand settings');
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     brandSettings.value = data;
-  } catch (error) {
-    console.error('Error fetching brand settings:', error);
-    throw ('Failed to fetch brand settings. Please try again.');
+  } catch (err) {
+    console.error('Error fetching brand settings:', err);
+    error.value = 'Failed to fetch brand settings. Please try again.';
+  } finally {
+    loading.value = false;
   }
+};
+
+const handleSettingsSaved = (newSettings: CustomDomainBrand) => {
+  brandSettings.value = newSettings;
+  // You can add a success message or perform any other actions here
+  console.log('Brand settings saved successfully');
 };
 
 onMounted(fetchBrandSettings);

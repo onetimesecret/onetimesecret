@@ -74,7 +74,7 @@ class Onetime::CustomDomain < Familia::Horreum
     :_original_value,
     :txt_validation_host,
     :txt_validation_value,
-    :brand,
+    { :brand => ->(obj) { obj.brand.hgetall } },
     :status,
     { :vhost => ->(obj) { obj.parse_vhost } },
     :verified,
