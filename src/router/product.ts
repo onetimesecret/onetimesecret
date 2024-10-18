@@ -7,6 +7,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Pricing',
     component: () => import('@/views/pricing/PricingDual.vue'),
     meta: {
+      requiresAuth: false,
       layout: WideLayout,
       layoutProps: {
         displayMasthead: true,

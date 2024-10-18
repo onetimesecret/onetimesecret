@@ -1,6 +1,8 @@
 {
   "web": {
     "COMMON": {
+      "broadcast": "",
+
       "button_generate_secret_short": "Generate Password",
       "generate_password_disabled": "Generate Password is disabled when the form is valid",
       "email_placeholder": "e.g. tom{'@'}myspace.com",
@@ -11,8 +13,9 @@
       "confirm_password_placeholder": "Confirm your password",
       "skill_placeholder": "",
 
+      "header_settings": "Settings",
+      "submit_with": "Submit",
 
-      "broadcast": "",
       "description": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
       "keywords": "secret,password generator,share a secret,onetime",
       "button_create_secret": "Create a secret link",
@@ -61,7 +64,7 @@
       "word_received": "received",
       "word_confirm": "Confirm",
       "word_cancel": "Cancel",
-      "feedback_text": "Have a question or comment?",
+      "feedback_text": "Share your thoughts, ideas, or experiences...",
       "button_send_feedback": "Send Feedback",
       "verification_sent_to": "A verification was sent to"
     },
@@ -118,11 +121,14 @@
       "title_no_recent_secrets": "No recent secrets"
     },
     "login": {
-      "need_an_account": "Need an account?",
+      "need_an_account": "Or, create your account today",
       "forgot_your_password": "Forgot your password?",
       "button_sign_in": "Sign In",
       "enter_your_credentials": "Enter your credentials",
       "remember_me": "Rembember me"
+    },
+    "signup": {
+      "have_an_account": "Or, sign in to your account"
     },
     "incoming": {
       "tagline1": "Paste a password, secret message or private link below.",

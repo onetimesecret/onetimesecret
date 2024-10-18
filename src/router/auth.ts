@@ -12,12 +12,13 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Sign In',
     component: () => import('@/views/auth/Signin.vue'),
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
-        displayNavigation: false,
+        displayNavigation: true,
         displayLinks: false,
-        displayFeedback: false,
+        displayFeedback: true,
         displayVersion: true,
         displayToggles: true,
       },
@@ -48,13 +49,14 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
-        displayNavigation: false,
+        displayNavigation: true,
         displayLinks: false,
-        displayFeedback: false,
-        displayVersion: false,
+        displayFeedback: true,
+        displayVersion: true,
       },
     },
   },
@@ -74,12 +76,13 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
         displayLinks: false,
-        displayFeedback: false,
+        displayFeedback: true,
         displayVersion: false,
       },
     },
@@ -90,6 +93,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Logout',
     component: { render: () => null }, // Dummy component
     meta: {
+      requiresAuth: true,
       layout: QuietLayout,
       layoutProps: {}
     },

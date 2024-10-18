@@ -51,15 +51,6 @@ module Onetime
       include Base
       require 'onetime/app/web/account'
 
-      def receive_feedback
-        publically do
-          logic = OT::Logic::Misc::ReceiveFeedback.new sess, cust, req.params, locale
-          logic.raise_concerns
-          logic.process
-          res.redirect app_path('/feedback')
-        end
-      end
-
       def create_incoming
         publically(req.request_path) do
           if OT.conf[:incoming] && OT.conf[:incoming][:enabled]

@@ -53,7 +53,7 @@ module Onetime::App
       # @param logic_class [Class] The class implementing the action logic.
       # @param success_message [String] The success message to display if the action succeeds.
       # @param error_message [String] The error message to display if the action fails.
-      # @param auth_type [Symbol] The type of authentication to use (:authorized or :colonels). Defaults to :authorized.
+      # @param auth_type [Symbol] The type of authentication to use (:authorized or :colonels, :publically). Defaults to :authorized.
       # @param allow_anonymous [Boolean] Whether to allow anonymous access. Defaults to false.
       #
       # The logic class must implement the following methods:

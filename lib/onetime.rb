@@ -157,6 +157,9 @@ module Onetime
       if OT.conf[:site].key?(:domains)
         OT.li "domains: #{OT.conf[:site][:domains].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
+      if OT.conf[:site].key?(:regions)
+        OT.li "regions: #{OT.conf[:site][:regions].map { |k,v| "#{k}=#{v}" }.join(', ')}"
+      end
       if OT.conf[:development][:enabled]
         OT.li "frontend: #{OT.conf[:development][:frontend_host]}"
       end

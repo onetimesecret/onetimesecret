@@ -27,6 +27,8 @@ GET    /authcheck                            Onetime::App::APIV2#authcheck
 GET    /version                              Onetime::App::APIV2#version
 POST   /validate-shrimp                      Onetime::App::APIV2#get_validate_shrimp
 
+POST   /feedback                             Onetime::App::APIV2#receive_feedback
+
 GET    /altcha/challenge                     Onetime::App::APIV2::Challenges#altcha_challenge
 POST   /altcha/verify                        Onetime::App::APIV2::Challenges#altcha_verify
 POST   /altcha/verify-spam                   Onetime::App::APIV2::Challenges#altcha_verify_spam
