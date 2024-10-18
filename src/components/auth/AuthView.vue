@@ -1,5 +1,5 @@
 <!-- eslint-disable vue/multi-word-component-names -->
-<!-- src/components/auth/AuthLayout.vue -->
+<!-- src/components/auth/AuthView.vue -->
 <template>
   <div class="relative flex min-h-screen items-start justify-center overflow-hidden
               px-4 pt-12
@@ -21,7 +21,7 @@
     </div>
 
     <!-- Page Title -->
-    <div class="relative z-10 w-full max-w-md space-y-4">
+    <div class="relative z-10 w-full max-w-2xl space-y-4 min-w-[320px]">
 
       <!-- Title Icon -->
       <div class="flex flex-col items-center">

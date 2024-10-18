@@ -4,7 +4,7 @@
       <FooterLinkLists v-if="displayLinks" v-bind="$props" />
 
       <div class="flex flex-col sm:flex-row justify-between items-center pt-6">
-        <div v-if="displayVersion" class="text-sm text-center sm:text-left mb-4 sm:mb-0 text-gray-600 dark:text-gray-300">
+        <div v-if="displayVersion" class="text-sm text-left w-full sm:w-auto mb-4 sm:mb-0 text-gray-600 dark:text-gray-300">
           &copy; {{ new Date().getFullYear() }} {{ companyName }}.
           <span class="hidden md:inline">All rights reserved.</span>
         </div>
@@ -32,7 +32,7 @@ import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
-import JurisdictionFooterNotice from '../JurisdictionFooterNotice.vue';
+import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
 import { useWindowProps } from '@/composables/useWindowProps';
 
 export interface Props extends DefaultProps {

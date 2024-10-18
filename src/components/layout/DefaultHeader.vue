@@ -1,22 +1,24 @@
 <template>
   <header>
-    <div class="container mx-auto mt-1 p-2 max-w-2xl">
+    <div class="container mx-auto px-4 py-2 min-w-[320px] max-w-2xl">
       <div v-if="displayMasthead"
-           class="min-w-[320px]">
+           class="w-full">
         <div class="flex flex-col sm:flex-row justify-between items-center">
-          <div class="mb-6 sm:mb-0"><router-link to="/"><img id="logo"
+          <div class="mb-6 sm:mb-0 self-start">
+            <router-link to="/">
+              <img id="logo"
                    src="@/assets/img/onetime-logo-v3-xl.svg"
-                   class=" rounded-md"
+                   class="rounded-md"
                    aria-label="Onetime Secret"
-
                    width="64"
                    height="64"
-                   alt="Logo"></router-link></div>
+                   alt="Logo">
+            </router-link>
+          </div>
 
           <nav v-if="displayNavigation"
                class="flex flex-wrap justify-center sm:justify-end items-center gap-2 text-base font-brand">
             <template v-if="authenticated && cust">
-
               <HeaderUserNav :cust="cust"
                              :colonel="colonel" />
               <a href="#"
@@ -56,9 +58,7 @@
                            title="About Onetime Secret"
                            class="underline">{{ $t('web.COMMON.header_about') }}</router-link>
             </template>
-
           </nav>
-
         </div>
       </div>
     </div>
@@ -91,8 +91,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const colonel = computed(() => props.cust?.role === 'colonel');
 
-
-
 // Reactive state
 const isSettingsModalOpen = ref(false);
 
@@ -104,5 +102,4 @@ const openSettingsModal = () => {
 const closeSettingsModal = () => {
   isSettingsModalOpen.value = false;
 };
-
 </script>
