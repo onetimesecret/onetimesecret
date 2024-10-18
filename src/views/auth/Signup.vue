@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <div class="relative flex min-h-screen items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8
-              bg-gray-50 dark:bg-gray-900">
+  <div class="relative flex min-h-screen items-start justify-center overflow-hidden px-4 sm:px-6 lg:px-8
+              bg-gray-50 dark:bg-gray-900 pt-16 sm:pt-24">
     <!-- Background Icon -->
     <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-10">
       <Icon :icon="currentJurisdiction.icon"
@@ -10,15 +10,15 @@
             aria-hidden="true" />
     </div>
 
-    <div class="relative z-10 w-full max-w-md space-y-8">
+    <div class="relative z-10 w-full max-w-md space-y-6">
       <div class="flex flex-col items-center">
         <Icon :icon="currentJurisdiction.icon"
-              class="mb-32 h-48 w-48 text-brand-600 dark:text-brand-400"
+              class="mb-24 h-40 w-40 text-brand-600 dark:text-brand-400"
               aria-hidden="true" />
       </div>
       <div class="text-center">
         <h2 id="signup-heading"
-            class="mt-6 text-4xl font-extrabold text-gray-900 dark:text-white">
+            class="text-3xl font-extrabold text-gray-900 dark:text-white">
           Create your account
         </h2>
         <p class="mt-2 text-base text-gray-600 dark:text-gray-400 flex items-center justify-center">
@@ -28,8 +28,7 @@
         </p>
       </div>
 
-
-      <div class="mt-8 rounded-lg p-8 shadow-xl bg-white dark:bg-gray-800">
+      <div class="mt-6 rounded-lg p-8 shadow-xl bg-white dark:bg-gray-800">
         <SignUpForm :planid="currentPlanId"
                     :jurisdiction="currentJurisdiction" />
 

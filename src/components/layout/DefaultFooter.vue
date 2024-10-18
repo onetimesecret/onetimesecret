@@ -1,34 +1,25 @@
 <template>
-  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 overflow-visible w-full transition-all duration-300" aria-label="Site footer">
-    <div class="container my-4 mx-auto px-4 max-w-2xl">
-      <FooterLinkLists v-if="displayLinks"
-                       v-bind="$props" />
+  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 w-full transition-all duration-300" aria-label="Site footer">
+    <div class="container mx-auto px-4 max-w-2xl">
+      <FooterLinkLists v-if="displayLinks" v-bind="$props" />
 
       <div class="flex flex-col sm:flex-row justify-between items-center pt-6">
-        <!-- Footer content goes here -->
-        <div v-if="displayVersion"
-             class="text-sm text-center sm:text-left mb-4 sm:mb-0 text-gray-600 dark:text-gray-300">
-          &copy; {{ new Date().getFullYear() }} {{ companyName }}. All rights reserved.
+        <div v-if="displayVersion" class="text-sm text-center sm:text-left mb-4 sm:mb-0 text-gray-600 dark:text-gray-300">
+          &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+          <span class="hidden md:inline">All rights reserved.</span>
         </div>
-        <div v-if="displayToggles"
-             class="flex flex-wrap items-center justify-center sm:justify-end space-x-4 mb-4 sm:mb-0">
-
-
+        <div v-if="displayToggles" class="flex flex-wrap items-center justify-center sm:justify-end space-x-4">
           <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
 
           <ThemeToggle
-                      class="
-                        text-gray-600
-                        dark:text-gray-300
-                        hover:text-gray-800
-                        dark:hover:text-gray-100
-                        transition-colors
-                        duration-200
-                      "
-                      aria-label="Toggle dark mode" />
-          <FeedbackToggle v-if="displayFeedback && authentication.enabled"
-                          class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200"
-                          aria-label="Provide feedback" />
+            class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200"
+            aria-label="Toggle dark mode"
+          />
+          <FeedbackToggle
+            v-if="displayFeedback && authentication.enabled"
+            class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200"
+            aria-label="Provide feedback"
+          />
         </div>
       </div>
     </div>
@@ -44,7 +35,6 @@ import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
 import JurisdictionFooterNotice from '../JurisdictionFooterNotice.vue';
 import { useWindowProps } from '@/composables/useWindowProps';
 
-// Define the props for this layout, extending the DefaultLayout props
 export interface Props extends DefaultProps {
   displayFeedback?: boolean
   displayLinks?: boolean
@@ -59,7 +49,6 @@ withDefaults(defineProps<Props>(), {
   displayToggles: true,
 });
 
-const {regions_enabled: regionsEnabled, regions} = useWindowProps(['regions_enabled', 'regions'])
+const { regions_enabled: regionsEnabled, regions } = useWindowProps(['regions_enabled', 'regions'])
 const companyName = ref('Onetime Secret');
-
 </script>
