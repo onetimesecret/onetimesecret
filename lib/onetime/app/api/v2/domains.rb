@@ -1,5 +1,3 @@
-
-
 require_relative 'base'
 require_relative '../../app_settings'
 require_relative '../../../logic/domains'
@@ -47,6 +45,18 @@ class Onetime::App::APIV2
       # in a lighter way so it doesn't feel like so much machinery just
       # to return a single record (get_domain et al).
       retrieve_records(OT::Logic::Domains::ListDomains)
+    end
+
+    def get_branding_settings
+      retrieve_records(OT::Logic::Domains::GetBrandingSettings)
+    end
+
+    def save_branding_settings
+      process_action(
+        OT::Logic::Domains::SaveBrandingSettings,
+        "Branding settings saved successfully.",
+        "Branding settings could not be saved."
+      )
     end
 
   end

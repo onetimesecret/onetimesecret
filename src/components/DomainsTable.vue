@@ -6,9 +6,6 @@
         <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">These are your verified custom domains.</p>
       </div>
       <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-        <!-- NOTE: We could instead use the Vue router to load the AccountDomainAdd -->
-        <!-- view on this page and avoid doing a full page request (it's also one less -->
-        <!-- web route that needs to be implemented). -->
         <router-link to="/account/domains/add"
                      class="block rounded-md bg-brand-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">Add
           Domain</router-link>
@@ -49,13 +46,17 @@
             <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
               <MinimalDropdownMenu>
                 <template #menu-items>
-                  <!-- NOTE: We could instead use the Vue router to load the AccountDomainVerify -->
-                  <!-- view on this page and avoid doing a full page request (it's also one less -->
-                  <!-- web route that needs to be implemented). -->
                   <MenuItem v-slot="{ active }">
                   <router-link :to="{ name: 'AccountDomainVerify', params: { domain: domain.display_domain } }"
                                :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
                     Review verification steps
+                  </router-link>
+                  </MenuItem>
+
+                  <MenuItem v-slot="{ active }">
+                  <router-link :to="{ name: 'DomainBrandingSettings', params: { id: domain.identifier } }"
+                               :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
+                    Manage Branding
                   </router-link>
                   </MenuItem>
 

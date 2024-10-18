@@ -1,9 +1,7 @@
-
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
-
   {
     path: '/account/domains/:domain/verify',
     name: 'AccountDomainVerify',
@@ -38,6 +36,16 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/account/domains/:id/brand',
+    name: 'DomainBrandSettings',
+    component: () => import('@/views/account/DomainBrandSettings.vue'),
+    meta: {
+      requiresAuth: true,
+      layout: DefaultLayout,
+    },
+    props: true,
+  },
+  {
     path: '/account',
     name: 'Account',
     component: () => import('@/views/account/AccountIndex.vue'),
@@ -57,7 +65,6 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
-
 ]
 
 export default routes;
