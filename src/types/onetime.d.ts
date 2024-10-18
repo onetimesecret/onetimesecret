@@ -14,6 +14,17 @@ export interface BaseApiRecord {
   updated: string;
 }
 
+export interface BrandSettings {
+  logo: string;
+  image_encoded: string;
+  image_content_type: string;
+  image_filename: string;
+  primary_color: string;
+  description: string;
+  font_family: string;
+  button_style: string;
+}
+
 // Define the customer model
 export interface Customer extends BaseApiRecord {
   custid: string;
@@ -31,6 +42,7 @@ export interface Customer extends BaseApiRecord {
   stripe_subscription_id?: string;
   stripe_customer_id?: string;
 }
+
 
 export interface ColonelCustomer {
   custid: string;

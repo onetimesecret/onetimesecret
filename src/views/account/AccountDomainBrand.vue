@@ -24,21 +24,17 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import AuthView from '@/components/auth/AuthView.vue';
 import AccountDomainBrandForm from '@/components/account/AccountDomainBrandForm.vue';
+import { BrandSettings } from '@/types/onetime';
 
 const route = useRoute();
 const domainId = route.params.domain as string;
 
-interface CustomDomainBrand {
-  logo: string;
-  primary_color: string;
-  description: string;
-  font_family: string;
-  button_style: string;
-}
-
-const brandSettings = ref<CustomDomainBrand>({
+const brandSettings = ref<BrandSettings>({
   logo: '',
   primary_color: '#000000',
+  image_content_type: '',
+  image_encoded: '',
+  image_filename: '',
   description: '',
   font_family: 'sans-serif',
   button_style: 'rounded'
@@ -56,7 +52,20 @@ const fetchBrandSettings = async () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    updateBrandSettings(data);
+
+    // Map the received data to the expected format
+    const mappedData = {
+      logo: data.record.brand.image_filename || '',
+      primary_color: data.record.brand.primary_color || '#ffffff',
+      description: data.record.brand.description || '',
+      image_encoded: data.record.brand.image_encoded || '',
+      image_filename: data.record.brand.image_filename || '',
+      image_content_type: data.record.brand.image_content_type || '',
+      font_family: data.record.brand.font_family || '',
+      button_style: data.record.brand.button_style || ''
+    };
+
+    updateBrandSettings(mappedData);
   } catch (err) {
     console.error('Error fetching brand settings:', err);
     error.value = 'Failed to fetch brand settings. Please try again.';
@@ -65,9 +74,9 @@ const fetchBrandSettings = async () => {
   }
 };
 
-const updateBrandSettings = (newSettings: CustomDomainBrand) => {
+const updateBrandSettings = (newSettings: BrandSettings) => {
   brandSettings.value = newSettings;
-  console.log('Brand settings updated', newSettings);
+  console.debug('Brand settings updated', newSettings);
 };
 
 onMounted(fetchBrandSettings);

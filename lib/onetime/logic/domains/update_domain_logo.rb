@@ -64,7 +64,7 @@ module Onetime::Logic
         {
           record: @custom_domain.safe_dump,
           details: {
-            msg: "Logo updated successfully for #{@custom_domain.domain}"
+            msg: "Logo updated successfully for #{@custom_domain.display_domain}"
           }
         }
       end

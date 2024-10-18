@@ -24,33 +24,15 @@ module Onetime::Logic
       def process
         OT.ld "[GetDomainBrand] Processing #{@custom_domain.display_domain}"
         @display_domain = @custom_domain.display_domain
-        fetch_brand_settings
       end
 
       def success_data
         {
           custid: @cust.custid,
-          record: @custom_domain.safe_dump,
-          brand_settings: @brand_settings
+          record: @custom_domain.safe_dump
         }
       end
 
-      private
-
-      def fetch_brand_settings
-        # Fetch brand settings from the database or cache
-        # This is a placeholder implementation. Replace with actual database queries.
-        @brand_settings = {
-          logo: "https://example.com/logo.png",
-          primaryColor: "#000000",
-          description: "Custom domain description",
-          fontFamily: "Arial, sans-serif",
-          buttonStyle: "rounded"
-        }
-
-        # If no settings found, return an empty object
-        @brand_settings = {} if @brand_settings.empty?
-      end
     end
   end
 end
