@@ -7,34 +7,58 @@ module Onetime::Logic
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       def process_params
-        @domain_id = params[:domain_id]
+        @domain_id = params[:domain].to_s.strip
         @brand_settings = params[:brand_settings]
       end
 
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
-        greenlight
-        error("Missing domain_id") if @domain_id.nil? || @domain_id.empty?
-        error("Missing brand_settings") if @brand_settings.nil? || !@brand_settings.is_a?(Hash)
-        error("Invalid logo URL") if @brand_settings[:logo] && !valid_url?(@brand_settings[:logo])
-        error("Invalid primary color") if @brand_settings[:primaryColor] && !valid_color?(@brand_settings[:primaryColor])
-        error("Invalid font family") if @brand_settings[:fontFamily] && !valid_font_family?(@brand_settings[:fontFamily])
-        error("Invalid button style") if @brand_settings[:buttonStyle] && !valid_button_style?(@brand_settings[:buttonStyle])
+        OT.ld "[UpdateDomainBrand] Raising any concerns about domain_id: #{@domain_id}, brand_settings: #{@brand_settings}"
+
+        raise_form_error "Please provide a domain ID" if @domain_id.nil? || @domain_id.empty?
+        raise_form_error "Please provide brand settings" if @brand_settings.nil? || !@brand_settings.is_a?(Hash)
+
+        limit_action :update_domain_brand
+
+        if @brand_settings[:logo]
+          raise_form_error "Invalid logo URL" unless valid_url?(@brand_settings[:logo])
+        end
+
+        if @brand_settings[:primaryColor]
+          raise_form_error "Invalid primary color" unless valid_color?(@brand_settings[:primaryColor])
+        end
+
+        if @brand_settings[:fontFamily]
+          raise_form_error "Invalid font family" unless valid_font_family?(@brand_settings[:fontFamily])
+        end
+
+        if @brand_settings[:buttonStyle]
+          raise_form_error "Invalid button style" unless valid_button_style?(@brand_settings[:buttonStyle])
+        end
+
+        # You might want to add a check here to ensure the domain exists
+        # raise_form_error "Domain not found" unless OT::CustomDomain.exists?(@domain_id)
       end
 
       def process
-        return unless greenlighted?
+        @greenlighted = true
 
         @custom_domain = OT::CustomDomain.find_by_domain(@domain_id)
         return error("Custom domain not found") unless @custom_domain
 
         update_brand_settings
-        success("Brand settings updated successfully")
       end
 
-      private
-
+      def success_data
+        {
+          custid: @cust.custid,
+          record: @custom_domain.safe_dump,
+          details: {
+            cluster: OT::Cluster::Features.cluster_safe_dump
+          }
+        }
+      end
 
       # Update the brand settings for the custom domain
       def update_brand_settings

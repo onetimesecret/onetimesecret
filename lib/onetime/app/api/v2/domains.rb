@@ -47,11 +47,19 @@ class Onetime::App::APIV2
       retrieve_records(OT::Logic::Domains::ListDomains)
     end
 
-    def get_brand_settings
+    def get_domain_brand
       retrieve_records(OT::Logic::Domains::GetDomainBrand)
     end
 
-    def save_brand_settings
+    def update_domain_logo
+      process_action(
+        OT::Logic::Domains::UpdateDomainLogo,
+        "Logo saved successfully.",
+        "Logo could not be saved."
+      )
+    end
+
+    def update_domain_brand
       process_action(
         OT::Logic::Domains::UpdateDomainBrand,
         "Brand settings saved successfully.",
