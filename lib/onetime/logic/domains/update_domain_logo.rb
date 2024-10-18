@@ -62,14 +62,10 @@ module Onetime::Logic
       def success_data
         OT.ld "[UpdateDomainLogo] Preparing success data for domain_id: #{@domain_id}"
         {
-          domain: {
-            id: @custom_domain.identifier,
-            custid: @custom_domain.custid,
-            display_domain: @custom_domain.display_domain,
-            logo_url: @logo_url,
-            updated_at: @custom_domain.updated_at.utc.iso8601
-          },
-          msg: "Logo updated successfully for #{@custom_domain.domain}"
+          record: @custom_domain.safe_dump,
+          details: {
+            msg: "Logo updated successfully for #{@custom_domain.domain}"
+          }
         }
       end
 

@@ -8,7 +8,7 @@ module Onetime::Logic
 
       def process_params
         @domain_id = params[:domain].to_s.strip
-        @brand_settings = params[:brand_settings]
+        @brand_settings = params
       end
 
       # Validate the input parameters
@@ -20,10 +20,6 @@ module Onetime::Logic
         raise_form_error "Please provide brand settings" if @brand_settings.nil? || !@brand_settings.is_a?(Hash)
 
         limit_action :update_domain_brand
-
-        if @brand_settings[:logo]
-          raise_form_error "Invalid logo URL" unless valid_url?(@brand_settings[:logo])
-        end
 
         if @brand_settings[:primary_color]
           raise_form_error "Invalid primary color" unless valid_color?(@brand_settings[:primary_color])
@@ -44,7 +40,7 @@ module Onetime::Logic
       def process
         @greenlighted = true
 
-        @custom_domain = OT::CustomDomain.find_by_domain(@domain_id)
+        @custom_domain = OT::CustomDomain.load(@domain_id, @cust.custid)
         return error("Custom domain not found") unless @custom_domain
 
         update_brand_settings
@@ -62,7 +58,7 @@ module Onetime::Logic
 
       # Update the brand settings for the custom domain
       def update_brand_settings
-        valid_keys = [:logo, :primary_color, :description, :font_family, :button_style]
+        valid_keys = [:primary_color, :description, :font_family, :button_style]
         @brand_settings.each do |key, value|
           if valid_keys.include?(key.to_sym)
             @custom_domain.brand[key.to_s] = value
