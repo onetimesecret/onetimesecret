@@ -13,7 +13,6 @@ module Onetime::Logic
         @authenticity_payload = params[:authenticity_payload].to_s.slice(0, 999)
         @tz = params[:tz].to_s.slice(0, 64)
         @version = params[:version].to_s.slice(0, 32)
-        p [:plop_version, @version]
       end
 
       def raise_concerns
