@@ -62,6 +62,7 @@
     "@vitest/coverage-v8": "^2.1.2",
     "@vue/runtime-core": "^3.5.11",
     "@vue/test-utils": "^2.4.6",
+    "@vueuse/core": "^11.1.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.28.0",

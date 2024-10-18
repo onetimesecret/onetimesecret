@@ -72,8 +72,8 @@ obj.raise_concerns
 ## Sending feedback provides a UI message
 obj = OT::Logic::Misc::ReceiveFeedback.new @sess, @cust, @params
 obj.process
-@sess.get_info_messages
-#=> [{:type=>"info", :content=>"Message received. Send as much as you like!"}]
+[@sess.get_info_messages, obj.success_data] # Since 0.18.3
+#=> [[], {:success=>true, :record=>{}, :details=>{:message=>"Message received. Send as much as you like!"}}]
 
 ## Sending the same feedback from the same customer does not
 ## increment the count. A feature of using a redis set.
@@ -143,13 +143,13 @@ obj.verified
 recent_feedback = @model_class.recent
 most_recent_pair = recent_feedback.to_a.last # as an array [key, value]
 most_recent_pair[0]
-#=> "#{@params[:msg]} [#{@email_address}]"
+#=> "#{@params[:msg]} [#{@email_address}] [TZ: ] [v]"
 
 ## Feedback model exposes an all method
 all_feedback = @model_class.recent
 most_recent_pair = all_feedback.to_a.last
 most_recent_pair[0]
-#=> "#{@params[:msg]} [#{@email_address}]"
+#=> "#{@params[:msg]} [#{@email_address}] [TZ: ] [v]"
 
 # Cleanup
 puts 'clearing limiters'

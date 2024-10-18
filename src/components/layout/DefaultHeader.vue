@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
-import SettingsModal from '@/components/modals/SettingsModal3.vue';
+import SettingsModal from '@/components/modals/SettingsModal.vue';
 import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 import { computed, ref } from 'vue';
 

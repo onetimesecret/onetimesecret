@@ -14,7 +14,14 @@
         <label for="feedback-message" class="sr-only">Your feedback</label>
         <textarea id="feedback-message"
           v-model="feedbackMessage"
-          class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+          class="w-full
+                px-3 py-2
+                rounded-md
+                text-gray-900 placeholder-gray-400
+                bg-gray-50 border border-gray-300
+                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500
+                dark:bg-gray-700 dark:text-white dark:border-gray-600
+                transition-colors"
           name="msg"
           rows="4"
           required
@@ -35,7 +42,16 @@
 
       <button type="submit"
               :disabled="isSubmitting"
-              class="w-full px-4 py-2 font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-50 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              class="w-full
+                    px-4 py-2
+                    rounded-md
+                    font-medium text-white
+                    bg-red-600
+                    hover:bg-red-700
+                    focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-50
+                    dark:focus:ring-offset-gray-800
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    transition-colors"
               aria-label="Send feedback">
         {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
       </button>
@@ -64,7 +80,8 @@ import AltchaChallenge from '@/components/AltchaChallenge.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useWindowProps } from '@/composables/useWindowProps';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { useMediaQuery } from '@vueuse/core';
 
 const csrfStore = useCsrfStore();
 
@@ -125,10 +142,6 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 // Submit form UI
 
-
-
-import { computed } from 'vue';
-
 /**
  * Computed property to determine the submit key combination text based on the platform
  */
@@ -137,23 +150,9 @@ const submitWithText = computed(() => {
 });
 
 /**
- * State to track if the device is a desktop
+ * State to track if the device is a desktop using useMediaQuery
  */
-const isDesktop = ref(false);
+const isDesktop = useMediaQuery('(min-width: 1024px)');
 
-/**
- * Function to detect if the device is a desktop
- */
-const detectDesktop = () => {
-  isDesktop.value = !/Mobi|Android/i.test(navigator.userAgent);
-};
-
-/**
- * Lifecycle hook to run the detectDesktop function on component mount
- */
-onMounted(() => {
-  detectDesktop();
-  window.addEventListener('resize', detectDesktop);
-});
 
 </script>
