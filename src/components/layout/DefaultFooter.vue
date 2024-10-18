@@ -1,5 +1,5 @@
 <template>
-  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 overflow-visible w-full transition-all duration-300">
+  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 overflow-visible w-full transition-all duration-300" aria-label="Site footer">
     <div class="container my-4 mx-auto px-4 max-w-2xl">
       <FooterLinkLists v-if="displayLinks"
                        v-bind="$props" />
@@ -25,9 +25,10 @@
                         transition-colors
                         duration-200
                       "
-                    />
+                      aria-label="Toggle dark mode" />
           <FeedbackToggle v-if="displayFeedback && authentication.enabled"
-                          class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200" />
+                          class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200"
+                          aria-label="Provide feedback" />
         </div>
       </div>
     </div>
