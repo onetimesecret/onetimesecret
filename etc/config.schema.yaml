@@ -36,7 +36,6 @@
   :regions: include(':regions')
   :secret_options: include(':secret_options')
 
-
 :domains:
   :enabled: any()
   :default: str(required=False)

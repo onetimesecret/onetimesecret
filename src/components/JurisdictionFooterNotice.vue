@@ -42,7 +42,7 @@
           aria-activedescendant="listbox-option-0">
 
         <!-- Add the title header here -->
-        <li class="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        <li class="px-3 py-2 text-xs font-semibold font-brand text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Regions
         </li>
 
@@ -108,9 +108,3 @@ const closeDropdown = () => {
 
 useClickOutside(dropdownRef, closeDropdown);
 </script>
-
-<style scoped>
-.invert-colors {
-  filter: invert(1);
-}
-</style>
