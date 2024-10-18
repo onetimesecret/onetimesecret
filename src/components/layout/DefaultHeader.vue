@@ -1,6 +1,6 @@
 <template>
-  <header class="bg-white dark:bg-gray-800 shadow-sm">
-    <div class="container mx-auto px-4 py-4 min-w-[320px] max-w-4xl">
+  <header class="bg-white dark:bg-gray-900 ">
+    <div class="container mx-auto px-4 py-4 min-w-[320px] max-w-2xl">
       <div v-if="displayMasthead" class="w-full">
         <div class="flex flex-col sm:flex-row justify-between items-center">
           <div class="mb-4 sm:mb-0">
@@ -10,7 +10,7 @@
                    class="rounded-md w-12 h-12 sm:w-16 sm:h-16"
                    aria-label="Onetime Secret"
                    alt="Logo">
-              <span class="ml-2 text-xl font-bold text-gray-800 dark:text-white">Onetime Secret</span>
+              <span class="ml-2 text-xl font-brand font-bold text-gray-800 dark:text-white">Onetime Secret</span>
             </router-link>
           </div>
 

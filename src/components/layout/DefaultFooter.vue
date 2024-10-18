@@ -1,6 +1,6 @@
 <template>
   <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 w-full transition-all duration-300" aria-label="Site footer">
-    <div class="container mx-auto px-4 max-w-4xl">
+    <div class="container mx-auto px-4 max-w-2xl">
       <FooterLinkLists v-if="displayLinks" v-bind="$props" />
 
       <div class="flex flex-col-reverse sm:flex-row justify-between items-center pt-6 mt-6">

@@ -5,7 +5,7 @@
     </template>
 
     <template #main>
-      <main class="container mx-auto px-4 py-8 min-w-[320px] max-w-4xl" name="DefaultLayout">
+      <main class="container mx-auto px-4 py-8 min-w-[320px] max-w-2xl" name="DefaultLayout">
         <slot></slot>
       </main>
     </template>
