@@ -8,7 +8,7 @@ const authenticationSettings = window.authentication;
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-6 min-w-[320px] max-w-2xl">
+  <div class="container mx-auto py-6 min-w-[320px] max-w-2xl">
     <HomepageTaglines v-if="!authenticated" class="mb-8" />
 
     <HomepagePlansCTA v-if="authenticationSettings.signup" class="mb-8" />
