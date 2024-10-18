@@ -13,7 +13,7 @@
              :lang="locale"
              v-bind="layoutProps">
     <!-- See QuietLayout.vue for named views -->
-    <router-view></router-view>
+    <router-view class="rounded-md"></router-view>
   </component>
 </template>
 
