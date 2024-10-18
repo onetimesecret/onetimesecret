@@ -47,15 +47,15 @@ class Onetime::App::APIV2
       retrieve_records(OT::Logic::Domains::ListDomains)
     end
 
-    def get_branding_settings
-      retrieve_records(OT::Logic::Domains::GetBrandingSettings)
+    def get_brand_settings
+      retrieve_records(OT::Logic::Domains::GetDomainBrand)
     end
 
-    def save_branding_settings
+    def save_brand_settings
       process_action(
-        OT::Logic::Domains::SaveBrandingSettings,
-        "Branding settings saved successfully.",
-        "Branding settings could not be saved."
+        OT::Logic::Domains::UpdateDomainBrand,
+        "Brand settings saved successfully.",
+        "Brand settings could not be saved."
       )
     end
 

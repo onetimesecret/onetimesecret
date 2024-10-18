@@ -36,9 +36,9 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/account/domains/:id/brand',
-    name: 'DomainBrandSettings',
-    component: () => import('@/views/account/DomainBrandSettings.vue'),
+    path: '/account/domains/:domain/brand',
+    name: 'AccountDomainBrand',
+    component: () => import('@/views/account/AccountDomainBrand.vue'),
     meta: {
       requiresAuth: true,
       layout: DefaultLayout,

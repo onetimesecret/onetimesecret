@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 sm:px-6 lg:px-8 dark:bg-gray-900">
+  <div class="dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
     <div class="sm:flex sm:items-center">
       <div class="sm:flex-auto">
         <h1 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">Domains</h1>
@@ -7,42 +7,52 @@
       </div>
       <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
         <router-link to="/account/domains/add"
-                     class="block rounded-md bg-brand-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">Add
-          Domain</router-link>
+          class="block rounded-md bg-brand-600 px-3 py-2 text-center text-sm font-semibold text-white
+          shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2
+          focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500
+          dark:hover:bg-brand-400">Add Domain</router-link>
       </div>
     </div>
-    <div class="-mx-4 mt-10 ring-1 ring-gray-300 sm:mx-0 sm:rounded-lg dark:ring-gray-700">
+    <div class="mt-10 -mx-4 sm:mx-0 sm:rounded-lg ring-1 ring-gray-300 dark:ring-gray-700">
       <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
         <thead>
           <tr>
             <th scope="col"
-                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 dark:text-gray-100">Domain
+              class="py-3.5 pl-4 pr-3 sm:pl-6 text-left text-sm font-semibold text-gray-900
+              dark:text-gray-100">Domain
             </th>
             <th scope="col"
-                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell dark:text-gray-100">
-              Status</th>
+              class="hidden px-3 py-3.5 lg:table-cell text-left text-sm font-semibold text-gray-900
+              dark:text-gray-100">Status</th>
             <th scope="col"
-                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell dark:text-gray-100">
-              Added</th>
+              class="hidden px-3 py-3.5 lg:table-cell text-left text-sm font-semibold text-gray-900
+              dark:text-gray-100">Added</th>
             <th scope="col"
-                class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+              class="relative py-3.5 pl-3 pr-4 sm:pr-6">
               <span class="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
           <tr v-for="(domain, domainIdx) in domains"
-              :key="domain.identifier"
-              :tabindex="domainIdx">
-            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 dark:text-gray-100">
-              {{ domain.display_domain }}
+            :key="domain.identifier"
+            :tabindex="domainIdx">
+            <td class="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6 text-sm font-medium text-gray-900
+              dark:text-gray-100">
+              <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
+                            class="">
+                               {{ domain.display_domain }}
+              </router-link>
             </td>
-            <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell dark:text-gray-300">
+            <td class="hidden whitespace-nowrap px-3 py-4 lg:table-cell text-sm text-gray-500
+              dark:text-gray-300">
               <DomainVerificationInfo mode="icon" :domain="domain" />
             </td>
-            <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell dark:text-gray-300">
+            <td class="hidden whitespace-nowrap px-3 py-4 lg:table-cell text-sm text-gray-500
+              dark:text-gray-300">
               {{ formatRelativeTime(Number(domain.created)) }}
             </td>
+
             <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
               <MinimalDropdownMenu>
                 <template #menu-items>
@@ -54,9 +64,9 @@
                   </MenuItem>
 
                   <MenuItem v-slot="{ active }">
-                  <router-link :to="{ name: 'DomainBrandingSettings', params: { id: domain.identifier } }"
+                  <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
                                :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
-                    Manage Branding
+                    Manage Brand
                   </router-link>
                   </MenuItem>
 

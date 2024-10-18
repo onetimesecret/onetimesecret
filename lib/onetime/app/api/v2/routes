@@ -8,6 +8,8 @@ POST   /account/domains/add                  Onetime::App::APIV2::Domains#add_do
 POST   /account/domains/:domain/remove       Onetime::App::APIV2::Domains#remove_domain
 GET    /account/domains/:domain              Onetime::App::APIV2::Domains#get_domain
 POST   /account/domains/:domain/verify       Onetime::App::APIV2::Domains#verify_domain
+POST   /account/domains/:domain/brand        Onetime::App::APIV2::Domains#save_brand_settings
+GET    /account/domains/:domain/brand        Onetime::App::APIV2::Domains#get_brand_settings
 GET    /account/domains                      Onetime::App::APIV2::Domains#list_domains
 GET    /account                              Onetime::App::APIV2::Account#get_account
 
