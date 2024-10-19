@@ -27,9 +27,10 @@
     </button>
 
     <div v-if="isMenuOpen"
-         class="absolute right-0 bottom-full mb-2 w-56 rounded-md shadow-lg
-           bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5
-           dark:ring-white dark:ring-opacity-20 focus:outline-none z-[100]"
+         :class="[
+           'absolute right-0 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-20 focus:outline-none',
+           openDirection === 'up' ? 'bottom-full mb-2 z-[1000]' : 'top-full mt-2 z-[100]'
+         ]"
          role="menu"
          aria-orientation="vertical"
          @keydown.esc="closeMenu"
@@ -46,10 +47,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 
-defineProps<{
+interface Props {
   ariaLabel: string;
-}>();
+  openDirection?: 'up' | 'down';
+}
 
+withDefaults(defineProps<Props>(), {
+  openDirection: 'up'
+});
 
 const emit = defineEmits(['menuToggled']);
 
@@ -107,7 +112,6 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   document.removeEventListener('keydown', handleEscapeKey);
 });
-
 
 // Expose methods to parent component
 defineExpose({ closeMenu });
