@@ -2,6 +2,7 @@ import router from '@/router'
 import { Customer, CheckAuthDataApiResponse, CheckAuthDetails } from '@/types/onetime'
 import axios from 'axios'
 import { defineStore } from 'pinia'
+import { AxiosError } from 'axios';
 
 /**
  * Backoff Logic Summary:
@@ -119,23 +120,46 @@ export const useAuthStore = defineStore('auth', {
         // Reset failed auth checks counter on successful authentication
         this.failedAuthChecks = 0;
         this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
-      } catch (error) {
+      } catch (error: unknown) {
         this.failedAuthChecks++;
-        this.currentBackoffInterval = Math.min(
-          this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
-          MAX_AUTH_CHECK_INTERVAL_MS
-        );
-        if (this.failedAuthChecks >= 3) {
-          this.logout()
-        } else {
-          // Set isAuthenticated to false on any error, even if not logging out
+
+        const applyBackoff = () => {
+          this.currentBackoffInterval = Math.min(
+            this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
+            MAX_AUTH_CHECK_INTERVAL_MS
+          );
+        };
+
+        const handleAuthFailure = () => {
           this.isAuthenticated = false;
           this.customer = undefined;
+        };
+
+        if (error instanceof AxiosError) {
+          const statusCode = error.response?.status;
+
+          if (statusCode === 401 || statusCode === 403) {
+            this.logout();
+            return;
+          } else if (statusCode && statusCode >= 500) {
+            applyBackoff();
+          }
+          // For other status codes, continue with the existing logic
+        } else {
+          console.error('Non-Axios error occurred:', error);
+          applyBackoff();
+        }
+
+        if (this.failedAuthChecks >= 3) {
+          this.logout();
+        } else {
+          handleAuthFailure();
         }
       } finally {
         this.startAuthCheck(); // Schedule the next check
       }
-    },
+    }
+    ,
 
     /**
      * Logs out the current user and resets the auth state.
