@@ -1,10 +1,12 @@
 <template>
   <header class="bg-white dark:bg-gray-900 ">
     <div class="container mx-auto px-4 py-4 min-w-[320px] max-w-2xl">
-      <div v-if="displayMasthead" class="w-full">
+      <div v-if="displayMasthead"
+           class="w-full">
         <div class="flex flex-col sm:flex-row justify-between items-center">
           <div class="mb-4 sm:mb-0">
-            <router-link to="/" class="flex items-center">
+            <router-link to="/"
+                         class="flex items-center">
               <img id="logo"
                    src="@/assets/img/onetime-logo-v3-xl.svg"
                    class="rounded-md w-12 h-12 sm:w-16 sm:h-16"
@@ -17,7 +19,8 @@
           <nav v-if="displayNavigation"
                class="flex flex-wrap justify-center sm:justify-end items-center gap-4 text-sm sm:text-base font-brand">
             <template v-if="authenticated && cust">
-              <HeaderUserNav :cust="cust" :colonel="colonel" />
+              <HeaderUserNav :cust="cust"
+                             :colonel="colonel" />
               <a href="#"
                  @click="openSettingsModal"
                  class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors duration-200"
