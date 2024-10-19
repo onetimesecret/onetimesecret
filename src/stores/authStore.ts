@@ -103,12 +103,20 @@ export const useAuthStore = defineStore('auth', {
     /**
      * Checks the current authentication status with the server.
      * Implements exponential backoff on failures and resets on success.
+     * Resets failed check counter on success. This provides quick recovery
+     * but may mask intermittent issues. Implications:
+     *  + Allows immediate recovery after a successful check
+     *  + Prevents accumulation of sporadic failures over time
+     *  - May not accurately represent patterns of intermittent failures
+     *  - Could potentially hide underlying issues if failures are frequent
+     *   but not consecutive this.failedAuthChecks = 0;
      */
     async checkAuthStatus() {
       try {
         const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT)
         this.isAuthenticated = response.data.details.authorized;
         this.customer = response.data.record;
+        // Reset failed auth checks counter on successful authentication
         this.failedAuthChecks = 0;
         this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
       } catch (error) {
