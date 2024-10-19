@@ -10,7 +10,7 @@
                 shadow-2xl dark:bg-gray-800 transition-all duration-300 ease-out transform">
 
       <div class="flex h-[80vh] flex-col">
-        <!-- Header -->
+        <!-- Modal Header -->
         <div class="flex-shrink-0 flex items-center justify-between border-b p-4
                     border-gray-200 dark:border-gray-700">
           <h2 id="settings-modal"
@@ -45,6 +45,7 @@
 
         <!-- Content -->
         <div class="flex-grow overflow-y-auto p-4">
+
           <!-- General Tab -->
           <div v-if="activeTab === 'General'">
             <div class="space-y-4">
@@ -61,20 +62,58 @@
             </div>
 
             <div class="mt-6 space-y-4">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Jurisdiction</h3>
-              <div class="rounded-md bg-gray-100 p-3 dark:bg-gray-700">
-                <p class="text-sm text-gray-600 dark:text-gray-300">Your current jurisdiction is
-                  <span class="font-semibold">UK</span>. This is determined by the domain you're accessing.
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Jurisdiction ({{ cust?.custid }})</h3>
+              <div class="rounded-md bg-gray-100 p-3 dark:bg-gray-700 prose">
+                <p class="text-base text-gray-600 dark:text-gray-300">
+                  Your data for this account is located in the
+                  <span class="font-semibold">{{ currentJurisdiction.display_name }}</span>.<br>
+                  This is determined by the domain you're accessing:
+                  <span class="underline">{{ currentJurisdiction.domain }}.</span>
                 </p>
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">To learn more about accounts in other regions,
-                  please <a href="#"
-                     class="text-brand-600 hover:underline">contact support</a>.</p>
+              </div>
+              <MoreInfoText textColor="text-brandcomp-800 dark:text-gray-100"
+                            bgColor="bg-white dark:bg-gray-800">
+                <div class="px-6 py-6">
+                  <div class="max-w-xl text-base text-gray-600 dark:text-gray-300 prose">
+                    <p class="text-base text-gray-600 dark:text-gray-300">
+                      Accounts in each location are completely separate with no data shared between them.
+                      You can create an account with the same email address in more than one location.
+                    </p>
+                    <p class="text-base text-gray-600 dark:text-gray-300">
+                      To learn more, please <a :href="`${supportHost}/docs`" class="text-brand-400">visit our documentation</a> or
+                      <RouterLink to="/feedback"
+                                  class="text-brand-400 hover:underline">contact us</RouterLink>.
+                    </p>
+                  </div>
+
+                </div>
+              </MoreInfoText>
+              <div class="mt-4">
+                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available Jurisdictions:</h4>
+                <ul class="space-y-2">
+                  <li v-for="jurisdiction in jurisdictions"
+                      :key="jurisdiction.identifier"
+                      class="flex items-center space-x-2 text-sm">
+                    <Icon :icon="jurisdiction.icon"
+                          class="h-5 w-5"
+                          aria-hidden="true" />
+                    <a :href="`https://${jurisdiction.domain}/signup`"
+                       :class="{ 'font-semibold': currentJurisdiction.identifier === jurisdiction.identifier }"
+                       class="text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400">
+                      {{ jurisdiction.display_name }}
+                    </a>
+                    <span v-if="currentJurisdiction.identifier === jurisdiction.identifier"
+                          class="text-xs text-grey-600 dark:text-grey-100">(Current)</span>
+                  </li>
+                </ul>
               </div>
             </div>
+
           </div>
 
           <!-- Notifications Tab -->
-          <div v-if="activeTab === 'Notifications'">
+          <div v-if="activeTab === 'Notifications'"
+               class="hidden">
             <div class="space-y-4">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Email Notifications</h3>
               <div class="flex items-center justify-between">
@@ -118,7 +157,8 @@
           </div>
 
           <!-- Security Tab -->
-          <div v-if="activeTab === 'Security'">
+          <div v-if="activeTab === 'Security'"
+               class="hidden">
             <div class="space-y-4">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Two-Factor Authentication</h3>
               <button class="rounded-md bg-brand-600 px-4 py-2 text-white
@@ -151,11 +191,22 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
-import { Icon } from '@iconify/vue';
+import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useClickOutside } from '@/composables/useClickOutside';
+import { useWindowProp } from '@/composables/useWindowProps';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { Icon } from '@iconify/vue';
+import { computed, ref } from 'vue';
+import MoreInfoText from '@/components/MoreInfoText.vue';
+
+const cust = useWindowProp('cust');
+const supportHost = useWindowProp('support_host');
+
+const jurisdictionStore = useJurisdictionStore();
+const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
+const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
+
 
 defineProps<{
   isOpen: boolean;
@@ -166,7 +217,7 @@ const emit = defineEmits<{
 }>();
 
 const modalContentRef = ref<HTMLElement | null>(null);
-const tabs = ['General', 'Notifications', 'Security'];
+const tabs = ['General']; // , 'Notifications', 'Security'
 const activeTab = ref('General');
 
 const closeModal = () => {
