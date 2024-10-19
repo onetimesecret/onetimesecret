@@ -1,6 +1,8 @@
 <!-- src/components/LanguageToggle.vue -->
 <template>
-  <DropdownToggle ref="dropdownRef" ariaLabel="Change language">
+  <DropdownToggle ref="dropdownRef"
+                  ariaLabel="Change language"
+                  :openDirection="'down'">
     <template #button-content>
       <svg xmlns="http://www.w3.org/2000/svg"
            class="h-5 w-5 mr-2"
