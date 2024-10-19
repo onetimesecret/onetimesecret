@@ -1,30 +1,18 @@
 <template>
   <div>
     <DashboardTabNav />
-    <DomainBrandView
-      :heading="domainId"
-      headingId="domain-brand"
-      :logoPreview="logoPreview"
-      :loading="loading"
-      :error="error"
-      :success="success"
-      @retry="fetchBrandSettings"
-    >
-      <template #form>
-        <AccountDomainBrandForm
-          v-if="!loading && !error"
-          :brandSettings="brandSettings"
-          @updateBrandSettings="updateBrandSettings"
-        />
-      </template>
-    </DomainBrandView>
+
+    <AccountDomainBrandForm v-if="!loading && !error"
+                            :brandSettings="brandSettings"
+                            @updateBrandSettings="updateBrandSettings" />
+
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import DomainBrandView from '@/components/account/DomainBrandView.vue';
 import AccountDomainBrandForm from '@/components/account/AccountDomainBrandForm.vue';
 import { BrandSettings } from '@/types/onetime';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
@@ -34,7 +22,7 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
-const domainId = computed(() => `Customize - ${props.domain || route.params.domain as string}`);
+const domainId = computed(() => `${props.domain || route.params.domain as string}`);
 
 // State management
 const brandSettings = ref<BrandSettings>({
@@ -52,14 +40,6 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const success = ref<string | null>(null);
 
-// Computed property for logo preview
-const logoPreview = computed(() => {
-  const { image_encoded, image_content_type } = brandSettings.value;
-  return image_encoded && image_content_type
-    ? `data:${image_content_type};base64,${image_encoded}`
-    : null;
-});
-
 // API response interface
 interface ApiResponse {
   record: {
@@ -73,7 +53,7 @@ const fetchBrandSettings = async () => {
   error.value = null;
   success.value = null;
   try {
-    const response = await fetch(`/api/v2/account/domains/${domainId.value.replace('Customize - ', '')}/brand`);
+    const response = await fetch(`/api/v2/account/domains/${domainId.value}/brand`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
