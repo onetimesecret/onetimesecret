@@ -1,33 +1,40 @@
 <template>
-  <AuthView :heading="`Customize - ${domainId}`" headingId="domain-brand">
-    <template #form>
-      <div v-if="loading" class="text-center">
-        <p>Loading brand settings...</p>
-      </div>
-      <div v-else-if="error" class="text-center text-red-600">
-        <p>{{ error }}</p>
-        <button @click="fetchBrandSettings" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-          Retry
-        </button>
-      </div>
-      <AccountDomainBrandForm
-        v-else
-        :brandSettings="brandSettings"
-        @updateBrandSettings="updateBrandSettings"
-      />
-    </template>
-  </AuthView>
+  <div>
+    <DashboardTabNav />
+    <DomainBrandView :heading="domainId" headingId="domain-brand" :logoPreview="logoPreview">
+      <template #form>
+        <div v-if="loading" class="flex justify-center items-center h-64">
+          <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-brand-600 dark:border-brand-400"></div>
+        </div>
+        <div v-else-if="error" class="text-center p-8 bg-red-100 dark:bg-red-900 rounded-lg">
+          <p class="text-red-700 dark:text-red-300">{{ error }}</p>
+          <button @click="fetchBrandSettings" class="mt-4 px-4 py-2 bg-brand-500 text-white rounded hover:bg-brand-600 dark:bg-brand-600 dark:hover:bg-brand-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-gray-800">
+            Retry
+          </button>
+        </div>
+        <AccountDomainBrandForm
+          v-else
+          :brandSettings="brandSettings"
+          @updateBrandSettings="updateBrandSettings"
+        />
+      </template>
+    </DomainBrandView>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import AuthView from '@/components/auth/AuthView.vue';
+import DomainBrandView from '@/components/account/DomainBrandView.vue';
 import AccountDomainBrandForm from '@/components/account/AccountDomainBrandForm.vue';
 import { BrandSettings } from '@/types/onetime';
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+const props = defineProps<{
+  domain?: string;
+}>();
 
 const route = useRoute();
-const domainId = route.params.domain as string;
+const domainId = computed(() => `Customize - ${props.domain || route.params.domain as string}`);
 
 const brandSettings = ref<BrandSettings>({
   logo: '',
@@ -43,11 +50,18 @@ const brandSettings = ref<BrandSettings>({
 const loading = ref(true);
 const error = ref<string | null>(null);
 
+const logoPreview = computed(() => {
+  if (brandSettings.value.image_encoded && brandSettings.value.image_content_type) {
+    return `data:${brandSettings.value.image_content_type};base64,${brandSettings.value.image_encoded}`;
+  }
+  return null;
+});
+
 const fetchBrandSettings = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const response = await fetch(`/api/v2/account/domains/${domainId}/brand`);
+    const response = await fetch(`/api/v2/account/domains/${domainId.value.replace('Customize - ', '')}/brand`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

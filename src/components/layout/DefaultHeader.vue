@@ -24,6 +24,7 @@
                  title="Your Account">{{ $t('web.COMMON.header_settings') }}</a>
 
               <SettingsModal :is-open="isSettingsModalOpen"
+                             :regionsConfig="regions"
                              @close="closeSettingsModal" />
 
               <span class="text-gray-400">|</span>
@@ -72,6 +73,7 @@
 <script setup lang="ts">
 import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
 import SettingsModal from '@/components/modals/SettingsModal.vue';
+import { useWindowProps } from '@/composables/useWindowProps';
 import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 import { computed, ref } from 'vue';
 
@@ -87,6 +89,7 @@ const props = withDefaults(defineProps<Props>(), {
   colonel: false,
 });
 
+const { regions } = useWindowProps(['regions']);
 const colonel = computed(() => props.cust?.role === 'colonel');
 
 // Reactive state
