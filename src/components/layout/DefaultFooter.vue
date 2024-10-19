@@ -3,13 +3,27 @@
     <div class="container mx-auto px-4 max-w-2xl">
       <FooterLinkLists v-if="displayLinks" v-bind="$props" />
 
-      <div class="flex flex-col-reverse sm:flex-row justify-between items-center pt-6 mt-6">
-        <div v-if="displayVersion" class="text-sm text-center sm:text-left w-full sm:w-auto mt-4 sm:mt-0 text-gray-600 dark:text-gray-300 order-2 sm:order-1">
+      <div class="
+        flex flex-col-reverse
+        justify-between items-center
+        pt-6 mt-6
+        space-y-6 space-y-reverse md:space-y-0
+        md:flex-row">
+        <div v-if="displayVersion"
+             class="
+          w-full md:w-auto
+          text-sm text-center md:text-left
+          text-gray-600 dark:text-gray-300">
           &copy; {{ new Date().getFullYear() }} {{ companyName }}.
           <span class="hidden md:inline">All rights reserved.</span>
         </div>
 
-        <div v-if="displayToggles" class="flex flex-wrap items-center justify-center sm:justify-end space-x-4 w-full sm:w-auto order-1 sm:order-2">
+        <div v-if="displayToggles"
+             class="
+          flex flex-wrap
+          items-center justify-center md:justify-end
+          w-full md:w-auto
+          space-x-4">
           <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
 
           <ThemeToggle
@@ -26,6 +40,10 @@
     </div>
   </footer>
 </template>
+
+
+
+
 
 <script setup lang="ts">
 import { ref } from 'vue'
