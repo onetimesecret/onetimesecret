@@ -9,6 +9,7 @@ POST   /account/domains/:domain/remove       Onetime::App::APIV2::Domains#remove
 GET    /account/domains/:domain              Onetime::App::APIV2::Domains#get_domain
 POST   /account/domains/:domain/verify       Onetime::App::APIV2::Domains#verify_domain
 POST   /account/domains/:domain/brand        Onetime::App::APIV2::Domains#update_domain_brand
+DELETE /account/domains/:domain/logo         Onetime::App::APIV2::Domains#delete_domain_logo
 POST   /account/domains/:domain/logo         Onetime::App::APIV2::Domains#update_domain_logo
 GET    /account/domains/:domain/logo         Onetime::App::APIV2::Domains#get_domain_logo
 GET    /account/domains/:domain/brand        Onetime::App::APIV2::Domains#get_domain_brand

@@ -55,6 +55,14 @@ class Onetime::App::APIV2
       retrieve_records(OT::Logic::Domains::GetDomainLogo)
     end
 
+    def delete_domain_logo
+      process_action(
+        OT::Logic::Domains::RemoveDomainLogo,
+        "Logo removed.",
+        "Logo could not be removed."
+      )
+    end
+
     def update_domain_logo
       process_action(
         OT::Logic::Domains::UpdateDomainLogo,
