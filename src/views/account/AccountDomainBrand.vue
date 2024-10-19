@@ -2,20 +2,35 @@
   <div>
     <DashboardTabNav />
 
-    <AccountDomainBrandForm v-if="!loading && !error"
-                            :brandSettings="brandSettings"
-                            @updateBrandSettings="updateBrandSettings" />
-
-
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div>
+        <AccountDomainBrandForm
+          v-if="!loading && !error"
+          :brandSettings="brandSettings"
+          @updateBrandSettings="updateBrandSettings"
+        />
+      </div>
+      <div>
+        <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
+          Preview
+        </h2>
+        <SecretPreview
+          v-if="!loading && !error"
+          :brandSettings="brandSettings"
+          secretKey="abcd"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
 import AccountDomainBrandForm from '@/components/account/AccountDomainBrandForm.vue';
-import { BrandSettings } from '@/types/onetime';
+import SecretPreview from '@/components/account/SecretPreview.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import { BrandSettings } from '@/types/onetime';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 const props = defineProps<{
   domain?: string;
