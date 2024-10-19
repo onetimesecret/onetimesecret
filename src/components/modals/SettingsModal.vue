@@ -54,7 +54,7 @@
               <LanguageToggle @menuToggled="handleMenuToggled" />
             </div>
 
-            <div class="space-y-4 mt-6">
+            <div v-if="showJurisdiction" class="space-y-4 mt-6">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Jurisdiction</h3>
               <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-md">
                 <p class="text-sm text-gray-600 dark:text-gray-300">Your current jurisdiction is <span
@@ -130,18 +130,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import { Icon } from '@iconify/vue';
+import { Regions } from '@/types/onetime';
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean;
+  regionsConfig?: Regions;
 }>();
 
 const emit = defineEmits<{
   (e: 'close'): void;
 }>();
+
+const showJurisdiction = computed(() => props.regionsConfig?.enabled);
 
 const tabs = ['General', 'Notifications', 'Security'];
 const activeTab = ref('General');
