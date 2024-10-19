@@ -78,6 +78,7 @@ import SettingsModal from '@/components/modals/SettingsModal.vue';
 import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 import { computed, ref } from 'vue';
 
+
 // Define the props for this layout, extending the BaseLayout props
 export interface Props extends BaseProps {
   displayMasthead?: boolean
@@ -89,6 +90,7 @@ const props = withDefaults(defineProps<Props>(), {
   displayNavigation: true,
   colonel: false,
 });
+
 
 const colonel = computed(() => props.cust?.role === 'colonel');
 
@@ -103,4 +105,5 @@ const openSettingsModal = () => {
 const closeSettingsModal = () => {
   isSettingsModalOpen.value = false;
 };
+
 </script>

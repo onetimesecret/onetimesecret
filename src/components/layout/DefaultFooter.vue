@@ -50,7 +50,6 @@
   </footer>
 </template>
 
-
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';

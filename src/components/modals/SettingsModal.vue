@@ -5,9 +5,10 @@
        aria-labelledby="settings-modal"
        role="dialog"
        aria-modal="true">
-    <div class="relative mx-auto w-full max-w-lg overflow-hidden rounded-xl bg-white
-                shadow-2xl dark:bg-gray-800 transition-all duration-300 ease-out transform"
-         @click.stop>
+    <div ref="modalContentRef"
+         class="relative mx-auto w-full max-w-lg overflow-hidden rounded-xl bg-white
+                shadow-2xl dark:bg-gray-800 transition-all duration-300 ease-out transform">
+
       <div class="flex h-[80vh] flex-col">
         <!-- Header -->
         <div class="flex-shrink-0 flex items-center justify-between border-b p-4
@@ -154,6 +155,7 @@ import { ref } from 'vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import { Icon } from '@iconify/vue';
+import { useClickOutside } from '@/composables/useClickOutside';
 
 defineProps<{
   isOpen: boolean;
@@ -163,6 +165,7 @@ const emit = defineEmits<{
   (e: 'close'): void;
 }>();
 
+const modalContentRef = ref<HTMLElement | null>(null);
 const tabs = ['General', 'Notifications', 'Security'];
 const activeTab = ref('General');
 
@@ -173,4 +176,6 @@ const closeModal = () => {
 const handleMenuToggled = () => {
   // Handle language menu toggle
 };
+
+useClickOutside(modalContentRef, closeModal);
 </script>
