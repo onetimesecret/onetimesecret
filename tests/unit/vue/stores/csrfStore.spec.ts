@@ -20,7 +20,7 @@ describe('CSRF Store', () => {
     const store = useCsrfStore()
     expect(store.shrimp).toBe('')
     expect(store.isValid).toBe(false)
-    expect(store.checkInterval).toBeNull()
+    expect(store.intervalChecker).toBeNull()
   })
 
   it('updates shrimp correctly', () => {
@@ -89,7 +89,7 @@ describe('CSRF Store', () => {
     store.startPeriodicCheck(30000)
 
     expect(window.setInterval).toHaveBeenCalledWith(expect.any(Function), 30000)
-    expect(store.checkInterval).not.toBeNull()
+    expect(store.intervalChecker).not.toBeNull()
 
     vi.advanceTimersByTime(30000)
     expect(checkShrimpValiditySpy).toHaveBeenCalled()
@@ -98,21 +98,21 @@ describe('CSRF Store', () => {
   it('stops periodic check correctly', () => {
     const store = useCsrfStore()
     store.startPeriodicCheck()
-    expect(store.checkInterval).not.toBeNull()
+    expect(store.intervalChecker).not.toBeNull()
 
     store.stopPeriodicCheck()
 
     expect(window.clearInterval).toHaveBeenCalled()
-    expect(store.checkInterval).toBeNull()
+    expect(store.intervalChecker).toBeNull()
   })
 
   it('restarts periodic check when called multiple times', () => {
     const store = useCsrfStore()
     store.startPeriodicCheck(30000)
-    const firstInterval = store.checkInterval
+    const firstInterval = store.intervalChecker
 
     store.startPeriodicCheck(60000)
-    const secondInterval = store.checkInterval
+    const secondInterval = store.intervalChecker
 
     expect(firstInterval).not.toBe(secondInterval)
     expect(window.clearInterval).toHaveBeenCalledWith(firstInterval)
