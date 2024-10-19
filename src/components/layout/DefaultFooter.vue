@@ -1,7 +1,13 @@
 <template>
-  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 w-full transition-all duration-300" aria-label="Site footer">
+  <footer class="
+    w-full min-w-[320px]
+    py-8
+    bg-gray-100 dark:bg-gray-800
+    transition-all duration-300"
+          aria-label="Site footer">
     <div class="container mx-auto px-4 max-w-2xl">
-      <FooterLinkLists v-if="displayLinks" v-bind="$props" />
+      <FooterLinkLists v-if="displayLinks"
+                       v-bind="$props" />
 
       <div class="
         flex flex-col-reverse
@@ -26,15 +32,17 @@
           space-x-4">
           <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
 
-          <ThemeToggle
-            class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200"
-            aria-label="Toggle dark mode"
-          />
-          <FeedbackToggle
-            v-if="displayFeedback && authentication.enabled"
-            class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200"
-            aria-label="Provide feedback"
-          />
+          <ThemeToggle class="
+            text-gray-600 dark:text-gray-300
+            hover:text-gray-800 dark:hover:text-gray-100
+            transition-colors duration-200"
+                       aria-label="Toggle dark mode" />
+          <FeedbackToggle v-if="displayFeedback && authentication.enabled"
+                          class="
+            text-gray-600 dark:text-gray-300
+            hover:text-gray-800 dark:hover:text-gray-100
+            transition-colors duration-200"
+                          aria-label="Provide feedback" />
         </div>
       </div>
     </div>

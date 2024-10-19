@@ -1,5 +1,6 @@
 <template>
-  <div ref="dropdownRef" class="relative inline-flex items-center space-x-2 px-3 py-1 rounded-full
+  <div ref="dropdownRef"
+       class="relative inline-flex items-center space-x-2 px-3 py-1 rounded-full
            bg-gray-100 text-base font-medium text-gray-700 shadow-sm
            dark:bg-gray-800 dark:text-gray-300
            transition-all duration-100 ease-in-out hover:shadow-md">
@@ -42,7 +43,8 @@
           aria-activedescendant="listbox-option-0">
 
         <!-- Add the title header here -->
-        <li class="px-3 py-2 text-xs font-semibold font-brand text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        <li
+            class="px-3 py-2 text-xs font-semibold font-brand text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Regions
         </li>
 
