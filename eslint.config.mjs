@@ -12,9 +12,16 @@ export default [
   },
   {
     files: ['src/**/*.{js,mjs,cjs,ts,vue}', 'vite.config.ts'],
-  },
-  {
-    languageOptions: { globals: globals.browser },
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-undef': 'error', // Warns on the use of undeclared variables
+    },
   },
   ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/essential'],
