@@ -12,13 +12,15 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Sign In',
     component: () => import('@/views/auth/Signin.vue'),
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
-        displayNavigation: false,
+        displayNavigation: true,
         displayLinks: false,
-        displayFeedback: false,
-        displayVersion: false,
+        displayFeedback: true,
+        displayVersion: true,
+        displayToggles: true,
       },
     },
     beforeEnter: (to, from, next) => {
@@ -47,21 +49,34 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
-        displayNavigation: false,
+        displayNavigation: true,
         displayLinks: false,
-        displayFeedback: false,
-        displayVersion: false,
+        displayFeedback: true,
+        displayVersion: true,
       },
     },
   },
   {
     path: '/forgot',
-    name: 'Forgot',
-    component: () => import('@/views/auth/PasswordReset.vue'),
+    children: [
+      {
+        path: '',
+        name: 'Forgot Password',
+        component: () => import('@/views/auth/PasswordResetRequest.vue'),
+      },
+      {
+        path: ':resetKey',
+        name: 'Reset Password',
+        component: () => import('@/views/auth/PasswordReset.vue'),
+        props: true,
+      },
+    ],
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
@@ -69,14 +84,16 @@ const routes: Array<RouteRecordRaw> = [
         displayLinks: false,
         displayFeedback: true,
         displayVersion: false,
-      }
+      },
     },
   },
+
   {
     path: '/logout',
     name: 'Logout',
     component: { render: () => null }, // Dummy component
     meta: {
+      requiresAuth: true,
       layout: QuietLayout,
       layoutProps: {}
     },

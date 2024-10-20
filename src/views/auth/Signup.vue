@@ -1,47 +1,47 @@
 <!-- eslint-disable vue/multi-word-component-names -->
-
+<!-- src/views/auth/Signup.vue -->
 <template>
-  <div>
-    <section class="mb-8">
-      <h1 class="font-semibold mb-6 text-gray-900 dark:text-gray-100">Signup</h1>
-      <h3 class=" font-semibold mb- text-gray-900 dark:text-gray-100">
-        Our {{ currentPlan.options.name }} plan! You get:
-      </h3>
-
-      <ul class="list-disc pl-6 text-gray-700 dark:text-gray-300">
-        <li>secrets that live up to <span class="font-bold text-brand-600 dark:text-brand-400">{{currentPlan.options.ttl/3600/24}} days</span>.</li>
-        <li v-if="currentPlan.options.email">to send secret links via <span class="font-bold text-brand-600 dark:text-brand-400">email</span>.</li>
-        <li v-if="currentPlan.options.api">access to the <a :href="`${supportHost}/docs/rest-api`" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">API</a>.</li>
-      </ul>
-    </section>
-
-    <PlansElevateCta />
-
-    <SignUpForm :planid="currentPlanId" />
-
-    <div class="mt-6 text-center">
-      <router-link to="/signin" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">
-        Already have an account? <strong class="font-medium text-gray-900 dark:text-gray-200">Sign In</strong>
+  <AuthView heading="Create your account" headingId="signup-heading">
+    <template #form>
+      <SignUpForm :planid="currentPlanId" :jurisdiction="currentJurisdiction" />
+      <AlternateSignUpMethods :alternateProviders="alternateProviders" class="hidden" />
+    </template>
+    <template #footer>
+      <router-link to="/signin"
+                   class="font-medium text-brand-600 hover:text-brand-500
+                          dark:text-brand-400 dark:hover:text-brand-300
+                          transition-colors duration-200">
+        {{ $t('web.signup.have_an_account') }}
       </router-link>
-    </div>
-  </div>
+    </template>
+  </AuthView>
 </template>
 
 <script setup lang="ts">
-import PlansElevateCta from '@/components/ctas/PlansElevateCta.vue';
+import { ref, computed } from 'vue';
+import AuthView from '@/components/auth/AuthView.vue';
 import SignUpForm from '@/components/auth/SignUpForm.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
+import { useWindowProps } from '@/composables/useWindowProps';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { storeToRefs } from 'pinia';
+import AlternateSignUpMethods from '@/components/auth/AlternateSignUpMethods.vue';
 
-// This prop is passed from vue-router b/c the route has `prop: true`.
-interface Props {
-  planCode?: string
-}
+const jurisdictionStore = useJurisdictionStore();
+const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
-const props = defineProps<Props>()
+const { default_planid } = useWindowProps(['default_planid']);
 
-const currentPlanId = props.planCode || 'basic';
-const availablePlans = window.available_plans;
-const currentPlan = availablePlans[currentPlanId];
-const supportHost = useWindowProp('support_host');
+const currentPlanId = ref(default_planid);
 
+const currentJurisdiction = computed(() => getCurrentJurisdiction.value || {
+  identifier: 'Unknown Jurisdiction',
+  display_name: 'Unknown Jurisdiction',
+  domain: '',
+  icon: 'mdi:help-circle',
+});
+
+const alternateProviders = [
+  { name: 'Google', icon: 'mdi:google' },
+  { name: 'GitHub', icon: 'mdi:github' },
+];
 </script>

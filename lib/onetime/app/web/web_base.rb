@@ -28,7 +28,7 @@ module Onetime
           # since it wouldn't change our response either way.
           return disabled_response(req.path) unless authentication_enabled?
 
-          sess.authenticated? ? yield : res.redirect(('/'))
+          sess.authenticated? ? yield : res.redirect('/')
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session and auth check)
         end
       end
@@ -48,7 +48,7 @@ module Onetime
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
 
           is_allowed = sess.authenticated? && cust.role?(:colonel)
-          is_allowed ? yield : raise(OT::Unauthorized, "Colonels only")
+          is_allowed ? yield : res.redirect('/')
         end
       end
 
@@ -169,6 +169,13 @@ module Onetime
         view.add_error(message) unless message&.empty?
         res.status = 200  # Always return 200 OK for SPA routes
         res.body = view.render  # Render the entrypoint HTML
+      end
+
+      def not_authorized_error hsh={}
+        view = Onetime::App::Views::Error.new req, sess, cust, locale
+        view.add_error "Not authorized"
+        res.status = 401
+        res.body = view.render
       end
 
       def error_response message

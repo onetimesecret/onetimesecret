@@ -102,28 +102,28 @@ test.describe('View the homepage anonymously', () => {
 
   test('should have footer feedback form', async ({ page }) => {
     const footer = page.locator('footer');
-    await expect(footer.getByPlaceholder('Have a question or comment?')).toBeVisible();
+    await expect(footer.getByPlaceholder('Share your thoughts, ideas, or experiences...')).toBeVisible();
     await expect(footer.getByRole('button', { name: 'Send Feedback' })).toBeVisible();
 
-    await footer.getByPlaceholder('Have a question or comment?').click();
-    await footer.getByPlaceholder('Have a question or comment?').fill('My feedback is!');
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').click();
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').fill('My feedback is!');
     await footer.getByRole('button', { name: 'Send Feedback' }).click();
 
     await page.goto('/');
 
-    await footer.getByPlaceholder('Have a question or comment?').click();
-    await footer.getByPlaceholder('Have a question or comment?').fill('My feedback is 2');
-    await footer.getByPlaceholder('Have a question or comment?').press('Enter');
-    await footer.getByPlaceholder('Have a question or comment?').click();
-    await page.getByPlaceholder('Have a question or comment?').fill('More feedback from the /feedback page');
-    await page.getByPlaceholder('Have a question or comment?').press('Enter');
-    await expect(page.getByPlaceholder('Have a question or comment?')).toBeVisible();
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').click();
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').fill('My feedback is 2');
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').press('Enter');
+    await footer.getByPlaceholder('Share your thoughts, ideas, or experiences...').click();
+    await page.getByPlaceholder('Share your thoughts, ideas, or experiences...').fill('More feedback from the /feedback page');
+    await page.getByPlaceholder('Share your thoughts, ideas, or experiences...').press('Enter');
+    await expect(page.getByPlaceholder('Share your thoughts, ideas, or experiences...')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Send Feedback' })).toBeVisible();
 
 
     await expect(page.locator('body')).toContainText('Message received. Send as much as you like');
     await expect(page.getByLabel('Feedback Form')).toContainText('Give us your feedback');
-    await expect(footer.getByPlaceholder('Have a question or comment?')).not.toBeVisible();
+    await expect(footer.getByPlaceholder('Share your thoughts, ideas, or experiences...')).not.toBeVisible();
     await expect(footer.getByRole('button', { name: 'Send Feedback' })).not.toBeVisible();
   });
 });

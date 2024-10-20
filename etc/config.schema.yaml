@@ -1,12 +1,16 @@
+##
 # Configuration Schema for Onetime
 #
 # This YAML file defines the schema for the Onetime Ruby application config
 # It uses the Yamale schema validation format (https://github.com/23andMe/Yamale).
 #
 # Usage:
-# 1. Define your actual configuration in a separate YAML file (e.g., config.yaml)
-# 2. Validate your configuration against this schema using Yamale:
-#    yamale -s config.schema.yaml config.yaml
+#
+#   1. Define your actual configuration in a separate YAML file (e.g., config.yaml)
+#
+#   2. Validate your configuration against this schema using Yamale:
+#      yamale -s etc/config.schema.yaml etc/config.yaml
+#
 
 :site: include(':site')
 :redis: include(':redis')
@@ -29,16 +33,17 @@
   :authenticity: include(':authenticity')
   :plans: include(':plans')
   :support: include(':support')
-  :regions:
-    :enabled: bool()
-    :default: str(required=False)
+  :regions: include(':regions')
+  :secret_options: include(':secret_options')
+
 :domains:
   :enabled: any()
   :default: str(required=False)
   :cluster:
     :type: str(required=False)
     :api_key: str(required=False)
-    :cluster_ip: str()
+    :cluster_ip: str(required=False)   # either
+    :cluster_host: str(required=False) # or
     :cluster_name: str()
     :vhost_target: str()
 
@@ -52,13 +57,30 @@
   :type: str()
   :secret_key: str()
 
+:secret_options:
+  :default_ttl: str()
+  :ttl_options: any(str(), list(str()))
+
 :plans:
   :enabled: any()
   :stripe_key: str(required=False)
   :webook_signing_secret: str(required=False)
   :payment_links: any(required=False)
+
 :support:
   :host: str(required=False)
+
+:regions:
+  :enabled: bool()
+  :current_jurisdiction: str(required=False)
+  :jurisdictions: list(include(':jurisdiction'), required=False)
+
+:jurisdiction:
+  :identifier: str()
+  :display_name: str()
+  :domain: str()
+  :icon: str()
+
 :incoming:
   :enabled: bool()
   :email: str()

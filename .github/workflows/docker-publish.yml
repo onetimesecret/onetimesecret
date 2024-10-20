@@ -1,4 +1,4 @@
-name: Docker
+name: Docker Build and Publish
 
 on:
   push:
@@ -8,83 +8,44 @@ on:
     branches: [ "develop", "feature/*", "rel/*" ]
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  DOCKERHUB_IMAGE_NAME: ${{ github.repository }}
-  RACK_ENV: production
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-  build:
+  set-image-tags:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    outputs:
+      image_tags: ${{ steps.set-tags.outputs.image_tags }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4.2.0
-
-      - name: Record commit hash and display version info
+      - name: Set Image tags
+        id: set-tags
         run: |
-          git rev-parse --short HEAD > .commit_hash.txt
-          echo Commit hash recorded
-          head -4 .commit_hash.txt package.json
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.2.0
-        with:
-          platforms: arm64
+          if [[ ${{ github.ref }} =~ ^refs/tags/v.*-rc[0-9]+$ ]]; then
+            echo "image_tags=type=raw,value=next,enable=true" >> $GITHUB_OUTPUT
+            echo "image_tags=type=ref,event=tag" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "image_tags=type=raw,value=latest,enable=true" >> $GITHUB_OUTPUT
+            echo "image_tags=type=ref,event=tag" >> $GITHUB_OUTPUT
+          else
+            echo "image_tags=type=ref,event=branch" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v3.7.1
-        with:
-          platforms: linux/amd64,linux/arm64
+  build-and-publish-main:
+    needs: set-image-tags
+    uses: ./.github/workflows/.docker-build-publish-reusable.yml
+    with:
+      image-suffix: ''
+      dockerfile: 'Dockerfile'
+      image_tags: ${{ needs.set-image-tags.outputs.image_tags }}
+    secrets: inherit
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3.3.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3.3.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
-        env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          tags: |
-            # set latest tag for develop branch
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
-            # set next tag for develop branch
-            type=raw,value=next,enable=${{ github.ref == format('refs/heads/{0}', 'develop') }}
-            # use git tag if available
-            type=ref,event=tag
-            # use short SHA for pull requests
-            type=sha,format=short,prefix=pr-,enable=${{ github.event_name == 'pull_request' }}
-            # use branch name for push events
-            type=ref,event=branch
-          images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            ${{ env.DOCKERHUB_IMAGE_NAME }}
-
-      - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@v6.9.0
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
-          annotations: ${{ steps.meta.outputs.annotations }}
-          platforms: linux/amd64,linux/arm64
+  build-and-publish-lite:
+    needs: [set-image-tags, build-and-publish-main]
+    uses: ./.github/workflows/.docker-build-publish-reusable.yml
+    with:
+      image-suffix: '-lite'
+      dockerfile: 'Dockerfile-lite'
+      image_tags: ${{ needs.set-image-tags.outputs.image_tags }}
+    secrets: inherit

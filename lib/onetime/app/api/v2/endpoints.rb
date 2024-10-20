@@ -33,6 +33,15 @@ module Onetime::App
       end
     end
 
+    def receive_feedback
+      process_action(
+        OT::Logic::Misc::ReceiveFeedback,
+        "Feedback received. Send as much as you like.",
+        "Sorry we were not able to receive your feedback (it's us, not you).",
+        allow_anonymous: true
+      )
+    end
+
     def get_supported_locales
       publically do
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
@@ -43,25 +52,32 @@ module Onetime::App
 
     def get_validate_shrimp
       publically do
-        shrimp = req.env['HTTP_O_SHRIMP'].to_s
-        halt(400, json(error: 'Missing O-Shrimp header')) if shrimp.empty?
+        carefully do
+          # NOTE: Unlike `check_shrimp!`, this method only considers
+          # the Official Shrimp HTTP Header. The endoint it supports
+          # is used by the Vue app as a Just-In-Time check to try to
+          # avoid scenarios where we have an outdated shrimp and an
+          # importand request fails inexplicably for the user.
+          shrimp = req.env['HTTP_O_SHRIMP'].to_s
+          OT.le 'Missing O-Shrimp header' if shrimp.empty?
 
-        begin
-          # Attempt to validate the shrimp
-          is_valid = validate_shrimp(shrimp, replace=false)
-        rescue OT::BadShrimp => e
-          # If a BadShrimp exception is raised, log it and set is_valid to false
-          OT.ld "BadShrimp exception: #{e.message}"
-          is_valid = false
+          begin
+            # Attempt to validate the shrimp
+            is_valid = validate_shrimp(shrimp, replace=false)
+          rescue OT::BadShrimp => e
+            # If a BadShrimp exception is raised, log it and set is_valid to false
+            OT.ld "BadShrimp exception: #{e.message}"
+            is_valid = false
+          end
+
+          sess.replace_shrimp! unless is_valid
+
+          ret = {
+            isValid: is_valid,
+            shrimp: sess.shrimp
+          }
+          json ret
         end
-
-        sess.replace_shrimp! unless is_valid
-
-        ret = {
-          isValid: is_valid,
-          shrimp: sess.shrimp
-        }
-        json ret
       end
     end
 

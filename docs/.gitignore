@@ -2,3 +2,5 @@
 !.gitignore
 !api/
 !/api/*
+!DOCKER*.md
+!README*.md

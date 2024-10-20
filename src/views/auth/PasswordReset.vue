@@ -1,16 +1,40 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useCsrfStore } from '@/stores/csrfStore';
+import { useFetchDataRecord } from '@/composables/useFetchData';
+import { SecretData } from '@/types/onetime'
+import { useRouter } from 'vue-router';
 
 const csrfStore = useCsrfStore();
+const router = useRouter();
 
 export interface Props {
   enabled?: boolean;
+  resetKey: string;
 }
+
+/**
+ * Handles errors by redirecting to '/' if the status is 404.
+ * @param error - The error object.
+ * @param status - The HTTP status code.
+ */
+ const onError = (error: Error, status?: number | null) => {
+  if (status === 404) {
+    router.push('/');
+  }
+};
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })
+
+const { fetchData: fetchSecret } = useFetchDataRecord<SecretData>({
+  url: `/api/v2/secret/${props.resetKey}`,
+  onError,
+});
+
+onMounted(fetchSecret)
 
 </script>
 
@@ -19,42 +43,6 @@ const props = withDefaults(defineProps<Props>(), {
     Request password reset
   </h3>
 
-  <!--{{^verified}}-->
-  <div class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
-    <p class="mb-4 text-gray-700 dark:text-gray-300">
-      Enter your email address below, and we'll send you instructions to reset your password.
-    </p>
-    <form method="post"
-          id="resetRequestForm">
-      <input type="hidden"
-             name="shrimp"
-             :value="csrfStore.shrimp" />
-
-      <div class="mb-4">
-        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
-               for="custidField">
-          Email address
-        </label>
-        <input type="email"
-               name="u"
-               id="custidField"
-               required
-               class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-               value="{{form_fields.custid}}"
-               placeholder="your@email.com" />
-      </div>
-      <div class="mb-6"></div>
-      <div class="flex items-center justify-between">
-        <button type="submit"
-                class="bg-brand-500 hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">
-          Request Reset
-        </button>
-      </div>
-    </form>
-  </div>
-  <!--{{/verified}}-->
-
-  <!--{{#verified}}-->
   <div class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
     <p class="mb-4 text-gray-700 dark:text-gray-300">
       Please enter your new password below. Make sure it's at least 8 characters long and includes a
@@ -65,6 +53,15 @@ const props = withDefaults(defineProps<Props>(), {
       <input type="hidden"
              name="shrimp"
              :value="csrfStore.shrimp" />
+
+      <!-- Username field for accessibility -->
+      <div class="mb-4 hidden">
+        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="email">
+          Email address
+        </label>
+        <input type="text" name="email" id="usernameField" autocomplete="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="" />
+      </div>
+
       <div class="mb-4">
         <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
                for="passField">
@@ -74,9 +71,10 @@ const props = withDefaults(defineProps<Props>(), {
                name="newp"
                id="passField"
                required
-               minlength="8"
+               minlength="6"
+               autocomplete="new-password"
                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-               placeholder="••••••••" />
+               placeholder="" />
       </div>
       <div class="mb-6">
         <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
@@ -87,9 +85,10 @@ const props = withDefaults(defineProps<Props>(), {
                name="newp2"
                id="pass2Field"
                required
-               minlength="8"
+               minlength="6"
+               autocomplete="new-password"
                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-               placeholder="••••••••" />
+               placeholder="" />
       </div>
       <div id="app"></div>
       <div class="flex items-center justify-between">
@@ -100,7 +99,6 @@ const props = withDefaults(defineProps<Props>(), {
       </div>
     </form>
   </div>
-  <!--{{/verified}}-->
 
   <div class="text-center mt-6">
     <router-link to="/signin"

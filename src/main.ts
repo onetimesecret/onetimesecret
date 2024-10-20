@@ -9,10 +9,13 @@ import 'vite/modulepreload-polyfill';
 import i18n, { setLanguage } from '@/i18n';
 import router from '@/router';
 import { useAuthStore } from '@/stores/authStore';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 import App from './App.vue';
+
+
 
 
 import './assets/style.css';
@@ -43,6 +46,11 @@ async function initializeApp() {
   const pinia = createPinia();
   app.use(pinia);
 
+  const jurisdictionStore = useJurisdictionStore();
+
+  // Initialize the store with the Regions config
+  jurisdictionStore.initializeStore(window.regions);
+
   const authStore = useAuthStore()
   authStore.initialize()
 
@@ -51,7 +59,6 @@ async function initializeApp() {
 
   // Get the initial locale and use it to set the language
   const initialLocale = languageStore.initializeCurrentLocale(navigator.language);
-  console.log('Initial locale:', initialLocale);
 
   // Set language before mounting the app
   // This ensures correct translations are available for the initial render
@@ -65,7 +72,7 @@ async function initializeApp() {
     () => languageStore.currentLocale,
     async (newLocale) => {
       if (newLocale) { // Type guard to ensure newLocale is not null
-        console.log('Language changed to:', newLocale);
+        console.debug('Language changed to:', newLocale);
         await setLanguage(newLocale);
 
         // Future considerations:
@@ -93,7 +100,7 @@ async function initializeApp() {
 // Start the application initialization process
 initializeApp();
 
-// http://patorjk.com/software/taag/#p=display&f=Tmplr&t=ONETIME
+// Created with http://patorjk.com/software/taag/#p=display&f=Tmplr&t=ONETIME
 const notice = `
 ┏┓┳┓┏┓┏┳┓┳┳┳┓┏┓
 ┃┃┃┃┣  ┃ ┃┃┃┃┣
@@ -101,4 +108,4 @@ const notice = `
 
 `;
 
-console.debug(notice);
+console.log(notice);

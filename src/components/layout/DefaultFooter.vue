@@ -1,81 +1,81 @@
 <template>
-  <footer class="min-w-[320px] text-sm text-center space-y-2">
-    <div class="container mx-auto p-4 max-w-2xl">
+  <footer class="
+    w-full min-w-[320px]
+    py-8
+    bg-gray-100 dark:bg-gray-800
+    transition-all duration-300"
+          aria-label="Site footer">
+    <div class="container mx-auto px-4 max-w-2xl">
+      <FooterLinkLists v-if="displayLinks"
+                       v-bind="$props" />
 
-      <div v-if="displayFeedback">
-        <FeedbackForm :showRedButton="false" />
-      </div>
+      <div class="
+        flex flex-col-reverse
+        justify-between items-center
+        pt-6 mt-6
+        space-y-6 space-y-reverse md:space-y-0
+        md:flex-row">
+        <div v-if="displayVersion"
+             class="
+          w-full md:w-auto
+          text-sm text-center md:text-left
+          text-gray-600 dark:text-gray-300">
+          &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+          <span class="hidden md:inline">All rights reserved.</span>
+        </div>
 
-      <div v-if="displayLinks" class="prose dark:prose-invert text-base pt-4 font-brand">
-        <template v-if="supportHost">
-          <a :href="`${supportHost}/blog`" aria-label="Our blogging website" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Blog</a> |
-        </template>
+        <div v-if="displayToggles"
+             class="
+          flex flex-wrap
+          items-center justify-center md:justify-end
+          w-full md:w-auto
+          space-x-4">
+          <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
 
-        <template v-if="plansEnabled">
-          <router-link to="/pricing" aria-label="Onetime Secret Subscription Pricing" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
-            Pricing
-          </router-link> |
-        </template>
-
-        <a href="https://github.com/onetimesecret/onetimesecret" aria-label="View source code on GitHub" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">GitHub</a> |
-
-        <template v-if="supportHost">
-          <a :href="`${supportHost}/docs/rest-api`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">API</a> |
-          <a :href="`${supportHost}/docs`" aria-label="Our documentation site (in beta)" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Docs</a>
-        </template>
-      </div>
-      <div v-if="displayLinks" class="prose dark:prose-invert text-base font-brand">
-        <router-link to="/info/privacy" aria-label="Read our Privacy Policy" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
-          Privacy
-        </router-link> |
-        <router-link to="/info/terms" aria-label="Read our Terms and Conditions" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
-          Terms
-        </router-link> |
-        <router-link to="/info/security" aria-label="View security information" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
-          Security
-        </router-link> |
-        <a href="https://status.onetimesecret.com/" aria-label="Check service status" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100" rel="noopener noreferrer">Status</a> |
-        <a :href="`${supportHost}/about`" aria-label="About Onetime Secret" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">About</a>
-      </div>
-
-      <!-- Dark mode toggle in the bottom left corner -->
-      <div class="fixed bottom-4 left-4 z-50">
-        <div class="mt-2 text-slate-300">
-          <ThemeToggle />
+          <ThemeToggle class="
+            text-gray-600 dark:text-gray-300
+            hover:text-gray-800 dark:hover:text-gray-100
+            transition-colors duration-200"
+                       aria-label="Toggle dark mode" />
+          <FeedbackToggle v-if="displayFeedback && authentication.enabled"
+                          class="
+            text-gray-600 dark:text-gray-300
+            hover:text-gray-800 dark:hover:text-gray-100
+            transition-colors duration-200"
+                          aria-label="Provide feedback" />
         </div>
       </div>
-
-      <!-- Languages dropdown in the bottom right corner -->
-      <div class="fixed text-left bottom-4 right-4 z-50 opacity-60 hover:opacity-100" aria-label="Change language">
-        <div class="relative">
-          <LanguageToggle />
-        </div>
-      </div>
-
-      <div v-if="displayVersion" class="text-gray-400 dark:text-gray-500 mt-4 pt-4">
-        v{{onetimeVersion}}
-      </div>
-
     </div>
   </footer>
 </template>
 
-<script setup lang="ts">
-import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
-import FeedbackForm from '@/components/FeedbackForm.vue';
-import LanguageToggle from '@/components/LanguageToggle.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
 
-// Define the props for this layout, extending the DefaultLayout props
+
+
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
+import FeedbackToggle from '@/components/FeedbackToggle.vue';
+import ThemeToggle from '@/components/ThemeToggle.vue';
+import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
+import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
+import { useWindowProps } from '@/composables/useWindowProps';
+
 export interface Props extends DefaultProps {
   displayFeedback?: boolean
   displayLinks?: boolean
   displayVersion?: boolean
+  displayToggles?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   displayFeedback: true,
   displayLinks: true,
   displayVersion: true,
+  displayToggles: true,
 });
+
+const { regions_enabled: regionsEnabled, regions } = useWindowProps(['regions_enabled', 'regions'])
+const companyName = ref('Onetime Secret');
 </script>

@@ -1,14 +1,9 @@
-# Onetime Secret - v0.18
-
-NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3`](https://github.com/onetimesecret/onetimesecret/tree/v0.17.3) for a more stable experience.
-
+# Onetime Secret - Secure One-Time Message Sharing
 
 *Keep passwords and other sensitive information out of your inboxes and chat logs.*
 
-## Latest releases
-
-* **Ruby 3+ (recommended): [latest](https://github.com/onetimesecret/onetimesecret/releases/latest)**
-* Ruby 2.7, 2.6 (legacy environments): [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)
+> [!NOTE]
+> Skip to [Installation instructions](#installation).
 
 ---
 
@@ -16,349 +11,538 @@ NOTE: The `develop` branch is going through a major refactor. Checkout [`v0.17.3
 
 A onetime secret is a link that can be viewed only once. A single-use URL.
 
-Try it out on <a class="msg" href="https://onetimesecret.com/">OnetimeSecret.com</a>!
-
+Try it out on [OnetimeSecret.com](https://onetimesecret.com/)!
 
 ### Why would I want to use it?
 
 When you send people sensitive info like passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.
 
+* [What is a Onetime Secret?](#what-is-a-onetime-secret)
+  * [Why would I want to use it?](#why-would-i-want-to-use-it)
+* [Latest releases](#latest-releases)
+  * [**Get the Latest Release** (Recommended)](#get-the-latest-release-recommended)
+  * [Older releases](#older-releases)
+* [Installation](#installation)
+  * [System Requirements](#system-requirements)
+  * [Docker Installation](#docker-installation)
+  * [Running the Container](#running-the-container)
+  * [Manual Installation](#manual-installation)
+* [Configuration](#configuration)
+  * [Basic Setup](#basic-setup)
+  * [Configuration Options](#configuration-options)
+  * [Important Notes](#important-notes)
+  * [Generating a Secure Random Key](#generating-a-secure-random-key)
+* [Miscellaneous](#miscellaneous)
+  * [Docker-related Tips](#docker-related-tips)
+  * [Development Tips](#development-tips)
+  * [Production Deployment](#production-deployment)
+* [Similar Services](#similar-services)
+
+
+## Latest releases
+
+### **Get the [Latest Release](https://github.com/onetimesecret/onetimesecret/releases/latest)** (Recommended)
+
+This is the actively developed and maintained version with the most recent features and security updates.
+
+### Older releases
+
+**Ruby 3 without Node.js: [v0.15.0](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.15.0)**
+
+* If you prefer a simpler setup with just Ruby dependencies (i.e. without Node.js dependencies) this is the most recent version.
+* No security updates or bug fixes will be provided for this version.
+
+**Ruby 2.7, 2.6 (Legacy - Not Supported): [v0.12.1](https://github.com/onetimesecret/onetimesecret/releases/tag/v0.12.1)**
+
+* ⚠️ **Warning**: This version is no longer maintained or supported.
+* Only use if you absolutely cannot run Ruby 3+.
+* No security updates or bug fixes will be provided for this version.
+
+We strongly recommend using the latest release with Ruby 3+ for the best performance, security, and feature set. Legacy Ruby 2.x versions are provided for reference only and should be avoided in production environments.
 
 ## Installation
 
 ### System Requirements
 
-* Any recent linux disto (we use debian) or *BSD
+* Any recent linux distro (we use debian) or *BSD or MacOS
 * System dependencies:
-  * Ruby 3.3, 3.2, 3.1, 3.0, 2.7.8
+  * Ruby 3.1+ (3.0 may work but is not officially supported)
   * Redis server 5+
+  * Node.js 22+ (for front-end development)
+  * pnpm 9.0.0+
+* Additional packages:
+  * build-essential
+  * libyaml-dev
+  * libffi-dev
 * Minimum specs:
   * 2 core CPU (or equivalent)
   * 1GB memory
   * 4GB disk
 
-For front-end development, you'll also need:
-* Node.js 18+
-* pnpm 7.0.0+
+### Docker Installation
 
+There are multiple ways to run OnetimeSecret using Docker. Choose the method that best suits your needs:
 
-### Docker
+#### 1. Using Pre-built Images
 
-Running from a container is the easiest way to get started. We provide a Dockerfile that you can use to build your own image, or you can use one of the pre-built images from our container repositories.
-
+We offer pre-built images on both GitHub Container Registry and Docker Hub.
 
 ```bash
-  # Install from the GitHub Container Registry
-  $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
+# Pull from GitHub Container Registry
+docker pull ghcr.io/onetimesecret/onetimesecret:latest
 
-  # OR, install from Docker Hub
-  #
-  #   $ docker pull onetimesecret/onetimesecret:latest
-
-  # Start redis container
-  $ docker run -p 6379:6379 -d redis:bookworm
-
-  # Set essential environment variables
-  HOST=localhost:3000
-  SSL=false
-  COLONEL=admin@example.com
-  REDIS_URL=redis://host.docker.internal:6379/0
-  RACK_ENV=production
-
-  # Create and run a container named `onetimesecret`
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-      -e REDIS_URL=$REDIS_URL \
-      -e COLONEL=$COLONEL \
-      -e HOST=$HOST \
-      -e SSL=$SSL \
-      -e RACK_ENV=$RACK_ENV \
-      onetimesecret/onetimesecret:latest
+# OR, pull from Docker Hub
+docker pull onetimesecret/onetimesecret:latest
 ```
 
-#### Building image locally
+#### 2. Building the Image Locally
+
+If you prefer to build the image yourself:
 
 ```bash
-  $ docker build -t onetimesecret .
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-      -e REDIS_URL=$REDIS_URL \
-      -e COLONEL=$COLONEL \
-      -e HOST=$HOST \
-      -e SSL=$SSL \
-      -e RACK_ENV=$RACK_ENV \
-      onetimesecret
+git clone https://github.com/onetimesecret/onetimesecret.git
+cd onetimesecret
+docker build -t onetimesecret .
 ```
 
-#### Optional Bundle Install
+#### 3. Multi-platform Builds
 
-By default, the `bundle install` command is not run when starting the container. If you want it to run at startup (e.g., to re-install new dependencies added to the Gemfile without rebuilding the image), you can set the `BUNDLE_INSTALL` environment variable to `true`. Here's how you can do this:
+For environments requiring multi-architecture support:
 
 ```bash
-$ docker run -p 3000:3000 -d --name onetimesecret \
-    -e BUNDLE_INSTALL=true \
-    -e REDIS_URL=$REDIS_URL \
-    -e COLONEL=$COLONEL \
-    -e HOST=$HOST \
-    -e SSL=$SSL \
-    -e RACK_ENV=$RACK_ENV \
-    onetimesecret/onetimesecret:latest
+git clone https://github.com/onetimesecret/onetimesecret.git
+cd onetimesecret
+docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
 ```
 
-This will cause the container to run bundle install each time it starts up. Note that this may increase the startup time of your container.
+#### 4. Lite Docker Image
 
-
-#### Multi-platform builds
-
-Docker's buildx command is a powerful tool that allows you to create Docker images for multiple platforms simultaneously. Use buildx to build a Docker image that can run on both amd64 (standard Intel/AMD CPUs) and arm64 (ARM CPUs, like those in the Apple M1 chip) platforms.
+We also offer a "lite" version of the Docker image, which is optimized for quicker deployment and reduced resource usage. To use the lite version:
 
 ```bash
-  $ docker buildx build --platform=linux/amd64,linux/arm64 . -t onetimesecret
+# Pull the lite image
+docker pull ghcr.io/onetimesecret/onetimesecret:latest-lite
+
+# OR, build it locally
+docker build -f Dockerfile-lite -t onetimesecret:lite .
 ```
 
-#### "The container name "/onetimesecret" is already in use"
+For more information on the lite Docker image, refer to the [DOCKER-lite.md](docs/DOCKER-lite.md) documentation.
 
-```bash
-  # If the container already exists, you can simply start it again:
-  $ docker start onetimesecret
+### Running the Container
 
-  # OR, remove the existing container
-  $ docker rm onetimesecret
-```
+Regardless of how you obtained or built the image, follow these steps to run OnetimeSecret:
 
-After the container has been removed, the regular `docker run` command will work again.
+1. Start a Redis container:
 
+   ```bash
+   docker run -p 6379:6379 -d redis:bookworm
+   ```
 
-#### Container repositories
+2. Set essential environment variables:
 
+   ```bash
+   export HOST=localhost:3000
+   export SSL=false
+   export COLONEL=admin@example.com
+   export REDIS_URL=redis://host.docker.internal:6379/0
+   export RACK_ENV=production
+   ```
 
-##### [GitHub Container Registry](https://ghcr.io/onetimesecret/onetimesecret)
+   Note: The `COLONEL` variable sets the admin account email. It's a playful combination of "colonel" (someone in charge) and "kernel" (as in Linux), representing the system administrator.
 
-```bash
-  $ docker run -p 6379:6379 --name redis -d redis
-  $ REDIS_URL="redis://172.17.0.2:6379/0"
+3. Run the OnetimeSecret container:
 
-  $ docker pull ghcr.io/onetimesecret/onetimesecret:latest
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-    -e REDIS_URL=$REDIS_URL \
-    ghcr.io/onetimesecret/onetimesecret:latest
-```
+   ```bash
+   docker run -p 3000:3000 -d --name onetimesecret \
+     -e REDIS_URL=$REDIS_URL \
+     -e COLONEL=$COLONEL \
+     -e HOST=$HOST \
+     -e SSL=$SSL \
+     -e RACK_ENV=$RACK_ENV \
+     onetimesecret/onetimesecret:latest
+   ```
 
-##### [Docker Hub](https://hub.docker.com/r/onetimesecret/onetimesecret)
+   Note: Replace `onetimesecret/onetimesecret:latest` with your image name if you built it locally.
 
-```bash
-  $ docker run -p 6379:6379 --name redis -d redis
-  $ REDIS_URL="redis://172.17.0.2:6379/0"
+OnetimeSecret should now be running and accessible at `http://localhost:3000`.
 
-  $ docker pull onetimesecret/onetimesecret:latest
-  $ docker run -p 3000:3000 -d --name onetimesecret \
-    -e REDIS_URL=$REDIS_URL \
-    onetimesecret/onetimesecret:latest
-```
+### Manual Installation
 
-### Docker Compose
+If you prefer to work with the source code directly, you can install OnetimeSecret manually. Follow these steps:
 
-See the dedicated [Docker Compose repo](https://github.com/onetimesecret/docker-compose/).
+#### 1. Get the Code
 
-
-### Manually
-
-Get the code, one of:
+Choose one of these methods:
 
 * Download the [latest release](https://github.com/onetimesecret/onetimesecret/archive/refs/tags/latest.tar.gz)
-* Clone this repo:
+* Clone the repository:
+
+  ```bash
+  git clone https://github.com/onetimesecret/onetimesecret.git
+  ```
+
+#### 2. Install System Dependencies
+
+Follow these general steps to install the required system dependencies:
+
+1. Install [Redis Server 5+](https://redis.io/download)
+2. Install [Ruby 3.1+](https://www.ruby-lang.org/en/downloads/) and [bundler 2.5*](https://bundler.io/)
+3. Install [Node.js 20+](https://nodejs.org/en/download/) and [pnpm 9.2+](https://pnpm.io/installation)
+4. Install additional required packages: build-essential, libyaml-dev, libffi-dev
+
+For Debian/Ubuntu systems, you can use the following commands:
 
 ```bash
-  $ git clone https://github.com/onetimesecret/onetimesecret.git
+# Update package list and install basic dependencies
+sudo apt update
+sudo apt install -y git redis-server build-essential libyaml-dev libffi-dev
+
+# Install Ruby 3.1
+sudo apt install -y ruby3.1 ruby3.1-dev
+
+# Install Node.js and pnpm
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pnpm@latest
 ```
 
-### For a fresh install
+Note: After installation, make sure Redis is running with `service redis-server status`. Start it if needed with `service redis-server start`.
 
-If you're installing on a fresh system, you'll need to install a few system dependencies before you can run the webapp.
+For other operating systems, please refer to the official documentation for each dependency to install the correct versions.
 
-#### 0. Install system dependencies
-
-The official Ruby docs have a great guide on [installing Ruby](https://www.ruby-lang.org/en/documentation/installation/). Here's a quick guide for Debian/Ubuntu:
-
-
-For Debian / Ubuntu:
+#### 3. Initialize the config files
 
 ```bash
-
-  # Make sure you have the latest packages (even if you're on a fresh install)
-  $ sudo apt update
-
-  # Install the basic tools of life
-  $ sudo apt install -y git curl sudo
-
-  # Install Ruby (3) and Redis
-  $ sudo apt install -y ruby-full redis-server
+cd onetimesecret
+git rev-parse --short HEAD > .commit_hash.txt
+cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
 ```
 
-NOTE: The redis-server service should start automatically after installing it. You can check that it's up by running: `service redis-server status`. If it's not running, you can start it with `service redis-server start`.
-
-#### 1. Now get the code via git:
+#### 4. Install Ruby Dependencies
 
 ```bash
-  $ git clone https://github.com/onetimesecret/onetimesecret.git
+sudo gem install bundler
+bundle config set --local without 'development test'
+bundle update --bundler
+bundle install
 ```
 
-
-#### 2. Copy the configuration files into place and modify as needed:
+#### 5. Install JavaScript Dependencies
 
 ```bash
-  $ cd onetimesecret
-
-  $ cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config
-  $ cp --preserve --no-clobber .env.example .env
+pnpm install --frozen-lockfile
 ```
 
-
-#### 3. Install ruby dependencies
-
-```bash
-
-  # We use bundler manage the rest of the ruby dependencies
-  $ sudo gem install bundler
-
-  # Install the rubygems listing inthe Gemfile
-  $ bundle install
-```
-
-#### 4. Install javascript dependencies
+#### 6. Build the Frontend
 
 ```bash
-  $ pnpm install
-```
-
-And build the assets:
-
-```bash
-  $ pnpm run build
+pnpm run build
 ```
 
 
-#### 5. Run the webapp
+#### 7. Run the Web Application
 
-```bash
-  $ bundle exec thin -R config.ru -p 3000 start
+There are two main ways to run the application, depending on your development needs:
 
-  ---  ONETIME app  ----------------------------------------
-  Config: /Users/d/Projects/opensource/onetimesecret/etc/config
-  2024-04-10 22:39:15 -0700 Thin web server (v1.8.2 codename Ruby Razor)
-  2024-04-10 22:39:15 -0700 Maximum connections set to 1024
-  2024-04-10 22:39:15 -0700 Listening on 0.0.0.0:3000, CTRL+C to stop
+##### Option A: Without Vite Dev Server (Production-like or Simple Development)
+
+1. For production or simple development without frontend changes:
+
+   ```bash
+   RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
+   ```
+
+   Or, for a development environment with a static frontend and Ruby live reloading:
+
+   ```bash
+   RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
+   ```
+
+   Ensure `development.enabled` is set to `false` in `etc/config.yaml`:
+
+   ```yaml
+   :development:
+     :enabled: false
+   ```
+
+   This uses pre-built frontend assets in the `dist/assets` directory.
+
+##### Option B: With Vite Dev Server (Active Frontend Development)
+
+1. Set `development.enabled` to `true` in `etc/config.yaml`:
+
+   ```yaml
+   :development:
+     :enabled: true
+   ```
+
+2. Run the Thin server in development mode:
+
+   ```bash
+   RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
+   ```
+
+3. In a separate terminal, start the Vite dev server:
+
+   ```bash
+   pnpm run dev
+   ```
+
+   This enables live reloading of frontend assets.
+
+The application determines whether to use development or production assets based on the `development.enabled` setting. In development mode with the Vite server running, frontend assets are loaded dynamically:
+
+```html
+{{#frontend_development}}
+<script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
+<script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
+{{/frontend_development}}
 ```
 
-See the [Ruby CI workflow](.github/workflows/ruby.yaml) for another example of the steps.
+In production mode, it uses the built files in `dist/assets`:
 
-In a separate terminal window, run the Vite dev server:
-
-```bash
-  $ pnpm run dev
+```html
+{{^frontend_development}}
+{{{vite_assets}}}
+{{/frontend_development}}
 ```
 
-NOTE: When running the Vite server in development mode, it will automatically reload when files change. Make sure that `RACK_ENV` is either set to `development` or `development.enabled` in etc/config is false. Otherwise the ruby application will attempt to lad the JS/CSS etc from the pre-built files in `public/web/dist`.
+Choose the option that best fits your development workflow and needs.
 
+## Configuration
 
-## Debugging
+OnetimeSecret requires a `config.yaml` file for all installations. Environment variables can be used to override specific settings, but the `config.yaml` file must always be present.
 
-To run in debug mode set `ONETIME_DEBUG=true`.
+### Basic Setup
 
-```bash
-  $ ONETIME_DEBUG=true bundle exec thin -e dev start`
+1. Create the configuration file:
+
+   ```bash
+   cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
+   ```
+
+2. Review and edit `./etc/config.yaml` as needed. At minimum, update the secret key and back it up securely.
+
+### Configuration Options
+
+#### 1. Using config.yaml (Required)
+
+The `./etc/config.yaml` file is the primary configuration method. It uses ERB syntax to incorporate environment variables, allowing for flexible configuration:
+
+```yaml
+---
+:site:
+  :host: <%= ENV['HOST'] || 'localhost:7143' %>
+:domains:
+  :enabled: <%= ENV['DOMAINS_ENABLED'] || false %>
 ```
 
-If you're having trouble cloning via SSH, you can double check your SSH config like this:
+In this format:
 
-**With a github account**
-```bash
-  ssh -T git@github.com
-  Hi delano! You've successfully authenticated, but GitHub does not provide shell access.
-```
+* If an environment variable (e.g., `HOST`) is set, its value will be used.
+* If the environment variable is not set, the fallback value (e.g., 'localhost:7143') will be used.
+* If you remove the ERB syntax and environment variable reference, only the literal value in the config will be used.
 
-**Without a github account**
-```bash
-  ssh -T git@github.com
-  Warning: Permanently added the RSA host key for IP address '0.0.0.0/0' to the list of known hosts.
-  git@github.com: Permission denied (publickey).
-```
+Key areas to configure in `config.yaml`:
 
-*NOTE: you can also use the etc directory from here instead of copying it to the system. Just be sure to secure the permissions on it*
+* SMTP or SendGrid for email
+* Redis connection details
+* Rate limits
+* Enabled locales
 
-```bash
-  chown -R ots ./etc
-  chmod -R o-rwx ./etc
-```
+#### 2. Using Environment Variables (Optional)
 
-### Configuration
-
-1. `./etc/config`
-  * Update your secret key
-    * Back up your secret key (e.g. in your password manager). If you lose it, you won't be able to decrypt any existing secrets.
-  * Update the SMTP or SendGrid credentials for email sending
-    * Update the from address (it's used for all sent emails)
-  * Update the rate limits at the bottom of the file
-    * The numbers refer to the number of times each action can occur for unauthenticated users.
-  * Enable or disable the available locales.
-1. `./etc/redis.conf`
-  * The host, port, and password need to match
-1. `/etc/onetime/locale/*`
-  * Optionally you can customize the text used throughout the site and emails
-  * You can also edit the `:broadcast` string to display a brief message at the top of every page
-
-### Running your own
-
-There are many ways to run the webapp. The default web server we use is [thin](https://github.com/macournoyer/thin). It's a Rack app so any server in the ruby ecosystem that supports Rack apps will work.
-
-**To run locally:**
+For quick setups or container deployments, you can use environment variables to override `config.yaml` settings:
 
 ```bash
-  bundle exec thin -e dev -R config.ru -p 3000 start
+export HOST=localhost:3000
+export SSL=false
+export COLONEL=admin@example.com
+export REDIS_URL=redis://username:password@hostname:6379/0
+export RACK_ENV=production
 ```
 
-**To run on a server:**
+#### 3. Using a .env File (Optional)
+
+For various deployment scenarios, including Docker setups and local development, you can use a `.env` file to set environment variables:
+
+1. Create the .env file:
+
+   ```bash
+   cp --preserve --no-clobber .env.example .env
+   ```
+
+2. Edit the `.env` file with your desired configuration.
+
+3. Usage depends on your setup:
+   * For local development, load the variables before running the application:
+
+     ```bash
+     set -a
+     source .env
+     set +a
+     ```
+
+   * For Docker deployments, you can use the `--env-file` option:
+
+     ```bash
+     docker run --env-file .env your-image-name
+     ```
+
+   * In docker-compose, you can specify the .env file in your docker-compose.yml:
+
+     ```yaml
+     services:
+       your-service:
+         env_file:
+           - .env
+     ```
+
+The .env file is versatile and can be used in various deployment scenarios, offering flexibility in how you manage your environment variables.
+
+### Important Notes
+
+* The `config.yaml` file is always required, even when using environment variables.
+* Choose either direct environment variables or the `.env` file method, but not both, to avoid confusion.
+* If you remove environment variable references from `config.yaml`, only the literal values in the config will be used.
+
+> [!IMPORTANT]
+> Use a secure value for the `SECRET` key as an environment variable or as `site.secret` in `etc/config.yaml`. Once set, do not change this value. Create and store a backup in a secure offsite location. Changing the secret may prevent decryption of existing secrets.
+
+For a full list of available configuration options, refer to the comments in the `config.example.yaml` file.
+
+### Generating a Secure Random Key
+
+To generate a secure, random 256-bit (32-byte) secret key, you can use the following command with OpenSSL:
 
 ```bash
-  bundle exec thin -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 2 start
+openssl rand -hex 32
 ```
 
-Graceful restart:
+If OpenSSL is not installed, you can use the `dd` command as a fallback:
+
 ```bash
-  bundle exec thin --onebyone -d -S /var/run/thin/thin.sock -l /var/log/thin/thin.log -P /var/run/thin/thin.pid -e prod -s 4 -D restart
+dd if=/dev/urandom bs=32 count=1 2>/dev/null | xxd -p -c 32
 ```
+
+Note: While the `dd` command provides a reasonable alternative, using OpenSSL is recommended for cryptographic purposes.
+
+## Miscellaneous
+
+### Docker-related Tips
+
+#### Container Name Already in Use
+
+If you encounter the error "The container name '/onetimesecret' is already in use":
+
+```bash
+# If the container already exists, you can simply start it again:
+docker start onetimesecret
+
+# OR, remove the existing container
+docker rm onetimesecret
+```
+
+After removing the container, you can run the regular `docker run` command again.
+
+#### Docker Compose
+
+For Docker Compose setup, see the dedicated [Docker Compose repo](https://github.com/onetimesecret/docker-compose/).
+
+### Development Tips
+
+#### Debugging
+
+To run in debug mode:
+
+```bash
+ONETIME_DEBUG=true bundle exec thin -e dev start
+```
+
+#### Front-end Development
+
+When running the Vite server in development mode, it will automatically reload when files change. Ensure that `RACK_ENV` is set to `development` or `development.enabled` in `etc/config` is set to `false`.
+
+#### Setting up pre-commit hooks
+
+We use the `pre-commit` framework to maintain code quality. To set it up:
+
+1. Install pre-commit:
+
+   ```bash
+   pip install pre-commit
+   ```
+
+2. Install the git hooks:
+
+   ```bash
+   pre-commit install
+   ```
+
+This will ensure that the pre-commit hooks run before each commit, helping to maintain code quality and consistency.
+
+##### Optimizing Docker Builds
+
+To see the layers of an image and optimize your builds, use:
+
+```bash
+docker history <image_id>
+```
+
+### Production Deployment
+
+When deploying to production, ensure you:
+
+1. Protect your Redis instance with authentication or Redis networks.
+2. Enable Redis persistence and save the data securely.
+3. Change the secret to a strong, unique value.
+4. Specify the correct domain it will be deployed on.
+
+Example production deployment:
+
+```bash
+export HOST=example.com
+export SSL=true
+export COLONEL=admin@example.com
+export REDIS_URL=redis://username:password@hostname:6379/0
+export RACK_ENV=production
+
+docker run -p 3000:3000 -d --name onetimesecret \
+  -e REDIS_URL=$REDIS_URL \
+  -e COLONEL=$COLONEL \
+  -e HOST=$HOST \
+  -e SSL=$SSL \
+  -e RACK_ENV=$RACK_ENV \
+  onetimesecret
+```
+
+Ensure all sensitive information is properly secured and not exposed in your deployment scripts or environment.
 
 ## Similar Services
 
-This section provides an overview of services similar to our project, highlighting their unique features and how they compare. These alternatives may be useful for users looking for specific functionalities or wanting to explore different options in the same domain.
+This section provides an overview of services similar to our project, highlighting their unique features and how they compare. These alternatives may be useful for users looking for specific functionalities or wanting to explore different options in the same domain. By presenting this information, we aim to give our users a comprehensive view of the available options in the secure information sharing space.
 
 **Note:** Our in-house legal counsel ([codium-pr-agent-pro bot](https://github.com/onetimesecret/onetimesecret/pull/610#issuecomment-2333317937)) suggested adding this introduction and the disclaimer at the end.
 
-| URL | Service | Description | Distinctive Feature |
-|-----|---------|-------------|---------------------|
-| https://pwpush.com/ | Password Pusher | A tool that uses browser cookies to help you share passwords and other sensitive information. | Temporary, self-destructing links for password sharing |
-| https://scrt.link/en | Share a Secret | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing |
-| https://cryptgeon.com/ | Cryptgeon | A service for sharing secrets and passwords securely. | Offers a secret generator, password generator, and secret vault |
-| https://www.vanish.so/ | Vanish | A service for sharing secrets and passwords securely. | Self-destructing messages with strong encryption |
-| https://password.link/en | Password.link | A service for securely sending and receiving sensitive information. | Secure link creation for sensitive information sharing |
-| https://sebsauvage.net/ | sebsauvage.net | A website offering various information and services. | Software to recover stolen computers |
-| https://www.sharesecret.co/ | ShareSecret | A service for securely sharing passwords in Slack and email. | Secure password sharing with Slack and email integration |
-| https://teampassword.com/ | TeamPassword | A password manager for teams. | Fast, easy-to-use, and secure team password management |
-| https://secretshare.io/ | Secret Share | A service for sharing passwords securely. | Strong encryption for data in transit and at rest |
-| https://retriever.corgea.io/ | Retriever | A service for requesting secrets securely. | Secure secret request and retrieval with encryption |
-| https://winden.app/s | Winden | A service for sharing secrets and passwords securely. | Securely transfers files with end-to-end encryption |
-| https://www.snote.app/ | SNote | A privacy-focused workspace with end-to-end encryption. | Secure collaboration on projects, to-dos, tasks, and shared files |
-| https://www.burnafterreading.me/ | Burn After Reading | A service for sharing various types of sensitive information. | Self-destructing messages with diceware passphrase encryption |
-| https://pvtnote.com/en/ | PvtNote | A service for sending private, self-destructing messages. | Clean design with self-destructing messages |
-| https://k9crypt.xyz/ | K9Crypt | A secure and anonymous messaging platform. | End-to-end encryption with 2-hour message deletion |
+| URL                                | Service            | Description                                                                                                                                                     | Distinctive Feature                                               |
+| ---------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| <https://pwpush.com/>              | Password Pusher    | A tool that uses browser cookies to help you share passwords and other sensitive information.                                                                   | Temporary, self-destructing links for password sharing            |
+| <https://scrt.link/en>             | Share a Secret     | A service that allows you to share sensitive information anonymously. Crucial for journalists, lawyers, politicians, whistleblowers, and oppressed individuals. | Anonymous, self-destructing message sharing                       |
+| <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault   |
+| <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.                                                                                                           | Self-destructing messages with strong encryption                  |
+| <https://password.link/en>         | Password.link      | A service for securely sending and receiving sensitive information.                                                                                             | Secure link creation for sensitive information sharing            |
+| <https://sebsauvage.net/>          | sebsauvage.net     | A website offering various information and services.                                                                                                            | Software to recover stolen computers                              |
+| <https://www.sharesecret.co/>      | ShareSecret        | A service for securely sharing passwords in Slack and email.                                                                                                    | Secure password sharing with Slack and email integration          |
+| <https://teampassword.com/>        | TeamPassword       | A password manager for teams.                                                                                                                                   | Fast, easy-to-use, and secure team password management            |
+| <https://secretshare.io/>          | Secret Share       | A service for sharing passwords securely.                                                                                                                       | Strong encryption for data in transit and at rest                 |
+| <https://retriever.corgea.io/>     | Retriever          | A service for requesting secrets securely.                                                                                                                      | Secure secret request and retrieval with encryption               |
+| <https://winden.app/s>             | Winden             | A service for sharing secrets and passwords securely.                                                                                                           | Securely transfers files with end-to-end encryption               |
+| <https://www.snote.app/>           | SNote              | A privacy-focused workspace with end-to-end encryption.                                                                                                         | Secure collaboration on projects, to-dos, tasks, and shared files |
+| <https://www.burnafterreading.me/> | Burn After Reading | A service for sharing various types of sensitive information.                                                                                                   | Self-destructing messages with diceware passphrase encryption     |
+| <https://pvtnote.com/en/>          | PvtNote            | A service for sending private, self-destructing messages.                                                                                                       | Clean design with self-destructing messages                       |
+| <https://k9crypt.xyz/>             | K9Crypt            | A secure and anonymous messaging platform.                                                                                                                      | End-to-end encryption with 2-hour message deletion                |
 
-_Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blog/command-r-plus-microsoft-azure), formatted by [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet), and proofread by [GitHub Copilot](https://github.com/features/copilot)._
+*Summarized, fetched, and collated by [Cohere Command R+](https://cohere.com/blog/command-r-plus-microsoft-azure), formatted by [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet), and proofread by [GitHub Copilot](https://github.com/features/copilot).*
 
 The inclusion of these services in this list does not imply endorsement. Users are encouraged to conduct their own research and due diligence before using any of the listed services, especially when handling sensitive information.
-
-
-## Generating a global secret
-
-We include a global secret in the encryption key so it needs to be long and secure. One approach for generating a secret:
-
-```bash
-  $ dd if=/dev/urandom bs=20 count=1 | openssl sha256
-```
