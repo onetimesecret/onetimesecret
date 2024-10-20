@@ -93,7 +93,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    /**
+        /**
      * Checks the current authentication status with the server.
      *
      * @description
@@ -102,18 +102,22 @@ export const useAuthStore = defineStore('auth', {
      * 2. Graceful degradation: Handles authentication failures with increasing severity.
      * 3. Auto-recovery: Resets failure count and backoff interval on successful checks.
      *
-     * @throws {AxiosError} Propagates network or server errors after 3 failed attempts.
-     * Resets failed check counter on success. This provides quick recovery
-     * but may mask intermittent issues. Implications:
+     * Key behaviors:
+     * - Immediate logout on 401 or 403 status codes.
+     * - Applies exponential backoff for 500+ status codes.
+     * - Logs out the user after 3 failed attempts.
+     * - Resets failed check counter on success.
+     *
+     * Implications:
      *  + Allows immediate recovery after a successful check
      *  + Prevents accumulation of sporadic failures over time
      *  - May not accurately represent patterns of intermittent failures
      *  - Could potentially hide underlying issues if failures are frequent
-     *   but not consecutive this.failedAuthChecks = 0;
+     *    but not consecutive
      */
     async checkAuthStatus() {
       try {
-        const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT)
+        const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT);
         // Update auth state and reset failure counters on success
         this.isAuthenticated = response.data.details.authorized;
         this.customer = response.data.record;
@@ -138,6 +142,10 @@ export const useAuthStore = defineStore('auth', {
         if (error instanceof AxiosError) {
           const statusCode = error.response?.status;
 
+          // If it's actually an authorization or authentication error
+          // we simply log out and leave it at that. This can happen
+          // when a session expires on the server-side sometime after
+          // our previous check but before this check.
           if (statusCode === 401 || statusCode === 403) {
             this.logout();
             return;
@@ -151,12 +159,17 @@ export const useAuthStore = defineStore('auth', {
         }
 
         if (this.failedAuthChecks >= 3) {
+          // After 3 failures, we call it quits and stop pestering the server.
           this.logout();
+          return;
         } else {
+          // For first 2 failures, we temporarily mark as unauthenticated
+          // This allows for potential auto-recovery on next successful check
           handleAuthFailure();
         }
       } finally {
-        // Ensure next check is always scheduled, regardless of outcome
+        // If we get here it means that we didn't log out
+        // so we can schedule the next check.
         this.startAuthCheck();
       }
     },
@@ -174,8 +187,7 @@ export const useAuthStore = defineStore('auth', {
       if (logoutStatuses.includes(status) || withPessimism) {
         this.logout();
       }
-    }
-    ,
+    },
 
     /**
      * Logs out the current user and resets the auth state.
@@ -204,13 +216,6 @@ export const useAuthStore = defineStore('auth', {
 
       // Stop any ongoing auth checks
       this.stopAuthCheck()
-
-      // Reset related stores if necessary
-      // const otherStore = useOtherStore()
-      // otherStore.$reset()
-
-      // Redirect to login page or home page
-      // router.push('/login')  // Uncomment if using Vue Router
     },
 
     /**
