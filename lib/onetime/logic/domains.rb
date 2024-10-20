@@ -29,7 +29,6 @@ module Onetime::Logic
         @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust) # raises OT::Problem
         @display_domain = @parsed_domain.display_domain
 
-
         # Don't need to do a bunch of validation checks here. If the input value
         # passes as valid, it's valid. If another account has verified the same
         # domain, that's fine. Both accounts can generate secret links for that

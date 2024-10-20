@@ -17,7 +17,7 @@ test.describe('Sign in and check account', () => {
     await expect(page.getByRole('link', { name: 'Logo' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Sign In' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Create Account' })).toBeVisible();
-    await expect(page.getByPlaceholder('Have a question or comment?')).toBeVisible();
+    await expect(page.getByPlaceholder('Share your thoughts, ideas, or experiences...')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Send Feedback' })).toBeVisible();
     await expect(page.getByPlaceholder('Secret content goes here...')).toBeVisible();
     //await expect(page.getByText('v0.18.0-alpha (9b51e336)')).toBeVisible();

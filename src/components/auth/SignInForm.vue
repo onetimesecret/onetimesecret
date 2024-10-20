@@ -1,4 +1,117 @@
 
+
+<template>
+  <form action="/signin"
+        method="POST"
+        class="mt-8 space-y-6">
+    <input type="hidden"
+           name="utf8"
+           value="✓" />
+    <input type="hidden"
+           name="shrimp"
+           :value="csrfStore.shrimp" />
+
+    <div class="rounded-md shadow-sm -space-y-px text-lg">
+      <!-- Email field -->
+      <div>
+        <label for="email-address"
+               class="sr-only">{{ $t('web.COMMON.field_email') }}</label>
+        <input id="email-address"
+               name="u"
+               type="email"
+               autocomplete="email"
+               required
+               class="relative block w-full rounded-none rounded-t-md appearance-none
+                      text-lg
+                      border border-gray-300
+                      px-3 py-2
+                      placeholder-gray-500 text-gray-900
+                      focus:outline-none focus:ring-brand-500 focus:border-brand-500 focus:z-10
+                      dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+                      dark:focus:ring-brand-500 dark:focus:border-brand-500"
+               :placeholder="$t('web.COMMON.email_placeholder')"
+               v-model="email">
+      </div>
+
+      <!-- Password input with visibility toggle -->
+      <div class="relative">
+        <label for="password"
+               class="sr-only">{{ $t('web.COMMON.field_password') }}</label>
+        <input id="password"
+               :type="showPassword ? 'text' : 'password'"
+               name="p"
+               autocomplete="current-password"
+               required
+               class="relative block w-full rounded-none rounded-b-md appearance-none
+                 text-lg
+                 border border-gray-300
+                 px-3 py-2 pr-10
+                 placeholder-gray-500 text-gray-900
+                 focus:outline-none focus:ring-brand-500 focus:border-brand-500 focus:z-10
+                 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white
+                 dark:focus:ring-brand-500 dark:focus:border-brand-500"
+               :placeholder="$t('web.COMMON.password_placeholder')"
+               v-model="password">
+        <button type="button"
+                @click="togglePasswordVisibility"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 z-10">
+          <svg class="h-5 w-5 text-gray-400"
+               :class="{ 'hidden': showPassword, 'block': !showPassword }"
+               xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 576 512">
+            <path fill="currentColor"
+                  d="M572.52 241.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400a144 144 0 1 1 144-144 143.93 143.93 0 0 1-144 144zm0-240a95.31 95.31 0 0 0-25.31 3.79 47.85 47.85 0 0 1-66.9 66.9A95.78 95.78 0 1 0 288 160z">
+            </path>
+          </svg>
+
+          <svg class="h-5 w-5 text-gray-400"
+               :class="{ 'block': showPassword, 'hidden': !showPassword }"
+               xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 640 512">
+            <path fill="currentColor"
+                  d="M320 400c-75.85 0-137.25-58.71-142.9-133.11L72.2 185.82c-13.79 17.3-26.48 35.59-36.72 55.59a32.35 32.35 0 0 0 0 29.19C89.71 376.41 197.07 448 320 448c26.91 0 52.87-4 77.89-10.46L346 397.39a144.13 144.13 0 0 1-26 2.61zm313.82 58.1l-110.55-85.44a331.25 331.25 0 0 0 81.25-102.07 32.35 32.35 0 0 0 0-29.19C550.29 135.59 442.93 64 320 64a308.15 308.15 0 0 0-147.32 37.7L45.46 3.37A16 16 0 0 0 23 6.18L3.37 31.45A16 16 0 0 0 6.18 53.9l588.36 454.73a16 16 0 0 0 22.46-2.81l19.64-25.27a16 16 0 0 0-2.82-22.45zm-183.72-142l-39.3-30.38A94.75 94.75 0 0 0 416 256a94.76 94.76 0 0 0-121.31-92.21A47.65 47.65 0 0 1 304 192a46.64 46.64 0 0 1-1.54 10l-73.61-56.89A142.31 142.31 0 0 1 320 112a143.92 143.92 0 0 1 144 144c0 21.63-5.29 41.79-13.9 60.11z">
+            </path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Remember me checkbox -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center text-lg">
+        <input id="remember-me"
+               name="remember-me"
+               type="checkbox"
+               class="h-4 w-4 rounded
+                      border-gray-300
+                      text-brand-600
+                      focus:ring-brand-500
+                      dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-brand-500"
+               v-model="rememberMe">
+        <label for="remember-me"
+               class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+          {{ $t('web.login.remember_me') }}
+        </label>
+      </div>
+    </div>
+
+    <!-- Submit button -->
+    <div>
+      <button type="submit"
+              class="group relative w-full flex justify-center
+                     rounded-md
+                     py-2 px-4
+                     text-lg font-medium text-white
+                     border border-transparent
+                     bg-brand-600 hover:bg-brand-700
+                     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
+                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
+        {{ $t('web.login.button_sign_in') }}
+      </button>
+    </div>
+  </form>
+</template>
+
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useCsrfStore } from '@/stores/csrfStore';
@@ -21,133 +134,4 @@ const showPassword = ref(false);
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
-
-
 </script>
-
-<template>
-  <form action="/signin" method="POST"
-        class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
-    <input type="hidden"
-           name="utf8"
-           value="✓" />
-    <input type="hidden"
-           name="shrimp"
-           :value="csrfStore.shrimp" />
-
-    <fieldset>
-      <div class="mb-4 relative">
-        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
-               for="custidField">
-          {{ $t('web.COMMON.field_email') }}
-        </label>
-        <div class="relative">
-          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
-               fill="none"
-               stroke="currentColor"
-               viewBox="0 0 24 24"
-               xmlns="http://www.w3.org/2000/svg"
-               width="20"
-               height="20">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207">
-            </path>
-          </svg>
-          <input v-model="email"
-                 type="email"
-                 name="u"
-                 id="custidField"
-                 required
-                 tabindex="1"
-                 autofocus
-                 class="shadow appearance-none border rounded w-full py-2 pl-10 pr-3
-              text-gray-700 dark:text-gray-300 dark:bg-gray-700 focus:ring-brandcomp-500 focus:ring-2
-                leading-tight focus:outline-none focus:shadow-outline transition duration-300 ease-in-out
-                invalid:not(:placeholder-shown):border-red-500 invalid:not(:placeholder-shown):text-red-600"
-                 :placeholder="$t('web.COMMON.email_placeholder')"
-                 autocomplete="email"
-                 aria-required="true" />
-        </div>
-      </div>
-      <div class="mb-6 relative">
-        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
-               for="passField">
-          {{ $t('web.COMMON.field_password') }}
-        </label>
-        <div class="relative">
-          <input v-model="password"
-                 :type="showPassword ? 'text' : 'password'"
-                 name="p"
-                 id="passField"
-                 required
-                 tabindex="2"
-                 class="w-full pl-10 pr-10 py-2
-                text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700
-                border rounded-md transition-colors duration-200 ease-in-out
-                focus:outline-none focus:ring-2 focus:ring-brandcomp-500"
-                 :placeholder="$t('web.COMMON.password_placeholder')"
-                 autocomplete="new-password"
-                 aria-required="true" />
-
-          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
-               fill="none"
-               stroke="currentColor"
-               viewBox="0 0 24 24"
-               xmlns="http://www.w3.org/2000/svg"
-               width="20"
-               height="20">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-            </path>
-          </svg>
-          <button type="button"
-                  class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  @click="togglePasswordVisibility">
-            <svg class="h-5 w-5"
-                 fill="none"
-                 stroke="currentColor"
-                 viewBox="0 0 24 24"
-                 xmlns="http://www.w3.org/2000/svg"
-                 width="20"
-                 height="20">
-              <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-              </path>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div class="mb-6 flex items-center">
-        <div class="flex items-center">
-          <input v-model="rememberMe"
-                 type="checkbox"
-                 tabindex="3"
-                 name="remember"
-                 id="rememberMe"
-                 class="w-4 h-4 text-brandcomp-600 bg-gray-100 border-gray-300 rounded focus:ring-brandcomp-500 dark:focus:ring-brandcomp-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-          <label for="rememberMe"
-                 class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-            {{ $t('web.login.remember_me') }}
-          </label>
-        </div>
-      </div>
-      <div class="flex items-center justify-between">
-        <button type="submit"
-                tabindex="4"
-                class="px-4 py-2 font-bold text-white bg-brand-500 rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 dark:bg-brand-600 dark:hover:bg-brand-700 transition-colors duration-300 ease-in-out transform hover:scale-105">
-          {{ $t('web.login.button_sign_in') }}
-        </button>
-      </div>
-    </fieldset>
-  </form>
-</template>

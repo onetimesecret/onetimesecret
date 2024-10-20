@@ -6,11 +6,13 @@ module Onetime::Logic
   module Misc
 
     class ReceiveFeedback < OT::Logic::Base
-      attr_reader :msg, :authenticity_payload, :verified, :verification_data
+      attr_reader :msg, :authenticity_payload, :verified, :verification_data, :greenlighted, :tz, :version
 
       def process_params
         @msg = params[:msg].to_s.slice(0, 999)
         @authenticity_payload = params[:authenticity_payload].to_s.slice(0, 999)
+        @tz = params[:tz].to_s.slice(0, 64)
+        @version = params[:version].to_s.slice(0, 32)
       end
 
       def raise_concerns
@@ -43,10 +45,27 @@ module Onetime::Logic
       end
 
       def process
-        @msg = "#{msg} [%s]" % [cust.anonymous? ? sess.ipaddress : cust.custid]
+        @greenlighted = true
+        @msg = format_feedback_message
         OT.ld [:receive_feedback, msg].inspect
         OT::Feedback.add @msg
-        sess.set_info_message "Message received. Send as much as you like!"
+      end
+
+      def format_feedback_message
+        identifier = cust.anonymous? ? sess.ipaddress : cust.custid
+        "#{msg} [#{identifier}] [TZ: #{tz}] [v#{version}]"
+      end
+      private :format_feedback_message
+
+      def success_data
+        {
+          success: greenlighted,
+          record: {
+          },
+          details: {
+            message: "Message received. Send as much as you like!"
+          }
+        }
       end
 
       def secret_key
