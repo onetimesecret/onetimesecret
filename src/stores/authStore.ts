@@ -1,7 +1,7 @@
-import router from '@/router'
-import { Customer, CheckAuthDataApiResponse, CheckAuthDetails } from '@/types/onetime'
+import router from '@/router';
+import { CheckAuthDataApiResponse, CheckAuthDetails, Customer } from '@/types/onetime';
 import axios, { AxiosError } from 'axios';
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 
 /**
  * Backoff Logic Summary:
@@ -103,6 +103,13 @@ export const useAuthStore = defineStore('auth', {
      * 3. Auto-recovery: Resets failure count and backoff interval on successful checks.
      *
      * @throws {AxiosError} Propagates network or server errors after 3 failed attempts.
+     * Resets failed check counter on success. This provides quick recovery
+     * but may mask intermittent issues. Implications:
+     *  + Allows immediate recovery after a successful check
+     *  + Prevents accumulation of sporadic failures over time
+     *  - May not accurately represent patterns of intermittent failures
+     *  - Could potentially hide underlying issues if failures are frequent
+     *   but not consecutive this.failedAuthChecks = 0;
      */
     async checkAuthStatus() {
       try {
@@ -110,25 +117,43 @@ export const useAuthStore = defineStore('auth', {
         // Update auth state and reset failure counters on success
         this.isAuthenticated = response.data.details.authorized;
         this.customer = response.data.record;
+        // Reset failed auth checks counter on successful authentication
         this.failedAuthChecks = 0;
         this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
       } catch (error: unknown) {
         this.failedAuthChecks++;
-        // Calculate next backoff interval with exponential increase, capped at maximum
-        this.currentBackoffInterval = Math.min(
-          this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
-          MAX_AUTH_CHECK_INTERVAL_MS
-        );
 
-        if (this.failedAuthChecks >= 3) {
-          // After 3 failures, escalate to error handling (likely logout)
-          this.handleHttpError(error as AxiosError, true);
+        const applyBackoff = () => {
+          this.currentBackoffInterval = Math.min(
+            this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
+            MAX_AUTH_CHECK_INTERVAL_MS
+          );
+        };
 
-        } else {
-          // For first 2 failures, temporarily mark as unauthenticated
-          // This allows for potential auto-recovery on next successful check
+        const handleAuthFailure = () => {
           this.isAuthenticated = false;
           this.customer = undefined;
+        };
+
+        if (error instanceof AxiosError) {
+          const statusCode = error.response?.status;
+
+          if (statusCode === 401 || statusCode === 403) {
+            this.logout();
+            return;
+          } else if (statusCode && statusCode >= 500) {
+            applyBackoff();
+          }
+          // For other status codes, continue with the existing logic
+        } else {
+          console.error('Non-Axios error occurred:', error);
+          applyBackoff();
+        }
+
+        if (this.failedAuthChecks >= 3) {
+          this.logout();
+        } else {
+          handleAuthFailure();
         }
       } finally {
         // Ensure next check is always scheduled, regardless of outcome
@@ -149,7 +174,8 @@ export const useAuthStore = defineStore('auth', {
       if (logoutStatuses.includes(status) || withPessimism) {
         this.logout();
       }
-    },
+    }
+    ,
 
     /**
      * Logs out the current user and resets the auth state.
@@ -259,20 +285,6 @@ export const useAuthStore = defineStore('auth', {
     setCustomer(customer: Customer | undefined) {
       this.customer = customer
     },
-
-    /**
-     * Initializes the auth store.
-     * Sets up the Axios interceptor, sets initial auth state, and customer data.
-     */
-    initialize() {
-      this.setupAxiosInterceptor()
-      const initialAuthState = window.authenticated ?? false
-      this.setAuthenticated(initialAuthState)
-
-      if (window.cust) {
-        this.setCustomer(window.cust as Customer)
-      }
-    }
   }
 })
 

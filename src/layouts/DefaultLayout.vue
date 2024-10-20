@@ -1,4 +1,3 @@
-
 <template>
   <BaseLayout v-bind="props">
     <template #header>
@@ -6,7 +5,7 @@
     </template>
 
     <template #main>
-      <main class="container mx-auto p-4 max-w-2xl" name="DefaultLayout">
+      <main class="container mx-auto px-4 py-8 min-w-[320px] max-w-2xl" name="DefaultLayout">
         <slot></slot>
       </main>
     </template>
@@ -14,7 +13,6 @@
     <template #footer>
       <DefaultFooter v-bind="props"/>
     </template>
-
   </BaseLayout>
 </template>
 
@@ -42,5 +40,4 @@ const props = withDefaults(defineProps<Props>(), {
   displayVersion: true,
   displayToggles: true,
 })
-
 </script>

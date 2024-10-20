@@ -9,11 +9,11 @@ import 'vite/modulepreload-polyfill';
 import i18n, { setLanguage } from '@/i18n';
 import router from '@/router';
 import { useAuthStore } from '@/stores/authStore';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 import App from './App.vue';
-
 
 import './assets/style.css';
 
@@ -43,6 +43,11 @@ async function initializeApp() {
   const pinia = createPinia();
   app.use(pinia);
 
+  const jurisdictionStore = useJurisdictionStore();
+
+  // Initialize the store with the Regions config
+  jurisdictionStore.initializeStore(window.regions);
+
   const authStore = useAuthStore()
   authStore.initialize()
 
@@ -64,7 +69,7 @@ async function initializeApp() {
     () => languageStore.currentLocale,
     async (newLocale) => {
       if (newLocale) { // Type guard to ensure newLocale is not null
-        console.log('Language changed to:', newLocale);
+        console.debug('Language changed to:', newLocale);
         await setLanguage(newLocale);
 
         // Future considerations:

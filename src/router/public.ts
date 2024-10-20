@@ -10,8 +10,10 @@ const routes: Array<RouteRecordRaw> = [
 
   {
     path: '/',
+    name: "Home",
     component: Homepage,
     beforeEnter: (to, from, next) => {
+      console.debug('authState.value', authState.value)
       if (authState.value) {
         next({ name: 'Dashboard' })
       } else {
@@ -19,6 +21,7 @@ const routes: Array<RouteRecordRaw> = [
       }
     },
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
@@ -33,6 +36,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Inbound Secrets',
     component: IncomingSupportSecret,
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
     },
   },
@@ -42,6 +46,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Privacy Policy',
     component: () => import('@/views/info/PrivacyDoc.vue'),
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
     },
   },
@@ -50,6 +55,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Terms of Use',
     component: () => import('@/views/info/TermsDoc.vue'),
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
     },
   },
@@ -58,6 +64,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Security Policy',
     component: () => import('@/views/info/SecurityDoc.vue'),
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
     },
   },
@@ -67,6 +74,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Feedback',
     component: () => import('@/views/Feedback.vue'),
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
@@ -81,6 +89,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'About',
     component: () => import('@/views/About.vue'),
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
@@ -95,6 +104,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Translations',
     component: () => import('@/views/Translations.vue'),
     meta: {
+      requiresAuth: false,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,

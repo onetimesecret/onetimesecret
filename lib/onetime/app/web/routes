@@ -14,8 +14,6 @@ POST  /welcome/stripe/webhook                    Onetime::App::Data#welcome_webh
 
 POST  /signin                                    Onetime::App::Data#authenticate
 
-POST  /feedback                                  Onetime::App::Data#receive_feedback
-
 GET   /logout                                    Onetime::App::Data#logout
 
 POST  /forgot                                    Onetime::App::Data#request_reset

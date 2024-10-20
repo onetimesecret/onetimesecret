@@ -27,6 +27,7 @@ module Onetime
         site = OT.conf.fetch(:site, {})
         secret_options = site.fetch(:secret_options, {})
         domains = site.fetch(:domains, {})
+        regions = site.fetch(:regions, {})
         authentication = site.fetch(:authentication, {})
         support_host = site.dig(:support, :host) # defaults to nil
         incoming_recipient = OT.conf.dig(:incoming, :email)
@@ -40,6 +41,9 @@ module Onetime
         cust ||= OT::Customer.anonymous
         authenticated = sess && sess.authenticated? && ! cust.anonymous?
 
+        domains_enabled = domains[:enabled] || false
+        regions_enabled = regions[:enabled] || false
+
         # Regular template vars used one
         self[:description] = i18n[:COMMON][:description]
         self[:keywords] = i18n[:COMMON][:keywords]
@@ -49,11 +53,14 @@ module Onetime
         self[:no_cache] = false
 
         self[:jsvars] = []
+
         # Pass the authentication flag settings to the frontends.
         self[:jsvars] << jsvar(:authentication, authentication)
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
 
-        domains_enabled = domains[:enabled] || false
+        # Only send the regions config when the feature is enabled.
+        self[:jsvars] << jsvar(:regions_enabled, regions_enabled)
+        self[:jsvars] << jsvar(:regions, regions) if regions_enabled
 
         if authenticated && cust
           self[:jsvars] << jsvar(:metadata_record_count, cust.metadata_list.length)

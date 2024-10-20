@@ -1,101 +1,26 @@
 <template>
-  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 overflow-visible w-full transition-colors duration-75">
-    <div class="container my-4 mx-auto px-4 max-w-2xl">
-      <div v-if="displayLinks"
-           class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8 py-10 pl-4 sm:pl-8 md:pl-16">
+  <footer class="min-w-[320px] bg-gray-100 dark:bg-gray-800 py-8 w-full transition-all duration-300" aria-label="Site footer">
+    <div class="container mx-auto px-4 max-w-2xl">
+      <FooterLinkLists v-if="displayLinks" v-bind="$props" />
 
-        <!-- Company links -->
-        <div class="space-y-4">
-          <h3 class="font-semibold text-gray-700 dark:text-gray-300 text-2xl md:text-xl">Company</h3>
-          <ul class="prose dark:prose-invert font-brand">
-            <li>
-              <router-link to="/about"
-                           class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                           aria-label="About Onetime Secret">About</router-link>
-            </li>
-            <li v-if="plansEnabled && authentication.enabled">
-              <router-link to="/pricing"
-                           class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                           aria-label="Onetime Secret Subscription Pricing">Pricing</router-link>
-            </li>
-            <li v-if="supportHost">
-              <a :href="`${supportHost}/blog`"
-                 class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                 aria-label="Our blogging website">Blog</a>
-            </li>
-          </ul>
+      <div class="flex flex-col-reverse sm:flex-row justify-between items-center pt-6 mt-6">
+        <div v-if="displayVersion" class="text-sm text-center sm:text-left w-full sm:w-auto mt-4 sm:mt-0 text-gray-600 dark:text-gray-300 order-2 sm:order-1">
+          &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+          <span class="hidden md:inline">All rights reserved.</span>
         </div>
 
-        <!-- Resources links -->
-        <div class="space-y-4">
-          <h3 class="font-semibold text-gray-700 dark:text-gray-300 text-2xl md:text-xl">Resources</h3>
-          <ul class="prose dark:prose-invert font-brand">
-            <li>
-              <a href="https://github.com/onetimesecret/onetimesecret"
-                 class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                 aria-label="View source code on GitHub"
-                 rel="noopener noreferrer">GitHub</a>
-            </li>
-            <li v-if="supportHost">
-              <a :href="`${supportHost}/docs`"
-                 aria-label="Our documentation site"
-                 class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                 rel="noopener noreferrer">Docs</a>
-            </li>
-            <li v-if="supportHost">
-              <a :href="`${supportHost}/docs/rest-api`"
-                 aria-label="Our API documentation"
-                 class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                 rel="noopener noreferrer">API</a>
-            </li>
-            <li>
-              <a href="https://status.onetimesecret.com/"
-                 class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                 aria-label="Check service status"
-                 rel="noopener noreferrer">Status</a>
-            </li>
-          </ul>
-        </div>
+        <div v-if="displayToggles" class="flex flex-wrap items-center justify-center sm:justify-end space-x-4 w-full sm:w-auto order-1 sm:order-2">
+          <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
 
-        <!-- Legal links -->
-        <div class="space-y-4 col-span-2 md:col-span-1">
-          <h3 class="font-semibold text-gray-700 dark:text-gray-300 text-2xl md:text-xl">Legals</h3>
-          <ul class="prose dark:prose-invert font-brand">
-            <li>
-              <router-link to="/info/privacy"
-                           class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                           aria-label="Read our Privacy Policy">Privacy</router-link>
-            </li>
-            <li>
-              <router-link to="/info/terms"
-                           class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                           aria-label="Read our Terms and Conditions">Terms</router-link>
-            </li>
-            <li>
-              <router-link to="/info/security"
-                           class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors text-xl md:text-lg"
-                           aria-label="View security information">Security</router-link>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="flex flex-col sm:flex-row justify-between items-center pt-4
-                  border-t border-gray-200 dark:border-gray-700">
-        <div v-if="displayVersion"
-             class="text-sm text-center sm:text-left mb-4 sm:mb-0 order-2 sm:order-1
-                  text-gray-500 dark:text-gray-400">
-          &copy; {{ new Date().getFullYear() }} OnetimeSecret.com - v{{ onetimeVersion }}
-        </div>
-        <div v-if="displayToggles"
-             class="flex items-center space-x-4 mb-4 sm:mb-0 order-1 sm:order-2">
-          <FeedbackToggle v-if="displayFeedback && authentication.enabled" />
-          <ThemeToggle />
-          <div class="relative z-50"
-               :class="{ 'opacity-60 hover:opacity-100': !isLanguageMenuOpen }"
-               aria-label="Change language">
-            <LanguageToggle @menu-toggled="handleMenuToggled" />
-          </div>
+          <ThemeToggle
+            class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200"
+            aria-label="Toggle dark mode"
+          />
+          <FeedbackToggle
+            v-if="displayFeedback && authentication.enabled"
+            class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200"
+            aria-label="Provide feedback"
+          />
         </div>
       </div>
     </div>
@@ -103,14 +28,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-
+import { ref } from 'vue'
 import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
-import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
+import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
+import { useWindowProps } from '@/composables/useWindowProps';
 
-// Define the props for this layout, extending the DefaultLayout props
 export interface Props extends DefaultProps {
   displayFeedback?: boolean
   displayLinks?: boolean
@@ -125,10 +50,6 @@ withDefaults(defineProps<Props>(), {
   displayToggles: true,
 });
 
-const isLanguageMenuOpen = ref(false);
-
-const handleMenuToggled = (isOpen: boolean) => {
-  isLanguageMenuOpen.value = isOpen;
-};
-
+const { regions_enabled: regionsEnabled, regions } = useWindowProps(['regions_enabled', 'regions'])
+const companyName = ref('Onetime Secret');
 </script>

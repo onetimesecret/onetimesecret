@@ -1,50 +1,53 @@
 <template>
-  <div class="flex items-center">
-    <button
-      @click="openFeedbackModal"
-      class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors p-1"
-      aria-label="Open feedback form"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+  <div class="relative">
+    <button @click="toggleFeedbackModal"
+            class="group flex items-center space-x-2 rounded-md
+               px-3 py-1.5
+               text-sm font-medium
+               bg-gray-200 dark:bg-gray-700
+               text-gray-600 dark:text-gray-300
+               hover:bg-slate-50 dark:hover:bg-slate-900
+               focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+               dark:focus:ring-brand-400
+               transition-all"
+            aria-label="Open feedback form">
+
+      <span class="inline">Feedback</span>
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-4 w-4 text-gray-500 transition-colors group-hover:text-brand-500 dark:text-gray-400 dark:group-hover:text-brand-400"
+           fill="none"
+           viewBox="0 0 24 24"
+           stroke="currentColor">
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
       </svg>
     </button>
-
-    <teleport to="body">
-      <div v-if="isFeedbackModalOpen"
-           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Feedback</h2>
-            <button @click="closeFeedbackModal"
-                    class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   class="h-6 w-6"
-                   fill="none"
-                   viewBox="0 0 24 24"
-                   stroke="currentColor">
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <FeedbackForm :showRedButton="false"
-                        @submitted="closeFeedbackModal" />
+    <Teleport to="body">
+      <Transition enter-active-class="transition ease-out duration-200"
+                  enter-from-class="opacity-0 translate-y-1"
+                  enter-to-class="opacity-100 translate-y-0"
+                  leave-active-class="transition ease-in duration-150"
+                  leave-from-class="opacity-100 translate-y-0"
+                  leave-to-class="opacity-0 translate-y-1">
+        <div v-if="isFeedbackModalOpen">
+          <FeedbackModal @close="closeFeedbackModal"
+                         :isOpen="isFeedbackModalOpen" />
         </div>
-      </div>
-    </teleport>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref } from 'vue'
-import FeedbackForm from './FeedbackForm.vue'
+import FeedbackModal from './modals/FeedbackModal.vue'
 
 const isFeedbackModalOpen = ref(false)
 
-const openFeedbackModal = () => {
+const toggleFeedbackModal = () => {
   isFeedbackModalOpen.value = true
 }
 

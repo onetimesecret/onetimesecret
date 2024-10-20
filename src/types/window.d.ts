@@ -40,7 +40,7 @@
  * IDEs.
  */
 
-import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions } from './onetime';
+import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, Regions } from './onetime.d.ts';
 import type Stripe from 'stripe';
 
 declare global {
@@ -61,6 +61,7 @@ declare global {
     supported_locales: string[];
     ot_version: string;
     plans_enabled: boolean;
+    regions_enabled: boolean;
     ruby_version: string;
 
     // Our CSRF token, to be used in POST requests to the backend. The
@@ -95,6 +96,10 @@ declare global {
     notreceived: Metadata[];
     has_items: boolean;
 
+    regions: Regions;
+
     incoming_recipient: string;
+
+    available_jurisdictions: string[];
   }
 }

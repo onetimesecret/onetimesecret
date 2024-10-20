@@ -66,17 +66,18 @@ We strongly recommend using the latest release with Ruby 3+ for the best perform
 
 * Any recent linux distro (we use debian) or *BSD or MacOS
 * System dependencies:
-  * Ruby 3.3, 3.2, 3.1
+  * Ruby 3.1+ (3.0 may work but is not officially supported)
   * Redis server 5+
+  * Node.js 22+ (for front-end development)
+  * pnpm 9.0.0+
+* Additional packages:
+  * build-essential
+  * libyaml-dev
+  * libffi-dev
 * Minimum specs:
   * 2 core CPU (or equivalent)
   * 1GB memory
   * 4GB disk
-
-For front-end development, you'll also need:
-
-* Node.js 18+
-* pnpm 9.0.0+
 
 ### Docker Installation
 
@@ -186,18 +187,19 @@ Choose one of these methods:
 Follow these general steps to install the required system dependencies:
 
 1. Install [Redis Server 5+](https://redis.io/download)
-2. Install [Ruby 3](https://www.ruby-lang.org/en/downloads/) and [bundler 2.5*](https://bundler.io/)
-3. Install [Node.js 18+](https://nodejs.org/en/download/) and [pnpm 9.2+](https://pnpm.io/installation)
+2. Install [Ruby 3.1+](https://www.ruby-lang.org/en/downloads/) and [bundler 2.5*](https://bundler.io/)
+3. Install [Node.js 20+](https://nodejs.org/en/download/) and [pnpm 9.2+](https://pnpm.io/installation)
+4. Install additional required packages: build-essential, libyaml-dev, libffi-dev
 
 For Debian/Ubuntu systems, you can use the following commands:
 
 ```bash
 # Update package list and install basic dependencies
 sudo apt update
-sudo apt install -y git redis-server
+sudo apt install -y git redis-server build-essential libyaml-dev libffi-dev
 
-# Install Ruby (choose one version)
-sudo apt install -y ruby3.3  # or ruby3.2, ruby3.1
+# Install Ruby 3.1
+sudo apt install -y ruby3.1 ruby3.1-dev
 
 # Install Node.js and pnpm
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
@@ -221,17 +223,25 @@ cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
 
 ```bash
 sudo gem install bundler
+bundle config set --local without 'development test'
+bundle update --bundler
 bundle install
 ```
 
 #### 5. Install JavaScript Dependencies
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
+```
+
+#### 6. Build the Frontend
+
+```bash
 pnpm run build
 ```
 
-#### 6. Run the Web Application
+
+#### 7. Run the Web Application
 
 There are two main ways to run the application, depending on your development needs:
 

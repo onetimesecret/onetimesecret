@@ -31,7 +31,7 @@ export const useCsrfStore = defineStore('csrf', {
     /** Whether the current token is valid */
     isValid: false,
     /** ID of the interval timer for periodic checks */
-    checkInterval: null as number | null,
+    intervalChecker: null as number | null,
   }),
   actions: {
     /**
@@ -99,7 +99,7 @@ export const useCsrfStore = defineStore('csrf', {
      */
     startPeriodicCheck(intervalMs: number = 60000) {
       this.stopPeriodicCheck();
-      this.checkInterval = window.setInterval(() => {
+      this.intervalChecker = window.setInterval(() => {
         this.checkShrimpValidity();
       }, intervalMs);
     },
@@ -108,9 +108,9 @@ export const useCsrfStore = defineStore('csrf', {
      * Stops the periodic checks of the CSRF token validity.
      */
     stopPeriodicCheck() {
-      if (this.checkInterval !== null) {
-        clearInterval(this.checkInterval);
-        this.checkInterval = null;
+      if (this.intervalChecker !== null) {
+        clearInterval(this.intervalChecker);
+        this.intervalChecker = null;
       }
     },
   },

@@ -13,6 +13,7 @@
       :type: <%= ENV['CLUSTER_TYPE'] || nil %>
       :api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
       :cluster_ip: <%= ENV['APPROXIMATED_PROXY_CLUSTER_IP'] || '<CLUSTER_IP>' %>
+      :cluster_host: <%= ENV['APPROXIMATED_PROXY_CLUSTER_HOST'] || '<CLUSTER_HOST>' %>
       :cluster_name: <%= ENV['APPROXIMATED_PROXY_CLUSTER_NAME'] || '<CLUSTER_NAME>' %>
       :vhost_target: <%= ENV['APPROXIMATED_PROXY_VHOST_TARGET'] || '<VHOST_TARGET>' %>
   # Turns https/http on or off when generating links
@@ -50,7 +51,8 @@
   :support:
     :host: <%= ENV['SUPPORT_HOST'] || nil %>
   :regions:
-    :enabled: false
+    :enabled: <%= ENV['REGIONS_ENABLE'] || false %>
+    :current_jurisdiction: <%= ENV['JURISDICTION'] || nil %>
   # Configuration options for secret management
   :secret_options:
     # Default Time-To-Live (TTL) for secrets in seconds
