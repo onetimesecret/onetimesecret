@@ -103,9 +103,18 @@ module Onetime
       end
     end
 
+    # Receives users from the Stripe Webhook after a successful payment for a new
+    # subscription. The redirect can optionally include a CHECKOUT_SESSION_ID which
+    # allows this webhook to call the Stripe API for the checkout details.
+    #
+    # e.g. https://onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
+    #
+    # @see https://docs.stripe.com/payment-links/post-payment#change-confirmation-behavior
+    #
     def welcome_webhook
       @ignoreshrimp = true
-      # But should check webhook signing secret
+      # We ignore CSRF shrimp since it's a calling coming from outside the house
+      # but we do verify the Stripe webhook signature in StripeWebhook#raise_concerns.
       publically do
         logic = OT::Logic::Welcome::StripeWebhook.new sess, cust, req.params, locale
         logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
