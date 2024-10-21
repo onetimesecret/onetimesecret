@@ -88,7 +88,7 @@ async function initializeApp() {
   // Apply other plugins
   app.use(i18n);
 
-  const router = createAppRouter()
+  const router = createAppRouter();
   app.use(router);
 
   // Mount the application
