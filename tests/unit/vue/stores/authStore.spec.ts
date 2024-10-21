@@ -3,15 +3,22 @@ import { Customer, Plan } from '@/types/onetime';
 import axios from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useRouter } from 'vue-router';
+import { mount } from '@vue/test-utils';
+import { Router, useRouter } from 'vue-router';
+import { setupRouter } from '../utils/routerSetup';
 
-
-const router = useRouter();
 
 vi.mock('axios')
-vi.mock('@/router', () => ({
-  default: { push: vi.fn() }
-}))
+const mockRouter = {
+  push: vi.fn(),
+  // Add other router methods you might use in your tests
+};
+
+vi.mock('vue-router', () => ({
+  createRouter: vi.fn(() => mockRouter),
+  createWebHistory: vi.fn(),
+  useRouter: vi.fn(() => mockRouter),
+}));
 
 // Create a mock Plan object
 const mockPlan: Plan = {
@@ -46,10 +53,17 @@ const mockCustomer: Customer = {
   stripe_subscription_id: 'sub_123456',
   stripe_customer_id: 'cus_123456',
 }
+
 describe('Auth Store', () => {
+  let router: Router;
+
   beforeEach(() => {
-    setActivePinia(createPinia())
-    vi.useFakeTimers()
+    setActivePinia(createPinia());
+    vi.useFakeTimers();
+
+    // Setup the router. This mimics what happens in main.ts
+    router = setupRouter();
+    vi.mocked(useRouter).mockReturnValue(router);
   })
 
   afterEach(() => {
@@ -62,6 +76,26 @@ describe('Auth Store', () => {
     expect(store.isAuthenticated).toBe(false)
     expect(store.customer).toBeUndefined()
   })
+
+  it('handles auth check error', async () => {
+    const store = useAuthStore()
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('Auth check failed'))
+
+    await store.checkAuthStatus()
+    expect(store.isAuthenticated).toBe(false)
+    expect(store.customer).toBeUndefined()
+    // router.push should not be called on the first failure
+    expect(router.push).not.toHaveBeenCalled()
+
+    // Simulate three consecutive failures
+    await store.checkAuthStatus()
+    await store.checkAuthStatus()
+    await store.checkAuthStatus()
+
+    // Now router.push should be called
+    expect(router.push).toHaveBeenCalledWith('/signin')
+  })
+
 
   it('sets authenticated status', () => {
     const store = useAuthStore()
@@ -89,36 +123,18 @@ describe('Auth Store', () => {
     expect(store.customer).toEqual(mockCustomer)
   })
 
-  it('handles auth check error', async () => {
-    const store = useAuthStore()
-    vi.mocked(axios.get).mockRejectedValueOnce(new Error('Auth check failed'))
-
-    await store.checkAuthStatus()
-    expect(store.isAuthenticated).toBe(false)
-    expect(store.customer).toBeUndefined()
-    // router.push should not be called on the first failure
-    expect(router.push).not.toHaveBeenCalled()
-
-    // Simulate three consecutive failures
-    await store.checkAuthStatus()
-    await store.checkAuthStatus()
-    await store.checkAuthStatus()
-
-    // Now router.push should be called
-    expect(router.push).toHaveBeenCalledWith('/signin')
-  })
 
   it('logs out correctly', () => {
-    const store = useAuthStore()
-    store.setAuthenticated(true)
-    store.setCustomer(mockCustomer)
+    const store = useAuthStore();
+    store.setAuthenticated(true);
+    store.setCustomer(mockCustomer);
 
-    store.logout()
+    store.logout();
 
-    expect(store.isAuthenticated).toBe(false)
-    expect(store.customer).toBeUndefined()
-    expect(router.push).toHaveBeenCalledWith('/signin')
-  })
+    expect(store.isAuthenticated).toBe(false);
+    expect(store.customer).toBeUndefined();
+    expect(router.push).toHaveBeenCalledWith('/signin');
+  });
 
   it('starts auth check interval', () => {
     const store = useAuthStore()
