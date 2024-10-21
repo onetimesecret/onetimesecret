@@ -15,11 +15,11 @@ interface LanguageState {
   error: string | null;
 }
 
-const LOCAL_STORAGE_KEY = 'selected.locale';
+const SESSION_STORAGE_KEY = 'selected.locale';
 
 export const useLanguageStore = defineStore('language', {
   state: (): LanguageState => ({
-    storedLocale: localStorage.getItem(LOCAL_STORAGE_KEY),
+    storedLocale: sessionStorage.getItem(SESSION_STORAGE_KEY),
     currentLocale: null,
     supportedLocales,
     defaultLocale,
@@ -107,7 +107,7 @@ export const useLanguageStore = defineStore('language', {
     setCurrentLocale(locale: string) {
       if (this.supportedLocales.includes(locale)) {
         this.currentLocale = locale; // Direct assignment for reactivity
-        localStorage.setItem(LOCAL_STORAGE_KEY, locale);
+        sessionStorage.setItem(SESSION_STORAGE_KEY, locale);
       } else {
         console.warn(`Unsupported locale: ${locale}`);
       }
