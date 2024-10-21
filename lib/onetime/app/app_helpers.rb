@@ -257,12 +257,20 @@ module Onetime::App
 
     end
 
+    # Checks if authentication is enabled for the site.
+    #
+    # This method determines whether authentication is enabled by checking the
+    # site configuration. It defaults to disabled if the site configuration is
+    # missing. This approach prevents unauthorized access by ensuring that
+    # accounts are not used if authentication is not explicitly enabled.
+    #
+    # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
+    #
     def authentication_enabled?
-      # NOTE: Defaulting to disabled is the Right Thing to Do™. If the site
-      #      configuration is missing, we should assume that authentication
-      #      is disabled. This is a security feature. Even though it will be
-      #      annoying for anyone upgrading to 0.15 that hasn't had a chance
-      #      to update their existing configuration yet.
+      # Defaulting to disabled is the Right Thing to Do™. If the site config
+      # is missing, we assume that authentication is disabled and that accounts
+      # are not used. This prevents situations where the app is running and
+      # anyone accessing it can create an account without proper authentication.
       authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
       signin_enabled = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
 
@@ -275,6 +283,21 @@ module Onetime::App
       authentication_enabled && signin_enabled
     end
 
+    # Collectes request details in a single string for logging purposes.
+    #
+    # This method collects the IP address, request method, path, query string,
+    # and proxy header details from the given request object and formats them
+    # into a single string. The resulting string is suitable for logging.
+    #
+    # @param req [Rack::Request] The request object containing the details to be
+    #   stringified.
+    # @return [String] A single string containing the formatted request details.
+    #
+    # @example
+    #   req = Rack::Request.new(env)
+    #   stringify_request_details(req)
+    #   # => "192.0.2.1; GET /path?query=string; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
+    #
     def stringify_request_details(req)
       header_details = collect_proxy_header_details(req.env)
 
@@ -287,7 +310,6 @@ module Onetime::App
       # Convert the details array to a string for logging
       details.join('; ')
     end
-
 
     # Collects and formats specific HTTP header details from the given
     # environment hash, including Cloudflare-specific headers.
