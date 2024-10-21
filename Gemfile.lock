@@ -138,7 +138,7 @@ GEM
     stackprof (0.2.26)
     storable (0.10.0)
     stringio (3.1.1)
-    stripe (13.0.0)
+    stripe (13.0.1)
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
