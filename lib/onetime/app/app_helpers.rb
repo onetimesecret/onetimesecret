@@ -29,25 +29,10 @@ module Onetime::App
 
       cust ||= OT::Customer.anonymous
 
-      # Determine the locale for the current request
-      # We check get here to stop an infinite redirect loop.
-      # Pages redirecting from a POST can get by with the same page once.
-      redirect = '/500' if req.get? && redirect.to_s == req.request_path
-
-      OT.ld "Checking Content-Language header"
-      if res.header['Content-Language']
-        OT.ld "Content-Language already set to: #{res.header['Content-Language']}"
-      else
-        OT.ld "Content-Language not set, determining language"
-        content_language = req.env['ots.locale'] || req.env['rack.locale'] || OT.conf[:locales].first
-        OT.ld "Selected Content-Language: #{content_language}"
-        OT.ld "Source: #{if req.env['ots.locale']
-                          'ots.locale'
-                          else
-                          (req.env['rack.locale'] ? 'rack.locale' : 'OT.conf[:locales].first')
-                          end}"
-        res.header['Content-Language'] = content_language
-        OT.ld "Set Content-Language header to: #{res.header['Content-Language']}"
+      # Prevent infinite redirect loops by checking if the request is a GET request.
+      # Pages redirecting from a POST request can use the same page once.
+      if req.get? && redirect.to_s == req.request_path
+        redirect = '/500'
       end
 
       res.header['Content-Type'] ||= content_type
@@ -130,37 +115,30 @@ module Onetime::App
       @cust ||= OT::Customer.anonymous
     end
 
-    # Find the locale of the request based on req.env['rack.locale']
-    # which is set automatically by Otto.
-    # If `locale` is specifies it will override if available.
-    # If the `local` query param is set, it will override.
-    def check_locale! locale=nil
-      OT.ld "Starting check_locale! with initial locale: #{locale}"
+    # Sets the locale for the request based on various sources.
+    #
+    # This method determines the locale to be used for the request by checking
+    # the following sources in order of precedence:
+    # 1. The `locale` parameter passed to the method.
+    # 2. The `locale` query parameter in the request.
+    # 3. The `rack.locale` environment variable set by Otto.
+    #
+    # If a valid locale is found in any of these sources, it is set in the
+    # `req.env['ots.locale']` environment variable. If no valid locale is found,
+    # the default locale from the configuration is used.
+    #
+    # @param locale [String, nil] The locale to be used, if specified.
+    # @return [void]
+    def check_locale!(locale = nil)
+      # Determine the locale from the provided parameter, query parameter, or environment variable
+      locale ||= req.params[:locale] || req.env['rack.locale']
 
-      locales = req.env['rack.locale'] || []
-      OT.ld "Initial locales from rack.locale: #{locales}"
-
-      if locale.is_a?(String)
-        locales.unshift locale.split('-').first
-        OT.ld "Added locale prefix to locales: #{locales}"
+      # Set the locale in the request environment if it is valid, otherwise use the default locale
+      if locale && OT.locales.has_key?(locale)
+        req.env['ots.locale'] = locale
+      else
+        req.env['ots.locale'] = OT.conf[:locales].first
       end
-
-      locales << OT.conf[:locales].first
-      OT.ld "Added first configured locale: #{locales}"
-
-      locales.uniq!
-      OT.ld "After removing duplicates: #{locales}"
-
-      locales = locales.reject { |l| !OT.locales.has_key?(l) }.compact
-      OT.ld "After filtering unavailable locales: #{locales}"
-
-      if !OT.locales.has_key?(locale)
-        locale = locales.first
-        OT.ld "Defaulting to first available locale: #{locale}"
-      end
-
-      req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
-      OT.ld "Final locale: #{@locale}, Final locales: #{locales}"
     end
 
     # Check CSRF value submitted with POST requests (aka shrimp)
