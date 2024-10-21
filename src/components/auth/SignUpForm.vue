@@ -3,17 +3,32 @@
   <form action="/signup"
         method="POST"
         class="mt-8 space-y-6">
-    <div class="rounded-md shadow-sm -space-y-px text-lg">
+    <input type="hidden"
+           name="utf8"
+           value="✓" />
+    <input type="text"
+           name="skill"
+           class="hidden"
+           aria-hidden="true"
+           aria-disabled="true"
+           tabindex="-1"
+           value="" />
+    <input type="hidden"
+           name="shrimp"
+           :value="csrfStore.shrimp" />
 
+    <div class="rounded-md shadow-sm -space-y-px text-lg">
       <!-- Email field -->
       <div>
         <label for="email-address"
                class="sr-only">Email address</label>
         <input id="email-address"
-               name="email"
+               name="u"
                type="email"
                autocomplete="email"
                required
+               focus
+               tabindex="1"
                class="relative block w-full rounded-none rounded-t-md appearance-none
                       text-lg
                       border border-gray-300
@@ -32,9 +47,10 @@
                class="sr-only">Password</label>
         <input id="password"
                :type="showPassword ? 'text' : 'password'"
-               name="password"
+               name="p"
                autocomplete="new-password"
                required
+               tabindex="2"
                class="relative block w-full rounded-none rounded-b-md appearance-none
                  text-lg
                  border border-gray-300
@@ -57,7 +73,7 @@
             </path>
           </svg>
 
-          <svg class="h-5 w-5 text-gray-400"
+          <svg tabindex="3" class="h-5 w-5 text-gray-400"
                :class="{ 'block': showPassword, 'hidden': !showPassword }"
                xmlns="http://www.w3.org/2000/svg"
                viewBox="0 0 640 512">
@@ -73,9 +89,10 @@
     <div class="flex items-center justify-between">
       <div class="flex items-center text-lg">
         <input id="terms-agreement"
-               name="terms-agreement"
+               name="agree"
                type="checkbox"
                required
+               tabindex="4"
                class="h-4 w-4 rounded
                       border-gray-300
                       text-brand-600
@@ -121,6 +138,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Jurisdiction } from '@/types/onetime';
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
 
 export interface Props {
   enabled?: boolean;
