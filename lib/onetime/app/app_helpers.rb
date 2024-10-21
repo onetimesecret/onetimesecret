@@ -119,9 +119,10 @@ module Onetime::App
     #
     # This method determines the locale to be used for the request by checking
     # the following sources in order of precedence:
-    # 1. The `locale` parameter passed to the method.
+    # 1. The `locale` argument passed to the method.
     # 2. The `locale` query parameter in the request.
-    # 3. The `rack.locale` environment variable set by Otto.
+    # 3. The customer's previously saved preferred locale (if customer exists).
+    # 4. The `rack.locale` environment variable set by Otto.
     #
     # If a valid locale is found in any of these sources, it is set in the
     # `req.env['ots.locale']` environment variable. If no valid locale is found,
@@ -130,10 +131,12 @@ module Onetime::App
     # @param locale [String, nil] The locale to be used, if specified.
     # @return [void]
     def check_locale!(locale = nil)
-      # Determine the locale from the provided parameter, query parameter, or environment variable
-      locale ||= req.params[:locale] || req.env['rack.locale']
+      locale ||= req.params[:locale]
+      locale ||= cust.locale if cust && cust.locale
+      locale ||= req.env['rack.locale']
 
-      # Set the locale in the request environment if it is valid, otherwise use the default locale
+      # Set the locale in the request environment if it is
+      # valid, otherwise use the default locale.
       if locale && OT.locales.has_key?(locale)
         req.env['ots.locale'] = locale
       else
