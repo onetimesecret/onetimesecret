@@ -290,7 +290,7 @@ module Onetime::App
 
 
     # Collects and formats specific HTTP header details from the given
-    # environment hash.
+    # environment hash, including Cloudflare-specific headers.
     #
     # @param env [Hash, nil] The environment hash containing HTTP headers.
     #   Defaults to an empty hash if not provided.
@@ -303,13 +303,15 @@ module Onetime::App
     # @example
     #   env = {
     #     "HTTP_X_FORWARDED_FOR" => "203.0.113.195",
-    #     "REMOTE_ADDR" => "192.0.2.1"
+    #     "REMOTE_ADDR" => "192.0.2.1",
+    #     "CF-Connecting-IP" => "203.0.113.195",
+    #     "CF-IPCountry" => "NL",
+    #     "CF-Ray" => "1234567890abcdef",
+    #     "CF-Visitor" => "{\"scheme\":\"https\"}"
     #   }
     #   collect_proxy_header_details(env)
-    #   # => "HTTP_FLY_REQUEST_ID= HTTP_VIA= HTTP_X_FORWARDED_PROTO=
-    #   HTTP_X_FORWARDED_FOR=203.0.113.195 HTTP_X_FORWARDED_HOST=
-    #   HTTP_X_FORWARDED_PORT= HTTP_X_SCHEME= HTTP_X_REAL_IP=
-    #   REMOTE_ADDR=192.0.2.1"
+    #   # => "HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1 CF-Connecting-IP=203.0.113.195 CF-IPCountry=US CF-Ray=1234567890abcdef CF-Visitor={\"scheme\":\"https\"}"
+    #
     def collect_proxy_header_details(env=nil, keys=nil)
       env ||= {}
       keys ||= %w[
@@ -321,6 +323,8 @@ module Onetime::App
         HTTP_X_FORWARDED_PORT
         HTTP_X_SCHEME
         HTTP_X_REAL_IP
+        HTTP_CF_IPCOUNTRY
+        HTTP_CF_RAY
         REMOTE_ADDR
       ]
 
