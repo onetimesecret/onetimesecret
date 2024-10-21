@@ -1,12 +1,12 @@
-import { setActivePinia, createPinia } from 'pinia'
-import { useAuthStore } from '@/stores/authStore'
-import { describe, beforeEach, it, expect, vi, afterEach } from 'vitest'
-import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore';
+import { Customer, Plan } from '@/types/onetime';
+import axios from 'axios';
+import { createPinia, setActivePinia } from 'pinia';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useRouter } from 'vue-router';
 
 
-
-import router from '@/router'
-import { Customer, Plan } from '@/types/onetime'
+const router = useRouter();
 
 vi.mock('axios')
 vi.mock('@/router', () => ({

@@ -7,7 +7,7 @@
 import 'vite/modulepreload-polyfill';
 
 import i18n, { setLanguage } from '@/i18n';
-import router from '@/router';
+import { createAppRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
@@ -87,6 +87,8 @@ async function initializeApp() {
 
   // Apply other plugins
   app.use(i18n);
+
+  const router = createAppRouter()
   app.use(router);
 
   // Mount the application
