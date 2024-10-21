@@ -172,7 +172,7 @@ module Onetime::App
     def check_shrimp!(replace=true)
       return if @check_shrimp_ran
       @check_shrimp_ran = true
-      return unless req.post? || req.put? || req.delete?
+      return unless req.post? || req.put? || req.delete? || req.patch?
 
       # Check for shrimp in params and in the O-Shrimp header
       header_shrimp = (req.env['HTTP_O_SHRIMP'] || req.env['HTTP_ONETIME_SHRIMP']).to_s
@@ -188,9 +188,12 @@ module Onetime::App
     end
 
     def validate_shrimp(attempted_shrimp, replace=true)
+      shrimp_is_empty = attempted_shrimp.empty?
+      log_value = attempted_shrimp.shorten(5)
+
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
         adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
-        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
+        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
         # Regardless of the outcome, we clear the shrimp from the session
         # to prevent replay attacks. A new shrimp is generated on the
         # next page load.
@@ -198,11 +201,12 @@ module Onetime::App
         true
       else
         ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
-        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
+        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
+        ### AND THAT'S NO WAY TO TREAT A GUEST.
         shrimp = (sess.shrimp || '[noshrimp]').clone
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
-        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
-        sess.replace_shrimp!
+        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
+        sess.replace_shrimp! if replace && !shrimp_is_empty
         raise ex
       end
     end

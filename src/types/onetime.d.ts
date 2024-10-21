@@ -248,6 +248,7 @@ export interface ConcealDetails {
 }
 
 export interface CheckAuthData extends Customer {
+  last_login?: number
 }
 
 export interface CheckAuthDetails {
