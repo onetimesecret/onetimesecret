@@ -16,15 +16,6 @@ vi.mock('@/utils/api', () => ({
   }
 }))
 
-import 'pinia';
-
-declare module 'pinia' {
-  export interface PiniaCustomProperties {
-    $logout: () => void
-  }
-}
-
-
 const mockRouter = {
   push: vi.fn(),
   // Add other router methods you might use in your tests
@@ -108,7 +99,7 @@ describe('Auth Store', () => {
 
   it('handles auth check error', async () => {
     const store = useAuthStore();
-    store.$logout = vi.fn(); // Mock the $logout method
+    const logoutSpy = vi.spyOn(store, '$logout');
 
     // Mock a generic error (not 401 or 403)
     const genericError = new AxiosError('Auth check failed');
@@ -120,17 +111,18 @@ describe('Auth Store', () => {
     expect(store.customer).toBeUndefined();
 
     // $logout should not be called on the first failure
-    expect(store.$logout).not.toHaveBeenCalled();
+    expect(logoutSpy).not.toHaveBeenCalled();
 
     // Simulate two more failures
     await store.checkAuthStatus();
     await store.checkAuthStatus();
+    await store.checkAuthStatus();
 
     // Now $logout should be called once after three failures
-    expect(store.$logout).toHaveBeenCalledTimes(1);
+    expect(logoutSpy).toHaveBeenCalledTimes(1);
 
     // Reset the mock
-    store.$logout.mockReset();
+    logoutSpy.mockReset();
 
     // Now test with a 401 error
     const unauthorizedError = new AxiosError('Unauthorized');
@@ -140,7 +132,7 @@ describe('Auth Store', () => {
     await store.checkAuthStatus();
 
     // $logout should be called immediately for a 401 error
-    expect(store.$logout).toHaveBeenCalledTimes(1);
+    expect(logoutSpy).toHaveBeenCalledTimes(1);
   });
 
   it('sets authenticated status', () => {
