@@ -30,6 +30,7 @@ export const useLanguageStore = defineStore('language', {
   getters: {
     getCurrentLocale: (state) => state.currentLocale,
     getSupportedLocales: (state) => state.supportedLocales,
+    getStorageKey: () => SESSION_STORAGE_KEY,
   },
 
   actions: {

@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/stores/authStore';
 import { logoutPlugin } from '@/stores/plugins/logoutPlugin';
 import { Customer, Plan } from '@/types/onetime';
-import axios from 'axios';
+import axios, {AxiosError} from 'axios';
 import { createPinia, Pinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from 'vue';
@@ -90,8 +90,8 @@ describe('Auth Store', () => {
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
-    vi.useRealTimers()
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   })
 
   it('should have $logout method available on the store', () => {
@@ -107,24 +107,41 @@ describe('Auth Store', () => {
   })
 
   it('handles auth check error', async () => {
-    const store = useAuthStore()
-    vi.mocked(axios.get).mockRejectedValueOnce(new Error('Auth check failed'))
+    const store = useAuthStore();
+    store.$logout = vi.fn(); // Mock the $logout method
 
-    await store.checkAuthStatus()
-    expect(store.isAuthenticated).toBe(false)
-    expect(store.customer).toBeUndefined()
-    // router.push should not be called on the first failure
-    expect(router.push).not.toHaveBeenCalled()
+    // Mock a generic error (not 401 or 403)
+    const genericError = new AxiosError('Auth check failed');
+    genericError.response = { status: 500 } as any;
+    vi.mocked(axios.get).mockRejectedValue(genericError);
 
-    // Simulate three consecutive failures
-    await store.checkAuthStatus()
-    await store.checkAuthStatus()
-    await store.checkAuthStatus()
+    await store.checkAuthStatus();
+    expect(store.isAuthenticated).toBe(false);
+    expect(store.customer).toBeUndefined();
 
-    // Now router.push should be called
-    expect(router.push).toHaveBeenCalledWith('/signin')
-  })
+    // $logout should not be called on the first failure
+    expect(store.$logout).not.toHaveBeenCalled();
 
+    // Simulate two more failures
+    await store.checkAuthStatus();
+    await store.checkAuthStatus();
+
+    // Now $logout should be called once after three failures
+    expect(store.$logout).toHaveBeenCalledTimes(1);
+
+    // Reset the mock
+    store.$logout.mockReset();
+
+    // Now test with a 401 error
+    const unauthorizedError = new AxiosError('Unauthorized');
+    unauthorizedError.response = { status: 401 } as any;
+    vi.mocked(axios.get).mockRejectedValueOnce(unauthorizedError);
+
+    await store.checkAuthStatus();
+
+    // $logout should be called immediately for a 401 error
+    expect(store.$logout).toHaveBeenCalledTimes(1);
+  });
 
   it('sets authenticated status', () => {
     const store = useAuthStore()
@@ -155,14 +172,24 @@ describe('Auth Store', () => {
 
   it('logs out correctly', () => {
     const store = useAuthStore();
+
+    // Set up initial authenticated state
     store.setAuthenticated(true);
     store.setCustomer(mockCustomer);
 
+    // Verify initial state
+    expect(store.isAuthenticated).toBe(true);
+    expect(store.customer).toEqual(mockCustomer);
+
+    // Call the logout method
     store.logout();
 
-    expect(store.isAuthenticated).toBe(false);
+    // Verify that the auth state is reset
     expect(store.customer).toBeUndefined();
-    expect(router.push).toHaveBeenCalledWith('/signin');
+    expect(store.isAuthenticated).toBe(false);
+
+    // Verify that the auth check interval is stopped
+    expect(store.authCheckInterval).toBeNull();
   });
 
   it('starts auth check interval', () => {
