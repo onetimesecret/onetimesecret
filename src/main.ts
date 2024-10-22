@@ -95,6 +95,9 @@ async function initializeApp() {
   const router = createAppRouter();
   app.use(router);
 
+  // Let the greater js world know that there's a new sheriff in town.
+  window.enjoyTheVue = true;
+
   // Mount the application
   // This is done last to ensure all setup is complete before rendering
   app.mount('#app');
