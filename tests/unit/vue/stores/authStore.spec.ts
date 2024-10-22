@@ -169,7 +169,6 @@ describe('Auth Store', () => {
     expect(store.customer).toEqual(mockCustomer)
   })
 
-
   it('logs out correctly', () => {
     const store = useAuthStore();
 
@@ -190,6 +189,26 @@ describe('Auth Store', () => {
 
     // Verify that the auth check interval is stopped
     expect(store.authCheckInterval).toBeNull();
+  });
+
+  it('clears session storage key after logout', () => {
+    const authStore = useAuthStore();
+    // Define a storage key for testing purposes
+    const storageKey = 'test-auth-storage-key';
+
+    // Verify that the session key is not already populated
+    expect(sessionStorage.getItem(storageKey)).toBeNull();
+
+    sessionStorage.setItem(storageKey, '!');
+
+    // Verify that the session key has the value we set
+    expect(sessionStorage.getItem(storageKey)).toBe('!');
+
+    // Simulate a logout
+    authStore.logout();
+
+    // Verify that the session storage key is cleared after logout
+    expect(sessionStorage.getItem(storageKey)).toBeNull();
   });
 
   it('starts auth check interval', () => {
