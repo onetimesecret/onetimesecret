@@ -37,6 +37,7 @@
             hover:text-gray-800 dark:hover:text-gray-100
             transition-colors duration-200"
                        aria-label="Toggle dark mode" />
+
           <FeedbackToggle v-if="displayFeedback && authentication.enabled"
                           class="
             text-gray-600 dark:text-gray-300

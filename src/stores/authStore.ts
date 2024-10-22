@@ -1,5 +1,6 @@
-import router from '@/router';
+
 import { CheckAuthDataApiResponse, CheckAuthDetails, Customer } from '@/types/onetime';
+
 import axios, { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
 
@@ -194,28 +195,12 @@ export const useAuthStore = defineStore('auth', {
      * Stops auth checks and redirects to the signin page.
      */
     logout() {
-      this.stopAuthCheck();
-      this.clearAuthenticationData();
+      // Use the global logout function
+      this.$logout();
+
       // Perform any additional logout actions (e.g., clearing local storage, cookies)
-      router.push('/signin')
-    },
-
-    /**
-     * Clears authentication state and storage.
-     */
-    clearAuthenticationData() {
-      // Reset store state
-      this.$reset()
-
-      // Clear localStorage
-      this.isAuthenticated = false
-      this.customer = undefined
-
-      // Clear sessionStorage if used
-      sessionStorage.clear()
-
-      // Stop any ongoing auth checks
-      this.stopAuthCheck()
+      //const router = useRouter();
+      //router.push('/signin');
     },
 
     /**

@@ -1,11 +1,11 @@
 import { chromium, FullConfig } from '@playwright/test';
 
-// NOTE: If making changes to this file (or test-setup.ts) and running VS Code,
-// open and resave playwright.config.ts to reload the test runner.
+// NOTE: If making changes to this file (or tests/unit/vus/setup.ts)
+// and running VS Code, open and resave playwright.config.ts to
+// reload the test runner.
 //
 // Don't include vitest or jest or any other monkey junk. This is playwright!
 //import { vi } from 'vitest';
-//
 //vi.mock('axios');
 
 global.window ??= global.window || {}

@@ -14,6 +14,8 @@
       <Icon :icon="currentJurisdiction.icon"
             class="h-5 w-5"
             aria-hidden="true" />
+
+      <!-- Current Jurisdiction -->
       <span>{{ currentJurisdiction.display_name }}</span>
 
       <svg xmlns="http://www.w3.org/2000/svg"
@@ -42,12 +44,13 @@
           aria-labelledby="listbox-label"
           aria-activedescendant="listbox-option-0">
 
-        <!-- Add the title header here -->
+        <!-- List Title -->
         <li
             class="px-3 py-2 text-xs font-semibold font-brand text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           Regions
         </li>
 
+        <!-- List Options -->
         <li v-for="jurisdiction in jurisdictions"
             :key="jurisdiction.identifier"
             class="relative py-2 pl-3 pr-9 cursor-default select-none font-brand text-base
@@ -62,6 +65,8 @@
               <Icon :icon="jurisdiction.icon"
                     class="mr-2 h-5 w-5"
                     aria-hidden="true" />
+
+              <!-- Jurisdiction Name -->
               <span class="block truncate"
                     :class="{ 'font-semibold': currentJurisdiction.identifier === jurisdiction.identifier }">
                 {{ jurisdiction.display_name }}

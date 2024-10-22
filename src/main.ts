@@ -7,11 +7,13 @@
 import 'vite/modulepreload-polyfill';
 
 import i18n, { setLanguage } from '@/i18n';
-import router from '@/router';
+import { createAppRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { createPinia } from 'pinia';
+import { logoutPlugin } from '@/stores/plugins/logoutPlugin';
+
 import { createApp, watch } from 'vue';
 import App from './App.vue';
 
@@ -41,6 +43,8 @@ async function initializeApp() {
   // Create Vue app instance and Pinia store
   const app = createApp(App);
   const pinia = createPinia();
+
+  pinia.use(logoutPlugin);
   app.use(pinia);
 
   const jurisdictionStore = useJurisdictionStore();
@@ -87,6 +91,8 @@ async function initializeApp() {
 
   // Apply other plugins
   app.use(i18n);
+
+  const router = createAppRouter();
   app.use(router);
 
   // Mount the application
