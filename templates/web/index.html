@@ -4,6 +4,7 @@
     <script language="javascript" type="text/javascript">
       (() => {
         var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
+        var hasHumanOverride = sessionStorage.getItem('restMode') !== null;
         var humanElement = document.documentElement;
         var nightVision = 'rgb(17 24 39)';
         var dayVision = '#ffffff';
