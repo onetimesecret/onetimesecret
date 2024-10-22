@@ -114,6 +114,7 @@ export interface CustomDomain extends BaseApiRecord {
   display_domain: string;
   base_domain: string;
   subdomain: string;
+  is_apex: boolean;
   trd: string;
   tld: string;
   sld: string;
