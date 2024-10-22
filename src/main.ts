@@ -95,7 +95,7 @@ async function initializeApp() {
   const router = createAppRouter();
   app.use(router);
 
-  // Let the greater js world know that there's a new sherrif in town.
+  // Let the greater js world know that there's a new sheriff in town.
   window.enjoyTheVue = true;
 
   // Mount the application

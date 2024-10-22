@@ -44,7 +44,7 @@ const isDarkMode = ref(false)
 
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value
-  sessionStorage.setItem('restMode', isDarkMode.value.toString())
+  localStorage.setItem('restMode', isDarkMode.value.toString())
   updateDarkMode()
 }
 
@@ -61,7 +61,7 @@ const detectSystemPreference = () => {
 }
 
 onMounted(() => {
-  const storedPreference = sessionStorage.getItem('restMode')
+  const storedPreference = localStorage.getItem('restMode')
   if (storedPreference !== null) {
     isDarkMode.value = storedPreference === 'true'
   } else {
