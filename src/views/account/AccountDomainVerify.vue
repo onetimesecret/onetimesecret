@@ -1,4 +1,3 @@
-
 <template>
   <div class="">
 
@@ -6,28 +5,39 @@
 
     <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Verify your domain</h1>
 
-    <DomainVerificationInfo
-      v-if="domain?.vhost?.last_monitored_unix"
-      :domain="domain"
-      mode="table"
-    />
-    <p v-else class="text-lg mb-6 text-gray-600 dark:text-gray-300">
+    <DomainVerificationInfo v-if="domain?.vhost?.last_monitored_unix"
+                            :domain="domain"
+                            mode="table" />
+    <p v-else
+       class="text-lg mb-6 text-gray-600 dark:text-gray-300">
       Before we can activate links for
       <span class=" bg-white dark:bg-gray-800  text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>,
       you'll need to complete these steps.
     </p>
 
-    <MoreInfoText textColor="text-brandcomp-800 dark:text-gray-100" bgColor="bg-white dark:bg-gray-800">
-      <div class="px-6 py-6">
+    <MoreInfoText textColor="text-brandcomp-800 dark:text-gray-100"
+                  bgColor="bg-white dark:bg-gray-800">
+      <div class="px-6 py-6 prose">
         <div class="max-w-xl text-base text-gray-600 dark:text-gray-300">
           <p>
-            In order to connect your domain, you'll need to have a DNS A record that points
-            <span class="font-bold bg-white dark:bg-gray-800 px-2 text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span> at <span
-                  :title="cluster?.cluster_name?? ''" class="bg-white dark:bg-gray-800 px-2">{{ cluster?.cluster_ip }}</span>. If you already have an A record for
-            that
-            address, please change it to point at <span :title="cluster?.cluster_name?? ''" class="bg-white dark:bg-gray-800 px-2">{{ cluster?.cluster_ip }}</span>
+            In order to connect your domain, you'll need to have a CNAME record in your DNS that points
+            <span
+                  class="font-bold bg-white dark:bg-gray-800 px-2 text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>
+            at <span :title="cluster?.cluster_name ?? ''"
+                  class="bg-white dark:bg-gray-800 px-2">{{ cluster?.vhost_target }}</span>. If you already have
+            a CNAME record for that address, please change it to point at
+            <span :title="cluster?.cluster_name ?? ''"
+                  class="bg-white dark:bg-gray-800 px-2">{{ cluster?.vhost_target }}</span>
             and remove any other A, AAAA,
             or CNAME records for that exact address.
+          </p>
+          <p v-if="domain?.is_apex"
+             class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+            <!-- Disclaimer for apex domains -->
+            <strong>Important:</strong> Please note that for apex domains (e.g., <span
+                  class="font-bold bg-white dark:bg-gray-800 px-2 text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>),
+            a CNAME record is not allowed.
+            Instead, you'll need to create an A record. Details on how to do this are provided further down the page.
           </p>
         </div>
         <div class="mt-4 text-sm">
@@ -39,14 +49,13 @@
       </div>
     </MoreInfoText>
 
-    <VerifyDomainDetails
-      v-if="domain && cluster"
-      :domain="domain"
-      :cluster="cluster"
-      :withVerifyCTA="allowVerifyCTA"
-      @domainVerify="handleDomainVerify"
-    />
-    <p v-else class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
+    <VerifyDomainDetails v-if="domain && cluster"
+                         :domain="domain"
+                         :cluster="cluster"
+                         :withVerifyCTA="allowVerifyCTA"
+                         @domainVerify="handleDomainVerify" />
+    <p v-else
+       class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
 
   </div>
 </template>
@@ -61,12 +70,11 @@ import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 
 
-
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);
 const cluster = ref<CustomDomainCluster | null>(null);
 
-console.log("VerifyDomain.ts", route.params.domain );
+console.debug("VerifyDomain.ts", route.params.domain);
 
 const fetchDomain = async (): Promise<void> => {
   const domainName: string = route.params.domain as string;
@@ -106,24 +114,21 @@ const fetchDomain = async (): Promise<void> => {
     }
   } catch (error) {
     console.error('Error fetching domain:', error);
-    // Handle error (e.g., show error message to user)
   }
 };
 
 const allowVerifyCTA = ref(false);
 
 const handleDomainVerify = async (data: CustomDomainApiResponse) => {
-  console.log('Domain verified: refreshing domain info', data);
-
+  console.debug('Domain verified: refreshing domain info', data);
   await fetchDomain();
 };
 
 
 onMounted(() => {
-  console.log('AccountDomainVerify component mounted');
-  console.log('Domain parameter:', route.params.domain);
+  console.debug('AccountDomainVerify component mounted');
+  console.debug('Domain parameter:', route.params.domain);
   fetchDomain();
-
 });
 
 </script>
