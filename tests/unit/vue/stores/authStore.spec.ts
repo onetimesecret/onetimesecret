@@ -1,14 +1,30 @@
 import { useAuthStore } from '@/stores/authStore';
+import { logoutPlugin } from '@/stores/plugins/logoutPlugin';
 import { Customer, Plan } from '@/types/onetime';
 import axios from 'axios';
-import { createPinia, setActivePinia } from 'pinia';
+import { createPinia, Pinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { createApp } from 'vue';
 import { Router, useRouter } from 'vue-router';
 import { setupRouter } from '../utils/routerSetup';
 
-
 vi.mock('axios')
+// Mock the api module
+vi.mock('@/utils/api', () => ({
+  default: {
+    post: vi.fn()
+  }
+}))
+
+import 'pinia';
+
+declare module 'pinia' {
+  export interface PiniaCustomProperties {
+    $logout: () => void
+  }
+}
+
+
 const mockRouter = {
   push: vi.fn(),
   // Add other router methods you might use in your tests
@@ -56,9 +72,16 @@ const mockCustomer: Customer = {
 
 describe('Auth Store', () => {
   let router: Router;
+  let pinia: Pinia;
+  const app = createApp({})
 
   beforeEach(() => {
-    setActivePinia(createPinia());
+    const app = createApp({})
+    pinia = createPinia()
+    pinia.use(logoutPlugin)
+    app.use(pinia)
+    setActivePinia(pinia)
+
     vi.useFakeTimers();
 
     // Setup the router. This mimics what happens in main.ts
@@ -69,6 +92,12 @@ describe('Auth Store', () => {
   afterEach(() => {
     vi.restoreAllMocks()
     vi.useRealTimers()
+  })
+
+  it('should have $logout method available on the store', () => {
+    const store = useAuthStore()
+    expect(store.$logout).toBeDefined()
+    expect(typeof store.$logout).toBe('function')
   })
 
   it('initializes with correct values', () => {
