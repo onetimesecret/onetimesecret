@@ -1,5 +1,6 @@
-import { useRouter } from 'vue-router';
+
 import { CheckAuthDataApiResponse, CheckAuthDetails, Customer } from '@/types/onetime';
+
 import axios, { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
 
@@ -194,31 +195,12 @@ export const useAuthStore = defineStore('auth', {
      * Stops auth checks and redirects to the signin page.
      */
     logout() {
-      this.stopAuthCheck();
-      this.clearAuthenticationData();
+      // Use the global logout function
+      this.$logout();
 
       // Perform any additional logout actions (e.g., clearing local storage, cookies)
-      const router = useRouter();
-      router.push('/signin');
-    },
-
-    /**
-     * Clears authentication state and storage.
-     *
-     * This method resets the store state to its initial values using `this.$reset()`.
-     * It also clears session storage and stops any ongoing authentication checks.
-     * This is typically used during logout to ensure that all user-specific data
-     * is cleared and the store is returned to its default state.
-     */
-    clearAuthenticationData() {
-      // Reset store state to initial values
-      this.$reset();
-
-      // Clear sessionStorage if used
-      sessionStorage.clear();
-
-      // Stop any ongoing auth checks
-      this.stopAuthCheck();
+      //const router = useRouter();
+      //router.push('/signin');
     },
 
     /**

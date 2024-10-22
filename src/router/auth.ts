@@ -1,8 +1,6 @@
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import QuietLayout from '@/layouts/QuietLayout.vue';
 import { useAuthStore } from '@/stores/authStore';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { useLanguageStore } from '@/stores/languageStore';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
@@ -87,7 +85,6 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
-
   {
     path: '/logout',
     name: 'Logout',
@@ -97,22 +94,19 @@ const routes: Array<RouteRecordRaw> = [
       layout: QuietLayout,
       layoutProps: {}
     },
-    beforeEnter: () => {
-      const authStore = useAuthStore()
-      authStore.logout()
+    beforeEnter: async () => {
+      const authStore = useAuthStore();
 
-      // Clear all local storage
-      localStorage.clear()
+      try {
+        // Call centralized logout logic
+        await authStore.logout(); // this returns a promise
 
-      // Reset stores
-      const languageStore = useLanguageStore()
-      const csrfStore = useCsrfStore()
+      } catch (error) {
+        console.error('Logout failed:', error);
+      }
 
-      languageStore.$reset()
-      csrfStore.$reset()
-
-      // Redirect to logout URL
-      window.location.href = '/logout'
+      // Force a full page load from the server
+      window.location.href = '/logout';
     }
   },
 ]

@@ -12,6 +12,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { createPinia } from 'pinia';
+import { useLogoutHelper } from './composables/useLogoutHelper';
+
 import { createApp, watch } from 'vue';
 import App from './App.vue';
 
@@ -41,6 +43,10 @@ async function initializeApp() {
   // Create Vue app instance and Pinia store
   const app = createApp(App);
   const pinia = createPinia();
+
+  pinia.use(({ store }) => {
+    store.$logout = useLogoutHelper();
+  });
   app.use(pinia);
 
   const jurisdictionStore = useJurisdictionStore();
