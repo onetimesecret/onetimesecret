@@ -69,6 +69,7 @@ class Onetime::CustomDomain < Familia::Horreum
     :trd,
     :tld,
     :sld,
+    { :is_apex => ->(obj) { obj.apex? } },
     :_original_value,
     :txt_validation_host,
     :txt_validation_value,
@@ -165,6 +166,18 @@ class Onetime::CustomDomain < Familia::Horreum
         multi.zrem(customer.custom_domains.rediskey, self.display_domain)
       end
     end
+  end
+
+  # Checks if the domain is an apex domain.
+  # An apex domain is a domain without any subdomains.
+  #
+  # Note: A subdomain can include nested subdomains (e.g., b.a.example.com),
+  # whereas TRD (Transit Routing Domain) refers to the part directly before
+  # the SLD.
+  #
+  # @return [Boolean] true if the domain is an apex domain, false otherwise
+  def apex?
+    subdomain.empty?
   end
 
   # Generates a host and value pair for a TXT record.
