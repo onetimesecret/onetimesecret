@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "8fd7ff9f-296c-4c69-829c-e130d3fd174a",
-		"name": "Onetime Secret API - Integration Tests",
+		"name": "API Tests - Integration",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [

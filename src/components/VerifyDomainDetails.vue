@@ -1,10 +1,11 @@
-<!-- _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70  -->
-<!-- _onetime-challenge-domainid.status -> cd94fec5a98fd33a0d70d069acaae9  -->
+
 <template>
   <div class="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
 
-    <!--<h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Card Title</h2>
-    <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">Intro text for this card</p>-->
+    <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Domain Verification Steps</h2>
+    <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">Follow these steps to verify domain ownership and elevate your online presence:</p>
+
+
 
     <ol class="space-y-6 mb-8">
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
@@ -22,7 +23,8 @@
         </div>
 
       </li>
-      <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+      <li v-if="domain?.is_apex"
+          class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
         <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">2. Create the A record</h3>
 
         <div class="space-y-2">
@@ -34,7 +36,29 @@
           <DetailField label="Value"
                        :value="cluster?.cluster_ip" />
         </div>
+      </li>
+      <li v-else
+          class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+        <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">2. Create the CNAME record</h3>
 
+        <div class="space-y-2">
+          <DetailField v-if="domain?.is_apex"
+                       label="Type"
+                       value="A" />
+          <DetailField v-else
+                       label="Type"
+                       value="CNAME" />
+
+          <DetailField label="Host"
+                       :value="domain?.trd ? domain.trd : '@'"
+                       :appendix="`.${domain?.base_domain}`" />
+          <DetailField v-if="domain?.is_apex"
+                       label="Value"
+                       :value="cluster?.cluster_ip" />
+          <DetailField v-else
+                       label="Value"
+                       :value="cluster?.vhost_target" />
+        </div>
       </li>
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
         <h3 class="font-semibold text-lg mb-2 text-gray-800 dark:text-white">3. Wait for propagation</h3>
@@ -62,7 +86,7 @@
             class="h-5 w-5 text-brandcomp-700 mr-2 mt-0.5 flex-shrink-0"
             aria-hidden="true" />
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        It may take a few minutes for your SSL certificate to take effect once you've pointed your DNS A record.
+        It may take a few minutes for your SSL certificate to take effect.
       </p>
     </div>
   </div>

@@ -29,25 +29,10 @@ module Onetime::App
 
       cust ||= OT::Customer.anonymous
 
-      # Determine the locale for the current request
-      # We check get here to stop an infinite redirect loop.
-      # Pages redirecting from a POST can get by with the same page once.
-      redirect = '/500' if req.get? && redirect.to_s == req.request_path
-
-      OT.ld "Checking Content-Language header"
-      if res.header['Content-Language']
-        OT.ld "Content-Language already set to: #{res.header['Content-Language']}"
-      else
-        OT.ld "Content-Language not set, determining language"
-        content_language = req.env['ots.locale'] || req.env['rack.locale'] || OT.conf[:locales].first
-        OT.ld "Selected Content-Language: #{content_language}"
-        OT.ld "Source: #{if req.env['ots.locale']
-                          'ots.locale'
-                          else
-                          (req.env['rack.locale'] ? 'rack.locale' : 'OT.conf[:locales].first')
-                          end}"
-        res.header['Content-Language'] = content_language
-        OT.ld "Set Content-Language header to: #{res.header['Content-Language']}"
+      # Prevent infinite redirect loops by checking if the request is a GET request.
+      # Pages redirecting from a POST request can use the same page once.
+      if req.get? && redirect.to_s == req.request_path
+        redirect = '/500'
       end
 
       res.header['Content-Type'] ||= content_type
@@ -130,37 +115,33 @@ module Onetime::App
       @cust ||= OT::Customer.anonymous
     end
 
-    # Find the locale of the request based on req.env['rack.locale']
-    # which is set automatically by Otto.
-    # If `locale` is specifies it will override if available.
-    # If the `local` query param is set, it will override.
-    def check_locale! locale=nil
-      OT.ld "Starting check_locale! with initial locale: #{locale}"
+    # Sets the locale for the request based on various sources.
+    #
+    # This method determines the locale to be used for the request by checking
+    # the following sources in order of precedence:
+    # 1. The `locale` argument passed to the method.
+    # 2. The `locale` query parameter in the request.
+    # 3. The customer's previously saved preferred locale (if customer exists).
+    # 4. The `rack.locale` environment variable set by Otto.
+    #
+    # If a valid locale is found in any of these sources, it is set in the
+    # `req.env['ots.locale']` environment variable. If no valid locale is found,
+    # the default locale from the configuration is used.
+    #
+    # @param locale [String, nil] The locale to be used, if specified.
+    # @return [void]
+    def check_locale!(locale = nil)
+      locale ||= req.params[:locale]
+      locale ||= cust.locale if cust && cust.locale
+      locale ||= req.env['rack.locale']
 
-      locales = req.env['rack.locale'] || []
-      OT.ld "Initial locales from rack.locale: #{locales}"
-
-      if locale.is_a?(String)
-        locales.unshift locale.split('-').first
-        OT.ld "Added locale prefix to locales: #{locales}"
+      # Set the locale in the request environment if it is
+      # valid, otherwise use the default locale.
+      if locale && OT.locales.has_key?(locale)
+        req.env['ots.locale'] = locale
+      else
+        req.env['ots.locale'] = OT.conf[:locales].first
       end
-
-      locales << OT.conf[:locales].first
-      OT.ld "Added first configured locale: #{locales}"
-
-      locales.uniq!
-      OT.ld "After removing duplicates: #{locales}"
-
-      locales = locales.reject { |l| !OT.locales.has_key?(l) }.compact
-      OT.ld "After filtering unavailable locales: #{locales}"
-
-      if !OT.locales.has_key?(locale)
-        locale = locales.first
-        OT.ld "Defaulting to first available locale: #{locale}"
-      end
-
-      req.env['ots.locale'], req.env['ots.locales'] = (@locale = locale), locales
-      OT.ld "Final locale: #{@locale}, Final locales: #{locales}"
     end
 
     # Check CSRF value submitted with POST requests (aka shrimp)
@@ -172,7 +153,7 @@ module Onetime::App
     def check_shrimp!(replace=true)
       return if @check_shrimp_ran
       @check_shrimp_ran = true
-      return unless req.post? || req.put? || req.delete?
+      return unless req.post? || req.put? || req.delete? || req.patch?
 
       # Check for shrimp in params and in the O-Shrimp header
       header_shrimp = (req.env['HTTP_O_SHRIMP'] || req.env['HTTP_ONETIME_SHRIMP']).to_s
@@ -188,9 +169,12 @@ module Onetime::App
     end
 
     def validate_shrimp(attempted_shrimp, replace=true)
+      shrimp_is_empty = attempted_shrimp.empty?
+      log_value = attempted_shrimp.shorten(5)
+
       if sess.shrimp?(attempted_shrimp) || ignoreshrimp
         adjective = ignoreshrimp ? 'IGNORED' : 'GOOD'
-        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
+        OT.ld "#{adjective} SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
         # Regardless of the outcome, we clear the shrimp from the session
         # to prevent replay attacks. A new shrimp is generated on the
         # next page load.
@@ -198,11 +182,12 @@ module Onetime::App
         true
       else
         ### NOTE: MUST FAIL WHEN NO SHRIMP OTHERWISE YOU CAN
-        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER.
+        ### JUST SUBMIT A FORM WITHOUT ANY SHRIMP WHATSOEVER
+        ### AND THAT'S NO WAY TO TREAT A GUEST.
         shrimp = (sess.shrimp || '[noshrimp]').clone
         ex = OT::BadShrimp.new(req.path, cust.custid, attempted_shrimp, shrimp)
-        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{attempted_shrimp.shorten(10)}"
-        sess.replace_shrimp!
+        OT.ld "BAD SHRIMP for #{cust.custid}@#{req.path}: #{log_value}"
+        sess.replace_shrimp! if replace && !shrimp_is_empty
         raise ex
       end
     end
@@ -275,12 +260,20 @@ module Onetime::App
 
     end
 
+    # Checks if authentication is enabled for the site.
+    #
+    # This method determines whether authentication is enabled by checking the
+    # site configuration. It defaults to disabled if the site configuration is
+    # missing. This approach prevents unauthorized access by ensuring that
+    # accounts are not used if authentication is not explicitly enabled.
+    #
+    # @return [Boolean] True if authentication and sign-in are enabled, false otherwise.
+    #
     def authentication_enabled?
-      # NOTE: Defaulting to disabled is the Right Thing to Do™. If the site
-      #      configuration is missing, we should assume that authentication
-      #      is disabled. This is a security feature. Even though it will be
-      #      annoying for anyone upgrading to 0.15 that hasn't had a chance
-      #      to update their existing configuration yet.
+      # Defaulting to disabled is the Right Thing to Do™. If the site config
+      # is missing, we assume that authentication is disabled and that accounts
+      # are not used. This prevents situations where the app is running and
+      # anyone accessing it can create an account without proper authentication.
       authentication_enabled = OT.conf[:site][:authentication][:enabled] rescue false # rubocop:disable Style/RescueModifier
       signin_enabled = OT.conf[:site][:authentication][:signin] rescue false # rubocop:disable Style/RescueModifier
 
@@ -293,6 +286,21 @@ module Onetime::App
       authentication_enabled && signin_enabled
     end
 
+    # Collectes request details in a single string for logging purposes.
+    #
+    # This method collects the IP address, request method, path, query string,
+    # and proxy header details from the given request object and formats them
+    # into a single string. The resulting string is suitable for logging.
+    #
+    # @param req [Rack::Request] The request object containing the details to be
+    #   stringified.
+    # @return [String] A single string containing the formatted request details.
+    #
+    # @example
+    #   req = Rack::Request.new(env)
+    #   stringify_request_details(req)
+    #   # => "192.0.2.1; GET /path?query=string; Proxy[HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1]"
+    #
     def stringify_request_details(req)
       header_details = collect_proxy_header_details(req.env)
 
@@ -306,9 +314,8 @@ module Onetime::App
       details.join('; ')
     end
 
-
     # Collects and formats specific HTTP header details from the given
-    # environment hash.
+    # environment hash, including Cloudflare-specific headers.
     #
     # @param env [Hash, nil] The environment hash containing HTTP headers.
     #   Defaults to an empty hash if not provided.
@@ -321,13 +328,15 @@ module Onetime::App
     # @example
     #   env = {
     #     "HTTP_X_FORWARDED_FOR" => "203.0.113.195",
-    #     "REMOTE_ADDR" => "192.0.2.1"
+    #     "REMOTE_ADDR" => "192.0.2.1",
+    #     "CF-Connecting-IP" => "203.0.113.195",
+    #     "CF-IPCountry" => "NL",
+    #     "CF-Ray" => "1234567890abcdef",
+    #     "CF-Visitor" => "{\"scheme\":\"https\"}"
     #   }
     #   collect_proxy_header_details(env)
-    #   # => "HTTP_FLY_REQUEST_ID= HTTP_VIA= HTTP_X_FORWARDED_PROTO=
-    #   HTTP_X_FORWARDED_FOR=203.0.113.195 HTTP_X_FORWARDED_HOST=
-    #   HTTP_X_FORWARDED_PORT= HTTP_X_SCHEME= HTTP_X_REAL_IP=
-    #   REMOTE_ADDR=192.0.2.1"
+    #   # => "HTTP_X_FORWARDED_FOR=203.0.113.195 REMOTE_ADDR=192.0.2.1 CF-Connecting-IP=203.0.113.195 CF-IPCountry=US CF-Ray=1234567890abcdef CF-Visitor={\"scheme\":\"https\"}"
+    #
     def collect_proxy_header_details(env=nil, keys=nil)
       env ||= {}
       keys ||= %w[
@@ -339,6 +348,8 @@ module Onetime::App
         HTTP_X_FORWARDED_PORT
         HTTP_X_SCHEME
         HTTP_X_REAL_IP
+        HTTP_CF_IPCOUNTRY
+        HTTP_CF_RAY
         REMOTE_ADDR
       ]
 

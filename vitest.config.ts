@@ -18,7 +18,7 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
     ],
     setupFiles: [
-      'tests/unit/vue/test-setup.ts',
+      'tests/unit/vue/setup.ts',
     ],
   },
   resolve: {

@@ -57,7 +57,7 @@ module Onetime::App
           # the Official Shrimp HTTP Header. The endoint it supports
           # is used by the Vue app as a Just-In-Time check to try to
           # avoid scenarios where we have an outdated shrimp and an
-          # importand request fails inexplicably for the user.
+          # important request fails inexplicably for the user.
           shrimp = req.env['HTTP_O_SHRIMP'].to_s
           OT.le 'Missing O-Shrimp header' if shrimp.empty?
 

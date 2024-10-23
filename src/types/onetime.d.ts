@@ -126,6 +126,7 @@ export interface CustomDomain extends BaseApiRecord {
   display_domain: string;
   base_domain: string;
   subdomain: string;
+  is_apex: boolean;
   trd: string;
   tld: string;
   sld: string;
@@ -260,6 +261,7 @@ export interface ConcealDetails {
 }
 
 export interface CheckAuthData extends Customer {
+  last_login?: number
 }
 
 export interface CheckAuthDetails {

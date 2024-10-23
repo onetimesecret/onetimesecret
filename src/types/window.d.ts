@@ -101,5 +101,9 @@ declare global {
     incoming_recipient: string;
 
     available_jurisdictions: string[];
+
+    // Used by the pre-Vue colour mode detection to go inert once
+    // the Vue app takes control over the UI. See index.html.
+    enjoyTheVue: boolean;
   }
 }

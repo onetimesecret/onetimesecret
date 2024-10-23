@@ -5,7 +5,7 @@ module Onetime::Logic
 
     class CreateAccount < OT::Logic::Base
       attr_reader :cust, :plan, :autoverify, :customer_role
-      attr_reader :planid, :custid, :password, :password2, :skill
+      attr_reader :planid, :custid, :password, :skill
       attr_accessor :token
 
       def process_params
@@ -14,9 +14,9 @@ module Onetime::Logic
         @custid = params[:u].to_s.downcase.strip
 
         @password = self.class.normalize_password(params[:p])
-        @password2 = self.class.normalize_password(params[:p2])
 
-        @autoverify = OT.conf&.dig(:site, :authentication, :autoverify).eql?(true) || false
+        autoverify_setting = OT.conf&.dig(:site, :authentication, :autoverify)
+        @autoverify = autoverify_setting.to_s.eql?("true") || false
 
         # This is a hidden field, so it should be empty. If it has a value, it's
         # a simple bot trying to submit the form or similar chicanery. We just
@@ -27,11 +27,13 @@ module Onetime::Logic
       def raise_concerns
         limit_action :create_account
         raise OT::FormError, "You're already signed up" if sess.authenticated?
-        raise_form_error "Username not available" if OT::Customer.exists?(custid)
+        raise_form_error "Please try another email address" if OT::Customer.exists?(custid)
         raise_form_error "Is that a valid email address?" unless valid_email?(custid)
-        raise_form_error "Passwords do not match" unless password == password2
         raise_form_error "Password is too short" unless password.size >= 6
-        raise_form_error "Unknown plan type" unless OT::Plan.plan?(planid)
+
+        unless OT::Plan.plan?(planid)
+          @planid = 'basic'
+        end
 
         # Quietly redirect suspected bots to the home page.
         unless skill.empty?
@@ -53,6 +55,7 @@ module Onetime::Logic
                          else
                            'customer'
                          end
+
         cust.planid = @plan.planid
         cust.verified = @autoverify.to_s
         cust.role = @customer_role.to_s

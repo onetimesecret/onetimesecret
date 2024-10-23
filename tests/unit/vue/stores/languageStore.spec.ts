@@ -16,13 +16,13 @@ describe('Language Store', () => {
     setActivePinia(createPinia())
     vi.useFakeTimers()
 
-    // Mock localStorage
-    const localStorageMock = {
+    // Mock sessionStorage
+    const sessionStorageMock = {
       getItem: vi.fn(),
       setItem: vi.fn(),
       clear: vi.fn()
     };
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+    Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
 
     // Mock window.supported_locales
     vi.stubGlobal('supported_locales', ['en', 'fr', 'es']);
@@ -40,15 +40,15 @@ describe('Language Store', () => {
     const store = useLanguageStore()
 
     // Test with stored locale
-    vi.spyOn(localStorage, 'getItem').mockReturnValueOnce('fr')
+    vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce('fr')
     expect(store.initializeCurrentLocale('en-US')).toBe('en')
 
     // Test with device locale
-    vi.spyOn(localStorage, 'getItem').mockReturnValueOnce(null)
+    vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce(null)
     expect(store.initializeCurrentLocale('es-ES')).toBe('es')
 
     // Test with default locale
-    vi.spyOn(localStorage, 'getItem').mockReturnValueOnce(null)
+    vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce(null)
     expect(store.initializeCurrentLocale('de-DE')).toBe('de')
   })
 
