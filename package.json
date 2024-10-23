@@ -76,6 +76,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.10.0",
+    "unplugin-vue-markdown": "^0.26.2",
     "vite": "^5.4.8",
     "vite-plugin-html": "^3.2.2",
     "vitest": "^2.1.2",

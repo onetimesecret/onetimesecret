@@ -1,6 +1,7 @@
 //import { createHtmlPlugin } from 'vite-plugin-html'
-import vue from '@vitejs/plugin-vue';
+import Vue from '@vitejs/plugin-vue';
 import path from 'path';
+import Markdown from 'unplugin-vue-markdown/vite'
 import { defineConfig } from 'vite';
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 
@@ -9,12 +10,11 @@ import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 // environment variables to the client-side code.
 const apiBaseUrl = process.env.VITE_API_BASE_URL || 'https://dev.onetimesecret.com';
 
-
 export default defineConfig({
   root: "./src",
-
   plugins: [
-    vue({
+    Vue({
+      include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files
       template: {
         compilerOptions: {
           // Be cool and chill about 3rd party components. Alternatvely can use
@@ -25,6 +25,9 @@ export default defineConfig({
         }
       }
     }),
+
+    // https://github.com/unplugin/unplugin-vue-markdown
+    Markdown({ /* options */ }),
 
     /**
      * Makes sure all text output files have a trailing newline.
