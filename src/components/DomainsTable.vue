@@ -7,7 +7,7 @@
       </div>
       <div class="mt-4 sm:mt-0">
         <router-link to="/account/domains/add"
-          class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold text-white
+          class="inline-flex items-center rounded-md px-3 py-2 text-sm font-brand font-semibold text-white
           shadow-sm bg-brand-600 hover:bg-brand-500 focus-visible:outline focus-visible:outline-2
           focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500
           dark:hover:bg-brand-400 transition-colors duration-200">
@@ -31,12 +31,12 @@
                     dark:text-gray-200 sm:pl-6">
                     Domain</th>
                   <th scope="col"
-                    class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900
-                    dark:text-gray-200 lg:table-cell">
+                    class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900
+                    dark:text-gray-200 table-cell">
                     Status</th>
                   <th scope="col"
                     class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900
-                    dark:text-gray-200 lg:table-cell">
+                    dark:text-gray-200 sm:table-cell">
                     Added</th>
                   <th scope="col"
                     class="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -57,11 +57,11 @@
                     </router-link>
                   </td>
 
-                  <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 lg:table-cell">
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 table-cell">
                     <DomainVerificationInfo mode="icon"
                                             :domain="domain" />
                   </td>
-                  <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 lg:table-cell">
+                  <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400 sm:table-cell">
                     {{ formatRelativeTime(Number(domain.created)) }}
                   </td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
