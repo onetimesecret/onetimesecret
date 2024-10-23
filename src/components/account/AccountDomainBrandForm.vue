@@ -178,13 +178,10 @@ const handleLogoUpload = async (event: Event) => {
       }
 
       // Use Vue's reactivity system to update the object
-      Object.assign(localBrandSettings.value, {
-        image_encoded: data.image_encoded,
-        image_content_type: data.image_content_type,
-        image_filename: data.image_filename,
-      });
+      localBrandSettings.value = data.record.brand
+      //console.log(data.record.brand)
 
-      emit('updateBrandSettings', {...localBrandSettings.value}, true);
+      emit('updateBrandSettings', { ...localBrandSettings.value }, true);
       success.value = 'Logo uploaded successfully';
     } catch (err: unknown) {
       console.error('Error uploading logo:', err);
@@ -196,8 +193,6 @@ const handleLogoUpload = async (event: Event) => {
     }
   }
 };
-
-
 
 const removeLogo = async () => {
   try {
