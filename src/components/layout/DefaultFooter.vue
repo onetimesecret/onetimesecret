@@ -1,7 +1,7 @@
 <template>
   <footer class="
     w-full min-w-[320px]
-    py-8
+    py-16
     bg-gray-100 dark:bg-gray-800
     transition-all duration-300"
           aria-label="Site footer">
@@ -9,7 +9,7 @@
       <FooterLinkLists v-if="displayLinks"
                        v-bind="$props" />
 
-      <div class="flex flex-col space-y-6 pt-6 mt-6">
+      <div class="flex flex-col space-y-6 mt-6">
         <div class="
           flex
           items-center justify-between
@@ -19,14 +19,14 @@
           <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
 
           <ThemeToggle class="
-            text-gray-600 dark:text-gray-300
+            text-gray-500 dark:text-gray-400
             hover:text-gray-800 dark:hover:text-gray-100
             transition-colors duration-200"
                        aria-label="Toggle dark mode" />
 
           <FeedbackToggle v-if="displayFeedback && authentication.enabled"
                           class="
-            text-gray-600 dark:text-gray-300
+            text-gray-500 dark:text-gray-400
             hover:text-gray-800 dark:hover:text-gray-100
             transition-colors duration-200"
                           aria-label="Provide feedback" />
@@ -36,9 +36,9 @@
              class="
           w-full
           text-sm text-center
-          text-gray-600 dark:text-gray-300">
+          text-gray-500 dark:text-gray-400">
           &copy; {{ new Date().getFullYear() }} {{ companyName }}.
-          All rights reserved.
+
         </div>
       </div>
     </div>
