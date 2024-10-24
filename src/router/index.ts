@@ -68,7 +68,15 @@ export function createAppRouter() {
         name: 'NotFound',
         component: NotFound
       }
-    ]
+    ],
+    scrollBehavior(to, from, savedPosition) {
+      // always scroll to top
+      if (savedPosition) {
+        return savedPosition
+      } else {
+        return { top: 0 }
+      }
+    },
   })
 
   // Set up router guards for authentication and locale settings

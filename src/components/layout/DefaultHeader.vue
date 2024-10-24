@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-white dark:bg-gray-900 ">
+  <header class="bg-white dark:bg-gray-900">
     <div class="container mx-auto px-4 py-4 min-w-[320px] max-w-2xl">
       <div v-if="displayMasthead"
            class="w-full">
@@ -9,10 +9,12 @@
                          class="flex items-center">
               <img id="logo"
                    src="@/assets/img/onetime-logo-v3-xl.svg"
-                   class="rounded-md w-12 h-12 sm:w-16 sm:h-16"
+                   class="w-12 h-12 sm:w-16 sm:h-16 rounded-md"
                    aria-label="Onetime Secret"
                    alt="Logo">
-              <span class="ml-2 text-xl font-brand font-bold text-gray-800 dark:text-white">Onetime Secret</span>
+              <span class="ml-2 text-xl font-bold font-brand text-gray-800 dark:text-white">
+                Onetime Secret
+              </span>
             </router-link>
           </div>
 
@@ -23,7 +25,7 @@
                              :colonel="colonel" />
               <a href="#"
                  @click="openSettingsModal"
-                 class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors duration-200"
+                 class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
                  title="Your Account">{{ $t('web.COMMON.header_settings') }}</a>
 
               <SettingsModal :is-open="isSettingsModalOpen"
@@ -31,7 +33,7 @@
 
               <span class="text-gray-400">|</span>
               <router-link to="/logout"
-                           class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors duration-200"
+                           class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
                            title="Log out of Onetime Secret">{{ $t('web.COMMON.header_logout') }}</router-link>
             </template>
 
@@ -40,20 +42,20 @@
                 <router-link v-if="authentication.signup"
                              to="/signup"
                              title="Signup - Individual and Business plans"
-                             class="font-bold text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors duration-200">
+                             class="font-bold text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200">
                   {{ $t('web.COMMON.header_create_account') }}
                 </router-link>
                 <span class="text-gray-400">|</span>
                 <router-link to="/about"
                              title="About Onetime Secret"
-                             class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors duration-200">
+                             class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200">
                   {{ $t('web.COMMON.header_about') }}
                 </router-link>
                 <span class="text-gray-400">|</span>
                 <router-link v-if="authentication.signin"
                              to="/signin"
                              title="Log in to Onetime Secret"
-                             class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors duration-200">
+                             class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200">
                   {{ $t('web.COMMON.header_sign_in') }}
                 </router-link>
               </template>
@@ -61,7 +63,7 @@
               <router-link v-else
                            to="/about"
                            title="About Onetime Secret"
-                           class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors duration-200">
+                           class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200">
                 {{ $t('web.COMMON.header_about') }}
               </router-link>
             </template>
@@ -72,6 +74,8 @@
   </header>
 </template>
 
+
+
 <script setup lang="ts">
 import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
 import SettingsModal from '@/components/modals/SettingsModal.vue';
@@ -81,8 +85,8 @@ import { computed, ref } from 'vue';
 
 // Define the props for this layout, extending the BaseLayout props
 export interface Props extends BaseProps {
-  displayMasthead?: boolean
-  displayNavigation?: boolean
+  displayMasthead?: boolean;
+  displayNavigation?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {

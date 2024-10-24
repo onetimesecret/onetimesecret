@@ -42,8 +42,8 @@
   :cluster:
     :type: str(required=False)
     :api_key: str(required=False)
-    :cluster_ip: str(required=False)   # either
-    :cluster_host: str(required=False) # or
+    :cluster_ip: str(required=False)
+    :cluster_host: str(required=False)
     :cluster_name: str()
     :vhost_target: str()
 
