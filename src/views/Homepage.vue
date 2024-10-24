@@ -1,10 +1,10 @@
 <template>
   <div class="container mx-auto py-1 min-w-[320px] max-w-2xl">
     <HomepageTaglines v-if="!authenticated"
-                      class="mb-8" />
+                      class="mb-6" />
 
     <HomepagePlansCTA v-if="authenticationSettings.signup"
-                      class="mb-8" />
+                      class="mb-6" />
 
     <SecretForm class="mb-8"
                 :withRecipient="false"

@@ -56,7 +56,7 @@
             :key="jurisdiction.identifier"
             class="relative py-2 pl-3 pr-9 cursor-default select-none font-brand text-base
                   text-gray-700 dark:text-gray-50
-                 hover:bg-brand-100 dark:hover:bg-brand-600 transition-colors duration-200"
+                 hover:bg-brand-100 dark:hover:bg-brandcompdim-800 transition-colors duration-200"
             :class="{ 'bg-brand-50 dark:bg-brandcompdim-900': currentJurisdiction.identifier === jurisdiction.identifier }"
             role="option"
             :aria-selected="currentJurisdiction.identifier === jurisdiction.identifier">

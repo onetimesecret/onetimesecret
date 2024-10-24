@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8 py-5 pl-4 sm:pl-8 md:pl-16">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8 py-6 pl-4 sm:pl-8 md:pl-16">
 
       <!-- Company links -->
       <div class="space-y-4">
