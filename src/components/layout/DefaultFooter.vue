@@ -9,13 +9,26 @@
       <FooterLinkLists v-if="displayLinks"
                        v-bind="$props" />
 
-      <div class="flex flex-col space-y-6 mt-6">
-        <div class="
-          flex
-          items-center justify-between
-          w-full
-          max-w-[400px]
-          mx-auto">
+      <div class="
+        flex flex-col-reverse
+        justify-between items-center
+        mt-6
+        space-y-6 space-y-reverse md:space-y-0
+        md:flex-row">
+        <div v-if="displayVersion"
+             class="
+          w-full md:w-auto
+          text-sm text-center md:text-left
+          text-gray-500 dark:text-gray-400">
+          &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+        </div>
+
+        <div v-if="displayToggles"
+             class="
+          flex flex-wrap
+          items-center justify-center md:justify-end
+          w-full md:w-auto
+          space-x-4">
           <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
 
           <ThemeToggle class="
@@ -30,15 +43,6 @@
             hover:text-gray-800 dark:hover:text-gray-100
             transition-colors duration-200"
                           aria-label="Provide feedback" />
-        </div>
-
-        <div v-if="displayVersion"
-             class="
-          w-full
-          text-sm text-center
-          text-gray-500 dark:text-gray-400">
-          &copy; {{ new Date().getFullYear() }} {{ companyName }}.
-
         </div>
       </div>
     </div>
@@ -69,5 +73,5 @@ withDefaults(defineProps<Props>(), {
 });
 
 const { regions_enabled: regionsEnabled, regions } = useWindowProps(['regions_enabled', 'regions']);
-const companyName = ref('Onetime Secret');
+const companyName = ref('OnetimeSecret.com');
 </script>
