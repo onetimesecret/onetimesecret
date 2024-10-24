@@ -8,7 +8,7 @@
       <div class="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
         <div class="flex justify-between items-center mb-6">
           <h2 id="feedback-modal-title" class="text-2xl font-semibold text-gray-900 dark:text-white">
-            Provide Feedback
+            Share your feedback
           </h2>
           <button @click="close"
                   class="text-gray-400 hover:text-gray-500 dark:hover:text-white transition-colors"

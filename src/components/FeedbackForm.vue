@@ -3,7 +3,7 @@
     <!-- Feedback Form -->
     <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
       <div class="p-6">
-        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Submit Your Feedback</h2>
+
         <form @submit.prevent="submitForm"
               class="space-y-4">
           <input type="hidden"
@@ -13,40 +13,42 @@
                  name="shrimp"
                  :value="csrfStore.shrimp" />
 
-          <div class="flex flex-col sm:flex-row gap-4">
+          <div class="flex flex-col gap-4">
             <div class="flex-grow">
               <label for="feedback-message"
                      class="sr-only">Your feedback</label>
-              <input id="feedback-message"
-                     v-model="feedbackMessage"
-                     type="text"
-                     name="msg"
-                     class="w-full px-4 py-2 border border-gray-300 rounded-md
+              <textarea
+                id="feedback-message"
+                v-model="feedbackMessage"
+                name="msg"
+                rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md resize-y
                   focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none
                   dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                     autocomplete="off"
-                     :placeholder="$t('web.COMMON.feedback_text')"
-                     aria-label="Enter your feedback">
+                :placeholder="$t('web.COMMON.feedback_text')"
+                aria-label="Enter your feedback"></textarea>
               <input type="hidden"
                      name="tz"
                      :value="userTimezone" />
               <input type="hidden"
                      name="version"
                      :value="ot_version" />
-
             </div>
-            <button type="submit"
-                    :disabled="isSubmitting"
-                    :class="[
-                      'px-6 py-2 font-medium text-white transition duration-150 ease-in-out rounded-md',
-                      showRedButton
-                        ? 'bg-brand-600 hover:bg-brand-700 focus:ring-brand-500'
-                        : 'bg-gray-500 hover:bg-gray-600 focus:ring-gray-400',
-                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                    ]"
-                    aria-label="Send feedback">
-              {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
-            </button>
+
+            <div class="flex justify-end">
+              <button type="submit"
+                      :disabled="isSubmitting"
+                      :class="[
+                        'px-6 py-2 font-medium text-white transition duration-150 ease-in-out rounded-md w-full sm:w-auto',
+                        showRedButton
+                          ? 'bg-brand-600 hover:bg-brand-700 focus:ring-brand-500'
+                          : 'bg-gray-500 hover:bg-gray-600 focus:ring-gray-400',
+                        isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                      ]"
+                      aria-label="Send feedback">
+                {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
+              </button>
+            </div>
           </div>
 
           <AltchaChallenge v-if="!cust" />
