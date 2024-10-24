@@ -60,7 +60,7 @@
 
       <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4">
         <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Information included with your feedback:
+          When you submit feedback, we'll see:
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li v-if="cust"
