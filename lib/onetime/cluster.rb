@@ -17,16 +17,18 @@ module Onetime
       @api_key = nil
       @cluster_ip = nil
       @cluster_name = nil
+      @cluster_host = nil
       @vhost_target = nil
 
       module ClassMethods
-        attr_accessor :type, :api_key, :cluster_ip, :cluster_name, :vhost_target
+        attr_accessor :type, :api_key, :cluster_ip, :cluster_name, :cluster_host, :vhost_target
 
         def cluster_safe_dump
           {
             type: Features.type,
             cluster_ip: Features.cluster_ip,
             cluster_name: Features.cluster_name,
+            cluster_host: Features.cluster_host,
             vhost_target: Features.vhost_target
           }
         end

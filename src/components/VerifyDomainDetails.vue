@@ -57,7 +57,7 @@
                        :value="cluster?.cluster_ip" />
           <DetailField v-else
                        label="Value"
-                       :value="cluster?.vhost_target" />
+                       :value="cluster?.cluster_host" />
         </div>
       </li>
       <li class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
