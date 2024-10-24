@@ -95,7 +95,6 @@ const props = withDefaults(defineProps<Props>(), {
   colonel: false,
 });
 
-
 const colonel = computed(() => props.cust?.role === 'colonel');
 
 // Reactive state
