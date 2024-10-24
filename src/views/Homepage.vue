@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto py-6 min-w-[320px] max-w-2xl">
+  <div class="container mx-auto py-1 min-w-[320px] max-w-2xl">
     <HomepageTaglines v-if="!authenticated"
                       class="mb-8" />
 
