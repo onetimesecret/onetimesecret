@@ -18,7 +18,7 @@ require 'onetime'
 #Familia.debug = true
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
+OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @iterations = 1000
