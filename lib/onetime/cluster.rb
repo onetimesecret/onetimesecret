@@ -169,10 +169,16 @@ module Onetime
         response
       end
 
-      # Retrieves a virtual host by its incoming address.
+      # Retrieves the virtual host by the incoming address.
       #
-      # @param api_key [String] The API key for authenticating with the Approximated API.
-      # @param incoming_address [String] The incoming address of the virtual host to retrieve.
+      # @param api_key [String] The API key for authenticating with the API.
+      # @param incoming_address [String] The incoming address to search for the virtual host.
+      # @param force [Boolean] Whether to force check the virtual host.
+      #
+      # re: force-check, setting to true will have it check again before
+      # responding. This may take up to 30 seconds if the domain DNS is
+      # not pointed yet, and is rate limited to minimize accidentally
+      # DDOSing your application.
       #
       # @return [HTTParty::Response] The response from the API call.
       #
@@ -181,7 +187,8 @@ module Onetime
       #   incoming_address = 'custom.example.com'
       #   response = Approximated.get_vhost_by_incoming_address(api_key, incoming_address)
       #
-      # @raise [HTTParty::ResponseError] If the API returns a 404 (Virtual Host not found) or 401 (Invalid API key) error.
+      # @raise [HTTParty::ResponseError] If the API returns a 404 (Virtual
+      #        Host not found) or 401 (Invalid API key) error.
       #
       #  {
       #  "data" => {
@@ -204,9 +211,12 @@ module Onetime
       #    "user_message" => "..."
       #  }
       #}
-      def self.get_vhost_by_incoming_address(api_key, incoming_address)
-        response = get("/vhosts/by/incoming/#{incoming_address}",
-          headers: { 'api-key' => api_key })
+      #
+      def self.get_vhost_by_incoming_address(api_key, incoming_address, force = false)
+        url_path = "/vhosts/by/incoming/#{incoming_address}"
+        url_path += '/force-check' if force
+
+        response = get(url_path, headers: { 'api-key' => api_key })
 
         case response.code
         when 404
