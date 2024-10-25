@@ -63,8 +63,8 @@ module Onetime
       # @example
       #   api_key = 'your_api_key_here'
       #   records = [
-      #     { type: 'A', name: 'example.com', value: '192.0.2.1' },
-      #     { type: 'MX', name: 'example.com', value: 'mail.example.com' }
+      #     { type: 'A', address: 'example.com', match_against: '192.0.2.1' },
+      #     { type: 'MX', address: 'example.com', match_against: 'mail.example.com' }
       #   ]
       #   response = Approximated.check_records(api_key, records)
       #
