@@ -146,12 +146,7 @@ module Onetime
 
     def check_global_banner
       @global_banner = Familia.redis(0).get('global_banner')
-      if global_banner
-        OT.li "Global banner: #{OT.global_banner}"
-      else
-        OT.li "No global banner set."
-      end
-
+      OT.li "Global banner: #{OT.global_banner}" if global_banner
     end
 
     def print_log_banner
