@@ -8,7 +8,7 @@ module Onetime::Logic
   module Domains
 
     class AddDomain < OT::Logic::Base
-      attr_reader :greenlighted, :custom_domain
+      attr_reader :greenlighted, :custom_domain, :domain_input
 
       def process_params
         OT.ld "[AddDomain] Parsing #{params[:domain]}"
@@ -34,7 +34,7 @@ module Onetime::Logic
         # domain, that's fine. Both accounts can generate secret links for that
         # domain, and the links will be valid for both accounts.
         #
-        #   e.g. `OT::CustomDomain.exists?(@domain)`
+        #   e.g. `OT::CustomDomain.exists?(@domain_input)`
 
       end
 
@@ -144,10 +144,10 @@ module Onetime::Logic
       end
 
       def process
-        OT.ld "[ListDomains] Processing #{@cust.custom_domains.length}"
-        OT.info "[ListDomains] Processing #{@cust.custom_domains.rediskey}"
+        OT.ld "[ListDomains] Processing #{cust.custom_domains.length}"
+        OT.info "[ListDomains] Processing #{cust.custom_domains.rediskey}"
 
-        @custom_domains = @cust.custom_domains_list.map { |cd| cd.safe_dump }
+        @custom_domains = cust.custom_domains_list.map { |cd| cd.safe_dump }
       end
 
       def success_data

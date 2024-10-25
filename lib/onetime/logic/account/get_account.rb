@@ -5,7 +5,7 @@ module Onetime::Logic
   module Account
 
     class GetAccount < OT::Logic::Base
-      attr_reader :plans_enabled
+      attr_accessor :plans_enabled
       attr_reader :stripe_subscription, :stripe_customer
       using Onetime::StripeRefinements
 

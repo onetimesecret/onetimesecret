@@ -6,8 +6,9 @@ module Onetime::Logic
 
     class AuthenticateSession < OT::Logic::Base
       attr_reader :custid, :stay, :greenlighted
-      attr_reader :session_ttl
+      attr_reader :session_ttl, :potential_custid
 
+      # cust is only populated if the passphrase matches
       def process_params
         @potential_custid = params[:u].to_s.downcase.strip
         @passwd = self.class.normalize_password(params[:p])
@@ -17,6 +18,7 @@ module Onetime::Logic
 
         if (potential = OT::Customer.load(@potential_custid))
           @cust = potential if potential.passphrase?(@passwd)
+          @custid = @cust.custid if @cust
         end
       end
 
@@ -119,6 +121,7 @@ module Onetime::Logic
         @secret = OT::Secret.load params[:key].to_s
         @newp = self.class.normalize_password(params[:newp])
         @newp2 = self.class.normalize_password(params[:newp2])
+        @is_confirmed = Rack::Utils.secure_compare(@newp, @newp2)
       end
 
       def raise_concerns
@@ -126,8 +129,6 @@ module Onetime::Logic
         raise OT::MissingSecret if secret.custid.to_s == 'anon'
 
         limit_action :forgot_password_reset # limit reset attempts
-
-        @is_confirmed = Rack::Utils.secure_compare(@newp, @newp2)
 
         raise_form_error "New passwords do not match" unless is_confirmed
         raise_form_error "New password is too short" unless @newp.size >= 6
