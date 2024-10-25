@@ -298,7 +298,7 @@ class Onetime::CustomDomain < Familia::Horreum
     #   * PublicSuffix::DomainNotAllowed
     #   * PublicSuffix::Error (StandardError)
     #
-    # Can raise Onetime::Error.
+    # Can raise Onetime::Problem.
     #
     def parse input, custid
       #OT.ld "[CustomDomain.parse] Called with #{input} and #{custid}"
@@ -306,9 +306,7 @@ class Onetime::CustomDomain < Familia::Horreum
       # The `display_domain` method calls PublicSuffix.parse
       display_domain = OT::CustomDomain.display_domain input
 
-      custom_domain = OT::CustomDomain.new(display_domain, custid)
-      #OT.ld "[CustomDomain.parse2] Instantiated #{custom_domain.display_domain} and #{custom_domain.custid} (#{display_domain})"
-      custom_domain
+      OT::CustomDomain.new(display_domain, custid)
     end
 
     # Takes the given input domain and returns the base domain,
@@ -362,6 +360,21 @@ class Onetime::CustomDomain < Familia::Horreum
       false
     end
 
+    # Simply instatiates a new CustomDomain object and checks if it exists.
+    def exists? input, custid
+      # The `parse`` method instantiates a new CustomDomain object but does
+      # not save it to Redis. We do that here to piggyback on the inital
+      # validation and parsing. We use the derived identifier to load
+      # the object from Redis using
+      parse(input, custid).tap do |obj|
+        OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
+        obj.exists?
+      end
+    rescue OT::Problem => e
+      OT.le "[CustomDomain.exists?] #{e.message}"
+      false
+    end
+
     def add fobj
       #self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
       self.values.add OT.now.to_i, fobj.to_s # created time, identifier
@@ -386,10 +399,7 @@ class Onetime::CustomDomain < Familia::Horreum
     # Implement a load method for CustomDomain to make sure the
     # correct derived ID is used as the key.
     def load display_domain, custid
-      # The `parse`` method instantiates a new CustomDomain object but does
-      # not save it to Redis. We do that here to piggyback on the inital
-      # validation and parsing that the parse method does. Then we simply
-      # use the derived identifier to load the object from Redis using
+
       # the built-in `load` from Familia.
       custom_domain = parse(display_domain, custid).tap do |obj|
         OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
