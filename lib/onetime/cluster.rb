@@ -53,6 +53,11 @@ module Onetime
       # @param records [Array<Hash>] An array of hashes representing DNS records to check.
       #   Each hash should contain keys like 'type', 'name', and 'value'.
       #
+      # The data list is returned back to you with injected fields for 'match' and
+      # 'actual_values'. The 'match' field will be true if there is any record/value
+      # that matches the 'match_against' field, regardless of how many other
+      # records/values there may be for that address.
+      #
       # @return [HTTParty::Response] The response from the API call.
       #
       # @example
@@ -63,8 +68,37 @@ module Onetime
       #   ]
       #   response = Approximated.check_records(api_key, records)
       #
+      # @response example
+      # {
+      #   "records": [
+      #     {
+      #         "actual_values": [
+      #             "93.184.216.34"
+      #         ],
+      #         "match": false,
+      #         "address": "example.com",
+      #         "match_against": "12.345.678.90",
+      #         "type": "a"
+      #     }
+      #   ]
+      # }
+      #
       def self.check_records_exist(api_key, records)
         post('/dns/check-records-exist',
+          headers: { 'api-key' => api_key },
+          body: { records: records }.to_json)
+      end
+
+      # Checks the existence of the DNS records and whether the values match exactly.
+      #
+      # The inputs and outputs are the same as `check_records_exist`.
+      #
+      # The 'match' field will only be true if there is exactly one DNS
+      # record/value for each address, and it must exactly match the
+      # 'match_against' value you've set.
+      #
+      def self.check_records_match_exactly(api_key, records)
+        post('/dns/check-records-match-exactly',
           headers: { 'api-key' => api_key },
           body: { records: records }.to_json)
       end
