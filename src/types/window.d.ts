@@ -105,5 +105,9 @@ declare global {
     // Used by the pre-Vue colour mode detection to go inert once
     // the Vue app takes control over the UI. See index.html.
     enjoyTheVue: boolean;
+
+    // When present, the global banner is displayed at the top of the
+    // page. NOTE: Can contain HTML.
+    global_banner?: string;
   }
 }
