@@ -262,7 +262,7 @@ module Onetime::Logic
           custom_domain.verified! found_match  # save immediately
         else
           msg = payload['message']
-          OT.le "[VerifyDomain.verify_txt_record] %s %s [%i]"  % [display_domain, res.code, code]
+          OT.le "[VerifyDomain.verify_txt_record] %s %s [%i]"  % [display_domain, res.code, msg]
         end
 
       end
