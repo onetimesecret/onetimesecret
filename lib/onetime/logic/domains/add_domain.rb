@@ -25,8 +25,11 @@ module Onetime::Logic
         limit_action :add_domain
 
         # Only store a valid, parsed input value to @domain
-        @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust) # raises OT::Problem
+        @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust)
         @display_domain = @parsed_domain.display_domain
+
+        # Check for duplicate domain by checking if it exists in the customer's domains
+        raise_form_error "Duplicate domain" if @parsed_domain.exists?
       end
 
       def process
@@ -34,10 +37,15 @@ module Onetime::Logic
         OT.ld "[AddDomain] Processing #{@display_domain}"
         @custom_domain = OT::CustomDomain.create(@display_domain, @cust.custid)
 
-        # Create the approximated vhost for this domain. Approximated provides a
-        # custom domain as a service API. If no API key is set, then this will
-        # simply log a message and return.
-        create_vhost
+        begin
+          # Create the approximated vhost for this domain. Approximated provides a
+          # custom domain as a service API. If no API key is set, then this will
+          # simply log a message and return.
+          create_vhost
+        rescue HTTParty::ResponseError => e
+          OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
+          # Continue processing despite vhost error
+        end
       end
 
       def create_vhost
@@ -55,9 +63,6 @@ module Onetime::Logic
         custom_domain.vhost = payload['data'].to_json
         custom_domain.updated = OT.now.to_i
         custom_domain.save
-
-      rescue HTTParty::ResponseError => e
-        OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
       end
 
       def success_data
