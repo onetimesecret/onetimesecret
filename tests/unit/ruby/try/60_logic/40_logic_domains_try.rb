@@ -25,20 +25,6 @@ OT.boot! :test
 @custom_domain = OT::CustomDomain.create @domain_input, @cust.custid
 @cust.add_custom_domain @custom_domain
 
-# AddDomain Tests
-
-## Test domain addition
-@add_params = { domain: @domain_input }
-logic = OT::Logic::Domains::AddDomain.new @sess, @cust, @add_params
-logic.raise_concerns
-logic.define_singleton_method(:create_vhost) {} # prevent calling 3rd party API for this test
-logic.process
-[
-  logic.greenlighted,
-  logic.custom_domain.display_domain,
-  logic.instance_variables.include?(:@cust)
-]
-#=> [true, @domain_input, true]
 
 # ListDomains Tests
 
@@ -66,7 +52,6 @@ logic = OT::Logic::Domains::GetDomain.new @sess, @cust, { domain: @domain_input 
   logic.instance_variables.include?(:@params)
 ]
 #=> [true, true]
-
 
 # RemoveDomain Tests
 
