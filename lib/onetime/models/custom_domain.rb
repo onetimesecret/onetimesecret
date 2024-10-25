@@ -1,6 +1,10 @@
 
 require 'public_suffix'
 
+# Tryouts:
+# - tests/unit/ruby/try/20_models/27_domains_try.rb
+# - tests/unit/ruby/try/20_models/27_domains_publicsuffix_try.rb
+
 # Custom Domain
 #
 # Every customer can have one or more custom domains.
@@ -14,7 +18,7 @@ require 'public_suffix'
 # domain, sometimes the part that is directly after the "dot" symbol. For
 # example, mozilla.org, the .org portion is the tld.
 #
-# `sld` = Second level domain, a domain that is directly below a top-level
+# `sld` = Second lev'el domain, a domain that is directly below a top-level
 # domain. For example, in https://www.mozilla.org/en-US/, mozilla is the
 # second-level domain of the .org tld.
 #
@@ -28,6 +32,9 @@ require 'public_suffix'
 #
 class Onetime::CustomDomain < Familia::Horreum
   include Gibbler::Complex
+
+  MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
+  MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
 
   db 6
   prefix :customdomain
@@ -127,8 +134,17 @@ class Onetime::CustomDomain < Familia::Horreum
     super # we may prefer to call self.clear here instead
   end
 
+  # Parses the vhost JSON string into a Ruby hash
+  #
+  # @return [Hash] The parsed vhost configuration, or empty hash if parsing fails
+  # @note Returns empty hash in two cases:
+  #   1. When vhost is nil or empty string
+  #   2. When JSON parsing fails (invalid JSON)
+  # @example
+  #   custom_domain.vhost = '{"ssl": true, "redirect": "https"}'
+  #   custom_domain.parse_vhost #=> {"ssl"=>true, "redirect"=>"https"}
   def parse_vhost
-    JSON.parse(self.vhost) unless self.vhost.to_s.empty?
+    self.vhost.to_s.empty? ? {} : JSON.parse(self.vhost)
 
   rescue JSON::ParserError => e
     OT.le "[CustomDomain.parse_vhost] Error #{e}"
@@ -179,6 +195,16 @@ class Onetime::CustomDomain < Familia::Horreum
   # @return [Boolean] true if the domain is an apex domain, false otherwise
   def apex?
     subdomain.empty?
+  end
+
+  # Overrides Familia::Horreum#exists? b/c of a potential bug. It's been
+  # observed that the `exists?` method is returning false when it should
+  # return true. This is a workaround to ensure that the method returns
+  # the correct value.
+  def exists?
+    # Use the redis reconnetion for this model to run a lower-level
+    # EXISTS command using the key for this instance of CustomDomain.
+    redis.exists?(rediskey)
   end
 
   # Generates a host and value pair for a TXT record.
@@ -253,7 +279,9 @@ class Onetime::CustomDomain < Familia::Horreum
       OT.ld "[CustomDomain.create] Called with #{input} and #{custid}"
 
       parse(input, custid).tap do |obj|
-        OT.ld "[CustomDomain.create] Got #{obj.identifier} #{obj.to_h}"
+        OT.li "[CustomDomain.create] Got #{obj.identifier} #{obj.to_h}"
+        raise OT::Problem, "Duplicate domain for customer" if obj.exists?
+
         self.add obj # Add to CustomDomain.values, CustomDomain.owners
 
         domainid = obj.identifier
@@ -291,17 +319,28 @@ class Onetime::CustomDomain < Familia::Horreum
       end
     end
 
-    # Returns a Onetime::CustomDomain object (without saving it to Redis).
+    # Returns a new Onetime::CustomDomain object (without saving it).
     #
-    # Rescues on the following:
-    #   * PublicSuffix::DomainInvalid
-    #   * PublicSuffix::DomainNotAllowed
-    #   * PublicSuffix::Error (StandardError)
+    # @param input [String] The domain name to parse
+    # @param custid [String] Customer ID associated with the domain
     #
-    # Can raise Onetime::Problem.
+    # @return [Onetime::CustomDomain]
+    #
+    # @raise [PublicSuffix::DomainInvalid] If domain is invalid
+    # @raise [PublicSuffix::DomainNotAllowed] If domain is not allowed
+    # @raise [PublicSuffix::Error] For other PublicSuffix errors
+    # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
     #
     def parse input, custid
-      #OT.ld "[CustomDomain.parse] Called with #{input} and #{custid}"
+      segments = input.split('.').reject(&:empty?)
+
+      if segments.length > MAX_SUBDOMAIN_DEPTH
+        raise Onetime::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"
+      end
+
+      if input.length > MAX_TOTAL_LENGTH
+        raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
+      end
 
       # The `display_domain` method calls PublicSuffix.parse
       display_domain = OT::CustomDomain.display_domain input

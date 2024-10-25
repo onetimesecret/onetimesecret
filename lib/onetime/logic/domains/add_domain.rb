@@ -8,7 +8,7 @@ require_relative '../../cluster'
 module Onetime::Logic
   module Domains
     class AddDomain < OT::Logic::Base
-      attr_reader :greenlighted, :custom_domain, :domain_input
+      attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain
 
       def process_params
         OT.ld "[AddDomain] Parsing #{params[:domain]}"
@@ -23,12 +23,11 @@ module Onetime::Logic
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
         limit_action :add_domain
-
         # Only store a valid, parsed input value to @domain
-        @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust)
+        @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust.custid)
         @display_domain = @parsed_domain.display_domain
 
-        # Check for duplicate domain by checking if it exists in the customer's domains
+        pp [@display_domain, @parsed_domain.identifier, @parsed_domain.exists?]
         raise_form_error "Duplicate domain" if @parsed_domain.exists?
       end
 
