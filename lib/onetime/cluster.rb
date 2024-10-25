@@ -53,18 +53,52 @@ module Onetime
       # @param records [Array<Hash>] An array of hashes representing DNS records to check.
       #   Each hash should contain keys like 'type', 'name', and 'value'.
       #
+      # The data list is returned back to you with injected fields for 'match' and
+      # 'actual_values'. The 'match' field will be true if there is any record/value
+      # that matches the 'match_against' field, regardless of how many other
+      # records/values there may be for that address.
+      #
       # @return [HTTParty::Response] The response from the API call.
       #
       # @example
       #   api_key = 'your_api_key_here'
       #   records = [
-      #     { type: 'A', name: 'example.com', value: '192.0.2.1' },
-      #     { type: 'MX', name: 'example.com', value: 'mail.example.com' }
+      #     { type: 'A', address: 'example.com', match_against: '192.0.2.1' },
+      #     { type: 'MX', address: 'example.com', match_against: 'mail.example.com' }
       #   ]
       #   response = Approximated.check_records(api_key, records)
       #
+      # @response example
+      # {
+      #   "records": [
+      #     {
+      #         "actual_values": [
+      #             "93.184.216.34"
+      #         ],
+      #         "match": false,
+      #         "address": "example.com",
+      #         "match_against": "12.345.678.90",
+      #         "type": "a"
+      #     }
+      #   ]
+      # }
+      #
       def self.check_records_exist(api_key, records)
         post('/dns/check-records-exist',
+          headers: { 'api-key' => api_key },
+          body: { records: records }.to_json)
+      end
+
+      # Checks the existence of the DNS records and whether the values match exactly.
+      #
+      # The inputs and outputs are the same as `check_records_exist`.
+      #
+      # The 'match' field will only be true if there is exactly one DNS
+      # record/value for each address, and it must exactly match the
+      # 'match_against' value you've set.
+      #
+      def self.check_records_match_exactly(api_key, records)
+        post('/dns/check-records-match-exactly',
           headers: { 'api-key' => api_key },
           body: { records: records }.to_json)
       end
@@ -135,10 +169,16 @@ module Onetime
         response
       end
 
-      # Retrieves a virtual host by its incoming address.
+      # Retrieves the virtual host by the incoming address.
       #
-      # @param api_key [String] The API key for authenticating with the Approximated API.
-      # @param incoming_address [String] The incoming address of the virtual host to retrieve.
+      # @param api_key [String] The API key for authenticating with the API.
+      # @param incoming_address [String] The incoming address to search for the virtual host.
+      # @param force [Boolean] Whether to force check the virtual host.
+      #
+      # re: force-check, setting to true will have it check again before
+      # responding. This may take up to 30 seconds if the domain DNS is
+      # not pointed yet, and is rate limited to minimize accidentally
+      # DDOSing your application.
       #
       # @return [HTTParty::Response] The response from the API call.
       #
@@ -147,7 +187,8 @@ module Onetime
       #   incoming_address = 'custom.example.com'
       #   response = Approximated.get_vhost_by_incoming_address(api_key, incoming_address)
       #
-      # @raise [HTTParty::ResponseError] If the API returns a 404 (Virtual Host not found) or 401 (Invalid API key) error.
+      # @raise [HTTParty::ResponseError] If the API returns a 404 (Virtual
+      #        Host not found) or 401 (Invalid API key) error.
       #
       #  {
       #  "data" => {
@@ -170,9 +211,12 @@ module Onetime
       #    "user_message" => "..."
       #  }
       #}
-      def self.get_vhost_by_incoming_address(api_key, incoming_address)
-        response = get("/vhosts/by/incoming/#{incoming_address}",
-          headers: { 'api-key' => api_key })
+      #
+      def self.get_vhost_by_incoming_address(api_key, incoming_address, force = false)
+        url_path = "/vhosts/by/incoming/#{incoming_address}"
+        url_path += '/force-check' if force
+
+        response = get(url_path, headers: { 'api-key' => api_key })
 
         case response.code
         when 404

@@ -17,7 +17,7 @@
                         aria-label="View our subscription pricing">Pricing</router-link>
           </li>
           <li v-if="supportHost">
-            <a :href="`${supportHost}/blog`"
+            <a :href="`https://blog.onetimesecret.com`"
               class="text-gray-600 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors duration-300 text-xl md:text-lg"
               aria-label="Read our latest blog posts"
               target="_blank"

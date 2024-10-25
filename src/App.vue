@@ -34,6 +34,7 @@ const {
   ot_version,
   plans_enabled,
   support_host,
+  global_banner,
 } = useWindowProps([
   'authenticated',
   'authentication',
@@ -41,6 +42,7 @@ const {
   'ot_version',
   'plans_enabled',
   'support_host',
+  'global_banner',
 ]);
 
 // Layout Switching: In the script section, the layout computed property
@@ -65,6 +67,8 @@ const layoutProps = computed(() => {
     plansEnabled: plans_enabled.value,
     defaultLocale: locale.value,
     isDefaultLocale: true,
+    hasGlobalBanner: !!global_banner.value, // not null or undefined
+    globalBanner: global_banner.value,
   };
 
   // Merge with route.meta.layoutProps if they exist

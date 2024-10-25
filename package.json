@@ -36,8 +36,10 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@intlify/core": "^9.14.1",
+    "@types/dompurify": "^3.0.5",
     "altcha": "^1.0.0",
     "axios": "^1.7.7",
+    "dompurify": "^3.1.7",
     "pinia": "^2.2.4",
     "pnpm": "^9.12.0",
     "stripe": "^17.1.0",

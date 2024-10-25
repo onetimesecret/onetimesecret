@@ -54,6 +54,9 @@ module Onetime
 
         self[:jsvars] = []
 
+        # Add the global site banner if there is one
+        self[:jsvars] << jsvar(:global_banner, OT.global_banner) if OT.global_banner
+
         # Pass the authentication flag settings to the frontends.
         self[:jsvars] << jsvar(:authentication, authentication)
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess

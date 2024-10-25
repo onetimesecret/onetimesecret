@@ -3,11 +3,15 @@
 # These tryouts test the functionality of Approximated and the
 # Approximate API. Note that this tryouts file has no _try
 # suffix. This is intentional so that it is not run by
-# default. Otherwise we'd be hammering the Approximate API
+# default. Otherwise we'd be hammering the Approximated API
 # with requests that are not actually going to be used in the
 # application.
-
-# NOTE: These tryouts send real requests to the Approximate API.
+#
+# Usage:
+#
+#   $ try -vf tests/unit/ruby/try/72_approximated.rb
+#
+# NOTE: These tryouts send real requests to the Approximated API.
 
 require 'dotenv'
 
@@ -28,10 +32,27 @@ OT.boot! :test
     type: "txt"
   },
   {
-    address: "anapodosis.onetimesecret.com",
+    address: "anapodosis.eu.onetimesecret.com",
     match_against: "v=spf1 include:amazonses.com ~all",
     type: "txt"
+  },
+  {
+    address: "anapodosis.eu.onetimesecret.com",
+    match_against: "Bogus Journey",
+    type: "txt"
   }
+]
+@dns_records_actual = [
+  {
+    address: "secrets.onetime.co",
+    match_against: "identity.eu.onetime.co",
+    type: "cname"
+  },
+  {
+    address: "secrets.solutious.com",
+    match_against: "109.105.217.207",
+    type: "a"
+  },
 ]
 @vhost1 = {
   incoming_address: "72.tryouts.deleteme.ifyou.seeme.onetimesecret.com",
@@ -71,6 +92,12 @@ OT.boot! :test
   check_records_exist: lambda { ||
     OT::Cluster::Approximated.check_records_exist(@api_key, @dns_records)
   },
+  check_records_match_exactly: lambda { ||
+    OT::Cluster::Approximated.check_records_match_exactly(@api_key, @dns_records)
+  },
+  check_records_match_exactly_actual: lambda { ||
+    OT::Cluster::Approximated.check_records_match_exactly(@api_key, @dns_records_actual)
+  },
   create_vhost: lambda { ||
     OT::Cluster::Approximated.create_vhost(@api_key, @vhost1[:incoming_address], @vhost1[:target_address], @vhost1[:target_ports])
   },
@@ -91,6 +118,20 @@ response = @mock_response[:check_records_exist].call
 content = response.body
 [content["records"].length, content["records"][0]["match"], content["records"][1]["match"]]
 #=> [2, false, false]
+
+## Can check TXT record matches exactly for domain
+response = @generate_request[:check_records_match_exactly].call
+content = response.parsed_response
+pp response.parsed_response
+[content["records"].length, content["records"][0]["match"], content["records"][1]["match"], content["records"][2]["match"]]
+#=> [3, false, true, false]
+
+## Can check actual custom domain records match exactly for domain
+response = @generate_request[:check_records_match_exactly_actual].call
+content = response.parsed_response
+pp response.parsed_response
+[content["records"].length, content["records"][0]["match"], content["records"][1]["match"]]
+#=> [2, true, true]
 
 
 ## Can add a vhost record
@@ -115,6 +156,7 @@ end
 ## Can read a vhost record
 response = @generate_request[:get_vhost_by_incoming_address].call
 content  = response.parsed_response
+pp content
 [content.keys.length, content.dig("data", "incoming_address"), content.dig("data", "target_address"), content.dig("data", "target_ports")]
 #=> [1, "72.tryouts.deleteme.ifyou.seeme.onetimesecret.com", "staging.onetimesecret.com", "443"]
 

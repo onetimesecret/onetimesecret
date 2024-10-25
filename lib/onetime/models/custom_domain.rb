@@ -53,7 +53,8 @@ class Onetime::CustomDomain < Familia::Horreum
   field :txt_validation_value
   field :status
   field :vhost
-  field :verified
+  field :verified # the txt record matches?
+  field :resolving # there's a valid A or CNAME record?
   field :created
   field :updated
   field :_original_value
@@ -212,6 +213,17 @@ class Onetime::CustomDomain < Familia::Horreum
     # These can now be displayed to the customer for them
     # to continue the validation process.
     [record_host, record_value]
+  end
+
+  # The fully qualified domain name for the TXT record.
+  #
+  # Used to validate the domain ownership by the customer
+  # via the Approximated check_records API.
+  #
+  # e.g. `_onetime-challenge-domainid.froogle.com`
+  #
+  def validation_record
+    [txt_validation_host, base_domain].join('.')
   end
 
   module ClassMethods
