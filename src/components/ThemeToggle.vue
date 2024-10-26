@@ -40,12 +40,17 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 
+const emit = defineEmits<{
+  (e: 'theme-changed', isDark: boolean): void
+}>()
+
 const isDarkMode = ref(false)
 
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value
   localStorage.setItem('restMode', isDarkMode.value.toString())
   updateDarkMode()
+  emit('theme-changed', isDarkMode.value)
 }
 
 const updateDarkMode = () => {
