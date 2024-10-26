@@ -18,8 +18,8 @@ module Onetime::Logic
       end
 
       def process
-        @apitoken = cust.regenerate_apitoken
         @greenlighted = true
+        @apitoken = cust.regenerate_apitoken
       end
 
       # The data returned from this method is passed back to the client.

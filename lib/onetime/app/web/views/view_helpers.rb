@@ -107,7 +107,6 @@ module Onetime
           assets.join("\n")
         end
 
-
       end
     end
   end

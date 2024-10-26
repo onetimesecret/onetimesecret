@@ -8,6 +8,10 @@ module Onetime::Models
       OT::RateLimit.incr! external_identifier, event
     end
 
+    def event_get event
+      OT::RateLimit.get external_identifier, event
+    end
+
     def event_clear! event
       OT::RateLimit.clear! external_identifier, event
     end

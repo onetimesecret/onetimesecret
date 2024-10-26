@@ -7,7 +7,7 @@ require 'public_suffix'
 require 'onetime'
 
 # Load the app
-OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
+OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @customer = OT::Customer.create 'Tryouts+27@onetimesecret.com'  # relies on the destory on teardown

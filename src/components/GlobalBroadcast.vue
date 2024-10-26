@@ -30,7 +30,6 @@ const props = withDefaults(defineProps<Props>(), {
   show: false,
 });
 
-
 // Function to decode HTML entities
 function decodeHTMLEntities(html: string) {
   const txt = document.createElement('textarea');

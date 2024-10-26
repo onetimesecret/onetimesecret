@@ -15,15 +15,15 @@
 require 'onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
+OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @email_address = OT.conf[:emailer][:from]
 
 
 ## Finds a config path
-Onetime::Config.path.gsub("#{__dir__}/", '')
-#=> "../config.test.yaml"
+[Onetime::Config.path.nil?, Onetime::Config.path.include?('config.test.yaml')]
+#=> [false, true]
 
 ## Can load config
 @config = Onetime::Config.load
