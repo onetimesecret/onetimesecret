@@ -24,8 +24,10 @@ module Onetime::Logic
         @greenlighted = true
         @display_domain = @custom_domain.display_domain
 
-        # TODO: @custom_domain.redis.multi
-
+        # Destroy method operates inside a multi block that deletes the domain
+        # record, removes it from customer's domain list, and global list so
+        # it's all or nothing. It does not delete the external approximated
+        # vhost record.
         @custom_domain.destroy!(@cust)
       end
 
