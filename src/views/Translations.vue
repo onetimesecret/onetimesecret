@@ -49,16 +49,24 @@
            :key="translation['code']">
         <h4 class="text-xl font-semibold mb-2">
           {{ translation['name'] }}
-          (<a @click.prevent="changeLocale(translation['code'])"
-             href="#"
-             class="text-brand-500 dark:text-brand-400 hover:underline cursor-pointer">switch</a>)
+          (<button
+            @click="changeLocale(translation['code'])"
+            class="text-brand-500 dark:text-brand-400 hover:underline cursor-pointer inline-flex items-center"
+            :aria-label="`Switch language to ${translation['name']}`"
+            type="button">
+            <span>switch</span>
+          </button>)
         </h4>
         <ul class="list-disc pl-5 mb-4">
           <li v-for="(translator, index) in translation['translators']"
               :key="`${translation['code']}-${index}}`">
             <a v-if="translator['url']"
                :href="translator['url']"
-               class="text-brand-500 dark:text-brand-400 hover:underline">{{ translator['name'] }}</a>
+               target="_blank"
+               rel="noopener noreferrer"
+               class="text-brand-500 dark:text-brand-400 hover:underline">
+              {{ translator['name'] }}
+            </a>
             <span v-else>{{ translator['name'] }}</span>
             ({{ translator['date'] }})
           </li>
@@ -96,17 +104,22 @@
 </template>
 
 <script setup lang="ts">
-import translations from '@/sources/translations.json';
-import GithubCorner from '@/components/GithubCorner.vue';
 import EmailObfuscator from '@/components/EmailObfuscator.vue';
+import GithubCorner from '@/components/GithubCorner.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
 import { setLanguage } from '@/i18n';
+import translations from '@/sources/translations.json';
 import { useLanguageStore } from '@/stores/languageStore';
 
 const languageStore = useLanguageStore();
+const cust = useWindowProp('cust');
 
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
+      if (cust.value) {
+        cust.value.locale = newLocale;
+      }
       await languageStore.updateLanguage(newLocale);
       await setLanguage(newLocale);
     } catch (err) {
