@@ -45,24 +45,7 @@
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
-import { useFocusTrap } from '@vueuse/integrations/useFocusTrap';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-
-
-defineProps<{
-  isOpen: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'close'): void;
-}>();
-
-const modalContentRef = ref<HTMLElement | null>(null);
-
-const closeModal = () => {
-  emit('close');
-};
 
 const handleThemeChange = (isDark: boolean) => {
   // Add any additional handling here if needed
@@ -74,22 +57,5 @@ const handleMenuToggled = () => {
   // Handle language menu toggle
 };
 
-const { activate, deactivate } = useFocusTrap(modalContentRef);
 
-// Handle ESC key
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    closeModal();
-  }
-};
-
-onMounted(() => {
-  activate();
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onBeforeUnmount(() => {
-  deactivate();
-  window.removeEventListener('keydown', handleKeydown);
-});
 </script>
