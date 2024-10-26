@@ -7,9 +7,7 @@
         Appearance
       </h3>
       <div class="rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
-        <button @click="$refs.themeToggle.$el.querySelector('button').click()"
-                class="w-full flex items-center justify-between gap-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 rounded p-2"
-                :aria-label="`Switch theme`">
+        <div class="flex items-center justify-between gap-4 rounded p-2">
           <div class="flex items-center gap-2">
             <Icon icon="carbon:light-filled"
                   class="h-5 w-5 text-gray-500 dark:text-gray-400"
@@ -18,9 +16,8 @@
               Theme
             </span>
           </div>
-          <ThemeToggle ref="themeToggle"
-                       @theme-changed="handleThemeChange" />
-        </button>
+          <ThemeToggle @theme-changed="handleThemeChange" />
+        </div>
       </div>
     </section>
 
