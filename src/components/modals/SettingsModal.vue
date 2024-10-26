@@ -53,7 +53,7 @@
               <!-- General Tab -->
               <div v-if="activeTab === 'General'"
                    class="space-y-8">
-                <GeneralTab />
+                <GeneralTab @close="closeModal" />
 
               </div>
               <div v-else-if="activeTab === 'Data Region'"

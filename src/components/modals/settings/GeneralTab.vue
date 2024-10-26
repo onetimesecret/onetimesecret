@@ -30,8 +30,29 @@
       <div class="rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
         <LanguageToggle @menuToggled="handleMenuToggled"
                         class="w-full" />
+        <div class="prose prose-sm dark:prose-invert prose-gray mt-4 max-w-none">
+          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+            As we add new features, our translations gradually need updates to stay current. This affects both
+            onetimesecret.com and
+            thousands of self-hosted installations worldwide.
+          </p>
+
+          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+            We're grateful to the <router-link to="/translations"
+                         @click="$emit('close')"
+                         class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors duration-150">
+              25+ contributors</router-link> who've helped with translations as we continue to develop new features.
+          </p>
+
+          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+            If you're interested in translation, <a href="https://github.com/onetimesecret/onetimesecret">our GitHub project</a> welcomes contributors for both existing and new
+            languages.
+          </p>
+        </div>
       </div>
     </section>
+
+
 
 
   </div>
@@ -44,15 +65,19 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
 
 
+// Add emit definition
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'menuToggled'): void;
+}>();
+
+const handleMenuToggled = () => {
+  emit('menuToggled');
+};
+
 const handleThemeChange = (isDark: boolean) => {
   // Add any additional handling here if needed
   console.log('Theme changed:', isDark);
 };
-
-
-const handleMenuToggled = () => {
-  // Handle language menu toggle
-};
-
 
 </script>
