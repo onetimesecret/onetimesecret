@@ -10,6 +10,7 @@ import DefaultHeader from '@/components/layout/DefaultHeader.vue'
 import DefaultFooter from '@/components/layout/DefaultFooter.vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import QuietLayout from '@/layouts/QuietLayout.vue'
+import AccountDomains from '@/views/account/AccountDomains.vue'
 
 const routes: Array<RouteRecordRaw> = [
 
@@ -35,16 +36,35 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/recent',
     name: 'Recents',
-    component: DashboardRecent,
+    components: {
+      default: DashboardRecent,
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
     meta: {
       requiresAuth: true,
-      layout: DefaultLayout,
       layoutProps: {
-
+        displayMasthead: true,
+        displayNavigation: true,
+        displayLinks: true,
+        displayFeedback: true,
+        displayVersion: true,
       },
     },
   },
-
+  {
+    path: '/account/domains',
+    name: 'AccountDomains',
+    components: {
+      default: AccountDomains,
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: true,
+    },
+    props: true,
+  },
   {
     path: '/secret/:secretKey',
     name: 'Secret link',
