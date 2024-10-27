@@ -9,7 +9,7 @@
         <router-link to="/dashboard"
                      role="menuitem"
                      :class="[
-                      'inline-flex items-center py-2 text-base transition-colors duration-200',
+                      'inline-flex items-center py-2 text-lg transition-colors duration-200',
                       isActiveRoute('/dashboard')
                         ? 'text-brand-500 font-semibold border-b-2 border-brand-500'
                         : 'text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-500'
@@ -35,7 +35,7 @@
         <router-link to="/recent"
                      role="menuitem"
                      :class="[
-                      'inline-flex items-center py-2 text-base transition-colors duration-200',
+                      'inline-flex items-center py-2 text-lg transition-colors duration-200',
                       isActiveRoute('/recent')
                         ? 'text-brand-500 font-semibold border-b-2 border-brand-500'
                         : 'text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-500'
@@ -67,7 +67,7 @@
         <router-link to="/account/domains"
                      role="menuitem"
                      :class="[
-                      'inline-flex items-center py-2 text-base transition-colors duration-200',
+                      'inline-flex items-center py-2 text-lg transition-colors duration-200',
                       isActiveRoute('/account/domains')
                         ? 'text-brand-500 font-semibold border-b-2 border-brand-500'
                         : 'text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-500'
