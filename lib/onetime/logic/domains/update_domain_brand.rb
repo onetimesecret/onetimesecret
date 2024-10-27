@@ -4,11 +4,11 @@ require_relative '../../cluster'
 module Onetime::Logic
   module Domains
     class UpdateDomainBrand < OT::Logic::Base
-      attr_reader :greenlighted, :display_domain, :custom_domain
+      attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params
         @domain_id = params[:domain].to_s.strip
-        @brand_settings = params
+        @brand_settings = params[:brand]
       end
 
       # Validate the input parameters

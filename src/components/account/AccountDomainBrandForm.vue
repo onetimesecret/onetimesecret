@@ -4,10 +4,13 @@
            name="shrimp"
            :value="csrfStore.shrimp" />
 
+    <!-- Add hidden input for primary_color since it's managed in parent -->
+    <input type="hidden"
+           name="brand[primary_color]"
+           :value="brandSettings.primary_color" />
+
     <BasicFormAlerts :success="success"
                      :error="error" />
-
-    <!-- Remove Logo Upload and Primary Color sections as they're now in the parent -->
 
     <!-- Description -->
     <div class="space-y-2">
@@ -17,8 +20,8 @@
       </label>
       <textarea id="description"
                 v-model="formData.description"
+                name="brand[description]"
                 rows="3"
-                name="plop"
                 class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 placeholder="Enter a brief description of your brand"></textarea>
     </div>
@@ -31,6 +34,7 @@
       </label>
       <select id="font_family"
               v-model="formData.font_family"
+              name="brand[font_family]"
               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         <option value="">Select a font family</option>
         <option value="sans-serif">Sans-serif</option>
@@ -47,6 +51,7 @@
       </label>
       <select id="button_style"
               v-model="formData.button_style"
+              name="brand[button_style]"
               class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         <option value="">Select a button style</option>
         <option value="rounded">Rounded</option>

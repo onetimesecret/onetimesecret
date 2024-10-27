@@ -86,6 +86,7 @@
                   <div class="relative">
                     <input type="color"
                            v-model="brandSettings.primary_color"
+                           name="brand[primary_color]"
                            class="w-12 h-12 rounded-lg cursor-pointer border-2 border-gray-200 dark:border-gray-600">
                     <div class="absolute -right-2 -top-2 w-4 h-4 rounded-full"
                          :style="{ backgroundColor: brandSettings.primary_color }">
@@ -93,6 +94,7 @@
                   </div>
                   <input type="text"
                          v-model="brandSettings.primary_color"
+                         name="brand[primary_color]"
                          class="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700 text-sm">
                 </div>
               </div>
