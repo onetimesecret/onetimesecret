@@ -51,10 +51,10 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import type { Jurisdiction } from '@/types';
+import type { Jurisdiction } from '@/types/onetime';
 
 defineProps<{
   jurisdiction: Jurisdiction;
-  supportHost: string;
+  supportHost?: string;
 }>();
 </script>

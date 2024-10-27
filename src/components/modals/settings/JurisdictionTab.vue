@@ -25,7 +25,7 @@
               {{ currentJurisdiction.display_name }}
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">
-              Data center location: {{ currentJurisdiction.country || currentJurisdiction.identifier }}
+              Data center location: {{ currentJurisdiction.identifier }}
             </div>
           </div>
         </div>
