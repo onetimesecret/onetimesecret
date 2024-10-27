@@ -1,10 +1,18 @@
+<!-- https://dev.onetimesecret.com/dashboard  -->
 <template>
-  <div v-show="isOpen"
+  <!-- Using v-if instead of v-show for modal dialogs is preferred for accessibility:
+       - Completely removes content from DOM and accessibility tree when closed
+       - Ensures cleaner navigation for screen reader users
+       - Prevents focus trapping issues since hidden content cannot receive focus
+       - Follows ARIA best practices for modal dialogs
+       Performance impact of DOM removal/recreation is negligible for modals -->
+  <div v-if="isOpen"
        class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 backdrop-blur-sm transition-opacity duration-300"
        :class="{ 'opacity-0': !isOpen }"
        aria-labelledby="settings-modal"
        role="dialog"
        aria-modal="true">
+
     <div ref="modalContentRef"
          class="relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-gray-800 transition-all duration-300 ease-out transform"
          :class="{ 'opacity-0 scale-95': !isOpen, 'opacity-100 scale-100': isOpen }">
