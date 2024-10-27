@@ -9,6 +9,23 @@ module Onetime
       include AppSettings
       include Base
 
+      # /imagine/b79b17281be7264f778c/logo.png
+      def imagine
+        publically(false) do
+          logic = OT::Logic::Domains::GetImage.new sess, cust, req.params
+          logic.raise_concerns
+          logic.process
+
+          res['Content-Type'] = logic.content_type
+
+          # Return the response with appropriate headers
+          res['Content-Length'] = logic.content_length
+          res.write(logic.image_data)
+
+          res.finish
+        end
+      end
+
       def index
         publically do
           OT.ld "[index] authenticated? #{sess.authenticated?}"
