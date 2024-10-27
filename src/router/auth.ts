@@ -23,9 +23,11 @@ const routes: Array<RouteRecordRaw> = [
     },
     beforeEnter: (to, from, next) => {
       const authStore = useAuthStore();
+
       if (authStore.isAuthenticated) {
-        // Redirect to home page or dashboard if already signed in
-        next({ name: 'Home' }); // Replace 'Home' with your desired route name
+        // Let's also check if there's a redirect query param
+        const redirectPath = to.query.redirect as string || { name: 'Home' };
+        next(redirectPath);
       } else {
         next();
       }
