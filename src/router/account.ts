@@ -48,20 +48,26 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/account/domains',
     name: 'AccountDomains',
-    component: () => import('@/views/account/AccountDomains.vue'),
+    components: {
+      default: import('@/views/account/AccountDomains.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
     meta: {
       requiresAuth: true,
-      layout: DefaultLayout,
     },
     props: true,
   },
   {
     path: '/account/domains/:domain/brand',
     name: 'AccountDomainBrand',
-    component: () => import('@/views/account/AccountDomainBrand.vue'),
+    components: {
+      default: import('@/views/account/AccountDomainBrand.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
     meta: {
       requiresAuth: true,
-      layout: DefaultLayout,
     },
     props: true,
   },
