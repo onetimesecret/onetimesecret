@@ -3,40 +3,37 @@ import { useAuthStore } from '@/stores/authStore'
 import { useLanguageStore } from '@/stores/languageStore'
 import { useWindowProp } from '@/composables/useWindowProps'
 
+// src/router/guards.ts
 export function setupRouterGuards(router: Router) {
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
-    const userPreferences = await fetchCustomerPreferences();
 
-    // Language guard
-    console.debug("initialized with lang: ", languageStore.currentLocale)
-    console.debug('Checking if user preferences contain a locale...')
-    if (userPreferences.locale) {
-      console.debug('User preferences contain a locale:', userPreferences.locale)
-      languageStore.setCurrentLocale(userPreferences.locale)
-    } else {
-      console.debug('No locale found in user preferences.')
-    }
+    if (requiresAuthentication(to)) {
 
+      try {
+        // Wait for explicit auth state
+        const isAuthenticated = await authStore.checkAuthStatus();
 
-    if (requiresAuthentication(to) && !authStore.isAuthenticated) {
-      await refreshAuthStatus(authStore)
+        if (!isAuthenticated) {
+          return redirectToSignIn(to);
+        }
 
-      if (!authStore.isAuthenticated) {
-        return redirectToSignIn(to)
+        // Proceed with navigation
+        const userPreferences = await fetchCustomerPreferences();
+        if (userPreferences.locale) {
+          languageStore.setCurrentLocale(userPreferences.locale);
+        }
+      } catch (error) {
+        console.error('Navigation guard error:', error);
+        return redirectToSignIn(to);
       }
     }
-  })
+  });
 }
 
 function requiresAuthentication(route: RouteLocationNormalized): boolean {
   return !!route.meta.requiresAuth
-}
-
-async function refreshAuthStatus(authStore: ReturnType<typeof useAuthStore>): Promise<void> {
-  await authStore.checkAuthStatus()
-  console.debug('Updated auth status:', authStore.isAuthenticated)
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {

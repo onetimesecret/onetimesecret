@@ -70,6 +70,8 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     /** Indicates whether the user is currently authenticated. */
     isAuthenticated: false,
+    /** Add loading state */
+    isCheckingAuth: false,
     /** The currently authenticated customer, if any. */
     customer: undefined as Customer | undefined,
     /** Timeout for periodic authentication checks. */
@@ -78,23 +80,50 @@ export const useAuthStore = defineStore('auth', {
     currentBackoffInterval: BASE_AUTH_CHECK_INTERVAL_MS,
     /** Number of consecutive failed auth checks. */
     failedAuthChecks: 0,
+    lastAuthCheck: 0,
   }),
+  getters: {
+    isAuthStale(): boolean {
+      return Date.now() - this.lastAuthCheck > BASE_AUTH_CHECK_INTERVAL_MS;
+    },
+  },
   actions: {
     /**
      * Initializes the auth store.
-     * Sets up the Axios interceptor, sets initial auth state, and customer data.
+     * Sets up the Axios interceptor, visibility listener, sets initial auth state, and customer data.
      */
     initialize() {
-      this.setupAxiosInterceptor()
-      const initialAuthState = window.authenticated ?? false
-      this.setAuthenticated(initialAuthState)
+      this.setupAxiosInterceptor();
+      this.setupVisibilityListener();
+
+      // Ensure boolean value and log
+      const initialAuthState = Boolean(window.authenticated ?? false);
+
+      this.isAuthenticated = initialAuthState;
 
       if (window.cust) {
         this.setCustomer(window.cust as Customer)
       }
+
+      // Set initial lastAuthCheck if we start authenticated
+      if (this.isAuthenticated) {
+        this.lastAuthCheck = Date.now()
+      }
     },
 
-        /**
+    /**
+     * Sets up a visibility change listener to check auth status when tab becomes visible
+     * after being inactive for a while.
+     */
+    setupVisibilityListener() {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && this.isAuthStale) {
+          this.refreshAuthState();
+        }
+      });
+    },
+
+    /**
      * Checks the current authentication status with the server.
      *
      * @description
@@ -117,61 +146,80 @@ export const useAuthStore = defineStore('auth', {
      *    but not consecutive
      */
     async checkAuthStatus() {
+      if (this.isCheckingAuth) {
+        // Return existing check if one is in progress
+        return;
+      }
+
+      this.isCheckingAuth = true;
+
       try {
         const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT);
-        // Update auth state and reset failure counters on success
-        this.isAuthenticated = response.data.details.authorized;
+
+        // Explicitly set both values
+        this.isAuthenticated = Boolean(response.data.details.authenticated);
         this.customer = response.data.record;
-        // Reset failed auth checks counter on successful authentication
+
         this.failedAuthChecks = 0;
         this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
+        this.lastAuthCheck = Date.now();
       } catch (error: unknown) {
-        this.failedAuthChecks++;
+        console.error('Auth check error:', error);
+        this.isAuthenticated = false;
+        this.customer = undefined;
+        this.handleAuthCheckError(error);
 
-        const applyBackoff = () => {
-          this.currentBackoffInterval = Math.min(
-            this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
-            MAX_AUTH_CHECK_INTERVAL_MS
-          );
-        };
+      } finally {
+        this.isCheckingAuth = false;
+        this.startAuthCheck();
+      }
 
-        const handleAuthFailure = () => {
-          this.isAuthenticated = false;
-          this.customer = undefined;
-        };
+      // Return the current auth state
+      return this.isAuthenticated;
+    },
+        // Add method to force refresh auth state
+        async refreshAuthState() {
+          await this.checkAuthStatus();
+        },
+        updateAuthState(isAuthed: boolean, customer?: Customer) {
+          this.isAuthenticated = isAuthed;
+          this.customer = customer;
+        },
 
-        if (error instanceof AxiosError) {
-          const statusCode = error.response?.status;
+    /**
+     * Applies exponential backoff to the current check interval.
+     * Doubles the interval on each consecutive failure, up to MAX_AUTH_CHECK_INTERVAL_MS.
+     */
+    applyBackoff() {
+      this.currentBackoffInterval = Math.min(
+        this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
+        MAX_AUTH_CHECK_INTERVAL_MS
+      );
+    },
 
-          // If it's actually an authorization or authentication error
-          // we simply log out and leave it at that. This can happen
-          // when a session expires on the server-side sometime after
-          // our previous check but before this check.
-          if (statusCode === 401 || statusCode === 403) {
-            this.logout();
-            return;
-          } else if (statusCode && statusCode >= 500) {
-            applyBackoff();
-          }
-          // For other status codes, continue with the existing logic
-        } else {
-          console.error('Non-Axios error occurred:', error);
-          applyBackoff();
-        }
+    handleAuthCheckError(error: unknown) {
+      this.failedAuthChecks++;
 
-        if (this.failedAuthChecks >= 3) {
-          // After 3 failures, we call it quits and stop pestering the server.
+      if (error instanceof AxiosError) {
+        const statusCode = error.response?.status;
+
+        if (statusCode === 401 || statusCode === 403) {
+          this.updateAuthState(false);
           this.logout();
           return;
-        } else {
-          // For first 2 failures, we temporarily mark as unauthenticated
-          // This allows for potential auto-recovery on next successful check
-          handleAuthFailure();
         }
-      } finally {
-        // If we get here it means that we didn't log out
-        // so we can schedule the next check.
-        this.startAuthCheck();
+
+        if (statusCode && statusCode >= 500) {
+          this.applyBackoff(); // Now this method exists!
+        }
+      }
+
+      if (this.failedAuthChecks >= 3) {
+        this.updateAuthState(false);
+        this.logout();
+      } else {
+        // Temporary auth failure
+        this.updateAuthState(false);
       }
     },
 
@@ -210,7 +258,6 @@ export const useAuthStore = defineStore('auth', {
     startAuthCheck() {
       this.stopAuthCheck(); // Clear any existing interval
       const intervalMillis = this.getFuzzyAuthCheckInterval();
-      console.debug(`Starting auth check interval: ${intervalMillis}ms`);
 
       this.authCheckInterval = setTimeout(() => {
         this.checkAuthStatus();
