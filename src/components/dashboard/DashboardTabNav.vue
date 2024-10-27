@@ -110,5 +110,10 @@ const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domain
 
 const route = useRoute();
 
-const isActiveRoute = (path: string) => route.path === path;
+/**
+ * Checks if the current route path starts with the specified path.
+ * @param path - The path to check against the current route.
+ * @returns True if the current route path starts with the specified path, false otherwise.
+ */
+const isActiveRoute = (path: string) => route.path.startsWith(path);
 </script>
