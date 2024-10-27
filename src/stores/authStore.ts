@@ -146,9 +146,13 @@ export const useAuthStore = defineStore('auth', {
      *    but not consecutive
      */
     async checkAuthStatus() {
+      // If we already know we're not authenticated, don't make a request
+      if (!this.isAuthenticated) {
+        return false;
+      }
+
       if (this.isCheckingAuth) {
-        // Return existing check if one is in progress
-        return;
+        return this.isAuthenticated;
       }
 
       this.isCheckingAuth = true;
@@ -156,7 +160,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT);
 
-        // Explicitly set both values
         this.isAuthenticated = Boolean(response.data.details.authenticated);
         this.customer = response.data.record;
 
@@ -165,18 +168,17 @@ export const useAuthStore = defineStore('auth', {
         this.lastAuthCheck = Date.now();
       } catch (error: unknown) {
         console.error('Auth check error:', error);
-        this.isAuthenticated = false;
-        this.customer = undefined;
         this.handleAuthCheckError(error);
-
       } finally {
         this.isCheckingAuth = false;
-        this.startAuthCheck();
+        if (this.isAuthenticated) {
+          this.startAuthCheck();
+        }
       }
 
-      // Return the current auth state
       return this.isAuthenticated;
-    },
+    }
+    ,
         // Add method to force refresh auth state
         async refreshAuthState() {
           await this.checkAuthStatus();
@@ -204,13 +206,13 @@ export const useAuthStore = defineStore('auth', {
         const statusCode = error.response?.status;
 
         if (statusCode === 401 || statusCode === 403) {
+          // Just update auth state without triggering logout
           this.updateAuthState(false);
-          this.logout();
           return;
         }
 
         if (statusCode && statusCode >= 500) {
-          this.applyBackoff(); // Now this method exists!
+          this.applyBackoff();
         }
       }
 
@@ -218,7 +220,6 @@ export const useAuthStore = defineStore('auth', {
         this.updateAuthState(false);
         this.logout();
       } else {
-        // Temporary auth failure
         this.updateAuthState(false);
       }
     },

@@ -9,13 +9,18 @@ export function setupRouterGuards(router: Router) {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
 
-    if (requiresAuthentication(to)) {
+    // Don't check auth for sign-in page to avoid redirect loops
+    if (to.path === '/signin') {
+      return true;
+    }
 
+    if (requiresAuthentication(to)) {
       try {
-        // Wait for explicit auth state
         const isAuthenticated = await authStore.checkAuthStatus();
 
         if (!isAuthenticated) {
+          // Handle logout cleanup here instead of in the auth store
+          authStore.$logout(); // This will clear cookies
           return redirectToSignIn(to);
         }
 
@@ -26,6 +31,7 @@ export function setupRouterGuards(router: Router) {
         }
       } catch (error) {
         console.error('Navigation guard error:', error);
+        authStore.$logout(); // Clear cookies
         return redirectToSignIn(to);
       }
     }
