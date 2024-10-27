@@ -151,12 +151,6 @@ export const useAuthStore = defineStore('auth', {
         return false;
       }
 
-      if (this.isCheckingAuth) {
-        return this.isAuthenticated;
-      }
-
-      this.isCheckingAuth = true;
-
       try {
         const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT);
 
@@ -166,12 +160,12 @@ export const useAuthStore = defineStore('auth', {
         this.failedAuthChecks = 0;
         this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
         this.lastAuthCheck = Date.now();
+
       } catch (error: unknown) {
         console.error('Auth check error:', error);
         this.handleAuthCheckError(error);
 
       } finally {
-        this.isCheckingAuth = false;
         if (this.isAuthenticated) {
           this.startAuthCheck();
         }
@@ -183,11 +177,6 @@ export const useAuthStore = defineStore('auth', {
     // Add method to force refresh auth state
     async refreshAuthState() {
       await this.checkAuthStatus();
-    },
-
-    updateAuthState(isAuthed: boolean, customer?: Customer) {
-      this.isAuthenticated = isAuthed;
-      this.customer = customer;
     },
 
     /**
@@ -217,7 +206,7 @@ export const useAuthStore = defineStore('auth', {
       // Type guard and detailed error logging
       if (!(error instanceof AxiosError)) {
         console.error('Unexpected auth check error type:', error);
-        this.updateAuthState(false);
+        this.isAuthenticated = false;
         return;
       }
 
@@ -236,7 +225,7 @@ export const useAuthStore = defineStore('auth', {
         case 401:
         case 403:
           // Authentication or authorization failure
-          return this.updateAuthState(false);
+          return this.$logout();
 
         case 500:
         case 502:
@@ -244,19 +233,20 @@ export const useAuthStore = defineStore('auth', {
         case 504:
           // Server-side errors: apply backoff strategy
           this.applyBackoff();
-          this.updateAuthState(false);
+          this.isAuthenticated = false;
           break;
 
         default:
-          // Unhandled status codes
-          this.updateAuthState(false);
+          return this.$logout();
       }
 
-      // Force logout after repeated failures
+      // Force logout after repeated failures - move this check to the top
       if (this.failedAuthChecks >= 3) {
         console.warn('Auth check failed 3 times, forcing logout');
-        this.logout();
+        this.$logout();
+        return;
       }
+
     },
 
     /**
@@ -281,10 +271,6 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       // Use the global logout function
       this.$logout();
-
-      // Perform any additional logout actions (e.g., clearing local storage, cookies)
-      //const router = useRouter();
-      //router.push('/signin');
     },
 
     /**
