@@ -22,7 +22,7 @@ importers:
         version: 11.1.0(axios@1.7.7)(focus-trap@7.6.0)(vue@3.5.11(typescript@5.6.2))
       altcha:
         specifier: ^1.0.0
-        version: 1.0.0
+        version: 1.0.6
       axios:
         specifier: ^1.7.7
         version: 1.7.7
@@ -958,8 +958,8 @@ packages:
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
 
-  altcha@1.0.0:
-    resolution: {integrity: sha512-USavcU/e/2pJtLXyWRYDZV63+OvTKGSntQlqQbF5feeChaTj8Hc1TtH8CbQi4OwX3ffeQiHuW+LCzwCgn+JvZg==}
+  altcha@1.0.6:
+    resolution: {integrity: sha512-H5bXDfbn/H9UQhW4kVdqPPRODvFsdOrftPUQ/hFWehjhV0LI8Mnq67knvJqCC3mw+s06h4KbIYGw43uVHCHEtQ==}
 
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
@@ -3375,7 +3375,7 @@ snapshots:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
 
-  altcha@1.0.0:
+  altcha@1.0.6:
     dependencies:
       '@altcha/crypto': 0.0.1
     optionalDependencies:
