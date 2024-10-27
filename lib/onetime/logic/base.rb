@@ -66,6 +66,12 @@ module Onetime
         {}
       end
 
+      def raise_not_found(msg)
+        ex = OT::RecordNotFound.new
+        ex.message = msg
+        raise ex
+      end
+
       def raise_form_error(msg)
         ex = OT::FormError.new
         ex.message = msg
