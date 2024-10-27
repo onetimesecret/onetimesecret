@@ -26,6 +26,7 @@ POST  /dashboard                                 Onetime::App::Data#create_secre
 GET   /account/domains                           Onetime::App::Page#customers_only
 GET   /account/domains/add                       Onetime::App::Page#customers_only
 GET   /account/domains/:domain/verify            Onetime::App::Page#customers_only
+GET   /account/domains/:domain/brand            Onetime::App::Page#customers_only
 GET   /account                                   Onetime::App::Page#customers_only
 GET   /account/billing_portal                    Onetime::App::Data#customer_portal_redirect
 
