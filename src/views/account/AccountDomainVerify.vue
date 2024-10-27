@@ -24,10 +24,10 @@
             <span
                   class="font-bold bg-white dark:bg-gray-800 px-2 text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at <span :title="cluster?.cluster_name ?? ''"
-                  class="bg-white dark:bg-gray-800 px-2">{{ cluster?.vhost_target }}</span>. If you already have
+                  class="bg-white dark:bg-gray-800 px-2">{{ cluster?.cluster_host }}</span>. If you already have
             a CNAME record for that address, please change it to point at
             <span :title="cluster?.cluster_name ?? ''"
-                  class="bg-white dark:bg-gray-800 px-2">{{ cluster?.vhost_target }}</span>
+                  class="bg-white dark:bg-gray-800 px-2">{{ cluster?.cluster_host }}</span>
             and remove any other A, AAAA,
             or CNAME records for that exact address.
           </p>

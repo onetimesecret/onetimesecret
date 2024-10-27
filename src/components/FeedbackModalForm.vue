@@ -65,7 +65,7 @@
          class="mt-4 text-green-600 dark:text-green-400">{{ success }}</div>
 
     <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
-      <h3 class="font-medium text-lg mb-2 text-gray-500">Information included with your feedback:</h3>
+      <h3 class="font-medium text-lg mb-2 text-gray-500">When you submit feedback, we'll see:</h3>
       <ul class="space-y-1">
         <li v-if="cust">• Customer ID: {{ cust?.custid }}</li>
         <li>• Timezone: {{ userTimezone }}</li>

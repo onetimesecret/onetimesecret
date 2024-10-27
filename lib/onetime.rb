@@ -45,7 +45,7 @@ module Onetime
 
   module ClassMethods
     attr_accessor :mode
-    attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret
+    attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret, :global_banner
     attr_writer :debug
 
     def debug
@@ -84,7 +84,8 @@ module Onetime
       load_fortunes
       load_plans
       connect_databases
-      print_banner unless mode?(:test)
+      check_global_banner
+      print_log_banner unless mode?(:test)
 
       @conf # return the config
 
@@ -143,7 +144,12 @@ module Onetime
       OT::Utils.fortunes ||= File.readlines(File.join(Onetime::HOME, 'etc', 'fortunes'))
     end
 
-    def print_banner
+    def check_global_banner
+      @global_banner = Familia.redis(0).get('global_banner')
+      OT.li "Global banner: #{OT.global_banner}" if global_banner
+    end
+
+    def print_log_banner
       redis_info = Familia.redis.info
       OT.li "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
       OT.li "system: #{@sysinfo.platform} (ruby #{RUBY_VERSION})"

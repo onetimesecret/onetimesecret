@@ -20,6 +20,8 @@ module Onetime
         @locale = locale
         @processed_params ||= {} # TODO: Remove
         process_settings
+
+        # Won't run if params aren't passed in
         process_params if respond_to?(:process_params) && @params
       end
 

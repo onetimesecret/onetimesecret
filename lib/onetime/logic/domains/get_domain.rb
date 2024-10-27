@@ -41,36 +41,5 @@ module Onetime::Logic
         }
       end
     end
-
-    class VerifyDomain < GetDomain
-      def raise_concerns
-        # Run this limiter before calling super which in turn runs
-        # the get_domain limiter since verify is a more restrictive. No
-        # sense running the get logic more than we need to.
-        limit_action :verify_domain
-
-        super
-      end
-
-      def process
-        super
-
-        refresh_vhost
-      end
-
-      def refresh_vhost
-        api_key = OT::Cluster::Features.api_key
-        if api_key.to_s.empty?
-          return OT.info "[VerifyDomain.refresh_vhost] Approximated API key not set"
-        end
-        res = OT::Cluster::Approximated.get_vhost_by_incoming_address(api_key, display_domain)
-        payload = res.parsed_response
-        OT.info "[VerifyDomain.refresh_vhost] %s" % payload
-        OT.ld ""
-        custom_domain.vhost = payload['data'].to_json
-        custom_domain.updated = OT.now.to_i
-        custom_domain.save
-      end
-    end
   end
 end

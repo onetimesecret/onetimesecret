@@ -39,6 +39,11 @@ class Onetime::RateLimit < Familia::String
       ret
     end
 
+    def get identifier, event
+      lmtr = new identifier, event
+      lmtr.get.to_i
+    end
+
     def event_limit event
       events[event] || DEFAULT_LIMIT
     end

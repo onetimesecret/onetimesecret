@@ -14,7 +14,8 @@ module Onetime
     end
 
     def self.inspect
-      '%s (%s)' % [to_s, @version[:BUILD]]
+      build = @version[:BUILD].to_s
+      build.empty? ? to_s : "#{to_s} (#{build})"
     end
 
     def self.load_config
@@ -40,11 +41,11 @@ module Onetime
     def self.get_build_info
       # Get the commit hash from .commit_hash.txt
       commit_hash_file = File.join(OT::HOME, '.commit_hash.txt')
-      commit_hash = 'unknown'
+      commit_hash = 'pristine'
       if File.exist?(commit_hash_file)
         commit_hash = File.read(commit_hash_file).strip
       else
-        $stderr.puts "Warning: Commit hash file not found. Using default value 'unknown'."
+        $stderr.puts "Warning: Commit hash file not found. Using default value '#{commit_hash}'."
       end
       commit_hash
     end

@@ -5,7 +5,7 @@ require 'benchmark'
 require 'onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
+OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @ipaddress = '10.0.0.254'

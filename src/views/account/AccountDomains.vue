@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div>
     <DashboardTabNav />
     <DomainsTable :domains="domains" />
   </div>

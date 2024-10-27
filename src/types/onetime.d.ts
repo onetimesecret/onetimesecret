@@ -144,6 +144,7 @@ export interface CustomDomainCluster extends BaseApiRecord {
   type: string;
   cluster_ip: string;
   cluster_name: string;
+  cluster_host: string;
   vhost_target: string;
 }
 
@@ -265,7 +266,7 @@ export interface CheckAuthData extends Customer {
 }
 
 export interface CheckAuthDetails {
-  authorized: boolean;
+  authenticated: boolean;
 }
 
 export interface Feedback {

@@ -1,5 +1,4 @@
 require_relative '../base'
-require_relative '../../cluster'
 
 module Onetime::Logic
   module Domains
@@ -11,10 +10,10 @@ module Onetime::Logic
       end
 
       def process
-        OT.ld "[ListDomains] Processing #{@cust.custom_domains.length}"
-        OT.info "[ListDomains] Processing #{@cust.custom_domains.rediskey}"
+        OT.ld "[ListDomains] Processing #{cust.custom_domains.length}"
+        OT.info "[ListDomains] Processing #{cust.custom_domains.rediskey}"
 
-        @custom_domains = @cust.custom_domains_list.map { |cd| cd.safe_dump }
+        @custom_domains = cust.custom_domains_list.map { |cd| cd.safe_dump }
       end
 
       def success_data

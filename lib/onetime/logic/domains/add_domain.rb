@@ -1,12 +1,14 @@
 require 'public_suffix'
 
+# Tryouts: tests/unit/ruby/try/60_logic/41_logic_domains_add_try.rb
+
 require_relative '../base'
 require_relative '../../cluster'
 
 module Onetime::Logic
   module Domains
     class AddDomain < OT::Logic::Base
-      attr_reader :greenlighted, :custom_domain
+      attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain
 
       def process_params
         OT.ld "[AddDomain] Parsing #{params[:domain]}"
@@ -21,17 +23,12 @@ module Onetime::Logic
         raise_form_error "Not a valid public domain" unless OT::CustomDomain.valid?(@domain_input)
 
         limit_action :add_domain
-
         # Only store a valid, parsed input value to @domain
-        @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust) # raises OT::Problem
+        @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust.custid)
         @display_domain = @parsed_domain.display_domain
 
-        # Don't need to do a bunch of validation checks here. If the input value
-        # passes as valid, it's valid. If another account has verified the same
-        # domain, that's fine. Both accounts can generate secret links for that
-        # domain, and the links will be valid for both accounts.
-        #
-        #   e.g. `OT::CustomDomain.exists?(@domain)`
+        pp [@display_domain, @parsed_domain.identifier, @parsed_domain.exists?]
+        raise_form_error "Duplicate domain" if @parsed_domain.exists?
       end
 
       def process
@@ -39,10 +36,15 @@ module Onetime::Logic
         OT.ld "[AddDomain] Processing #{@display_domain}"
         @custom_domain = OT::CustomDomain.create(@display_domain, @cust.custid)
 
-        # Create the approximated vhost for this domain. Approximated provides a
-        # custom domain as a service API. If no API key is set, then this will
-        # simply log a message and return.
-        create_vhost
+        begin
+          # Create the approximated vhost for this domain. Approximated provides a
+          # custom domain as a service API. If no API key is set, then this will
+          # simply log a message and return.
+          create_vhost
+        rescue HTTParty::ResponseError => e
+          OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
+          # Continue processing despite vhost error
+        end
       end
 
       def create_vhost
@@ -60,9 +62,6 @@ module Onetime::Logic
         custom_domain.vhost = payload['data'].to_json
         custom_domain.updated = OT.now.to_i
         custom_domain.save
-
-      rescue HTTParty::ResponseError => e
-        OT.le "[AddDomain.create_vhost error] %s %s %s"  % [@cust.custid, @display_domain, e]
       end
 
       def success_data

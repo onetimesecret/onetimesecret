@@ -1,6 +1,6 @@
 {
   "name": "onetimesecret",
-  "version": "0.18.3",
+  "version": "0.18.4",
   "description": "",
   "type": "module",
   "scripts": {
@@ -36,8 +36,12 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@intlify/core": "^9.14.1",
+    "@types/dompurify": "^3.0.5",
+    "@vueuse/integrations": "^11.1.0",
     "altcha": "^1.0.0",
     "axios": "^1.7.7",
+    "dompurify": "^3.1.7",
+    "focus-trap": "^7.6.0",
     "pinia": "^2.2.4",
     "pnpm": "^9.12.0",
     "stripe": "^17.1.0",
@@ -76,6 +80,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.10.0",
+    "unplugin-vue-markdown": "^0.26.2",
     "vite": "^5.4.8",
     "vite-plugin-html": "^3.2.2",
     "vitest": "^2.1.2",

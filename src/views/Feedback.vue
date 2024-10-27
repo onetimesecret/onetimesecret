@@ -2,7 +2,7 @@
   <section class="mb-8">
     <h3 class="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100"
         aria-label="Feedback Form">
-      Give us your feedback
+      Share your feedback
     </h3>
 
     <FeedbackForm :showRedButton="true" />
@@ -10,7 +10,7 @@
     <!-- Founder's Message -->
     <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden my-4">
       <div class="p-6">
-        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">A Note from Delano, Founder of Onetime
+        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">A note from Delano, founder of Onetime
           Secret</h2>
         <div class="space-y-3 text-gray-600 dark:text-gray-400">
           <p>
@@ -30,7 +30,6 @@
         </div>
       </div>
     </div>
-
 
   </section>
 

@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-# These tryouts test the ShowSecret logic functionality in the OneTime application,
+# These tryouts test the RevealSecret logic functionality in the OneTime application,
 # with a focus on the initialization process and its arguments.
 # They cover:
 #
-# 1. Creating and initializing a ShowSecret logic with various arguments
+# 1. Creating and initializing a RevealSecret logic with various arguments
 # 2. Testing the visibility of different elements based on metadata state and user authentication
 # 3. Verifying the correct generation of URIs and paths
 # 4. Checking the handling of secret values and their display properties
 #
-# These tests ensure that the ShowSecret logic correctly handles different scenarios
+# These tests ensure that the RevealSecret logic correctly handles different scenarios
 # and properly initializes based on the provided arguments.
 
 require 'onetime'
 
 # Use the default config file for tests
-OT::Config.path = File.join(__dir__, '..', 'config.test.yaml')
+OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
 @email = "tryouts+#{Time.now.to_i}@onetimesecret.com"
@@ -65,15 +65,15 @@ end
 
 @sess = MockSession.new
 
-## Can create a ShowSecret logic with all arguments
+## Can create a RevealSecret logic with all arguments
 params = {}
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 [logic.sess, logic.cust, logic.params, logic.locale]
 #=> [@sess, @cust, {}, 'en']
 
 ## Correctly sets basic success_data
 params = {}
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 res = logic.success_data
 res.keys
 [:record, :details]
@@ -81,13 +81,13 @@ res.keys
 
 ## Has some essential settings
 params = {}
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 [logic.site[:host], logic.authentication[:enabled], logic.domains_enabled]
 #=> ["127.0.0.1:3000", true, false]
 
 ## Raises an exception when there's no metadata (no metadata param)
 params = {}
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 logic.process_params
 begin
   logic.raise_concerns
@@ -100,7 +100,7 @@ end
 params = {
   key: 'bogus'
 }
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 logic.process_params
 begin
   logic.raise_concerns
@@ -113,7 +113,7 @@ end
 params = {
   key: @metadata.key
 }
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 begin
   logic.raise_concerns
 rescue Onetime::MissingSecret
@@ -128,7 +128,7 @@ secret.received!
 params = {
   key: metadata.secret_key
 }
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 begin
   logic.raise_concerns
 rescue Onetime::MissingSecret
@@ -141,7 +141,7 @@ metadata = @create_metadata.call
 params = {
   key: metadata.secret_key
 }
-@this_logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+@this_logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 @this_logic.process
 @this_logic.share_domain
 #=> "https://127.0.0.1:3000"
@@ -153,7 +153,7 @@ secret.share_domain! "example.com"
 params = {
   key: metadata.secret_key
 }
-@this_logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+@this_logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 @this_logic.process
 [@this_logic.share_domain, @this_logic.domains_enabled]
 #=> ["https://127.0.0.1:3000", false]
@@ -165,24 +165,24 @@ secret.share_domain! "example.com"
 params = {
   key: metadata.secret_key
 }
-@this_logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+@this_logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 @this_logic.instance_variable_set(:@domains_enabled, true)
 @this_logic.process
 [@this_logic.share_domain, @this_logic.domains_enabled]
 #=> ["https://example.com", true]
 
 ## Sets locale correctly
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, {}, 'es')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, {}, 'es')
 logic.locale
 #=> 'es'
 
 ## Falls back to nil locale if not provided
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, {}, nil)
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, {}, nil)
 logic.locale
 #=> nil
 
 ## Asking the logic about whether the secret value is a single line returns nil when no secret
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, {}, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, {}, 'en')
 logic.one_liner
 #=> nil
 
@@ -191,7 +191,7 @@ metadata = @create_metadata.call
 params = {
   key: metadata.secret_key
 }
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 logic.raise_concerns
 logic.process
 [logic.secret.viewable?, logic.show_secret, logic.one_liner, logic.secret.can_decrypt?]
@@ -206,7 +206,7 @@ params = {
   key: metadata.secret_key,
   continue: true
 }
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 logic.raise_concerns
 logic.process
 [logic.secret.viewable?, logic.show_secret, logic.one_liner, logic.secret.can_decrypt?]
@@ -218,7 +218,7 @@ secret = metadata.load_secret
 params = {
   key: metadata.secret_key
 }
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 secret.received!
 logic.process
 [secret.viewable?, logic.one_liner]
@@ -234,7 +234,7 @@ params = {
   key: metadata.secret_key,
   continue: true
 }
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 logic.process
 [logic.secret.viewable?, logic.one_liner]
 #=> [false, false]
@@ -248,10 +248,70 @@ params = {
   key: metadata.secret_key,
   continue: true
 }
-logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
 logic.process
 logic.display_lines
 #=> 9
+
+## Correctly handles a secret without a passphrase
+metadata = @create_metadata.call
+secret = metadata.load_secret
+params = {
+  key: metadata.secret_key,
+  continue: true
+}
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic.process
+[logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret]
+#=> [false, false, true]
+
+## Correctly handles a secret with an incorrect passphrase
+metadata = @create_metadata.call
+secret = metadata.load_secret
+secret.update_passphrase('correct_pass')
+params = {
+  key: metadata.secret_key,
+  passphrase: 'wrong_pass',
+  continue: true
+}
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+begin
+  logic.process
+rescue OT::FormError => e
+  [logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret, e.message]
+end
+#=> [true, false, false, "Double check that passphrase"]
+
+## Correctly handles a secret with an incorrect passphrase (bogus locale)
+metadata = @create_metadata.call
+secret = metadata.load_secret
+secret.update_passphrase('correct_pass')
+params = {
+  key: metadata.secret_key,
+  passphrase: 'wrong_pass',
+  continue: true
+}
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'BOGUS')
+begin
+  logic.process
+rescue OT::FormError => e
+  [logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret, e.message]
+end
+#=> [true, false, false, "Incorrect passphrase"]
+
+## Correctly handles a secret with a correct passphrase
+metadata = @create_metadata.call
+secret = metadata.load_secret
+secret.update_passphrase('correct_pass')
+params = {
+  key: metadata.secret_key,
+  passphrase: 'correct_pass',
+  continue: true
+}
+logic = Onetime::Logic::Secrets::RevealSecret.new(@sess, @cust, params, 'en')
+logic.process
+[logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret]
+#=> [true, true, true]
 
 # Teardown
 @metadata.destroy!

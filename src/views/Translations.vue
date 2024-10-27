@@ -4,27 +4,25 @@
     <GithubCorner />
 
     <article class="prose dark:prose-invert lg:prose-lg xl:prose-xl">
-      <h2 class="text-3xl font-bold mb-4 text-brand-500 dark:text-brand-400">Help us translate!</h2>
+      <h2 class="text-3xl font-bold mb-4 text-brand-500 dark:text-brand-400">Help Secure Communication Go Global</h2>
 
       <p class="mb-4">
-        Since Onetime Secret launched in 2012, one of the most requested features has been to support
-        languages other than english. Many visitors -- in fact, most -- live in countries where
-        English is not the first or even second language.
+        Since 2012, Onetime Secret has provided a secure way to share sensitive information worldwide. With
+        users across regions where English isn't the primary language, accurate translations are essential
+        for making secure communication accessible to everyone.
       </p>
 
       <p class="mb-4">
-        One of the major goals of Onetime Secret is to simplify secure communication so that it can
-        help as many people as possible. Translating the site plays a big role in that. Since 2015 our
-        contributors have added over 20, plus corrections and other updates! But we still have a ways
-        to go.
-        <strong class="text-brand-500 dark:text-brand-400">
-          I need your help to add support for more languages.
-        </strong>
+        Thanks to our community, we support over 20 languages today. However, with our rapid development
+        pace, many translations need updates to stay current. This affects both onetimesecret.com and the
+        thousands of self-hosted installations worldwide.
+        <strong class="text-brand-500 dark:text-brand-400">Your language skills can help expand access to
+          secure communication.</strong>
       </p>
 
       <div class="mt-8 text-center">
-        <a href="https://github.com/onetimesecret/onetimesecret"
-           class="bg-white hover:bg-brand-50 text-brand-500 font-bold py-2 px-4 rounded inline-flex items-center"
+        <a href="https://github.com/onetimesecret/onetimesecret/fork"
+           class="bg-white dark:bg-slate-800 hover:bg-brand-50 text-2xl font-brand text-brand-500 font-bold py-2 px-4 rounded inline-flex items-center"
            target="_blank"
            rel="noopener noreferrer">
           <svg class="w-4 h-4 mr-2"
@@ -51,16 +49,24 @@
            :key="translation['code']">
         <h4 class="text-xl font-semibold mb-2">
           {{ translation['name'] }}
-          (<a @click.prevent="changeLocale(translation['code'])"
-             href="#"
-             class="text-brand-500 dark:text-brand-400 hover:underline cursor-pointer">switch</a>)
+          (<button
+            @click="changeLocale(translation['code'])"
+            class="text-brand-500 dark:text-brand-400 hover:underline cursor-pointer inline-flex items-center"
+            :aria-label="`Switch language to ${translation['name']}`"
+            type="button">
+            <span>switch</span>
+          </button>)
         </h4>
         <ul class="list-disc pl-5 mb-4">
           <li v-for="(translator, index) in translation['translators']"
               :key="`${translation['code']}-${index}}`">
             <a v-if="translator['url']"
                :href="translator['url']"
-               class="text-brand-500 dark:text-brand-400 hover:underline">{{ translator['name'] }}</a>
+               target="_blank"
+               rel="noopener noreferrer"
+               class="text-brand-500 dark:text-brand-400 hover:underline">
+              {{ translator['name'] }}
+            </a>
             <span v-else>{{ translator['name'] }}</span>
             ({{ translator['date'] }})
           </li>
@@ -70,38 +76,50 @@
       <hr class="my-8" />
 
       <p class="mb-4">
-        If you have a Github account, you can use the links above to create a new language file. If
-        not, you can copy the text from an existing lanaguage -- like
-        <a href="https://github.com/onetimesecret/onetimesecret/blob/develop/etc/locale/en"
-           class="text-brand-500 dark:text-brand-400 hover:underline">english</a>
-        -- and send a text file via email to
-        <EmailObfuscator email="contribute@onetimesecret.com"
-                         subject="Translations" />.
+        Ready to help? Some ways to contribute:
       </p>
+      <ul class="list-disc ml-6 mb-4">
+        <li>Review existing translations using the language selector above</li>
+        <li>Update a language directly through our GitHub project</li>
+        <li>Start a new translation from our
+          <a href="https://github.com/onetimesecret/onetimesecret/blob/develop/src/locales/en.json"
+             class="text-brand-500 dark:text-brand-400 hover:underline">English template</a>
+        </li>
+        <li>Send translations by email to
+          <EmailObfuscator email="contribute@onetimesecret.com"
+                           subject="Translations" />
+        </li>
+      </ul>
 
       <p class="mb-4">
-        There is a feedback form at the bottom of the page if you have any questions. If you're not
-        logged in, be sure to include an email address so I can reply.
+        Have questions? <router-link to="/feedback">Reach out to us</router-link> - remember to include your
+        email if you're not logged in. Every translation helps more people communicate securely.
       </p>
 
-      <p class="mb-4">Delano</p>
+      <p class="mb-4">- Delano</p>
+
     </article>
   </div>
 
 </template>
 
 <script setup lang="ts">
-import translations from '@/sources/translations.json';
-import GithubCorner from '@/components/GithubCorner.vue';
 import EmailObfuscator from '@/components/EmailObfuscator.vue';
+import GithubCorner from '@/components/GithubCorner.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
 import { setLanguage } from '@/i18n';
+import translations from '@/sources/translations.json';
 import { useLanguageStore } from '@/stores/languageStore';
 
 const languageStore = useLanguageStore();
+const cust = useWindowProp('cust');
 
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
+      if (cust.value) {
+        cust.value.locale = newLocale;
+      }
       await languageStore.updateLanguage(newLocale);
       await setLanguage(newLocale);
     } catch (err) {
