@@ -21,17 +21,6 @@ const routes: Array<RouteRecordRaw> = [
         displayToggles: true,
       },
     },
-    beforeEnter: (to, from, next) => {
-      const authStore = useAuthStore();
-
-      if (authStore.isAuthenticated) {
-        // Let's also check if there's a redirect query param
-        const redirectPath = to.query.redirect as string || { name: 'Home' };
-        next(redirectPath);
-      } else {
-        next();
-      }
-    },
   },
   {
     path: '/signup',
