@@ -3,6 +3,7 @@
 module Onetime
 
   class Problem < RuntimeError
+    attr_accessor :message
   end
 
   class RecordNotFound < Problem
@@ -12,7 +13,7 @@ module Onetime
   end
 
   class FormError < Problem
-    attr_accessor :form_fields, :message
+    attr_accessor :form_fields
   end
 
   class BadShrimp < Problem
