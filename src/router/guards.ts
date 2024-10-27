@@ -15,24 +15,16 @@ export function setupRouterGuards(router: Router) {
     }
 
     if (requiresAuthentication(to)) {
-      try {
-        const isAuthenticated = await authStore.checkAuthStatus();
+      const isAuthenticated = await authStore.checkAuthStatus();
 
-        if (!isAuthenticated) {
-          // Handle logout cleanup here instead of in the auth store
-          authStore.$logout(); // This will clear cookies
-          return redirectToSignIn(to);
-        }
-
-        // Proceed with navigation
-        const userPreferences = await fetchCustomerPreferences();
-        if (userPreferences.locale) {
-          languageStore.setCurrentLocale(userPreferences.locale);
-        }
-      } catch (error) {
-        console.error('Navigation guard error:', error);
-        authStore.$logout(); // Clear cookies
+      if (!isAuthenticated) {
         return redirectToSignIn(to);
+      }
+
+      // Proceed with navigation
+      const userPreferences = await fetchCustomerPreferences();
+      if (userPreferences.locale) {
+        languageStore.setCurrentLocale(userPreferences.locale);
       }
     }
   });
