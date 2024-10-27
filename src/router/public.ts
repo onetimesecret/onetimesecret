@@ -10,7 +10,7 @@ const routes: Array<RouteRecordRaw> = [
 
   {
     path: '/',
-    name: "Home",
+    name: 'Home',
     component: Homepage,
     beforeEnter: (to, from, next) => {
       console.debug('authState.value', authState.value)

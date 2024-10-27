@@ -46,7 +46,7 @@
                   dark:text-gray-400">
           <span v-if="jurisdictionStore.enabled"
                 class="mr-1">
-            Serving you from <span lang="en">{{ currentJurisdiction.identifier }}</span>
+            Serving you from the <span lang="en">{{ currentJurisdiction.identifier }}</span>
           </span>
         </p>
       </div>

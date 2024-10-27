@@ -21,15 +21,6 @@ const routes: Array<RouteRecordRaw> = [
         displayToggles: true,
       },
     },
-    beforeEnter: (to, from, next) => {
-      const authStore = useAuthStore();
-      if (authStore.isAuthenticated) {
-        // Redirect to home page or dashboard if already signed in
-        next({ name: 'Home' }); // Replace 'Home' with your desired route name
-      } else {
-        next();
-      }
-    },
   },
   {
     path: '/signup',

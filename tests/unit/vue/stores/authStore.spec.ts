@@ -64,7 +64,8 @@ const mockCustomer: Customer = {
 describe('Auth Store', () => {
   let router: Router;
   let pinia: Pinia;
-  const app = createApp({})
+  let store: ReturnType<typeof useAuthStore>;
+
 
   beforeEach(() => {
     const app = createApp({})
@@ -72,6 +73,9 @@ describe('Auth Store', () => {
     pinia.use(logoutPlugin)
     app.use(pinia)
     setActivePinia(pinia)
+
+    // Initialize the store after pinia is set up
+    store = useAuthStore();
 
     vi.useFakeTimers();
 
@@ -99,24 +103,30 @@ describe('Auth Store', () => {
 
   it('handles auth check error', async () => {
     const store = useAuthStore();
+    store.setAuthenticated(true); // Make sure we start authenticated
     const logoutSpy = vi.spyOn(store, '$logout');
 
-    // Mock a generic error (not 401 or 403)
+    // Mock a generic error (not 401 or 403) with status 500
     const genericError = new AxiosError('Auth check failed');
     genericError.response = { status: 500 } as any;
     vi.mocked(axios.get).mockRejectedValue(genericError);
 
+    // First failure
     await store.checkAuthStatus();
     expect(store.isAuthenticated).toBe(false);
-    expect(store.customer).toBeUndefined();
+    expect(store.failedAuthChecks).toBe(1);
 
-    // $logout should not be called on the first failure
-    expect(logoutSpy).not.toHaveBeenCalled();
+    // Need to re-authenticate between checks
+    store.setAuthenticated(true);
 
-    // Simulate two more failures
+    // Second failure
     await store.checkAuthStatus();
+    expect(store.failedAuthChecks).toBe(2);
+    store.setAuthenticated(true);
+
+    // Third failure - should trigger logout
     await store.checkAuthStatus();
-    await store.checkAuthStatus();
+    expect(store.failedAuthChecks).toBe(0); // We clear all state on logout
 
     // Now $logout should be called once after three failures
     expect(logoutSpy).toHaveBeenCalledTimes(1);
@@ -129,11 +139,13 @@ describe('Auth Store', () => {
     unauthorizedError.response = { status: 401 } as any;
     vi.mocked(axios.get).mockRejectedValueOnce(unauthorizedError);
 
+    store.setAuthenticated(true);
     await store.checkAuthStatus();
 
     // $logout should be called immediately for a 401 error
     expect(logoutSpy).toHaveBeenCalledTimes(1);
-  });
+});
+
 
   it('sets authenticated status', () => {
     const store = useAuthStore()
@@ -149,10 +161,11 @@ describe('Auth Store', () => {
 
   it('checks auth status', async () => {
     const store = useAuthStore()
+    store.setAuthenticated(true);
     vi.mocked(axios.get).mockResolvedValueOnce({
       data: {
-        details: { authorized: true },
-        record: mockCustomer
+        record: mockCustomer,
+        details: { authenticated: true },
       }
     })
 

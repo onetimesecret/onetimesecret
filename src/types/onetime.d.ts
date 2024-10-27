@@ -254,7 +254,7 @@ export interface CheckAuthData extends Customer {
 }
 
 export interface CheckAuthDetails {
-  authorized: boolean;
+  authenticated: boolean;
 }
 
 export interface Feedback {
