@@ -8,7 +8,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account',
     name: 'Account',
     components: {
-      default: import('@/views/account/AccountIndex.vue'),
+      default: () => import('@/views/account/AccountIndex.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -20,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains/:domain/verify',
     name: 'AccountDomainVerify',
     components: {
-      default: import('@/views/account/AccountDomainVerify.vue'),
+      default: () => import('@/views/account/AccountDomainVerify.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -33,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains/add',
     name: 'AccountDomainAdd',
     components: {
-      default: import('@/views/account/AccountDomainAdd.vue'),
+      default: () => import('@/views/account/AccountDomainAdd.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -49,7 +49,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/colonel',
     name: 'Colonel',
     components: {
-      default: import('@/views/colonel/ColonelIndex.vue'),
+      default: () => import('@/views/colonel/ColonelIndex.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
