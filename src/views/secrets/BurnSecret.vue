@@ -1,6 +1,6 @@
 <template>
   <div>
-    <BasicFormAlerts :success="success"
+    <StatusBar :success="success"
                      :error="error" />
 
     <div v-if="details?.is_destroyed"
@@ -83,13 +83,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import type { MetadataData, MetadataDataApiResponse } from '@/types/onetime'
-import { useFetchDataRecord } from '@/composables/useFetchData'
+import StatusBar from '@/components/StatusBar.vue';
+import { useFetchDataRecord } from '@/composables/useFetchData';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { useRouter } from 'vue-router'
-import { useFormSubmission } from '@/composables/useFormSubmission'
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
+import type { MetadataData, MetadataDataApiResponse } from '@/types/onetime';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 const csrfStore = useCsrfStore();
 
