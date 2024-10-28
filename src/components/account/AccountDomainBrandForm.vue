@@ -9,8 +9,7 @@
            name="brand[primary_color]"
            :value="brandSettings.primary_color" />
 
-    <BasicFormAlerts :success="success"
-                     :error="error" />
+
 
     <!-- Description -->
     <div class="space-y-2">
@@ -86,12 +85,17 @@
         {{ isSubmitting ? 'Saving...' : 'Save Settings' }}
       </button>
     </div>
+    <StatusBar :success="success"
+               :error="error"
+               :loading="isSubmitting"
+               :auto-dismiss="true"
+                />
   </form>
 </template>
 
 <!-- AccountDomainBrandForm.vue -->
 <script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import StatusBar from '@/components/StatusBar.vue';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { BrandSettings } from '@/types/onetime';

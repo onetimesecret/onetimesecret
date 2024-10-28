@@ -75,8 +75,6 @@
         <!-- Form Section -->
         <div class="p-6 space-y-8"> <!-- Changed from grid to vertical stack -->
 
-
-
           <!-- Settings Section -->
           <div class="max-w-2xl"> <!-- Constrain width for better readability -->
             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">Brand Settings</h2>
