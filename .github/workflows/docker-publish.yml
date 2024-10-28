@@ -29,8 +29,6 @@ jobs:
     with:
       image-suffix: ''
       dockerfile: 'Dockerfile'
-      flavor: |
-        latest=${{ !contains(github.ref, '-rc') }}
       image_tags: |
         type=ref,event=branch
         type=ref,event=tag
@@ -43,8 +41,6 @@ jobs:
     with:
       image-suffix: '-lite'
       dockerfile: 'Dockerfile-lite'
-      flavor: |
-        latest=${{ !contains(github.ref, '-rc') }}
       image_tags: |
         type=ref,event=branch
         type=ref,event=tag
