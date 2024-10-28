@@ -73,10 +73,20 @@
         </div>
 
         <!-- Form Section -->
-        <div class="p-6 space-y-8"> <!-- Changed from grid to vertical stack -->
+        <div class="p-6 space-y-8">
+          <!-- Preview Section - Moved to top -->
+          <div class="max-w-2xl mx-auto">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">Link Recipient Page</h2>
+            <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
+              <SecretPreview v-if="!loading && !error"
+                           :brandSettings="brandSettings"
+                           secretKey="abcd"
+                           class="transform transition-all duration-200 hover:scale-[1.02]" />
+            </div>
+          </div>
 
-          <!-- Settings Section -->
-          <div class="max-w-2xl"> <!-- Constrain width for better readability -->
+          <!-- Settings Section - Moved below preview -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">Brand Settings</h2>
             <div class="space-y-6">
               <div class="flex items-center space-x-4">
@@ -95,30 +105,18 @@
                        class="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700 text-sm">
               </div>
               <AccountDomainBrandForm v-if="!loading && !error"
-                                      :brandSettings="brandSettings"
-                                      :isLoading="loading"
-                                      @update:brandSettings="updateBrandSettings"
-                                      class="space-y-6" />
-            </div>
-          </div>
-
-          <!-- Preview Section -->
-          <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">Preview</h2>
-            <div class="max-w-2xl mx-auto bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
-              <SecretPreview v-if="!loading && !error"
-                             :brandSettings="brandSettings"
-                             secretKey="abcd"
-                             class="transform transition-all duration-200 hover:scale-[1.02]" />
+                                    :brandSettings="brandSettings"
+                                    :isLoading="loading"
+                                    @update:brandSettings="updateBrandSettings"
+                                    class="space-y-6" />
             </div>
           </div>
         </div>
       </div>
-
     </div>
-
   </div>
 </template>
+
 
 <script setup lang="ts">
 import AccountDomainBrandForm from '@/components/account/AccountDomainBrandForm.vue';
