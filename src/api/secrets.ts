@@ -1,13 +1,7 @@
 // @/api/secrets.ts
 
 import axios, { AxiosError } from 'axios';
-import { SecretDataApiResponse } from '@/types/onetime';
-
-export interface AsyncDataResult<T> {
-  data: T | null;
-  error: string | null;
-  status: number | null;
-}
+import { SecretDataApiResponse, AsyncDataResult } from '@/types/onetime';
 
 /**
  * Fetches the initial secret data from the API.

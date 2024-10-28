@@ -8,12 +8,6 @@ import NotFound from '@/views/NotFound.vue'
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 
-declare module 'vue-router' {
-  interface RouteMeta {
-    isAdmin?: boolean
-    requiresAuth?: boolean
-  }
-}
 
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,

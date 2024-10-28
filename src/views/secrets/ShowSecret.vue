@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { AsyncDataResult } from '@/api/secrets'
+import { AsyncDataResult } from '@/types/onetime'
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
 import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue'
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue'

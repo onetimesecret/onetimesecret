@@ -1,4 +1,5 @@
-import { AsyncDataResult, fetchInitialSecret } from '@/api/secrets'
+import { fetchInitialSecret } from '@/api/secrets'
+import { AsyncDataResult } from '@/types/onetime'
 import { SecretDataApiResponse } from '@/types/onetime'
 import DashboardIndex from '@/views/dashboard/DashboardIndex.vue'
 import DashboardRecent from '@/views/dashboard/DashboardRecent.vue'
@@ -11,6 +12,7 @@ import DefaultFooter from '@/components/layout/DefaultFooter.vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import QuietLayout from '@/layouts/QuietLayout.vue'
 import AccountDomains from '@/views/account/AccountDomains.vue'
+
 
 const routes: Array<RouteRecordRaw> = [
 
