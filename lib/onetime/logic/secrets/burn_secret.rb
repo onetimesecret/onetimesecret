@@ -40,9 +40,10 @@ module Onetime::Logic
           elsif !correct_passphrase
             # If the passphrase is incorrect, we don't want to show the secret
             # obviously be we do want to count the attempt towards the rate limit.
-            limit_action :failed_passphrase if secret.has_passphrase?
+            limit_action :failed_passphrase if !potential_secret.has_passphrase?
 
-            raise_form_error view.i18n[:COMMON][:error_passphrase]
+            message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
+            raise_form_error message
           end
         end
       end
