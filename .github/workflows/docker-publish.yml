@@ -33,7 +33,6 @@ jobs:
         type=ref,event=branch
         type=ref,event=tag
         type=raw,value=next,enable=${{ contains(github.ref, '-rc') }}
-        flavor=latest=${{ !contains(github.ref, '-rc') }}
     secrets: inherit
 
   build-and-publish-lite:
@@ -46,5 +45,4 @@ jobs:
         type=ref,event=branch
         type=ref,event=tag
         type=raw,value=next,enable=${{ contains(github.ref, '-rc') }}
-        flavor=latest=${{ !contains(github.ref, '-rc') }}
     secrets: inherit

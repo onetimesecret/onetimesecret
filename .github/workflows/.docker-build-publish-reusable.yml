@@ -73,6 +73,8 @@ jobs:
           images: |
             ${{ env.REGISTRY }}/${{ github.repository }}${{ inputs.image-suffix }}
             ${{ github.repository }}${{ inputs.image-suffix }}
+          flavor: |
+            latest=${{ !contains(github.ref, '-rc') }}
 
       - name: Build and push Docker image
         id: build-and-push
