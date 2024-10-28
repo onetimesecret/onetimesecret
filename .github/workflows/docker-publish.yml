@@ -1,5 +1,16 @@
 name: Docker Build and Publish
 
+#
+# Docker image tagging strategy:
+#
+# Release tags (v1.0.0):        {version}, latest
+# Release candidates (v1.0.0-rc1): {version}, next
+# Branches (feature/x):         {branch-name}
+#
+# This ensures stable releases are tagged as 'latest' while release candidates
+# are tagged as 'next' for early testing. Branch builds get descriptive tags.
+#
+
 on:
   push:
     tags: [ "v*" ]
@@ -13,39 +24,27 @@ permissions:
   packages: write
 
 jobs:
-  set-image-tags:
-    runs-on: ubuntu-latest
-    outputs:
-      image_tags: ${{ steps.set-tags.outputs.image_tags }}
-    steps:
-      - name: Set Image tags
-        id: set-tags
-        run: |
-
-          if [[ ${{ github.ref }} =~ ^refs/tags/v.*-rc[0-9]+$ ]]; then
-            echo "image_tags=type=raw,value=next,enable=true" >> $GITHUB_OUTPUT
-            echo "image_tags=type=ref,event=tag" >> $GITHUB_OUTPUT
-          elif [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "image_tags=type=raw,value=latest,enable=true" >> $GITHUB_OUTPUT
-            echo "image_tags=type=ref,event=tag" >> $GITHUB_OUTPUT
-          else
-            echo "image_tags=type=ref,event=branch" >> $GITHUB_OUTPUT
-          fi
-
   build-and-publish-main:
-    needs: set-image-tags
     uses: ./.github/workflows/.docker-build-publish-reusable.yml
     with:
       image-suffix: ''
       dockerfile: 'Dockerfile'
-      image_tags: ${{ needs.set-image-tags.outputs.image_tags }}
+      image_tags: |
+        type=ref,event=branch
+        type=ref,event=tag
+        type=raw,value=next,enable=${{ contains(github.ref, '-rc') }}
+        flavor=latest=${{ !contains(github.ref, '-rc') }}
     secrets: inherit
 
   build-and-publish-lite:
-    needs: [set-image-tags, build-and-publish-main]
+    needs: [build-and-publish-main]
     uses: ./.github/workflows/.docker-build-publish-reusable.yml
     with:
       image-suffix: '-lite'
       dockerfile: 'Dockerfile-lite'
-      image_tags: ${{ needs.set-image-tags.outputs.image_tags }}
+      image_tags: |
+        type=ref,event=branch
+        type=ref,event=tag
+        type=raw,value=next,enable=${{ contains(github.ref, '-rc') }}
+        flavor=latest=${{ !contains(github.ref, '-rc') }}
     secrets: inherit
