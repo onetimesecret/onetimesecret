@@ -88,4 +88,6 @@ watch(() => props.brandSettings, (newVal) => {
 const saveChanges = () => {
   emit('update:brandSettings', { ...localSettings.value })
 }
+
+
 </script>
