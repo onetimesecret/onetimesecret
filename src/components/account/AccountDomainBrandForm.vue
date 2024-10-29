@@ -26,37 +26,21 @@
     </div>
 
     <!-- Font Family -->
-    <div class="space-y-2">
-      <label for="font_family"
-             class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-        Font Family
-      </label>
-      <select id="font_family"
-              v-model="formData.font_family"
-              name="brand[font_family]"
-              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-        <option value="">Select a font family</option>
-        <option value="sans-serif">Sans-serif</option>
-        <option value="serif">Serif</option>
-        <option value="monospace">Monospace</option>
-      </select>
-    </div>
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <CycleButton
+        v-model="formData.font_family"
+        :options="fontOptions"
+        label="Font Family"
+        :display-map="fontDisplayMap"
+      />
 
-    <!-- Button Style -->
-    <div class="space-y-2">
-      <label for="button_style"
-             class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-        Button Style
-      </label>
-      <select id="button_style"
-              v-model="formData.button_style"
-              name="brand[button_style]"
-              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-        <option value="">Select a button style</option>
-        <option value="rounded">Rounded</option>
-        <option value="square">Square</option>
-        <option value="pill">Pill</option>
-      </select>
+      <!-- Button Style -->
+      <CycleButton
+        v-model="formData.button_style"
+        :options="buttonStyleOptions"
+        label="Button Style"
+        :display-map="buttonStyleDisplayMap"
+      />
     </div>
 
     <!-- Submit Button -->
@@ -95,9 +79,10 @@
 
 <!-- AccountDomainBrandForm.vue -->
 <script setup lang="ts">
+import CycleButton from '@/components/common/CycleButton.vue';
 import StatusBar from '@/components/StatusBar.vue';
-import { useCsrfStore } from '@/stores/csrfStore';
 import { useFormSubmission } from '@/composables/useFormSubmission';
+import { useCsrfStore } from '@/stores/csrfStore';
 import { BrandSettings } from '@/types/onetime';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
@@ -105,6 +90,7 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 const domainId = route.params.domain as string;
 const csrfStore = useCsrfStore();
+
 
 const props = defineProps<{
   brandSettings: BrandSettings;
@@ -114,6 +100,21 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:brandSettings', value: BrandSettings): void;
 }>();
+
+const fontOptions = ['sans-serif', 'serif', 'monospace'];
+const fontDisplayMap = {
+  'sans-serif': 'Sans Serif',
+  'serif': 'Serif',
+  'monospace': 'Monospace'
+};
+
+const buttonStyleOptions = ['rounded', 'pill', 'square'];
+const buttonStyleDisplayMap = {
+  'rounded': 'Rounded',
+  'pill': 'Pill Shape',
+  'square': 'Square'
+};
+
 
 // Use computed instead of watch + ref
 const formData = computed({
@@ -141,5 +142,6 @@ const {
     console.error('Error saving brand settings:', err);
   },
 });
+
 
 </script>
