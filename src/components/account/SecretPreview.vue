@@ -4,30 +4,40 @@
     <div class="flex items-center gap-4 mb-4">
       <!-- Logo Upload Area -->
       <div class="relative group">
-        <div class="w-16 h-16  bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden cursor-pointer"
-             @click="$refs.logoInput.click()"
-             role="button"
-             aria-label="Upload logo">
-          <img v-if="brandSettings.image_encoded"
-               :src="`data:${brandSettings.image_content_type};base64,${brandSettings.image_encoded}`"
-               :class="{
-                'rounded-lg': brandSettings.corner_style === 'rounded',
-                'rounded-full': brandSettings.corner_style === 'pill',
-                'rounded-none': brandSettings.corner_style === 'square'
-              }"
-               alt="Brand logo"
-               class="w-full h-full object-cover">
-          <svg v-else
-               class="w-6 h-6 text-gray-400 dark:text-gray-500"
-               fill="none"
-               stroke="currentColor"
-               viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <div
+          :class="{
+            'rounded-lg': brandSettings.corner_style === 'rounded',
+            'rounded-full': brandSettings.corner_style === 'pill',
+            'rounded-none': brandSettings.corner_style === 'square'
+          }"
+          class="w-16 h-16 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden cursor-pointer"
+          @click="$refs.logoInput.click()"
+          role="button"
+          aria-label="Upload logo"
+        >
+          <img
+            v-if="brandSettings.image_encoded"
+            :src="`data:${brandSettings.image_content_type};base64,${brandSettings.image_encoded}`"
+
+            alt="Brand logo"
+            class="w-full h-full object-cover"
+          >
+          <svg
+            v-else
+            class="w-6 h-6 text-gray-400 dark:text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
         </div>
+
 
         <!-- Hidden file input -->
         <input ref="logoInput"
