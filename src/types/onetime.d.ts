@@ -137,6 +137,7 @@ export interface CustomDomain extends BaseApiRecord {
   txt_validation_host: string;
   txt_validation_value: string;
   vhost?: ApproximatedVHost;
+  brand?: BrandSettings;
 }
 
 export interface CustomDomainCluster extends BaseApiRecord {

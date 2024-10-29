@@ -1,13 +1,19 @@
 <template>
   <div>
-    <Icon
+    <RouterLink
       v-if="mode === 'icon'"
-      :icon="statusIcon"
-      :class="[
-        'w-5 h-5',
-        { 'text-green-600': isActive, 'text-yellow-600': isWarning, 'text-red-600': isError }
-      ]"
-    />
+      :to="`/account/domains/${domain?.display_domain}/verify`"
+      class="inline-flex tooltip"
+      data-tooltip="View domain verification status"
+    >
+      <Icon
+        :icon="statusIcon"
+        :class="[
+          'w-5 h-5 hover:opacity-80 transition-opacity',
+          { 'text-green-600': isActive, 'text-yellow-600': isWarning, 'text-red-600': isError }
+        ]"
+      />
+    </RouterLink>
     <div v-else class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 my-8">
       <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Domain Status</h2>
       <div class="flex flex-col">

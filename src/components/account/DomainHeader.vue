@@ -21,27 +21,28 @@
           Back to Domains
         </RouterLink>
       </div>
-
       <div class="mt-4 flex flex-col gap-1">
-        <div class="flex items-baseline justify-between">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-            {{ domainId }}
-            <!--<DomainVerificationInfo mode="icon" :domain="domain" />-->
-          </h1>
-          <span
-            class="px-3 py-1 text-xs rounded-md font-brand bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-            role="status">
-            Custom Domain
-          </span>
-        </div>
-      </div>
+    <div class="flex items-baseline justify-between">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white flex items-center"> <!-- Add flex items-center here -->
+        <span>{{ domainId }}</span>
+        <DomainVerificationInfo v-if="domain" mode="icon" :domain="domain" class="ml-2" /> <!-- Added ml-2 for spacing -->
+      </h1>
+      <span
+        class="px-3 py-1 text-xs rounded-md font-brand bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+        role="status">
+        Custom Domain
+      </span>
+    </div>
+  </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-//import { CustomDomain } from '@/types/onetime.d';
+import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
+import { CustomDomain } from '@/types/onetime.d';
 defineProps<{
   domainId: string;
+  domain: CustomDomain | null;
 }>();
 </script>

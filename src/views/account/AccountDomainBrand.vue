@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
-      <DomainHeader :domain-id="domainId" />
+      <DomainHeader :domain-id="domainId" :domain="customDomain" />
 
       <BrandSettingsBar v-model="brandSettings"
                         :shrimp="csrfStore.shrimp"
