@@ -25,11 +25,13 @@
 
       <!-- Title Icon -->
       <div class="flex flex-col items-center">
-        <Icon :icon="iconToShow"
-              class="mb-8 h-24 w-24
-                     text-brand-600
-                     dark:text-brand-400"
-              aria-hidden="true" />
+        <RouterLink to="/">
+          <Icon :icon="iconToShow"
+                class="mb-8 h-24 w-24
+                      text-brand-600
+                      dark:text-brand-400"
+                aria-hidden="true" />
+        </RouterLink>
       </div>
 
       <!-- Title Text -->
@@ -41,7 +43,7 @@
           {{ heading }}
         </h2>
         <p v-if="withSubheading"
-            class="flex items-center justify-center
+           class="flex items-center justify-center
             mt-2
             text-lg text-gray-600
             dark:text-gray-400">
@@ -85,7 +87,7 @@ const props = withDefaults(defineProps<{
   title?: string | null;
   titleLogo?: string | null;
   featureIcon?: string;
-  withSubheading?: string | null;
+  withSubheading?: boolean;
 }>(), {
   title: null,
   titleLogo: null,
