@@ -24,24 +24,23 @@
 
       <div class="mt-4 flex flex-col gap-1">
         <div class="flex items-baseline justify-between">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
             {{ domainId }}
+            <!--<DomainVerificationInfo mode="icon" :domain="domain" />-->
           </h1>
           <span
-            class="px-3 py-1 text-sm rounded-md font-brand bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+            class="px-3 py-1 text-xs rounded-md font-brand bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
             role="status">
             Custom Domain
           </span>
         </div>
-        <h2 class="text-base text-gray-600 dark:text-gray-400">
-          Link Preview
-        </h2>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+//import { CustomDomain } from '@/types/onetime.d';
 defineProps<{
   domainId: string;
 }>();

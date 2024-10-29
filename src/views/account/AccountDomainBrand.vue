@@ -17,26 +17,60 @@
       </BrandSettingsBar>
     </div>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <!-- Preview Section -->
-      <div class="relative mb-12">
-        <BrowserPreviewFrame
-          :domain="domainId"
-          :browser-type="selectedBrowserType"
-          @toggle-browser="toggleBrowser"
-        >
-          <SecretPreview
-            v-if="!loading && !error"
-            ref="secretPreview"
-            :brandSettings="brandSettings"
-            :onLogoUpload="handleLogoUpload"
-            :onLogoRemove="removeLogo"
-            secretKey="abcd"
-            class="transform transition-all duration-200 hover:scale-[1.02]" />
-        </BrowserPreviewFrame>
-      </div>
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Preview Section -->
+  <div class="relative mb-12">
+    <h2 id="previewHeading" class="text-xl font-medium text-gray-900 dark:text-gray-100 mb-4">
+      Preview & Customize
+    </h2>
+
+    <!-- Instructions for screen readers -->
+    <div class="sr-only" role="note">
+      This is an interactive preview of how recipients will see your secure messages. You can customize the appearance by uploading a logo and adjusting settings below.
     </div>
+
+    <!-- Visual instructions -->
+    <div class="mb-6 text-sm text-gray-600 dark:text-gray-400 space-y-2" aria-hidden="true">
+      <p class="flex items-center gap-2">
+        <Icon icon="mdi:information-outline" class="w-5 h-5" />
+        Click the square image placeholder to upload your logo (recommended size: 400x400px, max 2MB)
+      </p>
+      <p class="flex items-center gap-2">
+        <Icon icon="mdi:cursor-pointer" class="w-5 h-5" />
+        Try the "View Secret" button to preview the recipient experience
+      </p>
+    </div>
+
+    <BrowserPreviewFrame
+      :domain="domainId"
+      :browser-type="selectedBrowserType"
+      @toggle-browser="toggleBrowser"
+      aria-labelledby="previewHeading"
+    >
+      <SecretPreview
+        v-if="!loading && !error"
+        ref="secretPreview"
+        :brandSettings="brandSettings"
+        :onLogoUpload="handleLogoUpload"
+        :onLogoRemove="removeLogo"
+        secretKey="abcd"
+        class="transform transition-all duration-200 hover:scale-[1.02]"
+      />
+    </BrowserPreviewFrame>
+
+    <!-- Loading and Error States -->
+    <div v-if="loading" role="status" class="text-center py-8">
+      <span class="sr-only">Loading preview...</span>
+      <!-- Add loading spinner -->
+    </div>
+
+    <div v-if="error" role="alert" class="text-center py-8 text-red-600">
+      {{ error }}
+    </div>
+  </div>
+</div>
+
 
     <!-- Loading Overlay -->
     <LoadingOverlay
@@ -53,6 +87,7 @@ import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { Icon } from '@iconify/vue';
 
 // Import components
 import BrandSettingsBar from '@/components/account/BrandSettingsBar.vue';
@@ -105,6 +140,7 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const success = ref<string | null>(null);
 const isSubmitting = ref(false);
+//const domain = ref({} as CustomDomain)
 
 // API response interface
 interface ApiResponse {
@@ -124,6 +160,7 @@ const fetchBrandSettings = async () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data: ApiResponse = await response.json();
+    //domain.value = data.record;
     const { brand } = data.record;
     updateBrandSettings({
       logo: brand.image_filename || '',

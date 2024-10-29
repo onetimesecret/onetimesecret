@@ -7,12 +7,14 @@
         <div :class="{
           'rounded-lg': brandSettings.corner_style === 'rounded',
           'rounded-full': brandSettings.corner_style === 'pill',
-          'rounded-none': brandSettings.corner_style === 'square'
+          'rounded-none': brandSettings.corner_style === 'square',
+          'animate-wiggle': !brandSettings.image_encoded
         }"
-             class="w-16 h-16 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden cursor-pointer"
+             class="w-16 h-16 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary-500"
              @click="$refs.logoInput.click()"
              role="button"
-             aria-label="Upload logo">
+             aria-label="Upload logo"
+             aria-describedby="logoHelp">
           <img v-if="brandSettings.image_encoded"
                :src="`data:${brandSettings.image_content_type};base64,${brandSettings.image_encoded}`"
                alt="Brand logo"
@@ -28,6 +30,12 @@
                   d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </div>
+        <!-- Help text -->
+        <div id="logoHelp"
+             class="sr-only">
+          Click to upload a logo. Recommended size: 400x400 pixels. Maximum file size: 2MB. Supported formats: PNG, JPG
+        </div>
+
 
         <!-- Hidden file input -->
         <input ref="logoInput"
@@ -36,15 +44,22 @@
                accept="image/*"
                @change="handleLogoChange">
 
-        <!-- Hover Controls -->
+        <!-- Hover/Focus Controls -->
         <div v-if="brandSettings.image_encoded"
-             class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+             class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex items-center justify-center rounded-lg"
+             role="group"
+             aria-label="Logo controls">
           <button @click.stop="onLogoRemove"
-                  class="text-xs text-red-400 hover:text-red-300"
-                  aria-label="Remove logo">
-            Remove
+                  class="text-xs bg-red-600 hover:bg-red-700 focus:bg-red-700 text-white px-3 py-1 rounded-md focus:ring-2 focus:ring-offset-2 focus:ring-red-500 focus:outline-none"
+                  aria-label="Remove current logo">
+            <span class="flex items-center gap-1">
+              <Icon icon="mdi:trash"
+                    aria-hidden="true" />
+              Remove
+            </span>
           </button>
         </div>
+
       </div>
 
       <div class="flex-1">
@@ -70,7 +85,6 @@
       </div>
     </div>
 
-
     <!-- Secret Content Area -->
     <div class="mt-4 mb-4">
 
@@ -79,7 +93,7 @@
                 class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-3 font-mono text-sm border border-gray-200 dark:border-gray-600"
                 rows="3"
                 :class="{
-                  'rounded-md': brandSettings.corner_style === 'rounded',
+                  'rounded-lg': brandSettings.corner_style === 'rounded',
                   'rounded-xl': brandSettings.corner_style === 'pill',
                   'rounded-none': brandSettings.corner_style === 'square'
                 }"
@@ -90,7 +104,7 @@ Or a multi-line message</textarea>
       <div v-else
            class="w-full h-[86px] bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
            :class="{
-            'rounded-md': brandSettings.corner_style === 'rounded',
+            'rounded-lg': brandSettings.corner_style === 'rounded',
             'rounded-xl': brandSettings.corner_style === 'pill',
             'rounded-none': brandSettings.corner_style === 'square'
           }">
@@ -116,6 +130,8 @@ Or a multi-line message</textarea>
               fontFamily: brandSettings.font_family
             }"
             @click="toggleReveal"
+            :aria-expanded="isRevealed"
+            aria-controls="secretContent"
             :aria-label="isRevealed ? 'Hide secret message' : 'View secret message'">
       {{ isRevealed ? 'Hide Secret' : 'View Secret' }}
     </button>
@@ -126,7 +142,7 @@ Or a multi-line message</textarea>
           <Icon icon="mdi:alert-circle-outline"
                 class="mr-1"
                 aria-hidden="true" />
-          We will only display this message once.
+                    This message will only be shown once.
         </span>
       </div>
     </div>
@@ -174,5 +190,23 @@ button:hover {
 
 textarea {
   resize: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-wiggle {
+    animation: wiggle 2s ease-in-out infinite;
+  }
+}
+
+@keyframes wiggle {
+
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+
+  50% {
+    transform: rotate(5deg);
+  }
 }
 </style>
