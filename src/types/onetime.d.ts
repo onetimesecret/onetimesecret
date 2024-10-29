@@ -20,7 +20,9 @@ export interface BrandSettings {
   image_content_type: string;
   image_filename: string;
   primary_color: string;
-  description: string;
+  instructions_pre_reveal: string;
+  instructions_reveal: string;
+  instructions_post_reveal: string;
   font_family: string;
   button_style: string;
 }
@@ -42,7 +44,6 @@ export interface Customer extends BaseApiRecord {
   stripe_subscription_id?: string;
   stripe_customer_id?: string;
 }
-
 
 export interface ColonelCustomer {
   custid: string;
