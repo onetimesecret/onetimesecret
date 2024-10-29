@@ -97,12 +97,13 @@
 <script setup lang="ts">
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { BrandSettings, BrandSettingsApiResponse, AsyncDataResult } from '@/types/onetime';
+import type { AsyncDataResult, BrandSettings, CustomDomain, CustomDomainApiResponse } from '@/types/onetime';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
 import { Icon } from '@iconify/vue';
+import { computed, onMounted, ref, watch, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { onBeforeRouteLeave } from 'vue-router';
 
 // Import components
 import BrandSettingsBar from '@/components/account/BrandSettingsBar.vue';
@@ -120,7 +121,7 @@ const detectPlatform = (): 'safari' | 'edge' => {
 
 
 const route = useRoute();
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<BrandSettingsApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<CustomDomainApiResponse>);
 
 const notifications = useNotificationsStore();
 const csrfStore = useCsrfStore();
@@ -137,6 +138,8 @@ const props = defineProps<{
 }>();
 
 const domainId = computed(() => `${props.domain || route.params.domain as string}`);
+const customDomain = ref<CustomDomain | null>(null);
+
 
 // State management
 const brandSettings = ref<BrandSettings>({
@@ -159,16 +162,29 @@ const success = ref<string | null>(null);
 const isSubmitting = ref(false);
 //const domain = ref({} as CustomDomain)
 
+// Add after other refs
+// Move this up near the other refs, after the brandSettings ref
+const hasUnsavedChanges = ref(false);
+const originalSettings = ref<BrandSettings | null>(null);
+
+// Create a new function to handle beforeunload event
+const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+  if (hasUnsavedChanges.value) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+};
+
+
 // API response interface
 interface ApiResponse {
   record: {
-    brand: Partial<BrandSettings>;
+    brand?: Partial<BrandSettings>;
   };
 }
 
 // Fetch brand settings from the API
-
-// Update fetchBrandSettings function
 const fetchBrandSettings = async () => {
   loading.value = true;
   error.value = null;
@@ -182,20 +198,24 @@ const fetchBrandSettings = async () => {
       }
 
       if (initialData.value.data) {
-        const { brand } = initialData.value.data.record;
-        updateBrandSettings({
-          logo: brand.image_filename || '',
-          primary_color: brand.primary_color || '#ffffff',
-          instructions_pre_reveal: brand.instructions_pre_reveal || '',
-          instructions_post_reveal: brand.instructions_post_reveal || '',
-          instructions_reveal: brand.instructions_reveal || '',
-          image_encoded: brand.image_encoded || '',
-          image_filename: brand.image_filename || '',
-          image_content_type: brand.image_content_type || '',
-          font_family: brand.font_family || 'sans-serif',
-          corner_style: brand.corner_style || 'rounded',
-          button_text_light: brand.button_text_light || false,
-        }, false);
+        customDomain.value = initialData.value.data.record;
+        const { brand } = customDomain.value;
+        const settings = {
+          logo: brand?.image_filename || '',
+          primary_color: brand?.primary_color || '#ffffff',
+          instructions_pre_reveal: brand?.instructions_pre_reveal || '',
+          instructions_post_reveal: brand?.instructions_post_reveal || '',
+          instructions_reveal: brand?.instructions_reveal || '',
+          image_encoded: brand?.image_encoded || '',
+          image_filename: brand?.image_filename || '',
+          image_content_type: brand?.image_content_type || '',
+          font_family: brand?.font_family || 'sans-serif',
+          corner_style: brand?.corner_style || 'rounded',
+          button_text_light: brand?.button_text_light || false,
+        };
+        brandSettings.value = settings;
+        originalSettings.value = JSON.parse(JSON.stringify(settings)); // Deep copy initial settings
+        hasUnsavedChanges.value = false; // Explicitly set to false
         return;
       }
     }
@@ -207,19 +227,22 @@ const fetchBrandSettings = async () => {
     }
     const data: ApiResponse = await response.json();
     const { brand } = data.record;
-    updateBrandSettings({
-      logo: brand.image_filename || '',
-      primary_color: brand.primary_color || '#ffffff',
-      instructions_pre_reveal: brand.instructions_pre_reveal || '',
-      instructions_post_reveal: brand.instructions_post_reveal || '',
-      instructions_reveal: brand.instructions_reveal || '',
-      image_encoded: brand.image_encoded || '',
-      image_filename: brand.image_filename || '',
-      image_content_type: brand.image_content_type || '',
-      font_family: brand.font_family || 'sans-serif',
-      corner_style: brand.corner_style || 'rounded',
-      button_text_light: brand.button_text_light || false,
-    }, false);
+    const settings = {
+      logo: brand?.image_filename || '',
+      primary_color: brand?.primary_color || '#ffffff',
+      instructions_pre_reveal: brand?.instructions_pre_reveal || '',
+      instructions_post_reveal: brand?.instructions_post_reveal || '',
+      instructions_reveal: brand?.instructions_reveal || '',
+      image_encoded: brand?.image_encoded || '',
+      image_filename: brand?.image_filename || '',
+      image_content_type: brand?.image_content_type || '',
+      font_family: brand?.font_family || 'sans-serif',
+      corner_style: brand?.corner_style || 'rounded',
+      button_text_light: brand?.button_text_light || false,
+    };
+    brandSettings.value = settings;
+    originalSettings.value = JSON.parse(JSON.stringify(settings)); // Deep copy initial settings
+    hasUnsavedChanges.value = false; // Explicitly set to false
   } catch (err) {
     console.error('Error fetching brand settings:', err);
     error.value = err instanceof Error ? err.message : 'Failed to fetch brand settings. Please try again.';
@@ -227,6 +250,7 @@ const fetchBrandSettings = async () => {
     loading.value = false;
   }
 };
+
 
 // Update the updateBrandSettings function to properly merge the settings
 const updateBrandSettings = (newSettings: Partial<BrandSettings>, showSuccessMessage: boolean = true) => {
@@ -241,8 +265,17 @@ const updateBrandSettings = (newSettings: Partial<BrandSettings>, showSuccessMes
     button_text_light: textLight
   };
 
+  // Set hasUnsavedChanges to true if current settings differ from original
+  if (originalSettings.value) {
+    hasUnsavedChanges.value = JSON.stringify(brandSettings.value) !== JSON.stringify(originalSettings.value);
+  }
+
   if (showSuccessMessage) {
     success.value = 'Brand settings updated successfully';
+    // Reset hasUnsavedChanges after successful save
+    hasUnsavedChanges.value = false;
+    // Update original settings
+    originalSettings.value = { ...brandSettings.value };
   } else {
     success.value = null;
   }
@@ -277,7 +310,10 @@ const submitForm = async () => {
         ...brandSettings.value, // Keep existing values
         ...response.data.record.brand // Override with response data
       }, true);
-      notifications.show('Brand settings saved successfully', 'success', 'top');
+      originalSettings.value = { ...brandSettings.value }; // Update original settings
+      hasUnsavedChanges.value = false; // Reset changes flag
+
+      notifications.show('Brand settings saved successfully', 'success', 'bottom');
     } else {
       throw new Error(response.data.message || 'Failed to save brand settings');
     }
@@ -311,7 +347,7 @@ const handleLogoUpload = async (file: File) => {
 
     if (response.data.success) {
       updateBrandSettings(response.data.record.brand, true);
-      notifications.show('Logo uploaded successfully', 'success', 'top');
+      notifications.show('Logo uploaded successfully', 'success', 'bottom');
     } else {
       throw new Error(response.data.message || 'Failed to upload logo');
     }
@@ -353,6 +389,38 @@ const removeLogo = async () => {
   }
 };
 
+// Update the watch to use JSON comparison for deep equality
+// Replace the existing watch with this updated version
+watch(brandSettings, (newSettings) => {
+  if (originalSettings.value) {
+    // Only compare relevant fields that can actually be changed by the user
+    const relevantCurrentSettings = {
+      primary_color: newSettings.primary_color,
+      font_family: newSettings.font_family,
+      corner_style: newSettings.corner_style,
+      instructions_pre_reveal: newSettings.instructions_pre_reveal,
+      instructions_post_reveal: newSettings.instructions_post_reveal,
+      instructions_reveal: newSettings.instructions_reveal,
+      image_filename: newSettings.image_filename,
+    };
+
+    const relevantOriginalSettings = {
+      primary_color: originalSettings.value.primary_color,
+      font_family: originalSettings.value.font_family,
+      corner_style: originalSettings.value.corner_style,
+      instructions_pre_reveal: originalSettings.value.instructions_pre_reveal,
+      instructions_post_reveal: originalSettings.value.instructions_post_reveal,
+      instructions_reveal: originalSettings.value.instructions_reveal,
+      image_filename: originalSettings.value.image_filename,
+    };
+
+    const currentSettings = JSON.stringify(relevantCurrentSettings);
+    const original = JSON.stringify(relevantOriginalSettings);
+
+    hasUnsavedChanges.value = currentSettings !== original;
+  }
+}, { deep: true });
+
 // Watch effect for primary color
 watch(() => brandSettings.value.primary_color, (newColor) => {
   const textLight = shouldUseLightText(newColor);
@@ -364,6 +432,29 @@ watch(() => brandSettings.value.primary_color, (newColor) => {
   }
 }, { immediate: true });
 
-// Fetch brand settings on component mount
-onMounted(fetchBrandSettings);
+// Update lifecycle hooks
+onMounted(() => {
+  fetchBrandSettings();
+  window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+});
+
+// Navigation guard
+onBeforeRouteLeave((to, from, next) => {
+  if (hasUnsavedChanges.value) {
+    const answer = window.confirm('You have unsaved changes. Are you sure you want to leave?');
+    if (answer) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
+});
+
+
 </script>

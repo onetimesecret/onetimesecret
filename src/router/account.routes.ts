@@ -3,7 +3,7 @@ import { RouteRecordRaw } from 'vue-router';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import api from '@/utils/api';
-import { AsyncDataResult, BrandSettingsApiResponse } from '@/types/onetime';
+import { AsyncDataResult, CustomDomainApiResponse } from '@/types/onetime';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -76,11 +76,11 @@ const routes: Array<RouteRecordRaw> = [
   beforeEnter: async (to, from, next) => {
     try {
       const domain = to.params.domain as string;
-      const response = await api.get<BrandSettingsApiResponse>(
+      const response = await api.get<CustomDomainApiResponse>(
         `/api/v2/account/domains/${domain}/brand`
       );
 
-      const initialData: AsyncDataResult<BrandSettingsApiResponse> = {
+      const initialData: AsyncDataResult<CustomDomainApiResponse> = {
         status: response.status,
         data: response.data,
         error: null
@@ -90,7 +90,7 @@ const routes: Array<RouteRecordRaw> = [
       next();
     } catch (error) {
       console.error('Error fetching domain brand data:', error);
-      const initialData: AsyncDataResult<BrandSettingsApiResponse> = {
+      const initialData: AsyncDataResult<CustomDomainApiResponse> = {
         status: 500,
         data: null,
         error: error instanceof Error ? error.message : 'Failed to fetch domain brand data'
