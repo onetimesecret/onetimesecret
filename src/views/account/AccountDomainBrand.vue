@@ -233,6 +233,10 @@ const updateBrandSettings = (newSettings: BrandSettings, showSuccessMessage: boo
     success.value = null;
   }
 };
+import { useNotificationsStore } from '@/stores/notifications'
+
+const notifications = useNotificationsStore()
+//const isSubmitting = ref(false)
 
 // Handle logo upload
 // Then modify handleLogoUpload
@@ -241,8 +245,6 @@ const updateBrandSettings = (newSettings: BrandSettings, showSuccessMessage: boo
 const handleLogoUpload = async (file: File) => {
   try {
     isSubmitting.value = true;
-    error.value = '';
-    success.value = '';
 
     const formData = new FormData();
     formData.append('logo', file);
@@ -259,19 +261,21 @@ const handleLogoUpload = async (file: File) => {
 
     if (response.data.success) {
       updateBrandSettings(response.data.record.brand, true);
-      success.value = 'Logo uploaded successfully';
+      notifications.show('Logo uploaded successfully', 'success');
     } else {
       throw new Error(response.data.message || 'Failed to upload logo');
     }
 
   } catch (err: unknown) {
     console.error('Error uploading logo:', err);
-    error.value = err instanceof Error ? err.message : 'Failed to upload logo. Please try again.';
+    notifications.show(
+      err instanceof Error ? err.message : 'Failed to upload logo. Please try again.',
+      'error'
+    );
   } finally {
     isSubmitting.value = false;
   }
 };
-
 
 const removeLogo = async () => {
   try {

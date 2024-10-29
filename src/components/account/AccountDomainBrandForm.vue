@@ -140,10 +140,7 @@
           {{ isSubmitting ? 'Saving...' : 'Save Settings' }}
         </button>
       </div>
-      <StatusBar :success="success"
-                 :error="error"
-                 :loading="isSubmitting"
-                 :auto-dismiss="true" />
+
     </div>
   </form>
 </template>
@@ -152,15 +149,16 @@
 <!-- AccountDomainBrandForm.vue -->
 <script setup lang="ts">
 import CycleButton from '@/components/common/CycleButton.vue';
-import StatusBar from '@/components/StatusBar.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { BrandSettings } from '@/types/onetime';
-import { computed, watch, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import { Icon } from '@iconify/vue';
 import { shouldUseLightText } from '@/utils/colorUtils';
+import { Icon } from '@iconify/vue';
+import { computed, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useNotificationsStore } from '@/stores/notifications'
 
+const notifications = useNotificationsStore()
 const route = useRoute();
 const domainId = route.params.domain as string;
 const csrfStore = useCsrfStore();
@@ -199,15 +197,15 @@ const formData = computed({
   set: (newValue) => emit('update:brandSettings', newValue)
 });
 
+
 const {
   isSubmitting,
-  error,
-  success,
   submitForm
 } = useFormSubmission({
   url: `/api/v2/account/domains/${domainId}/brand`,
-  successMessage: 'Brand settings saved successfully',
+  successMessage: 'Brand settings updated successfully.',
   onSuccess: (response) => {
+    notifications.show('Brand settings saved successfully', 'success')
     if (response.data?.record?.brand) {
       emit('update:brandSettings', response.data.record.brand);
     } else {
@@ -216,6 +214,7 @@ const {
     }
   },
   onError: (err) => {
+    notifications.show('Failed to save brand settings', 'error')
     console.error('Error saving brand settings:', err);
   },
 });
