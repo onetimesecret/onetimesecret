@@ -1,17 +1,15 @@
-import { fetchInitialSecret } from '@/api/secrets'
-import { AsyncDataResult } from '@/types/onetime'
-import { SecretDataApiResponse } from '@/types/onetime'
-import DashboardIndex from '@/views/dashboard/DashboardIndex.vue'
-import DashboardRecent from '@/views/dashboard/DashboardRecent.vue'
-import BurnSecret from '@/views/secrets/BurnSecret.vue'
-import ShowMetadata from '@/views/secrets/ShowMetadata.vue'
-import ShowSecret from '@/views/secrets/ShowSecret.vue'
-import { RouteRecordRaw } from 'vue-router'
-import DefaultHeader from '@/components/layout/DefaultHeader.vue'
-import DefaultFooter from '@/components/layout/DefaultFooter.vue'
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import QuietLayout from '@/layouts/QuietLayout.vue'
-import AccountDomains from '@/views/account/AccountDomains.vue'
+import { fetchInitialSecret } from '@/api/secrets';
+import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import QuietLayout from '@/layouts/QuietLayout.vue';
+import { AsyncDataResult, SecretDataApiResponse } from '@/types/onetime';
+import DashboardIndex from '@/views/dashboard/DashboardIndex.vue';
+import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
+import BurnSecret from '@/views/secrets/BurnSecret.vue';
+import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
+import ShowSecret from '@/views/secrets/ShowSecret.vue';
+import { RouteRecordRaw } from 'vue-router';
 
 
 const routes: Array<RouteRecordRaw> = [
@@ -53,19 +51,6 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
       },
     },
-  },
-  {
-    path: '/account/domains',
-    name: 'AccountDomains',
-    components: {
-      default: AccountDomains,
-      header: DefaultHeader,
-      footer: DefaultFooter,
-    },
-    meta: {
-      requiresAuth: true,
-    },
-    props: true,
   },
   {
     path: '/secret/:secretKey',

@@ -1,7 +1,7 @@
 
-import { RouteRecordRaw } from 'vue-router';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -49,7 +49,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains',
     name: 'AccountDomains',
     components: {
-      default: import('@/views/account/AccountDomains.vue'),
+      default: () => import('@/views/account/AccountDomains.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -62,7 +62,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/domains/:domain/brand',
     name: 'AccountDomainBrand',
     components: {
-      default: import('@/views/account/AccountDomainBrand.vue'),
+      default: () => import('@/views/account/AccountDomainBrand.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
