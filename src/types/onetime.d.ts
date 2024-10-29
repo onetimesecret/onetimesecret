@@ -342,6 +342,7 @@ export type MetadataDataApiResponse = ApiRecordResponse<MetadataData>;
 export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
 export type ConcealDataApiResponse = ApiRecordResponse<ConcealData>;
 export type CheckAuthDataApiResponse = ApiRecordResponse<CheckAuthData>;
+export type BrandSettingsApiResponse = ApiRecordResponse<BrandSettings>;
 
 /**
  * Front-end Vue App

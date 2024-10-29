@@ -4,85 +4,100 @@
     <div class="sticky top-0 z-30">
       <DomainHeader :domain-id="domainId" />
 
-      <BrandSettingsBar
-        v-model="brandSettings"
-        :shrimp="csrfStore.shrimp"
-        :is-submitting="isSubmitting"
-        @submit="submitForm">
+      <BrandSettingsBar v-model="brandSettings"
+                        :shrimp="csrfStore.shrimp"
+                        :is-submitting="isSubmitting"
+                        @submit="submitForm">
         <template #instructions-button>
-          <InstructionsModal
-            v-model="brandSettings.instructions_pre_reveal"
-            @update:modelValue="(value) => brandSettings.instructions_pre_reveal = value" />
+          <InstructionsModal v-model="brandSettings.instructions_pre_reveal"
+                             @update:modelValue="(value) => brandSettings.instructions_pre_reveal = value" />
         </template>
       </BrandSettingsBar>
     </div>
 
-<!-- Main Content -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <!-- Preview Section -->
-  <div class="relative mb-12">
-    <h2 id="previewHeading" class="text-xl font-medium text-gray-900 dark:text-gray-100 mb-4">
-      Preview & Customize
-    </h2>
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Preview Section -->
+      <div class="relative mb-12">
+        <h2 id="previewHeading"
+            class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+          Preview & Customize
+        </h2>
 
-    <!-- Instructions for screen readers -->
-    <div class="sr-only" role="note">
-      This is an interactive preview of how recipients will see your secure messages. You can customize the appearance by uploading a logo and adjusting settings below.
+        <!-- Instructions for screen readers -->
+        <div class="sr-only"
+             role="note">
+          This is an interactive preview of how recipients will see your secure messages. You can:
+          - Customize colors and fonts using the controls above
+          - Upload a logo (400x400px recommended, 2MB max)
+          - Test the preview using the "View Secret" button
+        </div>
+
+        <!-- Visual instructions -->
+        <ul class="mb-6 text-sm text-gray-600 dark:text-gray-400 space-y-2"
+            :aria-hidden="true">
+          <li class="flex items-center gap-2">
+            <Icon icon="mdi:palette-outline"
+                  class="w-5 h-5"
+                  aria-label="Customization icon" />
+            Customize your brand colors, fonts, and button styles using the controls above
+          </li>
+
+          <li class="flex items-center gap-2">
+            <Icon icon="mdi:image-outline"
+                  class="w-5 h-5"
+                  aria-label="Image icon" />
+            Upload your logo by clicking the square placeholder (400x400px recommended, 2MB max)
+          </li>
+
+          <li class="flex items-center gap-2">
+            <Icon icon="mdi:eye-outline"
+                  class="w-5 h-5"
+                  aria-label="Eye icon" />
+            Preview how recipients will see your secrets by testing the "View Secret" button
+          </li>
+        </ul>
+
+        <BrowserPreviewFrame :domain="domainId"
+                             :browser-type="selectedBrowserType"
+                             @toggle-browser="toggleBrowser"
+                             aria-labelledby="previewHeading">
+          <SecretPreview v-if="!loading && !error"
+                         ref="secretPreview"
+                         :brandSettings="brandSettings"
+                         :onLogoUpload="handleLogoUpload"
+                         :onLogoRemove="removeLogo"
+                         secretKey="abcd"
+                         class="transform transition-all duration-200 hover:scale-[1.02]" />
+        </BrowserPreviewFrame>
+
+        <!-- Loading and Error States -->
+        <div v-if="loading"
+             role="status"
+             class="text-center py-8">
+          <span class="sr-only">Loading preview...</span>
+          <!-- Add loading spinner -->
+        </div>
+
+        <div v-if="error"
+             role="alert"
+             class="text-center py-8 text-red-600">
+          {{ error }}
+        </div>
+      </div>
     </div>
-
-    <!-- Visual instructions -->
-    <div class="mb-6 text-sm text-gray-600 dark:text-gray-400 space-y-2" aria-hidden="true">
-      <p class="flex items-center gap-2">
-        <Icon icon="mdi:information-outline" class="w-5 h-5" />
-        Click the square image placeholder to upload your logo (recommended size: 400x400px, max 2MB)
-      </p>
-      <p class="flex items-center gap-2">
-        <Icon icon="mdi:cursor-pointer" class="w-5 h-5" />
-        Try the "View Secret" button to preview the recipient experience
-      </p>
-    </div>
-
-    <BrowserPreviewFrame
-      :domain="domainId"
-      :browser-type="selectedBrowserType"
-      @toggle-browser="toggleBrowser"
-      aria-labelledby="previewHeading"
-    >
-      <SecretPreview
-        v-if="!loading && !error"
-        ref="secretPreview"
-        :brandSettings="brandSettings"
-        :onLogoUpload="handleLogoUpload"
-        :onLogoRemove="removeLogo"
-        secretKey="abcd"
-        class="transform transition-all duration-200 hover:scale-[1.02]"
-      />
-    </BrowserPreviewFrame>
-
-    <!-- Loading and Error States -->
-    <div v-if="loading" role="status" class="text-center py-8">
-      <span class="sr-only">Loading preview...</span>
-      <!-- Add loading spinner -->
-    </div>
-
-    <div v-if="error" role="alert" class="text-center py-8 text-red-600">
-      {{ error }}
-    </div>
-  </div>
-</div>
 
 
     <!-- Loading Overlay -->
-    <LoadingOverlay
-      :show="loading"
-      message="Loading brand settings" />
+    <LoadingOverlay :show="loading"
+                    message="Loading brand settings" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { BrandSettings } from '@/types/onetime';
+import type { BrandSettings, BrandSettingsApiResponse, AsyncDataResult } from '@/types/onetime';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -105,6 +120,8 @@ const detectPlatform = (): 'safari' | 'edge' => {
 
 
 const route = useRoute();
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<BrandSettingsApiResponse>);
+
 const notifications = useNotificationsStore();
 const csrfStore = useCsrfStore();
 
@@ -150,17 +167,45 @@ interface ApiResponse {
 }
 
 // Fetch brand settings from the API
+
+// Update fetchBrandSettings function
 const fetchBrandSettings = async () => {
   loading.value = true;
   error.value = null;
   success.value = null;
+
   try {
+    // Use preloaded data if available
+    if (initialData.value) {
+      if (initialData.value.error) {
+        throw new Error(initialData.value.error);
+      }
+
+      if (initialData.value.data) {
+        const { brand } = initialData.value.data.record;
+        updateBrandSettings({
+          logo: brand.image_filename || '',
+          primary_color: brand.primary_color || '#ffffff',
+          instructions_pre_reveal: brand.instructions_pre_reveal || '',
+          instructions_post_reveal: brand.instructions_post_reveal || '',
+          instructions_reveal: brand.instructions_reveal || '',
+          image_encoded: brand.image_encoded || '',
+          image_filename: brand.image_filename || '',
+          image_content_type: brand.image_content_type || '',
+          font_family: brand.font_family || 'sans-serif',
+          corner_style: brand.corner_style || 'rounded',
+          button_text_light: brand.button_text_light || false,
+        }, false);
+        return;
+      }
+    }
+
+    // Fallback to API call if no preloaded data
     const response = await fetch(`/api/v2/account/domains/${domainId.value}/brand`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data: ApiResponse = await response.json();
-    //domain.value = data.record;
     const { brand } = data.record;
     updateBrandSettings({
       logo: brand.image_filename || '',

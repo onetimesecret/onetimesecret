@@ -2,6 +2,8 @@
 import { RouteRecordRaw } from 'vue-router';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+import api from '@/utils/api';
+import { AsyncDataResult, BrandSettingsApiResponse } from '@/types/onetime';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -58,19 +60,47 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
-  {
-    path: '/account/domains/:domain/brand',
-    name: 'AccountDomainBrand',
-    components: {
-      default: () => import('@/views/account/AccountDomainBrand.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
-    },
-    meta: {
-      requiresAuth: true,
-    },
-    props: true,
+  // Update the route configuration
+{
+  path: '/account/domains/:domain/brand',
+  name: 'AccountDomainBrand',
+  components: {
+    default: () => import('@/views/account/AccountDomainBrand.vue'),
+    header: DefaultHeader,
+    footer: DefaultFooter,
   },
+  meta: {
+    requiresAuth: true,
+  },
+  props: true,
+  beforeEnter: async (to, from, next) => {
+    try {
+      const domain = to.params.domain as string;
+      const response = await api.get<BrandSettingsApiResponse>(
+        `/api/v2/account/domains/${domain}/brand`
+      );
+
+      const initialData: AsyncDataResult<BrandSettingsApiResponse> = {
+        status: response.status,
+        data: response.data,
+        error: null
+      };
+
+      to.meta.initialData = initialData;
+      next();
+    } catch (error) {
+      console.error('Error fetching domain brand data:', error);
+      const initialData: AsyncDataResult<BrandSettingsApiResponse> = {
+        status: 500,
+        data: null,
+        error: error instanceof Error ? error.message : 'Failed to fetch domain brand data'
+      };
+
+      to.meta.initialData = initialData;
+      next();
+    }
+  },
+},
   {
     path: '/colonel',
     name: 'Colonel',
