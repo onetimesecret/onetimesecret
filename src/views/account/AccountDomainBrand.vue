@@ -11,7 +11,8 @@
         @submit="submitForm">
         <template #instructions-button>
           <InstructionsModal
-            v-model="brandSettings.instructions_pre_reveal" />
+            v-model="brandSettings.instructions_pre_reveal"
+            @update:modelValue="(value) => brandSettings.instructions_pre_reveal = value" />
         </template>
       </BrandSettingsBar>
     </div>
@@ -41,18 +42,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
 import type { BrandSettings } from '@/types/onetime';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 // Import components
-import DomainHeader from '@/components/account/DomainHeader.vue';
 import BrandSettingsBar from '@/components/account/BrandSettingsBar.vue';
 import BrowserPreviewFrame from '@/components/account/BrowserPreviewFrame.vue';
+import DomainHeader from '@/components/account/DomainHeader.vue';
 import InstructionsModal from '@/components/account/InstructionsModal.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
@@ -74,7 +75,7 @@ const brandSettings = ref<BrandSettings>({
   image_content_type: '',
   image_encoded: '',
   image_filename: '',
-  instructions_pre_reveal: '',
+  instructions_pre_reveal: '', // Ensure this is an empty string, not undefined
   instructions_post_reveal: '',
   instructions_reveal: '',
   font_family: 'sans-serif',
@@ -127,11 +128,16 @@ const fetchBrandSettings = async () => {
   }
 };
 
-// Update brand settings
-const updateBrandSettings = (newSettings: BrandSettings, showSuccessMessage: boolean = true) => {
-  const textLight = shouldUseLightText(newSettings.primary_color);
+// Update the updateBrandSettings function to properly merge the settings
+const updateBrandSettings = (newSettings: Partial<BrandSettings>, showSuccessMessage: boolean = true) => {
+  const textLight = shouldUseLightText(newSettings.primary_color || brandSettings.value.primary_color);
+
   brandSettings.value = {
+    ...brandSettings.value,
     ...newSettings,
+    instructions_pre_reveal: newSettings.instructions_pre_reveal ?? brandSettings.value.instructions_pre_reveal,
+    instructions_post_reveal: newSettings.instructions_post_reveal ?? brandSettings.value.instructions_post_reveal,
+    instructions_reveal: newSettings.instructions_reveal ?? brandSettings.value.instructions_reveal,
     button_text_light: textLight
   };
 
@@ -142,17 +148,35 @@ const updateBrandSettings = (newSettings: BrandSettings, showSuccessMessage: boo
   }
 };
 
+
 // Form submission handler
 const submitForm = async () => {
   try {
     isSubmitting.value = true;
-    const response = await api.put(`/api/v2/account/domains/${domainId.value}/brand`, {
-      brand: brandSettings.value,
+
+    // Create a clean payload object with all the necessary fields
+    const payload = {
+      brand: {
+        primary_color: brandSettings.value.primary_color,
+        font_family: brandSettings.value.font_family,
+        corner_style: brandSettings.value.corner_style,
+        button_text_light: brandSettings.value.button_text_light,
+        instructions_pre_reveal: brandSettings.value.instructions_pre_reveal,
+        instructions_post_reveal: brandSettings.value.instructions_post_reveal,
+        instructions_reveal: brandSettings.value.instructions_reveal,
+        // Include other fields as needed
+      },
       shrimp: csrfStore.shrimp
-    });
+    };
+
+    const response = await api.put(`/api/v2/account/domains/${domainId.value}/brand`, payload);
 
     if (response.data.success) {
-      updateBrandSettings(response.data.record.brand, true);
+      // Make sure we're getting all fields back from the response
+      updateBrandSettings({
+        ...brandSettings.value, // Keep existing values
+        ...response.data.record.brand // Override with response data
+      }, true);
       notifications.show('Brand settings saved successfully', 'success');
     } else {
       throw new Error(response.data.message || 'Failed to save brand settings');

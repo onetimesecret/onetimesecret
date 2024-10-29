@@ -65,9 +65,13 @@ import { ref, computed, watch, nextTick } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useEventListener } from '@vueuse/core';
 
-const props = defineProps<{
-  modelValue: string;
-}>();
+
+const props = withDefaults(defineProps<{
+  modelValue?: string;
+}>(), {
+  modelValue: ''
+});
+
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
