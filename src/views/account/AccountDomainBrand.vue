@@ -21,15 +21,21 @@
           </RouterLink>
         </div>
 
-        <div class="mt-4 flex items-baseline justify-between">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            {{ domainId }}
-          </h1>
-          <span class="px-3 py-1 text-sm rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100"
-                role="status">
-            Custom Domain
-          </span>
+        <div class="mt-4 flex flex-col gap-1">
+          <div class="flex items-baseline justify-between">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+              {{ domainId }}
+            </h1>
+            <span class="px-3 py-1 text-sm rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+                  role="status">
+              Custom Domain
+            </span>
+          </div>
+          <h2 class="text-base text-gray-600 dark:text-gray-400">
+            Link Preview
+          </h2>
         </div>
+
       </div>
     </div>
 
@@ -37,29 +43,19 @@
     <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-xl">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-8 shadow-inner"
-             role="region"
-             aria-label="Secret link preview">
-          <SecretPreview v-if="!loading && !error"
-                         ref="secretPreview"
-                         :brandSettings="brandSettings"
-                         :onLogoUpload="handleLogoUpload"
-                         :onLogoRemove="removeLogo"
-                         secretKey="abcd"
-                         class="transform transition-all duration-200 hover:scale-[1.02]" />
-        </div>
-        <div class="flex justify-between items-baseline mb-6">
-        <div class="text-sm text-gray-600 dark:text-gray-400">
-          <span class="inline-flex items-center">
-            <Icon icon="mdi:information-outline"
-                  class="mr-1"
-                  aria-hidden="true" />
-            Logo should be square, at least 128x128px, with a max size of 2MB.
-          </span>
-          <div class="mt-1">Supported formats: PNG, JPG, SVG</div>
-        </div>
+
+        <SecretPreview v-if="!loading && !error"
+                       ref="secretPreview"
+                       :brandSettings="brandSettings"
+                       :onLogoUpload="handleLogoUpload"
+                       :onLogoRemove="removeLogo"
+                       secretKey="abcd"
+                       class="transform transition-all duration-200 hover:scale-[1.02]" />
+
+
+
+
       </div>
-</div>
       <!-- Settings Section -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
         <div class="p-8">
@@ -103,7 +99,7 @@ import { BrandSettings } from '@/types/onetime';
 import api from '@/utils/api';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { Icon } from '@iconify/vue';
+//import { Icon } from '@iconify/vue';
 
 const route = useRoute();
 

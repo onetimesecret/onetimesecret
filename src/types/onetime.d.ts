@@ -23,6 +23,7 @@ export interface BrandSettings {
   instructions_pre_reveal: string;
   instructions_reveal: string;
   instructions_post_reveal: string;
+  button_text_light: boolean;
   font_family: string;
   button_style: string;
 }

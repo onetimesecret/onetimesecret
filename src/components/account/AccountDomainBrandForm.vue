@@ -8,6 +8,10 @@
            name="brand[primary_color]"
            :value="brandSettings.primary_color" />
 
+    <input type="hidden"
+           name="brand[button_text_light]"
+           :value="brandSettings.button_text_light" />
+
     <div class="space-y-6">
       <!-- Color Picker and CycleButtons Row -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 items-start">
@@ -45,6 +49,7 @@
                maxlength="7"
                aria-label="Brand color hex value">
       </div>
+
     </div>
 
     <!-- Font Family -->
@@ -154,6 +159,7 @@ import { BrandSettings } from '@/types/onetime';
 import { computed, watch, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { Icon } from '@iconify/vue';
+import { shouldUseLightText } from '@/utils/colorUtils';
 
 const route = useRoute();
 const domainId = route.params.domain as string;
@@ -220,6 +226,19 @@ watch(() => props.isLoading, (newVal: boolean, oldVal: boolean) => {
     document.querySelector('form')?.focus()
   }
 })
+
+// Add a watch effect for the primary color
+watch(() => formData.value.primary_color, (newColor) => {
+  const textLight = shouldUseLightText(newColor);
+console.debug(newColor, textLight)
+  if (newColor) {
+    // Update button_text_light based on color contrast
+    formData.value = {
+      ...formData.value,
+      button_text_light: textLight
+    };
+  }
+}, { immediate: true });
 </script>
 
 
