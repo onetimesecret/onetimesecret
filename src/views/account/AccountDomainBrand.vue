@@ -106,6 +106,61 @@
             <!-- Spacer -->
             <div class="flex-1"></div>
 
+            <div class="relative">
+              <button type="button"
+                      @click="isInstructionsOpen = !isInstructionsOpen"
+                      class="inline-flex items-center px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+                      :aria-expanded="isInstructionsOpen"
+                      aria-haspopup="true">
+                <Icon icon="mdi:text-box-edit"
+                      class="w-5 h-5 mr-2"
+                      aria-hidden="true" />
+                Instructions
+                <Icon :icon="isInstructionsOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+                      class="w-5 h-5 ml-2"
+                      aria-hidden="true" />
+              </button>
+
+              <Transition enter-active-class="transition duration-200 ease-out"
+                          enter-from-class="transform scale-95 opacity-0"
+                          enter-to-class="transform scale-100 opacity-100"
+                          leave-active-class="transition duration-75 ease-in"
+                          leave-from-class="transform scale-100 opacity-100"
+                          leave-to-class="transform scale-95 opacity-0">
+                <div v-if="isInstructionsOpen"
+                     class="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div class="p-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Pre-reveal Instructions
+                      <Icon icon="mdi:help-circle"
+                            class="inline-block w-4 h-4 ml-1 text-gray-400"
+                            @mouseenter="tooltipShow = true"
+                            @mouseleave="tooltipShow = false" />
+                      <div v-if="tooltipShow"
+                           class="absolute z-50 px-2 py-1 text-xs text-white bg-gray-900 dark:bg-gray-700 rounded shadow-lg max-w-xs">
+                        These instructions will be shown to recipients before they reveal the secret content
+                      </div>
+                    </label>
+                    <textarea v-model="brandSettings.instructions_pre_reveal"
+                              ref="textareaRef"
+                              rows="3"
+                              class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white text-sm"
+                              placeholder="e.g. Use your phone to scan the QR code"
+                              @keydown.esc="isInstructionsOpen = false"></textarea>
+
+                    <div class="mt-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+                      <span>{{ characterCount }}/500 characters</span>
+                      <span>Press ESC to close</span>
+                    </div>
+                  </div>
+                </div>
+              </Transition>
+            </div>
+
+
+
+
+
             <!-- Save Button -->
             <button type="submit"
                     :disabled="isSubmitting"
@@ -189,38 +244,6 @@
         </div>
       </div>
 
-      <!-- Instructions Section -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <div class="flex items-center mb-4">
-          <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Instructions</h2>
-          <button type="button"
-                  @mouseenter="showTooltip = true"
-                  @mouseleave="showTooltip = false"
-                  @focus="showTooltip = true"
-                  @blur="showTooltip = false"
-                  class="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
-                  aria-describedby="instructions-tooltip">
-            <Icon icon="mdi:information-outline"
-                  class="w-5 h-5"
-                  aria-hidden="true" />
-          </button>
-
-          <!-- Tooltip -->
-          <div v-if="showTooltip"
-               id="instructions-tooltip"
-               role="tooltip"
-               class="absolute z-50 ml-2 w-72 px-3 py-2 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded shadow-lg">
-            These instructions will be shown to recipients before they reveal the secret content.
-            Consider including any specific steps or context they should know.
-          </div>
-        </div>
-
-        <textarea v-model="brandSettings.instructions_pre_reveal"
-                  name="brand[instructions_pre_reveal]"
-                  rows="3"
-                  class="w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="e.g. Use your phone to scan the QR code"></textarea>
-      </div>
     </div>
 
     <!-- Loading State -->
@@ -240,16 +263,16 @@
 </template>
 
 <script setup lang="ts">
+import SecretPreview from '@/components/account/SecretPreview.vue';
+import CycleButton from '@/components/common/CycleButton.vue';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { useNotificationsStore } from '@/stores/notifications';
+import { BrandSettings } from '@/types/onetime';
+import api from '@/utils/api';
+import { shouldUseLightText } from '@/utils/colorUtils';
 import { Icon } from '@iconify/vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { useNotificationsStore } from '@/stores/notifications';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { BrandSettings } from '@/types/onetime';
-import { shouldUseLightText } from '@/utils/colorUtils';
-import api from '@/utils/api';
-import SecretPreview from '@/components/account/SecretPreview.vue';
-import CycleButton from '@/components/common/CycleButton.vue';
 
 const route = useRoute();
 const notifications = useNotificationsStore();
@@ -280,7 +303,6 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const success = ref<string | null>(null);
 const isSubmitting = ref(false);
-const showTooltip = ref(false);
 
 const fontOptions = ['sans-serif', 'serif', 'monospace'];
 const fontDisplayMap = {
@@ -456,8 +478,40 @@ watch(() => brandSettings.value.primary_color, (newColor) => {
   }
 }, { immediate: true });
 
+
+
+import { useEventListener } from '@vueuse/core';
+import { nextTick } from 'vue';
+
+const isInstructionsOpen = ref(false);
+const tooltipShow = ref(false);
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+
+// Character count
+const characterCount = computed(() =>
+  brandSettings.value.instructions_pre_reveal?.length ?? 0
+);
+
+// Close on click outside
+useEventListener(document, 'click', (e) => {
+  const target = e.target as HTMLElement;
+  if (!target.closest('.relative') && isInstructionsOpen.value) {
+    isInstructionsOpen.value = false;
+  }
+}, { capture: true });
+
+// Focus textarea when opening
+watch(isInstructionsOpen, (newValue) => {
+  if (newValue && textareaRef.value) {
+    nextTick(() => {
+      textareaRef.value?.focus();
+    });
+  }
+});
+
+
 // Fetch brand settings on component mount
-onMounted(fetchBrandSettings);
+onMounted(fetchBrandSettings); // Todo: move to router
 </script>
 
 <style>
