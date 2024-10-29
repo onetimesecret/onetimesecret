@@ -11,22 +11,26 @@
 
 
 
-    <!-- Description -->
+    <!-- Instructions -->
     <div class="space-y-2">
-      <label for="description"
+      <label for="instructions_pre_reveal"
              class="block text-sm font-medium text-gray-700 dark:text-gray-200">
-        Description
+        Instructions
+
+
+            <Icon icon="mdi:information-outline" class="inline ml-1 mb-1 text-base" />
+
       </label>
-      <textarea id="description"
-                v-model="formData.description"
-                name="brand[description]"
+      <textarea id="instructions_pre_reveal"
+                v-model="formData.instructions_pre_reveal"
+                name="brand[instructions_pre_reveal]"
                 rows="3"
                 class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                placeholder="Enter a brief description of your brand"></textarea>
+                placeholder="Instructions for link recipients after they click the link"></textarea>
     </div>
 
-    <!-- Font Family -->
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <!-- Font Family -->
       <CycleButton
         v-model="formData.font_family"
         :options="fontOptions"
@@ -86,6 +90,7 @@ import { useCsrfStore } from '@/stores/csrfStore';
 import { BrandSettings } from '@/types/onetime';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { Icon } from '@iconify/vue';
 
 const route = useRoute();
 const domainId = route.params.domain as string;
