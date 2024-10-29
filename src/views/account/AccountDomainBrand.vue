@@ -21,7 +21,16 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Preview Section -->
       <div class="relative mb-12">
-        <BrowserPreviewFrame :domain="domainId">
+        <!-- Browser Type Toggle -->
+        <BrowserTypeToggle
+          v-model="selectedBrowserType"
+          class="mb-6"
+        />
+
+        <BrowserPreviewFrame
+          :domain="domainId"
+          :browser-type="selectedBrowserType"
+        >
           <SecretPreview
             v-if="!loading && !error"
             ref="secretPreview"
@@ -57,10 +66,13 @@ import DomainHeader from '@/components/account/DomainHeader.vue';
 import InstructionsModal from '@/components/account/InstructionsModal.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import BrowserTypeToggle from '@/components/account/BrowserTypeToggle.vue'
 
 const route = useRoute();
 const notifications = useNotificationsStore();
 const csrfStore = useCsrfStore();
+
+const selectedBrowserType = ref<'safari' | 'edge'>('edge');
 
 const props = defineProps<{
   domain?: string;
