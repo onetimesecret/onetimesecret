@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import type { BrandSettings } from 'types/onetime';
+import type { BrandSettings } from '@/types/onetime';
 import CycleButton from '../common/CycleButton.vue';
 import ColorPicker from '@/components/common/ColorPicker.vue';
 
