@@ -134,3 +134,4 @@ const statusConfig = computed(() => {
  * @prop {boolean} [autoDismiss=true] - Whether to auto-dismiss after duration
  * @prop {number} [duration=5000] - Time in ms before auto-dismiss
  */
+</script>

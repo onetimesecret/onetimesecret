@@ -74,31 +74,32 @@
     <!-- Secret Content Area -->
     <div class="mt-4 mb-4">
 
-        <textarea v-if="isRevealed"
-                  readonly
-                  class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-3 font-mono text-sm border border-gray-200 dark:border-gray-600"
-                  rows="3"
-                  :class="{
-                    'rounded-md': brandSettings.button_style === 'rounded',
-                    'rounded-xl': brandSettings.button_style === 'pill',
-                    'rounded-none': brandSettings.button_style === 'square'
-                  }"
-                  :style="{ fontFamily: 'monospace' }"
-                  aria-label="Sample secret content">Sample secret content
+      <textarea v-if="isRevealed"
+                readonly
+                class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-3 font-mono text-sm border border-gray-200 dark:border-gray-600"
+                rows="3"
+                :class="{
+                  'rounded-md': brandSettings.button_style === 'rounded',
+                  'rounded-xl': brandSettings.button_style === 'pill',
+                  'rounded-none': brandSettings.button_style === 'square'
+                }"
+                :style="{ fontFamily: 'monospace' }"
+                aria-label="Sample secret content">Sample secret content
 This could be sensitive data
 Or a multi-line message</textarea>
-        <div v-else
-             class="w-full h-[86px] bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
-             :class="{
-               'rounded-md': brandSettings.button_style === 'rounded',
-               'rounded-xl': brandSettings.button_style === 'pill',
-               'rounded-none': brandSettings.button_style === 'square'
-             }">
-          <div class="text-gray-400 dark:text-gray-500 flex items-center">
-            <Icon icon="mdi:eye-off" class="w-5 h-5 mr-2" />
-            <span class="text-sm">Content hidden</span>
-          </div>
+      <div v-else
+           class="w-full h-[86px] bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+           :class="{
+            'rounded-md': brandSettings.button_style === 'rounded',
+            'rounded-xl': brandSettings.button_style === 'pill',
+            'rounded-none': brandSettings.button_style === 'square'
+          }">
+        <div class="text-gray-400 dark:text-gray-500 flex items-center">
+          <Icon icon="mdi:eye-off"
+                class="w-5 h-5 mr-2" />
+          <span class="text-sm">Content hidden</span>
         </div>
+      </div>
 
     </div>
 
