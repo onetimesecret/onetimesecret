@@ -97,11 +97,20 @@
     <div class="p-6 bg-white dark:bg-gray-800">
       <slot></slot>
     </div>
+      <!-- Updated spacing for informative text -->
+      <div class="px-6 pb-2 pt-6">
+      <div class="flex items-center gap-3 p-3 italic bg-gray-50 dark:bg-gray-900 rounded-lg text-sm text-gray-600 dark:text-gray-400">
+        <Icon icon="mdi:information-outline" class="flex-shrink-0 w-5 h-5" />
+        <p>This preview shows what recipients see when they click a secret link.</p>
+      </div>
+    </div>
   </div>
 </template>
 
 
 <script setup lang="ts">
+import { Icon } from '@iconify/vue';
+
 interface Props {
   domain: string;
   browserType?: 'safari' | 'edge';

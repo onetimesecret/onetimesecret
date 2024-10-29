@@ -117,7 +117,6 @@ Or a multi-line message</textarea>
 
     </div>
 
-
     <button class="w-full py-2 px-4 text-white text-sm transition-colors"
             :class="{
               'rounded-lg': brandSettings.corner_style === 'rounded',
@@ -142,7 +141,7 @@ Or a multi-line message</textarea>
           <Icon icon="mdi:alert-circle-outline"
                 class="mr-1"
                 aria-hidden="true" />
-                    This message will only be shown once.
+          This message will only be shown once.
         </span>
       </div>
     </div>
