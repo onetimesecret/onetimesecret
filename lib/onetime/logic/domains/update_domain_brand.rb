@@ -17,6 +17,8 @@ module Onetime::Logic
         OT.ld "[UpdateDomainBrand] Raising any concerns about domain_id: #{@domain_id}"
 
         raise_form_error "Please provide a domain ID" if @domain_id.nil? || @domain_id.empty?
+        @custom_domain = OT::CustomDomain.load(@domain_id, @cust.custid)
+        raise_form_error "Domain not found" unless custom_domain && custom_domain.exists?
         raise_form_error "Please provide brand settings" if @brand_settings.nil? || !@brand_settings.is_a?(Hash)
 
         limit_action :update_domain_brand
@@ -32,15 +34,12 @@ module Onetime::Logic
         if @brand_settings[:corner_style]
           raise_form_error "Invalid button style" unless valid_corner_style?(@brand_settings[:corner_style])
         end
-
-        # You might want to add a check here to ensure the domain exists
-        # raise_form_error "Domain not found" unless OT::CustomDomain.exists?(@domain_id)
       end
 
       def process
         @greenlighted = true
 
-        @custom_domain = OT::CustomDomain.load(@domain_id, @cust.custid)
+
         return error("Custom domain not found") unless @custom_domain
 
         update_brand_settings
