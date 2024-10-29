@@ -11,10 +11,10 @@
           <img v-if="brandSettings.image_encoded"
                :src="`data:${brandSettings.image_content_type};base64,${brandSettings.image_encoded}`"
                :class="{
-              'rounded-lg': brandSettings.button_style === 'rounded',
-              'rounded-full': brandSettings.button_style === 'pill',
-              'rounded-none': brandSettings.button_style === 'square'
-            }"
+                'rounded-lg': brandSettings.button_style === 'rounded',
+                'rounded-full': brandSettings.button_style === 'pill',
+                'rounded-none': brandSettings.button_style === 'square'
+              }"
                alt="Brand logo"
                class="w-full h-full object-cover">
           <svg v-else
@@ -74,10 +74,10 @@
                 class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-3 font-mono text-sm border border-gray-200 dark:border-gray-600"
                 rows="3"
                 :class="{
-              'rounded-md': brandSettings.button_style === 'rounded',
-              'rounded-xl': brandSettings.button_style === 'pill',
-              'rounded-none': brandSettings.button_style === 'square'
-            }"
+                  'rounded-md': brandSettings.button_style === 'rounded',
+                  'rounded-xl': brandSettings.button_style === 'pill',
+                  'rounded-none': brandSettings.button_style === 'square'
+                }"
                 :style="{ fontFamily: 'monospace' }"
                 aria-label="Sample secret content">Sample secret content
 This could be sensitive data
@@ -99,16 +99,16 @@ Or a multi-line message</textarea>
       View Secret
     </button>
     <div class="flex justify-between items-baseline p-6">
-    <div class="text-sm text-gray-600 dark:text-gray-400">
-          <span class="inline-flex items-center">
-            <Icon icon="mdi:information-outline"
-                  class="mr-1"
-                  aria-hidden="true" />
-            Logo should be square, at least 128x128px, with a max size of 2MB.
-          </span>
-          <div class="mt-1">Supported formats: PNG, JPG, SVG</div>
-        </div>
-  </div></div>
+      <div class="text-sm text-gray-600 dark:text-gray-400">
+        <span class="inline-flex items-center">
+          <Icon icon="mdi:alert-circle-outline"
+                class="mr-1"
+                aria-hidden="true" />
+          We will only display this message once.
+        </span>
+      </div>
+    </div>
+  </div>
 </template>
 
 
