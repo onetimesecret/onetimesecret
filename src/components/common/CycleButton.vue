@@ -1,13 +1,14 @@
 <template>
   <button type="button"
-          @click="cycleValue"
-          class="group relative inline-flex items-center gap-2 rounded-lg p-3
-           bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
-           shadow-sm ring-1 ring-gray-200 dark:ring-gray-700
-           transition-all duration-200 ease-in-out
-           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-           dark:focus:ring-offset-gray-900"
-          :aria-label="`Current ${label}: ${modelValue}. Click to cycle through options.`">
+        @click="cycleValue"
+        class="group relative inline-flex items-center gap-2 rounded-lg px-4 h-11
+         bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
+         shadow-sm ring-1 ring-gray-200 dark:ring-gray-700
+         transition-all duration-200 ease-in-out
+         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+         dark:focus:ring-offset-gray-900"
+        :aria-label="`Current ${label}: ${modelValue}. Click to cycle through options.`">
+
     <!-- Icon for current value -->
     <div class="relative h-5 w-5 text-gray-700 dark:text-gray-200">
       <Icon :icon="getCurrentIcon"
