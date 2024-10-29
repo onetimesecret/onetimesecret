@@ -116,7 +116,7 @@
               <Icon v-else
                     icon="mdi:content-save"
                     class="-ml-1 mr-2 h-4 w-4" />
-              {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+              {{ isSubmitting ? 'Save' : 'Save' }}
             </button>
           </form>
         </div>
@@ -128,7 +128,7 @@
       <!-- Preview Section -->
       <div class="relative mb-12">
         <!-- Preview Badge -->
-        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10 opacity-60">
+        <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 z-10 opacity-60">
           <span
                 class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium bg-brandcomp-100 dark:bg-brandcomp-900 text-brand-800 dark:text-brandcomp-200 shadow-sm">
             <svg class="w-4 h-4 mr-1.5"
@@ -338,7 +338,15 @@ const fetchBrandSettings = async () => {
 
 // Update brand settings
 const updateBrandSettings = (newSettings: BrandSettings, showSuccessMessage: boolean = true) => {
-  brandSettings.value = newSettings;
+  // Calculate button text color based on primary color before updating settings
+  const textLight = shouldUseLightText(newSettings.primary_color);
+
+  // Update settings with the correct button_text_light value
+  brandSettings.value = {
+    ...newSettings,
+    button_text_light: textLight
+  };
+
   if (showSuccessMessage) {
     success.value = 'Brand settings updated successfully';
   } else {
