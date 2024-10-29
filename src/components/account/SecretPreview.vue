@@ -72,15 +72,13 @@
               }">
             You have a message
           </h3>
-          <p class="text-gray-600 dark:text-gray-400 text-sm italic leading-normal"
-             :style="{
-              fontFamily: brandSettings.font_family,
-              lineHeight: '1.5'
-            }">
-            {{ isRevealed
-              ? (brandSettings.instructions_post_reveal || 'Your secure message is shown below.')
-              : (brandSettings.instructions_pre_reveal || 'Click the button below to reveal your secure message.') }}
-          </p>
+          <p class="text-gray-600 dark:text-gray-400 text-sm leading-normal"
+     :style="{
+       fontFamily: brandSettings.font_family,
+       lineHeight: '1.5'
+     }">
+    {{ getInstructions(isRevealed) }}
+  </p>
         </div>
       </div>
     </div>
@@ -165,6 +163,16 @@ const props = defineProps<{
 
 const logoInput = ref<HTMLInputElement | null>(null);
 const isRevealed = ref(false);
+
+const DEFAULT_PRE_REVEAL = 'Click the button below to reveal your secure message.';
+const DEFAULT_POST_REVEAL = 'Your secure message is shown below.';
+
+const getInstructions = (revealed: boolean): string => {
+  if (revealed) {
+    return props.brandSettings.instructions_post_reveal?.trim() || DEFAULT_POST_REVEAL;
+  }
+  return props.brandSettings.instructions_pre_reveal?.trim() || DEFAULT_PRE_REVEAL;
+};
 
 
 const handleLogoChange = (event: Event) => {

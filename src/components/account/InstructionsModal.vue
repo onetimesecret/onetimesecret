@@ -63,6 +63,7 @@
           </label>
           <textarea :value="modelValue"
                     @input="updateValue"
+                    @keydown="handleKeydown"
                     ref="textareaRef"
                     rows="3"
                     class="w-full
@@ -89,7 +90,8 @@
 
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+
 import { Icon } from '@iconify/vue';
 import { useEventListener } from '@vueuse/core';
 
@@ -103,6 +105,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
+  (e: 'save'): void;
 }>();
 
 const isOpen = ref(false);
@@ -123,6 +126,42 @@ const toggleOpen = () => {
 const close = () => {
   isOpen.value = false;
 };
+
+// Handle ESC key press globally
+const handleEscPress = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isOpen.value) {
+    close();
+  }
+};
+const handleKeydown = (e: KeyboardEvent) => {
+  // Close on escape
+  if (e.key === 'Escape') {
+    close();
+    return;
+  }
+
+  // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    emit('save');
+    close();
+  }
+};
+onMounted(() => {
+  document.addEventListener('keydown', handleEscPress);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscPress);
+});
+
+// Close on click outside - replace existing useEventListener
+useEventListener(document, 'click', (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+  const modalEl = textareaRef.value?.closest('.relative');
+  if (modalEl && !modalEl.contains(target) && isOpen.value) {
+    close();
+  }
+}, { capture: true });
 
 // Close on click outside
 useEventListener(document, 'click', (e) => {
