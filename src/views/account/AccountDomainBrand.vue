@@ -1,30 +1,72 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <DashboardTabNav class="mb-8" />
-
-    <!-- Main Container -->
-    <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-        <!-- Preview Section -->
-        <div class="p-8">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
-            Link Preview
-          </h2>
-          <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
-            <SecretPreview
-              v-if="!loading && !error"
-              ref="secretPreview"
-              :brandSettings="brandSettings"
-              :onLogoUpload="handleLogoUpload"
-              :onLogoRemove="removeLogo"
-              secretKey="abcd"
-              class="transform transition-all duration-200 hover:scale-[1.02]"
-            />
-          </div>
+    <!-- Header Section -->
+    <div class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center space-x-4">
+          <RouterLink
+            to="/account/domains"
+            class="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            aria-label="Return to domains list"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Domains
+          </RouterLink>
         </div>
 
-        <!-- Settings Section -->
-        <div class="border-t border-gray-200 dark:border-gray-700 p-8">
+        <div class="mt-4 flex items-baseline justify-between">
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            {{ domainId }}
+          </h1>
+          <span
+            class="px-3 py-1 text-sm rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100"
+            role="status"
+          >
+            Custom Domain
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Section - Full Width -->
+    <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+          Link Preview
+        </h2>
+        <div
+          class="bg-gray-50 dark:bg-gray-900 rounded-xl p-8 shadow-inner"
+          role="region"
+          aria-label="Secret link preview"
+        >
+          <SecretPreview
+            v-if="!loading && !error"
+            ref="secretPreview"
+            :brandSettings="brandSettings"
+            :onLogoUpload="handleLogoUpload"
+            :onLogoRemove="removeLogo"
+            secretKey="abcd"
+            class="transform transition-all duration-200 hover:scale-[1.02]"
+          />
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+        <div class="p-8">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
             Brand Settings
           </h2>
@@ -43,13 +85,14 @@
                 <div
                   class="absolute -right-2 -top-2 w-4 h-4 rounded-full"
                   :style="{ backgroundColor: brandSettings.primary_color }"
+                  aria-hidden="true"
                 ></div>
               </div>
               <input
                 type="text"
                 v-model="brandSettings.primary_color"
                 name="brand[primary_color]"
-                class="flex-1 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700 text-sm"
+                class="flex-1 max-w-xs px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 dark:bg-gray-700 text-sm"
                 aria-label="Brand color hex value"
               >
             </div>
@@ -64,23 +107,31 @@
             />
           </div>
         </div>
-
-
       </div>
     </div>
+
+    <!-- Loading State -->
+    <div
+      v-if="loading"
+      class="fixed inset-0 bg-gray-900/50 dark:bg-gray-900/70 flex items-center justify-center"
+      role="alert"
+      aria-busy="true"
+    >
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-xl">
+        <div class="animate-spin w-8 h-8 border-4 border-gray-300 dark:border-gray-600 border-t-blue-600 rounded-full"></div>
+      </div>
+    </div>
+
   </div>
 </template>
-
-
 
 <script setup lang="ts">
 import AccountDomainBrandForm from '@/components/account/AccountDomainBrandForm.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import { BrandSettings } from '@/types/onetime';
+import api from '@/utils/api';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import api from '@/utils/api';
 
 const route = useRoute();
 
