@@ -53,36 +53,55 @@
           <h3 class="text-gray-900 dark:text-gray-200 font-medium mb-2 leading-normal"
               :style="{
                 fontFamily: brandSettings.font_family,
-                lineHeight: '1.5' // Consistent line height
+                lineHeight: '1.5'
               }">
             You have a message
           </h3>
           <p class="text-gray-600 dark:text-gray-400 text-sm italic leading-normal"
              :style="{
               fontFamily: brandSettings.font_family,
-              lineHeight: '1.5' // Consistent line height
+              lineHeight: '1.5'
             }">
-            {{ brandSettings.instructions_pre_reveal || 'Click the button below to reveal your secure message.' }}
+            {{ isRevealed
+              ? (brandSettings.instructions_post_reveal || 'Your secure message is shown below.')
+              : (brandSettings.instructions_pre_reveal || 'Click the button below to reveal your secure message.') }}
           </p>
         </div>
       </div>
     </div>
 
-    <!-- Sample Secret Content -->
+
+    <!-- Secret Content Area -->
     <div class="mt-4 mb-4">
-      <textarea readonly
-                class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-3 font-mono text-sm border border-gray-200 dark:border-gray-600"
-                rows="3"
-                :class="{
-                  'rounded-md': brandSettings.button_style === 'rounded',
-                  'rounded-xl': brandSettings.button_style === 'pill',
-                  'rounded-none': brandSettings.button_style === 'square'
-                }"
-                :style="{ fontFamily: 'monospace' }"
-                aria-label="Sample secret content">Sample secret content
+
+        <textarea v-if="isRevealed"
+                  readonly
+                  class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-3 font-mono text-sm border border-gray-200 dark:border-gray-600"
+                  rows="3"
+                  :class="{
+                    'rounded-md': brandSettings.button_style === 'rounded',
+                    'rounded-xl': brandSettings.button_style === 'pill',
+                    'rounded-none': brandSettings.button_style === 'square'
+                  }"
+                  :style="{ fontFamily: 'monospace' }"
+                  aria-label="Sample secret content">Sample secret content
 This could be sensitive data
 Or a multi-line message</textarea>
+        <div v-else
+             class="w-full h-[86px] bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+             :class="{
+               'rounded-md': brandSettings.button_style === 'rounded',
+               'rounded-xl': brandSettings.button_style === 'pill',
+               'rounded-none': brandSettings.button_style === 'square'
+             }">
+          <div class="text-gray-400 dark:text-gray-500 flex items-center">
+            <Icon icon="mdi:eye-off" class="w-5 h-5 mr-2" />
+            <span class="text-sm">Content hidden</span>
+          </div>
+        </div>
+
     </div>
+
 
     <button class="w-full py-2 px-4 text-white text-sm transition-colors"
             :class="{
@@ -95,9 +114,11 @@ Or a multi-line message</textarea>
               color: brandSettings.button_text_light ? '#ffffff' : '#000000',
               fontFamily: brandSettings.font_family
             }"
-            aria-label="View secret message">
-      View Secret
+            @click="toggleReveal"
+            :aria-label="isRevealed ? 'Hide secret message' : 'View secret message'">
+      {{ isRevealed ? 'Hide Secret' : 'View Secret' }}
     </button>
+
     <div class="flex justify-between items-baseline p-6">
       <div class="text-sm text-gray-600 dark:text-gray-400">
         <span class="inline-flex items-center">
@@ -127,6 +148,8 @@ const props = defineProps<{
 }>();
 
 const logoInput = ref<HTMLInputElement | null>(null);
+const isRevealed = ref(false);
+
 
 const handleLogoChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
@@ -135,6 +158,10 @@ const handleLogoChange = (event: Event) => {
     props.onLogoUpload(file);
   }
   input.value = '';
+};
+
+const toggleReveal = () => {
+  isRevealed.value = !isRevealed.value;
 };
 </script>
 
