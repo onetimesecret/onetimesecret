@@ -57,11 +57,23 @@ module Onetime::Logic
 
       # Update the brand settings for the custom domain
       def update_brand_settings
-        valid_keys = [:primary_color, :description, :font_family, :corner_style]
+        valid_keys = [
+          :logo,
+          :image_encoded,
+          :image_content_type,
+          :image_filename,
+          :primary_color,
+          :instructions_pre_reveal,
+          :instructions_reveal,
+          :instructions_post_reveal,
+          :button_text_light,
+          :font_family,
+          :corner_style
+        ]
         @brand_settings.each do |key, value|
-          if valid_keys.include?(key.to_sym)
-            @custom_domain.brand[key.to_s] = value
-          end
+          next unless valid_keys.include?(key.to_sym)
+          OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
+          @custom_domain.brand[key.to_s] = value.to_s
         end
         @custom_domain.updated = Time.now.to_i
         @custom_domain.save
