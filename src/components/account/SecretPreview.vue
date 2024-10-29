@@ -29,7 +29,6 @@
           </svg>
         </div>
 
-
         <!-- Hidden file input -->
         <input ref="logoInput"
                type="file"

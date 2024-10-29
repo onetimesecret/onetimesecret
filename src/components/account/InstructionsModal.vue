@@ -2,7 +2,17 @@
   <div class="relative">
     <button type="button"
             @click="toggleOpen"
-            class="inline-flex items-center px-4 py-2.5 h-11 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+            class="inline-flex items-center
+                   px-4 py-2.5 h-11
+                   border border-gray-200 rounded-lg shadow-sm
+                   text-sm text-gray-700
+                   bg-white
+                   dark:border-gray-600 dark:text-gray-200 dark:bg-gray-800
+                   hover:bg-gray-50
+                   dark:hover:bg-gray-800
+                   transition-all duration-200 ease-in-out
+                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                 dark:focus:ring-offset-gray-900"
             :aria-expanded="isOpen"
             aria-haspopup="true">
 
@@ -22,16 +32,32 @@
                 leave-from-class="transform scale-100 opacity-100"
                 leave-to-class="transform scale-95 opacity-0">
       <div v-if="isOpen"
-           class="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+           class="absolute right-0 z-50
+                  w-96 mt-2
+                  rounded-lg shadow-lg
+                  bg-white
+                  dark:bg-gray-800
+                  ring-1 ring-black ring-opacity-5">
         <div class="p-4">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+          <label class="block
+                       mb-2
+                       text-sm font-medium text-gray-700
+                       dark:text-gray-200">
             Pre-reveal Instructions
             <Icon icon="mdi:help-circle"
-                  class="inline-block w-4 h-4 ml-1 text-gray-400"
+                  class="inline-block
+                         w-4 h-4 ml-1
+                         text-gray-400"
                   @mouseenter="tooltipShow = true"
                   @mouseleave="tooltipShow = false" />
             <div v-if="tooltipShow"
-                 class="absolute z-50 px-2 py-1 text-xs text-white bg-gray-900 dark:bg-gray-700 rounded shadow-lg max-w-xs">
+                 class="absolute z-50
+                        px-2 py-1
+                        max-w-xs
+                        rounded shadow-lg
+                        text-xs text-white
+                        bg-gray-900
+                        dark:bg-gray-700">
               These instructions will be shown to recipients before they reveal the secret content
             </div>
           </label>
@@ -39,11 +65,19 @@
                     @input="updateValue"
                     ref="textareaRef"
                     rows="3"
-                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50 dark:bg-gray-700 dark:text-white text-sm"
+                    class="w-full
+                           rounded-lg
+                           border-gray-300 shadow-sm
+                           text-sm
+                           dark:border-gray-600 dark:bg-gray-700 dark:text-white
+                           focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50"
                     placeholder="e.g. Use your phone to scan the QR code"
                     @keydown.esc="close"></textarea>
 
-          <div class="mt-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+          <div class="flex justify-between items-center
+                      mt-2
+                      text-xs text-gray-500
+                      dark:text-gray-400">
             <span>{{ characterCount }}/500 characters</span>
             <span>Press ESC to close</span>
           </div>
@@ -52,6 +86,7 @@
     </Transition>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue';

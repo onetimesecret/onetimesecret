@@ -28,7 +28,7 @@
             {{ domainId }}
           </h1>
           <span
-            class="px-3 py-1 text-sm rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+            class="px-3 py-1 text-sm rounded-md font-brand bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
             role="status">
             Custom Domain
           </span>
