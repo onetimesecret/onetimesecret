@@ -17,7 +17,7 @@
     </Component>
 
     <!-- StatusBar positioned independently -->
-    <StatusBar />
+    <StatusBar position="bottom" />
   </div>
 </template>
 

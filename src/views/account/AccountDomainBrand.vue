@@ -195,7 +195,7 @@ const submitForm = async () => {
         ...brandSettings.value, // Keep existing values
         ...response.data.record.brand // Override with response data
       }, true);
-      notifications.show('Brand settings saved successfully', 'success');
+      notifications.show('Brand settings saved successfully', 'success', 'top');
     } else {
       throw new Error(response.data.message || 'Failed to save brand settings');
     }
@@ -229,7 +229,7 @@ const handleLogoUpload = async (file: File) => {
 
     if (response.data.success) {
       updateBrandSettings(response.data.record.brand, true);
-      notifications.show('Logo uploaded successfully', 'success');
+      notifications.show('Logo uploaded successfully', 'success', 'top');
     } else {
       throw new Error(response.data.message || 'Failed to upload logo');
     }
