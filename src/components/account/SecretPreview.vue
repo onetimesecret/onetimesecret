@@ -5,7 +5,7 @@
       <!-- Logo Upload Area -->
       <div class="relative group">
         <div
-          class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden cursor-pointer"
+          class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden cursor-pointer"
           @click="$refs.logoInput.click()"
           role="button"
           aria-label="Upload logo"
@@ -64,7 +64,7 @@
           You have a message
         </h3>
         <p
-          class="text-gray-600 dark:text-gray-400 text-sm"
+          class="text-gray-600 dark:text-gray-400 text-sm italic"
           :style="{ fontFamily: brandSettings.font_family }"
         >
           {{ brandSettings.instructions_pre_reveal || 'Click the button below to reveal your secure message.' }}

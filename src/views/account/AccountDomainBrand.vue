@@ -36,20 +36,6 @@
     <!-- Preview Section - Full Width -->
     <div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-xl">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="flex justify-between items-baseline mb-6">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Link Preview
-          </h2>
-          <div class="text-sm text-gray-600 dark:text-gray-400">
-            <span class="inline-flex items-center">
-              <Icon icon="mdi:information-outline"
-                    class="mr-1"
-                    aria-hidden="true" />
-              Logo should be square, at least 200x200px, and less than 2MB
-            </span>
-            <div class="mt-1">Supported formats: PNG, JPG, SVG</div>
-          </div>
-        </div>
 
         <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-8 shadow-inner"
              role="region"
@@ -62,8 +48,18 @@
                          secretKey="abcd"
                          class="transform transition-all duration-200 hover:scale-[1.02]" />
         </div>
+        <div class="flex justify-between items-baseline mb-6">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          <span class="inline-flex items-center">
+            <Icon icon="mdi:information-outline"
+                  class="mr-1"
+                  aria-hidden="true" />
+            Logo should be square, at least 128x128px, with a max size of 2MB.
+          </span>
+          <div class="mt-1">Supported formats: PNG, JPG, SVG</div>
+        </div>
       </div>
-
+</div>
       <!-- Settings Section -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
         <div class="p-8">
