@@ -76,7 +76,7 @@
         <div class="p-6 space-y-8">
           <!-- Preview Section - Moved to top -->
           <div class="max-w-2xl mx-auto">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">Link Recipient Page</h2>
+            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">Link Preview</h2>
             <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
               <SecretPreview v-if="!loading && !error"
                            :brandSettings="brandSettings"
