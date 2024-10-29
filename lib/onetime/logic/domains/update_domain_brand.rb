@@ -14,7 +14,7 @@ module Onetime::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
-        OT.ld "[UpdateDomainBrand] Raising any concerns about domain_id: #{@domain_id}, brand_settings: #{@brand_settings}"
+        OT.ld "[UpdateDomainBrand] Raising any concerns about domain_id: #{@domain_id}"
 
         raise_form_error "Please provide a domain ID" if @domain_id.nil? || @domain_id.empty?
         raise_form_error "Please provide brand settings" if @brand_settings.nil? || !@brand_settings.is_a?(Hash)
@@ -29,8 +29,8 @@ module Onetime::Logic
           raise_form_error "Invalid font family" unless valid_font_family?(@brand_settings[:font_family])
         end
 
-        if @brand_settings[:button_style]
-          raise_form_error "Invalid button style" unless valid_button_style?(@brand_settings[:button_style])
+        if @brand_settings[:corner_style]
+          raise_form_error "Invalid button style" unless valid_corner_style?(@brand_settings[:corner_style])
         end
 
         # You might want to add a check here to ensure the domain exists
@@ -58,7 +58,7 @@ module Onetime::Logic
 
       # Update the brand settings for the custom domain
       def update_brand_settings
-        valid_keys = [:primary_color, :description, :font_family, :button_style]
+        valid_keys = [:primary_color, :description, :font_family, :corner_style]
         @brand_settings.each do |key, value|
           if valid_keys.include?(key.to_sym)
             @custom_domain.brand[key.to_s] = value
@@ -87,7 +87,7 @@ module Onetime::Logic
       end
 
       # Validate button style
-      def valid_button_style?(style)
+      def valid_corner_style?(style)
         %w[rounded square pill].include?(style)
       end
     end

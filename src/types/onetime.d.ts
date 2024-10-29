@@ -25,7 +25,7 @@ export interface BrandSettings {
   instructions_post_reveal: string;
   button_text_light: boolean;
   font_family: string;
-  button_style: string;
+  corner_style: string;
 }
 
 // Define the customer model

@@ -11,9 +11,9 @@
           <img v-if="brandSettings.image_encoded"
                :src="`data:${brandSettings.image_content_type};base64,${brandSettings.image_encoded}`"
                :class="{
-                'rounded-lg': brandSettings.button_style === 'rounded',
-                'rounded-full': brandSettings.button_style === 'pill',
-                'rounded-none': brandSettings.button_style === 'square'
+                'rounded-lg': brandSettings.corner_style === 'rounded',
+                'rounded-full': brandSettings.corner_style === 'pill',
+                'rounded-none': brandSettings.corner_style === 'square'
               }"
                alt="Brand logo"
                class="w-full h-full object-cover">
@@ -79,9 +79,9 @@
                 class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 p-3 font-mono text-sm border border-gray-200 dark:border-gray-600"
                 rows="3"
                 :class="{
-                  'rounded-md': brandSettings.button_style === 'rounded',
-                  'rounded-xl': brandSettings.button_style === 'pill',
-                  'rounded-none': brandSettings.button_style === 'square'
+                  'rounded-md': brandSettings.corner_style === 'rounded',
+                  'rounded-xl': brandSettings.corner_style === 'pill',
+                  'rounded-none': brandSettings.corner_style === 'square'
                 }"
                 :style="{ fontFamily: 'monospace' }"
                 aria-label="Sample secret content">Sample secret content
@@ -90,9 +90,9 @@ Or a multi-line message</textarea>
       <div v-else
            class="w-full h-[86px] bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
            :class="{
-            'rounded-md': brandSettings.button_style === 'rounded',
-            'rounded-xl': brandSettings.button_style === 'pill',
-            'rounded-none': brandSettings.button_style === 'square'
+            'rounded-md': brandSettings.corner_style === 'rounded',
+            'rounded-xl': brandSettings.corner_style === 'pill',
+            'rounded-none': brandSettings.corner_style === 'square'
           }">
         <div class="text-gray-400 dark:text-gray-500 flex items-center">
           <Icon icon="mdi:eye-off"
@@ -106,9 +106,9 @@ Or a multi-line message</textarea>
 
     <button class="w-full py-2 px-4 text-white text-sm transition-colors"
             :class="{
-              'rounded-lg': brandSettings.button_style === 'rounded',
-              'rounded-full': brandSettings.button_style === 'pill',
-              'rounded-none': brandSettings.button_style === 'square'
+              'rounded-lg': brandSettings.corner_style === 'rounded',
+              'rounded-full': brandSettings.corner_style === 'pill',
+              'rounded-none': brandSettings.corner_style === 'square'
             }"
             :style="{
               backgroundColor: brandSettings.primary_color,

@@ -63,7 +63,7 @@
 
     <!-- Button Style -->
     <div class="relative">
-      <CycleButton v-model="formData.button_style"
+      <CycleButton v-model="formData.corner_style"
                    :options="buttonStyleOptions"
                    label="Button Style"
                    :display-map="buttonStyleDisplayMap"
