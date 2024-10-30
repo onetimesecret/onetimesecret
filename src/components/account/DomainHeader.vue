@@ -1,6 +1,7 @@
 <template>
   <div class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <!-- Back button section -->
       <div class="flex items-center space-x-4">
         <RouterLink
           to="/account/domains"
@@ -21,19 +22,23 @@
           Back to Domains
         </RouterLink>
       </div>
+      <!-- Title section - make text smaller on mobile -->
       <div class="mt-4 flex flex-col gap-1">
-    <div class="flex items-baseline justify-between">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white flex items-center"> <!-- Add flex items-center here -->
-        <span>{{ domainId }}</span>
-        <DomainVerificationInfo v-if="domain" mode="icon" :domain="domain" class="ml-2" /> <!-- Added ml-2 for spacing -->
-      </h1>
-      <span
-        class="px-3 py-1 text-xs rounded-md font-brand bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
-        role="status">
-        Custom Domain
-      </span>
-    </div>
-  </div>
+        <div class="flex items-baseline justify-between flex-wrap gap-2">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+            <span class="break-all">{{ domainId }}</span>
+
+            <DomainVerificationInfo v-if="domain" mode="icon" :domain="domain" class="ml-2" /> <!-- Added ml-2 for spacing -->
+          </h1>
+          <span
+            class="px-3 py-1 text-xs rounded-md font-brand bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+            role="status">
+            Custom Domain
+          </span>
+        </div>
+
+      </div>
+
     </div>
   </div>
 </template>
