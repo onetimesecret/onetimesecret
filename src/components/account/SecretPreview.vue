@@ -33,7 +33,7 @@
         <!-- Help text -->
         <div id="logoHelp"
              class="sr-only">
-          Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 2MB. Supported formats: PNG, JPG,
+          Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG,
           SVG
         </div>
 

@@ -33,7 +33,7 @@ module Onetime::Logic
 
         # Validate the logo file
         if @logo_file
-          raise_form_error "Logo file is too large" if @logo_file.size > 10 * 1024 * 1024  # 5 MB
+          raise_form_error "Logo file is too large" if @logo_file.size > 1 * 1024 * 1024  # 1 MB
           # Raise an error if the file type is not one of the allowed image types
           # Allowed types: JPEG, PNG, GIF, SVG, WEBP, BMP, TIFF
           raise_form_error "Invalid file type" unless ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp', 'image/bmp', 'image/tiff'].include?(@logo_content_type)
