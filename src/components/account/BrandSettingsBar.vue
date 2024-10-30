@@ -15,7 +15,7 @@
                      @update:model-value="updateBrandSetting('primary_color', $event)" />
 
 
-        <div class="hidden sm:inline">
+        <div class="hidden sm:inline-flex items-center gap-2">
           <!-- Font Family -->
           <CycleButton :modelValue="modelValue.font_family"
                        @update:modelValue="updateFont"
@@ -32,6 +32,7 @@
                        :display-map="cornerStyleDisplayMap"
                        :icon-map="cornerStyleIconMap" />
         </div>
+
         <slot name="instructions-button"></slot>
 
         <!-- Spacer -->
@@ -48,7 +49,7 @@
           <Icon v-else
                 icon="mdi:content-save"
                 class="-ml-1 mr-2 h-4 w-4" />
-          {{ isSubmitting ? 'Saving...' : 'Save' }}
+          {{ isSubmitting ? 'Save' : 'Save' }}
         </button>
       </form>
     </div>
