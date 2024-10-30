@@ -1,20 +1,24 @@
 <template>
+  <div>
+    <!-- Dynamic Component: The <component> element is a built-in Vue
+        component that allows you to dynamically render different components.
+        :is Binding: The :is attribute is bound to the layout computed
+        property. This binding determines which component should be rendered.
+        This approach allows for flexible layout management in a Vue
+        application, where you can easily switch between different layouts
+        (like DefaultLayout and QuietLayout) based on the requirements of
+        each route, without having to manually manage this in each individual
+        page component. -->
+    <Component :is="layout"
+              :lang="locale"
+              v-bind="layoutProps">
+      <!-- See QuietLayout.vue for named views -->
+      <router-view class="rounded-md"></router-view>
+    </Component>
 
-  <!-- Dynamic Component: The <component> element is a built-in Vue
-       component that allows you to dynamically render different components.
-       :is Binding: The :is attribute is bound to the layout computed
-       property. This binding determines which component should be rendered.
-       This approach allows for flexible layout management in a Vue
-       application, where you can easily switch between different layouts
-       (like DefaultLayout and QuietLayout) based on the requirements of
-       each route, without having to manually manage this in each individual
-       page component. -->
-  <Component :is="layout"
-             :lang="locale"
-             v-bind="layoutProps">
-    <!-- See QuietLayout.vue for named views -->
-    <router-view class="rounded-md"></router-view>
-  </component>
+    <!-- StatusBar positioned independently -->
+    <StatusBar position="bottom" />
+  </div>
 </template>
 
 <!-- App-wide setup lives here -->
@@ -24,6 +28,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router'
 import { useWindowProps } from '@/composables/useWindowProps';
 import QuietLayout from '@/layouts/QuietLayout.vue'
+import StatusBar from './components/StatusBar.vue';
 
 const { locale } = useI18n();
 const route = useRoute()

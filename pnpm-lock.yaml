@@ -32,6 +32,9 @@ importers:
       focus-trap:
         specifier: ^7.6.0
         version: 7.6.0
+      focus-trap-vue:
+        specifier: ^4.0.3
+        version: 4.0.3(focus-trap@7.6.0)(vue@3.5.11(typescript@5.6.2))
       pinia:
         specifier: ^2.2.4
         version: 2.2.4(typescript@5.6.2)(vue@3.5.11(typescript@5.6.2))
@@ -1396,6 +1399,12 @@ packages:
 
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
+
+  focus-trap-vue@4.0.3:
+    resolution: {integrity: sha512-cIX5rybkCAlNZ4IHYJ3nCFIsipDDljJHHjtTO2IgYWkVYg7X9ipUVdab3HzYp88kmHgMwjcB71LYnXRRsF6ZqQ==}
+    peerDependencies:
+      focus-trap: ^7.0.0
+      vue: ^3.0.0
 
   focus-trap@7.6.0:
     resolution: {integrity: sha512-1td0l3pMkWJLFipobUcGaf+5DTY4PLDDrcqoSaKP8ediO/CoWCCYk/fT/Y2A4e6TNB+Sh6clRJCjOPPnKoNHnQ==}
@@ -3849,6 +3858,11 @@ snapshots:
       rimraf: 3.0.2
 
   flatted@3.3.1: {}
+
+  focus-trap-vue@4.0.3(focus-trap@7.6.0)(vue@3.5.11(typescript@5.6.2)):
+    dependencies:
+      focus-trap: 7.6.0
+      vue: 3.5.11(typescript@5.6.2)
 
   focus-trap@7.6.0:
     dependencies:

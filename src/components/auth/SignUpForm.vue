@@ -128,7 +128,7 @@
                      bg-brand-600 hover:bg-brand-700
                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
-        Sign up
+        Create account
       </button>
     </div>
 

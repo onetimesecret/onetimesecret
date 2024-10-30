@@ -1,7 +1,5 @@
 <template>
   <div>
-    <BasicFormAlerts :success="success"
-                     :error="error" />
 
     <div v-if="details?.is_destroyed"
         class="px-4 py-3 rounded relative border
@@ -83,15 +81,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import type { MetadataData, MetadataDataApiResponse } from '@/types/onetime'
-import { useFetchDataRecord } from '@/composables/useFetchData'
+import { useFetchDataRecord } from '@/composables/useFetchData';
+import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { useRouter } from 'vue-router'
-import { useFormSubmission } from '@/composables/useFormSubmission'
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
+import { useNotificationsStore } from '@/stores/notifications';
+import type { MetadataData, MetadataDataApiResponse } from '@/types/onetime';
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 
 const csrfStore = useCsrfStore();
+const notifications = useNotificationsStore();
 
 // This prop is passed from vue-router b/c the route has `prop: true`.
 interface Props {
@@ -109,24 +108,23 @@ const router = useRouter();
 
 const {
   isSubmitting,
-  error,
-  success,
   submitForm
 } = useFormSubmission({
   url: `/api/v2/private/${props.metadataKey}/burn`,
   successMessage: '',
   onSuccess: (data: MetadataDataApiResponse) => {
-    // Use router to redirect to the private metadata page
+    notifications.show('Secret burned successfully', 'success');
     router.push({
       name: 'Metadata link',
       params: { metadataKey: data.record.key },
-    })
-
+    });
   },
-  onError: (data) => {
-    console.error('Error fetching secret:', data)
+  onError: (error) => {
+    notifications.show(error.message || 'Failed to burn secret', 'error');
+    console.error('Error burning secret:', error);
   },
 });
-onMounted(fetchMetadata)
+
+onMounted(fetchMetadata);
 
 </script>

@@ -3,7 +3,11 @@ require_relative '../base'
 module Onetime::Logic
   module Domains
     class ListDomains < OT::Logic::Base
-      attr_reader :custom_domains
+      attr_reader :custom_domains, :with_brand
+
+      def process_params
+        @with_brand = !params[:with_brand].to_s.empty?
+      end
 
       def raise_concerns
         limit_action :list_domains
@@ -11,9 +15,15 @@ module Onetime::Logic
 
       def process
         OT.ld "[ListDomains] Processing #{cust.custom_domains.length}"
-        OT.info "[ListDomains] Processing #{cust.custom_domains.rediskey}"
+          OT.info "[ListDomains] Processing #{cust.custom_domains.rediskey}"
 
-        @custom_domains = cust.custom_domains_list.map { |cd| cd.safe_dump }
+        @custom_domains = cust.custom_domains_list.map do |domain|
+          if with_brand
+            domain.safe_dump
+          else
+            domain.safe_dump.except(:brand)
+          end
+        end
       end
 
       def success_data

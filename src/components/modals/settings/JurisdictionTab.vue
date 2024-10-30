@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8 max-w-4xl mx-auto px-4 sm:px-6">
     <!-- Data Region Section -->
     <section
       class="space-y-4 pb-6 border-b border-gray-200 dark:border-gray-700"
@@ -11,16 +11,16 @@
       >
         Data Region
       </h3>
-      <div class="rounded-lg bg-gray-50 dark:bg-gray-800 p-6">
-        <div class="flex items-center gap-6">
+      <div class="rounded-lg bg-gray-50 dark:bg-gray-800 p-4 sm:p-6">
+        <div class="flex items-center gap-4 sm:gap-6 flex-col sm:flex-row">
           <div class="h-16 w-16 flex-shrink-0 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
             <Icon
               :icon="currentJurisdiction.icon"
-              class="h-10 w-10 text-brand-600 dark:text-brand-400"
+              class="h-8 sm:h-10 w-8 sm:w-10 text-brand-600 dark:text-brand-400"
               aria-hidden="true"
             />
           </div>
-          <div class="space-y-1">
+          <div class="space-y-1 text-center sm:text-left">
             <div class="text-base font-medium text-gray-900 dark:text-white">
               {{ currentJurisdiction.display_name }}
             </div>
@@ -53,7 +53,7 @@
       </header>
 
       <!-- Info Card -->
-      <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-800 prose prose-base dark:prose-invert max-w-none">
+      <div class="rounded-lg bg-gray-50 p-4 sm:p-6 dark:bg-gray-800 prose prose-base dark:prose-invert max-w-none">
         <div class="space-y-4">
           <JurisdictionInfo
             :jurisdiction="currentJurisdiction"

@@ -155,9 +155,8 @@ module Onetime
       # @return [void]
       #
       # This method follows the best practice for serving Single Page Applications:
-      # 1. It returns a 200 status code instead of 404 for unknown web routes.
-      # 2. It serves the same entrypoint HTML for all non-API routes.
-      # 3. It allows the Vue.js router to handle client-side routing and 404 logic.
+      # 1. It serves the same entrypoint HTML for all non-API routes.
+      # 2. It allows the Vue.js router to handle client-side routing and 404 logic.
       #
       # Rationale:
       # - Enables deep linking and direct access to any SPA route.
@@ -167,7 +166,7 @@ module Onetime
       def not_found_response(message)
         view = Onetime::App::Views::VuePoint.new(req, sess, cust, locale)
         view.add_error(message) unless message&.empty?
-        res.status = 200  # Always return 200 OK for SPA routes
+        res.status = 404
         res.body = view.render  # Render the entrypoint HTML
       end
 
@@ -181,7 +180,7 @@ module Onetime
       def error_response message
         view = Onetime::App::Views::Error.new req, sess, cust, locale
         view.add_error message
-        res.status = 401
+        res.status = 400
         res.body = view.render
       end
 

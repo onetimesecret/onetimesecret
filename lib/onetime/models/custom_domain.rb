@@ -66,6 +66,8 @@ class Onetime::CustomDomain < Familia::Horreum
   field :updated
   field :_original_value
 
+  hashkey :brand
+
   @txt_validation_prefix = '_onetime-challenge'
 
   @safe_dump_fields = [
@@ -81,6 +83,7 @@ class Onetime::CustomDomain < Familia::Horreum
     :_original_value,
     :txt_validation_host,
     :txt_validation_value,
+    { :brand => ->(obj) { obj.brand.hgetall } },
     :status,
     { :vhost => ->(obj) { obj.parse_vhost } },
     :verified,

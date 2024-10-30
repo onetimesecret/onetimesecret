@@ -18,6 +18,7 @@
                   dark:group-hover:text-brand-400 transition-colors"
            fill="none"
            viewBox="0 0 24 24"
+           aria-hidden="true"
            stroke="currentColor">
         <path stroke-linecap="round"
               stroke-linejoin="round"

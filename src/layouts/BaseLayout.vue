@@ -17,6 +17,9 @@
     <!-- Footer content, Haaland maybe? -->
     <slot name="footer"></slot>
 
+    <slot name="status">
+      <div id="status-messages"></div>
+    </slot>
   </div>
 </template>
 
