@@ -29,7 +29,7 @@
              role="note">
           This is an interactive preview of how recipients will see your secure messages. You can:
           - Customize colors and fonts using the controls above
-          - Upload a logo (400x400px recommended, 2MB max)
+          - Upload a logo (minimum 128x128 pixels recommended, 2MB max)
           - Test the preview using the "View Secret" button
         </div>
 
@@ -47,7 +47,7 @@
             <Icon icon="mdi:image-outline"
                   class="w-5 h-5"
                   aria-label="Image icon" />
-            Upload your logo by clicking the square placeholder (400x400px recommended, 2MB max)
+            Upload your logo by clicking the square placeholder (minimum 128x128 pixels recommended, 2MB max)
           </li>
 
           <li class="flex items-center gap-2">
