@@ -14,7 +14,7 @@
           </p>
         </div>
         <router-link to="/account/domains/add"
-                     class="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg
+                     class="inline-flex items-center font-brand justify-center px-4 py-2 text-base font-semibold rounded-lg
                  bg-brand-500 text-white hover:bg-brand-600 focus:outline-none focus:ring-2
                  focus:ring-offset-2 focus:ring-brand-500 transition-colors duration-200
                  dark:hover:bg-brand-400 dark:focus:ring-offset-gray-900">
@@ -55,7 +55,7 @@
                   class="group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
-                               class="text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300
+                               class="text-brandcomp-500 hover:text-brandcomp-600 dark:text-brandcomp-400 dark:hover:text-brandcomp-300
                            font-medium transition-colors duration-150">
                     {{ domain.display_domain }}
                   </router-link>
