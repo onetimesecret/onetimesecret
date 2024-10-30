@@ -55,11 +55,15 @@ common_middleware = [
   Rack::ClearSessionMessages,
   Rack::HandleInvalidUTF8,
   Rack::HandleInvalidPercentEncoding,
-  Rack::ContentLength
+  Rack::ContentLength,
+  Rack::DetectHost
 ]
 
 # Apply common middleware to all apps
-common_middleware.each { |middleware| use middleware }
+common_middleware.each { |middleware|
+  OT.li "[config.ru] Using #{middleware}"
+  use middleware
+}
 use Rack::Reloader, 1 if Otto.env?(:dev)
 
 # Mount Applications
