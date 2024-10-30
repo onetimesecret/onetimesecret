@@ -17,8 +17,13 @@ GET   /secret/*                                  Onetime::App::Page#index
 
 POST  /signin                                    Onetime::App::Data#authenticate
 
+GET   /about                                     Onetime::App::Page#index
+GET   /translations                              Onetime::App::Page#index
+GET   /info/*                                    Onetime::App::Page#index
+GET   /pricing                                   Onetime::App::Page#index
 GET   /signin                                    Onetime::App::Page#index
 GET   /signup                                    Onetime::App::Page#index
+GET   /signup/*                                  Onetime::App::Page#index
 GET   /logout                                    Onetime::App::Data#logout
 
 POST  /forgot                                    Onetime::App::Data#request_reset
