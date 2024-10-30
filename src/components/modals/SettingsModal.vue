@@ -54,9 +54,9 @@
                   @click="activeTab = tab.id"
                   :aria-selected="activeTab === tab.id"
                   :aria-controls="`tab-${tab.id}`"
-                  class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-colors duration-200"
+                  class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 transition-colors duration-200"
                   :class="{
-                    'bg-brand-100 dark:bg-brand-700': activeTab === tab.id,
+                    'bg-brandcomp-100 dark:bg-brandcomp-700': activeTab === tab.id,
                     'hover:bg-gray-200 dark:hover:bg-gray-600': activeTab !== tab.id
                   }">
             {{ tab.label }}
@@ -83,7 +83,7 @@
                    role="tabpanel"
                    :aria-labelledby="`tab-data-region-button`"
                    class="space-y-8">
-                <JurisdictionTab />
+                <JurisdictionTab v-if="regionsEnabled" />
               </div>
             </template>
 
@@ -131,6 +131,9 @@ import { useFocusTrap } from '@vueuse/integrations/useFocusTrap';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import JurisdictionTab from './settings/JurisdictionTab.vue';
 import GeneralTab from './settings/GeneralTab.vue';
+import { useWindowProps } from '@/composables/useWindowProps';
+
+const { regions_enabled: regionsEnabled } = useWindowProps(['regions_enabled']);
 
 interface Tab {
   id: string;
@@ -147,8 +150,11 @@ const emit = defineEmits<{
 
 const tabs = ref<Tab[]>([
   { id: 'general', label: 'General' },
-  { id: 'data-region', label: 'Data Region' }
 ]);
+
+if (regionsEnabled.value) {
+  tabs.value.push({ id: 'data-region', label: 'Data Region' });
+}
 
 const activeTab = ref<Tab['id']>(tabs.value[0].id);
 const modalContentRef = ref<HTMLElement | null>(null);
