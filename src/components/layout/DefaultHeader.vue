@@ -10,8 +10,7 @@
               <img id="logo"
                    src="@/assets/img/onetime-logo-v3-xl.svg"
                    class="w-12 h-12 sm:w-16 sm:h-16 rounded-md"
-                   aria-label="Onetime Secret"
-                   alt="Logo">
+                   alt="Onetime Secret">
               <span class="ml-2 text-xl font-bold font-brand text-gray-800 dark:text-white">
                 Onetime Secret
               </span>
@@ -19,19 +18,27 @@
           </div>
 
           <nav v-if="displayNavigation"
+               role="navigation"
+               aria-label="Main navigation"
                class="flex flex-wrap justify-center sm:justify-end items-center gap-4 text-sm sm:text-base font-brand">
             <template v-if="authenticated && cust">
               <HeaderUserNav :cust="cust"
                              :colonel="colonel" />
-              <a href="#"
-                 @click="openSettingsModal"
-                 class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
-                 title="Your Account">{{ $t('web.COMMON.header_settings') }}</a>
+
+              <button @click="openSettingsModal"
+                      class="text-gray-600 hover:text-gray-800 text-xl dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
+                      aria-label="Settings">
+                <Icon icon="material-symbols:settings"
+                      aria-hidden="true" />
+              </button>
 
               <SettingsModal :is-open="isSettingsModalOpen"
                              @close="closeSettingsModal" />
 
-              <span class="text-gray-400">|</span>
+              <span class="text-gray-400"
+                    aria-hidden="true"
+                    role="separator">|</span>
+
               <router-link to="/logout"
                            class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200"
                            :title="$t('web.COMMON.header_logout')"
@@ -59,13 +66,17 @@
                              class="font-bold text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200">
                   {{ $t('web.COMMON.header_create_account') }}
                 </router-link>
-                <span class="text-gray-400">|</span>
+                <span class="text-gray-400"
+                      aria-hidden="true"
+                      role="separator">|</span>
                 <router-link to="/about"
                              title="About Onetime Secret"
                              class="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white transition-colors duration-200">
                   {{ $t('web.COMMON.header_about') }}
                 </router-link>
-                <span class="text-gray-400">|</span>
+                <span class="text-gray-400"
+                      aria-hidden="true"
+                      role="separator">|</span>
                 <router-link v-if="authentication.signin"
                              to="/signin"
                              title="Log in to Onetime Secret"
@@ -88,14 +99,18 @@
   </header>
 </template>
 
-
+<style>
+.focus-visible:focus {
+  @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-800;
+}
+</style>
 
 <script setup lang="ts">
 import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
 import SettingsModal from '@/components/modals/SettingsModal.vue';
 import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 import { computed, ref } from 'vue';
-
+import { Icon } from '@iconify/vue';
 
 // Define the props for this layout, extending the BaseLayout props
 export interface Props extends BaseProps {

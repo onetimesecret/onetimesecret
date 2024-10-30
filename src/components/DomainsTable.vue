@@ -29,7 +29,7 @@
       <div class="mt-8 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-800">
+            <thead class="bg-gray-50 font-brand dark:bg-gray-800">
               <tr>
                 <th scope="col"
                     class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 min-w-[200px]">
@@ -55,7 +55,7 @@
                   class="group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
-                               class="text-brandcomp-500 hover:text-brandcomp-600 dark:text-brandcomp-400 dark:hover:text-brandcomp-300
+                               class="text-brandcomp-600 hover:text-brandcomp-800 dark:text-brandcomp-400 dark:hover:text-brandcomp-300
                            font-medium transition-colors duration-150">
                     {{ domain.display_domain }}
                   </router-link>

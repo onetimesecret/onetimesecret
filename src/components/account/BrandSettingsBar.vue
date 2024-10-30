@@ -2,20 +2,21 @@
   <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
       <form @submit.prevent="$emit('submit')"
-            class="flex items-center gap-4">
+            class="flex flex-wrap items-center gap-4">
         <input type="hidden"
                name="shrimp"
                :value="shrimp" />
 
         <!-- Color Picker -->
-        <ColorPicker :model-value="modelValue.primary_color"
-                     name="brand[primary_color]"
-                     label="Brand Color"
-                     id="brand-color"
-                     @update:model-value="updateBrandSetting('primary_color', $event)" />
+
+          <ColorPicker :model-value="modelValue.primary_color"
+                       name="brand[primary_color]"
+                       label="Brand Color"
+                       id="brand-color"
+                       @update:model-value="updateBrandSetting('primary_color', $event)" />
 
 
-        <div class="hidden sm:inline-flex items-center gap-2">
+        <div class="inline-flex items-center gap-2">
           <!-- Font Family -->
           <CycleButton :modelValue="modelValue.font_family"
                        @update:modelValue="updateFont"
@@ -33,7 +34,10 @@
                        :icon-map="cornerStyleIconMap" />
         </div>
 
-        <slot name="instructions-button"></slot>
+        <!-- Instructions Field -->
+
+          <slot name="instructions-button"></slot>
+
 
         <!-- Spacer -->
         <div class="flex-1"></div>
@@ -41,7 +45,7 @@
         <!-- Save Button -->
         <button type="submit"
                 :disabled="isSubmitting"
-                class="inline-flex items-center px-4 h-11 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                class="w-full sm:w-auto inline-flex items-center justify-center px-4 h-11 border border-transparent rounded-lg shadow-sm text-base sm:text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed">
 
           <Icon v-if="isSubmitting"
                 icon="mdi:loading"
