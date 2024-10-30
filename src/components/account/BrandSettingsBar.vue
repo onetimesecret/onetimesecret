@@ -15,26 +15,27 @@
                      @update:model-value="updateBrandSetting('primary_color', $event)" />
 
 
-        <!-- Font Family -->
-        <CycleButton :modelValue="modelValue.font_family"
-                     @update:modelValue="updateFont"
-                     :options="fontOptions"
-                     label=""
-                     :display-map="fontDisplayMap"
-                     :icon-map="fontIconMap" />
+        <div class="hidden sm:inline">
+          <!-- Font Family -->
+          <CycleButton :modelValue="modelValue.font_family"
+                       @update:modelValue="updateFont"
+                       :options="fontOptions"
+                       label=""
+                       :display-map="fontDisplayMap"
+                       :icon-map="fontIconMap" />
 
-        <!-- Corner Style -->
-        <CycleButton :modelValue="modelValue.corner_style"
-                     @update:modelValue="updateCornerStyle"
-                     :options="cornerStyleOptions"
-                     label="Corner Style"
-                     :display-map="cornerStyleDisplayMap"
-                     :icon-map="cornerStyleIconMap" />
+          <!-- Corner Style -->
+          <CycleButton :modelValue="modelValue.corner_style"
+                       @update:modelValue="updateCornerStyle"
+                       :options="cornerStyleOptions"
+                       label="Corner Style"
+                       :display-map="cornerStyleDisplayMap"
+                       :icon-map="cornerStyleIconMap" />
+        </div>
+        <slot name="instructions-button"></slot>
 
         <!-- Spacer -->
         <div class="flex-1"></div>
-
-        <slot name="instructions-button"></slot>
 
         <!-- Save Button -->
         <button type="submit"
@@ -102,15 +103,15 @@ const updateBrandSetting = <K extends keyof BrandSettings>(
   emit('update:modelValue', {
     ...props.modelValue,
     [key]: value
-  })
-}
+  });
+};
 
 // Update your other methods to use updateBrandSetting
 const updateFont = (value: string) => {
-  updateBrandSetting('font_family', value)
-}
+  updateBrandSetting('font_family', value);
+};
 
 const updateCornerStyle = (value: string) => {
-  updateBrandSetting('corner_style', value)
-}
+  updateBrandSetting('corner_style', value);
+};
 </script>

@@ -2,7 +2,8 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
-      <DomainHeader :domain-id="domainId" :domain="customDomain" />
+      <DomainHeader :domain-id="domainId"
+                    :domain="customDomain" />
 
       <BrandSettingsBar v-model="brandSettings"
                         :shrimp="csrfStore.shrimp"
@@ -16,9 +17,9 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
       <!-- Preview Section -->
-      <div class="relative mb-12">
+      <div class="relative mb-6 sm:mb-12">
         <h2 id="previewHeading"
             class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
           Preview & Customize
@@ -34,7 +35,7 @@
         </div>
 
         <!-- Visual instructions -->
-        <ul class="mb-6 text-sm text-gray-600 dark:text-gray-400 space-y-2"
+        <ul class="mb-4 sm:mb-6 text-sm space-y-1 sm:space-y-2"
             :aria-hidden="true">
           <li class="flex items-center gap-2">
             <Icon icon="mdi:palette-outline"
@@ -58,7 +59,8 @@
           </li>
         </ul>
 
-        <BrowserPreviewFrame :domain="domainId"
+        <BrowserPreviewFrame class="w-full max-w-3xl mx-auto overflow-hidden"
+                             :domain="domainId"
                              :browser-type="selectedBrowserType"
                              @toggle-browser="toggleBrowser"
                              aria-labelledby="previewHeading">
@@ -68,7 +70,7 @@
                          :onLogoUpload="handleLogoUpload"
                          :onLogoRemove="removeLogo"
                          secretKey="abcd"
-                         class="transform transition-all duration-200 hover:scale-[1.02]" />
+                         class="transform transition-all duration-200 hover:scale-[1.02] max-w-full" />
         </BrowserPreviewFrame>
 
         <!-- Loading and Error States -->
