@@ -200,6 +200,7 @@ sudo apt install -y git redis-server build-essential libyaml-dev libffi-dev
 
 # Install Ruby 3.1
 sudo apt install -y ruby3.1 ruby3.1-dev
+sudo gem install bundler
 
 # Install Node.js and pnpm
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
@@ -216,13 +217,12 @@ For other operating systems, please refer to the official documentation for each
 ```bash
 cd onetimesecret
 git rev-parse --short HEAD > .commit_hash.txt
-cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
+cp -p ./etc/config.example.yaml ./etc/config.yaml
 ```
 
 #### 4. Install Ruby Dependencies
 
 ```bash
-sudo gem install bundler
 bundle config set --local without 'development test'
 bundle update --bundler
 bundle install
@@ -234,39 +234,40 @@ bundle install
 pnpm install --frozen-lockfile
 ```
 
-#### 6. Build the Frontend
 
-```bash
-pnpm run build
-```
-
-
-#### 7. Run the Web Application
-
-There are two main ways to run the application, depending on your development needs:
+There are two main ways to run the application, depending on your needs:
 
 ##### Option A: Without Vite Dev Server (Production-like or Simple Development)
 
 1. For production or simple development without frontend changes:
 
-   ```bash
-   RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
-   ```
+  ```bash
+  RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
+  ```
 
-   Or, for a development environment with a static frontend and Ruby live reloading:
+  Or, for a development environment with a static frontend and Ruby live reloading:
 
-   ```bash
-   RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
-   ```
+  Ensure `development.enabled` is set to `false` in `etc/config.yaml`:
 
-   Ensure `development.enabled` is set to `false` in `etc/config.yaml`:
+  ```yaml
+  :development:
+    :enabled: false
+  ```
 
-   ```yaml
-   :development:
-     :enabled: false
-   ```
+  ```bash
+  RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
+  ```
 
-   This uses pre-built frontend assets in the `dist/assets` directory.
+  This uses pre-built frontend assets in the `dist/assets` directory.
+
+2. (Optional) Re-build the Frontend Vue application
+
+  This usually isn't necessary b/c we keep pre-built artifacts in the repo. If you want to rebuild it, do so with:
+
+  ```bash
+  pnpm run build:local
+  ```
+
 
 ##### Option B: With Vite Dev Server (Active Frontend Development)
 
@@ -319,7 +320,7 @@ OnetimeSecret requires a `config.yaml` file for all installations. Environment v
 1. Create the configuration file:
 
    ```bash
-   cp --preserve --no-clobber ./etc/config.example.yaml ./etc/config.yaml
+   cp -p ./etc/config.example.yaml ./etc/config.yaml
    ```
 
 2. Review and edit `./etc/config.yaml` as needed. At minimum, update the secret key and back it up securely.
@@ -370,7 +371,7 @@ For various deployment scenarios, including Docker setups and local development,
 1. Create the .env file:
 
    ```bash
-   cp --preserve --no-clobber .env.example .env
+   cp -p .env.example .env
    ```
 
 2. Edit the `.env` file with your desired configuration.
