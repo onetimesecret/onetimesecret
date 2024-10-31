@@ -31,6 +31,12 @@ env = {'HTTP_HOST' => 'example.com:8080'}
 env['rack.detected_host']
 #=> 'example.com'
 
+## Handles host with extra spaces and port
+env = {'HTTP_HOST' => '  example.com:8080  '}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'example.com'
+
 ## Rejects localhost as invalid host
 env = {'HTTP_HOST' => 'localhost'}
 @middleware.call(env)
