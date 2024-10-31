@@ -35,11 +35,11 @@ module Rack
   #
   # ### Configuration
   #
-  # The middleware allows setting a class-level `detected_host` variable,
+  # The middleware allows setting a class-level `result_field_name` variable,
   # which can be initialized from an environment variable `DETECTED_HOST`.
   #
   # ```ruby
-  # Rack::DetectHost.detected_host = ENV['DETECTED_HOST'] || 'default_host_value'
+  # Rack::DetectHost.result_field_name = ENV['DETECTED_HOST'] || 'default_host_value'
   # ```
   #
   # ### Usage
@@ -93,10 +93,10 @@ module Rack
     attr_reader :logger
 
     # Class-level setting initialized from ENV variable
-    @detected_host = ENV['DETECTED_HOST'] || 'rack.detected_host'
+    @result_field_name = ENV['DETECTED_HOST'] || 'rack.detected_host'
 
     class << self
-      attr_accessor :detected_host
+      attr_accessor :result_field_name
     end
 
     def initialize(app, io: $stderr)
@@ -105,28 +105,25 @@ module Rack
     end
 
     def call(env)
-      # Replace rack.detected_host with the class setting
-      host = self.class.detected_host
+      result_field_name = self.class.result_field_name
 
       # Try headers in order of precedence
       HEADER_PRECEDENCE.each do |header|
         header_key = "HTTP_#{header.tr('-', '_').upcase}"
-        if env[header_key]
-          host = strip_port(env[header_key].split(',').first.strip)
-          if valid_host?(host)
-            env['rack.detected_host'] = host
-            logger.info("[DetectHost] Host detected from #{header}: #{host}")
-            break
-          else
-            logger.debug("[DetectHost] Invalid host detected from #{header}: #{host}")
-          end
+        host = normalize_host(env[header_key])
+        next if host.nil?
+
+        if valid_host?(host)
+          env[result_field_name] = host
+          logger.info("[DetectHost] Host detected from #{header_key}: #{host}")
+          break # stop on first valid host
         else
-          logger.debug("[DetectHost] Header not found: #{header}")
+          logger.debug("[DetectHost] Invalid host detected from #{header_key}: #{host}")
         end
       end
 
       # Log indication if no valid host found in debug mode
-      unless env['rack.detected_host']
+      unless env[result_field_name]
         logger.debug("[DetectHost] No valid host detected in request")
       end
 
@@ -135,14 +132,15 @@ module Rack
 
     private
 
-    def strip_port(host)
-      return nil if host.nil? || host.empty?
-      host.split(':').first
+    def normalize_host(value_unsafe)
+      host_with_port = value_unsafe.to_s.split(',').first.to_s
+      host = host_with_port.split(':').first.to_s.strip.downcase
+      return nil if host.empty?
+      host
     end
 
     def valid_host?(host)
-      return false if host.nil? || host.empty?
-      return false if INVALID_HOSTS.include?(host.downcase)
+      return false if INVALID_HOSTS.include?(host)
       return false if host.match?(IP_PATTERN)
       true
     end
