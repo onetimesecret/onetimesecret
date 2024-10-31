@@ -21,6 +21,15 @@ end
 # Load Paths
 $LOAD_PATH.unshift(File.join(app_root, 'lib'))
 
+# Freshly installed operating systems don't always have their locale settings
+# figured out. By setting this to UTF-8, we ensure that:
+# - All file I/O operations default to UTF-8 encoding.
+# - Network I/O operations treat data as UTF-8 encoded.
+# - Standard input/output (STDIN, STDOUT, STDERR) uses UTF-8 encoding.
+# - Strings created from external sources default to UTF-8 encoding.
+# This helps maintain consistency and reduces encoding-related issues.
+Encoding.default_external = Encoding::UTF_8
+
 # Required Libraries
 require 'rack/content_length'
 require 'rack/contrib'
