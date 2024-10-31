@@ -194,22 +194,22 @@ First, verify if you have the required dependencies:
 ```bash
 ruby --version       # Should be 3.1+
 bundler --version    # Should be 2.5.x
-node --version      # Should be 20+
-pnpm --version      # Should be 9.2+
-redis-server -v     # Should be 5+
+node --version       # Should be 20+
+pnpm --version       # Should be 9.2+
+redis-server -v      # Should be 5+
 ```
 
-If any components are missing or outdated, follow the system dependencies installation below:
+For a fresh system installation, follow these steps:
 
 > [!Important]
-> If starting with a minimal system (like a fresh Debian container), you'll need to install `sudo` first:
+> If starting with a minimal system (like a fresh Debian container), install `sudo` first:
 >
 > ```bash
 > # Only if starting as root on a minimal system
 > apt update && apt install -y sudo
 > ```
->
-> After installing sudo, continue with the instructions below using `sudo`.
+
+Install system dependencies:
 
 ```bash
 # For Debian/Ubuntu systems:
@@ -223,29 +223,36 @@ sudo apt install -y nodejs
 sudo npm install -g pnpm@latest
 
 # Start Redis server
-sudo systemctl start redis-server
-sudo systemctl enable redis-server
+sudo service redis-server start
 ```
 
-> **Note:** For other operating systems, consult the official documentation for each component.
+> **Note:** If you see audit-related errors when installing pnpm with sudo, this is normal in containers or minimal systems where audit capabilities are limited.
 
 ##### 2. Get the Source Code
 
 ```bash
 git clone https://github.com/onetimesecret/onetimesecret.git
+cd onetimesecret
 ```
 
-Or download the [latest release tarball](https://github.com/onetimesecret/onetimesecret/archive/refs/tags/latest.tar.gz).
-
-##### 3. Initialize Configuration
+##### 3. Install Dependencies
 
 ```bash
-cd onetimesecret
+# Install Ruby dependencies
+bundle install
+
+# Install Node.js dependencies
+pnpm install
+```
+
+##### 4. Initialize Configuration
+
+```bash
 git rev-parse --short HEAD > .commit_hash.txt
 cp -p ./etc/config.example.yaml ./etc/config.yaml
 ```
 
-##### 4. Choose Your Running Mode
+##### 5. Choose Your Running Mode
 
 You can run the application in two ways:
 
