@@ -112,10 +112,10 @@ module Rack
       # Try headers in order of precedence
       HEADER_PRECEDENCE.each do |header|
         header_key = "HTTP_#{header.tr('-', '_').upcase}"
-        host = normalize_host(env[header_key])
+        host = self.class.normalize_host(env[header_key])
         next if host.nil?
 
-        if valid_host?(host)
+        if self.class.valid_host?(host)
           @detected_host = host
           logger.info("[DetectHost] Host detected from #{header_key}: #{host}")
           break # stop on first valid host
@@ -137,17 +137,21 @@ module Rack
 
     private
 
-    def normalize_host(value_unsafe)
-      host_with_port = value_unsafe.to_s.split(',').first.to_s
-      host = host_with_port.split(':').first.to_s.strip.downcase
-      return nil if host.empty?
-      host
+    module ClassMethods
+      def normalize_host(value_unsafe)
+        host_with_port = value_unsafe.to_s.split(',').first.to_s
+        host = host_with_port.split(':').first.to_s.strip.downcase
+        return nil if host.empty?
+        host
+      end
+
+      def valid_host?(host)
+        return false if INVALID_HOSTS.include?(host)
+        return false if host.match?(IP_PATTERN)
+        true
+      end
     end
 
-    def valid_host?(host)
-      return false if INVALID_HOSTS.include?(host)
-      return false if host.match?(IP_PATTERN)
-      true
-    end
+    extend ClassMethods
   end
 end
