@@ -99,6 +99,8 @@ module Rack
       attr_accessor :result_field_name
     end
 
+    attr_reader :detected_host
+
     def initialize(app, io: $stderr)
       @app = app
       @logger = ::Logger.new(io)
@@ -114,7 +116,7 @@ module Rack
         next if host.nil?
 
         if valid_host?(host)
-          env[result_field_name] = host
+          @detected_host = host
           logger.info("[DetectHost] Host detected from #{header_key}: #{host}")
           break # stop on first valid host
         else
@@ -123,9 +125,12 @@ module Rack
       end
 
       # Log indication if no valid host found in debug mode
-      unless env[result_field_name]
+      unless detected_host
         logger.debug("[DetectHost] No valid host detected in request")
       end
+
+      # e.g. env['rack.detected_host'] = 'example.com'
+      env[result_field_name] = detected_host
 
       @app.call(env)
     end
