@@ -369,6 +369,9 @@ class Onetime::CustomDomain < Familia::Horreum
       # We don't need to fuss with empty stripping spaces, prefixes,
       # etc because PublicSuffix does that for us.
       PublicSuffix.domain(input, default_rule: nil)
+    rescue PublicSuffix::DomainInvalid => e
+      OT.le "[CustomDomain.base_domain] #{e.message} for `#{input}`"
+      nil
     end
 
     # Takes the given input domain and returns the display domain,
@@ -382,7 +385,7 @@ class Onetime::CustomDomain < Familia::Horreum
       ps_domain.subdomain || ps_domain.domain
 
     rescue PublicSuffix::Error => e
-      OT.ld "[CustomDomain.parse] #{e.message} for `#{input}"
+      OT.le "[CustomDomain.parse] #{e.message} for `#{input}`"
       raise Onetime::Problem, e.message
     end
 
@@ -408,10 +411,10 @@ class Onetime::CustomDomain < Familia::Horreum
       # not save it to Redis. We do that here to piggyback on the inital
       # validation and parsing. We use the derived identifier to load
       # the object from Redis using
-      parse(input, custid).tap do |obj|
-        OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
-        obj.exists?
-      end
+      obj = parse(input, custid)
+      OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
+      obj.exists?
+
     rescue OT::Problem => e
       OT.le "[CustomDomain.exists?] #{e.message}"
       false
