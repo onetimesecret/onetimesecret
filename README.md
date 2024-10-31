@@ -167,149 +167,162 @@ Regardless of how you obtained or built the image, follow these steps to run One
 
 OnetimeSecret should now be running and accessible at `http://localhost:3000`.
 
+
+Ah yes, the classic sudo paradox! Here's my attempt to handle this clearly:
+
+
 ### Manual Installation
 
-If you prefer to work with the source code directly, you can install OnetimeSecret manually. Follow these steps:
+This guide covers installing OnetimeSecret manually, whether you're working with an existing development environment or starting from a fresh system.
 
-#### 1. Get the Code
+#### Prerequisites
 
-Choose one of these methods:
+Required components:
+- [Redis Server](https://redis.io/download) (version 5 or higher)
+- [Ruby](https://www.ruby-lang.org/en/downloads/) (version 3.1 or higher)
+- [Bundler](https://bundler.io/) (version 2.5.x)
+- [Node.js](https://nodejs.org/en/download/) (version 20 or higher)
+- [pnpm](https://pnpm.io/installation) (version 9.2 or higher)
+- Essential build tools and development libraries
 
-* Download the [latest release](https://github.com/onetimesecret/onetimesecret/archive/refs/tags/latest.tar.gz)
-* Clone the repository:
+#### Installation Steps
 
-  ```bash
-  git clone https://github.com/onetimesecret/onetimesecret.git
-  ```
+##### 1. Prepare Your Environment
 
-#### 2. Install System Dependencies
-
-Follow these general steps to install the required system dependencies:
-
-1. Install [Redis Server 5+](https://redis.io/download)
-2. Install [Ruby 3.1+](https://www.ruby-lang.org/en/downloads/) and [bundler 2.5*](https://bundler.io/)
-3. Install [Node.js 20+](https://nodejs.org/en/download/) and [pnpm 9.2+](https://pnpm.io/installation)
-4. Install additional required packages: build-essential, libyaml-dev, libffi-dev
-
-For Debian/Ubuntu systems, you can use the following commands:
+First, verify if you have the required dependencies:
 
 ```bash
-# Update package list and install basic dependencies
+ruby --version       # Should be 3.1+
+bundler --version    # Should be 2.5.x
+node --version       # Should be 20+
+pnpm --version       # Should be 9.2+
+redis-server -v      # Should be 5+
+```
+
+For a fresh system installation, follow these steps:
+
+> [!Important]
+> If starting with a minimal system (like a fresh Debian container), install `sudo` first:
+>
+> ```bash
+> # Only if starting as root on a minimal system
+> apt update && apt install -y sudo
+> ```
+
+Install system dependencies:
+
+```bash
+# For Debian/Ubuntu systems:
 sudo apt update
-sudo apt install -y git redis-server build-essential libyaml-dev libffi-dev
+sudo apt install -y git curl build-essential libyaml-dev libffi-dev redis-server ruby3.1 ruby3.1-dev
 
-# Install Ruby 3.1
-sudo apt install -y ruby3.1 ruby3.1-dev
+# Install package managers
 sudo gem install bundler
-
-# Install Node.js and pnpm
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
 sudo npm install -g pnpm@latest
+
+# Start Redis server
+sudo service redis-server start
 ```
 
-Note: After installation, make sure Redis is running with `service redis-server status`. Start it if needed with `service redis-server start`.
+> **Note:** If you see audit-related errors when installing pnpm with sudo, this is normal in containers or minimal systems where audit capabilities are limited.
 
-For other operating systems, please refer to the official documentation for each dependency to install the correct versions.
-
-#### 3. Initialize the config files
+##### 2. Get the Source Code
 
 ```bash
+git clone https://github.com/onetimesecret/onetimesecret.git
 cd onetimesecret
+```
+
+##### 3. Install Dependencies
+
+```bash
+# Install Ruby dependencies
+bundle install
+
+# Install Node.js dependencies
+pnpm install
+```
+
+##### 4. Initialize Configuration
+
+```bash
 git rev-parse --short HEAD > .commit_hash.txt
 cp -p ./etc/config.example.yaml ./etc/config.yaml
 ```
 
-#### 4. Install Ruby Dependencies
+##### 5. Choose Your Running Mode
+
+You can run the application in two ways:
+
+###### Option A: Standard Mode (Static Frontend, Choose RACK_ENV)
+
+Best for production or development without frontend changes:
+
+1. Build frontend assets (optional, pre-built assets included):
 
 ```bash
-bundle config set --local without 'development test'
-bundle update --bundler
-bundle install
+pnpm run build:local
 ```
 
-#### 5. Install JavaScript Dependencies
+2. Set development mode to false in `etc/config.yaml`:
+
+```yaml
+:development:
+  :enabled: false
+```
+
+3. Start the server (choose environment as needed):
 
 ```bash
-pnpm install --frozen-lockfile
+# For production
+RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
+
+# Or for backend development
+RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
 ```
 
+###### Option B: Frontend Development Mode
 
-There are two main ways to run the application, depending on your needs:
+Best for active frontend development with live reloading:
 
-##### Option A: Without Vite Dev Server (Production-like or Simple Development)
-
-1. For production or simple development without frontend changes:
-
-  ```bash
-  RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
-  ```
-
-  Or, for a development environment with a static frontend and Ruby live reloading:
-
-  Ensure `development.enabled` is set to `false` in `etc/config.yaml`:
-
-  ```yaml
-  :development:
-    :enabled: false
-  ```
-
-  ```bash
-  RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
-  ```
-
-  This uses pre-built frontend assets in the `dist/assets` directory.
-
-2. (Optional) Re-build the Frontend Vue application
-
-  This usually isn't necessary b/c we keep pre-built artifacts in the repo. If you want to rebuild it, do so with:
-
-  ```bash
-  pnpm run build:local
-  ```
-
-
-##### Option B: With Vite Dev Server (Active Frontend Development)
-
-1. Set `development.enabled` to `true` in `etc/config.yaml`:
-
+1. Enable development mode in `etc/config.yaml`:
    ```yaml
    :development:
      :enabled: true
    ```
 
-2. Run the Thin server in development mode:
-
+2. Start the main server:
    ```bash
    RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
    ```
 
-3. In a separate terminal, start the Vite dev server:
-
+3. Start the Vite dev server (in a separate terminal):
    ```bash
    pnpm run dev
    ```
 
-   This enables live reloading of frontend assets.
+#### Technical Details for Frontend Development
 
-The application determines whether to use development or production assets based on the `development.enabled` setting. In development mode with the Vite server running, frontend assets are loaded dynamically:
+When running in development mode (Option B), the application uses Vite's dev server for dynamic asset loading and hot module replacement. Here's how it works:
 
-```html
-{{#frontend_development}}
-<script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
-<script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
-{{/frontend_development}}
-```
+- In development mode (`development.enabled: true`), the application loads assets dynamically from the Vite dev server:
+  ```html
+  {{#frontend_development}}
+  <script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
+  <script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
+  {{/frontend_development}}
+  ```
 
-In production mode, it uses the built files in `dist/assets`:
+- In production mode (`development.enabled: false`), it uses pre-built static assets:
+  ```html
+  {{^frontend_development}}
+  {{{vite_assets}}}
+  {{/frontend_development}}
+  ```
 
-```html
-{{^frontend_development}}
-{{{vite_assets}}}
-{{/frontend_development}}
-```
-
-Choose the option that best fits your development workflow and needs.
+This setup enables features like hot module replacement and instant updates during frontend development, while ensuring optimal performance in production.
 
 ## Configuration
 
