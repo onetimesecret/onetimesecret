@@ -61,14 +61,14 @@
 </template>
 
 <script setup lang="ts">
+import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.vue';
 import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
+import type { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
 import UnknownSecret from '@/views/secrets/UnknownSecret.vue';
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import SecretConfirmationForm from './SecretConfirmationForm.vue';
 
 interface Props {
   secretKey: string;

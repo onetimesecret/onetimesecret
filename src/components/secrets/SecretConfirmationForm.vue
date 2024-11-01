@@ -1,5 +1,8 @@
 <template>
-  <div class="w-full mx-auto">
+  <div :class="[
+    'w-full',
+    branded ? 'bg-white dark:bg-gray-800 rounded-lg p-8' : 'mx-auto'
+  ]">
     <BasicFormAlerts :success="success"
                      :error="error"
                      role="alert" />
@@ -35,7 +38,10 @@
 
       <button type="submit"
               :disabled="isSubmitting"
-              class="w-full px-6 py-3 text-3xl font-semibold text-white bg-brand-500 rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+              :class="[
+                'w-full px-6 py-3 text-3xl font-semibold text-white bg-brand-500 rounded-md hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed',
+                branded ? 'mt-4' : ''
+              ]"
               aria-live="polite">
         {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
       </button>
@@ -54,16 +60,20 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { SecretData, SecretDetails } from '@/types/onetime';
+import type { SecretData, SecretDetails } from '@/types/onetime';
 import { ref } from 'vue';
 
 interface Props {
   secretKey: string;
   record: SecretData | null;
   details: SecretDetails | null;
+  branded?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+  branded: false
+});
+
 const emit = defineEmits<{
   (e: 'secret-loaded', data: { record: SecretData; details: SecretDetails; }): void;
 }>();
@@ -79,7 +89,7 @@ const {
 } = useFormSubmission({
   url: `/api/v2/secret/${props.secretKey}`,
   successMessage: '',
-  onSuccess: (data) => {
+  onSuccess: (data: { record: SecretData; details: SecretDetails }) => {
     emit('secret-loaded', {
       record: data.record,
       details: data.details

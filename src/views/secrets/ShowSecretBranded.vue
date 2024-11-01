@@ -7,8 +7,7 @@
         <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
       </div>
 
-      <div v-else-if="record && details"
-           class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8">
+      <div v-else-if="record && details">
         <!-- Secret Header -->
         <div class="flex items-center space-x-4 mb-8">
           <div class="h-12 w-12 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
@@ -33,6 +32,24 @@
           </div>
         </div>
 
+        <!-- Secret Content -->
+        <div v-if="!details.show_secret">
+          <SecretConfirmationForm :secretKey="secretKey"
+                                :record="record"
+                                :details="details"
+                                :branded="true"
+                                @secret-loaded="handleSecretLoaded" />
+        </div>
+
+        <div v-else
+             class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 space-y-4">
+          <h2 class="text-gray-600 dark:text-gray-400">
+            {{ $t('web.shared.this_message_for_you') }}
+          </h2>
+
+          <SecretDisplayCase :secret="record"
+                           :details="details" />
+        </div>
       </div>
 
       <!-- Unknown Secret -->
@@ -42,53 +59,55 @@
 </template>
 
 <script setup lang="ts">
-import { useFormSubmission } from '@/composables/useFormSubmission'
-//import { useCsrfStore } from '@/stores/csrfStore'
-import { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime'
-import UnknownSecret from '@/views/secrets/UnknownSecret.vue'
-import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-
-//const csrfStore = useCsrfStore();
-const route = useRoute()
+import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.vue';
+import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import type { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
+import UnknownSecret from '@/views/secrets/UnknownSecret.vue';
+import { computed, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 interface Props {
-  secretKey: string
+  secretKey: string;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
+const route = useRoute();
 
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>)
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>);
 
-//const passphrase = ref('')
-const finalRecord = ref<SecretData | null>(null)
-const finalDetails = ref<SecretDetails | null>(null)
+const finalRecord = ref<SecretData | null>(null);
+const finalDetails = ref<SecretDetails | null>(null);
 
 const {
   isSubmitting,
-  //submitForm
 } = useFormSubmission({
   url: `/api/v2/secret/${props.secretKey}`,
   successMessage: '',
   onSuccess: (data: SecretDataApiResponse) => {
-    finalRecord.value = data.record
-    finalDetails.value = data.details
+    finalRecord.value = data.record;
+    finalDetails.value = data.details;
   },
-  onError: (data) => {
-    console.debug('Error fetching secret:', data.message)
+  onError: (data: { message: string }) => {
+    console.debug('Error fetching secret:', data.message);
     throw new Error(data.message);
   },
-})
+});
 
 // Compute the current state based on initial and final data
-const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null))
-const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null))
-const isLoading = computed(() => isSubmitting.value)
+const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
+const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
+const isLoading = computed(() => isSubmitting.value);
+
+const handleSecretLoaded = (data: { record: SecretData; details: SecretDetails }) => {
+  finalRecord.value = data.record;
+  finalDetails.value = data.details;
+};
 
 // Watch for changes in the finalRecord and update the view accordingly
 watch(finalRecord, (newValue) => {
   if (newValue) {
-    console.log('Secret fetched successfully')
+    console.log('Secret fetched successfully');
   }
-})
+});
 </script>
