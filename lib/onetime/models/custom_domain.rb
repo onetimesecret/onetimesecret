@@ -46,6 +46,7 @@ class Onetime::CustomDomain < Familia::Horreum
   # NOTE: The redis key used by older models for values is simply
   # "onetime:customdomain". We'll want to rename those at some point.
   class_sorted_set :values
+  class_set :display_domains
   class_hashkey :owners
 
   field :display_domain
@@ -133,7 +134,7 @@ class Onetime::CustomDomain < Familia::Horreum
   # @param args [Array] Additional arguments to pass to the superclass destroy method
   # @return [Object] The result of the superclass destroy method
   def delete!(*args)
-    OT::CustomDomain.values.rem identifier
+    OT::CustomDomain.rem self
     super # we may prefer to call self.clear here instead
   end
 
@@ -180,8 +181,10 @@ class Onetime::CustomDomain < Familia::Horreum
   def destroy! customer=nil
     redis.multi do |multi|
       multi.del(self.rediskey)
-      # Also remove from CustomDomain.values
+      # Also remove from the class-level values, :display_domains, :owners
       multi.zrem(OT::CustomDomain.values.rediskey, identifier)
+      multi.rem(OT::CustomDomain.display_domains.rediskey, display_domain)
+      #multi.hdel(OT::CustomDomain.owners.rediskey, identifier)
       unless customer.nil?
         multi.zrem(customer.custom_domains.rediskey, self.display_domain)
       end
@@ -423,10 +426,12 @@ class Onetime::CustomDomain < Familia::Horreum
     def add fobj
       #self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
       self.values.add OT.now.to_i, fobj.to_s # created time, identifier
+      self.display_domains.add fobj.display_domain
     end
 
     def rem fobj
       self.values.del fobj.to_s
+      self.display_domains.del fobj.display_domain
       #self.owners.del fobj.to_s
     end
 
