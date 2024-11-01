@@ -1,152 +1,233 @@
 module Onetime
+  # Middleware for handling and validating domain types in incoming requests.
+  #
+  # This class normalizes the incoming host, determines its state (canonical, subdomain,
+  # custom, or invalid), and updates the Rack environment with the domain strategy.
   class DomainType
-    # Constants for domain validation. Use defined? to avoid warnings when reloading
-    unless defined?(MAX_DOMAIN_LENGTH)
-      MAX_DOMAIN_LENGTH = 253 # Max length of domain name as per RFC 1035
-      MAX_LABEL_LENGTH = 63  # Max length of individual labels (parts between dots)
+    # Domain states
+    STATES = {
+      canonical: :canonical,   # Matches configured domain exactly
+      subdomain: :subdomain,  # Valid subdomain of canonical domain
+      custom: :custom,        # Different valid domain
+      invalid: :invalid      # Invalid/malformed domain
+    }.freeze
+
+    # Domain validation constants
+    MAX_DOMAIN_LENGTH = 253
+    MAX_LABEL_LENGTH = 63
+
+    # Represents the state of a domain after processing.
+    #
+    # @attr_reader value [Symbol] The state of the domain.
+    # @attr_reader host [String, nil] The normalized host if applicable.
+    class State
+      attr_reader :value, :host
+
+      # Initializes a new State object.
+      #
+      # @param value [Symbol] The state of the domain.
+      # @param host [String, nil] The normalized host if applicable.
+      def initialize(value, host = nil)
+        @value = value
+        @host = host
+      end
+
+      # Checks if the domain state is canonical.
+      #
+      # @return [Boolean] True if the domain state is canonical, false otherwise.
+      def canonical?; value == STATES[:canonical]; end
+
+      # Checks if the domain state is a subdomain.
+      #
+      # @return [Boolean] True if the domain state is a subdomain, false otherwise.
+      def subdomain?; value == STATES[:subdomain]; end
+
+      # Checks if the domain state is custom.
+      #
+      # @return [Boolean] True if the domain state is custom, false otherwise.
+      def custom?; value == STATES[:custom]; end
+
+      # Checks if the domain state is invalid.
+      #
+      # @return [Boolean] True if the domain state is invalid, false otherwise.
+      def invalid?; value == STATES[:invalid]; end
     end
 
-    attr_reader :host_field_name, :domain_strategy, :canonical_domain, :config
-
+    # Initializes the DomainType middleware.
+    #
+    # @param app [Object] The Rack application.
     def initialize(app)
       @app = app
       @config = OT.conf.fetch(:site, {})
-      @canonical_domain = determine_canonical_domain
-      @host_field_name = Rack::DetectHost.result_field_name
+      @canonical_domain = normalize_canonical_domain
     end
 
+    # Processes the incoming request and updates the Rack environment with the domain strategy.
+    #
+    # @param env [Hash] The Rack environment.
+    # @return [Array] The Rack response.
     def call(env)
-      # Fail-fast and move on with life when domains are disabled
       return @app.call(env) unless domains_enabled?
 
-      # We rely on Rack::DetectHost running to populate this field
-      request_host = env[host_field_name] # request host can be nil (e.g. IP address)
-      env['onetime.domain_strategy'] = determine_domain_strategy(request_host)
+      request_host = env[Rack::DetectHost.result_field_name]
+      env['onetime.domain_strategy'] = process_domain(request_host).value
 
       @app.call(env)
     end
 
-    def determine_domain_strategy(request_host)
-      # Early returns for simple cases where we default to canonical
-      return :canonical if canonical_or_invalid?(request_host)
-
-      normalized_host = normalize_host(request_host)
-      return :canonical unless normalized_host
-      return :canonical if normalized_host == canonical_domain
-
-      classify_domain_strategy(normalized_host)
-    end
-
     private
 
-    def domains_enabled?
-      config.dig(:domains, :enabled)
+    # Processes the domain and determines its state.
+    #
+    # @param host [String] The host to process.
+    # @return [State] The state of the domain.
+    def process_domain(host)
+      return State.new(STATES[:canonical]) if host.nil?
+
+      normalized = Normalizer.normalize(host)
+      return State.new(STATES[:invalid]) unless normalized
+
+      determine_state(normalized)
     end
 
-    def determine_canonical_domain
-      # Use the domains configuration if enabled and available otherwise default
-      # to the site host which isn't necessarily a domain (e.g. 127.0.0.1:3000)
-      domain = if domains_enabled? && config.dig(:domains, :default)
-                config.dig(:domains, :default)
-              else
-                config.fetch(:host, nil)
-              end
+    # Determines the state of the normalized host.
+    #
+    # @param normalized_host [String] The normalized host.
+    # @return [State] The state of the domain.
+    def determine_state(normalized_host)
+      return State.new(STATES[:canonical]) if normalized_host == @canonical_domain
 
-      normalized_domain = Rack::DetectHost.normalize_host(domain)
-      Rack::DetectHost.valid_host?(normalized_domain) ? normalized_domain : nil
-    end
+      domain_parts = Parser.parse(normalized_host)
+      return State.new(STATES[:invalid]) unless domain_parts.valid?
 
-    def canonical_or_invalid?(request_host)
-      request_host.nil? || canonical_domain.nil?
-    end
-
-    def classify_domain_strategy(normalized_host)
-      canonical_parts = canonical_domain.split('.')
-      request_parts = normalized_host.split('.')
-
-      # Add debug logging for domain parts comparison
-      log_domain_parts(request_parts, canonical_parts)
-
-      return :custom unless valid_domain_parts?(request_parts)
-
-      if subdomain?(normalized_host, request_parts, canonical_parts)
-        :subdomain
+      if is_subdomain?(normalized_host, domain_parts)
+        State.new(STATES[:subdomain], normalized_host)
       else
-        :custom
+        State.new(STATES[:custom], normalized_host)
       end
     end
 
-    def normalize_host(host)
-      return nil if invalid_host?(host)
+    # Module for normalizing domain names.
+    module Normalizer
+      class << self
+        # Normalizes the given host.
+        #
+        # @param host [String] The host to normalize.
+        # @return [String, nil] The normalized host or nil if invalid.
+        def normalize(host)
+          return nil if host.nil? || host.empty?
 
-      normalized = normalize_and_validate_host(host)
-      return nil unless normalized
+          normalized = host.strip
+                           .downcase
+                           .split(':').first # Remove port
 
-      normalized
-    end
+          begin
+            normalized = SimpleIDN.to_ascii(normalized)
+          rescue
+            return nil
+          end
 
-    def invalid_host?(host)
-      host.nil? || host.empty?
-    end
+          return nil if invalid_format?(normalized)
+          normalized
+        end
 
-    def normalize_and_validate_host(host)
-      # Remove whitespace, ports, and convert to lowercase and
-      # then handle IDN (International Domain Names) conversion.
-      normalized = host.strip.downcase.split(':').first # Remove port
+        private
 
-      # rubocop:disable Style/RescueModifier
-      normalized = SimpleIDN.to_ascii(normalized) rescue ''
-      # rubocop:enable Style/RescueModifier
-
-      # Basic format validation
-      return nil if invalid_format?(normalized) || invalid_labels?(normalized)
-
-      normalized
-    end
-
-    def invalid_format?(host)
-      host.length > MAX_DOMAIN_LENGTH ||
-        host.start_with?('.') ||
-        host.end_with?('.') ||
-        host.include?('..') # Reject double dots
-    end
-
-    def invalid_labels?(host)
-      parts = host.split('.')
-      parts.any? { |part| part.length > MAX_LABEL_LENGTH }
-    end
-
-    def valid_domain_parts?(parts)
-      return false if parts.empty?
-
-      # Ensure all parts follow DNS label rules
-      parts.all? do |part|
-        valid_label_format?(part)
+        # Checks if the host has an invalid format.
+        #
+        # @param host [String] The host to check.
+        # @return [Boolean] True if the host has an invalid format, false otherwise.
+        def invalid_format?(host)
+          host.length > MAX_DOMAIN_LENGTH ||
+            host.start_with?('.') ||
+            host.end_with?('.') ||
+            host.include?('..') ||
+            host.split('.').any? { |part| part.length > MAX_LABEL_LENGTH }
+        end
       end
     end
 
-    def valid_label_format?(part)
-      # DNS labels must start/end with alphanumeric and contain only alphanumeric + hyphen
-      part.length <= MAX_LABEL_LENGTH &&
-        part.match?(/\A[a-z0-9]([a-z0-9-]*[a-z0-9])?\z/i)
+    # Module for parsing domain names.
+    module Parser
+      # Represents the parts of a domain name.
+      class Parts
+        attr_reader :parts
+
+        # Initializes a new Parts object.
+        #
+        # @param parts [Array<String>] The parts of the domain name.
+        def initialize(parts)
+          @parts = parts
+        end
+
+        # Checks if the domain parts are valid.
+        #
+        # @return [Boolean] True if the domain parts are valid, false otherwise.
+        def valid?
+          return false if parts.empty?
+          parts.all? { |part| valid_label?(part) }
+        end
+
+        private
+
+        # Checks if a domain label is valid.
+        #
+        # @param part [String] The domain label to check.
+        # @return [Boolean] True if the domain label is valid, false otherwise.
+        def valid_label?(part)
+          part.length <= MAX_LABEL_LENGTH &&
+            part.match?(/\A[a-z0-9]([a-z0-9-]*[a-z0-9])?\z/i)
+        end
+      end
+
+      # Parses the given host into domain parts.
+      #
+      # @param host [String] The host to parse.
+      # @return [Parts] The parsed domain parts.
+      def self.parse(host)
+        Parts.new(host.split('.'))
+      end
     end
 
-    def subdomain?(request_host, request_parts, canonical_parts)
-      # Must have more parts than canonical domain
+    # Checks if the given host is a subdomain of the canonical domain.
+    #
+    # @param host [String] The host to check.
+    # @param domain_parts [Parts] The parsed domain parts.
+    # @return [Boolean] True if the host is a subdomain, false otherwise.
+    def is_subdomain?(host, domain_parts)
+      canonical_parts = @canonical_domain.split('.')
+      request_parts = domain_parts.parts
+
       return false if request_parts.length <= canonical_parts.length
 
-      # More explicit suffix check
       suffix = canonical_parts.join('.')
-      return false unless request_host.end_with?(".#{suffix}")
+      return false unless host.end_with?(".#{suffix}")
 
-      # Validate subdomain parts separately
-      subdomain_parts = request_parts[0...-canonical_parts.length]
-      valid_domain_parts?(subdomain_parts)
+      subdomain_parts = Parser::Parts.new(
+        request_parts[0...-canonical_parts.length]
+      )
+
+      subdomain_parts.valid?
     end
 
-    def log_domain_parts(request_parts, canonical_parts)
-      OT.ld("Request parts: #{request_parts}")
-      OT.ld("Canonical parts: #{canonical_parts}")
+    # Checks if domains are enabled in the configuration.
+    #
+    # @return [Boolean] True if domains are enabled, false otherwise.
+    def domains_enabled?
+      @config.dig(:domains, :enabled)
+    end
+
+    # Normalizes the canonical domain from the configuration.
+    #
+    # @return [String, nil] The normalized canonical domain or nil if not configured.
+    def normalize_canonical_domain
+      domain = if domains_enabled? && @config.dig(:domains, :default)
+                @config.dig(:domains, :default)
+              else
+                @config.fetch(:host, nil)
+              end
+
+      Normalizer.normalize(domain)
     end
   end
 end

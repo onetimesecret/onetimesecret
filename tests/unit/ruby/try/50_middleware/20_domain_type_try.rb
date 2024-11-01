@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 # These tryouts test the DomainType middleware class that handles
-# domain strategy determination and validation
-
+# domain strategy determination and validation using a state machine
 
 require 'onetime'
 require 'middleware/detect_host'
@@ -34,55 +33,57 @@ OT.conf[:site] = {
 
 # Tryouts
 
-## DomainType determines canonical strategy for nil host
+## DomainType determines canonical state for nil host
 pp [:lop, @domain_type]
-@domain_type.determine_domain_strategy(nil)
+@domain_type.send(:process_domain, nil).value # access private method
 #=> :canonical
 
-## DomainType determines canonical strategy for matching domain
-@domain_type.determine_domain_strategy(@canonical_domain)
+## DomainType determines canonical state for matching domain
+@domain_type.send(:process_domain, @canonical_domain).value
 #=> :canonical
 
-## DomainType determines subdomain strategy for valid subdomain
-@domain_type.determine_domain_strategy(@valid_subdomain)
+## DomainType determines subdomain state for valid subdomain
+@domain_type.send(:process_domain, @valid_subdomain).value
 #=> :subdomain
 
-## DomainType determines custom strategy for different domain
-@domain_type.determine_domain_strategy(@custom_domain)
+## DomainType determines custom state for different domain
+@domain_type.send(:process_domain, @custom_domain).value
 #=> :custom
 
 ## DomainType normalizes IDN domains
-@domain_type.send(:normalize_host, @idn_domain).include?('xn--')
+Onetime::DomainType::Normalizer.normalize(@idn_domain).include?('xn--')
 #=> true
 
 ## DomainType rejects domains exceeding max length
-@domain_type.send(:normalize_host, @long_domain)
+Onetime::DomainType::Normalizer.normalize(@long_domain)
 #=> nil
 
 ## DomainType strips ports from domain
-@domain_type.send(:normalize_host, @domain_with_port)
+Onetime::DomainType::Normalizer.normalize(@domain_with_port)
 #=> "example.com"
 
 ## DomainType handles IP addresses with ports
-@domain_type.send(:normalize_host, @ip_with_port)
+Onetime::DomainType::Normalizer.normalize(@ip_with_port)
 #=> "127.0.0.1"
 
 ## DomainType rejects double dots
-@domain_type.send(:normalize_host, @invalid_subdomain)
+Onetime::DomainType::Normalizer.normalize(@invalid_subdomain)
 #=> nil
 
 ## DomainType validates domain parts correctly
-@domain_type.send(:valid_domain_parts?, ['example', 'com'])
+Onetime::DomainType::Parser::Parts.new(['example', 'com']).valid?
 #=> true
 
 ## DomainType rejects invalid domain parts
-@domain_type.send(:valid_domain_parts?, ['exam@ple', 'com'])
+Onetime::DomainType::Parser::Parts.new(['exam@ple', 'com']).valid?
 #=> false
 
 ## DomainType identifies valid subdomains
-@domain_type.send(:subdomain?, @valid_subdomain, @valid_subdomain.split('.'), @canonical_domain.split('.'))
+@domain_type.send(:is_subdomain?, @valid_subdomain, # access private method
+  Onetime::DomainType::Parser.parse(@valid_subdomain))
 #=> true
 
 ## DomainType rejects malicious subdomain attempts
-@domain_type.send(:subdomain?, "#{@canonical_domain}.evil.com", "#{@canonical_domain}.evil.com".split('.'), @canonical_domain.split('.'))
+@domain_type.send(:is_subdomain?, "#{@canonical_domain}.evil.com",
+  Onetime::DomainType::Parser.parse("#{@canonical_domain}.evil.com"))
 #=> false
