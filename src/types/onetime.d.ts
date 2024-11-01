@@ -251,6 +251,7 @@ export interface SecretDetails extends DetailsType {
   correct_passphrase: boolean;
   display_lines: number;
   one_liner: boolean;
+  show_secret: boolean;
 }
 
 export interface ConcealData {
@@ -410,7 +411,7 @@ export interface Secret extends BaseApiRecord {
 
 export interface AsyncDataResult<T> {
   data: T | null;
-  error: string | null;
+  error: Error | string | null;
   status: number | null;
 }
 

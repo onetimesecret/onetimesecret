@@ -90,7 +90,10 @@
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard'
 import { SecretData, SecretDetails } from '@/types/onetime'
-import { useWindowProp } from '@/composables/useWindowProps';
+import { useWindowProp } from '@/composables/useWindowProps'
+
+
+const siteHost = useWindowProp('site_host');
 
 interface Props {
   secret: SecretData;
@@ -98,8 +101,6 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
-const siteHost = useWindowProp('site_host');
 
 const { isCopied, copyToClipboard } = useClipboard()
 

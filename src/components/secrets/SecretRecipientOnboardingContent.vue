@@ -71,6 +71,6 @@
 </template>
 
 <script setup lang="ts">
-import { useWindowProp } from '@/composables/useWindowProps';
-const siteHost = useWindowProp('site_host');
+
+
 </script>
