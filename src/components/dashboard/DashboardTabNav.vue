@@ -1,7 +1,7 @@
 <template>
-  <nav aria-label="Dashboard Navigation"
+  <nav v-if="authenticated" aria-label="Dashboard Navigation"
        class="mb-6 px-4 py-2 bg-gray-50/50 dark:bg-gray-800/50"><!-- Shadow approach -->
-    <ul v-if="authenticated"
+    <ul
         class="flex flex-wrap justify-between gap-x-6 gap-y-2 max-w-7xl mx-auto font-brand"
         role="menubar">
       <!-- Home -->
