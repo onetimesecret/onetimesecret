@@ -87,3 +87,33 @@ Onetime::DomainStrategy::Parser::Parts.new(['exam@ple', 'com']).valid?
 @domain_strategy.send(:is_subdomain?, "#{@canonical_domain}.evil.com",
   Onetime::DomainStrategy::Parser.parse("#{@canonical_domain}.evil.com"))
 #=> false
+
+## DomainStrategy class method 'normalize_canonical_domain' returns the correct normalized domain
+@config_with_domains = {
+  domains: {
+    enabled: true,
+    default: ' OnetimeSecret.Com '
+  }
+}
+Onetime::DomainStrategy.normalize_canonical_domain(@config_with_domains)
+#=> 'onetimesecret.com'
+
+## DomainStrategy 'normalize_canonical_domain' handles missing default domain
+@config_without_default = {
+  domains: {
+    enabled: true
+  }
+}
+Onetime::DomainStrategy.normalize_canonical_domain(@config_without_default)
+#=> nil
+
+## DomainStrategy 'normalize_canonical_domain' when domains are disabled uses host from config
+@config_domains_disabled = {
+  domains: {
+    enabled: false,
+    default: 'onetimesecret.com'
+  },
+  host: ' backupdomain.com '
+}
+Onetime::DomainStrategy.normalize_canonical_domain(@config_domains_disabled)
+#=> 'backupdomain.com'

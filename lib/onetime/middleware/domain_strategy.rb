@@ -24,7 +24,7 @@ module Onetime
     def initialize(app)
       @app = app
       @config = OT.conf.fetch(:site, {})
-      @canonical_domain = normalize_canonical_domain
+      @canonical_domain = self.class.normalize_canonical_domain(@config)
     end
 
     # Processes the incoming request and updates the Rack environment with the domain strategy.
@@ -42,6 +42,19 @@ module Onetime
 
       @app.call(env)
     end
+
+    # Normalizes the canonical domain from the configuration.
+    #
+    # @return [String, nil] The normalized canonical domain or nil if not configured.
+    def self.normalize_canonical_domain(config)
+      domain = if config.dig(:domains, :enabled) && config.dig(:domains, :default)
+                 config.dig(:domains, :default)
+               else
+                 config.fetch(:host, nil)
+               end
+      Normalizer.normalize(domain)
+    end
+
     private
 
     # Processes the domain and determines its state.
@@ -72,6 +85,34 @@ module Onetime
       else
         State.new(STATES[:custom], normalized_host)
       end
+    end
+
+    # Checks if the given host is a subdomain of the canonical domain.
+    #
+    # @param host [String] The host to check.
+    # @param domain_parts [Parts] The parsed domain parts.
+    # @return [Boolean] True if the host is a subdomain, false otherwise.
+    def is_subdomain?(host, domain_parts)
+      canonical_parts = @canonical_domain.split('.')
+      request_parts = domain_parts.parts
+
+      return false if request_parts.length <= canonical_parts.length
+
+      suffix = canonical_parts.join('.')
+      return false unless host.end_with?(".#{suffix}")
+
+      subdomain_parts = Parser::Parts.new(
+        request_parts[0...-canonical_parts.length]
+      )
+
+      subdomain_parts.valid?
+    end
+
+    # Checks if domains are enabled in the configuration.
+    #
+    # @return [Boolean] True if domains are enabled, false otherwise.
+    def domains_enabled?
+      @config.dig(:domains, :enabled)
     end
 
     # Module for normalizing domain names.
@@ -154,47 +195,6 @@ module Onetime
       def self.parse(host)
         Parts.new(host.split('.'))
       end
-    end
-
-    # Checks if the given host is a subdomain of the canonical domain.
-    #
-    # @param host [String] The host to check.
-    # @param domain_parts [Parts] The parsed domain parts.
-    # @return [Boolean] True if the host is a subdomain, false otherwise.
-    def is_subdomain?(host, domain_parts)
-      canonical_parts = @canonical_domain.split('.')
-      request_parts = domain_parts.parts
-
-      return false if request_parts.length <= canonical_parts.length
-
-      suffix = canonical_parts.join('.')
-      return false unless host.end_with?(".#{suffix}")
-
-      subdomain_parts = Parser::Parts.new(
-        request_parts[0...-canonical_parts.length]
-      )
-
-      subdomain_parts.valid?
-    end
-
-    # Checks if domains are enabled in the configuration.
-    #
-    # @return [Boolean] True if domains are enabled, false otherwise.
-    def domains_enabled?
-      @config.dig(:domains, :enabled)
-    end
-
-    # Normalizes the canonical domain from the configuration.
-    #
-    # @return [String, nil] The normalized canonical domain or nil if not configured.
-    def normalize_canonical_domain
-      domain = if domains_enabled? && @config.dig(:domains, :default)
-                @config.dig(:domains, :default)
-              else
-                @config.fetch(:host, nil)
-              end
-
-      Normalizer.normalize(domain)
     end
   end
 
