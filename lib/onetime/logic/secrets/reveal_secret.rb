@@ -18,7 +18,6 @@ module Onetime::Logic
         @secret = Onetime::Secret.load key
         @passphrase = params[:passphrase].to_s
         @continue = params[:continue].to_s == 'true'
-
       end
 
       def raise_concerns
