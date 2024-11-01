@@ -3,18 +3,20 @@ module Onetime
   #
   # This class normalizes the incoming host, determines its state (canonical, subdomain,
   # custom, or invalid), and updates the Rack environment with the domain strategy.
-  class DomainType
+  class DomainStrategy
     # Domain states
-    STATES = {
-      canonical: :canonical,   # Matches configured domain exactly
-      subdomain: :subdomain,  # Valid subdomain of canonical domain
-      custom: :custom,        # Different valid domain
-      invalid: :invalid      # Invalid/malformed domain
-    }.freeze
+    unless defined?(STATES)
+      STATES = {
+        canonical: :canonical,   # Matches configured domain exactly
+        subdomain: :subdomain,  # Valid subdomain of canonical domain
+        custom: :custom,        # Different valid domain
+        invalid: :invalid      # Invalid/malformed domain
+      }.freeze
 
-    # Domain validation constants
-    MAX_DOMAIN_LENGTH = 253
-    MAX_LABEL_LENGTH = 63
+      # Domain validation constants
+      MAX_DOMAIN_LENGTH = 253
+      MAX_LABEL_LENGTH = 63
+    end
 
     # Represents the state of a domain after processing.
     #
@@ -53,7 +55,7 @@ module Onetime
       def invalid?; value == STATES[:invalid]; end
     end
 
-    # Initializes the DomainType middleware.
+    # Initializes the DomainStrategy middleware.
     #
     # @param app [Object] The Rack application.
     def initialize(app)
@@ -70,11 +72,13 @@ module Onetime
       return @app.call(env) unless domains_enabled?
 
       request_host = env[Rack::DetectHost.result_field_name]
-      env['onetime.domain_strategy'] = process_domain(request_host).value
+      domain_state = process_domain(request_host)
+      env['onetime.domain_strategy'] = domain_state.value
+
+      OT.li "[DomainStrategy]: host=#{request_host.inspect} state=#{domain_state.value} normalized=#{domain_state.host.inspect}"
 
       @app.call(env)
     end
-
     private
 
     # Processes the domain and determines its state.

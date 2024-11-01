@@ -67,8 +67,8 @@ common_middleware = [
   Rack::HandleInvalidUTF8,
   Rack::HandleInvalidPercentEncoding,
   Rack::ContentLength,
-  Rack::DetectHost,    # Must come before DomainType
-  Onetime::DomainType  # Added after DetectHost
+  Rack::DetectHost,    # Must come before DomainStrategy
+  Onetime::DomainStrategy  # Added after DetectHost
 ]
 
 # Apply common middleware to all apps
