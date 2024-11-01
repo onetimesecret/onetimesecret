@@ -5,7 +5,7 @@
 
   "compilerOptions": {
     "target": "es2022",
-    "module": "nodenext",
+    "module": "es2022",
     "lib": [
       "es2023",
       "dom"
@@ -13,13 +13,16 @@
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "moduleResolution": "nodenext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
 
     "useDefineForClassFields": true,
     "jsx": "preserve",
 
-    "allowJs": true,
+    "allowJs": false,
+    "allowImportingTsExtensions": true,
+    "resolvePackageJsonExports": true,
+
     "sourceMap": true,
     "noEmit": true,
     "baseUrl": ".",
@@ -29,9 +32,9 @@
     "types": [
       "@types/node",
       "playwright",
-      "@playwright/test",
-      "./src/types"
-    ]
+      "@playwright/test"
+    ],
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "src/content/*.md",
