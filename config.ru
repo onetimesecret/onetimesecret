@@ -35,6 +35,7 @@ require 'rack/content_length'
 require 'rack/contrib'
 require_relative 'lib/middleware'
 require_relative 'lib/onetime'
+require_relative 'lib/onetime/middleware/domain_type'
 
 # Boot Application
 Onetime.boot! :app
@@ -60,6 +61,7 @@ apps['/'].option[:public] = PUBLIC_DIR
 
 # Common Middleware
 common_middleware = [
+  Rack::Lint,
   Rack::CommonLogger,
   Rack::ClearSessionMessages,
   Rack::HandleInvalidUTF8,
@@ -74,7 +76,13 @@ common_middleware.each { |middleware|
   OT.li "[config.ru] Using #{middleware}"
   use middleware
 }
-use Rack::Reloader, 1 if Otto.env?(:dev)
+
+if Otto.env?(:dev) && !OT.conf.dig(:experimental, :freeze_app)
+  use Rack::Reloader, 1
+else
+  OT.li "[experimental] Freezing app by request (env: #{ENV['RACK_ENV']})"
+  freeze_app
+end
 
 # Mount Applications
 map '/api/v2' do
