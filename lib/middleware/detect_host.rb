@@ -99,8 +99,6 @@ module Rack
       attr_accessor :result_field_name
     end
 
-    attr_reader :detected_host
-
     def initialize(app, io: $stderr)
       @app = app
       @logger = ::Logger.new(io)
@@ -108,6 +106,7 @@ module Rack
 
     def call(env)
       result_field_name = self.class.result_field_name
+      detected_host = nil
 
       # Try headers in order of precedence
       HEADER_PRECEDENCE.each do |header|
@@ -116,7 +115,7 @@ module Rack
         next if host.nil?
 
         if self.class.valid_host?(host)
-          @detected_host = host
+          detected_host = host
           logger.info("[DetectHost] Host detected from #{header_key}: #{host}")
           break # stop on first valid host
         else
