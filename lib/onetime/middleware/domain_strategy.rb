@@ -36,7 +36,8 @@ module Onetime
 
       request_host = env[Rack::DetectHost.result_field_name]
       domain_state = process_domain(request_host)
-      env['onetime.domain_strategy'] = domain_state.value
+      env['onetime.display_domain'] = request_host # Store raw host
+      env['onetime.domain_strategy'] = domain_state.value # Store state value
 
       OT.li "[DomainStrategy]: host=#{request_host.inspect} state=#{domain_state.value} normalized=#{domain_state.host.inspect}"
 

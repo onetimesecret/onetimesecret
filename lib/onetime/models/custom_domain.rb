@@ -458,16 +458,22 @@ class Onetime::CustomDomain < Familia::Horreum
       super(custom_domain.identifier)
     end
 
-    # Implement a load by just display_domain. We use this during requests
-    # after determining the domain strategy.
-    def load display_domain
+    # Load a custom domain by display domain only. Used during requests
+    # after determining the domain strategy is :custom.
+    #
+    # @param display_domain [String] The display domain to load
+    # @return [Onetime::CustomDomain, nil] The custom domain record or nil if not found
+    def from_display_domain display_domain
+      # Get the domain ID from the display_domains hash
+      domain_id = self.display_domains.get(display_domain)
+      return nil unless domain_id
 
-      # the built-in `load` from Familia.
-      custom_domain = parse(display_domain, custid).tap do |obj|
-        OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
-        raise OT::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
+      # Load the record using the domain ID
+      begin
+        from_identifier(domain_id)
+      rescue OT::RecordNotFound
+        nil
       end
-      super(custom_domain.identifier)
     end
   end
 
