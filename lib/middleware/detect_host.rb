@@ -74,21 +74,23 @@ module Rack
   class DetectHost
     # NOTE: CF-Visitor header only contains scheme information { "scheme": "https" }
     # and is not used for host detection
-    HEADER_PRECEDENCE = [
-      'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
-      'X-Original-Host',    # Various proxy services
-      'Forwarded',          # RFC 7239 standard (host parameter)
-      'Host'                # Default HTTP host header
-    ]
+    unless defined?(HEADER_PRECEDENCE)
+      HEADER_PRECEDENCE = [
+        'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
+        'X-Original-Host',    # Various proxy services
+        'Forwarded',          # RFC 7239 standard (host parameter)
+        'Host'                # Default HTTP host header
+      ]
 
-    INVALID_HOSTS = [
-      'localhost',
-      'localhost.localdomain',
-      '127.0.0.1',
-      '::1'
-    ].freeze
+      INVALID_HOSTS = [
+        'localhost',
+        'localhost.localdomain',
+        '127.0.0.1',
+        '::1'
+      ].freeze
 
-    IP_PATTERN = /\A(\d{1,3}\.){3}\d{1,3}\z|\A[0-9a-fA-F:]+\z/
+      IP_PATTERN = /\A(\d{1,3}\.){3}\d{1,3}\z|\A[0-9a-fA-F:]+\z/
+    end
 
     attr_reader :logger
 
@@ -116,7 +118,7 @@ module Rack
 
         if self.class.valid_host?(host)
           detected_host = host
-          logger.info("[DetectHost] Host detected from #{header_key}: #{host}")
+          logger.debug("[DetectHost] #{host} via #{header_key}")
           break # stop on first valid host
         else
           logger.debug("[DetectHost] Invalid host detected from #{header_key}: #{host}")

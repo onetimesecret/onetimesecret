@@ -80,9 +80,9 @@ pp [:lop, @domain_type]
 #=> false
 
 ## DomainType identifies valid subdomains
-@domain_type.send(:is_valid_subdomain?, @valid_subdomain, @valid_subdomain.split('.'), @canonical_domain.split('.'))
+@domain_type.send(:subdomain?, @valid_subdomain, @valid_subdomain.split('.'), @canonical_domain.split('.'))
 #=> true
 
 ## DomainType rejects malicious subdomain attempts
-@domain_type.send(:is_valid_subdomain?, "#{@canonical_domain}.evil.com", "#{@canonical_domain}.evil.com".split('.'), @canonical_domain.split('.'))
+@domain_type.send(:subdomain?, "#{@canonical_domain}.evil.com", "#{@canonical_domain}.evil.com".split('.'), @canonical_domain.split('.'))
 #=> false
