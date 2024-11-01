@@ -25,10 +25,10 @@
           </div>
           <div>
             <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ $t('web.shared.you_have_message') }}
+              {{ $t('web.shared.this_message_for_you') }}
             </h2>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              {{ $t('web.COMMON.click_to_reveal') }}poop
+              {{ $t('web.COMMON.click_to_continue') }}
             </p>
           </div>
         </div>

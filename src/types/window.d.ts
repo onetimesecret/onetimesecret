@@ -109,5 +109,8 @@ declare global {
     // When present, the global banner is displayed at the top of the
     // page. NOTE: Can contain HTML.
     global_banner?: string;
+
+    canonical_domain: string | null;
+    domain_strategy: string;
   }
 }

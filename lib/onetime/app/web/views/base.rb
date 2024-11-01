@@ -11,20 +11,22 @@ module Onetime
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
 
-      attr_reader :req, :plan, :is_paid
+      attr_reader :req, :plan, :is_paid, :canonical_domain, :domain_strategy
       attr_accessor :sess, :cust, :locale, :messages, :form_fields, :pagename
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
         @messages = { :info => [], :error => [] }
+        site = OT.conf.fetch(:site, {})
         is_default_locale = OT.conf[:locales].first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+        @canonical_domain = Onetime::DomainStrategy.normalize_canonical_domain(site) # can be nil
+        @domain_strategy = req.env['onetime.domain_strategy'] # never nil
 
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change and existing
         # installs may not have had a chance to update theirs yet.
-        site = OT.conf.fetch(:site, {})
         secret_options = site.fetch(:secret_options, {})
         domains = site.fetch(:domains, {})
         regions = site.fetch(:regions, {})
@@ -108,6 +110,8 @@ module Onetime
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])
+        self[:jsvars] << jsvar(:canonical_domain, canonical_domain)
+        self[:jsvars] << jsvar(:domain_strategy, domain_strategy)
 
         # The form fields hash is populated by handle_form_error so only when there's
         # been a form error in the request immediately prior to this one being served

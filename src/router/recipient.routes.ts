@@ -1,7 +1,10 @@
 import { fetchInitialSecret } from '@/api/secrets';
 import { AsyncDataResult, SecretDataApiResponse } from '@/types/onetime';
-import ShowSecret from '@/views/secrets/ShowSecret.vue';
+import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { RouteRecordRaw } from 'vue-router';
+import { useWindowProp } from '@/composables/useWindowProps';
+
+const domain_strategy = useWindowProp('domain_strategy');
 
 const routes: Array<RouteRecordRaw> = [
 
@@ -9,11 +12,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/secret/:secretKey',
     name: 'Secret link',
     components: {
-      default: ShowSecret,
+      default: ShowSecretContainer,
     },
     props: true,
     meta: {
-
+      domain_strategy: domain_strategy.value,
     },
     beforeEnter: async (to, from, next) => {
       try {
