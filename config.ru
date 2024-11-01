@@ -35,7 +35,7 @@ require 'rack/content_length'
 require 'rack/contrib'
 require_relative 'lib/middleware'
 require_relative 'lib/onetime'
-require_relative 'lib/onetime/middleware/domain_type'
+require_relative 'lib/onetime/middleware/domain_strategy'
 
 # Boot Application
 Onetime.boot! :app

@@ -5,7 +5,7 @@
 
 require 'onetime'
 require 'middleware/detect_host'
-require 'onetime/middleware/domain_type'
+require 'onetime/middleware/domain_strategy'
 
 OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
@@ -29,25 +29,25 @@ OT.conf[:site] = {
 @ipv6 = '[2001:db8::1]'
 
 @app = lambda { |env| [200, {}, ['OK']] }
-@domain_type = Onetime::DomainStrategy.new(@app)
+@domain_strategy = Onetime::DomainStrategy.new(@app)
 
 # Tryouts
 
 ## DomainStrategy determines canonical state for nil host
-pp [:lop, @domain_type]
-@domain_type.send(:process_domain, nil).value # access private method
+pp [:lop, @domain_strategy]
+@domain_strategy.send(:process_domain, nil).value # access private method
 #=> :canonical
 
 ## DomainStrategy determines canonical state for matching domain
-@domain_type.send(:process_domain, @canonical_domain).value
+@domain_strategy.send(:process_domain, @canonical_domain).value
 #=> :canonical
 
 ## DomainStrategy determines subdomain state for valid subdomain
-@domain_type.send(:process_domain, @valid_subdomain).value
+@domain_strategy.send(:process_domain, @valid_subdomain).value
 #=> :subdomain
 
 ## DomainStrategy determines custom state for different domain
-@domain_type.send(:process_domain, @custom_domain).value
+@domain_strategy.send(:process_domain, @custom_domain).value
 #=> :custom
 
 ## DomainStrategy normalizes IDN domains
@@ -79,11 +79,11 @@ Onetime::DomainStrategy::Parser::Parts.new(['exam@ple', 'com']).valid?
 #=> false
 
 ## DomainStrategy identifies valid subdomains
-@domain_type.send(:is_subdomain?, @valid_subdomain, # access private method
+@domain_strategy.send(:is_subdomain?, @valid_subdomain, # access private method
   Onetime::DomainStrategy::Parser.parse(@valid_subdomain))
 #=> true
 
 ## DomainStrategy rejects malicious subdomain attempts
-@domain_type.send(:is_subdomain?, "#{@canonical_domain}.evil.com",
+@domain_strategy.send(:is_subdomain?, "#{@canonical_domain}.evil.com",
   Onetime::DomainStrategy::Parser.parse("#{@canonical_domain}.evil.com"))
 #=> false

@@ -18,43 +18,6 @@ module Onetime
       MAX_LABEL_LENGTH = 63
     end
 
-    # Represents the state of a domain after processing.
-    #
-    # @attr_reader value [Symbol] The state of the domain.
-    # @attr_reader host [String, nil] The normalized host if applicable.
-    class State
-      attr_reader :value, :host
-
-      # Initializes a new State object.
-      #
-      # @param value [Symbol] The state of the domain.
-      # @param host [String, nil] The normalized host if applicable.
-      def initialize(value, host = nil)
-        @value = value
-        @host = host
-      end
-
-      # Checks if the domain state is canonical.
-      #
-      # @return [Boolean] True if the domain state is canonical, false otherwise.
-      def canonical?; value == STATES[:canonical]; end
-
-      # Checks if the domain state is a subdomain.
-      #
-      # @return [Boolean] True if the domain state is a subdomain, false otherwise.
-      def subdomain?; value == STATES[:subdomain]; end
-
-      # Checks if the domain state is custom.
-      #
-      # @return [Boolean] True if the domain state is custom, false otherwise.
-      def custom?; value == STATES[:custom]; end
-
-      # Checks if the domain state is invalid.
-      #
-      # @return [Boolean] True if the domain state is invalid, false otherwise.
-      def invalid?; value == STATES[:invalid]; end
-    end
-
     # Initializes the DomainStrategy middleware.
     #
     # @param app [Object] The Rack application.
@@ -234,4 +197,43 @@ module Onetime
       Normalizer.normalize(domain)
     end
   end
+
+
+  # Represents the state of a domain after processing.
+  #
+  # @attr_reader value [Symbol] The state of the domain.
+  # @attr_reader host [String, nil] The normalized host if applicable.
+  class State
+    attr_reader :value, :host
+
+    # Initializes a new State object.
+    #
+    # @param value [Symbol] The state of the domain.
+    # @param host [String, nil] The normalized host if applicable.
+    def initialize(value, host = nil)
+      @value = value
+      @host = host
+    end
+
+    # Checks if the domain state is canonical.
+    #
+    # @return [Boolean] True if the domain state is canonical, false otherwise.
+    def canonical?; value == STATES[:canonical]; end
+
+    # Checks if the domain state is a subdomain.
+    #
+    # @return [Boolean] True if the domain state is a subdomain, false otherwise.
+    def subdomain?; value == STATES[:subdomain]; end
+
+    # Checks if the domain state is custom.
+    #
+    # @return [Boolean] True if the domain state is custom, false otherwise.
+    def custom?; value == STATES[:custom]; end
+
+    # Checks if the domain state is invalid.
+    #
+    # @return [Boolean] True if the domain state is invalid, false otherwise.
+    def invalid?; value == STATES[:invalid]; end
+  end
+
 end
