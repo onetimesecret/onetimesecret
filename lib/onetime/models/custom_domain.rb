@@ -1,4 +1,3 @@
-
 require 'public_suffix'
 
 # Tryouts:
@@ -33,8 +32,10 @@ require 'public_suffix'
 class Onetime::CustomDomain < Familia::Horreum
   include Gibbler::Complex
 
-  MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
-  MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
+  unless defined?(MAX_SUBDOMAIN_DEPTH)
+    MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
+    MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
+  end
 
   db 6
   prefix :customdomain
@@ -68,6 +69,7 @@ class Onetime::CustomDomain < Familia::Horreum
   field :_original_value
 
   hashkey :brand
+  hashkey :image1
 
   @txt_validation_prefix = '_onetime-challenge'
 
@@ -85,6 +87,7 @@ class Onetime::CustomDomain < Familia::Horreum
     :txt_validation_host,
     :txt_validation_value,
     { :brand => ->(obj) { obj.brand.hgetall } },
+    # NOTE: We don't serialize images here
     :status,
     { :vhost => ->(obj) { obj.parse_vhost } },
     :verified,
@@ -449,7 +452,6 @@ class Onetime::CustomDomain < Familia::Horreum
     # Implement a load method for CustomDomain to make sure the
     # correct derived ID is used as the key.
     def load display_domain, custid
-
       # the built-in `load` from Familia.
       custom_domain = parse(display_domain, custid).tap do |obj|
         OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"

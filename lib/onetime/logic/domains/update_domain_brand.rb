@@ -58,10 +58,7 @@ module Onetime::Logic
       # Update the brand settings for the custom domain
       def update_brand_settings
         valid_keys = [
-          :logo,
-          :image_encoded,
-          :image_content_type,
-          :image_filename,
+          :logo, # e.g. "image1"
           :primary_color,
           :instructions_pre_reveal,
           :instructions_reveal,

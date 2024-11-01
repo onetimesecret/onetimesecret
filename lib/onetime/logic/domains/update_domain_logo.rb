@@ -52,9 +52,9 @@ module Onetime::Logic
           encoded_content = Base64.strict_encode64(file_content)
 
           # Save the encoded image and metadata
-          @custom_domain.brand['image_encoded'] = encoded_content
-          @custom_domain.brand['image_filename'] = @logo_filename
-          @custom_domain.brand['image_content_type'] = @logo_content_type
+          @custom_domain.image1['encoded'] = encoded_content
+          @custom_domain.image1['filename'] = @logo_filename
+          @custom_domain.image1['content_type'] = @logo_content_type
 
           # Save the custom domain
           @custom_domain.save

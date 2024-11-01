@@ -27,8 +27,8 @@ module Onetime::Logic
         raise_not_found "Domain not found" unless custom_domain
 
         # Safely retrieve the logo filename from the custom domain's brand
-        logo_filename = custom_domain.brand&.[]('image_filename')
-        content_type = custom_domain.brand.[]('image_content_type')
+        logo_filename = custom_domain.image1&.[]('filename')
+        content_type = custom_domain.image1.[]('iontent_type')
 
         raise_not_found "No content type" unless content_type
 
@@ -43,7 +43,7 @@ module Onetime::Logic
       end
 
       def process
-        encoded_content = custom_domain.brand.[]('image_encoded')
+        encoded_content = custom_domain.image1.[]('image_encoded')
 
         # Decode the base64 content back to binary
         @image_data = Base64.strict_decode64(encoded_content)
