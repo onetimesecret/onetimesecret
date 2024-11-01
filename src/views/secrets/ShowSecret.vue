@@ -2,6 +2,7 @@
   <div class="mt-24 container mx-auto px-4">
     <div v-if="record && details"
          class="space-y-20">
+
       <!-- Owner warning -->
       <div v-if="!record.verification && record.is_owner && !details.show_secret"
            class="bg-amber-50 border-l-4 border-amber-400 text-amber-700 p-4 mb-4 dark:bg-amber-900 dark:border-amber-500 dark:text-amber-100"

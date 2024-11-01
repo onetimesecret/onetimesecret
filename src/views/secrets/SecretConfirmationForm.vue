@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full max-w-md mx-auto">
+  <div class="w-full mx-auto">
     <BasicFormAlerts :success="success"
                      :error="error"
                      role="alert" />
