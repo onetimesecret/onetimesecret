@@ -46,7 +46,7 @@ class Onetime::CustomDomain < Familia::Horreum
   # NOTE: The redis key used by older models for values is simply
   # "onetime:customdomain". We'll want to rename those at some point.
   class_sorted_set :values
-  class_set :display_domains
+  class_hashkey :display_domains
   class_hashkey :owners
 
   field :display_domain
@@ -449,6 +449,18 @@ class Onetime::CustomDomain < Familia::Horreum
     # Implement a load method for CustomDomain to make sure the
     # correct derived ID is used as the key.
     def load display_domain, custid
+
+      # the built-in `load` from Familia.
+      custom_domain = parse(display_domain, custid).tap do |obj|
+        OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
+        raise OT::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
+      end
+      super(custom_domain.identifier)
+    end
+
+    # Implement a load by just display_domain. We use this during requests
+    # after determining the domain strategy.
+    def load display_domain
 
       # the built-in `load` from Familia.
       custom_domain = parse(display_domain, custid).tap do |obj|
