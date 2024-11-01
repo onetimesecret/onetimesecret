@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <UnknownSecret v-else />
+    <UnknownSecret v-else :branded="false" />
 
     <div class="flex justify-center mt-12">
       <ThemeToggle />

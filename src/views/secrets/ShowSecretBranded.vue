@@ -53,7 +53,9 @@
       </div>
 
       <!-- Unknown Secret -->
-      <UnknownSecret v-else-if="!record" />
+      <UnknownSecret v-else-if="!record"
+                     :branded="true"
+                     :brand-settings="brandSettings" />
     </div>
   </div>
 </template>
@@ -62,7 +64,7 @@
 import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.vue';
 import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
+import type { AsyncDataResult, SecretData, BrandSettings, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
 import UnknownSecret from '@/views/secrets/UnknownSecret.vue';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
@@ -78,6 +80,10 @@ const initialData = computed(() => route.meta.initialData as AsyncDataResult<Sec
 
 const finalRecord = ref<SecretData | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
+const brandSettings = computed(() => {
+  const record = initialData.value?.data?.record;
+  return record && 'brand' in record ? record.brand as BrandSettings : undefined;
+});
 
 const {
   isSubmitting,
