@@ -36,7 +36,6 @@ class Onetime::CustomDomain < Familia::Horreum
   MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
   MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
 
-  db 6
   prefix :customdomain
 
   feature :safe_dump

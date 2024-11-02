@@ -4,7 +4,6 @@ class Onetime::StripeEvent < Familia::Horreum
   feature :safe_dump
   feature :expiration
 
-  db 10
   ttl 5.years
   prefix :stripeevent
 

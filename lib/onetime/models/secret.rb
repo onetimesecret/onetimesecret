@@ -6,7 +6,6 @@ module Onetime
     feature :safe_dump
     feature :expiration
 
-    db 8
     ttl 7.days # default only, can be overridden at create time
     prefix :secret
 
