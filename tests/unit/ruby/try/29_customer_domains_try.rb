@@ -15,6 +15,8 @@ OT.boot! :test
 @cust = OT::Customer.new @email_address
 
 @valid_domain = 'another.subdomain.onetimesecret.com'
+@valid_domain2 = 'another2.subdomain.onetimesecret.com'
+@valid_domain3 = 'another3.subdomain.onetimesecret.com'
 @input_domains = [
   'example.com',
   'subdomain.example.com'
@@ -68,13 +70,13 @@ custom_domain.owner?(nil)
 #=> false
 
 ## A custom domain has an owner (via different email string)
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.create(@valid_domain2, @cust.custid)
 custom_domain.owner?('anothercustomer@onetimesecret.com')
 #=> false
 
 ## A custom domain has an owner (via different customer)
 cust = OT::Customer.create("anothercustome+#{@now.to_i}r@onetimesecret.com")
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(cust)
 #=> false
 

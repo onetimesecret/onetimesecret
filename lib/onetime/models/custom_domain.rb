@@ -88,9 +88,25 @@ class Onetime::CustomDomain < Familia::Horreum
   ]
 
   def init
+    @domainid = self.identifier
+
     # Display domain and cust should already be set and accessible
     # via accessor methods so we should see a valid identifier logged.
-    #OT.ld "[CustomDomain.init] #{self.display_domain} id:#{self.identifier}"
+    OT.ld "[CustomDomain.init] #{display_domain} id:#{domainid}"
+
+    # Will raise PublicSuffix::DomainInvalid if invalid domain
+    ps_domain = PublicSuffix.parse(display_domain, default_rule: nil)
+
+    # Store the individual domain parts that PublicSuffix parsed out
+    @base_domain = ps_domain.domain.to_s
+    @subdomain = ps_domain.subdomain.to_s
+    @trd = ps_domain.trd.to_s
+    @tld = ps_domain.tld.to_s
+    @sld = ps_domain.sld.to_s
+
+    host, value = generate_txt_validation_record
+    @txt_validation_host = host
+    @txt_validation_value = value
   end
 
   # Generate a unique identifier for this customer's custom domain.
@@ -217,7 +233,7 @@ class Onetime::CustomDomain < Familia::Horreum
     # Include a short identifier that is unique to this domain. This
     # allows for multiple customers to use the same domain without
     # conflicting with each other.
-    shortid = self.domainid.to_s[0..6]
+    shortid = self.identifier.to_s[0..6]
     record_host = "#{self.class.txt_validation_prefix}-#{shortid}"
 
     # Append the TRD if it exists. This allows for multiple subdomains
@@ -279,42 +295,25 @@ class Onetime::CustomDomain < Familia::Horreum
 
       parse(input, custid).tap do |obj|
         OT.li "[CustomDomain.create] Got #{obj.identifier} #{obj.to_h}"
-        raise OT::Problem, "Duplicate domain for customer" if obj.exists?
-
-        self.add obj # Add to CustomDomain.values, CustomDomain.owners
-
-        domainid = obj.identifier
-
-        # Will raise PublicSuffix::DomainInvalid if invalid domain
-        ps_domain = PublicSuffix.parse(input, default_rule: nil)
         cust = OT::Customer.new(custid: custid) # don't need to load the customer, just need the rediskey
 
-        OT.info "[CustomDomain.create] Adding domain #{obj.display_domain}/#{domainid} for #{cust}"
+
+        OT.ld "Adding custom domain without a customer record" unless cust.exists?
+
+        raise OT::Problem, "Duplicate domain for customer" if obj.exists?
+
+        # Persist this new custom domain to the DB before
+        # adding it to the customer's list of custom domains.
+        obj.save
 
         # Add to customer's list of custom domains. It's actually
         # a sorted set so we don't need to worry about dupes.
+        OT.info "[CustomDomain.create] Adding domain #{obj.display_domain}/#{obj.domainid} for #{cust}"
         cust.add_custom_domain obj
 
-        # See initialize above for more context.
-        obj.domainid = obj.identifier
-        obj.custid = custid.to_s
-
-        # Store the individual domain parts that PublicSuffix parsed out
-        obj.base_domain = ps_domain.domain.to_s
-        obj.subdomain = ps_domain.subdomain.to_s
-        obj.trd = ps_domain.trd.to_s
-        obj.tld = ps_domain.tld.to_s
-        obj.sld = ps_domain.sld.to_s
-
-        # Also keep the original input as the customer intended in
-        # case there's a need to "audit" this record later on.
-        obj._original_value = input
-
-        host, value = obj.generate_txt_validation_record
-        obj.txt_validation_host = host
-        obj.txt_validation_value = value
-
-        obj.save
+        # Add to CustomDomain.values, CustomDomain.owners etc only after
+        # saving. Otherwise we'll be generating orphans like crazy.
+        self.add obj
       end
     end
 
@@ -344,7 +343,13 @@ class Onetime::CustomDomain < Familia::Horreum
       # The `display_domain` method calls PublicSuffix.parse
       display_domain = OT::CustomDomain.display_domain input
 
-      OT::CustomDomain.new(display_domain, custid)
+      obj = OT::CustomDomain.new(display_domain, custid)
+
+      # Also keep the original input as the customer intended in
+      # case there's a need to "audit" this record later on.
+      obj._original_value = input
+
+      obj
     end
 
     # Takes the given input domain and returns the base domain,
