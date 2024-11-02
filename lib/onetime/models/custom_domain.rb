@@ -104,7 +104,10 @@ class Onetime::CustomDomain < Familia::Horreum
     @tld = ps_domain.tld.to_s
     @sld = ps_domain.sld.to_s
 
-    generate_txt_validation_record
+    # Don't call generate_txt_validation_record here otherwise we'll
+    # create a new validation record every time we instantiate a
+    # custom domain object. Instead, we'll call it when we're ready
+    # to verify the domain.
   end
 
   # Generate a unique identifier for this customer's custom domain.
@@ -381,6 +384,7 @@ class Onetime::CustomDomain < Familia::Horreum
         end
 
         redis.multi do |multi|
+          obj.generate_txt_validation_record
           obj.save
           # Create minimal customer instance for Redis key
           cust = OT::Customer.new(custid: custid)
