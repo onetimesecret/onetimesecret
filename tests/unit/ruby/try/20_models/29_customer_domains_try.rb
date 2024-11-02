@@ -11,7 +11,7 @@ OT.boot! :test
 
 # Setup some variables for these tryouts
 @now = Time.now
-@email_address = "tryouts+#{@now.to_i}@onetimesecret.com"
+@email_address = "tryouts29+#{@now.to_i}@onetimesecret.com"
 @cust = OT::Customer.new @email_address
 
 @valid_domain = 'another.subdomain.onetimesecret.com'
@@ -33,8 +33,10 @@ OT.boot! :test
 #=> Array
 
 ## Customer's custom domain list is empty to start
-@cust.custom_domains.empty?
-#=> true
+pp @cust.custom_domains.redis.zcard @cust.custom_domains.rediskey
+pp @cust.custom_domains.all
+[@cust.custom_domains.class, @cust.custom_domains.empty?]
+#=> [Familia::SortedSet, true]
 
 ## Ditto for the sorted set
 @cust.custom_domains_list.empty?
