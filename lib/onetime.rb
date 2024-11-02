@@ -21,6 +21,7 @@ require 'storable'
 require 'sysinfo'
 
 require_relative 'onetime/core_ext'
+require_relative 'refinements/horreum_refinements'
 
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
 # This is particularly useful in development and production environments where
@@ -181,14 +182,24 @@ module Onetime
       OT::Plan.load_plans!
     end
 
+    using Familia::HorreumRefinements
+
     def connect_databases
-      # Make sure we're able to connect to separate Redis databases. Some
-      # services provide only db 0 and this is a good way to check early.
-      16.times { |idx|
-        uri = Familia.redis.id
-        ping_result = Familia.redis(idx).ping
-        OT.ld "Connecting to #{uri} (#{ping_result})"
-      }
+      # Connect each model to its configured Redis database
+      dbs = OT.conf.dig(:redis, :dbs)
+
+      OT.ld "[connect_databases] dbs: #{dbs}"
+
+      # Map model classes to their database numbers
+      Familia.members.each do |model_class|
+        db_index = dbs[model_class.to_sym]
+
+        # Give the model class a redis connection to work with.
+        model_class.redis = Familia.redis(db_index)
+        ping_result = model_class.redis.ping
+
+        OT.ld "Connected #{model_class.to_sym} to DB #{db_index} (#{ping_result})"
+      end
     end
 
     def load_locales(locales = OT.conf[:locales] || ['en'])
