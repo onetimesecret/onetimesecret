@@ -318,16 +318,18 @@ class Onetime::CustomDomain < Familia::Horreum
   #
   # States:
   # - :unverified  Initial state, no verification attempted
-  # - :pending     TXT record generated but not verified
-  # - :verified    TXT record verified but DNS not resolving
-  # - :active      TXT record verified and DNS resolving
+  # - :pending     TXT record generated but DNS not resolving
+  # - :resolving    TXT record and CNAME are resolving but not yet matching
+  # - :verified    TXT and CNAME are resolving and TXT record matches
   #
   # @return [Symbol] The current verification state
   def verification_state
     return :unverified unless txt_validation_value
-    return :pending unless verified
-    return :active if verified && resolving
-    :verified
+    if resolving.to_s == 'true'
+      verified.to_s == 'true' ? :verified : :resolving
+    else
+      :pending
+    end
   end
 
   # Checks if this domain is ready to serve traffic
@@ -338,7 +340,7 @@ class Onetime::CustomDomain < Familia::Horreum
   #
   # @return [Boolean] true if domain is verified and resolving
   def ready?
-    verification_state == :active
+    verification_state == :verified
   end
 
   module ClassMethods
