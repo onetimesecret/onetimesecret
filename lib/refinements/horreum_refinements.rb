@@ -1,7 +1,8 @@
-# lib/familia/horreum/string_refinements.rb
+
+
 module Familia
   module HorreumRefinements
-    refine Horreum do
+    refine Familia::Horreum.singleton_class do
       # Converts the class name into a symbol that can be used to look up
       # configuration values. This is particularly useful when mapping
       # database numbers to specific models in the configuration.
