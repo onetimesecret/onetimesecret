@@ -110,8 +110,6 @@ host, value = obj.generate_txt_validation_record
 host
 #=> "_onetime-challenge-47797c9"
 
-
-
 ## As a paranoid measure, let's check the unique identifiers we have
 ## collected so far to make sure they are all different.
 idset = Set.new(@unique_identifier_collector)
@@ -124,13 +122,11 @@ not_empty = !idset.empty?
 [equal_length, not_empty]
 #=> [true, true]
 
-
-
 ## Can create txt record for DNS
-custom_domain = OT::CustomDomain.new(@valid_domain, @customer.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, "user@example.com")
 host, value = custom_domain.generate_txt_validation_record
 [host, value.length]
-#=> ["_onetime-challenge-d1bbc5d.another.subdomain", 32]
+#=> ["_onetime-challenge-40f341a.another.subdomain", 32]
 
 ## CustomDomain.create must be called with a customer ID
 begin
@@ -147,25 +143,25 @@ begin
 rescue OT::Problem => e
   e.message
 end
-#=> "Cannot generate identifier with emptiness"
+#=> "Customer ID required"
 
 ## Check txt validation record host for apex domain
-obj = OT::CustomDomain.create('onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('onetimesecret.com', '12345@example.com')
 obj.txt_validation_host
 #=> "_onetime-challenge-47797c9"
 
 ## Check txt validation record host for www. + apex domain
-obj = OT::CustomDomain.create('www.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('www.onetimesecret.com', '12345@example.com')
 obj.txt_validation_host
 #=> "_onetime-challenge-7dd438f.www"
 
 ## Check txt validation record host for subdomain
-obj = OT::CustomDomain.create('tryouts.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('tryouts.onetimesecret.com', '12345@example.com')
 obj.txt_validation_host
 #=> "_onetime-challenge-0669deb.tryouts"
 
 ## Check txt validation record host for double subdomain
-obj = OT::CustomDomain.create('a.tryouts.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('a.tryouts.onetimesecret.com', '12345@example.com')
 obj.txt_validation_host
 #=> "_onetime-challenge-5a24302.a.tryouts"
 

@@ -28,7 +28,7 @@ OT.boot! :test
 # ListDomains Tests
 
 ## Add a test domain to the customer
-@cust.add_custom_domain(@domain_input)
+@cust.add_custom_domain(@custom_domain)
 
 # Test domain listing
 logic = OT::Logic::Domains::ListDomains.new @sess, @cust

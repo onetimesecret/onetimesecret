@@ -104,9 +104,7 @@ class Onetime::CustomDomain < Familia::Horreum
     @tld = ps_domain.tld.to_s
     @sld = ps_domain.sld.to_s
 
-    host, value = generate_txt_validation_record
-    @txt_validation_host = host
-    @txt_validation_value = value
+    generate_txt_validation_record
   end
 
   # Generate a unique identifier for this customer's custom domain.
@@ -159,10 +157,10 @@ class Onetime::CustomDomain < Familia::Horreum
   #   custom_domain.vhost = '{"ssl": true, "redirect": "https"}'
   #   custom_domain.parse_vhost #=> {"ssl"=>true, "redirect"=>"https"}
   def parse_vhost
-    self.vhost.to_s.empty? ? {} : JSON.parse(self.vhost)
-
+    return {} if vhost.to_s.empty?
+    JSON.parse(vhost)
   rescue JSON::ParserError => e
-    OT.le "[CustomDomain.parse_vhost] Error #{e}"
+    OT.le "[CustomDomain.parse_vhost] Error parsing JSON: #{vhost.inspect} - #{e}"
     {}
   end
 
@@ -185,19 +183,37 @@ class Onetime::CustomDomain < Familia::Horreum
     end
   end
 
-  # If we just want to delete the custom domain object key from Redis,
-  # we can use the following method: `self.clear`. However, this method
-  # runs an atomic MULTI command to delete the key and remove it from the
-  # customer's custom domains list. All or nothing.
-  def destroy! customer=nil
+  # Removes all Redis keys associated with this custom domain
+  #
+  # This includes:
+  # - The main domain hash
+  # - Entry in the values sorted set
+  # - Customer's domains list entry
+  # - Verification state
+  #
+  # @param customer [OT::Customer, nil] The customer to remove domain from
+  # @return [void]
+  def destroy!(customer = nil)
+    keys_to_delete = [
+      rediskey,
+      "#{rediskey}:verification"
+    ]
+
     redis.multi do |multi|
-      multi.del(self.rediskey)
-      # Also remove from CustomDomain.values
-      multi.zrem(OT::CustomDomain.values.rediskey, identifier)
-      unless customer.nil?
-        multi.zrem(customer.custom_domains.rediskey, self.display_domain)
+      # Delete all associated keys
+      keys_to_delete.each { |key| multi.del(key) }
+
+      # Remove from global values set
+      multi.zrem(self.class.values.rediskey, identifier)
+
+      # Remove from customer's domains if customer provided
+      if customer
+        multi.zrem(customer.custom_domains.rediskey, display_domain)
       end
     end
+  rescue Redis::BaseError => e
+    OT.le "[CustomDomain.destroy!] Redis error: #{e.message}"
+    raise OT::Problem, "Unable to delete custom domain"
   end
 
   # Checks if the domain is an apex domain.
@@ -212,20 +228,46 @@ class Onetime::CustomDomain < Familia::Horreum
     subdomain.empty?
   end
 
-  # Overrides Familia::Horreum#exists? b/c of a potential bug. It's been
-  # observed that the `exists?` method is returning false when it should
-  # return true. This is a workaround to ensure that the method returns
-  # the correct value.
+  # Overrides Familia::Horreum#exists? to handle connection pool issues
+  #
+  # The original implementation may return false for existing keys
+  # when the connection is returned to the pool before checking.
+  # This implementation uses a fresh connection for the check.
+  #
+  # @return [Boolean] true if the domain exists in Redis
   def exists?
-    # Use the redis reconnetion for this model to run a lower-level
-    # EXISTS command using the key for this instance of CustomDomain.
     redis.exists?(rediskey)
   end
 
-  # Generates a host and value pair for a TXT record.
+  # Validates the format of TXT record host and value used for domain verification.
+  # The host must be alphanumeric with dots, underscores, or hyphens only.
+  # The value must be a 32-character hexadecimal string.
+  #
+  # @raise [OT::Problem] If the TXT record host or value format is invalid
+  # @return [void]
+  def validate_txt_record!
+    unless txt_validation_host.to_s.match?(/\A[a-zA-Z0-9._-]+\z/)
+      raise OT::Problem, "TXT record hostname can only contain letters, numbers, dots, underscores, and hyphens"
+    end
+
+    unless txt_validation_value.to_s.match?(/\A[a-f0-9]{32}\z/)
+      raise OT::Problem, "TXT record value must be a 32-character hexadecimal string"
+    end
+  end
+
+  # Generates a TXT record for domain ownership verification.
+  # Format: _onetime-challenge-<short_id>[.subdomain]
+  #
+  # The record consists of:
+  # - A prefix (_onetime-challenge-)
+  # - First 7 chars of the domain identifier
+  # - Subdomain parts if present (e.g. .www or .status.www)
+  # - A 32-char random hex value
+  #
+  # @return [Array<String, String>] The TXT record host and value
+  # @raise [OT::Problem] If the generated record is invalid
   #
   # Examples:
-  #
   #   _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70
   #   _onetime-challenge-domainid.status -> cd94fec5a98fd33a0d70d069acaae9
   #
@@ -251,6 +293,11 @@ class Onetime::CustomDomain < Familia::Horreum
 
     OT.info "[CustomDomain] Generated txt record #{record_host} -> #{record_value}"
 
+    @txt_validation_host = record_host
+    @txt_validation_value = record_value
+
+    validate_txt_record!
+
     # These can now be displayed to the customer for them
     # to continue the validation process.
     [record_host, record_value]
@@ -267,9 +314,49 @@ class Onetime::CustomDomain < Familia::Horreum
     [txt_validation_host, base_domain].join('.')
   end
 
+  # Returns the current verification state of the custom domain
+  #
+  # States:
+  # - :unverified  Initial state, no verification attempted
+  # - :pending     TXT record generated but not verified
+  # - :verified    TXT record verified but DNS not resolving
+  # - :active      TXT record verified and DNS resolving
+  #
+  # @return [Symbol] The current verification state
+  def verification_state
+    return :unverified unless txt_validation_value
+    return :pending unless verified
+    return :active if verified && resolving
+    :verified
+  end
+
+  # Checks if this domain is ready to serve traffic
+  #
+  # A domain is considered ready when:
+  # 1. The ownership is verified via TXT record
+  # 2. The domain is resolving to our servers
+  #
+  # @return [Boolean] true if domain is verified and resolving
+  def ready?
+    verification_state == :active
+  end
+
   module ClassMethods
     attr_reader :db, :values, :owners, :txt_validation_prefix
 
+    # Creates a new custom domain record
+    #
+    # This method:
+    # 1. Validates and parses the input domain
+    # 2. Checks for duplicates
+    # 3. Saves the domain and updates related records atomically
+    #
+    # @param input [String] The domain name to create
+    # @param custid [String] The customer ID to associate with
+    # @return [OT::CustomDomain] The created custom domain
+    # @raise [OT::Problem] If domain is invalid or already exists
+    #
+    # More Info:
     # We need a minimum of a domain and customer id to create a custom
     # domain -- or more specifically, a custom domain indentifier. We
     # allow instantiating a custom domain without a customer id, but
@@ -282,39 +369,29 @@ class Onetime::CustomDomain < Familia::Horreum
     # unqualified term "domain" on its own since there's so much
     # room for confusion.
     #
-    # Returns a Onetime::CustomDomain object after saving it to Redis.
-    #
-    # +input+ is the domain name that the customer wants to use.
-    # +custid+ is the customer ID that owns this domain name.
-    #
-    # Calls `parse` to handle the validation so this method
-    # can raise Onetime::Problem if the input is bad.
-    #
-    def create input, custid
-      OT.ld "[CustomDomain.create] Called with #{input} and #{custid}"
+    def create(input, custid)
+      obj = parse(input, custid)
 
-      parse(input, custid).tap do |obj|
-        OT.li "[CustomDomain.create] Got #{obj.identifier} #{obj.to_h}"
-        cust = OT::Customer.new(custid: custid) # don't need to load the customer, just need the rediskey
+      redis.watch(obj.rediskey) do
+        if obj.exists?
+          redis.unwatch
+          raise OT::Problem, "Duplicate domain for customer"
+        end
 
-
-        OT.ld "Adding custom domain without a customer record" unless cust.exists?
-
-        raise OT::Problem, "Duplicate domain for customer" if obj.exists?
-
-        # Persist this new custom domain to the DB before
-        # adding it to the customer's list of custom domains.
-        obj.save
-
-        # Add to customer's list of custom domains. It's actually
-        # a sorted set so we don't need to worry about dupes.
-        OT.info "[CustomDomain.create] Adding domain #{obj.display_domain}/#{obj.domainid} for #{cust}"
-        cust.add_custom_domain obj
-
-        # Add to CustomDomain.values, CustomDomain.owners etc only after
-        # saving. Otherwise we'll be generating orphans like crazy.
-        self.add obj
+        redis.multi do |multi|
+          obj.save
+          # Create minimal customer instance for Redis key
+          cust = OT::Customer.new(custid: custid)
+          cust.add_custom_domain(obj)
+          # Add to global values set
+          self.add(obj)
+        end
       end
+
+      obj  # Return the created object
+    rescue Redis::BaseError => e
+      OT.le "[CustomDomain.create] Redis error: #{e.message}"
+      raise OT::Problem, "Unable to create custom domain"
     end
 
     # Returns a new Onetime::CustomDomain object (without saving it).
@@ -329,26 +406,23 @@ class Onetime::CustomDomain < Familia::Horreum
     # @raise [PublicSuffix::Error] For other PublicSuffix errors
     # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
     #
-    def parse input, custid
-      segments = input.split('.').reject(&:empty?)
+    def parse(input, custid)
+      raise OT::Problem, "Customer ID required" if custid.to_s.empty?
+
+      segments = input.to_s.split('.').reject(&:empty?)
+      raise OT::Problem, "Invalid domain format" if segments.empty?
 
       if segments.length > MAX_SUBDOMAIN_DEPTH
-        raise Onetime::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"
+        raise OT::Problem, "Domain too deep (max: #{MAX_SUBDOMAIN_DEPTH})"
       end
 
       if input.length > MAX_TOTAL_LENGTH
-        raise Onetime::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
+        raise OT::Problem, "Domain too long (max: #{MAX_TOTAL_LENGTH})"
       end
 
-      # The `display_domain` method calls PublicSuffix.parse
-      display_domain = OT::CustomDomain.display_domain input
-
-      obj = OT::CustomDomain.new(display_domain, custid)
-
-      # Also keep the original input as the customer intended in
-      # case there's a need to "audit" this record later on.
+      display_domain = self.display_domain(input)
+      obj = new(display_domain, custid)
       obj._original_value = input
-
       obj
     end
 

@@ -55,22 +55,22 @@ custom_domain = OT::CustomDomain.load(@valid_domain, @cust.custid)
 #=> @valid_domain
 
 ## A custom domain has an owner (via model instance)
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(@cust)
 #=> true
 
 ## A custom domain has an owner (via email string)
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(@cust.custid)
 #=> true
 
 ## A custom domain has an owner (nil)
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(nil)
 #=> false
 
 ## A custom domain has an owner (via different email string)
-custom_domain = OT::CustomDomain.create(@valid_domain2, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain2, @cust.custid)
 custom_domain.owner?('anothercustomer@onetimesecret.com')
 #=> false
 
