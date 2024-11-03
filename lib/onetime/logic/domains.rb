@@ -9,11 +9,12 @@ require_relative 'domains/remove_domain'
 require_relative 'domains/list_domains'
 require_relative 'domains/get_domain'
 require_relative 'domains/verify_domain'
-require_relative 'domains/get_domain_brand'
 require_relative 'domains/get_image'
+require_relative 'domains/get_domain_brand'
 require_relative 'domains/update_domain_brand'
-require_relative 'domains/update_domain_logo'
-require_relative 'domains/remove_domain_logo'
+require_relative 'domains/get_domain_image'
+require_relative 'domains/update_domain_image'
+require_relative 'domains/remove_domain_image'
 
 module Onetime::Logic
   module Domains

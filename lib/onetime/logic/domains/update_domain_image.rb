@@ -116,6 +116,7 @@ module Onetime::Logic
     class UpdateDomainLogo < UpdateDomainImage
       @field = :logo
     end
+
     class UpdateDomainIcon < UpdateDomainImage
       @field = :icon
     end

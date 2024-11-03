@@ -68,7 +68,7 @@ class Onetime::CustomDomain < Familia::Horreum
   field :_original_value
 
   hashkey :brand
-  hashkey :logo
+  hashkey :logo # image fields need a corresponding v2 route and logic class
   hashkey :icon
 
   @txt_validation_prefix = '_onetime-challenge'
