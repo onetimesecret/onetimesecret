@@ -10,7 +10,9 @@ require 'onetime'
 OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
-@customer = OT::Customer.create 'Tryouts+27@onetimesecret.com'  # relies on the destory on teardown
+@email = "Tryouts+27+#{Time.now.to_i}@onetimesecret.com"
+@email2 = "Tryouts+27b+#{Time.now.to_i}@onetimesecret.com"
+@customer = OT::Customer.create @email
 @valid_domain = 'another.subdomain.onetimesecret.com'
 @input_domains = [
   'example.com',
@@ -50,64 +52,63 @@ OT.boot! :test
 ## CustomDomain unique identifier is based on the domain name and customer id
 ## so it's possible to create multiple custom domains for a single and for two
 ## different customers to verify the same domain.
-obj = OT::CustomDomain.create('tryouts.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('tryouts.onetimesecret.com', '12345@example.com')
 @unique_identifier_collector << obj.identifier
 obj.identifier
 #=> "0669deb998dbf949b308"
 
 ## A subdomain of a custom domain will have its own unique identifier
-obj = OT::CustomDomain.create('a.tryouts.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('a.tryouts.onetimesecret.com', '12345@example.com')
 @unique_identifier_collector << obj.identifier
 obj.identifier
 #=> "5a2430213c958311834a"
 
 ## Another subdomain of a custom domain will have a different unique identifier
 ## (i.e. not the same as a.tryouts.onetimesecret.com).
-obj = OT::CustomDomain.create('b.tryouts.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('b.tryouts.onetimesecret.com', '12345@example.com')
 @unique_identifier_collector << obj.identifier
 obj.identifier
 #=> "c6dcda580fdba6afc860"
 
 ## An apex domain will have its unique identifier too
 ## (i.e. not the same as a.tryouts.onetimesecret.com).
-obj = OT::CustomDomain.create('onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('onetimesecret.com', '12345@example.com')
 @unique_identifier_collector << obj.identifier
 obj.identifier
 #=> "47797c9de5e182fea584"
 
 ## Unique identifiers for the same display domains but a different
 ## customer id are different too.
-obj = OT::CustomDomain.create('tryouts.onetimesecret.com', '67890@example.com')
+obj = OT::CustomDomain.new('tryouts.onetimesecret.com', '67890@example.com')
 @unique_identifier_collector << obj.identifier
 obj.identifier
 #=> "e9b334e43f13c0104ee3"
 
 ## A subdomain of a custom domain will have its own unique identifier
-obj = OT::CustomDomain.create('a.tryouts.onetimesecret.com', '67890@example.com')
+obj = OT::CustomDomain.new('a.tryouts.onetimesecret.com', '67890@example.com')
 @unique_identifier_collector << obj.identifier
 obj.identifier
 #=> "48d29d89a138e2b59f2f"
 
 ## Another subdomain of a custom domain will have a different unique identifier
 ## (i.e. not the same as a.tryouts.onetimesecret.com).
-obj = OT::CustomDomain.create('b.tryouts.onetimesecret.com', '67890@example.com')
+obj = OT::CustomDomain.new('b.tryouts.onetimesecret.com', '67890@example.com')
 @unique_identifier_collector << obj.identifier
 obj.identifier
 #=> "3e660c308bfc7d29ff45"
 
 ## An apex domain will have its unique identifier too
 ## (i.e. not the same as a.tryouts.onetimesecret.com).
-obj = OT::CustomDomain.create('onetimesecret.com', '67890@example.com')
+obj = OT::CustomDomain.new('onetimesecret.com', '67890@example.com')
 @unique_identifier_collector << obj.identifier
 obj.identifier
 #=> "dc916d060de2210d9d9d"
 
 ## Check txt validation record host for apex domain
-obj = OT::CustomDomain.create('onetimesecret.com', '12345@example.com')
-obj.txt_validation_host
+obj = OT::CustomDomain.new('onetimesecret.com', '12345@example.com')
+host, value = obj.generate_txt_validation_record
+host
 #=> "_onetime-challenge-47797c9"
-
-
 
 ## As a paranoid measure, let's check the unique identifiers we have
 ## collected so far to make sure they are all different.
@@ -121,13 +122,11 @@ not_empty = !idset.empty?
 [equal_length, not_empty]
 #=> [true, true]
 
-
-
 ## Can create txt record for DNS
-custom_domain = OT::CustomDomain.create(@valid_domain, @customer.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, "user@example.com")
 host, value = custom_domain.generate_txt_validation_record
 [host, value.length]
-#=> ["_onetime-challenge-a58435b.another.subdomain", 32]
+#=> ["_onetime-challenge-40f341a.another.subdomain", 32]
 
 ## CustomDomain.create must be called with a customer ID
 begin
@@ -144,25 +143,25 @@ begin
 rescue OT::Problem => e
   e.message
 end
-#=> "Cannot generate identifier with emptiness"
+#=> "Customer ID required"
 
 ## Check txt validation record host for apex domain
-obj = OT::CustomDomain.create('onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('onetimesecret.com', '12345@example.com')
 obj.txt_validation_host
 #=> "_onetime-challenge-47797c9"
 
 ## Check txt validation record host for www. + apex domain
-obj = OT::CustomDomain.create('www.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('www.onetimesecret.com', '12345@example.com')
 obj.txt_validation_host
 #=> "_onetime-challenge-7dd438f.www"
 
 ## Check txt validation record host for subdomain
-obj = OT::CustomDomain.create('tryouts.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('tryouts.onetimesecret.com', '12345@example.com')
 obj.txt_validation_host
 #=> "_onetime-challenge-0669deb.tryouts"
 
 ## Check txt validation record host for double subdomain
-obj = OT::CustomDomain.create('a.tryouts.onetimesecret.com', '12345@example.com')
+obj = OT::CustomDomain.new('a.tryouts.onetimesecret.com', '12345@example.com')
 obj.txt_validation_host
 #=> "_onetime-challenge-5a24302.a.tryouts"
 

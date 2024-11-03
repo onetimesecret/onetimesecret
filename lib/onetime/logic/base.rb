@@ -21,6 +21,11 @@ module Onetime
         @processed_params ||= {} # TODO: Remove
         process_settings
 
+        if cust.is_a?(String)
+          OT.li "[#{self.class}] Friendly reminder to pass in a Customer instance instead of a custid"
+          @cust = Customer.load(cust)
+        end
+
         # Won't run if params aren't passed in
         process_params if respond_to?(:process_params) && @params
       end

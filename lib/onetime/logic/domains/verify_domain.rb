@@ -39,7 +39,7 @@ module Onetime::Logic
           custom_domain.save
         else
           msg = payload['message']
-          OT.le "[VerifyDomain.refresh_vhost] %s %s [%i]"  % [display_domain, res.code, code]
+          OT.le "[VerifyDomain.refresh_vhost] %s %s [%i]: %s"  % [display_domain, res.code, code, msg]
         end
       end
 

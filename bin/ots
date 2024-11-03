@@ -15,6 +15,10 @@ require 'drydock'
 class OT::CLI::Definition
   extend Drydock
 
+  before do
+    puts "" # separate our content from the bootstrapping banner
+  end
+
   global :v, :verbose, 'Increase output' do
     @verbose ||= 0
     @verbose += 1
@@ -41,7 +45,19 @@ class OT::CLI::Definition
   command move_keys: OT::CLI
 
   usage 'ots customers'
+  option :l, :list, "List customer domains (by count)"
+  option :c, :check, "Show customer records where custid and email do not match (obscured)"
   command customers: OT::CLI
+
+  usage 'ots domains'
+  option :l, :list, "List domains"
+  command domains: OT::CLI
+
+  usage 'ots revalidate-domains'
+  about 'Revalidate domain verification status. Optionally specify a domain and/or customer_id.'
+  option :d, :domain, String, "Domain to revalidate"
+  option :c, :custid, String, "Customer ID to revalidate"
+  command revalidate_domains: OT::CLI
 end
 
 begin

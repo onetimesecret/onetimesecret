@@ -11,10 +11,12 @@ OT.boot! :test
 
 # Setup some variables for these tryouts
 @now = Time.now
-@email_address = "tryouts+#{@now.to_i}@onetimesecret.com"
+@email_address = "tryouts29+#{@now.to_i}@onetimesecret.com"
 @cust = OT::Customer.new @email_address
 
 @valid_domain = 'another.subdomain.onetimesecret.com'
+@valid_domain2 = 'another2.subdomain.onetimesecret.com'
+@valid_domain3 = 'another3.subdomain.onetimesecret.com'
 @input_domains = [
   'example.com',
   'subdomain.example.com'
@@ -31,8 +33,10 @@ OT.boot! :test
 #=> Array
 
 ## Customer's custom domain list is empty to start
-@cust.custom_domains.empty?
-#=> true
+pp @cust.custom_domains.redis.zcard @cust.custom_domains.rediskey
+pp @cust.custom_domains.all
+[@cust.custom_domains.class, @cust.custom_domains.empty?]
+#=> [Familia::SortedSet, true]
 
 ## Ditto for the sorted set
 @cust.custom_domains_list.empty?
@@ -53,28 +57,28 @@ custom_domain = OT::CustomDomain.load(@valid_domain, @cust.custid)
 #=> @valid_domain
 
 ## A custom domain has an owner (via model instance)
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(@cust)
 #=> true
 
 ## A custom domain has an owner (via email string)
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(@cust.custid)
 #=> true
 
 ## A custom domain has an owner (nil)
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(nil)
 #=> false
 
 ## A custom domain has an owner (via different email string)
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain2, @cust.custid)
 custom_domain.owner?('anothercustomer@onetimesecret.com')
 #=> false
 
 ## A custom domain has an owner (via different customer)
 cust = OT::Customer.create("anothercustome+#{@now.to_i}r@onetimesecret.com")
-custom_domain = OT::CustomDomain.create(@valid_domain, @cust.custid)
+custom_domain = OT::CustomDomain.new(@valid_domain, @cust.custid)
 custom_domain.owner?(cust)
 #=> false
 
