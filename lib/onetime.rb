@@ -192,13 +192,14 @@ module Onetime
 
       # Map model classes to their database numbers
       Familia.members.each do |model_class|
-        db_index = dbs[model_class.to_sym]
+        model_sym = model_class.to_sym
+        db_index = dbs[model_sym] || DATABASE_IDS[model_sym] # see models.rb
 
         # Give the model class a redis connection to work with.
         model_class.redis = Familia.redis(db_index)
         ping_result = model_class.redis.ping
 
-        OT.ld "Connected #{model_class.to_sym} to DB #{db_index} (#{ping_result})"
+        OT.ld "Connected #{model_sym} to DB #{db_index} (#{ping_result})"
       end
     end
 
