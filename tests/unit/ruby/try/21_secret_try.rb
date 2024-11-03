@@ -25,7 +25,7 @@ OT.boot! :test
 
 ## Can create Secret
 s = Onetime::Secret.new :private
-[s.class, s.db, s.metadata_key]
+[s.class, s.redis.connection[:db], s.metadata_key]
 #=> [Onetime::Secret, 8, nil]
 
 ## Keys are always unique for Secrets

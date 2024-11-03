@@ -6,7 +6,6 @@ class Onetime::Customer < Familia::Horreum
   feature :safe_dump
   feature :expiration
 
-  db 6
   prefix :customer
 
   @global = nil

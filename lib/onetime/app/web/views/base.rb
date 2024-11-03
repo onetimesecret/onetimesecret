@@ -87,8 +87,20 @@ module Onetime
 
           # There's no custom domain list when the feature is disabled.
           if domains_enabled
-            self[:jsvars] << jsvar(:custom_domains_record_count, cust.custom_domains.length)
-            self[:jsvars] << jsvar(:custom_domains, cust.custom_domains_list.collect { |obj| obj.display_domain }.sort)
+            custom_domains = cust.custom_domains_list.filter_map do |obj|
+              # Only verified domains that resolve
+              unless obj.ready?
+                # For now just log until we can reliably re-attempt verification and
+                # have some visibility which customers this will affect. We've made
+                # the verification more stringent so currently many existing domains
+                # would return obj.ready? == false.
+                OT.li "[custom_domains] Allowing unverified domain: #{obj.display_domain} (#{obj.verified}/#{obj.resolving})"
+              end
+
+              obj.display_domain
+            end
+            self[:jsvars] << jsvar(:custom_domains_record_count, custom_domains.length)
+            self[:jsvars] << jsvar(:custom_domains, custom_domains.sort)
           end
         end
 

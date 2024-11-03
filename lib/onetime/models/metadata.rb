@@ -6,7 +6,6 @@ module Onetime
     feature :safe_dump
     feature :expiration
 
-    db 7
     ttl 14.days
     prefix :metadata
 

@@ -1,4 +1,3 @@
----
 :site:
   :host: <%= ENV['HOST'] || 'localhost:3000' %>
   :domains:
@@ -62,8 +61,30 @@
     # These options will be presented to users when they create a new secret
     # Format: String of integers representing seconds
     :ttl_options: <%= (ENV['TTL_OPTIONS'] || nil) %>
+# Redis Configuration
 :redis:
+  # Main Redis connection URI - Specify full connection string including auth
+  # Format: redis://[:password@]host[:port]/[db-number]
+  # Examples:
+  #   - redis://mypassword@localhost:6379/0        # Simple password auth
+  #   - redis://user:pass@localhost:6379/0         # Username/password auth
+  #   - redis://redis.example.com:6379/0          # No auth (development only)
   :uri: <%= ENV['REDIS_URL'] || 'redis://CHANGEME@127.0.0.1:6379/0' %>
+  # Database Mapping Configuration
+  # These mappings allow separating data across different Redis logical
+  # databases (0-15). These can be arranged any way you like.
+  # Note: If using a Redis provider with single-database limitation (e.g., Upstash),
+  # set all values to 0.
+  :dbs:
+    :session: 1
+    :splittest: 1
+    :custom_domain: 6
+    :customer: 6
+    :subdomain: 6
+    :metadata: 7
+    :email_receipt: 8
+    :secret: 8
+    :feedback: 11
 :colonels:
   # Email addresses listed below will be granted automatic
   # administrative privileges upon account creation. These

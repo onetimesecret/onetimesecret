@@ -7,7 +7,6 @@ class Onetime::Session < Familia::Horreum
   feature :safe_dump
   feature :expiration
 
-  db 1
   ttl 20.minutes
   prefix :session
 

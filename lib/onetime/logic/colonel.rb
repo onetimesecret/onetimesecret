@@ -11,7 +11,7 @@ module Onetime::Logic
                   :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
                   :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
                   :secret_count, :secrets_created, :secrets_shared, :emails_sent, :split_tests,
-                  :has_split_tests, :entropy_count, :redis_info
+                  :has_split_tests, :redis_info
 
       def process_params
         site = OT.conf.fetch(:site, {})
@@ -33,7 +33,6 @@ module Onetime::Logic
         process_statistics
 
         @redis_info = redis_info
-        @entropy_count = OT::Entropy.count
       end
 
       def process_feedback

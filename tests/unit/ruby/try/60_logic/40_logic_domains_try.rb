@@ -17,7 +17,7 @@ OT.boot! :test
 
 # Setup common test variables
 @now = DateTime.now
-@email = 'test@onetimesecret.com'
+@email = "test+#{Time.now.to_i}@onetimesecret.com"
 @sess = OT::Session.new '255.255.255.255', 'anon'
 @cust = OT::Customer.new @email
 @cust.save
@@ -25,11 +25,10 @@ OT.boot! :test
 @custom_domain = OT::CustomDomain.create @domain_input, @cust.custid
 @cust.add_custom_domain @custom_domain
 
-
 # ListDomains Tests
 
 ## Add a test domain to the customer
-@cust.add_domain(@domain_input)
+@cust.add_custom_domain(@custom_domain)
 
 # Test domain listing
 logic = OT::Logic::Domains::ListDomains.new @sess, @cust
