@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'forwardable'
+
 # RateLimit is a Redis-backed rate limiting implementation that tracks
 # events within specific time windows. It inherits from Familia::String
 # to leverage Redis' atomic increment operations and key expiration.
@@ -19,25 +21,50 @@
 #     puts "Rate limit exceeded for #{ex.event}"
 #   end
 #
-class Onetime::RateLimit < Familia::String
+class Onetime::RateLimit < Familia::Horreum
+  extend Forwardable
+
   # Default limit for events that haven't been explicitly configured
   DEFAULT_LIMIT = 25 unless defined?(OT::RateLimit::DEFAULT_LIMIT)
 
+  feature :expiration
+  feature :quantization
+
+  qstamp 20.minutes, pattern: '%H'
+
   # Time window for rate limiting (inherited by ttl)
   ttl 20.minutes
+
+  prefix :limiter
+
+  string :counter, :quantize => [20.minutes, '%H:%M']
+
+  def_delegators :@counter, :value=, :to_i, :to_s
+
+  # limiter:cryt61zzviouw9bhxju71wv64q4yba3:get_page:0240
+  identifier [:external_identifier, :event, :timeblock]
+
+  field :external_identifier
+  field :event
+  field :timeblock
+
+  # We don't use these in this model but there's a bug in
+  # Familia v1.0-rc7 where `save` assumes they're present.
+  field :updated
+  field :created
 
   # Initialize a new rate limiter
   # @param identifier [String] unique identifier for the limited entity
   # @param event [Symbol] the type of event being limited
   # @return [Onetime::RateLimit]
-  def initialize identifier, event
-    # Keys are stored in DB 2 by convention
-    super [:limiter, identifier, event, self.class.eventstamp], db: 2
+  def init
+    self.counter.value = "0" unless exists?
+    update_expiration
   end
 
-  # Get the current count as an integer
-  # @return [Integer]
-  alias_method :count, :to_i
+  def timeblock
+    qstamp pattern: '%H%M'
+  end
 
   # Check if this limiter has exceeded its configured limit
   # @return [Boolean]
@@ -45,32 +72,55 @@ class Onetime::RateLimit < Familia::String
     self.class.exceeded?(event, count)
   end
 
+  def exists?
+    redis.exists?(rediskey)
+  end
+
+  def get
+    redis.get(rediskey).to_i
+  end
+
+  def value
+    get
+  end
+
   # Increment the counter and raise OT::LimitExceeded if limit is exceeded
   # @return [Integer] the new count
   # @raise [OT::LimitExceeded] if the limit is exceeded
   def incr!
-    count = increment
+    count = redis.incr(rediskey)
+    update_expiration
+    limit = self.class.event_limit(event)
+    OT.ld "[OT] #{external_identifier} #{event} #{count}/#{limit}"
     if self.class.exceeded?(event, count)
-      raise OT::LimitExceeded.new(identifier, event, count)
+      raise OT::LimitExceeded.new(external_identifier, event, count)
     end
     count
   end
 
-  # Extract the event name from the Redis key
-  # @return [Symbol]
-  def event
-    rediskey.split(':')[2].to_sym
+  alias_method :count, :value
+
+  def clear
+    redis.del rediskey
   end
 
-  # Extract the identifier from the Redis key
-  # @return [String]
-  def identifier
-    rediskey.split(':')[1]
+  # This is a fix for familia v1.0 bug:
+  # familia/features/quantization.rb:49:in `qstamp': undefined local variable or method `ttl' for an instance of Onetime::RateLimit
+  def ttl
+    self.class.ttl
+  end
+
+  def update_expiration
+    redis.expire(counter.rediskey, ttl)
   end
 
   class << self
     # Hash of registered events and their limits
     attr_reader :events
+
+    def load(identifier, event)
+      new(identifier, event)
+    end
   end
 
   module ClassMethods
@@ -81,8 +131,7 @@ class Onetime::RateLimit < Familia::String
     # @raise [OT::LimitExceeded] if the limit is exceeded
     def incr! identifier, event
       lmtr = new identifier, event
-      count = lmtr.increment
-      lmtr.update_expiration
+      count = lmtr.incr!
 
       OT.ld ['RateLimit.incr!', event, identifier, count, event_limit(event)].inspect
 
@@ -111,7 +160,7 @@ class Onetime::RateLimit < Familia::String
     # @return [Integer] the current count
     def get identifier, event
       lmtr = new identifier, event
-      lmtr.get.to_i
+      lmtr.get
     end
 
     # Get the configured limit for an event

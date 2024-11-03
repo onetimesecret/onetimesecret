@@ -60,10 +60,11 @@ OT::RateLimit.event_limit(:unknown_event)
 
 ## Creates limiter with proper Redis key format
 [@limiter.class, @limiter.rediskey]
-#=> [Onetime::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}"]
+#=> [Onetime::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}:object"]
 
-## Can extract identifier from Redis key
-@limiter.identifier
+## Can get the external identifier of the limiter
+pp [:identifier, @limiter.identifier, @identifier]
+@limiter.external_identifier
 #=> @identifier
 
 ## Can extract event from Redis key
@@ -71,16 +72,17 @@ OT::RateLimit.event_limit(:unknown_event)
 #=> :test_limit
 
 ## Redis key does not exist initially
-@limiter.redis.exists?(@limiter.rediskey)
+@limiter.exists?
 #=> false
 
 ## Redis key is created after first increment
-@limiter.incr!
-@limiter.redis.exists?(@limiter.rediskey)
+p @limiter.incr!
+@limiter.exists?
 #=> true
 
 ## Redis key has proper TTL (should be around 1200 seconds / 20 minutes)
-ttl = @limiter.redis.ttl(@limiter.rediskey)
+ttl = @limiter.redis.ttl(@limiter.counter.rediskey)
+p [:ttl, ttl]
 (ttl > 1100 && ttl <= 1200)
 #=> true
 
@@ -115,7 +117,7 @@ end
 
 ## RateLimited objects can increment events
 @test_obj.event_incr! :test_limit
-OT::RateLimit.get(@test_obj.external_identifier, :test_limit)
+OT::RateLimit.load(@test_obj.external_identifier, :test_limit).value
 #=> 1
 
 ## RateLimited objects can get event counts
@@ -168,8 +170,8 @@ window1_stamp = OT::RateLimit.eventstamp
 # Create key for next time window (20 minutes later)
 next_window = Time.now.utc + (20 * 60)
 window2_stamp = next_window.strftime('%H%M')
-key1 = "limiter:#{@identifier}:test_limit:#{window1_stamp}"
-key2 = "limiter:#{@identifier}:test_limit:#{window2_stamp}"
+key1 = "limiter:#{@identifier}:test_limit:#{window1_stamp}:counter"
+key2 = "limiter:#{@identifier}:test_limit:#{window2_stamp}:counter"
 [key1 == key2, @limiter.redis.exists?(key1), @limiter.redis.exists?(key2)]
 #=> [false, true, false]
 

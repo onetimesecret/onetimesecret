@@ -23,12 +23,12 @@ require_relative 'models/rate_limit'
 DATABASE_IDS = {
   session: 1,
   splittest: 1,
+  ratelimit: 2,
   custom_domain: 6,
   customer: 6,
   subdomain: 6,
   metadata: 7,
   email_receipt: 8,
   secret: 8,
-  feedback: 11,
-  ratelimit: 2
+  feedback: 11
 }
