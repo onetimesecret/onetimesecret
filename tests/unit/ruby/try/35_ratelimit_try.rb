@@ -9,6 +9,8 @@
 # 4. Handling exceptions when limits are exceeded
 # 5. Redis key management and expiration
 # 6. Integration with the RateLimited mixin
+# 7. Familia::String inheritance behavior
+# 8. Time window management
 #
 # These tests aim to verify the correct behavior of the OT::RateLimit class
 # and RateLimited mixin, which are essential for preventing abuse and ensuring
@@ -47,13 +49,26 @@ OT::RateLimit.events.class
 OT::RateLimit.register_event :test_limit, 3
 #=> 3
 
-## Can retrieve registered event limit
-OT::RateLimit.events[:test_limit]
-#=> 3
+## Can register multiple events at once
+OT::RateLimit.register_events(bulk_limit: 5, api_limit: 10)
+[OT::RateLimit.events[:bulk_limit], OT::RateLimit.events[:api_limit]]
+#=> [5, 10]
 
-## Creates a limiter with proper Redis key
+## Uses default limit for unregistered events
+OT::RateLimit.event_limit(:unknown_event)
+#=> 25
+
+## Creates limiter with proper Redis key format
 [@limiter.class, @limiter.rediskey]
 #=> [Onetime::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}"]
+
+## Can extract identifier from Redis key
+@limiter.identifier
+#=> @identifier
+
+## Can extract event from Redis key
+@limiter.event
+#=> :test_limit
 
 ## Redis key does not exist initially
 @limiter.redis.exists?(@limiter.rediskey)
@@ -69,10 +84,17 @@ ttl = @limiter.redis.ttl(@limiter.rediskey)
 (ttl > 1100 && ttl <= 1200)
 #=> true
 
+## Supports string operations from Familia::String
+@limiter.clear
+@limiter.value = "5"
+[@limiter.to_i, @limiter.to_s]
+#=> [5, "5"]
+
 ## Can track multiple increments
+@limiter.clear
 2.times { @limiter.incr! }
 @limiter.count
-#=> 3
+#=> 2
 
 ## Knows when not exceeded
 @limiter.exceeded?
@@ -80,11 +102,11 @@ ttl = @limiter.redis.ttl(@limiter.rediskey)
 
 ## Knows when exceeded
 begin
-  pp @limiter.incr! # This is the 4th increment
+  4.times { @limiter.incr! } # Will exceed limit of 3
 rescue OT::LimitExceeded => ex
-  [ex.class, ex.event, ex.identifier]
+  [ex.class, ex.event, ex.identifier, ex.count]
 end
-#=> [OT::LimitExceeded, :test_limit, @identifier]
+#=> [OT::LimitExceeded, :test_limit, @identifier, 4]
 
 ## Can clear limiter data
 @limiter.clear
@@ -117,6 +139,51 @@ limiter2 = OT::RateLimit.new "id2", :test_limit
 [limiter1.rediskey == limiter2.rediskey, limiter1.rediskey.include?("id1"), limiter2.rediskey.include?("id2")]
 #=> [false, true, true]
 
+## Time windows are properly rounded
+now = Time.now.utc
+rounded = now - (now.to_i % (20 * 60)) # 20 minutes in seconds
+expected = rounded.strftime('%H%M')
+#=> OT::RateLimit.eventstamp
+
+## Time windows round properly at edges
+now = Time.now.utc
+window_size = 20 * 60 # 20 minutes in seconds
+rounded = now - (now.to_i % window_size)
+edge = Time.at(rounded.to_i + 1).utc # 1 second after window start
+OT::RateLimit.eventstamp == rounded.strftime('%H%M')
+#=> true
+
+## Time windows round properly near boundaries
+now = Time.now.utc
+window_size = 20 * 60 # 20 minutes in seconds
+rounded = now - (now.to_i % window_size)
+near_edge = Time.at(rounded.to_i + window_size - 1).utc # 1 second before next window
+OT::RateLimit.eventstamp == rounded.strftime('%H%M')
+#=> true
+
+## Different time windows use different Redis keys
+@limiter.clear
+window1_stamp = OT::RateLimit.eventstamp
+@limiter.incr!
+# Create key for next time window (20 minutes later)
+next_window = Time.now.utc + (20 * 60)
+window2_stamp = next_window.strftime('%H%M')
+key1 = "limiter:#{@identifier}:test_limit:#{window1_stamp}"
+key2 = "limiter:#{@identifier}:test_limit:#{window2_stamp}"
+[key1 == key2, @limiter.redis.exists?(key1), @limiter.redis.exists?(key2)]
+#=> [false, true, false]
+
+## Counts are isolated between time windows
+@limiter.clear
+# Set up data in current window
+current_key = @limiter.rediskey
+3.times { @limiter.incr! }
+@limiter.redis.get(current_key).to_i
+#=> 3
+
 ## Cleanup: clear all test data
 [@limiter, OT::RateLimit.new("id1", :test_limit), OT::RateLimit.new("id2", :test_limit)].each(&:clear)
 OT::RateLimit.clear! @test_obj.external_identifier, :test_limit
+[:test_limit, :bulk_limit, :api_limit].each do |event|
+  OT::RateLimit.clear! @identifier, event
+end
