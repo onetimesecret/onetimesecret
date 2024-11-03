@@ -511,7 +511,7 @@ class Onetime::CustomDomain < Familia::Horreum
     def all
       # Load all instances from the sorted set. No need
       # to involve the owners HashKey here.
-      self.values.revrangeraw(0, -1).collect { |identifier| load(identifier) }
+      self.values.revrangeraw(0, -1).collect { |identifier| from_identifier(identifier) }
     end
 
     def recent duration=48.hours
