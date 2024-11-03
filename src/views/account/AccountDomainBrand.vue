@@ -145,7 +145,6 @@ const customDomain = ref<CustomDomain | null>(null);
 
 // State management
 const brandSettings = ref<BrandSettings>({
-  logo: '',
   primary_color: '#000000',
   instructions_pre_reveal: '', // Ensure this is an empty string, not undefined
   instructions_post_reveal: '',
@@ -192,9 +191,6 @@ const fetchBrandSettings = async () => {
   try {
     // Use preloaded data if available
     if (initialData.value) {
-      if (initialData.value.error) {
-        throw new Error(initialData.value.error);
-      }
 
       if (initialData.value.data) {
         customDomain.value = initialData.value.data.record;
@@ -324,7 +320,7 @@ const handleLogoUpload = async (file: File) => {
   try {
     isSubmitting.value = true;
     const formData = new FormData();
-    formData.append('logo', file);
+    formData.append('image', file);
 
     const response = await api.post(
       `/api/v2/account/domains/${domainId.value}/logo`,
@@ -362,12 +358,6 @@ const removeLogo = async () => {
     const response = await api.delete(`/api/v2/account/domains/${domainId.value}/logo`);
 
     if (response.data.success) {
-      updateBrandSettings({
-        ...brandSettings.value,
-        image_encoded: '',  // Clear image data
-        image_content_type: '',
-        image_filename: ''
-      }, true);
       success.value = response.data.details?.msg || 'Logo removed successfully';
     } else {
       throw new Error('Failed to remove logo');

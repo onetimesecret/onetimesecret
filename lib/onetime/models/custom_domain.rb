@@ -68,7 +68,8 @@ class Onetime::CustomDomain < Familia::Horreum
   field :_original_value
 
   hashkey :brand
-  hashkey :image1
+  hashkey :logo
+  hashkey :icon
 
   @txt_validation_prefix = '_onetime-challenge'
 

@@ -4,7 +4,17 @@ require_relative '../base'
 module Onetime::Logic
   module Domains
 
-    # /imagine/b79b17281be7264f778c/logo.png
+    # Get an image from a custom domain
+    #
+    # Unlike the v2 API image endpoints, this endpoint uses 2 parameters:
+    #   1. custom_domain_id: The ID of the custom domain
+    #   2. filename: The name of the image file
+    #
+    # Both need to be provided in the URL and 404 if either is missing.
+    #
+    # e.g.
+    #   /imagine/b79b17281be7264f778c/logo.png
+    #
     class GetImage < OT::Logic::Base
       attr_reader :custom_domain_id, :filename, :custom_domain
       attr_reader :content_type, :content_length, :image_data
