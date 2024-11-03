@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'models/modules'
 require_relative 'models/mixins'
 require_relative 'models/metadata'
 require_relative 'models/secret'
@@ -10,6 +9,7 @@ require_relative 'models/splittest'
 require_relative 'models/email_receipt'
 require_relative 'models/custom_domain'
 require_relative 'models/feedback'
+require_relative 'models/rate_limit'
 
 # For backwards compatibility with v0.18.3 and earlier, these redis database
 # IDs had been hardcoded in their respective model classes which we maintain
