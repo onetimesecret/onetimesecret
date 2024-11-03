@@ -5,6 +5,7 @@ module Onetime
 
     class View < Mustache
       include Onetime::App::Views::ViewHelpers
+      include Onetime::TimeUtils
 
       self.template_path = './templates/web'
       self.template_extension = 'html'
@@ -22,13 +23,14 @@ module Onetime
         site = OT.conf.fetch(:site, {})
         is_default_locale = OT.conf[:locales].first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+
         @canonical_domain = Onetime::DomainStrategy.normalize_canonical_domain(site) # can be nil
         @domain_strategy = req.env['onetime.domain_strategy'] # never nil
         @display_domain = req.env['onetime.display_domain'] # can be nil
         if @domain_strategy == :custom
           @domain_branding = OT::CustomDomain.from_display_domain(@display_domain)
-          domain_branding.del 'image_encoded'
         end
+
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change and existing
         # installs may not have had a chance to update theirs yet.
