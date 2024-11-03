@@ -93,7 +93,7 @@ custom_domain = @cust.custom_domains_list.first
 #=> true
 
 ## CustomDomain uses the correct Redis database
-OT::CustomDomain.db
+OT::CustomDomain.redis.connection[:db]
 #=> 6
 
 ## CustomDomain has the correct prefix

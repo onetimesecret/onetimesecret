@@ -13,8 +13,6 @@ class Onetime::Subdomain < Familia::Horreum
 
   feature :safe_dump
 
-  db 6
-
   prefix :customer
   identifier :custid
   suffix :subdomain
