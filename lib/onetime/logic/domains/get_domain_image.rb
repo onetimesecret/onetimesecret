@@ -31,7 +31,7 @@ module Onetime::Logic
         @display_domain = @domain_input # Only after it's known to be a good value
 
         @image = self._image_field
-        raise_form_error "Logo not found" unless image['encoded']
+        raise_not_found "Logo not found" unless image && image['encoded']
       end
 
       def process
