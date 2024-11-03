@@ -2,34 +2,40 @@
 <template>
   <div class="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4">
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
+
       <!-- Logo Upload Area -->
       <div class="relative group mx-auto sm:mx-0">
-        <div :class="{
-          'rounded-lg': brandSettings.corner_style === 'rounded',
-          'rounded-full': brandSettings.corner_style === 'pill',
-          'rounded-none': brandSettings.corner_style === 'square',
-          'animate-wiggle': !logoImage
-        }"
-             class="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary-500"
-             @click="$refs.logoInput.click()"
-             role="button"
-             aria-label="Upload logo"
-             aria-describedby="logoHelp">
-          <img v-if="logoImage?.encoded"
-               :src="`data:${logoImage.content_type};base64,${logoImage.encoded}`"
-               :alt="logoImage.filename || 'Brand logo'"
-               class="w-full h-full object-cover">
-          <svg v-else
-               class="w-6 h-6 text-gray-400 dark:text-gray-500"
-               fill="none"
-               stroke="currentColor"
-               viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
+        <!-- Change this to a label wrapping both the preview and input -->
+        <label class="block cursor-pointer"
+               for="logo-upload"
+               role="button"
+               aria-label="Upload logo"
+               aria-describedby="logoHelp">
+          <div :class="{
+            'rounded-lg': brandSettings.corner_style === 'rounded',
+            'rounded-full': brandSettings.corner_style === 'pill',
+            'rounded-none': brandSettings.corner_style === 'square',
+            'animate-wiggle': !isValidLogo
+          }"
+               class="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden hover:ring-2 hover:ring-offset-2 hover:ring-primary-500">
+            <img v-if="isValidLogo"
+                 :src="logoSrc"
+                 :alt="logoImage?.filename || 'Brand logo'"
+                 class="w-full h-full object-cover">
+            <svg v-else
+                 class="w-6 h-6 text-gray-400 dark:text-gray-500"
+                 fill="none"
+                 stroke="currentColor"
+                 viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </label>
+
+
         <!-- Help text -->
         <div id="logoHelp"
              class="sr-only">
@@ -37,16 +43,16 @@
           SVG
         </div>
 
-
-        <!-- Hidden file input -->
-        <input ref="logoInput"
+        <!-- Update the file input -->
+        <input id="logo-upload"
                type="file"
                class="hidden"
                accept="image/*"
-               @change="handleLogoChange">
+               @change="handleLogoChange"
+               aria-labelledby="logoHelp">
 
         <!-- Hover/Focus Controls -->
-        <div v-if="logoImage?.encoded"
+        <div v-if="isValidLogo"
              class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex items-center justify-center rounded-lg"
              role="group"
              aria-label="Logo controls">
@@ -60,7 +66,6 @@
             </span>
           </button>
         </div>
-
       </div>
 
       <div class="flex-1 text-center sm:text-left">
@@ -181,7 +186,7 @@ textarea {
 
 <script setup lang="ts">
 // Script remains the same
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { BrandSettings, ImageProps } from '@/types/onetime';
 import { Icon } from '@iconify/vue';
 
@@ -193,7 +198,20 @@ const props = defineProps<{
   onLogoRemove: () => Promise<void>;
 }>();
 
-const logoInput = ref<HTMLInputElement | null>(null);
+// Computed property to validate logo data
+const isValidLogo = computed(() => {
+  return props.logoImage &&
+    typeof props.logoImage === 'object' &&
+    props.logoImage.encoded &&
+    props.logoImage.content_type;
+});
+
+// Computed property to generate the logo source URL
+const logoSrc = computed(() => {
+  if (!isValidLogo.value) return '';
+  return `data:${props.logoImage?.content_type};base64,${props.logoImage?.encoded}`;
+});
+
 const isRevealed = ref(false);
 
 const DEFAULT_PRE_REVEAL = 'Click the button below to reveal your secure message.';
@@ -205,7 +223,6 @@ const getInstructions = (revealed: boolean): string => {
   }
   return props.brandSettings.instructions_pre_reveal?.trim() || DEFAULT_PRE_REVEAL;
 };
-
 
 const handleLogoChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
