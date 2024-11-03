@@ -20,12 +20,38 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-api.interceptors.response.use((response) => {
-  const csrfStore = useCsrfStore();
-  if (response.data && response.data.shrimp) {
-    csrfStore.updateShrimp(response.data.shrimp);
+api.interceptors.response.use(
+  (response) => {
+    const csrfStore = useCsrfStore();
+    console.debug('[Axios Interceptor] Success response:', {
+      url: response.config.url,
+      status: response.status,
+      hasShrimp: !!response.data?.shrimp,
+      shrimp: response.data?.shrimp?.slice(0, 8) + '...' // Log first 8 chars for debugging
+    });
+
+    if (response.data?.shrimp) {
+      csrfStore.updateShrimp(response.data.shrimp);
+      console.debug('[Axios Interceptor] Updated shrimp token after success');
+    }
+    return response;
+  },
+  (error) => {
+    const csrfStore = useCsrfStore();
+    console.debug('[Axios Interceptor] Error response:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      hasShrimp: !!error.response?.data?.shrimp,
+      shrimp: error.response?.data?.shrimp?.slice(0, 8) + '...',
+      error: error.message
+    });
+
+    if (error.response?.data?.shrimp) {
+      csrfStore.updateShrimp(error.response.data.shrimp);
+      console.debug('[Axios Interceptor] Updated shrimp token after error');
+    }
+    return Promise.reject(error);
   }
-  return response;
-});
+);
 
 export default api;
