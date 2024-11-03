@@ -1,4 +1,5 @@
 require 'base64'
+require 'fastimage'
 
 require_relative '../base'
 require_relative '../../cluster'
@@ -9,10 +10,12 @@ module Onetime::Logic
       IMAGE_MIME_TYPES = %w[
         image/jpeg image/png image/gif image/svg+xml image/webp image/bmp image/tiff
       ]
+      MAX_IMAGE_BYTES = 1 * 1024 * 1024  # 1 MB
     end
 
     class UpdateDomainImage < OT::Logic::Base
       attr_reader :greenlighted, :image, :display_domain, :custom_domain
+      attr_reader :content_type, :filename, :height, :width, :ratio, :bytes
 
       @field = nil
 
@@ -25,7 +28,7 @@ module Onetime::Logic
       # Handles cases where the image parameter is either a hash (from a form upload) or a file object directly.
       def process_params
         # Strip any leading/trailing whitespace from the domain parameter and set it to an instance variable.
-        @display_domain = params[:domain].to_s.strip
+        @domain_input = params[:domain].to_s.strip
 
         # Retrieve the image parameter from the request.
         @image = params[:image]
@@ -47,7 +50,6 @@ module Onetime::Logic
           # Extract the content type if available.
           @content_type = @image.content_type if @image.respond_to?(:content_type)
         end
-
       end
 
       # Validate the input parameters
@@ -55,18 +57,20 @@ module Onetime::Logic
       def raise_concerns
         limit_action :update_domain_brand
 
-        raise_form_error "Domain is required" if @display_domain.empty?
+        raise_form_error "Domain is required" if @domain_input.empty?
 
         # Check if the domain exists and belongs to the current customer
-        @custom_domain = OT::CustomDomain.load(@display_domain, @cust.custid)
+        @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
         raise_form_error "Invalid Domain" unless @custom_domain
 
-        # Validate the logo file
-        raise_form_error "Logo file is required" unless @uploaded_file
+        @display_domain = @domain_input
 
-        if @uploaded_file.size > 1 * 1024 * 1024  # 1 MB
-          raise_form_error "Logo file is too large"
-        end
+        # Validate the logo file
+        raise_form_error "Image file is required" unless @uploaded_file
+
+        @bytes =  @uploaded_file.size
+        raise_form_error "Image file is too large" if bytes > MAX_IMAGE_BYTES
+
         # Raise an error if the file type is not one of the allowed image types
         # Allowed types: JPEG, PNG, GIF, SVG, WEBP, BMP, TIFF
         unless IMAGE_MIME_TYPES.include?(@content_type)
@@ -77,11 +81,16 @@ module Onetime::Logic
       end
 
       def process
-        # Read the file content
+        # Read the file content and encode to Base64
         file_content = @uploaded_file.read
-
-        # Encode the file content to Base64
         encoded_content = Base64.strict_encode64(file_content)
+
+        # Create data URI for FastImage
+        data_uri = "data:#{content_type};base64,#{encoded_content}"
+
+        dimensions = FastImage.size(data_uri)
+        width, height = dimensions
+        ratio = width.to_f / height
 
         # Add the encoded image and metadata to the custom domain
         # image field (e.g. logo, icon, etc). These fields are their
@@ -92,15 +101,19 @@ module Onetime::Logic
         _image_field['encoded'] = encoded_content
         _image_field['filename'] = @filename
         _image_field['content_type'] = @content_type
+        _image_field['height'] = height
+        _image_field['width'] = width
+        _image_field['ratio'] = ratio
+        _image_field['bytes'] = @bytes
       end
 
       def success_data
         klass = self.class
         OT.ld "[#{klass}] Preparing #{klass.field} response for: #{@display_domain}"
         {
-          record: @custom_domain.safe_dump,
+          record: _image_field.hgetall,
           details: {
-            msg: "Logo updated successfully for #{@custom_domain.display_domain}"
+            msg: "Image updated successfully for #{@custom_domain.display_domain}"
           }
         }
       end

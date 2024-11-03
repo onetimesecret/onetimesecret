@@ -349,7 +349,6 @@ const handleLogoUpload = async (file: File) => {
     );
 
     if (response.data.success) {
-      updateBrandSettings(response.data.record.brand, true);
       // Update logo image data
       await fetchLogo();
       notifications.show('Logo uploaded successfully', 'success', 'bottom');

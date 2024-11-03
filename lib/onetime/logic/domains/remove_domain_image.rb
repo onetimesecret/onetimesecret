@@ -20,10 +20,10 @@ module Onetime::Logic
         OT.ld "[#{self.class}] Raising concerns for domain_input: #{@domain_input}"
         limit_action :remove_domain_logo
 
-        raise_form_error "Domain ID is required" if @domain_input.empty?
+        raise_form_error "Domain is required" if @domain_input.empty?
 
         @custom_domain = OT::CustomDomain.load(@domain_input, @cust.custid)
-        raise_form_error "Invalid domain ID" unless @custom_domain
+        raise_form_error "Invalid Domain" unless @custom_domain
 
         @display_domain = @domain_input
 
@@ -33,12 +33,12 @@ module Onetime::Logic
       end
 
       def process
-        remove_image
+        _image_field.delete! # delete the entire redis hash key
         @custom_domain.save
       end
 
       def success_data
-        OT.ld "[#{self.class}] Preparing success data for display_domain: #{@display_domain}"
+        OT.ld "[#{self.class}] Preparing success data for display_domain: #{display_domain}"
         {
           record: nil,
           details: {
@@ -51,15 +51,6 @@ module Onetime::Logic
         _image_field.key?('encoded')
       end
       private :image_exists?
-
-      def remove_image
-        # We don't delete the redis key itself, at least not explicitly. In Redis
-        # if all fields are deleted from a hash, the hash key itself is deleted.
-        _image_field.delete('encoded')
-        _image_field.delete('filename')
-        _image_field.delete('content_type')
-      end
-      private :remove_image
 
       # e.g. custom_domain.logo
       def _image_field

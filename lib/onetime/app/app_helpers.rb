@@ -71,7 +71,7 @@ module Onetime::App
       end
 
     rescue OT::FormError => ex
-      OT.ld "[carefully] FormError: #{ex.message} (#{req.path} redirect:#{redirect})"
+      OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       if redirect
         handle_form_error ex, redirect
       else
@@ -85,7 +85,7 @@ module Onetime::App
       secret_not_found_response
 
     rescue OT::RecordNotFound => ex
-      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path} redirect:#{redirect})"
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       not_found_response ex.message, shrimp: sess.add_shrimp
 
     rescue OT::LimitExceeded => ex
