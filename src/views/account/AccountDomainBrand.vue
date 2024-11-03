@@ -147,9 +147,6 @@ const customDomain = ref<CustomDomain | null>(null);
 const brandSettings = ref<BrandSettings>({
   logo: '',
   primary_color: '#000000',
-  image_content_type: '',
-  image_encoded: '',
-  image_filename: '',
   instructions_pre_reveal: '', // Ensure this is an empty string, not undefined
   instructions_post_reveal: '',
   instructions_reveal: '',
@@ -203,14 +200,10 @@ const fetchBrandSettings = async () => {
         customDomain.value = initialData.value.data.record;
         const { brand } = customDomain.value;
         const settings = {
-          logo: brand?.image_filename || '',
           primary_color: brand?.primary_color || '#ffffff',
           instructions_pre_reveal: brand?.instructions_pre_reveal || '',
           instructions_post_reveal: brand?.instructions_post_reveal || '',
           instructions_reveal: brand?.instructions_reveal || '',
-          image_encoded: brand?.image_encoded || '',
-          image_filename: brand?.image_filename || '',
-          image_content_type: brand?.image_content_type || '',
           font_family: brand?.font_family || 'sans-serif',
           corner_style: brand?.corner_style || 'rounded',
           button_text_light: brand?.button_text_light || false,
@@ -230,14 +223,10 @@ const fetchBrandSettings = async () => {
     const data: ApiResponse = await response.json();
     const { brand } = data.record;
     const settings = {
-      logo: brand?.image_filename || '',
       primary_color: brand?.primary_color || '#ffffff',
       instructions_pre_reveal: brand?.instructions_pre_reveal || '',
       instructions_post_reveal: brand?.instructions_post_reveal || '',
       instructions_reveal: brand?.instructions_reveal || '',
-      image_encoded: brand?.image_encoded || '',
-      image_filename: brand?.image_filename || '',
-      image_content_type: brand?.image_content_type || '',
       font_family: brand?.font_family || 'sans-serif',
       corner_style: brand?.corner_style || 'rounded',
       button_text_light: brand?.button_text_light || false,
@@ -375,7 +364,7 @@ const removeLogo = async () => {
     if (response.data.success) {
       updateBrandSettings({
         ...brandSettings.value,
-        image_encoded: '',
+        image_encoded: '',  // Clear image data
         image_content_type: '',
         image_filename: ''
       }, true);
@@ -403,7 +392,6 @@ watch(brandSettings, (newSettings) => {
       instructions_pre_reveal: newSettings.instructions_pre_reveal,
       instructions_post_reveal: newSettings.instructions_post_reveal,
       instructions_reveal: newSettings.instructions_reveal,
-      image_filename: newSettings.image_filename,
     };
 
     const relevantOriginalSettings = {
@@ -413,7 +401,6 @@ watch(brandSettings, (newSettings) => {
       instructions_pre_reveal: originalSettings.value.instructions_pre_reveal,
       instructions_post_reveal: originalSettings.value.instructions_post_reveal,
       instructions_reveal: originalSettings.value.instructions_reveal,
-      image_filename: originalSettings.value.image_filename,
     };
 
     const currentSettings = JSON.stringify(relevantCurrentSettings);
