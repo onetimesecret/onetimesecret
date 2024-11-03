@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
-      <DomainHeader :domain-id="domainId"
+      <DomainHeader :displayDomain="displayDomain"
                     :domain="customDomain" />
 
       <BrandSettingsBar v-model="brandSettings"
@@ -60,17 +60,18 @@
         </ul>
 
         <BrowserPreviewFrame class="w-full max-w-3xl mx-auto overflow-hidden"
-                             :domain="domainId"
+                             :domain="displayDomain"
                              :browser-type="selectedBrowserType"
                              @toggle-browser="toggleBrowser"
                              aria-labelledby="previewHeading">
           <SecretPreview v-if="!loading && !error"
-                         ref="secretPreview"
-                         :brandSettings="brandSettings"
-                         :onLogoUpload="handleLogoUpload"
-                         :onLogoRemove="removeLogo"
-                         secretKey="abcd"
-                         class="transform transition-all duration-200 hover:scale-[1.02] max-w-full" />
+               ref="secretPreview"
+               :brandSettings="brandSettings"
+               :logoImage="logoImage"
+               :onLogoUpload="handleLogoUpload"
+               :onLogoRemove="removeLogo"
+               secretKey="abcd"
+               class="transform transition-all duration-200 hover:scale-[1.02] max-w-full" />
         </BrowserPreviewFrame>
 
         <!-- Loading and Error States -->
@@ -100,12 +101,12 @@
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
 import type { AsyncDataResult, BrandSettings, CustomDomain, CustomDomainApiResponse } from '@/types/onetime';
+import { ImageProps } from '@/types/onetime';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
 import { Icon } from '@iconify/vue';
-import { computed, onMounted, ref, watch, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { onBeforeRouteLeave } from 'vue-router';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { onBeforeRouteLeave, useRoute } from 'vue-router';
 
 // Import components
 import BrandSettingsBar from '@/components/account/BrandSettingsBar.vue';
@@ -139,7 +140,7 @@ const props = defineProps<{
   domain?: string;
 }>();
 
-const domainId = computed(() => `${props.domain || route.params.domain as string}`);
+const displayDomain = computed(() => `${props.domain || route.params.domain as string}`);
 const customDomain = ref<CustomDomain | null>(null);
 
 
@@ -212,7 +213,7 @@ const fetchBrandSettings = async () => {
     }
 
     // Fallback to API call if no preloaded data
-    const response = await fetch(`/api/v2/account/domains/${domainId.value}/brand`);
+    const response = await fetch(`/api/v2/account/domains/${displayDomain.value}/brand`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -289,7 +290,7 @@ const submitForm = async () => {
       shrimp: csrfStore.shrimp
     };
 
-    const response = await api.put(`/api/v2/account/domains/${domainId.value}/brand`, payload);
+    const response = await api.put(`/api/v2/account/domains/${displayDomain.value}/brand`, payload);
 
     if (response.data.success) {
       // Make sure we're getting all fields back from the response
@@ -315,7 +316,22 @@ const submitForm = async () => {
   }
 };
 
-// Handle logo upload
+const logoImage = ref<ImageProps | null>(null);
+
+// Add function to fetch logo
+const fetchLogo = async () => {
+  try {
+    const response = await api.get(`/api/v2/account/domains/${displayDomain.value}/logo`);
+    if (response.data.success && response.data.record) {
+      logoImage.value = response.data.record;
+    }
+  } catch (err) {
+    console.error('Error fetching logo:', err);
+    // Optionally handle error
+  }
+};
+
+// Update handleLogoUpload to set logo data after successful upload
 const handleLogoUpload = async (file: File) => {
   try {
     isSubmitting.value = true;
@@ -323,7 +339,7 @@ const handleLogoUpload = async (file: File) => {
     formData.append('image', file);
 
     const response = await api.post(
-      `/api/v2/account/domains/${domainId.value}/logo`,
+      `/api/v2/account/domains/${displayDomain.value}/logo`,
       formData,
       {
         headers: {
@@ -334,6 +350,8 @@ const handleLogoUpload = async (file: File) => {
 
     if (response.data.success) {
       updateBrandSettings(response.data.record.brand, true);
+      // Update logo image data
+      await fetchLogo();
       notifications.show('Logo uploaded successfully', 'success', 'bottom');
     } else {
       throw new Error(response.data.message || 'Failed to upload logo');
@@ -349,26 +367,29 @@ const handleLogoUpload = async (file: File) => {
   }
 };
 
+// Update removeLogo to clear logo data
 const removeLogo = async () => {
   try {
     isSubmitting.value = true;
-    error.value = '';
-    success.value = '';
-
-    const response = await api.delete(`/api/v2/account/domains/${domainId.value}/logo`);
+    const response = await api.delete(`/api/v2/account/domains/${displayDomain.value}/logo`);
 
     if (response.data.success) {
-      success.value = response.data.details?.msg || 'Logo removed successfully';
+      logoImage.value = null;
+      notifications.show('Logo removed successfully', 'success', 'bottom');
     } else {
       throw new Error('Failed to remove logo');
     }
   } catch (err) {
     console.error('Error removing logo:', err);
-    error.value = err instanceof Error ? err.message : 'Failed to remove logo. Please try again.';
+    notifications.show(
+      err instanceof Error ? err.message : 'Failed to remove logo. Please try again.',
+      'error'
+    );
   } finally {
     isSubmitting.value = false;
   }
 };
+
 
 // Update the watch to use JSON comparison for deep equality
 // Replace the existing watch with this updated version
@@ -414,8 +435,10 @@ watch(() => brandSettings.value.primary_color, (newColor) => {
 // Update lifecycle hooks
 onMounted(() => {
   fetchBrandSettings();
+  fetchLogo();
   window.addEventListener('beforeunload', handleBeforeUnload);
 });
+
 
 onUnmounted(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload);

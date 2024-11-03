@@ -18,10 +18,13 @@ export interface ImageProps {
   encoded: string;
   content_type: string;
   filename: string;
+  bytes?: number;
+  width?: number;
+  height?: number;
+  ratio?: number;
 }
 
 export interface BrandSettings {
-  logo: string;
   primary_color: string;
   instructions_pre_reveal: string;
   instructions_reveal: string;
@@ -141,6 +144,7 @@ export interface CustomDomain extends BaseApiRecord {
   txt_validation_value: string;
   vhost?: ApproximatedVHost;
   brand?: BrandSettings;
+  // Images are queried separately
 }
 
 export interface CustomDomainCluster extends BaseApiRecord {
@@ -348,6 +352,7 @@ export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
 export type ConcealDataApiResponse = ApiRecordResponse<ConcealData>;
 export type CheckAuthDataApiResponse = ApiRecordResponse<CheckAuthData>;
 export type BrandSettingsApiResponse = ApiRecordResponse<BrandSettings>;
+export type ImagePropsApiResponse = ApiRecordResponse<ImageProps>;
 
 /**
  * Front-end Vue App

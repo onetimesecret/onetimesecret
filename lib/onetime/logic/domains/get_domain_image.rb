@@ -12,17 +12,10 @@ module Onetime::Logic
       end
 
       def process_params
-        @image_field = params[:image_field].to_s
         @domain_input = params[:domain].to_s.strip
       end
 
       def raise_concerns
-        # The URL path should end in /logo or /icon, for example. That value
-        # must match a hashkey field defined in CustomDomain.
-        unless OT::CustomDomain.fields.include?(image_field.to_sym)
-          raise_form_error "Invalid image field #{image_field}"
-        end
-
         raise_form_error "Please enter a domain" if @domain_input.empty?
 
         unless OT::CustomDomain.valid?(@domain_input)
@@ -37,19 +30,19 @@ module Onetime::Logic
 
         @display_domain = @domain_input # Only after it's known to be a good value
 
-        @image = @custom_domain._image_field
+        @image = self._image_field
         raise_form_error "Logo not found" unless image['encoded']
       end
 
       def process
-        OT.ld "[GetDomainLogo] Processing logo for #{@custom_domain.display_domain}"
+        OT.ld "[#{self.class}] Logo for #{@custom_domain.display_domain}"
 
         image[:content_type] ||= 'application/octet-stream' # ¯\_(ツ)_/¯
       end
 
       def success_data
         {
-          record: image,  # encoded filename content_type
+          record: image.hgetall,  # encoded filename content_type
           details: {
           }
         }

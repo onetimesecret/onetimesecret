@@ -8,16 +8,16 @@
           'rounded-lg': brandSettings.corner_style === 'rounded',
           'rounded-full': brandSettings.corner_style === 'pill',
           'rounded-none': brandSettings.corner_style === 'square',
-          'animate-wiggle': !brandSettings.image_encoded
+          'animate-wiggle': !logoImage
         }"
              class="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary-500"
              @click="$refs.logoInput.click()"
              role="button"
              aria-label="Upload logo"
              aria-describedby="logoHelp">
-          <img v-if="brandSettings.image_encoded"
-               :src="`data:${brandSettings.image_content_type};base64,${brandSettings.image_encoded}`"
-               alt="Brand logo"
+          <img v-if="logoImage?.encoded"
+               :src="`data:${logoImage.content_type};base64,${logoImage.encoded}`"
+               :alt="logoImage.filename || 'Brand logo'"
                class="w-full h-full object-cover">
           <svg v-else
                class="w-6 h-6 text-gray-400 dark:text-gray-500"
@@ -46,7 +46,7 @@
                @change="handleLogoChange">
 
         <!-- Hover/Focus Controls -->
-        <div v-if="brandSettings.image_encoded"
+        <div v-if="logoImage?.encoded"
              class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex items-center justify-center rounded-lg"
              role="group"
              aria-label="Logo controls">
@@ -182,13 +182,13 @@ textarea {
 <script setup lang="ts">
 // Script remains the same
 import { ref } from 'vue';
-import type { BrandSettings } from '@/types/onetime';
+import type { BrandSettings, ImageProps } from '@/types/onetime';
 import { Icon } from '@iconify/vue';
-
 
 const props = defineProps<{
   brandSettings: BrandSettings;
   secretKey: string;
+  logoImage?: ImageProps | null; // Add new prop for logo data
   onLogoUpload: (file: File) => Promise<void>;
   onLogoRemove: () => Promise<void>;
 }>();
