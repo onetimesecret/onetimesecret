@@ -54,7 +54,7 @@
 
     <UnknownSecret v-else :branded="false" />
 
-    <div class="flex justify-center mt-12">
+    <div class="flex justify-center pt-16">
       <ThemeToggle />
     </div>
   </div>

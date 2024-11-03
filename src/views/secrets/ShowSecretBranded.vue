@@ -56,6 +56,11 @@
       <UnknownSecret v-else-if="!record"
                      :branded="true"
                      :brand-settings="brandSettings" />
+
+      <div class="flex justify-center pt-16">
+        <ThemeToggle />
+      </div>
+
     </div>
   </div>
 </template>
@@ -63,8 +68,9 @@
 <script setup lang="ts">
 import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.vue';
 import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
+import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { AsyncDataResult, SecretData, BrandSettings, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
+import type { AsyncDataResult, BrandSettings, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
 import UnknownSecret from '@/views/secrets/UnknownSecret.vue';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
