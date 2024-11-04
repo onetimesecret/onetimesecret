@@ -1,57 +1,165 @@
-// src/utils/api.ts
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { useCsrfStore } from '@/stores/csrfStore';
 
-const api = axios.create();
+/**
+ * BACKWARDS COMPATIBILITY NOTICE:
+ * This module provides both a default export and a createApi factory function.
+ * - Use the default export for existing code and simple cases
+ * - Use createApi() for new code that needs domain configuration
+ *
+ * The default export will be maintained for backwards compatibility, but new code
+ * should prefer using createApi() for better configuration options and flexibility.
+ */
 
-api.interceptors.request.use((config) => {
-  const csrfStore = useCsrfStore();
+/**
+ * Configuration options for creating an API instance.
+ * Only applicable when using the createApi() factory function.
+ */
+interface ApiConfig {
+  /**
+   * Base domain URL for API requests. Supports the following formats:
+   * - Domain only (e.g. 'api.example.com')
+   * - HTTP URL (will be upgraded to HTTPS)
+   * - HTTPS URL (e.g. 'https://api.example.com')
+   *
+   * @remarks
+   * - If no protocol is specified, HTTPS will be automatically added
+   * - HTTP protocol will be automatically upgraded to HTTPS
+   * - Only HTTPS is supported; other protocols will throw an error
+   *
+   * @throws {Error} If the URL is invalid or uses an unsupported protocol
+   */
+  domain?: string;
+}
 
-  // We should only need to pass the CSRF token in via form field
-  // or HTTP header and not both. The old way was form field and
-  // the new way is header so we'll do this both ways for the time
-  // being until we can remove the form field method.
-  config.data = config.data || {};
-  config.data.shrimp = csrfStore.shrimp;
+/**
+ * Creates a configured Axios instance with CSRF protection and interceptors.
+ * This is the recommended way to create new API instances, especially when
+ * custom domain configuration is needed.
+ *
+ * @param config - Configuration options for the API instance
+ * @returns An Axios instance configured with the specified options and interceptors
+ * @throws {Error} If the provided domain is invalid or uses an unsupported protocol
+ *
+ * @example
+ * ```typescript
+ * // Create API instance with various domain formats
+ * const api1 = createApi({ domain: 'api.example.com' });         // adds https://
+ * const api2 = createApi({ domain: 'http://api.example.com' });  // converts to https://
+ * const api3 = createApi({ domain: 'https://api.example.com' }); // already correct
+ *
+ * // Invalid configurations that will throw errors
+ * createApi({ domain: 'ftp://api.example.com' })   // Error: Only HTTPS protocol is supported
+ * createApi({ domain: 'not a url' })               // Error: Invalid domain URL
+ * ```
+ */
+const createApi = (config: ApiConfig = {}): AxiosInstance => {
+  let baseURL = config.domain?.trim();
 
-  config.headers = config.headers || {};
-  config.headers['O-Shrimp'] = csrfStore.shrimp;
-
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => {
-    const csrfStore = useCsrfStore();
-    console.debug('[Axios Interceptor] Success response:', {
-      url: response.config.url,
-      status: response.status,
-      hasShrimp: !!response.data?.shrimp,
-      shrimp: response.data?.shrimp?.slice(0, 8) + '...' // Log first 8 chars for debugging
-    });
-
-    if (response.data?.shrimp) {
-      csrfStore.updateShrimp(response.data.shrimp);
-      console.debug('[Axios Interceptor] Updated shrimp token after success');
+  if (baseURL) {
+    // If no protocol specified, prepend https://
+    if (!baseURL.match(/^[a-zA-Z]+:\/\//)) {
+      baseURL = `https://${baseURL}`;
     }
-    return response;
-  },
-  (error) => {
-    const csrfStore = useCsrfStore();
-    console.debug('[Axios Interceptor] Error response:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      hasShrimp: !!error.response?.data?.shrimp,
-      shrimp: error.response?.data?.shrimp?.slice(0, 8) + '...',
-      error: error.message
-    });
 
-    if (error.response?.data?.shrimp) {
-      csrfStore.updateShrimp(error.response.data.shrimp);
-      console.debug('[Axios Interceptor] Updated shrimp token after error');
+    // If http://, replace with https://
+    if (baseURL.startsWith('http://')) {
+      baseURL = baseURL.replace('http://', 'https://');
     }
-    return Promise.reject(error);
+
+    // Validate that we now have a proper https URL
+    try {
+      const url = new URL(baseURL);
+      if (url.protocol !== 'https:') {
+        throw new Error('Only HTTPS protocol is supported');
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Invalid domain URL: ${error.message}`);
+      } else {
+        throw new Error('Invalid domain URL');
+      }
+    }
   }
-);
 
-export default api;
+  const api = axios.create({
+    baseURL
+  });
+
+  api.interceptors.request.use((config) => {
+    const csrfStore = useCsrfStore();
+
+    // We should only need to pass the CSRF token in via form field
+    // or HTTP header and not both. The old way was form field and
+    // the new way is header so we'll do this both ways for the time
+    // being until we can remove the form field method.
+    config.data = config.data || {};
+    config.data.shrimp = csrfStore.shrimp;
+
+    config.headers = config.headers || {};
+    config.headers['O-Shrimp'] = csrfStore.shrimp;
+
+    return config;
+  });
+
+  api.interceptors.response.use(
+    (response) => {
+      const csrfStore = useCsrfStore();
+      console.debug('[Axios Interceptor] Success response:', {
+        url: response.config.url,
+        status: response.status,
+        hasShrimp: !!response.data?.shrimp,
+        shrimp: response.data?.shrimp?.slice(0, 8) + '...' // Log first 8 chars for debugging
+      });
+
+      if (response.data?.shrimp) {
+        csrfStore.updateShrimp(response.data.shrimp);
+        console.debug('[Axios Interceptor] Updated shrimp token after success');
+      }
+      return response;
+    },
+    (error) => {
+      const csrfStore = useCsrfStore();
+      console.debug('[Axios Interceptor] Error response:', {
+        url: error.config?.url,
+        status: error.response?.status,
+        hasShrimp: !!error.response?.data?.shrimp,
+        shrimp: error.response?.data?.shrimp?.slice(0, 8) + '...',
+        error: error.message
+      });
+
+      if (error.response?.data?.shrimp) {
+        csrfStore.updateShrimp(error.response.data.shrimp);
+        console.debug('[Axios Interceptor] Updated shrimp token after error');
+      }
+      return Promise.reject(error);
+    }
+  );
+
+  return api;
+};
+
+/**
+ * Default API instance without a custom domain.
+ *
+ * @deprecated While still supported for backwards compatibility, new code should
+ * use createApi() instead. This default export will be maintained but won't
+ * receive new configuration options.
+ *
+ * @example
+ * ```typescript
+ * // Legacy usage (still supported)
+ * import api from '@/utils/api';
+ * const response = await api.get('/users');
+ *
+ * // Preferred modern usage which supports an optional domain
+ * // and custom configuration.
+ * import { createApi } from '@/utils/api';
+ * const api = createApi();
+ * const response = await api.get('/users');
+ * ```
+ */
+const defaultApi = createApi();
+
+export { createApi };
+export default defaultApi;
