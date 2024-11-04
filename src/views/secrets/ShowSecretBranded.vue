@@ -97,6 +97,7 @@ import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import type { AsyncDataResult, BrandSettings, ImageProps, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
+import { createApi } from '@/utils/api';
 import UnknownSecret from '@/views/secrets/UnknownSecret.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
@@ -116,10 +117,6 @@ const initialData = computed(() => route.meta.initialData as AsyncDataResult<Sec
 
 const finalRecord = ref<SecretData | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
-const brandSettings = computed(() => {
-  const record = initialData.value?.data?.record;
-  return record && 'brand' in record ? record.brand as BrandSettings : undefined;
-});
 
 const {
   isSubmitting,
@@ -151,5 +148,30 @@ watch(finalRecord, (newValue) => {
   if (newValue) {
     console.log('Secret fetched successfully');
   }
+});
+
+// Add logo state
+const logoImage = ref<ImageProps | null>(null);
+
+// Modify the logo fetching function to use displayDomain
+const fetchLogo = async () => {
+  if (!props.displayDomain) return;
+  const api = createApi({ domain: props.siteHost });
+  try {
+    const response = await api.get(`/api/v2/account/domains/${props.displayDomain}/logo`);
+    if (response.data.success && response.data.record) {
+      logoImage.value = response.data.record;
+    }
+  } catch (err) {
+    console.error('Error fetching logo:', err);
+  }
+};
+
+// Use the brand settings directly from props
+const brandSettings = computed(() => props.domainBranding);
+
+// Call fetchLogo when the component mounts
+onMounted(() => {
+  fetchLogo();
 });
 </script>
