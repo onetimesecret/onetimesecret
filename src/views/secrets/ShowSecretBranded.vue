@@ -4,6 +4,11 @@
 
       <!-- Add logo display -->
       <div v-if="logoImage" class="flex justify-center mb-8">
+        <!-- Use the public image path for the logo. We just need the -->
+        <!-- domain ID and logo filename passed in or via brand settings. -->
+        <!-- We could make it simply /logo.png by convention but we'd still need to know the image format unless we were converting them all to PNGs. -->
+        <!-- Also add primary color detection to image upload. -->
+        <!-- /imagine/0c0489704c71066f3e78/logo/autogpt_logo.png -->
         <img
           :src="`data:${logoImage.content_type};base64,${logoImage.encoded}`"
           :alt="logoImage.filename || 'Brand logo'"
@@ -98,7 +103,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import type { AsyncDataResult, BrandSettings, ImageProps, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
 import { createApi } from '@/utils/api';
-import UnknownSecret from '@/views/secrets/UnknownSecret.vue';
+import UnknownSecret from '@/views/secrets/UnknownSecretBranded.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 

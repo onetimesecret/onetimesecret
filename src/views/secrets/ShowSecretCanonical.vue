@@ -66,7 +66,7 @@ import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import type { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
-import UnknownSecret from '@/views/secrets/UnknownSecret.vue';
+import UnknownSecret from '@/views/secrets/UnknownSecretCanonical.vue';
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
