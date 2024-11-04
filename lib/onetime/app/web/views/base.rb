@@ -12,8 +12,8 @@ module Onetime
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
 
-      attr_reader :req, :plan, :is_paid
-      attr_reader :canonical_domain, :display_domain, :domain_strategy, :domain_branding
+      attr_reader :req, :plan, :is_paid, :canonical_domain, :display_domain, :domain_strategy
+      attr_reader :domain_id, :domain_branding, :custom_domain
       attr_accessor :sess, :cust, :locale, :messages, :form_fields, :pagename
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
@@ -24,11 +24,14 @@ module Onetime
         is_default_locale = OT.conf[:locales].first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
 
+        # TODO: This only needs to happen once at boot time.
         @canonical_domain = Onetime::DomainStrategy.normalize_canonical_domain(site) # can be nil
         @domain_strategy = req.env['onetime.domain_strategy'] # never nil
         @display_domain = req.env['onetime.display_domain'] # can be nil
         if @domain_strategy == :custom
-          @domain_branding = OT::CustomDomain.from_display_domain(@display_domain)
+          @custom_domain = OT::CustomDomain.from_display_domain(@display_domain)
+          @domain_id = custom_domain&.identifier
+          @domain_branding = custom_domain&.brand&.hgetall
         end
 
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
@@ -131,7 +134,8 @@ module Onetime
         self[:jsvars] << jsvar(:site_host, site[:host])
         self[:jsvars] << jsvar(:canonical_domain, canonical_domain)
         self[:jsvars] << jsvar(:domain_strategy, domain_strategy)
-        self[:jsvars] << jsvar(:domain_branding, domain_branding&.brand&.hgetall)
+        self[:jsvars] << jsvar(:domain_id, domain_id)
+        self[:jsvars] << jsvar(:domain_branding, domain_branding)
         self[:jsvars] << jsvar(:display_domain, display_domain)
 
         # The form fields hash is populated by handle_form_error so only when there's

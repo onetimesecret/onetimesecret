@@ -112,6 +112,7 @@ declare global {
 
     canonical_domain: string | null;
     domain_strategy: string;
+    domain_id: string;
     display_domain: string;
     domain_branding: BrandSettings;
   }

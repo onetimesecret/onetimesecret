@@ -6,6 +6,7 @@ import { useWindowProp } from '@/composables/useWindowProps';
 
 const domain_strategy = useWindowProp('domain_strategy');
 const display_domain = useWindowProp('display_domain');
+const domain_id = useWindowProp('domain_id');
 const domain_branding = useWindowProp('domain_branding');
 const site_host = useWindowProp('site_host');
 
@@ -21,6 +22,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       domain_strategy: domain_strategy.value,
       display_domain: display_domain.value,
+      domain_id: domain_id.value,
       domain_branding: domain_branding.value,
       site_host: site_host.value,
     },
