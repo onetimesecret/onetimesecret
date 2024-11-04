@@ -156,7 +156,7 @@ const logoImage = ref<ImageProps | null>(null);
 // Modify the logo fetching function to use displayDomain
 const fetchLogo = async () => {
   if (!props.displayDomain) return;
-  const api = createApi({ domain: props.siteHost });
+  const api = createApi(); // Use custom domain for communication
   try {
     const response = await api.get(`/api/v2/account/domains/${props.displayDomain}/logo`);
     if (response.data.success && response.data.record) {
