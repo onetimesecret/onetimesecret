@@ -92,8 +92,8 @@
 </style>
 
 <script setup lang="ts">
-import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.vue';
-import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
+import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
+import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import type { AsyncDataResult, BrandSettings, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';

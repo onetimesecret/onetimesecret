@@ -31,10 +31,12 @@
       </div>
 
       <div v-if="!details.show_secret">
-        <SecretConfirmationForm :secretKey="secretKey"
-                                :record="record"
-                                :details="details"
-                                @secret-loaded="handleSecretLoaded" />
+        <SecretConfirmationForm
+          :secretKey="secretKey"
+          :record="record"
+          :details="details"
+          @secret-loaded="handleSecretLoaded"
+        />
 
         <div v-if="!record.verification">
           <SecretRecipientOnboardingContent :displayPoweredBy="displayPoweredBy" />
@@ -47,8 +49,10 @@
           {{ $t('web.shared.this_message_for_you') }}
         </h2>
 
-        <SecretDisplayCase :secret="record"
-                           :details="details" />
+        <SecretDisplayCase
+          :secret="record"
+          :details="details"
+        />
       </div>
     </div>
 
@@ -61,8 +65,8 @@
 </template>
 
 <script setup lang="ts">
-import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.vue';
-import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
+import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
+import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import type { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
@@ -73,7 +77,7 @@ import { useRoute } from 'vue-router';
 interface Props {
   secretKey: string;
   domainStrategy: string;
-  domainId: string;
+  domainId: string | null;
   displayDomain: string;
   siteHost: string;
 }
