@@ -34,7 +34,7 @@
     <div class="space-y-6">
       <p class="text-gray-600 dark:text-gray-300">
         {{ brandSettings?.instructions_post_reveal ||
-           'Sensitive information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality.' }}
+           'Sensitive information shared through this service can only be accessed once. Once viewed, the content is permanently deleted to ensure confidentiality.' }}
       </p>
 
       <router-link

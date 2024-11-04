@@ -73,6 +73,7 @@ import { useRoute } from 'vue-router';
 interface Props {
   secretKey: string;
   domainStrategy: string;
+  domainId: string;
   displayDomain: string;
   siteHost: string;
 }

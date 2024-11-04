@@ -4,20 +4,14 @@
 
       <!-- Add logo display -->
       <div v-if="logoImage" class="flex justify-center mb-8">
-        <!-- Use the public image path for the logo. We just need the -->
-        <!-- domain ID and logo filename passed in or via brand settings. -->
-        <!-- We could make it simply /logo.png by convention but we'd still -->
-        <!-- need to know the image format unless we were converting them all to PNGs. -->
-        <!-- Also add primary color detection to image upload. -->
-        <!-- /imagine/0c0489704c71066f3e78/logo.png -->
         <img
-          :src="`data:${logoImage.content_type};base64,${logoImage.encoded}`"
-          :alt="logoImage.filename || 'Brand logo'"
+          :src="logoImage"
+          :alt="'Brand logo'"
           class="h-16 w-16 object-contain"
           :class="{
-            'rounded-lg': brandSettings?.corner_style === 'rounded',
-            'rounded-full': brandSettings?.corner_style === 'pill',
-            'rounded-none': brandSettings?.corner_style === 'square'
+            'rounded-lg': domainBranding?.corner_style === 'rounded',
+            'rounded-full': domainBranding?.corner_style === 'pill',
+            'rounded-none': domainBranding?.corner_style === 'square'
           }"
         />
       </div>
@@ -76,7 +70,7 @@
       <!-- Unknown Secret -->
       <UnknownSecret v-else-if="!record"
                      :branded="true"
-                     :brand-settings="brandSettings" />
+                     :brand-settings="domainBranding" />
 
       <div class="flex justify-center pt-16">
         <ThemeToggle />
@@ -102,15 +96,15 @@ import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.
 import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { AsyncDataResult, BrandSettings, ImageProps, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
-import { createApi } from '@/utils/api';
-import UnknownSecret from './UnknownSecret.vue';
-import { computed, onMounted, ref, watch } from 'vue';
+import type { AsyncDataResult, BrandSettings, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import UnknownSecret from './UnknownSecret.vue';
 
 interface Props {
   secretKey: string;
   domainStrategy: string;
+  domainId: string;
   displayDomain: string;
   domainBranding: BrandSettings;
   siteHost: string;
@@ -156,28 +150,8 @@ watch(finalRecord, (newValue) => {
   }
 });
 
-// Add logo state
-const logoImage = ref<ImageProps | null>(null);
+// Prepare the standardized path to the logo image.
+// Note that the file extension needs to be present but is otherwise not used.
+const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 
-// Modify the logo fetching function to use displayDomain
-const fetchLogo = async () => {
-  if (!props.displayDomain) return;
-  const api = createApi(); // Use custom domain for communication
-  try {
-    const response = await api.get(`/api/v2/account/domains/${props.displayDomain}/logo`);
-    if (response.data.success && response.data.record) {
-      logoImage.value = response.data.record;
-    }
-  } catch (err) {
-    console.error('Error fetching logo:', err);
-  }
-};
-
-// Use the brand settings directly from props
-const brandSettings = computed(() => props.domainBranding);
-
-// Call fetchLogo when the component mounts
-onMounted(() => {
-  fetchLogo();
-});
 </script>

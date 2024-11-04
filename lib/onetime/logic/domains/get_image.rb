@@ -16,30 +16,33 @@ module Onetime::Logic
     #   /imagine/b79b17281be7264f778c/logo.png
     #
     class GetImage < OT::Logic::Base
-      attr_reader :custom_domain_id, :filename, :custom_domain, :image_type
+      attr_reader :custom_domain_id, :filename, :custom_domain, :image_type, :image_ext
       attr_reader :content_type, :content_length, :image_data, :encoded_content
 
       def process_params
-        # Sanitize the filename to allow only alphanumeric characters
+        # Sanitize the id to allow only alphanumeric characters
         @custom_domain_id = params[:custom_domain_id].to_s.gsub(/[^a-zA-Z0-9]/, '')
 
-        # One of: logo, icon. Must match a CustomDomain hashkey field.
-        image_type = params[:image_type].to_s.gsub(/[^a-zA-Z0-9]/, '')
-        @image_type = %w[logo icon].include?(image_type) ? image_type : nil
+        # One of: logo, icon. CustomDomain must have a matching hashkey field.
+        tmp_image_type = params[:image_type].to_s.gsub(/[^a-zA-Z0-9]/, '')
+        @image_type = %w[logo icon].include?(tmp_image_type) ? tmp_image_type : nil
 
-        # Sanitize the filename to allow only alphanumeric
-        # characters, periods, dashes, and underscores
-        @filename = params[:filename].to_s.gsub(/[^a-zA-Z0-9._-]/, '')
+        # We capture the file extension for the image but we just log
+        # it. The response content type is determined by the stored value.
+        tmp_image_ext = params[:image_ext].to_s.gsub(/[^a-zA-Z0-9]/, '')
+        @image_ext = tmp_image_ext
+
+        OT.ld "[GetImage] domain_id=#{custom_domain_id} type=#{image_type} ext=#{image_ext}"
       end
 
       def raise_concerns
         limit_action :get_image
 
-        raise_not_found "Missing domain ID" if @custom_domain_id.empty?
+        raise_not_found "Missing domain ID" if custom_domain_id.empty?
 
-        custom_domain = OT::CustomDomain.from_identifier custom_domain_id
-        raise_not_found "Domain not found" unless custom_domain
-        @custom_domain = custom_domain # make it available after all concerns
+        tmp_custom_domain = OT::CustomDomain.from_identifier custom_domain_id
+        raise_not_found "Domain not found" unless tmp_custom_domain
+        @custom_domain = tmp_custom_domain # make it available after all concerns
 
         # Safely retrieve the logo filename from the custom domain's brand
         logo_filename = _image_field&.[]('filename')
@@ -47,13 +50,6 @@ module Onetime::Logic
 
         raise_not_found "No content type" unless content_type
         @content_type = content_type
-
-        # If the filename does not match the stored filename, return a 404
-        if !logo_filename || filename != logo_filename
-          raise_not_found "File not found"
-        end
-
-        @logo_filename = logo_filename
 
         encoded_content = _image_field['encoded']
         raise_not_found "No content" unless encoded_content
