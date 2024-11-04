@@ -16,12 +16,16 @@ module Onetime::Logic
     #   /imagine/b79b17281be7264f778c/logo.png
     #
     class GetImage < OT::Logic::Base
-      attr_reader :custom_domain_id, :filename, :custom_domain
-      attr_reader :content_type, :content_length, :image_data
+      attr_reader :custom_domain_id, :filename, :custom_domain, :image_type
+      attr_reader :content_type, :content_length, :image_data, :encoded_content
 
       def process_params
         # Sanitize the filename to allow only alphanumeric characters
         @custom_domain_id = params[:custom_domain_id].to_s.gsub(/[^a-zA-Z0-9]/, '')
+
+        # One of: logo, icon. Must match a CustomDomain hashkey field.
+        image_type = params[:image_type].to_s.gsub(/[^a-zA-Z0-9]/, '')
+        @image_type = %w[logo icon].include?(image_type) ? image_type : nil
 
         # Sanitize the filename to allow only alphanumeric
         # characters, periods, dashes, and underscores
@@ -35,12 +39,14 @@ module Onetime::Logic
 
         custom_domain = OT::CustomDomain.from_identifier custom_domain_id
         raise_not_found "Domain not found" unless custom_domain
+        @custom_domain = custom_domain # make it available after all concerns
 
         # Safely retrieve the logo filename from the custom domain's brand
-        logo_filename = custom_domain.image1&.[]('filename')
-        content_type = custom_domain.image1.[]('iontent_type')
+        logo_filename = _image_field&.[]('filename')
+        content_type = _image_field.[]('content_type')
 
         raise_not_found "No content type" unless content_type
+        @content_type = content_type
 
         # If the filename does not match the stored filename, return a 404
         if !logo_filename || filename != logo_filename
@@ -48,17 +54,23 @@ module Onetime::Logic
         end
 
         @logo_filename = logo_filename
-        @content_type = content_type
-        @custom_domain = custom_domain # make it available after all concerns
+
+        encoded_content = _image_field['encoded']
+        raise_not_found "No content" unless encoded_content
+        @encoded_content = encoded_content
       end
 
       def process
-        encoded_content = custom_domain.image1.[]('image_encoded')
-
         # Decode the base64 content back to binary
         @image_data = Base64.strict_decode64(encoded_content)
         @content_length = @image_data&.bytesize.to_s || '0'
       end
+
+      # e.g. custom_domain.logo
+      def _image_field
+        custom_domain.send(image_type) # logo, icon
+      end
+      private :_image_field
     end
 
   end

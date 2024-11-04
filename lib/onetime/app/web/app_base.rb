@@ -163,7 +163,7 @@ module Onetime
       # - Supports client-side routing without server knowledge of Vue.js routes.
       # - Simplifies server configuration and maintenance.
       # - Allows for proper handling of 404s within the Vue.js application.
-      def not_found_response(message)
+      def not_found_response(message, **)
         view = Onetime::App::Views::VuePoint.new(req, sess, cust, locale)
         view.add_error(message) unless message&.empty?
         res.status = 404
