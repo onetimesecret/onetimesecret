@@ -14,15 +14,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import ShowSecretCanonical from './ShowSecretCanonical.vue';
-import ShowSecretBranded from './ShowSecretBranded.vue';
+import ShowSecretCanonical from './canonical/ShowSecret.vue';
+import ShowSecretBranded from './branded/ShowSecret.vue';
 import { BrandSettings } from '@/types/onetime';
 
 // Define props
 interface Props {
   secretKey: string;
 }
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const route = useRoute();
 
