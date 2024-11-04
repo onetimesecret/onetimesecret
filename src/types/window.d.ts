@@ -40,7 +40,7 @@
  * IDEs.
  */
 
-import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, Regions } from './onetime.d.ts';
+import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, Regions, BrandSettings } from './onetime.d.ts';
 import type Stripe from 'stripe';
 
 declare global {
@@ -112,5 +112,7 @@ declare global {
 
     canonical_domain: string | null;
     domain_strategy: string;
+    display_domain: string;
+    domain_branding: BrandSettings;
   }
 }

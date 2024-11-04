@@ -1,6 +1,14 @@
 <!-- ShowSecretContainer.vue -->
 <template>
-  <Component :is="currentComponent" v-bind="$props" />
+  <Component
+    :is="currentComponent"
+    :secretKey="secretKey"
+    :domainStrategy="domainStrategy"
+    :displayDomain="displayDomain"
+    :domainBranding="domainBranding"
+    :siteHost="siteHost"
+
+  />
 </template>
 
 <script setup lang="ts">
@@ -8,18 +16,23 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import ShowSecretCanonical from './ShowSecretCanonical.vue';
 import ShowSecretBranded from './ShowSecretBranded.vue';
+import { BrandSettings } from '@/types/onetime';
 
 // Define props
 interface Props {
   secretKey: string;
 }
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const route = useRoute();
 
+// Get values from route meta
+const domainStrategy = computed(() => route.meta.domain_strategy as string);
+const displayDomain = computed(() => route.meta.display_domain as string);
+const domainBranding = computed(() => route.meta.domain_branding as BrandSettings);
+const siteHost = computed(() => route.meta.site_host as string);
+
 const currentComponent = computed(() => {
-  //const initialData = route.meta.initialData;
-  const domainStrategy = route.meta.domain_strategy;
-  return domainStrategy === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
+  return domainStrategy.value === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
 });
 </script>

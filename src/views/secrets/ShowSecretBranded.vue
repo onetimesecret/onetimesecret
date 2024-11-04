@@ -70,13 +70,17 @@ import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.
 import SecretDisplayCase from '@/components/secrets/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { AsyncDataResult, BrandSettings, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
+import type { AsyncDataResult, BrandSettings, ImageProps, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
 import UnknownSecret from '@/views/secrets/UnknownSecret.vue';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 interface Props {
   secretKey: string;
+  domainStrategy: string;
+  displayDomain: string;
+  domainBranding: BrandSettings;
+  siteHost: string;
 }
 
 const props = defineProps<Props>();

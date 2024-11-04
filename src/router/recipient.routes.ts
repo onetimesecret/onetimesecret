@@ -5,6 +5,9 @@ import { RouteRecordRaw } from 'vue-router';
 import { useWindowProp } from '@/composables/useWindowProps';
 
 const domain_strategy = useWindowProp('domain_strategy');
+const display_domain = useWindowProp('display_domain');
+const domain_branding = useWindowProp('domain_branding');
+const site_host = useWindowProp('site_host');
 
 const routes: Array<RouteRecordRaw> = [
 
@@ -17,6 +20,9 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
     meta: {
       domain_strategy: domain_strategy.value,
+      display_domain: display_domain.value,
+      domain_branding: domain_branding.value,
+      site_host: site_host.value,
     },
     beforeEnter: async (to, from, next) => {
       try {
