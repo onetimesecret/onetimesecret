@@ -1,6 +1,21 @@
 <template>
   <div class="min-h-screen flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
     <div class="w-full max-w-md space-y-8">
+
+      <!-- Add logo display -->
+      <div v-if="logoImage" class="flex justify-center mb-8">
+        <img
+          :src="`data:${logoImage.content_type};base64,${logoImage.encoded}`"
+          :alt="logoImage.filename || 'Brand logo'"
+          class="h-16 w-16 object-contain"
+          :class="{
+            'rounded-lg': brandSettings?.corner_style === 'rounded',
+            'rounded-full': brandSettings?.corner_style === 'pill',
+            'rounded-none': brandSettings?.corner_style === 'square'
+          }"
+        />
+      </div>
+
       <!-- Loading State -->
       <div v-if="isLoading"
            class="flex justify-center items-center">
@@ -64,6 +79,17 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+.logo-container {
+  transition: all 0.3s ease;
+}
+
+.logo-container img {
+  max-width: 100%;
+  height: auto;
+}
+</style>
 
 <script setup lang="ts">
 import SecretConfirmationForm from '@/components/secrets/SecretConfirmationForm.vue';
