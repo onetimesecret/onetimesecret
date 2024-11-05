@@ -1,8 +1,8 @@
 // src/composables/useDomainBranding.ts
 import { computed } from 'vue';
 import { BrandSettings } from '@/types/onetime';
-
 import { useWindowProps } from '@/composables/useWindowProps';
+import { parseDomainBranding } from '@/utils/parseDomainBranding'; // Adjust the import path as needed
 
 const {
   domain_branding,
@@ -11,7 +11,6 @@ const {
   'domain_branding',
   'domain_strategy',
 ]);
-
 
 export const domainStrategy = domain_strategy;
 
@@ -34,7 +33,7 @@ export function useDomainBranding() {
         if (domain_branding?.value) {
           return {
             ...defaultBranding,
-            ...domain_branding.value
+            ...parseDomainBranding(domain_branding.value)
           };
         }
         return defaultBranding;
@@ -50,4 +49,26 @@ export function useDomainBranding() {
         return defaultBranding;
     }
   });
+}
+
+interface BrokenBrandSettings {
+  primary_color: string;
+  instructions_pre_reveal: string;
+  instructions_reveal: string;
+  instructions_post_reveal: string;
+  button_text_light: string; // This is a string in the incoming data
+  font_family: string;
+  corner_style: string;
+}
+
+function parseDomainBranding(data: BrokenBrandSettings): BrandSettings {
+  return {
+    primary_color: data.primary_color,
+    instructions_pre_reveal: data.instructions_pre_reveal,
+    instructions_reveal: data.instructions_reveal,
+    instructions_post_reveal: data.instructions_post_reveal,
+    button_text_light: data.button_text_light === 'true',
+    font_family: data.font_family,
+    corner_style: data.corner_style,
+  };
 }
