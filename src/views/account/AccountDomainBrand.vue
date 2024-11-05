@@ -65,13 +65,13 @@
                              @toggle-browser="toggleBrowser"
                              aria-labelledby="previewHeading">
           <SecretPreview v-if="!loading && !error"
-               ref="secretPreview"
-               :brandSettings="brandSettings"
-               :logoImage="logoImage"
-               :onLogoUpload="handleLogoUpload"
-               :onLogoRemove="removeLogo"
-               secretKey="abcd"
-               class="transform transition-all duration-200 hover:scale-[1.02] max-w-full" />
+                         ref="secretPreview"
+                         :domainBranding="brandSettings"
+                         :logoImage="logoImage"
+                         :onLogoUpload="handleLogoUpload"
+                         :onLogoRemove="removeLogo"
+                         secretKey="abcd"
+                         class="transform transition-all duration-200 hover:scale-[1.02] max-w-full" />
         </BrowserPreviewFrame>
 
         <!-- Loading and Error States -->
@@ -121,7 +121,6 @@ const detectPlatform = (): 'safari' | 'edge' => {
   const isMac = /macintosh|mac os x|iphone|ipad|ipod/.test(ua);
   return isMac ? 'safari' : 'edge';
 };
-
 
 const route = useRoute();
 const initialData = computed(() => route.meta.initialData as AsyncDataResult<CustomDomainApiResponse>);
@@ -325,9 +324,8 @@ const fetchLogo = async () => {
     if (response.data.success && response.data.record) {
       logoImage.value = response.data.record;
     }
-  } catch (err) {
-    console.error('Error fetching logo:', err);
-    // Optionally handle error
+  } catch {
+    // Nothing to do here. This will fail until a logo is uploaded.
   }
 };
 
