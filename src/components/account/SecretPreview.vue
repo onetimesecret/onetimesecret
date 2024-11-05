@@ -138,7 +138,7 @@ Or a multi-line message</textarea>
             :aria-expanded="isRevealed"
             aria-controls="secretContent"
             :aria-label="isRevealed ? 'Hide secret message' : 'View secret message'">
-      {{ isRevealed ? 'Hide Secret' : 'View Secret' }}
+      {{ isRevealed ? 'Hide Secret' : $t('web.COMMON.click_to_continue') }}
     </button>
 
     <div class="flex justify-between items-baseline p-3 sm:p-6">
@@ -147,7 +147,7 @@ Or a multi-line message</textarea>
           <Icon icon="mdi:alert-circle-outline"
                 class="mr-1"
                 aria-hidden="true" />
-          This message will only be shown once.
+          {{$t('web.COMMON.careful_only_see_once')}}
         </span>
       </div>
     </div>
