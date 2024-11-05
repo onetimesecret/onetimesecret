@@ -1,20 +1,6 @@
 <template>
   <div class="min-h-screen flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
-    <div class="w-full max-w-md space-y-8">
-
-      <!-- Add logo display -->
-      <div v-if="logoImage" class="flex justify-center mb-8">
-        <img
-          :src="logoImage"
-          :alt="'Brand logo'"
-          class="h-16 w-16 object-contain"
-          :class="{
-            'rounded-lg': domainBranding?.corner_style === 'rounded',
-            'rounded-full': domainBranding?.corner_style === 'pill',
-            'rounded-none': domainBranding?.corner_style === 'square'
-          }"
-        />
-      </div>
+    <div class="w-full max-w-xl space-y-8">
 
       <!-- Loading State -->
       <div v-if="isLoading"
@@ -23,36 +9,14 @@
       </div>
 
       <div v-else-if="record && details">
-        <!-- Secret Header -->
-        <div class="flex items-center space-x-4 mb-8">
-          <div class="h-12 w-12 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="h-6 w-6 text-brand-600 dark:text-brand-400"
-                 fill="none"
-                 viewBox="0 0 24 24"
-                 stroke="currentColor">
-              <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ $t('web.shared.this_message_for_you') }}
-            </h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              {{ $t('web.COMMON.click_to_continue') }}
-            </p>
-          </div>
-        </div>
 
         <!-- Secret Content -->
         <div v-if="!details.show_secret">
           <SecretConfirmationForm :secretKey="secretKey"
                                 :record="record"
                                 :details="details"
-                                :branded="true"
+                                :domainId="domainId"
+                                :domainBranding="domainBranding"
                                 @secret-loaded="handleSecretLoaded" />
         </div>
 
@@ -69,8 +33,7 @@
 
       <!-- Unknown Secret -->
       <UnknownSecret v-else-if="!record"
-                     :branded="true"
-                     :brand-settings="domainBranding" />
+                     :domainBranding="domainBranding" />
 
       <div class="flex justify-center pt-16">
         <ThemeToggle />
@@ -150,8 +113,5 @@ watch(finalRecord, (newValue) => {
   }
 });
 
-// Prepare the standardized path to the logo image.
-// Note that the file extension needs to be present but is otherwise not used.
-const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 
 </script>

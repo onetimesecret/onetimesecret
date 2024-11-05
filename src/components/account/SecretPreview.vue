@@ -189,6 +189,8 @@ textarea {
 import { ref, computed } from 'vue';
 import type { BrandSettings, ImageProps } from '@/types/onetime';
 import { Icon } from '@iconify/vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const props = defineProps<{
   brandSettings: BrandSettings;
@@ -214,14 +216,13 @@ const logoSrc = computed(() => {
 
 const isRevealed = ref(false);
 
-const DEFAULT_PRE_REVEAL = 'Click the button below to reveal your secure message.';
-const DEFAULT_POST_REVEAL = 'Your secure message is shown below.';
-
 const getInstructions = (revealed: boolean): string => {
   if (revealed) {
-    return props.brandSettings.instructions_post_reveal?.trim() || DEFAULT_POST_REVEAL;
+    return props.brandSettings.instructions_post_reveal?.trim() ||
+           t('web.shared.post_reveal_default');
   }
-  return props.brandSettings.instructions_pre_reveal?.trim() || DEFAULT_PRE_REVEAL;
+  return props.brandSettings.instructions_pre_reveal?.trim() ||
+         t('web.shared.pre_reveal_default');
 };
 
 const handleLogoChange = (event: Event) => {
