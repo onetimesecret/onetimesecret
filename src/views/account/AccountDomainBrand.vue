@@ -115,6 +115,7 @@ import DomainHeader from '@/components/account/DomainHeader.vue';
 import InstructionsModal from '@/components/account/InstructionsModal.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import { useBrandingStore } from '@/stores/brandingStore';
 
 const detectPlatform = (): 'safari' | 'edge' => {
   const ua = window.navigator.userAgent.toLowerCase();
@@ -388,46 +389,34 @@ const removeLogo = async () => {
 };
 
 
-// Update the watch to use JSON comparison for deep equality
-// Replace the existing watch with this updated version
-watch(brandSettings, (newSettings) => {
-  if (originalSettings.value) {
-    // Only compare relevant fields that can actually be changed by the user
-    const relevantCurrentSettings = {
-      primary_color: newSettings.primary_color,
-      font_family: newSettings.font_family,
-      corner_style: newSettings.corner_style,
-      instructions_pre_reveal: newSettings.instructions_pre_reveal,
-      instructions_post_reveal: newSettings.instructions_post_reveal,
-      instructions_reveal: newSettings.instructions_reveal,
-    };
-
-    const relevantOriginalSettings = {
-      primary_color: originalSettings.value.primary_color,
-      font_family: originalSettings.value.font_family,
-      corner_style: originalSettings.value.corner_style,
-      instructions_pre_reveal: originalSettings.value.instructions_pre_reveal,
-      instructions_post_reveal: originalSettings.value.instructions_post_reveal,
-      instructions_reveal: originalSettings.value.instructions_reveal,
-    };
-
-    const currentSettings = JSON.stringify(relevantCurrentSettings);
-    const original = JSON.stringify(relevantOriginalSettings);
-
-    hasUnsavedChanges.value = currentSettings !== original;
-  }
-}, { deep: true });
-
 // Watch effect for primary color
 watch(() => brandSettings.value.primary_color, (newColor) => {
   const textLight = shouldUseLightText(newColor);
   if (newColor) {
+
     brandSettings.value = {
       ...brandSettings.value,
       button_text_light: textLight
     };
   }
 }, { immediate: true });
+
+const brandingStore = useBrandingStore();
+
+// Watch for changes in brandSettings.primary_color
+watch(() => brandSettings.value.primary_color, (newColor) => {
+  brandingStore.setPrimaryColor(newColor);
+}, { immediate: true });
+
+// Activate branding when the component is mounted
+onMounted(() => {
+  brandingStore.setActive(true);
+});
+
+// Deactivate branding when the component is unmounted
+onUnmounted(() => {
+  brandingStore.setActive(false);
+});
 
 // Update lifecycle hooks
 onMounted(() => {

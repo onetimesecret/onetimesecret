@@ -1,4 +1,3 @@
-
 <template>
   <div>
 
@@ -29,8 +28,9 @@
 
 <script setup lang="ts">
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
+import { useBrandingStore } from '@/stores/brandingStore';
 import { AuthenticationSettings, Customer } from '@/types/onetime';
-import { computed } from 'vue';
+import { computed, inject, ref, Ref } from 'vue';
 
 export interface Props {
   authenticated: boolean
@@ -54,19 +54,33 @@ const props = withDefaults(defineProps<Props>(), {
   primaryColor: 'bg-brand-500'
 })
 
+const color = inject('color', ref(props.primaryColor))as Ref<string>;
+const brandingStore = useBrandingStore();
+
 const primaryColorClass = computed(() => {
-  return props.primaryColor && !isColorValue(props.primaryColor)
-    ? props.primaryColor
-    : '';
+  if (brandingStore.isActive) {
+    return '';
+  }
+  console.log('Computing primaryColorClass with color:', color.value);
+  return !isColorValue(color.value) ? color.value : '';
 });
 
 const primaryColorStyle = computed(() => {
-  return props.primaryColor && isColorValue(props.primaryColor)
-    ? { backgroundColor: props.primaryColor }
+  if (brandingStore.isActive) {
+    const color = brandingStore.primaryColor;
+    return isColorValue(color)
+      ? { backgroundColor: color }
+      : {};
+  }
+
+  return isColorValue(color.value)
+    ? { backgroundColor: color.value }
     : {};
 });
+
 
 function isColorValue(value: string): boolean {
   return /^#|^rgb\(|^hsl\(/.test(value);
 }
+
 </script>
