@@ -41,14 +41,14 @@
             <Icon icon="mdi:palette-outline"
                   class="w-5 h-5"
                   aria-label="Customization icon" />
-            Customize your brand colors, fonts, and button styles using the controls above
+            Use the controls above to customize brand color, styles, and recipient instructions
           </li>
 
           <li class="flex items-center gap-2">
             <Icon icon="mdi:image-outline"
                   class="w-5 h-5"
                   aria-label="Image icon" />
-            Upload your logo by clicking the square placeholder (minimum 128x128 pixels recommended, 1MB max)
+            Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)
           </li>
 
           <li class="flex items-center gap-2">
