@@ -17,26 +17,23 @@
                                 :record="record"
                                 :details="details"
                                 :domainId="domainId"
-                                :domainBranding="domainBranding"
                                 @secret-loaded="handleSecretLoaded" />
-
 
         <SecretDisplayCase v-else
                            :secretKey="secretKey"
                            :record="record"
                            :details="details"
-                           :domainId="domainId"
-                           :domainBranding="domainBranding" />
+                           :domainId="domainId" />
 
       </div>
 
       <!-- Unknown Secret -->
-      <UnknownSecret v-else-if="!record"
-                     :domainBranding="domainBranding" />
+      <UnknownSecret v-else-if="!record"  />
 
       <div class="flex justify-center pt-16">
         <ThemeToggle />
       </div>
+
       <div class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">
         <div class="space-x-2">
           <a :href="`https://${siteHost}`"
@@ -72,24 +69,24 @@ import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmat
 import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { AsyncDataResult, BrandSettings, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
+import type { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types/onetime';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import UnknownSecret from './UnknownSecret.vue';
 
 interface Props {
   secretKey: string;
-  domainStrategy: string;
   domainId: string;
   displayDomain: string;
-  domainBranding: BrandSettings;
   siteHost: string;
 }
+
 
 const props = defineProps<Props>();
 const route = useRoute();
 
 const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>);
+
 
 const finalRecord = ref<SecretData | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);

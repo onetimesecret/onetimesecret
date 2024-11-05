@@ -129,16 +129,17 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { BrandSettings, SecretData, SecretDetails } from '@/types/onetime';
+import { SecretData, SecretDetails } from '@/types/onetime';
 import { ref } from 'vue';
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
+import {useDomainBranding} from '@/composables/useDomainBranding';
+
 
 
 interface Props {
   secretKey: string;
   record: SecretData | null;
   details: SecretDetails | null;
-  domainBranding: BrandSettings;
   domainId: string;
 }
 
@@ -147,6 +148,8 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'secret-loaded', data: { record: SecretData; details: SecretDetails; }): void;
 }>();
+
+const domainBranding = useDomainBranding();
 
 const csrfStore = useCsrfStore();
 const passphrase = ref('');

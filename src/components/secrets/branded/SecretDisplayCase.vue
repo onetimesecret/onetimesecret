@@ -1,6 +1,5 @@
 <template>
   <BaseSecretDisplay defaultTitle="You have a message"
-                     :domainBranding="domainBranding"
                      :instructions="domainBranding.instructions_pre_reveal">
     <template #logo>
       <!-- Brand Icon -->
@@ -41,7 +40,7 @@
     <template #content>
       <textarea class="w-full min-h-32 sm:min-h-36 border border-gray-300 rounded-md resize-none
             dark:border-gray-600 dark:text-white dark:bg-gray-800
-              focus:outline-none focus:ring-2 focus:ring-brand-500  font-mono text-base  bg-gray-100"
+              focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-base  bg-gray-100"
                 readonly
                 :rows="details?.display_lines"
                 :value="record?.secret_value"></textarea>
@@ -83,20 +82,21 @@
 
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard';
-import { BrandSettings, SecretData, SecretDetails } from '@/types/onetime';
+import { SecretData, SecretDetails } from '@/types/onetime';
 import { ref } from 'vue';
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
-
+import { useDomainBranding } from '@/composables/useDomainBranding';
 
 interface Props {
   secretKey: string;
   record: SecretData | null;
   details: SecretDetails | null;
-  domainBranding: BrandSettings;
   domainId: string;
 }
 
 const props = defineProps<Props>();
+
+const domainBranding = useDomainBranding();
 
 const hasImageError = ref(false);
 const { isCopied, copyToClipboard } = useClipboard();

@@ -34,6 +34,9 @@ export interface BrandSettings {
   corner_style: string;
 }
 
+// Define domain strategy types based on the Ruby middleware
+export type DomainStrategy = 'canonical' | 'subdomain' | 'custom' | 'invalid';
+
 // Define the customer model
 export interface Customer extends BaseApiRecord {
   custid: string;

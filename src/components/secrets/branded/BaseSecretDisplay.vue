@@ -63,12 +63,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
-import type { BrandSettings } from '@/types/onetime';
+import { useDomainBranding } from '@/composables/useDomainBranding';
 import { Icon } from '@iconify/vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 
-const props = defineProps<{
-  domainBranding: BrandSettings;
+defineProps<{
   instructions?: string;
   defaultTitle?: string;
 }>();
@@ -78,6 +77,8 @@ const textRef = ref<HTMLElement | null>(null);
 const isExpanded = ref(false);
 const isLongText = ref(false);
 
+const domainBranding = useDomainBranding();
+
 // Reusable computed properties
 const textClasses = computed(() => ({
   'text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed': true,
@@ -86,9 +87,9 @@ const textClasses = computed(() => ({
 }));
 
 const contentAreaClasses = computed(() => ({
-  'rounded-lg': props.domainBranding.corner_style === 'rounded',
-  'rounded-xl': props.domainBranding.corner_style === 'pill',
-  'rounded-none': props.domainBranding.corner_style === 'square'
+  'rounded-lg': domainBranding.value.corner_style === 'rounded',
+  'rounded-xl': domainBranding.value.corner_style === 'pill',
+  'rounded-none': domainBranding.value.corner_style === 'square'
 }));
 
 // Text length checking
