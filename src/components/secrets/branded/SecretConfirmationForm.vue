@@ -39,11 +39,6 @@
     </template>
 
     <template #content>
-      <!-- Alert Messages -->
-      <BasicFormAlerts :success="success"
-                       :error="error"
-                       role="alert"
-                       class="mb-4" />
       <div class="text-gray-400 dark:text-gray-500 flex items-center">
         <svg class="w-5 h-5 mr-2"
              viewBox="0 0 24 24"
@@ -59,6 +54,7 @@
     </template>
 
     <template #action-button>
+
       <!-- Form -->
       <form @submit.prevent="submitForm"
             class="space-y-4"
@@ -106,6 +102,12 @@
           {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
         </button>
       </form>
+
+      <!-- Alert Messages -->
+      <BasicFormAlerts :success="success"
+                       :error="error"
+                       role="alert"
+                       class="mt-8 mb-4" />
     </template>
   </BaseSecretDisplay>
 </template>

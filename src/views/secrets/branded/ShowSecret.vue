@@ -11,24 +11,23 @@
       <div v-else-if="record && details">
 
         <!-- Secret Content -->
-        <div v-if="!details.show_secret">
-          <SecretConfirmationForm :secretKey="secretKey"
+
+        <SecretConfirmationForm v-if="!details.show_secret"
+                                :secretKey="secretKey"
                                 :record="record"
                                 :details="details"
                                 :domainId="domainId"
                                 :domainBranding="domainBranding"
                                 @secret-loaded="handleSecretLoaded" />
-        </div>
 
-        <div v-else
-             class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 space-y-4">
-          <h2 class="text-gray-600 dark:text-gray-400">
-            {{ $t('web.shared.this_message_for_you') }}
-          </h2>
 
-          <SecretDisplayCase :secret="record"
-                           :details="details" />
-        </div>
+        <SecretDisplayCase v-else
+                           :secretKey="secretKey"
+                           :record="record"
+                           :details="details"
+                           :domainId="domainId"
+                           :domainBranding="domainBranding" />
+
       </div>
 
       <!-- Unknown Secret -->
@@ -38,7 +37,21 @@
       <div class="flex justify-center pt-16">
         <ThemeToggle />
       </div>
-
+      <div class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">
+        <div class="space-x-2">
+          <a :href="`https://${siteHost}`"
+             class="hover:underline"
+             rel="noopener noreferrer">
+            Powered by Onetime Secret
+          </a>
+          <span>·</span>
+          <router-link to="/info/terms"
+                       class="hover:underline">Terms</router-link>
+          <span>·</span>
+          <router-link to="/info/privacy"
+                       class="hover:underline">Privacy</router-link>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -90,7 +103,7 @@ const {
     finalRecord.value = data.record;
     finalDetails.value = data.details;
   },
-  onError: (data: { message: string }) => {
+  onError: (data: { message: string; }) => {
     console.debug('Error fetching secret:', data.message);
     throw new Error(data.message);
   },
@@ -101,7 +114,7 @@ const record = computed(() => finalRecord.value || (initialData?.value.data?.rec
 const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
 const isLoading = computed(() => isSubmitting.value);
 
-const handleSecretLoaded = (data: { record: SecretData; details: SecretDetails }) => {
+const handleSecretLoaded = (data: { record: SecretData; details: SecretDetails; }) => {
   finalRecord.value = data.record;
   finalDetails.value = data.details;
 };

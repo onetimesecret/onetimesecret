@@ -8,7 +8,7 @@
       <!-- Title and Instructions -->
       <div class="flex-1 text-center sm:text-left">
         <div class="min-h-[5.5rem] sm:min-h-[6rem] relative">
-          <h2 class="text-gray-900 dark:text-gray-200 text-base sm:text-lg font-medium mb-2 sm:mb-3 leading-normal"
+          <h2 class="text-gray-900 dark:text-gray-200 text-base sm:text-xl font-medium mb-2 sm:mb-3 leading-normal"
               :style="{ fontFamily: domainBranding.font_family }">
             <slot name="title">{{ defaultTitle }}</slot>
           </h2>
@@ -18,7 +18,7 @@
                class="pb-4"
                :class="textClasses"
                :style="{ fontFamily: domainBranding.font_family }">
-               {{ instructions || $t('web.shared.pre_reveal_default') }}
+              {{ instructions || $t('web.shared.pre_reveal_default') }}
             </p>
 
             <button v-if="isLongText"
@@ -28,7 +28,8 @@
                      bg-white dark:bg-gray-800 shadow-sm hover:shadow
                      rounded-full border border-gray-200 dark:border-gray-600
                      transition-all duration-200">
-              <slot name="expand-button" :is-expanded="isExpanded">
+              <slot name="expand-button"
+                    :is-expanded="isExpanded">
                 {{ isExpanded ? 'Show Less' : 'Show More' }}
               </slot>
             </button>
@@ -39,7 +40,7 @@
 
     <!-- Content Area -->
     <div class="mt-3 sm:mt-4 mb-3 sm:mb-4">
-      <div class="w-full min-h-32 sm:min-h-36 bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-4"
+      <div class="w-full min-h-32 sm:min-h-36 bg-gray-100 dark:bg-gray-700 flex items-center justify-center "
            :class="contentAreaClasses">
         <slot name="content"></slot>
       </div>
@@ -52,7 +53,8 @@
     <div class="flex justify-between items-baseline p-3 sm:p-4 mt-4">
       <slot name="footer">
         <p class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 italic flex items-center">
-          <Icon icon="mdi:information" class="w-4 h-4 mr-1" />
+          <Icon icon="mdi:information"
+                class="w-4 h-4 mr-1" />
           {{ $t('web.COMMON.careful_only_see_once') }}
         </p>
       </slot>
