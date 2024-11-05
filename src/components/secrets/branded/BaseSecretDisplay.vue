@@ -51,7 +51,7 @@
     <!-- Footer -->
     <div class="flex justify-between items-baseline p-3 sm:p-4 mt-4">
       <slot name="footer">
-        <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 italic flex items-center">
+        <p class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 italic flex items-center">
           <Icon icon="mdi:information" class="w-4 h-4 mr-1" />
           {{ $t('web.COMMON.careful_only_see_once') }}
         </p>

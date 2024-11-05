@@ -40,6 +40,8 @@ const {
   plans_enabled,
   support_host,
   global_banner,
+  domain_branding,
+  domain_strategy,
 } = useWindowProps([
   'authenticated',
   'authentication',
@@ -48,6 +50,8 @@ const {
   'plans_enabled',
   'support_host',
   'global_banner',
+  'domain_branding',
+  'domain_strategy',
 ]);
 
 // Layout Switching: In the script section, the layout computed property
@@ -74,7 +78,18 @@ const layoutProps = computed(() => {
     isDefaultLocale: true,
     hasGlobalBanner: !!global_banner.value, // not null or undefined
     globalBanner: global_banner.value,
+    domainBranding: domain_branding.value,
+    domainStrategy: domain_strategy.value
   };
+  // When domain strategy is 'branded', we need to check if domainBranding
+  // is defined and if it has primary_color. If it does we pass that along
+  // with the defaultProps.
+  if (domain_strategy.value === 'custom' && domain_branding.value?.primary_color) {
+    return {
+      ...defaultProps,
+      primaryColor: domain_branding.value.primary_color,
+    }
+  }
 
   // Merge with route.meta.layoutProps if they exist
   if (route.meta.layoutProps) {

@@ -124,11 +124,13 @@
 </style>
 
 <script setup lang="ts">
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { BrandSettings, SecretData, SecretDetails } from '@/types/onetime';
 import { ref } from 'vue';
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
+
 
 interface Props {
   secretKey: string;
