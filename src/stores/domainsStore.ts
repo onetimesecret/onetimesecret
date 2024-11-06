@@ -1,8 +1,9 @@
 // src/stores/domainsStore.ts
 
-import { defineStore } from 'pinia';
+import type { UpdateDomainBrandRequest, UpdateDomainBrandResponse } from '@/types/api';
 import type { CustomDomain } from '@/types/onetime';
 import { createApi } from '@/utils/api';
+import { defineStore } from 'pinia';
 
 const api = createApi();
 
@@ -10,6 +11,7 @@ interface DomainsState {
   domains: CustomDomain[];
   isLoading: boolean;
 }
+
 
 export const useDomainsStore = defineStore('domains', {
   state: (): DomainsState => ({
@@ -35,33 +37,39 @@ export const useDomainsStore = defineStore('domains', {
       }
     },
 
+    async deleteDomain(domainName: string) {
+      try {
+        await api.post(`/api/v2/account/domains/${domainName}/remove`);
+        this.removeDomain(domainName);
+      } catch (error) {
+        console.error('Failed to delete domain:', error);
+        throw error;
+      }
+    },
 
-
+    // Usage in the store
     async toggleHomepageAccess(domain: CustomDomain) {
       const newHomepageStatus = !domain?.brand?.allow_public_homepage;
 
       try {
-        await api.put(`/api/v2/account/domains/${domain.display_domain}/brand`, {
+        const updateRequest: UpdateDomainBrandRequest = {
           brand: { allow_public_homepage: newHomepageStatus }
-        });
+        };
 
-        // Ensure we maintain all required fields from the original brand settings
-        if (domain.brand) {
-          this.updateDomain({
-            ...domain,
-            brand: {
-              primary_color: domain.brand.primary_color,
-              instructions_pre_reveal: domain.brand.instructions_pre_reveal,
-              instructions_reveal: domain.brand.instructions_reveal,
-              instructions_post_reveal: domain.brand.instructions_post_reveal,
-              button_text_light: domain.brand.button_text_light,
-              font_family: domain.brand.font_family,
-              corner_style: domain.brand.corner_style,
-              allow_public_homepage: newHomepageStatus
-            }
-          });
-        }
+        await api.put<UpdateDomainBrandResponse>(
+          `/api/v2/account/domains/${domain.display_domain}/brand`,
+          updateRequest
+        );
 
+        const updatedDomain = {
+          ...domain,
+          brand: domain.brand ? {
+            ...domain.brand,
+            allow_public_homepage: newHomepageStatus
+          } : null
+        };
+
+        this.updateDomain(updatedDomain);
         return newHomepageStatus;
       } catch (error) {
         console.error('Failed to toggle homepage access:', error);
