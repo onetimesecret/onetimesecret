@@ -3,45 +3,31 @@ import { ref } from 'vue';
 import type { CustomDomain } from '@/types/onetime';
 import { useToast } from '@/composables/useToast';
 import { showConfirmDialog } from '@/composables/useConfirmDialog';
-import { createApi } from '@/utils/api';
 import { useNotificationsStore } from '@/stores/notifications';
-import { useDomains } from '@/composables/useDomains';
-
-const api = createApi();
+import { useDomainsStore } from '@/stores/domainsStore';
 
 export function useDomainsTable(initialDomains: CustomDomain[]) {
   const isToggling = ref<string>('');
   const isSubmitting = ref(false);
   const toast = useToast();
-  const { updateDomain, removeDomain } = useDomains(initialDomains);
+  const domainsStore = useDomainsStore();
+
+  if (!domainsStore.domains.length && initialDomains) {
+    domainsStore.setDomains(initialDomains);
+  }
 
   const toggleHomepageCreation = async (domain: CustomDomain) => {
     if (isToggling.value === domain.identifier) return;
-
     isToggling.value = domain.identifier;
-    const newHomepageStatus = !domain?.brand?.allow_public_homepage;
 
     try {
-      await api.put(`/api/v2/account/domains/${domain.display_domain}/brand`, {
-        brand: { allow_public_homepage: newHomepageStatus }
-      });
-
-      // Update domain in store
-      updateDomain({
-        ...domain,
-        brand: {
-          ...domain.brand,
-          allow_public_homepage: newHomepageStatus
-        }
-      });
+      const newStatus = await domainsStore.toggleHomepageAccess(domain);
 
       toast.success(
         'Homepage access updated',
-        `Homepage access ${newHomepageStatus ? 'enabled' : 'disabled'} for ${domain.display_domain}`
+        `Homepage access ${newStatus ? 'enabled' : 'disabled'} for ${domain.display_domain}`
       );
-
-    } catch (error) {
-      console.error('Failed to toggle homepage creation:', error);
+    } catch {
       toast.error(
         'Update failed',
         `Failed to update homepage access for ${domain.display_domain}`
@@ -65,19 +51,15 @@ export function useDomainsTable(initialDomains: CustomDomain[]) {
       });
 
       if (!confirmed) return;
-
       isSubmitting.value = true;
 
       await api.post(`/api/v2/account/domains/${domain.display_domain}/remove`);
-
-      // Remove domain from store
-      removeDomain(domain.display_domain);
+      domainsStore.removeDomain(domain.display_domain);
 
       notifications.show(
         `${domain.display_domain} has been removed successfully`,
         'success'
       );
-
     } catch (error) {
       console.error('Failed to remove domain:', error);
       notifications.show(
