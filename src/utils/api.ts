@@ -56,6 +56,8 @@ interface ApiConfig {
 const createApi = (config: ApiConfig = {}): AxiosInstance => {
   let baseURL = config.domain?.trim();
 
+  console.log('[createApi] Initializing API with config:', config);
+
   if (baseURL) {
     // If no protocol specified, prepend https://
     if (!baseURL.match(/^[a-zA-Z]+:\/\//)) {
@@ -74,6 +76,7 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
         throw new Error('Only HTTPS protocol is supported');
       }
     } catch (error: unknown) {
+      console.error('[createApi] URL validation error:', error);
       if (error instanceof Error) {
         throw new Error(`Invalid domain URL: ${error.message}`);
       } else {
@@ -82,12 +85,26 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
     }
   }
 
+  console.log('[createApi] Final baseURL:', baseURL);
+
   const api = axios.create({
-    baseURL
+    baseURL,
+    // Add more default configuration if needed
+    withCredentials: true, // Important for cross-origin requests with cookies
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
   });
 
   api.interceptors.request.use((config) => {
     const csrfStore = useCsrfStore();
+
+    console.log('[Axios Interceptor] Request config:', {
+      url: config.url,
+      method: config.method,
+      baseURL: config.baseURL
+    });
 
     // We should only need to pass the CSRF token in via form field
     // or HTTP header and not both. The old way was form field and
@@ -100,6 +117,9 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
     config.headers['O-Shrimp'] = csrfStore.shrimp;
 
     return config;
+  }, (error) => {
+    console.error('[Axios Interceptor] Request error:', error);
+    return Promise.reject(error);
   });
 
   api.interceptors.response.use(
@@ -120,12 +140,13 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
     },
     (error) => {
       const csrfStore = useCsrfStore();
-      console.debug('[Axios Interceptor] Error response:', {
+      console.error('[Axios Interceptor] Error response:', {
         url: error.config?.url,
         status: error.response?.status,
         hasShrimp: !!error.response?.data?.shrimp,
         shrimp: error.response?.data?.shrimp?.slice(0, 8) + '...',
-        error: error.message
+        error: error.message,
+        errorDetails: error
       });
 
       if (error.response?.data?.shrimp) {

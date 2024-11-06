@@ -11,26 +11,37 @@ export function useDomainsTable(initialDomains: CustomDomain[]) {
   const notifications = useNotificationsStore();
   const domainsStore = useDomainsStore();
 
+  console.log('[useDomainsTable] Initial domains:', initialDomains);
+
   // Watch for domain changes
   watch(() => initialDomains, (newDomains) => {
+    console.log('[useDomainsTable] Watching initial domains:', newDomains);
     if (newDomains?.length) {
+      console.log('[useDomainsTable] Setting domains in store:', newDomains);
       domainsStore.setDomains(newDomains);
     }
   }, { immediate: true });
 
   const toggleHomepageCreation = async (domain: CustomDomain) => {
-    if (togglingDomains.value.has(domain.identifier)) return;
+    console.log('[useDomainsTable] Toggling homepage creation for domain:', domain);
+
+    if (togglingDomains.value.has(domain.identifier)) {
+      console.log('[useDomainsTable] Domain already being toggled:', domain.identifier);
+      return;
+    }
 
     togglingDomains.value.add(domain.identifier);
 
     try {
+      console.log('[useDomainsTable] Attempting to toggle homepage access');
       await domainsStore.toggleHomepageAccess(domain);
 
       notifications.show(
         `Homepage access ${!domain?.brand?.allow_public_homepage ? 'enabled' : 'disabled'} for ${domain.display_domain}`,
         'success'
       );
-    } catch {
+    } catch (error) {
+      console.error('[useDomainsTable] Failed to toggle homepage access:', error);
       notifications.show(
         `Failed to update homepage access for ${domain.display_domain}`,
         'error'
@@ -40,10 +51,13 @@ export function useDomainsTable(initialDomains: CustomDomain[]) {
     }
   };
 
-
-
   const confirmDelete = async (domain: CustomDomain): Promise<void> => {
-    if (isSubmitting.value) return;
+    console.log('[useDomainsTable] Confirming delete for domain:', domain);
+
+    if (isSubmitting.value) {
+      console.log('[useDomainsTable] Already submitting, cancelling delete');
+      return;
+    }
 
     try {
       const confirmed = await showConfirmDialog({
@@ -54,9 +68,14 @@ export function useDomainsTable(initialDomains: CustomDomain[]) {
         type: 'danger'
       });
 
-      if (!confirmed) return;
+      if (!confirmed) {
+        console.log('[useDomainsTable] Domain deletion not confirmed');
+        return;
+      }
+
       isSubmitting.value = true;
 
+      console.log('[useDomainsTable] Attempting to delete domain:', domain.display_domain);
       await domainsStore.deleteDomain(domain.display_domain);
 
       notifications.show(
@@ -64,7 +83,7 @@ export function useDomainsTable(initialDomains: CustomDomain[]) {
         'success'
       );
     } catch (error) {
-      console.error('Failed to remove domain:', error);
+      console.error('[useDomainsTable] Failed to remove domain:', error);
       notifications.show(
         `Failed to remove ${domain.display_domain}. Please try again later.`,
         'error'
@@ -73,7 +92,6 @@ export function useDomainsTable(initialDomains: CustomDomain[]) {
       isSubmitting.value = false;
     }
   };
-
 
   return {
     isToggling: (domainId: string) => togglingDomains.value.has(domainId),
