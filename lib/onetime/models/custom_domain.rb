@@ -92,7 +92,7 @@ class Onetime::CustomDomain < Familia::Horreum
     { :vhost => ->(obj) { obj.parse_vhost } },
     :verified,
     :created,
-    :updated
+    :updated,
   ]
 
   def init
@@ -504,7 +504,7 @@ class Onetime::CustomDomain < Familia::Horreum
     def add fobj
       #self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
       self.values.add OT.now.to_i, fobj.to_s # created time, identifier
-      self.display_domains.add fobj.display_domain
+      self.display_domains.put fobj.display_domain, fobj.identifier
     end
 
     def rem fobj
