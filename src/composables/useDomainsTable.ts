@@ -1,29 +1,33 @@
 // src/composables/useDomainsTable.ts
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import type { CustomDomain } from '@/types/onetime';
 import { showConfirmDialog } from '@/composables/useConfirmDialog';
 import { useNotificationsStore } from '@/stores/notifications';
 import { useDomainsStore } from '@/stores/domainsStore';
 
 export function useDomainsTable(initialDomains: CustomDomain[]) {
-  const isToggling = ref<string>('');
+  const togglingDomains = ref<Set<string>>(new Set());
   const isSubmitting = ref(false);
   const notifications = useNotificationsStore();
   const domainsStore = useDomainsStore();
 
-  if (!domainsStore.domains.length && initialDomains) {
-    domainsStore.setDomains(initialDomains);
-  }
+  // Watch for domain changes
+  watch(() => initialDomains, (newDomains) => {
+    if (newDomains?.length) {
+      domainsStore.setDomains(newDomains);
+    }
+  }, { immediate: true });
 
   const toggleHomepageCreation = async (domain: CustomDomain) => {
-    if (isToggling.value === domain.identifier) return;
-    isToggling.value = domain.identifier;
+    if (togglingDomains.value.has(domain.identifier)) return;
+
+    togglingDomains.value.add(domain.identifier);
 
     try {
-      const newStatus = await domainsStore.toggleHomepageAccess(domain);
+      await domainsStore.toggleHomepageAccess(domain);
 
       notifications.show(
-        `Homepage access ${newStatus ? 'enabled' : 'disabled'} for ${domain.display_domain}`,
+        `Homepage access ${!domain?.brand?.allow_public_homepage ? 'enabled' : 'disabled'} for ${domain.display_domain}`,
         'success'
       );
     } catch {
@@ -32,9 +36,11 @@ export function useDomainsTable(initialDomains: CustomDomain[]) {
         'error'
       );
     } finally {
-      isToggling.value = '';
+      togglingDomains.value.delete(domain.identifier);
     }
   };
+
+
 
   const confirmDelete = async (domain: CustomDomain): Promise<void> => {
     if (isSubmitting.value) return;
@@ -68,8 +74,9 @@ export function useDomainsTable(initialDomains: CustomDomain[]) {
     }
   };
 
+
   return {
-    isToggling,
+    isToggling: (domainId: string) => togglingDomains.value.has(domainId),
     isSubmitting,
     toggleHomepageCreation,
     confirmDelete
