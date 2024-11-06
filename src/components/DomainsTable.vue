@@ -148,7 +148,6 @@
   </section>
 </template>
 
-
 <script setup lang="ts">
 import { useDomainsTable } from '@/composables/useDomainsTable';
 import type { CustomDomain } from '@/types/onetime';
@@ -158,16 +157,14 @@ import { formatDistanceToNow } from 'date-fns';
 import DomainVerificationInfo from './DomainVerificationInfo.vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
 
-defineProps<{
+const props = defineProps<{
   domains: CustomDomain[];
 }>();
-
 
 const {
   isSubmitting,
   toggleHomepageCreation,
   confirmDelete
-} = useDomainsTable();
-
+} = useDomainsTable(props.domains);
 
 </script>

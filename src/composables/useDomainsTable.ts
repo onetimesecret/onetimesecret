@@ -1,49 +1,43 @@
+// src/composables/useDomainsTable.ts
 import { ref } from 'vue';
 import type { CustomDomain } from '@/types/onetime';
 import { useToast } from '@/composables/useToast';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { showConfirmDialog } from '@/composables/useConfirmDialog'; // Add this import
+import { showConfirmDialog } from '@/composables/useConfirmDialog';
 import { createApi } from '@/utils/api';
 import { useNotificationsStore } from '@/stores/notifications';
 import { useDomains } from '@/composables/useDomains';
 
+const api = createApi();
 
-export function useDomainsTable() {
-  const isToggling = ref<string>(''); // Stores the domain currently being toggled
+export function useDomainsTable(initialDomains: CustomDomain[]) {
+  const isToggling = ref<string>('');
   const isSubmitting = ref(false);
   const toast = useToast();
-  const csrfStore = useCsrfStore();
+  const { updateDomain, removeDomain } = useDomains(initialDomains);
 
   const toggleHomepageCreation = async (domain: CustomDomain) => {
-    // Prevent multiple simultaneous toggles
     if (isToggling.value === domain.identifier) return;
 
     isToggling.value = domain.identifier;
+    const newHomepageStatus = !domain?.brand?.allow_public_homepage;
 
     try {
-      const response = await fetch(`/api/v2/account/domains/${domain.display_domain}/brand`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfStore.shrimp
-        },
-        body: JSON.stringify({
-          enabled: !domain?.brand?.allow_public_homepage
-        })
+      await api.put(`/api/v2/account/domains/${domain.display_domain}/brand`, {
+        brand: { allow_public_homepage: newHomepageStatus }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // Update the domain state
-      if (domain.brand) {
-        domain.brand.allow_public_homepage = !domain.brand.allow_public_homepage;
-      }
+      // Update domain in store
+      updateDomain({
+        ...domain,
+        brand: {
+          ...domain.brand,
+          allow_public_homepage: newHomepageStatus
+        }
+      });
 
       toast.success(
         'Homepage access updated',
-        `Homepage access ${domain.brand?.allow_public_homepage ? 'enabled' : 'disabled'} for ${domain.display_domain}`
+        `Homepage access ${newHomepageStatus ? 'enabled' : 'disabled'} for ${domain.display_domain}`
       );
 
     } catch (error) {
@@ -52,22 +46,14 @@ export function useDomainsTable() {
         'Update failed',
         `Failed to update homepage access for ${domain.display_domain}`
       );
-
-      // Revert the optimistic update if it failed
-      if (domain.brand) {
-        domain.brand.allow_public_homepage = !domain.brand.allow_public_homepage;
-      }
     } finally {
       isToggling.value = '';
     }
   };
 
-  const api = createApi();
-
   const confirmDelete = async (domain: CustomDomain): Promise<void> => {
     if (isSubmitting.value) return;
     const notifications = useNotificationsStore();
-    const { removeDomain } = useDomains();
 
     try {
       const confirmed = await showConfirmDialog({
@@ -84,7 +70,7 @@ export function useDomainsTable() {
 
       await api.post(`/api/v2/account/domains/${domain.display_domain}/remove`);
 
-      // Remove domain using the composable (which now uses Pinia store)
+      // Remove domain from store
       removeDomain(domain.display_domain);
 
       notifications.show(
