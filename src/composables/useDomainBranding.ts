@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { BrandSettings } from '@/types/onetime';
 import { useWindowProps } from '@/composables/useWindowProps';
-import { parseDomainBranding } from '@/utils/parseDomainBranding'; // Adjust the import path as needed
 
 const {
   domain_branding,

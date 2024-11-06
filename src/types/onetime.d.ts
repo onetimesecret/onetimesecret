@@ -24,6 +24,7 @@ export interface ImageProps {
   ratio?: number;
 }
 
+// These need to match UpdateDomainBrand#update_brand_settings valid_keys
 export interface BrandSettings {
   primary_color: string;
   instructions_pre_reveal: string;
@@ -32,6 +33,7 @@ export interface BrandSettings {
   button_text_light: boolean;
   font_family: string;
   corner_style: string;
+  allow_public_homepage: boolean;
 }
 
 // Define domain strategy types based on the Ruby middleware

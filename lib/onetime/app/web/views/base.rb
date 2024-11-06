@@ -31,7 +31,7 @@ module Onetime
         if @domain_strategy == :custom
           @custom_domain = OT::CustomDomain.from_display_domain(@display_domain)
           @domain_id = custom_domain&.identifier
-          @domain_branding = custom_domain&.brand&.hgetall
+          @domain_branding = (custom_domain&.brand&.hgetall || {}).to_h # bools are strings
         end
 
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important

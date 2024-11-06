@@ -56,6 +56,8 @@ module Onetime::Logic
       end
 
       # Update the brand settings for the custom domain
+      # These keys are expected to match those listed in
+      # src/types/onetime.d.ts for BrandSettings.
       def update_brand_settings
         valid_keys = [
           :logo, # e.g. "image1"
@@ -65,12 +67,13 @@ module Onetime::Logic
           :instructions_post_reveal,
           :button_text_light,
           :font_family,
-          :corner_style
+          :corner_style,
+          :allow_public_homepage
         ]
         @brand_settings.each do |key, value|
           next unless valid_keys.include?(key.to_sym)
           OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
-          @custom_domain.brand[key.to_s] = value.to_s
+          @custom_domain.brand[key.to_s] = value.to_s # everything in redis is a string
         end
         @custom_domain.updated = Time.now.to_i
         @custom_domain.save

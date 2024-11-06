@@ -147,12 +147,13 @@ const customDomain = ref<CustomDomain | null>(null);
 // State management
 const brandSettings = ref<BrandSettings>({
   primary_color: '#000000',
-  instructions_pre_reveal: '', // Ensure this is an empty string, not undefined
+  instructions_pre_reveal: '',
   instructions_post_reveal: '',
   instructions_reveal: '',
   font_family: 'sans-serif',
   corner_style: 'rounded',
   button_text_light: false,
+  allow_public_homepage: false,
 });
 
 const loading = ref(true);
@@ -204,6 +205,8 @@ const fetchBrandSettings = async () => {
           font_family: brand?.font_family || 'sans-serif',
           corner_style: brand?.corner_style || 'rounded',
           button_text_light: brand?.button_text_light || false,
+          allow_public_homepage: brand?.allow_public_homepage || false,
+
         };
         brandSettings.value = settings;
         originalSettings.value = JSON.parse(JSON.stringify(settings)); // Deep copy initial settings
@@ -227,6 +230,8 @@ const fetchBrandSettings = async () => {
       font_family: brand?.font_family || 'sans-serif',
       corner_style: brand?.corner_style || 'rounded',
       button_text_light: brand?.button_text_light || false,
+      allow_public_homepage: brand?.allow_public_homepage || false,
+
     };
     brandSettings.value = settings;
     originalSettings.value = JSON.parse(JSON.stringify(settings)); // Deep copy initial settings

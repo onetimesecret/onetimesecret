@@ -205,16 +205,11 @@ class Onetime::CustomDomain < Familia::Horreum
   # @param customer [OT::Customer, nil] The customer to remove domain from
   # @return [void]
   def destroy!(customer = nil)
-    keys_to_delete = [
-      rediskey,
-      "#{rediskey}:verification"
-    ]
-
     redis.multi do |multi|
       multi.del(self.rediskey)
       # Also remove from the class-level values, :display_domains, :owners
       multi.zrem(OT::CustomDomain.values.rediskey, identifier)
-      multi.rem(OT::CustomDomain.display_domains.rediskey, display_domain)
+      multi.del(OT::CustomDomain.display_domains.rediskey, display_domain)
       unless customer.nil?
         multi.zrem(customer.custom_domains.rediskey, self.display_domain)
       end
