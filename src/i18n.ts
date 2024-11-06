@@ -1,6 +1,5 @@
-
 import { createI18n } from 'vue-i18n';
-import en from '@/locales/en.json' assert { type: 'json' };
+import en from '@/locales/en.json';
 
 /**
  * This setup accomplishes the following:
@@ -16,7 +15,6 @@ const supportedLocales = window.supported_locales || [];
 
 export type MessageSchema = typeof en;
 export type SupportedLocale = typeof supportedLocales[number];
-
 
 // First supported locale is assumed to be the default
 const locale = supportedLocales[0] || 'en';

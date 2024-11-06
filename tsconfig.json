@@ -29,11 +29,6 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": [
-      "@types/node",
-      "playwright",
-      "@playwright/test"
-    ],
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
