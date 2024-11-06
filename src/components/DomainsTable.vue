@@ -26,45 +26,6 @@
         </router-link>
       </div>
 
-      <!-- Comprehensive Debug Information -->
-      <div class="bg-yellow-100 p-4 mb-4 rounded">
-        <h3 class="font-bold mb-2">Debugging Information</h3>
-        <div class="space-y-2">
-          <div>
-            <strong>Prop Domains (length):</strong>
-            <pre class="text-xs">{{ props.domains?.length || 0 }}</pre>
-          </div>
-          <div>
-            <strong>Prop Domains:</strong>
-            <pre class="text-xs overflow-x-auto">{{ JSON.stringify(props.domains, null, 2) }}</pre>
-          </div>
-          <div>
-            <strong>Local Domains (length):</strong>
-            <pre class="text-xs">{{ localDomains.length }}</pre>
-          </div>
-          <div>
-            <strong>Local Domains:</strong>
-            <pre class="text-xs overflow-x-auto">{{ JSON.stringify(localDomains, null, 2) }}</pre>
-          </div>
-          <div>
-            <strong>Store Domains (length):</strong>
-            <pre class="text-xs">{{ domainsStore.domains.length }}</pre>
-          </div>
-          <div>
-            <strong>Store Domains:</strong>
-            <pre class="text-xs overflow-x-auto">{{ JSON.stringify(domainsStore.domains, null, 2) }}</pre>
-          </div>
-          <div>
-            <strong>Loading State:</strong>
-            <pre class="text-xs">{{ domainsStore.isLoading }}</pre>
-          </div>
-          <div v-if="debugError" class="text-red-600">
-            <strong>Error:</strong>
-            <pre class="text-xs">{{ debugError }}</pre>
-          </div>
-        </div>
-      </div>
-
       <!-- Enhanced Table Section -->
       <div v-if="localDomains.length === 0" class="text-center py-8 text-gray-500">
         No domains found. Add a domain to get started.
@@ -235,19 +196,19 @@ const debugError = ref<string | null>(null);
 
 // Reactive watch for store domains changes
 watch(() => domainsStore.domains, (newDomains) => {
-  console.log('[DomainsTable] Store domains changed:', newDomains);
+  console.debug('[DomainsTable] Store domains changed:', newDomains);
   localDomains.value = newDomains;
 }, { deep: true, immediate: true });
 
 // Fetch domains on component mount if not provided
 onMounted(async () => {
-  console.log('[DomainsTable] Mounted. Initial props:', props.domains);
+  console.debug('[DomainsTable] Mounted. Initial props:', props.domains);
   try {
     if (localDomains.value.length === 0) {
-      console.log('[DomainsTable] No domains in props, fetching from store');
+      console.debug('[DomainsTable] No domains in props, fetching from store');
       await domainsStore.refreshDomains();
       localDomains.value = domainsStore.domains;
-      console.log('[DomainsTable] Domains after refresh:', localDomains.value);
+      console.debug('[DomainsTable] Domains after refresh:', localDomains.value);
     }
   } catch (error) {
     console.error('[DomainsTable] Failed to fetch domains:', error);

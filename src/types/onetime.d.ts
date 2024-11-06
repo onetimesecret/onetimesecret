@@ -371,6 +371,7 @@ export type ConcealDataApiResponse = ApiRecordResponse<ConcealData>;
 export type CheckAuthDataApiResponse = ApiRecordResponse<CheckAuthData>;
 export type BrandSettingsApiResponse = ApiRecordResponse<BrandSettings>;
 export type ImagePropsApiResponse = ApiRecordResponse<ImageProps>;
+export type CustomDomainRecordsApiResponse = ApiRecordsResponse<CustomDomain>;
 
 /**
  * Front-end Vue App

@@ -1,6 +1,6 @@
 import type { UpdateDomainBrandRequest } from '@/types/api/requests';
 import type { UpdateDomainBrandResponse } from '@/types/api/responses';
-import type { CustomDomain } from '@/types/onetime';
+import type { CustomDomain, CustomDomainRecordsApiResponse } from '@/types/onetime';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 
@@ -25,23 +25,23 @@ export const useDomainsStore = defineStore('domains', {
     async refreshDomains() {
       this.isLoading = true;
       try {
-        console.log('[DomainsStore] Attempting to fetch domains');
-        const response = await api.get('/api/v2/account/domains');
-        console.log('[DomainsStore] API Response:', {
+        console.debug('[DomainsStore] Attempting to fetch domains');
+        const response = await api.get<CustomDomainRecordsApiResponse>('/api/v2/account/domains');
+        console.debug('[DomainsStore] API Response:', {
           status: response.status,
           data: response.data
         });
 
         // Detailed logging of domains
-        if (response.data && response.data.domains) {
-          console.log('[DomainsStore] Domains received:', response.data.domains.length);
-          console.log('[DomainsStore] First domain (if any):',
-            response.data.domains.length > 0 ? response.data.domains[0] : 'No domains');
+        if (response.data && response.data.records) {
+          console.debug('[DomainsStore] Domains received:', response.data.records.length);
+          console.debug('[DomainsStore] First domain (if any):',
+            response.data.records.length > 0 ? response.data.records[0] : 'No domains');
         } else {
           console.warn('[DomainsStore] No domains found in response');
         }
 
-        this.domains = response.data.domains || [];
+        this.domains = response.data.records || [];
       } catch (error) {
         console.error('[DomainsStore] Failed to refresh domains:', error);
         this.domains = []; // Ensure domains is always an array
