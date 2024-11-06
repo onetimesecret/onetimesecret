@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { BrandSettings } from '@/types/onetime';
 import { useWindowProps } from '@/composables/useWindowProps';
+import { BrokenBrandSettings } from '@/types/onetime';
 
 const {
   domain_branding,
@@ -15,13 +16,14 @@ export const domainStrategy = domain_strategy;
 
 // Default branding settings
 export const defaultBranding: BrandSettings = {
-  primary_color: '#dc4a22', // Default blue color
+  primary_color: '#dc4a22', // Default brand color
   instructions_pre_reveal: 'This secret requires confirmation before viewing.',
   instructions_reveal: 'The secret will be displayed below.',
   instructions_post_reveal: 'This secret has been destroyed and cannot be viewed again.',
   button_text_light: true,
   font_family: 'system-ui',
   corner_style: 'rounded',
+  allow_public_homepage: false,
 };
 
 export function useDomainBranding() {
@@ -50,16 +52,6 @@ export function useDomainBranding() {
   });
 }
 
-interface BrokenBrandSettings {
-  primary_color: string;
-  instructions_pre_reveal: string;
-  instructions_reveal: string;
-  instructions_post_reveal: string;
-  button_text_light: string; // This is a string in the incoming data
-  font_family: string;
-  corner_style: string;
-}
-
 function parseDomainBranding(data: BrokenBrandSettings): BrandSettings {
   return {
     primary_color: data.primary_color,
@@ -69,5 +61,6 @@ function parseDomainBranding(data: BrokenBrandSettings): BrandSettings {
     button_text_light: data.button_text_light === 'true',
     font_family: data.font_family,
     corner_style: data.corner_style,
+    allow_public_homepage: data.allow_public_homepage === 'true',
   };
 }

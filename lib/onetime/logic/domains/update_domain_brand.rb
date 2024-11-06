@@ -68,7 +68,7 @@ module Onetime::Logic
           :button_text_light,
           :font_family,
           :corner_style,
-          :allow_public_homepage
+          :allow_public_homepage,
         ]
         @brand_settings.each do |key, value|
           next unless valid_keys.include?(key.to_sym)
