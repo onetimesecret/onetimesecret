@@ -36,6 +36,19 @@ export interface BrandSettings {
   allow_public_homepage: boolean;
 }
 
+// The javascript handoff dumps the booleans as strings.
+export interface BrokenBrandSettings {
+  primary_color: string;
+  instructions_pre_reveal: string;
+  instructions_reveal: string;
+  instructions_post_reveal: string;
+  button_text_light: string; // This is a string in the incoming data
+  font_family: string;
+  corner_style: string;
+  allow_public_homepage: string,
+}
+
+
 // Define domain strategy types based on the Ruby middleware
 export type DomainStrategy = 'canonical' | 'subdomain' | 'custom' | 'invalid';
 
