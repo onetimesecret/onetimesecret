@@ -16,6 +16,8 @@ class Onetime::Customer < Familia::Horreum
   sorted_set :custom_domains, suffix: 'custom_domain'
   sorted_set :metadata
 
+  hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+
   identifier :custid
 
   field :custid
@@ -69,7 +71,7 @@ class Onetime::Customer < Familia::Horreum
     {:emails_sent => ->(cust) { cust.emails_sent.to_s || 0 } },
 
     # We use the hash syntax here since `:active?` is not a valid symbol.
-    { :active => ->(cust) { cust.active? } }
+    { :active => ->(cust) { cust.active? } },
   ]
 
   def init
