@@ -12,7 +12,8 @@
     </div>
     <DomainsTable
       v-else
-      :domains="domainsStore.domains"
+      :domains="domains"
+      :removeDomain="removeDomain"
     />
   </div>
 </template>
@@ -22,6 +23,7 @@ import { onMounted, computed, ref } from 'vue';
 import { useDomainsStore } from '@/stores/domainsStore';
 import DomainsTable from '@/components/DomainsTable.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import { useDomainsManager } from '@/composables/useDomainsManager';
 
 const domainsStore = useDomainsStore();
 
@@ -34,7 +36,6 @@ onMounted(async () => {
   try {
     console.debug('[AccountDomains] Attempting to refresh domains');
     await domainsStore.refreshDomains();
-    console.debug('[AccountDomains] Domains after refresh:', domainsStore.domains);
   } catch (err) {
     console.error('Failed to refresh domains:', err);
     error.value = err instanceof Error
@@ -43,4 +44,22 @@ onMounted(async () => {
   }
 });
 
+
+const {
+  isToggling,
+  isSubmitting,
+  toggleHomepageCreation,
+  confirmDelete
+} = useDomainsManager(localDomains.value);
+
+const handleConfirmDelete = async (domainId: string) => {
+  const confirmedDomainId = await confirmDelete(domainId);
+  if (confirmedDomainId) {
+    try {
+      await domainsStore.deleteDomain(confirmedDomainId);
+    } catch (err) {
+      console.error('Failed to delete domain:', err);
+    }
+  }
+};
 </script>

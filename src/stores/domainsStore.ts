@@ -64,7 +64,7 @@ export const useDomainsStore = defineStore('domains', {
     async deleteDomain(domainName: string) {
       try {
         await api.post(`/api/v2/account/domains/${domainName}/remove`);
-        this.removeDomain(domainName);
+        this.removeDomainFromList(domainName);
       } catch (error) {
         console.error('Failed to delete domain:', error);
         throw error;
@@ -130,7 +130,7 @@ export const useDomainsStore = defineStore('domains', {
       this.domains.push(domain);
     },
 
-    removeDomain(domainToRemove: string) {
+    removeDomainFromList(domainToRemove: string) {
       // Ensure domains is an array before filtering
       this.domains = (this.domains || []).filter(
         domain => domain.display_domain !== domainToRemove

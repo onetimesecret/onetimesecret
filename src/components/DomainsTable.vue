@@ -27,7 +27,7 @@
       </div>
 
       <!-- Enhanced Table Section -->
-      <div v-if="localDomains.length === 0" class="text-center py-8 text-gray-500">
+      <div v-if="domains.length === 0" class="text-center py-8 text-gray-500">
         No domains found. Add a domain to get started.
       </div>
 
@@ -61,7 +61,7 @@
           </thead>
 
           <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="domain in localDomains"
+            <tr v-for="domain in domains"
                 :key="domain.identifier"
                 class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150">
               <td class="px-6 py-4">
@@ -176,54 +176,24 @@
 </template>
 
 <script setup lang="ts">
-import { useDomainsTable } from '@/composables/useDomainsTable';
+
 import type { CustomDomain } from '@/types/onetime';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
-import { ref, watch, onMounted } from 'vue';
-import { useDomainsStore } from '@/stores/domainsStore';
 import DomainVerificationInfo from './DomainVerificationInfo.vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
 
 const props = defineProps<{
   domains: CustomDomain[];
+  removeDomain: Function;
 }>();
 
-const domainsStore = useDomainsStore();
-const localDomains = ref<CustomDomain[]>(props.domains);
-const debugError = ref<string | null>(null);
+const emits = defineEmits(['confirmDelete']);
 
-// Reactive watch for store domains changes
-watch(() => domainsStore.domains, (newDomains) => {
-  console.debug('[DomainsTable] Store domains changed:', newDomains);
-  localDomains.value = newDomains;
-}, { deep: true, immediate: true });
-
-// Fetch domains on component mount if not provided
-onMounted(async () => {
-  console.debug('[DomainsTable] Mounted. Initial props:', props.domains);
-  try {
-    if (localDomains.value.length === 0) {
-      console.debug('[DomainsTable] No domains in props, fetching from store');
-      await domainsStore.refreshDomains();
-      localDomains.value = domainsStore.domains;
-      console.debug('[DomainsTable] Domains after refresh:', localDomains.value);
-    }
-  } catch (error) {
-    console.error('[DomainsTable] Failed to fetch domains:', error);
-    debugError.value = error instanceof Error
-      ? `Failed to fetch domains: ${error.message}`
-      : 'An unknown error occurred while fetching domains';
-  }
-});
-
-const {
-  isToggling,
-  isSubmitting,
-  toggleHomepageCreation,
-  confirmDelete
-} = useDomainsTable(localDomains.value);
+const confirmDelete = (domainId: string) => {
+  emits('confirmDelete', domainId);
+};
 
 // Helper method to safely get homepage access status
 const getHomepageAccessStatus = (domain: CustomDomain): boolean => {
@@ -233,7 +203,7 @@ const getHomepageAccessStatus = (domain: CustomDomain): boolean => {
 const handleToggleHomepageCreation = async (domain: CustomDomain) => {
   try {
     // Optimistically update the local state before API call
-    const currentDomain = localDomains.value.find(d => d.identifier === domain.identifier);
+    const currentDomain = props.domains.value.find(d => d.identifier === domain.identifier);
     if (currentDomain && currentDomain.brand) {
       currentDomain.brand.allow_public_homepage = !getHomepageAccessStatus(domain);
     }
@@ -245,7 +215,7 @@ const handleToggleHomepageCreation = async (domain: CustomDomain) => {
   } catch (error) {
     console.error('Failed to toggle homepage creation:', error);
     // Revert the optimistic update if the API call fails
-    const currentDomain = localDomains.value.find(d => d.identifier === domain.identifier);
+    const currentDomain = props.domains.value.find(d => d.identifier === domain.identifier);
     if (currentDomain && currentDomain.brand) {
       currentDomain.brand.allow_public_homepage = getHomepageAccessStatus(domain);
     }
