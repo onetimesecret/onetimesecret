@@ -104,13 +104,13 @@ module Onetime::App
       OT.le ex.backtrace
 
       # Include fresh shrimp so they can try again 🦐
-      error_response "An error occurred :[", shrimp: sess.add_shrimp
+      error_response "An error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
 
-      error_response "We'll be back shortly!", shrimp: sess.add_shrimp
+      error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
 
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
@@ -118,7 +118,7 @@ module Onetime::App
       OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
 
-      error_response "An unexpected error occurred :[", shrimp: sess.add_shrimp
+      error_response "An unexpected error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     ensure
       @sess ||= OT::Session.new 'failover', 'anon'
@@ -317,7 +317,7 @@ module Onetime::App
       details = [
         req.ip,
         "#{req.request_method} #{req.path_info}?#{req.query_string}",
-        "Proxy[#{header_details}]"
+        "Proxy[#{header_details}]",
       ]
 
       # Convert the details array to a string for logging
