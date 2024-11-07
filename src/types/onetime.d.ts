@@ -70,6 +70,8 @@ export interface Customer extends BaseApiRecord {
   stripe_checkout_email?: string;
   stripe_subscription_id?: string;
   stripe_customer_id?: string;
+
+  feature_flags?: { [key: string]: boolean | number | string };
 }
 
 export interface ColonelCustomer {
@@ -81,6 +83,8 @@ export interface ColonelCustomer {
   emails_sent: number;
   verified: boolean;
   stamp: string;
+
+  feature_flags?: { [key: string]: boolean | number | string };
 }
 
 export interface SecretOptions {

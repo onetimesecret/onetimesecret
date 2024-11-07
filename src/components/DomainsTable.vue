@@ -44,7 +44,8 @@
 
             <th scope="col"
                 class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400  tracking-wider">
-              <div class="flex items-center justify-center">
+              <div v-if="cust?.feature_flags?.homepage_toggle"
+                    class="flex items-center justify-center">
                 <span class="uppercase">Homepage Access</span>
                 <div class="relative group ml-2">
                   <Icon icon="heroicons:question-mark-circle"
@@ -91,7 +92,8 @@
 
             <!-- Homepage access toggle column -->
             <td class="px-6 py-4">
-              <div class="flex justify-center">
+              <div v-if="cust?.feature_flags?.homepage_toggle"
+                  class="flex justify-center">
                 <HomepageAccessToggle :model-value="domain.brand?.allow_public_homepage"
                                       :disabled="isToggling(domain.display_domain)"
                                       @update:model-value="$emit('toggle-homepage', domain)" />
@@ -153,6 +155,9 @@ import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
 import DomainVerificationInfo from './DomainVerificationInfo.vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
+
+const cust = useWindowProp('cust'); // Used for feature flags
 
 defineProps<{
   domains: CustomDomain[];
