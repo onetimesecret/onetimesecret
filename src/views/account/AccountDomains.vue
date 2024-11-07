@@ -29,8 +29,11 @@ import { useDomainsManager } from '@/composables/useDomainsManager';
 import { useDomainsStore } from '@/stores/domainsStore';
 import type { CustomDomain } from '@/types/onetime';
 import { computed, onMounted, ref } from 'vue';
+import { useNotificationsStore } from '@/stores/notifications';
 
 const domainsStore = useDomainsStore();
+const notifications = useNotificationsStore()
+
 const {
   isToggling,
   isSubmitting,
@@ -54,14 +57,19 @@ onMounted(async () => {
   }
 });
 
-
 const handleConfirmDelete = async (domainId: string) => {
+
   const confirmedDomainId = await confirmDelete(domainId);
   if (confirmedDomainId) {
+
     try {
       await domainsStore.deleteDomain(confirmedDomainId);
+      notifications.show(`Removed ${domainId}`, 'success');
+
     } catch (err) {
       console.error('Failed to delete domain:', err);
+      notifications.show('Could not remove domain at this time', 'error');
+
       error.value = err instanceof Error
         ? err.message
         : 'Failed to delete domain';
@@ -72,11 +80,20 @@ const handleConfirmDelete = async (domainId: string) => {
 const handleToggleHomepage = async (domain: CustomDomain) => {
   try {
     await toggleHomepageCreation(domain);
+    notifications.show(
+      `Homepage access ${!domain?.brand?.allow_public_homepage ? 'enabled' : 'disabled'} for ${domain.display_domain}`,
+      'success'
+    );
   } catch (err) {
     console.error('Failed to toggle homepage:', err);
     error.value = err instanceof Error
       ? err.message
       : 'Failed to toggle homepage';
+
+    notifications.show(
+      `Failed to update homepage access for ${domain.display_domain}`,
+      'error'
+    );
   }
 };
 </script>
