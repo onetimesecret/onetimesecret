@@ -1,26 +1,15 @@
 // src/composables/useDomainsManager.ts
-import { ref, watch } from 'vue';
-import type { CustomDomain } from '@/types/onetime';
 import { showConfirmDialog } from '@/composables/useConfirmDialog';
-import { useNotificationsStore } from '@/stores/notifications';
 import { useDomainsStore } from '@/stores/domainsStore';
+import { useNotificationsStore } from '@/stores/notifications';
+import type { CustomDomain } from '@/types/onetime';
+import { ref } from 'vue';
 
-export function useDomainsManager(initialDomains: CustomDomain[]) {
+export function useDomainsManager() {
   const togglingDomains = ref<Set<string>>(new Set());
   const isSubmitting = ref(false);
   const notifications = useNotificationsStore();
   const domainsStore = useDomainsStore();
-
-  console.debug('[useDomainsManager] Initial domains:', initialDomains);
-
-  // Watch for domain changes
-  watch(() => initialDomains, (newDomains) => {
-    console.debug('[useDomainsManager] Watching initial domains:', newDomains);
-    if (newDomains?.length) {
-      console.debug('[useDomainsManager] Setting domains in store:', newDomains);
-      domainsStore.setDomains(newDomains);
-    }
-  }, { immediate: true });
 
   const toggleHomepageCreation = async (domain: CustomDomain) => {
     console.debug('[useDomainsManager] Toggling homepage creation for domain:', domain);
@@ -51,18 +40,18 @@ export function useDomainsManager(initialDomains: CustomDomain[]) {
     }
   };
 
-  const confirmDelete = async (domain: CustomDomain): Promise<void> => {
-    console.debug('[useDomainsManager] Confirming delete for domain:', domain);
+  const confirmDelete = async (domainId: string): Promise<string | null> => {  // Changed parameter and return type
+    console.debug('[useDomainsManager] Confirming delete for domain:', domainId);
 
     if (isSubmitting.value) {
       console.debug('[useDomainsManager] Already submitting, cancelling delete');
-      return;
+      return null;
     }
 
     try {
       const confirmed = await showConfirmDialog({
         title: 'Remove Domain',
-        message: `Are you sure you want to remove ${domain.display_domain}? This action cannot be undone.`,
+        message: `Are you sure you want to remove this domain? This action cannot be undone.`,
         confirmText: 'Remove Domain',
         cancelText: 'Cancel',
         type: 'danger'
@@ -70,27 +59,15 @@ export function useDomainsManager(initialDomains: CustomDomain[]) {
 
       if (!confirmed) {
         console.debug('[useDomainsManager] Domain deletion not confirmed');
-        return;
+        return null;
       }
 
-      isSubmitting.value = true;
-
-      console.debug('[useDomainsManager] Attempting to delete domain:', domain.display_domain);
-      await domainsStore.deleteDomain(domain.display_domain);
-
-      notifications.show(
-        `${domain.display_domain} has been removed successfully`,
-        'success'
-      );
+      return domainId;
     } catch (error) {
-      console.error('[useDomainsManager] Failed to remove domain:', error);
-      notifications.show(
-        `Failed to remove ${domain.display_domain}. Please try again later.`,
-        'error'
-      );
-    } finally {
-      isSubmitting.value = false;
+      console.error('[useDomainsManager] Error in confirm dialog:', error);
+      return null;
     }
+
   };
 
   return {

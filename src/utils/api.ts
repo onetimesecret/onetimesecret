@@ -1,5 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
 import { useCsrfStore } from '@/stores/csrfStore';
+import axios, { AxiosInstance } from 'axios';
 
 /**
  * BACKWARDS COMPATIBILITY NOTICE:
