@@ -25,11 +25,13 @@
 
       <!-- Title Icon -->
       <div class="flex flex-col items-center">
-        <Icon :icon="iconToShow"
-              class="mb-8 h-24 w-24
-                     text-brand-600
-                     dark:text-brand-400"
-              aria-hidden="true" />
+        <RouterLink to="/">
+          <Icon :icon="iconToShow"
+                class="mb-8 h-24 w-24
+                      text-brand-600
+                      dark:text-brand-400"
+                aria-hidden="true" />
+        </RouterLink>
       </div>
 
       <!-- Title Text -->
@@ -40,10 +42,11 @@
                    dark:text-white">
           {{ heading }}
         </h2>
-        <p class="flex items-center justify-center
-                  mt-2
-                  text-lg text-gray-600
-                  dark:text-gray-400">
+        <p v-if="withSubheading"
+           class="flex items-center justify-center
+            mt-2
+            text-lg text-gray-600
+            dark:text-gray-400">
           <span v-if="jurisdictionStore.enabled"
                 class="mr-1">
             Serving you from the <span lang="en">{{ currentJurisdiction.identifier }}</span>
@@ -78,17 +81,22 @@ import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { storeToRefs } from 'pinia';
 
 // Define props for the component
-defineProps<{
+const props = withDefaults(defineProps<{
   heading: string;
   headingId: string;
-}>();
+  title?: string | null;
+  titleLogo?: string | null;
+  featureIcon?: string;
+  withSubheading?: boolean;
+}>(), {
+  title: null,
+  titleLogo: null,
+  featureIcon: 'ic:outline-mail-lock',
+});
 
 // Initialize jurisdiction store
 const jurisdictionStore = useJurisdictionStore();
 const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
-
-// Default feature icon
-const featureIcon = 'ic:outline-mail-lock';
 
 // Compute the current jurisdiction or default to unknown
 const currentJurisdiction = computed(() => getCurrentJurisdiction.value || {
@@ -99,8 +107,8 @@ const currentJurisdiction = computed(() => getCurrentJurisdiction.value || {
 });
 
 // Compute the background icon based on jurisdiction status
-const backgroundIcon = computed(() => jurisdictionStore.enabled ? currentJurisdiction.value.icon : featureIcon);
+const backgroundIcon = computed(() => jurisdictionStore.enabled ? currentJurisdiction.value.icon : props.featureIcon);
 
 // Compute the icon to show based on jurisdiction status
-const iconToShow = computed(() => jurisdictionStore.enabled ? currentJurisdiction.value.icon : featureIcon);
+const iconToShow = computed(() => jurisdictionStore.enabled ? currentJurisdiction.value.icon : props.featureIcon);
 </script>

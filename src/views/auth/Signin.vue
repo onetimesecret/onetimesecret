@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/Signin.vue -->
 <template>
-  <AuthView heading="Sign in to your account" headingId="signin-heading">
+  <AuthView heading="Sign in to your account" headingId="signin-heading" :withSubheading="true">
     <template #form>
       <SignInForm />
       <div class="mt-6 text-center">

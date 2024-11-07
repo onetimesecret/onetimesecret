@@ -27,7 +27,7 @@ describe('Auth Routes Configuration', () => {
       expect(route?.meta?.requiresAuth).toBe(false)
       expect(route?.meta?.layout).toBeDefined()
       expect(route?.meta?.layoutProps).toBeDefined() // Ensure layoutProps is defined
-      expect((route?.meta?.layoutProps as any).displayMasthead).toBe(true) // Type assertion to avoid TS2339 error
+      expect((route?.meta?.layoutProps as any).displayMasthead).toBe(false) // Type assertion to avoid TS2339 error
     })
 
     it('should define signup routes with correct children', () => {
@@ -167,12 +167,23 @@ describe('Auth Routes Configuration', () => {
     it('should have correct layout props for signin', () => {
       const route = authRoutes.find((route: RouteRecordRaw) => route.path === '/signin')
       expect(route?.meta?.layoutProps).toEqual({
-        displayMasthead: true,
-        displayNavigation: true,
+        displayMasthead: false,
+        displayNavigation: false,
         displayLinks: false,
-        displayFeedback: true,
+        displayFeedback: false,
         displayVersion: true,
         displayToggles: true,
+      })
+    })
+
+    it('should have correct layout props for signup', () => {
+      const route = authRoutes.find((route: RouteRecordRaw) => route.path === '/signup')
+      expect(route?.meta?.layoutProps).toEqual({
+        displayMasthead: false,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
       })
     })
 

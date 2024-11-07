@@ -25,8 +25,7 @@
                 class="w-full px-4 py-2 border border-gray-300 rounded-md resize-y
                   focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none
                   dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                :placeholder="$t('web.COMMON.feedback_text')"
-                aria-label="Enter your feedback"></textarea>
+                :placeholder="$t('web.COMMON.feedback_text')"></textarea>
               <input type="hidden"
                      name="tz"
                      :value="userTimezone" />
@@ -55,6 +54,8 @@
         </form>
 
         <div v-if="error"
+                   role="alert"
+     aria-live="polite"
              class="mt-4 text-red-600 dark:text-red-400">{{ error }}</div>
         <div v-if="success"
              class="mt-4 text-green-600 dark:text-green-400">{{ success }}</div>

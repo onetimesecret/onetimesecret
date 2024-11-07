@@ -14,6 +14,20 @@ export interface BaseApiRecord {
   updated: string;
 }
 
+export interface BrandSettings {
+  logo: string;
+  image_encoded: string;
+  image_content_type: string;
+  image_filename: string;
+  primary_color: string;
+  instructions_pre_reveal: string;
+  instructions_reveal: string;
+  instructions_post_reveal: string;
+  button_text_light: boolean;
+  font_family: string;
+  corner_style: string;
+}
+
 // Define the customer model
 export interface Customer extends BaseApiRecord {
   custid: string;
@@ -123,6 +137,7 @@ export interface CustomDomain extends BaseApiRecord {
   txt_validation_host: string;
   txt_validation_value: string;
   vhost?: ApproximatedVHost;
+  brand?: BrandSettings;
 }
 
 export interface CustomDomainCluster extends BaseApiRecord {
@@ -328,6 +343,7 @@ export type MetadataDataApiResponse = ApiRecordResponse<MetadataData>;
 export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
 export type ConcealDataApiResponse = ApiRecordResponse<ConcealData>;
 export type CheckAuthDataApiResponse = ApiRecordResponse<CheckAuthData>;
+export type BrandSettingsApiResponse = ApiRecordResponse<BrandSettings>;
 
 /**
  * Front-end Vue App

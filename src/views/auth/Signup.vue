@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/Signup.vue -->
 <template>
-  <AuthView heading="Create your account" headingId="signup-heading">
+  <AuthView heading="Create your account" headingId="signup-heading" :withSubheading="true">
     <template #form>
       <SignUpForm :planid="currentPlanId" :jurisdiction="currentJurisdiction" />
       <AlternateSignUpMethods :alternateProviders="alternateProviders" class="hidden" />

@@ -2,7 +2,7 @@
   <nav aria-label="Dashboard Navigation"
        class="mb-6 px-4 py-2 bg-gray-50/50 dark:bg-gray-800/50"><!-- Shadow approach -->
     <ul v-if="authenticated"
-        class="flex flex-wrap items-center gap-x-6 gap-y-2 max-w-7xl mx-auto font-brand"
+        class="flex flex-wrap justify-between gap-x-6 gap-y-2 max-w-7xl mx-auto font-brand"
         role="menubar">
       <!-- Home -->
       <li role="none">
@@ -110,5 +110,10 @@ const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domain
 
 const route = useRoute();
 
-const isActiveRoute = (path: string) => route.path === path;
+/**
+ * Checks if the current route path starts with the specified path.
+ * @param path - The path to check against the current route.
+ * @returns True if the current route path starts with the specified path, false otherwise.
+ */
+const isActiveRoute = (path: string) => route.path.startsWith(path);
 </script>

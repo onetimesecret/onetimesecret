@@ -14,8 +14,7 @@ module Onetime::Logic
       end
     end
 
-    #
-    ## This class is used by v1 API
+    # FYI: this class is used by v1 API
     class ShowRecentMetadata < OT::Logic::Base
       attr_reader :metadata
       def process_params
