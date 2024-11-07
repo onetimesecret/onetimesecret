@@ -1,36 +1,22 @@
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
-import { useDomainsStore } from '@/stores/domainsStore';
-import type { CustomDomain } from '@/types/onetime';
 import { ref } from 'vue';
 
 export function useDomainsManager() {
   const togglingDomains = ref<Set<string>>(new Set());
   const isSubmitting = ref(false);
-  const domainsStore = useDomainsStore();
   const showConfirmDialog = useConfirmDialog();
 
-  const toggleHomepageCreation = async (domain: CustomDomain) => {
-    console.debug('[useDomainsManager] Toggling homepage creation for domain:', domain);
-
-    if (togglingDomains.value.has(domain.identifier)) {
-      console.debug('[useDomainsManager] Domain already being toggled:', domain.identifier);
-      return;
-    }
-
-    togglingDomains.value.add(domain.identifier);
-
-    try {
-      console.debug('[useDomainsManager] Attempting to toggle homepage access');
-      await domainsStore.toggleHomepageAccess(domain);
-
-    } catch (error) {
-      console.error('[useDomainsManager] Failed to toggle homepage access:', error);
-
-    } finally {
-      togglingDomains.value.delete(domain.identifier);
-    }
+  const isToggling = (domainId: string): boolean => {
+    return togglingDomains.value.has(domainId);
   };
 
+  const setTogglingStatus = (domainId: string, status: boolean) => {
+    if (status) {
+      togglingDomains.value.add(domainId);
+    } else {
+      togglingDomains.value.delete(domainId);
+    }
+  };
   const confirmDelete = async (domainId: string): Promise<string | null> => {
     console.debug('[useDomainsManager] Confirming delete for domain:', domainId);
 
@@ -61,9 +47,9 @@ export function useDomainsManager() {
   };
 
   return {
-    isToggling: (domainId: string) => togglingDomains.value.has(domainId),
+    isToggling,
+    setTogglingStatus,
     isSubmitting,
-    toggleHomepageCreation,
-    confirmDelete
+    confirmDelete,
   };
 }

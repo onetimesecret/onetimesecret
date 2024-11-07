@@ -23,21 +23,20 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue';
 import DomainsTable from '@/components/DomainsTable.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { useDomainsStore } from '@/stores/domainsStore';
-import type { CustomDomain } from '@/types/onetime';
-import { computed, onMounted, ref } from 'vue';
 import { useNotificationsStore } from '@/stores/notifications';
+import type { CustomDomain } from '@/types/onetime';
 
 const domainsStore = useDomainsStore();
-const notifications = useNotificationsStore()
+const notifications = useNotificationsStore();
 
 const {
   isToggling,
   isSubmitting,
-  toggleHomepageCreation,
   confirmDelete
 } = useDomainsManager();
 
@@ -58,18 +57,14 @@ onMounted(async () => {
 });
 
 const handleConfirmDelete = async (domainId: string) => {
-
   const confirmedDomainId = await confirmDelete(domainId);
   if (confirmedDomainId) {
-
     try {
       await domainsStore.deleteDomain(confirmedDomainId);
       notifications.show(`Removed ${domainId}`, 'success');
-
     } catch (err) {
       console.error('Failed to delete domain:', err);
       notifications.show('Could not remove domain at this time', 'error');
-
       error.value = err instanceof Error
         ? err.message
         : 'Failed to delete domain';
@@ -79,9 +74,10 @@ const handleConfirmDelete = async (domainId: string) => {
 
 const handleToggleHomepage = async (domain: CustomDomain) => {
   try {
-    await toggleHomepageCreation(domain);
+    const newState = await domainsStore.toggleHomepageAccess(domain);
+
     notifications.show(
-      `Homepage access ${!domain?.brand?.allow_public_homepage ? 'enabled' : 'disabled'} for ${domain.display_domain}`,
+      `Homepage access ${newState ? 'enabled' : 'disabled'} for ${domain.display_domain}`,
       'success'
     );
   } catch (err) {
