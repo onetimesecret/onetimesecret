@@ -25,6 +25,7 @@ export const useDomainsStore = defineStore('domains', {
       font_family: 'system-ui',
       corner_style: 'rounded',
       allow_public_homepage: false,
+      allow_public_api: false,
     }
   }),
 
@@ -44,6 +45,7 @@ export const useDomainsStore = defineStore('domains', {
           font_family: domain.brand.font_family,
           corner_style: domain.brand.corner_style,
           allow_public_homepage: domain.brand.allow_public_homepage === 'true',
+          allow_public_api: domain.brand.allow_public_api === 'true',
         }
       };
     },

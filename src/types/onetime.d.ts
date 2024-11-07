@@ -34,6 +34,7 @@ export interface BrandSettings {
   font_family: string;
   corner_style: string;
   allow_public_homepage: boolean;
+  allow_public_api: boolean;
 }
 
 // The javascript handoff dumps the booleans as strings.
@@ -46,6 +47,7 @@ export interface BrokenBrandSettings {
   font_family: string;
   corner_style: string;
   allow_public_homepage: string,
+  allow_public_api: string,
 }
 
 

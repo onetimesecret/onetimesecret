@@ -18,6 +18,7 @@ module Onetime::Logic
           :font_family,
           :corner_style,
           :allow_public_homepage,
+          :allow_public_api,
         ]
         OT.ld "[UpdateDomainBrand] Settings #{params[:brand].keys} for #{@domain_id}"
         # Filter out invalid keys and convert keys to symbols

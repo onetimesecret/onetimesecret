@@ -81,12 +81,10 @@ interface Props {
   siteHost: string;
 }
 
-
 const props = defineProps<Props>();
 const route = useRoute();
 
 const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>);
-
 
 const finalRecord = ref<SecretData | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
