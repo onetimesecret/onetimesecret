@@ -2,7 +2,7 @@
   <section class="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 rounded-lg shadow-sm"
            aria-labelledby="domains-heading">
 
-    <!-- Enhanced Header Section -->
+    <!-- Header Section -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
       <div>
         <h1 id="domains-heading"
@@ -14,7 +14,7 @@
         </p>
       </div>
       <router-link to="/account/domains/add"
-                   class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium
+                   class="inline-flex font-brand items-center justify-center px-4 py-2 text-base font-medium
                             rounded-lg bg-brand-600 text-white hover:bg-brand-700
                             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
                             transition-colors duration-200 dark:hover:bg-brand-500
@@ -26,7 +26,7 @@
       </router-link>
     </div>
 
-    <!-- Table section with updated event handlers -->
+    <!-- When no domains, use the Add a Domain button -->
     <div v-if="domains.length === 0"
          class="text-center py-8 text-gray-500">
       No domains found. Add a domain to get started.
@@ -75,7 +75,7 @@
             <td class="px-6 py-4">
               <div class="flex flex-col">
                 <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
-                             class="text-sm font-medium text-brandcomp-600 hover:text-brandcomp-700
+                             class="text-lg font-brand text-brandcomp-600 hover:text-brandcomp-700
                                     dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
                   {{ domain.display_domain }}
                 </router-link>
