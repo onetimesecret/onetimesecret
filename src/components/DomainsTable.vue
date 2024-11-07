@@ -92,9 +92,9 @@
             <!-- Homepage access toggle column -->
             <td class="px-6 py-4">
               <div class="flex justify-center">
-                <HomepageAccessToggle :model-value="!!domain.brand?.allow_public_homepage"
-                                      :disabled="isToggling(domain.identifier)"
-                                      @update:model-value="handleToggleHomepage(domain)" />
+                <HomepageAccessToggle :model-value="domain.brand?.allow_public_homepage"
+                                      :disabled="isToggling(domain.display_domain)"
+                                      @update:model-value="$emit('toggle-homepage', domain)" />
               </div>
             </td>
 
@@ -154,7 +154,7 @@ import { formatDistanceToNow } from 'date-fns';
 import DomainVerificationInfo from './DomainVerificationInfo.vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
 
-const props = defineProps<{
+defineProps<{
   domains: CustomDomain[];
   isToggling: (domainId: string) => boolean;
   isSubmitting: boolean;
@@ -164,12 +164,6 @@ const emit = defineEmits<{
   (e: 'confirm-delete', domainId: string): void;
   (e: 'toggle-homepage', domain: CustomDomain): void;
 }>();
-
-const handleToggleHomepage = (domain: CustomDomain) => {
-  if (!props.isToggling(domain.identifier)) {
-    emit('toggle-homepage', domain);
-  }
-};
 
 const handleDelete = (domainId: string) => {
   emit('confirm-delete', domainId);

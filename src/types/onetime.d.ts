@@ -165,6 +165,28 @@ export interface CustomDomain extends BaseApiRecord {
   // Images are queried separately
 }
 
+export interface BrokenCustomDomain extends BaseApiRecord {
+  created: string;
+  updated: string;
+  identifier: string;
+  domainid: string;
+  custid: string;
+  display_domain: string;
+  base_domain: string;
+  subdomain: string;
+  is_apex: boolean;
+  trd: string;
+  tld: string;
+  sld: string;
+  verified: boolean;
+  _original_value: string;
+  txt_validation_host: string;
+  txt_validation_value: string;
+  vhost?: ApproximatedVHost;
+  brand?: BrokenBrandSettings;
+  // Images are queried separately
+}
+
 export interface CustomDomainCluster extends BaseApiRecord {
   created?: string;
   updated?: string;

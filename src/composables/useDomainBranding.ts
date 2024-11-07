@@ -1,8 +1,7 @@
 // src/composables/useDomainBranding.ts
-import { computed } from 'vue';
-import { BrandSettings } from '@/types/onetime';
 import { useWindowProps } from '@/composables/useWindowProps';
-import { BrokenBrandSettings } from '@/types/onetime';
+import { useDomainsStore } from '@/stores/domainsStore';
+import { computed } from 'vue';
 
 const {
   domain_branding,
@@ -14,53 +13,22 @@ const {
 
 export const domainStrategy = domain_strategy;
 
-// Default branding settings
-export const defaultBranding: BrandSettings = {
-  primary_color: '#dc4a22', // Default brand color
-  instructions_pre_reveal: 'This secret requires confirmation before viewing.',
-  instructions_reveal: 'The secret will be displayed below.',
-  instructions_post_reveal: 'This secret has been destroyed and cannot be viewed again.',
-  button_text_light: true,
-  font_family: 'system-ui',
-  corner_style: 'rounded',
-  allow_public_homepage: false,
-};
-
 export function useDomainBranding() {
-  return computed((): BrandSettings => {
+  const domainsStore = useDomainsStore();
+
+  return computed(() => {
     switch (domain_strategy.value) {
       case 'custom':
-        // For custom domains, merge default branding with custom branding if available
         if (domain_branding?.value) {
-          return {
-            ...defaultBranding,
-            ...parseDomainBranding(domain_branding.value)
-          };
+          return domainsStore.parseDomainBranding({ brand: domain_branding.value }).brand;
         }
-        return defaultBranding;
+        return domainsStore.defaultBranding;
 
       case 'subdomain':
-        // Subdomains might have their own branding in the future
-        return defaultBranding;
-
       case 'canonical':
       case 'invalid':
       default:
-        // Use default branding for canonical domain and invalid domains
-        return defaultBranding;
+        return domainsStore.defaultBranding;
     }
   });
-}
-
-function parseDomainBranding(data: BrokenBrandSettings): BrandSettings {
-  return {
-    primary_color: data.primary_color,
-    instructions_pre_reveal: data.instructions_pre_reveal,
-    instructions_reveal: data.instructions_reveal,
-    instructions_post_reveal: data.instructions_post_reveal,
-    button_text_light: data.button_text_light === 'true',
-    font_family: data.font_family,
-    corner_style: data.corner_style,
-    allow_public_homepage: data.allow_public_homepage === 'true',
-  };
 }

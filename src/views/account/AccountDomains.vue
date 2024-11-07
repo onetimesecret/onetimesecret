@@ -36,6 +36,7 @@ const notifications = useNotificationsStore();
 
 const {
   isToggling,
+  setTogglingStatus,
   isSubmitting,
   confirmDelete
 } = useDomainsManager();
@@ -72,12 +73,17 @@ const handleConfirmDelete = async (domainId: string) => {
   }
 };
 
+
 const handleToggleHomepage = async (domain: CustomDomain) => {
+  // Set the toggling state immediately
+  const domainId = domain.display_domain;
+  setTogglingStatus(domainId, true);
+
   try {
     const newState = await domainsStore.toggleHomepageAccess(domain);
 
     notifications.show(
-      `Homepage access ${newState ? 'enabled' : 'disabled'} for ${domain.display_domain}`,
+      `Homepage access ${newState ? 'enabled' : 'disabled'} for ${domainId}`,
       'success'
     );
   } catch (err) {
@@ -87,9 +93,12 @@ const handleToggleHomepage = async (domain: CustomDomain) => {
       : 'Failed to toggle homepage';
 
     notifications.show(
-      `Failed to update homepage access for ${domain.display_domain}`,
+      `Failed to update homepage access for ${domainId}`,
       'error'
     );
+  } finally {
+    // Clear the toggling state
+    setTogglingStatus(domainId, false);
   }
 };
 </script>
