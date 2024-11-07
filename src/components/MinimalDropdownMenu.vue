@@ -18,7 +18,7 @@
                 leave-from-class="transform opacity-100 scale-100"
                 leave-to-class="transform opacity-0 scale-95">
       <MenuItems
-                 class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg dark:shadow-lg dark:shadow-gray-900/50 ring-1 ring-black dark:ring-gray-700 ring-opacity-5 dark:ring-opacity-70 focus:outline-none">
+                 class="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg dark:shadow-lg dark:shadow-gray-900/50 ring-1 ring-black dark:ring-gray-700 ring-opacity-5 dark:ring-opacity-70 focus:outline-none">
         <div class="py-1">
           <slot name="menu-items"/>
         </div>
