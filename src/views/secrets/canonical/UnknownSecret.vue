@@ -69,7 +69,7 @@
         </template>
         <template v-else>
           <em>Welcome to Onetime Secret.</em>
-          Sensitive information shared through our service can only be accessed once. Once viewed, the
+          Information shared through our service can only be accessed once. Once viewed, the
           content is permanently deleted from our servers to ensure confidentiality.
           <span v-if="!branded">This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.</span>
         </template>
