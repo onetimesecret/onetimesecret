@@ -35,7 +35,7 @@ GEM
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
-    json (2.7.2)
+    json (2.8.1)
     language_server-protocol (3.17.0.3)
     logger (1.6.1)
     mail (2.8.1)
@@ -65,7 +65,7 @@ GEM
       rack (~> 2.2, < 3.0)
       rexml (>= 3.3.6)
     parallel (1.26.3)
-    parser (3.3.5.0)
+    parser (3.3.6.0)
       ast (~> 2.4.1)
       racc
     prism (1.1.0)
@@ -95,7 +95,7 @@ GEM
       connection_pool
     regexp_parser (2.9.2)
     rexml (3.3.9)
-    rubocop (1.66.1)
+    rubocop (1.68.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
@@ -105,7 +105,7 @@ GEM
       rubocop-ast (>= 1.32.2, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.32.3)
+    rubocop-ast (1.34.1)
       parser (>= 3.3.1.0)
     rubocop-performance (1.22.1)
       rubocop (>= 1.48.1, < 2.0)
