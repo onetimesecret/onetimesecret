@@ -1,7 +1,7 @@
 <template>
   <BaseSecretDisplay defaultTitle="You have a message"
                      :domainBranding="domainBranding"
-                     :instructions="domainBranding.instructions_pre_reveal">
+                     :instructions="domainBranding?.instructions_pre_reveal">
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
