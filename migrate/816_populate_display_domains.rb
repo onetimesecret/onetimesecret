@@ -49,7 +49,8 @@ begin
 
     # Add all mappings to the hash
     domain_mappings.each do |display_domain, domain_id|
-      multi.hset("customdomain:display_domains", display_domain, domain_id)
+      # NOTE: We're using hsetnx to not overwrite existing mappings
+      multi.hsetnx("customdomain:display_domains", display_domain, domain_id)
     end
   end
 

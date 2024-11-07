@@ -30,7 +30,7 @@ module Onetime
         @display_domain = req.env['onetime.display_domain'] # can be nil
         if @domain_strategy == :custom
           @custom_domain = OT::CustomDomain.from_display_domain(@display_domain)
-          @domain_id = custom_domain&.identifier
+          @domain_id = custom_domain&.domainid
           @domain_branding = (custom_domain&.brand&.hgetall || {}).to_h # bools are strings
         end
 
