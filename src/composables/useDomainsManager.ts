@@ -1,5 +1,4 @@
-// src/composables/useDomainsManager.ts
-import { showConfirmDialog } from '@/composables/useConfirmDialog';
+import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { useDomainsStore } from '@/stores/domainsStore';
 import type { CustomDomain } from '@/types/onetime';
 import { ref } from 'vue';
@@ -8,6 +7,7 @@ export function useDomainsManager() {
   const togglingDomains = ref<Set<string>>(new Set());
   const isSubmitting = ref(false);
   const domainsStore = useDomainsStore();
+  const showConfirmDialog = useConfirmDialog();
 
   const toggleHomepageCreation = async (domain: CustomDomain) => {
     console.debug('[useDomainsManager] Toggling homepage creation for domain:', domain);
@@ -58,7 +58,6 @@ export function useDomainsManager() {
       console.error('[useDomainsManager] Error in confirm dialog:', error);
       return null;
     }
-
   };
 
   return {
