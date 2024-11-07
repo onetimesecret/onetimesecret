@@ -209,7 +209,8 @@ class Onetime::CustomDomain < Familia::Horreum
       multi.del(self.rediskey)
       # Also remove from the class-level values, :display_domains, :owners
       multi.zrem(OT::CustomDomain.values.rediskey, identifier)
-      multi.del(OT::CustomDomain.display_domains.rediskey, display_domain)
+      multi.hdel(OT::CustomDomain.display_domains.rediskey, display_domain)
+      multi.hdel(OT::CustomDomain.owners.rediskey, display_domain)
       unless customer.nil?
         multi.zrem(customer.custom_domains.rediskey, self.display_domain)
       end
@@ -502,15 +503,15 @@ class Onetime::CustomDomain < Familia::Horreum
     end
 
     def add fobj
-      #self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
       self.values.add OT.now.to_i, fobj.to_s # created time, identifier
       self.display_domains.put fobj.display_domain, fobj.identifier
+      self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
     end
 
     def rem fobj
       self.values.del fobj.to_s
-      self.display_domains.del fobj.display_domain
-      #self.owners.del fobj.to_s
+      self.redis.hdel self.display_domains.rediskey fobj.display_domain
+      self.redis.hdel self.owners.rediskey fobj.to_s
     end
 
     def all
