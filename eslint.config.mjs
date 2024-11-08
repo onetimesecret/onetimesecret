@@ -14,7 +14,10 @@ export default [
   {
     files: ['src/**/*.{js,mjs,cjs,ts,vue}', 'vite.config.ts'],
     languageOptions: {
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        process: true,
+      },
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',

@@ -4,6 +4,7 @@ import path from 'path';
 import Markdown from 'unplugin-vue-markdown/vite'
 import { defineConfig } from 'vite';
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
+import process from 'process'
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
@@ -49,7 +50,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(process.cwd(), './src'),
 
     }
   },
