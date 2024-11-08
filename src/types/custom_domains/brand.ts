@@ -1,5 +1,7 @@
+import type { BaseApiRecord } from "@/types/api";
+
 // These need to match UpdateDomainBrand#update_brand_settings valid_keys
-export interface BrandSettings {
+export interface BrandSettings extends BaseApiRecord {
   primary_color: string;
   instructions_pre_reveal: string;
   instructions_reveal: string;
@@ -25,7 +27,7 @@ export interface BrokenBrandSettings {
 }
 
 
-export interface ImageProps {
+export interface ImageProps extends BaseApiRecord {
   encoded: string;
   content_type: string;
   filename: string;

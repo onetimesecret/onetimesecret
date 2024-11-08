@@ -39,11 +39,12 @@ export interface Secret extends BaseApiRecord {
   maxviews: number; // always 1 (here for backwards compat)
 }
 
-export interface ConcealData {
+export interface ConcealData extends BaseApiRecord {
   metadata: MetadataData;
   secret: SecretData;
   share_domain: string;
 }
+
 
 export interface ConcealDetails {
   kind: string;

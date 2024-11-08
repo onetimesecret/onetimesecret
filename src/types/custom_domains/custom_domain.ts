@@ -66,9 +66,9 @@ export interface BrokenCustomDomain extends BaseApiRecord {
 }
 
 export interface CustomDomainCluster extends BaseApiRecord {
-  created?: string;
-  updated?: string;
-  identifier?: string;
+  created: string;
+  updated: string;
+  identifier: string;
   type: string;
   cluster_ip: string;
   cluster_name: string;

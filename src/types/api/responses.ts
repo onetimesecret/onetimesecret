@@ -1,10 +1,16 @@
 import { Stripe } from 'stripe';
-import type { Customer, MetadataData, SecretData, ConcealData, CheckAuthData } from '@/types/core';
+import type { Customer, Feedback, MetadataData, SecretData, ConcealData } from '@/types/core';
 import type { CustomDomain, BrandSettings, ImageProps } from '@/types/custom_domains';
-import { Feedback } from '@/types/ui'
 
 export interface BaseApiResponse {
   success: boolean;
+}
+
+export interface CheckAuthData extends BaseApiResponse {
+  record: Customer;
+  details: {
+    authenticated: boolean;
+  }
 }
 
 export interface ApiClient {

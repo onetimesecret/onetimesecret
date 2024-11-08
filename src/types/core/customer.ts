@@ -6,8 +6,6 @@ export interface Customer extends BaseApiRecord {
   planid?: string;
   plan: Plan;
   verified: string;
-  updated: number;
-  created: number;
   secrets_created: number;
   active: string;
   locale: string;

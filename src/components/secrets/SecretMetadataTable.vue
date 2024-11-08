@@ -60,7 +60,7 @@ import { Metadata } from '@/types';
 import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
 
 interface Props {
-  hasItems?: boolean;
+  hasItems?: boolean | undefined;
   notReceived?: Metadata[];
   received?: Metadata[];
   isLoading: boolean;

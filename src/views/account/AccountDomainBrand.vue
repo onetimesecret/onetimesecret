@@ -100,8 +100,8 @@
 <script setup lang="ts">
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses'
-import type { BrandSettings, CustomDomain,  } from '@/types/custom_domains';
+import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses';
+import type { BrandSettings, CustomDomain, } from '@/types/custom_domains';
 import { ImageProps } from '@/types/custom_domains';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
@@ -156,6 +156,9 @@ const brandSettings = ref<BrandSettings>({
   button_text_light: false,
   allow_public_homepage: false,
   allow_public_api: false,
+  identifier: '',
+  created: '',
+  updated: ''
 });
 
 const loading = ref(true);

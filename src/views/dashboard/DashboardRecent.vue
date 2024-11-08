@@ -3,7 +3,7 @@
     <DashboardTabNav />
 
     <SecretMetadataTable :hasItems="details?.has_items"
-                        :notReceived="details?.notreceived"
+                        :notReceived="details.notreceived ?? 0"
                         :received="details?.received"
                         :isLoading="isLoading"
                         title="Received" />
