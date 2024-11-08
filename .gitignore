@@ -7,15 +7,24 @@
 .ruby-version
 spoom_*
 .commit_hash.txt
+*.sublime-*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Directories
 .certs/
 .devcontainer
 .history
 .pnpm/
+.pnpm-store/
 .prompts/
 .prompts*
 .vscode/
+.idea/
+.cache/
+.temp/
 
 .appendonlydir/
 .bundle/
@@ -27,6 +36,8 @@ log/
 tmp/
 etc/caddy/
 coverage/
+dist/
+public/web/dist/
 !tests/data
 
 # Files
@@ -37,6 +48,11 @@ etc/config*
 !etc/config.schema.yaml
 !fly.toml
 .github/*md
+.eslintcache
+
+# Environment files
+.env*
+!.env.example
 
 # Playwright paths
 test-results/

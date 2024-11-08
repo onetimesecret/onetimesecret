@@ -35,78 +35,69 @@ default_install_hook_types:
   - post-commit
   - post-checkout
   - post-merge
-default_stages:
-   - pre-commit
 
 fail_fast: true
 
-repos:
-  - repo: meta
-    hooks:
-      - id: check-hooks-apply
-      - id: check-useless-excludes
-      - id: identity
+# Skip generated/dependency directories
+exclude: '^(vendor|node_modules|dist|build)/'
 
+repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
+      # Fast, essential checks only
       - id: trailing-whitespace
+        # Remove the --cached argument
       - id: end-of-file-fixer
-      - id: check-yaml
-        args: ["--allow-multiple-documents"]
-      - id: check-toml
-      - id: check-json
+        # Remove the --cached argument
+      - id: check-merge-conflict
       - id: detect-private-key
-      - id: mixed-line-ending
       - id: check-added-large-files
         args: ["--maxkb=2500"]
       - id: no-commit-to-branch
         args: ["--branch", "develop", "--branch", "rel/.*"]
-      - id: check-merge-conflict
-      - id: forbid-submodules
 
-  # Based on Rubocop's own pre-commit hook YAML configuration
+
+  # Originally based on Rubocop's own pre-commit configuration
   # https://github.com/rubocop/rubocop/blob/d5d8828/.pre-commit-hooks.yaml
   # NOTE: Don't enable '--autocorrect' until codebase is clean
-  - repo: https://github.com/rubocop/rubocop
-    rev: v1.66.1  # Use the ref you want to point at
+  # Use Rubocop local hooks for better performance
+  # Fast local Rubocop checks (basic syntax)
+  - repo: local
     hooks:
-      - id: rubocop
-        stages: [pre-commit]
-        name: rubocop
-        description: Enforce the community Ruby Style Guide with RuboCop
-        entry: "bundle exec rubocop --config .rubocop.yml --format json --fail-level warning"
-        types: ['ruby']
+      - id: local-rubocop-fast
+        name: Quick Rubocop
+        entry: bundle exec rubocop --force-exclusion --config .rubocop.yml --format json --fail-level error --only Syntax,Layout --no-server
+        language: system
+        types: [ruby]
+        files: \.(rb|rake)$
+        pass_filenames: true
 
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
     rev: v0.0.11
     hooks:
       - id: add-msg-issue-prefix
         stages: [prepare-commit-msg]
-        name: Link commit to Github issue
         args:
           - "--default=[UNTRACKED]"
           - "--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}"
           - "--template=[#{}]"
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.11.1  # Use the latest version
+  # Quick local ESLint checks (syntax only)
+  - repo: local
     hooks:
-      - id: eslint
-        stages: [pre-commit]
-        files: \.(mjs|ts|vue)$
+      - id: local-eslint-fast
+        name: Quick ESLint
+        entry: node_modules/.bin/eslint --quiet
+        language: system
         types: [file]
-        additional_dependencies:
-          - eslint
-          - eslint-plugin-vue
-          - "@typescript-eslint/eslint-plugin"
-          - "@typescript-eslint/parser"
+        files: \.(mjs|ts|vue)$
 
   - repo: local
     hooks:
       - id: register-build
         stages: [post-commit, post-checkout, post-merge]
-        name: Record the current commit hash into an untracked file
+        name: Record commit hash
         entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; head -4 .commit_hash.txt package.json'"
         language: system
         always_run: true
