@@ -71,7 +71,7 @@ const defaultProps = {
   isDefaultLocale: true,
   hasGlobalBanner: !!global_banner.value,
   globalBanner: global_banner.value,
-  primaryColor: domainBranding.value.primary_color
+  primaryColor: domainBranding?.value?.primary_color
 };
 
 const layoutProps = computed(() => {

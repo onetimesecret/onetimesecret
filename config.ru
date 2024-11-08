@@ -68,7 +68,7 @@ common_middleware = [
   Rack::HandleInvalidPercentEncoding,
   Rack::ContentLength,
   Rack::DetectHost,    # Must come before DomainStrategy
-  Onetime::DomainStrategy  # Added after DetectHost
+  Onetime::DomainStrategy,  # Added after DetectHost
 ]
 
 # Apply common middleware to all apps
