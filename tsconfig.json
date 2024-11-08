@@ -29,11 +29,17 @@
     "paths": {
       "@/*": ["*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types/declarations"
+    ]
   },
   "include": [
     "src/content/*.md",
     "src/**/*.ts",
+    "src/types/**/*.ts",
+    "src/types/declarations/**/*.ts",
+    "src/types/declarations/**/*.d.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
