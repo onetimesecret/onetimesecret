@@ -1,5 +1,6 @@
 
-//import type Stripe from 'stripe';
+import { LayoutProps } from '@/types/ui'
+import { AsyncDataResult } from '@/types/api/responses'
 import type { Component } from 'vue';
 
 // Modify the Vue Router module augmentation

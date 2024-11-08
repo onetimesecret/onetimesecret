@@ -90,8 +90,7 @@ export interface Props {
   showRedButton: boolean | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   enabled: true,
   showRedButton: false,
 })
@@ -126,7 +125,7 @@ const {
     emit('feedback-sent');
     resetForm();
   },
-  onError: (data) => {
+  onError: (data: unknown) => {
     console.error('Error sending feedback:', data);
   },
 });

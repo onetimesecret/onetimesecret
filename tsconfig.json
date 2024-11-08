@@ -15,7 +15,7 @@
     "esModuleInterop": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-
+    "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
     "jsx": "preserve",
 
@@ -25,9 +25,9 @@
 
     "sourceMap": true,
     "noEmit": true,
-    "baseUrl": ".",
+    "baseUrl": "src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },

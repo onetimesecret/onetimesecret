@@ -2,12 +2,6 @@
 export * from './responses';
 export * from './requests';
 
-export interface ApiClient {
-  get<T>(url: string): Promise<BaseApiResponse & { data: T }>;
-  post<T>(url: string, data: unknown): Promise<BaseApiResponse & { data: T }>;
-  put<T>(url: string, data: unknown): Promise<BaseApiResponse & { data: T }>;
-  delete<T>(url: string): Promise<BaseApiResponse & { data: T }>;
-}
 
 
 // Base class with common properties

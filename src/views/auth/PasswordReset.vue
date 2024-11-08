@@ -24,7 +24,7 @@ export interface Props {
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })

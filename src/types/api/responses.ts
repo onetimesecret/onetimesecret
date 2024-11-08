@@ -1,9 +1,17 @@
-import type { CustomDomain, MetadataData, SecretData, ConcealData, CheckAuthData, BrandSettings, ImageProps } from '../declarations/index';
+import { Stripe } from 'stripe';
+import type { Customer, MetadataData, SecretData, ConcealData, CheckAuthData } from '@/types/core';
+import type { CustomDomain, BrandSettings, ImageProps } from '@/types/custom_domains';
 
 export interface BaseApiResponse {
   success: boolean;
 }
 
+export interface ApiClient {
+  get<T>(url: string): Promise<BaseApiResponse & { data: T }>;
+  post<T>(url: string, data: unknown): Promise<BaseApiResponse & { data: T }>;
+  put<T>(url: string, data: unknown): Promise<BaseApiResponse & { data: T }>;
+  delete<T>(url: string): Promise<BaseApiResponse & { data: T }>;
+}
 
 // Base interface for common properties
 export interface BaseApiRecord {
@@ -12,7 +20,9 @@ export interface BaseApiRecord {
   updated: string;
 }
 
-export type DetailsType = ApiRecordResponse<BaseApiRecord>['details'];
+export type DetailsType = {
+  [key: string]: string | number | boolean | null | object;
+};
 
 export interface ApiErrorResponse<T extends BaseApiRecord> extends BaseApiResponse {
   message: string;
@@ -39,6 +49,10 @@ export interface AsyncDataResult<T> {
   status: number | null;
 }
 
+export interface ColonelData extends BaseApiRecord {
+  apitoken: string;
+  active: boolean;
+}
 
 export interface ApiToken extends BaseApiRecord {
   apitoken: string;

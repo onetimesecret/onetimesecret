@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import APIKeyCard from '@/components/account/APIKeyCard.vue';
-import { ApiTokenApiResponse } from '@/types/onetime';
+import { ApiTokenApiResponse, ApiRecordResponse } from '@/types/api';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
 

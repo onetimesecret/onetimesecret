@@ -1,5 +1,4 @@
-import type { BaseApiRecord } from '../declarations/index';
-import type { Plan } from '../declarations/index';
+import type { BaseApiRecord } from '../api/responses';
 
 export interface Customer extends BaseApiRecord {
   custid: string;

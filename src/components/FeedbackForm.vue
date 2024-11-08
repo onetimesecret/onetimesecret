@@ -123,7 +123,7 @@ export interface Props {
   showRedButton: boolean | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
   showRedButton: false,

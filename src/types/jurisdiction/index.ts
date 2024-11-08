@@ -1,3 +1,4 @@
+import { BaseEntity } from '@/types/api'
 
 // Jurisdiction class extending BaseEntity
 export class Jurisdiction extends BaseEntity {

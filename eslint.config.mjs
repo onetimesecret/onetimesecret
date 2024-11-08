@@ -1,14 +1,15 @@
-// eslint.config.mjs
-import globals from 'globals';
-import pluginJs from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import pluginVue from 'eslint-plugin-vue';
 import pluginVueI18n from '@intlify/eslint-plugin-vue-i18n';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import parserTs from '@typescript-eslint/parser';
+import pluginVue from 'eslint-plugin-vue';
+import globals from 'globals';
+import path from 'path';
+import vueEslintParser from 'vue-eslint-parser';
 
 export default [
-  // Ignore everything except src directory
+  // Ignore everything except src directory and vite.config.ts
   {
-    ignores: ['**/**', '!src/**', '!vite.config.ts'],
+    ignores: ['**/*', '!src/**', '!*.config.ts'],
   },
   {
     files: ['src/**/*.{js,mjs,cjs,ts,vue}', 'vite.config.ts'],
@@ -17,37 +18,65 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
+        // Specify TypeScript parser for TypeScript files
+        parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url)) ? parserTs : undefined,
       },
     },
     rules: {
       'no-undef': 'error', // Warns on the use of undeclared variables
     },
   },
-  ...tseslint.configs.recommended,
-  ...pluginVue.configs['flat/essential'],
+  // Include recommended TypeScript rules directly
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: parserTs,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': 'error', // Add the rule here
+    },
+  },
+  // Include Vue essential rules directly
   {
     files: ['src/**/*.vue'],
     languageOptions: {
+      parser: vueEslintParser,
       parserOptions: {
-        parser: tseslint.parser,
+        parser: parserTs,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
       },
     },
-  },
-  // Directly integrate what would have been an override
-  {
-    files: ["src/views/*.vue", "src/layouts/*.vue"], // Target files in the views directory
+    plugins: {
+      'vue': pluginVue,
+    },
     rules: {
-      "vue/multi-word-component-names": "off" // Turn off the rule
-    }
+      //...pluginVue.configs['flat/essential'],
+    },
+  },
+  // Override specific rules for certain Vue files
+  {
+    files: ["src/views/*.vue", "src/layouts/*.vue"],
+    rules: {
+      "vue/multi-word-component-names": "off", // Turn off the rule
+    },
   },
   // Add Vue I18n plugin configuration
   {
     files: ['src/**/*.{js,ts,vue}'],
     plugins: {
-      '@intlify/vue-i18n': pluginVueI18n,
+      'vue-i18n': pluginVueI18n,
     },
     rules: {
-      '@intlify/vue-i18n/no-deprecated-modulo-syntax': 'error',
+      // Add your Vue I18n specific rules here
     },
   },
 ];

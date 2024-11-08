@@ -57,8 +57,7 @@ export interface Props {
   enabled?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   enabled: true,
 })
 
