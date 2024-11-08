@@ -23,8 +23,9 @@ export interface ApiClient {
 // Base interface for common properties
 export interface BaseApiRecord {
   identifier: string;
-  created: string;
-  updated: string;
+  // Update to use Date objects instead of strings
+  created: Date;
+  updated: Date;
 }
 
 export type DetailsType = {
@@ -92,7 +93,6 @@ export interface Account extends BaseApiRecord {
   stripe_customer: Stripe.Customer;
   stripe_subscriptions: Stripe.Subscription[];
 }
-
 
 export type ApiTokenApiResponse = ApiRecordResponse<ApiToken>;
 export type CustomDomainApiResponse = ApiRecordResponse<CustomDomain>;

@@ -1,21 +1,116 @@
 // src/schemas/models/customer.ts
 import { z } from 'zod'
-import { baseApiRecordSchema, booleanFromString } from '@/utils/transforms'
+import type { BaseApiRecord } from '@/types/api/responses'
+import { baseApiRecordSchema, booleanFromString, numberFromString } from '@/utils/transforms'
 
+/**
+ * @fileoverview Customer schema for API transformation boundaries
+ *
+ * Key Design Decisions:
+ * 1. Input schemas handle API -> App transformation
+ * 2. App uses single shared type between stores/components
+ * 3. No explicit output schemas - serialize when needed
+ *
+ * Type Flow:
+ * API Response (strings) -> InputSchema -> Store/Components -> API Request
+ *                          ^                                ^
+ *                          |                                |
+ *                       transform                       serialize
+ *
+ * Validation Rules:
+ * - Boolean fields come as strings from Ruby/Redis ('true'/'false')
+ * - Numeric counters come as strings from API
+ * - Dates come as UTC seconds strings
+ * - Role is validated against enum
+ * - Optional fields explicitly marked
+ */
+
+// Role enum matching Ruby model
+export const CustomerRole = {
+  CUSTOMER: 'customer',
+  COLONEL: 'colonel',
+  RECIPIENT: 'recipient',
+  USER_DELETED_SELF: 'user_deleted_self'
+} as const
+
+/**
+ * Plan options schema matching Ruby model
+ */
+export const planOptionsSchema = z.object({
+  ttl: z.number(),
+  size: z.number(),
+  api: z.boolean(),
+  name: z.string(),
+  email: z.boolean().optional(),
+  custom_domains: z.boolean().optional(),
+  dark_mode: z.boolean().optional(),
+  cname: z.boolean().optional(),
+  private: z.boolean().optional()
+})
+
+export type PlanOptions = z.infer<typeof planOptionsSchema>
+
+/**
+ * Plan schema for customer plans
+ */
+export const planSchema = baseApiRecordSchema.extend({
+  planid: z.string(),
+  price: z.number(),
+  discount: z.number(),
+  options: planOptionsSchema
+})
+
+export type Plan = z.infer<typeof planSchema>
+
+/**
+ * Input schema for customer from API
+ * - Handles string -> boolean/number/date coercion from Ruby/Redis
+ * - Validates role against enum
+ * - Allows extra fields from API (passthrough)
+ */
 export const customerInputSchema = baseApiRecordSchema.extend({
+  // Core fields
   custid: z.string(),
-  role: z.string(),
-  planid: z.string().optional(),
+  role: z.enum([
+    CustomerRole.CUSTOMER,
+    CustomerRole.COLONEL,
+    CustomerRole.RECIPIENT,
+    CustomerRole.USER_DELETED_SELF
+  ]),
+
+  // Boolean fields that come as strings from API
   verified: booleanFromString,
-  secrets_created: z.number(),
   active: booleanFromString,
-  locale: z.string(),
-  stripe_checkout_email: z.string().optional(),
-  stripe_subscription_id: z.string().optional(),
+  contributor: booleanFromString.optional(),
+
+  // Counter fields that come as strings from API
+  secrets_created: numberFromString.default(0),
+  secrets_burned: numberFromString.default(0),
+  secrets_shared: numberFromString.default(0),
+  emails_sent: numberFromString.default(0),
+
+  // Date fields (UTC seconds from API)
+  last_login: z.string().transform(val => new Date(Number(val) * 1000)),
+
+  // Optional fields
+  locale: z.string().optional(),
+  planid: z.string().optional(),
+
+  // Plan data
+  plan: planSchema,
+
+  // Stripe-related fields
   stripe_customer_id: z.string().optional(),
+  stripe_subscription_id: z.string().optional(),
+  stripe_checkout_email: z.string().optional(),
+
+  // Feature flags can have mixed types
   feature_flags: z.record(z.union([
     z.boolean(),
     z.number(),
     z.string()
   ])).optional()
 }).passthrough()
+
+// Export the inferred type for use in stores/components
+export type Customer = z.infer<typeof customerInputSchema> & BaseApiRecord

@@ -1,3 +1,4 @@
+// src/utils/transforms.ts
 import type {
   ApiRecordsResponse,
   BaseApiRecord,
@@ -6,12 +7,38 @@ import type {
 import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 
-// Match BaseApiRecord interface
+/**
+ * Base schema for all API records
+ * Matches BaseApiRecord interface and handles identifier pattern
+ *
+ * Ruby models use different identifier patterns:
+ * - Direct field (e.g. Customer.custid)
+ * - Generated (e.g. Secret.generate_id)
+ * - Derived (e.g. CustomDomain.derive_id)
+ * - Composite (e.g. RateLimit.[fields].sha256)
+ *
+ * We standardize this in the schema layer by:
+ * 1. Always including the identifier field from API
+ * 2. Allowing models to specify their identifier source
+ * 3. Transforming as needed in model-specific schemas
+ */
+
+// Helper for converting UTC seconds string to Date
+const dateFromSeconds = (val: unknown) => {
+  if (val instanceof Date) return val;
+  if (typeof val !== 'string') throw new Error('Expected string timestamp');
+  return new Date(Number(val) * 1000);
+};
+
+// Base schema that can be extended by model schemas
 export const baseApiRecordSchema = z.object({
+  // Base identifier from API
   identifier: z.string(),
-  created: z.string(),
-  updated: z.string()
-}) satisfies z.ZodType<BaseApiRecord>;
+
+  // Timestamps from API (UTC seconds)
+  created: z.preprocess(dateFromSeconds, z.date()),
+  updated: z.preprocess(dateFromSeconds, z.date())
+});
 
 // Match BaseApiResponse interface
 export const baseApiResponseSchema = z.object({
@@ -67,14 +94,12 @@ export class TransformError extends Error {
   }
 }
 
-
-// src/utils/transforms.ts
 /**
  * Helper to detect if error is from transform validation
  * Used for better error handling in stores
  */
 export function isTransformError(error: unknown): error is TransformError {
-  return error instanceof TransformError && error.details !== undefined
+  return error instanceof TransformError && error.details !== undefined;
 }
 
 /**
@@ -86,14 +111,15 @@ export function transformResponse<T extends z.ZodType>(
   data: unknown
 ): z.infer<T> {
   try {
-    return schema.parse(data)
+    return schema.parse(data);
   } catch (error) {
     throw new TransformError('Transform failed', {
       cause: error instanceof Error ? error : new Error(String(error)),
       details: error instanceof z.ZodError ? error.issues : undefined
-    })
+    });
   }
 }
+
 /**
  * Transform and validate multi-record API response data.
  */
