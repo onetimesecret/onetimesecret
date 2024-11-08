@@ -23,3 +23,14 @@ export interface BrokenBrandSettings {
   allow_public_homepage: string;
   allow_public_api: string;
 }
+
+
+export interface ImageProps {
+  encoded: string;
+  content_type: string;
+  filename: string;
+  bytes?: number;
+  width?: number;
+  height?: number;
+  ratio?: number;
+}

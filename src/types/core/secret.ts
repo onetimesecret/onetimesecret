@@ -1,4 +1,4 @@
-import type { BaseApiRecord } from './index';
+import type { BaseApiRecord } from '../declarations/index';
 import type { MetadataData } from './metadata';
 
 export interface SecretData extends BaseApiRecord {

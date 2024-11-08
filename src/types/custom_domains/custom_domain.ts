@@ -1,4 +1,4 @@
-import type { BaseApiRecord } from './index';
+import type { BaseApiRecord } from '../declarations/index';
 import type { BrandSettings, BrokenBrandSettings } from './brand';
 
 export interface ApproximatedVHost {

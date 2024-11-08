@@ -1,8 +1,15 @@
-import type { BaseApiRecord } from '../index';
-import type { ApiToken, CustomDomain, Account, ColonelData, MetadataData, SecretData, ConcealData, CheckAuthData, BrandSettings, ImageProps } from '../index';
+import type { CustomDomain, MetadataData, SecretData, ConcealData, CheckAuthData, BrandSettings, ImageProps } from '../declarations/index';
 
 export interface BaseApiResponse {
   success: boolean;
+}
+
+
+// Base interface for common properties
+export interface BaseApiRecord {
+  identifier: string;
+  created: string;
+  updated: string;
 }
 
 export type DetailsType = ApiRecordResponse<BaseApiRecord>['details'];
@@ -25,6 +32,26 @@ export interface ApiRecordResponse<T extends BaseApiRecord> extends BaseApiRespo
   record: T;
   details?: DetailsType;
 }
+
+export interface AsyncDataResult<T> {
+  data: T | null;
+  error: Error | string | null;
+  status: number | null;
+}
+
+
+export interface ApiToken extends BaseApiRecord {
+  apitoken: string;
+  active: boolean;
+}
+
+export interface Account extends BaseApiRecord {
+  cust: Customer;
+  apitoken?: string;
+  stripe_customer: Stripe.Customer;
+  stripe_subscriptions: Stripe.Subscription[];
+}
+
 
 export type ApiTokenApiResponse = ApiRecordResponse<ApiToken>;
 export type CustomDomainApiResponse = ApiRecordResponse<CustomDomain>;

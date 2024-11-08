@@ -1,5 +1,5 @@
-import type { BaseApiRecord } from './index';
-import type { DetailsType } from './api/responses';
+import type { BaseApiRecord } from '../declarations/index';
+import type { DetailsType } from '../api/responses';
 
 export interface MetadataData extends BaseApiRecord {
   key: string;
