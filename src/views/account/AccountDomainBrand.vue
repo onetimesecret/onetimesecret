@@ -100,8 +100,9 @@
 <script setup lang="ts">
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { AsyncDataResult, BrandSettings, CustomDomain, CustomDomainApiResponse } from '@/types/onetime';
-import { ImageProps } from '@/types/onetime';
+import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses'
+import type { BrandSettings, CustomDomain,  } from '@/types/custom_domains';
+import { ImageProps } from '@/types/custom_domains';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
 import { Icon } from '@iconify/vue';
@@ -154,6 +155,7 @@ const brandSettings = ref<BrandSettings>({
   corner_style: 'rounded',
   button_text_light: false,
   allow_public_homepage: false,
+  allow_public_api: false,
 });
 
 const loading = ref(true);
@@ -206,6 +208,7 @@ const fetchBrandSettings = async () => {
           corner_style: brand?.corner_style || 'rounded',
           button_text_light: brand?.button_text_light || false,
           allow_public_homepage: brand?.allow_public_homepage || false,
+          allow_public_api: brand?.allow_public_api || false,
 
         };
         brandSettings.value = settings;
@@ -231,6 +234,7 @@ const fetchBrandSettings = async () => {
       corner_style: brand?.corner_style || 'rounded',
       button_text_light: brand?.button_text_light || false,
       allow_public_homepage: brand?.allow_public_homepage || false,
+      allow_public_api: brand?.allow_public_api || false,
 
     };
     brandSettings.value = settings;

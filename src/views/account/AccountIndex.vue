@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { Account } from '@/types/onetime';
+import { Account } from '@/types';
 import { onMounted } from 'vue';
 import { useWindowProps } from '@/composables/useWindowProps';
 import { useFetchDataRecord } from '@/composables/useFetchData';

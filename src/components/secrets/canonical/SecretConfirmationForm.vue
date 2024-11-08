@@ -59,7 +59,7 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import type { SecretData, SecretDetails } from '@/types/onetime';
+import type { SecretData, SecretDetails } from '@/types';
 import { ref } from 'vue';
 
 interface Props {

@@ -3,7 +3,7 @@ import { RouteRecordRaw } from 'vue-router';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import api from '@/utils/api';
-import { AsyncDataResult, CustomDomainApiResponse } from '@/types/onetime';
+import { AsyncDataResult, CustomDomainApiResponse } from '@/types';
 
 const routes: Array<RouteRecordRaw> = [
   {

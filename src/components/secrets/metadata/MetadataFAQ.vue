@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { defineProps } from 'vue'
-import { MetadataData, MetadataDetails } from '@/types/onetime.d'
+import { MetadataData, MetadataDetails } from '@/types/core'
 
 interface Props {
   metadata: MetadataData;

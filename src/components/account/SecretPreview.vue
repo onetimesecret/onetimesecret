@@ -152,7 +152,7 @@ textarea {
 <script setup lang="ts">
 // Script remains the same
 import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
-import { BrandSettings, ImageProps } from '@/types/onetime';
+import { BrandSettings, ImageProps } from '@/types';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';

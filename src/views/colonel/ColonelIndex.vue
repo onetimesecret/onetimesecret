@@ -101,7 +101,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue';
 import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
-import { ColonelData } from '@/types/onetime'
+import { ColonelData } from '@/types/api/responses'
 
 
 const tabs = [

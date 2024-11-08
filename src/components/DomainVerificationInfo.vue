@@ -88,7 +88,7 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
-import { CustomDomain } from '@/types/onetime';
+import { CustomDomain } from '@/types';
 //import StatusLabel from './StatusLabel.vue';
 //import StatusLabelRow from './StatusLabelRow.vue';
 

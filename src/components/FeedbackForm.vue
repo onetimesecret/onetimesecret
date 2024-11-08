@@ -160,7 +160,7 @@ const {
     emit('feedback-sent');
     resetForm();
   },
-  onError: (data) => {
+  onError: (data: unknown) => {
     console.error('Error sending feedback:', data);
   },
 });

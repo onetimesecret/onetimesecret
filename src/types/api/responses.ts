@@ -1,6 +1,7 @@
 import { Stripe } from 'stripe';
 import type { Customer, MetadataData, SecretData, ConcealData, CheckAuthData } from '@/types/core';
 import type { CustomDomain, BrandSettings, ImageProps } from '@/types/custom_domains';
+import { Feedback } from '@/types/ui'
 
 export interface BaseApiResponse {
   success: boolean;
@@ -51,7 +52,27 @@ export interface AsyncDataResult<T> {
 
 export interface ColonelData extends BaseApiRecord {
   apitoken: string;
-  active: boolean;
+  active?: boolean;
+  recent_customers: Customer[];
+  today_feedback: Feedback[];
+  yesterday_feedback: Feedback[];
+  older_feedback: Feedback[];
+  redis_info: number;
+  plans_enabled: number;
+  counts: {
+    session_count: number;
+    customer_count: number;
+    recent_customer_count: number;
+    metadata_count: number;
+    secret_count: number;
+    secrets_created: number;
+    secrets_shared: number;
+    emails_sent: number;
+    feedback_count: number;
+    today_feedback_count: number;
+    yesterday_feedback_count: number;
+    older_feedback_count: number;
+  }
 }
 
 export interface ApiToken extends BaseApiRecord {
@@ -78,3 +99,4 @@ export type CheckAuthDataApiResponse = ApiRecordResponse<CheckAuthData>;
 export type BrandSettingsApiResponse = ApiRecordResponse<BrandSettings>;
 export type ImagePropsApiResponse = ApiRecordResponse<ImageProps>;
 export type CustomDomainRecordsApiResponse = ApiRecordsResponse<CustomDomain>;
+export type UpdateDomainBrandResponse = ApiRecordResponse<CustomDomain>;

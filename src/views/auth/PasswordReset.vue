@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useFetchDataRecord } from '@/composables/useFetchData';
-import { SecretData } from '@/types/onetime'
+import { SecretData } from '@/types'
 import { useRouter } from 'vue-router';
 
 const csrfStore = useCsrfStore();

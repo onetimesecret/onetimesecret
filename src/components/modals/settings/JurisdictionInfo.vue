@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import type { Jurisdiction } from '@/types/onetime';
+import type { Jurisdiction } from '@/types';
 
 defineProps<{
   jurisdiction: Jurisdiction;

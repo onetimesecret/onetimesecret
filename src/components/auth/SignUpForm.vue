@@ -137,7 +137,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Jurisdiction } from '@/types/onetime';
+import { Jurisdiction } from '@/types';
 import { useCsrfStore } from '@/stores/csrfStore';
 
 const csrfStore = useCsrfStore();

@@ -85,7 +85,7 @@ import { useFetchDataRecord } from '@/composables/useFetchData';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { MetadataData, MetadataDataApiResponse } from '@/types/onetime';
+import type { MetadataData, MetadataDataApiResponse } from '@/types';
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -119,7 +119,7 @@ const {
       params: { metadataKey: data.record.key },
     });
   },
-  onError: (error) => {
+  onError: (error: Error) => {
     notifications.show(error.message || 'Failed to burn secret', 'error');
     console.error('Error burning secret:', error);
   },

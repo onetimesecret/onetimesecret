@@ -15,7 +15,7 @@
               {{ $t('web.dashboard.title_not_received') }}
           </h3>
           <ul v-if="notReceived" class="space-y-1">
-            <li v-for="item in notReceived" :key="item.identifier">
+            <li v-for="item in notReceived" :key="item.key">
               <!-- Assuming there's a component for li_metadata -->
               <SecretMetadataTableItem :secretMetadata="item" />
             </li>
@@ -31,7 +31,7 @@
               {{ $t('web.dashboard.title_received') }}
           </h3>
             <ul v-if="received" class="space-y-1">
-              <li v-for="item in received" :key="item.identifier">
+              <li v-for="item in received" :key="item.key">
                 <!-- Assuming there's a component for li_metadata -->
                 <SecretMetadataTableItem :secretMetadata="item" />
               </li>
@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { Metadata } from '@/types/onetime';
+import { Metadata } from '@/types';
 import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
 
 interface Props {

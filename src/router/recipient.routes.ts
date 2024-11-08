@@ -1,5 +1,5 @@
 import { fetchInitialSecret } from '@/api/secrets';
-import { AsyncDataResult, SecretDataApiResponse } from '@/types/onetime';
+import { AsyncDataResult, SecretDataApiResponse } from '@/types';
 import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { RouteRecordRaw } from 'vue-router';
 import { useWindowProp } from '@/composables/useWindowProps';

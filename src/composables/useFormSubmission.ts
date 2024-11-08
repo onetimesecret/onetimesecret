@@ -1,7 +1,7 @@
 // src/utils/formSubmission.ts
 
 import { ref } from 'vue';
-import type { FormSubmissionOptions } from '@/types/onetime.d.ts';
+import type { FormSubmissionOptions } from '@/types/ui';
 import { useCsrfStore } from '@/stores/csrfStore';
 
 export function useFormSubmission(options: FormSubmissionOptions) {

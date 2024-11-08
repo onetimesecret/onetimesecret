@@ -1,5 +1,5 @@
 
-import { CheckAuthDataApiResponse, CheckAuthDetails, Customer } from '@/types/onetime';
+import { CheckAuthDataApiResponse, CheckAuthDetails, Customer } from '@/types';
 
 import axios, { AxiosError } from 'axios';
 import { defineStore } from 'pinia';

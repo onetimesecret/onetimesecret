@@ -138,7 +138,7 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { useDomainsStore } from '@/stores/domainsStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { CustomDomain } from '@/types/onetime';
+import type { CustomDomain } from '@/types';
 import { useWindowProps } from '@/composables/useWindowProps';
 import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
 const isUpgradeModalOpen = ref(false)

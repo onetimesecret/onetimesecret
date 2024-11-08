@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useFetchDataRecord } from '@/composables/useFetchData'
-import { MetadataData } from '@/types/onetime'
+import { MetadataData } from '@/types'
 import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue'
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue'
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue'

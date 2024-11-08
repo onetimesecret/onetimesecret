@@ -15,7 +15,7 @@ import { onMounted } from 'vue';
 import { useFetchData } from '@/composables/useFetchData';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
-import { MetadataData } from '@/types/onetime';
+import { MetadataData } from '@/types';
 
 const { details, fetchData: fetchDomains, isLoading } = useFetchData<MetadataData>({
   url: '/api/v2/private/recent',

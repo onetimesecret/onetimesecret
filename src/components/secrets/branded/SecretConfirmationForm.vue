@@ -129,7 +129,7 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { SecretData, SecretDetails } from '@/types/onetime';
+import { SecretData, SecretDetails } from '@/types';
 import { ref } from 'vue';
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
 import {useDomainBranding} from '@/composables/useDomainBranding';

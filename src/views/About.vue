@@ -3,7 +3,7 @@
 import { ref, computed } from 'vue';
 
 import { useWindowProps } from '@/composables/useWindowProps';
-import { Plan } from '@/types/onetime';
+import { Plan } from '@/types';
 
 import { onMounted } from 'vue';
 

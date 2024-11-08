@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
-import { CustomDomain } from '@/types/onetime.d';
+import { CustomDomain } from '@/types/custom_domains';
 defineProps<{
   displayDomain: string;
   domain: CustomDomain | null;

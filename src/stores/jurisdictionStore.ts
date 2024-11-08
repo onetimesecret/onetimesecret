@@ -1,7 +1,7 @@
 // src/stores/jurisdictionStore.ts
 
 import { defineStore } from 'pinia';
-import type { Jurisdiction, Regions } from '@/types/onetime';
+import type { Jurisdiction, Regions } from '@/types';
 
 
 interface JurisdictionState {

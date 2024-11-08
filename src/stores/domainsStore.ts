@@ -1,6 +1,6 @@
 import type { UpdateDomainBrandRequest } from '@/types/api/requests';
-import type { UpdateDomainBrandResponse } from '@/types/api/responses';
-import type { BrandSettings, BrokenCustomDomain, CustomDomain, CustomDomainRecordsApiResponse } from '@/types/onetime';
+import type { UpdateDomainBrandResponse, CustomDomainRecordsApiResponse } from '@/types/api/responses';
+import type { BrandSettings, CustomDomain } from '@/types/custom_domains';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 
@@ -30,7 +30,7 @@ export const useDomainsStore = defineStore('domains', {
   }),
 
   actions: {
-    parseDomainBranding(domain: BrokenCustomDomain): CustomDomain {
+    parseDomainBranding(domain: CustomDomain): CustomDomain {
       if (!domain.brand) return domain;
 
       return {
@@ -41,11 +41,11 @@ export const useDomainsStore = defineStore('domains', {
           instructions_pre_reveal: domain.brand.instructions_pre_reveal,
           instructions_reveal: domain.brand.instructions_reveal,
           instructions_post_reveal: domain.brand.instructions_post_reveal,
-          button_text_light: domain.brand.button_text_light === 'true',
+          button_text_light: domain.brand.button_text_light,
           font_family: domain.brand.font_family,
           corner_style: domain.brand.corner_style,
-          allow_public_homepage: domain.brand.allow_public_homepage === 'true',
-          allow_public_api: domain.brand.allow_public_api === 'true',
+          allow_public_homepage: domain.brand.allow_public_homepage,
+          allow_public_api: domain.brand.allow_public_api,
         }
       };
     },
@@ -131,7 +131,7 @@ export const useDomainsStore = defineStore('domains', {
 
         // Update with the server response
         const updatedDomain = this.parseDomainBranding(
-          response.data?.domain || {
+          response.data?.result || {
             ...domain,
             brand: {
               ...(domain.brand || {}),

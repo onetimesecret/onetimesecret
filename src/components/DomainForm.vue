@@ -107,7 +107,7 @@ import { ref } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DomainInput from './DomainInput.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { CustomDomainApiResponse } from '@/types/onetime';
+import type { CustomDomainApiResponse } from '@/types';
 import { useCsrfStore } from '@/stores/csrfStore';
 
 const csrfStore = useCsrfStore();
@@ -134,7 +134,7 @@ const {
       console.error('Error emitting domain-added event:', error);
     }
   },
-  onError: (data) => {
+  onError: (data: unknown) => {
     console.error('Error adding domain:', data);
   },
 });

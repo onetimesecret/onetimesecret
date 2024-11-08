@@ -80,7 +80,7 @@ import GenerateButton from './GenerateButton.vue';
 import ConcealButton from './ConcealButton.vue';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import { ConcealDataApiResponse } from '@/types/onetime';
+import { ConcealDataApiResponse } from '@/types';
 import { useRouter } from 'vue-router';
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 
@@ -165,7 +165,7 @@ const {
       params: { metadataKey: data.record.metadata.key },
     })
   },
-  onError: (data) => {
+  onError: (data: unknown) => {
     console.error('Error fetching secret:', data)
 
     // Let's try to get a new shrimp right away

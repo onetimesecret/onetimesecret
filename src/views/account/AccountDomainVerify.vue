@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import MoreInfoText from "@/components/MoreInfoText.vue";
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
+import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';

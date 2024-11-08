@@ -94,7 +94,7 @@
             <td class="px-6 py-4">
               <div v-if="cust?.feature_flags?.homepage_toggle"
                   class="flex justify-center">
-                <HomepageAccessToggle :model-value="domain.brand?.allow_public_homepage"
+                <HomepageAccessToggle :model-value="domain.brand?.allow_public_homepage ?? false"
                                       :disabled="isToggling(domain.display_domain)"
                                       @update:model-value="$emit('toggle-homepage', domain)" />
               </div>
@@ -149,7 +149,7 @@
 
 <script setup lang="ts">
 import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
-import type { CustomDomain } from '@/types/onetime';
+import type { CustomDomain } from '@/types';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';

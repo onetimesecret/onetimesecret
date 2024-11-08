@@ -1,19 +1,6 @@
-declare module 'api' {
-  export * from 'api'
-}
-
-declare module 'core' {
-  export * from 'core'
-}
-
-declare module 'custom_domains' {
-  export * from 'custom_domains'
-}
-
-declare module 'jurisdiction' {
-  export * from 'jurisdiction'
-}
-
-declare module 'ui' {
-  export * from 'ui'
-}
+// Re-export all types
+export * from './api'
+export * from './custom_domains';
+export * from './core';
+export * from './jurisdiction';
+export * from './ui';
