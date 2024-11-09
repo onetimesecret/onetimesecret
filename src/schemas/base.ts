@@ -37,3 +37,11 @@ export type TransformedBaseRecord = z.infer<typeof transformedBaseRecordSchema>;
 
 export const detailsSchema = z.record(z.string(), z.unknown()).optional()
 export type DetailsType = z.infer<typeof detailsSchema>
+
+// Base schema for nested records that belong to a parent (e.g. domain->brand)
+export const baseNestedRecordSchema = z.object({
+  // Common fields for nested records can be added here
+});
+
+// Type exports
+export type BaseNestedRecord = z.infer<typeof baseNestedRecordSchema>;

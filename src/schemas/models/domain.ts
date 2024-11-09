@@ -79,12 +79,15 @@ const customDomainBaseSchema = z.object({
   txt_validation_value: z.string(),
 
   // Optional nested objects
-  vhost: approximatedVHostSchema.optional(),
-  brand: brandSettingsInputSchema.optional()
+  vhost: approximatedVHostSchema.optional().or(z.object({}).strict()),
+  brand: brandSettingsInputSchema.optional().or(z.object({}).strict()),
 })
 
 // Combine base record schema with domain-specific fields
 export const customDomainInputSchema = baseApiRecordSchema.merge(customDomainBaseSchema)
+//export const customDomainInputSchema = baseApiRecordSchema.merge(
+//  customDomainBaseSchema.partial() // Makes all fields optional temporarily
+//)
 
 // Export inferred types for use in stores/components
 export type ApproximatedVHost = z.infer<typeof approximatedVHostSchema>

@@ -1,10 +1,17 @@
 // src/schemas/models/brand.ts
-import { baseApiRecordSchema, type BaseApiRecord } from '@/schemas/base'
+import { baseNestedRecordSchema, type BaseNestedRecord } from '@/schemas/base';
 import { booleanFromString } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
  * @fileoverview Brand settings schema for API transformation boundaries
+ *
+ * Model Organization:
+ * While Brand is a nested model of Domain, it exists as a separate file because:
+ * 1. It has distinct validation rules and complex type definitions
+ * 2. It maintains separation of concerns and code organization
+ * 3. It allows direct imports of Brand-specific logic where needed
+ * 4. It keeps Domain model focused on core domain logic
  *
  * Key Design Decisions:
  * 1. Input schemas handle API -> App transformation
@@ -43,7 +50,7 @@ export const CornerStyle = {
  * - Validates color format
  * - Constrains font and corner style options
  */
-export const brandSettingsInputSchema = baseApiRecordSchema.extend({
+export const brandSettingsInputSchema = baseNestedRecordSchema.extend({
   // Core display settings
   primary_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
   instructions_pre_reveal: z.string(),
@@ -71,7 +78,7 @@ export const brandSettingsInputSchema = baseApiRecordSchema.extend({
 /**
  * Image properties schema for brand assets
  */
-export const imagePropsSchema = baseApiRecordSchema.extend({
+export const imagePropsSchema = baseNestedRecordSchema.extend({
   encoded: z.string(),
   content_type: z.string(),
   filename: z.string(),
@@ -82,5 +89,5 @@ export const imagePropsSchema = baseApiRecordSchema.extend({
 })
 
 // Export inferred types for use in stores/components
-export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseApiRecord
-export type ImageProps = z.infer<typeof imagePropsSchema> & BaseApiRecord
+export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseNestedRecord
+export type ImageProps = z.infer<typeof imagePropsSchema> & BaseNestedRecord
