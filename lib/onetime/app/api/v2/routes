@@ -27,7 +27,6 @@ POST   /secret/:key                               Onetime::App::APIV2::Secrets#r
 
 POST   /secret/conceal                            Onetime::App::APIV2::Secrets#conceal_secret
 
-GET    /authcheck                                 Onetime::App::APIV2#authcheck
 GET    /supported-locales                         Onetime::App::APIV2#get_supported_locales
 
 GET    /status                                    Onetime::App::APIV2#status
