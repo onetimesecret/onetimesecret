@@ -1,8 +1,11 @@
 // src/schemas/models/metadata.ts
-import { z } from 'zod'
-import type { BaseApiRecord, DetailsType } from '@/types/api/responses'
-import { baseApiRecordSchema, booleanFromString } from '@/utils/transforms'
-import { secretDataSchema } from './secret'
+
+import { z } from 'zod';
+import { secretDataSchema } from './secret';
+import { baseApiRecordSchema, type BaseApiRecord } from '@/schemas/base';
+import { booleanFromString } from '@/utils/transforms';
+import { type DetailsType } from '@/schemas/base'
+
 
 /**
  * @fileoverview Metadata schema for API transformation boundaries
@@ -30,6 +33,7 @@ export const MetadataState = {
 /**
  * Schema for metadata data from API
  */
+
 export const metadataDataSchema = baseApiRecordSchema.extend({
   key: z.string(),
   shortkey: z.string(),

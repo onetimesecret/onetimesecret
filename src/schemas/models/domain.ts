@@ -1,8 +1,9 @@
 // src/schemas/models/domain.ts
 import { z } from 'zod'
-import { baseApiRecordSchema, booleanFromString } from '@/utils/transforms'
-import type { BaseApiRecord } from '@/types/api/responses'
+import { booleanFromString } from '@/utils/transforms'
+
 import { brandSettingsInputSchema } from './brand'
+import { baseApiRecordSchema } from '@/schemas/base';
 
 /**
  * @fileoverview Custom domain schema for API transformation boundaries
@@ -54,7 +55,7 @@ export const approximatedVHostSchema = z.object({
  * - Validates domain parts
  * - Handles nested objects (vhost, brand)
  */
-const customDomainBaseSchema = baseApiRecordSchema.extend({
+const customDomainBaseSchema = z.object({
   // Core identifiers
   domainid: z.string(),
   custid: z.string(),
@@ -81,19 +82,18 @@ const customDomainBaseSchema = baseApiRecordSchema.extend({
   brand: brandSettingsInputSchema.optional()
 })
 
-// Export the schema with passthrough
-export const customDomainInputSchema = customDomainBaseSchema.passthrough()
+// Combine base record schema with domain-specific fields
+export const customDomainInputSchema = baseApiRecordSchema.merge(customDomainBaseSchema)
 
 // Export inferred types for use in stores/components
 export type ApproximatedVHost = z.infer<typeof approximatedVHostSchema>
-export type CustomDomain = z.infer<typeof customDomainInputSchema> & BaseApiRecord
+export type CustomDomain = z.infer<typeof customDomainInputSchema>
 
 /**
  * Input schema for domain cluster from API
  * Used for managing domain routing/infrastructure
  */
-export const customDomainClusterInputSchema = baseApiRecordSchema.extend({
-  identifier: z.string(),
+const customDomainClusterBaseSchema = z.object({
   type: z.string(),
   cluster_ip: z.string(),
   cluster_name: z.string(),
@@ -101,7 +101,9 @@ export const customDomainClusterInputSchema = baseApiRecordSchema.extend({
   vhost_target: z.string()
 })
 
-export type CustomDomainCluster = z.infer<typeof customDomainClusterInputSchema> & BaseApiRecord
+export const customDomainClusterInputSchema = baseApiRecordSchema.merge(customDomainClusterBaseSchema)
+
+export type CustomDomainCluster = z.infer<typeof customDomainClusterInputSchema>
 
 // Domain strategy constants and type
 export const DomainStrategyValues = {

@@ -1,7 +1,7 @@
 // src/schemas/models/brand.ts
-import { z } from 'zod'
-import { baseApiRecordSchema, booleanFromString } from '@/utils/transforms'
-import type { BaseApiRecord } from '@/types/api/responses'
+import { baseApiRecordSchema, type BaseApiRecord } from '@/schemas/base'
+import { booleanFromString } from '@/utils/transforms';
+import { z } from 'zod';
 
 /**
  * @fileoverview Brand settings schema for API transformation boundaries

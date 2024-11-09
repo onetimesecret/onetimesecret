@@ -1,12 +1,8 @@
-// src/utils/transforms.ts
+import { z } from 'zod'
+import { fromZodError } from 'zod-validation-error'
 import type {
   ApiRecordsResponse,
-  BaseApiRecord,
-  BaseApiResponse
-} from '@/types/api/responses';
-import { z } from 'zod';
-import { fromZodError } from 'zod-validation-error';
-
+} from '@/types/api/responses'
 /**
  * Base schema for all API records
  * Matches BaseApiRecord interface and handles identifier pattern
@@ -23,47 +19,9 @@ import { fromZodError } from 'zod-validation-error';
  * 3. Transforming as needed in model-specific schemas
  */
 
-// Helper for converting UTC seconds string to Date
-const dateFromSeconds = (val: unknown) => {
-  if (val instanceof Date) return val;
-  if (typeof val !== 'string') throw new Error('Expected string timestamp');
-  return new Date(Number(val) * 1000);
-};
-
-// Base schema that can be extended by model schemas
-export const baseApiRecordSchema = z.object({
-  // Base identifier from API
-  identifier: z.string(),
-
-  // Timestamps from API (UTC seconds)
-  created: z.preprocess(dateFromSeconds, z.date()),
-  updated: z.preprocess(dateFromSeconds, z.date())
-});
-
-// Match BaseApiResponse interface
-export const baseApiResponseSchema = z.object({
-  success: z.boolean()
-}) satisfies z.ZodType<BaseApiResponse>;
 
 /**
- * Response wrapper schemas with flexible details handling
- */
-export const apiRecordResponseSchema = <T extends z.ZodType<BaseApiRecord>>(recordSchema: T) =>
-  baseApiResponseSchema.extend({
-    record: recordSchema,
-    details: z.any().optional()
-  });
-
-export const apiRecordsResponseSchema = <T extends z.ZodType<BaseApiRecord>>(recordSchema: T) =>
-  baseApiResponseSchema.extend({
-    custid: z.string(),
-    records: z.array(recordSchema),
-    count: z.number(),
-    details: z.any().optional()
-  });
-
-/**
- * Common type coercion helpers
+ * Common transform helpers for API -> App data conversion
  */
 export const booleanFromString = z.preprocess((val) => {
   if (typeof val === 'boolean') return val;
@@ -75,36 +33,52 @@ export const numberFromString = z.preprocess((val) => {
   return Number(val);
 }, z.number());
 
+export const dateFromSeconds = z.preprocess((val) => {
+  if (val instanceof Date) return val;
+  if (typeof val !== 'string') throw new Error('Expected string timestamp');
+  const timestamp = Number(val);
+  if (isNaN(timestamp)) throw new Error('Invalid timestamp');
+  return new Date(timestamp * 1000);
+}, z.date());
+
 /**
- * Custom error for transform/validation failures
+ * Input schema creators for API responses
+ */
+export const createInputSchema = <T extends z.ZodType>(recordSchema: T) =>
+  z.object({
+    success: z.boolean(),
+    record: recordSchema,
+    details: z.any().optional()
+  });
+
+export const createListInputSchema = <T extends z.ZodType>(recordSchema: T) =>
+  z.object({
+    success: z.boolean(),
+    custid: z.string(),
+    records: z.array(recordSchema),
+    count: z.number(),
+    details: z.any().optional()
+  });
+
+/**
+ * Transform error handling
  */
 export class TransformError extends Error {
   details?: unknown;
 
-  constructor(
-    message: string,
-    options?: {
-      cause?: Error | undefined,
-      details?: unknown
-    }
-  ) {
-    super(message, { cause: options?.cause });
+  constructor(message: string, details?: unknown) {
+    super(message);
     this.name = 'TransformError';
-    this.details = options?.details;
+    this.details = details;
   }
 }
 
-/**
- * Helper to detect if error is from transform validation
- * Used for better error handling in stores
- */
 export function isTransformError(error: unknown): error is TransformError {
-  return error instanceof TransformError && error.details !== undefined;
+  return error instanceof TransformError;
 }
 
 /**
- * Transform single record API response
- * @throws TransformError if validation fails
+ * Main transform functions for API responses
  */
 export function transformResponse<T extends z.ZodType>(
   schema: T,
@@ -113,38 +87,33 @@ export function transformResponse<T extends z.ZodType>(
   try {
     return schema.parse(data);
   } catch (error) {
-    throw new TransformError('Transform failed', {
-      cause: error instanceof Error ? error : new Error(String(error)),
-      details: error instanceof z.ZodError ? error.issues : undefined
-    });
+    if (error instanceof z.ZodError) {
+      throw new TransformError(
+        'Validation failed',
+        fromZodError(error).details
+      );
+    }
+    throw new TransformError('Transform failed');
   }
 }
 
-/**
- * Transform and validate multi-record API response data.
- */
-export function transformRecordsResponse<T extends z.ZodType<BaseApiRecord>>(
-  schema: ReturnType<typeof apiRecordsResponseSchema<T>>,
+export function transformRecordsResponse<T extends z.ZodType>(
+  schema: ReturnType<typeof createListInputSchema<T>>,
   data: unknown
 ): ApiRecordsResponse<z.infer<T>> {
   try {
     const result = schema.safeParse(data);
 
     if (!result.success) {
-      const validationError = fromZodError(result.error);
-      throw new TransformError('Data validation failed', {
-        cause: validationError,
-        details: validationError.details
-      });
+      throw new TransformError(
+        'Data validation failed',
+        fromZodError(result.error).details
+      );
     }
 
-    return result.data as ApiRecordsResponse<z.infer<T>>;
+    return result.data;
   } catch (error) {
-    if (error instanceof TransformError) {
-      throw error;
-    }
-    throw new TransformError('Transform failed', {
-      cause: error instanceof Error ? error : new Error(String(error))
-    });
+    if (error instanceof TransformError) throw error;
+    throw new TransformError('Transform failed');
   }
 }

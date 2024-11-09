@@ -1,18 +1,17 @@
 // src/stores/domainsStore.ts
-import { defineStore } from 'pinia'
-import type { UpdateDomainBrandRequest } from '@/types/api/requests'
-import type { ApiRecordResponse, ApiRecordsResponse } from '@/types/api/responses'
-import { createApi } from '@/utils/api'
-import {
-  transformResponse,
-  isTransformError,
-  apiRecordResponseSchema,
-  apiRecordsResponseSchema
-} from '@/utils/transforms'
 import {
   customDomainInputSchema,
   type CustomDomain
-} from '@/schemas/models/domain'
+} from '@/schemas/models/domain';
+import type { UpdateDomainBrandRequest } from '@/types/api/requests';
+import { ApiRecordResponse, apiRecordResponseSchema, ApiRecordsResponse, apiRecordsResponseSchema } from '@/types/api/responses';
+import { createApi } from '@/utils/api';
+import {
+  isTransformError,
+  transformResponse,
+} from '@/utils/transforms';
+import { defineStore } from 'pinia';
+
 
 //
 // API Input (strings) -> Store/Component (shared types) -> API Output (serialized)
@@ -49,7 +48,7 @@ export const useDomainsStore = defineStore('domains', {
         )
 
         // Store uses shared type with components
-        this.domains = validated.records as CustomDomain[]
+        this.domains = validated.records
 
       } catch (error) {
         if (isTransformError(error)) {
@@ -73,7 +72,7 @@ export const useDomainsStore = defineStore('domains', {
           response.data
         )
 
-        return validated.record as CustomDomain
+        return validated.record
 
       } catch (error) {
         if (isTransformError(error)) {

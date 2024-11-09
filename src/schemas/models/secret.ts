@@ -1,7 +1,7 @@
 // src/schemas/models/secret.ts
+import { baseApiRecordSchema, type BaseApiRecord } from '@/schemas/base';
+import { booleanFromString } from '@/utils/transforms';
 import { z } from 'zod'
-import type { BaseApiRecord } from '@/types/api/responses'
-import { baseApiRecordSchema, booleanFromString } from '@/utils/transforms'
 
 /**
  * @fileoverview Secret schema for API transformation boundaries

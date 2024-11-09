@@ -1,7 +1,8 @@
 // src/schemas/models/customer.ts
-import { z } from 'zod'
-import type { BaseApiRecord } from '@/types/api/responses'
-import { baseApiRecordSchema, booleanFromString, numberFromString } from '@/utils/transforms'
+import { baseApiRecordSchema, type BaseApiRecord } from '@/schemas/base';
+import type { } from '@/types/api/responses';
+import { booleanFromString, numberFromString } from '@/utils/transforms';
+import { z } from 'zod';
 
 /**
  * @fileoverview Customer schema for API transformation boundaries

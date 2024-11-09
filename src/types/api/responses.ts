@@ -1,108 +1,183 @@
-import { Stripe } from 'stripe';
-import type { Customer, Feedback, MetadataData, SecretData, ConcealData } from '@/types/core';
-import type { CustomDomain, BrandSettings, ImageProps } from '@/types/custom_domains';
+import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/brand';
+import { customerInputSchema } from '@/schemas/models/customer';
+import { customDomainInputSchema } from '@/schemas/models/domain';
+import { concealDataSchema, metadataDataSchema } from '@/schemas/models/metadata';
+import { secretDataSchema } from '@/schemas/models/secret';
+import type { Stripe } from 'stripe';
+import { z } from 'zod';
+import { baseApiRecordSchema } from '@/schemas/base'
+import { feedbackInputSchema } from '@/schemas/models';
 
-export interface BaseApiResponse {
-  success: boolean;
-}
+/**
+ * @fileoverview API Response type definitions
+ *
+ * Key Design Decisions:
+ * 1. Input schemas handle API -> App transformation
+ * 2. App uses single shared type between stores/components
+ * 3. No explicit output schemas - serialize when needed
+ *
+ * Type Flow:
+ * API Raw JSON -> Input Schema -> Store/Components -> API Request
+ *                 (transforms)     (shared types)     (serialize)
+ *
+ * These types represent the raw API response structure before transformation.
+ * Actual data transformation happens in corresponding input schemas.
+ */
 
-export interface CheckAuthData extends BaseApiResponse {
-  record: Customer;
-  details: {
-    authenticated: boolean;
-  }
-}
 
+// Async Data Result
+export const asyncDataResultSchema = <T extends z.ZodType>(dataSchema: T) => z.object({
+  data: dataSchema.nullable(),
+  error: z.union([z.instanceof(Error), z.string()]).nullable(),
+  status: z.number().nullable()
+});
+
+export type AsyncDataResult<T> = z.infer<ReturnType<typeof asyncDataResultSchema<z.ZodType<T>>>>;
+
+// API client interface - defines service shape, not data structure
+// API response with data schema
+export const apiDataResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
+  apiBaseResponseSchema.extend({
+    data: dataSchema
+  });
+
+// Type helper for API responses
+export type ApiDataResponse<T> = z.infer<ReturnType<typeof apiDataResponseSchema<z.ZodType<T>>>>;
+
+// Updated API client interface using Zod schemas
 export interface ApiClient {
-  get<T>(url: string): Promise<BaseApiResponse & { data: T }>;
-  post<T>(url: string, data: unknown): Promise<BaseApiResponse & { data: T }>;
-  put<T>(url: string, data: unknown): Promise<BaseApiResponse & { data: T }>;
-  delete<T>(url: string): Promise<BaseApiResponse & { data: T }>;
+  get<T extends z.ZodType>(
+    url: string,
+    schema: T
+  ): Promise<ApiDataResponse<z.infer<T>>>;
+
+  post<T extends z.ZodType>(
+    url: string,
+    data: Record<string, unknown>,
+    schema: T
+  ): Promise<ApiDataResponse<z.infer<T>>>;
+
+  put<T extends z.ZodType>(
+    url: string,
+    data: Record<string, unknown>,
+    schema: T
+  ): Promise<ApiDataResponse<z.infer<T>>>;
+
+  delete<T extends z.ZodType>(
+    url: string,
+    schema: T
+  ): Promise<ApiDataResponse<z.infer<T>>>;
 }
 
-// Base interface for common properties
-export interface BaseApiRecord {
-  identifier: string;
-  // Update to use Date objects instead of strings
-  created: Date;
-  updated: Date;
-}
 
-export type DetailsType = {
-  [key: string]: string | number | boolean | null | object;
-};
+/**
+ * Schema for API record responses
+ * Validates and transforms raw API responses
+ */
 
-export interface ApiErrorResponse<T extends BaseApiRecord> extends BaseApiResponse {
-  message: string;
-  code?: number;
-  record?: T | null;
-  details?: DetailsType;
-}
+export const apiBaseResponseSchema = z.object({
+  success: z.boolean()
+});
 
-export interface ApiRecordsResponse<T extends BaseApiRecord> extends BaseApiResponse {
-  custid: string;
-  records: T[];
-  count: number;
-  details?: DetailsType;
-}
+export const apiRecordResponseSchema = <T extends z.ZodType>(recordSchema: T) =>
+  apiBaseResponseSchema.extend({
+    record: recordSchema,
+    details: z.record(z.string(), z.unknown()).optional()
+  });
 
-export interface ApiRecordResponse<T extends BaseApiRecord> extends BaseApiResponse {
-  record: T;
-  details?: DetailsType;
-}
+export const apiRecordsResponseSchema = <T extends z.ZodType>(recordSchema: T) =>
+  apiBaseResponseSchema.extend({
+    custid: z.string(),
+    records: z.array(recordSchema),
+    count: z.number(),
+    details: z.record(z.string(), z.unknown()).optional()
+  });
 
-export interface AsyncDataResult<T> {
-  data: T | null;
-  error: Error | string | null;
-  status: number | null;
-}
+// Generic response wrappers - used to type raw API responses
+export const apiErrorResponseSchema = apiBaseResponseSchema.extend({
+  message: z.string(),
+  code: z.number(),
+  record: z.unknown().nullable(),
+  details: z.record(z.string(), z.unknown()).optional()
+});
 
-export interface ColonelData extends BaseApiRecord {
-  apitoken: string;
-  active?: boolean;
-  recent_customers: Customer[];
-  today_feedback: Feedback[];
-  yesterday_feedback: Feedback[];
-  older_feedback: Feedback[];
-  redis_info: number;
-  plans_enabled: number;
-  counts: {
-    session_count: number;
-    customer_count: number;
-    recent_customer_count: number;
-    metadata_count: number;
-    secret_count: number;
-    secrets_created: number;
-    secrets_shared: number;
-    emails_sent: number;
-    feedback_count: number;
-    today_feedback_count: number;
-    yesterday_feedback_count: number;
-    older_feedback_count: number;
-  }
-}
 
-export interface ApiToken extends BaseApiRecord {
-  apitoken: string;
-  active: boolean;
-}
+export type ApiRecordsResponse<T> = z.infer<ReturnType<typeof apiRecordsResponseSchema<z.ZodType<T>>>>;
+export type ApiRecordResponse<T> = z.infer<ReturnType<typeof apiRecordResponseSchema<z.ZodType<T>>>>;
 
-export interface Account extends BaseApiRecord {
-  cust: Customer;
-  apitoken?: string;
-  stripe_customer: Stripe.Customer;
-  stripe_subscriptions: Stripe.Subscription[];
-}
+/**
+ * Raw API data structures before transformation
+ * These represent the API shape that will be transformed by input schemas
+ */
+export const colonelDataSchema = baseApiRecordSchema.extend({
+  apitoken: z.string(),
+  active: z.string().transform(val => val === "1"),
+  recent_customers: z.array(customerInputSchema),
+  today_feedback: z.array(feedbackInputSchema), // Need to import feedbackInputSchema
+  yesterday_feedback: z.array(feedbackInputSchema),
+  older_feedback: z.array(feedbackInputSchema),
+  redis_info: z.string().transform(Number),
+  plans_enabled: z.string().transform(Number),
+  counts: z.object({
+    session_count: z.string().transform(Number),
+    customer_count: z.string().transform(Number),
+    recent_customer_count: z.string().transform(Number),
+    metadata_count: z.string().transform(Number),
+    secret_count: z.string().transform(Number),
+    secrets_created: z.string().transform(Number),
+    secrets_shared: z.string().transform(Number),
+    emails_sent: z.string().transform(Number),
+    feedback_count: z.string().transform(Number),
+    today_feedback_count: z.string().transform(Number),
+    yesterday_feedback_count: z.string().transform(Number),
+    older_feedback_count: z.string().transform(Number),
+  })
+});
 
-export type ApiTokenApiResponse = ApiRecordResponse<ApiToken>;
-export type CustomDomainApiResponse = ApiRecordResponse<CustomDomain>;
-export type AccountApiResponse = ApiRecordResponse<Account>;
-export type ColonelDataApiResponse = ApiRecordResponse<ColonelData>;
-export type MetadataDataApiResponse = ApiRecordResponse<MetadataData>;
-export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
-export type ConcealDataApiResponse = ApiRecordResponse<ConcealData>;
-export type CheckAuthDataApiResponse = ApiRecordResponse<CheckAuthData>;
-export type BrandSettingsApiResponse = ApiRecordResponse<BrandSettings>;
-export type ImagePropsApiResponse = ApiRecordResponse<ImageProps>;
-export type CustomDomainRecordsApiResponse = ApiRecordsResponse<CustomDomain>;
-export type UpdateDomainBrandResponse = ApiRecordResponse<CustomDomain>;
+// Response schemas using the specific record schemas
+export const colonelDataResponseSchema = apiRecordResponseSchema(colonelDataSchema);
+export const colonelDataRecordsResponseSchema = apiRecordsResponseSchema(colonelDataSchema);
+
+
+export const apiTokenSchema = baseApiRecordSchema.extend({
+  apitoken: z.string(),
+  active: z.string().transform(val => val === "1")
+});
+
+export const accountSchema = baseApiRecordSchema.extend({
+  cust: customerInputSchema,
+  apitoken: z.string().optional(),
+  stripe_customer: z.custom<Stripe.Customer>(),
+  stripe_subscriptions: z.array(z.custom<Stripe.Subscription>())
+});
+
+// Create response schemas for each type
+export const apiTokenResponseSchema = apiRecordResponseSchema(apiTokenSchema);
+export const customDomainResponseSchema = apiRecordResponseSchema(customDomainInputSchema);
+export const customDomainRecordsResponseSchema = apiRecordsResponseSchema(customDomainInputSchema);
+export const accountResponseSchema = apiRecordResponseSchema(accountSchema);
+export const metadataDataResponseSchema = apiRecordResponseSchema(metadataDataSchema);
+export const secretDataResponseSchema = apiRecordResponseSchema(secretDataSchema);
+export const concealDataResponseSchema = apiRecordResponseSchema(concealDataSchema);
+export const checkAuthDataResponseSchema = apiRecordResponseSchema(customerInputSchema);
+export const brandSettingsResponseSchema = apiRecordResponseSchema(brandSettingsInputSchema);
+export const imagePropsResponseSchema = apiRecordResponseSchema(imagePropsSchema);
+
+/**
+ * Response type exports combining API structure with transformed app types
+ * These types represent the shape after schema transformation
+ */
+
+// Replace interface-based types with inferred types from schemas
+export type ApiTokenApiResponse = z.infer<typeof apiTokenResponseSchema>;
+export type CustomDomainApiResponse = z.infer<typeof customDomainResponseSchema>;
+export type AccountApiResponse = z.infer<typeof accountResponseSchema>;
+export type ColonelDataApiResponse = z.infer<typeof colonelDataResponseSchema>;
+export type MetadataDataApiResponse = z.infer<typeof metadataDataResponseSchema>;
+export type SecretDataApiResponse = z.infer<typeof secretDataResponseSchema>;
+export type ConcealDataApiResponse = z.infer<typeof concealDataResponseSchema>;
+export type CheckAuthDataApiResponse = z.infer<typeof checkAuthDataResponseSchema>;
+export type BrandSettingsApiResponse = z.infer<typeof brandSettingsResponseSchema>;
+export type ImagePropsApiResponse = z.infer<typeof imagePropsResponseSchema>;
+export type CustomDomainRecordsApiResponse = z.infer<typeof customDomainRecordsResponseSchema>;
+export type UpdateDomainBrandResponse = z.infer<typeof customDomainResponseSchema>;
