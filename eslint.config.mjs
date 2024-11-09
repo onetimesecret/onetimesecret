@@ -5,6 +5,7 @@ import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import path from 'path';
 import vueEslintParser from 'vue-eslint-parser';
+import importPlugin from 'eslint-plugin-import';
 
 export default [
   // Ignore everything except src directory and vite.config.ts
@@ -25,8 +26,34 @@ export default [
         parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url)) ? parserTs : undefined,
       },
     },
+    plugins: {
+      import: importPlugin,
+    },
     rules: {
-      'no-undef': 'error', // Warns on the use of undeclared variables
+      'no-undef': 'error', // Warns on the use of undeclared variables,
+      'import/order': [
+        'error',
+        {
+          groups: [['builtin', 'external', 'internal']],
+          pathGroups: [
+            {
+              pattern: '@/**',
+              group: 'internal',
+            },
+          ],
+          pathGroupsExcludedImportTypes: ['builtin'],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+    },
+    settings: {
+      'import/resolver': {
+        typescript: {},
+      },
     },
   },
   // Include recommended TypeScript rules directly

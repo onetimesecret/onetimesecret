@@ -1,5 +1,5 @@
-import type { BaseApiRecord } from '../api/responses';
 import type { MetadataData } from './metadata';
+import type { BaseApiRecord } from '../api/responses';
 
 export interface SecretData extends BaseApiRecord {
   key: string;

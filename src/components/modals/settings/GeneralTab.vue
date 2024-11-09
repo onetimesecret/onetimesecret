@@ -72,10 +72,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
 
 const isLoading = ref(false);
 

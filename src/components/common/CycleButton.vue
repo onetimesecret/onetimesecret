@@ -31,8 +31,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
 
 interface Props {
   modelValue: string;

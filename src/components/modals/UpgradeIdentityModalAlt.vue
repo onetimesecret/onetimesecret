@@ -115,10 +115,10 @@ div:hover .confetti-container {
 
 
 <script setup lang="ts">
+import { paymentFrequencies, productTiers, type ProductTier } from '@/sources/productTiers';
 import type { Testimonial } from '@/sources/testimonials';
 import { testimonials } from '@/sources/testimonials';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { paymentFrequencies, productTiers, type ProductTier } from '@/sources/productTiers';
 
 const selectedTier = ref<ProductTier>(productTiers[0])
 const selectedFrequency = ref(paymentFrequencies[0].value)

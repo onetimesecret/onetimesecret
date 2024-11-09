@@ -29,6 +29,7 @@ import QuietLayout from '@/layouts/QuietLayout.vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
+
 import StatusBar from './components/StatusBar.vue';
 
 const { locale } = useI18n();

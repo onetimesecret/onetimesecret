@@ -25,10 +25,10 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
+import { ref } from 'vue'
 // Define the props for this layout, extending the DefaultLayout props
 export interface Props extends DefaultProps {
   displayFeedback?: boolean

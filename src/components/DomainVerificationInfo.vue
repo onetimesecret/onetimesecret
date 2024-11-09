@@ -86,9 +86,9 @@
 </template>
 
 <script setup lang="ts">
+import { CustomDomain } from '@/types';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
-import { CustomDomain } from '@/types';
 //import StatusLabel from './StatusLabel.vue';
 //import StatusLabelRow from './StatusLabelRow.vue';
 

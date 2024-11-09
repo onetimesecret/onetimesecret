@@ -61,10 +61,12 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import type { BrandSettings } from '@/types';
-import CycleButton from '../common/CycleButton.vue';
 import ColorPicker from '@/components/common/ColorPicker.vue';
+import type { BrandSettings } from '@/types';
+import { Icon } from '@iconify/vue';
+
+import CycleButton from '../common/CycleButton.vue';
+
 
 const props = defineProps<{
   modelValue: BrandSettings;

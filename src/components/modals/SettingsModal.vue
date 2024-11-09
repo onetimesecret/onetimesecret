@@ -147,6 +147,7 @@
 import { useWindowProps } from '@/composables/useWindowProps';
 import { FocusTrap } from 'focus-trap-vue';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
 import GeneralTab from './settings/GeneralTab.vue';
 import JurisdictionTab from './settings/JurisdictionTab.vue';
 

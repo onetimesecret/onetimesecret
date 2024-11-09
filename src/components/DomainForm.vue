@@ -103,12 +103,13 @@
 
 
 <script setup lang="ts">
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import { useCsrfStore } from '@/stores/csrfStore';
+import type { CustomDomainApiResponse } from '@/types';
 import { ref } from 'vue';
+
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DomainInput from './DomainInput.vue';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { CustomDomainApiResponse } from '@/types';
-import { useCsrfStore } from '@/stores/csrfStore';
 
 const csrfStore = useCsrfStore();
 const domain = ref('');

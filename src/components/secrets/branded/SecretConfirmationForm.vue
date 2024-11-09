@@ -127,12 +127,13 @@
 
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import {useDomainBranding} from '@/composables/useDomainBranding';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { SecretData, SecretDetails } from '@/types';
 import { ref } from 'vue';
+
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
-import {useDomainBranding} from '@/composables/useDomainBranding';
 
 
 

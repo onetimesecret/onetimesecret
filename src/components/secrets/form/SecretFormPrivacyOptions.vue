@@ -82,6 +82,7 @@ import { useWindowProps } from '@/composables/useWindowProps';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
 import SecretFormDrawer from './SecretFormDrawer.vue';
 
 const { plan, secret_options: secretOptions } = useWindowProps(['plan', 'secret_options']);

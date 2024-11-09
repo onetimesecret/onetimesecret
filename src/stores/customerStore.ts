@@ -1,12 +1,12 @@
 // src/stores/customerStore.ts
-import { defineStore } from 'pinia'
+import { customerInputSchema, type Customer } from '@/schemas/models/customer'
 import { createApi } from '@/utils/api'
 import {
   transformResponse,
   apiRecordResponseSchema,
   isTransformError
 } from '@/utils/transforms'
-import { customerInputSchema, type Customer } from '@/schemas/models/customer'
+import { defineStore } from 'pinia'
 
 //
 // API Input (strings) -> Store/Component (shared types) -> API Output (serialized)

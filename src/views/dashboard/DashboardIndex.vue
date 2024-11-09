@@ -11,6 +11,6 @@
 </template>
 
 <script setup lang="ts">
-import SecretForm from '@/components/secrets/form/SecretForm.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import SecretForm from '@/components/secrets/form/SecretForm.vue';
 </script>

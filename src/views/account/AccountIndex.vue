@@ -54,15 +54,15 @@
 </template>
 
 <script setup lang="ts">
-import { Account } from '@/types';
-import { onMounted } from 'vue';
-import { useWindowProps } from '@/composables/useWindowProps';
-import { useFetchDataRecord } from '@/composables/useFetchData';
+import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
 import AccountChangePasswordForm from '@/components/account/AccountChangePasswordForm.vue';
 import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
-import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
 import APIKeyForm from '@/components/account/APIKeyForm.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import { useFetchDataRecord } from '@/composables/useFetchData';
+import { useWindowProps } from '@/composables/useWindowProps';
+import { Account } from '@/types';
+import { onMounted } from 'vue';
 
 // Grabbing values from the window properties is a convenient way to get
 // preformatted template variables (i.e. the jsvars from Onetime::App::View)

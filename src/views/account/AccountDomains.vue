@@ -132,15 +132,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import DomainsTable from '@/components/DomainsTable.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import DomainsTable from '@/components/DomainsTable.vue';
+import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
+import { useWindowProps } from '@/composables/useWindowProps';
 import { useDomainsStore } from '@/stores/domainsStore';
 import { useNotificationsStore } from '@/stores/notifications';
 import type { CustomDomain } from '@/types';
-import { useWindowProps } from '@/composables/useWindowProps';
-import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
+import { computed, onMounted, ref } from 'vue';
 const isUpgradeModalOpen = ref(false)
 
 const openUpgradeModal = () => {

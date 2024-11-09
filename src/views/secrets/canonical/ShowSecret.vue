@@ -70,9 +70,10 @@ import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import type { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types';
-import UnknownSecret from './UnknownSecret.vue';
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
+
+import UnknownSecret from './UnknownSecret.vue';
 
 interface Props {
   secretKey: string;

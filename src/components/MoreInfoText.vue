@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
 
 const isExpanded = ref(false);
 const toggleExpand = (event: Event) => {

@@ -1,10 +1,11 @@
 // src/schemas/models/metadata.ts
 
-import { z } from 'zod';
-import { secretDataSchema } from './secret';
 import { baseApiRecordSchema, type BaseApiRecord } from '@/schemas/base';
-import { booleanFromString } from '@/utils/transforms';
 import { type DetailsType } from '@/schemas/base'
+import { booleanFromString } from '@/utils/transforms';
+import { z } from 'zod';
+
+import { secretDataSchema } from './secret';
 
 
 /**

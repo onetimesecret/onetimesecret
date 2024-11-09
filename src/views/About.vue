@@ -1,10 +1,9 @@
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 
 import { useWindowProps } from '@/composables/useWindowProps';
 import { Plan } from '@/types';
-
+import { ref, computed } from 'vue';
 import { onMounted } from 'vue';
 
 const { available_plans, default_planid } = useWindowProps(['available_plans', 'default_planid']);

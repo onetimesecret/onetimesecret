@@ -38,8 +38,8 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
 import type { Jurisdiction } from '@/types';
+import { Icon } from '@iconify/vue';
 
 const props = defineProps<{
   jurisdictions: Jurisdiction[];

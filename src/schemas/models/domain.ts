@@ -1,9 +1,10 @@
 // src/schemas/models/domain.ts
-import { z } from 'zod'
+import { baseApiRecordSchema } from '@/schemas/base';
 import { booleanFromString } from '@/utils/transforms'
+import { z } from 'zod'
 
 import { brandSettingsInputSchema } from './brand'
-import { baseApiRecordSchema } from '@/schemas/base';
+
 
 /**
  * @fileoverview Custom domain schema for API transformation boundaries

@@ -11,10 +11,10 @@ import { createAppRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
-import { createPinia } from 'pinia';
 import { logoutPlugin } from '@/stores/plugins/logoutPlugin';
-
+import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
+
 import App from './App.vue';
 
 import './assets/style.css';

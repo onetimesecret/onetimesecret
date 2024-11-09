@@ -52,8 +52,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
 import { Icon } from '@iconify/vue';
+import { ref, watch, computed } from 'vue';
 
 const props = defineProps({
   title: {

@@ -154,8 +154,8 @@
  */
 
 // 1. Imports
-import { computed, ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
 import { Icon } from '@iconify/vue';
+import { computed, ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
 
 const availablePlans = window.available_plans;
 const cust = window.cust;

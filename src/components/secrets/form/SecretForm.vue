@@ -70,19 +70,20 @@
 </template>
 
 <script setup lang="ts">
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { ConcealDataApiResponse } from '@/types';
 import { computed, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+
 import CustomDomainPreview from './../../CustomDomainPreview.vue';
+import ConcealButton from './ConcealButton.vue';
+import GenerateButton from './GenerateButton.vue';
 import SecretContentInputArea from './SecretContentInputArea.vue';
 //import SecretContentInputArea from './SecretContentInputArea.gearicon.vue';
 //import SecretContentInputArea from './SecretContentInputArea.collapsed.vue';
 import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
-import GenerateButton from './GenerateButton.vue';
-import ConcealButton from './ConcealButton.vue';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { ConcealDataApiResponse } from '@/types';
-import { useRouter } from 'vue-router';
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 
 const csrfStore = useCsrfStore();
 

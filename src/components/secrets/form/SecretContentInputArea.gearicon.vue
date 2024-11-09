@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
 import { Icon } from '@iconify/vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 interface Props {
   availableDomains: string[];

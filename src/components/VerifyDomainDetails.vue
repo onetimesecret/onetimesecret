@@ -99,10 +99,11 @@
 </template>
 
 <script setup lang="ts">
-import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types';
 import { useFormSubmission } from '@/composables/useFormSubmission';
+import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
+
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DetailField from './DetailField.vue';
 

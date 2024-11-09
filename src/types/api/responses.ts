@@ -1,3 +1,5 @@
+import { baseApiRecordSchema } from '@/schemas/base'
+import { feedbackInputSchema } from '@/schemas/models';
 import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/brand';
 import { customerInputSchema } from '@/schemas/models/customer';
 import { customDomainInputSchema } from '@/schemas/models/domain';
@@ -5,8 +7,6 @@ import { concealDataSchema, metadataDataSchema } from '@/schemas/models/metadata
 import { secretDataSchema } from '@/schemas/models/secret';
 import type { Stripe } from 'stripe';
 import { z } from 'zod';
-import { baseApiRecordSchema } from '@/schemas/base'
-import { feedbackInputSchema } from '@/schemas/models';
 
 /**
  * @fileoverview API Response type definitions

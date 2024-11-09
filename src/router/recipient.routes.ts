@@ -1,8 +1,8 @@
 import { fetchInitialSecret } from '@/api/secrets';
+import { useWindowProp } from '@/composables/useWindowProps';
 import { AsyncDataResult, SecretDataApiResponse } from '@/types';
 import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { RouteRecordRaw } from 'vue-router';
-import { useWindowProp } from '@/composables/useWindowProps';
 
 const domain_strategy = useWindowProp('domain_strategy');
 const display_domain = useWindowProp('display_domain');

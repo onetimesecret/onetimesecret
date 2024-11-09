@@ -46,6 +46,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+
 import FeedbackModal from './modals/FeedbackModal.vue';
 
 const isFeedbackModalOpen = ref(false);

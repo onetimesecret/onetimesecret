@@ -1,6 +1,6 @@
 
-import { LayoutProps } from '@/types/ui'
 import { AsyncDataResult } from '@/types/api/responses'
+import { LayoutProps } from '@/types/ui'
 import type { Component } from 'vue';
 
 // Modify the Vue Router module augmentation

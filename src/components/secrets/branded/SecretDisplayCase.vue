@@ -82,10 +82,11 @@
 
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard';
+import { useDomainBranding } from '@/composables/useDomainBranding';
 import { SecretData, SecretDetails } from '@/types';
 import { ref } from 'vue';
+
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
-import { useDomainBranding } from '@/composables/useDomainBranding';
 
 interface Props {
   secretKey: string;

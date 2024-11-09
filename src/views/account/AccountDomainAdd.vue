@@ -7,9 +7,9 @@
 </template>
 
 <script setup lang="ts">
+import DomainForm from '@/components/DomainForm.vue';
 import { nextTick, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import DomainForm from '@/components/DomainForm.vue';
 
 const router = useRouter();
 const isNavigating = ref(false);

@@ -48,8 +48,8 @@
 </template>
 
 <script setup lang="ts">
-import { MetadataData, MetadataDetails } from '@/types/core'
 import { useClipboard } from '@/composables/useClipboard'
+import { MetadataData, MetadataDetails } from '@/types/core'
 
 interface Props {
   metadata: MetadataData;

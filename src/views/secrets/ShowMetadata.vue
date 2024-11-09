@@ -48,15 +48,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useFetchDataRecord } from '@/composables/useFetchData'
-import { MetadataData } from '@/types'
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue'
 import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue'
-import SecretLink from '@/components/secrets/metadata/SecretLink.vue'
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue'
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue'
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue'
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
+import SecretLink from '@/components/secrets/metadata/SecretLink.vue'
+import { useFetchDataRecord } from '@/composables/useFetchData'
+import { MetadataData } from '@/types'
+import { onMounted } from 'vue'
 
 // This prop is passed from vue-router b/c the route has `prop: true`.
 interface Props {

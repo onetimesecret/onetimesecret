@@ -78,10 +78,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Icon } from '@iconify/vue';
 import { useWindowProp } from '@/composables/useWindowProps';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
+
 import JurisdictionInfo from './JurisdictionInfo.vue';
 import JurisdictionList from './JurisdictionList.vue';
 

@@ -65,9 +65,9 @@
 
 
 <script setup>
-import { ref } from 'vue'
 import { RadioGroup, RadioGroupOption } from '@headlessui/vue'
 import { Icon } from '@iconify/vue';
+import { ref } from 'vue'
 
 const tiers = [
   {

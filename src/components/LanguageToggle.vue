@@ -33,10 +33,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { useWindowProp } from '@/composables/useWindowProps';
 import { setLanguage } from '@/i18n';
 import { useLanguageStore } from '@/stores/languageStore';
-import { useWindowProp } from '@/composables/useWindowProps';
+import { ref, computed, onMounted } from 'vue';
+
 import DropdownToggle from './DropdownToggle.vue';
 
 const emit = defineEmits(['localeChanged']);

@@ -149,13 +149,14 @@
 
 <script setup lang="ts">
 import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
 import type { CustomDomain } from '@/types';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
+
 import DomainVerificationInfo from './DomainVerificationInfo.vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
 
 const cust = useWindowProp('cust'); // Used for feature flags
 

@@ -109,8 +109,8 @@
 import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
 import SettingsModal from '@/components/modals/SettingsModal.vue';
 import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
-import { computed, ref } from 'vue';
 import { Icon } from '@iconify/vue';
+import { computed, ref } from 'vue';
 
 // Define the props for this layout, extending the BaseLayout props
 export interface Props extends BaseProps {

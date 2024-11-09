@@ -95,9 +95,9 @@
 </template>
 
 <script setup lang="ts">
+import { useClickOutside } from '@/composables/useClickOutside';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { Icon } from '@iconify/vue';
-import { useClickOutside } from '@/composables/useClickOutside';
 import { computed, ref } from 'vue';
 
 const jurisdictionStore = useJurisdictionStore();

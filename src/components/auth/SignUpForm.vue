@@ -136,9 +136,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Jurisdiction } from '@/types';
 import { useCsrfStore } from '@/stores/csrfStore';
+import { Jurisdiction } from '@/types';
+import { ref } from 'vue';
 
 const csrfStore = useCsrfStore();
 

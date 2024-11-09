@@ -99,10 +99,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
 import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
-import { ColonelData } from '@/types/api/responses'
-
+import { useFetchDataRecord } from '@/composables/useFetchData';
+import { ColonelData } from '@/types/api/responses';
+import { computed, onMounted } from 'vue';
 
 const tabs = [
   { name: 'Stats', href: '#stats' },
@@ -119,8 +119,6 @@ const feedbackSections = computed(() => {
     { title: 'Past 14 Days', count: colonelData.value.counts.older_feedback_count, feedback: colonelData.value.older_feedback },
   ];
 });
-
-import { useFetchDataRecord } from '@/composables/useFetchData';
 
 
 const { record: colonelData, fetchData: fetchColonelData } = useFetchDataRecord<ColonelData>({

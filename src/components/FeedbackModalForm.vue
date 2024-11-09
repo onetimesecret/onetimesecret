@@ -80,8 +80,8 @@ import AltchaChallenge from '@/components/AltchaChallenge.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useWindowProps } from '@/composables/useWindowProps';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { computed, onMounted, ref } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
+import { computed, onMounted, ref } from 'vue';
 
 const csrfStore = useCsrfStore();
 

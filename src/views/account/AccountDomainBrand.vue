@@ -98,6 +98,13 @@
 </template>
 
 <script setup lang="ts">
+import BrandSettingsBar from '@/components/account/BrandSettingsBar.vue';
+import BrowserPreviewFrame from '@/components/account/BrowserPreviewFrame.vue';
+import DomainHeader from '@/components/account/DomainHeader.vue';
+import InstructionsModal from '@/components/account/InstructionsModal.vue';
+import SecretPreview from '@/components/account/SecretPreview.vue';
+import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import { useBrandingStore } from '@/stores/brandingStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
 import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses';
@@ -110,13 +117,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
 
 // Import components
-import BrandSettingsBar from '@/components/account/BrandSettingsBar.vue';
-import BrowserPreviewFrame from '@/components/account/BrowserPreviewFrame.vue';
-import DomainHeader from '@/components/account/DomainHeader.vue';
-import InstructionsModal from '@/components/account/InstructionsModal.vue';
-import SecretPreview from '@/components/account/SecretPreview.vue';
-import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
-import { useBrandingStore } from '@/stores/brandingStore';
 
 const detectPlatform = (): 'safari' | 'edge' => {
   const ua = window.navigator.userAgent.toLowerCase();

@@ -20,6 +20,7 @@
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
+
 import BaseLayout from './BaseLayout.vue';
 
 // Define the props for this layout, extending the BaseLayout props

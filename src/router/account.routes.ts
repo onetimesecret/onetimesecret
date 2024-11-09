@@ -1,9 +1,9 @@
 
-import { RouteRecordRaw } from 'vue-router';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import api from '@/utils/api';
+import DefaultHeader from '@/components/layout/DefaultHeader.vue';
 import { AsyncDataResult, CustomDomainApiResponse } from '@/types';
+import api from '@/utils/api';
+import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {

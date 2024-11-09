@@ -11,11 +11,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useFetchData } from '@/composables/useFetchData';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
+import { useFetchData } from '@/composables/useFetchData';
 import { MetadataData } from '@/types';
+import { onMounted } from 'vue';
 
 const { details, fetchData: fetchDomains, isLoading } = useFetchData<MetadataData>({
   url: '/api/v2/private/recent',

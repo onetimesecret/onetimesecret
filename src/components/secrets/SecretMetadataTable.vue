@@ -56,8 +56,8 @@
 </template>
 
 <script setup lang="ts">
-import { Metadata } from '@/types';
 import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
+import { Metadata } from '@/types';
 
 interface Props {
   hasItems?: boolean | undefined;
