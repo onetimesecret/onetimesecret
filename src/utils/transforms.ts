@@ -88,11 +88,17 @@ export function transformResponse<T extends z.ZodType>(
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.log('Schema:', schema)
+      console.log('Failed data:', data)
+      console.log('Validation issues:', error.issues)
       throw new TransformError(
         'Validation failed',
         fromZodError(error).details
       );
+    } else {
+      console.error('Transform failed:', error);
     }
+
     throw new TransformError('Transform failed');
   }
 }

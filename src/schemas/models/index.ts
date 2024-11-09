@@ -1,7 +1,8 @@
 // src/schemas/models/index.ts
 export * from './customer'
-export * from './brand'
 export * from './domain'
+export * from './domain/brand'
+export * from './domain/vhost'
 
 import { baseApiRecordSchema } from '@/schemas/base';
 import { z } from 'zod'

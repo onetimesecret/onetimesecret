@@ -1,8 +1,8 @@
-import { baseApiRecordSchema } from '@/schemas/base'
+import { baseApiRecordSchema } from '@/schemas/base';
 import { feedbackInputSchema } from '@/schemas/models';
-import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/brand';
 import { customerInputSchema } from '@/schemas/models/customer';
 import { customDomainInputSchema } from '@/schemas/models/domain';
+import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import { concealDataSchema, metadataDataSchema } from '@/schemas/models/metadata';
 import { secretInputSchema } from '@/schemas/models/secret';
 import type { Stripe } from 'stripe';

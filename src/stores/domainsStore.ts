@@ -41,19 +41,32 @@ export const useDomainsStore = defineStore('domains', {
       try {
         const response = await api.get<ApiRecordsResponse<CustomDomain>>('/api/v2/account/domains')
 
-        // Transform at API boundary
+
+    // Debug specific vhost data
+    console.log("keys:", Object.keys(response.data))
+    console.log("records[0] keys:", Object.keys(response.data.records[0]))
+    console.log("records[0]:", response.data.records[0])
+    console.log('First record vhost:', response.data.records[0].vhost)
+    console.log('First record vhost.created_at:', response.data.records[0].vhost.created_at)
+
+
         const validated = transformResponse(
           apiRecordsResponseSchema(customDomainInputSchema),
           response.data
         )
 
-        // Store uses shared type with components
         this.domains = validated.records
 
       } catch (error) {
         if (isTransformError(error)) {
-          console.error('Data validation failed1:', error.details)
-          console.debug(error.details)
+          // Enhanced error logging with path information
+          console.error('Transform Error Details:', {
+            path: error.details[0]?.path,
+            expected: error.details[0]?.expected,
+            received: error.details[0]?.received,
+            message: error.details[0]?.message,
+            raw: error.data
+          })
         }
         throw error
       } finally {
