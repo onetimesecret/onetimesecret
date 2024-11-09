@@ -44,6 +44,7 @@ module Onetime::Logic
           @greenlighted = true
 
           # Process the customer's request to destroy their account.
+          # TODO: Limit to dev as well
           if Onetime.debug
             OT.ld "[destroy-account] Simulated account destruction #{cust.custid} #{cust.role} #{sess.ipaddress}"
 
