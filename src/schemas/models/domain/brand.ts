@@ -1,7 +1,7 @@
-// src/schemas/models/brand.ts
-import { baseNestedRecordSchema, type BaseNestedRecord } from '@/schemas/base';
-import { booleanFromString } from '@/utils/transforms';
-import { z } from 'zod';
+// src/schemas/models/domain/brand.ts
+import { baseNestedRecordSchema, type BaseNestedRecord } from '@/schemas/base'
+import { booleanFromString } from '@/utils/transforms'
+import { z } from 'zod'
 
 /**
  * @fileoverview Brand settings schema for API transformation boundaries

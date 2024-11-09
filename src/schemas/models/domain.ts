@@ -1,10 +1,10 @@
 // src/schemas/models/domain.ts
-import { baseApiRecordSchema } from '@/schemas/base';
+import { baseApiRecordSchema } from '@/schemas/base'
 import { booleanFromString } from '@/utils/transforms'
 import { z } from 'zod'
 
-import { brandSettingsInputSchema } from './brand'
-
+import { brandSettingsInputSchema } from './domain/brand'
+import { vhostSchema } from './domain/vhost'
 
 /**
  * @fileoverview Custom domain schema for API transformation boundaries
@@ -26,29 +26,15 @@ import { brandSettingsInputSchema } from './brand'
  * - Optional nested objects (vhost, brand)
  */
 
-/**
- * VHost approximation schema
- * Handles monitoring data for domain verification
- */
-export const approximatedVHostSchema = z.object({
-  apx_hit: z.boolean(),
-  created_at: z.string(),
-  dns_pointed_at: z.string(),
-  has_ssl: z.boolean(),
-  id: z.number(),
-  incoming_address: z.string(),
-  is_resolving: z.boolean(),
-  keep_host: z.string().nullable(),
-  last_monitored_humanized: z.string(),
-  last_monitored_unix: z.number(),
-  ssl_active_from: z.string(),
-  ssl_active_until: z.string(),
-  status: z.string(),
-  status_message: z.string(),
-  target_address: z.string(),
-  target_ports: z.string(),
-  user_message: z.string()
-})
+// Domain strategy constants and type
+export const DomainStrategyValues = {
+  CANONICAL: 'canonical',
+  SUBDOMAIN: 'subdomain',
+  CUSTOM: 'custom',
+  INVALID: 'invalid'
+} as const
+
+export type DomainStrategy = typeof DomainStrategyValues[keyof typeof DomainStrategyValues]
 
 /**
  * Input schema for custom domain from API
@@ -79,7 +65,7 @@ const customDomainBaseSchema = z.object({
   txt_validation_value: z.string(),
 
   // Optional nested objects
-  vhost: approximatedVHostSchema.optional().or(z.object({}).strict()),
+  vhost: vhostSchema.optional().or(z.object({}).strict()),
   brand: brandSettingsInputSchema.optional().or(z.object({}).strict()),
 })
 
@@ -90,7 +76,6 @@ export const customDomainInputSchema = baseApiRecordSchema.merge(customDomainBas
 //)
 
 // Export inferred types for use in stores/components
-export type ApproximatedVHost = z.infer<typeof approximatedVHostSchema>
 export type CustomDomain = z.infer<typeof customDomainInputSchema>
 
 /**
@@ -108,13 +93,3 @@ const customDomainClusterBaseSchema = z.object({
 export const customDomainClusterInputSchema = baseApiRecordSchema.merge(customDomainClusterBaseSchema)
 
 export type CustomDomainCluster = z.infer<typeof customDomainClusterInputSchema>
-
-// Domain strategy constants and type
-export const DomainStrategyValues = {
-  CANONICAL: 'canonical',
-  SUBDOMAIN: 'subdomain',
-  CUSTOM: 'custom',
-  INVALID: 'invalid'
-} as const
-
-export type DomainStrategy = typeof DomainStrategyValues[keyof typeof DomainStrategyValues]
