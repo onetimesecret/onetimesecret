@@ -52,7 +52,8 @@ export const useDomainsStore = defineStore('domains', {
 
       } catch (error) {
         if (isTransformError(error)) {
-          console.error('Data validation failed:', error.details)
+          console.error('Data validation failed1:', error.details)
+          console.debug(error.details)
         }
         throw error
       } finally {

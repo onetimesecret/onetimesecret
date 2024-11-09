@@ -5,7 +5,7 @@ import { type DetailsType } from '@/schemas/base'
 import { booleanFromString } from '@/utils/transforms';
 import { z } from 'zod';
 
-import { secretDataSchema } from './secret';
+import { secretInputSchema } from './secret';
 
 
 /**
@@ -134,7 +134,7 @@ export type Metadata = z.infer<typeof metadataSchema> & BaseApiRecord
  */
 export const concealDataSchema = baseApiRecordSchema.extend({
   metadata: metadataDataSchema,
-  secret: secretDataSchema,
+  secret: secretInputSchema,
   share_domain: z.string()
 })
 

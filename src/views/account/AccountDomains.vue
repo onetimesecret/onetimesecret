@@ -137,9 +137,9 @@ import DomainsTable from '@/components/DomainsTable.vue';
 import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { useWindowProps } from '@/composables/useWindowProps';
+import type { CustomDomain } from '@/schemas/models/domain';
 import { useDomainsStore } from '@/stores/domainsStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { CustomDomain } from '@/types';
 import { computed, onMounted, ref } from 'vue';
 const isUpgradeModalOpen = ref(false)
 

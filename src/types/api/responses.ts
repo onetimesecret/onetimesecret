@@ -4,7 +4,7 @@ import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/bra
 import { customerInputSchema } from '@/schemas/models/customer';
 import { customDomainInputSchema } from '@/schemas/models/domain';
 import { concealDataSchema, metadataDataSchema } from '@/schemas/models/metadata';
-import { secretDataSchema } from '@/schemas/models/secret';
+import { secretInputSchema } from '@/schemas/models/secret';
 import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
@@ -157,7 +157,7 @@ export const customDomainResponseSchema = apiRecordResponseSchema(customDomainIn
 export const customDomainRecordsResponseSchema = apiRecordsResponseSchema(customDomainInputSchema);
 export const accountResponseSchema = apiRecordResponseSchema(accountSchema);
 export const metadataDataResponseSchema = apiRecordResponseSchema(metadataDataSchema);
-export const secretDataResponseSchema = apiRecordResponseSchema(secretDataSchema);
+export const secretDataResponseSchema = apiRecordResponseSchema(secretInputSchema);
 export const concealDataResponseSchema = apiRecordResponseSchema(concealDataSchema);
 export const checkAuthDataResponseSchema = apiRecordResponseSchema(customerInputSchema);
 export const brandSettingsResponseSchema = apiRecordResponseSchema(brandSettingsInputSchema);
