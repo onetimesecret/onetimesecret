@@ -18,7 +18,14 @@ class Onetime::StripeEvent < Familia::Horreum
   field :created
   field :updated
 
-
+  @safe_dump_fields = [
+    { :identifier => ->(obj) { obj.identifier } },
+    :eventid,
+    :message_response,
+    :stripe_customer,
+    :created,
+    :updated,
+  ]
   # e.g.
   #
   #  stripeevent:1234567890:object

@@ -48,6 +48,7 @@ class Onetime::Customer < Familia::Horreum
   # with hot reloading in dev mode will not work. You will need to restart the
   # server to see the changes.
   @safe_dump_fields = [
+    { :identifier => ->(obj) { obj.identifier } },
     :custid,
     :role,
     :verified,

@@ -32,6 +32,23 @@ module Onetime
     # into a hidden field which is something a regular person would not do.
     field :token
 
+    @safe_dump_fields = [
+      { :identifier => ->(obj) { obj.identifier } },
+      :key,
+      :state,
+      :secret_ttl,
+      :lifespan,
+      :original_size,
+
+      { :shortkey => ->(m) { m.key.slice(0, 8) } },
+      { :show_recipients => ->(m) { !m.recipients.to_s.empty? } },
+
+      # We use the hash syntax here since `:truncated?` is not a valid symbol.
+      { :is_truncated => ->(m) { m.truncated? } },
+      :created,
+      :updated,
+    ]
+
     def init
       self.state ||= 'new'
     end
