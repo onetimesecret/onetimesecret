@@ -1,12 +1,12 @@
 // src/stores/customerStore.ts
-import { customerInputSchema, type Customer } from '@/schemas/models/customer'
-import { createApi } from '@/utils/api'
+import { customerInputSchema, type Customer } from '@/schemas/models/customer';
+import { apiRecordResponseSchema } from '@/types';
+import { createApi } from '@/utils/api';
 import {
+  isTransformError,
   transformResponse,
-  apiRecordResponseSchema,
-  isTransformError
-} from '@/utils/transforms'
-import { defineStore } from 'pinia'
+} from '@/utils/transforms';
+import { defineStore } from 'pinia';
 
 //
 // API Input (strings) -> Store/Component (shared types) -> API Output (serialized)
@@ -16,6 +16,7 @@ import { defineStore } from 'pinia'
 //
 
 const api = createApi()
+let abortController: AbortController | null = null;
 
 /**
  * Customer store with simplified transformation boundaries
@@ -33,57 +34,88 @@ export const useCustomerStore = defineStore('customer', {
   }),
 
   actions: {
+
+    /**
+     * Fetches the current customer data from the API.
+     * Sets the loading state to true while the request is in progress.
+     * Uses an AbortController to allow the request to be canceled if needed.
+     * Transforms and validates the response data before storing it in the state.
+     * Handles errors, including data validation errors and request abort errors.
+     */
     async fetchCurrentCustomer() {
-      this.isLoading = true
+      this.isLoading = true;
+      abortController = new AbortController();
+      const { signal } = abortController;
+
       try {
-        const response = await api.get('/api/v2/account/customer')
+        const response = await api.get('/api/v2/account/customer', { signal });
 
         // Transform at API boundary
         const validated = transformResponse(
           apiRecordResponseSchema(customerInputSchema),
           response.data
-        )
+        );
 
         // Store uses shared type with components
-        this.currentCustomer = validated.record
+        this.currentCustomer = validated.record;
 
-      } catch (error) {
+      } catch (error: Error | unknown) {
         if (isTransformError(error)) {
-          console.error('Data validation failed:', error.details)
+          console.error('Data validation failed:', error.details);
+        } else if (error instanceof Error && error.name === 'AbortError') {
+          console.debug('Fetch aborted');
         }
-        throw error
+
+        throw error;
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
+        abortController = null; // Reset the controller
       }
     },
 
+    /**
+     * Aborts the ongoing fetchCurrentCustomer request if it exists.
+     * This function should be called to cancel the fetch request when it is no longer needed.
+     */
+    abortFetchCurrentCustomer() {
+      if (abortController) {
+        abortController.abort();
+      }
+    },
+
+    /**
+     * Updates the current customer data with the provided updates.
+     * Throws an error if there is no current customer to update.
+     * Transforms and validates the response data before storing it in the state.
+     * @param updates - Partial customer data to update
+     */
     async updateCustomer(updates: Partial<Customer>) {
       if (!this.currentCustomer?.custid) {
-        throw new Error('No current customer to update')
+        throw new Error('No current customer to update');
       }
 
       try {
         const response = await api.put(
           `/api/v2/account/customer/${this.currentCustomer.custid}`,
           updates
-        )
+        );
 
         // Transform response at API boundary
         const validated = transformResponse(
           apiRecordResponseSchema(customerInputSchema),
           response.data
-        )
+        );
 
-        // Update store with validated data
-        this.currentCustomer = validated.record
+        // Store uses shared type with components
+        this.currentCustomer = validated.record;
 
-        return validated.record
-      } catch (error) {
+      } catch (error: Error | unknown) {
         if (isTransformError(error)) {
-          console.error('Data validation failed:', error.details)
+          console.error('Data validation failed:', error.details);
+        } else {
+          throw error;
         }
-        throw error
       }
     }
   }
-})
+});
