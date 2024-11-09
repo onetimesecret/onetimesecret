@@ -1,4 +1,5 @@
 // src/schemas/models/domain/vhost.ts
+import { baseNestedRecordSchema } from '@/schemas/base';
 import { z } from 'zod'
 
 /**
@@ -18,29 +19,30 @@ import { z } from 'zod'
  * - Status messages as strings
  */
 
+
 /**
  * VHost approximation schema
  * Handles monitoring data for domain verification
  */
-export const vhostSchema = z.object({
-  apx_hit: z.boolean(),
-  created_at: z.string(),
-  dns_pointed_at: z.string(),
-  has_ssl: z.boolean(),
-  id: z.number(),
-  incoming_address: z.string(),
-  is_resolving: z.boolean(),
-  keep_host: z.string().nullable(),
-  last_monitored_humanized: z.string(),
-  last_monitored_unix: z.number(),
-  ssl_active_from: z.string(),
-  ssl_active_until: z.string(),
-  status: z.string(),
-  status_message: z.string(),
-  target_address: z.string(),
-  target_ports: z.string(),
-  user_message: z.string()
-})
+export const vhostSchema = baseNestedRecordSchema.extend({
+  apx_hit: z.boolean().optional(),
+  created_at: z.string().optional(),
+  dns_pointed_at: z.string().optional(),
+  has_ssl: z.boolean().optional(),
+  id: z.number().optional(),
+  incoming_address: z.string().optional(),
+  is_resolving: z.boolean().optional(),
+  keep_host: z.string().nullable().optional(),
+  last_monitored_humanized: z.string().optional(),
+  last_monitored_unix: z.number().optional(),
+  ssl_active_from: z.string().nullable().optional(),
+  ssl_active_until: z.string().nullable().optional(),
+  status: z.string().optional(),
+  status_message: z.string().optional(),
+  target_address: z.string().optional(),
+  target_ports: z.string().optional(),
+  user_message: z.string().optional(),
+}).passthrough()
 
 // Export inferred type for use in stores/components
 export type VHost = z.infer<typeof vhostSchema>

@@ -35,13 +35,17 @@ export const FontFamily = {
   ARIAL: 'Arial, sans-serif',
   HELVETICA: 'Helvetica, Arial, sans-serif',
   GEORGIA: 'Georgia, serif',
-  TIMES: 'Times New Roman, serif'
+  TIMES: 'Times New Roman, serif',
+  SANS: 'sans-serif',
+  SERIF: 'serif',
+  BRAND: 'brand',
 } as const
 
 // Corner style options matching UI constraints
 export const CornerStyle = {
   ROUNDED: 'rounded',
-  SHARP: 'sharp'
+  SHARP: 'sharp',
+  PILL: 'pill',
 } as const
 
 /**
@@ -53,39 +57,59 @@ export const CornerStyle = {
 export const brandSettingsInputSchema = baseNestedRecordSchema.extend({
   // Core display settings
   primary_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  instructions_pre_reveal: z.string(),
-  instructions_reveal: z.string(),
-  instructions_post_reveal: z.string(),
+  colour: z.string().optional(), // Legacy field
+  instructions_pre_reveal: z.string().optional(),
+  instructions_reveal: z.string().optional(),
+  instructions_post_reveal: z.string().optional(),
+  description: z.string().optional(),
+
 
   // Boolean fields that come as strings from API
-  button_text_light: booleanFromString,
-  allow_public_homepage: booleanFromString,
-  allow_public_api: booleanFromString,
+  button_text_light: booleanFromString.optional().default(false),
+  allow_public_homepage: booleanFromString.optional().default(false),
+  allow_public_api: booleanFromString.optional().default(false),
 
   // UI configuration with constrained values
   font_family: z.enum([
     FontFamily.ARIAL,
     FontFamily.HELVETICA,
     FontFamily.GEORGIA,
-    FontFamily.TIMES
-  ]),
+    FontFamily.TIMES,
+    FontFamily.SERIF,
+    FontFamily.SANS,
+    FontFamily.BRAND,
+  ]).optional(),
+
+  // Button/Corner styles
+  button_style: z.enum([
+    CornerStyle.ROUNDED,
+    CornerStyle.SHARP,
+    CornerStyle.PILL
+  ]).optional(),
+
   corner_style: z.enum([
     CornerStyle.ROUNDED,
-    CornerStyle.SHARP
-  ])
-})
+    CornerStyle.SHARP,
+    CornerStyle.PILL
+  ]).optional(),
+
+  // Image related fields
+  image_content_type: z.string().optional(),
+  image_encoded: z.string().optional(),
+  image_filename: z.string().optional(),
+}).passthrough() // Allow additional properties not defined in the schema
 
 /**
  * Image properties schema for brand assets
  */
 export const imagePropsSchema = baseNestedRecordSchema.extend({
-  encoded: z.string(),
-  content_type: z.string(),
-  filename: z.string(),
+  encoded: z.string().optional(),
+  content_type: z.string().optional(),
+  filename: z.string().optional(),
   bytes: z.number().optional(),
   width: z.number().optional(),
   height: z.number().optional(),
-  ratio: z.number().optional()
+  ratio: z.number().optional(),
 })
 
 // Export inferred types for use in stores/components
