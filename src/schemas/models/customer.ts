@@ -26,6 +26,7 @@ import { z } from 'zod';
  * - Optional fields explicitly marked
  */
 
+
 // Role enum matching Ruby model
 export const CustomerRole = {
   CUSTOMER: 'customer',
@@ -115,3 +116,22 @@ export const customerInputSchema = baseApiRecordSchema.extend({
 
 // Export the inferred type for use in stores/components
 export type Customer = z.infer<typeof customerInputSchema> & BaseApiRecord
+
+/**
+ * Schema for CheckAuthData
+ * Extends Customer with an optional last_login as number
+ */
+export const checkAuthDataSchema = customerInputSchema.extend({
+  last_login: z.number().optional()
+})
+
+export type CheckAuthData = z.infer<typeof checkAuthDataSchema>
+
+/**
+ * Schema for CheckAuthDetails
+ */
+export const checkAuthDetailsSchema = z.object({
+  authenticated: z.boolean()
+})
+
+export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>

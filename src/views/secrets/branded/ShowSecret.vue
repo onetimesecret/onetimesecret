@@ -69,7 +69,7 @@ import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmat
 import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { SecretData, SecretDetails } from '@/schemas/models'; // todo
+import type { SecretData, SecretDetails } from '@/schemas/models';
 import { AsyncDataResult, SecretDataApiResponse } from '@/types/api';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
