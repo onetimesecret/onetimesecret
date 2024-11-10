@@ -41,7 +41,6 @@ module Onetime
       :original_size,
 
       { :shortkey => ->(m) { m.key.slice(0, 8) } },
-      { :show_recipients => ->(m) { !m.recipients.to_s.empty? } },
 
       # We use the hash syntax here since `:truncated?` is not a valid symbol.
       { :is_truncated => ->(m) { m.truncated? } },
