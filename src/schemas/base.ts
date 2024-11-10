@@ -1,3 +1,4 @@
+import { dateFromSeconds } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
@@ -20,8 +21,9 @@ export const baseApiRecordSchema = z.object({
 // Transformed Base Record
 export const transformedBaseRecordSchema = z.object({
   identifier: z.string(),
-  created: z.date(),
-  updated: z.date()
+  created: dateFromSeconds,
+  updated: dateFromSeconds,
+
 });
 
 // Type exports

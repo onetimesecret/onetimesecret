@@ -58,8 +58,8 @@
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
+import type { SecretData, SecretDetails } from '@/schemas/models/secret';
 import { useCsrfStore } from '@/stores/csrfStore';
-import type { SecretData, SecretDetails } from '@/types';
 import { ref } from 'vue';
 
 interface Props {

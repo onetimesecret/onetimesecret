@@ -85,7 +85,8 @@
                   <DomainVerificationInfo mode="icon"
                                           :domain="domain" />
                   <span class="text-xs text-gray-500 dark:text-gray-400">
-                    Added {{ formatDistanceToNow(new Date(Number(domain.created) * 1000), { addSuffix: true }) }}
+                    Added {{ formatDistanceToNow(domain.created, { addSuffix: true }) }}
+
                   </span>
                 </div>
               </div>
@@ -151,7 +152,7 @@
 <script setup lang="ts">
 import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
 import { useWindowProp } from '@/composables/useWindowProps';
-import type { CustomDomain } from '@/types';
+import type { CustomDomain } from '@/schemas/models/domain.ts';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';

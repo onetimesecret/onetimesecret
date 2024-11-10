@@ -6,13 +6,9 @@ import {
 import type { UpdateDomainBrandRequest } from '@/types/api/requests';
 import { ApiRecordResponse, apiRecordResponseSchema, ApiRecordsResponse, apiRecordsResponseSchema } from '@/types/api/responses';
 import { createApi } from '@/utils/api';
-import {
-  isTransformError,
-  transformResponse,
-} from '@/utils/transforms';
+import { isTransformError, transformResponse } from '@/utils/transforms';
 import { defineStore } from 'pinia';
 import type { ZodIssue } from 'zod';
-
 
 //
 // API Input (strings) -> Store/Component (shared types) -> API Output (serialized)
@@ -21,7 +17,7 @@ import type { ZodIssue } from 'zod';
 //                    transform                      serialize
 //
 
-const api = createApi()
+const api = createApi();
 
 /**
  * Domains store with simplified transformation boundaries
