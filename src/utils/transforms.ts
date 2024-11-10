@@ -1,8 +1,9 @@
 import type {
   ApiRecordsResponse,
-} from '@/types/api/responses'
-import { z } from 'zod'
-import { fromZodError } from 'zod-validation-error'
+} from '@/types/api/responses';
+import { z, ZodIssue } from 'zod';
+import { fromZodError } from 'zod-validation-error';
+
 /**
  * Base schema for all API records
  * Matches BaseApiRecord interface and handles identifier pattern
@@ -64,12 +65,15 @@ export const createListInputSchema = <T extends z.ZodType>(recordSchema: T) =>
  * Transform error handling
  */
 export class TransformError extends Error {
-  details?: unknown;
+  public details: ZodIssue[] | string;
+  public data: unknown;
 
-  constructor(message: string, details?: unknown) {
+  constructor(message: string, details: ZodIssue[] | string, data?: unknown) {
     super(message);
     this.name = 'TransformError';
     this.details = details;
+    this.data = data;
+    Object.setPrototypeOf(this, TransformError.prototype); // Is this necessary in 2024?
   }
 }
 
@@ -88,9 +92,9 @@ export function transformResponse<T extends z.ZodType>(
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.log('Schema:', schema)
-      console.log('Failed data:', data)
-      console.log('Validation issues:', error.issues)
+      console.debug('Schema:', schema)
+      console.debug('Failed data:', data)
+      console.debug('Validation issues:', error.issues)
       throw new TransformError(
         'Validation failed',
         fromZodError(error).details

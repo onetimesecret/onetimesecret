@@ -54,7 +54,7 @@ export const CornerStyle = {
  * - Validates color format
  * - Constrains font and corner style options
  */
-export const brandSettingsInputSchema = baseNestedRecordSchema.extend({
+export const brandSettingsInputSchema = z.object({
   // Core display settings
   primary_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
   colour: z.string().optional(), // Legacy field
@@ -80,13 +80,6 @@ export const brandSettingsInputSchema = baseNestedRecordSchema.extend({
     FontFamily.BRAND,
   ]).optional(),
 
-  // Button/Corner styles
-  button_style: z.enum([
-    CornerStyle.ROUNDED,
-    CornerStyle.SHARP,
-    CornerStyle.PILL
-  ]).optional(),
-
   corner_style: z.enum([
     CornerStyle.ROUNDED,
     CornerStyle.SHARP,
@@ -97,12 +90,12 @@ export const brandSettingsInputSchema = baseNestedRecordSchema.extend({
   image_content_type: z.string().optional(),
   image_encoded: z.string().optional(),
   image_filename: z.string().optional(),
-}).passthrough() // Allow additional properties not defined in the schema
+}).merge(baseNestedRecordSchema);
 
 /**
  * Image properties schema for brand assets
  */
-export const imagePropsSchema = baseNestedRecordSchema.extend({
+export const imagePropsSchema = z.object({
   encoded: z.string().optional(),
   content_type: z.string().optional(),
   filename: z.string().optional(),
@@ -110,8 +103,8 @@ export const imagePropsSchema = baseNestedRecordSchema.extend({
   width: z.number().optional(),
   height: z.number().optional(),
   ratio: z.number().optional(),
-})
+}).merge(baseNestedRecordSchema).strip();
 
 // Export inferred types for use in stores/components
-export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseNestedRecord
-export type ImageProps = z.infer<typeof imagePropsSchema> & BaseNestedRecord
+export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseNestedRecord;
+export type ImageProps = z.infer<typeof imagePropsSchema> & BaseNestedRecord;

@@ -1,5 +1,5 @@
 // src/schemas/models/domain/vhost.ts
-import { baseNestedRecordSchema } from '@/schemas/base';
+import { baseNestedRecordSchema, type BaseNestedRecord } from '@/schemas/base';
 import { z } from 'zod'
 
 /**
@@ -24,7 +24,7 @@ import { z } from 'zod'
  * VHost approximation schema
  * Handles monitoring data for domain verification
  */
-export const vhostSchema = baseNestedRecordSchema.extend({
+export const vhostSchema = z.object({
   apx_hit: z.boolean().optional(),
   created_at: z.string().optional(),
   dns_pointed_at: z.string().optional(),
@@ -42,7 +42,7 @@ export const vhostSchema = baseNestedRecordSchema.extend({
   target_address: z.string().optional(),
   target_ports: z.string().optional(),
   user_message: z.string().optional(),
-}).passthrough()
+}).merge(baseNestedRecordSchema);
 
 // Export inferred type for use in stores/components
-export type VHost = z.infer<typeof vhostSchema>
+export type VHost = z.infer<typeof vhostSchema> & BaseNestedRecord;

@@ -64,19 +64,35 @@ const customDomainBaseSchema = z.object({
   txt_validation_host: z.string(),
   txt_validation_value: z.string(),
 
-  // Optional nested objects
-  vhost: vhostSchema.optional().or(z.object({}).strict()),
-  brand: brandSettingsInputSchema.optional().or(z.object({}).strict()),
+  // Optional nested objects that can be:
+  // 1. undefined
+  // 2. A valid object matching their respective schemas
+  // 3. An object with any properties (which will be stripped at root level)
+  //
+  // We use .passthrough() here to allow unknown properties in nested objects,
+  // letting them bubble up to the root level where they'll be stripped via
+  // customDomainInputSchema's .strip()
+  //
+  // This approach:
+  // - Prevents validation errors from unexpected API fields
+  // - Centralizes stripping behavior at the root level
+  // - Makes debugging easier by allowing field inspection before stripping
+  vhost: vhostSchema.optional().or(z.object({}).passthrough()),
+  brand: brandSettingsInputSchema.optional().or(z.object({}).passthrough()),
 })
 
-// Combine base record schema with domain-specific fields
-export const customDomainInputSchema = baseApiRecordSchema.merge(customDomainBaseSchema)
+// Combine base record schema with domain-specific fields.
+// The .strip() modifier removes all unknown properties throughout the entire
+// object hierarchy after validation. This ensures our domain objects maintain
+// a consistent shape regardless of API response variations.
+export const customDomainInputSchema = baseApiRecordSchema.merge(customDomainBaseSchema).strip();
+
 //export const customDomainInputSchema = baseApiRecordSchema.merge(
 //  customDomainBaseSchema.partial() // Makes all fields optional temporarily
 //)
 
 // Export inferred types for use in stores/components
-export type CustomDomain = z.infer<typeof customDomainInputSchema>
+export type CustomDomain = z.infer<typeof customDomainInputSchema>;
 
 /**
  * Input schema for domain cluster from API
@@ -88,8 +104,8 @@ const customDomainClusterBaseSchema = z.object({
   cluster_name: z.string(),
   cluster_host: z.string(),
   vhost_target: z.string()
-})
+});
 
-export const customDomainClusterInputSchema = baseApiRecordSchema.merge(customDomainClusterBaseSchema)
+export const customDomainClusterInputSchema = baseApiRecordSchema.merge(customDomainClusterBaseSchema);
 
-export type CustomDomainCluster = z.infer<typeof customDomainClusterInputSchema>
+export type CustomDomainCluster = z.infer<typeof customDomainClusterInputSchema>;
