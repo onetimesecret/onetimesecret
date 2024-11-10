@@ -1,7 +1,7 @@
+
 <template>
   <div>
     <DashboardTabNav />
-
     <BasicFormAlerts :error="error" />
 
     <div v-if="isLoading">Loading...</div>
@@ -48,26 +48,29 @@
 </template>
 
 <script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue'
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue'
-import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue'
-import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue'
-import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue'
-import SecretLink from '@/components/secrets/metadata/SecretLink.vue'
-import { useFetchDataRecord } from '@/composables/useFetchData'
-import { MetadataData } from '@/types'
-import { onMounted } from 'vue'
+import { useMetadataStore } from '@/stores/metadataStore';
+import { AsyncDataResult, MetadataDataApiResponse } from '@/types';
+import { storeToRefs } from 'pinia';
+import { computed, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
 
-// This prop is passed from vue-router b/c the route has `prop: true`.
-interface Props {
-  metadataKey: string
+const route = useRoute();
+const store = useMetadataStore();
+
+// Get initial data from route resolver
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataDataApiResponse>);
+
+// Set up reactive refs to store state
+const { currentRecord: record, details, isLoading, error } = storeToRefs(store);
+
+// Initialize from route resolver data
+if (initialData.value?.data) {
+  record.value = initialData.value.data.record;
+  details.value = initialData.value.data.details;
 }
 
-const props = defineProps<Props>()
-
-const { record, details, isLoading, error, fetchData: fetchMetadata } = useFetchDataRecord<MetadataData>({
-  url: `/api/v2/private/${props.metadataKey}`,
-})
-
-onMounted(fetchMetadata)
+// Clean up on unmount
+onUnmounted(() => {
+  store.abortPendingRequests();
+});
 </script>

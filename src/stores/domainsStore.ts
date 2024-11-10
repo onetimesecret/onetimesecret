@@ -68,7 +68,6 @@ export const useDomainsStore = defineStore('domains', {
       }
     },
 
-
     async updateDomainBrand(domain: string, brandUpdate: UpdateDomainBrandRequest) {
       try {
         const response = await api.put<ApiRecordResponse<CustomDomain>>(

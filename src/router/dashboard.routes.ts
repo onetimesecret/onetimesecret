@@ -8,6 +8,8 @@ import BurnSecret from '@/views/secrets/BurnSecret.vue';
 import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
 import { RouteRecordRaw } from 'vue-router';
 
+import { resolveMetadata } from './resolvers/metadataResolver';
+
 
 const routes: Array<RouteRecordRaw> = [
 
@@ -67,6 +69,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Metadata link',
     component: ShowMetadata,
     props: true,
+    beforeEnter: resolveMetadata,
     meta: {
       layout: DefaultLayout,
       layoutProps: {
@@ -84,6 +87,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Burn secret',
     component: BurnSecret,
     props: true,
+    beforeEnter: resolveMetadata,
     meta: {
       layout: DefaultLayout,
       layoutProps: {

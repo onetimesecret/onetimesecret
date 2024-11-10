@@ -1,27 +1,32 @@
+
 <template>
   <div>
     <DashboardTabNav />
 
-    <SecretMetadataTable :hasItems="details?.has_items"
-                        :notReceived="details.notreceived ?? 0"
-                        :received="details?.received"
-                        :isLoading="isLoading"
-                        title="Received" />
+    <div v-if="isLoading">Loading...</div>
+    <div v-else-if="error">{{ error }}</div>
+    <div v-else>
+      <MetadataList
+        :metadata-records="records"
+        v-if="records.length > 0" />
+      <EmptyState v-else />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
-import { useFetchData } from '@/composables/useFetchData';
-import { MetadataData } from '@/types';
-import { onMounted } from 'vue';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { storeToRefs } from 'pinia';
+import { onMounted, onUnmounted } from 'vue';
 
-const { details, fetchData: fetchDomains, isLoading } = useFetchData<MetadataData>({
-  url: '/api/v2/private/recent',
+const store = useMetadataStore();
+const { records, isLoading, error } = storeToRefs(store);
+
+onMounted(async () => {
+  await store.fetchList();
 });
 
-onMounted(fetchDomains);
-
-
+onUnmounted(() => {
+  store.abortPendingRequests();
+});
 </script>
