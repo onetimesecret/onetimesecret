@@ -48,6 +48,12 @@
 </template>
 
 <script setup lang="ts">
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
+import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
+import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
+import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { AsyncDataResult, MetadataDataApiResponse } from '@/types';
 import { storeToRefs } from 'pinia';

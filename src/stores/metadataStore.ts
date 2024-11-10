@@ -1,15 +1,15 @@
 // src/stores/metadataStore.ts
 import {
+  metadataInputSchema,
+  metadataListInputSchema,
   type Metadata,
-  type MetadataData,
-  type MetadataDetails,
-  metadataDataSchema
+  type MetadataDetails
 } from '@/schemas/models/metadata';
 import {
-  type ApiRecordResponse,
-  type ApiRecordsResponse,
   apiRecordResponseSchema,
-  apiRecordsResponseSchema
+  apiRecordsResponseSchema,
+  type ApiRecordResponse,
+  type ApiRecordsResponse
 } from '@/types/api/responses';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
@@ -25,6 +25,7 @@ interface MetadataStoreState {
   details: MetadataDetails | null;
   isLoading: boolean;
   error: string | null;
+  abortController: AbortController | null,
 }
 
 export const useMetadataStore = defineStore('metadata', {
@@ -34,7 +35,8 @@ export const useMetadataStore = defineStore('metadata', {
     currentRecord: null,
     details: null,
     isLoading: false,
-    error: null
+    error: null,
+    abortController: null,
   }),
 
   getters: {
@@ -45,7 +47,8 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
-    abortController: null as AbortController | null,
+    // Abort controller should be declared as instance property
+
 
     abortPendingRequests() {
       if (this.abortController) {
@@ -59,54 +62,40 @@ export const useMetadataStore = defineStore('metadata', {
       this.abortPendingRequests();
       this.abortController = new AbortController();
       this.isLoading = true;
-      this.error = null;
+      let response; // Declare outside try block to access in catch
 
       try {
-        const response = await api.get<ApiRecordsResponse<MetadataData>>('/api/v2/private/recent', {
+        response = await api.get<ApiRecordsResponse<Metadata>>('/api/v2/private/recent', {
           signal: this.abortController.signal
         });
 
         const validated = transformResponse(
-          apiRecordsResponseSchema(metadataDataSchema),
+          apiRecordsResponseSchema(metadataListInputSchema),
           response.data
         );
 
-        const transformedRecords = validated.records.map(record => ({
-          ...record,
-          created: record.created,
-          updated: record.updated,
-          state: 'new',
-          received: false,
-          show_recipients: false,
-          stamp: record.expiration_stamp,
-          uri: record.metadata_path,
-          is_received: false,
-          is_burned: false,
-          is_destroyed: false,
-          custid: '',
-          secret_ttl: 0,
-          passphrase: '',
-          viewed: false,
-          shared: false,
-          burned: false,
-          truncate: false
-        })) satisfies Metadata[];
+        // Store records in both cache and records array
+        this.records = validated.records;
+        this.details = validated.details || null;
 
-        transformedRecords.forEach(record => {
+        validated.records.forEach(record => {
           this.cache.set(record.key, record);
         });
-        this.records = transformedRecords;
 
         return validated;
 
+
       } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          console.debug('Metadata list fetch aborted');
-          return;
+        // Add validation error details
+        if (error instanceof Error) {
+          console.error('Validation error:', {
+            name: error.name,
+            message: error.message,
+            data: response?.data
+          });
         }
         this.handleError(error);
-        throw error;
-
+        //throw error;
       } finally {
         this.isLoading = false;
         this.abortController = null;
@@ -127,47 +116,22 @@ export const useMetadataStore = defineStore('metadata', {
       }
 
       this.isLoading = true;
-      this.error = null;
 
       try {
-        const response = await api.get<ApiRecordResponse<MetadataData>>(`/api/v2/private/${key}`, {
+        const response = await api.get<ApiRecordResponse<Metadata>>(`/api/v2/private/${key}`, {
           signal: bypassCache ? this.abortController?.signal : undefined
         });
 
         const validated = transformResponse(
-          apiRecordResponseSchema(metadataDataSchema),
+          apiRecordResponseSchema(metadataInputSchema),
           response.data
         );
 
-        const transformedRecord = {
-          ...validated.record,
-          created: validated.record.created,
-          updated: validated.record.updated,
-          state: 'new',
-          received: false,
-          show_recipients: false,
-          stamp: validated.record.expiration_stamp,
-          uri: validated.record.metadata_path,
-          is_received: false,
-          is_burned: false,
-          is_destroyed: false,
-          custid: '',
-          secret_ttl: 0,
-          passphrase: '',
-          viewed: false,
-          shared: false,
-          burned: false,
-          truncate: false
-        } satisfies Metadata;
+        this.cache.set(key, validated.record);
+        this.currentRecord = validated.record;
+        this.details = validated.details;
 
-        this.cache.set(key, transformedRecord);
-        this.currentRecord = transformedRecord;
-        this.details = validated.details as MetadataDetails;
-
-        return {
-          record: transformedRecord,
-          details: this.details
-        };
+        return validated;
 
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
@@ -191,51 +155,26 @@ export const useMetadataStore = defineStore('metadata', {
       }
 
       this.isLoading = true;
-      this.error = null;
 
       try {
-        const response = await api.post<ApiRecordResponse<MetadataData>>(
+        const response = await api.post<ApiRecordResponse<Metadata>>(
           `/api/v2/private/${key}/burn`,
           { passphrase, continue: true }
         );
 
         const validated = transformResponse(
-          apiRecordResponseSchema(metadataDataSchema),
+          apiRecordResponseSchema(metadataInputSchema),
           response.data
         );
 
-        const transformedRecord = {
-          ...validated.record,
-          created: validated.record.created,
-          updated: validated.record.updated,
-          state: 'burned',
-          received: false,
-          show_recipients: false,
-          stamp: validated.record.expiration_stamp,
-          uri: validated.record.metadata_path,
-          is_received: false,
-          is_burned: true,
-          is_destroyed: true,
-          custid: '',
-          secret_ttl: 0,
-          passphrase: '',
-          viewed: true,
-          shared: false,
-          burned: true,
-          truncate: false
-        } satisfies Metadata;
-
         this.clearRecord(key);
-        this.currentRecord = transformedRecord;
-        this.details = validated.details as MetadataDetails;
+        this.currentRecord = validated.record;
+        this.details = validated.details;
         this.records = this.records.map(r =>
-          r.key === key ? transformedRecord : r
+          r.key === key ? validated.record : r
         );
 
-        return {
-          record: transformedRecord,
-          details: this.details
-        };
+        return validated;
 
       } catch (error) {
         this.handleError(error);
@@ -250,16 +189,7 @@ export const useMetadataStore = defineStore('metadata', {
       if (record && record.state !== newState) {
         this.clearRecord(key);
 
-        const updated = {
-          ...record,
-          state: newState,
-          is_received: newState === 'received',
-          is_burned: newState === 'burned',
-          is_destroyed: newState === 'burned',
-          received: newState === 'received',
-          burned: newState === 'burned'
-        } satisfies Metadata;
-
+        const updated = { ...record, state: newState };
         if (record === this.currentRecord) {
           this.currentRecord = updated;
         }
@@ -305,20 +235,20 @@ export const useMetadataStore = defineStore('metadata', {
           details: formatErrorDetails(error.details),
           rawData: error.data
         });
-        this.error = 'Invalid server response';
-      } else {
-        this.error = error instanceof Error ? error.message : 'An unexpected error occurred';
       }
+      throw error;
     }
   }
 });
 
-function formatErrorDetails(details: string | ZodIssue[]): unknown {
-  return Array.isArray(details)
-    ? details.map(detail => ({
-        path: detail.path,
-        code: detail.code,
-        message: detail.message
-      }))
-    : details;
+function formatErrorDetails(details: ZodIssue[] | string): string | Record<string, string> {
+  if (typeof details === 'string') {
+    return details;
+  }
+
+  return details.reduce((acc, issue) => {
+    const path = issue.path.join('.');
+    acc[path] = issue.message;
+    return acc;
+  }, {} as Record<string, string>);
 }

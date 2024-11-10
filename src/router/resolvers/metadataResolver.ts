@@ -17,7 +17,7 @@ export async function resolveMetadata(
     const initialData: AsyncDataResult<MetadataDataApiResponse> = {
       status: 200,
       data: {
-        record: result.record,
+        record: result?.record,
         details: result.details
       },
       error: null
