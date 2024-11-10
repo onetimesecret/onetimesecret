@@ -88,7 +88,137 @@ export const useDomainsStore = defineStore('domains', {
         }
         throw error
       }
-    }
+    },
+
+    /**
+     * Adds a new domain to the store after validation
+     */
+    async addDomain(domain: string) {
+      try {
+        const response = await api.post<ApiRecordResponse<CustomDomain>>('/api/v2/account/domains/add', {
+          domain
+        });
+
+        const validated = transformResponse(
+          apiRecordResponseSchema(customDomainInputSchema),
+          response.data
+        );
+
+        this.domains.push(validated.record);
+        return validated.record;
+
+      } catch (error) {
+        if (isTransformError(error)) {
+          console.error('Domain validation failed:', formatErrorDetails(error.details));
+        }
+        throw error;
+      }
+    },
+
+    /**
+     * Deletes a domain and removes it from the store
+     */
+    async deleteDomain(domainName: string) {
+      try {
+        await api.post(`/api/v2/account/domains/${domainName}/remove`);
+        this.domains = this.domains.filter(domain => domain.display_domain !== domainName);
+      } catch (error) {
+        console.error('Failed to delete domain:', error);
+        throw error;
+      }
+    },
+
+    /**
+     * Toggles public homepage access with optimistic update
+     */
+    async toggleHomepageAccess(domain: CustomDomain) {
+      const newHomepageStatus = !domain.brand?.allow_public_homepage;
+      const domainIndex = this.domains.findIndex(d => d.display_domain === domain.display_domain);
+
+      // Optimistic update
+      if (domainIndex !== -1) {
+        const optimisticUpdate = {
+          ...domain,
+          brand: {
+            ...(domain.brand || {}),
+            allow_public_homepage: newHomepageStatus
+          }
+        };
+
+        // Validate optimistic update
+        const validated = transformResponse(
+          customDomainInputSchema,
+          optimisticUpdate
+        );
+
+        this.domains[domainIndex] = validated;
+      }
+
+      try {
+        const response = await api.put<ApiRecordResponse<CustomDomain>>(
+          `/api/v2/account/domains/${domain.display_domain}/brand`,
+          {
+            brand: { allow_public_homepage: newHomepageStatus }
+          }
+        );
+
+        const validated = transformResponse(
+          apiRecordResponseSchema(customDomainInputSchema),
+          response.data
+        );
+
+        // Update with server response
+        if (domainIndex !== -1) {
+          this.domains[domainIndex] = validated.record;
+        }
+
+        return newHomepageStatus;
+
+      } catch (error) {
+        // Revert on error
+        if (domainIndex !== -1) {
+          this.domains[domainIndex] = domain;
+        }
+        throw error;
+      }
+    },
+
+    /**
+     * Updates a domain in the store with validation
+     */
+    async updateDomain(domain: CustomDomain) {
+      try {
+        const response = await api.put<ApiRecordResponse<CustomDomain>>(
+          `/api/v2/account/domains/${domain.display_domain}`,
+          domain
+        );
+
+        const validated = transformResponse(
+          apiRecordResponseSchema(customDomainInputSchema),
+          response.data
+        );
+
+        const domainIndex = this.domains.findIndex(
+          d => d.display_domain === domain.display_domain
+        );
+
+        if (domainIndex !== -1) {
+          this.domains[domainIndex] = validated.record;
+        } else {
+          this.domains.push(validated.record);
+        }
+
+        return validated.record;
+
+      } catch (error) {
+        if (isTransformError(error)) {
+          console.error('Domain validation failed:', formatErrorDetails(error.details));
+        }
+        throw error;
+      }
+    },
+
+
   }
 })
 

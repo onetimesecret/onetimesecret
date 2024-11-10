@@ -32,10 +32,11 @@
       No domains found. Add a domain to get started.
     </div>
 
+    <!-- List domains -->
     <div v-else
          class="relative rounded-lg border border-gray-200 dark:border-gray-700">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-800">
+        <thead class="bg-gray-50 dark:bg-gray-800 font-brand">
           <tr>
             <th scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400  tracking-wider">
