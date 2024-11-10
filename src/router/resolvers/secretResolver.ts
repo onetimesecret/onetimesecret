@@ -1,7 +1,7 @@
 // src/router/resolvers/secretResolver.ts
 
 import { useSecretsStore } from '@/stores/secretsStore';
-import type { AsyncDataResult, SecretDataApiResponse } from '@/types';
+import type { AsyncDataResult, SecretDataApiResponse } from '@/types/api/responses';
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 
 /**

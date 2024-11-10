@@ -1,6 +1,6 @@
 // src/stores/customerStore.ts
 import { customerInputSchema, type Customer } from '@/schemas/models/customer';
-import { apiRecordResponseSchema } from '@/types';
+import { apiRecordResponseSchema } from '@/types/api/responses';
 import { createApi } from '@/utils/api';
 import {
   isTransformError,

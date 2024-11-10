@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import FancyIcon from '@/components/ctas/FancyIcon.vue';
 import { useWindowProps } from '@/composables/useWindowProps';
-import { Customer } from '@/types';
+import { Customer } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
 import { ref, computed } from 'vue';
 const { domains_enabled, plan } = useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);

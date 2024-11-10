@@ -1,6 +1,6 @@
 // src/router/resolvers/metadataResolver.ts
 import { useMetadataStore } from '@/stores/metadataStore';
-import type { AsyncDataResult, MetadataDataApiResponse } from '@/types';
+import type { AsyncDataResult, MetadataDataApiResponse } from '@/types/api/responses';
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 
 export async function resolveMetadata(

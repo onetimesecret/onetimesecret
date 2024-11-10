@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
-import { Metadata } from '@/types';
+import { Metadata } from '@/schemas/models';
 
 interface Props {
   notReceived?: Metadata[] | null;

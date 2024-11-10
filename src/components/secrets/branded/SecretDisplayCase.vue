@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard';
 import { useDomainBranding } from '@/composables/useDomainBranding';
-import { SecretData, SecretDetails } from '@/types';
+import { SecretData, SecretDetails } from '@/schemas/models';
 import { ref } from 'vue';
 
 import BaseSecretDisplay from './BaseSecretDisplay.vue';

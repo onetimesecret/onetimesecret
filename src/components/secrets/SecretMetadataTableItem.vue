@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Metadata } from '@/types';
+import { Metadata } from '@/schemas/models';
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 

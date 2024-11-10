@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useFormSubmission } from '@/composables/useFormSubmission';
+import { Customer } from '@/schemas/models';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { Customer } from '@/types';
 import { ref } from 'vue';
 
 const csrfStore = useCsrfStore();

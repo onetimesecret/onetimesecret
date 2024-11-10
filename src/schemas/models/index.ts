@@ -3,6 +3,10 @@ export * from './customer'
 export * from './domain'
 export * from './domain/brand'
 export * from './domain/vhost'
+export * from './jurisdiction'
+export * from './public'
+export * from './secret'
+export * from './metadata'
 
 import { baseApiRecordSchema } from '@/schemas/base';
 import { z } from 'zod'

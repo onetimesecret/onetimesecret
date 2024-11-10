@@ -100,7 +100,8 @@
 
 <script setup lang="ts">
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types';
+import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
+import { CustomDomainApiResponse } from '@/types/api/responses';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
 

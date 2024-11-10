@@ -83,9 +83,10 @@
 <script setup lang="ts">
 import { useFetchDataRecord } from '@/composables/useFetchData';
 import { useFormSubmission } from '@/composables/useFormSubmission';
+import { Metadata } from '@/schemas/models/metadata';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { MetadataData, MetadataDataApiResponse } from '@/types';
+import type { MetadataDataApiResponse } from '@/types/api/responses';
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -99,7 +100,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { record, details, fetchData: fetchMetadata } = useFetchDataRecord<MetadataData>({
+const { record, details, fetchData: fetchMetadata } = useFetchDataRecord<Metadata>({
   url: `/api/v2/private/${props.metadataKey}`,
 })
 

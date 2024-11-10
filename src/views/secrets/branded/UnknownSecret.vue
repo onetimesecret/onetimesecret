@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BrandSettings } from '@/types';
+import type { BrandSettings } from '@/schemas/models'; // todo
 
 interface Props {
   brandSettings?: BrandSettings;

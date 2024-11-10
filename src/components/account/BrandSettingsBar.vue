@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import ColorPicker from '@/components/common/ColorPicker.vue';
-import type { BrandSettings } from '@/types';
+import type { BrandSettings } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
 
 import CycleButton from '../common/CycleButton.vue';

@@ -88,7 +88,7 @@
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard';
 import { useWindowProp } from '@/composables/useWindowProps';
-import { SecretData, SecretDetails } from '@/types';
+import { SecretData, SecretDetails } from '@/schemas/models';
 
 const siteHost = useWindowProp('site_host');
 

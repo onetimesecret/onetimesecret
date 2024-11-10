@@ -105,7 +105,7 @@
 <script setup lang="ts">
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import type { CustomDomainApiResponse } from '@/types';
+import type { CustomDomainApiResponse } from '@/types/api/responses';
 import { ref } from 'vue';
 
 import BasicFormAlerts from './BasicFormAlerts.vue';

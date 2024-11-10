@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/authStore';
 import { logoutPlugin } from '@/stores/plugins/logoutPlugin';
-import { Customer, Plan } from '@/types';
+import { Customer, Plan } from '@/schemas/models';
 import axios, {AxiosError} from 'axios';
 import { createPinia, Pinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

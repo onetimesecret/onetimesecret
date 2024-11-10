@@ -53,7 +53,7 @@
 
 
 <script setup lang="ts">
-import type { Jurisdiction } from '@/types';
+import type { Jurisdiction } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
 
 defineProps<{

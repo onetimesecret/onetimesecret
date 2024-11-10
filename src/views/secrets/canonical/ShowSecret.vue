@@ -69,7 +69,8 @@ import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirm
 import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import type { AsyncDataResult, SecretData, SecretDataApiResponse, SecretDetails } from '@/types';
+import type { AsyncDataResult, SecretData, SecretDetails } from '@/schemas/models'; // todo
+import { SecretDataApiResponse } from '@/types/api/responses';
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 

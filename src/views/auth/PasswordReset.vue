@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useFetchDataRecord } from '@/composables/useFetchData';
+import { SecretData } from '@/schemas/models';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { SecretData } from '@/types'
-import { onMounted } from 'vue'
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const csrfStore = useCsrfStore();

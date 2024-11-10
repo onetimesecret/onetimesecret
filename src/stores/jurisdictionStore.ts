@@ -1,6 +1,6 @@
 // src/stores/jurisdictionStore.ts
 
-import type { Jurisdiction, Regions } from '@/types';
+import type { Jurisdiction, Regions } from '@/schemas/models';
 import { defineStore } from 'pinia';
 
 
