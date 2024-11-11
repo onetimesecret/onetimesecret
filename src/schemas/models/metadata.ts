@@ -26,7 +26,7 @@ export const MetadataState = {
   SHARED: 'shared',
   RECEIVED: 'received',
   BURNED: 'burned',
-  VIEWED: 'viewed'
+  VIEWED: 'viewed',
 } as const
 
 /**
@@ -39,17 +39,17 @@ const metadataBaseSchema = z.object({
   secret_shortkey: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).optional(),
   share_domain: z.string().optional(),
-})
-
-const metadataListBaseSchema = z.object({
-  custid: z.string(),
   state: z.enum([
     MetadataState.NEW,
     MetadataState.SHARED,
     MetadataState.RECEIVED,
     MetadataState.BURNED,
-    MetadataState.VIEWED
+    MetadataState.VIEWED,
   ]),
+})
+
+const metadataListBaseSchema = z.object({
+  custid: z.string(),
   secret_ttl: z.string().transform(Number),
   show_recipients: booleanFromString,
   is_received: booleanFromString,
@@ -84,7 +84,7 @@ const metadataExtendedBaseSchema = z.object({
   metadata_path: z.string(),
   share_url: z.string(),
   metadata_url: z.string(),
-  burn_url: z.string()
+  burn_url: z.string(),
 })
 
 export const metadataInputSchema = baseApiRecordSchema
@@ -116,14 +116,12 @@ const metadataDetailsBaseSchema = z.object({
   show_secret_link: booleanFromString,
   show_metadata_link: booleanFromString,
   show_metadata: booleanFromString,
-  show_recipients: booleanFromString
+  show_recipients: booleanFromString,
 })
 
 export const metadataDetailsInputSchema = baseApiRecordSchema
   .merge(metadataDetailsBaseSchema)
   .strip()
-
-// Rest of the file remains the same...
 
 export type Metadata = z.infer<typeof metadataInputSchema>
 export type MetadataDetails = z.infer<typeof metadataDetailsInputSchema> & DetailsType

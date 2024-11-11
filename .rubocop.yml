@@ -37,6 +37,9 @@ Gemspec/DevelopmentDependencies:
 Layout/HashAlignment:
   Enabled: false
 
+Layout/FirstHashElementIndentation:
+  Enabled: false
+
 Lint/Void:
   Enabled: false
 

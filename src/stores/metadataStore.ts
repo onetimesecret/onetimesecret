@@ -2,6 +2,7 @@
 import {
   metadataInputSchema,
   metadataListInputSchema,
+  MetadataState,
   type Metadata,
   type MetadataDetails
 } from '@/schemas/models/metadata';
@@ -41,9 +42,17 @@ export const useMetadataStore = defineStore('metadata', {
 
   getters: {
     getByKey: (state) => (key: string) => state.cache.get(key),
-    isDestroyed: (state) => state.currentRecord?.state === 'received' ||
-                           state.currentRecord?.state === 'burned',
-    canBurn: (state) => state.currentRecord?.state === 'new'
+    isDestroyed: (state) => state.currentRecord?.state === MetadataState.RECEIVED ||
+                           state.currentRecord?.state === MetadataState.BURNED,
+    canBurn: (state) => {
+      // Can burn if:
+      // 1. Record exists
+      // 2. State is NEW, VIEWED or SHARED
+      // 3. Not already destroyed
+      return state.currentRecord &&
+             [MetadataState.NEW, MetadataState.SHARED, MetadataState.VIEWED].includes(state.currentRecord.state) &&
+             !state.details?.is_destroyed;
+    }
   },
 
   actions: {
@@ -134,9 +143,17 @@ export const useMetadataStore = defineStore('metadata', {
         return validated;
 
       } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          console.debug('Metadata fetch aborted');
-          return;
+        if (error instanceof Error) {
+          if ('status' in error && error.status === 404) {
+            this.currentRecord = null;
+            this.details = null;
+            this.error = 'Record not found';
+            return null;
+          }
+          if (error.name === 'AbortError') {
+            console.debug('Metadata fetch aborted');
+            return;
+          }
         }
         this.handleError(error);
         throw error;
@@ -151,7 +168,7 @@ export const useMetadataStore = defineStore('metadata', {
 
     async burnMetadata(key: string, passphrase?: string) {
       if (!this.canBurn) {
-        throw new Error('Cannot burn metadata in current state');
+        throw new Error(`Cannot burn metadata in current state (${this.currentRecord?.state})`);
       }
 
       this.isLoading = true;
@@ -184,7 +201,7 @@ export const useMetadataStore = defineStore('metadata', {
       }
     },
 
-    updateState(key: string, newState: 'new' | 'received' | 'burned') {
+    updateState(key: string, newState: 'new' | 'received' | 'burned' | 'viewed') {
       const record = this.cache.get(key) || this.currentRecord;
       if (record && record.state !== newState) {
         this.clearRecord(key);

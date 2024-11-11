@@ -1,6 +1,7 @@
 // src/router/resolvers/metadataResolver.ts
 import { useMetadataStore } from '@/stores/metadataStore';
 import type { AsyncDataResult, MetadataDataApiResponse } from '@/types/api/responses';
+import { NotFoundError } from '@/utils/errors';
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 
 export async function resolveMetadata(
@@ -12,12 +13,16 @@ export async function resolveMetadata(
   const store = useMetadataStore();
 
   try {
-    const result = await store.fetchOne(metadataKey);
+    const result = await store.fetchOne(metadataKey, true);
+    if (!result) {
+      throw new NotFoundError(`Metadata not found: ${metadataKey}`);
+    }
 
     const initialData: AsyncDataResult<MetadataDataApiResponse> = {
       status: 200,
       data: {
-        record: result?.record,
+        success: true,
+        record: result.record,
         details: result.details
       },
       error: null
@@ -27,12 +32,18 @@ export async function resolveMetadata(
     next();
   } catch (error) {
     console.error('Failed to load metadata:', error);
+    const status = error instanceof NotFoundError ? 404 : 500;
 
     to.meta.initialData = {
-      status: error instanceof Error ? 500 : 404,
+      status,
       data: null,
       error: error instanceof Error ? error.message : 'Failed to load metadata'
     };
-    next();
+
+    if (status === 404 && to.name === 'Burn secret') {
+      next({ name: 'Not Found', replace: true });
+    } else {
+      next();
+    }
   }
 }
