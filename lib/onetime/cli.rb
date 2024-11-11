@@ -1,10 +1,47 @@
 require 'drydock'
 require 'onetime'
 require 'familia/tools'
+require 'onetime/migration'
 
 class OT::CLI < Drydock::Command
   def init
     OT.boot! :cli
+  end
+
+  def migrate
+    migration_file = argv.first
+
+    unless migration_file
+      puts "Usage: ots migrate MIGRATION_SCRIPT"
+      puts "\nAvailable migrations:"
+      Dir[File.join(OT::HOME, 'migrate', '*.rb')].sort.each do |file|
+        puts "  - #{File.basename(file)}"
+      end
+      return
+    end
+
+    migration_path = File.join(OT::HOME, 'migrate', migration_file)
+    unless File.exist?(migration_path)
+      puts "Migration script not found: #{migration_file}"
+      return
+    end
+
+    begin
+      # Load the migration script
+      require_relative "../../migrate/#{migration_file}"
+
+      # Run the migration
+      success = Onetime::Migration.run
+      puts success ? "\nMigration completed successfully" : "\nMigration failed"
+      exit(success ? 0 : 1)
+    rescue LoadError => e
+      puts "Error loading migration: #{e.message}"
+      exit 1
+    rescue StandardError => e
+      puts "Migration error: #{e.message}"
+      puts e.backtrace if OT.debug?
+      exit 1
+    end
   end
 
   def move_keys
@@ -176,6 +213,8 @@ class OT::CLI < Drydock::Command
 
     puts "\nRevalidation complete"
   end
+
+  private
 
   def require_sudo
     return if Process.uid.zero?

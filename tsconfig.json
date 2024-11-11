@@ -34,6 +34,12 @@
   "include": [
     "src/content/*.md",
     "src/**/*.ts",
+    "src/types/**/*.ts",
+    "src/types/declarations/**/*.ts",
+    "src/types/declarations/**/*.d.ts",
+    "src/types/**/*.ts",
+    "src/types/declarations/**/*.ts",
+    "src/types/declarations/**/*.d.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
