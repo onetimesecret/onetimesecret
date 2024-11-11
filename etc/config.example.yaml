@@ -85,6 +85,7 @@
     :email_receipt: 8
     :secret: 8
     :feedback: 11
+    :exception_info: 12
 :colonels:
   # Email addresses listed below will be granted automatic
   # administrative privileges upon account creation. These
