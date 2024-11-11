@@ -170,9 +170,11 @@ module Onetime::Logic
         # Start with safe metadata attributes
         attributes = metadata.safe_dump
 
+        # Only include the secret's identifying key when necessary
+        attributes[:secret_key] = secret_key if show_secret
+
         # Add additional attributes not included in safe dump
         attributes.merge!({
-          secret_key: secret_key,
           created_date_utc: created_date_utc,
           expiration_stamp: expiration_stamp,
           share_path: share_path,
