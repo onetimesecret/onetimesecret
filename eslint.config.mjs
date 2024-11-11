@@ -63,8 +63,8 @@ export default [
       'tailwindcss': pluginTailwindCSS,
     },
     rules: {
-      'tailwindcss/classnames-order': '',
-      'tailwindcss/no-custom-classname': 'on',
+      'tailwindcss/classnames-order': 'warn',
+      'tailwindcss/no-custom-classname': 'error',
     },
   },
 ];
