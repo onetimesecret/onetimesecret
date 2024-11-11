@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import type { Plugin, OutputOptions, OutputBundle } from 'rollup';
+import type { OutputBundle, OutputOptions, Plugin } from 'rollup';
 
 /**
  * Vite plugin to ensure all text output files have a trailing newline.

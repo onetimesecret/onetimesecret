@@ -36,14 +36,12 @@
   },
   "include": [
     "src/content/*.md",
-    "src/**/*.ts",
     "src/types/**/*.ts",
-    "src/types/declarations/**/*.ts",
     "src/types/declarations/**/*.d.ts",
     "src/**/*.d.ts",
+    "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/router/**/*.ts",
     "tests/unit/vue/**/*.spec.ts",
     "tests/unit/vue/**/*.ts"
   ],

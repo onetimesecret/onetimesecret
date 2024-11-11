@@ -1,3 +1,4 @@
+import type { Plugin } from 'rollup';
 
 
 /**
@@ -64,3 +65,7 @@ declare module '*.vue' {
    */
   export default component
 }
+
+
+// src/build/plugins/addTrailingNewline.d.ts
+export declare function addTrailingNewline(): Plugin;
