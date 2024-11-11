@@ -31,7 +31,9 @@
     "test:watch": "vitest",
     "test:watch:coverage": "vitest --coverage",
     "test:watch:ui": "vitest --ui",
-    "type-check": "vue-tsc --noEmit"
+    "type-check": "vue-tsc --noEmit",
+    "type-check:watch": "vue-tsc --noEmit --watch",
+    "type-check:parallel": "pnpm -r exec vue-tsc --build --noEmit"
   },
   "keywords": [],
   "author": "",

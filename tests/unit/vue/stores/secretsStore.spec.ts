@@ -4,6 +4,7 @@ import { createApi } from '@/utils/api'
 import { useSecretsStore } from '@/stores/secretsStore'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { AxiosInstance } from 'axios';
 
 // Mock createApi before it's used
 vi.mock('@/utils/api', () => ({
@@ -79,7 +80,7 @@ describe('secretsStore', () => {
       vi.mocked(createApi).mockReturnValue({
         get: vi.fn().mockResolvedValue({ data: { invalid: 'data' } }),
         post: vi.fn()
-      })
+      } as unknown as AxiosInstance)
 
       await expect(store.loadSecret('abc123')).rejects.toThrow()
       expect(store.error).toBe('Invalid server response')
@@ -90,7 +91,7 @@ describe('secretsStore', () => {
       vi.mocked(createApi).mockReturnValue({
         get: vi.fn().mockRejectedValue(new Error('Network error')),
         post: vi.fn()
-      })
+      } as unknown as AxiosInstance)
 
       await expect(store.loadSecret('abc123')).rejects.toThrow('Network error')
       expect(store.error).toBe('Network error')
@@ -118,7 +119,7 @@ describe('secretsStore', () => {
       vi.mocked(createApi).mockReturnValue({
         get: vi.fn(),
         post: vi.fn().mockRejectedValue(new Error('Invalid passphrase'))
-      })
+      } as unknown as AxiosInstance)
 
       await expect(store.revealSecret('abc123', 'wrong')).rejects.toThrow()
       expect(store.record).toEqual(initialState.record)

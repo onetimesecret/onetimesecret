@@ -1,5 +1,5 @@
 // src/schemas/models/customer.ts
-import { baseApiRecordSchema, type BaseApiRecord } from '@/schemas/base';
+import { baseApiRecordSchema } from '@/schemas/base';
 import type { } from '@/types/api/responses';
 import { booleanFromString, numberFromString } from '@/utils/transforms';
 import { z } from 'zod';
@@ -114,8 +114,11 @@ export const customerInputSchema = baseApiRecordSchema.extend({
   ])).optional()
 }).passthrough()
 
-// Export the inferred type for use in stores/components
-export type Customer = z.infer<typeof customerInputSchema> & BaseApiRecord
+// Update the type to explicitly use Date for timestamps
+export type Customer = Omit<z.infer<typeof customerInputSchema>, 'created' | 'updated'> & {
+  created: Date;
+  updated: Date;
+}
 
 /**
  * Schema for CheckAuthData

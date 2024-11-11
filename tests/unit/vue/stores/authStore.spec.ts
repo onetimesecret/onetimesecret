@@ -30,8 +30,8 @@ vi.mock('vue-router', () => ({
 // Create a mock Plan object
 const mockPlan: Plan = {
   identifier: 'basic-plan',
-  created: '2023-05-20T00:00:00Z',
-  updated: '2023-05-20T00:00:00Z',
+  created: new Date('2023-05-20T00:00:00Z'),
+  updated: new Date('2023-05-20T00:00:00Z'),
   planid: 'basic',
   price: 0,
   discount: 0,
@@ -47,14 +47,15 @@ const mockPlan: Plan = {
 const mockCustomer: Customer = {
   identifier: 'cust-1',
   custid: '1',
-  role: 'user',
+  role: 'customer', // Changed from 'user' to valid enum value
   planid: 'basic',
   plan: mockPlan,
-  verified: 'true', // Changed to string
-  updated: Date.now(),
-  created: Date.now(),
+  verified: true,
+  // Use proper Date objects
+  updated: new Date(Math.floor(Date.now() / 1000) * 1000),
+  created: new Date(Math.floor(Date.now() / 1000) * 1000),
   secrets_created: 0,
-  active: 'true',
+  active: true,
   locale: 'en-US',
   stripe_checkout_email: 'john@example.com',
   stripe_subscription_id: 'sub_123456',

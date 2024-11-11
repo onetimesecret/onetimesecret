@@ -30,23 +30,102 @@ import { z } from 'zod'
  * - Font family and corner style from predefined options
  */
 
+
+
+/**
+ * Generic configuration type for option sets
+ */
+type OptionConfig<T extends string> = Record<
+  string,
+  {
+    value: T
+    display: string
+    icon: string
+  }
+>
+
+/**
+ * Utility to generate mappings and options from a configuration
+ */
+function createOptionHelpers<T extends string>(config: OptionConfig<T>) {
+  const options = Object.values(config).map(c => c.value)
+
+  const displayMap = Object.fromEntries(
+    Object.values(config).map(c => [c.value, c.display])
+  )
+
+  const iconMap = Object.fromEntries(
+    Object.values(config).map(c => [c.value, c.icon])
+  )
+
+  const valueMap = Object.fromEntries(
+    Object.entries(config).map(([key, c]) => [key, c.value])
+  ) as Record<keyof typeof config, T>
+
+  return {
+    options,
+    displayMap,
+    iconMap,
+    valueMap,
+  }
+}
+
 // Font family options matching UI constraints
-export const FontFamily = {
-  ARIAL: 'Arial, sans-serif',
-  HELVETICA: 'Helvetica, Arial, sans-serif',
-  GEORGIA: 'Georgia, serif',
-  TIMES: 'Times New Roman, serif',
-  SANS: 'sans-serif',
-  SERIF: 'serif',
-  BRAND: 'brand',
-} as const
+export const FontFamilyConfig: OptionConfig<string> = {
+  SANS: {
+    value: 'sans-serif',
+    display: 'Sans Serif',
+    icon: 'ph:text-aa-bold',
+  },
+  SERIF: {
+    value: 'serif',
+    display: 'Serif',
+    icon: 'ph:text-t-bold',
+  },
+  ARIAL: {
+    value: 'Arial, sans-serif',
+    display: 'Arial',
+    icon: 'ph:text-aa-bold',
+  },
+  HELVETICA: {
+    value: 'Helvetica, Arial, sans-serif',
+    display: 'Helvetica',
+    icon: 'ph:text-aa-bold',
+  },
+}
 
 // Corner style options matching UI constraints
-export const CornerStyle = {
-  ROUNDED: 'rounded',
-  SHARP: 'sharp',
-  PILL: 'pill',
-} as const
+export const CornerStyleConfig: OptionConfig<string> = {
+  ROUNDED: {
+    value: 'rounded',
+    display: 'Rounded',
+    icon: 'tabler:border-corner-rounded',
+  },
+  PILL: {
+    value: 'pill',
+    display: 'Pill Shape',
+    icon: 'tabler:border-corner-pill',
+  },
+  SQUARE: {
+    value: 'square',
+    display: 'Square',
+    icon: 'tabler:border-corner-square',
+  },
+}
+
+// Generate helpers for FontFamily
+const FontFamilyHelpers = createOptionHelpers(FontFamilyConfig)
+export const FontFamily = FontFamilyHelpers.valueMap
+export const fontOptions = FontFamilyHelpers.options
+export const fontDisplayMap = FontFamilyHelpers.displayMap
+export const fontIconMap = FontFamilyHelpers.iconMap
+
+// Generate helpers for CornerStyle
+const CornerStyleHelpers = createOptionHelpers(CornerStyleConfig)
+export const CornerStyle = CornerStyleHelpers.valueMap
+export const cornerStyleOptions = CornerStyleHelpers.options
+export const cornerStyleDisplayMap = CornerStyleHelpers.displayMap
+export const cornerStyleIconMap = CornerStyleHelpers.iconMap
 
 /**
  * Input schema for brand settings from API
@@ -63,34 +142,20 @@ export const brandSettingsInputSchema = z.object({
   instructions_post_reveal: z.string().optional(),
   description: z.string().optional(),
 
-
   // Boolean fields that come as strings from API
   button_text_light: booleanFromString.optional().default(false),
   allow_public_homepage: booleanFromString.optional().default(false),
   allow_public_api: booleanFromString.optional().default(false),
 
   // UI configuration with constrained values
-  font_family: z.enum([
-    FontFamily.ARIAL,
-    FontFamily.HELVETICA,
-    FontFamily.GEORGIA,
-    FontFamily.TIMES,
-    FontFamily.SERIF,
-    FontFamily.SANS,
-    FontFamily.BRAND,
-  ]).optional(),
-
-  corner_style: z.enum([
-    CornerStyle.ROUNDED,
-    CornerStyle.SHARP,
-    CornerStyle.PILL
-  ]).optional(),
+  font_family: z.enum(Object.values(FontFamily)).optional(),
+  corner_style: z.enum(Object.values(CornerStyle)).optional(),
 
   // Image related fields
   image_content_type: z.string().optional(),
   image_encoded: z.string().optional(),
   image_filename: z.string().optional(),
-}).merge(baseNestedRecordSchema);
+}).merge(baseNestedRecordSchema)
 
 /**
  * Image properties schema for brand assets
@@ -103,8 +168,8 @@ export const imagePropsSchema = z.object({
   width: z.number().optional(),
   height: z.number().optional(),
   ratio: z.number().optional(),
-}).merge(baseNestedRecordSchema).strip();
+}).merge(baseNestedRecordSchema).strip()
 
 // Export inferred types for use in stores/components
-export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseNestedRecord;
-export type ImageProps = z.infer<typeof imagePropsSchema> & BaseNestedRecord;
+export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseNestedRecord
+export type ImageProps = z.infer<typeof imagePropsSchema> & BaseNestedRecord

@@ -103,12 +103,12 @@
 
 
 <script setup lang="ts">
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { CustomDomainApiResponse } from '@/types/api/responses';
 import { ref } from 'vue';
 
-import BasicFormAlerts from './BasicFormAlerts.vue';
 import DomainInput from './DomainInput.vue';
 
 const csrfStore = useCsrfStore();

@@ -30,15 +30,16 @@ export const transformedBaseRecordSchema = z.object({
 export type BaseApiResponse = z.infer<typeof baseApiResponseSchema>;
 export type BaseApiRecord = {
   identifier: string;
-  created: string;
-  updated: string;
+  // These should be Date types since they're transformed
+  created: Date;
+  updated: Date;
 };
 
 // Type helper for transformed record
 export type TransformedBaseRecord = z.infer<typeof transformedBaseRecordSchema>;
 
-export const detailsSchema = z.record(z.string(), z.unknown()).optional()
-export type DetailsType = z.infer<typeof detailsSchema>
+export const detailsSchema = z.record(z.string(), z.unknown()).optional();
+export type DetailsType = z.infer<typeof detailsSchema>;
 
 // Base schema for nested records that belong to a parent (e.g. domain->brand)
 export const baseNestedRecordSchema = z.object({
