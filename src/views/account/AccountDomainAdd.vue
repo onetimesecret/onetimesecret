@@ -1,36 +1,55 @@
 <template>
   <div class="">
     <h1 class="text-3xl font-bold mb-6 dark:text-white">Add your domain</h1>
-    <DomainForm @domain-added="onDomainAdded" :disabled="isNavigating" />
-    <p v-if="isNavigating" class="mt-4 text-gray-600 dark:text-gray-400">Navigating to verification page...</p>
+    <DomainForm
+      :is-submitting="isSubmitting"
+      @submit="handleDomainSubmit"
+    />
+    <p v-if="isNavigating" class="mt-4 text-gray-600 dark:text-gray-400">
+      Navigating to verification page...
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import DomainForm from '@/components/DomainForm.vue';
-import { nextTick, ref, onMounted } from 'vue';
+import { useDomainsStore } from '@/stores/domainsStore';
+import { useNotificationsStore } from '@/stores/notifications';
+import { nextTick, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+const domainsStore = useDomainsStore();
+const notifications = useNotificationsStore();
+
+const isSubmitting = ref(false);
 const isNavigating = ref(false);
 
-onMounted(() => {
-  console.log('AccountDomainAdd component mounted');
-});
-
-const onDomainAdded = async (domain: string) => {
+const handleDomainSubmit = async (domain: string) => {
   if (!domain) {
-    throw new Error('Domain is undefined or empty');
+    return notifications.show('Domain is required', 'error')
   }
-  isNavigating.value = true;
+
+  isSubmitting.value = true;
+
   try {
-    console.info('Navigation to verify', domain);
+    await domainsStore.addDomain(domain);
+    notifications.show(`Added domain ${domain}`, 'success');
+
+    // Navigate to verification
+    isNavigating.value = true;
     await router.replace({ name: 'AccountDomainVerify', params: { domain } });
     await nextTick();
-  } catch (error) {
-    console.error('Navigation error:', error);
-    isNavigating.value = false;
-    // Handle the error (e.g., show an error message to the user)
+
+  } catch (err) {
+    console.log('blooop', err)
+    const error = err instanceof Error
+      ? err.message
+      : 'Failed to add domain';
+    notifications.show(error, 'error');
+
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>

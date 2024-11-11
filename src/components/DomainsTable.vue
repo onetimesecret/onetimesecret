@@ -150,15 +150,14 @@
 </template>
 
 <script setup lang="ts">
+import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
+import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
 import { useWindowProp } from '@/composables/useWindowProps';
 import type { CustomDomain } from '@/schemas/models/domain.ts';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
-
-import DomainVerificationInfo from './DomainVerificationInfo.vue';
-import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
 
 const cust = useWindowProp('cust'); // Used for feature flags
 

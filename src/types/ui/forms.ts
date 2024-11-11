@@ -1,11 +1,9 @@
-
-
-export type FormSubmissionOptions = {
+export type FormSubmissionOptions<T = unknown> = {
   url?: string;
   successMessage: string;
   redirectUrl?: string;
   redirectDelay?: number;
   getFormData?: () => FormData | URLSearchParams;
-  onSuccess?: (data: unknown) => void | Promise<void>;
+  onSuccess?: (data: T) => void | Promise<void>;
   onError?: (data: unknown) => void | Promise<void>;
 };

@@ -1,21 +1,10 @@
 <template>
   <div class="space-y-9 my-16 max-w-full mx-auto px-4 sm:px-6 lg:px-8 dark:bg-gray-900">
-    <BasicFormAlerts
-      :success="success"
-      :error="error"
-    />
 
-    <form @submit.prevent="submitForm" class="space-y-6">
-      <input
-        type="hidden"
-        name="shrimp"
-        :value="csrfStore.shrimp"
-      />
-
+    <form @submit.prevent="handleSubmit" class="space-y-6">
       <DomainInput
         v-model="domain"
-        :is-valid="true"
-        domain=""
+        :isValid="isValid"
         autofocus
         required
         placeholder="e.g. secrets.example.com"
@@ -101,42 +90,28 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { useCsrfStore } from '@/stores/csrfStore';
-import type { CustomDomainApiResponse } from '@/types/api/responses';
 import { ref } from 'vue';
 
 import DomainInput from './DomainInput.vue';
 
-const csrfStore = useCsrfStore();
-const domain = ref('');
-const emit = defineEmits(['domain-added']);
+const props = defineProps<{
+  isSubmitting?: boolean,
+}>();
 
-const {
-  isSubmitting,
-  error,
-  success,
-  submitForm
-} = useFormSubmission({
-  url: '/api/v2/account/domains/add',
-  successMessage: 'Domain added successfully.',
-  onSuccess: (data: CustomDomainApiResponse) => {
-    console.log('Domain added:', data);
-    domain.value = data.record.display_domain;
-    if (!domain.value) {
-      console.error('Domain is undefined or empty');
-    }
-    try {
-      emit('domain-added', domain.value);
-    } catch (error) {
-      console.error('Error emitting domain-added event:', error);
-    }
-  },
-  onError: (data: unknown) => {
-    console.error('Error adding domain:', data);
-  },
-});
+const domain = ref('');
+const emit = defineEmits<{
+  (e: 'submit', domain: string): void
+}>();
+
+const isValid = ref(true); // Optionally manage validation state
+
+const handleSubmit = () => {
+  if (domain.value?.trim()) {
+    isValid.value = true;
+    emit('submit', domain.value.trim());
+  } else {
+    isValid.value = false; // Update validation state
+  }
+};
 </script>
