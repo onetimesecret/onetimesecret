@@ -5,7 +5,7 @@ import type Stripe from 'stripe';
 
 interface Props {
   stripeCustomer: Stripe.Customer | null;
-  stripeSubscriptions: Stripe.Subscription[];
+  stripeSubscriptions?: Stripe.Subscription[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -32,7 +32,7 @@ const subscriptionDetails = computed(() => {
 </script>
 
 <template>
-  <div v-if="props.stripeSubscriptions.length > 0 && props.stripeCustomer"
+  <div v-if="props.stripeSubscriptions && props.stripeSubscriptions.length > 0 && props.stripeCustomer"
        class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md space-y-6 mb-6">
 
     <header class="flex items-center justify-between">

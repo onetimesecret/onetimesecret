@@ -26,7 +26,7 @@ module Onetime
 
     module Views
 
-      #
+      ##
       # The VuePoint class serves as a bridge between the Ruby Rack application
       # and the Vue.js frontend. It is responsible for initializing and passing
       # JavaScript variables from the backend to the frontend.

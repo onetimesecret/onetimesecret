@@ -55,16 +55,23 @@
     </div>
 
     <div class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">
-      <a :href="`https://${siteHost}`"
-         class="hover:underline"
-         rel="noopener noreferrer">
-        Powered by Onetime Secret
-      </a>
+      <div class="space-x-2">
+        <a :href="`https://${siteHost}`"
+           class="hover:underline"
+           rel="noopener noreferrer">
+          Powered by Onetime Secret
+        </a>
+        <span>·</span>
+        <router-link to="/info/terms" class="hover:underline">Terms</router-link>
+        <span>·</span>
+        <router-link to="/info/privacy" class="hover:underline">Privacy</router-link>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useWindowProp } from '@/composables/useWindowProps';
+
 const siteHost = useWindowProp('site_host');
 </script>

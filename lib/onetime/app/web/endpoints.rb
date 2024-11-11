@@ -1,5 +1,5 @@
 
-require_relative 'web_base'
+require_relative 'app_base'
 require_relative 'views'
 require_relative '../app_settings'
 

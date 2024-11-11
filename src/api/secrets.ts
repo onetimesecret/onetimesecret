@@ -1,7 +1,7 @@
 // @/api/secrets.ts
 
-import axios, { AxiosError } from 'axios';
-import { SecretDataApiResponse, AsyncDataResult } from '@/types/onetime';
+import { AsyncDataResult, SecretDataApiResponse } from '@/types/onetime';
+import axios from 'axios';
 
 /**
  * Fetches the initial secret data from the API.
@@ -34,35 +34,25 @@ export async function fetchInitialSecret(secretKey: string): Promise<AsyncDataRe
       status: response.status
     };
   } catch (error) {
+    let errorMessage = 'An unexpected error occurred';
+    let statusCode = null;
+
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      if (axiosError.response) {
-        const { status, data } = axiosError.response;
-        if (status === 404) {
-          return {
-            data: null,
-            error: 'Secret not found or already viewed',
-            status: 404
-          };
-        }
-        return {
-          data: null,
-          error: data.message || 'An error occurred while fetching the secret',
-          status
-        };
-      } else if (axiosError.request) {
-        return {
-          data: null,
-          error: 'No response received from server',
-          status: null
-        };
+      if (error.response) {
+        statusCode = error.response.status;
+        errorMessage =
+          statusCode === 404
+            ? 'Secret not found or already viewed'
+            : error.response.data?.message || 'An error occurred while fetching the secret';
+      } else if (error.request) {
+        errorMessage = 'No response received from server';
       }
     }
 
     return {
       data: null,
-      error: 'An unexpected error occurred',
-      status: null
+      error: errorMessage,
+      status: statusCode
     };
   }
 }

@@ -44,7 +44,7 @@
       "error_passphrase": "Double check that passphrase",
       "enter_passphrase_here": "Enter the passphrase here",
       "view_secret": "View Secret",
-      "careful_only_see_once": "careful: we will only show it once.",
+      "careful_only_see_once": "Careful: we will only show it once.",
       "warning": "Warning",
       "oops": "Oops!",
       "error": "Error",
@@ -113,7 +113,10 @@
       "you_created_this_secret": "You created this secret. If you view it, the recipient will not be able to see it.",
       "your_secret_message": "Your secret message:",
       "this_message_for_you": "This message is for you:",
-      "reply_with_secret": "Reply with another secret"
+      "reply_with_secret": "Reply with another secret",
+      "pre_reveal_default": "Click the button below to reveal your secure message.",
+      "post_reveal_default": "Your secure message is shown below."
+
     },
     "dashboard": {
       "title_received": "Received",

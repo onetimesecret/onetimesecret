@@ -21,7 +21,9 @@
       <Icon icon="mdi:star"
             class="w-4 h-4 text-brand-400 " />
     </router-link>
-    <span class="ml-2 text-gray-400">|</span>
+    <span class="ml-2 text-gray-400"
+          aria-hidden="true"
+          role="separator">|</span>
   </div>
 
 </template>
@@ -41,7 +43,7 @@ const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domain
 // to false disables altogether but defaulting to true
 // and flipping a localStorage flag to false after user
 // has seen it once is a good way to handle this.
-const isNewFeature = ref(false)
+const isNewFeature = ref(false);
 
 defineProps<{
   cust: Customer;

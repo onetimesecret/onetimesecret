@@ -18,11 +18,7 @@ module Onetime::Logic
           OT.info "[ListDomains] Processing #{cust.custom_domains.rediskey}"
 
         @custom_domains = cust.custom_domains_list.map do |domain|
-          if with_brand
-            domain.safe_dump
-          else
-            domain.safe_dump.except(:brand)
-          end
+          domain.safe_dump
         end
       end
 
