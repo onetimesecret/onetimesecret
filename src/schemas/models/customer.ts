@@ -138,3 +138,31 @@ export const checkAuthDetailsSchema = z.object({
 })
 
 export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>
+
+// ApiToken schema using baseApiRecordSchema
+export const apiTokenSchema = baseApiRecordSchema.extend({
+  apitoken: z.string(),
+  active: booleanFromString
+});
+
+export type ApiToken = z.infer<typeof apiTokenSchema>;
+
+// Account schema
+export const accountSchema = baseApiRecordSchema.extend({
+  cust: customerInputSchema,
+  apitoken: z.string().optional(),
+  stripe_customer: z.object({
+    // Define Stripe.Customer schema fields
+    // You'll want to replace this with actual Stripe customer schema
+    id: z.string(),
+    email: z.string().optional()
+  }),
+  stripe_subscriptions: z.array(z.object({
+    // Define Stripe.Subscription schema fields
+    // Replace with actual Stripe subscription schema details
+    id: z.string(),
+    status: z.string()
+  }))
+});
+
+export type Account = z.infer<typeof accountSchema>;

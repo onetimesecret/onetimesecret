@@ -61,7 +61,7 @@ import APIKeyForm from '@/components/account/APIKeyForm.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import { useFetchDataRecord } from '@/composables/useFetchData';
 import { useWindowProps } from '@/composables/useWindowProps';
-import { Account } from '@/schemas/models'; // todo
+import { Account } from '@/schemas/models/customer';
 import { onMounted } from 'vue';
 
 // Grabbing values from the window properties is a convenient way to get
