@@ -5,7 +5,7 @@ module Onetime::Logic
   module Secrets
 
     class ShowSecret < OT::Logic::Base
-      attr_reader :key, :passphrase, :continue, :share_domain
+      attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
                   :original_size, :verification, :correct_passphrase,
                   :display_lines, :one_liner, :is_owner, :has_passphrase,
@@ -28,7 +28,6 @@ module Onetime::Logic
         @show_secret = secret.viewable? && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
         @secret_key = @secret.key
-        @secret_shortkey = @secret.shortkey
 
         owner = secret.load_customer
 
@@ -65,38 +64,27 @@ module Onetime::Logic
           #   view.add_error view.i18n[:COMMON][:error_passphrase]
         end
 
-        domain = if domains_enabled
-                  if secret.share_domain.to_s.empty?
-                    site_host
-                  else
-                    secret.share_domain
-                  end
-                else
-                  site_host
-                end
+        #domain = if domains_enabled
+        #          if secret.share_domain.to_s.empty?
+        #            site_host
+        #          else
+        #            secret.share_domain
+        #          end
+        #        else
+        #          site_host
+        #        end
 
-        @share_domain = [base_scheme, domain].join
-        @is_owner = @secret.owner?(cust)
-        @has_passphrase = @secret.has_passphrase?
         @display_lines = calculate_display_lines
+        @is_owner = secret.owner?(cust)
         @one_liner = one_liner
       end
 
       def success_data
         ret = {
-          record: {
-            key: @secret_key,
-            secret_key: @secret_key,
-            secret_shortkey: @secret_shortkey,
-            is_truncated: @is_truncated,
-            original_size: @original_size,
-            verification: @verification,
-            share_domain: @share_domain,
-            is_owner: @is_owner,
-            has_passphrase: @has_passphrase
-          },
+          record: secret.safe_dump,
           details: {
             continue: @continue,
+            is_owner: @is_owner,
             show_secret: @show_secret,
             correct_passphrase: @correct_passphrase,
             display_lines: @display_lines,

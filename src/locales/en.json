@@ -15,6 +15,7 @@
 
       "header_settings": "Settings",
       "submit_with": "Submit",
+      "submitting": "Processing",
 
       "description": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
       "keywords": "secret,password generator,share a secret,onetime",

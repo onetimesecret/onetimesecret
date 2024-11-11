@@ -14,18 +14,19 @@ export async function resolveMetadata(
 
   try {
     const result = await store.fetchOne(metadataKey, true);
-    if (!result) {
+    if (!result && !store.currentRecord) {
       throw new NotFoundError(`Metadata not found: ${metadataKey}`);
     }
 
+    // Use either the result or fallback to store state
     const initialData: AsyncDataResult<MetadataDataApiResponse> = {
       status: 200,
       data: {
         success: true,
-        record: result.record,
-        details: result.details
+        record: result?.record || store.currentRecord,
+        details: result?.details || store.details
       },
-      error: null
+      error: store.error
     };
 
     to.meta.initialData = initialData;

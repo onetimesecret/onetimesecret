@@ -1,7 +1,7 @@
 // src/schemas/models/secret.ts
 
 import { baseApiRecordSchema } from '@/schemas/base'
-import { booleanFromString } from '@/utils/transforms'
+import { booleanFromString, numberFromString } from '@/utils/transforms'
 import { z } from 'zod'
 
 /**
@@ -11,12 +11,13 @@ import { z } from 'zod'
 export const secretInputSchema = baseApiRecordSchema.extend({
   // Core fields
   key: z.string(),
-  secret_key: z.string(),
+  shortkey: z.string(),
+  state: z.string(),
+  secret_ttl: numberFromString,
+  lifespan: numberFromString,
   is_truncated: booleanFromString,
-  original_size: z.number(),
-  verification: z.string(),
-  share_domain: z.string(),
-  is_owner: booleanFromString,
+  verification: booleanFromString,
+  original_size: numberFromString,
   has_passphrase: booleanFromString,
 
   // Only present after reveal
@@ -31,7 +32,8 @@ export const secretDetailsSchema = z.object({
   show_secret: z.boolean(),
   correct_passphrase: z.boolean(),
   display_lines: z.number(),
-  one_liner: z.boolean()
+  one_liner: z.boolean().nullable().optional(),
+  is_owner: booleanFromString,
 })
 
 export type SecretData = z.infer<typeof secretInputSchema>

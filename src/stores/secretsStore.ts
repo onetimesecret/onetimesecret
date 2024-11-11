@@ -73,7 +73,7 @@ export const useSecretsStore = defineStore('secrets', {
     async revealSecret(secretKey: string, passphrase?: string) {
       this.isLoading = true
       try {
-        const response = await api.post<SecretResponse>(`/api/v2/secret/${secretKey}`, {
+        const response = await api.post<SecretResponse>(`/api/v2/secret/${secretKey}/reveal`, {
           passphrase,
           continue: true
         })

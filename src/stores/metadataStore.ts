@@ -78,10 +78,20 @@ export const useMetadataStore = defineStore('metadata', {
           signal: this.abortController.signal
         });
 
-        const validated = transformResponse(
-          apiRecordsResponseSchema(metadataListInputSchema),
-          response.data
-        );
+        let validated;
+        try {
+          validated = transformResponse(
+            apiRecordsResponseSchema(metadataListInputSchema),
+            response.data
+          );
+        } catch (e) {
+          // On validation error, try to extract what we can
+          console.error('Validation error in fetchList:', e);
+          validated = {
+            records: response.data?.records || [],
+            details: response.data?.details
+          };
+        }
 
         // Store records in both cache and records array
         this.records = validated.records;
@@ -95,16 +105,8 @@ export const useMetadataStore = defineStore('metadata', {
 
 
       } catch (error) {
-        // Add validation error details
-        if (error instanceof Error) {
-          console.error('Validation error:', {
-            name: error.name,
-            message: error.message,
-            data: response?.data
-          });
-        }
         this.handleError(error);
-        //throw error;
+        return null;
       } finally {
         this.isLoading = false;
         this.abortController = null;
@@ -131,13 +133,25 @@ export const useMetadataStore = defineStore('metadata', {
           signal: bypassCache ? this.abortController?.signal : undefined
         });
 
-        const validated = transformResponse(
-          apiRecordResponseSchema(metadataInputSchema),
-          response.data
-        );
+        let validated;
+        try {
+          validated = transformResponse(
+            apiRecordResponseSchema(metadataInputSchema),
+            response.data
+          );
+        } catch (e) {
+          // On validation error, try to extract what we can
+          console.error('Validation error in fetchOne:', e);
+          validated = {
+            record: response.data?.record,
+            details: response.data?.details
+          };
+        }
 
-        this.cache.set(key, validated.record);
-        this.currentRecord = validated.record;
+        if (validated.record) {
+          this.cache.set(key, validated.record);
+          this.currentRecord = validated.record;
+        }
         this.details = validated.details;
 
         return validated;
@@ -156,7 +170,7 @@ export const useMetadataStore = defineStore('metadata', {
           }
         }
         this.handleError(error);
-        throw error;
+        return null;
 
       } finally {
         if (bypassCache) {
@@ -179,23 +193,34 @@ export const useMetadataStore = defineStore('metadata', {
           { passphrase, continue: true }
         );
 
-        const validated = transformResponse(
-          apiRecordResponseSchema(metadataInputSchema),
-          response.data
-        );
+        let validated;
+        try {
+          validated = transformResponse(
+            apiRecordResponseSchema(metadataInputSchema),
+            response.data
+          );
+        } catch (e) {
+          console.error('Validation error in burnMetadata:', e);
+          validated = {
+            record: response.data?.record,
+            details: response.data?.details
+          };
+        }
 
-        this.clearRecord(key);
-        this.currentRecord = validated.record;
-        this.details = validated.details;
-        this.records = this.records.map(r =>
-          r.key === key ? validated.record : r
-        );
+        if (validated.record) {
+          this.clearRecord(key);
+          this.currentRecord = validated.record;
+          this.details = validated.details;
+          this.records = this.records.map(r =>
+            r.key === key ? validated.record : r
+          );
+        }
 
         return validated;
 
       } catch (error) {
         this.handleError(error);
-        throw error;
+        return null;
       } finally {
         this.isLoading = false;
       }
@@ -253,10 +278,11 @@ export const useMetadataStore = defineStore('metadata', {
           rawData: error.data
         });
       }
-      throw error;
+      this.error = error instanceof Error ? error.message : 'Unknown error';
     }
   }
 });
+
 
 function formatErrorDetails(details: ZodIssue[] | string): string | Record<string, string> {
   if (typeof details === 'string') {

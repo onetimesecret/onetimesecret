@@ -1,11 +1,18 @@
 <template>
   <div class="relative">
-    <textarea class="w-full px-3 py-2 border border-gray-300 rounded-md resize-none
-            dark:border-gray-600 dark:text-white dark:bg-gray-800
-              focus:outline-none focus:ring-2 focus:ring-brand-500  font-mono text-base leading-[1.2] tracking-wider bg-gray-100"
-              readonly
-              :rows="details.display_lines"
-              :value="secret.secret_value"></textarea>
+    <textarea
+      v-if="secret.secret_value"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md resize-none
+        dark:border-gray-600 dark:text-white dark:bg-gray-800
+        focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-base leading-[1.2] tracking-wider bg-gray-100"
+      readonly
+      :rows="details.display_lines"
+      :value="secret.secret_value"
+    ></textarea>
+    <div v-else
+         class="text-red-500 dark:text-red-400">
+      Secret value not available
+    </div>
     <button @click="copySecretContent"
             :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
             class="absolute top-2 right-2 p-1.5 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 transition-colors duration-200"

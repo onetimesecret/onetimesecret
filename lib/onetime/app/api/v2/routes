@@ -23,7 +23,7 @@ GET    /private/recent                            Onetime::App::APIV2::Secrets#l
 POST   /private/:key/burn                         Onetime::App::APIV2::Secrets#burn_secret
 GET    /private/:key                              Onetime::App::APIV2::Secrets#get_metadata
 GET    /secret/:key                               Onetime::App::APIV2::Secrets#get_secret
-POST   /secret/:key                               Onetime::App::APIV2::Secrets#reveal_secret
+POST   /secret/:key/reveal                        Onetime::App::APIV2::Secrets#reveal_secret
 
 POST   /secret/conceal                            Onetime::App::APIV2::Secrets#conceal_secret
 
