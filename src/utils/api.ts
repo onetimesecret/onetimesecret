@@ -56,7 +56,7 @@ interface ApiConfig {
 const createApi = (config: ApiConfig = {}): AxiosInstance => {
   let baseURL = config.domain?.trim();
 
-  console.log('[createApi] Initializing API with config:', config);
+  console.debug('[createApi] Initializing API with config:', config);
 
   if (baseURL) {
     // If no protocol specified, prepend https://
@@ -85,8 +85,6 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
     }
   }
 
-  console.log('[createApi] Final baseURL:', baseURL);
-
   const api = axios.create({
     baseURL,
     // Add more default configuration if needed
@@ -100,7 +98,7 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
   api.interceptors.request.use((config) => {
     const csrfStore = useCsrfStore();
 
-    console.log('[Axios Interceptor] Request config:', {
+    console.debug('[Axios Interceptor] Request config:', {
       url: config.url,
       method: config.method,
       baseURL: config.baseURL
