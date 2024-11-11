@@ -72,6 +72,7 @@
     "@vueuse/core": "^11.2.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
+    "eslint-plugin-tailwindcss": "^3.17.5",
     "eslint-plugin-vue": "^9.28.0",
     "globals": "^15.10.0",
     "jsdom": "^25.0.1",
