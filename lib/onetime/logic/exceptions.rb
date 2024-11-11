@@ -6,10 +6,8 @@ module Onetime::Logic
   module Misc
     # Handles incoming exception reports similar to Sentry's basic functionality
     class ReceiveException < OT::Logic::Base
-      prefix :exception
-      ttl 30.days # Keep exceptions for 30 days
 
-      attr_reader :exception_data, :environment, :release, :greenlighted
+      attr_reader :exception_data, :environment, :release, :greenlighted, :exception, :exception_key
 
       def process_params
         @exception_data = {
@@ -43,7 +41,7 @@ module Onetime::Logic
         @greenlighted = true
 
         # Create new exception record
-        exception = OT::ExceptionInfo.new
+        @exception = OT::ExceptionInfo.new
         exception.apply_fields(**@exception_data)
         exception.save
 
@@ -63,32 +61,13 @@ module Onetime::Logic
       def success_data
         {
           success: greenlighted,
-          record: {
-            exception_id: exception_key
-          },
+          record: exception.safe_dump,
           details: {
             message: "Exception logged"
           }
         }
       end
 
-      # Query methods for exception data
-      class << self
-        def recent(env='production', limit=100)
-          redis.zrevrange("exceptions:#{env}", 0, limit-1).map do |key|
-            redis.hgetall(key)
-          end.compact
-        end
-
-        def by_type(type, env='production', limit=100)
-          recent(env, 1000).select { |ex| ex['type'] == type }.first(limit)
-        end
-
-        def count_by_type(env='production')
-          recent(env, 1000).group_by { |ex| ex['type'] }
-                          .transform_values(&:count)
-        end
-      end
     end
   end
 end

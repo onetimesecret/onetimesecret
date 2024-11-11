@@ -1,3 +1,6 @@
+require 'logger'
+
+
 class Onetime::ExceptionInfo < Familia::Horreum
   include Gibbler::Complex
 
@@ -9,8 +12,9 @@ class Onetime::ExceptionInfo < Familia::Horreum
 
   class_sorted_set :values, key: 'onetime:exception'
 
-  identifier :exceptionid
+  identifier :generate_id
 
+  field :key
   field :message
   field :type
   field :stack
@@ -27,6 +31,7 @@ class Onetime::ExceptionInfo < Familia::Horreum
 
   @safe_dump_fields = [
     { identifier: ->(obj) { obj.identifier } },
+    :key,
     :message,
     :type,
     :url,
@@ -85,5 +90,39 @@ class Onetime::ExceptionInfo < Familia::Horreum
     self.updated ||= Time.now.to_i
   end
 
-  # Rest of the model code...
+  def generate_id
+    @key ||= Familia.generate_id.slice(0, 31)
+    @key
+  end
+
+  # Query methods for exception data
+  module ClassMethods
+
+
+    def add(fobj)
+      created_time = OT.now.to_i
+      identifier = fobj.to_s
+
+      OT.li("Adding object with created_time: #{created_time}, identifier: #{identifier}")
+
+      self.values.add(created_time, identifier)
+
+      # Auto-trim the set to keep only the most recent 14 days of feedback
+      self.values.remrangebyscore 0, OT.now.to_i-14.days
+    end
+
+    # Returns a Hash like: {"msg1"=>"1322644672", "msg2"=>"1322644668"}
+    def all
+      ret = self.values.revrangeraw(0, -1, withscores: true)
+      Hash[ret]
+    end
+
+    def recent duration=7.days, epoint=OT.now.to_i
+      spoint = OT.now.to_i-duration
+      ret = self.values.rangebyscoreraw(spoint, epoint, withscores: true)
+      Hash[ret]
+    end
+  end
+
+  extend ClassMethods
 end
