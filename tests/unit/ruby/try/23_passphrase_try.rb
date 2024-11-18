@@ -14,7 +14,7 @@
 
 
 require 'onetime'
-Familia.debug = false
+#Familia.debug = false
 
 # Use the default config file for tests
 OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')

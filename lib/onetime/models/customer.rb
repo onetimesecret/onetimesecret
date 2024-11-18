@@ -1,5 +1,3 @@
-
-
 class Onetime::Customer < Familia::Horreum
   include Gibbler::Complex
 
