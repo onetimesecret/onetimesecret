@@ -101,10 +101,6 @@ class Onetime::RateLimit < Familia::Horreum
     delete!
   end
 
-  def update_expiration
-    redis.expire(counter.rediskey, ttl)
-  end
-
   class << self
     # Hash of registered events and their limits
     attr_reader :events
