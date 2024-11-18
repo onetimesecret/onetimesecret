@@ -336,9 +336,9 @@ class Onetime::Customer < Familia::Horreum
   #
   # This method overrides the default save behavior to prevent
   # anonymous customers from being persisted to the database.
-  def save
+  def save **kwargs
     raise OT::Problem, "Anonymous cannot be saved #{self.class} #{rediskey}" if anonymous?
-    super
+    super(**kwargs)
   end
 
   def to_s
