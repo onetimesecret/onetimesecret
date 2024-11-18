@@ -106,6 +106,6 @@ logic = OT::Logic::Secrets::BurnSecret.new @sess, @cust, @view_params
 #=> [@secret.key, 'testpass123']
 
 # Cleanup test data
-@cust.redis.del
-@secret.redis.del
-@metadata.redis.del
+@cust.delete!
+@secret.delete!
+@metadata.delete!

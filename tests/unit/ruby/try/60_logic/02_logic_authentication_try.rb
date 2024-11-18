@@ -94,5 +94,5 @@ OT.boot! :test
 #=> {}
 
 # Cleanup test data
-@cust.redis.del
-@secret.redis.del if @secret
+@cust.delete!
+@secret.delete! if @secret
