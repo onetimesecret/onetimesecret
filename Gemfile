@@ -32,7 +32,7 @@ gem 'public_suffix'
 gem 'thin'
 
 gem 'drydock'
-gem 'familia', '~> 1.0.0.pre.rc7'
+gem 'familia', path: '/Users/d/Projects/opensource/d/familia'
 
 gem 'gibbler'
 
@@ -50,6 +50,9 @@ gem 'httparty'
 gem 'sendgrid-ruby'
 
 gem 'mail'
+
+gem 'psych', '~> 5.1.2'
+gem 'stringio', '~> 3.1.1'
 
 # As of Ruby 3.4, these are no longer in the standard library
 #
