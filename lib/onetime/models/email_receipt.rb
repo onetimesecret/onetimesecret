@@ -37,7 +37,7 @@ class Onetime::EmailReceipt < Familia::Horreum
   def destroy! *args
     super
     # Remove
-    OT::EmailReceipt.values.rem identifier
+    OT::EmailReceipt.values.remove identifier
   end
 
   module ClassMethods

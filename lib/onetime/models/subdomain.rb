@@ -38,7 +38,7 @@ class Onetime::Subdomain < Familia::Horreum
   end
 
   def destroy! *args
-    OT::Subdomain.rem @cname
+    delete!
     super
   end
 
@@ -63,7 +63,7 @@ class Onetime::Subdomain < Familia::Horreum
     end
 
     def rem cname
-      self.values.del(cname)
+      self.values.remove(cname)
     end
 
     def all

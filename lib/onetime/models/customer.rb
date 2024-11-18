@@ -209,6 +209,7 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def anonymous?
+    p [:anonymous?, key, custid.class, custid]
     custid.to_s.eql?('anon')
   end
 
@@ -288,7 +289,7 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def remove_custom_domain obj
-    custom_domains.rem obj.display_domain # not the object identifier
+    custom_domains.remove obj.display_domain # not the object identifier
   end
 
   def encryption_key

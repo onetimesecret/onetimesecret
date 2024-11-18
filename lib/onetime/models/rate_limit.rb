@@ -98,7 +98,7 @@ class Onetime::RateLimit < Familia::Horreum
   alias_method :count, :value
 
   def clear
-    redis.del rediskey
+    delete!
   end
 
   def update_expiration

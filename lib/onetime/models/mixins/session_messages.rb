@@ -20,7 +20,7 @@ module Onetime::Models
       # displaying a message to a user the next time they load a page.
       #
       # Each message is a small JSON blob: {type: 'error', content: '...'}
-      base.list :messages
+      base.list :messages, ttl: 30.minutes
     end
 
     def set_form_fields hsh
@@ -31,7 +31,7 @@ module Onetime::Models
       fields_json = self.form_fields
       return if fields_json.to_s.empty?
       ret = OT::Utils.indifferent_params JSON.parse(fields_json) # TODO: Use refinement
-      self.hdel! :form_fields
+      self.remove :form_fields
       ret
     rescue JSON::ParserError => ex
       OT.le "Error parsing JSON fields: #{ex.message}"
