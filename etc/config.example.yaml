@@ -84,6 +84,7 @@
     :metadata: 7
     :email_receipt: 8
     :secret: 8
+    :rate_limit: 2
     :feedback: 11
 :colonels:
   # Email addresses listed below will be granted automatic

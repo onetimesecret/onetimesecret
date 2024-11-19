@@ -11,9 +11,11 @@ module Onetime::App
         self[:secret] = secret
         self[:email_address] = cust.email
       end
+
       def subject
         i18n[:email][:subject]
       end
+
       def verify_uri
         secret_uri self[:secret]
       end
