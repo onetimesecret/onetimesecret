@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Feedback Form -->
-    <form @submit.prevent="submitForm"
+    <form @submit.prevent="submitWithCheck"
           class="space-y-6">
       <input type="hidden"
              name="utf8"
@@ -83,6 +83,9 @@ import { useCsrfStore } from '@/stores/csrfStore';
 import { computed, onMounted, ref } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
 
+// Import the necessary function
+import { useExceptionReporting } from '@/composables/useExceptionReporting';
+
 const csrfStore = useCsrfStore();
 
 export interface Props {
@@ -154,5 +157,35 @@ const submitWithText = computed(() => {
  */
 const isDesktop = useMediaQuery('(min-width: 1024px)');
 
+// UseExceptionReporting integration
+const { reportException } = useExceptionReporting();
 
+const handleSpecialMessages = (message: string) => {
+  console.log(`Checking for special message: ${message}`)
+  if (message.startsWith('#ex')) {
+    const error = new Error('Test error triggered via feedback');
+    reportException({
+      message: `Test exception: ${message.substring(11)}`,
+      type: 'TestFeedbackError',
+      stack: error.stack || '',
+      url: window.location.href,
+      line: 0,
+      column: 0,
+      environment: 'production',
+      release: ot_version.value || 'unknown'
+    });
+    return true;
+  }
+  return false;
+};
+
+const submitWithCheck = async (event?: Event) => {
+  console.debug('Submitting exception form');
+
+  if (handleSpecialMessages(feedbackMessage.value)) {
+    // Special message handled, don't submit form
+    return;
+  }
+  await submitForm(event);
+};
 </script>

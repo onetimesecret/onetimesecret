@@ -189,6 +189,12 @@ module Onetime
         res.body = view.render
       end
 
+      def throttle_response message
+        view = Onetime::App::Views::Error.new req, sess, cust, locale
+        view.add_error message
+        res.status = 429
+        res.body = view.render
+      end
     end
   end
 
