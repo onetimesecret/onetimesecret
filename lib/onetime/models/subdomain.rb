@@ -38,8 +38,9 @@ class Onetime::Subdomain < Familia::Horreum
   end
 
   def destroy! *args
-    delete!
     super
+    # Remove
+    OT::Subdomain.values.remove identifier
   end
 
   def fulldomain
