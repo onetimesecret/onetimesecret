@@ -52,6 +52,7 @@
     :splittest: 1
     :email_receipt: 8
     :subdomain: 6
+    :rate_limit: 2
     :custom_domain: 6
 :colonels:
   - 'CHANGEME@EXAMPLE.com'
