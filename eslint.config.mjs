@@ -76,7 +76,6 @@ export default [
       '@typescript-eslint/no-unused-vars': 'error', // Add the rule here
     },
   },
-  ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/strongly-recommended'],
   {
     files: ['src/**/*.vue'],
