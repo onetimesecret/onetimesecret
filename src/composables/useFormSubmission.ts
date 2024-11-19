@@ -1,8 +1,8 @@
 // src/utils/formSubmission.ts
 
-import { ref } from 'vue';
-import type { FormSubmissionOptions } from '@/types/onetime.d.ts';
 import { useCsrfStore } from '@/stores/csrfStore';
+import type { FormSubmissionOptions } from '@/types/ui';
+import { ref } from 'vue';
 
 export function useFormSubmission(options: FormSubmissionOptions) {
   const isSubmitting = ref(false);

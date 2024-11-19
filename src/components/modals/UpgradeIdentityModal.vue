@@ -149,10 +149,10 @@
 </template>
 
 <script setup lang="ts">
+import { productTiers, paymentFrequencies } from '@/sources/productTiers'
 import type { Testimonial } from '@/sources/testimonials';
 import { testimonials } from '@/sources/testimonials';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { productTiers, paymentFrequencies } from '@/sources/productTiers'
 
 // Props
 const props = defineProps<{

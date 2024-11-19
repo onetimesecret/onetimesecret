@@ -32,6 +32,7 @@ module Onetime
     field :token
 
     @safe_dump_fields = [
+      { :identifier => ->(obj) { obj.identifier } },
       :key,
       :custid,
       :state,
@@ -50,7 +51,7 @@ module Onetime
       { :is_destroyed => ->(m) { m.state?(:received) || m.state?(:burned) } },
 
       # We use the hash syntax here since `:truncated?` is not a valid symbol.
-      { :is_truncated => ->(m) { m.truncated? } }
+      { :is_truncated => ->(m) { m.truncated? } },
     ]
 
     def init

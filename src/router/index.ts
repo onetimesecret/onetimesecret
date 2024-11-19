@@ -4,10 +4,10 @@ import dashboardRoutes from '@/router/dashboard.routes'
 import { setupRouterGuards } from '@/router/guards.routes'
 import productRoutes from '@/router/product.routes'
 import publicRoutes from '@/router/public.routes'
+import recipientRoutes from '@/router/recipient.routes'
 import NotFound from '@/views/NotFound.vue'
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
-import recipientRoutes from '@/router/recipient.routes'
 
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,

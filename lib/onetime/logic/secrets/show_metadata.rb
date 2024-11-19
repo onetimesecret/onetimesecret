@@ -167,50 +167,53 @@ module Onetime::Logic
       private
 
       def metadata_attributes
-        {
-          key: @metadata_key,
-          shortkey: @metadata_shortkey,
-          secret_key: @secret_key,
-          secret_shortkey: @secret_shortkey,
-          recipients: @recipients,
-          created_date_utc: @created_date_utc,
-          expiration_stamp: @expiration_stamp,
-          share_path: @share_path,
-          burn_path: @burn_path,
-          metadata_path: @metadata_path,
-          share_url: @share_url,
-          metadata_url: @metadata_url,
-          burn_url: @burn_url,
-          share_domain: @share_domain
-        }
+        # Start with safe metadata attributes
+        attributes = metadata.safe_dump
+
+        # Only include the secret's identifying key when necessary
+        attributes[:secret_key] = secret_key if show_secret
+
+        # Add additional attributes not included in safe dump
+        attributes.merge!({
+          created_date_utc: created_date_utc,
+          expiration_stamp: expiration_stamp,
+          share_path: share_path,
+          burn_path: burn_path,
+          metadata_path: metadata_path,
+          share_url: share_url,
+          metadata_url: metadata_url,
+          burn_url: burn_url
+        })
+
+        attributes
       end
 
       def ancillary_attributes
         {
-          title: @title,
-          body_class: @body_class,
-          display_lines: @display_lines,
-          display_feedback: @display_feedback,
-          no_cache: @no_cache,
-          is_received: @is_received,
-          is_burned: @is_burned,
-          is_destroyed: @is_destroyed,
-          received_date: @received_date,
-          received_date_utc: @received_date_utc,
-          burned_date: @burned_date,
-          burned_date_utc: @burned_date_utc,
-          maxviews: @maxviews,
-          has_maxviews: @has_maxviews,
-          view_count: @view_count,
-          has_passphrase: @has_passphrase,
-          can_decrypt: @can_decrypt,
-          secret_value: @secret_value,
-          is_truncated: @is_truncated,
-          show_secret: @show_secret,
-          show_secret_link: @show_secret_link,
-          show_metadata_link: @show_metadata_link,
-          show_metadata: @show_metadata,
-          show_recipients: @show_recipients
+          title: title,
+          body_class: body_class,
+          display_lines: display_lines,
+          display_feedback: display_feedback,
+          no_cache: no_cache,
+          is_received: is_received,
+          is_burned: is_burned,
+          is_destroyed: is_destroyed,
+          received_date: received_date,
+          received_date_utc: received_date_utc,
+          burned_date: burned_date,
+          burned_date_utc: burned_date_utc,
+          maxviews: maxviews,
+          has_maxviews: has_maxviews,
+          view_count: view_count,
+          has_passphrase: has_passphrase,
+          can_decrypt: can_decrypt,
+          secret_value: secret_value,
+          is_truncated: is_truncated,
+          show_secret: show_secret,
+          show_secret_link: show_secret_link,
+          show_metadata_link: show_metadata_link,
+          show_metadata: show_metadata,
+          show_recipients: show_recipients
         }
       end
 

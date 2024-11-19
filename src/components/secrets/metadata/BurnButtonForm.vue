@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MetadataData, MetadataDetails } from '@/types/onetime'
+import type { MetadataData, MetadataDetails } from '@/schemas/models';
 
 interface Props {
   metadata: MetadataData;

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useCsrfStore } from '@/stores/csrfStore';
 import { useFetchDataRecord } from '@/composables/useFetchData';
-import { SecretData } from '@/types/onetime'
+import { SecretData } from '@/schemas/models';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const csrfStore = useCsrfStore();
@@ -24,7 +24,7 @@ export interface Props {
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })

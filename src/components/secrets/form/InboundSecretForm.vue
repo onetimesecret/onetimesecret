@@ -82,8 +82,8 @@
 </template>
 
 <script setup lang="ts">
-import { useCsrfStore } from '@/stores/csrfStore';
 import { useWindowProps } from '@/composables/useWindowProps';
+import { useCsrfStore } from '@/stores/csrfStore';
 import { ref } from 'vue';
 
 const csrfStore = useCsrfStore();

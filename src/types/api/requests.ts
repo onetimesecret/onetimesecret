@@ -1,4 +1,4 @@
-import type { BrandSettings } from '../onetime';
+import type { BrandSettings } from '../custom_domains';
 
 export interface UpdateDomainBrandRequest {
   brand: Partial<BrandSettings>;

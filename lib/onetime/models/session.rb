@@ -30,6 +30,16 @@ class Onetime::Session < Familia::Horreum
   # receiving a redirect back from Stripe subscription payment workflow.
   field :referrer
 
+  @safe_dump_fields = [
+    { :identifier => ->(obj) { obj.identifier } },
+    :sessid,
+    :external_identifier,
+    :authenticated,
+    :stale,
+    :created,
+    :updated,
+  ]
+
   # When set to true, the session reports itself as not authenticated
   # regardless of the value of the authenticated field. This allows
   # the site to disable authentication without affecting the session

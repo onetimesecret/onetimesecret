@@ -52,9 +52,9 @@
 
 
 <script setup lang="ts">
+import { useNotificationsStore } from '@/stores/notifications';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
-import { useNotificationsStore } from '@/stores/notifications';
 
 interface Props {
   autoDismiss?: boolean;

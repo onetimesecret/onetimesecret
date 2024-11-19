@@ -21,9 +21,9 @@
 </template>
 
 <script setup lang="ts">
-import SecretForm from '@/components/secrets/form/SecretForm.vue';
 import HomepagePlansCTA from '@/components/ctas/HomepagePlansCTA.vue';
 import HomepageTaglines from '@/components/HomepageTaglines.vue';
+import SecretForm from '@/components/secrets/form/SecretForm.vue';
 
 const authenticated = window.authenticated;
 const authenticationSettings = window.authentication;

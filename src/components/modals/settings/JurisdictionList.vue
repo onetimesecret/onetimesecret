@@ -38,8 +38,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Jurisdiction } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
-import type { Jurisdiction } from '@/types/onetime';
 
 const props = defineProps<{
   jurisdictions: Jurisdiction[];

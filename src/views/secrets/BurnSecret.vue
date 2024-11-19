@@ -1,25 +1,38 @@
 <template>
   <div>
+<div v-if="!record || details?.is_destroyed"
+     class="px-4 py-3 rounded relative border
+     bg-red-100 border-red-400 text-red-700
+     dark:bg-red-900/50 dark:border-red-600 dark:text-red-300 mb-4">
+  <span class="block sm:inline">
+    <template v-if="details?.is_received">
+      This secret was viewed on {{ details.received_date }}
+      and is no longer accessible.
+    </template>
+    <template v-else-if="details?.is_burned">
+      This secret was permanently deleted on {{ details.burned_date }}.
+    </template>
+    <template v-else>
+      This secret was permanently deleted.
+    </template>
+  </span>
+  <a v-if="record && record?.metadata_url"
+     :href="record?.metadata_url"
+     class="block w-full py-2 px-4 mt-2
+     bg-gray-300 text-gray-700 rounded text-center
+     hover:bg-gray-300
+     dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+    Back
+  </a>
+  <router-link to="/"
+               class="block w-full py-2 px-4 mt-2
+               bg-gray-300 text-gray-700 rounded text-center
+               hover:bg-gray-300
+               dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+    Home
+  </router-link>
+</div>
 
-    <div v-if="details?.is_destroyed"
-        class="px-4 py-3 rounded relative border
-        bg-red-100 border-red-400 text-red-700 dark:bg-red-800 dark:border-red-600 dark:text-red-100 mb-4">
-      <strong class="font-bold">Cannot burn!</strong>
-      <template>
-        <span class="block sm:inline">
-          <template v-if="details.is_received">
-            The secret has already been viewed ({{ details.received_date }}).
-          </template>
-          <template v-if="details.is_burned">
-            The secret has already been burned ({{ details.burned_date }}).
-          </template>
-        </span>
-      </template>
-      <a :href="record?.metadata_url"
-        class="block w-full py-2 px-4 mt-2
-          bg-gray-200 text-gray-700 rounded text-center hover:bg-gray-300
-          transition duration-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Back</a>
-    </div>
 
     <div v-else>
       <div class="mb-6">
@@ -31,18 +44,11 @@
         </h2>
       </div>
 
-      <form method="POST"
-            @submit.prevent="submitForm"
+      <form @submit.prevent="handleBurn"
             class="space-y-4">
-        <input type="hidden"
-              name="shrimp"
-              :value="csrfStore.shrimp" />
-        <input type="hidden"
-              name="continue"
-              value="true" />
         <div v-if="details?.has_passphrase">
           <input type="password"
-                name="passphrase"
+                v-model="passphrase"
                 id="passField"
                 class="w-full px-3 py-2 border rounded-md
                 border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200
@@ -50,7 +56,7 @@
                 placeholder="Enter the passphrase here" />
         </div>
         <button type="submit"
-                :disabled="isSubmitting"
+                :disabled="isLoading"
                 class="w-full py-2 px-4 rounded-md
                 bg-yellow-400 text-gray-800
                 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800
@@ -68,9 +74,9 @@
           {{ $t('web.COMMON.word_confirm') }}: {{ $t('web.COMMON.burn_this_secret') }}
         </button>
         <a :href="record?.metadata_url"
-          class="block w-full py-2 px-4 rounded text-center
-          bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600
-          transition duration-200">{{ $t('web.COMMON.word_cancel') }}</a>
+           class="block w-full py-2 px-4 rounded text-center
+           bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600
+           transition duration-200">{{ $t('web.COMMON.word_cancel') }}</a>
         <hr class="border-gray-300 dark:border-gray-600" />
         <p class="text-md text-gray-600 dark:text-gray-400">
           {{ $t('web.COMMON.burn_this_secret_confirm_hint') }}
@@ -81,50 +87,22 @@
 </template>
 
 <script setup lang="ts">
-import { useFetchDataRecord } from '@/composables/useFetchData';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { useCsrfStore } from '@/stores/csrfStore';
+import { useMetadataBurn } from '@/composables/useMetadataBurn';
+import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { MetadataData, MetadataDataApiResponse } from '@/types/onetime';
-import { onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 
-const csrfStore = useCsrfStore();
-const notifications = useNotificationsStore();
-
-// This prop is passed from vue-router b/c the route has `prop: true`.
 interface Props {
   metadataKey: string
 }
 
-const props = defineProps<Props>()
-
-const { record, details, fetchData: fetchMetadata } = useFetchDataRecord<MetadataData>({
-  url: `/api/v2/private/${props.metadataKey}`,
-})
-
-
+const props = defineProps<Props>();
 const router = useRouter();
 
-const {
-  isSubmitting,
-  submitForm
-} = useFormSubmission({
-  url: `/api/v2/private/${props.metadataKey}/burn`,
-  successMessage: '',
-  onSuccess: (data: MetadataDataApiResponse) => {
-    notifications.show('Secret burned successfully', 'success');
-    router.push({
-      name: 'Metadata link',
-      params: { metadataKey: data.record.key },
-    });
-  },
-  onError: (error) => {
-    notifications.show(error.message || 'Failed to burn secret', 'error');
-    console.error('Error burning secret:', error);
-  },
-});
+const metadataStore = useMetadataStore();
+const notifications = useNotificationsStore();
+const { currentRecord: record, details, isLoading } = storeToRefs(metadataStore);
 
-onMounted(fetchMetadata);
-
+const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
 </script>

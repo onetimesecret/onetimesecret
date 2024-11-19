@@ -19,6 +19,15 @@ class Onetime::EmailReceipt < Familia::Horreum
   field :created
   field :updated
 
+  @safe_dump_fields = [
+    { :identifier => ->(obj) { obj.identifier } },
+    :secretid,
+    :message_response,
+    { :shortkey => ->(m) { m.key.slice(0, 8) } },
+    :created,
+    :updated,
+  ]
+
   # e.g.
   #
   #  secret:1234567890:email

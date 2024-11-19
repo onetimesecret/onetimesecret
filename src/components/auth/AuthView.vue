@@ -75,10 +75,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Icon } from '@iconify/vue';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { Icon } from '@iconify/vue';
 import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
 
 // Define props for the component
 const props = withDefaults(defineProps<{

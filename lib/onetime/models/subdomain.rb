@@ -25,6 +25,17 @@ class Onetime::Subdomain < Familia::Horreum
   field :updated
   field :homepage
 
+  # Safe fields for Stripe Customer object
+  @safe_dump_fields = [
+    { :identifier => ->(obj) { obj.identifier } },
+    :custid,
+    :cname,
+    :email,
+    :created,
+    :updated,
+    :homepage,
+
+  ]
   def init
     @cname = update_cname(cname)
   end

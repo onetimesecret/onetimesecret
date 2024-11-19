@@ -1,130 +1,110 @@
-import { describe, it, expect, vi } from 'vitest'
-import { RouteRecordRaw, RouteLocationNormalized, NavigationGuardNext, NavigationGuard } from 'vue-router'
-import dashboardRoutes from '@/router/dashboard.routes'
-import { fetchInitialSecret } from '@/api/secrets'
-import { AsyncDataResult, SecretDataApiResponse } from '@/types/onetime'
+// tests/unit/vue/router/recipient.routes.spec.ts
 
-vi.mock('@/api/secrets', () => ({
-  fetchInitialSecret: vi.fn(),
+import { useSecretsStore } from '@/stores/secretsStore'
+import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import routes from '@/router/recipient.routes'
+
+// Mock the secrets store
+vi.mock('@/stores/secretsStore', () => ({
+  useSecretsStore: vi.fn(() => ({
+    loadSecret: vi.fn().mockResolvedValue({
+      record: {
+        key: 'test123',
+        // ... other record fields
+      },
+      details: {
+        // ... details fields
+      }
+    })
+  }))
 }))
 
 describe('Recipient Routes', () => {
+  beforeEach(() => {
+    // Set up Pinia for each test
+    setActivePinia(createPinia())
+  })
+
   describe('Secret Link Route', () => {
     it('should define secret link route correctly', () => {
-      const route = dashboardRoutes.find((route: RouteRecordRaw) => route.path === '/secret/:secretKey')
+      const route = routes.find((route) => route.path === '/secret/:secretKey')
+
       expect(route).toBeDefined()
-      expect(route?.meta?.layout).toBeDefined()
-      expect(route?.meta?.layoutProps?.displayMasthead).toBe(false)
-      expect(route?.meta?.layoutProps?.displayNavigation).toBe(false)
-      expect(route?.meta?.layoutProps?.displayLinks).toBe(false)
-      expect(route?.meta?.layoutProps?.displayFeedback).toBe(false)
-      expect(route?.meta?.layoutProps?.displayVersion).toBe(true)
-      expect(route?.meta?.layoutProps?.displayPoweredBy).toBe(true)
+      expect(route?.component).toBe(ShowSecretContainer) // Changed from components.default
+      expect(route?.name).toBe('Secret link')
+      expect(route?.props).toBe(true)
     })
 
     it('should fetch initial secret data before entering the route', async () => {
-      const route = dashboardRoutes.find((route: RouteRecordRaw) => route.path === '/secret/:secretKey')
-      const next = vi.fn() as NavigationGuardNext
-      const secretKey = 'test-secret-key'
-      const initialData: AsyncDataResult<SecretDataApiResponse> = {
-        data: {
-          success: true,
-          record: {
-            identifier: 'test-id',
-            created: '2023-01-01T00:00:00Z',
-            updated: '2023-01-01T00:00:00Z',
-            key: secretKey,
-            secret_key: secretKey,
-            secret_shortkey: 'test-short',
-            is_truncated: false,
-            original_size: 100,
-            verification: 'test-verification',
-            share_domain: 'example.com',
-            is_owner: false,
-            has_passphrase: false,
-            secret_value: 'test-secret'
-          }
-        },
-        error: null,
-        status: 200
+      const route = routes.find((route) => route.path === '/secret/:secretKey')
+      expect(route?.beforeEnter).toBeDefined()
+
+      const mockRoute = {
+        params: { secretKey: 'test123' },
+        meta: {}
+      }
+      const mockNext = vi.fn()
+
+      // Get the beforeEnter guard
+      const beforeEnter = route?.beforeEnter
+      if (!beforeEnter) {
+        throw new Error('beforeEnter not defined')
       }
 
-      vi.mocked(fetchInitialSecret).mockResolvedValue(initialData)
+      await beforeEnter(
+        mockRoute as any,
+        {} as any,
+        mockNext
+      )
 
-      const mockTo = {
-        params: { secretKey },
-        name: 'secret',
-        path: `/secret/${secretKey}`,
-        hash: '',
-        query: {},
-        fullPath: `/secret/${secretKey}`,
-        matched: [],
-        meta: {},
-        redirectedFrom: undefined
-      } as RouteLocationNormalized
-
-      const mockFrom = {
-        name: 'home',
-        path: '/',
-        hash: '',
-        query: {},
-        params: {},
-        fullPath: '/',
-        matched: [],
-        meta: {},
-        redirectedFrom: undefined
-      } as RouteLocationNormalized
-
-      if (route?.beforeEnter) {
-        const guard = (route.beforeEnter as NavigationGuard).bind(undefined)
-        await guard(mockTo, mockFrom, next)
-      }
-
-      expect(fetchInitialSecret).toHaveBeenCalledWith(secretKey)
-      expect(next).toHaveBeenCalled()
+      // Verify the route meta was set correctly
+      expect(mockRoute.meta.initialData).toBeDefined()
+      expect(mockRoute.meta.initialData.status).toBe(200)
+      expect(mockRoute.meta.initialData.error).toBeNull()
+      expect(mockNext).toHaveBeenCalled()
     })
 
     it('should handle error when fetching initial secret data', async () => {
-      const route = dashboardRoutes.find((route: RouteRecordRaw) => route.path === '/secret/:secretKey')
-      const next = vi.fn() as NavigationGuardNext
-      const secretKey = 'test-secret-key'
-      const error = new Error('Failed to fetch initial page data')
+      // Override store mock for error case
+      vi.mocked(useSecretsStore).mockImplementationOnce(() => ({
+        loadSecret: vi.fn().mockRejectedValue(new Error('Failed to load'))
+      }))
 
-      vi.mocked(fetchInitialSecret).mockRejectedValue(error)
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const route = routes.find((route) => route.path === '/secret/:secretKey')
+      const mockRoute = {
+        params: { secretKey: 'test123' },
+        meta: {}
+      }
+      const mockNext = vi.fn()
 
-      const mockTo = {
-        params: { secretKey },
-        name: 'secret',
-        path: `/secret/${secretKey}`,
-        hash: '',
-        query: {},
-        fullPath: `/secret/${secretKey}`,
-        matched: [],
-        meta: {},
-        redirectedFrom: undefined
-      } as RouteLocationNormalized
-
-      const mockFrom = {
-        name: 'home',
-        path: '/',
-        hash: '',
-        query: {},
-        params: {},
-        fullPath: '/',
-        matched: [],
-        meta: {},
-        redirectedFrom: undefined
-      } as RouteLocationNormalized
-
-      if (route?.beforeEnter) {
-        const guard = (route.beforeEnter as NavigationGuard).bind(undefined)
-        await guard(mockTo, mockFrom, next)
+      const beforeEnter = route?.beforeEnter
+      if (!beforeEnter) {
+        throw new Error('beforeEnter not defined')
       }
 
-      expect(fetchInitialSecret).toHaveBeenCalledWith(secretKey)
-      expect(consoleSpy).toHaveBeenCalledWith('Error fetching initial page data:', error)
-      expect(next).toHaveBeenCalledWith(new Error('Failed to fetch initial page data'))
+      await beforeEnter(
+        mockRoute as any,
+        {} as any,
+        mockNext
+      )
+
+      expect(mockRoute.meta.initialData.status).toBe(500)
+      expect(mockRoute.meta.initialData.data).toBeNull()
+      expect(mockRoute.meta.initialData.error).toBe('Failed to load')
+      expect(mockNext).toHaveBeenCalled()
+    })
+
+    it('should set correct meta data for domain handling', () => {
+      const route = routes.find((route) => route.path === '/secret/:secretKey')
+
+      expect(route?.meta).toEqual({
+        domain_strategy: window.domain_strategy,
+        display_domain: window.display_domain,
+        domain_id: window.domain_id,
+        site_host: window.site_host
+      })
     })
   })
 })

@@ -1,6 +1,6 @@
 <template>
   <BaseSecretDisplay defaultTitle="You have a message"
-                     :instructions="domainBranding.instructions_pre_reveal">
+                     :instructions="domainBranding?.instructions_pre_reveal">
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
@@ -82,10 +82,11 @@
 
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard';
-import { SecretData, SecretDetails } from '@/types/onetime';
-import { ref } from 'vue';
-import BaseSecretDisplay from './BaseSecretDisplay.vue';
 import { useDomainBranding } from '@/composables/useDomainBranding';
+import { SecretData, SecretDetails } from '@/schemas/models';
+import { ref } from 'vue';
+
+import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
 interface Props {
   secretKey: string;

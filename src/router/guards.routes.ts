@@ -1,7 +1,7 @@
-import { Router, RouteLocationNormalized } from 'vue-router'
+import { useWindowProp } from '@/composables/useWindowProps'
 import { useAuthStore } from '@/stores/authStore'
 import { useLanguageStore } from '@/stores/languageStore'
-import { useWindowProp } from '@/composables/useWindowProps'
+import { Router, RouteLocationNormalized } from 'vue-router'
 
 // src/router/guards.ts
 export function setupRouterGuards(router: Router) {

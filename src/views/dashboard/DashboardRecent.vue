@@ -1,27 +1,38 @@
+
 <template>
   <div>
     <DashboardTabNav />
 
-    <SecretMetadataTable :hasItems="details?.has_items"
-                        :notReceived="details?.notreceived"
-                        :received="details?.received"
-                        :isLoading="isLoading"
-                        title="Received" />
+    <div v-if="isLoading">Loading...</div>
+    <div v-else-if="error">{{ error }}</div>
+    <div v-else>
+      <SecretMetadataTable v-if="records.length > 0"
+                              :notReceived="details?.notreceived"
+                              :received="details?.received"
+                              :isLoading="isLoading"
+                              title="Received" />
+      <EmptyState v-else />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
-import { useFetchData } from '@/composables/useFetchData';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import EmptyState from '@/components/EmptyState.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
-import { MetadataData } from '@/types/onetime';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { storeToRefs } from 'pinia';
+import { onMounted, onUnmounted } from 'vue';
 
-const { details, fetchData: fetchDomains, isLoading } = useFetchData<MetadataData>({
-  url: '/api/v2/private/recent',
+const store = useMetadataStore();
+const { records, details, isLoading, error } = storeToRefs(store);
+
+onMounted(async () => {
+  await store.fetchList();
+
 });
 
-onMounted(fetchDomains);
-
-
+onUnmounted(() => {
+  store.abortPendingRequests();
+});
 </script>

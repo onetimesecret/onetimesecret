@@ -113,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BrandSettings } from '@/types/onetime';
+import type { BrandSettings } from '@/schemas/models/domain/brand';
 
 interface Props {
   branded?: boolean;

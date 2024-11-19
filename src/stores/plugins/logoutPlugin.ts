@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/authStore'
-import { useLanguageStore } from '@/stores/languageStore'
 import { useCsrfStore } from '@/stores/csrfStore'
+import { useLanguageStore } from '@/stores/languageStore'
 import { PiniaPluginContext } from 'pinia'
 
 // By default, $reset() will not reset state added by plugins but you can override it

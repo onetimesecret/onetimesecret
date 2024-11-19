@@ -18,15 +18,17 @@
 
         <div class="inline-flex items-center gap-2">
           <!-- Font Family -->
-          <CycleButton :modelValue="modelValue.font_family"
+          <CycleButton :model-value="modelValue.font_family"
+                       :default-value="FontFamily.SANS"
                        @update:modelValue="updateFont"
                        :options="fontOptions"
-                       label=""
+                       label="Font Family"
                        :display-map="fontDisplayMap"
                        :icon-map="fontIconMap" />
 
           <!-- Corner Style -->
-          <CycleButton :modelValue="modelValue.corner_style"
+          <CycleButton :model-value="modelValue.corner_style"
+                       :default-value="CornerStyle.ROUNDED"
                        @update:modelValue="updateCornerStyle"
                        :options="cornerStyleOptions"
                        label="Corner Style"
@@ -61,45 +63,32 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import type { BrandSettings } from '@/types/onetime';
-import CycleButton from '../common/CycleButton.vue';
-import ColorPicker from '@/components/common/ColorPicker.vue';
+import ColorPicker from '@/components/common/ColorPicker.vue'
+import type { BrandSettings } from '@/schemas/models'
+import {
+  CornerStyle,
+  cornerStyleDisplayMap,
+  cornerStyleIconMap,
+  cornerStyleOptions,
+  fontDisplayMap,
+  FontFamily,
+  fontIconMap,
+  fontOptions,
+} from '@/schemas/models/domain/brand'
+import { Icon } from '@iconify/vue'
+
+import CycleButton from '../common/CycleButton.vue'
 
 const props = defineProps<{
-  modelValue: BrandSettings;
-  shrimp: string;
-  isSubmitting: boolean;
-}>();
+  modelValue: BrandSettings
+  shrimp: string
+  isSubmitting: boolean
+}>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: BrandSettings): void;
-  (e: 'submit'): void;
-}>();
-
-const fontOptions = ['sans-serif', 'serif', 'monospace'];
-const fontDisplayMap = {
-  'sans-serif': 'Sans Serif',
-  'serif': 'Serif',
-  'monospace': 'Monospace'
-};
-const fontIconMap = {
-  'sans-serif': 'ph:text-aa-bold',
-  'serif': 'ph:text-t-bold',
-  'monospace': 'ph:code-simple-bold'
-};
-
-const cornerStyleOptions = ['rounded', 'pill', 'square'];
-const cornerStyleDisplayMap = {
-  'rounded': 'Rounded',
-  'pill': 'Pill Shape',
-  'square': 'Square'
-};
-const cornerStyleIconMap = {
-  'rounded': 'tabler:border-corner-rounded',
-  'pill': 'tabler:border-corner-pill',
-  'square': 'tabler:border-corner-square'
-};
+  (e: 'update:modelValue', value: BrandSettings): void
+  (e: 'submit'): void
+}>()
 
 const updateBrandSetting = <K extends keyof BrandSettings>(
   key: K,
@@ -107,16 +96,17 @@ const updateBrandSetting = <K extends keyof BrandSettings>(
 ) => {
   emit('update:modelValue', {
     ...props.modelValue,
-    [key]: value
-  });
-};
+    [key]: value,
+  })
+}
 
-// Update your other methods to use updateBrandSetting
+// Update font family
 const updateFont = (value: string) => {
-  updateBrandSetting('font_family', value);
-};
+  updateBrandSetting('font_family', value as keyof typeof FontFamily)
+}
 
+// Update corner style
 const updateCornerStyle = (value: string) => {
-  updateBrandSetting('corner_style', value);
-};
+  updateBrandSetting('corner_style', value as keyof typeof CornerStyle)
+}
 </script>

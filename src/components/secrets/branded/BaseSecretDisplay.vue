@@ -9,7 +9,7 @@
       <div class="flex-1 text-center sm:text-left">
         <div class="min-h-[5.5rem] sm:min-h-[6rem] relative">
           <h2 class="text-gray-900 dark:text-gray-200 text-base sm:text-xl font-medium mb-2 sm:mb-3 leading-normal"
-              :style="{ fontFamily: domainBranding.font_family }">
+              :style="{ fontFamily: domainBranding?.font_family }">
             <slot name="title">{{ defaultTitle }}</slot>
           </h2>
 
@@ -17,7 +17,7 @@
             <p ref="textRef"
                class="pb-4"
                :class="textClasses"
-               :style="{ fontFamily: domainBranding.font_family }">
+               :style="{ fontFamily: domainBranding?.font_family }">
               {{ instructions || $t('web.shared.pre_reveal_default') }}
             </p>
 
@@ -87,9 +87,9 @@ const textClasses = computed(() => ({
 }));
 
 const contentAreaClasses = computed(() => ({
-  'rounded-lg': domainBranding.value.corner_style === 'rounded',
-  'rounded-xl': domainBranding.value.corner_style === 'pill',
-  'rounded-none': domainBranding.value.corner_style === 'square'
+  'rounded-lg': domainBranding.value?.corner_style === 'rounded',
+  'rounded-xl': domainBranding.value?.corner_style === 'pill',
+  'rounded-none': domainBranding.value?.corner_style === 'square'
 }));
 
 // Text length checking

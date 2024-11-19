@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import { useBrandingStore } from '@/stores/brandingStore';
-import { AuthenticationSettings, Customer } from '@/types/onetime';
+import { AuthenticationSettings, Customer } from '@/types/core';
 import { computed, inject, ref, Ref } from 'vue';
 
 export interface Props {

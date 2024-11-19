@@ -14,6 +14,7 @@
 import { domainStrategy } from '@/composables/useDomainBranding';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+
 import ShowSecretBranded from './branded/ShowSecret.vue';
 import ShowSecretCanonical from './canonical/ShowSecret.vue';
 

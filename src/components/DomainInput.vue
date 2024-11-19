@@ -8,10 +8,11 @@
         type="text"
         name="domain"
         id="domain"
-        :value="domain"
         :placeholder="placeholder"
         :aria-invalid="!isValid"
         aria-describedby="domain-error"
+        :value="modelValue"
+        @input="onInput"
         class="block w-full rounded-md border-0 py-3 pl-5 pr-10 text-xl text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brandcomp-600 shadow-sm dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:placeholder:text-gray-400 dark:focus:ring-brandcomp-500"
       />
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -23,18 +24,28 @@
         />
       </div>
     </div>
-    <p v-if="!isValid" class="mt-2 text-sm text-red-600 dark:text-red-400" id="domain-error">
-      Not a valid domain address.
-    </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import { defineEmits, defineProps } from 'vue';
 
-defineProps<{
-  domain: string;
+// Define the props expected from the parent
+const props = defineProps<{
+  modelValue: string;
   placeholder: string;
   isValid: boolean;
 }>();
+
+// Define the emits to notify the parent of updates
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void;
+}>();
+
+// Handle the input event and emit the updated value
+const onInput = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  emit('update:modelValue', target.value);
+};
 </script>

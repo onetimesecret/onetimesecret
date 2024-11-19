@@ -15,7 +15,7 @@
     "esModuleInterop": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-
+    "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
     "jsx": "preserve",
 
@@ -25,25 +25,23 @@
 
     "sourceMap": true,
     "noEmit": true,
-    "baseUrl": ".",
+    "baseUrl": "src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types/declarations"
+    ]
   },
   "include": [
     "src/content/*.md",
-    "src/**/*.ts",
     "src/types/**/*.ts",
-    "src/types/declarations/**/*.ts",
-    "src/types/declarations/**/*.d.ts",
-    "src/types/**/*.ts",
-    "src/types/declarations/**/*.ts",
     "src/types/declarations/**/*.d.ts",
     "src/**/*.d.ts",
+    "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "src/router/**/*.ts",
     "tests/unit/vue/**/*.spec.ts",
     "tests/unit/vue/**/*.ts"
   ],

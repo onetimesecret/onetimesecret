@@ -61,13 +61,14 @@
 </template>
 
 <script setup lang="ts">
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import MoreInfoText from "@/components/MoreInfoText.vue";
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
+import { CustomDomain, CustomDomainCluster } from '@/schemas/models';
+import { CustomDomainApiResponse } from '@/types/api/responses'
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 
 
 const route = useRoute();

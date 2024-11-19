@@ -21,7 +21,7 @@ require 'storable'
 require 'sysinfo'
 
 require_relative 'onetime/core_ext'
-require_relative 'refinements/horreum_refinements'
+require_relative 'onetime/refinements/horreum_refinements'
 
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
 # This is particularly useful in development and production environments where

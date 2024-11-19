@@ -3,9 +3,6 @@
     'w-full',
     'bg-white dark:bg-gray-800 rounded-lg p-8'
   ]">
-    <BasicFormAlerts :success="success"
-                     :error="error"
-                     role="alert" />
 
     <p v-if="record?.verification && !record?.has_passphrase"
        class="text-md text-gray-600 dark:text-gray-400">
@@ -22,7 +19,7 @@
           aria-label="Secret confirmation form">
       <input name="shrimp"
              type="hidden"
-             :value="csrfStore.shrimp" />
+             :value="1" />
       <input name="continue"
              type="hidden"
              value="true" />
@@ -56,10 +53,8 @@
 </template>
 
 <script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { useCsrfStore } from '@/stores/csrfStore';
-import type { SecretData, SecretDetails } from '@/types/onetime';
+import { SecretData, SecretDetails } from '@/schemas/models';
+import { useSecretsStore } from '@/stores/secretsStore';
 import { ref } from 'vue';
 
 interface Props {
@@ -69,27 +64,20 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
-const emit = defineEmits<{
-  (e: 'secret-loaded', data: { record: SecretData; details: SecretDetails; }): void;
-}>();
-
-const csrfStore = useCsrfStore();
+const secretStore = useSecretsStore();
 const passphrase = ref('');
+const isSubmitting = ref(false);
 
-const {
-  isSubmitting,
-  error,
-  success,
-  submitForm
-} = useFormSubmission({
-  url: `/api/v2/secret/${props.secretKey}`,
-  successMessage: '',
-  onSuccess: (data: { record: SecretData; details: SecretDetails }) => {
-    emit('secret-loaded', {
-      record: data.record,
-      details: data.details
-    });
+const submitForm = async () => {
+  if (isSubmitting.value) return;
+
+  isSubmitting.value = true;
+  try {
+    await secretStore.revealSecret(props.secretKey, passphrase.value);
+  } catch (error) {
+    // Error handling done by store
+  } finally {
+    isSubmitting.value = false;
   }
-});
+};
 </script>

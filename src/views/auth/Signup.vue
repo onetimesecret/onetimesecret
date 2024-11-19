@@ -18,13 +18,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import AlternateSignUpMethods from '@/components/auth/AlternateSignUpMethods.vue';
 import AuthView from '@/components/auth/AuthView.vue';
 import SignUpForm from '@/components/auth/SignUpForm.vue';
 import { useWindowProps } from '@/composables/useWindowProps';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { storeToRefs } from 'pinia';
-import AlternateSignUpMethods from '@/components/auth/AlternateSignUpMethods.vue';
+import { ref, computed } from 'vue';
 
 const jurisdictionStore = useJurisdictionStore();
 const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);

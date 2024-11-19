@@ -1,6 +1,6 @@
 
-import { CheckAuthDataApiResponse, CheckAuthDetails, Customer } from '@/types/onetime';
-
+import { CheckAuthDetails, Customer } from '@/schemas/models';
+import { CheckAuthDataApiResponse } from '@/types/api/responses';
 import axios, { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
 

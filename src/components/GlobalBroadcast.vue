@@ -6,8 +6,8 @@
 -->
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
 import MovingGlobules from '@/components/MovingGlobules.vue';
+import { Icon } from '@iconify/vue';
 import DOMPurify from 'dompurify';
 import { computed } from 'vue';
 

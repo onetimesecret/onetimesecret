@@ -77,14 +77,13 @@
 
 <script setup lang="ts">
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
+import { useExceptionReporting } from '@/composables/useExceptionReporting';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useWindowProps } from '@/composables/useWindowProps';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { computed, onMounted, ref } from 'vue';
 import { useMediaQuery } from '@vueuse/core';
+import { computed, onMounted, ref } from 'vue';
 
-// Import the necessary function
-import { useExceptionReporting } from '@/composables/useExceptionReporting';
 
 const csrfStore = useCsrfStore();
 
@@ -93,8 +92,7 @@ export interface Props {
   showRedButton: boolean | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   enabled: true,
   showRedButton: false,
 })
@@ -129,7 +127,7 @@ const {
     emit('feedback-sent');
     resetForm();
   },
-  onError: (data) => {
+  onError: (data: unknown) => {
     console.error('Error sending feedback:', data);
   },
 });

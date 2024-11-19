@@ -90,10 +90,10 @@
 
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 
 import { Icon } from '@iconify/vue';
 import { useEventListener } from '@vueuse/core';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 
 
 const props = withDefaults(defineProps<{

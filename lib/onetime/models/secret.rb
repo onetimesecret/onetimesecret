@@ -1,4 +1,3 @@
-
 module Onetime
   class Secret < Familia::Horreum
     include Gibbler::Complex
@@ -32,6 +31,21 @@ module Onetime
     # into a hidden field which is something a regular person would not do.
     field :token
 
+    @safe_dump_fields = [
+      { identifier: ->(obj) { obj.identifier } },
+      :key,
+      :state,
+      :secret_ttl,
+      :lifespan,
+      :original_size,
+      { shortkey: ->(m) { m.key.slice(0, 8) } },
+      { has_passphrase: ->(m) { m.has_passphrase? } },
+      { verification: ->(m) { m.verification? } },
+      { is_truncated: ->(m) { m.truncated? } },
+      :created,
+      :updated,
+    ]
+
     def init
       self.state ||= 'new'
     end
@@ -39,23 +53,6 @@ module Onetime
     def generate_id
       @key ||= Familia.generate_id.slice(0, 31)
       @key
-    end
-
-    def age
-      @age ||= Time.now.utc.to_i-updated
-      @age
-    end
-
-    def customer?
-      ! custid.nil?
-    end
-
-    def value_length
-      value.to_s.size
-    end
-
-    def long
-      original_size >= 5000
     end
 
     def shortkey
@@ -92,6 +89,10 @@ module Onetime
 
     def truncated?
       self.truncated.to_s == "true"
+    end
+
+    def verification?
+      verification.to_s == "true"
     end
 
     def encrypt_value original_value, opts={}
@@ -185,7 +186,8 @@ module Onetime
       # A guard to allow only a fresh, new secret to be burned. Also ensures that
       # we don't support going from :burned back to something else.
       return unless state?(:new)
-      load_metadata.burned!
+      md = load_metadata
+      md.burned! unless md.nil?
       @passphrase_temp = nil
       self.destroy!
     end

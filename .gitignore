@@ -49,6 +49,7 @@ etc/config*
 !fly.toml
 .github/*md
 .eslintcache
+tsconfig.tsbuildinfo
 
 # Environment files
 .env*

@@ -1,205 +1,262 @@
+// src/stores/domainsStore.ts
+
+import {
+  customDomainInputSchema,
+  type CustomDomain
+} from '@/schemas/models/domain';
 import type { UpdateDomainBrandRequest } from '@/types/api/requests';
-import type { UpdateDomainBrandResponse } from '@/types/api/responses';
-import type { BrandSettings, BrokenCustomDomain, CustomDomain, CustomDomainRecordsApiResponse } from '@/types/onetime';
+import {
+  ApiRecordResponse,
+  apiRecordResponseSchema,
+  ApiRecordsResponse,
+  apiRecordsResponseSchema
+} from '@/types/api/responses';
 import { createApi } from '@/utils/api';
+import { isTransformError, transformResponse } from '@/utils/transforms';
+import axios from 'axios';
 import { defineStore } from 'pinia';
+import type { ZodIssue } from 'zod';
+
+
+//
+// API Input (strings) -> Store/Component (shared types) -> API Output (serialized)
+//                       ^                               ^
+//                       |                               |
+//                    transform                      serialize
+//
 
 const api = createApi();
 
-interface DomainsState {
-  domains: CustomDomain[];
-  isLoading: boolean;
-  defaultBranding: BrandSettings;
-}
-
+/**
+ * Domains store with centralized error handling
+ * - Uses shared CustomDomain type with components
+ * - Handles API transformation at edges only
+ * - Centralizes error handling to avoid duplication
+ */
 export const useDomainsStore = defineStore('domains', {
-  state: (): DomainsState => ({
+  state: (): {
+    domains: CustomDomain[],
+    isLoading: boolean
+  } => ({
     domains: [],
-    isLoading: false,
-    defaultBranding: {
-      primary_color: '#dc4a22',
-      instructions_pre_reveal: 'This secret requires confirmation before viewing.',
-      instructions_reveal: 'The secret will be displayed below.',
-      instructions_post_reveal: 'This secret has been destroyed and cannot be viewed again.',
-      button_text_light: true,
-      font_family: 'system-ui',
-      corner_style: 'rounded',
-      allow_public_homepage: false,
-      allow_public_api: false,
-    }
+    isLoading: false
   }),
-
   actions: {
-    parseDomainBranding(domain: BrokenCustomDomain): CustomDomain {
-      if (!domain.brand) return domain;
-
-      return {
-        ...domain,
-        brand: {
-          ...this.defaultBranding,
-          primary_color: domain.brand.primary_color,
-          instructions_pre_reveal: domain.brand.instructions_pre_reveal,
-          instructions_reveal: domain.brand.instructions_reveal,
-          instructions_post_reveal: domain.brand.instructions_post_reveal,
-          button_text_light: domain.brand.button_text_light === 'true',
-          font_family: domain.brand.font_family,
-          corner_style: domain.brand.corner_style,
-          allow_public_homepage: domain.brand.allow_public_homepage === 'true',
-          allow_public_api: domain.brand.allow_public_api === 'true',
-        }
-      };
+    /**
+     * Centralized error handler for API errors
+     * @param error - The error thrown from an API call
+     */
+    handleApiError(error: unknown): never {
+      if (axios.isAxiosError(error)) {
+        const serverMessage = error.response?.data?.message || error.message;
+        console.error('API Error:', serverMessage);
+        // You can extend this to handle specific error codes or scenarios
+        throw new Error(serverMessage);
+      } else if (isTransformError(error)) {
+        console.error('Data Validation Error:', formatErrorDetails(error.details));
+        throw new Error('Data validation failed.');
+      } else if (error instanceof Error) {
+        console.error('Unexpected Error:', error.message);
+        throw new Error(error.message);
+      } else {
+        console.error('Unexpected Error:', error);
+        throw new Error('An unexpected error occurred.');
+      }
     },
 
-    setDomains(domains: CustomDomain[]) {
-      this.domains = domains?.map(domain => this.parseDomainBranding(domain)) || [];
-    },
-
+    /**
+     * Refreshes the list of domains from the API
+     */
     async refreshDomains() {
       this.isLoading = true;
       try {
-        console.debug('[DomainsStore] Attempting to fetch domains');
-        const response = await api.get<CustomDomainRecordsApiResponse>('/api/v2/account/domains');
-        console.debug('[DomainsStore] API Response:', {
-          status: response.status,
-          data: response.data
-        });
+        const response = await api.get<ApiRecordsResponse<CustomDomain>>('/api/v2/account/domains');
 
-        // Parse branding when setting domains
-        this.domains = response.data.records?.map(domain => this.parseDomainBranding(domain)) || [];
+        const validated = transformResponse(
+          apiRecordsResponseSchema(customDomainInputSchema),
+          response.data
+        );
+
+        this.domains = validated.records;
+
       } catch (error) {
-        console.error('[DomainsStore] Failed to refresh domains:', error);
-        this.domains = []; // Ensure domains is always an array
-
-        // More detailed error logging
-        if (error instanceof Error) {
-          console.error('[DomainsStore] Error details:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack
-          });
-        }
-
-        throw error;
+        this.handleApiError(error);
       } finally {
         this.isLoading = false;
       }
     },
 
-    async deleteDomain(domainName: string) {
+    /**
+     * Updates the brand information of a specific domain
+     * @param domain - The domain to update
+     * @param brandUpdate - The brand update payload
+     * @returns The updated domain record
+     */
+    async updateDomainBrand(domain: string, brandUpdate: UpdateDomainBrandRequest) {
       try {
-        await api.post(`/api/v2/account/domains/${domainName}/remove`);
-        this.removeDomainFromList(domainName);
+        const response = await api.put<ApiRecordResponse<CustomDomain>>(
+          `/api/v2/account/domains/${domain}/brand`,
+          brandUpdate
+        );
+
+        const validated = transformResponse(
+          apiRecordResponseSchema(customDomainInputSchema),
+          response.data
+        );
+
+        const domainIndex = this.domains.findIndex(d => d.display_domain === domain);
+        if (domainIndex !== -1) {
+          this.domains[domainIndex] = validated.record;
+        } else {
+          this.domains.push(validated.record);
+        }
+
+        return validated.record;
+
       } catch (error) {
-        console.error('Failed to delete domain:', error);
-        throw error;
+        this.handleApiError(error);
       }
     },
 
+    /**
+     * Adds a new domain to the store after validation
+     * @param domain - The domain to add
+     * @returns The added domain record
+     */
+    async addDomain(domain: string) {
+      try {
+        const response = await api.post<ApiRecordResponse<CustomDomain>>('/api/v2/account/domains/add', {
+          domain
+        });
+
+        const validated = transformResponse(
+          apiRecordResponseSchema(customDomainInputSchema),
+          response.data
+        );
+
+        this.domains.push(validated.record);
+        return validated.record;
+
+      } catch (error) {
+        this.handleApiError(error);
+      }
+    },
+
+    /**
+     * Deletes a domain and removes it from the store
+     * @param domainName - The name of the domain to delete
+     */
+    async deleteDomain(domainName: string) {
+      try {
+        await api.post(`/api/v2/account/domains/${domainName}/remove`);
+        this.domains = this.domains.filter(domain => domain.display_domain !== domainName);
+      } catch (error) {
+        this.handleApiError(error);
+      }
+    },
+
+    /**
+     * Toggles public homepage access with optimistic update
+     * @param domain - The domain to toggle access for
+     * @returns The new homepage access status
+     */
     async toggleHomepageAccess(domain: CustomDomain) {
-      const newHomepageStatus = !domain?.brand?.allow_public_homepage;
+      const newHomepageStatus = !domain.brand?.allow_public_homepage;
+      const domainIndex = this.domains.findIndex(d => d.display_domain === domain.display_domain);
 
-      // Optimistically update the UI
-      const domainIndex = this.domains.findIndex(
-        d => d.display_domain === domain.display_domain
-      );
-
+      // Optimistic update
       if (domainIndex !== -1) {
-        const optimisticUpdate = this.parseDomainBranding({
+        const optimisticUpdate = {
           ...domain,
           brand: {
             ...(domain.brand || {}),
             allow_public_homepage: newHomepageStatus
           }
-        });
+        };
 
-        this.domains = [
-          ...this.domains.slice(0, domainIndex),
-          optimisticUpdate,
-          ...this.domains.slice(domainIndex + 1)
-        ];
+        // Validate optimistic update
+        const validated = transformResponse(
+          customDomainInputSchema,
+          optimisticUpdate
+        );
+
+        this.domains[domainIndex] = validated;
       }
 
       try {
-        const updateRequest: UpdateDomainBrandRequest = {
-          brand: { allow_public_homepage: newHomepageStatus }
-        };
-
-        const response = await api.put<UpdateDomainBrandResponse>(
+        const response = await api.put<ApiRecordResponse<CustomDomain>>(
           `/api/v2/account/domains/${domain.display_domain}/brand`,
-          updateRequest
-        );
-
-        // Update with the server response
-        const updatedDomain = this.parseDomainBranding(
-          response.data?.domain || {
-            ...domain,
-            brand: {
-              ...(domain.brand || {}),
-              allow_public_homepage: newHomepageStatus
-            }
+          {
+            brand: { allow_public_homepage: newHomepageStatus }
           }
         );
 
-        // Update the store with the server response
+        const validated = transformResponse(
+          apiRecordResponseSchema(customDomainInputSchema),
+          response.data
+        );
+
+        // Update with server response
         if (domainIndex !== -1) {
-          this.domains = [
-            ...this.domains.slice(0, domainIndex),
-            updatedDomain,
-            ...this.domains.slice(domainIndex + 1)
-          ];
+          this.domains[domainIndex] = validated.record;
         }
 
         return newHomepageStatus;
+
       } catch (error) {
-        // Revert the optimistic update on error
+        // Revert on error
         if (domainIndex !== -1) {
-          this.domains = [
-            ...this.domains.slice(0, domainIndex),
-            domain,
-            ...this.domains.slice(domainIndex + 1)
-          ];
+          this.domains[domainIndex] = domain;
         }
-        console.error('Failed to toggle homepage access:', error);
-        throw error;
+        this.handleApiError(error);
       }
-    }
-    ,
-
-    addDomain(domain: CustomDomain) {
-      if (!this.domains) {
-        this.domains = [];
-      }
-      // Parse branding when adding domain
-      this.domains.push(this.parseDomainBranding(domain));
     },
 
-    removeDomainFromList(domainToRemove: string) {
-      // Ensure domains is an array before filtering
-      this.domains = (this.domains || []).filter(
-        domain => domain.display_domain !== domainToRemove
-      );
+    /**
+     * Updates a domain in the store with validation
+     * @param domain - The domain to update
+     * @returns The updated domain record
+     */
+    async updateDomain(domain: CustomDomain) {
+      try {
+        const response = await api.put<ApiRecordResponse<CustomDomain>>(
+          `/api/v2/account/domains/${domain.display_domain}`,
+          domain
+        );
+
+        const validated = transformResponse(
+          apiRecordResponseSchema(customDomainInputSchema),
+          response.data
+        );
+
+        const domainIndex = this.domains.findIndex(
+          d => d.display_domain === domain.display_domain
+        );
+
+        if (domainIndex !== -1) {
+          this.domains[domainIndex] = validated.record;
+        } else {
+          this.domains.push(validated.record);
+        }
+
+        return validated.record;
+
+      } catch (error) {
+        this.handleApiError(error);
+      }
     },
-
-    updateDomain(updatedDomain: CustomDomain) {
-      if (!this.domains) {
-        this.domains = [];
-      }
-
-      // Parse branding when updating domain
-      const parsedDomain = this.parseDomainBranding(updatedDomain);
-      const domainIndex = this.domains.findIndex(
-        domain => domain.display_domain === updatedDomain.display_domain
-      );
-
-      if (domainIndex !== -1) {
-        this.domains = [
-          ...this.domains.slice(0, domainIndex),
-          parsedDomain,
-          ...this.domains.slice(domainIndex + 1)
-        ];
-      } else {
-        this.domains.push(parsedDomain);
-      }
-    }
   }
-});
+})
+
+// Helper function to safely format error details
+function formatErrorDetails(details: ZodIssue[] | string): string | Record<string, string> {
+  if (typeof details === 'string') {
+    return details;
+  }
+
+  return details.reduce((acc, issue) => {
+    const path = issue.path.join('.');
+    acc[path] = issue.message;
+    return acc;
+  }, {} as Record<string, string>);
+}

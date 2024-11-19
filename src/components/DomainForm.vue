@@ -1,21 +1,10 @@
 <template>
   <div class="space-y-9 my-16 max-w-full mx-auto px-4 sm:px-6 lg:px-8 dark:bg-gray-900">
-    <BasicFormAlerts
-      :success="success"
-      :error="error"
-    />
 
-    <form @submit.prevent="submitForm" class="space-y-6">
-      <input
-        type="hidden"
-        name="shrimp"
-        :value="csrfStore.shrimp"
-      />
-
+    <form @submit.prevent="handleSubmit" class="space-y-6">
       <DomainInput
         v-model="domain"
-        :is-valid="true"
-        domain=""
+        :isValid="isValid"
         autofocus
         required
         placeholder="e.g. secrets.example.com"
@@ -101,41 +90,28 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import { ref } from 'vue';
-import BasicFormAlerts from './BasicFormAlerts.vue';
+
 import DomainInput from './DomainInput.vue';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { CustomDomainApiResponse } from '@/types/onetime';
-import { useCsrfStore } from '@/stores/csrfStore';
 
-const csrfStore = useCsrfStore();
+const props = defineProps<{
+  isSubmitting?: boolean,
+}>();
+
 const domain = ref('');
-const emit = defineEmits(['domain-added']);
+const emit = defineEmits<{
+  (e: 'submit', domain: string): void
+}>();
 
-const {
-  isSubmitting,
-  error,
-  success,
-  submitForm
-} = useFormSubmission({
-  url: '/api/v2/account/domains/add',
-  successMessage: 'Domain added successfully.',
-  onSuccess: (data: CustomDomainApiResponse) => {
-    console.log('Domain added:', data);
-    domain.value = data.record.display_domain;
-    if (!domain.value) {
-      console.error('Domain is undefined or empty');
-    }
-    try {
-      emit('domain-added', domain.value);
-    } catch (error) {
-      console.error('Error emitting domain-added event:', error);
-    }
-  },
-  onError: (data) => {
-    console.error('Error adding domain:', data);
-  },
-});
+const isValid = ref(true); // Optionally manage validation state
+
+const handleSubmit = () => {
+  if (domain.value?.trim()) {
+    isValid.value = true;
+    emit('submit', domain.value.trim());
+  } else {
+    isValid.value = false; // Update validation state
+  }
+};
 </script>

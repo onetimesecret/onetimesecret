@@ -39,8 +39,8 @@
  * providing type safety and enabling better tooling support, like auto-completion in
  * IDEs.
  */
-
-import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, Regions, BrokenBrandSettings } from './onetime.d.ts';
+import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, Regions } from '@/types/core';
+import { BrokenBrandSettings } from '@types/custom_domains';
 import type Stripe from 'stripe';
 
 declare global {

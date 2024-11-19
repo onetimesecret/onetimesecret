@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
 import type Stripe from 'stripe';
+import { computed } from 'vue';
 
 interface Props {
   stripeCustomer: Stripe.Customer | null;

@@ -98,17 +98,6 @@
 </template>
 
 <script setup lang="ts">
-import { useCsrfStore } from '@/stores/csrfStore';
-import { useNotificationsStore } from '@/stores/notifications';
-import type { AsyncDataResult, BrandSettings, CustomDomain, CustomDomainApiResponse } from '@/types/onetime';
-import { ImageProps } from '@/types/onetime';
-import api from '@/utils/api';
-import { shouldUseLightText } from '@/utils/colorUtils';
-import { Icon } from '@iconify/vue';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { onBeforeRouteLeave, useRoute } from 'vue-router';
-
-// Import components
 import BrandSettingsBar from '@/components/account/BrandSettingsBar.vue';
 import BrowserPreviewFrame from '@/components/account/BrowserPreviewFrame.vue';
 import DomainHeader from '@/components/account/DomainHeader.vue';
@@ -116,6 +105,18 @@ import InstructionsModal from '@/components/account/InstructionsModal.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import { useBrandingStore } from '@/stores/brandingStore';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { useNotificationsStore } from '@/stores/notifications';
+import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses';
+import type { BrandSettings, CustomDomain, } from '@/types/custom_domains';
+import { ImageProps } from '@/types/custom_domains';
+import api from '@/utils/api';
+import { shouldUseLightText } from '@/utils/colorUtils';
+import { Icon } from '@iconify/vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { onBeforeRouteLeave, useRoute } from 'vue-router';
+
+// Import components
 
 const detectPlatform = (): 'safari' | 'edge' => {
   const ua = window.navigator.userAgent.toLowerCase();
@@ -154,6 +155,10 @@ const brandSettings = ref<BrandSettings>({
   corner_style: 'rounded',
   button_text_light: false,
   allow_public_homepage: false,
+  allow_public_api: false,
+  identifier: '',
+  created: '',
+  updated: ''
 });
 
 const loading = ref(true);
@@ -206,6 +211,7 @@ const fetchBrandSettings = async () => {
           corner_style: brand?.corner_style || 'rounded',
           button_text_light: brand?.button_text_light || false,
           allow_public_homepage: brand?.allow_public_homepage || false,
+          allow_public_api: brand?.allow_public_api || false,
 
         };
         brandSettings.value = settings;
@@ -231,6 +237,7 @@ const fetchBrandSettings = async () => {
       corner_style: brand?.corner_style || 'rounded',
       button_text_light: brand?.button_text_light || false,
       allow_public_homepage: brand?.allow_public_homepage || false,
+      allow_public_api: brand?.allow_public_api || false,
 
     };
     brandSettings.value = settings;

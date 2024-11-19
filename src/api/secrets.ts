@@ -1,6 +1,6 @@
 // @/api/secrets.ts
 
-import { AsyncDataResult, SecretDataApiResponse } from '@/types/onetime';
+import { AsyncDataResult, SecretDataApiResponse } from '@/types/api';
 import axios from 'axios';
 
 /**

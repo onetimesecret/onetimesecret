@@ -74,6 +74,7 @@ class Onetime::CustomDomain < Familia::Horreum
   @txt_validation_prefix = '_onetime-challenge'
 
   @safe_dump_fields = [
+    { :identifier => ->(obj) { obj.identifier } },
     :domainid,
     :display_domain,
     :custid,

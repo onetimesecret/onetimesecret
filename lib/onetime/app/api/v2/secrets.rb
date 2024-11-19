@@ -17,7 +17,7 @@ class Onetime::App::APIV2
         OT::Logic::Secrets::ConcealSecret,
         "Secret concealed successfully.",
         "Secret could not be concealed.",
-        allow_anonymous: true
+        allow_anonymous: true,
       )
     end
 
@@ -26,7 +26,7 @@ class Onetime::App::APIV2
         OT::Logic::Secrets::BurnSecret,
         "Secret burned successfully.",
         "Secret could not be burned.",
-        allow_anonymous: true
+        allow_anonymous: true,
       )
     end
 

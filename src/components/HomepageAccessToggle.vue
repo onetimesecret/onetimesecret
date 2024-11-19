@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 defineProps<{
-  modelValue: boolean;
+  modelValue: boolean | null | undefined;  // Update type to allow nullable values
   disabled?: boolean;
 }>();
 

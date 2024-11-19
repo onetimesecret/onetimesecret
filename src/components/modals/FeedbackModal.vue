@@ -46,9 +46,9 @@
 </template>
 
 <script setup lang="ts">
+import FeedbackModalForm from '@/components/FeedbackModalForm.vue'
 import { FocusTrap } from 'focus-trap-vue'
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import FeedbackModalForm from '@/components/FeedbackModalForm.vue'
 
 defineProps({
   isOpen: Boolean,

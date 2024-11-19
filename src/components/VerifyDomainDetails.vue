@@ -99,10 +99,12 @@
 </template>
 
 <script setup lang="ts">
-import { CustomDomain, CustomDomainApiResponse, CustomDomainCluster } from '@/types/onetime';
 import { useFormSubmission } from '@/composables/useFormSubmission';
+import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
+import { CustomDomainApiResponse } from '@/types/api/responses';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
+
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DetailField from './DetailField.vue';
 
@@ -130,11 +132,11 @@ const { isSubmitting, error, success, submitForm } = useFormSubmission({
   getFormData: () => new URLSearchParams({
     domain: props.domain.display_domain,
   }),
-  onSuccess: (data) => {
+  onSuccess: (data: CustomDomainApiResponse) => {
     console.log('Verification initiated:', data);
     emit('domainVerify', data);
   },
-  onError: (data) => {
+  onError: (data: unknown) => {
     console.error('Verification failed:', data);
   },
 });

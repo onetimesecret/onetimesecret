@@ -1,8 +1,8 @@
+import { useWindowProp } from '@/composables/useWindowProps';
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import Homepage from '@/views/Homepage.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
 import { RouteRecordRaw } from 'vue-router';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
 
 const authState = useWindowProp('authenticated');
 

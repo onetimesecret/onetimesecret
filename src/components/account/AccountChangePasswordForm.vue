@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import { Icon } from '@iconify/vue';
 import { useCsrfStore } from '@/stores/csrfStore';
+import { Icon } from '@iconify/vue';
+import { ref, reactive } from 'vue';
 
 const csrfStore = useCsrfStore();
 

@@ -64,8 +64,8 @@
 </template>
 
 <script setup lang="ts">
+import { MetadataData, MetadataDetails } from '@/types/core'
 import { defineProps } from 'vue'
-import { MetadataData, MetadataDetails } from '@/types/onetime.d'
 
 interface Props {
   metadata: MetadataData;

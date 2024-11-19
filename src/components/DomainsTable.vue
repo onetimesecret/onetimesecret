@@ -32,10 +32,11 @@
       No domains found. Add a domain to get started.
     </div>
 
+    <!-- List domains -->
     <div v-else
          class="relative rounded-lg border border-gray-200 dark:border-gray-700">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-800">
+        <thead class="bg-gray-50 dark:bg-gray-800 font-brand">
           <tr>
             <th scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400  tracking-wider">
@@ -84,7 +85,8 @@
                   <DomainVerificationInfo mode="icon"
                                           :domain="domain" />
                   <span class="text-xs text-gray-500 dark:text-gray-400">
-                    Added {{ formatDistanceToNow(new Date(Number(domain.created) * 1000), { addSuffix: true }) }}
+                    Added {{ formatDistanceToNow(domain.created, { addSuffix: true }) }}
+
                   </span>
                 </div>
               </div>
@@ -94,7 +96,7 @@
             <td class="px-6 py-4">
               <div v-if="cust?.feature_flags?.homepage_toggle"
                   class="flex justify-center">
-                <HomepageAccessToggle :model-value="domain.brand?.allow_public_homepage"
+                <HomepageAccessToggle :model-value="domain.brand?.allow_public_homepage ?? false"
                                       :disabled="isToggling(domain.display_domain)"
                                       @update:model-value="$emit('toggle-homepage', domain)" />
               </div>
@@ -148,14 +150,14 @@
 </template>
 
 <script setup lang="ts">
+import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
-import type { CustomDomain } from '@/types/onetime';
+import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
+import type { CustomDomain } from '@/schemas/models/domain.ts';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
-import DomainVerificationInfo from './DomainVerificationInfo.vue';
-import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
 
 const cust = useWindowProp('cust'); // Used for feature flags
 

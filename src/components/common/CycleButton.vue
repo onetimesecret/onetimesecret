@@ -31,15 +31,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
 
 interface Props {
-  modelValue: string;
+  modelValue: string | undefined;
   options: string[];
   label: string;
   displayMap?: Record<string, string>;
   iconMap?: Record<string, string>;
+  defaultValue?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -53,7 +54,8 @@ const props = withDefaults(defineProps<Props>(), {
     list: 'ph:list-bold',
     compact: 'ph:corners-in-bold',
     comfortable: 'ph:arrows-out-bold',
-  })
+  }),
+  defaultValue: '',
 });
 
 const emit = defineEmits<{
@@ -61,15 +63,18 @@ const emit = defineEmits<{
 }>();
 
 const displayValue = computed(() => {
-  return props.displayMap[props.modelValue] || props.modelValue;
+  const value = props.modelValue ?? props.defaultValue;
+  return props.displayMap[value] || value;
 });
 
 const getCurrentIcon = computed(() => {
-  return props.iconMap[props.modelValue] || 'ph:question-bold';
+  const value = props.modelValue ?? props.defaultValue;
+  return props.iconMap[value] || 'ph:question-bold';
 });
 
 const cycleValue = () => {
-  const currentIndex = props.options.indexOf(props.modelValue);
+  const currentValue = props.modelValue ?? props.defaultValue;
+  const currentIndex = props.options.indexOf(currentValue);
   const nextIndex = (currentIndex + 1) % props.options.length;
   emit('update:modelValue', props.options[nextIndex]);
 };

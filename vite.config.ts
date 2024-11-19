@@ -1,14 +1,17 @@
 //import { createHtmlPlugin } from 'vite-plugin-html'
 import Vue from '@vitejs/plugin-vue';
 import path from 'path';
-import Markdown from 'unplugin-vue-markdown/vite'
+import process from 'process';
+import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
+
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
 // environment variables to the client-side code.
 const apiBaseUrl = process.env.VITE_API_BASE_URL || 'https://dev.onetimesecret.com';
+
 
 export default defineConfig({
   root: "./src",
@@ -49,7 +52,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(process.cwd(), './src'),
 
     }
   },
