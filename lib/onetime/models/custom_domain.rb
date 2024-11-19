@@ -207,7 +207,7 @@ class Onetime::CustomDomain < Familia::Horreum
 
     redis.multi do |multi|
       # Delete all associated keys
-      keys_to_delete.each { |key| multi.hdel(rediskey, key) }
+      keys_to_delete.each { |key| multi.del(rediskey, key) }
 
       # Remove from global values set
       multi.zrem(self.class.values.rediskey, identifier)
