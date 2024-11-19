@@ -38,9 +38,9 @@ class Onetime::Subdomain < Familia::Horreum
   end
 
   def destroy! *args
-    super
-    # Remove
+    ret = super
     OT::Subdomain.values.remove identifier
+    ret
   end
 
   def fulldomain
@@ -110,7 +110,7 @@ class Onetime::Subdomain < Familia::Horreum
     #
     # This method combines the mapping lookup with loading the customer record,
     # providing a convenient way to retrieve a customer by their custom domain.
-    def load_by_cname(cname)
+    def find_by_cname(cname)
       load map(cname)
     end
 

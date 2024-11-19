@@ -32,9 +32,9 @@ class Onetime::StripeEvent < Familia::Horreum
   end
 
   def destroy! *args
-    super
-    # Remove
+    ret = super
     OT::StripeEvent.values.remove identifier
+    ret
   end
 
   module ClassMethods
