@@ -9,11 +9,13 @@
         (like DefaultLayout and QuietLayout) based on the requirements of
         each route, without having to manually manage this in each individual
         page component. -->
-    <Component :is="layout"
-               :lang="locale"
-               v-bind="layoutProps">
+    <Component
+      :is="layout"
+      :lang="locale"
+      v-bind="layoutProps"
+    >
       <!-- See QuietLayout.vue for named views -->
-      <router-view class="rounded-md"></router-view>
+      <router-view class="rounded-md" />
     </Component>
 
     <!-- StatusBar positioned independently -->
