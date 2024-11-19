@@ -7,7 +7,7 @@ class Onetime::ExceptionInfo < Familia::Horreum
   feature :safe_dump
   feature :expiration
 
-  ttl 30.days
+  ttl 14.days
   prefix :exception
 
   class_sorted_set :values, key: 'onetime:exception'
@@ -48,9 +48,7 @@ class Onetime::ExceptionInfo < Familia::Horreum
     # Derived fields for API convenience
     { short_id: ->(obj) { obj.identifier.split(':').last } },
     { is_error: ->(obj) { obj.type&.end_with?('Error') } },
-    { is_critical: ->(obj) {
-      obj.type&.match?(/Fatal|Critical|Emergency/i)
-    }},
+    { is_critical: ->(obj) { obj.type&.match?(/Fatal|Critical|Emergency/i) } },
 
     # Browser/context info
     { browser_info: ->(obj) {
@@ -91,23 +89,21 @@ class Onetime::ExceptionInfo < Familia::Horreum
 
   def generate_id
     @key ||= Familia.generate_id.slice(0, 31)
-    @key
   end
 
   # Query methods for exception data
   module ClassMethods
 
-
     def add(fobj)
       created_time = OT.now.to_i
-      identifier = fobj.to_s
+      identifier = fobj.identifier
 
-      OT.li("Adding object with created_time: #{created_time}, identifier: #{identifier}")
+      OT.li("[ExceptionInfo] #{identifier} #{fobj.type} #{fobj.release} #{fobj.url}")
 
       self.values.add(created_time, identifier)
 
       # Auto-trim the set to keep only the most recent 14 days of feedback
-      self.values.remrangebyscore 0, OT.now.to_i-14.days
+      self.values.remrangebyscore 0, OT.now.to_i-self.ttl # e.g. 14 days
     end
 
     # Returns a Hash like: {"msg1"=>"1322644672", "msg2"=>"1322644668"}
