@@ -21,6 +21,9 @@ module Onetime::Logic
         potential_secret = @metadata.load_secret
 
         if potential_secret
+          # Rate limit all secret access attempts
+          limit_action :attempt_secret_access
+
           @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
           viewable = potential_secret.viewable?
           continue_result = params[:continue]
@@ -33,10 +36,12 @@ module Onetime::Logic
             owner.increment_field :secrets_burned unless owner.anonymous?
             OT::Customer.global.increment_field :secrets_burned
             OT::Logic.stathat_count('Burned Secrets', 1)
+
           elsif !correct_passphrase
-            limit_action :failed_passphrase if !potential_secret.has_passphrase?
+            limit_action :failed_passphrase if potential_secret.has_passphrase?
             message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
             raise_form_error message
+
           end
         end
       end

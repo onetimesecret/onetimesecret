@@ -184,6 +184,7 @@
   :generate_apitoken: 3
   :add_domain: 100
   :report_exception: 5
+  :attempt_secret_access: 10
 :development:
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
