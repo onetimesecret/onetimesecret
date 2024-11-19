@@ -90,7 +90,7 @@ module Onetime::App
                  end
       OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
-      error_response "Cripes! You have been rate limited."
+      throttle_response "Cripes! You have been rate limited."
 
     rescue Familia::NotConnected, Familia::Problem => ex
       OT.le "#{ex.class}: #{ex.message}"
