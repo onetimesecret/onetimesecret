@@ -94,6 +94,15 @@ export default [
     },
     rules: {
       'vue/valid-template-root': 'error',
+      'vue/html-self-closing': ['error', {
+        'html': {
+          'void': 'always',
+          'normal': 'never',
+          'component': 'always'
+        },
+        'svg': 'always',
+        'math': 'always'
+      }],
     },
     plugins: {
       'vue': pluginVue,
@@ -101,9 +110,9 @@ export default [
   },
   // Override specific rules for certain Vue files
   {
-    files: ['src/views/*.vue', 'src/layouts/*.vue'], // Target files in the views directory
+    files: ['src/views/*.vue', 'src/layouts/*.vue'], // target specific subset
     rules: {
-      'vue/multi-word-component-names': 'off', // Turn off the rule
+      'vue/multi-word-component-names': 'off',
     },
   },
   // Add Vue I18n plugin configuration
