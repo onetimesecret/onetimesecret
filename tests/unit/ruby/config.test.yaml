@@ -45,14 +45,16 @@
   :uri: 'redis://CHANGEME@127.0.0.1:6379/0'
   :config: ./try/redis.conf
   :dbs:
-    :metadata: 7
-    :secret: 8
     :session: 1
-    :customer: 6
     :splittest: 1
-    :email_receipt: 8
-    :subdomain: 6
     :custom_domain: 6
+    :customer: 6
+    :subdomain: 6
+    :metadata: 7
+    :email_receipt: 8
+    :secret: 8
+    :feedback: 11
+    :exception_info: 12
 :colonels:
   - 'CHANGEME@EXAMPLE.com'
 :emailer:
