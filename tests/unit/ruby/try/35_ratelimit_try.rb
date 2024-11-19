@@ -80,11 +80,20 @@ p @limiter.incr!
 @limiter.exists?
 #=> true
 
-## Redis key has proper TTL (should be around 1200 seconds / 20 minutes)
-ttl = @limiter.redis.ttl(@limiter.counter.rediskey)
-p [:ttl, ttl]
+## Redis relation key has proper TTL (should be around 1200 seconds / 20 minutes)
+ttl = @limiter.counter.realttl
+p [:ttl, ttl, @limiter.counter.realttl, @limiter.counter.class.ttl]
 (ttl > 1100 && ttl <= 1200)
 #=> true
+
+## Redis relation key is updated when parent is updated
+before_ttl = @limiter.counter.realttl
+p [:before, before_ttl]
+@limiter.update_expiration(ttl: 5)
+after_ttl = @limiter.counter.realttl
+p [:after, after_ttl]
+[before_ttl, after_ttl]
+#=> [1200, 5]
 
 ## Supports string operations from Familia::String
 @limiter.clear

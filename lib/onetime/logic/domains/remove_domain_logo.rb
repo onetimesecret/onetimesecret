@@ -45,9 +45,9 @@ module Onetime::Logic
       end
 
       def remove_logo
-        @custom_domain.brand&.delete('image_encoded')
-        @custom_domain.brand&.delete('image_filename')
-        @custom_domain.brand&.delete('image_content_type')
+        @custom_domain.brand&.remove('image_encoded')
+        @custom_domain.brand&.remove('image_filename')
+        @custom_domain.brand&.remove('image_content_type')
       end
     end
   end

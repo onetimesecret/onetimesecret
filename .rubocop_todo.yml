@@ -816,7 +816,7 @@ ThreadSafety/ClassAndModuleAttributes:
   Enabled: false
 
 # Offense count: 39
-ThreadSafety/InstanceVariableInClassMethod:
+ThreadSafety/ClassInstanceVariable:
   Enabled: false
 
 # Offense count: 1

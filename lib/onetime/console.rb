@@ -28,11 +28,11 @@ if defined?(IRB)
   IRB.conf[:BACK_TRACE_LIMIT] = 25
   IRB.conf[:SAVE_HISTORY] = 0
   IRB.conf[:HISTORY_FILE] = nil
-  IRB.conf[:IGNORE_EOF] = true
+  IRB.conf[:IGNORE_EOF] = false
   IRB.conf[:USE_PAGER] = true
 
   puts
   puts "Onetime console loaded (additional settings applied: #{IRB.conf[:RC]})."
-  puts "History not saved. Use 'exit' to quit."
+  puts "History not saved. Use 'ctrl-d' to quit."
   puts
 end

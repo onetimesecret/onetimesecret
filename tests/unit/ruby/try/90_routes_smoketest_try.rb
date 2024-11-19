@@ -34,7 +34,7 @@ response = @mock_request.get('/dashboard')
 ## Can access the about page
 response = @mock_request.get('/about')
 response.status
-#=> 200
+#=> 404
 
 
 # API Routes

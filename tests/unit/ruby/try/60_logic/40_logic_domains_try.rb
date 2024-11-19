@@ -69,4 +69,4 @@ logic.process
 
 # Cleanup test data
 @cust.remove_custom_domain(@custom_domain)
-@cust.redis.del
+@cust.delete!
