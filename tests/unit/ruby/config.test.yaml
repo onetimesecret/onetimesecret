@@ -182,6 +182,7 @@
   :forgot_password_reset: 3
   :generate_apitoken: 3
   :add_domain: 100
+  :report_exception: 5
 :development:
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>

@@ -27,12 +27,12 @@ module Onetime::Logic
       end
 
       def raise_concerns
-        limit_action :report_exception
         raise_form_error "Exception data required" if @exception_data[:message].empty?
 
-        # Rate limit by error type/location to prevent spam
-        key = "#{@exception_data[:type]}:#{@exception_data[:url]}"
-        OT::RateLimit.incr! sess.external_identifier, "exception:#{key}"
+        limit_action :report_exception
+
+        # Also limit by error specific type/location
+        limit_action "exception:#{@exception_data[:type]}:#{@exception_data[:url]}"
       end
 
       # Updated ReceiveException process method
