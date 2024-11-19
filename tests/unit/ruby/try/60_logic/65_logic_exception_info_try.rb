@@ -31,11 +31,70 @@ logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, @exception_params
 logic.process
 [
   logic.greenlighted,
-  logic.success_data[:record][:key].nil?,
+  logic.success_data[:record][:identifier].nil?,
   logic.success_data[:record][:environment],
   logic.success_data[:details][:message]
 ]
 #=> [true, false, 'test', "Exception logged"]
+
+## Test valid exception
+
+params = {
+  message: "Test error",
+  type: "TypeError",
+  stack: "Error\n  at line 1\n  at line 2",
+  url: "https://example.com/test",
+  line: 42,
+  column: 10,
+  user_agent: "Mozilla/5.0",
+  environment: @environment,
+  release: "1.0.0"
+}
+logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, params
+logic.process_params
+logic.process
+[
+  logic.greenlighted,
+  logic.success_data[:record][:identifier].nil?,
+  logic.success_data[:record][:environment],
+  logic.success_data[:details][:message]
+]
+#=> [true, false, 'test', "Exception logged"]
+
+## Test truncates long values
+
+long_params = {
+  message: "x" * 2000,
+  type: "y" * 200,
+  stack: "z" * 20000,
+  url: "u" * 2000
+}
+logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, long_params
+logic.process_params
+data = logic.instance_variable_get(:@exception_data)
+[
+  data[:message].length,
+  data[:type].length,
+  data[:stack].length,
+  data[:url].length
+]
+#=> [256, 100, 2500, 256]
+
+## Test rate limiting
+
+params = { message: "Test", type: "Error", url: "https://status.onetime.co" }
+
+begin
+  # Submit multiple exceptions quickly
+  10.times do
+    logic = OT::Logic::Misc::ReceiveException.new @sess, @cust, params
+    logic.process_params
+    logic.raise_concerns
+  end
+rescue OT::LimitExceeded => e
+  e.class.name
+end
+#=> 'Onetime::LimitExceeded'
 
 ## Exception Data Validation
 
