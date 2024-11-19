@@ -84,12 +84,12 @@ custom_domain.owner?(cust)
 
 ## A customer's custom_domain list updates when a new domain is added
 custom_domain = @cust.custom_domains_list.first
-[custom_domain.class, custom_domain.display_domain]
+[custom_domain.class, custom_domain.display_domain] if custom_domain
 #=> [OT::CustomDomain, @valid_domain]
 
 ## A customer's custom_domain list updates when an existing domain is removed
 custom_domain = @cust.custom_domains_list.first
-@cust.remove_custom_domain(custom_domain)
+@cust.remove_custom_domain(custom_domain) if custom_domain
 #=> true
 
 ## A customer's custom_domain list is empty again after removing a domain

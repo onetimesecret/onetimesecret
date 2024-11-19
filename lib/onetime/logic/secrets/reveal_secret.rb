@@ -52,8 +52,7 @@ module Onetime::Logic
             end
           else
 
-            # TODO: "[increment_field] Refusing to increment secrets_shared for anon customer"
-            owner.increment_field :secrets_shared unless cust.anonymous?
+            owner.increment_field :secrets_shared unless owner.anonymous?
             OT::Customer.global.increment_field :secrets_shared
 
             secret.received!

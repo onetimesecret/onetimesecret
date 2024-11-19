@@ -37,7 +37,7 @@ class Onetime::RateLimit < Familia::Horreum
 
   prefix :limiter
 
-  string :counter, :quantize => [20.minutes, '%H:%M']
+  string :counter, :quantize => [20.minutes, '%H:%M'], :ttl => 20.minutes
 
   def_delegators :@counter, :value=, :to_i, :to_s
 
@@ -48,10 +48,7 @@ class Onetime::RateLimit < Familia::Horreum
   field :event
   field :timeblock
 
-  # We don't use these in this model but there's a bug in
-  # Familia v1.0-rc7 where `save` assumes they're present.
-  field :updated
-  field :created
+  # Fixed in Familia v1.0.0-rev8 - updates, created fields removed
 
   # Initialize a new rate limiter
   # @param identifier [String] unique identifier for the limited entity
@@ -101,17 +98,7 @@ class Onetime::RateLimit < Familia::Horreum
   alias_method :count, :value
 
   def clear
-    redis.del rediskey
-  end
-
-  # This is a fix for familia v1.0 bug:
-  # familia/features/quantization.rb:49:in `qstamp': undefined local variable or method `ttl' for an instance of Onetime::RateLimit
-  def ttl
-    self.class.ttl
-  end
-
-  def update_expiration
-    redis.expire(counter.rediskey, ttl)
+    delete!
   end
 
   class << self
