@@ -51,26 +51,6 @@ class Onetime::App::APIV2
       retrieve_records(OT::Logic::Domains::GetDomainBrand)
     end
 
-    def get_domain_logo
-      retrieve_records(OT::Logic::Domains::GetDomainLogo)
-    end
-
-    def delete_domain_logo
-      process_action(
-        OT::Logic::Domains::RemoveDomainLogo,
-        "Logo removed.",
-        "Logo could not be removed."
-      )
-    end
-
-    def update_domain_logo
-      process_action(
-        OT::Logic::Domains::UpdateDomainLogo,
-        "Logo saved successfully.",
-        "Logo could not be saved."
-      )
-    end
-
     def update_domain_brand
       process_action(
         OT::Logic::Domains::UpdateDomainBrand,
@@ -79,5 +59,27 @@ class Onetime::App::APIV2
       )
     end
 
+    # e.g. get_domain_logo -> OT::Logic::Domains::GetDomainLogo
+    [:logo, :icon].each do |type|
+      define_method("get_domain_#{type}") do
+        retrieve_records(OT::Logic::Domains.const_get("GetDomain#{type.capitalize}"))
+      end
+
+      define_method("delete_domain_#{type}") do
+        process_action(
+          OT::Logic::Domains.const_get("RemoveDomain#{type.capitalize}"),
+          "#{type.capitalize} removed.",
+          "#{type.capitalize} could not be removed."
+        )
+      end
+
+      define_method("update_domain_#{type}") do
+        process_action(
+          OT::Logic::Domains.const_get("UpdateDomain#{type.capitalize}"),
+          "#{type.capitalize} saved successfully.",
+          "#{type.capitalize} could not be saved."
+        )
+      end
+    end
   end
 end

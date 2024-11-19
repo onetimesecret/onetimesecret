@@ -1,10 +1,29 @@
-
 <template>
   <div class="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
 
     <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Domain Verification Steps</h2>
-    <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">Follow these steps to verify domain ownership and elevate your online presence:</p>
+    <p class="text-lg mb-6 text-gray-600 dark:text-gray-300">Follow these steps to verify domain ownership and elevate
+      your online presence:</p>
 
+    <BasicFormAlerts :success="success"
+                     :error="error" />
+
+    <div class="flex justify-end mb-4">
+      <button v-if="withVerifyCTA"
+              @click="verify"
+              :disabled="isButtonDisabled"
+              class="flex items-center gap-2 px-6 py-3 text-lg font-semibold
+          text-white bg-brand-500
+          disabled:bg-gray-400 disabled:cursor-not-allowed
+          hover:bg-brand-600
+          rounded-lg transition duration-100 ease-in-out">
+        <span>{{ isSubmitting ? 'Verifying...' : 'Verify Domain' }}</span>
+        <Icon :icon="isSubmitting ? 'mdi:loading' : 'mdi:check-circle'"
+              class="h-5 w-5"
+              :class="{ 'animate-spin': isSubmitting }"
+              aria-hidden="true" />
+      </button>
+    </div>
 
 
     <ol class="space-y-6 mb-8">
@@ -66,20 +85,6 @@
           to take effect.</p>
       </li>
     </ol>
-
-    <BasicFormAlerts :success="success"
-                     :error="error" />
-
-    <button v-if="withVerifyCTA"
-            @click="verify"
-            :disabled="isButtonDisabled"
-            class="w-full sm:w-auto px-6 py-3 text-lg font-semibold
-            text-white bg-brand-500
-            disabled:bg-gray-400 disabled:cursor-not-allowed
-            hover:bg-brand-600
-            rounded-lg transition duration-100 ease-in-out">
-      {{ isSubmitting ? 'Verifying...' : 'Verify Domain' }}
-    </button>
 
     <div class="mt-5 flex items-start bg-white dark:bg-gray-800 p-4 rounded-md">
       <Icon icon="mdi:information-outline"

@@ -48,7 +48,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue'
 import { MetadataData, MetadataDetails } from '@/types/onetime.d'
 import { useClipboard } from '@/composables/useClipboard'
 

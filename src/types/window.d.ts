@@ -40,7 +40,7 @@
  * IDEs.
  */
 
-import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, Regions } from './onetime.d.ts';
+import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, Regions, BrokenBrandSettings } from './onetime.d.ts';
 import type Stripe from 'stripe';
 
 declare global {
@@ -109,5 +109,11 @@ declare global {
     // When present, the global banner is displayed at the top of the
     // page. NOTE: Can contain HTML.
     global_banner?: string;
+
+    canonical_domain: string | null;
+    domain_strategy: string;
+    domain_id: string;
+    display_domain: string;
+    domain_branding: BrokenBrandSettings;
   }
 }

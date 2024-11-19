@@ -1,6 +1,6 @@
 {
   "name": "onetimesecret",
-  "version": "0.18.4",
+  "version": "0.19.0",
   "description": "",
   "type": "module",
   "scripts": {
@@ -42,6 +42,7 @@
     "@vueuse/integrations": "^11.2.0",
     "altcha": "^1.0.6",
     "axios": "^1.7.7",
+    "date-fns": "^4.1.0",
     "dompurify": "^3.1.7",
     "focus-trap": "^7.6.0",
     "focus-trap-vue": "^4.0.3",

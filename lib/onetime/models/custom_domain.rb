@@ -1,4 +1,3 @@
-
 require 'public_suffix'
 
 # Tryouts:
@@ -33,8 +32,10 @@ require 'public_suffix'
 class Onetime::CustomDomain < Familia::Horreum
   include Gibbler::Complex
 
-  MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
-  MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
+  unless defined?(MAX_SUBDOMAIN_DEPTH)
+    MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
+    MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
+  end
 
   prefix :customdomain
 
@@ -45,6 +46,7 @@ class Onetime::CustomDomain < Familia::Horreum
   # NOTE: The redis key used by older models for values is simply
   # "onetime:customdomain". We'll want to rename those at some point.
   class_sorted_set :values
+  class_hashkey :display_domains
   class_hashkey :owners
 
   field :display_domain
@@ -66,6 +68,8 @@ class Onetime::CustomDomain < Familia::Horreum
   field :_original_value
 
   hashkey :brand
+  hashkey :logo # image fields need a corresponding v2 route and logic class
+  hashkey :icon
 
   @txt_validation_prefix = '_onetime-challenge'
 
@@ -83,11 +87,12 @@ class Onetime::CustomDomain < Familia::Horreum
     :txt_validation_host,
     :txt_validation_value,
     { :brand => ->(obj) { obj.brand.hgetall } },
+    # NOTE: We don't serialize images here
     :status,
     { :vhost => ->(obj) { obj.parse_vhost } },
     :verified,
     :created,
-    :updated
+    :updated,
   ]
 
   def init
@@ -149,7 +154,7 @@ class Onetime::CustomDomain < Familia::Horreum
   # @param args [Array] Additional arguments to pass to the superclass destroy method
   # @return [Object] The result of the superclass destroy method
   def delete!(*args)
-    OT::CustomDomain.values.remove identifier
+    OT::CustomDomain.rem self
     super # we may prefer to call self.clear here instead
   end
 
@@ -215,15 +220,13 @@ class Onetime::CustomDomain < Familia::Horreum
     end
 
     redis.multi do |multi|
-      # Delete all associated keys
-      keys_to_delete.each { |key| multi.del(key) }
-
-      # Remove from global values set
-      multi.zrem(self.class.values.rediskey, identifier)
-
-      # Remove from customer's domains if customer provided
-      if customer
-        multi.zrem(customer.custom_domains.rediskey, display_domain)
+      multi.del(self.rediskey)
+      # Also remove from the class-level values, :display_domains, :owners
+      multi.zrem(OT::CustomDomain.values.rediskey, identifier)
+      multi.hdel(OT::CustomDomain.display_domains.rediskey, display_domain)
+      multi.hdel(OT::CustomDomain.owners.rediskey, display_domain)
+      unless customer.nil?
+        multi.zrem(customer.custom_domains.rediskey, self.display_domain)
       end
     end
   rescue Redis::BaseError => e
@@ -462,6 +465,9 @@ class Onetime::CustomDomain < Familia::Horreum
       # We don't need to fuss with empty stripping spaces, prefixes,
       # etc because PublicSuffix does that for us.
       PublicSuffix.domain(input, default_rule: nil)
+    rescue PublicSuffix::DomainInvalid => e
+      OT.le "[CustomDomain.base_domain] #{e.message} for `#{input}`"
+      nil
     end
 
     # Takes the given input domain and returns the display domain,
@@ -475,7 +481,7 @@ class Onetime::CustomDomain < Familia::Horreum
       ps_domain.subdomain || ps_domain.domain
 
     rescue PublicSuffix::Error => e
-      OT.ld "[CustomDomain.parse] #{e.message} for `#{input}"
+      OT.le "[CustomDomain.parse] #{e.message} for `#{input}`"
       raise Onetime::Problem, e.message
     end
 
@@ -501,23 +507,25 @@ class Onetime::CustomDomain < Familia::Horreum
       # not save it to Redis. We do that here to piggyback on the inital
       # validation and parsing. We use the derived identifier to load
       # the object from Redis using
-      parse(input, custid).tap do |obj|
-        OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
-        obj.exists?
-      end
+      obj = parse(input, custid)
+      OT.ld "[CustomDomain.exists?] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
+      obj.exists?
+
     rescue OT::Problem => e
       OT.le "[CustomDomain.exists?] #{e.message}"
       false
     end
 
     def add fobj
-      #self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
       self.values.add OT.now.to_i, fobj.to_s # created time, identifier
+      self.display_domains.put fobj.display_domain, fobj.identifier
+      self.owners.put fobj.to_s, fobj.custid  # domainid => customer id
     end
 
     def rem fobj
       self.values.remove fobj.to_s
-      #self.owners.remove fobj.to_s
+      self.display_domains.remove fobj.display_domain
+      self.owners.remove fobj.to_s
     end
 
     def all
@@ -541,6 +549,24 @@ class Onetime::CustomDomain < Familia::Horreum
       end
       # Continue with the built-in `load` from Familia.
       super(custom_domain.identifier)
+    end
+
+    # Load a custom domain by display domain only. Used during requests
+    # after determining the domain strategy is :custom.
+    #
+    # @param display_domain [String] The display domain to load
+    # @return [Onetime::CustomDomain, nil] The custom domain record or nil if not found
+    def from_display_domain display_domain
+      # Get the domain ID from the display_domains hash
+      domain_id = self.display_domains.get(display_domain)
+      return nil unless domain_id
+
+      # Load the record using the domain ID
+      begin
+        from_identifier(domain_id)
+      rescue OT::RecordNotFound
+        nil
+      end
     end
   end
 

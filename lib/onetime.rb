@@ -91,7 +91,8 @@ module Onetime
       @conf # return the config
 
     rescue OT::Problem => e
-      OT.le "Problem booting: #{e.message}"
+      OT.le "Problem booting: #{e}"
+      OT.ld e.backtrace.join("\n")
       exit 1
     rescue Redis::CannotConnectError => e
       OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"

@@ -116,14 +116,15 @@ To update your Onetime Secret Docker deployment to the latest version:
 Onetime Secret Docker images are tagged for different versions:
 
 - `latest`: The most recent stable release (Ruby 3+)
-- `v0.18.1` (and similar version numbers): Specific release versions
+- `v0.18.3` (and similar version numbers): Specific release versions
+- `v0.18.3` (and similar version numbers): Specific release versions
 
-These version numbers (e.g., v0.18.1) correspond to the releases on our GitHub repository. You can find the full list of releases and their details at <https://github.com/onetimesecret/onetimesecret/releases>.
+These version numbers (e.g., v0.18.3) correspond to the releases on our GitHub repository. You can find the full list of releases and their details at <https://github.com/onetimesecret/onetimesecret/releases>.
 
 To use a specific version, replace `onetimesecret/onetimesecret:latest` with the desired tag, for example:
 
 ```bash
-docker run ... onetimesecret/onetimesecret:v0.18.1
+docker run ... onetimesecret/onetimesecret:v0.18.3
 ```
 
 Using a specific version tag allows you to maintain consistency across deployments and easily roll back if needed.

@@ -32,7 +32,6 @@
       </path>
     </svg>
   </button>
-
 </template>
 
 <script setup lang="ts">

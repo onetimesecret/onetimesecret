@@ -68,3 +68,11 @@ Performance/Size:
 
 Style/NegatedIfElseCondition:
   Enabled: true
+
+Style/TrailingCommaInArguments:
+  Enabled: true
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  Enabled: true
+  EnforcedStyleForMultiline: comma

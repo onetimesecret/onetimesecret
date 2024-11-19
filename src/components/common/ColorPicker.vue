@@ -98,4 +98,5 @@ const updateColor = (event: Event, isText = false) => {
     emit('update:modelValue', newColor);
   }
 };
+
 </script>

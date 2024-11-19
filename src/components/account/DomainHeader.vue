@@ -26,7 +26,7 @@
       <div class="mt-4 flex flex-col gap-1">
         <div class="flex items-baseline justify-between flex-wrap gap-2 space-y-2 sm:space-y-0">
           <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white flex items-center truncate max-w-[calc(100vw-2rem)]">
-            <span class="break-all">{{ domainId }}</span>
+            <span class="break-all">{{ displayDomain }}</span>
 
             <DomainVerificationInfo v-if="domain" mode="icon" :domain="domain" class="ml-2" /> <!-- Added ml-2 for spacing -->
           </h1>
@@ -47,7 +47,7 @@
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import { CustomDomain } from '@/types/onetime.d';
 defineProps<{
-  domainId: string;
+  displayDomain: string;
   domain: CustomDomain | null;
 }>();
 </script>

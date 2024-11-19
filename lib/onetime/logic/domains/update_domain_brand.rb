@@ -8,7 +8,21 @@ module Onetime::Logic
 
       def process_params
         @domain_id = params[:domain].to_s.strip
-        @brand_settings = params[:brand]
+        valid_keys = [
+          :logo, # e.g. "image1"
+          :primary_color,
+          :instructions_pre_reveal,
+          :instructions_reveal,
+          :instructions_post_reveal,
+          :button_text_light,
+          :font_family,
+          :corner_style,
+          :allow_public_homepage,
+          :allow_public_api,
+        ]
+        OT.ld "[UpdateDomainBrand] Settings #{params[:brand].keys} for #{@domain_id}"
+        # Filter out invalid keys and convert keys to symbols
+        @brand_settings = params[:brand]&.transform_keys(&:to_sym)&.slice(*valid_keys) || {}
       end
 
       # Validate the input parameters
@@ -56,27 +70,28 @@ module Onetime::Logic
       end
 
       # Update the brand settings for the custom domain
+      # These keys are expected to match those listed in
+      # src/types/onetime.d.ts for BrandSettings.
       def update_brand_settings
-        valid_keys = [
-          :logo,
-          :image_encoded,
-          :image_content_type,
-          :image_filename,
-          :primary_color,
-          :instructions_pre_reveal,
-          :instructions_reveal,
-          :instructions_post_reveal,
-          :button_text_light,
-          :font_family,
-          :corner_style
-        ]
-        @brand_settings.each do |key, value|
-          next unless valid_keys.include?(key.to_sym)
-          OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
-          @custom_domain.brand[key.to_s] = value.to_s
+        current_brand = custom_domain.brand || {}
+
+        # Step 1: Remove keys that are nil in the request
+        brand_settings.each do |key, value|
+          if value.nil?
+            OT.ld "[UpdateDomainBrand] Removing brand setting: #{key}"
+            current_brand.delete(key.to_s)
+          end
         end
-        @custom_domain.updated = Time.now.to_i
-        @custom_domain.save
+
+        # Step 2: Update remaining values
+        brand_settings.each do |key, value| # rubocop:disable Style/CombinableLoops
+          next if value.nil?
+          OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
+          custom_domain.brand[key.to_s] = value.to_s # everything in redis is a string
+        end
+
+        custom_domain.updated = Time.now.to_i
+        custom_domain.save
       end
 
       # Validate URL format

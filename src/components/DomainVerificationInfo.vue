@@ -38,7 +38,7 @@
           </div>
 
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">A Record</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">DNS Record</span>
             <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.dns_pointed_at }}</span>
           </div>
 

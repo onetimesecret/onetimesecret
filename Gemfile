@@ -85,3 +85,5 @@ gem 'stackprof', require: false, group: :staging # bundle exec stackprof --text 
 gem 'stripe', require: false, group: :plans # bundle install --group plans
 gem 'tapioca', require: false, group: :development
 gem 'tryouts', require: false, group: :development
+
+gem "fastimage", "~> 2.3"
