@@ -4,11 +4,6 @@ module Onetime
   module App
     module Views
       module ViewHelpers # rubocop:disable Style/Documentation
-        include Onetime::Logic::LogicHelpers
-
-        def add_shrimp
-          format('<input type="hidden" name="shrimp" value="%s" />', sess.add_shrimp)
-        end
 
         def jsvar(name, value)
           value = case value.class.to_s

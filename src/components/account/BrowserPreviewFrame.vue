@@ -149,10 +149,11 @@
 
     <!-- Info text - Responsive padding -->
     <div class="px-3 sm:px-6 pb-2 pt-3 sm:pt-6">
-      <div class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 italic bg-gray-50 dark:bg-gray-900 rounded-lg text-xs sm:text-sm">
-        <Icon icon="mdi:information-outline"
+      <div
+           class="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 italic bg-gray-50 dark:bg-gray-900 rounded-lg text-xs sm:text-sm">
+        <Icon icon="mdi:forum"
               class="flex-shrink-0 w-5 h-5" />
-        <p>This preview shows what recipients see when they click a secret link.</p>
+        <p>Preview of the secret link page for recipients</p>
       </div>
     </div>
   </div>

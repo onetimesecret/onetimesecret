@@ -1,30 +1,30 @@
 import { fetchInitialSecret } from '@/api/secrets';
-import QuietLayout from '@/layouts/QuietLayout.vue';
-import { SecretDataApiResponse } from '@/types/onetime';
-import ShowSecret from '@/views/secrets/ShowSecret.vue';
+import { AsyncDataResult, SecretDataApiResponse } from '@/types/onetime';
+import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { RouteRecordRaw } from 'vue-router';
-import { AsyncDataResult } from '@/types/onetime'
+import { useWindowProp } from '@/composables/useWindowProps';
+
+const domain_strategy = useWindowProp('domain_strategy');
+const display_domain = useWindowProp('display_domain');
+const domain_id = useWindowProp('domain_id');
+const domain_branding = useWindowProp('domain_branding');
+const site_host = useWindowProp('site_host');
 
 const routes: Array<RouteRecordRaw> = [
-
 
   {
     path: '/secret/:secretKey',
     name: 'Secret link',
     components: {
-      default: ShowSecret,
+      default: ShowSecretContainer,
     },
     props: true,
     meta: {
-      layout: QuietLayout,
-      layoutProps: {
-        displayMasthead: false,
-        displayNavigation: false,
-        displayLinks: false,
-        displayFeedback: false,
-        displayVersion: true,
-        displayPoweredBy: true,
-      },
+      domain_strategy: domain_strategy.value,
+      display_domain: display_domain.value,
+      domain_id: domain_id.value,
+      domain_branding: domain_branding.value,
+      site_host: site_host.value,
     },
     beforeEnter: async (to, from, next) => {
       try {

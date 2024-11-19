@@ -47,7 +47,6 @@
             @click="closeTruncatedWarning">&times;</button>
     <strong>{{ $t('web.COMMON.warning') }}</strong>
     {{ $t('web.shared.secret_was_truncated') }} {{ secret.original_size }}.
-
   </div>
 
   <div class="mt-4">
@@ -72,41 +71,45 @@
   </div>
 
   <div class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">
-    <a :href="`https://${siteHost}`"
-       class="hover:underline"
-       rel="noopener noreferrer">
-      Powered by Onetime Secret
-    </a>
+    <div class="space-x-2">
+      <a :href="`https://${siteHost}`"
+         class="hover:underline"
+         rel="noopener noreferrer">
+        Powered by Onetime Secret
+      </a>
+      <span>·</span>
+      <router-link to="/info/terms" class="hover:underline">Terms</router-link>
+      <span>·</span>
+      <router-link to="/info/privacy" class="hover:underline">Privacy</router-link>
+    </div>
   </div>
-
 </template>
 
 <script setup lang="ts">
-import { useClipboard } from '@/composables/useClipboard'
-import { SecretData, SecretDetails } from '@/types/onetime'
+import { useClipboard } from '@/composables/useClipboard';
 import { useWindowProp } from '@/composables/useWindowProps';
+import { SecretData, SecretDetails } from '@/types/onetime';
+
+const siteHost = useWindowProp('site_host');
 
 interface Props {
   secret: SecretData;
   details: SecretDetails;
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
-const siteHost = useWindowProp('site_host');
-
-const { isCopied, copyToClipboard } = useClipboard()
+const { isCopied, copyToClipboard } = useClipboard();
 
 const copySecretContent = () => {
   if (props.secret.secret_value === undefined) {
-    return
+    return;
   }
 
-  copyToClipboard(props.secret.secret_value)
-}
+  copyToClipboard(props.secret.secret_value);
+};
 
 const closeTruncatedWarning = (event: Event) => {
-  (event.target as HTMLElement).closest('.bg-brandcomp-100')?.remove()
-}
-
+  (event.target as HTMLElement).closest('.bg-brandcomp-100')?.remove();
+};
 </script>

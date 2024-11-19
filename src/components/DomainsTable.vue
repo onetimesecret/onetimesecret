@@ -1,165 +1,176 @@
 <template>
-  <section class="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 rounded-lg"
+  <section class="p-4 sm:p-6 lg:p-8 bg-white dark:bg-gray-900 rounded-lg shadow-sm"
            aria-labelledby="domains-heading">
-    <div class="max-w-7xl mx-auto">
-      <!-- Header Section -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 id="domains-heading"
-              class="text-2xl font-bold text-gray-900 dark:text-white">
-            Domains
-          </h1>
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            These are your verified custom domains
-          </p>
-        </div>
-        <router-link to="/account/domains/add"
-                     class="inline-flex items-center font-brand justify-center px-4 py-2 text-base font-semibold rounded-lg
-                 bg-brand-500 text-white hover:bg-brand-600 focus:outline-none focus:ring-2
-                 focus:ring-offset-2 focus:ring-brand-500 transition-colors duration-200
-                 dark:hover:bg-brand-400 dark:focus:ring-offset-gray-900">
-          <Icon icon="heroicons:plus-20-solid"
-                class="w-5 h-5 mr-2"
-                aria-hidden="true" />
-          <span>Add Domain</span>
-        </router-link>
-      </div>
 
-      <!-- Table Section -->
-      <div class="mt-8 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 font-brand dark:bg-gray-800">
-              <tr>
-                <th scope="col"
-                    class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 min-w-[200px]">
-                  Domain
-                </th>
-                <th scope="col"
-                    class="px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-32">
-                  Status
-                </th>
-                <th scope="col"
-                    class="hidden sm:table-cell px-6 py-3 text-left text-sm font-semibold text-gray-900 dark:text-gray-200 w-40">
-                  Added
-                </th>
-                <th scope="col"
-                    class="px-6 py-3 text-right text-sm font-semibold text-gray-900 dark:text-gray-200 w-20">
-                  <span class="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-              <tr v-for="domain in domains"
-                  :key="domain.identifier"
-                  class="group hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
-                               class="text-brandcomp-600 hover:text-brandcomp-800 dark:text-brandcomp-400 dark:hover:text-brandcomp-300
-                           font-medium transition-colors duration-150">
-                    {{ domain.display_domain }}
-                  </router-link>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div>
+        <h1 id="domains-heading"
+            class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+          Domains
+        </h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Manage and configure your verified custom domains
+        </p>
+      </div>
+      <router-link to="/account/domains/add"
+                   class="inline-flex font-brand items-center justify-center px-4 py-2 text-base font-medium
+                            rounded-lg bg-brand-600 text-white hover:bg-brand-700
+                            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
+                            transition-colors duration-200 dark:hover:bg-brand-500
+                            dark:focus:ring-offset-gray-900">
+        <Icon icon="heroicons:plus-20-solid"
+              class="w-4 h-4 mr-2"
+              aria-hidden="true" />
+        Add Domain
+      </router-link>
+    </div>
+
+    <!-- When no domains, use the Add a Domain button -->
+    <div v-if="domains.length === 0"
+         class="text-center py-8 text-gray-500">
+      No domains found. Add a domain to get started.
+    </div>
+
+    <div v-else
+         class="relative rounded-lg border border-gray-200 dark:border-gray-700">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800">
+          <tr>
+            <th scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400  tracking-wider">
+              <span class="uppercase">Domain & Status</span>
+            </th>
+
+            <th scope="col"
+                class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400  tracking-wider">
+              <div v-if="cust?.feature_flags?.homepage_toggle"
+                    class="flex items-center justify-center">
+                <span class="uppercase">Homepage Access</span>
+                <div class="relative group ml-2">
+                  <Icon icon="heroicons:question-mark-circle"
+                        class="h-4 w-4  text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200" />
+                  <div class="invisible group-hover:visible absolute z-10 w-48 p-2 mt-2 -ml-24
+                                bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-xs rounded-md
+                                shadow-lg dark:shadow-gray-900/50 ring-1 ring-black/5 dark:ring-white/10
+                                transition-opacity duration-200">
+                    Control whether users can create secret links from your domain's homepage
+                  </div>
+                </div>
+              </div>
+            </th>
+
+            <th scope="col"
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+
+        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+          <tr v-for="domain in domains"
+              :key="domain.identifier"
+              class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150">
+
+            <!-- Domain & Status -->
+            <td class="px-6 py-4">
+              <div class="flex flex-col">
+                <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
+                             class="text-lg font-brand text-brandcomp-600 hover:text-brandcomp-700
+                                    dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
+                  {{ domain.display_domain }}
+                </router-link>
+                <div class="flex items-center mt-1 gap-2">
                   <DomainVerificationInfo mode="icon"
                                           :domain="domain" />
-                </td>
-                <td class="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {{ formatRelativeTime(Number(domain.created)) }}
-                </td>
-                <td
-                    class="px-6 py-4 whitespace-nowrap text-right sticky right-0 bg-white dark:bg-gray-900 group-hover:bg-gray-50 dark:group-hover:bg-gray-800">
-                  <MinimalDropdownMenu>
-                    <template #menu-items>
-                      <MenuItem v-slot="{ active }">
-                      <router-link :to="{ name: 'AccountDomainVerify', params: { domain: domain.display_domain }}"
-                                   :class="[
-                                    active ? 'bg-gray-100 dark:bg-gray-700' : '',
-                            'block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
-                          ]">
-                        Review verification steps
-                      </router-link>
-                      </MenuItem>
-                      <MenuItem v-slot="{ active }">
-                      <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
-                                   :class="[active ? 'bg-gray-100 text-gray-900' : 'text-gray-700', 'block px-4 py-2 text-sm']">
-                        Manage Brand
-                      </router-link>
-                      </MenuItem>
-                      <form @submit.prevent="(event) => submitForm(event)"
-                            :action="`/api/v2/account/domains/${domain.display_domain}/remove`">
-                        <input type="hidden"
-                               name="shrimp"
-                               :value="csrfStore.shrimp" />
-                        <MenuItem v-slot="{ active }">
-                        <button type="submit"
-                                :class="[
-                                    active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                                    'flex w-full items-center px-4 py-2 text-left text-sm text-red-600 hover:text-red-500'
-                                  ]"
-                                :disabled="isSubmitting">
-                          <Icon icon="heroicons:trash-20-solid"
-                                class="mr-2 h-5 w-5 text-red-500"
-                                aria-hidden="true" />
-                          <span>Remove</span>
-                        </button>
-                        </MenuItem>
-                      </form>
-                    </template>
-                  </MinimalDropdownMenu>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">
+                    Added {{ formatDistanceToNow(new Date(Number(domain.created) * 1000), { addSuffix: true }) }}
+                  </span>
+                </div>
+              </div>
+            </td>
+
+            <!-- Homepage access toggle column -->
+            <td class="px-6 py-4">
+              <div v-if="cust?.feature_flags?.homepage_toggle"
+                  class="flex justify-center">
+                <HomepageAccessToggle :model-value="domain.brand?.allow_public_homepage"
+                                      :disabled="isToggling(domain.display_domain)"
+                                      @update:model-value="$emit('toggle-homepage', domain)" />
+              </div>
+            </td>
+
+            <td class="px-6 py-4 text-right text-sm">
+              <MinimalDropdownMenu>
+                <template #menu-items>
+                  <div class="py-1">
+                    <MenuItem v-slot="{ active }">
+                    <router-link :to="{ name: 'AccountDomainVerify', params: { domain: domain.display_domain } }"
+                                 :class="[
+                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-200',
+                                  'block px-4 py-2 text-sm transition-colors duration-200'
+                                ]">
+                      Verify Domain
+                    </router-link>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }">
+                    <router-link :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
+                                 :class="[
+                                  active ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-200',
+                                  'block px-4 py-2 text-sm transition-colors duration-200'
+                                ]">
+                      Manage Brand
+                    </router-link>
+                    </MenuItem>
+                    <MenuItem v-slot="{ active }">
+                    <button @click="handleDelete(domain.display_domain)"
+                            :class="[
+                              active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                              'flex w-full items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300 transition-colors duration-200'
+                            ]"
+                            :disabled="isSubmitting">
+                      <Icon icon="heroicons:trash-20-solid"
+                            class="mr-2 h-4 w-4"
+                            aria-hidden="true" />
+                      Remove
+                    </button>
+                    </MenuItem>
+                  </div>
+                </template>
+              </MinimalDropdownMenu>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { useCsrfStore } from '@/stores/csrfStore';
+import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
 import type { CustomDomain } from '@/types/onetime';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
-import { useRouter } from 'vue-router';
+import { formatDistanceToNow } from 'date-fns';
 import DomainVerificationInfo from './DomainVerificationInfo.vue';
 import MinimalDropdownMenu from './MinimalDropdownMenu.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
 
-const csrfStore = useCsrfStore();
-
-const router = useRouter();
+const cust = useWindowProp('cust'); // Used for feature flags
 
 defineProps<{
   domains: CustomDomain[];
+  isToggling: (domainId: string) => boolean;
+  isSubmitting: boolean;
 }>();
 
+const emit = defineEmits<{
+  (e: 'confirm-delete', domainId: string): void;
+  (e: 'toggle-homepage', domain: CustomDomain): void;
+}>();
 
-const { isSubmitting, submitForm } = useFormSubmission({
-  successMessage: 'Domain removed successfully',
-  onSuccess: () => {
-    // Refresh the current route
-    router.go(0);
-  },
-});
-
-const formatRelativeTime = (epochSeconds: number): string => {
-  const date = new Date(epochSeconds * 1000); // Convert seconds to milliseconds
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-
-  if (diffInSeconds < 60) {
-    return rtf.format(-diffInSeconds, 'second');
-  } else if (diffInSeconds < 3600) {
-    return rtf.format(-Math.floor(diffInSeconds / 60), 'minute');
-  } else if (diffInSeconds < 86400) {
-    return rtf.format(-Math.floor(diffInSeconds / 3600), 'hour');
-  } else {
-    return rtf.format(-Math.floor(diffInSeconds / 86400), 'day');
-  }
-}
-
+const handleDelete = (domainId: string) => {
+  emit('confirm-delete', domainId);
+};
 </script>

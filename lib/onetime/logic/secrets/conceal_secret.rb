@@ -72,6 +72,9 @@ module Onetime::Logic
 
         # Returns the display_domain/share_domain or
         if share_domain
+          # We need to load via just the domain here which we can do in
+          # addition to this check. When custom_domain.brand.allow_public_homepage
+          # is true we allow this behaviour. See #840.
           @custom_domain = OT::CustomDomain.load(@share_domain, cust.custid)
 
           # Is the custom domain is nil, it either doesn't exist in the system

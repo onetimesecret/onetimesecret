@@ -44,7 +44,7 @@ module Onetime::App
             # Set the session as authenticated for this request
             sess.authenticated = true
 
-            OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (#{sess.authenticated?})"
+            OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (#{sess.authenticated?})"
 
           # Second line, check for session cookie. We allow this in certain cases
           # like API requests coming from hybrid Vue components.
@@ -64,7 +64,7 @@ module Onetime::App
             raise OT::Unauthorized, "Invalid credentials" if cust.nil? # wrong token
 
             custid = @cust.custid unless @cust.nil?
-            OT.info "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
+            OT.ld "[authorized] '#{custid}' via #{req.client_ipaddress} (cookie)"
 
             # Anytime we allow session cookies, we must also check shrimp. This will
             # run only for POST etc requests (i.e. not GET) and it's important to

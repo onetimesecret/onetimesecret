@@ -20,7 +20,7 @@ module Onetime::Models
       # displaying a message to a user the next time they load a page.
       #
       # Each message is a small JSON blob: {type: 'error', content: '...'}
-      base.list :messages, ttl: 30.minutes
+      base.list :messages, ttl: 20.minutes
     end
 
     def set_form_fields hsh

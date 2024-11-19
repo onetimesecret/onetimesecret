@@ -14,11 +14,18 @@ export interface BaseApiRecord {
   updated: string;
 }
 
+export interface ImageProps {
+  encoded: string;
+  content_type: string;
+  filename: string;
+  bytes?: number;
+  width?: number;
+  height?: number;
+  ratio?: number;
+}
+
+// These need to match UpdateDomainBrand#update_brand_settings valid_keys
 export interface BrandSettings {
-  logo: string;
-  image_encoded: string;
-  image_content_type: string;
-  image_filename: string;
   primary_color: string;
   instructions_pre_reveal: string;
   instructions_reveal: string;
@@ -26,7 +33,26 @@ export interface BrandSettings {
   button_text_light: boolean;
   font_family: string;
   corner_style: string;
+  allow_public_homepage: boolean;
+  allow_public_api: boolean;
 }
+
+// The javascript handoff dumps the booleans as strings.
+export interface BrokenBrandSettings {
+  primary_color: string;
+  instructions_pre_reveal: string;
+  instructions_reveal: string;
+  instructions_post_reveal: string;
+  button_text_light: string; // This is a string in the incoming data
+  font_family: string;
+  corner_style: string;
+  allow_public_homepage: string,
+  allow_public_api: string,
+}
+
+
+// Define domain strategy types based on the Ruby middleware
+export type DomainStrategy = 'canonical' | 'subdomain' | 'custom' | 'invalid';
 
 // Define the customer model
 export interface Customer extends BaseApiRecord {
@@ -44,6 +70,8 @@ export interface Customer extends BaseApiRecord {
   stripe_checkout_email?: string;
   stripe_subscription_id?: string;
   stripe_customer_id?: string;
+
+  feature_flags?: { [key: string]: boolean | number | string };
 }
 
 export interface ColonelCustomer {
@@ -55,6 +83,8 @@ export interface ColonelCustomer {
   emails_sent: number;
   verified: boolean;
   stamp: string;
+
+  feature_flags?: { [key: string]: boolean | number | string };
 }
 
 export interface SecretOptions {
@@ -138,6 +168,29 @@ export interface CustomDomain extends BaseApiRecord {
   txt_validation_value: string;
   vhost?: ApproximatedVHost;
   brand?: BrandSettings;
+  // Images are queried separately
+}
+
+export interface BrokenCustomDomain extends BaseApiRecord {
+  created: string;
+  updated: string;
+  identifier: string;
+  domainid: string;
+  custid: string;
+  display_domain: string;
+  base_domain: string;
+  subdomain: string;
+  is_apex: boolean;
+  trd: string;
+  tld: string;
+  sld: string;
+  verified: boolean;
+  _original_value: string;
+  txt_validation_host: string;
+  txt_validation_value: string;
+  vhost?: ApproximatedVHost;
+  brand?: BrokenBrandSettings;
+  // Images are queried separately
 }
 
 export interface CustomDomainCluster extends BaseApiRecord {
@@ -251,6 +304,7 @@ export interface SecretDetails extends DetailsType {
   correct_passphrase: boolean;
   display_lines: number;
   one_liner: boolean;
+  show_secret: boolean;
 }
 
 export interface ConcealData {
@@ -344,6 +398,8 @@ export type SecretDataApiResponse = ApiRecordResponse<SecretData>;
 export type ConcealDataApiResponse = ApiRecordResponse<ConcealData>;
 export type CheckAuthDataApiResponse = ApiRecordResponse<CheckAuthData>;
 export type BrandSettingsApiResponse = ApiRecordResponse<BrandSettings>;
+export type ImagePropsApiResponse = ApiRecordResponse<ImageProps>;
+export type CustomDomainRecordsApiResponse = ApiRecordsResponse<CustomDomain>;
 
 /**
  * Front-end Vue App
@@ -410,7 +466,7 @@ export interface Secret extends BaseApiRecord {
 
 export interface AsyncDataResult<T> {
   data: T | null;
-  error: string | null;
+  error: Error | string | null;
   status: number | null;
 }
 

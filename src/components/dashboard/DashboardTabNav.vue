@@ -1,7 +1,7 @@
 <template>
-  <nav aria-label="Dashboard Navigation"
+  <nav v-if="authenticated" aria-label="Dashboard Navigation"
        class="mb-6 px-4 py-2 bg-gray-50/50 dark:bg-gray-800/50"><!-- Shadow approach -->
-    <ul v-if="authenticated"
+    <ul
         class="flex flex-wrap justify-between gap-x-6 gap-y-2 max-w-7xl mx-auto font-brand"
         role="menubar">
       <!-- Home -->
@@ -62,7 +62,7 @@
       </li>
 
       <!-- Custom Domains -->
-      <li v-if="domains_enabled && planAllowsCustomDomains"
+      <li v-if="domains_enabled"
           role="none">
         <router-link to="/account/domains"
                      role="menuitem"
@@ -96,17 +96,12 @@
   </nav>
 </template>
 
-
-
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
 import { useWindowProps } from '@/composables/useWindowProps';
+import { useRoute } from 'vue-router';
 
-const { authenticated, metadata_record_count, domains_enabled, plan, custom_domains_record_count } =
-  useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
-
-const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
+const { authenticated, metadata_record_count, domains_enabled, custom_domains_record_count } =
+  useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'custom_domains_record_count']);
 
 const route = useRoute();
 

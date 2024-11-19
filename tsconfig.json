@@ -5,7 +5,7 @@
 
   "compilerOptions": {
     "target": "es2022",
-    "module": "nodenext",
+    "module": "es2022",
     "lib": [
       "es2023",
       "dom"
@@ -13,27 +13,30 @@
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "moduleResolution": "nodenext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
 
     "useDefineForClassFields": true,
     "jsx": "preserve",
 
-    "allowJs": true,
+    "allowJs": false,
+    "allowImportingTsExtensions": true,
+    "resolvePackageJsonExports": true,
+
     "sourceMap": true,
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types/declarations"
-    ]
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": [
     "src/content/*.md",
     "src/**/*.ts",
+    "src/types/**/*.ts",
+    "src/types/declarations/**/*.ts",
+    "src/types/declarations/**/*.d.ts",
     "src/types/**/*.ts",
     "src/types/declarations/**/*.ts",
     "src/types/declarations/**/*.d.ts",
@@ -44,5 +47,9 @@
     "tests/unit/vue/**/*.spec.ts",
     "tests/unit/vue/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "node_modules/**/*",
+    ".pnpm/**/*"
+  ]
 }

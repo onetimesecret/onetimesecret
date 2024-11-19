@@ -15,12 +15,19 @@
         mt-6
         space-y-6 space-y-reverse md:space-y-0
         md:flex-row">
-        <div v-if="displayVersion"
-             class="
+        <div class="
           w-full md:w-auto
           text-sm text-center md:text-left
-          text-gray-500 dark:text-gray-400">
-          &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+          text-gray-500 dark:text-gray-400
+          flex flex-wrap items-center justify-center md:justify-start gap-4">
+          <span v-if="displayVersion">
+            &copy; {{ new Date().getFullYear() }} {{ companyName }}.
+          </span>
+          <div v-if="!displayLinks" class="text-inherit">
+            <router-link to="/info/terms" class="hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200">Terms</router-link>
+            <span class="mx-2">·</span>
+            <router-link to="/info/privacy" class="hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200">Privacy</router-link>
+          </div>
         </div>
 
         <div v-if="displayToggles"

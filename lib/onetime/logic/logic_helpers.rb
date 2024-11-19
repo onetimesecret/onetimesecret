@@ -12,12 +12,6 @@ module Onetime
         format('/secret/%s', obj.key)
       end
 
-      def secret_display_domain(obj)
-        scheme = base_scheme
-        host = obj.share_domain || Onetime.conf[:site][:host]
-        [scheme, host].join
-      end
-
       def base_scheme
         Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
       end
