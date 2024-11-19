@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useExceptionReporting } from '@/composables/useExceptionReporting'
-import axios from 'axios'
+import api from '@/utils/api'
 
-vi.mock('axios')
+// Mock the api module
+vi.mock('@/utils/api', () => ({
+  default: {
+    post: vi.fn()
+  }
+}))
 
 describe('useExceptionReporting', () => {
   const mockExceptionData = {
@@ -28,17 +33,17 @@ describe('useExceptionReporting', () => {
   })
 
   it('should report exceptions correctly', async () => {
-    vi.mocked(axios.post).mockResolvedValueOnce({})
+    vi.mocked(api.post).mockResolvedValueOnce({})
     const { reportException } = useExceptionReporting()
 
     await reportException(mockExceptionData)
 
-    expect(axios.post).toHaveBeenCalledWith('/api/v2/exception', mockExceptionData)
-    expect(axios.post).toHaveBeenCalledTimes(1)
+    expect(api.post).toHaveBeenCalledWith('/api/v2/exception', mockExceptionData)
+    expect(api.post).toHaveBeenCalledTimes(1)
   })
 
   it('should handle exceptions gracefully', async () => {
-    vi.mocked(axios.post).mockRejectedValueOnce(new Error('API Error'))
+    vi.mocked(api.post).mockRejectedValueOnce(new Error('API Error'))
     const { reportException } = useExceptionReporting()
 
     await expect(reportException(mockExceptionData)).resolves.not.toThrow()
