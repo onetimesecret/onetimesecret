@@ -127,11 +127,11 @@
 
 <script setup lang="ts">
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
+import { useExceptionReporting } from '@/composables/useExceptionReporting';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useWindowProps } from '@/composables/useWindowProps';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { onMounted, ref } from 'vue';
-import { useExceptionReporting } from '@/composables/useExceptionReporting';
 
 const csrfStore = useCsrfStore();
 
