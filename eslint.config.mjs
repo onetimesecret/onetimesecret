@@ -66,6 +66,7 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
+        project: './tsconfig.json',
       },
     },
     plugins: {
@@ -73,7 +74,11 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': 'error', // Add the rule here
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-expressions': ['error', {
+        allowShortCircuit: true,
+        allowTernary: true,
+      }],
     },
   },
   ...pluginVue.configs['flat/strongly-recommended'],
