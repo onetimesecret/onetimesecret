@@ -37,7 +37,7 @@ class Onetime::RateLimit < Familia::Horreum
 
   prefix :limiter
 
-  string :counter, :quantize => [20.minutes, '%H:%M']
+  string :counter, :quantize => [20.minutes, '%H:%M'], :ttl => 20.minutes
 
   def_delegators :@counter, :value=, :to_i, :to_s
 
