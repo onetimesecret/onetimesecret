@@ -50,7 +50,7 @@ module Onetime
     attr_writer :debug
 
     def debug
-      @debug || ((@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true') || ENV['ONETIME_DEBUG'].to_i == 1)
+      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
     end
 
     def debug?

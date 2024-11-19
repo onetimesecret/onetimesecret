@@ -207,7 +207,6 @@ class Onetime::Customer < Familia::Horreum
   end
 
   def anonymous?
-    OT.ld [:anonymous?, key, custid.class, custid].inspect
     custid.to_s.eql?('anon')
   end
 

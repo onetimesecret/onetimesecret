@@ -10,7 +10,7 @@ module Onetime::Models
     def self.included base
       # In some UI flows, we temporarily store form values after a form
       # error so that the form UI inputs can be prepopulated, even if
-      # there's a redirect inbetween. Ideally we can move this to local
+      # there's a redirect in between. Ideally we can move this to local
       # storage with Vue.
       base.field :form_fields
 
