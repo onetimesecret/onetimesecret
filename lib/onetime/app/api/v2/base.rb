@@ -122,6 +122,13 @@ module Onetime::App
         json hsh
       end
 
+      def throttle_response msg, hsh={}
+        hsh[:message] = msg
+        hsh[:success] = false
+        res.status = 429 # Too Many Requests
+        json hsh
+      end
+
     end
   end
 end
