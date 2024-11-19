@@ -189,25 +189,34 @@ class Onetime::CustomDomain < Familia::Horreum
     end
   end
 
-  # Removes all Redis keys associated with this custom domain
+  # Removes all Redis keys associated with this custom domain.
   #
   # This includes:
-  # - The main domain hash
-  # - Entry in the values sorted set
-  # - Customer's domains list entry
-  # - Verification state
+  # - The main Redis key for the custom domain (`self.rediskey`)
+  # - Redis keys of all related objects specified in `self.class.redis_types`
   #
-  # @param customer [OT::Customer, nil] The customer to remove domain from
+  # @param customer [OT::Customer, nil] The customer to remove the domain from
   # @return [void]
   def destroy!(customer = nil)
-    keys_to_delete = [
-      rediskey,
-      "#{rediskey}:verification"
-    ]
+    keys_to_delete = [rediskey]
+
+    # This produces a list of redis keys for each of the RedisType
+    # relations defined for this model.
+    # See Familia::Features::Expiration for references implementation.
+    if self.class.has_relations?
+      related_names = self.class.redis_types.keys
+      OT.ld "[destroy!] #{self.class} has relations: #{related_names}"
+      keys_to_delete.concat(
+        related_names.filter_map do |name|
+          relation = send(name)
+          relation.rediskey # e.g, self.brand.rediskey
+        end
+      )
+    end
 
     redis.multi do |multi|
       # Delete all associated keys
-      keys_to_delete.each { |key| multi.del(rediskey, key) }
+      keys_to_delete.each { |key| multi.del(key) }
 
       # Remove from global values set
       multi.zrem(self.class.values.rediskey, identifier)
