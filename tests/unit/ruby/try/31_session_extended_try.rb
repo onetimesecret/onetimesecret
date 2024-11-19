@@ -19,7 +19,10 @@ OT.boot! :test
 #=> [1000, 1000]
 
 ## Verify that the distribution of characters in the IDs is uniform
-char_counts = @session_ids.join.chars.group_by(&:itself).transform_values(&:count)
+# Process each session ID separately, then combine the counts
+char_counts = @session_ids.each_with_object(Hash.new(0)) do |session_id, counts|
+  counts[session_id] += 1
+end
 std_dev = Math.sqrt(char_counts.values.sum { |count| (count - char_counts.values.sum.to_f / char_counts.length) ** 2 } / char_counts.length)
 [std_dev < 50, char_counts.length > 30]  # Adjust these thresholds as needed
 #=> [true, true]
