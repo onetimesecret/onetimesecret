@@ -13,7 +13,7 @@ module Onetime::Logic
         @exception_data = {
           message: params[:message].to_s.slice(0, 1000),
           type: params[:type].to_s.slice(0, 100),
-          stack: params[:stack].to_s.slice(0, 10000),
+          stack: params[:stack].to_s.slice(0, 10_000),
           url: params[:url].to_s.slice(0, 1000),
           line: params[:line].to_i,
           column: params[:column].to_i,
@@ -32,7 +32,7 @@ module Onetime::Logic
 
         # Rate limit by error type/location to prevent spam
         key = "#{@exception_data[:type]}:#{@exception_data[:url]}"
-        limit_key = OT::RateLimit.incr! sess.external_identifier, "exception:#{key}"
+        OT::RateLimit.incr! sess.external_identifier, "exception:#{key}"
       end
 
 
@@ -50,7 +50,7 @@ module Onetime::Logic
 
         # Log critical errors
         if @exception_data[:type]&.include?('Error')
-          OT.le "[Exception] #{exception.type}: #{exception.message} "\
+          OT.le "[Exception] #{exception.type}: #{exception.message} " \
                 "URL: #{exception.url} User: #{exception.user}"
         end
 

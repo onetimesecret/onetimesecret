@@ -51,6 +51,6 @@ class APIV2Test < Test::Unit::TestCase
     assert_equal 200, last_response.status
     response = JSON.parse(last_response.body)
     assert response['success']
-    assert_match /cust:/, response['record']['user']
+    assert_match(/cust:/, response['record']['user'])
   end
 end
