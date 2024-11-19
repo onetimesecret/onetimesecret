@@ -31,7 +31,6 @@ class Onetime::ExceptionInfo < Familia::Horreum
 
   @safe_dump_fields = [
     { identifier: ->(obj) { obj.identifier } },
-    :key,
     :message,
     :type,
     :url,

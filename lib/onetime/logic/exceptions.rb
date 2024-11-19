@@ -11,14 +11,14 @@ module Onetime::Logic
 
       def process_params
         @exception_data = {
-          message: params[:message].to_s.slice(0, 1000),
+          message: params[:message].to_s.slice(0, 256),
           type: params[:type].to_s.slice(0, 100),
-          stack: params[:stack].to_s.slice(0, 10_000),
-          url: params[:url].to_s.slice(0, 1000),
+          stack: params[:stack].to_s.slice(0, 2500),
+          url: params[:url].to_s.slice(0, 256),
           line: params[:line].to_i,
           column: params[:column].to_i,
           timestamp: Time.now.utc.iso8601,
-          user_agent: params[:user_agent].to_s.slice(0, 500),
+          user_agent: params[:user_agent].to_s.slice(0, 100),
           # Context data
           environment: params[:environment].to_s.slice(0, 50) || 'production',
           release: params[:release].to_s.slice(0, 50),
@@ -35,13 +35,14 @@ module Onetime::Logic
         OT::RateLimit.incr! sess.external_identifier, "exception:#{key}"
       end
 
-
       # Updated ReceiveException process method
       def process
         @greenlighted = true
 
         # Create new exception record
+        OT.ld("[Exception] Creating new exception record")
         @exception = OT::ExceptionInfo.new
+        OT.ld("[Exception] Applying exception data", @exception_data)
         exception.apply_fields(**@exception_data)
         exception.save
 
