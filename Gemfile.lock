@@ -186,6 +186,7 @@ DEPENDENCIES
   drydock
   encryptor (= 1.1.3)
   familia (~> 1.1.0.pre.rc1)
+  fastimage (~> 2.3)
   fiddle
   gibbler
   httparty
