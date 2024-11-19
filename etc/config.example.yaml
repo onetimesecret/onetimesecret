@@ -240,6 +240,7 @@
   :get_domain: 100
   :verify_domain: 25
   :report_exception: 50
+  :attempt_secret_access: 10
 :development:
   # Enabling development mode here directs the application to expect
   # a vite server to be running on port 5173 and will attempt to
