@@ -35,6 +35,7 @@ GET    /version                                   Onetime::App::APIV2#version
 POST   /validate-shrimp                           Onetime::App::APIV2#get_validate_shrimp
 
 POST   /feedback                                  Onetime::App::APIV2#receive_feedback
+POST   /exception                                 Onetime::App::APIV2#receive_exception
 
 GET    /altcha/challenge                          Onetime::App::APIV2::Challenges#altcha_challenge
 POST   /altcha/verify                             Onetime::App::APIV2::Challenges#altcha_verify

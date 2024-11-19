@@ -17,15 +17,15 @@
        </thead>
        <tbody>
          <tr class="border-b dark:border-gray-600">
-           <td class="p-2 dark:text-gray-300">0.18.x+</td>
+           <td class="p-2 dark:text-gray-300">0.19.x+</td>
            <td class="p-2 dark:text-gray-300">✅</td>
          </tr>
          <tr class="border-b dark:border-gray-600">
-           <td class="p-2 dark:text-gray-300">0.17.x</td>
+           <td class="p-2 dark:text-gray-300">0.18.x</td>
            <td class="p-2 dark:text-gray-300">✅</td>
          </tr>
          <tr>
-           <td class="p-2 dark:text-gray-300">&lt;= 0.16.0</td>
+           <td class="p-2 dark:text-gray-300">&lt;= 0.17.x</td>
            <td class="p-2 dark:text-gray-300">❌</td>
          </tr>
        </tbody>

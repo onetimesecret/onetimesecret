@@ -132,17 +132,17 @@ begin
   cd = OT::CustomDomain.create(many_levels, @customer.custid)
   pp [cd]
 rescue OT::Problem => e
-  e.message.include?('too deep')
+  !e.message.nil? && e.message.include?('too deep')
 end
 #=> true
 
 ## Handles domain with maximum length
-many_labels = ('a' * 255) + 'example.com'
+many_labels = ('a' * 255) + '.example.com'
 begin
   cd = OT::CustomDomain.create(many_labels, @customer.custid)
   pp [cd]
 rescue OT::Problem => e
-  e.message.include?('too long')
+  !e.message.nil? && e.message.include?('too long')
 end
 #=> true
 

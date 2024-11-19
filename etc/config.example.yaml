@@ -84,7 +84,9 @@
     :metadata: 7
     :email_receipt: 8
     :secret: 8
+    :rate_limit: 2
     :feedback: 11
+    :exception_info: 12
 :colonels:
   # Email addresses listed below will be granted automatic
   # administrative privileges upon account creation. These
@@ -237,6 +239,7 @@
   :list_domains: 100
   :get_domain: 100
   :verify_domain: 25
+  :report_exception: 50
 :development:
   # Enabling development mode here directs the application to expect
   # a vite server to be running on port 5173 and will attempt to

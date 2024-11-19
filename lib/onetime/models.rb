@@ -9,6 +9,7 @@ require_relative 'models/splittest'
 require_relative 'models/email_receipt'
 require_relative 'models/custom_domain'
 require_relative 'models/feedback'
+require_relative 'models/exception_info'
 require_relative 'models/rate_limit'
 
 # For backwards compatibility with v0.18.3 and earlier, these redis database
@@ -30,5 +31,6 @@ DATABASE_IDS = {
   metadata: 7,
   email_receipt: 8,
   secret: 8,
-  feedback: 11
+  feedback: 11,
+  exceptions: 12,
 }

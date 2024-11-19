@@ -6,6 +6,8 @@ import globals from 'globals';
 import path from 'path';
 import vueEslintParser from 'vue-eslint-parser';
 import importPlugin from 'eslint-plugin-import';
+import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
+
 
 export default [
   // Ignore everything except src directory and vite.config.ts
@@ -74,7 +76,8 @@ export default [
       '@typescript-eslint/no-unused-vars': 'error', // Add the rule here
     },
   },
-  // Include Vue essential rules directly
+  ...tseslint.configs.recommended,
+  ...pluginVue.configs['flat/strongly-recommended'],
   {
     files: ['src/**/*.vue'],
     languageOptions: {
@@ -85,28 +88,40 @@ export default [
         sourceType: 'module',
       },
     },
+    rules: {
+      'vue/valid-template-root': 'error',
+    },
     plugins: {
       'vue': pluginVue,
-    },
-    rules: {
-      //...pluginVue.configs['flat/essential'],
     },
   },
   // Override specific rules for certain Vue files
   {
-    files: ["src/views/*.vue", "src/layouts/*.vue"],
+    files: ['src/views/*.vue', 'src/layouts/*.vue'], // Target files in the views directory
     rules: {
-      "vue/multi-word-component-names": "off", // Turn off the rule
+      'vue/multi-word-component-names': 'off', // Turn off the rule
     },
   },
   // Add Vue I18n plugin configuration
   {
-    files: ['src/**/*.{js,ts,vue}'],
+    files: ['src/**/*.{ts,vue}'],
     plugins: {
-      'vue-i18n': pluginVueI18n,
+     '@intlify/vue-i18n': pluginVueI18n,
     },
     rules: {
-      // Add your Vue I18n specific rules here
+      '@intlify/vue-i18n/no-deprecated-modulo-syntax': 'error',
+    },
+  },
+  // Add Tailwind CSS plugin configuration
+  ...pluginTailwindCSS.configs['flat/recommended'],
+  {
+    files: ['src/**/*.{ts,vue}'],
+    plugins: {
+      'tailwindcss': pluginTailwindCSS,
+    },
+    rules: {
+      'tailwindcss/classnames-order': 'warn',
+      'tailwindcss/no-custom-classname': 'warn',
     },
   },
 ];

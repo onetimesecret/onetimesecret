@@ -145,23 +145,32 @@ rescue OT::Problem => e
 end
 #=> "Customer ID required"
 
+## Check txt validation record host before generating
+obj = OT::CustomDomain.new('onetimesecret.com', '12345@example.com')
+obj.txt_validation_host
+#=> nil
+
 ## Check txt validation record host for apex domain
 obj = OT::CustomDomain.new('onetimesecret.com', '12345@example.com')
+obj.generate_txt_validation_record
 obj.txt_validation_host
 #=> "_onetime-challenge-47797c9"
 
 ## Check txt validation record host for www. + apex domain
 obj = OT::CustomDomain.new('www.onetimesecret.com', '12345@example.com')
+obj.generate_txt_validation_record
 obj.txt_validation_host
 #=> "_onetime-challenge-7dd438f.www"
 
 ## Check txt validation record host for subdomain
 obj = OT::CustomDomain.new('tryouts.onetimesecret.com', '12345@example.com')
+obj.generate_txt_validation_record
 obj.txt_validation_host
 #=> "_onetime-challenge-0669deb.tryouts"
 
 ## Check txt validation record host for double subdomain
 obj = OT::CustomDomain.new('a.tryouts.onetimesecret.com', '12345@example.com')
+obj.generate_txt_validation_record
 obj.txt_validation_host
 #=> "_onetime-challenge-5a24302.a.tryouts"
 

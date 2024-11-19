@@ -50,7 +50,7 @@ module Onetime
     attr_writer :debug
 
     def debug
-      @debug || ((@debug.nil? && ENV['ONETIME_DEBUG'].to_s == 'true') || ENV['ONETIME_DEBUG'].to_i == 1)
+      @debug ||= ENV['ONETIME_DEBUG'].to_s.match?(/^(true|1)$/i)
     end
 
     def debug?
@@ -185,6 +185,19 @@ module Onetime
 
     using Familia::HorreumRefinements
 
+    # Connects each model to its configured Redis database.
+    #
+    # This method retrieves the Redis database configurations from the application
+    # settings and establishes connections for each model class within the Familia
+    # module. It assigns the appropriate Redis connection to each model and verifies
+    # the connection by sending a ping command. Detailed logging is performed at each
+    # step to facilitate debugging and monitoring.
+    #
+    # @example
+    #   connect_databases
+    #
+    # @return [void]
+    #
     def connect_databases
       # Connect each model to its configured Redis database
       dbs = OT.conf.dig(:redis, :dbs)
@@ -194,9 +207,9 @@ module Onetime
       # Map model classes to their database numbers
       Familia.members.each do |model_class|
         model_sym = model_class.to_sym
-        db_index = dbs[model_sym] || DATABASE_IDS[model_sym] # see models.rb
+        db_index = dbs[model_sym] || DATABASE_IDS[model_sym] || 0 # see models.rb
 
-        # Give the model class a redis connection to work with.
+        # Assign a Redis connection to the model class
         model_class.redis = Familia.redis(db_index)
         ping_result = model_class.redis.ping
 

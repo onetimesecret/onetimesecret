@@ -21,7 +21,8 @@ OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test
 OT.boot! :test
 
 # Setup
-@metadata, @secret = Onetime::Secret.spawn_pair 'anon', :tryouts
+@metadata, @secret = Onetime::Secret.spawn_pair 'anon'
+# metadata, secret = Onetime::Secret.spawn_pair 'anon'
 @metadata.save
 @secret.save
 
