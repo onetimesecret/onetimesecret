@@ -106,4 +106,4 @@ logic = OT::Logic::Account::DestroyAccount.new @sess, @cust
 #=> [nil, nil, true]
 
 # Cleanup test data
-@cust.redis.del
+@cust.delete!
