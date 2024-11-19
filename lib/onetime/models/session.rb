@@ -112,12 +112,8 @@ class Onetime::Session < Familia::Horreum
       begin
         self.delete!
       rescue => ex
-        OT.le "[Session.replace!] Failed to rename key #{rediskey} to #{newid}: #{ex.message}"
+        OT.le "[Session.replace!] Failed to delete key #{rediskey}: #{ex.message}"
       end
-
-      self.sessid = newid
-      self.key = newid
-      save
     end
 
     # This update is important b/c it ensures that the
