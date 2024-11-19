@@ -1,31 +1,41 @@
 <template>
-  <div class="hidden sm:flex items-center">
-    <router-link to="/account"
-                 class="text-gray-400 hover:text-gray-300 transition group">
-      <span id="userEmail"
-            :class="{ 'animate-pulse': isNewFeature }"
-            class="group-hover:text-gray-300">
+  <div class="hidden items-center sm:flex">
+    <router-link
+      to="/account"
+      class="group text-gray-400 transition hover:text-gray-300"
+    >
+      <span
+        id="userEmail"
+        :class="{ 'animate-pulse': isNewFeature }"
+        class="group-hover:text-gray-300"
+      >
         {{ cust.custid }}
       </span>
-
     </router-link>
 
-    <FancyIcon v-if="domains_enabled && !planAllowsCustomDomains"
-               to="/pricing"
-               ariaLabel="Click this lightning bolt to upgrade for custom domains" />
+    <FancyIcon
+      v-if="domains_enabled && !planAllowsCustomDomains"
+      to="/pricing"
+      aria-label="Click this lightning bolt to upgrade for custom domains"
+    />
 
-    <router-link v-if="colonel"
-                 to="/colonel/"
-                 title=""
-                 class="ml-2 text-gray-400 hover:text-gray-300 transition">
-      <Icon icon="mdi:star"
-            class="w-4 h-4 text-brand-400 " />
+    <router-link
+      v-if="colonel"
+      to="/colonel/"
+      title=""
+      class="ml-2 text-gray-400 transition hover:text-gray-300"
+    >
+      <Icon
+        icon="mdi:star"
+        class="size-4 text-brand-400 "
+      />
     </router-link>
-    <span class="ml-2 text-gray-400"
-          aria-hidden="true"
-          role="separator">|</span>
+    <span
+      class="ml-2 text-gray-400"
+      aria-hidden="true"
+      role="separator"
+    >|</span>
   </div>
-
 </template>
 
 <script setup lang="ts">

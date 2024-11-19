@@ -29,26 +29,33 @@
 -->
 
 <template>
-  <div class="relative inline-block mx-1">
-    <Icon icon="heroicons:information-circle"
-          class="inline align-baseline cursor-pointer text-base"
-          @click="toggleModal" />
+  <div class="relative mx-1 inline-block">
+    <Icon
+      icon="heroicons:information-circle"
+      class="inline cursor-pointer align-baseline text-base"
+      @click="toggleModal"
+    />
 
     <Transition name="fade">
-      <div v-if="isModalVisible"
-           class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
-           @click="closeModal">
-        <div :class="['relative max-w-md p-6 rounded-lg shadow-lg', modalClasses]"
-             @click.stop>
-          <button @click="closeModal"
-                  class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
+      <div
+        v-if="isModalVisible"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+        @click="closeModal"
+      >
+        <div
+          :class="['relative max-w-md rounded-lg p-6 shadow-lg', modalClasses]"
+          @click.stop
+        >
+          <button
+            @click="closeModal"
+            class="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+          >
             <Icon icon="heroicons:x-mark-20-solid" />
           </button>
           <slot></slot>
         </div>
       </div>
     </Transition>
-
   </div>
 </template>
 

@@ -40,10 +40,15 @@ onMounted(() => {
 
 <template>
   <article class="prose dark:prose-invert md:prose-lg lg:prose-xl">
-    <h2 class="intro">About Us</h2>
+    <h2 class="intro">
+      About Us
+    </h2>
 
     <p class="">
-      Hi, I'm <a href="https://delanotes.com/" title="Delano Mandelbaum">Delano</a>, the creator of
+      Hi, I'm <a
+        href="https://delanotes.com/"
+        title="Delano Mandelbaum"
+      >Delano</a>, the creator of
       Onetime Secret. What started in 2012 as a simple, secure way to share sensitive information
       has grown beyond our wildest expectations. Over a decade later, we're facilitating the secure
       sharing of millions of secrets monthly, with use cases we never imagined.
@@ -58,9 +63,10 @@ onMounted(() => {
 
     <p>
       True to our roots,
-      <a href="https://github.com/onetimesecret/onetimesecret" title="Fork us on GitHub"
-        >our code remains open-source</a
-      >
+      <a
+        href="https://github.com/onetimesecret/onetimesecret"
+        title="Fork us on GitHub"
+      >our code remains open-source</a>
       on GitHub. As we navigate the evolving landscape of digital privacy and security, we're
       committed to transparency and continual improvement.
     </p>
@@ -74,11 +80,19 @@ onMounted(() => {
       If you have any questions, there is a feedback form at the bottom of (almost) every page.
     </p>
 
-    <p class="">Happy sharing,<br />Delano</p>
+    <p class="">
+      Happy sharing,<br />Delano
+    </p>
 
     <p style="margin-left: 40%; margin-right: 40%">
-      <a href="https://delanotes.com/" title="Delano Mandelbaum"
-        ><img src="@/assets/img/delano-g.png" width="95" height="120" border="0"
+      <a
+        href="https://delanotes.com/"
+        title="Delano Mandelbaum"
+      ><img
+        src="@/assets/img/delano-g.png"
+        width="95"
+        height="120"
+        border="0"
       /></a>
     </p>
 
@@ -126,7 +140,9 @@ onMounted(() => {
       and we don't keep access logs beyond the minimum necessary. This means that in most cases, we
       simply don't have any data to provide in response to such requests. For more details, please
       review our
-      <router-link to="/info/privacy">privacy policy</router-link>.
+      <router-link to="/info/privacy">
+        privacy policy
+      </router-link>.
     </p>
 
     <h4>Why should I trust you?</h4>

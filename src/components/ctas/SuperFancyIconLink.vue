@@ -2,15 +2,15 @@
   <router-link
     :to="to"
     :aria-label="ariaLabel"
-    class="inline-flex items-center px-2 py-1 text-sm font-medium rounded-md
-           text-white
-           focus:outline-none focus:ring-2 focus:ring-white
-           transition-all duration-300 ease-in-out
-           glow-effect"
+    class="glow-effect inline-flex items-center rounded-md px-2 py-1 text-sm
+           font-medium
+           text-white transition-all duration-300
+           ease-in-out focus:outline-none focus:ring-2
+           focus:ring-white"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class="h-5 w-5 mr-1 animate-pulse"
+      class="mr-1 size-5 animate-pulse"
       viewBox="0 0 20 20"
       fill="currentColor"
     >
@@ -20,7 +20,10 @@
         clip-rule="evenodd"
       />
     </svg>
-    <span v-if="text" class="animate-bounce">{{ text }}</span>
+    <span
+      v-if="text"
+      class="animate-bounce"
+    >{{ text }}</span>
   </router-link>
 </template>
 

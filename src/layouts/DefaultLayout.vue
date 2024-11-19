@@ -1,17 +1,20 @@
 <template>
   <BaseLayout v-bind="props">
     <template #header>
-      <DefaultHeader v-bind="props"/>
+      <DefaultHeader v-bind="props" />
     </template>
 
     <template #main>
-      <main class="container mx-auto px-4 py-8 min-w-[320px] max-w-2xl" name="DefaultLayout">
+      <main
+        class="container mx-auto min-w-[320px] max-w-2xl px-4 py-8"
+        name="DefaultLayout"
+      >
         <slot></slot>
       </main>
     </template>
 
     <template #footer>
-      <DefaultFooter v-bind="props"/>
+      <DefaultFooter v-bind="props" />
     </template>
   </BaseLayout>
 </template>

@@ -58,16 +58,16 @@ onUnmounted(() => {
   <!-- https://altcha.org/docs/floating-ui/ -->
   <!-- https://altcha.org/docs/website-integration/ -->
   <div class="flex">
-    <altcha-widget ref="altchaWidget"
-                   challengeurl="/api/v2/altcha/challenge"
-                   name="authenticity_payload"
-                   :floating="isFloating"
-                   floatinganchor="bottom-right"
-                   hidelogo
-                   hidefooter
-                   class="">
-
-    </altcha-widget>
+    <altcha-widget
+      ref="altchaWidget"
+      challengeurl="/api/v2/altcha/challenge"
+      name="authenticity_payload"
+      :floating="isFloating"
+      floatinganchor="bottom-right"
+      hidelogo
+      hidefooter
+      class=""
+    />
   </div>
 </template>
 

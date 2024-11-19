@@ -2,32 +2,42 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
-      <DomainHeader :displayDomain="displayDomain"
-                    :domain="customDomain" />
+      <DomainHeader
+        :display-domain="displayDomain"
+        :domain="customDomain"
+      />
 
-      <BrandSettingsBar v-model="brandSettings"
-                        :shrimp="csrfStore.shrimp"
-                        :is-submitting="isSubmitting"
-                        @submit="submitForm">
+      <BrandSettingsBar
+        v-model="brandSettings"
+        :shrimp="csrfStore.shrimp"
+        :is-submitting="isSubmitting"
+        @submit="submitForm"
+      >
         <template #instructions-button>
-          <InstructionsModal v-model="brandSettings.instructions_pre_reveal"
-                             @update:modelValue="(value) => brandSettings.instructions_pre_reveal = value" />
+          <InstructionsModal
+            v-model="brandSettings.instructions_pre_reveal"
+            @update:model-value="(value) => brandSettings.instructions_pre_reveal = value"
+          />
         </template>
       </BrandSettingsBar>
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div class="mx-auto max-w-7xl p-4 sm:px-6 sm:py-8 lg:px-8">
       <!-- Preview Section -->
       <div class="relative mb-6 sm:mb-12">
-        <h2 id="previewHeading"
-            class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">
+        <h2
+          id="previewHeading"
+          class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100"
+        >
           Preview & Customize
         </h2>
 
         <!-- Instructions for screen readers -->
-        <div class="sr-only"
-             role="note">
+        <div
+          class="sr-only"
+          role="note"
+        >
           This is an interactive preview of how recipients will see your secure messages. You can:
           - Customize colors and fonts using the controls above
           - Upload a logo (minimum 128x128 pixels recommended, 1MB max)
@@ -35,56 +45,72 @@
         </div>
 
         <!-- Visual instructions -->
-        <ul class="mb-4 sm:mb-6 text-sm space-y-1 sm:space-y-2"
-            :aria-hidden="true">
+        <ul
+          class="mb-4 space-y-1 text-sm sm:mb-6 sm:space-y-2"
+          :aria-hidden="true"
+        >
           <li class="flex items-center gap-2">
-            <Icon icon="mdi:palette-outline"
-                  class="w-5 h-5"
-                  aria-label="Customization icon" />
+            <Icon
+              icon="mdi:palette-outline"
+              class="size-5"
+              aria-label="Customization icon"
+            />
             Use the controls above to customize brand color, styles, and recipient instructions
           </li>
 
           <li class="flex items-center gap-2">
-            <Icon icon="mdi:image-outline"
-                  class="w-5 h-5"
-                  aria-label="Image icon" />
+            <Icon
+              icon="mdi:image-outline"
+              class="size-5"
+              aria-label="Image icon"
+            />
             Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)
           </li>
 
           <li class="flex items-center gap-2">
-            <Icon icon="mdi:eye-outline"
-                  class="w-5 h-5"
-                  aria-label="Eye icon" />
+            <Icon
+              icon="mdi:eye-outline"
+              class="size-5"
+              aria-label="Eye icon"
+            />
             Preview how recipients will see your secrets by testing the "View Secret" button
           </li>
         </ul>
 
-        <BrowserPreviewFrame class="w-full max-w-3xl mx-auto overflow-hidden"
-                             :domain="displayDomain"
-                             :browser-type="selectedBrowserType"
-                             @toggle-browser="toggleBrowser"
-                             aria-labelledby="previewHeading">
-          <SecretPreview v-if="!loading && !error"
-                         ref="secretPreview"
-                         :domainBranding="brandSettings"
-                         :logoImage="logoImage"
-                         :onLogoUpload="handleLogoUpload"
-                         :onLogoRemove="removeLogo"
-                         secretKey="abcd"
-                         class="transform transition-all duration-200 hover:scale-[1.02] max-w-full" />
+        <BrowserPreviewFrame
+          class="mx-auto w-full max-w-3xl overflow-hidden"
+          :domain="displayDomain"
+          :browser-type="selectedBrowserType"
+          @toggle-browser="toggleBrowser"
+          aria-labelledby="previewHeading"
+        >
+          <SecretPreview
+            v-if="!loading && !error"
+            ref="secretPreview"
+            :domain-branding="brandSettings"
+            :logo-image="logoImage"
+            :on-logo-upload="handleLogoUpload"
+            :on-logo-remove="removeLogo"
+            secret-key="abcd"
+            class="max-w-full transition-all duration-200 hover:scale-[1.02]"
+          />
         </BrowserPreviewFrame>
 
         <!-- Loading and Error States -->
-        <div v-if="loading"
-             role="status"
-             class="text-center py-8">
+        <div
+          v-if="loading"
+          role="status"
+          class="py-8 text-center"
+        >
           <span class="sr-only">Loading preview...</span>
           <!-- Add loading spinner -->
         </div>
 
-        <div v-if="error"
-             role="alert"
-             class="text-center py-8 text-red-600">
+        <div
+          v-if="error"
+          role="alert"
+          class="py-8 text-center text-red-600"
+        >
           {{ error }}
         </div>
       </div>
@@ -92,8 +118,10 @@
 
 
     <!-- Loading Overlay -->
-    <LoadingOverlay :show="loading"
-                    message="Loading brand settings" />
+    <LoadingOverlay
+      :show="loading"
+      message="Loading brand settings"
+    />
   </div>
 </template>
 

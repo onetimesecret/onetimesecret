@@ -1,55 +1,82 @@
 <template>
-  <footer class="
+  <footer
+    class="
     w-full min-w-[320px]
-    py-16
-    bg-gray-100 dark:bg-gray-800
-    transition-all duration-300"
-          aria-label="Site footer">
-    <div class="container mx-auto px-4 max-w-2xl">
-      <FooterLinkLists v-if="displayLinks"
-                       v-bind="$props" />
+    bg-gray-100
+    py-16 transition-all
+    duration-300 dark:bg-gray-800"
+    aria-label="Site footer"
+  >
+    <div class="container mx-auto max-w-2xl px-4">
+      <FooterLinkLists
+        v-if="displayLinks"
+        v-bind="$props"
+      />
 
-      <div class="
-        flex flex-col-reverse
-        justify-between items-center
-        mt-6
-        space-y-6 space-y-reverse md:space-y-0
-        md:flex-row">
-        <div class="
-          w-full md:w-auto
-          text-sm text-center md:text-left
-          text-gray-500 dark:text-gray-400
-          flex flex-wrap items-center justify-center md:justify-start gap-4">
+      <div
+        class="
+        mt-6 flex
+        flex-col-reverse items-center
+        justify-between
+        space-y-6 space-y-reverse md:flex-row
+        md:space-y-0"
+      >
+        <div
+          class="
+          flex w-full
+          flex-wrap items-center justify-center
+          gap-4 text-center
+          text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left"
+        >
           <span v-if="displayVersion">
             &copy; {{ new Date().getFullYear() }} {{ companyName }}.
           </span>
-          <div v-if="!displayLinks" class="text-inherit">
-            <router-link to="/info/terms" class="hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200">Terms</router-link>
+          <div
+            v-if="!displayLinks"
+            class="text-inherit"
+          >
+            <router-link
+              to="/info/terms"
+              class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100"
+            >
+              Terms
+            </router-link>
             <span class="mx-2">·</span>
-            <router-link to="/info/privacy" class="hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-200">Privacy</router-link>
+            <router-link
+              to="/info/privacy"
+              class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100"
+            >
+              Privacy
+            </router-link>
           </div>
         </div>
 
-        <div v-if="displayToggles"
-             class="
-          flex flex-wrap
-          items-center justify-center md:justify-end
-          w-full md:w-auto
-          space-x-4">
+        <div
+          v-if="displayToggles"
+          class="
+          flex w-full
+          flex-wrap items-center justify-center
+          space-x-4 md:w-auto
+          md:justify-end"
+        >
           <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
 
-          <ThemeToggle class="
-            text-gray-500 dark:text-gray-400
-            hover:text-gray-800 dark:hover:text-gray-100
-            transition-colors duration-200"
-                       aria-label="Toggle dark mode" />
+          <ThemeToggle
+            class="
+            text-gray-500 transition-colors
+            duration-200 hover:text-gray-800
+            dark:text-gray-400 dark:hover:text-gray-100"
+            aria-label="Toggle dark mode"
+          />
 
-          <FeedbackToggle v-if="displayFeedback && authentication.enabled"
-                          class="
-            text-gray-500 dark:text-gray-400
-            hover:text-gray-800 dark:hover:text-gray-100
-            transition-colors duration-200"
-                          aria-label="Provide feedback" />
+          <FeedbackToggle
+            v-if="displayFeedback && authentication.enabled"
+            class="
+            text-gray-500 transition-colors
+            duration-200 hover:text-gray-800
+            dark:text-gray-400 dark:hover:text-gray-100"
+            aria-label="Provide feedback"
+          />
         </div>
       </div>
     </div>

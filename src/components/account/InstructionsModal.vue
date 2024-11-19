@@ -1,84 +1,102 @@
 <template>
   <div class="relative">
-    <button type="button"
-            @click="toggleOpen"
-            class="inline-flex items-center
-                   px-4 py-2.5 h-11
-                   border border-gray-200 rounded-lg shadow-sm
-                   text-sm text-gray-700
-                   bg-white
-                   dark:border-gray-600 dark:text-gray-200 dark:bg-gray-800
+    <button
+      type="button"
+      @click="toggleOpen"
+      class="focus:ring-primary-500 inline-flex
+                   h-11 items-center rounded-lg
+                   border border-gray-200 bg-white px-4
+                   py-2.5 text-sm
+                   text-gray-700
+                   shadow-sm transition-all duration-200
+                   ease-in-out
                    hover:bg-gray-50
-                   dark:hover:bg-gray-800
-                   transition-all duration-200 ease-in-out
-                   focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                   focus:outline-none focus:ring-2 focus:ring-offset-2
+                   dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-800
                  dark:focus:ring-offset-gray-900"
-            :aria-expanded="isOpen"
-            aria-haspopup="true">
-
-      <Icon icon="mdi:text-box-edit"
-            class="w-5 h-5 mr-2"
-            aria-hidden="true" />
+      :aria-expanded="isOpen"
+      aria-haspopup="true"
+    >
+      <Icon
+        icon="mdi:text-box-edit"
+        class="mr-2 size-5"
+        aria-hidden="true"
+      />
       Instructions
-      <Icon :icon="isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'"
-            class="w-5 h-5 ml-2"
-            aria-hidden="true" />
+      <Icon
+        :icon="isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+        class="ml-2 size-5"
+        aria-hidden="true"
+      />
     </button>
 
-    <Transition enter-active-class="transition duration-200 ease-out"
-                enter-from-class="transform scale-95 opacity-0"
-                enter-to-class="transform scale-100 opacity-100"
-                leave-active-class="transition duration-75 ease-in"
-                leave-from-class="transform scale-100 opacity-100"
-                leave-to-class="transform scale-95 opacity-0">
-      <div v-if="isOpen"
-           class="absolute right-0 z-50
-                  w-96 mt-2
-                  rounded-lg shadow-lg
-                  bg-white
-                  dark:bg-gray-800
-                  ring-1 ring-black ring-opacity-5">
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="transform scale-95 opacity-0"
+      enter-to-class="transform scale-100 opacity-100"
+      leave-active-class="transition duration-75 ease-in"
+      leave-from-class="transform scale-100 opacity-100"
+      leave-to-class="transform scale-95 opacity-0"
+    >
+      <div
+        v-if="isOpen"
+        class="absolute right-0 z-50
+                  mt-2 w-96
+                  rounded-lg bg-white
+                  shadow-lg
+                  ring-1
+                  ring-black ring-opacity-5 dark:bg-gray-800"
+      >
         <div class="p-4">
-          <label class="block
-                       mb-2
+          <label
+            class="mb-2
+                       block
                        text-sm font-medium text-gray-700
-                       dark:text-gray-200">
+                       dark:text-gray-200"
+          >
             Pre-reveal Instructions
-            <Icon icon="mdi:help-circle"
-                  class="inline-block
-                         w-4 h-4 ml-1
-                         text-gray-400"
-                  @mouseenter="tooltipShow = true"
-                  @mouseleave="tooltipShow = false" />
-            <div v-if="tooltipShow"
-                 class="absolute z-50
-                        px-2 py-1
-                        max-w-xs
-                        rounded shadow-lg
-                        text-xs text-white
+            <Icon
+              icon="mdi:help-circle"
+              class="ml-1
+                         inline-block size-4 text-gray-400"
+              @mouseenter="tooltipShow = true"
+              @mouseleave="tooltipShow = false"
+            />
+            <div
+              v-if="tooltipShow"
+              class="absolute z-50
+                        max-w-xs rounded
                         bg-gray-900
-                        dark:bg-gray-700">
+                        px-2 py-1
+                        text-xs text-white
+                        shadow-lg
+                        dark:bg-gray-700"
+            >
               These instructions will be shown to recipients before they reveal the secret content
             </div>
           </label>
-          <textarea :value="modelValue"
-                    @input="updateValue"
-                    @keydown="handleKeydown"
-                    ref="textareaRef"
-                    rows="3"
-                    class="w-full
+          <textarea
+            :value="modelValue"
+            @input="updateValue"
+            @keydown="handleKeydown"
+            ref="textareaRef"
+            rows="3"
+            class="w-full
                            rounded-lg
-                           border-gray-300 shadow-sm
-                           text-sm
-                           dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                           focus:border-brand-300 focus:ring focus:ring-brand-200 focus:ring-opacity-50"
-                    placeholder="e.g. Use your phone to scan the QR code"
-                    @keydown.esc="close"></textarea>
+                           border-gray-300 text-sm
+                           shadow-sm
+                           focus:border-brand-300 focus:ring focus:ring-brand-200
+                           focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            placeholder="e.g. Use your phone to scan the QR code"
+            @keydown.esc="close"
+          ></textarea>
 
-          <div class="flex justify-between items-center
-                      mt-2
+          <div
+            class="mt-2 flex items-center
+                      justify-between
                       text-xs text-gray-500
-                      dark:text-gray-400">
+                      dark:text-gray-400"
+          >
             <span>{{ characterCount }}/500 characters</span>
             <span>Press ESC to close</span>
           </div>

@@ -2,11 +2,10 @@
 <template>
   <Component
     :is="currentComponent"
-    :secretKey="secretKey"
-    :domainId="domainId"
-    :displayDomain="displayDomain"
-    :siteHost="siteHost"
-
+    :secret-key="secretKey"
+    :domain-id="domainId"
+    :display-domain="displayDomain"
+    :site-host="siteHost"
   />
 </template>
 

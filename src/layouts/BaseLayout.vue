@@ -1,15 +1,17 @@
 <template>
   <div>
-
     <!-- All along the watch tower -->
     <div
-      class="w-full h-1 fixed top-0 left-0 z-50"
+      class="fixed left-0 top-0 z-50 h-1 w-full"
       :class="primaryColorClass"
       :style="primaryColorStyle"
     ></div>
 
     <!-- Good morning Vietnam -->
-    <GlobalBroadcast :show="hasGlobalBanner" :content="globalBanner" />
+    <GlobalBroadcast
+      :show="hasGlobalBanner"
+      :content="globalBanner"
+    />
 
     <!-- Header content, Ramos territory -->
     <slot name="header"></slot>

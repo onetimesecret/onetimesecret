@@ -1,26 +1,35 @@
 
 <template>
-
   <div class="min-w-[320px]">
-    <BasicFormAlerts :success="success"
-                     :error="error" />
+    <BasicFormAlerts
+      :success="success"
+      :error="error"
+    />
 
-    <form id="createSecret"
-          method="post"
-          autocomplete="off"
-          @submit.prevent="submitForm"
-          action="/api/v2/secret/conceal"
-          class="form-horizontal"
-          :disabled="!props.enabled">
-      <input type="hidden"
-              name="utf8"
-              value="✓" />
-      <input type="hidden"
-              name="shrimp"
-              :value="csrfStore.shrimp" />
-      <input type="hidden"
-              name="share_domain"
-              :value="selectedDomain" />
+    <form
+      id="createSecret"
+      method="post"
+      autocomplete="off"
+      @submit.prevent="submitForm"
+      action="/api/v2/secret/conceal"
+      class="form-horizontal"
+      :disabled="!props.enabled"
+    >
+      <input
+        type="hidden"
+        name="utf8"
+        value="✓"
+      />
+      <input
+        type="hidden"
+        name="shrimp"
+        :value="csrfStore.shrimp"
+      />
+      <input
+        type="hidden"
+        name="share_domain"
+        :value="selectedDomain"
+      />
 
       <!--
           v-model:selectedDomain is equivalent to:
@@ -42,31 +51,39 @@
           SecretContentInputArea handles the dropdown UI. The selected domain
           persists across sessions and can be overridden when needed.
       -->
-      <SecretContentInputArea :availableDomains="availableDomains"
-                              :initialDomain="selectedDomain"
-                              :initialContent="formFields?.secret || ''"
-                              :withDomainDropdown="domainsEnabled"
-                              @update:selectedDomain="updateSelectedDomain"
-                              @update:content="secretContent = $event" />
+      <SecretContentInputArea
+        :available-domains="availableDomains"
+        :initial-domain="selectedDomain"
+        :initial-content="formFields?.secret || ''"
+        :with-domain-dropdown="domainsEnabled"
+        @update:selected-domain="updateSelectedDomain"
+        @update:content="secretContent = $event"
+      />
 
-      <CustomDomainPreview :default_domain="selectedDomain" data-testid="custom-domain-preview" />
+      <CustomDomainPreview
+        :default_domain="selectedDomain"
+        data-testid="custom-domain-preview"
+      />
 
-      <SecretFormPrivacyOptions :withRecipient="props.withRecipient"
-                                :withExpiry="true"
-                                :withPassphrase="true"
-                                />
+      <SecretFormPrivacyOptions
+        :with-recipient="props.withRecipient"
+        :with-expiry="true"
+        :with-passphrase="true"
+      />
 
-      <div class="flex w-full mb-4 space-x-2">
-        <GenerateButton :disabled="isGenerateDisabled || isSubmitting"
-                        @click="handleButtonClick('generate')"/>
-        <ConcealButton :disabled="isCreateDisabled || isSubmitting"
-                      :with-asterisk="withAsterisk"
-                      @click="handleButtonClick('share')" />
+      <div class="mb-4 flex w-full space-x-2">
+        <GenerateButton
+          :disabled="isGenerateDisabled || isSubmitting"
+          @click="handleButtonClick('generate')"
+        />
+        <ConcealButton
+          :disabled="isCreateDisabled || isSubmitting"
+          :with-asterisk="withAsterisk"
+          @click="handleButtonClick('share')"
+        />
       </div>
-
     </form>
   </div>
-
 </template>
 
 <script setup lang="ts">

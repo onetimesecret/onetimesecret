@@ -3,10 +3,10 @@
   <button
     type="button"
     @click="cycleValue"
-    class="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600
-           rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500
-           transition-colors duration-200"
+    class="focus:ring-primary-500 rounded-lg border border-gray-200 bg-white px-4 py-2
+           shadow-sm transition-colors duration-200 hover:bg-gray-50
+           focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600
+           dark:bg-gray-700 dark:hover:bg-gray-600"
     :aria-label="`Current ${label}: ${modelValue}. Click to cycle through options.`"
   >
     <span class="text-sm text-gray-500 dark:text-gray-400">{{ label }}</span>
