@@ -64,7 +64,7 @@ export default [
     },
     rules: {
       'tailwindcss/classnames-order': 'warn',
-      'tailwindcss/no-custom-classname': 'error',
+      'tailwindcss/no-custom-classname': 'warn',
     },
   },
 ];

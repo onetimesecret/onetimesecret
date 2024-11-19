@@ -64,8 +64,8 @@ result3 == @result1
 #=> false
 
 ## Manually expire the cache
-Familia::String.new("template:global:test_method", ttl: 1.hour, db: 0).del
-#=> 1
+Familia::String.new("template:global:test_method", ttl: 1.hour, db: 0).delete!
+#=> true
 
 ## Call after expiration should generate a new result
 content = @helper.cached_method(:test_method) { @helper.test_method }
@@ -74,4 +74,4 @@ p @result1
 content == @result1
 #=> true
 
-Familia::String.new("template:global:test_method", ttl: 1.hour, db: 0).del
+Familia::String.new("template:global:test_method", ttl: 1.hour, db: 0).delete!

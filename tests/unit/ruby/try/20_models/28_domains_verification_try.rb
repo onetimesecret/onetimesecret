@@ -78,16 +78,17 @@ validation_record == expected_validation_record
 ## Verification state is :unverified before any verification attempts
 custom_domain = OT::CustomDomain.new(@valid_domain, @customer.custid)
 custom_domain.verification_state
-#=> :pending
+#=> :unverified
 
 ## Verification state is :pending after TXT validation record is generated
 custom_domain = OT::CustomDomain.new(@valid_domain, @customer.custid)
-custom_domain.generate_txt_validation_record # redundant
+custom_domain.generate_txt_validation_record # not called automatically
 custom_domain.verification_state
 #=> :pending
 
 ## Verification state is :resolving when resolving is true but verified is false
 custom_domain = OT::CustomDomain.new(@valid_domain, @customer.custid)
+custom_domain.generate_txt_validation_record # not called automatically
 custom_domain.resolving = 'true'
 custom_domain.verified = 'false'
 custom_domain.verification_state
@@ -95,6 +96,7 @@ custom_domain.verification_state
 
 ## Verification state is :verified when both resolving and verified are true
 custom_domain = OT::CustomDomain.new(@valid_domain, @customer.custid)
+custom_domain.generate_txt_validation_record # not called automatically
 custom_domain.resolving = 'true'
 custom_domain.verified = 'true'
 custom_domain.verification_state
@@ -102,6 +104,7 @@ custom_domain.verification_state
 
 ## Verification state is :pending when resolving is false
 custom_domain = OT::CustomDomain.new(@valid_domain, @customer.custid)
+custom_domain.generate_txt_validation_record # not called automatically
 custom_domain.resolving = 'false'
 custom_domain.verified = 'false'
 custom_domain.verification_state
@@ -109,6 +112,7 @@ custom_domain.verification_state
 
 ## Custom domain is ready when verification_state is :verified
 custom_domain = OT::CustomDomain.new(@valid_domain, @customer.custid)
+custom_domain.generate_txt_validation_record # not called automatically
 custom_domain.verified = 'true'
 custom_domain.resolving = 'true'
 custom_domain.ready?
@@ -116,6 +120,7 @@ custom_domain.ready?
 
 ## Custom domain is not ready when verification_state is not :verified
 custom_domain = OT::CustomDomain.new(@valid_domain, @customer.custid)
+custom_domain.generate_txt_validation_record # not called automatically
 custom_domain.verified = 'false'
 custom_domain.resolving = 'false'
 custom_domain.ready?
@@ -160,6 +165,8 @@ custom_domain = OT::CustomDomain.create(domain_to_delete, @customer.custid)
 redis_keys_before = custom_domain.redis.keys("#{custom_domain.rediskey}*")
 custom_domain.destroy!(@customer)
 redis_keys_after = custom_domain.redis.keys("#{custom_domain.rediskey}*")
+p [1, redis_keys_before]
+p [2, redis_keys_after]
 [redis_keys_before.empty?, redis_keys_after.empty?]
 #=> [false, true]
 

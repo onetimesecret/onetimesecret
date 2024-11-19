@@ -84,8 +84,11 @@ response = @mock_request.post('/signup')
 
 ## With auth disabled, dashboard returns 401
 response = @mock_request.get('/dashboard')
+# This is a 400 response b/c authentication is disabled in
+# the config. A protected endpoint (like /dashboard which is
+# for customers_only) returns disabled_response.
 response.status
-#=> 401
+#=> 400
 
 # API v1 Routes
 
