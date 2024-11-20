@@ -16,9 +16,9 @@ import { vhostSchema } from './domain/vhost'
  *
  * Type Flow:
  * API Response (strings) -> InputSchema -> Store/Components -> API Request
- *                          ^                                ^
- *                          |                                |
- *                       transform                       serialize
+ *                            ^                                ^
+ *                            |                                |
+ *                         transform                       serialize
  *
  * Validation Rules:
  * - Boolean fields come as strings from Ruby/Redis ('true'/'false')

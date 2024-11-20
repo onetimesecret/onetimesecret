@@ -175,6 +175,36 @@ export const useDomainsStore = defineStore('domains', {
       }
     },
 
+
+    // Get brand settings for a domain
+    async getBrandSettings(domain: string) {
+      try {
+        const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
+        return transformResponse(
+          apiRecordResponseSchema(brandSettingsInputSchema),
+          response.data
+        );
+      } catch (error) {
+        this.handleApiError(error);
+      }
+    },
+
+    // Update brand settings
+    async updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
+      try {
+        const response = await api.put(
+          `/api/v2/account/domains/${domain}/brand`,
+          { brand: settings }
+        );
+        return transformResponse(
+          apiRecordResponseSchema(brandSettingsInputSchema),
+          response.data
+        );
+      } catch (error) {
+        this.handleApiError(error);
+      }
+    },
+
     /**
      * Toggles public homepage access with optimistic update
      * @param domain - The domain to toggle access for

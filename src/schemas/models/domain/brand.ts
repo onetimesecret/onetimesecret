@@ -82,15 +82,10 @@ export const FontFamilyConfig: OptionConfig<string> = {
     display: 'Serif',
     icon: 'ph:text-t-bold',
   },
-  ARIAL: {
-    value: 'Arial, sans-serif',
-    display: 'Arial',
-    icon: 'ph:text-aa-bold',
-  },
-  HELVETICA: {
-    value: 'Helvetica, Arial, sans-serif',
-    display: 'Helvetica',
-    icon: 'ph:text-aa-bold',
+  MONO: {
+    value: 'mono',
+    display: 'monospace',
+    icon: 'ph:text-code',
   },
 }
 
