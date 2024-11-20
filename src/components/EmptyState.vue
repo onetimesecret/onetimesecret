@@ -9,8 +9,7 @@
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
-      >
+        stroke-width="2">
         <path d="M21 12H3M3 12V19H21V12M3 12L5 5H19L21 12" />
         <path d="M9 12V19M15 12V19" />
       </svg>
@@ -30,15 +29,13 @@
       <slot name="actionLabel">
         <router-link
           :to="actionRoute || '/'"
-          class="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-        >
+          class="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
           <svg
             class="-mr-2 size-4"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+            stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"

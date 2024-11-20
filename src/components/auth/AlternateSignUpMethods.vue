@@ -16,8 +16,7 @@
       <div class="absolute inset-0 z-10 flex items-center justify-center">
         <div
           class="rotate-[-15deg] rounded-md bg-brand-600 px-4 py-2 font-brand text-lg font-bold
-             text-white opacity-65 shadow-lg dark:bg-brand-400 dark:text-gray-700"
-        >
+             text-white opacity-65 shadow-lg dark:bg-brand-400 dark:text-gray-700">
           Coming Soon
         </div>
       </div>
@@ -32,8 +31,7 @@
                 transition-colors duration-200 focus:outline-none
                 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500"
           :aria-label="`Sign up with ${provider.name} (coming soon)`"
-          disabled
-        >
+          disabled>
           <Icon
             :icon="provider.icon"
             class="size-5"

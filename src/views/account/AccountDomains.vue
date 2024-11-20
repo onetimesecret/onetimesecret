@@ -3,20 +3,17 @@
     <DashboardTabNav />
     <div
       v-if="isLoading"
-      class="py-8 text-center dark:text-gray-200"
-    >
+      class="py-8 text-center dark:text-gray-200">
       <p>Loading domains...</p>
     </div>
     <div
       v-else-if="error"
-      class="rounded bg-red-100 p-4 text-red-800 dark:bg-red-900 dark:text-red-200"
-    >
+      class="rounded bg-red-100 p-4 text-red-800 dark:bg-red-900 dark:text-red-200">
       {{ error }}
     </div>
     <div
       v-else-if="!planAllowsCustomDomains"
-      class="w-full"
-    >
+      class="w-full">
       <!-- Upgrade Modal Component -->
       <UpgradeIdentityModal
         :is-open="isUpgradeModalOpen"
@@ -27,8 +24,7 @@
 
       <!-- Upgrade CTA Section -->
       <div
-        class="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-      >
+        class="w-full rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div class="flex flex-col items-center justify-between gap-6 lg:flex-row">
           <!-- Left side content -->
           <div class="flex-1 space-y-4">
@@ -39,8 +35,7 @@
                   class="size-6 text-brand-600 dark:text-brand-400"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                  stroke="currentColor">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -64,8 +59,7 @@
                   class="size-5 text-green-500"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                  stroke="currentColor">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -80,8 +74,7 @@
                   class="size-5 text-green-500"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                  stroke="currentColor">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -96,8 +89,7 @@
                   class="size-5 text-green-500"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                  stroke="currentColor">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -123,15 +115,13 @@
             <button
               @click="openUpgradeModal"
               class="inline-flex items-center rounded-lg border border-transparent bg-brand-600 px-6 py-3 text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-              aria-label="Start today with Identity Plus"
-            >
+              aria-label="Start today with Identity Plus">
               <span>Start today</span>
               <svg
                 class="-mr-1 ml-2 size-5"
                 fill="none"
                 viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
+                stroke="currentColor">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -151,13 +141,11 @@
 
     <div
       v-else-if="domains.length === 0"
-      class="py-8 text-center text-gray-500 dark:text-gray-400"
-    >
+      class="py-8 text-center text-gray-500 dark:text-gray-400">
       No domains found.
       <router-link
         to="/account/domains/add"
-        class="text-brandcomp-600 underline hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300"
-      >
+        class="text-brandcomp-600 underline hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
         Add a domain
       </router-link>
       to get started.

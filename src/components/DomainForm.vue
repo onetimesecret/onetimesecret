@@ -2,8 +2,7 @@
   <div class="mx-auto my-16 max-w-full space-y-9 px-4 dark:bg-gray-900 sm:px-6 lg:px-8">
     <form
       @submit.prevent="handleSubmit"
-      class="space-y-6"
-    >
+      class="space-y-6">
       <DomainInput
         v-model="domain"
         :is-valid="isValid"
@@ -27,15 +26,13 @@
             focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600
             dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700
             dark:focus:ring-offset-gray-900 sm:w-1/2"
-          aria-label="Go back to previous page"
-        >
+          aria-label="Go back to previous page">
           <svg
             class="-ml-1 mr-2 size-5"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+            stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -60,18 +57,15 @@
             disabled:opacity-50 dark:bg-brand-500
             dark:hover:bg-brand-400 dark:focus:ring-offset-gray-900
             sm:w-1/2"
-          aria-live="polite"
-        >
+          aria-live="polite">
           <span
             v-if="isSubmitting"
-            class="inline-flex items-center"
-          >
+            class="inline-flex items-center">
             <svg
               class="-ml-1 mr-2 size-5 animate-spin text-white"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <circle
                 class="opacity-25"
                 cx="12"

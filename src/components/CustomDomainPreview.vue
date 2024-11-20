@@ -2,8 +2,7 @@
   <SecretFormDrawer
     title="Link Preview"
     border="dashed"
-    expanded-bg="bg-gray-50 dark:bg-gray-700"
-  >
+    expanded-bg="bg-gray-50 dark:bg-gray-700">
     <div class="mt-2 flex items-center space-x-2 overflow-hidden font-mono">
       <Icon
         icon="mdi:link-variant"

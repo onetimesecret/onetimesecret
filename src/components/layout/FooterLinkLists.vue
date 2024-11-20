@@ -11,8 +11,7 @@
             <router-link
               to="/about"
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
-              aria-label="Learn about our company"
-            >
+              aria-label="Learn about our company">
               About
             </router-link>
           </li>
@@ -20,8 +19,7 @@
             <router-link
               to="/pricing"
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
-              aria-label="View our subscription pricing"
-            >
+              aria-label="View our subscription pricing">
               Pricing
             </router-link>
           </li>
@@ -31,8 +29,7 @@
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
               aria-label="Read our latest blog posts"
               target="_blank"
-              rel="noopener noreferrer"
-            >Blog</a>
+              rel="noopener noreferrer">Blog</a>
           </li>
         </ul>
       </div>
@@ -49,8 +46,7 @@
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
               aria-label="View our source code on GitHub"
               target="_blank"
-              rel="noopener noreferrer"
-            >GitHub</a>
+              rel="noopener noreferrer">GitHub</a>
           </li>
           <li v-if="supportHost">
             <a
@@ -58,8 +54,7 @@
               aria-label="Access our documentation"
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
               target="_blank"
-              rel="noopener noreferrer"
-            >Docs</a>
+              rel="noopener noreferrer">Docs</a>
           </li>
           <li v-if="supportHost">
             <a
@@ -67,8 +62,7 @@
               aria-label="Explore our API documentation"
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
               target="_blank"
-              rel="noopener noreferrer"
-            >API</a>
+              rel="noopener noreferrer">API</a>
           </li>
           <li>
             <a
@@ -76,8 +70,7 @@
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
               aria-label="Check our service status"
               target="_blank"
-              rel="noopener noreferrer"
-            >Status</a>
+              rel="noopener noreferrer">Status</a>
           </li>
         </ul>
       </div>
@@ -92,8 +85,7 @@
             <router-link
               to="/info/privacy"
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
-              aria-label="Read our Privacy Policy"
-            >
+              aria-label="Read our Privacy Policy">
               Privacy
             </router-link>
           </li>
@@ -101,8 +93,7 @@
             <router-link
               to="/info/terms"
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
-              aria-label="View our Terms and Conditions"
-            >
+              aria-label="View our Terms and Conditions">
               Terms
             </router-link>
           </li>
@@ -110,8 +101,7 @@
             <router-link
               to="/info/security"
               class="text-xl text-gray-600 transition-colors duration-300 hover:text-brand-500 dark:text-gray-400 dark:hover:text-brand-400 md:text-lg"
-              aria-label="Learn about our security measures"
-            >
+              aria-label="Learn about our security measures">
               Security
             </router-link>
           </li>

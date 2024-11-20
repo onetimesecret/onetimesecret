@@ -22,12 +22,10 @@ defineProps<Props>();
     :aria-label="$t('web.COMMON.button_generate_secret_short')"
     :title="disabled ? $t('web.COMMON.generate_password_disabled') : ''"
     name="kind"
-    value="generate"
-  >
+    value="generate">
     <span
       class="transition-margin mr-0 inline-block opacity-80 duration-200 ease-in-out group-hover:mr-2"
-      aria-hidden="true"
-    >🔑</span>
+      aria-hidden="true">🔑</span>
     <span class="opacity-0 transition-opacity duration-200 ease-in-out group-hover:opacity-100">
       {{ $t('web.COMMON.button_generate_secret_short') }}
     </span>

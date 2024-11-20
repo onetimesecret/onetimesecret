@@ -7,8 +7,7 @@
       method="post"
       autocomplete="off"
       action="/incoming"
-      class="space-y-6"
-    >
+      class="space-y-6">
       <input
         type="hidden"
         name="shrimp"
@@ -23,8 +22,7 @@
                   dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
           name="secret"
           autocomplete="off"
-          :placeholder="$t('web.incoming.incoming_secret_placeholder')"
-        ></textarea>
+          :placeholder="$t('web.incoming.incoming_secret_placeholder')"></textarea>
       </div>
 
       <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
@@ -36,15 +34,13 @@
           <div>
             <label
               for="ticketnoField"
-              class="block font-medium text-gray-700 dark:text-gray-300"
-            >
+              class="block font-medium text-gray-700 dark:text-gray-300">
               <svg
                 class="mr-1 inline-block size-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+                xmlns="http://www.w3.org/2000/svg">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -71,15 +67,13 @@
           <div>
             <label
               for="recipientField"
-              class="block font-medium text-gray-700 dark:text-gray-300"
-            >
+              class="block font-medium text-gray-700 dark:text-gray-300">
               <svg
                 class="mr-1 inline-block size-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+                xmlns="http://www.w3.org/2000/svg">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -106,15 +100,13 @@
               duration-150 ease-in-out hover:bg-brand-700 focus:outline-none
               focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
               disabled:cursor-not-allowed disabled:opacity-50
-              dark:bg-brand-500 dark:hover:bg-brand-600 dark:focus:ring-offset-gray-800"
-      >
+              dark:bg-brand-500 dark:hover:bg-brand-600 dark:focus:ring-offset-gray-800">
         <svg
           v-if="isLoading"
           class="-ml-1 mr-3 size-5 animate-spin text-white"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
-          viewBox="0 0 24 24"
-        >
+          viewBox="0 0 24 24">
           <circle
             class="opacity-25"
             cx="12"

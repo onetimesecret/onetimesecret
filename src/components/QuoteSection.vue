@@ -13,8 +13,7 @@
           fill="currentColor"
           viewBox="0 0 24 24"
           width="20"
-          height="20"
-        >
+          height="20">
           <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
         </svg>
 
@@ -44,8 +43,7 @@
             href="https://www.anthropic.com/news/claude-3-5-sonnet"
             class="underline"
             rel="noopener noreferrer"
-            target="_blank"
-          >Claude 3.5</a></span>. It was based on the content of the page and does not represent an actual person or company.
+            target="_blank">Claude 3.5</a></span>. It was based on the content of the page and does not represent an actual person or company.
         </p>
       </div>
     </div>

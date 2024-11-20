@@ -5,8 +5,7 @@
            py-1 text-base font-medium text-gray-500
            shadow-sm transition-all
            duration-100
-           ease-in-out hover:shadow-md dark:bg-gray-800 dark:text-gray-400"
-  >
+           ease-in-out hover:shadow-md dark:bg-gray-800 dark:text-gray-400">
     <span class="sr-only">Current jurisdiction:</span>
     <button
       @click="toggleDropdown"
@@ -14,8 +13,7 @@
              focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
              dark:focus:ring-brand-400"
       :aria-expanded="isOpen"
-      aria-haspopup="listbox"
-    >
+      aria-haspopup="listbox">
       <Icon
         :icon="currentJurisdiction.icon"
         class="size-5"
@@ -30,8 +28,7 @@
         class="size-4 -rotate-90"
         viewBox="0 0 20 20"
         fill="currentColor"
-        aria-hidden="true"
-      >
+        aria-hidden="true">
         <path
           fill-rule="evenodd"
           d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -45,8 +42,7 @@
       enter-to-class="transform opacity-100 scale-100"
       leave-active-class="transition ease-in duration-75"
       leave-from-class="transform opacity-100 scale-100"
-      leave-to-class="transform opacity-0 scale-95"
-    >
+      leave-to-class="transform opacity-0 scale-95">
       <ul
         v-if="isOpen"
         class="absolute bottom-full left-0 z-10 mb-1 max-h-60 w-full overflow-auto rounded-md
@@ -55,12 +51,10 @@
         tabindex="-1"
         role="listbox"
         aria-labelledby="listbox-label"
-        aria-activedescendant="listbox-option-0"
-      >
+        aria-activedescendant="listbox-option-0">
         <!-- List Title -->
         <li
-          class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-100"
-        >
+          class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-100">
           Regions
         </li>
 
@@ -73,12 +67,10 @@
                  duration-200 hover:bg-brand-100 dark:text-gray-50 dark:hover:bg-brandcompdim-800"
           :class="{ 'bg-brand-50 dark:bg-brandcompdim-900': currentJurisdiction.identifier === jurisdiction.identifier }"
           role="option"
-          :aria-selected="currentJurisdiction.identifier === jurisdiction.identifier"
-        >
+          :aria-selected="currentJurisdiction.identifier === jurisdiction.identifier">
           <a
             :href="`https://${jurisdiction.domain}/signup`"
-            :title="`Continue to ${jurisdiction.domain}`"
-          >
+            :title="`Continue to ${jurisdiction.domain}`">
             <span class="flex items-center">
 
               <Icon
@@ -90,23 +82,20 @@
               <!-- Jurisdiction Name -->
               <span
                 class="block truncate"
-                :class="{ 'font-semibold': currentJurisdiction.identifier === jurisdiction.identifier }"
-              >
+                :class="{ 'font-semibold': currentJurisdiction.identifier === jurisdiction.identifier }">
                 {{ jurisdiction.display_name }}
               </span>
             </span>
             <span
               v-if="currentJurisdiction.identifier === jurisdiction.identifier"
               class="absolute inset-y-0 right-0 flex items-center pr-4 text-brand-600
-                   dark:text-brand-400"
-            >
+                   dark:text-brand-400">
               <svg
                 class="size-5"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                aria-hidden="true"
-              >
+                aria-hidden="true">
                 <path
                   fill-rule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

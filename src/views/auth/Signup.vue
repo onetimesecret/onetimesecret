@@ -4,8 +4,7 @@
   <AuthView
     heading="Create your account"
     heading-id="signup-heading"
-    :with-subheading="true"
-  >
+    :with-subheading="true">
     <template #form>
       <SignUpForm
         :planid="currentPlanId"
@@ -21,8 +20,7 @@
         to="/signin"
         class="font-medium text-brand-600 transition-colors
                           duration-200 hover:text-brand-500
-                          dark:text-brand-400 dark:hover:text-brand-300"
-      >
+                          dark:text-brand-400 dark:hover:text-brand-300">
         {{ $t('web.signup.have_an_account') }}
       </router-link>
     </template>

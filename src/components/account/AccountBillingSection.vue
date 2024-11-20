@@ -34,8 +34,7 @@ const subscriptionDetails = computed(() => {
 <template>
   <div
     v-if="props.stripeSubscriptions && props.stripeSubscriptions.length > 0 && props.stripeCustomer"
-    class="mb-6 space-y-6 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800"
-  >
+    class="mb-6 space-y-6 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
     <header class="flex items-center justify-between">
       <h2 class="flex items-center text-2xl font-bold text-gray-900 dark:text-white">
         <Icon
@@ -46,8 +45,7 @@ const subscriptionDetails = computed(() => {
       </h2>
       <a
         href="/account/billing_portal"
-        class="inline-flex items-center rounded-md border border-transparent bg-brandcomp-500 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brandcomp-600 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2"
-      >
+        class="inline-flex items-center rounded-md border border-transparent bg-brandcomp-500 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brandcomp-600 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2">
         Manage Subscription
       </a>
     </header>
@@ -70,8 +68,7 @@ const subscriptionDetails = computed(() => {
 
       <div
         v-if="defaultPaymentMethod?.card"
-        class="space-y-4"
-      >
+        class="space-y-4">
         <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
           Default Payment Method
         </h3>
@@ -93,15 +90,13 @@ const subscriptionDetails = computed(() => {
       <div
         v-for="subscription in subscriptionDetails"
         :key="subscription.id"
-        class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700"
-      >
+        class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <div class="mb-4 flex items-center justify-between">
           <span
             :class="[
               'rounded-full px-2 py-1 text-xs font-semibold',
               subscription.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
-            ]"
-          >
+            ]">
             {{ subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1) }}
           </span>
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">

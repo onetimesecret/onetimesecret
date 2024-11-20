@@ -9,8 +9,7 @@
     :disabled="disabled"
     :aria-label="$t('web.COMMON.button_create_secret')"
     name="kind"
-    value="share"
-  >
+    value="share">
     {{ $t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
   </button>
 </template>

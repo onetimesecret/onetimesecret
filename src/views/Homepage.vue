@@ -19,8 +19,7 @@
 
     <div
       v-if="!authenticated"
-      class="flex flex-col items-center text-center"
-    >
+      class="flex flex-col items-center text-center">
       <p class="text-sm italic text-gray-400 dark:text-gray-400">
         {{ $t('web.homepage.secret_hint') }}
       </p>

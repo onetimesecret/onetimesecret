@@ -8,8 +8,7 @@
       enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
       leave-active-class="transition ease-in duration-100"
       leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
+      leave-to-class="opacity-0">
       <div
         v-if="notifications.isVisible"
         class="fixed inset-x-0 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200"
@@ -18,8 +17,7 @@
           effectivePosition === 'top' ? 'top-0' : 'bottom-0'
         ]"
         role="status"
-        aria-live="polite"
-      >
+        aria-live="polite">
         <div class="flex items-center space-x-3">
           <Icon
             :icon="statusConfig?.icon || 'mdi:information'"
@@ -29,8 +27,7 @@
           />
           <span
             class="text-sm font-medium transition-all duration-200"
-            :class="statusConfig?.textClasses"
-          >
+            :class="statusConfig?.textClasses">
             {{ notifications.message }}
           </span>
         </div>
@@ -40,8 +37,7 @@
             v-if="!loading"
             type="button"
             class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-            @click="notifications.hide"
-          >
+            @click="notifications.hide">
             <span class="sr-only">Dismiss</span>
             <Icon
               icon="mdi:close"
@@ -57,8 +53,7 @@
           :class="position === 'top' ? 'bottom-0' : 'bottom-0'"
           :style="{
             animation: `shrink ${duration}ms linear forwards`
-          }"
-        ></div>
+          }"></div>
       </div>
     </Transition>
   </Teleport>

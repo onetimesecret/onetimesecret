@@ -8,8 +8,7 @@
     <template #main>
       <main
         class="container mx-auto p-4"
-        name="WideLayout"
-      >
+        name="WideLayout">
         <slot></slot>
       </main>
     </template>

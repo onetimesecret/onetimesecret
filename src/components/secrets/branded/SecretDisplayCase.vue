@@ -1,8 +1,7 @@
 <template>
   <BaseSecretDisplay
     default-title="You have a message"
-    :instructions="domainBranding?.instructions_pre_reveal"
-  >
+    :instructions="domainBranding?.instructions_pre_reveal">
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
@@ -12,16 +11,14 @@
             'rounded-full': domainBranding?.corner_style === 'pill',
             'rounded-none': domainBranding?.corner_style === 'square'
           }"
-          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
-        >
+          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16">
           <!-- Default lock icon -->
           <svg
             v-if="!logoImage || hasImageError"
             class="size-8 text-gray-400 dark:text-gray-500"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
-          >
+            stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -54,8 +51,7 @@
               focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white  sm:min-h-36"
         readonly
         :rows="details?.display_lines"
-        :value="record?.secret_value"
-      ></textarea>
+        :value="record?.secret_value"></textarea>
     </template>
 
     <template #action-button>
@@ -63,16 +59,14 @@
         @click="copySecretContent"
         :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
         class="rounded-md bg-gray-200 p-1.5 transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-600 dark:hover:bg-gray-500"
-        aria-label="Copy to clipboard"
-      >
+        aria-label="Copy to clipboard">
         <svg
           v-if="!isCopied"
           xmlns="http://www.w3.org/2000/svg"
           class="size-5 text-gray-600 dark:text-gray-300"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+          stroke="currentColor">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -86,8 +80,7 @@
           class="size-5 text-green-500"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+          stroke="currentColor">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"

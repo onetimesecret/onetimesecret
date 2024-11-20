@@ -3,8 +3,7 @@
     <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
       <form
         @submit.prevent="$emit('submit')"
-        class="flex flex-wrap items-center gap-4"
-      >
+        class="flex flex-wrap items-center gap-4">
         <input
           type="hidden"
           name="shrimp"
@@ -58,8 +57,7 @@
         <button
           type="submit"
           :disabled="isSubmitting"
-          class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-transparent bg-brand-600 px-4 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:text-sm"
-        >
+          class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-transparent bg-brand-600 px-4 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:text-sm">
           <Icon
             v-if="isSubmitting"
             icon="mdi:loading"

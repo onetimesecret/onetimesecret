@@ -2,16 +2,14 @@
 <template>
   <div
     v-if="apitoken"
-    class="mb-4 rounded-lg bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 p-4 shadow-lg"
-  >
+    class="mb-4 rounded-lg bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 p-4 shadow-lg">
     <div class="font-mono text-lg text-white">
       <div class="relative flex items-center overflow-x-auto rounded bg-black bg-opacity-20 p-3">
         <span class="break-all pr-10">{{ apitoken }}</span>
         <button
           @click.stop="handleCopy"
           type="button"
-          class="absolute right-2 top-1/2 -translate-y-1/2 text-white transition-colors duration-200 hover:text-gray-200"
-        >
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-white transition-colors duration-200 hover:text-gray-200">
           <Icon
             :icon="copied ? 'heroicons-outline:check' : 'heroicons-outline:clipboard-copy'"
             class="size-6"

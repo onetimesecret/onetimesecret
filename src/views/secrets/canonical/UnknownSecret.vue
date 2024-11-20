@@ -9,29 +9,25 @@
     ]"
     :style="branded && brandSettings ? {
       fontFamily: brandSettings.font_family || 'inherit'
-    } : {}"
-  >
+    } : {}">
     <!-- Icon Section -->
     <div
       :class="[
         branded ? 'mb-8 flex items-center space-x-4' : 'mb-8 text-center'
-      ]"
-    >
+      ]">
       <template v-if="branded">
         <div
           class="flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900"
           :style="brandSettings?.primary_color ? {
             backgroundColor: `${brandSettings.primary_color}15`,
-          } : {}"
-        >
+          } : {}">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="size-6"
             :class="brandSettings?.button_text_light ? 'text-white' : 'text-brand-600 dark:text-brand-400'"
             fill="none"
             viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+            stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -54,8 +50,7 @@
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
+          aria-hidden="true">
           <path
             d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
             stroke="currentColor"
@@ -67,8 +62,7 @@
 
         <h1
           class="mb-6 text-3xl font-bold text-gray-800 dark:text-white"
-          aria-label="Information no longer available"
-        >
+          aria-label="Information no longer available">
           That information is no longer available.
         </h1>
       </template>
@@ -80,8 +74,7 @@
         :class="[
           'text-gray-600 dark:text-gray-300',
           branded ? '' : 'mb-8 text-lg'
-        ]"
-      >
+        ]">
         <template v-if="branded && brandSettings?.instructions_post_reveal">
           {{ brandSettings.instructions_post_reveal }}
         </template>
@@ -97,14 +90,12 @@
         :class="[
           'border-l-4 border-brandcomp-500 bg-brandcomp-50 dark:bg-brandcomp-900',
           branded ? 'p-4' : 'mb-8 p-5'
-        ]"
-      >
+        ]">
         <p
           :class="[
             'text-brandcomp-700 dark:text-brandcomp-200',
             !branded && 'text-lg font-medium'
-          ]"
-        >
+          ]">
           If you're unsure what to do next, please follow up with the person who sent you this link
           for more information.
         </p>
@@ -127,8 +118,7 @@
           color: 'var(--color-brand-500)',
           borderColor: 'var(--color-brand-500)'
         }"
-        :aria-label="branded ? undefined : 'Return to home page'"
-      >
+        :aria-label="branded ? undefined : 'Return to home page'">
         Return to Home
       </router-link>
     </div>

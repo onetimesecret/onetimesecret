@@ -16,8 +16,7 @@
 
       <h3
         v-if="details.show_recipients"
-        class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200"
-      >
+        class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
         {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
       </h3>
 
@@ -49,8 +48,7 @@
 
       <a
         href="/"
-        class="hover:border-grey-200 mx-auto mb-4 block w-2/3 rounded-md border-2 border-gray-300 bg-gray-200 px-4 py-2 text-center text-base font-medium text-gray-800 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-600"
-      >Create
+        class="hover:border-grey-200 mx-auto mb-4 block w-2/3 rounded-md border-2 border-gray-300 bg-gray-200 px-4 py-2 text-center text-base font-medium text-gray-800 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-600">Create
         another secret</a>
 
       <MetadataFAQ

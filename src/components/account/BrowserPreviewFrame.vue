@@ -1,35 +1,30 @@
 <template>
   <div
-    class="relative mx-auto max-w-full overflow-hidden rounded-xl border border-gray-200 shadow-2xl dark:border-gray-700"
-  >
+    class="relative mx-auto max-w-full overflow-hidden rounded-xl border border-gray-200 shadow-2xl dark:border-gray-700">
     <!-- Browser Top Bar -->
     <div
       v-if="browserType === 'safari'"
-      class="flex items-center space-x-2 border-b border-gray-200 bg-gray-100 p-3 dark:border-gray-700 dark:bg-gray-800"
-    >
+      class="flex items-center space-x-2 border-b border-gray-200 bg-gray-100 p-3 dark:border-gray-700 dark:bg-gray-800">
       <!-- Safari Controls -->
       <div class="flex space-x-2">
         <button
           @click="$emit('toggle-browser')"
           class="size-3 rounded-full bg-red-400 transition-colors hover:bg-red-500"
-          aria-label="Switch to Edge browser view"
-        ></button>
+          aria-label="Switch to Edge browser view"></button>
         <div class="size-3 rounded-full bg-yellow-400"></div>
         <div class="size-3 rounded-full bg-green-400"></div>
       </div>
       <!-- Safari/Edge Address Bar -->
       <div class="mx-2 flex-1 sm:mx-4">
         <div
-          class="flex items-center justify-between rounded-md bg-white px-2 py-1.5 text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:px-3"
-        >
+          class="flex items-center justify-between rounded-md bg-white px-2 py-1.5 text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:px-3">
           <!-- Make URL text responsive -->
           <div class="flex items-center overflow-hidden">
             <svg
               class="mr-2 size-4 text-gray-400"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -43,14 +38,12 @@
           </div>
           <!-- Preview Badge - Safari -->
           <span
-            class="ml-3 inline-flex items-center rounded bg-brandcomp-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brandcomp-900 dark:text-brandcomp-200"
-          >
+            class="ml-3 inline-flex items-center rounded bg-brandcomp-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brandcomp-900 dark:text-brandcomp-200">
             <svg
               class="mr-1 size-3"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -72,20 +65,17 @@
 
     <div
       v-else
-      class="flex flex-col border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-    >
+      class="flex flex-col border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
       <!-- Edge Window Controls -->
       <div class="flex items-center justify-between bg-gray-100 px-4 py-2 dark:bg-gray-900">
         <div class="flex items-center space-x-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="size-4"
-            viewBox="0 0 16 16"
-          >
+            viewBox="0 0 16 16">
             <g
               fill="currentColor"
-              class="text-gray-600 dark:text-gray-300"
-            >
+              class="text-gray-600 dark:text-gray-300">
               <path
                 d="M9.482 9.341c-.069.062-.17.153-.17.309c0 .162.107.325.3.456c.877.613 2.521.54 2.592.538h.002c.667 0 1.32-.18 1.894-.519A3.84 3.84 0 0 0 16 6.819c.018-1.316-.44-2.218-.666-2.664l-.04-.08C13.963 1.487 11.106 0 8 0A8 8 0 0 0 .473 5.29C1.488 4.048 3.183 3.262 5 3.262c2.83 0 5.01 1.885 5.01 4.797h-.004v.002c0 .338-.168.832-.487 1.244l.006-.006z"
               />
@@ -105,8 +95,7 @@
             <svg
               class="size-4"
               fill="currentColor"
-              viewBox="0 0 16 16"
-            >
+              viewBox="0 0 16 16">
               <path d="M14 8v1H3V8h11z" />
             </svg>
           </button>
@@ -114,21 +103,18 @@
             <svg
               class="size-4"
               fill="currentColor"
-              viewBox="0 0 16 16"
-            >
+              viewBox="0 0 16 16">
               <path d="M3 3v10h10V3H3zm9 9H4V4h8v8z" />
             </svg>
           </button>
           <button
             @click="$emit('toggle-browser')"
             class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            aria-label="Switch to Safari browser view"
-          >
+            aria-label="Switch to Safari browser view">
             <svg
               class="size-4"
               fill="currentColor"
-              viewBox="0 0 16 16"
-            >
+              viewBox="0 0 16 16">
               <path
                 d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"
               />
@@ -139,16 +125,14 @@
       <!-- Edge Address Bar -->
       <div class="flex items-center px-4 py-2">
         <div
-          class="flex flex-1 items-center justify-between rounded-lg bg-gray-100 px-2 py-1.5 text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:px-3"
-        >
+          class="flex flex-1 items-center justify-between rounded-lg bg-gray-100 px-2 py-1.5 text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:px-3">
           <!-- Make URL text responsive -->
           <div class="flex items-center overflow-hidden">
             <svg
               class="mr-2 size-4 text-blue-500"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -162,14 +146,12 @@
           </div>
           <!-- Preview Badge - Edge -->
           <span
-            class="ml-3 inline-flex items-center rounded bg-brandcomp-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brandcomp-900 dark:text-brandcomp-200"
-          >
+            class="ml-3 inline-flex items-center rounded bg-brandcomp-100 px-2 py-0.5 text-xs font-medium text-brand-800 dark:bg-brandcomp-900 dark:text-brandcomp-200">
             <svg
               class="mr-1 size-3"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -197,8 +179,7 @@
     <!-- Info text - Responsive padding -->
     <div class="px-3 pb-2 pt-3 sm:px-6 sm:pt-6">
       <div
-        class="flex items-center gap-2 rounded-lg bg-gray-50 p-2 text-xs italic dark:bg-gray-900 sm:gap-3 sm:p-3 sm:text-sm"
-      >
+        class="flex items-center gap-2 rounded-lg bg-gray-50 p-2 text-xs italic dark:bg-gray-900 sm:gap-3 sm:p-3 sm:text-sm">
         <Icon
           icon="mdi:forum"
           class="size-5 shrink-0"

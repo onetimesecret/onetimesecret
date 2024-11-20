@@ -4,8 +4,7 @@
       <!-- Loading State -->
       <div
         v-if="isLoading"
-        class="flex items-center justify-center"
-      >
+        class="flex items-center justify-center">
         <div class="size-12 animate-spin rounded-full border-y-2 border-brand-500"></div>
       </div>
 
@@ -42,22 +41,19 @@
           <a
             :href="`https://${siteHost}`"
             class="hover:underline"
-            rel="noopener noreferrer"
-          >
+            rel="noopener noreferrer">
             Powered by Onetime Secret
           </a>
           <span>·</span>
           <router-link
             to="/info/terms"
-            class="hover:underline"
-          >
+            class="hover:underline">
             Terms
           </router-link>
           <span>·</span>
           <router-link
             to="/info/privacy"
-            class="hover:underline"
-          >
+            class="hover:underline">
             Privacy
           </router-link>
         </div>

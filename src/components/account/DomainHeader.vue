@@ -6,15 +6,13 @@
         <RouterLink
           to="/account/domains"
           class="inline-flex items-center text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          aria-label="Return to domains list"
-        >
+          aria-label="Return to domains list">
           <svg
             class="mr-2 size-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
+            aria-hidden="true">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -40,8 +38,7 @@
           </h1>
           <span
             class="rounded-md bg-gray-100 px-3 py-1 font-brand text-xs text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-            role="status"
-          >
+            role="status">
             Custom Domain
           </span>
         </div>

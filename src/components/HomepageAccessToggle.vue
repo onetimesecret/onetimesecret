@@ -13,8 +13,7 @@
     :disabled="disabled"
     role="switch"
     :aria-checked="!!modelValue"
-    @click="emit('update:modelValue', !modelValue)"
-  >
+    @click="emit('update:modelValue', !modelValue)">
     <span class="sr-only">
       {{ modelValue ? 'Disable' : 'Enable' }} homepage access
     </span>
@@ -23,19 +22,16 @@
         'pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0',
         'transition duration-200 ease-in-out',
         modelValue ? 'translate-x-5' : 'translate-x-0'
-      ]"
-    ></span>
+      ]"></span>
     <!-- Loading spinner -->
     <span
       v-if="disabled"
-      class="absolute inset-0 flex items-center justify-center"
-    >
+      class="absolute inset-0 flex items-center justify-center">
       <svg
         class="size-4 animate-spin text-white"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
-        viewBox="0 0 24 24"
-      >
+        viewBox="0 0 24 24">
         <circle
           class="opacity-25"
           cx="12"

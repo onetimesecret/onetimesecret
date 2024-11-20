@@ -7,14 +7,12 @@
               pt-12
               dark:bg-gray-900
               sm:px-6 sm:pt-16
-              lg:px-8"
-  >
+              lg:px-8">
     <!-- Background Icon -->
     <div
       class="absolute inset-0 overflow-hidden
                 opacity-5
-                dark:opacity-10"
-    >
+                dark:opacity-10">
       <Icon
         :icon="backgroundIcon"
         class="blur-x absolute left-1/2 top-0 h-auto
@@ -45,8 +43,7 @@
           :id="headingId"
           class="text-2xl font-bold
                    text-gray-900
-                   dark:text-white"
-        >
+                   dark:text-white">
           {{ heading }}
         </h2>
         <p
@@ -54,12 +51,10 @@
           class="mt-2 flex items-center
             justify-center
             text-lg text-gray-600
-            dark:text-gray-400"
-        >
+            dark:text-gray-400">
           <span
             v-if="jurisdictionStore.enabled"
-            class="mr-1"
-          >
+            class="mr-1">
             Serving you from the <span lang="en">{{ currentJurisdiction.identifier }}</span>
           </span>
         </p>
@@ -73,8 +68,7 @@
                   bg-white
                   p-6
                   shadow-md dark:border-gray-700
-                  dark:bg-gray-800"
-      >
+                  dark:bg-gray-800">
         <slot name="form"></slot>
       </div>
 

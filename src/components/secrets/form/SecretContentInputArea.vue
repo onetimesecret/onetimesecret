@@ -55,8 +55,7 @@
   <div
     class="relative"
     @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseLeave"
-  >
+    @mouseleave="handleMouseLeave">
     <textarea
       ref="textareaRef"
       v-model="content"
@@ -72,8 +71,7 @@
       autofocus
       autocomplete="off"
       :placeholder="$t('web.COMMON.secret_placeholder')"
-      aria-label="Enter the secret content to share here"
-    >
+      aria-label="Enter the secret content to share here">
     </textarea>
 
     <!--
@@ -84,19 +82,16 @@
     -->
     <div
       v-if="showCounter"
-      class="pointer-events-none hidden select-none rounded-full bg-white px-3 py-1 text-sm text-gray-400 shadow-sm transition-colors duration-200 dark:bg-gray-800 dark:text-gray-500"
-    >
+      class="pointer-events-none hidden select-none rounded-full bg-white px-3 py-1 text-sm text-gray-400 shadow-sm transition-colors duration-200 dark:bg-gray-800 dark:text-gray-500">
       {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
 
     <div
       v-if="withDomainDropdown"
-      class="absolute bottom-4 right-4"
-    >
+      class="absolute bottom-4 right-4">
       <div
         class="relative inline-block text-left"
-        ref="dropdownRef"
-      >
+        ref="dropdownRef">
         <button
           type="button"
           @click="toggleDropdown"
@@ -105,8 +100,7 @@
               text-gray-700 transition-colors duration-200 hover:bg-gray-50
               focus:outline-none focus:ring-2
               focus:ring-brandcomp-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300
-              dark:hover:bg-gray-700 dark:focus:ring-offset-gray-800"
-        >
+              dark:hover:bg-gray-700 dark:focus:ring-offset-gray-800">
           <span class="max-w-[150px] truncate">
             {{ selectedDomain || 'Select Domain' }}
           </span>
@@ -123,14 +117,12 @@
               overflow-y-auto rounded-md
               bg-white shadow-lg ring-1 ring-black
               ring-opacity-5 focus:outline-none
-              dark:bg-gray-800 dark:ring-gray-700"
-        >
+              dark:bg-gray-800 dark:ring-gray-700">
           <div
             class="py-1"
             role="menu"
             aria-orientation="vertical"
-            aria-labelledby="options-menu"
-          >
+            aria-labelledby="options-menu">
             <a
               v-for="domain in availableDomains"
               :key="domain"
@@ -139,8 +131,7 @@
               class="block px-4 py-2 text-sm text-gray-700 transition-colors
                   duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300
                   dark:hover:bg-gray-700 dark:hover:text-white"
-              role="menuitem"
-            >
+              role="menuitem">
               {{ domain }}
             </a>
           </div>

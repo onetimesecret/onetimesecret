@@ -11,8 +11,7 @@
         v-model="brandSettings"
         :shrimp="csrfStore.shrimp"
         :is-submitting="isSubmitting"
-        @submit="submitForm"
-      >
+        @submit="submitForm">
         <template #instructions-button>
           <InstructionsModal
             v-model="brandSettings.instructions_pre_reveal"
@@ -28,16 +27,14 @@
       <div class="relative mb-6 sm:mb-12">
         <h2
           id="previewHeading"
-          class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100"
-        >
+          class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
           Preview & Customize
         </h2>
 
         <!-- Instructions for screen readers -->
         <div
           class="sr-only"
-          role="note"
-        >
+          role="note">
           This is an interactive preview of how recipients will see your secure messages. You can:
           - Customize colors and fonts using the controls above
           - Upload a logo (minimum 128x128 pixels recommended, 1MB max)
@@ -47,8 +44,7 @@
         <!-- Visual instructions -->
         <ul
           class="mb-4 space-y-1 text-sm sm:mb-6 sm:space-y-2"
-          :aria-hidden="true"
-        >
+          :aria-hidden="true">
           <li class="flex items-center gap-2">
             <Icon
               icon="mdi:palette-outline"
@@ -82,8 +78,7 @@
           :domain="displayDomain"
           :browser-type="selectedBrowserType"
           @toggle-browser="toggleBrowser"
-          aria-labelledby="previewHeading"
-        >
+          aria-labelledby="previewHeading">
           <SecretPreview
             v-if="!loading && !error"
             ref="secretPreview"
@@ -100,8 +95,7 @@
         <div
           v-if="loading"
           role="status"
-          class="py-8 text-center"
-        >
+          class="py-8 text-center">
           <span class="sr-only">Loading preview...</span>
           <!-- Add loading spinner -->
         </div>
@@ -109,8 +103,7 @@
         <div
           v-if="error"
           role="alert"
-          class="py-8 text-center text-red-600"
-        >
+          class="py-8 text-center text-red-600">
           {{ error }}
         </div>
       </div>

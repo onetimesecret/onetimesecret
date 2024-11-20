@@ -5,8 +5,7 @@
               pt-12
               dark:bg-gray-900
               sm:px-6 sm:pt-16
-              lg:px-8"
-  >
+              lg:px-8">
     <!-- Background Icon -->
     <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-10">
       <Icon
@@ -37,14 +36,12 @@
           />
           <div
             v-if="loading"
-            class="absolute inset-0 flex items-center justify-center rounded-md bg-gray-200 bg-opacity-75 dark:bg-gray-800 dark:bg-opacity-75"
-          >
+            class="absolute inset-0 flex items-center justify-center rounded-md bg-gray-200 bg-opacity-75 dark:bg-gray-800 dark:bg-opacity-75">
             <svg
               class="size-8 animate-spin text-brand-600"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <circle
                 class="opacity-25"
                 cx="12"
@@ -67,8 +64,7 @@
       <div class="text-center">
         <h1
           :id="headingId"
-          class="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100"
-        >
+          class="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
           {{ heading }}
         </h1>
         <p class="text-lg text-gray-600 dark:text-gray-400">
@@ -79,13 +75,11 @@
       <!-- Alert Messages -->
       <div
         v-if="error || success"
-        class="mx-auto max-w-md"
-      >
+        class="mx-auto max-w-md">
         <div
           v-if="error"
           class="mb-4 border-l-4 border-red-500 bg-red-100 p-4 text-red-700"
-          role="alert"
-        >
+          role="alert">
           <p class="font-bold">
             Error
           </p>
@@ -94,8 +88,7 @@
         <div
           v-if="success"
           class="mb-4 border-l-4 border-green-500 bg-green-100 p-4 text-green-700"
-          role="alert"
-        >
+          role="alert">
           <p class="font-bold">
             Success
           </p>

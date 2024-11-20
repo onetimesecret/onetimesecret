@@ -2,21 +2,18 @@
   <div class="container mx-auto mt-24 px-4">
     <div
       v-if="secretStore.record && secretStore.details"
-      class="space-y-20"
-    >
+      class="space-y-20">
       <!-- Owner warnings -->
       <template v-if="!secretStore.record.verification">
         <div
           v-if="secretStore.details.is_owner && !secretStore.details.show_secret"
           class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
-          role="alert"
-        >
+          role="alert">
           <button
             type="button"
             class="float-right hover:text-amber-900 dark:hover:text-amber-50"
             @click="closeWarning"
-            aria-label="Close warning"
-          >
+            aria-label="Close warning">
             &times;
           </button>
           <strong class="font-medium">{{ $t('web.COMMON.warning') }}</strong>
@@ -26,14 +23,12 @@
         <div
           v-if="secretStore.details.is_owner && secretStore.details.show_secret"
           class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
-          role="alert"
-        >
+          role="alert">
           <button
             type="button"
             class="float-right hover:text-brand-900 dark:hover:text-brand-50"
             @click="closeWarning"
-            aria-label="Close notification"
-          >
+            aria-label="Close notification">
             &times;
           </button>
           {{ $t('web.shared.viewed_own_secret') }}
@@ -54,8 +49,7 @@
 
       <div
         v-else
-        class="space-y-4"
-      >
+        class="space-y-4">
         <h2 class="text-gray-600 dark:text-gray-400">
           {{ $t('web.shared.this_message_for_you') }}
         </h2>
@@ -84,7 +78,7 @@ import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useSecretsStore } from '@/stores/secretsStore';
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 
 import UnknownSecret from './UnknownSecret.vue';
 
@@ -95,7 +89,7 @@ interface Props {
   siteHost: string;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 const secretStore = useSecretsStore();
 
 const displayPoweredBy = computed(() => !!(true));

@@ -9,8 +9,7 @@
     />
     <p
       v-if="isNavigating"
-      class="mt-4 text-gray-600 dark:text-gray-400"
-    >
+      class="mt-4 text-gray-600 dark:text-gray-400">
       Navigating to verification page...
     </p>
   </div>

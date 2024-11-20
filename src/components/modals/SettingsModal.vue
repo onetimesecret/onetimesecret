@@ -14,52 +14,44 @@
     aria-labelledby="settings-modal"
     aria-describedby="settings-modal-description"
     role="dialog"
-    aria-modal="true"
-  >
+    aria-modal="true">
     <!-- Description for screen readers -->
     <div
       id="settings-modal-description"
-      class="sr-only"
-    >
+      class="sr-only">
       Customize your app preferences and settings
     </div>
 
     <FocusTrap
       :active="isOpen"
-      :initial-focus="() => $refs.closeButton"
-    >
+      :initial-focus="() => $refs.closeButton">
       <div
         class="relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out dark:bg-gray-800 sm:max-w-md md:max-w-lg"
-        :class="{ 'scale-95 opacity-0': !isOpen, 'scale-100 opacity-100': isOpen }"
-      >
+        :class="{ 'scale-95 opacity-0': !isOpen, 'scale-100 opacity-100': isOpen }">
         <div class="flex h-[90vh] flex-col sm:h-[80vh]">
           <!-- Modal Header -->
           <div class="flex shrink-0 items-center justify-between bg-gray-50 p-4 dark:bg-gray-700">
             <h2
               id="settings-modal"
-              class="text-2xl font-bold text-gray-900 dark:text-white"
-            >
+              class="text-2xl font-bold text-gray-900 dark:text-white">
               Settings
             </h2>
             <div
               class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2"
               role="tablist"
               @keydown="handleTabKeydown"
-              aria-label="Settings sections"
-            >
+              aria-label="Settings sections">
               <button
                 ref="closeButton"
                 @click="closeModal"
                 class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
-                aria-label="Close settings"
-              >
+                aria-label="Close settings">
                 <svg
                   class="size-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  aria-hidden="true"
-                >
+                  aria-hidden="true">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -75,8 +67,7 @@
           <div
             class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2"
             role="tablist"
-            aria-label="Settings sections"
-          >
+            aria-label="Settings sections">
             <button
               v-for="tab in tabs"
               :key="tab.id"
@@ -90,8 +81,7 @@
               :class="{
                 'bg-brandcomp-100 dark:bg-brandcomp-700': activeTab === tab.id,
                 'hover:bg-gray-200 dark:hover:bg-gray-600': activeTab !== tab.id
-              }"
-            >
+              }">
               {{ tab.label }}
             </button>
           </div>
@@ -107,8 +97,7 @@
                   role="tabpanel"
                   :aria-labelledby="'tab-button-general'"
                   tabindex="0"
-                  class="space-y-8"
-                >
+                  class="space-y-8">
                   <GeneralTab @close="closeModal" />
                 </div>
 
@@ -119,8 +108,7 @@
                   role="tabpanel"
                   :aria-labelledby="'tab-button-data-region'"
                   tabindex="0"
-                  class="space-y-8"
-                >
+                  class="space-y-8">
                   <JurisdictionTab v-if="regionsEnabled" />
                 </div>
               </template>
@@ -129,8 +117,7 @@
                 <div class="flex h-full items-center justify-center">
                   <div
                     class="size-8 animate-spin rounded-full border-y-2 border-brand-600"
-                    role="status"
-                  >
+                    role="status">
                     <span class="sr-only">Loading settings content...</span>
                   </div>
                 </div>
@@ -142,8 +129,7 @@
           <div class="flex shrink-0 justify-end bg-gray-50 p-4 dark:bg-gray-700">
             <button
               @click="closeModal"
-              class="rounded-md bg-brand-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-            >
+              class="rounded-md bg-brand-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
               Done
             </button>
           </div>

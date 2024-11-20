@@ -1,13 +1,11 @@
 <template>
   <ul
     role="list"
-    class="space-y-6"
-  >
+    class="space-y-6">
     <li
       v-for="(activityItem, activityItemIdx) in activity"
       :key="activityItem.id"
-      class="relative flex gap-x-4"
-    >
+      class="relative flex gap-x-4">
       <div :class="[activityItemIdx === activity.length - 1 ? 'h-6' : '-bottom-6', 'absolute left-0 top-0 flex w-6 justify-center']">
         <div class="w-px bg-gray-200"></div>
       </div>
@@ -24,8 +22,7 @@
             </div>
             <time
               :datetime="activityItem.dateTime"
-              class="flex-none py-0.5 text-xs leading-5 text-gray-500"
-            >{{ activityItem.date }}</time>
+              class="flex-none py-0.5 text-xs leading-5 text-gray-500">{{ activityItem.date }}</time>
           </div>
           <p class="text-sm leading-6 text-gray-500">
             {{ activityItem.comment }}
@@ -42,16 +39,14 @@
           />
           <div
             v-else
-            class="size-1.5 rounded-full bg-gray-100 ring-1 ring-gray-300"
-          ></div>
+            class="size-1.5 rounded-full bg-gray-100 ring-1 ring-gray-300"></div>
         </div>
         <p class="flex-auto py-0.5 text-xs leading-5 text-gray-500">
           <span class="font-medium text-gray-900">{{ activityItem.person.name }}</span> {{ activityItem.type }} the invoice.
         </p>
         <time
           :datetime="activityItem.dateTime"
-          class="flex-none py-0.5 text-xs leading-5 text-gray-500"
-        >{{ activityItem.date }}</time>
+          class="flex-none py-0.5 text-xs leading-5 text-gray-500">{{ activityItem.date }}</time>
       </template>
     </li>
   </ul>
@@ -65,20 +60,17 @@
     />
     <form
       action="#"
-      class="relative flex-auto"
-    >
+      class="relative flex-auto">
       <div class="overflow-hidden rounded-lg pb-12 shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-indigo-600">
         <label
           for="comment"
-          class="sr-only"
-        >Add your comment</label>
+          class="sr-only">Add your comment</label>
         <textarea
           rows="2"
           name="comment"
           id="comment"
           class="block w-full resize-none border-0 bg-transparent py-1.5 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-          placeholder="Add your comment..."
-        ></textarea>
+          placeholder="Add your comment..."></textarea>
       </div>
 
       <div class="absolute inset-x-0 bottom-0 flex justify-between py-2 pl-3 pr-2">
@@ -86,8 +78,7 @@
           <div class="flex items-center">
             <button
               type="button"
-              class="-m-2.5 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-500"
-            >
+              class="-m-2.5 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-500">
               <Icon
                 icon="heroicons:paper-clip"
                 class="size-5"
@@ -99,8 +90,7 @@
           <div class="flex items-center">
             <Listbox
               as="div"
-              v-model="selected"
-            >
+              v-model="selected">
               <ListboxLabel class="sr-only">
                 Your mood
               </ListboxLabel>
@@ -131,16 +121,14 @@
                 <transition
                   leave-active-class="transition ease-in duration-100"
                   leave-from-class="opacity-100"
-                  leave-to-class="opacity-0"
-                >
+                  leave-to-class="opacity-0">
                   <ListboxOptions class="absolute bottom-10 z-10 -ml-6 w-60 rounded-lg bg-white py-3 text-base shadow ring-1 ring-black ring-opacity-5 focus:outline-none sm:ml-auto sm:w-64 sm:text-sm">
                     <ListboxOption
                       as="template"
                       v-for="mood in moods"
                       :key="mood.value"
                       :value="mood"
-                      v-slot="{ active }"
-                    >
+                      v-slot="{ active }">
                       <li :class="[active ? 'bg-gray-100' : 'bg-white', 'relative cursor-default select-none px-3 py-2']">
                         <div class="flex items-center">
                           <div :class="[mood.bgColor, 'flex size-8 items-center justify-center rounded-full']">
@@ -162,8 +150,7 @@
         </div>
         <button
           type="submit"
-          class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-        >
+          class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
           Comment
         </button>
       </div>

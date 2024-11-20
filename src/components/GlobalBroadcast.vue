@@ -52,16 +52,13 @@ const sanitizedContent = computed(() => {
 <template>
   <div
     v-if="show"
-    class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gray-50 px-6 py-2.5 dark:bg-gray-900 sm:px-3.5 sm:before:flex-1"
-  >
+    class="relative isolate flex items-center gap-x-6 overflow-hidden bg-gray-50 px-6 py-2.5 dark:bg-gray-900 sm:px-3.5 sm:before:flex-1">
     <div
       class="absolute left-[max(-7rem,calc(50%-52rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
-      aria-hidden="true"
-    >
+      aria-hidden="true">
       <div
         class="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-[#dc4a22] to-[#fcf4e8] opacity-30"
-        style="clip-path: polygon(74.8% 41.9%, 97.2% 73.2%, 100% 34.9%, 92.5% 0.4%, 87.5% 0%, 75% 28.6%, 58.5% 54.6%, 50.1% 56.8%, 46.9% 44%, 48.3% 17.4%, 24.7% 53.9%, 0% 27.9%, 11.9% 74.2%, 24.9% 54.1%, 68.6% 100%, 74.8% 41.9%)"
-      ></div>
+        style="clip-path: polygon(74.8% 41.9%, 97.2% 73.2%, 100% 34.9%, 92.5% 0.4%, 87.5% 0%, 75% 28.6%, 58.5% 54.6%, 50.1% 56.8%, 46.9% 44%, 48.3% 17.4%, 24.7% 53.9%, 0% 27.9%, 11.9% 74.2%, 24.9% 54.1%, 68.6% 100%, 74.8% 41.9%)"></div>
     </div>
     <MovingGlobules
       from-colour="#23b5dd"
@@ -72,12 +69,10 @@ const sanitizedContent = computed(() => {
     />
     <div
       class="absolute left-[max(45rem,calc(50%+8rem))] top-1/2 -z-10 -translate-y-1/2 transform-gpu blur-2xl"
-      aria-hidden="true"
-    >
+      aria-hidden="true">
       <div
         class="aspect-[577/310] w-[36.0625rem] bg-gradient-to-r from-[#dc4a22] to-[#fcf4e8] opacity-30"
-        style="clip-path: polygon(74.8% 41.9%, 97.2% 73.2%, 100% 34.9%, 92.5% 0.4%, 87.5% 0%, 75% 28.6%, 58.5% 54.6%, 50.1% 56.8%, 46.9% 44%, 48.3% 17.4%, 24.7% 53.9%, 0% 27.9%, 11.9% 74.2%, 24.9% 54.1%, 68.6% 100%, 74.8% 41.9%)"
-      ></div>
+        style="clip-path: polygon(74.8% 41.9%, 97.2% 73.2%, 100% 34.9%, 92.5% 0.4%, 87.5% 0%, 75% 28.6%, 58.5% 54.6%, 50.1% 56.8%, 46.9% 44%, 48.3% 17.4%, 24.7% 53.9%, 0% 27.9%, 11.9% 74.2%, 24.9% 54.1%, 68.6% 100%, 74.8% 41.9%)"></div>
     </div>
     <div class="font-brand text-base leading-6 text-gray-900 dark:text-gray-100">
       <div class="relative flex items-center space-x-3">
@@ -86,8 +81,7 @@ const sanitizedContent = computed(() => {
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+          stroke="currentColor">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -101,8 +95,7 @@ const sanitizedContent = computed(() => {
     <div class="flex flex-1 justify-end">
       <button
         type="button"
-        class="-m-3 p-3 focus-visible:outline-offset-[-4px]"
-      >
+        class="-m-3 p-3 focus-visible:outline-offset-[-4px]">
         <span class="sr-only">Dismiss</span>
         <Icon
           icon="heroicons-solid:xmarkicon"

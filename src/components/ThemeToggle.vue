@@ -3,14 +3,12 @@
     @click="toggleDarkMode"
     aria-label="Toggle dark mode"
     :aria-pressed="isDarkMode"
-    class="rounded-md p-1 text-gray-400 opacity-80 transition-colors hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-  >
+    class="rounded-md p-1 text-gray-400 opacity-80 transition-colors hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700">
     <svg
       v-if="isDarkMode"
       viewBox="0 0 24 24"
       fill="none"
-      class="size-6"
-    >
+      class="size-6">
       <path
         fill-rule="evenodd"
         clip-rule="evenodd"
@@ -35,8 +33,7 @@
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+      xmlns="http://www.w3.org/2000/svg">
       <path
         stroke-linecap="round"
         stroke-linejoin="round"

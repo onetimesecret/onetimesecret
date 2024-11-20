@@ -2,8 +2,7 @@
   <div class="dark:bg-gray-800">
     <div
       v-if="error"
-      class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900"
-    >
+      class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900">
       <div class="mb-8 flex">
         <div class="shrink-0">
           <Icon
@@ -25,8 +24,7 @@
 
     <div
       v-if="success"
-      class="mb-4 rounded-md bg-green-50 p-4 dark:bg-green-900"
-    >
+      class="mb-4 rounded-md bg-green-50 p-4 dark:bg-green-900">
       <div class="mb-8 flex">
         <div class="shrink-0">
           <Icon

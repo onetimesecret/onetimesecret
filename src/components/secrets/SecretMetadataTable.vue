@@ -2,8 +2,7 @@
   <!-- Move to a separate component -->
   <div
     class="space-y-8"
-    v-cloak
-  >
+    v-cloak>
     <template v-if="isLoading">
       <!-- Add a loading indicator here -->
       <div class="text-justify">
@@ -19,25 +18,21 @@
         </h3>
         <ul
           v-if="notReceived"
-          class="space-y-1"
-        >
+          class="space-y-1">
           <li
             v-for="item in notReceived"
-            :key="item.key"
-          >
+            :key="item.key">
             <!-- Assuming there's a component for li_metadata -->
             <SecretMetadataTableItem :secret-metadata="item" />
           </li>
         </ul>
         <p
           v-else
-          class="italic text-gray-600 dark:text-gray-400"
-        >
+          class="italic text-gray-600 dark:text-gray-400">
           Go on then.
           <router-link
             to="/"
-            class="text-brand-500 hover:underline"
-          >
+            class="text-brand-500 hover:underline">
             {{ $t('web.COMMON.share_a_secret') }}
           </router-link>!
         </p>
@@ -49,20 +44,17 @@
         </h3>
         <ul
           v-if="received"
-          class="space-y-1"
-        >
+          class="space-y-1">
           <li
             v-for="item in received"
-            :key="item.key"
-          >
+            :key="item.key">
             <!-- Assuming there's a component for li_metadata -->
             <SecretMetadataTableItem :secret-metadata="item" />
           </li>
         </ul>
         <p
           v-else
-          class="italic text-gray-600 dark:text-gray-400"
-        >
+          class="italic text-gray-600 dark:text-gray-400">
           {{ $t('web.COMMON.word_none') }}
         </p>
       </section>

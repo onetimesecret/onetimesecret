@@ -3,27 +3,23 @@
     :class="[
       'w-full',
       'rounded-lg bg-white p-8 dark:bg-gray-800'
-    ]"
-  >
+    ]">
     <p
       v-if="record?.verification && !record?.has_passphrase"
-      class="text-md text-gray-600 dark:text-gray-400"
-    >
+      class="text-md text-gray-600 dark:text-gray-400">
       {{ $t('web.COMMON.click_to_verify') }}
     </p>
 
     <h2
       v-if="record?.has_passphrase"
-      class="text-xl font-bold text-gray-800 dark:text-gray-200"
-    >
+      class="text-xl font-bold text-gray-800 dark:text-gray-200">
       {{ $t('web.shared.requires_passphrase') }}
     </h2>
 
     <form
       @submit.prevent="submitForm"
       class="space-y-4"
-      aria-label="Secret confirmation form"
-    >
+      aria-label="Secret confirmation form">
       <input
         name="shrimp"
         type="hidden"
@@ -53,8 +49,7 @@
           'w-full rounded-md bg-brand-500 px-6 py-3 text-3xl font-semibold text-white transition duration-150 ease-in-out hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-gray-800',
           'mt-4'
         ]"
-        aria-live="polite"
-      >
+        aria-live="polite">
         {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
       </button>
     </form>

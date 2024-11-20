@@ -5,24 +5,21 @@
     :class="{ 'rounded-none': brandSettings?.corner_style === 'sharp' }"
     :style="brandSettings ? {
       fontFamily: brandSettings.font_family || 'inherit'
-    } : {}"
-  >
+    } : {}">
     <!-- Icon Section -->
     <div class="mb-8 flex items-center space-x-4">
       <div
         class="flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900"
         :style="brandSettings?.primary_color ? {
           backgroundColor: `${brandSettings.primary_color}15`,
-        } : {}"
-      >
+        } : {}">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="size-6"
           :class="brandSettings?.button_text_light ? 'text-white' : 'text-brand-600 dark:text-brand-400'"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
+          stroke="currentColor">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -57,8 +54,7 @@
         } : {
           color: 'var(--color-brand-500)',
           borderColor: 'var(--color-brand-500)'
-        }"
-      >
+        }">
         Return to Home
       </router-link>
     </div>

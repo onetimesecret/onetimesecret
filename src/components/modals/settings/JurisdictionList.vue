@@ -1,13 +1,11 @@
 <template>
   <ul
     class="divide-y divide-gray-100 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700"
-    role="list"
-  >
+    role="list">
     <li
       v-for="jurisdiction in jurisdictions"
       :key="jurisdiction.identifier"
-      class="flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 sm:flex-nowrap sm:p-4"
-    >
+      class="flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 sm:flex-nowrap sm:p-4">
       <div class="flex w-full items-center gap-3 sm:w-auto">
         <Icon
           :icon="jurisdiction.icon"
@@ -20,8 +18,7 @@
           :class="{ 'font-medium': isCurrentJurisdiction(jurisdiction) }"
           class="grow text-sm text-gray-700 hover:text-brand-600 dark:text-gray-200 dark:hover:text-brand-400"
           :aria-current="isCurrentJurisdiction(jurisdiction) ? 'true' : undefined"
-          :aria-label="`${jurisdiction.display_name} ${isCurrentJurisdiction(jurisdiction) ? '(Current)' : ''}`"
-        >
+          :aria-label="`${jurisdiction.display_name} ${isCurrentJurisdiction(jurisdiction) ? '(Current)' : ''}`">
           {{ jurisdiction.display_name }}
         </a>
       </div>
@@ -29,8 +26,7 @@
       <span
         v-if="isCurrentJurisdiction(jurisdiction)"
         class="ml-auto inline-flex items-center rounded-full bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 dark:bg-brand-900/20 dark:text-brand-300"
-        aria-hidden="true"
-      >
+        aria-hidden="true">
         Current
       </span>
     </li>

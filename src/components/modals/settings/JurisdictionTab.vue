@@ -3,12 +3,10 @@
     <!-- Data Region Section -->
     <section
       class="space-y-4 border-b border-gray-200 pb-6 dark:border-gray-700"
-      aria-labelledby="data-region-heading"
-    >
+      aria-labelledby="data-region-heading">
       <h3
         id="data-region-heading"
-        class="text-lg font-semibold text-gray-900 dark:text-white"
-      >
+        class="text-lg font-semibold text-gray-900 dark:text-white">
         Data Region
       </h3>
       <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800 sm:p-6">
@@ -35,19 +33,16 @@
     <!-- Jurisdiction Section -->
     <section
       class="space-y-6"
-      aria-labelledby="jurisdiction-heading"
-    >
+      aria-labelledby="jurisdiction-heading">
       <header class="space-y-1">
         <h3
           id="jurisdiction-heading"
-          class="text-lg font-semibold text-gray-900 dark:text-white"
-        >
+          class="text-lg font-semibold text-gray-900 dark:text-white">
           Jurisdiction
         </h3>
         <p
           v-if="customerId"
-          class="text-sm text-gray-500 dark:text-gray-400"
-        >
+          class="text-sm text-gray-500 dark:text-gray-400">
           Account ID: {{ customerId }}
         </p>
       </header>

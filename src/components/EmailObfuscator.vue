@@ -2,8 +2,7 @@
 <template>
   <a
     @click="handleClick"
-    class="email cursor-pointer text-brand-500 hover:underline dark:text-brand-400"
-  >
+    class="email cursor-pointer text-brand-500 hover:underline dark:text-brand-400">
     {{ displayedEmail }}
   </a>
 </template>

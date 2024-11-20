@@ -50,8 +50,7 @@ onMounted(fetchSecret)
     </p>
     <form
       method="post"
-      id="passwordResetForm"
-    >
+      id="passwordResetForm">
       <input
         type="hidden"
         name="shrimp"
@@ -62,8 +61,7 @@ onMounted(fetchSecret)
       <div class="mb-4 hidden">
         <label
           class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
-          for="email"
-        >
+          for="email">
           Email address
         </label>
         <input
@@ -79,8 +77,7 @@ onMounted(fetchSecret)
       <div class="mb-4">
         <label
           class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
-          for="passField"
-        >
+          for="passField">
           New password
         </label>
         <input
@@ -97,8 +94,7 @@ onMounted(fetchSecret)
       <div class="mb-6">
         <label
           class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
-          for="pass2Field"
-        >
+          for="pass2Field">
           Confirm password
         </label>
         <input
@@ -116,8 +112,7 @@ onMounted(fetchSecret)
       <div class="flex items-center justify-between">
         <button
           type="submit"
-          class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none dark:bg-brand-600 dark:hover:bg-brand-800"
-        >
+          class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none dark:bg-brand-600 dark:hover:bg-brand-800">
           Update Password
         </button>
       </div>
@@ -127,8 +122,7 @@ onMounted(fetchSecret)
   <div class="mt-6 text-center">
     <router-link
       to="/signin"
-      class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
-    >
+      class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
       Back to Sign-in
     </router-link>
   </div>

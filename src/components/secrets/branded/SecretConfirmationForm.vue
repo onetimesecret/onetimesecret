@@ -2,8 +2,7 @@
   <BaseSecretDisplay
     default-title="You have a message"
     :domain-branding="domainBranding"
-    :instructions="domainBranding?.instructions_pre_reveal"
-  >
+    :instructions="domainBranding?.instructions_pre_reveal">
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
@@ -13,16 +12,14 @@
             'rounded-full': domainBranding?.corner_style === 'pill',
             'rounded-none': domainBranding?.corner_style === 'square'
           }"
-          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
-        >
+          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16">
           <!-- Default lock icon -->
           <svg
             v-if="!logoImage || hasImageError"
             class="size-8 text-gray-400 dark:text-gray-500"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
-          >
+            stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -54,8 +51,7 @@
           class="mr-2 size-5"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
-        >
+          stroke="currentColor">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -72,8 +68,7 @@
       <form
         @submit.prevent="submitForm"
         class="space-y-4"
-        aria-label="Secret confirmation form"
-      >
+        aria-label="Secret confirmation form">
         <input
           name="shrimp"
           type="hidden"
@@ -88,8 +83,7 @@
         <!-- Passphrase Input -->
         <div
           v-if="record?.has_passphrase"
-          class="space-y-2"
-        >
+          class="space-y-2">
           <input
             v-model="passphrase"
             type="password"
@@ -122,8 +116,7 @@
             color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
             fontFamily: domainBranding?.font_family
           }"
-          aria-live="polite"
-        >
+          aria-live="polite">
           {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
         </button>
       </form>

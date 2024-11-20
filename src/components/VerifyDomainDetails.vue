@@ -22,8 +22,7 @@
           text-lg font-semibold
           text-white transition
           duration-100
-          ease-in-out hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-400"
-      >
+          ease-in-out hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-400">
         <span>{{ isSubmitting ? 'Verifying...' : 'Verify Domain' }}</span>
         <Icon
           :icon="isSubmitting ? 'mdi:loading' : 'mdi:check-circle'"
@@ -62,8 +61,7 @@
       </li>
       <li
         v-if="domain?.is_apex"
-        class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700"
-      >
+        class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
           2. Create the A record
         </h3>
@@ -86,8 +84,7 @@
       </li>
       <li
         v-else
-        class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700"
-      >
+        class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
           2. Create the CNAME record
         </h3>

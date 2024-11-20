@@ -6,22 +6,19 @@
            text-gray-700 transition-colors
            duration-150 ease-in-out hover:text-gray-900
            focus:outline-none focus:ring-2
-           focus:ring-brandcomp-500 dark:text-gray-300 dark:hover:text-gray-100"
-  >
+           focus:ring-brandcomp-500 dark:text-gray-300 dark:hover:text-gray-100">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       class="icon-glow mr-1 size-5"
       viewBox="0 0 20 20"
-      fill="url(#gradientAnimation)"
-    >
+      fill="url(#gradientAnimation)">
       <defs>
         <linearGradient
           id="gradient"
           x1="0%"
           y1="0%"
           x2="100%"
-          y2="100%"
-        >
+          y2="100%">
           <stop
             offset="0%"
             stop-color="#ff0000"
@@ -48,8 +45,7 @@
           x1="0%"
           y1="0%"
           x2="100%"
-          y2="100%"
-        >
+          y2="100%">
           <animateTransform
             attributeName="gradientTransform"
             type="rotate"

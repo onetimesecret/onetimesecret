@@ -7,28 +7,24 @@
         leading-[1.2] tracking-wider focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
       readonly
       :rows="details.display_lines"
-      :value="secret.secret_value"
-    ></textarea>
+      :value="secret.secret_value"></textarea>
     <div
       v-else
-      class="text-red-500 dark:text-red-400"
-    >
+      class="text-red-500 dark:text-red-400">
       Secret value not available
     </div>
     <button
       @click="copySecretContent"
       :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
       class="absolute right-2 top-2 rounded-md bg-gray-200 p-1.5 transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-600 dark:hover:bg-gray-500"
-      aria-label="Copy to clipboard"
-    >
+      aria-label="Copy to clipboard">
       <svg
         v-if="!isCopied"
         xmlns="http://www.w3.org/2000/svg"
         class="size-5 text-gray-600 dark:text-gray-300"
         fill="none"
         viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
+        stroke="currentColor">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -42,8 +38,7 @@
         class="size-5 text-green-500"
         fill="none"
         viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
+        stroke="currentColor">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -56,20 +51,17 @@
 
   <p
     v-if="!secret.verification"
-    class="text-sm text-gray-500 dark:text-gray-400"
-  >
+    class="text-sm text-gray-500 dark:text-gray-400">
     ({{ $t('web.COMMON.careful_only_see_once') }})
   </p>
 
   <div
     v-if="secret.is_truncated"
-    class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4 text-sm text-blue-700 dark:bg-blue-800 dark:text-blue-200"
-  >
+    class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4 text-sm text-blue-700 dark:bg-blue-800 dark:text-blue-200">
     <button
       type="button"
       class="float-right"
-      @click="closeTruncatedWarning"
-    >
+      @click="closeTruncatedWarning">
       &times;
     </button>
     <strong>{{ $t('web.COMMON.warning') }}</strong>
@@ -79,13 +71,11 @@
   <div class="mt-4">
     <div
       v-if="!secret.verification"
-      class="my-16 mb-4 border-l-4 border-gray-400 bg-gray-100 p-4 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
-    >
+      class="my-16 mb-4 border-l-4 border-gray-400 bg-gray-100 p-4 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
       <button
         type="button"
         class="float-right hover:text-gray-900 dark:hover:text-gray-100"
-        onclick="this.parentElement.remove()"
-      >
+        onclick="this.parentElement.remove()">
         &times;
       </button>
       <p>
@@ -96,8 +86,7 @@
     <div v-else>
       <a
         href="/signin"
-        class="block w-full rounded-md border border-brand-500 bg-white px-4 py-2 text-center text-brand-500 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-brand-400 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700"
-      >
+        class="block w-full rounded-md border border-brand-500 bg-white px-4 py-2 text-center text-brand-500 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-brand-400 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700">
         {{ $t('web.COMMON.login_to_your_account') }}
       </a>
     </div>
@@ -108,22 +97,19 @@
       <a
         :href="`https://${siteHost}`"
         class="hover:underline"
-        rel="noopener noreferrer"
-      >
+        rel="noopener noreferrer">
         Powered by Onetime Secret
       </a>
       <span>·</span>
       <router-link
         to="/info/terms"
-        class="hover:underline"
-      >
+        class="hover:underline">
         Terms
       </router-link>
       <span>·</span>
       <router-link
         to="/info/privacy"
-        class="hover:underline"
-      >
+        class="hover:underline">
         Privacy
       </router-link>
     </div>

@@ -5,8 +5,7 @@
       <div class="p-6">
         <form
           @submit.prevent="submitWithCheck"
-          class="space-y-4"
-        >
+          class="space-y-4">
           <input
             type="hidden"
             name="utf8"
@@ -22,8 +21,7 @@
             <div class="grow">
               <label
                 for="feedback-message"
-                class="sr-only"
-              >Your feedback</label>
+                class="sr-only">Your feedback</label>
               <textarea
                 id="feedback-message"
                 v-model="feedbackMessage"
@@ -32,8 +30,7 @@
                 class="w-full resize-y rounded-md border border-gray-300 px-4 py-2
                   focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500
                   dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
-                :placeholder="$t('web.COMMON.feedback_text')"
-              ></textarea>
+                :placeholder="$t('web.COMMON.feedback_text')"></textarea>
               <input
                 type="hidden"
                 name="tz"
@@ -57,8 +54,7 @@
                     : 'bg-gray-500 hover:bg-gray-600 focus:ring-gray-400',
                   isSubmitting ? 'cursor-not-allowed opacity-50' : ''
                 ]"
-                aria-label="Send feedback"
-              >
+                aria-label="Send feedback">
                 {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
               </button>
             </div>
@@ -71,14 +67,12 @@
           v-if="error"
           role="alert"
           aria-live="polite"
-          class="mt-4 text-red-600 dark:text-red-400"
-        >
+          class="mt-4 text-red-600 dark:text-red-400">
           {{ error }}
         </div>
         <div
           v-if="success"
-          class="mt-4 text-green-600 dark:text-green-400"
-        >
+          class="mt-4 text-green-600 dark:text-green-400">
           {{ success }}
         </div>
       </div>
@@ -90,14 +84,12 @@
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li
             v-if="cust"
-            class="flex items-center"
-          >
+            class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"
               fill="none"
               viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+              stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -112,8 +104,7 @@
               class="mr-2 size-4 text-brand-500"
               fill="none"
               viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+              stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -128,8 +119,7 @@
               class="mr-2 size-4 text-brand-500"
               fill="none"
               viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+              stroke="currentColor">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"

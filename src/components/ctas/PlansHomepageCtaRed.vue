@@ -1,13 +1,11 @@
 <template>
   <section
-    class="mx-auto my-8 max-w-4xl overflow-hidden rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 shadow-lg"
-  >
+    class="mx-auto my-8 max-w-4xl overflow-hidden rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 shadow-lg">
     <div class="flex flex-col items-center justify-between p-6 md:flex-row">
       <div class="w-full md:w-2/3 md:pr-6">
         <h2
           class="mb-2 flex items-center text-2xl font-bold text-white md:text-3xl"
-          id="bannerTitle"
-        >
+          id="bannerTitle">
           <svg
             class="mr-3 size-8 text-brand-500"
             fill="none"
@@ -15,8 +13,7 @@
             height="20"
             width="20"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+            xmlns="http://www.w3.org/2000/svg">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -39,8 +36,7 @@
               xmlns="http://www.w3.org/2000/svg"
               width="20"
               height="20"
-              aria-hidden="true"
-            >
+              aria-hidden="true">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -59,8 +55,7 @@
               xmlns="http://www.w3.org/2000/svg"
               width="20"
               height="20"
-              aria-hidden="true"
-            >
+              aria-hidden="true">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -79,8 +74,7 @@
               xmlns="http://www.w3.org/2000/svg"
               width="20"
               height="20"
-              aria-hidden="true"
-            >
+              aria-hidden="true">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -96,15 +90,13 @@
         <router-link
           to="/pricing"
           class="mb-3 w-full rounded-md bg-white px-6 py-3 text-center font-semibold text-brand-600 transition duration-300 hover:bg-opacity-90 md:w-auto"
-          aria-describedby="bannerTitle"
-        >
+          aria-describedby="bannerTitle">
           {{ $t('web.page.explore_premium_plans') }}
         </router-link>
         <router-link
           to="/signup"
           class="w-full rounded-md bg-brand-700 px-6 py-3 text-center font-semibold text-white transition duration-300 hover:bg-brand-800 md:w-auto"
-          aria-describedby="bannerTitle"
-        >
+          aria-describedby="bannerTitle">
           {{ $t('web.page.sign_up_free') }}
         </router-link>
       </div>

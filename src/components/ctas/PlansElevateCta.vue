@@ -11,8 +11,7 @@ const pricingLink = computed(() => router.resolve({ name: 'Pricing' }).href);
 
 <template>
   <section
-    class="mb-8 rounded-lg bg-gradient-to-r from-brand-600 to-brand-800 p-6 text-white shadow-lg dark:from-brand-800 dark:to-brand-900"
-  >
+    class="mb-8 rounded-lg bg-gradient-to-r from-brand-600 to-brand-800 p-6 text-white shadow-lg dark:from-brand-800 dark:to-brand-900">
     <h4 class="mb-2 text-xl font-semibold text-white">
       {{ $t('web.COMMON.custom_domains_title') }}
     </h4>
@@ -24,8 +23,7 @@ const pricingLink = computed(() => router.resolve({ name: 'Pricing' }).href);
       class="inline-flex items-center rounded-md border border-transparent bg-white px-4 py-2 font-brand text-sm text-brand-600
        transition-colors duration-200 hover:bg-gray-50 focus:outline-none
        focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-brand-400
-       dark:hover:bg-gray-700 dark:focus:ring-brand-400"
-    >
+       dark:hover:bg-gray-700 dark:focus:ring-brand-400">
       <svg
         class="mr-2 size-5"
         xmlns="http://www.w3.org/2000/svg"
@@ -34,8 +32,7 @@ const pricingLink = computed(() => router.resolve({ name: 'Pricing' }).href);
         stroke="currentColor"
         aria-hidden="true"
         height="24"
-        width="24"
-      >
+        width="24">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -51,8 +48,7 @@ const pricingLink = computed(() => router.resolve({ name: 'Pricing' }).href);
         height="20"
         width="20"
         viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
+        xmlns="http://www.w3.org/2000/svg">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"

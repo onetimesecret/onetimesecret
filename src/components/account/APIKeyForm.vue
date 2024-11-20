@@ -50,21 +50,18 @@ const {
 
     <div
       v-if="apiKeyError"
-      class="mb-4 text-red-500"
-    >
+      class="mb-4 text-red-500">
       {{ apiKeyError }}
     </div>
     <div
       v-if="apiKeySuccess"
-      class="mb-4 text-green-500"
-    >
+      class="mb-4 text-green-500">
       {{ apiKeySuccess }}
     </div>
 
     <button
       type="submit"
-      class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-    >
+      class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
       <i class="fas fa-trash-alt mr-2"></i> {{ isGeneratingAPIKey ? 'Generating...' : 'Generate Token' }}
     </button>
     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400"></p>

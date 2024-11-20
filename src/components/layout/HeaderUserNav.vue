@@ -2,13 +2,11 @@
   <div class="hidden items-center sm:flex">
     <router-link
       to="/account"
-      class="group text-gray-400 transition hover:text-gray-300"
-    >
+      class="group text-gray-400 transition hover:text-gray-300">
       <span
         id="userEmail"
         :class="{ 'animate-pulse': isNewFeature }"
-        class="group-hover:text-gray-300"
-      >
+        class="group-hover:text-gray-300">
         {{ cust.custid }}
       </span>
     </router-link>
@@ -23,8 +21,7 @@
       v-if="colonel"
       to="/colonel/"
       title=""
-      class="ml-2 text-gray-400 transition hover:text-gray-300"
-    >
+      class="ml-2 text-gray-400 transition hover:text-gray-300">
       <Icon
         icon="mdi:star"
         class="size-4 text-brand-400 "
@@ -33,8 +30,7 @@
     <span
       class="ml-2 text-gray-400"
       aria-hidden="true"
-      role="separator"
-    >|</span>
+      role="separator">|</span>
   </div>
 </template>
 

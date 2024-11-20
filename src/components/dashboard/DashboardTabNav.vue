@@ -2,13 +2,11 @@
   <nav
     v-if="authenticated"
     aria-label="Dashboard Navigation"
-    class="mb-6 bg-gray-50/50 px-4 py-2 dark:bg-gray-800/50"
-  >
+    class="mb-6 bg-gray-50/50 px-4 py-2 dark:bg-gray-800/50">
     <!-- Shadow approach -->
     <ul
       class="mx-auto flex max-w-7xl flex-wrap justify-between gap-x-6 gap-y-2 font-brand"
-      role="menubar"
-    >
+      role="menubar">
       <!-- Home -->
       <li role="none">
         <router-link
@@ -19,8 +17,7 @@
             isActiveRoute('/dashboard')
               ? 'border-b-2 border-brand-500 font-semibold text-brand-500'
               : 'text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-500'
-          ]"
-        >
+          ]">
           <svg
             aria-hidden="true"
             class="mr-2"
@@ -28,8 +25,7 @@
             height="20"
             fill="none"
             stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+            viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -51,8 +47,7 @@
             isActiveRoute('/recent')
               ? 'border-b-2 border-brand-500 font-semibold text-brand-500'
               : 'text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-500'
-          ]"
-        >
+          ]">
           <svg
             aria-hidden="true"
             class="mr-2"
@@ -60,8 +55,7 @@
             height="20"
             fill="none"
             stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+            viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -73,8 +67,7 @@
           <span class="hidden sm:block">{{ $t('web.COMMON.title_recent_secrets') }}</span>
           <span
             class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-            aria-label="Recent secrets count"
-          >
+            aria-label="Recent secrets count">
             {{ metadata_record_count }}
           </span>
         </router-link>
@@ -83,8 +76,7 @@
       <!-- Custom Domains -->
       <li
         v-if="domains_enabled"
-        role="none"
-      >
+        role="none">
         <router-link
           to="/account/domains"
           role="menuitem"
@@ -93,8 +85,7 @@
             isActiveRoute('/account/domains')
               ? 'border-b-2 border-brand-500 font-semibold text-brand-500'
               : 'text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-500'
-          ]"
-        >
+          ]">
           <svg
             aria-hidden="true"
             class="mr-2"
@@ -102,8 +93,7 @@
             height="20"
             fill="none"
             stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+            viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -115,8 +105,7 @@
           <span class="hidden sm:block">Custom Domains</span>
           <span
             class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-            aria-label="Custom domains count"
-          >
+            aria-label="Custom domains count">
             {{ custom_domains_record_count }}
           </span>
         </router-link>

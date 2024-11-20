@@ -3,12 +3,10 @@
     <section
       role="region"
       aria-labelledby="appearance-heading"
-      class="space-y-4"
-    >
+      class="space-y-4">
       <h3
         id="appearance-heading"
-        class="mb-2 text-lg font-semibold text-gray-900 dark:text-white sm:mb-4"
-      >
+        class="mb-2 text-lg font-semibold text-gray-900 dark:text-white sm:mb-4">
         Appearance
       </h3>
       <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800 sm:p-4">
@@ -35,18 +33,15 @@
 
     <div
       class="h-px bg-gray-200 dark:bg-gray-700"
-      aria-hidden="true"
-    ></div>
+      aria-hidden="true"></div>
 
     <section
       role="region"
       aria-labelledby="language-heading"
-      class="space-y-4"
-    >
+      class="space-y-4">
       <h3
         id="language-heading"
-        class="mb-2 text-lg font-semibold text-gray-900 dark:text-white sm:mb-4"
-      >
+        class="mb-2 text-lg font-semibold text-gray-900 dark:text-white sm:mb-4">
         Language
       </h3>
       <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800 sm:p-4">
@@ -67,8 +62,7 @@
             <router-link
               to="/translations"
               @click="$emit('close')"
-              class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            >
+              class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
               25+ contributors
             </router-link>
             who've helped with translations as we continue to develop new features.
@@ -80,8 +74,7 @@
               href="https://github.com/onetimesecret/onetimesecret"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            >
+              class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
               our GitHub project
             </a>
             welcomes contributors for both existing and new languages.

@@ -35,12 +35,10 @@
       isExpanded
         ? `mb-3 p-3 ${expandedBgClass}`
         : `mb-2 p-2 ${collapsedBgClass}`
-    ]"
-  >
+    ]">
     <div
       @click="toggleExpanded"
-      class="flex cursor-pointer items-center justify-between"
-    >
+      class="flex cursor-pointer items-center justify-between">
       <p class="font-brand text-base font-medium text-gray-700 dark:text-gray-300">
         {{ title }}
       </p>
@@ -52,8 +50,7 @@
     <div
       v-if="isExpanded"
       class="mt-2"
-      @click.stop
-    >
+      @click.stop>
       <slot></slot>
     </div>
   </div>

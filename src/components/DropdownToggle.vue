@@ -3,8 +3,7 @@
   <div
     class="relative flex items-center"
     :class="{ 'opacity-60 hover:opacity-100': !isMenuOpen }"
-    :aria-label="ariaLabel"
-  >
+    :aria-label="ariaLabel">
     <button
       type="button"
       class="inline-flex w-full items-center justify-center rounded-md border
@@ -16,16 +15,14 @@
       @click="toggleMenu"
       @keydown.down.prevent="openMenu"
       @keydown.enter.prevent="openMenu"
-      @keydown.space.prevent="openMenu"
-    >
+      @keydown.space.prevent="openMenu">
       <slot name="button-content"></slot>
       <svg
         class="-mr-1 ml-2 size-5"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
         fill="currentColor"
-        aria-hidden="true"
-      >
+        aria-hidden="true">
         <path
           fill-rule="evenodd"
           d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -44,12 +41,10 @@
       aria-orientation="vertical"
       @keydown.esc="closeMenu"
       @keydown.up.prevent="focusPreviousItem"
-      @keydown.down.prevent="focusNextItem"
-    >
+      @keydown.down.prevent="focusNextItem">
       <div
         class="max-h-60 overflow-y-auto py-1"
-        role="none"
-      >
+        role="none">
         <slot name="menu-items"></slot>
       </div>
     </div>

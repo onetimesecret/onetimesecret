@@ -12,8 +12,7 @@
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
       width="128"
-      height="128"
-    >
+      height="128">
       <path
         stroke-linecap="round"
         stroke-linejoin="round"
@@ -34,8 +33,7 @@
 
   <a
     href="/"
-    class="inline-block rounded-lg bg-brand-500 px-6 py-3 text-white shadow-md transition-colors duration-300 hover:bg-brand-600 hover:shadow-lg dark:bg-brand-600 dark:hover:bg-brand-700"
-  >
+    class="inline-block rounded-lg bg-brand-500 px-6 py-3 text-white shadow-md transition-colors duration-300 hover:bg-brand-600 hover:shadow-lg dark:bg-brand-600 dark:hover:bg-brand-700">
     Go share a secret!
   </a>
 </template>

@@ -10,8 +10,7 @@
         <div class="relative min-h-[5.5rem] sm:min-h-24">
           <h2
             class="mb-2 text-base font-medium leading-normal text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl"
-            :style="{ fontFamily: domainBranding?.font_family }"
-          >
+            :style="{ fontFamily: domainBranding?.font_family }">
             <slot name="title">
               {{ defaultTitle }}
             </slot>
@@ -22,8 +21,7 @@
               ref="textRef"
               class="pb-4"
               :class="textClasses"
-              :style="{ fontFamily: domainBranding?.font_family }"
-            >
+              :style="{ fontFamily: domainBranding?.font_family }">
               {{ instructions || $t('web.shared.pre_reveal_default') }}
             </p>
 
@@ -34,12 +32,10 @@
                      py-1 text-xs text-gray-500
                      shadow-sm transition-all duration-200 hover:text-gray-700
                      hover:shadow dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400
-                     dark:hover:text-gray-300"
-            >
+                     dark:hover:text-gray-300">
               <slot
                 name="expand-button"
-                :is-expanded="isExpanded"
-              >
+                :is-expanded="isExpanded">
                 {{ isExpanded ? 'Show Less' : 'Show More' }}
               </slot>
             </button>
@@ -52,8 +48,7 @@
     <div class="my-3 sm:my-4">
       <div
         class="flex min-h-32 w-full items-center justify-center bg-gray-100 dark:bg-gray-700 sm:min-h-36 "
-        :class="contentAreaClasses"
-      >
+        :class="contentAreaClasses">
         <slot name="content"></slot>
       </div>
     </div>

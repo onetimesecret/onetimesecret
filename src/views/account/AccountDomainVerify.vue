@@ -13,8 +13,7 @@
     />
     <p
       v-else
-      class="mb-6 text-lg text-gray-600 dark:text-gray-300"
-    >
+      class="mb-6 text-lg text-gray-600 dark:text-gray-300">
       Before we can activate links for
       <span class=" bg-white text-brand-600  dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>,
       you'll need to complete these steps.
@@ -22,35 +21,29 @@
 
     <MoreInfoText
       text-color="text-brandcomp-800 dark:text-gray-100"
-      bg-color="bg-white dark:bg-gray-800"
-    >
+      bg-color="bg-white dark:bg-gray-800">
       <div class="prose p-6">
         <div class="max-w-xl text-base text-gray-600 dark:text-gray-300">
           <p>
             In order to connect your domain, you'll need to have a CNAME record in your DNS that points
             <span
-              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400"
-            >{{ domain?.display_domain }}</span>
+              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at <span
               :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800"
-            >{{ cluster?.cluster_host }}</span>. If you already have
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>. If you already have
             a CNAME record for that address, please change it to point at
             <span
               :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800"
-            >{{ cluster?.cluster_host }}</span>
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>
             and remove any other A, AAAA,
             or CNAME records for that exact address.
           </p>
           <p
             v-if="domain?.is_apex"
-            class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700"
-          >
+            class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
             <!-- Disclaimer for apex domains -->
             <strong>Important:</strong> Please note that for apex domains (e.g., <span
-              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400"
-            >{{ domain?.display_domain }}</span>),
+              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>),
             a CNAME record is not allowed.
             Instead, you'll need to create an A record. Details on how to do this are provided further down the page.
           </p>
@@ -58,8 +51,7 @@
         <div class="mt-4 text-sm">
           <a
             href="#"
-            class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300"
-          >
+            class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
             <!--Learn more about DNS configuration <span aria-hidden="true">&rarr;</span>-->
           </a>
         </div>
@@ -75,8 +67,7 @@
     />
     <p
       v-else
-      class="text-gray-600 dark:text-gray-400"
-    >
+      class="text-gray-600 dark:text-gray-400">
       Loading domain information...
     </p>
   </div>

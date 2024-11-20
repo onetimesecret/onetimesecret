@@ -2,8 +2,7 @@
   <div class="relative">
     <label
       :id="id + '-label'"
-      class="sr-only"
-    >{{ label }}</label>
+      class="sr-only">{{ label }}</label>
     <div
       class="group
             flex h-11 items-center
@@ -13,8 +12,7 @@
             px-3
             shadow-sm
             dark:border-gray-600
-            dark:bg-gray-800"
-    >
+            dark:bg-gray-800">
       <!-- Color Preview Circle -->
       <div class="relative flex items-center">
         <div
@@ -23,8 +21,7 @@
             border-white shadow-sm ring-1 ring-gray-200
             dark:border-gray-700 dark:ring-gray-600"
           :style="{ backgroundColor: modelValue }"
-          aria-hidden="true"
-        >
+          aria-hidden="true">
           <input
             type="color"
             :value="modelValue"
@@ -45,8 +42,7 @@
              text-sm font-medium
              text-gray-400
              dark:text-gray-500"
-          aria-hidden="true"
-        >#</span>
+          aria-hidden="true">#</span>
         <input
           type="text"
           :value="modelValue.replace('#', '')"

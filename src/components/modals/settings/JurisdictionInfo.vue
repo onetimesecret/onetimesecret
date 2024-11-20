@@ -33,15 +33,13 @@
           :href="`${supportHost}/docs`"
           class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
           target="_blank"
-          rel="noopener noreferrer"
-        >
+          rel="noopener noreferrer">
           review our documentation
         </a>
         or
         <RouterLink
           to="/feedback"
-          class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300"
-        >
+          class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
           contact our compliance team
         </RouterLink>.
       </p>

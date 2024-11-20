@@ -3,16 +3,14 @@
   <DropdownToggle
     ref="dropdownRef"
     aria-label="Change language"
-    :open-direction="'down'"
-  >
+    :open-direction="'down'">
     <template #button-content>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="mr-2 size-5"
         fill="none"
         viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
+        stroke="currentColor">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -32,8 +30,7 @@
           'block px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-100',
           locale === currentLocale ? 'bg-gray-100 font-bold text-indigo-600 dark:bg-gray-700 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'
         ]"
-        role="menuitem"
-      >
+        role="menuitem">
         {{ locale }}
       </a>
     </template>

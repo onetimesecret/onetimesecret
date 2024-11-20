@@ -4,8 +4,7 @@
   <AuthView
     heading="Sign in to your account"
     heading-id="signin-heading"
-    :with-subheading="true"
-  >
+    :with-subheading="true">
     <template #form>
       <SignInForm />
       <div class="mt-6 text-center">
@@ -14,8 +13,7 @@
             <router-link
               to="/forgot"
               class="text-sm text-gray-600 transition duration-300 ease-in-out hover:underline dark:text-gray-400"
-              aria-label="Forgot Password"
-            >
+              aria-label="Forgot Password">
               {{ $t('web.login.forgot_your_password') }}
             </router-link>
           </li>
@@ -27,8 +25,7 @@
         to="/signup"
         class="font-medium text-brand-600 transition-colors
                           duration-200 hover:text-brand-500
-                          dark:text-brand-400 dark:hover:text-brand-300"
-      >
+                          dark:text-brand-400 dark:hover:text-brand-300">
         {{ $t('web.login.need_an_account') }}
       </router-link>
     </template>

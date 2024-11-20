@@ -11,8 +11,7 @@
                focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300
                dark:hover:bg-slate-900
                dark:focus:ring-brand-400"
-      aria-label="Open feedback form"
-    >
+      aria-label="Open feedback form">
       <span class="inline">Feedback</span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -21,8 +20,7 @@
         fill="none"
         viewBox="0 0 24 24"
         aria-hidden="true"
-        stroke="currentColor"
-      >
+        stroke="currentColor">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -39,8 +37,7 @@
         enter-to-class="opacity-100 translate-y-0"
         leave-active-class="transition ease-in duration-150"
         leave-from-class="opacity-100 translate-y-0"
-        leave-to-class="opacity-0 translate-y-1"
-      >
+        leave-to-class="opacity-0 translate-y-1">
         <div v-if="isFeedbackModalOpen">
           <FeedbackModal
             @close="closeFeedbackModal"

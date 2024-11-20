@@ -4,8 +4,7 @@
     <div
       class="fixed left-0 top-0 z-50 h-1 w-full"
       :class="primaryColorClass"
-      :style="primaryColorStyle"
-    ></div>
+      :style="primaryColorStyle"></div>
 
     <!-- Good morning Vietnam -->
     <GlobalBroadcast

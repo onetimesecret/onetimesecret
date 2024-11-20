@@ -10,8 +10,7 @@
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
             width="24"
-            height="24"
-          >
+            height="24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -20,8 +19,7 @@
             />
           </svg>
           <span
-            class="hidden font-brand text-lg font-semibold uppercase text-gray-700 dark:text-gray-300 sm:block md:text-sm"
-          >
+            class="hidden font-brand text-lg font-semibold uppercase text-gray-700 dark:text-gray-300 sm:block md:text-sm">
             {{ $t('web.homepage.cta_title') }}
           </span>
         </div>
@@ -32,8 +30,7 @@
               px-6 py-4 text-xl font-semibold text-brand-500 transition duration-150
               hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
               dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600 sm:w-auto sm:py-2 sm:text-base
-              md:px-4 md:py-1 md:text-xs"
-          >
+              md:px-4 md:py-1 md:text-xs">
             <span class="sm:hidden">Now with custom domains</span>
             <span class="hidden sm:inline">{{ $t('web.homepage.explore_premium_plans') }}</span>
             <svg
@@ -43,8 +40,7 @@
               viewBox="0 0 24 24"
               width="24"
               height="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+              xmlns="http://www.w3.org/2000/svg">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"

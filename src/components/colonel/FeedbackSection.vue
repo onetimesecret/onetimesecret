@@ -7,8 +7,7 @@
       <li
         v-for="item in feedback"
         :key="item.stamp"
-        class="flex items-start justify-between rounded bg-gray-50 px-2 py-1 dark:bg-gray-900"
-      >
+        class="flex items-start justify-between rounded bg-gray-50 px-2 py-1 dark:bg-gray-900">
         <span class="grow text-gray-800 dark:text-gray-200">{{ item.msg }}</span>
         <span class="ml-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">{{ item.stamp }}</span>
       </li>

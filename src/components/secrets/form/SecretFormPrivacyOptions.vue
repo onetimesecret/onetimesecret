@@ -5,12 +5,10 @@
         <!-- Passphrase Field -->
         <div
           v-if="props.withPassphrase"
-          class="flex-1"
-        >
+          class="flex-1">
           <label
             for="currentPassphrase"
-            class="sr-only"
-          >Passphrase:</label>
+            class="sr-only">Passphrase:</label>
           <div class="relative">
             <input
               :type="showPassphrase ? 'text' : 'password'"
@@ -30,8 +28,7 @@
               type="button"
               @click="togglePassphrase()"
               class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition-colors
-                           duration-200 dark:text-gray-300"
-            >
+                           duration-200 dark:text-gray-300">
               <Icon
                 :icon="showPassphrase ? 'mdi:eye' : 'mdi:eye-off'"
                 class="size-5"
@@ -43,12 +40,10 @@
         <!-- Lifetime Field -->
         <div
           v-if="props.withExpiry"
-          class="flex-1"
-        >
+          class="flex-1">
           <label
             for="lifetime"
-            class="sr-only"
-          >Lifetime:</label>
+            class="sr-only">Lifetime:</label>
           <select
             id="lifetime"
             tabindex="4"
@@ -57,28 +52,24 @@
             class="w-full rounded-md border border-gray-300 px-4
                   py-2 transition-colors duration-200
                   focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600
-                  dark:bg-gray-700 dark:text-white"
-          >
+                  dark:bg-gray-700 dark:text-white">
             <option
               value=""
-              disabled
-            >
+              disabled>
               {{ t('web.secrets.selectDuration') }}
             </option>
             <template v-if="filteredLifetimeOptions.length > 0">
               <option
                 v-for="option in filteredLifetimeOptions"
                 :key="option.value"
-                :value="option.value"
-              >
+                :value="option.value">
                 {{ $t('web.secrets.expiresIn', { duration: option.label }) }}
               </option>
             </template>
             <option
               v-else
               value=""
-              disabled
-            >
+              disabled>
               {{ $t('web.UNITS.ttl.noOptionsAvailable') }}
             </option>
           </select>
@@ -88,13 +79,11 @@
       <!-- Recipient Field (if needed) -->
       <div
         v-if="props.withRecipient"
-        class="flex flex-col"
-      >
+        class="flex flex-col">
         <label
           for="recipient"
           class="mb-2 block font-brand text-sm font-medium text-gray-500 transition-colors
-                      duration-200 dark:text-gray-300"
-        >
+                      duration-200 dark:text-gray-300">
           Recipient Address
         </label>
         <input

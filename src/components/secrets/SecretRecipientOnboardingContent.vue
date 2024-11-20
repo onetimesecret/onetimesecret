@@ -6,21 +6,18 @@
           <h2
             class="text-base font-semibold
             uppercase tracking-wide
-            text-brandcomp-700 opacity-40 dark:text-brandcomp-600"
-          >
+            text-brandcomp-700 opacity-40 dark:text-brandcomp-600">
             Onetime Secret
           </h2>
           <h3
             class="mt-1 text-3xl font-extrabold
               text-gray-500 dark:text-gray-300
-              sm:text-3xl sm:tracking-tight lg:text-4xl"
-          >
+              sm:text-3xl sm:tracking-tight lg:text-4xl">
             You've got (secret) mail
           </h3>
           <p
             class="mx-auto mt-5 max-w-xl text-xl
-              text-gray-400 dark:text-gray-400"
-          >
+              text-gray-400 dark:text-gray-400">
             A secure, one-time message awaits you. <br />
             Before you open it, here's what you should know:
           </p>
@@ -66,22 +63,19 @@
         <a
           :href="`https://${siteHost}`"
           class="hover:underline"
-          rel="noopener noreferrer"
-        >
+          rel="noopener noreferrer">
           Powered by Onetime Secret
         </a>
         <span>·</span>
         <router-link
           to="/info/terms"
-          class="hover:underline"
-        >
+          class="hover:underline">
           Terms
         </router-link>
         <span>·</span>
         <router-link
           to="/info/privacy"
-          class="hover:underline"
-        >
+          class="hover:underline">
           Privacy
         </router-link>
       </div>

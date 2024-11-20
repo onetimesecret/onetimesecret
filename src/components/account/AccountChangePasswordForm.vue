@@ -65,8 +65,7 @@ const togglePassword = (field: 'current' | 'new' | 'confirm') => {
       <label
         for="currentPassword"
         id="currentPasswordLabel"
-        class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-      >Current Password</label>
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
 
       <div class="relative">
         <input
@@ -84,8 +83,7 @@ const togglePassword = (field: 'current' | 'new' | 'confirm') => {
         <button
           type="button"
           @click="togglePassword('current')"
-          class="absolute inset-y-0 right-0 flex items-center pr-3"
-        >
+          class="absolute inset-y-0 right-0 flex items-center pr-3">
           <Icon
             :icon="showPassword.current ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
             class="size-5 text-gray-400 dark:text-gray-100"
@@ -98,8 +96,7 @@ const togglePassword = (field: 'current' | 'new' | 'confirm') => {
       <label
         for="newPassword"
         id="newPasswordLabel"
-        class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-      >New Password</label>
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
 
       <div class="relative">
         <input
@@ -117,8 +114,7 @@ const togglePassword = (field: 'current' | 'new' | 'confirm') => {
         <button
           type="button"
           @click="togglePassword('new')"
-          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100"
-        >
+          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
           <Icon
             :icon="showPassword.new ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
             class="size-5 text-gray-400 dark:text-gray-100"
@@ -131,8 +127,7 @@ const togglePassword = (field: 'current' | 'new' | 'confirm') => {
       <label
         for="confirmPassword"
         id="confirmPasswordlabel"
-        class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-      >Confirm</label>
+        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm</label>
 
       <div class="relative">
         <input
@@ -150,8 +145,7 @@ const togglePassword = (field: 'current' | 'new' | 'confirm') => {
         <button
           type="button"
           @click="togglePassword('confirm')"
-          class="absolute inset-y-0 right-0 flex items-center pr-3"
-        >
+          class="absolute inset-y-0 right-0 flex items-center pr-3">
           <Icon
             :icon="showPassword.confirm ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
             class="size-5 text-gray-400 dark:text-gray-100"
@@ -163,21 +157,18 @@ const togglePassword = (field: 'current' | 'new' | 'confirm') => {
 
     <div
       v-if="passwordError"
-      class="mb-4 text-red-500"
-    >
+      class="mb-4 text-red-500">
       {{ passwordError }}
     </div>
     <div
       v-if="passwordSuccess"
-      class="mb-4 text-green-500"
-    >
+      class="mb-4 text-green-500">
       {{ passwordSuccess }}
     </div>
 
     <button
       type="submit"
-      class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-    >
+      class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
       <i class="fas fa-save mr-2"></i> {{ isUpdatingPassword ? 'Updating...' : 'Update Password' }}
     </button>
   </form>

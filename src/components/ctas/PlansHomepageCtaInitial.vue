@@ -1,7 +1,6 @@
 <template>
   <section
-    class="mx-auto my-12 max-w-4xl overflow-hidden rounded-lg bg-white shadow-md transition-colors duration-300 dark:bg-gray-800"
-  >
+    class="mx-auto my-12 max-w-4xl overflow-hidden rounded-lg bg-white shadow-md transition-colors duration-300 dark:bg-gray-800">
     <div class="relative flex flex-col items-start justify-between p-8 md:flex-row">
       <div class="w-full md:w-2/3 md:pr-8">
         <h2 class="mb-4 flex items-center text-3xl font-bold text-gray-800 dark:text-white">
@@ -12,8 +11,7 @@
             height="20"
             width="20"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+            xmlns="http://www.w3.org/2000/svg">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -35,8 +33,7 @@
               height="20"
               width="20"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+              xmlns="http://www.w3.org/2000/svg">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -54,8 +51,7 @@
               height="20"
               width="20"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+              xmlns="http://www.w3.org/2000/svg">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -73,8 +69,7 @@
               height="20"
               width="20"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+              xmlns="http://www.w3.org/2000/svg">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -87,8 +82,7 @@
         </ul>
         <router-link
           to="/pricing"
-          class="inline-flex items-center rounded-md bg-brand-600 px-6 py-3 font-brand font-semibold text-white transition duration-300 hover:bg-brand-700"
-        >
+          class="inline-flex items-center rounded-md bg-brand-600 px-6 py-3 font-brand font-semibold text-white transition duration-300 hover:bg-brand-700">
           {{ $t('web.page.explore_premium_plans') }}
           <svg
             class="ml-2 size-4"
@@ -97,8 +91,7 @@
             height="20"
             width="20"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+            xmlns="http://www.w3.org/2000/svg">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -115,8 +108,7 @@
 
         <router-link
           to="/signup"
-          class="inline-block w-full rounded-md bg-gray-100 px-6 py-3 text-center font-brand text-base font-semibold text-gray-800 transition duration-300 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-        >
+          class="inline-block w-full rounded-md bg-gray-100 px-6 py-3 text-center font-brand text-base font-semibold text-gray-800 transition duration-300 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
           {{ $t('web.page.sign_up_free') }}
         </router-link>
       </div>

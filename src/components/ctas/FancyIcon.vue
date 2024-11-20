@@ -5,32 +5,27 @@
         text-gray-700 transition-colors
         duration-150 ease-in-out hover:text-brand-500 focus:outline-none
         focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-        dark:text-gray-300 dark:hover:text-brand-400 dark:focus:ring-offset-gray-900"
-    >
+        dark:text-gray-300 dark:hover:text-brand-400 dark:focus:ring-offset-gray-900">
       <button
         v-if="showUpgradeNudge"
-        @click="openUpgradeModal"
-      >
+        @click="openUpgradeModal">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="size-5 transition-transform group-hover:scale-110"
           width="20"
           height="20"
           viewBox="0 0 20 20"
-          fill="none"
-        >
+          fill="none">
           <defs>
             <linearGradient
               id="offKilterGradient"
               x1="0%"
               y1="0%"
               x2="100%"
-              y2="100%"
-            >
+              y2="100%">
               <stop
                 offset="0%"
-                stop-color="#EC4899"
-              >
+                stop-color="#EC4899">
                 <animate
                   attributeName="stop-color"
                   values="#EC4899; #A855F7; #EAB308; #EC4899"
@@ -40,8 +35,7 @@
               </stop>
               <stop
                 offset="100%"
-                stop-color="#EAB308"
-              >
+                stop-color="#EAB308">
                 <animate
                   attributeName="stop-color"
                   values="#EAB308; #EC4899; #A855F7; #EAB308"
@@ -55,8 +49,7 @@
             fill-rule="evenodd"
             d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
             clip-rule="evenodd"
-            fill="url(#offKilterGradient)"
-          >
+            fill="url(#offKilterGradient)">
             <animate
               attributeName="d"
               values="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z;

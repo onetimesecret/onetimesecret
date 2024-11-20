@@ -13,8 +13,7 @@
       @submit.prevent="submitForm"
       action="/api/v2/secret/conceal"
       class="form-horizontal"
-      :disabled="!props.enabled"
-    >
+      :disabled="!props.enabled">
       <input
         type="hidden"
         name="utf8"

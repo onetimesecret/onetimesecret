@@ -5,8 +5,7 @@
       :to="{ name: 'Burn secret', params: { metadataKey: metadata.key } }"
       class="mb-4 block w-full rounded-md bg-yellow-400 px-4 py-2
       text-center text-base text-gray-800
-      hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-    >
+      hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
       <svg
         class="mr-2 inline-block size-5"
         fill="none"
@@ -14,8 +13,7 @@
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"
         width="20"
-        height="20"
-      >
+        height="20">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"

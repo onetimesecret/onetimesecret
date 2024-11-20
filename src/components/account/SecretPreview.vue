@@ -3,8 +3,7 @@
   <BaseSecretDisplay
     default-title="You have a message"
     :domain-branding="domainBranding"
-    :instructions="getInstructions(isRevealed)"
-  >
+    :instructions="getInstructions(isRevealed)">
     <template #logo>
       <!-- Logo Upload Area -->
       <div class="group relative mx-auto sm:mx-0">
@@ -13,8 +12,7 @@
           for="logo-upload"
           role="button"
           aria-label="Upload logo"
-          aria-describedby="logoHelp"
-        >
+          aria-describedby="logoHelp">
           <div
             :class="{
               'rounded-lg': domainBranding.corner_style === 'rounded',
@@ -22,8 +20,7 @@
               'rounded-none': domainBranding.corner_style === 'square',
               'animate-wiggle': !isValidLogo
             }"
-            class="hover:ring-primary-500 flex size-14 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 dark:bg-gray-700 sm:size-16"
-          >
+            class="hover:ring-primary-500 flex size-14 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 dark:bg-gray-700 sm:size-16">
             <img
               v-if="isValidLogo"
               :src="logoSrc"
@@ -40,8 +37,7 @@
               class="size-8 text-gray-400 dark:text-gray-500"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -55,8 +51,7 @@
         <!-- Help text -->
         <div
           id="logoHelp"
-          class="sr-only"
-        >
+          class="sr-only">
           Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG,
           SVG
         </div>
@@ -75,12 +70,10 @@
           v-if="isValidLogo"
           class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
           role="group"
-          aria-label="Logo controls"
-        >
+          aria-label="Logo controls">
           <button
             @click.stop="onLogoRemove"
-            class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-          >
+            class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
             <span class="flex items-center gap-1">
               <Icon
                 icon="mdi:trash"
@@ -99,14 +92,12 @@
         readonly
         class="w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 dark:text-gray-300 sm:text-sm"
         rows="3"
-        aria-label="Sample secret content"
-      >Sample secret content
+        aria-label="Sample secret content">Sample secret content
       This could be sensitive data
       Or a multi-line message</textarea>
       <div
         v-else
-        class="flex items-center text-gray-400 dark:text-gray-500"
-      >
+        class="flex items-center text-gray-400 dark:text-gray-500">
         <Icon
           icon="mdi:eye-off"
           class="mr-2 size-5"
@@ -132,8 +123,7 @@
         @click="toggleReveal"
         :aria-expanded="isRevealed"
         aria-controls="secretContent"
-        :aria-label="isRevealed ? 'Hide secret message' : 'View secret message'"
-      >
+        :aria-label="isRevealed ? 'Hide secret message' : 'View secret message'">
         {{ isRevealed ? 'Hide Secret' : $t('web.COMMON.click_to_continue') }}
       </button>
     </template>

@@ -12,8 +12,7 @@
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
+              aria-hidden="true">
               <path
                 d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
                 stroke="currentColor"
@@ -25,8 +24,7 @@
           </div>
           <h1
             class="mb-6 text-center text-3xl font-bold text-gray-800 dark:text-white"
-            aria-label="404 - Page Not Found"
-          >
+            aria-label="404 - Page Not Found">
             404 - Page Not Found
           </h1>
           <p class="mb-20 text-center text-lg text-gray-600 dark:text-gray-300">
@@ -42,8 +40,7 @@
               duration-300 ease-in-out hover:bg-gray-100
               dark:border-brand-400
               dark:bg-gray-700 dark:text-brand-400 dark:hover:bg-gray-600"
-              aria-label="Return to home page"
-            >
+              aria-label="Return to home page">
               Return home
             </router-link>
           </div>

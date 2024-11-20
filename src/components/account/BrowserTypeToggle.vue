@@ -9,8 +9,7 @@
           : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
       ]"
       @click="$emit('update:modelValue', 'safari')"
-      aria-label="Switch to Safari preview"
-    >
+      aria-label="Switch to Safari preview">
       Safari
     </button>
 
@@ -22,8 +21,7 @@
           : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
       ]"
       @click="$emit('update:modelValue', 'edge')"
-      aria-label="Switch to Edge preview"
-    >
+      aria-label="Switch to Edge preview">
       Edge
     </button>
   </div>

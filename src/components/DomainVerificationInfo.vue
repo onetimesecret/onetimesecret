@@ -4,8 +4,7 @@
       v-if="mode === 'icon'"
       :to="`/account/domains/${domain?.display_domain}/verify`"
       class="tooltip inline-flex"
-      data-tooltip="View domain verification status"
-    >
+      data-tooltip="View domain verification status">
       <Icon
         :icon="statusIcon"
         class="opacity-75"
@@ -21,16 +20,14 @@
     </RouterLink>
     <div
       v-else
-      class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800"
-    >
+      class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
       <h2 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
         Domain Status
       </h2>
       <div class="flex flex-col">
         <div
           v-if="domain?.vhost"
-          class="grid grid-cols-1 gap-4 sm:grid-cols-2"
-        >
+          class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Domain</span>
             <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.incoming_address }}</span>
@@ -40,8 +37,7 @@
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</span>
             <span
               :class="statusColor"
-              class="text-lg"
-            >{{ domain?.vhost?.status_message }}</span>
+              class="text-lg">{{ domain?.vhost?.status_message }}</span>
           </div>
 
           <div class="flex flex-col">
@@ -57,16 +53,14 @@
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">SSL Renews</span>
             <span class="text-lg text-gray-900 dark:text-white"><span
-              v-if="domain?.vhost?.ssl_active_until"
-            >{{ formatDate(domain?.vhost?.ssl_active_until) }}</span></span>
+              v-if="domain?.vhost?.ssl_active_until">{{ formatDate(domain?.vhost?.ssl_active_until) }}</span></span>
           </div>
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">SSL Status</span>
             <span
               class="text-lg"
-              :class="domain?.vhost?.has_ssl ? 'text-green-600' : 'text-red-600'"
-            >
+              :class="domain?.vhost?.has_ssl ? 'text-green-600' : 'text-red-600'">
               {{ domain?.vhost?.has_ssl ? 'Active' : 'Inactive' }}
             </span>
           </div>

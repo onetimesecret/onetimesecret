@@ -2,8 +2,7 @@
   <!-- F.A.Q (if show_secret) -->
   <div
     v-if="details.show_secret"
-    class="text-sm text-gray-600 dark:text-gray-400"
-  >
+    class="text-sm text-gray-600 dark:text-gray-400">
     <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200">
       F.A.Q.
     </h3>
@@ -16,8 +15,7 @@
         passphrase, we immediately hash it with
         <a
           href="https://en.wikipedia.org/wiki/Bcrypt"
-          class="text-brand-500 hover:underline"
-        >bcrypt</a>. Since we don't store the passphrase, we have no way to show it to you. That also means when
+          class="text-brand-500 hover:underline">bcrypt</a>. Since we don't store the passphrase, we have no way to show it to you. That also means when
         you include a passphrase, we have no way to decrypt your secret.
       </p>
 
@@ -60,8 +58,7 @@
   <!-- F.A.Q (if not show_secret) -->
   <div
     v-else
-    class="text-sm text-gray-600 dark:text-gray-400"
-  >
+    class="text-sm text-gray-600 dark:text-gray-400">
     <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-gray-200">
       F.A.Q.
     </h3>

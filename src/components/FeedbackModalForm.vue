@@ -3,8 +3,7 @@
     <!-- Feedback Form -->
     <form
       @submit.prevent="submitWithCheck"
-      class="space-y-6"
-    >
+      class="space-y-6">
       <input
         type="hidden"
         name="utf8"
@@ -19,8 +18,7 @@
       <div>
         <label
           for="feedback-message"
-          class="sr-only"
-        >Your feedback</label>
+          class="sr-only">Your feedback</label>
         <textarea
           id="feedback-message"
           v-model="feedbackMessage"
@@ -37,8 +35,7 @@
           required
           @keydown="handleKeydown"
           :placeholder="$t('web.COMMON.feedback_text')"
-          aria-label="Enter your feedback"
-        ></textarea>
+          aria-label="Enter your feedback"></textarea>
         <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>
@@ -68,8 +65,7 @@
                     focus:ring-offset-gray-50
                     disabled:cursor-not-allowed disabled:opacity-50
                     dark:focus:ring-offset-gray-800"
-        aria-label="Send feedback"
-      >
+        aria-label="Send feedback">
         {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
       </button>
 
@@ -78,14 +74,12 @@
 
     <div
       v-if="error"
-      class="mt-4 text-red-600 dark:text-red-400"
-    >
+      class="mt-4 text-red-600 dark:text-red-400">
       {{ error }}
     </div>
     <div
       v-if="success"
-      class="mt-4 text-green-600 dark:text-green-400"
-    >
+      class="mt-4 text-green-600 dark:text-green-400">
       {{ success }}
     </div>
 
