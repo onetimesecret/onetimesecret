@@ -1,6 +1,14 @@
 # Plan for Transitioning AccountDomainBrand to Store-Based Architecture
 
-## Current Implementation Analysis
+## Design Goals
+- Clear separation of concerns
+- Type safety throughout the application
+- Consistent error handling
+- Testable code structure
+- Maintainable codebase
+- Reusable business logic
+
+## 1. Original Implementation Analysis
 
 ### Core Functionality
 1. Brand Settings Management
@@ -9,25 +17,15 @@
    - Handles unsaved changes tracking
    - Processes form submissions via PUT requests
 
-2. Logo Management
-   - Handles logo upload (POST) and removal (DELETE)
-   - Updates UI to reflect logo state
+2. Image Management
+   - Handles image upload (POST) and removal (DELETE)
+   - Updates UI to reflect image state
    - Manages upload/removal loading states
 
 3. Real-time Preview
    - Updates SecretPreview component in real-time
    - Handles browser type switching (safari/edge)
    - Provides immediate feedback for customization changes
-
-4. State Management
-   - Uses Vue refs for local state:
-     - brandSettings
-     - loading/error states
-     - isSubmitting
-     - hasUnsavedChanges
-     - originalSettings
-   - Computed properties for derived data
-   - Watchers for primary_color and unsaved changes
 
 ### Component Interactions
 1. Parent-Child Communication
@@ -38,13 +36,88 @@
 2. Service Integration
    - CSRF Store: Security token management
    - Notifications Store: User feedback
-   - API Utility: HTTP request handling
+   - API Utility: HTTP request handling via request/response interceptors
+     - Uses CSRF Store. Notifies on API errors.
 
-## Transition Strategy
+## 2. Architecture Overview
 
-### Phase 1: Store Creation
+### Data Flow
+```
+[Components] <-> [Composable] <-> [Store] <-> [API]
+     ^               ^              ^           ^
+     |               |              |           |
+   [Types] <---- [Zod Schema] -> [Validation]   |
+     |                                          |
+     +------------------------------------------+
+```
 
-1. Create BrandSettingsStore
+### Responsibilities
+
+1. Components (UI Layer)
+   - Render UI elements and handle user interactions
+   - Emit events for user actions
+   - Display loading/error states
+   - Use composables for business logic
+   - NO direct API calls or store mutations
+   - Focus on presentation and user interaction only
+
+2. Composable (Business Logic Layer)
+   - Extend existing useDomainBranding composable
+   - Handle form validation and state management
+   - Transform data between store and components
+   - Manage UI-specific state (e.g., preview settings)
+   - Track unsaved changes
+   - Coordinate between multiple stores if needed
+   - NO direct API calls
+
+3. Store (Data Layer)
+   - Manage global state for brand settings and image
+   - Handle all API communication
+   - Validate API responses using Zod schemas
+   - Manage loading/error states
+   - Cache management
+   - Expose actions and getters
+   - NO UI logic
+
+4. Zod Schema (Type Layer)
+   - Define and validate data structures
+   - Generate TypeScript types
+   - Ensure type safety across layers
+   - Provide runtime validation
+
+## 3. Implementation Structure
+
+### 1. Type Definitions & Schemas
+```typescript
+// @/schemas/models/domain/brand.ts
+// Extend existing domain schemas
+export const brandSettingsSchema = z.object({
+  primary_color: z.string().regex(/^#[0-9A-F]{6}$/i),
+  font_family: z.enum(['sans-serif', 'serif', 'monospace']),
+  corner_style: z.enum(['rounded', 'sharp']),
+  button_text_light: z.boolean(),
+  instructions_pre_reveal: z.string(),
+  instructions_post_reveal: z.string(),
+  instructions_reveal: z.string(),
+  allow_public_homepage: z.boolean(),
+  allow_public_api: z.boolean(),
+});
+
+export type BrandSettings = z.infer<typeof brandSettingsSchema>;
+
+// Reuse image schema if it exists in the codebase
+export const imageSchema = z.object({
+  url: z.string().url(),
+  width: z.number(),
+  height: z.number(),
+  size: z.number(),
+  type: z.string()
+});
+
+export type Image = z.infer<typeof imageSchema>;
+```
+
+### 2. Store Implementation
 ```typescript
 // stores/brandSettingsStore.ts
 export const useBrandSettingsStore = defineStore('brandSettings', {
