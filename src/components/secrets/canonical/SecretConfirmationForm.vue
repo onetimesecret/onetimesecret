@@ -84,7 +84,7 @@ const submitForm = async () => {
   isSubmitting.value = true;
   try {
     await secretStore.revealSecret(props.secretKey, passphrase.value);
-  } catch (error) {
+  } catch {
     // Error handling done by store
   } finally {
     isSubmitting.value = false;

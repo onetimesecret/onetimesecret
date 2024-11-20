@@ -150,8 +150,7 @@ export interface Props {
   showRedButton: boolean | null;
 }
 
-
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   enabled: true,
   showRedButton: false,
 })

@@ -94,7 +94,7 @@ import { ref } from 'vue';
 
 import DomainInput from './DomainInput.vue';
 
-const props = defineProps<{
+defineProps<{
   isSubmitting?: boolean,
 }>();
 

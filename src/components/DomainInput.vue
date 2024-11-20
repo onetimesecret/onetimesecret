@@ -35,7 +35,7 @@ import { Icon } from '@iconify/vue';
 import { defineEmits, defineProps } from 'vue';
 
 // Define the props expected from the parent
-const props = defineProps<{
+defineProps<{
   modelValue: string;
   placeholder: string;
   isValid: boolean;

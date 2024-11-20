@@ -101,19 +101,15 @@
 <script setup lang="ts">
 import { useMetadataBurn } from '@/composables/useMetadataBurn';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { useNotificationsStore } from '@/stores/notifications';
 import { storeToRefs } from 'pinia';
-import { useRouter } from 'vue-router';
 
 interface Props {
   metadataKey: string
 }
 
 const props = defineProps<Props>();
-const router = useRouter();
 
 const metadataStore = useMetadataStore();
-const notifications = useNotificationsStore();
 const { currentRecord: record, details, isLoading } = storeToRefs(metadataStore);
 
 const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
