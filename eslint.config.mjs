@@ -37,6 +37,7 @@ export default [
     },
     plugins: {
       import: importPlugin,
+      vue: pluginVue, // Make sure this is included
     },
     rules: {
       'no-undef': 'error', // Prevent usage of undeclared variables
@@ -51,6 +52,10 @@ export default [
           alphabetize: { order: 'asc', caseInsensitive: true }, // Sort imports alphabetically
         },
       ],
+      // Add this rule configuration
+      'vue/component-tags-order': ['error', {
+        order: ['template', 'script', 'style']
+      }]
     },
     settings: {
       'import/resolver': { typescript: {} }, // Enable TypeScript import resolution
