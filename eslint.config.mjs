@@ -88,10 +88,23 @@ export default [
       '@intlify/vue-i18n/no-deprecated-modulo-syntax': 'error', // Enforce modern i18n syntax
       'tailwindcss/classnames-order': 'warn', // Maintain consistent class ordering
       'tailwindcss/no-custom-classname': 'warn', // Flag undefined Tailwind classes
+      'max-len': ['warn', {
+        code: 100,
+        // Apply max-len only to lines containing class="
+        // This requires a custom pattern that matches lines with class="
+        // and enforces the length, while ignoring others.
+        // ESLint doesn't support "only" patterns directly,
+        // so we use a combination of rules or a custom plugin.
+        // As a workaround, you can use a regex to enforce max-len on matching lines.
+        // However, this isn't natively supported by ESLint's max-len rule.
+        // Consider using a custom rule or plugin for this functionality.
+        ignorePattern: '^((?!class=").)*$',
+        ignoreUrls: true,
+      }],
     },
   },
 
-  // Include Vue.js recommended configuration
+  // Include Vue.js recommended configuration directly
   ...pluginVue.configs['flat/strongly-recommended'],
 
   /**
