@@ -94,10 +94,10 @@ importers:
         specifier: ^22.9.0
         version: 22.9.0
       '@typescript-eslint/eslint-plugin':
-        specifier: ^8.13.0
+        specifier: ^8.14.0
         version: 8.14.0(@typescript-eslint/parser@8.14.0(eslint@9.15.0(jiti@2.4.0))(typescript@5.6.3))(eslint@9.15.0(jiti@2.4.0))(typescript@5.6.3)
       '@typescript-eslint/parser':
-        specifier: ^8.13.0
+        specifier: ^8.14.0
         version: 8.14.0(eslint@9.15.0(jiti@2.4.0))(typescript@5.6.3)
       '@vitejs/plugin-vue':
         specifier: ^5.1.4
@@ -121,7 +121,7 @@ importers:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
       eslint:
-        specifier: ^9.14.0
+        specifier: ^9.15.0
         version: 9.15.0(jiti@2.4.0)
       eslint-import-resolver-typescript:
         specifier: ^3.6.3
