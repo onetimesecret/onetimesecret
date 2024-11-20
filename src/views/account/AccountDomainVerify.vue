@@ -1,62 +1,75 @@
 <template>
   <div class="">
-
     <DashboardTabNav />
 
-    <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Verify your domain</h1>
+    <h1 class="mb-6 text-3xl font-bold text-gray-900 dark:text-white">
+      Verify your domain
+    </h1>
 
-    <DomainVerificationInfo v-if="domain?.vhost?.last_monitored_unix"
-                            :domain="domain"
-                            mode="table" />
-    <p v-else
-       class="text-lg mb-6 text-gray-600 dark:text-gray-300">
+    <DomainVerificationInfo
+      v-if="domain?.vhost?.last_monitored_unix"
+      :domain="domain"
+      mode="table"
+    />
+    <p
+      v-else
+      class="mb-6 text-lg text-gray-600 dark:text-gray-300">
       Before we can activate links for
-      <span class=" bg-white dark:bg-gray-800  text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>,
+      <span class=" bg-white text-brand-600  dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>,
       you'll need to complete these steps.
     </p>
 
-    <MoreInfoText textColor="text-brandcomp-800 dark:text-gray-100"
-                  bgColor="bg-white dark:bg-gray-800">
-      <div class="px-6 py-6 prose">
+    <MoreInfoText
+      text-color="text-brandcomp-800 dark:text-gray-100"
+      bg-color="bg-white dark:bg-gray-800">
+      <div class="prose p-6">
         <div class="max-w-xl text-base text-gray-600 dark:text-gray-300">
           <p>
             In order to connect your domain, you'll need to have a CNAME record in your DNS that points
             <span
-                  class="font-bold bg-white dark:bg-gray-800 px-2 text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>
-            at <span :title="cluster?.cluster_name ?? ''"
-                  class="bg-white dark:bg-gray-800 px-2">{{ cluster?.cluster_host }}</span>. If you already have
+              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
+            at <span
+              :title="cluster?.cluster_name ?? ''"
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>. If you already have
             a CNAME record for that address, please change it to point at
-            <span :title="cluster?.cluster_name ?? ''"
-                  class="bg-white dark:bg-gray-800 px-2">{{ cluster?.cluster_host }}</span>
+            <span
+              :title="cluster?.cluster_name ?? ''"
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>
             and remove any other A, AAAA,
             or CNAME records for that exact address.
           </p>
-          <p v-if="domain?.is_apex"
-             class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+          <p
+            v-if="domain?.is_apex"
+            class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
             <!-- Disclaimer for apex domains -->
             <strong>Important:</strong> Please note that for apex domains (e.g., <span
-                  class="font-bold bg-white dark:bg-gray-800 px-2 text-brand-600 dark:text-brand-400">{{ domain?.display_domain }}</span>),
+              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>),
             a CNAME record is not allowed.
             Instead, you'll need to create an A record. Details on how to do this are provided further down the page.
           </p>
         </div>
         <div class="mt-4 text-sm">
-          <a href="#"
-             class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
+          <a
+            href="#"
+            class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
             <!--Learn more about DNS configuration <span aria-hidden="true">&rarr;</span>-->
           </a>
         </div>
       </div>
     </MoreInfoText>
 
-    <VerifyDomainDetails v-if="domain && cluster"
-                         :domain="domain"
-                         :cluster="cluster"
-                         :withVerifyCTA="allowVerifyCTA"
-                         @domainVerify="handleDomainVerify" />
-    <p v-else
-       class="text-gray-600 dark:text-gray-400">Loading domain information...</p>
-
+    <VerifyDomainDetails
+      v-if="domain && cluster"
+      :domain="domain"
+      :cluster="cluster"
+      :with-verify-c-t-a="allowVerifyCTA"
+      @domain-verify="handleDomainVerify"
+    />
+    <p
+      v-else
+      class="text-gray-600 dark:text-gray-400">
+      Loading domain information...
+    </p>
   </div>
 </template>
 

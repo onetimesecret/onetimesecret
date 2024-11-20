@@ -1,14 +1,15 @@
 
 <template>
-  <button type="submit"
-          class="text-xl flex-grow py-2 px-4 rounded
-           bg-orange-600 hover:bg-orange-700 text-white
-           font-bold disabled:opacity-50 disabled:cursor-not-allowed
-           transition-all duration-200 ease-in-out transform hover:scale-105 disabled:hover:scale-100"
-          :disabled="disabled"
-          :aria-label="$t('web.COMMON.button_create_secret')"
-          name="kind"
-          value="share">
+  <button
+    type="submit"
+    class="grow rounded bg-orange-600 px-4 py-2
+           text-xl font-bold text-white
+           transition-all duration-200 ease-in-out
+           hover:scale-105 hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+    :disabled="disabled"
+    :aria-label="$t('web.COMMON.button_create_secret')"
+    name="kind"
+    value="share">
     {{ $t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
   </button>
 </template>

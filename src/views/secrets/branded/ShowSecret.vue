@@ -1,52 +1,61 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
+  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
     <div class="w-full max-w-xl space-y-8">
-
       <!-- Loading State -->
-      <div v-if="isLoading"
-           class="flex justify-center items-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
+      <div
+        v-if="isLoading"
+        class="flex items-center justify-center">
+        <div class="size-12 animate-spin rounded-full border-y-2 border-brand-500"></div>
       </div>
 
       <div v-else-if="record && details">
-
         <!-- Secret Content -->
 
-        <SecretConfirmationForm v-if="!details.show_secret"
-                                :secretKey="secretKey"
-                                :record="record"
-                                :details="details"
-                                :domainId="domainId"
-                                @secret-loaded="handleSecretLoaded" />
+        <SecretConfirmationForm
+          v-if="!details.show_secret"
+          :secret-key="secretKey"
+          :record="record"
+          :details="details"
+          :domain-id="domainId"
+          @secret-loaded="handleSecretLoaded"
+        />
 
-        <SecretDisplayCase v-else
-                           :secretKey="secretKey"
-                           :record="record"
-                           :details="details"
-                           :domainId="domainId" />
-
+        <SecretDisplayCase
+          v-else
+          :secret-key="secretKey"
+          :record="record"
+          :details="details"
+          :domain-id="domainId"
+        />
       </div>
 
       <!-- Unknown Secret -->
-      <UnknownSecret v-else-if="!record"  />
+      <UnknownSecret v-else-if="!record" />
 
       <div class="flex justify-center pt-16">
         <ThemeToggle />
       </div>
 
-      <div class="text-center pt-20 text-xs text-gray-400 dark:text-gray-600">
+      <div class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600">
         <div class="space-x-2">
-          <a :href="`https://${siteHost}`"
-             class="hover:underline"
-             rel="noopener noreferrer">
+          <a
+            :href="`https://${siteHost}`"
+            class="hover:underline"
+            rel="noopener noreferrer">
             Powered by Onetime Secret
           </a>
           <span>·</span>
-          <router-link to="/info/terms"
-                       class="hover:underline">Terms</router-link>
+          <router-link
+            to="/info/terms"
+            class="hover:underline">
+            Terms
+          </router-link>
           <span>·</span>
-          <router-link to="/info/privacy"
-                       class="hover:underline">Privacy</router-link>
+          <router-link
+            to="/info/privacy"
+            class="hover:underline">
+            Privacy
+          </router-link>
         </div>
       </div>
     </div>

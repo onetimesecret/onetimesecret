@@ -1,12 +1,11 @@
 <template>
-
   <article class="prose">
-    <h1 class="intro dark:text-gray-300">Terms of Service</h1>
+    <h1 class="intro dark:text-gray-300">
+      Terms of Service
+    </h1>
 
-    <Terms class="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert dark:text-gray-300 max-w-none">
-    </Terms>
+    <Terms class="prose prose-sm max-w-none dark:prose-invert sm:prose-base lg:prose-lg dark:text-gray-300" />
   </article>
-
 </template>
 
 <script setup lang="ts">

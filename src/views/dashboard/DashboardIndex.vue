@@ -4,8 +4,8 @@
     <DashboardTabNav />
 
     <SecretForm
-      :withGenerate="true"
-      :withRecipient="true"
+      :with-generate="true"
+      :with-recipient="true"
     />
   </div>
 </template>

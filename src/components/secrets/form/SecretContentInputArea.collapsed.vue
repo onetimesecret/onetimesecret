@@ -92,49 +92,60 @@ const handleMouseLeave = () => {
 
 <template>
   <div class="relative">
-    <textarea class="w-full h-32 p-3 border border-gray-300 rounded-md focus:ring-brandcompdim-500 focus:border-brandcompdim-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              name="secret"
-              autofocus
-              autocomplete="off"
-              :placeholder="$t('web.COMMON.secret_placeholder')"
-              aria-label="Enter the secret content here"></textarea>
+    <textarea
+      class="h-32 w-full rounded-md border border-gray-300 p-3 focus:border-brandcompdim-500 focus:ring-brandcompdim-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+      name="secret"
+      autofocus
+      autocomplete="off"
+      :placeholder="$t('web.COMMON.secret_placeholder')"
+      aria-label="Enter the secret content here"></textarea>
 
-    <div class="absolute bottom-2 right-2 transition-opacity duration-200"
-         :class="{ 'opacity-50': !isHovered && isCollapsed }"
-         @mouseenter="handleMouseEnter"
-         @mouseleave="handleMouseLeave">
-      <div class="relative inline-block text-left"
-           ref="dropdownRef">
-        <button type="button"
-                class="inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-3 py-1 bg-white text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800"
-                @click="toggleCollapse">
-          <span v-if="!isCollapsed"
-                class="text-sm text-brandcomp-600 dark:text-brandcomp-400 font-bold truncate max-w-[150px]">
+    <div
+      class="absolute bottom-2 right-2 transition-opacity duration-200"
+      :class="{ 'opacity-50': !isHovered && isCollapsed }"
+      @mouseenter="handleMouseEnter"
+      @mouseleave="handleMouseLeave">
+      <div
+        class="relative inline-block text-left"
+        ref="dropdownRef">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-800"
+          @click="toggleCollapse">
+          <span
+            v-if="!isCollapsed"
+            class="max-w-[150px] truncate text-sm font-bold text-brandcomp-600 dark:text-brandcomp-400">
             {{ selectedDomain || 'Select Domain' }}
           </span>
-          <Icon :icon="isCollapsed ? 'heroicons-solid:chevron-down' : 'heroicons-solid:chevron-left'"
-                class="h-4 w-4 text-gray-400 dark:text-gray-500"
-                aria-hidden="true" />
+          <Icon
+            :icon="isCollapsed ? 'heroicons-solid:chevron-down' : 'heroicons-solid:chevron-left'"
+            class="size-4 text-gray-400 dark:text-gray-500"
+            aria-hidden="true"
+          />
         </button>
 
-        <transition enter-active-class="transition ease-out duration-100"
-                    enter-from-class="transform opacity-0 scale-95"
-                    enter-to-class="transform opacity-100 scale-100"
-                    leave-active-class="transition ease-in duration-75"
-                    leave-from-class="transform opacity-100 scale-100"
-                    leave-to-class="transform opacity-0 scale-95">
-          <div v-if="isOpen && !isCollapsed"
-               class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 dark:ring-gray-700 focus:outline-none z-50 max-h-60 overflow-y-auto break-words">
-            <div class="py-1"
-                 role="menu"
-                 aria-orientation="vertical"
-                 aria-labelledby="options-menu">
-              <a v-for="domain in availableDomains"
-                 :key="domain"
-                 href="#"
-                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white whitespace-normal break-words"
-                 role="menuitem"
-                 @click.stop="selectDomain(domain)">
+        <transition
+          enter-active-class="transition ease-out duration-100"
+          enter-from-class="transform opacity-0 scale-95"
+          enter-to-class="transform opacity-100 scale-100"
+          leave-active-class="transition ease-in duration-75"
+          leave-from-class="transform opacity-100 scale-100"
+          leave-to-class="transform opacity-0 scale-95">
+          <div
+            v-if="isOpen && !isCollapsed"
+            class="absolute right-0 z-50 mt-2 max-h-60 w-56 overflow-y-auto break-words rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
+            <div
+              class="py-1"
+              role="menu"
+              aria-orientation="vertical"
+              aria-labelledby="options-menu">
+              <a
+                v-for="domain in availableDomains"
+                :key="domain"
+                href="#"
+                class="block whitespace-normal break-words px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                role="menuitem"
+                @click.stop="selectDomain(domain)">
                 {{ domain }}
               </a>
             </div>

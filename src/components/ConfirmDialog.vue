@@ -1,24 +1,32 @@
 <template>
-  <div v-if="isVisible"
-       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full mx-4"
-         role="dialog"
-         aria-modal="true">
-      <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">{{ title }}</h2>
-      <p class="mb-6 text-gray-600 dark:text-gray-300">{{ message }}</p>
+  <div
+    v-if="isVisible"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70">
+    <div
+      class="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
+      role="dialog"
+      aria-modal="true">
+      <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+        {{ title }}
+      </h2>
+      <p class="mb-6 text-gray-600 dark:text-gray-300">
+        {{ message }}
+      </p>
 
       <div class="flex justify-end space-x-2">
-        <button @click="cancel"
-                class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+        <button
+          @click="cancel"
+          class="rounded px-4 py-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
           {{ cancelText }}
         </button>
-        <button @click="confirm"
-                :class="[
-                  'px-4 py-2 rounded',
-                  type === 'danger'
-                    ? 'bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
-                    : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'
-                ]">
+        <button
+          @click="confirm"
+          :class="[
+            'rounded px-4 py-2',
+            type === 'danger'
+              ? 'bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
+              : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'
+          ]">
           <span class="font-bold">{{ confirmText }}</span>
         </button>
       </div>

@@ -28,24 +28,29 @@
 
 -->
 <template>
-  <div :class="[
-    'transition-all duration-200 ease-in-out rounded-lg',
-    borderClass,
-    isExpanded
-      ? `mb-3 p-3 ${expandedBgClass}`
-      : `mb-2 p-2 ${collapsedBgClass}`
-  ]">
-    <div @click="toggleExpanded"
-         class="flex justify-between items-center cursor-pointer">
-      <p class="text-base font-brand font-medium text-gray-700 dark:text-gray-300">
+  <div
+    :class="[
+      'rounded-lg transition-all duration-200 ease-in-out',
+      borderClass,
+      isExpanded
+        ? `mb-3 p-3 ${expandedBgClass}`
+        : `mb-2 p-2 ${collapsedBgClass}`
+    ]">
+    <div
+      @click="toggleExpanded"
+      class="flex cursor-pointer items-center justify-between">
+      <p class="font-brand text-base font-medium text-gray-700 dark:text-gray-300">
         {{ title }}
       </p>
-      <Icon :icon="isExpanded ? 'mdi:chevron-up' : 'mdi:chevron-down'"
-            class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+      <Icon
+        :icon="isExpanded ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+        class="size-5 text-gray-500 dark:text-gray-400"
+      />
     </div>
-    <div v-if="isExpanded"
-         class="mt-2"
-         @click.stop>
+    <div
+      v-if="isExpanded"
+      class="mt-2"
+      @click.stop>
       <slot></slot>
     </div>
   </div>

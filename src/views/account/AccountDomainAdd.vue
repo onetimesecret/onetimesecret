@@ -1,11 +1,15 @@
 <template>
   <div class="">
-    <h1 class="text-3xl font-bold mb-6 dark:text-white">Add your domain</h1>
+    <h1 class="mb-6 text-3xl font-bold dark:text-white">
+      Add your domain
+    </h1>
     <DomainForm
       :is-submitting="isSubmitting"
       @submit="handleDomainSubmit"
     />
-    <p v-if="isNavigating" class="mt-4 text-gray-600 dark:text-gray-400">
+    <p
+      v-if="isNavigating"
+      class="mt-4 text-gray-600 dark:text-gray-400">
       Navigating to verification page...
     </p>
   </div>

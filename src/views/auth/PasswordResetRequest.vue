@@ -2,46 +2,54 @@
 <template>
   <div class="my-20">
     <section class="my-8">
-      <h3 class="text-2xl font-semibold mb-6 text-gray-900 dark:text-gray-100">
+      <h3 class="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
         Request password reset
       </h3>
     </section>
-    <div class="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <div class="mb-4 rounded bg-white px-8 pb-8 pt-6 shadow-md dark:bg-gray-800">
       <p class="mb-4 text-gray-700 dark:text-gray-300">
         Enter your email address below, and we'll send you instructions to reset your password.
       </p>
-      <form method="post"
-            id="resetRequestForm">
-        <input type="hidden"
-              name="shrimp"
-              :value="csrfStore.shrimp" />
+      <form
+        method="post"
+        id="resetRequestForm">
+        <input
+          type="hidden"
+          name="shrimp"
+          :value="csrfStore.shrimp"
+        />
 
         <div class="mb-4">
-          <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2"
-                for="custidField">
+          <label
+            class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
+            for="custidField">
             Email address
           </label>
-          <input type="email"
-                name="u"
-                id="custidField"
-                required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value=""
-                placeholder="e.g. tom@myspace.com" />
+          <input
+            type="email"
+            name="u"
+            id="custidField"
+            required
+            class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none dark:bg-gray-700 dark:text-gray-300"
+            value=""
+            placeholder="e.g. tom@myspace.com"
+          />
         </div>
         <div class="mb-6"></div>
         <div class="flex items-center justify-between">
-          <button type="submit"
-                  class="bg-brand-500 hover:bg-brand-700 dark:bg-brand-600 dark:hover:bg-brand-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-300">
+          <button
+            type="submit"
+            class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none dark:bg-brand-600 dark:hover:bg-brand-800">
             Request Reset
           </button>
         </div>
       </form>
     </div>
 
-    <div class="text-center mt-6">
-      <router-link to="/signin"
-                  class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+    <div class="mt-6 text-center">
+      <router-link
+        to="/signin"
+        class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
         Back to Sign-in
       </router-link>
     </div>

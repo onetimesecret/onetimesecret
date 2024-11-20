@@ -3,14 +3,20 @@
   <div>
     <DashboardTabNav />
 
-    <div v-if="isLoading">Loading...</div>
-    <div v-else-if="error">{{ error }}</div>
+    <div v-if="isLoading">
+      Loading...
+    </div>
+    <div v-else-if="error">
+      {{ error }}
+    </div>
     <div v-else>
-      <SecretMetadataTable v-if="records.length > 0"
-                              :notReceived="details?.notreceived"
-                              :received="details?.received"
-                              :isLoading="isLoading"
-                              title="Received" />
+      <SecretMetadataTable
+        v-if="records.length > 0"
+        :not-received="details?.notreceived"
+        :received="details?.received"
+        :is-loading="isLoading"
+        title="Received"
+      />
       <EmptyState v-else />
     </div>
   </div>

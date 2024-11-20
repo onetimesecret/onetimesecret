@@ -1,113 +1,133 @@
 <template>
-  <BaseSecretDisplay defaultTitle="You have a message"
-                     :domainBranding="domainBranding"
-                     :instructions="domainBranding?.instructions_pre_reveal">
+  <BaseSecretDisplay
+    default-title="You have a message"
+    :domain-branding="domainBranding"
+    :instructions="domainBranding?.instructions_pre_reveal">
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
-        <div :class="{
-          'rounded-lg': domainBranding?.corner_style === 'rounded',
-          'rounded-full': domainBranding?.corner_style === 'pill',
-          'rounded-none': domainBranding?.corner_style === 'square'
-        }"
-             class="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+        <div
+          :class="{
+            'rounded-lg': domainBranding?.corner_style === 'rounded',
+            'rounded-full': domainBranding?.corner_style === 'pill',
+            'rounded-none': domainBranding?.corner_style === 'square'
+          }"
+          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16">
           <!-- Default lock icon -->
-          <svg v-if="!logoImage || hasImageError"
-               class="w-8 h-8 text-gray-400 dark:text-gray-500"
-               viewBox="0 0 24 24"
-               fill="none"
-               stroke="currentColor">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <svg
+            v-if="!logoImage || hasImageError"
+            class="size-8 text-gray-400 dark:text-gray-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
           </svg>
 
           <!-- Logo -->
-          <img v-if="logoImage && !hasImageError"
-               :src="logoImage"
-               alt="Brand logo"
-               class="h-16 w-16 object-contain"
-               :class="{
-                'rounded-lg': domainBranding?.corner_style === 'rounded',
-                'rounded-full': domainBranding?.corner_style === 'pill',
-                'rounded-none': domainBranding?.corner_style === 'square'
-              }"
-               @error="handleImageError" />
+          <img
+            v-if="logoImage && !hasImageError"
+            :src="logoImage"
+            alt="Brand logo"
+            class="size-16 object-contain"
+            :class="{
+              'rounded-lg': domainBranding?.corner_style === 'rounded',
+              'rounded-full': domainBranding?.corner_style === 'pill',
+              'rounded-none': domainBranding?.corner_style === 'square'
+            }"
+            @error="handleImageError"
+          />
         </div>
       </div>
     </template>
 
     <template #content>
-      <div class="text-gray-400 dark:text-gray-500 flex items-center">
-        <svg class="w-5 h-5 mr-2"
-             viewBox="0 0 24 24"
-             fill="none"
-             stroke="currentColor">
-          <path stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7A9.97 9.97 0 014.02 8.971m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+      <div class="flex items-center text-gray-400 dark:text-gray-500">
+        <svg
+          class="mr-2 size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7A9.97 9.97 0 014.02 8.971m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+          />
         </svg>
         <span class="text-sm">Content hidden</span>
       </div>
     </template>
 
     <template #action-button>
-
       <!-- Form -->
-      <form @submit.prevent="submitForm"
-            class="space-y-4"
-            aria-label="Secret confirmation form">
-        <input name="shrimp"
-               type="hidden"
-               :value="csrfStore.shrimp" />
-        <input name="continue"
-               type="hidden"
-               value="true" />
+      <form
+        @submit.prevent="submitForm"
+        class="space-y-4"
+        aria-label="Secret confirmation form">
+        <input
+          name="shrimp"
+          type="hidden"
+          :value="csrfStore.shrimp"
+        />
+        <input
+          name="continue"
+          type="hidden"
+          value="true"
+        />
 
         <!-- Passphrase Input -->
-        <div v-if="record?.has_passphrase"
-             class="space-y-2">
-          <input v-model="passphrase"
-                 type="password"
-                 name="passphrase"
-                 :class="{
-                  'rounded-lg': domainBranding?.corner_style === 'rounded',
-                  'rounded-2xl': domainBranding?.corner_style === 'pill',
-                  'rounded-none': domainBranding?.corner_style === 'square',
-                       'w-full px-4 py-2 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-offset-2 focus:outline-none dark:bg-gray-700 dark:text-white': true
-                     }"
-                 :style="{ fontFamily: domainBranding?.font_family }"
-                 autocomplete="current-password"
-                 :aria-label="$t('web.COMMON.enter_passphrase_here')"
-                 :placeholder="$t('web.COMMON.enter_passphrase_here')" />
+        <div
+          v-if="record?.has_passphrase"
+          class="space-y-2">
+          <input
+            v-model="passphrase"
+            type="password"
+            name="passphrase"
+            :class="{
+              'rounded-lg': domainBranding?.corner_style === 'rounded',
+              'rounded-2xl': domainBranding?.corner_style === 'pill',
+              'rounded-none': domainBranding?.corner_style === 'square',
+              'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
+            }"
+            :style="{ fontFamily: domainBranding?.font_family }"
+            autocomplete="current-password"
+            :aria-label="$t('web.COMMON.enter_passphrase_here')"
+            :placeholder="$t('web.COMMON.enter_passphrase_here')"
+          />
         </div>
 
         <!-- Submit Button -->
-        <button type="submit"
-                :disabled="isSubmitting"
-                :class="{
-                  'rounded-lg': domainBranding?.corner_style === 'rounded',
-                  'rounded-full': domainBranding?.corner_style === 'pill',
-                  'rounded-none': domainBranding?.corner_style === 'square',
-                  'w-full py-3 text-base sm:text-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed': true
-                }"
-                :style="{
-                  backgroundColor: domainBranding?.primary_color,
-                       color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
-                       fontFamily: domainBranding?.font_family
-                     }"
-                aria-live="polite">
+        <button
+          type="submit"
+          :disabled="isSubmitting"
+          :class="{
+            'rounded-lg': domainBranding?.corner_style === 'rounded',
+            'rounded-full': domainBranding?.corner_style === 'pill',
+            'rounded-none': domainBranding?.corner_style === 'square',
+            'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
+          }"
+          :style="{
+            backgroundColor: domainBranding?.primary_color,
+            color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
+            fontFamily: domainBranding?.font_family
+          }"
+          aria-live="polite">
           {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
         </button>
       </form>
 
       <!-- Alert Messages -->
-      <BasicFormAlerts :success="success"
-                       :error="error"
-                       role="alert"
-                       class="mt-8 mb-4" />
+      <BasicFormAlerts
+        :success="success"
+        :error="error"
+        role="alert"
+        class="mb-4 mt-8"
+      />
     </template>
   </BaseSecretDisplay>
 </template>

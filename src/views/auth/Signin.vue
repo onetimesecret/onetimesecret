@@ -1,15 +1,19 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/Signin.vue -->
 <template>
-  <AuthView heading="Sign in to your account" headingId="signin-heading" :withSubheading="true">
+  <AuthView
+    heading="Sign in to your account"
+    heading-id="signin-heading"
+    :with-subheading="true">
     <template #form>
       <SignInForm />
       <div class="mt-6 text-center">
         <ul class="space-y-2">
           <li>
-            <router-link to="/forgot"
-                         class="text-sm text-gray-600 dark:text-gray-400 hover:underline transition duration-300 ease-in-out"
-                         aria-label="Forgot Password">
+            <router-link
+              to="/forgot"
+              class="text-sm text-gray-600 transition duration-300 ease-in-out hover:underline dark:text-gray-400"
+              aria-label="Forgot Password">
               {{ $t('web.login.forgot_your_password') }}
             </router-link>
           </li>
@@ -17,10 +21,11 @@
       </div>
     </template>
     <template #footer>
-      <router-link to="/signup"
-                   class="font-medium text-brand-600 hover:text-brand-500
-                          dark:text-brand-400 dark:hover:text-brand-300
-                          transition-colors duration-200">
+      <router-link
+        to="/signup"
+        class="font-medium text-brand-600 transition-colors
+                          duration-200 hover:text-brand-500
+                          dark:text-brand-400 dark:hover:text-brand-300">
         {{ $t('web.login.need_an_account') }}
       </router-link>
     </template>

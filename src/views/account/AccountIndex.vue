@@ -1,55 +1,61 @@
 <template>
   <div>
-
     <DashboardTabNav />
 
-    <h1 class="dark:text-white mb-6 text-3xl font-bold">Your Account</h1>
-    <p class="dark:text-gray-300 mb-4 text-lg">Account type: {{ plan?.options?.name }}</p>
+    <h1 class="mb-6 text-3xl font-bold dark:text-white">
+      Your Account
+    </h1>
+    <p class="mb-4 text-lg dark:text-gray-300">
+      Account type: {{ plan?.options?.name }}
+    </p>
 
     <!-- API KEY -->
-    <div class="dark:bg-gray-800 p-6 mb-6 bg-white rounded-lg shadow">
-      <h2 class="dark:text-white flex items-center mb-4 text-xl font-semibold">
+    <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+      <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
         <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
         <span class="flex-1">API Key</span>
       </h2>
       <div class="pl-3">
-
         <APIKeyForm :apitoken="account?.apitoken" />
-
       </div>
     </div>
 
     <!-- BILLING INFO -->
-    <AccountBillingSection :stripe-customer="account?.stripe_customer"
-                           :stripe-subscriptions="account?.stripe_subscriptions" />
+    <AccountBillingSection
+      :stripe-customer="account?.stripe_customer"
+      :stripe-subscriptions="account?.stripe_subscriptions"
+    />
 
     <!-- PASSWORD CHANGE -->
-    <div class="dark:bg-gray-800 p-6 mb-6 bg-white rounded-lg shadow">
-      <h2 class="dark:text-white flex items-center mb-4 text-xl font-semibold">
+    <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+      <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
         <i class="fas fa-lock mr-2"></i> Update Password
       </h2>
-      <div class="pl-3"> <!-- Added padding-left to align with the title text -->
+      <div class="pl-3">
+        <!-- Added padding-left to align with the title text -->
         <AccountChangePasswordForm />
       </div>
     </div>
 
-    <div class="dark:bg-gray-800 p-6 bg-white rounded-lg shadow">
-      <h2 class="dark:text-white flex items-center mb-4 text-xl font-semibold">
+    <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+      <h2 class="mb-4 flex items-center text-xl font-semibold dark:text-white">
         <i class="fas fa-exclamation-triangle mr-2 text-red-500"></i>
         <span class="flex-1">Delete Account</span>
       </h2>
-      <div class="pl-3"> <!-- Added padding-left to align with the title text -->
+      <div class="pl-3">
+        <!-- Added padding-left to align with the title text -->
 
         <!-- Ensure cust is not null or undefined before rendering the component -->
-        <AccountDeleteButtonWithModalForm v-if="cust" :cust="cust" />
-
+        <AccountDeleteButtonWithModalForm
+          v-if="cust"
+          :cust="cust"
+        />
       </div>
     </div>
 
-    <p class="dark:text-gray-400 mt-6 text-sm text-gray-600">
+    <p class="mt-6 text-sm text-gray-600 dark:text-gray-400">
       Created {{ cust?.secrets_created }} secrets since {{ customer_since }}.
     </p>
-
   </div>
 </template>
 

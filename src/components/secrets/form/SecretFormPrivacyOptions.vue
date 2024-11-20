@@ -1,77 +1,101 @@
 <template>
   <SecretFormDrawer title="Privacy Options">
-    <div class="space-y-6 mt-4">
-      <div class="flex flex-col md:flex-row md:space-x-4 space-y-6 md:space-y-0">
+    <div class="mt-4 space-y-6">
+      <div class="flex flex-col space-y-6 md:flex-row md:space-x-4 md:space-y-0">
         <!-- Passphrase Field -->
-        <div v-if="props.withPassphrase"
-             class="flex-1">
-          <label for="currentPassphrase"
-                 class="sr-only">Passphrase:</label>
+        <div
+          v-if="props.withPassphrase"
+          class="flex-1">
+          <label
+            for="currentPassphrase"
+            class="sr-only">Passphrase:</label>
           <div class="relative">
-            <input :type="showPassphrase ? 'text' : 'password'"
-                   tabindex="3"
-                   id="currentPassphrase"
-                   v-model="currentPassphrase"
-                   name="passphrase"
-                   autocomplete="unique-passphrase"
-                   placeholder="Enter a passphrase"
-                   aria-label="Passphrase"
-                   class="w-full px-4 py-2 border rounded-md
-                   border-gray-300 focus:ring-brandcomp-500 focus:border-brandcomp-500
-                   dark:bg-gray-700 dark:border-gray-600 dark:text-white
-                   transition-colors duration-200">
-            <button type="button"
-                    @click="togglePassphrase()"
-                    class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-300
-                           transition-colors duration-200">
-              <Icon :icon="showPassphrase ? 'mdi:eye' : 'mdi:eye-off'"
-                    class="w-5 h-5" />
+            <input
+              :type="showPassphrase ? 'text' : 'password'"
+              tabindex="3"
+              id="currentPassphrase"
+              v-model="currentPassphrase"
+              name="passphrase"
+              autocomplete="unique-passphrase"
+              placeholder="Enter a passphrase"
+              aria-label="Passphrase"
+              class="w-full rounded-md border border-gray-300 px-4
+                   py-2 transition-colors duration-200
+                   focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600
+                   dark:bg-gray-700 dark:text-white"
+            />
+            <button
+              type="button"
+              @click="togglePassphrase()"
+              class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition-colors
+                           duration-200 dark:text-gray-300">
+              <Icon
+                :icon="showPassphrase ? 'mdi:eye' : 'mdi:eye-off'"
+                class="size-5"
+              />
             </button>
           </div>
         </div>
 
         <!-- Lifetime Field -->
-        <div v-if="props.withExpiry"
-             class="flex-1">
-          <label for="lifetime"
-                 class="sr-only">Lifetime:</label>
-          <select id="lifetime"
-                  tabindex="4"
-                  name="ttl"
-                  v-model="selectedLifetime"
-                  class="w-full px-4 py-2 border rounded-md
-                  border-gray-300 focus:ring-brandcomp-500 focus:border-brandcomp-500
-                  dark:bg-gray-700 dark:border-gray-600 dark:text-white
-                  transition-colors duration-200">
-            <option value="" disabled>{{ t('web.secrets.selectDuration') }}</option>
+        <div
+          v-if="props.withExpiry"
+          class="flex-1">
+          <label
+            for="lifetime"
+            class="sr-only">Lifetime:</label>
+          <select
+            id="lifetime"
+            tabindex="4"
+            name="ttl"
+            v-model="selectedLifetime"
+            class="w-full rounded-md border border-gray-300 px-4
+                  py-2 transition-colors duration-200
+                  focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600
+                  dark:bg-gray-700 dark:text-white">
+            <option
+              value=""
+              disabled>
+              {{ t('web.secrets.selectDuration') }}
+            </option>
             <template v-if="filteredLifetimeOptions.length > 0">
-              <option v-for="option in filteredLifetimeOptions"
-                      :key="option.value"
-                      :value="option.value">
+              <option
+                v-for="option in filteredLifetimeOptions"
+                :key="option.value"
+                :value="option.value">
                 {{ $t('web.secrets.expiresIn', { duration: option.label }) }}
               </option>
             </template>
-            <option v-else value="" disabled>{{ $t('web.UNITS.ttl.noOptionsAvailable') }}</option>
+            <option
+              v-else
+              value=""
+              disabled>
+              {{ $t('web.UNITS.ttl.noOptionsAvailable') }}
+            </option>
           </select>
         </div>
       </div>
 
       <!-- Recipient Field (if needed) -->
-      <div v-if="props.withRecipient"
-           class="flex flex-col">
-        <label for="recipient"
-               class="block font-brand text-sm font-medium text-gray-500 dark:text-gray-300 mb-2
-                      transition-colors duration-200">
+      <div
+        v-if="props.withRecipient"
+        class="flex flex-col">
+        <label
+          for="recipient"
+          class="mb-2 block font-brand text-sm font-medium text-gray-500 transition-colors
+                      duration-200 dark:text-gray-300">
           Recipient Address
         </label>
-        <input type="email"
-               tabindex="5"
-               id="recipient"
-               name="recipient[]"
-               placeholder="tom@myspace.com"
-               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-brandcomp-500 focus:border-brandcomp-500
-                      dark:bg-gray-700 dark:border-gray-600 dark:text-white
-                      transition-colors duration-200">
+        <input
+          type="email"
+          tabindex="5"
+          id="recipient"
+          name="recipient[]"
+          placeholder="tom@myspace.com"
+          class="w-full rounded-md border border-gray-300 px-4 py-2 transition-colors duration-200
+                      focus:border-brandcomp-500 focus:ring-brandcomp-500 dark:border-gray-600
+                      dark:bg-gray-700 dark:text-white"
+        />
       </div>
     </div>
   </SecretFormDrawer>

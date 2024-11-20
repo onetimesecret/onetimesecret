@@ -40,21 +40,30 @@ const {
 
 <template>
   <form @submit.prevent="generateAPIKey">
-    <input type="hidden"
-           name="shrimp"
-           :value="csrfStore.shrimp" />
+    <input
+      type="hidden"
+      name="shrimp"
+      :value="csrfStore.shrimp"
+    />
 
     <APIKeyCard :apitoken="localApiToken" />
 
-    <div v-if="apiKeyError"
-         class="mb-4 text-red-500">{{ apiKeyError }}</div>
-    <div v-if="apiKeySuccess"
-         class="mb-4 text-green-500">{{ apiKeySuccess }}</div>
+    <div
+      v-if="apiKeyError"
+      class="mb-4 text-red-500">
+      {{ apiKeyError }}
+    </div>
+    <div
+      v-if="apiKeySuccess"
+      class="mb-4 text-green-500">
+      {{ apiKeySuccess }}
+    </div>
 
-    <button type="submit"
-            class="hover:bg-gray-600 flex items-center justify-center w-full px-4 py-2 text-white bg-gray-500 rounded">
+    <button
+      type="submit"
+      class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
       <i class="fas fa-trash-alt mr-2"></i> {{ isGeneratingAPIKey ? 'Generating...' : 'Generate Token' }}
     </button>
-    <p class="dark:text-gray-400 mt-2 text-sm text-gray-500"></p>
+    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400"></p>
   </form>
 </template>

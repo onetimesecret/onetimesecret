@@ -1,6 +1,9 @@
 <template>
   <div>
-    <label for="domain" class="hidden text-xl font-medium leading-6 text-gray-900 dark:text-gray-100 bg-inherit" aria-hidden="false">
+    <label
+      for="domain"
+      class="hidden bg-inherit text-xl font-medium leading-6 text-gray-900 dark:text-gray-100"
+      aria-hidden="false">
       Domain name
     </label>
     <div class="relative mt-2 rounded-md shadow-sm">
@@ -13,13 +16,13 @@
         aria-describedby="domain-error"
         :value="modelValue"
         @input="onInput"
-        class="block w-full rounded-md border-0 py-3 pl-5 pr-10 text-xl text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brandcomp-600 shadow-sm dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:placeholder:text-gray-400 dark:focus:ring-brandcomp-500"
+        class="block w-full rounded-md border-0 py-3 pl-5 pr-10 text-xl text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brandcomp-600 dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:placeholder:text-gray-400 dark:focus:ring-brandcomp-500"
       />
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
         <Icon
           v-if="!isValid"
           icon="heroicons:exclamation-circle"
-          class="h-6 w-6 text-red-500"
+          class="size-6 text-red-500"
           aria-hidden="true"
         />
       </div>
@@ -32,7 +35,7 @@ import { Icon } from '@iconify/vue';
 import { defineEmits, defineProps } from 'vue';
 
 // Define the props expected from the parent
-const props = defineProps<{
+defineProps<{
   modelValue: string;
   placeholder: string;
   isValid: boolean;

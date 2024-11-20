@@ -7,15 +7,23 @@
            - layoutProps are passed to each view for consistent styling and behavior. -->
   <BaseLayout v-bind="props">
     <template #header>
-      <router-view name="header" v-bind="props"></router-view>
+      <router-view
+        name="header"
+        v-bind="props"
+      />
     </template>
     <template #main>
-      <main class="container mx-auto p-4 max-w-2xl" name="QuietLayout">
+      <main
+        class="container mx-auto max-w-2xl p-4"
+        name="QuietLayout">
         <slot></slot>
       </main>
     </template>
     <template #footer>
-      <router-view name="footer" v-bind="props"></router-view>
+      <router-view
+        name="footer"
+        v-bind="props"
+      />
     </template>
   </BaseLayout>
 </template>

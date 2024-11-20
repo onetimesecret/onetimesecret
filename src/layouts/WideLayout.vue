@@ -2,19 +2,20 @@
 <template>
   <BaseLayout v-bind="props">
     <template #header>
-      <DefaultHeader v-bind="props"/>
+      <DefaultHeader v-bind="props" />
     </template>
 
     <template #main>
-      <main class="container mx-auto p-4" name="WideLayout">
+      <main
+        class="container mx-auto p-4"
+        name="WideLayout">
         <slot></slot>
       </main>
     </template>
 
     <template #footer>
-      <DefaultFooter v-bind="props"/>
+      <DefaultFooter v-bind="props" />
     </template>
-
   </BaseLayout>
 </template>
 

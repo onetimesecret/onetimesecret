@@ -1,73 +1,96 @@
 <template>
   <div class="space-y-8">
     <!-- Feedback Form -->
-    <form @submit.prevent="submitWithCheck"
-          class="space-y-6">
-      <input type="hidden"
-             name="utf8"
-             value="✓" />
-      <input type="hidden"
-             name="shrimp"
-             :value="csrfStore.shrimp" />
+    <form
+      @submit.prevent="submitWithCheck"
+      class="space-y-6">
+      <input
+        type="hidden"
+        name="utf8"
+        value="✓"
+      />
+      <input
+        type="hidden"
+        name="shrimp"
+        :value="csrfStore.shrimp"
+      />
 
       <div>
-        <label for="feedback-message" class="sr-only">Your feedback</label>
-        <textarea id="feedback-message"
+        <label
+          for="feedback-message"
+          class="sr-only">Your feedback</label>
+        <textarea
+          id="feedback-message"
           v-model="feedbackMessage"
           class="w-full
-                px-3 py-2
-                rounded-md
-                text-gray-900 placeholder-gray-400
-                bg-gray-50 border border-gray-300
-                focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500
-                dark:bg-gray-700 dark:text-white dark:border-gray-600
-                transition-colors"
+                rounded-md border
+                border-gray-300
+                bg-gray-50 px-3
+                py-2 text-gray-900 transition-colors
+                placeholder:text-gray-400 focus:border-red-500 focus:outline-none focus:ring-2
+                focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700
+                dark:text-white"
           name="msg"
           rows="4"
           required
           @keydown="handleKeydown"
           :placeholder="$t('web.COMMON.feedback_text')"
           aria-label="Enter your feedback"></textarea>
-        <div class="flex justify-end mt-2 text-gray-500 dark:text-gray-400">
+        <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>
       </div>
 
-      <input type="hidden"
-             name="tz"
-             :value="userTimezone" />
-      <input type="hidden"
-             name="version"
-             :value="ot_version" />
+      <input
+        type="hidden"
+        name="tz"
+        :value="userTimezone"
+      />
+      <input
+        type="hidden"
+        name="version"
+        :value="ot_version"
+      />
 
-      <button type="submit"
-              :disabled="isSubmitting"
-              class="w-full
-                    px-4 py-2
-                    rounded-md
-                    font-medium text-white
-                    bg-red-600
-                    hover:bg-red-700
-                    focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-50
-                    dark:focus:ring-offset-gray-800
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    transition-colors"
-              aria-label="Send feedback">
+      <button
+        type="submit"
+        :disabled="isSubmitting"
+        class="w-full
+                    rounded-md bg-red-600
+                    px-4
+                    py-2 font-medium
+                    text-white
+                    transition-colors
+                    hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+                    focus:ring-offset-gray-50
+                    disabled:cursor-not-allowed disabled:opacity-50
+                    dark:focus:ring-offset-gray-800"
+        aria-label="Send feedback">
         {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
       </button>
 
       <AltchaChallenge v-if="!cust" />
     </form>
 
-    <div v-if="error"
-         class="mt-4 text-red-600 dark:text-red-400">{{ error }}</div>
-    <div v-if="success"
-         class="mt-4 text-green-600 dark:text-green-400">{{ success }}</div>
+    <div
+      v-if="error"
+      class="mt-4 text-red-600 dark:text-red-400">
+      {{ error }}
+    </div>
+    <div
+      v-if="success"
+      class="mt-4 text-green-600 dark:text-green-400">
+      {{ success }}
+    </div>
 
     <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
-      <h3 class="font-medium text-lg mb-2 text-gray-500">When you submit feedback, we'll see:</h3>
+      <h3 class="mb-2 text-lg font-medium text-gray-500">
+        When you submit feedback, we'll see:
+      </h3>
       <ul class="space-y-1">
-        <li v-if="cust">• Customer ID: {{ cust?.custid }}</li>
+        <li v-if="cust">
+          • Customer ID: {{ cust?.custid }}
+        </li>
         <li>• Timezone: {{ userTimezone }}</li>
         <li>• Website Version: v{{ ot_version }}</li>
       </ul>

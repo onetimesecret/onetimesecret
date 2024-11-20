@@ -8,9 +8,12 @@ const { authenticated } = useWindowProps(['authenticated']);
 </script>
 
 <template>
-  <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+  <div class="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
     <HomepageTaglines v-if="authenticated" />
 
-    <InboundSecretForm :enabled="true" title="Support Details" />
+    <InboundSecretForm
+      :enabled="true"
+      title="Support Details"
+    />
   </div>
 </template>

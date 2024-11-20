@@ -5,26 +5,33 @@ import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import path from 'path';
 import vueEslintParser from 'vue-eslint-parser';
-import importPlugin from 'eslint-plugin-import';
+import * as importPlugin from 'eslint-plugin-import';
 import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
 
-
 export default [
-  // Ignore everything except src directory and vite.config.ts
+  /**
+   * Base Ignore Patterns
+   * Excludes all files except source and config files
+   */
   {
     ignores: ['**/*', '!src/**', '!*.config.ts'],
   },
+
+  /**
+   * Global Project Configuration
+   * Applies to all JavaScript, TypeScript and Vue files
+   * Handles basic ES features and import ordering
+   */
   {
     files: ['src/**/*.{js,mjs,cjs,ts,vue}', 'vite.config.ts'],
     languageOptions: {
       globals: {
         ...globals.browser,
-        process: true,
+        process: true, // Allow process global for environment variables
       },
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        // Specify TypeScript parser for TypeScript files
         parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url)) ? parserTs : undefined,
       },
     },
@@ -32,68 +39,97 @@ export default [
       import: importPlugin,
     },
     rules: {
-      'no-undef': 'error', // Warns on the use of undeclared variables,
+      'no-undef': 'error', // Prevent usage of undeclared variables
+      // Enforce consistent import ordering
       'import/order': [
         'error',
         {
-          groups: [['builtin', 'external', 'internal']],
-          pathGroups: [
-            {
-              pattern: '@/**',
-              group: 'internal',
-            },
-          ],
+          groups: [['builtin', 'external', 'internal']], // Group imports by type
+          pathGroups: [{ pattern: '@/**', group: 'internal' }], // Treat @ imports as internal
           pathGroupsExcludedImportTypes: ['builtin'],
-          'newlines-between': 'always',
-          alphabetize: {
-            order: 'asc',
-            caseInsensitive: true,
-          },
+          'newlines-between': 'always', // Require line breaks between import groups
+          alphabetize: { order: 'asc', caseInsensitive: true }, // Sort imports alphabetically
         },
       ],
     },
     settings: {
-      'import/resolver': {
-        typescript: {},
-      },
+      'import/resolver': { typescript: {} }, // Enable TypeScript import resolution
     },
   },
-  // Include recommended TypeScript rules directly
+
+  /**
+   * TypeScript Specific Rules
+   * Applies to .ts and .vue files
+   * Configures TypeScript, i18n, and Tailwind linting
+   */
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,vue}'],
     languageOptions: {
       parser: parserTs,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json',
+        project: './tsconfig.json', // Link to TypeScript configuration
+        extraFileExtensions: ['.vue'], // Add this line
       },
     },
     plugins: {
       '@typescript-eslint': tseslint,
+      '@intlify/vue-i18n': pluginVueI18n,
+      'tailwindcss': pluginTailwindCSS,
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': 'error', // Prevent unused variables
       '@typescript-eslint/no-unused-expressions': ['error', {
-        allowShortCircuit: true,
-        allowTernary: true,
+        allowShortCircuit: true, // Allow logical short-circuit evaluations
+        allowTernary: true, // Allow ternary expressions
+      }],
+      '@intlify/vue-i18n/no-deprecated-modulo-syntax': 'error', // Enforce modern i18n syntax
+      'tailwindcss/classnames-order': 'warn', // Maintain consistent class ordering
+      'tailwindcss/no-custom-classname': 'warn', // Flag undefined Tailwind classes
+      'max-len': ['warn', {
+        code: 100,
+        // Apply max-len only to lines containing class="
+        // This requires a custom pattern that matches lines with class="
+        // and enforces the length, while ignoring others.
+        // ESLint doesn't support "only" patterns directly,
+        // so we use a combination of rules or a custom plugin.
+        // As a workaround, you can use a regex to enforce max-len on matching lines.
+        // However, this isn't natively supported by ESLint's max-len rule.
+        // Consider using a custom rule or plugin for this functionality.
+        ignorePattern: '^((?!class=").)*$',
+        ignoreUrls: true,
       }],
     },
   },
+
+  // Include Vue.js recommended configuration directly
   ...pluginVue.configs['flat/strongly-recommended'],
+
+  /**
+   * Vue Template Rules
+   * Specific rules for Vue single-file components
+   */
   {
     files: ['src/**/*.vue'],
     languageOptions: {
       parser: vueEslintParser,
       parserOptions: {
         parser: parserTs,
+        project: './tsconfig.json',
+        extraFileExtensions: ['.vue'],
         ecmaVersion: 'latest',
         sourceType: 'module',
       },
     },
+    plugins: {
+      vue: pluginVue,
+    },
     rules: {
-      'vue/valid-template-root': 'error',
+
+      'vue/valid-template-root': 'error', // Ensure valid template root
+      // Configure self-closing tag behavior
       'vue/html-self-closing': ['error', {
         'html': {
           'void': 'always',
@@ -103,38 +139,32 @@ export default [
         'svg': 'always',
         'math': 'always'
       }],
-    },
-    plugins: {
-      'vue': pluginVue,
+
+      "vue/html-closing-bracket-newline": [
+          "error",
+          {
+            "singleline": "never",
+            "multiline": "never",
+            "selfClosingTag": {
+              "singleline": "never",
+              "multiline": "always"
+            }
+          }
+        ],
     },
   },
-  // Override specific rules for certain Vue files
+
+  /**
+   * Page and Layout Components Exception
+   * Relaxes naming convention for top-level components
+   */
   {
-    files: ['src/views/*.vue', 'src/layouts/*.vue'], // target specific subset
+    files: ['src/views/*.vue', 'src/layouts/*.vue'],
     rules: {
-      'vue/multi-word-component-names': 'off',
+      'vue/multi-word-component-names': 'off', // Allow single-word names for pages/layouts
     },
   },
-  // Add Vue I18n plugin configuration
-  {
-    files: ['src/**/*.{ts,vue}'],
-    plugins: {
-     '@intlify/vue-i18n': pluginVueI18n,
-    },
-    rules: {
-      '@intlify/vue-i18n/no-deprecated-modulo-syntax': 'error',
-    },
-  },
-  // Add Tailwind CSS plugin configuration
+
+  // Include Tailwind recommended configuration
   ...pluginTailwindCSS.configs['flat/recommended'],
-  {
-    files: ['src/**/*.{ts,vue}'],
-    plugins: {
-      'tailwindcss': pluginTailwindCSS,
-    },
-    rules: {
-      'tailwindcss/classnames-order': 'warn',
-      'tailwindcss/no-custom-classname': 'warn',
-    },
-  },
 ];
