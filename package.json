@@ -37,7 +37,7 @@
   "license": "MIT",
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
-    "@intlify/core": "^9.14.1",
+    "@intlify/core": "^10.0.5",
     "@types/dompurify": "^3.0.5",
     "@vueuse/integrations": "^11.2.0",
     "altcha": "^1.0.6",
