@@ -1,5 +1,6 @@
 // src/stores/domainsStore.ts
 
+import { brandSettingsInputSchema, type BrandSettings } from '@/schemas/models';
 import {
   customDomainInputSchema,
   type CustomDomain
@@ -36,12 +37,31 @@ const api = createApi();
 export const useDomainsStore = defineStore('domains', {
   state: (): {
     domains: CustomDomain[],
-    isLoading: boolean
+    isLoading: boolean,
+    defaultBranding: BrandSettings
   } => ({
     domains: [],
-    isLoading: false
+    isLoading: false,
+    defaultBranding: {} as BrandSettings
   }),
   actions: {
+    /**
+     * Parse domain branding data using the centralized schema
+     */
+    parseDomainBranding(data: { brand: Record<string, unknown> }): { brand: BrandSettings } {
+      try {
+        const validated = transformResponse(
+          brandSettingsInputSchema,
+          data.brand
+        );
+        return { brand: validated };
+      } catch (error) {
+        console.warn('Failed to parse domain branding:', error);
+        return { brand: this.defaultBranding };
+      }
+    },
+
+
     /**
      * Centralized error handler for API errors
      * @param error - The error thrown from an API call
@@ -150,6 +170,36 @@ export const useDomainsStore = defineStore('domains', {
       try {
         await api.post(`/api/v2/account/domains/${domainName}/remove`);
         this.domains = this.domains.filter(domain => domain.display_domain !== domainName);
+      } catch (error) {
+        this.handleApiError(error);
+      }
+    },
+
+
+    // Get brand settings for a domain
+    async getBrandSettings(domain: string) {
+      try {
+        const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
+        return transformResponse(
+          apiRecordResponseSchema(brandSettingsInputSchema),
+          response.data
+        );
+      } catch (error) {
+        this.handleApiError(error);
+      }
+    },
+
+    // Update brand settings
+    async updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
+      try {
+        const response = await api.put(
+          `/api/v2/account/domains/${domain}/brand`,
+          { brand: settings }
+        );
+        return transformResponse(
+          apiRecordResponseSchema(brandSettingsInputSchema),
+          response.data
+        );
       } catch (error) {
         this.handleApiError(error);
       }

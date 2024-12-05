@@ -31,135 +31,65 @@ import { z } from 'zod'
  */
 
 
+type Option = {
+  value: string
+  display: string
+  icon: string
+}
 
-/**
- * Generic configuration type for option sets
- */
-type OptionConfig<T extends string> = Record<
-  string,
-  {
-    value: T
-    display: string
-    icon: string
-  }
->
+type OptionConfig = Record<string, Option>
 
-/**
- * Utility to generate mappings and options from a configuration
- */
-function createOptionHelpers<T extends string>(config: OptionConfig<T>) {
-  const options = Object.values(config).map(c => c.value)
-
-  const displayMap = Object.fromEntries(
-    Object.values(config).map(c => [c.value, c.display])
+const createOptions = (config: OptionConfig) => {
+  const options = Object.values(config).map(opt => opt.value)
+  const maps = Object.keys(config).reduce(
+    (acc, key) => {
+      const { value, display, icon } = config[key]
+      acc.displayMap[value] = display
+      acc.iconMap[value] = icon
+      acc.valueMap[key] = value
+      return acc
+    },
+    {
+      displayMap: {} as Record<string, string>,
+      iconMap: {} as Record<string, string>,
+      valueMap: {} as Record<string, string>,
+    }
   )
-
-  const iconMap = Object.fromEntries(
-    Object.values(config).map(c => [c.value, c.icon])
-  )
-
-  const valueMap = Object.fromEntries(
-    Object.entries(config).map(([key, c]) => [key, c.value])
-  ) as Record<keyof typeof config, T>
-
-  return {
-    options,
-    displayMap,
-    iconMap,
-    valueMap,
-  }
+  return { options, ...maps }
 }
 
-// Font family options matching UI constraints
-export const FontFamilyConfig: OptionConfig<string> = {
-  SANS: {
-    value: 'sans-serif',
-    display: 'Sans Serif',
-    icon: 'ph:text-aa-bold',
-  },
-  SERIF: {
-    value: 'serif',
-    display: 'Serif',
-    icon: 'ph:text-t-bold',
-  },
-  ARIAL: {
-    value: 'Arial, sans-serif',
-    display: 'Arial',
-    icon: 'ph:text-aa-bold',
-  },
-  HELVETICA: {
-    value: 'Helvetica, Arial, sans-serif',
-    display: 'Helvetica',
-    icon: 'ph:text-aa-bold',
-  },
+const FontFamilyConfig: OptionConfig = {
+  SANS: { value: 'sans-serif', display: 'Sans Serif', icon: 'ph:text-aa-bold' },
+  SERIF: { value: 'serif', display: 'Serif', icon: 'ph:text-t-bold' },
+  MONO: { value: 'mono', display: 'Monospace', icon: 'ph:text-code' },
 }
 
-// Corner style options matching UI constraints
-export const CornerStyleConfig: OptionConfig<string> = {
-  ROUNDED: {
-    value: 'rounded',
-    display: 'Rounded',
-    icon: 'tabler:border-corner-rounded',
-  },
-  PILL: {
-    value: 'pill',
-    display: 'Pill Shape',
-    icon: 'tabler:border-corner-pill',
-  },
-  SQUARE: {
-    value: 'square',
-    display: 'Square',
-    icon: 'tabler:border-corner-square',
-  },
+const CornerStyleConfig: OptionConfig = {
+  ROUNDED: { value: 'rounded', display: 'Rounded', icon: 'tabler:border-corner-rounded' },
+  PILL: { value: 'pill', display: 'Pill Shape', icon: 'tabler:border-corner-pill' },
+  SQUARE: { value: 'square', display: 'Square', icon: 'tabler:border-corner-square' },
 }
 
-// Generate helpers for FontFamily
-const FontFamilyHelpers = createOptionHelpers(FontFamilyConfig)
-export const FontFamily = FontFamilyHelpers.valueMap
-export const fontOptions = FontFamilyHelpers.options
-export const fontDisplayMap = FontFamilyHelpers.displayMap
-export const fontIconMap = FontFamilyHelpers.iconMap
+const { options: fontOptions, displayMap: fontDisplayMap, iconMap: fontIconMap, valueMap: FontFamily } =
+  createOptions(FontFamilyConfig)
 
-// Generate helpers for CornerStyle
-const CornerStyleHelpers = createOptionHelpers(CornerStyleConfig)
-export const CornerStyle = CornerStyleHelpers.valueMap
-export const cornerStyleOptions = CornerStyleHelpers.options
-export const cornerStyleDisplayMap = CornerStyleHelpers.displayMap
-export const cornerStyleIconMap = CornerStyleHelpers.iconMap
+const { options: cornerStyleOptions, displayMap: cornerStyleDisplayMap, iconMap: cornerStyleIconMap, valueMap: CornerStyle } =
+  createOptions(CornerStyleConfig)
 
-/**
- * Input schema for brand settings from API
- * - Handles string -> boolean coercion from Ruby/Redis
- * - Validates color format
- * - Constrains font and corner style options
- */
 export const brandSettingsInputSchema = z.object({
-  // Core display settings
   primary_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-  colour: z.string().optional(), // Legacy field
+  colour: z.string().optional(),
   instructions_pre_reveal: z.string().optional(),
   instructions_reveal: z.string().optional(),
   instructions_post_reveal: z.string().optional(),
   description: z.string().optional(),
-
-  // Boolean fields that come as strings from API
   button_text_light: booleanFromString.optional().default(false),
   allow_public_homepage: booleanFromString.optional().default(false),
   allow_public_api: booleanFromString.optional().default(false),
-
-  // UI configuration with constrained values
   font_family: z.enum(Object.values(FontFamily)).optional(),
   corner_style: z.enum(Object.values(CornerStyle)).optional(),
-
-  // Image related fields
-  image_content_type: z.string().optional(),
-  image_encoded: z.string().optional(),
-  image_filename: z.string().optional(),
 }).merge(baseNestedRecordSchema)
 
-/**
- * Image properties schema for brand assets
- */
 export const imagePropsSchema = z.object({
   encoded: z.string().optional(),
   content_type: z.string().optional(),
@@ -170,6 +100,7 @@ export const imagePropsSchema = z.object({
   ratio: z.number().optional(),
 }).merge(baseNestedRecordSchema).strip()
 
-// Export inferred types for use in stores/components
 export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseNestedRecord
 export type ImageProps = z.infer<typeof imagePropsSchema> & BaseNestedRecord
+
+export { FontFamily, fontOptions, fontDisplayMap, fontIconMap, CornerStyle, cornerStyleOptions, cornerStyleDisplayMap, cornerStyleIconMap }
