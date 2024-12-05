@@ -121,7 +121,7 @@ We also offer a "lite" version of the Docker image, which is optimized for quick
 
 ```bash
 # Pull the lite image
-docker pull ghcr.io/onetimesecret/onetimesecret:latest-lite
+docker pull ghcr.io/onetimesecret/onetimesecret-lite:latest
 
 # OR, build it locally
 docker build -f Dockerfile-lite -t onetimesecret:lite .
