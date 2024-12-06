@@ -1,3 +1,61 @@
+<script setup lang="ts">
+import { CustomDomain } from '@/types/api/responses';
+import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
+//import StatusLabel from './StatusLabel.vue';
+//import StatusLabelRow from './StatusLabelRow.vue';
+
+interface Props {
+  domain: CustomDomain;
+  mode?: string;
+}
+
+const props = defineProps<Props>();
+
+const isActive = computed(() => {
+  return props.domain.vhost?.status?.includes('ACTIVE');
+});
+
+const isWarning = computed(() => {
+  return props.domain.vhost?.status === 'DNS_INCORRECT';
+});
+
+const isError = computed(() => {
+  return !isActive.value && !isWarning.value;
+});
+
+const statusIcon = computed(() => {
+  if (isActive.value) return 'mdi:check-circle';
+  if (isWarning.value) return 'mdi:alert-circle';
+  return 'mdi:close-circle';
+});
+
+const statusColor = computed(() => {
+  if (isActive.value) return 'text-green-600';
+  if (isWarning.value) return 'text-yellow-600';
+  return 'text-red-600';
+});
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  /**
+   * About Intl.DateTimeFormat:
+   *
+   *  - It automatically respects the user's locale settings.
+   *  - It handles internationalization correctly, using the appropriate
+   *      date format for the user's locale.
+   *  - It's more efficient than toLocaleDateString for repeated use, as
+   *      you can reuse the formatter.
+   */
+  return new Intl.DateTimeFormat(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+};
+
+</script>
+
 <template>
   <div>
     <RouterLink
@@ -92,61 +150,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { CustomDomain } from '@/types/api/responses';
-import { Icon } from '@iconify/vue';
-import { computed } from 'vue';
-//import StatusLabel from './StatusLabel.vue';
-//import StatusLabelRow from './StatusLabelRow.vue';
-
-interface Props {
-  domain: CustomDomain;
-  mode?: string;
-}
-
-const props = defineProps<Props>();
-
-const isActive = computed(() => {
-  return props.domain.vhost?.status?.includes('ACTIVE');
-});
-
-const isWarning = computed(() => {
-  return props.domain.vhost?.status === 'DNS_INCORRECT';
-});
-
-const isError = computed(() => {
-  return !isActive.value && !isWarning.value;
-});
-
-const statusIcon = computed(() => {
-  if (isActive.value) return 'mdi:check-circle';
-  if (isWarning.value) return 'mdi:alert-circle';
-  return 'mdi:close-circle';
-});
-
-const statusColor = computed(() => {
-  if (isActive.value) return 'text-green-600';
-  if (isWarning.value) return 'text-yellow-600';
-  return 'text-red-600';
-});
-
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  /**
-   * About Intl.DateTimeFormat:
-   *
-   *  - It automatically respects the user's locale settings.
-   *  - It handles internationalization correctly, using the appropriate
-   *      date format for the user's locale.
-   *  - It's more efficient than toLocaleDateString for repeated use, as
-   *      you can reuse the formatter.
-   */
-  return new Intl.DateTimeFormat(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(date);
-};
-
-</script>

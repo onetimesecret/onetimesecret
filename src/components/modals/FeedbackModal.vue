@@ -1,3 +1,37 @@
+<script setup lang="ts">
+import FeedbackModalForm from '@/components/FeedbackModalForm.vue'
+import { FocusTrap } from 'focus-trap-vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+
+defineProps({
+  isOpen: Boolean,
+});
+
+const closeButton = ref(null);
+const emit = defineEmits(['close']);
+
+// Store the element that had focus before the modal opened
+let previouslyFocusedElement: HTMLElement | null = null;
+
+onMounted(() => {
+  // Store the currently focused element when the component mounts
+  previouslyFocusedElement = document.activeElement as HTMLElement;
+});
+
+const close = () => {
+  emit('close');
+  // Return focus to the previous element when modal closes
+  nextTick(() => {
+    previouslyFocusedElement?.focus();
+  });
+};
+
+// Clean up when component is destroyed
+onBeforeUnmount(() => {
+  previouslyFocusedElement = null;
+});
+</script>
+
 <template>
   <teleport to="body">
     <div
@@ -53,37 +87,3 @@
     </div>
   </teleport>
 </template>
-
-<script setup lang="ts">
-import FeedbackModalForm from '@/components/FeedbackModalForm.vue'
-import { FocusTrap } from 'focus-trap-vue'
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-
-defineProps({
-  isOpen: Boolean,
-});
-
-const closeButton = ref(null);
-const emit = defineEmits(['close']);
-
-// Store the element that had focus before the modal opened
-let previouslyFocusedElement: HTMLElement | null = null;
-
-onMounted(() => {
-  // Store the currently focused element when the component mounts
-  previouslyFocusedElement = document.activeElement as HTMLElement;
-});
-
-const close = () => {
-  emit('close');
-  // Return focus to the previous element when modal closes
-  nextTick(() => {
-    previouslyFocusedElement?.focus();
-  });
-};
-
-// Clean up when component is destroyed
-onBeforeUnmount(() => {
-  previouslyFocusedElement = null;
-});
-</script>

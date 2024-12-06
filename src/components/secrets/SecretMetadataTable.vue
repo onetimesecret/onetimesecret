@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
+import { Metadata } from '@/schemas/models';
+
+interface Props {
+  notReceived?: Metadata[] | null;
+  received?: Metadata[] | null;
+  isLoading: boolean;
+}
+
+defineProps<Props>();
+</script>
+
 <template>
   <!-- Move to a separate component -->
   <div
@@ -61,16 +74,3 @@
     </template>
   </div>
 </template>
-
-<script setup lang="ts">
-import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
-import { Metadata } from '@/schemas/models';
-
-interface Props {
-  notReceived?: Metadata[] | null;
-  received?: Metadata[] | null;
-  isLoading: boolean;
-}
-
-defineProps<Props>();
-</script>

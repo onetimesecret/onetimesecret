@@ -1,3 +1,11 @@
+<script setup lang="ts">
+defineProps<{
+  title: string;
+  count: number;
+  feedback: { msg: string; stamp: string }[];
+}>();
+</script>
+
 <template>
   <div class="p-2">
     <h4 class="mb-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -14,11 +22,3 @@
     </ul>
   </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  title: string;
-  count: number;
-  feedback: { msg: string; stamp: string }[];
-}>();
-</script>

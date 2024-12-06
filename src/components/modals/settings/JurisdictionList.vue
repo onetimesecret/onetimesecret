@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import type { Jurisdiction } from '@/schemas/models';
+import { Icon } from '@iconify/vue';
+
+const props = defineProps<{
+  jurisdictions: Jurisdiction[];
+  currentJurisdiction: Jurisdiction;
+}>();
+
+const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
+  jurisdiction.identifier === props.currentJurisdiction.identifier;
+</script>
+
 <template>
   <ul
     class="divide-y divide-gray-100 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700"
@@ -32,16 +45,3 @@
     </li>
   </ul>
 </template>
-
-<script setup lang="ts">
-import type { Jurisdiction } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
-
-const props = defineProps<{
-  jurisdictions: Jurisdiction[];
-  currentJurisdiction: Jurisdiction;
-}>();
-
-const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
-  jurisdiction.identifier === props.currentJurisdiction.identifier;
-</script>

@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+
+import FeedbackModal from './modals/FeedbackModal.vue';
+
+const isFeedbackModalOpen = ref(false);
+
+const toggleFeedbackModal = () => {
+  isFeedbackModalOpen.value = true;
+};
+
+const closeFeedbackModal = () => {
+  isFeedbackModalOpen.value = false;
+};
+</script>
+
+
 <template>
   <div class="relative">
     <button
@@ -48,20 +65,3 @@
     </Teleport>
   </div>
 </template>
-
-
-<script setup lang="ts">
-import { ref } from 'vue';
-
-import FeedbackModal from './modals/FeedbackModal.vue';
-
-const isFeedbackModalOpen = ref(false);
-
-const toggleFeedbackModal = () => {
-  isFeedbackModalOpen.value = true;
-};
-
-const closeFeedbackModal = () => {
-  isFeedbackModalOpen.value = false;
-};
-</script>

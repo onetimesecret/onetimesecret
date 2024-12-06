@@ -1,5 +1,42 @@
 <!-- src/components/CopyButton.vue -->
 
+<script setup lang="ts">
+import { ref, onBeforeUnmount } from 'vue';
+
+interface Props {
+  text: string;
+  interval?: number;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  text: '',
+  interval: 2000
+});
+
+const copied = ref(false);
+const showTooltip = ref(false);
+let tooltipTimeout: number | null = null;
+
+const copyToClipboard = () => {
+  navigator.clipboard.writeText(props.text).then(() => {
+    copied.value = true;
+    showTooltip.value = true;
+
+    if (tooltipTimeout) clearTimeout(tooltipTimeout);
+
+    setTimeout(() => {
+      copied.value = false;
+      showTooltip.value = false;
+    }, props.interval);
+  });
+};
+
+onBeforeUnmount(() => {
+  if (tooltipTimeout) clearTimeout(tooltipTimeout);
+});
+</script>
+
+
 <template>
   <div class="relative inline-block">
     <button
@@ -44,40 +81,3 @@
     </div>
   </div>
 </template>
-
-
-<script setup lang="ts">
-import { ref, onBeforeUnmount } from 'vue';
-
-interface Props {
-  text: string;
-  interval?: number;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  text: '',
-  interval: 2000
-});
-
-const copied = ref(false);
-const showTooltip = ref(false);
-let tooltipTimeout: number | null = null;
-
-const copyToClipboard = () => {
-  navigator.clipboard.writeText(props.text).then(() => {
-    copied.value = true;
-    showTooltip.value = true;
-
-    if (tooltipTimeout) clearTimeout(tooltipTimeout);
-
-    setTimeout(() => {
-      copied.value = false;
-      showTooltip.value = false;
-    }, props.interval);
-  });
-};
-
-onBeforeUnmount(() => {
-  if (tooltipTimeout) clearTimeout(tooltipTimeout);
-});
-</script>

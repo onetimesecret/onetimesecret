@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import FeedbackForm from '@/components/FeedbackForm.vue';
+
+</script>
+
 <template>
   <section
     class="mb-8"
@@ -42,8 +47,3 @@
     </div>
   </section>
 </template>
-
-<script setup lang="ts">
-import FeedbackForm from '@/components/FeedbackForm.vue';
-
-</script>

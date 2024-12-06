@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
+
+import BaseLayout from './BaseLayout.vue';
+
+const props = withDefaults(defineProps<BaseProps>(), {
+});
+</script>
+
 <template>
   <!-- Router View Structure:
            - Named views allow multiple <router-view> components in a single layout.
@@ -27,12 +36,3 @@
     </template>
   </BaseLayout>
 </template>
-
-<script setup lang="ts">
-import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
-
-import BaseLayout from './BaseLayout.vue';
-
-const props = withDefaults(defineProps<BaseProps>(), {
-});
-</script>

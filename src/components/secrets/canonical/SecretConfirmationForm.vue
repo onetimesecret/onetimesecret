@@ -1,3 +1,33 @@
+<script setup lang="ts">
+import { SecretData, SecretDetails } from '@/schemas/models';
+import { useSecretsStore } from '@/stores/secretsStore';
+import { ref } from 'vue';
+
+interface Props {
+  secretKey: string;
+  record: SecretData | null;
+  details: SecretDetails | null;
+}
+
+const props = defineProps<Props>();
+const secretStore = useSecretsStore();
+const passphrase = ref('');
+const isSubmitting = ref(false);
+
+const submitForm = async () => {
+  if (isSubmitting.value) return;
+
+  isSubmitting.value = true;
+  try {
+    await secretStore.revealSecret(props.secretKey, passphrase.value);
+  } catch {
+    // Error handling done by store
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+</script>
+
 <template>
   <div
     :class="[
@@ -61,33 +91,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { SecretData, SecretDetails } from '@/schemas/models';
-import { useSecretsStore } from '@/stores/secretsStore';
-import { ref } from 'vue';
-
-interface Props {
-  secretKey: string;
-  record: SecretData | null;
-  details: SecretDetails | null;
-}
-
-const props = defineProps<Props>();
-const secretStore = useSecretsStore();
-const passphrase = ref('');
-const isSubmitting = ref(false);
-
-const submitForm = async () => {
-  if (isSubmitting.value) return;
-
-  isSubmitting.value = true;
-  try {
-    await secretStore.revealSecret(props.secretKey, passphrase.value);
-  } catch {
-    // Error handling done by store
-  } finally {
-    isSubmitting.value = false;
-  }
-};
-</script>

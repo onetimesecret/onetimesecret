@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import { useWindowProps } from '@/composables/useWindowProps';
+import { useRoute } from 'vue-router';
+
+const { authenticated, metadata_record_count, domains_enabled, custom_domains_record_count } =
+  useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'custom_domains_record_count']);
+
+const route = useRoute();
+
+/**
+ * Checks if the current route path starts with the specified path.
+ * @param path - The path to check against the current route.
+ * @returns True if the current route path starts with the specified path, false otherwise.
+ */
+const isActiveRoute = (path: string) => route.path.startsWith(path);
+</script>
+
 <template>
   <nav
     v-if="authenticated"
@@ -113,20 +130,3 @@
     </ul>
   </nav>
 </template>
-
-<script setup lang="ts">
-import { useWindowProps } from '@/composables/useWindowProps';
-import { useRoute } from 'vue-router';
-
-const { authenticated, metadata_record_count, domains_enabled, custom_domains_record_count } =
-  useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'custom_domains_record_count']);
-
-const route = useRoute();
-
-/**
- * Checks if the current route path starts with the specified path.
- * @param path - The path to check against the current route.
- * @returns True if the current route path starts with the specified path, false otherwise.
- */
-const isActiveRoute = (path: string) => route.path.startsWith(path);
-</script>

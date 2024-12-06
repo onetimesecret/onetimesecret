@@ -1,4 +1,34 @@
 
+<script setup lang="ts">
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
+
+interface DomainProps {
+  defaultDomain: string;
+  availableDomains: string[];
+}
+
+const props = withDefaults(defineProps<DomainProps>(), {
+  defaultDomain: window.site_host as string,
+  availableDomains: () => [],
+});
+
+const emit = defineEmits(['domainChange']);
+
+const isOpen = ref(false);
+const selectedDomain = ref(props.defaultDomain);
+
+const toggleDropdown = () => {
+  isOpen.value = !isOpen.value;
+};
+
+const selectDomain = (domain: string) => {
+  selectedDomain.value = domain;
+  emit('domainChange', domain);
+  isOpen.value = false;
+};
+</script>
+
 <template>
   <div class="relative inline-block text-left">
     <div>
@@ -36,33 +66,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import { ref } from 'vue';
-
-interface DomainProps {
-  defaultDomain: string;
-  availableDomains: string[];
-}
-
-const props = withDefaults(defineProps<DomainProps>(), {
-  defaultDomain: window.site_host as string,
-  availableDomains: () => [],
-});
-
-const emit = defineEmits(['domainChange']);
-
-const isOpen = ref(false);
-const selectedDomain = ref(props.defaultDomain);
-
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-};
-
-const selectDomain = (domain: string) => {
-  selectedDomain.value = domain;
-  emit('domainChange', domain);
-  isOpen.value = false;
-};
-</script>

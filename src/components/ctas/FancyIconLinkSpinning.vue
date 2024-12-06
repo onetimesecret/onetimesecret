@@ -1,3 +1,14 @@
+<script setup lang="ts">
+/**
+ * Props for FancyIconLink component
+ */
+defineProps<{
+  text?: string;
+  to: string;
+  ariaLabel: string;
+}>();
+</script>
+
 <template>
   <router-link
     :to="to"
@@ -96,17 +107,6 @@
     <span v-if="text">{{ text }}</span>
   </router-link>
 </template>
-
-<script setup lang="ts">
-/**
- * Props for FancyIconLink component
- */
-defineProps<{
-  text?: string;
-  to: string;
-  ariaLabel: string;
-}>();
-</script>
 
 <style scoped>
 .icon-glow {

@@ -1,4 +1,19 @@
 
+<script setup lang="ts">
+import { useCsrfStore } from '@/stores/csrfStore';
+
+const csrfStore = useCsrfStore();
+
+export interface Props {
+  enabled?: boolean;
+}
+
+withDefaults(defineProps<Props>(), {
+  enabled: true,
+})
+
+</script>
+
 <template>
   <div class="my-20">
     <section class="my-8">
@@ -55,18 +70,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useCsrfStore } from '@/stores/csrfStore';
-
-const csrfStore = useCsrfStore();
-
-export interface Props {
-  enabled?: boolean;
-}
-
-withDefaults(defineProps<Props>(), {
-  enabled: true,
-})
-
-</script>

@@ -1,4 +1,63 @@
 <!-- src/components/secrets/BaseSecretDisplay.vue -->
+<script setup lang="ts">
+import { useDomainBranding } from '@/composables/useDomainBranding';
+import { Icon } from '@iconify/vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
+
+defineProps<{
+  instructions?: string;
+  defaultTitle?: string;
+}>();
+
+// Text expansion logic
+const textRef = ref<HTMLElement | null>(null);
+const isExpanded = ref(false);
+const isLongText = ref(false);
+
+const domainBranding = useDomainBranding();
+
+// Reusable computed properties
+const textClasses = computed(() => ({
+  'text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed': true,
+  'line-clamp-6': !isExpanded.value,
+  'pb-6': isLongText.value && !isExpanded.value
+}));
+
+const contentAreaClasses = computed(() => ({
+  'rounded-lg': domainBranding.value?.corner_style === 'rounded',
+  'rounded-xl': domainBranding.value?.corner_style === 'pill',
+  'rounded-none': domainBranding.value?.corner_style === 'square'
+}));
+
+// Text length checking
+const checkTextLength = () => {
+  nextTick(() => {
+    const element = textRef.value;
+    if (element) {
+      element.classList.remove('line-clamp-6');
+      const lineHeight = parseInt(window.getComputedStyle(element).lineHeight);
+      isLongText.value = element.scrollHeight > (lineHeight * 4);
+      if (!isExpanded.value) {
+        element.classList.add('line-clamp-6');
+      }
+    }
+  });
+};
+
+onMounted(() => {
+  checkTextLength();
+  window.addEventListener('resize', checkTextLength);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkTextLength);
+});
+
+const toggleExpand = () => {
+  isExpanded.value = !isExpanded.value;
+};
+</script>
+
 <template>
   <div class="w-full rounded-lg bg-white p-4 dark:bg-gray-800 sm:p-6">
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
@@ -70,62 +129,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useDomainBranding } from '@/composables/useDomainBranding';
-import { Icon } from '@iconify/vue';
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
-
-defineProps<{
-  instructions?: string;
-  defaultTitle?: string;
-}>();
-
-// Text expansion logic
-const textRef = ref<HTMLElement | null>(null);
-const isExpanded = ref(false);
-const isLongText = ref(false);
-
-const domainBranding = useDomainBranding();
-
-// Reusable computed properties
-const textClasses = computed(() => ({
-  'text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed': true,
-  'line-clamp-6': !isExpanded.value,
-  'pb-6': isLongText.value && !isExpanded.value
-}));
-
-const contentAreaClasses = computed(() => ({
-  'rounded-lg': domainBranding.value?.corner_style === 'rounded',
-  'rounded-xl': domainBranding.value?.corner_style === 'pill',
-  'rounded-none': domainBranding.value?.corner_style === 'square'
-}));
-
-// Text length checking
-const checkTextLength = () => {
-  nextTick(() => {
-    const element = textRef.value;
-    if (element) {
-      element.classList.remove('line-clamp-6');
-      const lineHeight = parseInt(window.getComputedStyle(element).lineHeight);
-      isLongText.value = element.scrollHeight > (lineHeight * 4);
-      if (!isExpanded.value) {
-        element.classList.add('line-clamp-6');
-      }
-    }
-  });
-};
-
-onMounted(() => {
-  checkTextLength();
-  window.addEventListener('resize', checkTextLength);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkTextLength);
-});
-
-const toggleExpand = () => {
-  isExpanded.value = !isExpanded.value;
-};
-</script>

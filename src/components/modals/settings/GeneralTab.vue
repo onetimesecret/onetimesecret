@@ -1,3 +1,33 @@
+<script setup lang="ts">
+import LanguageToggle from '@/components/LanguageToggle.vue';
+import ThemeToggle from '@/components/ThemeToggle.vue';
+import { Icon } from '@iconify/vue';
+import { ref } from 'vue';
+
+const isLoading = ref(false);
+
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'menuToggled'): void;
+}>();
+
+const handleMenuToggled = () => {
+  emit('menuToggled');
+};
+
+const handleThemeChange = async (isDark: boolean) => {
+  isLoading.value = true;
+  try {
+    console.log('Theme changed:', isDark);
+    // Add theme change logic here
+  } catch (error) {
+    console.error('Error changing theme:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+</script>
+
 <template>
   <div class="mx-auto max-w-3xl space-y-8 p-4 sm:p-6">
     <section
@@ -84,36 +114,6 @@
     </section>
   </div>
 </template>
-
-<script setup lang="ts">
-import LanguageToggle from '@/components/LanguageToggle.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import { Icon } from '@iconify/vue';
-import { ref } from 'vue';
-
-const isLoading = ref(false);
-
-const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'menuToggled'): void;
-}>();
-
-const handleMenuToggled = () => {
-  emit('menuToggled');
-};
-
-const handleThemeChange = async (isDark: boolean) => {
-  isLoading.value = true;
-  try {
-    console.log('Theme changed:', isDark);
-    // Add theme change logic here
-  } catch (error) {
-    console.error('Error changing theme:', error);
-  } finally {
-    isLoading.value = false;
-  }
-};
-</script>
 
 <style scoped>
 /* Add any component-specific styles here */

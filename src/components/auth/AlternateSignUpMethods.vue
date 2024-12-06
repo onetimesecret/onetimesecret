@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { Icon } from '@iconify/vue';
+import { computed } from 'vue'
+
+// Define the type for the alternate providers
+interface Provider {
+  name: string;
+  icon: string;
+}
+
+// Props for the component
+const props = defineProps<{
+  alternateProviders: Provider[];
+}>();
+
+const gridClass = computed(() => {
+  const colsCount = props.alternateProviders.length
+  return `grid gap-3 grid-cols-${colsCount}`
+})
+
+</script>
+
 <template>
   <!-- Alternate sign up methods -->
   <div class="mt-6">
@@ -43,25 +65,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import { computed } from 'vue'
-
-// Define the type for the alternate providers
-interface Provider {
-  name: string;
-  icon: string;
-}
-
-// Props for the component
-const props = defineProps<{
-  alternateProviders: Provider[];
-}>();
-
-const gridClass = computed(() => {
-  const colsCount = props.alternateProviders.length
-  return `grid gap-3 grid-cols-${colsCount}`
-})
-
-</script>

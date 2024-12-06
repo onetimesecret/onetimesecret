@@ -1,3 +1,21 @@
+<script setup lang="ts">
+import { Icon } from '@iconify/vue';
+
+interface Props {
+  domain: string;
+  browserType?: 'safari' | 'edge';
+}
+
+withDefaults(defineProps<Props>(), {
+  browserType: 'safari'
+});
+
+defineEmits<{
+  (e: 'toggle-browser'): void;
+}>();
+</script>
+
+
 <template>
   <div
     class="relative mx-auto max-w-full overflow-hidden rounded-xl border border-gray-200 shadow-2xl dark:border-gray-700">
@@ -189,21 +207,3 @@
     </div>
   </div>
 </template>
-
-
-<script setup lang="ts">
-import { Icon } from '@iconify/vue';
-
-interface Props {
-  domain: string;
-  browserType?: 'safari' | 'edge';
-}
-
-withDefaults(defineProps<Props>(), {
-  browserType: 'safari'
-});
-
-defineEmits<{
-  (e: 'toggle-browser'): void;
-}>();
-</script>

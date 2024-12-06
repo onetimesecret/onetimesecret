@@ -1,5 +1,29 @@
 
 
+<script setup lang="ts">
+import { useCsrfStore } from '@/stores/csrfStore';
+import { ref } from 'vue';
+
+const csrfStore = useCsrfStore();
+
+export interface Props {
+  enabled?: boolean;
+}
+
+withDefaults(defineProps<Props>(), {
+  enabled: true,
+})
+
+const email = ref('');
+const password = ref('');
+const rememberMe = ref(false);
+const showPassword = ref(false);
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+</script>
+
 <template>
   <form
     action="/signin"
@@ -131,27 +155,3 @@
     </div>
   </form>
 </template>
-
-<script setup lang="ts">
-import { useCsrfStore } from '@/stores/csrfStore';
-import { ref } from 'vue';
-
-const csrfStore = useCsrfStore();
-
-export interface Props {
-  enabled?: boolean;
-}
-
-withDefaults(defineProps<Props>(), {
-  enabled: true,
-})
-
-const email = ref('');
-const password = ref('');
-const rememberMe = ref(false);
-const showPassword = ref(false);
-
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
-</script>

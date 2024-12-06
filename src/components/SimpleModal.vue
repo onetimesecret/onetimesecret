@@ -1,3 +1,13 @@
+<script setup>
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import { Icon } from '@iconify/vue'
+import { ref } from 'vue'
+
+
+
+const open = ref(true)
+</script>
+
 <template>
   <TransitionRoot
     as="template"
@@ -70,13 +80,3 @@
     </Dialog>
   </TransitionRoot>
 </template>
-
-<script setup>
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { Icon } from '@iconify/vue'
-import { ref } from 'vue'
-
-
-
-const open = ref(true)
-</script>

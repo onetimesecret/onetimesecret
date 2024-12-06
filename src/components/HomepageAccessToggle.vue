@@ -1,3 +1,14 @@
+<script setup lang="ts">
+defineProps<{
+  modelValue: boolean | null | undefined;  // Update type to allow nullable values
+  disabled?: boolean;
+}>();
+
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean];
+}>();
+</script>
+
 <template>
   <button
     type="button"
@@ -49,14 +60,3 @@
     </span>
   </button>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  modelValue: boolean | null | undefined;  // Update type to allow nullable values
-  disabled?: boolean;
-}>();
-
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
-}>();
-</script>

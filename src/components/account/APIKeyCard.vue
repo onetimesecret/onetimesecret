@@ -1,28 +1,4 @@
 <!-- src/components/ApiTokenDisplay.vue -->
-<template>
-  <div
-    v-if="apitoken"
-    class="mb-4 rounded-lg bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 p-4 shadow-lg">
-    <div class="font-mono text-lg text-white">
-      <div class="relative flex items-center overflow-x-auto rounded bg-black bg-opacity-20 p-3">
-        <span class="break-all pr-10">{{ apitoken }}</span>
-        <button
-          @click.stop="handleCopy"
-          type="button"
-          class="absolute right-2 top-1/2 -translate-y-1/2 text-white transition-colors duration-200 hover:text-gray-200">
-          <Icon
-            :icon="copied ? 'heroicons-outline:check' : 'heroicons-outline:clipboard-copy'"
-            class="size-6"
-          />
-        </button>
-      </div>
-    </div>
-    <p class="mt-2 text-sm font-semibold text-white">
-      🔐 Keep this token secure! It provides full access to your account.
-    </p>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { ref } from 'vue';
@@ -53,6 +29,30 @@ const handleCopy = () => {
     });
 };
 </script>
+
+<template>
+  <div
+    v-if="apitoken"
+    class="mb-4 rounded-lg bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 p-4 shadow-lg">
+    <div class="font-mono text-lg text-white">
+      <div class="relative flex items-center overflow-x-auto rounded bg-black bg-opacity-20 p-3">
+        <span class="break-all pr-10">{{ apitoken }}</span>
+        <button
+          @click.stop="handleCopy"
+          type="button"
+          class="absolute right-2 top-1/2 -translate-y-1/2 text-white transition-colors duration-200 hover:text-gray-200">
+          <Icon
+            :icon="copied ? 'heroicons-outline:check' : 'heroicons-outline:clipboard-copy'"
+            class="size-6"
+          />
+        </button>
+      </div>
+    </div>
+    <p class="mt-2 text-sm font-semibold text-white">
+      🔐 Keep this token secure! It provides full access to your account.
+    </p>
+  </div>
+</template>
 
 <style scoped>
 @keyframes fadeIn {

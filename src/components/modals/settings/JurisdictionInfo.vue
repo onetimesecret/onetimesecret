@@ -1,3 +1,16 @@
+<script setup lang="ts">
+import type { Jurisdiction } from '@/schemas/models';
+import { Icon } from '@iconify/vue';
+
+defineProps<{
+  jurisdiction: Jurisdiction;
+  supportHost?: string;
+}>();
+</script>
+
+<!-- ... existing code ... -->
+
+
 <template>
   <div class="space-y-4 sm:space-y-6">
     <div class="flex flex-col items-center gap-2 sm:flex-row">
@@ -46,16 +59,3 @@
     </div>
   </div>
 </template>
-
-<!-- ... existing code ... -->
-
-
-<script setup lang="ts">
-import type { Jurisdiction } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
-
-defineProps<{
-  jurisdiction: Jurisdiction;
-  supportHost?: string;
-}>();
-</script>

@@ -1,3 +1,44 @@
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue';
+
+const emit = defineEmits<{
+  (e: 'theme-changed', isDark: boolean): void;
+}>();
+
+const isDarkMode = ref(false);
+
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value;
+  localStorage.setItem('restMode', isDarkMode.value.toString());
+  updateDarkMode();
+  emit('theme-changed', isDarkMode.value);
+};
+
+const updateDarkMode = () => {
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+};
+
+const detectSystemPreference = () => {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+};
+
+onMounted(() => {
+  const storedPreference = localStorage.getItem('restMode');
+  if (storedPreference !== null) {
+    isDarkMode.value = storedPreference === 'true';
+  } else {
+    isDarkMode.value = detectSystemPreference();
+  }
+  updateDarkMode();
+});
+
+watch(isDarkMode, updateDarkMode);
+</script>
+
 <template>
   <button
     @click="toggleDarkMode"
@@ -43,44 +84,3 @@
     </svg>
   </button>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-
-const emit = defineEmits<{
-  (e: 'theme-changed', isDark: boolean): void;
-}>();
-
-const isDarkMode = ref(false);
-
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value;
-  localStorage.setItem('restMode', isDarkMode.value.toString());
-  updateDarkMode();
-  emit('theme-changed', isDarkMode.value);
-};
-
-const updateDarkMode = () => {
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
-};
-
-const detectSystemPreference = () => {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-};
-
-onMounted(() => {
-  const storedPreference = localStorage.getItem('restMode');
-  if (storedPreference !== null) {
-    isDarkMode.value = storedPreference === 'true';
-  } else {
-    isDarkMode.value = detectSystemPreference();
-  }
-  updateDarkMode();
-});
-
-watch(isDarkMode, updateDarkMode);
-</script>

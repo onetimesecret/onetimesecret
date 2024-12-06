@@ -1,3 +1,11 @@
+<script setup lang="ts">
+defineProps<{
+  text?: string;
+  to: string;
+  ariaLabel: string;
+}>();
+</script>
+
 <template>
   <router-link
     :to="to"
@@ -23,14 +31,6 @@
       class="animate-bounce">{{ text }}</span>
   </router-link>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  text?: string;
-  to: string;
-  ariaLabel: string;
-}>();
-</script>
 
 <style scoped>
 .glow-effect {

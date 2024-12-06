@@ -1,3 +1,33 @@
+<script setup lang="ts">
+import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
+import AccountChangePasswordForm from '@/components/account/AccountChangePasswordForm.vue';
+import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
+import APIKeyForm from '@/components/account/APIKeyForm.vue';
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import { useFetchDataRecord } from '@/composables/useFetchData';
+import { useWindowProps } from '@/composables/useWindowProps';
+import { Account } from '@/schemas/models/customer';
+import { onMounted } from 'vue';
+
+// Grabbing values from the window properties is a convenient way to get
+// preformatted template variables (i.e. the jsvars from Onetime::App::View)
+// rather than re-implement them here in Vue. We'll replace all of them
+// eventually, but for now, this is a good way to keep momentum going.
+const { plan, cust, customer_since } = useWindowProps([ 'plan', 'cust', 'customer_since' ]);
+
+
+const { record: account, fetchData: fetchAccount } = useFetchDataRecord<Account>({
+  url: '/api/v2/account',
+  onSuccess: (data) => {
+    if (data[0]) {
+      //console.log(data[0].cust);
+    }
+  },
+});
+
+onMounted(fetchAccount);
+</script>
+
 <template>
   <div>
     <DashboardTabNav />
@@ -58,33 +88,3 @@
     </p>
   </div>
 </template>
-
-<script setup lang="ts">
-import AccountBillingSection from '@/components/account/AccountBillingSection.vue';
-import AccountChangePasswordForm from '@/components/account/AccountChangePasswordForm.vue';
-import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
-import APIKeyForm from '@/components/account/APIKeyForm.vue';
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import { useFetchDataRecord } from '@/composables/useFetchData';
-import { useWindowProps } from '@/composables/useWindowProps';
-import { Account } from '@/schemas/models/customer';
-import { onMounted } from 'vue';
-
-// Grabbing values from the window properties is a convenient way to get
-// preformatted template variables (i.e. the jsvars from Onetime::App::View)
-// rather than re-implement them here in Vue. We'll replace all of them
-// eventually, but for now, this is a good way to keep momentum going.
-const { plan, cust, customer_since } = useWindowProps([ 'plan', 'cust', 'customer_since' ]);
-
-
-const { record: account, fetchData: fetchAccount } = useFetchDataRecord<Account>({
-  url: '/api/v2/account',
-  onSuccess: (data) => {
-    if (data[0]) {
-      //console.log(data[0].cust);
-    }
-  },
-});
-
-onMounted(fetchAccount);
-</script>

@@ -1,32 +1,3 @@
-<template>
-  <div>
-    <!-- All along the watch tower -->
-    <div
-      class="fixed left-0 top-0 z-50 h-1 w-full"
-      :class="primaryColorClass"
-      :style="primaryColorStyle"></div>
-
-    <!-- Good morning Vietnam -->
-    <GlobalBroadcast
-      :show="hasGlobalBanner"
-      :content="globalBanner"
-    />
-
-    <!-- Header content, Ramos territory -->
-    <slot name="header"></slot>
-
-    <!-- Main page content, only in Japan -->
-    <slot name="main"></slot>
-
-    <!-- Footer content, Haaland maybe? -->
-    <slot name="footer"></slot>
-
-    <slot name="status">
-      <div id="status-messages"></div>
-    </slot>
-  </div>
-</template>
-
 <script setup lang="ts">
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import { useBrandingStore } from '@/stores/brandingStore';
@@ -85,3 +56,32 @@ function isColorValue(value: string): boolean {
 }
 
 </script>
+
+<template>
+  <div>
+    <!-- All along the watch tower -->
+    <div
+      class="fixed left-0 top-0 z-50 h-1 w-full"
+      :class="primaryColorClass"
+      :style="primaryColorStyle"></div>
+
+    <!-- Good morning Vietnam -->
+    <GlobalBroadcast
+      :show="hasGlobalBanner"
+      :content="globalBanner"
+    />
+
+    <!-- Header content, Ramos territory -->
+    <slot name="header"></slot>
+
+    <!-- Main page content, only in Japan -->
+    <slot name="main"></slot>
+
+    <!-- Footer content, Haaland maybe? -->
+    <slot name="footer"></slot>
+
+    <slot name="status">
+      <div id="status-messages"></div>
+    </slot>
+  </div>
+</template>

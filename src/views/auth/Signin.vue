@@ -1,5 +1,10 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <!-- src/views/auth/Signin.vue -->
+<script setup lang="ts">
+import AuthView from '@/components/auth/AuthView.vue';
+import SignInForm from '@/components/auth/SignInForm.vue';
+</script>
+
 <template>
   <AuthView
     heading="Sign in to your account"
@@ -31,8 +36,3 @@
     </template>
   </AuthView>
 </template>
-
-<script setup lang="ts">
-import AuthView from '@/components/auth/AuthView.vue';
-import SignInForm from '@/components/auth/SignInForm.vue';
-</script>
