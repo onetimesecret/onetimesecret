@@ -1,4 +1,61 @@
 <!-- SecretPreview.vue -->
+<script setup lang="ts">
+// Script remains the same
+import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
+import { BrandSettings, ImageProps } from '@/schemas/models';
+import { Icon } from '@iconify/vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
+
+const props = defineProps<{
+  domainBranding: BrandSettings;
+  secretKey: string;
+  logoImage?: ImageProps | null; // Add new prop for logo data
+  onLogoUpload: (file: File) => Promise<void>;
+  onLogoRemove: () => Promise<void>;
+}>();
+
+// Computed property to validate logo data
+const isValidLogo = computed(() => {
+  return props.logoImage &&
+    typeof props.logoImage === 'object' &&
+    props.logoImage.encoded &&
+    props.logoImage.content_type;
+});
+
+// Computed property to generate the logo source URL
+const logoSrc = computed(() => {
+  if (!isValidLogo.value) return '';
+  return `data:${props.logoImage?.content_type};base64,${props.logoImage?.encoded}`;
+});
+
+const isRevealed = ref(false);
+
+const getInstructions = (revealed: boolean): string => {
+  if (revealed) {
+    return props.domainBranding.instructions_post_reveal?.trim() ||
+      t('web.shared.post_reveal_default');
+  }
+  return props.domainBranding.instructions_pre_reveal?.trim() ||
+    t('web.shared.pre_reveal_default');
+};
+
+const handleLogoChange = (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) {
+    props.onLogoUpload(file);
+  }
+  input.value = '';
+};
+
+const toggleReveal = () => {
+  isRevealed.value = !isRevealed.value;
+};
+
+</script>
+
 <template>
   <BaseSecretDisplay
     default-title="You have a message"
@@ -130,6 +187,7 @@
   </BaseSecretDisplay>
 </template>
 
+
 <style scoped>
 .line-clamp-6 {
   display: -webkit-box;
@@ -166,61 +224,3 @@ textarea {
   }
 }
 </style>
-
-
-<script setup lang="ts">
-// Script remains the same
-import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
-import { BrandSettings, ImageProps } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
-import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-const { t } = useI18n();
-
-const props = defineProps<{
-  domainBranding: BrandSettings;
-  secretKey: string;
-  logoImage?: ImageProps | null; // Add new prop for logo data
-  onLogoUpload: (file: File) => Promise<void>;
-  onLogoRemove: () => Promise<void>;
-}>();
-
-// Computed property to validate logo data
-const isValidLogo = computed(() => {
-  return props.logoImage &&
-    typeof props.logoImage === 'object' &&
-    props.logoImage.encoded &&
-    props.logoImage.content_type;
-});
-
-// Computed property to generate the logo source URL
-const logoSrc = computed(() => {
-  if (!isValidLogo.value) return '';
-  return `data:${props.logoImage?.content_type};base64,${props.logoImage?.encoded}`;
-});
-
-const isRevealed = ref(false);
-
-const getInstructions = (revealed: boolean): string => {
-  if (revealed) {
-    return props.domainBranding.instructions_post_reveal?.trim() ||
-      t('web.shared.post_reveal_default');
-  }
-  return props.domainBranding.instructions_pre_reveal?.trim() ||
-    t('web.shared.pre_reveal_default');
-};
-
-const handleLogoChange = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (file) {
-    props.onLogoUpload(file);
-  }
-  input.value = '';
-};
-
-const toggleReveal = () => {
-  isRevealed.value = !isRevealed.value;
-};
-
-</script>

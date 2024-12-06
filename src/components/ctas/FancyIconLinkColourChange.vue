@@ -1,3 +1,11 @@
+<script setup lang="ts">
+defineProps<{
+  text?: string;
+  to: string;
+  ariaLabel: string;
+}>();
+</script>
+
 <template>
   <router-link
     :to="to"
@@ -59,14 +67,6 @@
     <span v-if="text">{{ text }}</span>
   </router-link>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  text?: string;
-  to: string;
-  ariaLabel: string;
-}>();
-</script>
 
 <style scoped>
 @media (prefers-reduced-motion: reduce) {

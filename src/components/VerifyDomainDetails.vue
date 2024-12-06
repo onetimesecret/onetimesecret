@@ -1,3 +1,63 @@
+<script setup lang="ts">
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
+import { CustomDomainApiResponse } from '@/types/api/responses';
+import { Icon } from '@iconify/vue';
+import { computed, ref } from 'vue';
+
+import BasicFormAlerts from './BasicFormAlerts.vue';
+import DetailField from './DetailField.vue';
+
+
+interface Props {
+  domain: CustomDomain;
+  cluster: CustomDomainCluster;
+  withVerifyCTA?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  domain: () => ({} as CustomDomain),
+  cluster: () => ({} as CustomDomainCluster),
+  withVerifyCTA: false,
+});
+
+// Define the emit function with the type
+const emit = defineEmits<{
+  (e: 'domainVerify', data: CustomDomainApiResponse): void;
+}>();
+
+const { isSubmitting, error, success, submitForm } = useFormSubmission({
+  url: `/api/v2/account/domains/${props.domain.display_domain}/verify`,
+  successMessage: 'Domain verification initiated successfully.',
+  getFormData: () => new URLSearchParams({
+    domain: props.domain.display_domain,
+  }),
+  onSuccess: (data: CustomDomainApiResponse) => {
+    console.log('Verification initiated:', data);
+    emit('domainVerify', data);
+  },
+  onError: (data: unknown) => {
+    console.error('Verification failed:', data);
+  },
+});
+
+const buttonDisabledDelay = ref(false);
+const isButtonDisabled = computed(() => isSubmitting.value || buttonDisabledDelay.value);
+
+const verify = () => {
+  // Implement verification logic here
+  console.info('Refreshing DNS verification details...');
+
+  submitForm().finally(() => {
+
+    buttonDisabledDelay.value = true;
+    setTimeout(() => {
+      buttonDisabledDelay.value = false;
+    }, 10000); // 4 seconds
+  });
+};
+</script>
+
 <template>
   <div class="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
     <h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-white">
@@ -141,63 +201,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
-import { CustomDomainApiResponse } from '@/types/api/responses';
-import { Icon } from '@iconify/vue';
-import { computed, ref } from 'vue';
-
-import BasicFormAlerts from './BasicFormAlerts.vue';
-import DetailField from './DetailField.vue';
-
-
-interface Props {
-  domain: CustomDomain;
-  cluster: CustomDomainCluster;
-  withVerifyCTA?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  domain: () => ({} as CustomDomain),
-  cluster: () => ({} as CustomDomainCluster),
-  withVerifyCTA: false,
-});
-
-// Define the emit function with the type
-const emit = defineEmits<{
-  (e: 'domainVerify', data: CustomDomainApiResponse): void;
-}>();
-
-const { isSubmitting, error, success, submitForm } = useFormSubmission({
-  url: `/api/v2/account/domains/${props.domain.display_domain}/verify`,
-  successMessage: 'Domain verification initiated successfully.',
-  getFormData: () => new URLSearchParams({
-    domain: props.domain.display_domain,
-  }),
-  onSuccess: (data: CustomDomainApiResponse) => {
-    console.log('Verification initiated:', data);
-    emit('domainVerify', data);
-  },
-  onError: (data: unknown) => {
-    console.error('Verification failed:', data);
-  },
-});
-
-const buttonDisabledDelay = ref(false);
-const isButtonDisabled = computed(() => isSubmitting.value || buttonDisabledDelay.value);
-
-const verify = () => {
-  // Implement verification logic here
-  console.info('Refreshing DNS verification details...');
-
-  submitForm().finally(() => {
-
-    buttonDisabledDelay.value = true;
-    setTimeout(() => {
-      buttonDisabledDelay.value = false;
-    }, 10000); // 4 seconds
-  });
-};
-</script>

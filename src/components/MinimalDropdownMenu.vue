@@ -1,3 +1,9 @@
+<script setup>
+import { Menu, MenuButton, MenuItems } from '@headlessui/vue'
+import { Icon } from '@iconify/vue'
+</script>
+
+
 <template>
   <Menu
     as="div"
@@ -30,9 +36,3 @@
     </transition>
   </Menu>
 </template>
-
-
-<script setup>
-import { Menu, MenuButton, MenuItems } from '@headlessui/vue'
-import { Icon } from '@iconify/vue'
-</script>

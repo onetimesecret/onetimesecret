@@ -1,3 +1,102 @@
+<script setup lang="ts">
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import DomainsTable from '@/components/DomainsTable.vue';
+import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
+import { useDomainsManager } from '@/composables/useDomainsManager';
+import { useWindowProps } from '@/composables/useWindowProps';
+import type { CustomDomain } from '@/schemas/models/domain';
+import { useDomainsStore } from '@/stores/domainsStore';
+import { useNotificationsStore } from '@/stores/notifications';
+import { computed, onMounted, ref } from 'vue';
+const isUpgradeModalOpen = ref(false)
+
+const openUpgradeModal = () => {
+  isUpgradeModalOpen.value = true
+}
+
+const closeUpgradeModal = () => {
+  isUpgradeModalOpen.value = false
+}
+
+const handleUpgrade = () => {
+  // Handle any additional logic here when the user has clicked the upgrade button.
+};
+
+const { plan } = useWindowProps(['plan'])
+
+const domainsStore = useDomainsStore();
+const notifications = useNotificationsStore();
+
+const {
+  isToggling,
+  setTogglingStatus,
+  isSubmitting,
+  confirmDelete
+} = useDomainsManager();
+
+const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
+const domains = computed(() => domainsStore.domains);
+const isLoading = computed(() => domainsStore.isLoading);
+const error = ref<string | null>(null);
+
+onMounted(async () => {
+  try {
+    console.debug('[AccountDomains] Attempting to refresh domains');
+    await domainsStore.refreshDomains();
+  } catch (err) {
+    console.error('Failed to refresh domains:', err);
+    error.value = err instanceof Error
+      ? `Failed to refresh domains: ${err.message}`
+      : 'An unknown error occurred while refreshing domains';
+  }
+});
+
+const handleConfirmDelete = async (domainId: string) => {
+  const confirmedDomainId = await confirmDelete(domainId);
+  if (confirmedDomainId) {
+    try {
+      await domainsStore.deleteDomain(confirmedDomainId);
+      notifications.show(`Removed ${domainId}`, 'success');
+    } catch (err) {
+      console.error('Failed to delete domain:', err);
+      notifications.show('Could not remove domain at this time', 'error');
+      error.value = err instanceof Error
+        ? err.message
+        : 'Failed to delete domain';
+    }
+  }
+};
+
+
+const handleToggleHomepage = async (domain: CustomDomain) => {
+  // Set the toggling state immediately
+  const domainId = domain.display_domain;
+  setTogglingStatus(domainId, true);
+
+  try {
+    const newState = await domainsStore.toggleHomepageAccess(domain);
+
+    notifications.show(
+      `Homepage access ${newState ? 'enabled' : 'disabled'} for ${domainId}`,
+      'success'
+    );
+  } catch (err) {
+    console.error('Failed to toggle homepage:', err);
+    error.value = err instanceof Error
+      ? err.message
+      : 'Failed to toggle homepage';
+
+    notifications.show(
+      `Failed to update homepage access for ${domainId}`,
+      'error'
+    );
+  } finally {
+    // Clear the toggling state
+    setTogglingStatus(domainId, false);
+  }
+};
+</script>
+
 <template>
   <div class="dark:bg-gray-900">
     <DashboardTabNav />
@@ -160,102 +259,3 @@
     />
   </div>
 </template>
-
-<script setup lang="ts">
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import DomainsTable from '@/components/DomainsTable.vue';
-import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
-import { useDomainsManager } from '@/composables/useDomainsManager';
-import { useWindowProps } from '@/composables/useWindowProps';
-import type { CustomDomain } from '@/schemas/models/domain';
-import { useDomainsStore } from '@/stores/domainsStore';
-import { useNotificationsStore } from '@/stores/notifications';
-import { computed, onMounted, ref } from 'vue';
-const isUpgradeModalOpen = ref(false)
-
-const openUpgradeModal = () => {
-  isUpgradeModalOpen.value = true
-}
-
-const closeUpgradeModal = () => {
-  isUpgradeModalOpen.value = false
-}
-
-const handleUpgrade = () => {
-  // Handle any additional logic here when the user has clicked the upgrade button.
-};
-
-const { plan } = useWindowProps(['plan'])
-
-const domainsStore = useDomainsStore();
-const notifications = useNotificationsStore();
-
-const {
-  isToggling,
-  setTogglingStatus,
-  isSubmitting,
-  confirmDelete
-} = useDomainsManager();
-
-const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
-const domains = computed(() => domainsStore.domains);
-const isLoading = computed(() => domainsStore.isLoading);
-const error = ref<string | null>(null);
-
-onMounted(async () => {
-  try {
-    console.debug('[AccountDomains] Attempting to refresh domains');
-    await domainsStore.refreshDomains();
-  } catch (err) {
-    console.error('Failed to refresh domains:', err);
-    error.value = err instanceof Error
-      ? `Failed to refresh domains: ${err.message}`
-      : 'An unknown error occurred while refreshing domains';
-  }
-});
-
-const handleConfirmDelete = async (domainId: string) => {
-  const confirmedDomainId = await confirmDelete(domainId);
-  if (confirmedDomainId) {
-    try {
-      await domainsStore.deleteDomain(confirmedDomainId);
-      notifications.show(`Removed ${domainId}`, 'success');
-    } catch (err) {
-      console.error('Failed to delete domain:', err);
-      notifications.show('Could not remove domain at this time', 'error');
-      error.value = err instanceof Error
-        ? err.message
-        : 'Failed to delete domain';
-    }
-  }
-};
-
-
-const handleToggleHomepage = async (domain: CustomDomain) => {
-  // Set the toggling state immediately
-  const domainId = domain.display_domain;
-  setTogglingStatus(domainId, true);
-
-  try {
-    const newState = await domainsStore.toggleHomepageAccess(domain);
-
-    notifications.show(
-      `Homepage access ${newState ? 'enabled' : 'disabled'} for ${domainId}`,
-      'success'
-    );
-  } catch (err) {
-    console.error('Failed to toggle homepage:', err);
-    error.value = err instanceof Error
-      ? err.message
-      : 'Failed to toggle homepage';
-
-    notifications.show(
-      `Failed to update homepage access for ${domainId}`,
-      'error'
-    );
-  } finally {
-    // Clear the toggling state
-    setTogglingStatus(domainId, false);
-  }
-};
-</script>

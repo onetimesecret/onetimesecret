@@ -1,3 +1,38 @@
+<script setup lang="ts">
+import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
+import SettingsModal from '@/components/modals/SettingsModal.vue';
+import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
+import { Icon } from '@iconify/vue';
+import { computed, ref } from 'vue';
+
+// Define the props for this layout, extending the BaseLayout props
+export interface Props extends BaseProps {
+  displayMasthead?: boolean;
+  displayNavigation?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  displayMasthead: true,
+  displayNavigation: true,
+  colonel: false,
+});
+
+const colonel = computed(() => props.cust?.role === 'colonel');
+
+// Reactive state
+const isSettingsModalOpen = ref(false);
+
+// Methods
+const openSettingsModal = () => {
+  isSettingsModalOpen.value = true;
+};
+
+const closeSettingsModal = () => {
+  isSettingsModalOpen.value = false;
+};
+
+</script>
+
 <template>
   <header class="bg-white dark:bg-gray-900">
     <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
@@ -126,38 +161,3 @@
   @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-800;
 }
 </style>
-
-<script setup lang="ts">
-import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
-import SettingsModal from '@/components/modals/SettingsModal.vue';
-import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
-import { Icon } from '@iconify/vue';
-import { computed, ref } from 'vue';
-
-// Define the props for this layout, extending the BaseLayout props
-export interface Props extends BaseProps {
-  displayMasthead?: boolean;
-  displayNavigation?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  displayMasthead: true,
-  displayNavigation: true,
-  colonel: false,
-});
-
-const colonel = computed(() => props.cust?.role === 'colonel');
-
-// Reactive state
-const isSettingsModalOpen = ref(false);
-
-// Methods
-const openSettingsModal = () => {
-  isSettingsModalOpen.value = true;
-};
-
-const closeSettingsModal = () => {
-  isSettingsModalOpen.value = false;
-};
-
-</script>

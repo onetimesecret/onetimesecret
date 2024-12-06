@@ -1,3 +1,99 @@
+<script setup lang="ts">
+import { useWindowProps } from '@/composables/useWindowProps';
+import { FocusTrap } from 'focus-trap-vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
+import GeneralTab from './settings/GeneralTab.vue';
+import JurisdictionTab from './settings/JurisdictionTab.vue';
+
+const { regions_enabled: regionsEnabled } = useWindowProps(['regions_enabled']);
+
+interface Tab {
+  id: string;
+  label: string;
+}
+
+const props = defineProps<{
+  isOpen: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'close'): void;
+}>();
+
+const closeButton = ref<HTMLButtonElement | null>(null);
+let previouslyFocusedElement: HTMLElement | null = null;
+
+
+const tabs = ref<Tab[]>([
+  { id: 'general', label: 'General' },
+]);
+
+if (regionsEnabled.value) {
+  tabs.value.push({ id: 'data-region', label: 'Data Region' });
+}
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    closeModal();
+  }
+};
+const activeTab = ref<Tab['id']>(tabs.value[0].id);
+
+const closeModal = () => {
+  emit('close');
+  // Return focus to the previous element when modal closes
+  nextTick(() => {
+    previouslyFocusedElement?.focus();
+  });
+};
+
+// Reset tab when modal closes and re-opens
+watch(() => props.isOpen, (newValue) => {
+  if (newValue) {
+    activeTab.value = tabs.value[0].id;
+    // Store the currently focused element when modal opens
+    previouslyFocusedElement = document.activeElement as HTMLElement;
+  }
+});
+
+// Clean up when component is destroyed
+onBeforeUnmount(() => {
+  previouslyFocusedElement = null;
+});
+
+onMounted(() => {
+  if (!closeButton.value) {
+    console.warn('Initial focus element not found for settings modal');
+  }
+});
+
+const handleTabKeydown = (e: KeyboardEvent) => {
+  const tabButtons = tabs.value.map(tab => tab.id);
+  const currentIndex = tabButtons.indexOf(activeTab.value);
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case 'ArrowDown':
+      e.preventDefault();
+      activeTab.value = tabButtons[(currentIndex + 1) % tabButtons.length];
+      break;
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      e.preventDefault();
+      activeTab.value = tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
+      break;
+    case 'Home':
+      e.preventDefault();
+      activeTab.value = tabButtons[0];
+      break;
+    case 'End':
+      e.preventDefault();
+      activeTab.value = tabButtons[tabButtons.length - 1];
+      break;
+  }
+};
+</script>
+
 <template>
   <!-- Using v-if instead of v-show for modal dialogs is preferred for accessibility:
        - Completely removes content from DOM and accessibility tree when closed
@@ -155,99 +251,3 @@
   display: none;
 }
 </style>
-
-<script setup lang="ts">
-import { useWindowProps } from '@/composables/useWindowProps';
-import { FocusTrap } from 'focus-trap-vue';
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-
-import GeneralTab from './settings/GeneralTab.vue';
-import JurisdictionTab from './settings/JurisdictionTab.vue';
-
-const { regions_enabled: regionsEnabled } = useWindowProps(['regions_enabled']);
-
-interface Tab {
-  id: string;
-  label: string;
-}
-
-const props = defineProps<{
-  isOpen: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'close'): void;
-}>();
-
-const closeButton = ref<HTMLButtonElement | null>(null);
-let previouslyFocusedElement: HTMLElement | null = null;
-
-
-const tabs = ref<Tab[]>([
-  { id: 'general', label: 'General' },
-]);
-
-if (regionsEnabled.value) {
-  tabs.value.push({ id: 'data-region', label: 'Data Region' });
-}
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    closeModal();
-  }
-};
-const activeTab = ref<Tab['id']>(tabs.value[0].id);
-
-const closeModal = () => {
-  emit('close');
-  // Return focus to the previous element when modal closes
-  nextTick(() => {
-    previouslyFocusedElement?.focus();
-  });
-};
-
-// Reset tab when modal closes and re-opens
-watch(() => props.isOpen, (newValue) => {
-  if (newValue) {
-    activeTab.value = tabs.value[0].id;
-    // Store the currently focused element when modal opens
-    previouslyFocusedElement = document.activeElement as HTMLElement;
-  }
-});
-
-// Clean up when component is destroyed
-onBeforeUnmount(() => {
-  previouslyFocusedElement = null;
-});
-
-onMounted(() => {
-  if (!closeButton.value) {
-    console.warn('Initial focus element not found for settings modal');
-  }
-});
-
-const handleTabKeydown = (e: KeyboardEvent) => {
-  const tabButtons = tabs.value.map(tab => tab.id);
-  const currentIndex = tabButtons.indexOf(activeTab.value);
-
-  switch (e.key) {
-    case 'ArrowRight':
-    case 'ArrowDown':
-      e.preventDefault();
-      activeTab.value = tabButtons[(currentIndex + 1) % tabButtons.length];
-      break;
-    case 'ArrowLeft':
-    case 'ArrowUp':
-      e.preventDefault();
-      activeTab.value = tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
-      break;
-    case 'Home':
-      e.preventDefault();
-      activeTab.value = tabButtons[0];
-      break;
-    case 'End':
-      e.preventDefault();
-      activeTab.value = tabButtons[tabButtons.length - 1];
-      break;
-  }
-};
-</script>

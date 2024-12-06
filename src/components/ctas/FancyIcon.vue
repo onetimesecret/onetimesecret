@@ -1,3 +1,36 @@
+<script setup lang="ts">
+import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
+import { computed, ref } from 'vue';
+
+defineProps<{
+  ariaLabel: string;
+  to: string;
+  colonel?: boolean;
+}>();
+
+const showUpgradeNudge = computed(() => {
+  // Logic to determine if the user should see the upgrade nudge
+  // For example, check if the user is on a free plan
+  //return !cust.value.isPremium
+  return true;
+})
+
+const isUpgradeModalOpen = ref(false)
+
+const openUpgradeModal = () => {
+  isUpgradeModalOpen.value = true
+}
+
+const closeUpgradeModal = () => {
+  isUpgradeModalOpen.value = false
+}
+
+const handleUpgrade = () => {
+  // Handle any additional logic here when the user has clicked the upgrade button.
+};
+
+</script>
+
 <template>
   <div class="container">
     <div
@@ -71,39 +104,6 @@
     />
   </div>
 </template>
-
-<script setup lang="ts">
-import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
-import { computed, ref } from 'vue';
-
-defineProps<{
-  ariaLabel: string;
-  to: string;
-  colonel?: boolean;
-}>();
-
-const showUpgradeNudge = computed(() => {
-  // Logic to determine if the user should see the upgrade nudge
-  // For example, check if the user is on a free plan
-  //return !cust.value.isPremium
-  return true;
-})
-
-const isUpgradeModalOpen = ref(false)
-
-const openUpgradeModal = () => {
-  isUpgradeModalOpen.value = true
-}
-
-const closeUpgradeModal = () => {
-  isUpgradeModalOpen.value = false
-}
-
-const handleUpgrade = () => {
-  // Handle any additional logic here when the user has clicked the upgrade button.
-};
-
-</script>
 
 
 <style scoped>

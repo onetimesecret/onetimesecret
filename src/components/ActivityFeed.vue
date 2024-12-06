@@ -1,3 +1,39 @@
+<script setup lang="ts">
+import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
+import { Icon } from '@iconify/vue'
+import { ref } from 'vue'
+
+const activity = [
+  { id: 1, type: 'created', person: { name: 'Chelsea Hagon' }, date: '7d ago', dateTime: '2023-01-23T10:32' },
+  { id: 2, type: 'edited', person: { name: 'Chelsea Hagon' }, date: '6d ago', dateTime: '2023-01-23T11:03' },
+  { id: 3, type: 'sent', person: { name: 'Chelsea Hagon' }, date: '6d ago', dateTime: '2023-01-23T11:24' },
+  {
+    id: 4,
+    type: 'commented',
+    person: {
+      name: 'Chelsea Hagon',
+      imageUrl:
+        '/v3/img/onetime-logo-v3-xl.svg',
+    },
+    comment: 'Called client, they reassured me the invoice would be paid by the 25th.',
+    date: '3d ago',
+    dateTime: '2023-01-23T15:56',
+  },
+  { id: 5, type: 'viewed', person: { name: 'Alex Curren' }, date: '2d ago', dateTime: '2023-01-24T09:12' },
+  { id: 6, type: 'paid', person: { name: 'Alex Curren' }, date: '1d ago', dateTime: '2023-01-24T09:20' },
+]
+const moods = [
+  { name: 'Excited', value: 'excited', icon: 'heroicons:fire', iconColor: 'text-white', bgColor: 'bg-red-500' },
+  { name: 'Loved', value: 'loved', icon: 'heroicons:heart', iconColor: 'text-white', bgColor: 'bg-pink-400' },
+  { name: 'Happy', value: 'happy', icon: 'heroicons:face-smile', iconColor: 'text-white', bgColor: 'bg-green-400' },
+  { name: 'Sad', value: 'sad', icon: 'heroicons:face-frown', iconColor: 'text-white', bgColor: 'bg-yellow-400' },
+  { name: 'Thumbsy', value: 'thumbsy', icon: 'heroicons:hand-thumb-up', iconColor: 'text-white', bgColor: 'bg-blue-500' },
+  { name: 'I feel nothing', value: '', icon: 'heroicons:x-mark', iconColor: 'text-gray-400', bgColor: 'bg-transparent' },
+]
+
+const selected = ref(moods[5])
+</script>
+
 <template>
   <ul
     role="list"
@@ -157,39 +193,3 @@
     </form>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { Icon } from '@iconify/vue'
-import { ref } from 'vue'
-
-const activity = [
-  { id: 1, type: 'created', person: { name: 'Chelsea Hagon' }, date: '7d ago', dateTime: '2023-01-23T10:32' },
-  { id: 2, type: 'edited', person: { name: 'Chelsea Hagon' }, date: '6d ago', dateTime: '2023-01-23T11:03' },
-  { id: 3, type: 'sent', person: { name: 'Chelsea Hagon' }, date: '6d ago', dateTime: '2023-01-23T11:24' },
-  {
-    id: 4,
-    type: 'commented',
-    person: {
-      name: 'Chelsea Hagon',
-      imageUrl:
-        '/v3/img/onetime-logo-v3-xl.svg',
-    },
-    comment: 'Called client, they reassured me the invoice would be paid by the 25th.',
-    date: '3d ago',
-    dateTime: '2023-01-23T15:56',
-  },
-  { id: 5, type: 'viewed', person: { name: 'Alex Curren' }, date: '2d ago', dateTime: '2023-01-24T09:12' },
-  { id: 6, type: 'paid', person: { name: 'Alex Curren' }, date: '1d ago', dateTime: '2023-01-24T09:20' },
-]
-const moods = [
-  { name: 'Excited', value: 'excited', icon: 'heroicons:fire', iconColor: 'text-white', bgColor: 'bg-red-500' },
-  { name: 'Loved', value: 'loved', icon: 'heroicons:heart', iconColor: 'text-white', bgColor: 'bg-pink-400' },
-  { name: 'Happy', value: 'happy', icon: 'heroicons:face-smile', iconColor: 'text-white', bgColor: 'bg-green-400' },
-  { name: 'Sad', value: 'sad', icon: 'heroicons:face-frown', iconColor: 'text-white', bgColor: 'bg-yellow-400' },
-  { name: 'Thumbsy', value: 'thumbsy', icon: 'heroicons:hand-thumb-up', iconColor: 'text-white', bgColor: 'bg-blue-500' },
-  { name: 'I feel nothing', value: '', icon: 'heroicons:x-mark', iconColor: 'text-gray-400', bgColor: 'bg-transparent' },
-]
-
-const selected = ref(moods[5])
-</script>

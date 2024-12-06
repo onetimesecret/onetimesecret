@@ -1,3 +1,6 @@
+<script setup lang="ts">
+</script>
+
 <template>
   <div class="mb-6 w-full border-y border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-800">
     <div class="container mx-auto px-4 py-2">
@@ -54,9 +57,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-</script>
 
 <style scoped>
 @keyframes throb {

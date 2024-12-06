@@ -1,20 +1,3 @@
-<template>
-  <div class="">
-    <h1 class="mb-6 text-3xl font-bold dark:text-white">
-      Add your domain
-    </h1>
-    <DomainForm
-      :is-submitting="isSubmitting"
-      @submit="handleDomainSubmit"
-    />
-    <p
-      v-if="isNavigating"
-      class="mt-4 text-gray-600 dark:text-gray-400">
-      Navigating to verification page...
-    </p>
-  </div>
-</template>
-
 <script setup lang="ts">
 import DomainForm from '@/components/DomainForm.vue';
 import { useDomainsStore } from '@/stores/domainsStore';
@@ -57,3 +40,20 @@ const handleDomainSubmit = async (domain: string) => {
   }
 };
 </script>
+
+<template>
+  <div class="">
+    <h1 class="mb-6 text-3xl font-bold dark:text-white">
+      Add your domain
+    </h1>
+    <DomainForm
+      :is-submitting="isSubmitting"
+      @submit="handleDomainSubmit"
+    />
+    <p
+      v-if="isNavigating"
+      class="mt-4 text-gray-600 dark:text-gray-400">
+      Navigating to verification page...
+    </p>
+  </div>
+</template>

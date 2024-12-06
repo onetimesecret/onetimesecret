@@ -1,14 +1,4 @@
 <!-- ShowSecretContainer.vue -->
-<template>
-  <Component
-    :is="currentComponent"
-    :secret-key="secretKey"
-    :domain-id="domainId"
-    :display-domain="displayDomain"
-    :site-host="siteHost"
-  />
-</template>
-
 <script setup lang="ts">
 import { domainStrategy } from '@/composables/useDomainBranding';
 import { computed } from 'vue';
@@ -34,3 +24,13 @@ const currentComponent = computed(() => {
   return domainStrategy.value === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
 });
 </script>
+
+<template>
+  <Component
+    :is="currentComponent"
+    :secret-key="secretKey"
+    :domain-id="domainId"
+    :display-domain="displayDomain"
+    :site-host="siteHost"
+  />
+</template>

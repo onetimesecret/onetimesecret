@@ -1,3 +1,82 @@
+<script setup lang="ts">
+import { productTiers, paymentFrequencies } from '@/sources/productTiers'
+import type { Testimonial } from '@/sources/testimonials';
+import { testimonials } from '@/sources/testimonials';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
+
+// Props
+const props = defineProps<{
+  isOpen: boolean;
+  to: string;
+}>();
+
+// Emits
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'upgrade'): void;
+}>();
+
+// Reactive state
+const randomTestimonial = ref<Testimonial | null>(null);
+
+const frequency = ref('monthly')
+
+const toggleFrequency = (newFrequency: string) => {
+  frequency.value = newFrequency
+}
+
+// Methods
+const closeModal = () => {
+  emit('close');
+};
+
+const upgradeNow = () => {
+  emit('upgrade');
+};
+
+const handleModalClick = (event: MouseEvent) => {
+  event.stopPropagation();
+};
+
+const handleModalInteraction = (event: TouchEvent) => {
+  event.stopPropagation();
+};
+
+const getRandomTestimonial = () => {
+  const randomIndex = Math.floor(Math.random() * testimonials.length);
+  randomTestimonial.value = testimonials[randomIndex];
+};
+
+const getPriceSuffix = (frequency: string) => {
+  const selectedFrequency = paymentFrequencies.find(f => f.value === frequency);
+  return selectedFrequency ? selectedFrequency.priceSuffix : '';
+}
+
+// Handle ESC key press
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && props.isOpen) {
+    closeModal();
+  }
+};
+
+// Watch for changes in isOpen prop
+watch(() => props.isOpen, (newValue) => {
+  if (newValue) {
+    getRandomTestimonial();
+  }
+});
+
+// Add event listener for ESC key
+onMounted(() => {
+  document.addEventListener('keydown', handleEscKey);
+});
+
+// Remove event listener when component is unmounted
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscKey);
+});
+</script>
+
 <template>
   <teleport to="body">
     <div
@@ -167,82 +246,3 @@
     </div>
   </teleport>
 </template>
-
-<script setup lang="ts">
-import { productTiers, paymentFrequencies } from '@/sources/productTiers'
-import type { Testimonial } from '@/sources/testimonials';
-import { testimonials } from '@/sources/testimonials';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
-
-// Props
-const props = defineProps<{
-  isOpen: boolean;
-  to: string;
-}>();
-
-// Emits
-const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'upgrade'): void;
-}>();
-
-// Reactive state
-const randomTestimonial = ref<Testimonial | null>(null);
-
-const frequency = ref('monthly')
-
-const toggleFrequency = (newFrequency: string) => {
-  frequency.value = newFrequency
-}
-
-// Methods
-const closeModal = () => {
-  emit('close');
-};
-
-const upgradeNow = () => {
-  emit('upgrade');
-};
-
-const handleModalClick = (event: MouseEvent) => {
-  event.stopPropagation();
-};
-
-const handleModalInteraction = (event: TouchEvent) => {
-  event.stopPropagation();
-};
-
-const getRandomTestimonial = () => {
-  const randomIndex = Math.floor(Math.random() * testimonials.length);
-  randomTestimonial.value = testimonials[randomIndex];
-};
-
-const getPriceSuffix = (frequency: string) => {
-  const selectedFrequency = paymentFrequencies.find(f => f.value === frequency);
-  return selectedFrequency ? selectedFrequency.priceSuffix : '';
-}
-
-// Handle ESC key press
-const handleEscKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && props.isOpen) {
-    closeModal();
-  }
-};
-
-// Watch for changes in isOpen prop
-watch(() => props.isOpen, (newValue) => {
-  if (newValue) {
-    getRandomTestimonial();
-  }
-});
-
-// Add event listener for ESC key
-onMounted(() => {
-  document.addEventListener('keydown', handleEscKey);
-});
-
-// Remove event listener when component is unmounted
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleEscKey);
-});
-</script>

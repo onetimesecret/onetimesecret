@@ -1,3 +1,21 @@
+<script setup lang="ts">
+import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
+// Define the props for this layout, extending the DefaultLayout props
+export interface Props extends DefaultProps {
+  displayFeedback?: boolean
+  displayLinks?: boolean
+  displayVersion?: boolean
+  displayToggles?: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  displayFeedback: true,
+  displayLinks: true,
+  displayVersion: true,
+  displayToggles: true,
+});
+</script>
+
 <template>
   <div class="">
     <div class="mb-8 grid grid-cols-2 gap-8 py-6 pl-4 sm:pl-8 md:grid-cols-3 md:pl-16">
@@ -113,21 +131,3 @@
     <div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
   </div>
 </template>
-
-<script setup lang="ts">
-import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
-// Define the props for this layout, extending the DefaultLayout props
-export interface Props extends DefaultProps {
-  displayFeedback?: boolean
-  displayLinks?: boolean
-  displayVersion?: boolean
-  displayToggles?: boolean
-}
-
-withDefaults(defineProps<Props>(), {
-  displayFeedback: true,
-  displayLinks: true,
-  displayVersion: true,
-  displayToggles: true,
-});
-</script>

@@ -1,3 +1,28 @@
+<script setup lang="ts">
+import InfoTooltip from '@/components/InfoTooltip.vue';
+import MovingGlobules from '@/components/MovingGlobules.vue';
+import QuoteSection from '@/components/QuoteSection.vue';
+import { paymentFrequencies, productTiers } from '@/sources/productTiers';
+import { testimonials as testimonialsData } from '@/sources/testimonials';
+import { RadioGroup, RadioGroupOption } from '@headlessui/vue';
+import { Icon } from '@iconify/vue';
+import { onMounted, ref } from 'vue';
+
+const testimonials = ref(testimonialsData);
+const randomTestimonial = ref(testimonials.value[0]);
+
+const tiers = ref(productTiers);
+const frequencies = ref(paymentFrequencies);
+const frequency = ref(frequencies.value[0]);
+
+onMounted(() => {
+  const randomIndex = Math.floor(Math.random() * testimonials.value.length);
+  randomTestimonial.value = testimonials.value[randomIndex];
+});
+
+</script>
+
+
 <template>
   <div class="py-18 relative isolate bg-white px-6 dark:bg-gray-900 sm:py-12 lg:px-8">
     <div class="flex justify-center pb-6 text-sm">
@@ -215,31 +240,6 @@
     </div>
   </div>
 </template>
-
-
-<script setup lang="ts">
-import InfoTooltip from '@/components/InfoTooltip.vue';
-import MovingGlobules from '@/components/MovingGlobules.vue';
-import QuoteSection from '@/components/QuoteSection.vue';
-import { paymentFrequencies, productTiers } from '@/sources/productTiers';
-import { testimonials as testimonialsData } from '@/sources/testimonials';
-import { RadioGroup, RadioGroupOption } from '@headlessui/vue';
-import { Icon } from '@iconify/vue';
-import { onMounted, ref } from 'vue';
-
-const testimonials = ref(testimonialsData);
-const randomTestimonial = ref(testimonials.value[0]);
-
-const tiers = ref(productTiers);
-const frequencies = ref(paymentFrequencies);
-const frequency = ref(frequencies.value[0]);
-
-onMounted(() => {
-  const randomIndex = Math.floor(Math.random() * testimonials.value.length);
-  randomTestimonial.value = testimonials.value[randomIndex];
-});
-
-</script>
 
 <style scoped>
 .gradient-text {

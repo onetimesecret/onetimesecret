@@ -1,4 +1,16 @@
 
+<script setup lang="ts">
+import type { MetadataData, MetadataDetails } from '@/schemas/models';
+
+interface Props {
+  metadata: MetadataData;
+  details: MetadataDetails;
+}
+
+defineProps<Props>()
+
+</script>
+
 <template>
   <div v-if="!details.is_destroyed">
     <router-link
@@ -37,15 +49,3 @@
     <hr class="mx-auto my-4 w-1/4 border-gray-200 dark:border-gray-600" />
   </div>
 </template>
-
-<script setup lang="ts">
-import type { MetadataData, MetadataDetails } from '@/schemas/models';
-
-interface Props {
-  metadata: MetadataData;
-  details: MetadataDetails;
-}
-
-defineProps<Props>()
-
-</script>

@@ -1,3 +1,37 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+
+withDefaults(defineProps<{
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  type?: 'danger' | 'default';
+}>(), {
+  confirmText: 'Confirm',
+  cancelText: 'Cancel',
+  type: 'default'
+});
+
+const emit = defineEmits<{
+  (e: 'confirm'): void;
+  (e: 'cancel'): void;
+}>();
+
+const isVisible = ref(true);
+
+const confirm = () => {
+  isVisible.value = false;
+  emit('confirm');
+};
+
+const cancel = () => {
+  isVisible.value = false;
+  emit('cancel');
+};
+</script>
+
+
 <template>
   <div
     v-if="isVisible"
@@ -33,37 +67,3 @@
     </div>
   </div>
 </template>
-
-
-<script setup lang="ts">
-import { ref } from 'vue';
-
-withDefaults(defineProps<{
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  type?: 'danger' | 'default';
-}>(), {
-  confirmText: 'Confirm',
-  cancelText: 'Cancel',
-  type: 'default'
-});
-
-const emit = defineEmits<{
-  (e: 'confirm'): void;
-  (e: 'cancel'): void;
-}>();
-
-const isVisible = ref(true);
-
-const confirm = () => {
-  isVisible.value = false;
-  emit('confirm');
-};
-
-const cancel = () => {
-  isVisible.value = false;
-  emit('cancel');
-};
-</script>

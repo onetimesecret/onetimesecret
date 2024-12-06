@@ -1,3 +1,8 @@
+<script setup lang="ts">
+  defineProps<{
+    ariaLabel: string;
+  }>();
+</script>
 <template>
   <section
     class="mx-auto my-8 max-w-4xl overflow-hidden rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 shadow-lg">
@@ -103,8 +108,3 @@
     </div>
   </section>
 </template>
-<script setup lang="ts">
-  defineProps<{
-    ariaLabel: string;
-  }>();
-</script>

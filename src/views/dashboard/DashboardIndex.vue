@@ -1,4 +1,9 @@
 
+<script setup lang="ts">
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import SecretForm from '@/components/secrets/form/SecretForm.vue';
+</script>
+
 <template>
   <div class="min-h-[50vh]">
     <DashboardTabNav />
@@ -9,8 +14,3 @@
     />
   </div>
 </template>
-
-<script setup lang="ts">
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import SecretForm from '@/components/secrets/form/SecretForm.vue';
-</script>

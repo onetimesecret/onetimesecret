@@ -1,3 +1,14 @@
+<script setup lang="ts">
+import type { BrandSettings } from '@/schemas/models/domain/brand';
+
+interface Props {
+  branded?: boolean;
+  brandSettings?: BrandSettings;
+}
+
+defineProps<Props>();
+</script>
+
 <template>
   <div
     :class="[
@@ -124,14 +135,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import type { BrandSettings } from '@/schemas/models/domain/brand';
-
-interface Props {
-  branded?: boolean;
-  brandSettings?: BrandSettings;
-}
-
-defineProps<Props>();
-</script>

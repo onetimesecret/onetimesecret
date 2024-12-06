@@ -1,3 +1,40 @@
+<script setup lang="ts">
+import { useClipboard } from '@/composables/useClipboard';
+import { useDomainBranding } from '@/composables/useDomainBranding';
+import { SecretData, SecretDetails } from '@/schemas/models';
+import { ref } from 'vue';
+
+import BaseSecretDisplay from './BaseSecretDisplay.vue';
+
+interface Props {
+  secretKey: string;
+  record: SecretData | null;
+  details: SecretDetails | null;
+  domainId: string;
+}
+
+const props = defineProps<Props>();
+
+const domainBranding = useDomainBranding();
+
+const hasImageError = ref(false);
+const { isCopied, copyToClipboard } = useClipboard();
+
+const copySecretContent = () => {
+  if (props.record?.secret_value === undefined) {
+    return;
+  }
+
+  copyToClipboard(props.record?.secret_value);
+};
+const handleImageError = () => {
+  hasImageError.value = true;
+};
+// Prepare the standardized path to the logo image.
+// Note that the file extension needs to be present but is otherwise not used.
+const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
+</script>
+
 <template>
   <BaseSecretDisplay
     default-title="You have a message"
@@ -94,40 +131,3 @@
 </template>
 
 <style></style>
-
-<script setup lang="ts">
-import { useClipboard } from '@/composables/useClipboard';
-import { useDomainBranding } from '@/composables/useDomainBranding';
-import { SecretData, SecretDetails } from '@/schemas/models';
-import { ref } from 'vue';
-
-import BaseSecretDisplay from './BaseSecretDisplay.vue';
-
-interface Props {
-  secretKey: string;
-  record: SecretData | null;
-  details: SecretDetails | null;
-  domainId: string;
-}
-
-const props = defineProps<Props>();
-
-const domainBranding = useDomainBranding();
-
-const hasImageError = ref(false);
-const { isCopied, copyToClipboard } = useClipboard();
-
-const copySecretContent = () => {
-  if (props.record?.secret_value === undefined) {
-    return;
-  }
-
-  copyToClipboard(props.record?.secret_value);
-};
-const handleImageError = () => {
-  hasImageError.value = true;
-};
-// Prepare the standardized path to the logo image.
-// Note that the file extension needs to be present but is otherwise not used.
-const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
-</script>

@@ -1,3 +1,10 @@
+<script setup lang="ts">
+defineProps<{
+  show: boolean;
+  message?: string;
+}>();
+</script>
+
 <template>
   <div
     v-if="show"
@@ -15,10 +22,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  show: boolean;
-  message?: string;
-}>();
-</script>

@@ -1,4 +1,14 @@
 <!-- src/components/account/BrowserTypeToggle.vue -->
+<script setup lang="ts">
+defineProps<{
+  modelValue: 'safari' | 'edge'
+}>();
+
+defineEmits<{
+  (e: 'update:modelValue', value: 'safari' | 'edge'): void
+}>();
+</script>
+
 <template>
   <div class="mb-4 flex items-center justify-center space-x-3">
     <button
@@ -26,13 +36,3 @@
     </button>
   </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  modelValue: 'safari' | 'edge'
-}>();
-
-defineEmits<{
-  (e: 'update:modelValue', value: 'safari' | 'edge'): void
-}>();
-</script>

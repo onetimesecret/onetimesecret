@@ -1,3 +1,65 @@
+<script setup lang="ts">
+import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
+import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
+import ThemeToggle from '@/components/ThemeToggle.vue';
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import type { SecretData, SecretDetails } from '@/schemas/models';
+import { AsyncDataResult, SecretDataApiResponse } from '@/types/api';
+import { computed, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+
+import UnknownSecret from './UnknownSecret.vue';
+
+interface Props {
+  secretKey: string;
+  domainId: string;
+  displayDomain: string;
+  siteHost: string;
+}
+
+const props = defineProps<Props>();
+const route = useRoute();
+
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>);
+
+const finalRecord = ref<SecretData | null>(null);
+const finalDetails = ref<SecretDetails | null>(null);
+
+const {
+  isSubmitting,
+} = useFormSubmission({
+  url: `/api/v2/secret/${props.secretKey}`,
+  successMessage: '',
+  onSuccess: (data: SecretDataApiResponse) => {
+    finalRecord.value = data.record;
+    finalDetails.value = data.details;
+  },
+  onError: (data: { message: string; }) => {
+    console.debug('Error fetching secret:', data.message);
+    throw new Error(data.message);
+  },
+});
+
+// Compute the current state based on initial and final data
+const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
+const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
+const isLoading = computed(() => isSubmitting.value);
+
+const handleSecretLoaded = (data: { record: SecretData; details: SecretDetails; }) => {
+  finalRecord.value = data.record;
+  finalDetails.value = data.details;
+};
+
+// Watch for changes in the finalRecord and update the view accordingly
+watch(finalRecord, (newValue) => {
+  if (newValue) {
+    console.log('Secret fetched successfully');
+  }
+});
+
+
+</script>
+
 <template>
   <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
     <div class="w-full max-w-xl space-y-8">
@@ -72,65 +134,3 @@
   height: auto;
 }
 </style>
-
-<script setup lang="ts">
-import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
-import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { SecretData, SecretDetails } from '@/schemas/models';
-import { AsyncDataResult, SecretDataApiResponse } from '@/types/api';
-import { computed, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-
-import UnknownSecret from './UnknownSecret.vue';
-
-interface Props {
-  secretKey: string;
-  domainId: string;
-  displayDomain: string;
-  siteHost: string;
-}
-
-const props = defineProps<Props>();
-const route = useRoute();
-
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>);
-
-const finalRecord = ref<SecretData | null>(null);
-const finalDetails = ref<SecretDetails | null>(null);
-
-const {
-  isSubmitting,
-} = useFormSubmission({
-  url: `/api/v2/secret/${props.secretKey}`,
-  successMessage: '',
-  onSuccess: (data: SecretDataApiResponse) => {
-    finalRecord.value = data.record;
-    finalDetails.value = data.details;
-  },
-  onError: (data: { message: string; }) => {
-    console.debug('Error fetching secret:', data.message);
-    throw new Error(data.message);
-  },
-});
-
-// Compute the current state based on initial and final data
-const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
-const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
-const isLoading = computed(() => isSubmitting.value);
-
-const handleSecretLoaded = (data: { record: SecretData; details: SecretDetails; }) => {
-  finalRecord.value = data.record;
-  finalDetails.value = data.details;
-};
-
-// Watch for changes in the finalRecord and update the view accordingly
-watch(finalRecord, (newValue) => {
-  if (newValue) {
-    console.log('Secret fetched successfully');
-  }
-});
-
-
-</script>

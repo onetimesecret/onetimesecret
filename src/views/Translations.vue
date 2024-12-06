@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import EmailObfuscator from '@/components/EmailObfuscator.vue';
+import GithubCorner from '@/components/GithubCorner.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
+import { setLanguage } from '@/i18n';
+import translations from '@/sources/translations.json';
+import { useLanguageStore } from '@/stores/languageStore';
+
+const languageStore = useLanguageStore();
+const cust = useWindowProp('cust');
+
+const changeLocale = async (newLocale: string) => {
+  if (languageStore.getSupportedLocales.includes(newLocale)) {
+    try {
+      if (cust.value) {
+        cust.value.locale = newLocale;
+      }
+      await languageStore.updateLanguage(newLocale);
+      await setLanguage(newLocale);
+    } catch (err) {
+      console.error('Failed to update language:', err);
+    }
+  }
+};
+</script>
+
 <template>
   <div>
     <GithubCorner />
@@ -118,29 +144,3 @@
     </article>
   </div>
 </template>
-
-<script setup lang="ts">
-import EmailObfuscator from '@/components/EmailObfuscator.vue';
-import GithubCorner from '@/components/GithubCorner.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
-import { setLanguage } from '@/i18n';
-import translations from '@/sources/translations.json';
-import { useLanguageStore } from '@/stores/languageStore';
-
-const languageStore = useLanguageStore();
-const cust = useWindowProp('cust');
-
-const changeLocale = async (newLocale: string) => {
-  if (languageStore.getSupportedLocales.includes(newLocale)) {
-    try {
-      if (cust.value) {
-        cust.value.locale = newLocale;
-      }
-      await languageStore.updateLanguage(newLocale);
-      await setLanguage(newLocale);
-    } catch (err) {
-      console.error('Failed to update language:', err);
-    }
-  }
-};
-</script>

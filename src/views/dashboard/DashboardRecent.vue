@@ -1,4 +1,25 @@
 
+<script setup lang="ts">
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import EmptyState from '@/components/EmptyState.vue';
+import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { storeToRefs } from 'pinia';
+import { onMounted, onUnmounted } from 'vue';
+
+const store = useMetadataStore();
+const { records, details, isLoading, error } = storeToRefs(store);
+
+onMounted(async () => {
+  await store.fetchList();
+
+});
+
+onUnmounted(() => {
+  store.abortPendingRequests();
+});
+</script>
+
 <template>
   <div>
     <DashboardTabNav />
@@ -21,24 +42,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import EmptyState from '@/components/EmptyState.vue';
-import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
-import { useMetadataStore } from '@/stores/metadataStore';
-import { storeToRefs } from 'pinia';
-import { onMounted, onUnmounted } from 'vue';
-
-const store = useMetadataStore();
-const { records, details, isLoading, error } = storeToRefs(store);
-
-onMounted(async () => {
-  await store.fetchList();
-
-});
-
-onUnmounted(() => {
-  store.abortPendingRequests();
-});
-</script>

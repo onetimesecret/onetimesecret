@@ -1,3 +1,61 @@
+<script setup lang="ts">
+import { paymentFrequencies, productTiers, type ProductTier } from '@/sources/productTiers';
+import type { Testimonial } from '@/sources/testimonials';
+import { testimonials } from '@/sources/testimonials';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
+
+const selectedTier = ref<ProductTier>(productTiers[0])
+const selectedFrequency = ref(paymentFrequencies[0].value)
+// Props
+const props = defineProps<{
+  isOpen: boolean;
+  to: string;
+}>();
+
+// Emits
+const emit = defineEmits<{
+  (e: 'close'): void;
+  (e: 'upgrade'): void;
+}>();
+
+// Reactive state
+const randomTestimonial = ref<Testimonial | null>(null);
+
+// Methods
+const closeModal = () => {
+  emit('close');
+};
+
+const getRandomTestimonial = () => {
+  const randomIndex = Math.floor(Math.random() * testimonials.length);
+  randomTestimonial.value = testimonials[randomIndex];
+};
+
+// Handle ESC key press
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && props.isOpen) {
+    closeModal();
+  }
+};
+
+// Watch for changes in isOpen prop
+watch(() => props.isOpen, (newValue) => {
+  if (newValue) {
+    getRandomTestimonial();
+  }
+});
+
+// Add event listener for ESC key
+onMounted(() => {
+  document.addEventListener('keydown', handleEscKey);
+});
+
+// Remove event listener when component is unmounted
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscKey);
+});
+</script>
+
 <template>
   <div
     class="fixed inset-0 z-50 overflow-y-auto"
@@ -112,6 +170,7 @@
   </div>
 </template>
 
+
 <style scoped>
 .confetti-container {
   position: absolute;
@@ -150,62 +209,3 @@ div:hover .confetti-container {
   opacity: 1;
 }
 </style>
-
-
-<script setup lang="ts">
-import { paymentFrequencies, productTiers, type ProductTier } from '@/sources/productTiers';
-import type { Testimonial } from '@/sources/testimonials';
-import { testimonials } from '@/sources/testimonials';
-import { onMounted, onUnmounted, ref, watch } from 'vue';
-
-const selectedTier = ref<ProductTier>(productTiers[0])
-const selectedFrequency = ref(paymentFrequencies[0].value)
-// Props
-const props = defineProps<{
-  isOpen: boolean;
-  to: string;
-}>();
-
-// Emits
-const emit = defineEmits<{
-  (e: 'close'): void;
-  (e: 'upgrade'): void;
-}>();
-
-// Reactive state
-const randomTestimonial = ref<Testimonial | null>(null);
-
-// Methods
-const closeModal = () => {
-  emit('close');
-};
-
-const getRandomTestimonial = () => {
-  const randomIndex = Math.floor(Math.random() * testimonials.length);
-  randomTestimonial.value = testimonials[randomIndex];
-};
-
-// Handle ESC key press
-const handleEscKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && props.isOpen) {
-    closeModal();
-  }
-};
-
-// Watch for changes in isOpen prop
-watch(() => props.isOpen, (newValue) => {
-  if (newValue) {
-    getRandomTestimonial();
-  }
-});
-
-// Add event listener for ESC key
-onMounted(() => {
-  document.addEventListener('keydown', handleEscKey);
-});
-
-// Remove event listener when component is unmounted
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleEscKey);
-});
-</script>

@@ -1,3 +1,96 @@
+<script setup lang="ts">
+
+import { Icon } from '@iconify/vue';
+import { useEventListener } from '@vueuse/core';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+
+
+const props = withDefaults(defineProps<{
+  modelValue?: string;
+}>(), {
+  modelValue: ''
+});
+
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void;
+  (e: 'save'): void;
+}>();
+
+const isOpen = ref(false);
+const tooltipShow = ref(false);
+const textareaRef = ref<HTMLTextAreaElement | null>(null);
+
+const characterCount = computed(() => props.modelValue?.length ?? 0);
+
+const updateValue = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement;
+  emit('update:modelValue', target.value);
+};
+
+const toggleOpen = () => {
+  isOpen.value = !isOpen.value;
+};
+
+const close = () => {
+  isOpen.value = false;
+};
+
+// Handle ESC key press globally
+const handleEscPress = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isOpen.value) {
+    close();
+  }
+};
+const handleKeydown = (e: KeyboardEvent) => {
+  // Close on escape
+  if (e.key === 'Escape') {
+    close();
+    return;
+  }
+
+  // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    emit('save');
+    close();
+  }
+};
+onMounted(() => {
+  document.addEventListener('keydown', handleEscPress);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscPress);
+});
+
+// Close on click outside - replace existing useEventListener
+useEventListener(document, 'click', (e: MouseEvent) => {
+  const target = e.target as HTMLElement;
+  const modalEl = textareaRef.value?.closest('.relative');
+  if (modalEl && !modalEl.contains(target) && isOpen.value) {
+    close();
+  }
+}, { capture: true });
+
+// Close on click outside
+useEventListener(document, 'click', (e) => {
+  const target = e.target as HTMLElement;
+  if (!target.closest('.relative') && isOpen.value) {
+    close();
+  }
+}, { capture: true });
+
+// Focus textarea when opening
+watch(isOpen, (newValue) => {
+  if (newValue && textareaRef.value) {
+    nextTick(() => {
+      textareaRef.value?.focus();
+    });
+  }
+});
+</script>
+
+
 <template>
   <div class="relative">
     <button
@@ -98,96 +191,3 @@
     </Transition>
   </div>
 </template>
-
-
-<script setup lang="ts">
-
-import { Icon } from '@iconify/vue';
-import { useEventListener } from '@vueuse/core';
-import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
-
-
-const props = withDefaults(defineProps<{
-  modelValue?: string;
-}>(), {
-  modelValue: ''
-});
-
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-  (e: 'save'): void;
-}>();
-
-const isOpen = ref(false);
-const tooltipShow = ref(false);
-const textareaRef = ref<HTMLTextAreaElement | null>(null);
-
-const characterCount = computed(() => props.modelValue?.length ?? 0);
-
-const updateValue = (event: Event) => {
-  const target = event.target as HTMLTextAreaElement;
-  emit('update:modelValue', target.value);
-};
-
-const toggleOpen = () => {
-  isOpen.value = !isOpen.value;
-};
-
-const close = () => {
-  isOpen.value = false;
-};
-
-// Handle ESC key press globally
-const handleEscPress = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && isOpen.value) {
-    close();
-  }
-};
-const handleKeydown = (e: KeyboardEvent) => {
-  // Close on escape
-  if (e.key === 'Escape') {
-    close();
-    return;
-  }
-
-  // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
-  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-    emit('save');
-    close();
-  }
-};
-onMounted(() => {
-  document.addEventListener('keydown', handleEscPress);
-});
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleEscPress);
-});
-
-// Close on click outside - replace existing useEventListener
-useEventListener(document, 'click', (e: MouseEvent) => {
-  const target = e.target as HTMLElement;
-  const modalEl = textareaRef.value?.closest('.relative');
-  if (modalEl && !modalEl.contains(target) && isOpen.value) {
-    close();
-  }
-}, { capture: true });
-
-// Close on click outside
-useEventListener(document, 'click', (e) => {
-  const target = e.target as HTMLElement;
-  if (!target.closest('.relative') && isOpen.value) {
-    close();
-  }
-}, { capture: true });
-
-// Focus textarea when opening
-watch(isOpen, (newValue) => {
-  if (newValue && textareaRef.value) {
-    nextTick(() => {
-      textareaRef.value?.focus();
-    });
-  }
-});
-</script>

@@ -1,3 +1,27 @@
+<script setup lang="ts">
+import FancyIcon from '@/components/ctas/FancyIcon.vue';
+import { useWindowProps } from '@/composables/useWindowProps';
+import { Customer } from '@/schemas/models';
+import { Icon } from '@iconify/vue';
+import { ref, computed } from 'vue';
+const { domains_enabled, plan } = useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
+
+const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
+
+// Allows for highlighting feature to user just one
+// time to false after user has seen it once. Setting
+// to false disables altogether but defaulting to true
+// and flipping a localStorage flag to false after user
+// has seen it once is a good way to handle this.
+const isNewFeature = ref(false);
+
+defineProps<{
+  cust: Customer;
+  colonel?: boolean;
+}>();
+
+</script>
+
 <template>
   <div class="hidden items-center sm:flex">
     <router-link
@@ -33,30 +57,6 @@
       role="separator">|</span>
   </div>
 </template>
-
-<script setup lang="ts">
-import FancyIcon from '@/components/ctas/FancyIcon.vue';
-import { useWindowProps } from '@/composables/useWindowProps';
-import { Customer } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
-import { ref, computed } from 'vue';
-const { domains_enabled, plan } = useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
-
-const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
-
-// Allows for highlighting feature to user just one
-// time to false after user has seen it once. Setting
-// to false disables altogether but defaulting to true
-// and flipping a localStorage flag to false after user
-// has seen it once is a good way to handle this.
-const isNewFeature = ref(false);
-
-defineProps<{
-  cust: Customer;
-  colonel?: boolean;
-}>();
-
-</script>
 
 <style>
 @keyframes pulse {

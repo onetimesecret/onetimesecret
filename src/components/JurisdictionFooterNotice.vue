@@ -1,3 +1,27 @@
+<script setup lang="ts">
+import { useClickOutside } from '@/composables/useClickOutside';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { Icon } from '@iconify/vue';
+import { computed, ref } from 'vue';
+
+const jurisdictionStore = useJurisdictionStore();
+
+const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
+const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
+const isOpen = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
+
+const toggleDropdown = () => {
+  isOpen.value = !isOpen.value;
+};
+
+const closeDropdown = () => {
+  isOpen.value = false;
+};
+
+useClickOutside(dropdownRef, closeDropdown);
+</script>
+
 <template>
   <div
     ref="dropdownRef"
@@ -109,27 +133,3 @@
     </transition>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useClickOutside } from '@/composables/useClickOutside';
-import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import { Icon } from '@iconify/vue';
-import { computed, ref } from 'vue';
-
-const jurisdictionStore = useJurisdictionStore();
-
-const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
-const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
-const isOpen = ref(false);
-const dropdownRef = ref<HTMLElement | null>(null);
-
-const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
-};
-
-const closeDropdown = () => {
-  isOpen.value = false;
-};
-
-useClickOutside(dropdownRef, closeDropdown);
-</script>

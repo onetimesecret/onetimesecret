@@ -12,21 +12,6 @@
 -->
 
 
-<template>
-  <div
-    class="absolute inset-x-0 -top-3 -z-10 transform-gpu overflow-hidden px-36 blur-3xl"
-    aria-hidden="true">
-    <div
-      :class="['mx-auto aspect-[1155/678] w-[72.1875rem] opacity-30']"
-      :style="{
-        clipPath: clipPath,
-        transition: `clip-path ${props.speed} ease`,
-        background: `linear-gradient(to top right, ${props.fromColour}, ${props.toColour})`,
-        transform: `scale(${props.scale})`
-      }"></div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 
@@ -70,3 +55,18 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 </script>
+
+<template>
+  <div
+    class="absolute inset-x-0 -top-3 -z-10 transform-gpu overflow-hidden px-36 blur-3xl"
+    aria-hidden="true">
+    <div
+      :class="['mx-auto aspect-[1155/678] w-[72.1875rem] opacity-30']"
+      :style="{
+        clipPath: clipPath,
+        transition: `clip-path ${props.speed} ease`,
+        background: `linear-gradient(to top right, ${props.fromColour}, ${props.toColour})`,
+        transform: `scale(${props.scale})`
+      }"></div>
+  </div>
+</template>
