@@ -1,3 +1,21 @@
+<script setup lang="ts">
+import { useWindowProp } from '@/composables/useWindowProps';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
+
+import JurisdictionInfo from './JurisdictionInfo.vue';
+import JurisdictionList from './JurisdictionList.vue';
+
+const cust = useWindowProp('cust');
+const supportHost = useWindowProp('support_host');
+
+const jurisdictionStore = useJurisdictionStore();
+const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
+const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
+const customerId = computed(() => cust.value?.custid);
+</script>
+
 <template>
   <div class="mx-auto max-w-4xl space-y-8 px-4 sm:px-6">
     <!-- Data Region Section -->
@@ -71,21 +89,3 @@
     </section>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useWindowProp } from '@/composables/useWindowProps';
-import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import { Icon } from '@iconify/vue';
-import { computed } from 'vue';
-
-import JurisdictionInfo from './JurisdictionInfo.vue';
-import JurisdictionList from './JurisdictionList.vue';
-
-const cust = useWindowProp('cust');
-const supportHost = useWindowProp('support_host');
-
-const jurisdictionStore = useJurisdictionStore();
-const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
-const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
-const customerId = computed(() => cust.value?.custid);
-</script>

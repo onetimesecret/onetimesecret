@@ -1,3 +1,10 @@
+<script setup lang="ts">
+import ThemeToggle from '@/components/ThemeToggle.vue';
+
+// No additional script needed for this component
+</script>
+
+
 <template>
   <div>
     <div class="flex min-h-screen flex-col items-center bg-gray-100 px-4 dark:bg-gray-900 sm:px-6 lg:px-8">
@@ -54,10 +61,3 @@
     </div>
   </div>
 </template>
-
-
-<script setup lang="ts">
-import ThemeToggle from '@/components/ThemeToggle.vue';
-
-// No additional script needed for this component
-</script>

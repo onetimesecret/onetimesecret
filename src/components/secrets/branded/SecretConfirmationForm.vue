@@ -1,3 +1,59 @@
+<script setup lang="ts">
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import { useDomainBranding } from '@/composables/useDomainBranding';
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import { SecretData, SecretDetails } from '@/schemas/models';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { ref } from 'vue';
+
+import BaseSecretDisplay from './BaseSecretDisplay.vue';
+
+
+
+interface Props {
+  secretKey: string;
+  record: SecretData | null;
+  details: SecretDetails | null;
+  domainId: string;
+}
+
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  (e: 'secret-loaded', data: { record: SecretData; details: SecretDetails; }): void;
+}>();
+
+const domainBranding = useDomainBranding();
+
+const csrfStore = useCsrfStore();
+const passphrase = ref('');
+
+const {
+  isSubmitting,
+  error,
+  success,
+  submitForm
+} = useFormSubmission({
+  url: `/api/v2/secret/${props.secretKey}`,
+  successMessage: '',
+  onSuccess: (data: { record: SecretData; details: SecretDetails; }) => {
+    emit('secret-loaded', {
+      record: data.record,
+      details: data.details
+    });
+  }
+});
+
+const hasImageError = ref(false);
+
+const handleImageError = () => {
+  hasImageError.value = true;
+};
+// Prepare the standardized path to the logo image.
+// Note that the file extension needs to be present but is otherwise not used.
+const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
+</script>
+
 <template>
   <BaseSecretDisplay
     default-title="You have a message"
@@ -144,59 +200,3 @@
   transition: all 0.3s ease-in-out;
 }*/
 </style>
-
-<script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-import { useDomainBranding } from '@/composables/useDomainBranding';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { SecretData, SecretDetails } from '@/schemas/models';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { ref } from 'vue';
-
-import BaseSecretDisplay from './BaseSecretDisplay.vue';
-
-
-
-interface Props {
-  secretKey: string;
-  record: SecretData | null;
-  details: SecretDetails | null;
-  domainId: string;
-}
-
-const props = defineProps<Props>();
-
-const emit = defineEmits<{
-  (e: 'secret-loaded', data: { record: SecretData; details: SecretDetails; }): void;
-}>();
-
-const domainBranding = useDomainBranding();
-
-const csrfStore = useCsrfStore();
-const passphrase = ref('');
-
-const {
-  isSubmitting,
-  error,
-  success,
-  submitForm
-} = useFormSubmission({
-  url: `/api/v2/secret/${props.secretKey}`,
-  successMessage: '',
-  onSuccess: (data: { record: SecretData; details: SecretDetails; }) => {
-    emit('secret-loaded', {
-      record: data.record,
-      details: data.details
-    });
-  }
-});
-
-const hasImageError = ref(false);
-
-const handleImageError = () => {
-  hasImageError.value = true;
-};
-// Prepare the standardized path to the logo image.
-// Note that the file extension needs to be present but is otherwise not used.
-const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
-</script>

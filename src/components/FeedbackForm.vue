@@ -1,3 +1,90 @@
+<script setup lang="ts">
+import AltchaChallenge from '@/components/AltchaChallenge.vue';
+import { useExceptionReporting } from '@/composables/useExceptionReporting';
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import { useWindowProps } from '@/composables/useWindowProps';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { onMounted, ref } from 'vue';
+
+const csrfStore = useCsrfStore();
+
+export interface Props {
+  enabled?: boolean;
+  showRedButton: boolean | null;
+}
+
+withDefaults(defineProps<Props>(), {
+  enabled: true,
+  showRedButton: false,
+})
+
+const userTimezone = ref('');
+const feedbackMessage = ref('');
+
+const resetForm = () => {
+  feedbackMessage.value = '';
+  // Reset other non-hidden form fields here if you have any
+};
+
+onMounted(() => {
+  userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+});
+
+
+// We use this to determine whether to include the authenticity check
+const { cust, ot_version } = useWindowProps(['cust', 'ot_version']);
+
+const emit = defineEmits(['feedback-sent']);
+
+const { reportException } = useExceptionReporting();
+
+const handleSpecialMessages = (message: string) => {
+  console.log(`Checking for special message: ${message}`)
+  if (message.startsWith('#ex')) {
+    const error = new Error('Test error triggered via feedback');
+    reportException({
+      message: `Test exception: ${message.substring(11)}`,
+      type: 'TestFeedbackError',
+      stack: error.stack || '',
+      url: window.location.href,
+      line: 0,
+      column: 0,
+      environment: 'production',
+      release: ot_version.value || 'unknown'
+    });
+    return true;
+  }
+  return false;
+};
+
+const submitWithCheck = async (event?: Event) => {
+  console.debug('Submitting exception form');
+
+  if (handleSpecialMessages(feedbackMessage.value)) {
+    // Special message handled, don't submit form
+    return;
+  }
+  await submitForm(event);
+};
+
+const {
+  isSubmitting,
+  error,
+  success,
+  submitForm
+} = useFormSubmission({
+  url: '/api/v2/feedback',
+  successMessage: 'Feedback received.',
+  onSuccess: () => {
+    emit('feedback-sent');
+    resetForm();
+  },
+  onError: (data: unknown) => {
+    console.error('Error sending feedback:', data);
+  },
+});
+</script>
+
 <template>
   <div class="space-y-8">
     <!-- Feedback Form -->
@@ -134,90 +221,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import AltchaChallenge from '@/components/AltchaChallenge.vue';
-import { useExceptionReporting } from '@/composables/useExceptionReporting';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { useWindowProps } from '@/composables/useWindowProps';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { onMounted, ref } from 'vue';
-
-const csrfStore = useCsrfStore();
-
-export interface Props {
-  enabled?: boolean;
-  showRedButton: boolean | null;
-}
-
-withDefaults(defineProps<Props>(), {
-  enabled: true,
-  showRedButton: false,
-})
-
-const userTimezone = ref('');
-const feedbackMessage = ref('');
-
-const resetForm = () => {
-  feedbackMessage.value = '';
-  // Reset other non-hidden form fields here if you have any
-};
-
-onMounted(() => {
-  userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
-});
-
-
-// We use this to determine whether to include the authenticity check
-const { cust, ot_version } = useWindowProps(['cust', 'ot_version']);
-
-const emit = defineEmits(['feedback-sent']);
-
-const { reportException } = useExceptionReporting();
-
-const handleSpecialMessages = (message: string) => {
-  console.log(`Checking for special message: ${message}`)
-  if (message.startsWith('#ex')) {
-    const error = new Error('Test error triggered via feedback');
-    reportException({
-      message: `Test exception: ${message.substring(11)}`,
-      type: 'TestFeedbackError',
-      stack: error.stack || '',
-      url: window.location.href,
-      line: 0,
-      column: 0,
-      environment: 'production',
-      release: ot_version.value || 'unknown'
-    });
-    return true;
-  }
-  return false;
-};
-
-const submitWithCheck = async (event?: Event) => {
-  console.debug('Submitting exception form');
-
-  if (handleSpecialMessages(feedbackMessage.value)) {
-    // Special message handled, don't submit form
-    return;
-  }
-  await submitForm(event);
-};
-
-const {
-  isSubmitting,
-  error,
-  success,
-  submitForm
-} = useFormSubmission({
-  url: '/api/v2/feedback',
-  successMessage: 'Feedback received.',
-  onSuccess: () => {
-    emit('feedback-sent');
-    resetForm();
-  },
-  onError: (data: unknown) => {
-    console.error('Error sending feedback:', data);
-  },
-});
-</script>

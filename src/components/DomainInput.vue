@@ -1,3 +1,26 @@
+<script setup lang="ts">
+import { Icon } from '@iconify/vue';
+import { defineEmits, defineProps } from 'vue';
+
+// Define the props expected from the parent
+defineProps<{
+  modelValue: string;
+  placeholder: string;
+  isValid: boolean;
+}>();
+
+// Define the emits to notify the parent of updates
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void;
+}>();
+
+// Handle the input event and emit the updated value
+const onInput = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  emit('update:modelValue', target.value);
+};
+</script>
+
 <template>
   <div>
     <label
@@ -29,26 +52,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import { defineEmits, defineProps } from 'vue';
-
-// Define the props expected from the parent
-defineProps<{
-  modelValue: string;
-  placeholder: string;
-  isValid: boolean;
-}>();
-
-// Define the emits to notify the parent of updates
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-}>();
-
-// Handle the input event and emit the updated value
-const onInput = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  emit('update:modelValue', target.value);
-};
-</script>

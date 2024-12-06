@@ -1,3 +1,21 @@
+<script setup lang="ts">
+import { useClipboard } from '@/composables/useClipboard'
+import { MetadataData, MetadataDetails } from '@/types/core'
+
+interface Props {
+  metadata: MetadataData;
+  details: MetadataDetails;
+}
+
+const props = defineProps<Props>()
+
+const { isCopied, copyToClipboard } = useClipboard()
+
+const copySecretUrl = () => {
+  copyToClipboard(props.metadata.share_url)
+}
+</script>
+
 <template>
   <div class="mb-4">
     <p class="mb-2 text-base text-gray-600 dark:text-gray-400">
@@ -58,21 +76,3 @@
     </p>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useClipboard } from '@/composables/useClipboard'
-import { MetadataData, MetadataDetails } from '@/types/core'
-
-interface Props {
-  metadata: MetadataData;
-  details: MetadataDetails;
-}
-
-const props = defineProps<Props>()
-
-const { isCopied, copyToClipboard } = useClipboard()
-
-const copySecretUrl = () => {
-  copyToClipboard(props.metadata.share_url)
-}
-</script>

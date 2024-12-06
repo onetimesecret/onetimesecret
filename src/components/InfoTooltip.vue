@@ -28,6 +28,32 @@
     closing when clicking inside the content area.
 -->
 
+<script setup lang="ts">
+import { Icon } from '@iconify/vue';
+import { ref, computed } from 'vue';
+
+const props = defineProps({
+  color: {
+    type: String,
+    default: 'bg-white text-gray-800'
+  }
+});
+
+const isModalVisible = ref(false);
+
+const toggleModal = () => {
+  isModalVisible.value = !isModalVisible.value;
+};
+
+const closeModal = () => {
+  isModalVisible.value = false;
+};
+
+const modalClasses = computed(() => {
+  return `${props.color} border-2 border-dashed`;
+});
+</script>
+
 <template>
   <div class="relative mx-1 inline-block">
     <Icon
@@ -55,32 +81,6 @@
     </Transition>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import { ref, computed } from 'vue';
-
-const props = defineProps({
-  color: {
-    type: String,
-    default: 'bg-white text-gray-800'
-  }
-});
-
-const isModalVisible = ref(false);
-
-const toggleModal = () => {
-  isModalVisible.value = !isModalVisible.value;
-};
-
-const closeModal = () => {
-  isModalVisible.value = false;
-};
-
-const modalClasses = computed(() => {
-  return `${props.color} border-2 border-dashed`;
-});
-</script>
 
 <style scoped>
 .fade-enter-active,

@@ -1,3 +1,12 @@
+<script setup>
+import { Icon } from '@iconify/vue';
+
+defineProps({
+  success: String,
+  error: String
+});
+</script>
+
 <template>
   <div class="dark:bg-gray-800">
     <div
@@ -45,12 +54,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { Icon } from '@iconify/vue';
-
-defineProps({
-  success: String,
-  error: String
-});
-</script>

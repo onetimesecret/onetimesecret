@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import { useMetadataBurn } from '@/composables/useMetadataBurn';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { storeToRefs } from 'pinia';
+
+interface Props {
+  metadataKey: string
+}
+
+const props = defineProps<Props>();
+
+const metadataStore = useMetadataStore();
+const { currentRecord: record, details, isLoading } = storeToRefs(metadataStore);
+
+const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
+</script>
+
 <template>
   <div>
     <div
@@ -97,20 +114,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useMetadataBurn } from '@/composables/useMetadataBurn';
-import { useMetadataStore } from '@/stores/metadataStore';
-import { storeToRefs } from 'pinia';
-
-interface Props {
-  metadataKey: string
-}
-
-const props = defineProps<Props>();
-
-const metadataStore = useMetadataStore();
-const { currentRecord: record, details, isLoading } = storeToRefs(metadataStore);
-
-const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
-</script>

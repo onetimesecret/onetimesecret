@@ -1,3 +1,28 @@
+<script setup lang="ts">
+import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
+
+// Define props for the component
+const props = withDefaults(defineProps<{
+  heading: string;
+  headingId: string;
+  logoPreview?: string | null;
+  defaultIcon?: string;
+  loading?: boolean;
+  error?: string | null;
+  success?: string | null;
+}>(), {
+  logoPreview: null,
+  defaultIcon: 'mdi:domain',
+  loading: false,
+  error: null,
+  success: null,
+});
+
+// Compute the background icon
+const backgroundIcon = computed(() => props.defaultIcon);
+</script>
+
 <template>
   <div
     class="relative flex min-h-screen items-start justify-center overflow-hidden
@@ -111,28 +136,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import { computed } from 'vue';
-
-// Define props for the component
-const props = withDefaults(defineProps<{
-  heading: string;
-  headingId: string;
-  logoPreview?: string | null;
-  defaultIcon?: string;
-  loading?: boolean;
-  error?: string | null;
-  success?: string | null;
-}>(), {
-  logoPreview: null,
-  defaultIcon: 'mdi:domain',
-  loading: false,
-  error: null,
-  success: null,
-});
-
-// Compute the background icon
-const backgroundIcon = computed(() => props.defaultIcon);
-</script>

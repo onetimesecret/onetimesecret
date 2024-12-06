@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { useWindowProps } from '@/composables/useWindowProps';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { ref } from 'vue';
+
+const csrfStore = useCsrfStore();
+const isLoading = ref(false);
+
+export interface Props {
+  enabled?: boolean;
+  title: string;
+}
+
+withDefaults(defineProps<Props>(), {
+  enabled: true,
+})
+
+const {incoming_recipient} = useWindowProps(['incoming_recipient']);
+
+
+</script>
+
 <template>
   <div>
     <h3>{{ title }}</h3>
@@ -127,28 +149,6 @@
     </form>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useWindowProps } from '@/composables/useWindowProps';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { ref } from 'vue';
-
-const csrfStore = useCsrfStore();
-const isLoading = ref(false);
-
-export interface Props {
-  enabled?: boolean;
-  title: string;
-}
-
-withDefaults(defineProps<Props>(), {
-  enabled: true,
-})
-
-const {incoming_recipient} = useWindowProps(['incoming_recipient']);
-
-
-</script>
 
 <style scoped>
 

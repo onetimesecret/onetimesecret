@@ -1,3 +1,32 @@
+<script setup lang="ts">
+import { useClipboard } from '@/composables/useClipboard';
+import { useWindowProp } from '@/composables/useWindowProps';
+import { SecretData, SecretDetails } from '@/schemas/models';
+
+const siteHost = useWindowProp('site_host');
+
+interface Props {
+  secret: SecretData;
+  details: SecretDetails;
+}
+
+const props = defineProps<Props>();
+
+const { isCopied, copyToClipboard } = useClipboard();
+
+const copySecretContent = () => {
+  if (props.secret.secret_value === undefined) {
+    return;
+  }
+
+  copyToClipboard(props.secret.secret_value);
+};
+
+const closeTruncatedWarning = (event: Event) => {
+  (event.target as HTMLElement).closest('.bg-brandcomp-100')?.remove();
+};
+</script>
+
 <template>
   <div class="relative">
     <textarea
@@ -115,32 +144,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useClipboard } from '@/composables/useClipboard';
-import { useWindowProp } from '@/composables/useWindowProps';
-import { SecretData, SecretDetails } from '@/schemas/models';
-
-const siteHost = useWindowProp('site_host');
-
-interface Props {
-  secret: SecretData;
-  details: SecretDetails;
-}
-
-const props = defineProps<Props>();
-
-const { isCopied, copyToClipboard } = useClipboard();
-
-const copySecretContent = () => {
-  if (props.secret.secret_value === undefined) {
-    return;
-  }
-
-  copyToClipboard(props.secret.secret_value);
-};
-
-const closeTruncatedWarning = (event: Event) => {
-  (event.target as HTMLElement).closest('.bg-brandcomp-100')?.remove();
-};
-</script>

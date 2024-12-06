@@ -1,3 +1,12 @@
+<script setup lang="ts">
+import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
+import { CustomDomain } from '@/schemas/models/domain';
+defineProps<{
+  displayDomain: string;
+  domain: CustomDomain | null;
+}>();
+</script>
+
 <template>
   <div class="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
     <div class="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
@@ -46,12 +55,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
-import { CustomDomain } from '@/schemas/models/domain';
-defineProps<{
-  displayDomain: string;
-  domain: CustomDomain | null;
-}>();
-</script>

@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import { useWindowProp } from '@/composables/useWindowProps';
+
+const siteHost = useWindowProp('site_host');
+</script>
+
 <template>
   <div>
     <div class="bg-white dark:bg-gray-900">
@@ -82,9 +88,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useWindowProp } from '@/composables/useWindowProps';
-
-const siteHost = useWindowProp('site_host');
-</script>

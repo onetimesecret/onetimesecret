@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+
+import DomainInput from './DomainInput.vue';
+
+defineProps<{
+  isSubmitting?: boolean,
+}>();
+
+const domain = ref('');
+const emit = defineEmits<{
+  (e: 'submit', domain: string): void
+}>();
+
+const isValid = ref(true); // Optionally manage validation state
+
+const handleSubmit = () => {
+  if (domain.value?.trim()) {
+    isValid.value = true;
+    emit('submit', domain.value.trim());
+  } else {
+    isValid.value = false; // Update validation state
+  }
+};
+</script>
+
 <template>
   <div class="mx-auto my-16 max-w-full space-y-9 px-4 dark:bg-gray-900 sm:px-6 lg:px-8">
     <form
@@ -88,29 +114,3 @@
     </form>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue';
-
-import DomainInput from './DomainInput.vue';
-
-defineProps<{
-  isSubmitting?: boolean,
-}>();
-
-const domain = ref('');
-const emit = defineEmits<{
-  (e: 'submit', domain: string): void
-}>();
-
-const isValid = ref(true); // Optionally manage validation state
-
-const handleSubmit = () => {
-  if (domain.value?.trim()) {
-    isValid.value = true;
-    emit('submit', domain.value.trim());
-  } else {
-    isValid.value = false; // Update validation state
-  }
-};
-</script>

@@ -1,3 +1,33 @@
+<script setup lang="ts">
+import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
+import { useFetchDataRecord } from '@/composables/useFetchData';
+import { ColonelData } from '@/types/api/responses';
+import { computed, onMounted } from 'vue';
+
+const tabs = [
+  { name: 'Stats', href: '#stats' },
+  { name: 'Customers', href: '#customers' },
+  { name: 'Feedback', href: '#feedback' },
+  { name: 'Misc', href: '#misc' },
+];
+
+const feedbackSections = computed(() => {
+  if (!colonelData.value) return [];
+  return [
+    { title: 'Today', count: colonelData.value.counts.today_feedback_count, feedback: colonelData.value.today_feedback },
+    { title: 'Yesterday', count: colonelData.value.counts.yesterday_feedback_count, feedback: colonelData.value.yesterday_feedback },
+    { title: 'Past 14 Days', count: colonelData.value.counts.older_feedback_count, feedback: colonelData.value.older_feedback },
+  ];
+});
+
+
+const { record: colonelData, fetchData: fetchColonelData } = useFetchDataRecord<ColonelData>({
+  url: '/api/v2/colonel',
+});
+
+onMounted(fetchColonelData);
+</script>
+
 <template>
   <div class="overflow-hidden rounded-lg bg-white shadow-lg dark:bg-gray-800">
     <div
@@ -99,33 +129,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
-import { useFetchDataRecord } from '@/composables/useFetchData';
-import { ColonelData } from '@/types/api/responses';
-import { computed, onMounted } from 'vue';
-
-const tabs = [
-  { name: 'Stats', href: '#stats' },
-  { name: 'Customers', href: '#customers' },
-  { name: 'Feedback', href: '#feedback' },
-  { name: 'Misc', href: '#misc' },
-];
-
-const feedbackSections = computed(() => {
-  if (!colonelData.value) return [];
-  return [
-    { title: 'Today', count: colonelData.value.counts.today_feedback_count, feedback: colonelData.value.today_feedback },
-    { title: 'Yesterday', count: colonelData.value.counts.yesterday_feedback_count, feedback: colonelData.value.yesterday_feedback },
-    { title: 'Past 14 Days', count: colonelData.value.counts.older_feedback_count, feedback: colonelData.value.older_feedback },
-  ];
-});
-
-
-const { record: colonelData, fetchData: fetchColonelData } = useFetchDataRecord<ColonelData>({
-  url: '/api/v2/colonel',
-});
-
-onMounted(fetchColonelData);
-</script>

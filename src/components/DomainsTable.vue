@@ -1,3 +1,31 @@
+<script setup lang="ts">
+import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
+import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
+import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
+import { useWindowProp } from '@/composables/useWindowProps';
+import type { CustomDomain } from '@/schemas/models/domain.ts';
+import { MenuItem } from '@headlessui/vue';
+import { Icon } from '@iconify/vue';
+import { formatDistanceToNow } from 'date-fns';
+
+const cust = useWindowProp('cust'); // Used for feature flags
+
+defineProps<{
+  domains: CustomDomain[];
+  isToggling: (domainId: string) => boolean;
+  isSubmitting: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'confirm-delete', domainId: string): void;
+  (e: 'toggle-homepage', domain: CustomDomain): void;
+}>();
+
+const handleDelete = (domainId: string) => {
+  emit('confirm-delete', domainId);
+};
+</script>
+
 <template>
   <section
     class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-6 lg:p-8"
@@ -171,31 +199,3 @@
     </div>
   </section>
 </template>
-
-<script setup lang="ts">
-import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
-import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
-import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
-import type { CustomDomain } from '@/schemas/models/domain.ts';
-import { MenuItem } from '@headlessui/vue';
-import { Icon } from '@iconify/vue';
-import { formatDistanceToNow } from 'date-fns';
-
-const cust = useWindowProp('cust'); // Used for feature flags
-
-defineProps<{
-  domains: CustomDomain[];
-  isToggling: (domainId: string) => boolean;
-  isSubmitting: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'confirm-delete', domainId: string): void;
-  (e: 'toggle-homepage', domain: CustomDomain): void;
-}>();
-
-const handleDelete = (domainId: string) => {
-  emit('confirm-delete', domainId);
-};
-</script>

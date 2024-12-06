@@ -1,3 +1,14 @@
+<script setup lang="ts">
+import StarsRating from "@/components/StarsRating.vue";
+import { Testimonial } from "@/sources/testimonials";
+
+// Define props using defineProps
+const props = defineProps<{
+  testimonial: Testimonial;
+}>();
+
+</script>
+
 <template>
   <div class="mx-auto max-w-2xl px-4 pb-12 pt-24 sm:px-6 lg:px-8">
     <h2 class="mb-8 text-left text-3xl font-bold text-gray-900 dark:text-white">
@@ -49,14 +60,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import StarsRating from "@/components/StarsRating.vue";
-import { Testimonial } from "@/sources/testimonials";
-
-// Define props using defineProps
-const props = defineProps<{
-  testimonial: Testimonial;
-}>();
-
-</script>

@@ -1,3 +1,42 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+const props = defineProps<{
+  modelValue: string;
+  label?: string;
+  name?: string;
+  id?: string;
+}>();
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string): void;
+}>();
+
+// Provide default props
+const label = computed(() => props.label || 'Color Picker');
+const id = computed(() => props.id || 'color-picker');
+const name = computed(() => props.name || 'color');
+
+const updateColor = (event: Event, isText = false) => {
+  const target = event.target as HTMLInputElement;
+  let newColor = target.value;
+
+  if (isText) {
+    // Handle text input (without #)
+    newColor = `#${newColor}`.toUpperCase();
+  } else {
+    // Handle color picker input (with #)
+    newColor = newColor.toUpperCase();
+  }
+
+  // Validate hex color
+  if (/^#[0-9A-F]{6}$/i.test(newColor)) {
+    emit('update:modelValue', newColor);
+  }
+};
+
+</script>
+
 <template>
   <div class="relative">
     <label
@@ -67,42 +106,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue';
-
-const props = defineProps<{
-  modelValue: string;
-  label?: string;
-  name?: string;
-  id?: string;
-}>();
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-}>();
-
-// Provide default props
-const label = computed(() => props.label || 'Color Picker');
-const id = computed(() => props.id || 'color-picker');
-const name = computed(() => props.name || 'color');
-
-const updateColor = (event: Event, isText = false) => {
-  const target = event.target as HTMLInputElement;
-  let newColor = target.value;
-
-  if (isText) {
-    // Handle text input (without #)
-    newColor = `#${newColor}`.toUpperCase();
-  } else {
-    // Handle color picker input (with #)
-    newColor = newColor.toUpperCase();
-  }
-
-  // Validate hex color
-  if (/^#[0-9A-F]{6}$/i.test(newColor)) {
-    emit('update:modelValue', newColor);
-  }
-};
-
-</script>

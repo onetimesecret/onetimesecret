@@ -1,4 +1,38 @@
 
+<script setup lang="ts">
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
+import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
+import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
+import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { AsyncDataResult, MetadataDataApiResponse } from '@/types/api/responses';
+import { storeToRefs } from 'pinia';
+import { computed, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const store = useMetadataStore();
+
+// Get initial data from route resolver
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataDataApiResponse>);
+
+// Set up reactive refs to store state
+const { currentRecord: record, details, isLoading, error } = storeToRefs(store);
+
+// Initialize from route resolver data
+if (initialData.value?.data) {
+  record.value = initialData.value.data.record;
+  details.value = initialData.value.data.details;
+}
+
+// Clean up on unmount
+onUnmounted(() => {
+  store.abortPendingRequests();
+});
+</script>
+
 <template>
   <div>
     <DashboardTabNav />
@@ -58,37 +92,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
-import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
-import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
-import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
-import { useMetadataStore } from '@/stores/metadataStore';
-import { AsyncDataResult, MetadataDataApiResponse } from '@/types/api/responses';
-import { storeToRefs } from 'pinia';
-import { computed, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
-
-const route = useRoute();
-const store = useMetadataStore();
-
-// Get initial data from route resolver
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataDataApiResponse>);
-
-// Set up reactive refs to store state
-const { currentRecord: record, details, isLoading, error } = storeToRefs(store);
-
-// Initialize from route resolver data
-if (initialData.value?.data) {
-  record.value = initialData.value.data.record;
-  details.value = initialData.value.data.details;
-}
-
-// Clean up on unmount
-onUnmounted(() => {
-  store.abortPendingRequests();
-});
-</script>

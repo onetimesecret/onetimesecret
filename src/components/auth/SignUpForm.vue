@@ -1,4 +1,32 @@
 <!-- SignUpForm.vue -->
+<script setup lang="ts">
+import { Jurisdiction } from '@/schemas/models';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { ref } from 'vue';
+
+const csrfStore = useCsrfStore();
+
+export interface Props {
+  enabled?: boolean;
+  planid?: string;
+  jurisdiction?: Jurisdiction
+}
+
+withDefaults(defineProps<Props>(), {
+  enabled: true,
+  planid: 'basic',
+})
+
+const email = ref('');
+const password = ref('');
+const termsAgreed = ref(false);
+const showPassword = ref(false);
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
+</script>
+
 <template>
   <form
     action="/signup"
@@ -158,31 +186,3 @@
     </div>
   </form>
 </template>
-
-<script setup lang="ts">
-import { Jurisdiction } from '@/schemas/models';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { ref } from 'vue';
-
-const csrfStore = useCsrfStore();
-
-export interface Props {
-  enabled?: boolean;
-  planid?: string;
-  jurisdiction?: Jurisdiction
-}
-
-withDefaults(defineProps<Props>(), {
-  enabled: true,
-  planid: 'basic',
-})
-
-const email = ref('');
-const password = ref('');
-const termsAgreed = ref(false);
-const showPassword = ref(false);
-
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
-</script>

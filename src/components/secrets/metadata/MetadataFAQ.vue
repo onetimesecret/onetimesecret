@@ -1,3 +1,15 @@
+<script setup lang="ts">
+import { MetadataData, MetadataDetails } from '@/types/core'
+import { defineProps } from 'vue'
+
+interface Props {
+  metadata: MetadataData;
+  details: MetadataDetails;
+}
+
+defineProps<Props>()
+</script>
+
 <template>
   <!-- F.A.Q (if show_secret) -->
   <div
@@ -88,15 +100,3 @@
     </p>
   </div>
 </template>
-
-<script setup lang="ts">
-import { MetadataData, MetadataDetails } from '@/types/core'
-import { defineProps } from 'vue'
-
-interface Props {
-  metadata: MetadataData;
-  details: MetadataDetails;
-}
-
-defineProps<Props>()
-</script>

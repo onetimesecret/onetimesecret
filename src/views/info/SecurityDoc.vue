@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import EmailObfuscator from '@/components/EmailObfuscator.vue';
+</script>
+
 <template>
   <article class="prose dark:prose-invert">
     <h2 class="mb-4 text-2xl font-bold dark:text-white">
@@ -133,7 +137,3 @@
     </p>
   </article>
 </template>
-
-<script setup lang="ts">
-import EmailObfuscator from '@/components/EmailObfuscator.vue';
-</script>

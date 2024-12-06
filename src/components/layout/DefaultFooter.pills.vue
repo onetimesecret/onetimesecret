@@ -1,3 +1,29 @@
+<script setup lang="ts">
+import FeedbackToggle from '@/components/FeedbackToggle.vue';
+import ThemeToggle from '@/components/ThemeToggle.vue';
+import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
+import { ref } from 'vue'
+// Define the props for this layout, extending the DefaultLayout props
+export interface Props extends DefaultProps {
+  displayFeedback?: boolean
+  displayLinks?: boolean
+  displayVersion?: boolean
+  displayToggles?: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  displayFeedback: true,
+  displayLinks: true,
+  displayVersion: true,
+  displayToggles: true,
+});
+
+const companyName = ref('Onetime Secret');
+
+</script>
+
+
+
 <template>
   <footer class="w-full min-w-[320px] overflow-visible bg-gray-100 py-8 transition-all duration-300 dark:bg-gray-800">
     <div class="container mx-auto my-4 max-w-2xl px-4">
@@ -40,29 +66,3 @@
     </div>
   </footer>
 </template>
-
-
-
-<script setup lang="ts">
-import FeedbackToggle from '@/components/FeedbackToggle.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
-import { ref } from 'vue'
-// Define the props for this layout, extending the DefaultLayout props
-export interface Props extends DefaultProps {
-  displayFeedback?: boolean
-  displayLinks?: boolean
-  displayVersion?: boolean
-  displayToggles?: boolean
-}
-
-withDefaults(defineProps<Props>(), {
-  displayFeedback: true,
-  displayLinks: true,
-  displayVersion: true,
-  displayToggles: true,
-});
-
-const companyName = ref('Onetime Secret');
-
-</script>

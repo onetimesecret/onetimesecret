@@ -1,3 +1,52 @@
+<script setup lang="ts">
+import ColorPicker from '@/components/common/ColorPicker.vue'
+import type { BrandSettings } from '@/schemas/models'
+import {
+  CornerStyle,
+  cornerStyleDisplayMap,
+  cornerStyleIconMap,
+  cornerStyleOptions,
+  fontDisplayMap,
+  FontFamily,
+  fontIconMap,
+  fontOptions,
+} from '@/schemas/models/domain/brand'
+import { Icon } from '@iconify/vue'
+
+import CycleButton from '../common/CycleButton.vue'
+
+const props = defineProps<{
+  modelValue: BrandSettings
+  shrimp: string
+  isSubmitting: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: BrandSettings): void
+  (e: 'submit'): void
+}>()
+
+const updateBrandSetting = <K extends keyof BrandSettings>(
+  key: K,
+  value: BrandSettings[K]
+) => {
+  emit('update:modelValue', {
+    ...props.modelValue,
+    [key]: value,
+  })
+}
+
+// Update font family
+const updateFont = (value: string) => {
+  updateBrandSetting('font_family', value as keyof typeof FontFamily)
+}
+
+// Update corner style
+const updateCornerStyle = (value: string) => {
+  updateBrandSetting('corner_style', value as keyof typeof CornerStyle)
+}
+</script>
+
 <template>
   <div class="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
     <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
@@ -74,52 +123,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import ColorPicker from '@/components/common/ColorPicker.vue'
-import type { BrandSettings } from '@/schemas/models'
-import {
-  CornerStyle,
-  cornerStyleDisplayMap,
-  cornerStyleIconMap,
-  cornerStyleOptions,
-  fontDisplayMap,
-  FontFamily,
-  fontIconMap,
-  fontOptions,
-} from '@/schemas/models/domain/brand'
-import { Icon } from '@iconify/vue'
-
-import CycleButton from '../common/CycleButton.vue'
-
-const props = defineProps<{
-  modelValue: BrandSettings
-  shrimp: string
-  isSubmitting: boolean
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: BrandSettings): void
-  (e: 'submit'): void
-}>()
-
-const updateBrandSetting = <K extends keyof BrandSettings>(
-  key: K,
-  value: BrandSettings[K]
-) => {
-  emit('update:modelValue', {
-    ...props.modelValue,
-    [key]: value,
-  })
-}
-
-// Update font family
-const updateFont = (value: string) => {
-  updateBrandSetting('font_family', value as keyof typeof FontFamily)
-}
-
-// Update corner style
-const updateCornerStyle = (value: string) => {
-  updateBrandSetting('corner_style', value as keyof typeof CornerStyle)
-}
-</script>

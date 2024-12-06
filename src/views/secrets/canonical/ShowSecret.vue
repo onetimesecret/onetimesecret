@@ -1,3 +1,31 @@
+<script setup lang="ts">
+import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
+import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
+import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
+import ThemeToggle from '@/components/ThemeToggle.vue';
+import { useSecretsStore } from '@/stores/secretsStore';
+import { computed } from 'vue';
+
+import UnknownSecret from './UnknownSecret.vue';
+
+interface Props {
+  secretKey: string;
+  domainId: string | null;
+  displayDomain: string;
+  siteHost: string;
+}
+
+defineProps<Props>();
+const secretStore = useSecretsStore();
+
+const displayPoweredBy = computed(() => !!(true));
+
+const closeWarning = (event: Event) => {
+  const element = event.target as HTMLElement;
+  element.closest('.bg-amber-50, .bg-brand-50')?.remove();
+};
+</script>
+
 <template>
   <div class="container mx-auto mt-24 px-4">
     <div
@@ -71,31 +99,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
-import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
-import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import { useSecretsStore } from '@/stores/secretsStore';
-import { computed } from 'vue';
-
-import UnknownSecret from './UnknownSecret.vue';
-
-interface Props {
-  secretKey: string;
-  domainId: string | null;
-  displayDomain: string;
-  siteHost: string;
-}
-
-defineProps<Props>();
-const secretStore = useSecretsStore();
-
-const displayPoweredBy = computed(() => !!(true));
-
-const closeWarning = (event: Event) => {
-  const element = event.target as HTMLElement;
-  element.closest('.bg-amber-50, .bg-brand-50')?.remove();
-};
-</script>

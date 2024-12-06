@@ -1,4 +1,14 @@
 <!-- src/views/secrets/UnknownSecretBranded.vue -->
+<script setup lang="ts">
+import type { BrandSettings } from '@/schemas/models/domain/brand';
+
+interface Props {
+  brandSettings?: BrandSettings;
+}
+
+defineProps<Props>();
+</script>
+
 <template>
   <div
     class="w-full rounded-lg bg-white p-8 shadow-xl dark:bg-gray-800"
@@ -60,13 +70,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import type { BrandSettings } from '@/schemas/models/domain/brand';
-
-interface Props {
-  brandSettings?: BrandSettings;
-}
-
-defineProps<Props>();
-</script>
