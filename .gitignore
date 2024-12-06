@@ -15,6 +15,7 @@ pnpm-debug.log*
 
 # Directories
 .certs/
+.continue/
 .devcontainer
 .history
 .pnpm/
