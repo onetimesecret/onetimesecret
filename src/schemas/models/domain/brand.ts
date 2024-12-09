@@ -59,9 +59,9 @@ const createOptions = (config: OptionConfig) => {
 }
 
 const FontFamilyConfig: OptionConfig = {
-  SANS: { value: 'sans-serif', display: 'Sans Serif', icon: 'ph:text-aa-bold' },
+  SANS: { value: 'sans', display: 'Sans Serif', icon: 'ph:text-aa-bold' },
   SERIF: { value: 'serif', display: 'Serif', icon: 'ph:text-t-bold' },
-  MONO: { value: 'mono', display: 'Monospace', icon: 'ph:text-code' },
+  MONO: { value: 'mono', display: 'Monospace', icon: 'ph:code' },
 }
 
 const CornerStyleConfig: OptionConfig = {
