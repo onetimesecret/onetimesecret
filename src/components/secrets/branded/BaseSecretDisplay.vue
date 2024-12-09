@@ -1,12 +1,13 @@
 <!-- src/components/secrets/BaseSecretDisplay.vue -->
 <script setup lang="ts">
-import { useDomainBranding } from '@/composables/useDomainBranding';
+import { BrandSettings } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 
-defineProps<{
+const props = defineProps<{
   instructions?: string;
   defaultTitle?: string;
+  domainBranding: BrandSettings;
 }>();
 
 // Text expansion logic
@@ -14,19 +15,11 @@ const textRef = ref<HTMLElement | null>(null);
 const isExpanded = ref(false);
 const isLongText = ref(false);
 
-const domainBranding = useDomainBranding();
-
 // Reusable computed properties
 const textClasses = computed(() => ({
   'text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed': true,
   'line-clamp-6': !isExpanded.value,
-  'pb-6': isLongText.value && !isExpanded.value
-}));
-
-const contentAreaClasses = computed(() => ({
-  'rounded-lg': domainBranding.value?.corner_style === 'rounded',
-  'rounded-xl': domainBranding.value?.corner_style === 'pill',
-  'rounded-none': domainBranding.value?.corner_style === 'square'
+  'pb-6': isLongText.value && !isExpanded.value,
 }));
 
 // Text length checking
@@ -56,6 +49,33 @@ onUnmounted(() => {
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value;
 };
+
+const cornerClass = computed(() => {
+  switch (props.domainBranding.corner_style) {
+    case 'rounded':
+      return 'rounded-md'; // Updated to 'rounded-md' for a more subtle rounding
+    case 'pill':
+      return 'rounded-xl'; // Updated to 'rounded-xl' for a more subtle rounding
+    case 'square':
+      return 'rounded-none';
+    default:
+      return '';
+  }
+});
+
+const fontFamilyClass = computed(() => {
+  switch (props.domainBranding.font_family) {
+    case 'sans':
+      return 'font-sans';
+    case 'serif':
+      return 'font-serif';
+    case 'mono':
+      return 'font-mono';
+    default:
+      return '';
+  }
+});
+
 </script>
 
 <template>
@@ -69,7 +89,9 @@ const toggleExpand = () => {
         <div class="relative min-h-[5.5rem] sm:min-h-24">
           <h2
             class="mb-2 text-base font-medium leading-normal text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl"
-            :style="{ fontFamily: domainBranding?.font_family }">
+            :class="{
+              [fontFamilyClass]: true,
+            }">
             <slot name="title">
               {{ defaultTitle }}
             </slot>
@@ -79,8 +101,7 @@ const toggleExpand = () => {
             <p
               ref="textRef"
               class="pb-4"
-              :class="textClasses"
-              :style="{ fontFamily: domainBranding?.font_family }">
+              :class="[textClasses, fontFamilyClass]">
               {{ instructions || $t('web.shared.pre_reveal_default') }}
             </p>
 
@@ -107,7 +128,10 @@ const toggleExpand = () => {
     <div class="my-3 sm:my-4">
       <div
         class="flex min-h-32 w-full items-center justify-center bg-gray-100 dark:bg-gray-700 sm:min-h-36 "
-        :class="contentAreaClasses">
+        :class="{
+          [cornerClass]: true,
+
+        }">
         <slot name="content"></slot>
       </div>
     </div>
