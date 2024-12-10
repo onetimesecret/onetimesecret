@@ -50,7 +50,6 @@ const primaryColorStyle = computed(() => {
     : {};
 });
 
-
 function isColorValue(value: string): boolean {
   return /^#|^rgb\(|^hsl\(/.test(value);
 }

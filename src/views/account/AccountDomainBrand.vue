@@ -56,9 +56,6 @@ const brandSettings = ref<BrandSettings>({
   button_text_light: false,
   allow_public_homepage: false,
   allow_public_api: false,
-  identifier: '',
-  created: '',
-  updated: ''
 });
 
 const loading = ref(true);
@@ -300,7 +297,6 @@ const removeLogo = async () => {
   }
 };
 
-
 // Watch effect for primary color
 watch(() => brandSettings.value.primary_color, (newColor) => {
   const textLight = shouldUseLightText(newColor);
@@ -314,11 +310,6 @@ watch(() => brandSettings.value.primary_color, (newColor) => {
 }, { immediate: true });
 
 const brandingStore = useBrandingStore();
-
-// Watch for changes in brandSettings.primary_color
-watch(() => brandSettings.value.primary_color, (newColor) => {
-  brandingStore.setPrimaryColor(newColor);
-}, { immediate: true });
 
 // Activate branding when the component is mounted
 onMounted(() => {
@@ -356,6 +347,7 @@ onBeforeRouteLeave((to, from, next) => {
   }
 });
 
+const color = computed(() => brandSettings.value.primary_color);
 
 </script>
 
@@ -440,6 +432,9 @@ onBeforeRouteLeave((to, from, next) => {
           :browser-type="selectedBrowserType"
           @toggle-browser="toggleBrowser"
           aria-labelledby="previewHeading">
+          <div
+            class=" z-50 h-1 w-full"
+            :style="{ backgroundColor: color }"></div>
           <SecretPreview
             v-if="!loading && !error"
             ref="secretPreview"

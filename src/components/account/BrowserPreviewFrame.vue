@@ -190,7 +190,7 @@ defineEmits<{
     </div>
 
     <!-- Content Area -->
-    <div class="bg-white p-3 dark:bg-gray-800 sm:p-6">
+    <div class="relative bg-white dark:bg-gray-800">
       <slot></slot>
     </div>
 
