@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ColorPicker from '@/components/common/ColorPicker.vue'
 import type { BrandSettings } from '@/schemas/models'
 import {
   CornerStyle,
@@ -12,7 +11,10 @@ import {
   fontOptions,
 } from '@/schemas/models/domain/brand'
 import { Icon } from '@iconify/vue'
+import { onMounted, ref } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 
+import ColorPicker from '../common/ColorPicker.vue'
 import CycleButton from '../common/CycleButton.vue'
 
 const props = defineProps<{
@@ -26,6 +28,9 @@ const emit = defineEmits<{
   (e: 'submit'): void
 }>()
 
+const isDirty = ref(false)
+const originalValues = ref<BrandSettings | null>(null)
+
 const updateBrandSetting = <K extends keyof BrandSettings>(
   key: K,
   value: BrandSettings[K]
@@ -34,24 +39,49 @@ const updateBrandSetting = <K extends keyof BrandSettings>(
     ...props.modelValue,
     [key]: value,
   })
+  setDirtyState()
 }
 
-// Update font family
-const updateFont = (value: string) => {
+const updateFontFamilyStyle = (value: string) => {
   updateBrandSetting('font_family', value as keyof typeof FontFamily)
 }
 
-// Update corner style
 const updateCornerStyle = (value: string) => {
   updateBrandSetting('corner_style', value as keyof typeof CornerStyle)
 }
+
+const setDirtyState = () => {
+  if (!originalValues.value) return
+
+  isDirty.value = true;
+}
+
+onMounted(() => {
+  originalValues.value = { ...props.modelValue }
+})
+
+onBeforeRouteLeave((to, from, next) => {
+  if (!isDirty.value) {
+    return next()
+  }
+
+  next(window.confirm('You have unsaved changes. Are you sure you want to leave?'))
+})
+
+// Reset original values after successful save
+const handleSubmit = () => {
+  emit('submit')
+  originalValues.value = { ...props.modelValue }
+  isDirty.value = false
+}
+
 </script>
 
 <template>
   <div class="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
     <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
       <form
-        @submit.prevent="$emit('submit')"
+        @submit.prevent="handleSubmit"
         class="flex flex-wrap items-center gap-4">
         <input
           type="hidden"
@@ -60,7 +90,6 @@ const updateCornerStyle = (value: string) => {
         />
 
         <!-- Color Picker -->
-
         <ColorPicker
           :model-value="modelValue.primary_color"
           name="brand[primary_color]"
@@ -71,17 +100,6 @@ const updateCornerStyle = (value: string) => {
 
 
         <div class="inline-flex items-center gap-2">
-          <!-- Font Family -->
-          <CycleButton
-            :model-value="modelValue.font_family"
-            :default-value="FontFamily.SANS"
-            @update:model-value="updateFont"
-            :options="fontOptions"
-            label="Font Family"
-            :display-map="fontDisplayMap"
-            :icon-map="fontIconMap"
-          />
-
           <!-- Corner Style -->
           <CycleButton
             :model-value="modelValue.corner_style"
@@ -91,6 +109,17 @@ const updateCornerStyle = (value: string) => {
             label="Corner Style"
             :display-map="cornerStyleDisplayMap"
             :icon-map="cornerStyleIconMap"
+          />
+
+          <!-- Font Family -->
+          <CycleButton
+            :model-value="modelValue.font_family"
+            :default-value="FontFamily.SANS"
+            @update:model-value="updateFontFamilyStyle"
+            :options="fontOptions"
+            label="Font Family"
+            :display-map="fontDisplayMap"
+            :icon-map="fontIconMap"
           />
         </div>
 

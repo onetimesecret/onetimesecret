@@ -5,12 +5,11 @@ import DomainHeader from '@/components/account/DomainHeader.vue';
 import InstructionsModal from '@/components/account/InstructionsModal.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import type { BrandSettings, CustomDomain, ImageProps } from '@/schemas/models';
 import { useBrandingStore } from '@/stores/brandingStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
 import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses';
-import type { BrandSettings, CustomDomain, } from '@/types/custom_domains';
-import { ImageProps } from '@/types/custom_domains';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
 import { Icon } from '@iconify/vue';
@@ -57,9 +56,6 @@ const brandSettings = ref<BrandSettings>({
   button_text_light: false,
   allow_public_homepage: false,
   allow_public_api: false,
-  identifier: '',
-  created: '',
-  updated: ''
 });
 
 const loading = ref(true);
@@ -301,7 +297,6 @@ const removeLogo = async () => {
   }
 };
 
-
 // Watch effect for primary color
 watch(() => brandSettings.value.primary_color, (newColor) => {
   const textLight = shouldUseLightText(newColor);
@@ -315,11 +310,6 @@ watch(() => brandSettings.value.primary_color, (newColor) => {
 }, { immediate: true });
 
 const brandingStore = useBrandingStore();
-
-// Watch for changes in brandSettings.primary_color
-watch(() => brandSettings.value.primary_color, (newColor) => {
-  brandingStore.setPrimaryColor(newColor);
-}, { immediate: true });
 
 // Activate branding when the component is mounted
 onMounted(() => {
@@ -357,6 +347,7 @@ onBeforeRouteLeave((to, from, next) => {
   }
 });
 
+const color = computed(() => brandSettings.value.primary_color);
 
 </script>
 
@@ -441,6 +432,9 @@ onBeforeRouteLeave((to, from, next) => {
           :browser-type="selectedBrowserType"
           @toggle-browser="toggleBrowser"
           aria-labelledby="previewHeading">
+          <div
+            class=" z-50 h-1 w-full"
+            :style="{ backgroundColor: color }"></div>
           <SecretPreview
             v-if="!loading && !error"
             ref="secretPreview"

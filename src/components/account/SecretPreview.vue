@@ -54,6 +54,32 @@ const toggleReveal = () => {
   isRevealed.value = !isRevealed.value;
 };
 
+const cornerClass = computed(() => {
+  switch (props.domainBranding.corner_style) {
+    case 'rounded':
+      return 'rounded-lg';
+    case 'pill':
+      return 'rounded-full';
+    case 'square':
+      return 'rounded-none';
+    default:
+      return '';
+  }
+});
+
+const fontFamilyClass = computed(() => {
+  switch (props.domainBranding.font_family) {
+    case 'sans':
+      return 'font-sans';
+    case 'serif':
+      return 'font-serif';
+    case 'mono':
+      return 'font-mono';
+    default:
+      return '';
+  }
+});
+
 </script>
 
 <template>
@@ -72,9 +98,7 @@ const toggleReveal = () => {
           aria-describedby="logoHelp">
           <div
             :class="{
-              'rounded-lg': domainBranding.corner_style === 'rounded',
-              'rounded-full': domainBranding.corner_style === 'pill',
-              'rounded-none': domainBranding.corner_style === 'square',
+              [cornerClass]: true,
               'animate-wiggle': !isValidLogo
             }"
             class="hover:ring-primary-500 flex size-14 items-center justify-center overflow-hidden bg-gray-100 hover:ring-2 hover:ring-offset-2 dark:bg-gray-700 sm:size-16">
@@ -84,9 +108,7 @@ const toggleReveal = () => {
               :alt="logoImage?.filename || 'Brand logo'"
               class="size-16 object-contain"
               :class="{
-                'rounded-lg': domainBranding.corner_style === 'rounded',
-                'rounded-full': domainBranding.corner_style === 'pill',
-                'rounded-none': domainBranding.corner_style === 'square'
+                [cornerClass]: true,
               }"
             />
             <svg
@@ -148,13 +170,19 @@ const toggleReveal = () => {
         v-if="isRevealed"
         readonly
         class="w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 dark:text-gray-300 sm:text-sm"
+        :class="{
+          [cornerClass]: true,
+        }"
         rows="3"
         aria-label="Sample secret content">Sample secret content
       This could be sensitive data
       Or a multi-line message</textarea>
       <div
         v-else
-        class="flex items-center text-gray-400 dark:text-gray-500">
+        class="flex items-center text-gray-400 dark:text-gray-500"
+        :class="{
+          [cornerClass]: true,
+        }">
         <Icon
           icon="mdi:eye-off"
           class="mr-2 size-5"
@@ -168,14 +196,12 @@ const toggleReveal = () => {
       <button
         class="w-full py-3 text-base font-medium transition-colors sm:text-lg"
         :class="{
-          'rounded-lg': domainBranding.corner_style === 'rounded',
-          'rounded-full': domainBranding.corner_style === 'pill',
-          'rounded-none': domainBranding.corner_style === 'square'
+          [cornerClass]: true,
+          [fontFamilyClass]: true,
         }"
         :style="{
           backgroundColor: domainBranding.primary_color,
           color: domainBranding.button_text_light ? '#ffffff' : '#000000',
-          fontFamily: domainBranding.font_family
         }"
         @click="toggleReveal"
         :aria-expanded="isRevealed"

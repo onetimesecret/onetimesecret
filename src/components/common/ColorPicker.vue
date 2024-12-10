@@ -55,20 +55,15 @@ const updateColor = (event: Event, isText = false) => {
       <!-- Color Preview Circle -->
       <div class="relative flex items-center">
         <div
-          class="size-6 rounded-full
-            border-2
-            border-white shadow-sm ring-1 ring-gray-200
-            dark:border-gray-700 dark:ring-gray-600"
-          :style="{ backgroundColor: modelValue }"
-          aria-hidden="true">
+          class="size-6 rounded-full border-2 border-white shadow-sm ring-1 ring-gray-200 dark:border-gray-700 dark:ring-gray-600"
+          role="presentation"
+          :style="{ backgroundColor: modelValue }">
           <input
             type="color"
             :value="modelValue"
             @input="updateColor"
             :name="name"
-            class="absolute inset-0
-             size-full cursor-pointer
-             opacity-0"
+            class="absolute inset-0 size-full cursor-pointer opacity-0"
             :aria-labelledby="id + '-label'"
           />
         </div>

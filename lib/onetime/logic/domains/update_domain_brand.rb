@@ -28,26 +28,12 @@ module Onetime::Logic
       # Validate the input parameters
       # Sets error messages if any parameter is invalid
       def raise_concerns
-        OT.ld "[UpdateDomainBrand] Raising any concerns about domain_id: #{@domain_id}"
+        OT.ld "[UpdateDomainBrand] Validating domain: #{@domain_id} with settings: #{@brand_settings.keys}"
 
-        raise_form_error "Please provide a domain ID" if @domain_id.nil? || @domain_id.empty?
-        @custom_domain = OT::CustomDomain.load(@domain_id, @cust.custid)
-        raise_form_error "Domain not found" unless custom_domain && custom_domain.exists?
-        raise_form_error "Please provide brand settings" if @brand_settings.nil? || !@brand_settings.is_a?(Hash)
-
+        validate_domain
+        validate_brand_settings
         limit_action :update_domain_brand
-
-        if @brand_settings[:primary_color]
-          raise_form_error "Invalid primary color" unless valid_color?(@brand_settings[:primary_color])
-        end
-
-        if @brand_settings[:font_family]
-          raise_form_error "Invalid font family" unless valid_font_family?(@brand_settings[:font_family])
-        end
-
-        if @brand_settings[:corner_style]
-          raise_form_error "Invalid button style" unless valid_corner_style?(@brand_settings[:corner_style])
-        end
+        validate_brand_values
       end
 
       def process
@@ -102,6 +88,65 @@ module Onetime::Logic
         false
       end
 
+      private
+
+      def validate_domain
+        if @domain_id.nil? || @domain_id.empty?
+          OT.ld "[UpdateDomainBrand] Error: Missing domain ID"
+          raise_form_error "Please provide a domain ID"
+        end
+
+        @custom_domain = OT::CustomDomain.load(@domain_id, @cust.custid)
+        unless custom_domain&.exists?
+          OT.ld "[UpdateDomainBrand] Error: Domain #{@domain_id} not found for customer #{@cust.custid}"
+          raise_form_error "Domain not found"
+        end
+      end
+
+      def validate_brand_settings
+        unless @brand_settings.is_a?(Hash)
+          OT.ld "[UpdateDomainBrand] Error: Invalid brand settings format - got #{@brand_settings.class}"
+          raise_form_error "Please provide valid brand settings"
+        end
+      end
+
+      def validate_brand_values
+        validate_color
+        validate_font
+        validate_corner_style
+      end
+
+      def validate_color
+        color = @brand_settings[:primary_color]
+        return if color.nil?
+
+        unless valid_color?(color)
+          OT.ld "[UpdateDomainBrand] Error: Invalid color format '#{color}'"
+          raise_form_error "Invalid primary color format - must be hex code (e.g. #FF0000)"
+        end
+      end
+
+      def validate_font
+        font = @brand_settings[:font_family]
+        return if font.nil?
+
+        unless valid_font_family?(font)
+          OT.ld "[UpdateDomainBrand] Error: Invalid font family '#{font}'"
+          raise_form_error "Invalid font family - must be one of: sans, serif, mono"
+        end
+      end
+
+      def validate_corner_style
+        style = @brand_settings[:corner_style]
+        return if style.nil?
+
+        unless valid_corner_style?(style)
+          OT.ld "[UpdateDomainBrand] Error: Invalid corner style '#{style}'"
+          raise_form_error "Invalid corner style - must be one of: rounded, square, pill"
+        end
+      end
+
+
       # Validate color format (hex code)
       def valid_color?(color)
         color.match?(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
@@ -109,12 +154,12 @@ module Onetime::Logic
 
       # Validate font family
       def valid_font_family?(font)
-        %w[sans-serif serif monospace].include?(font)
+        %w[sans serif mono].include?(font.to_s.downcase)
       end
 
       # Validate button style
       def valid_corner_style?(style)
-        %w[rounded square pill].include?(style)
+        %w[rounded square pill].include?(style.to_s.downcase)
       end
     end
   end

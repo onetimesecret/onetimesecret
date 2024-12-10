@@ -24,13 +24,49 @@ defineEmits<{
       v-if="browserType === 'safari'"
       class="flex items-center space-x-2 border-b border-gray-200 bg-gray-100 p-3 dark:border-gray-700 dark:bg-gray-800">
       <!-- Safari Controls -->
-      <div class="flex space-x-2">
+      <div class="flex space-x-2 group/controls">
+        <!-- Close button -->
         <button
           @click="$emit('toggle-browser')"
-          class="size-3 rounded-full bg-red-400 transition-colors hover:bg-red-500"
-          aria-label="Switch to Edge browser view"></button>
-        <div class="size-3 rounded-full bg-yellow-400"></div>
-        <div class="size-3 rounded-full bg-green-400"></div>
+          class="size-3 rounded-full bg-[#FF5F57] transition-colors hover:bg-[#E04940]"
+          aria-label="Switch to Edge browser view">
+          <svg
+            class="size-2 m-auto opacity-0 transition-opacity group-hover/controls:opacity-100"
+            viewBox="0 0 8 8"
+            fill="none"
+            stroke="rgba(0, 0, 0, 0.4)"
+            stroke-width="1.5">
+            <path d="M1.5 1.5l5 5m0-5l-5 5" />
+          </svg>
+        </button>
+
+        <!-- Minimize button -->
+        <button
+          class="size-3 rounded-full bg-[#FFBD2E] transition-colors hover:bg-[#E0A323]"
+          aria-label="Minimize window">
+          <svg
+            class="size-2 m-auto opacity-0 transition-opacity group-hover/controls:opacity-100"
+            viewBox="0 0 8 8"
+            fill="none"
+            stroke="rgba(0, 0, 0, 0.4)"
+            stroke-width="1.5">
+            <path d="M2 4h4" />
+          </svg>
+        </button>
+
+        <!-- Maximize button -->
+        <button
+          class="size-3 rounded-full bg-[#28C840] transition-colors hover:bg-[#1FA833]"
+          aria-label="Maximize window">
+          <svg
+            class="size-2 m-auto opacity-0 transition-opacity group-hover/controls:opacity-100"
+            viewBox="0 0 8 8"
+            fill="none"
+            stroke="rgba(0, 0, 0, 0.4)"
+            stroke-width="1.5">
+            <path d="M1.5 1.5h5v5h-5z" />
+          </svg>
+        </button>
       </div>
       <!-- Safari/Edge Address Bar -->
       <div class="mx-2 flex-1 sm:mx-4">
@@ -190,7 +226,7 @@ defineEmits<{
     </div>
 
     <!-- Content Area -->
-    <div class="bg-white p-3 dark:bg-gray-800 sm:p-6">
+    <div class="relative bg-white dark:bg-gray-800">
       <slot></slot>
     </div>
 
