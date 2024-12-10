@@ -61,22 +61,18 @@ onMounted(() => {
 })
 
 onBeforeRouteLeave((to, from, next) => {
-  if (isDirty.value) {
-    const answer = window.confirm('You have unsaved changes. Are you sure you want to leave?')
-    if (answer) {
-      next()
-    } else {
-      next(false)
-    }
-  } else {
-    next()
+  if (!isDirty.value) {
+    return next()
   }
+
+  next(window.confirm('You have unsaved changes. Are you sure you want to leave?'))
 })
 
 // Reset original values after successful save
 const handleSubmit = () => {
   emit('submit')
   originalValues.value = { ...props.modelValue }
+  isDirty.value = false
 }
 
 </script>
@@ -94,7 +90,6 @@ const handleSubmit = () => {
         />
 
         <!-- Color Picker -->
-
         <ColorPicker
           :model-value="modelValue.primary_color"
           name="brand[primary_color]"
