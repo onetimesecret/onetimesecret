@@ -10,6 +10,7 @@
       "es2023",
       "dom"
     ],
+    "incremental": true,
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -39,9 +40,7 @@
     "src/types/**/*.ts",
     "src/types/declarations/**/*.d.ts",
     "src/**/*.ts",
-    "src/**/*.vue",
-    "tests/unit/vue/**/*.spec.ts",
-    "tests/unit/vue/**/*.ts"
+    "src/**/*.vue"
   ],
   "exclude": [
     "node_modules",
