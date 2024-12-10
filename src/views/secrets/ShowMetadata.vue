@@ -11,6 +11,13 @@ import { AsyncDataResult, MetadataDataApiResponse } from '@/types/api/responses'
 import { storeToRefs } from 'pinia';
 import { computed, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
+import {
+  metadataInputSchema,
+  metadataListInputSchema,
+  MetadataState,
+  type Metadata,
+  type MetadataDetails
+} from '@/schemas/models/metadata';
 
 const route = useRoute();
 const store = useMetadataStore();
@@ -23,10 +30,8 @@ const { currentRecord: record, details, isLoading, error } = storeToRefs(store);
 
 // Initialize from route resolver data
 if (initialData.value?.data) {
-  record.value = initialData.value.data.record;
-  details.value = initialData.value.data.details;
+  store.setData(initialData.value.data);
 }
-
 // Clean up on unmount
 onUnmounted(() => {
   store.abortPendingRequests();

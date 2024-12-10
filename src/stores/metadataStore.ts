@@ -10,7 +10,8 @@ import {
   apiRecordResponseSchema,
   apiRecordsResponseSchema,
   type ApiRecordResponse,
-  type ApiRecordsResponse
+  type ApiRecordsResponse,
+  type MetadataDataApiResponse
 } from '@/types/api/responses';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
@@ -56,9 +57,12 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
+    setData(response: MetadataDataApiResponse) {
+      this.currentRecord = response.record;
+      this.details = response.details;
+    },
+
     // Abort controller should be declared as instance property
-
-
     abortPendingRequests() {
       if (this.abortController) {
         this.abortController.abort();
