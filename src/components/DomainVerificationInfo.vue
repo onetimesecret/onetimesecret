@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CustomDomain } from '@/types/api/responses';
+import { CustomDomain } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
 //import StatusLabel from './StatusLabel.vue';
