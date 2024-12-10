@@ -100,17 +100,6 @@ const handleSubmit = () => {
 
 
         <div class="inline-flex items-center gap-2">
-          <!-- Font Family -->
-          <CycleButton
-            :model-value="modelValue.font_family"
-            :default-value="FontFamily.SANS"
-            @update:model-value="updateFontFamilyStyle"
-            :options="fontOptions"
-            label="Font Family"
-            :display-map="fontDisplayMap"
-            :icon-map="fontIconMap"
-          />
-
           <!-- Corner Style -->
           <CycleButton
             :model-value="modelValue.corner_style"
@@ -120,6 +109,17 @@ const handleSubmit = () => {
             label="Corner Style"
             :display-map="cornerStyleDisplayMap"
             :icon-map="cornerStyleIconMap"
+          />
+
+          <!-- Font Family -->
+          <CycleButton
+            :model-value="modelValue.font_family"
+            :default-value="FontFamily.SANS"
+            @update:model-value="updateFontFamilyStyle"
+            :options="fontOptions"
+            label="Font Family"
+            :display-map="fontDisplayMap"
+            :icon-map="fontIconMap"
           />
         </div>
 
