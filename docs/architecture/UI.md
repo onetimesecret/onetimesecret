@@ -28,13 +28,16 @@ This layered architecture promotes modularity, reusability, and testability. By 
 
 ## Architecture Overview
 
+
 ### Schema Layer (Bottom)
 
 Defines data structures, validates API responses, and provides TypeScript types.
 
 ```typescript
 // schemas/user.ts
-export const userSchema = z.object({ /* ... */ });
+export const userSchema = z.object({
+  /* ... */
+});
 export type User = z.infer<typeof userSchema>;
 ```
 
@@ -100,7 +103,7 @@ Uses composables for logic and focuses on the presentation and user interactions
 </template>
 
 <script setup lang="ts">
-// Component logic
+  // Component logic
 </script>
 ```
 
@@ -199,12 +202,12 @@ export const userSchema = z.object({
   email: z.string().email(),
   name: z.string(),
   role: z.enum(['admin', 'user']),
-  createdAt: z.string().datetime()
+  createdAt: z.string().datetime(),
 });
 
 export const createUserSchema = userSchema.omit({
   id: true,
-  createdAt: true
+  createdAt: true,
 });
 
 export type User = z.infer<typeof userSchema>;
@@ -261,9 +264,7 @@ export const useUserStore = defineStore('user', () => {
   // Getters
   const isAdmin = computed(() => currentUser.value?.role === 'admin');
 
-  const sortedUsers = computed(() =>
-    [...users.value].sort((a, b) => a.name.localeCompare(b.name))
-  );
+  const sortedUsers = computed(() => [...users.value].sort((a, b) => a.name.localeCompare(b.name)));
 
   // Actions
   async function fetchUser(id: string) {
@@ -304,7 +305,7 @@ export const useUserStore = defineStore('user', () => {
     isAdmin,
     sortedUsers,
     fetchUser,
-    createUser
+    createUser,
   };
 });
 ```
@@ -346,7 +347,7 @@ export function useUser(userId?: string) {
     error,
     saveError,
     createUser: handleCreateUser,
-    isAdmin: userStore.isAdmin
+    isAdmin: userStore.isAdmin,
   };
 }
 ```
@@ -372,30 +373,23 @@ export function useUser(userId?: string) {
 </template>
 
 <script setup lang="ts">
-import { useUser } from '@/composables/useUser';
-import { CreateUserInput } from '@/schemas/user';
+  import { useUser } from '@/composables/useUser';
+  import { CreateUserInput } from '@/schemas/user';
 
-const props = defineProps<{
-  userId?: string;
-}>();
+  const props = defineProps<{
+    userId?: string;
+  }>();
 
-const {
-  user,
-  loading,
-  error,
-  saveError,
-  createUser,
-  isAdmin
-} = useUser(props.userId);
+  const { user, loading, error, saveError, createUser, isAdmin } = useUser(props.userId);
 
-async function handleSubmit(formData: CreateUserInput) {
-  try {
-    await createUser(formData);
-    // Handle success
-  } catch (e) {
-    // Handle error
+  async function handleSubmit(formData: CreateUserInput) {
+    try {
+      await createUser(formData);
+      // Handle success
+    } catch (e) {
+      // Handle error
+    }
   }
-}
 </script>
 ```
 
