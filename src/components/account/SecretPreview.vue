@@ -30,7 +30,6 @@ const logoSrc = computed(() => {
 });
 
 const isRevealed = ref(false);
-const isContentExpanded = ref(false);
 
 // Computed property for instructions text
 const instructions = computed(() => {
@@ -53,10 +52,6 @@ const handleLogoChange = (event: Event) => {
 
 const toggleReveal = () => {
   isRevealed.value = !isRevealed.value;
-};
-
-const toggleContentExpand = () => {
-  isContentExpanded.value = !isContentExpanded.value;
 };
 
 const cornerClass = computed(() => {
@@ -171,38 +166,32 @@ const fontFamilyClass = computed(() => {
     </template>
 
     <template #content>
-      <div class="w-full">
-        <textarea
-          v-if="isRevealed"
-          readonly
-          class="w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 dark:text-gray-300 sm:text-sm"
-          :class="{
-            [cornerClass]: true,
-            'line-clamp-6': !isContentExpanded
-          }"
-          rows="3"
-          aria-label="Sample secret content">Sample secret content
+
+      <textarea
+        v-if="isRevealed"
+        readonly
+        class="w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 dark:text-gray-300 sm:text-sm"
+        :class="{
+          [cornerClass]: true
+        }"
+        rows="3"
+        aria-label="Sample secret content">Sample secret content
 This could be sensitive data
 Or a multi-line message</textarea>
-        <button
-          v-if="isRevealed"
-          @click="toggleContentExpand"
-          class="mt-2 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-          {{ isContentExpanded ? 'Show Less' : 'Show More' }}
-        </button>
-        <div
-          v-else
-          class="flex items-center text-gray-400 dark:text-gray-500"
-          :class="{
-            [cornerClass]: true,
-          }">
-          <Icon
-            icon="mdi:eye-off"
-            class="mr-2 size-5"
-          />
-          <span class="text-sm">Content hidden</span>
-        </div>
+
+      <div
+        v-else
+        class="flex items-center text-gray-400 dark:text-gray-500"
+        :class="{
+          [cornerClass]: true,
+        }">
+        <Icon
+          icon="mdi:eye-off"
+          class="mr-2 size-5"
+        />
+        <span class="text-sm">Content hidden</span>
       </div>
+
     </template>
 
     <template #action-button>
