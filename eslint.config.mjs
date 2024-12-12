@@ -159,7 +159,7 @@ export default [
           "multiline": "never",
           "selfClosingTag": {
             "singleline": "never",
-            "multiline": "never"
+            "multiline": "always"
           }
         }
       ],
@@ -183,6 +183,6 @@ export default [
   // Use this prettier plugin for eslint, which disables conflicting rules.
   // This plugin is a workaround for ESLint and Prettier conflicts. Simply,
   // uncomment the next line to enable it (don't forget to import it at the
-  //  top): `import eslintConfigPrettier from 'eslint-config-prettier';`
+  //  top): `import eslintConfigPrettier from 'eslint-config-prettier';
   // eslintConfigPrettier,
 ];

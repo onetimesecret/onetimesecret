@@ -59,7 +59,8 @@
     <Icon
       icon="heroicons:information-circle"
       class="inline cursor-pointer align-baseline text-base"
-      @click="toggleModal" />
+      @click="toggleModal"
+    />
 
     <Transition name="fade">
       <div
