@@ -1,6 +1,5 @@
 <!-- SecretPreview.vue -->
 <script setup lang="ts">
-// Script remains the same
 import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
 import { BrandSettings, ImageProps } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
@@ -11,7 +10,7 @@ const { t } = useI18n();
 const props = defineProps<{
   domainBranding: BrandSettings;
   secretKey: string;
-  logoImage?: ImageProps | null; // Add new prop for logo data
+  logoImage?: ImageProps | null;
   onLogoUpload: (file: File) => Promise<void>;
   onLogoRemove: () => Promise<void>;
 }>();
@@ -31,15 +30,17 @@ const logoSrc = computed(() => {
 });
 
 const isRevealed = ref(false);
+const isContentExpanded = ref(false);
 
-const getInstructions = (revealed: boolean): string => {
-  if (revealed) {
+// Computed property for instructions text
+const instructions = computed(() => {
+  if (isRevealed.value) {
     return props.domainBranding.instructions_post_reveal?.trim() ||
       t('web.shared.post_reveal_default');
   }
   return props.domainBranding.instructions_pre_reveal?.trim() ||
     t('web.shared.pre_reveal_default');
-};
+});
 
 const handleLogoChange = (event: Event) => {
   const input = event.target as HTMLInputElement;
@@ -54,12 +55,16 @@ const toggleReveal = () => {
   isRevealed.value = !isRevealed.value;
 };
 
+const toggleContentExpand = () => {
+  isContentExpanded.value = !isContentExpanded.value;
+};
+
 const cornerClass = computed(() => {
   switch (props.domainBranding.corner_style) {
     case 'rounded':
-      return 'rounded-lg';
+      return 'rounded-md'; // Updated to match BaseSecretDisplay
     case 'pill':
-      return 'rounded-full';
+      return 'rounded-xl'; // Updated to match BaseSecretDisplay
     case 'square':
       return 'rounded-none';
     default:
@@ -86,7 +91,7 @@ const fontFamilyClass = computed(() => {
   <BaseSecretDisplay
     default-title="You have a message"
     :domain-branding="domainBranding"
-    :instructions="getInstructions(isRevealed)">
+    :instructions="instructions">
     <template #logo>
       <!-- Logo Upload Area -->
       <div class="group relative mx-auto sm:mx-0">
@@ -166,28 +171,37 @@ const fontFamilyClass = computed(() => {
     </template>
 
     <template #content>
-      <textarea
-        v-if="isRevealed"
-        readonly
-        class="w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 dark:text-gray-300 sm:text-sm"
-        :class="{
-          [cornerClass]: true,
-        }"
-        rows="3"
-        aria-label="Sample secret content">Sample secret content
-      This could be sensitive data
-      Or a multi-line message</textarea>
-      <div
-        v-else
-        class="flex items-center text-gray-400 dark:text-gray-500"
-        :class="{
-          [cornerClass]: true,
-        }">
-        <Icon
-          icon="mdi:eye-off"
-          class="mr-2 size-5"
-        />
-        <span class="text-sm">Content hidden</span>
+      <div class="w-full">
+        <textarea
+          v-if="isRevealed"
+          readonly
+          class="w-full resize-none border-0 bg-transparent font-mono text-xs text-gray-700 focus:ring-0 dark:text-gray-300 sm:text-sm"
+          :class="{
+            [cornerClass]: true,
+            'line-clamp-6': !isContentExpanded
+          }"
+          rows="3"
+          aria-label="Sample secret content">Sample secret content
+This could be sensitive data
+Or a multi-line message</textarea>
+        <button
+          v-if="isRevealed"
+          @click="toggleContentExpand"
+          class="mt-2 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+          {{ isContentExpanded ? 'Show Less' : 'Show More' }}
+        </button>
+        <div
+          v-else
+          class="flex items-center text-gray-400 dark:text-gray-500"
+          :class="{
+            [cornerClass]: true,
+          }">
+          <Icon
+            icon="mdi:eye-off"
+            class="mr-2 size-5"
+          />
+          <span class="text-sm">Content hidden</span>
+        </div>
       </div>
     </template>
 
@@ -213,7 +227,6 @@ const fontFamilyClass = computed(() => {
   </BaseSecretDisplay>
 </template>
 
-
 <style scoped>
 .line-clamp-6 {
   display: -webkit-box;
@@ -222,7 +235,6 @@ const fontFamilyClass = computed(() => {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 
 button:hover {
   filter: brightness(110%);
@@ -239,7 +251,6 @@ textarea {
 }
 
 @keyframes wiggle {
-
   0%,
   100% {
     transform: rotate(-5deg);
