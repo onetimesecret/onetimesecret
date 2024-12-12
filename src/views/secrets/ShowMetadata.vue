@@ -11,13 +11,6 @@ import { AsyncDataResult, MetadataDataApiResponse } from '@/types/api/responses'
 import { storeToRefs } from 'pinia';
 import { computed, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
-import {
-  metadataInputSchema,
-  metadataListInputSchema,
-  MetadataState,
-  type Metadata,
-  type MetadataDetails
-} from '@/schemas/models/metadata';
 
 const route = useRoute();
 const store = useMetadataStore();
