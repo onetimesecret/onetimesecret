@@ -88,10 +88,10 @@ repos:
     hooks:
       - id: local-eslint-fast
         name: Quick ESLint
-        entry: node_modules/.bin/eslint --quiet
+        entry: node_modules/.bin/eslint --quiet --flag unstable_ts_config
         language: system
         types: [file]
-        files: \.(mjs|ts|vue)$
+        files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)
 
   - repo: local
     hooks:
