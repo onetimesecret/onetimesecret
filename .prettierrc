@@ -11,8 +11,9 @@
   "bracketSameLine": true,
   "arrowParens": "always",
   "proseWrap": "preserve",
-  "htmlWhitespaceSensitivity": "css",
+  "htmlWhitespaceSensitivity": "strict",
   "vueIndentScriptAndStyle": true,
+  "singleAttributePerLine": true,
   "endOfLine": "lf",
   "embeddedLanguageFormatting": "auto"
 }

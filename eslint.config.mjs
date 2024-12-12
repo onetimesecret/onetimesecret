@@ -135,7 +135,6 @@ export default [
     rules: {
       // Ensure valid template root
       'vue/valid-template-root': 'error',
-
       // Configure self-closing tag behavior
       'vue/html-self-closing': ['error', {
         'html': {
@@ -146,8 +145,9 @@ export default [
         'svg': 'always',
         'math': 'always'
       }],
+      // Avoid attribute clutter
       "vue/max-attributes-per-line": ["error", {
-        "singleline": 3,
+        "singleline": 2,
         "multiline": 1
       }],
       // Enforce consistent line breaks in template elements
@@ -158,7 +158,7 @@ export default [
           "multiline": "never",
           "selfClosingTag": {
             "singleline": "never",
-            "multiline": "never"
+            "multiline": "always"
           }
         }
       ],
