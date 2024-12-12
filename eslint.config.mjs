@@ -10,6 +10,7 @@ import * as importPlugin from 'eslint-plugin-import';
 import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
 
 export default [
+
   /**
    * Base Ignore Patterns
    * Excludes all files except source and config files
@@ -158,7 +159,7 @@ export default [
           "multiline": "never",
           "selfClosingTag": {
             "singleline": "never",
-            "multiline": "always"
+            "multiline": "never"
           }
         }
       ],
@@ -178,4 +179,10 @@ export default [
 
   // Include Tailwind recommended configuration
   ...pluginTailwindCSS.configs['flat/recommended'],
+
+  // Use this prettier plugin for eslint, which disables conflicting rules.
+  // This plugin is a workaround for ESLint and Prettier conflicts. Simply,
+  // uncomment the next line to enable it (don't forget to import it at the
+  //  top): `import eslintConfigPrettier from 'eslint-config-prettier';`
+  // eslintConfigPrettier,
 ];
