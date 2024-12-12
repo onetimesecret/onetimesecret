@@ -1,3 +1,4 @@
+
 import pluginVueI18n from '@intlify/eslint-plugin-vue-i18n';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import parserTs from '@typescript-eslint/parser';
@@ -132,8 +133,9 @@ export default [
       vue: pluginVue,
     },
     rules: {
+      // Ensure valid template root
+      'vue/valid-template-root': 'error',
 
-      'vue/valid-template-root': 'error', // Ensure valid template root
       // Configure self-closing tag behavior
       'vue/html-self-closing': ['error', {
         'html': {
@@ -144,18 +146,22 @@ export default [
         'svg': 'always',
         'math': 'always'
       }],
-
+      "vue/max-attributes-per-line": ["error", {
+        "singleline": 3,
+        "multiline": 1
+      }],
+      // Enforce consistent line breaks in template elements
       "vue/html-closing-bracket-newline": [
-          "error",
-          {
+        "error",
+        {
+          "singleline": "never",
+          "multiline": "never",
+          "selfClosingTag": {
             "singleline": "never",
-            "multiline": "never",
-            "selfClosingTag": {
-              "singleline": "never",
-              "multiline": "always"
-            }
+            "multiline": "never"
           }
-        ],
+        }
+      ],
     },
   },
 
