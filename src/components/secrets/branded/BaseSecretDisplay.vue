@@ -97,7 +97,10 @@
           </h2>
 
           <div class="relative">
-            <p ref="textRef" class="pb-4" :class="[textClasses, fontFamilyClass]">
+            <p
+              ref="textRef"
+              class="pb-4"
+              :class="[textClasses, fontFamilyClass]">
               {{ instructions || $t('web.shared.pre_reveal_default') }}
             </p>
 
@@ -105,7 +108,9 @@
               v-if="isLongText"
               @click="toggleExpand"
               class="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-500 shadow-sm transition-all duration-200 hover:text-gray-700 hover:shadow dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
-              <slot name="expand-button" :is-expanded="isExpanded">
+              <slot
+                name="expand-button"
+                :is-expanded="isExpanded">
                 {{ isExpanded ? 'Show Less' : 'Show More' }}
               </slot>
             </button>
@@ -132,7 +137,10 @@
     <div class="mt-4 flex items-baseline justify-between p-3 sm:p-4">
       <slot name="footer">
         <p class="flex items-center text-xs italic text-gray-400 dark:text-gray-500 sm:text-sm">
-          <Icon icon="mdi:information" class="mr-1 size-4" />
+          <Icon
+            icon="mdi:information"
+            class="mr-1 size-4"
+          />
           {{ $t('web.COMMON.careful_only_see_once') }}
         </p>
       </slot>
