@@ -114,7 +114,7 @@ export const customerInputSchema = baseApiRecordSchema
     feature_flags: z
       .record(z.union([z.boolean(), z.number(), z.string()]))
       .transform((val): FeatureFlags => val as FeatureFlags)
-      .optional(),
+      .default({}),  // allows for customer objects that don't have the field yet
   })
   .passthrough();
 
