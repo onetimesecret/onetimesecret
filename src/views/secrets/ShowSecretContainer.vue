@@ -28,9 +28,9 @@ const currentComponent = computed(() => {
 <template>
   <Component
     :is="currentComponent"
-    :secret-key="secretKey"
-    :domain-id="domainId"
-    :display-domain="displayDomain"
-    :site-host="siteHost"
+    :secretKey="secretKey"
+    :domainId="domainId"
+    :displayDomain="displayDomain"
+    :siteHost="siteHost"
   />
 </template>

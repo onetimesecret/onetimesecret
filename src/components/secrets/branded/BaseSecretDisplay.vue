@@ -110,7 +110,7 @@
               class="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-500 shadow-sm transition-all duration-200 hover:text-gray-700 hover:shadow dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
               <slot
                 name="expand-button"
-                :is-expanded="isExpanded">
+                :isExpanded="isExpanded">
                 {{ isExpanded ? 'Show Less' : 'Show More' }}
               </slot>
             </button>

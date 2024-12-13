@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { useWindowProp } from '@/composables/useWindowProps';
 
+interface Props {
+  displayPoweredBy: boolean;
+}
+defineProps<Props>();
+
 const siteHost = useWindowProp('site_host');
 </script>
 
@@ -67,12 +72,13 @@ const siteHost = useWindowProp('site_host');
     <div class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600">
       <div class="space-x-2">
         <a
+          v-if="displayPoweredBy"
           :href="`https://${siteHost}`"
           class="hover:underline"
           rel="noopener noreferrer">
           Powered by Onetime Secret
         </a>
-        <span>·</span>
+        <span v-if="displayPoweredBy">·</span>
         <router-link
           to="/info/terms"
           class="hover:underline">

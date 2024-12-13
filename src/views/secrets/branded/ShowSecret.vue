@@ -75,24 +75,24 @@ watch(finalRecord, (newValue) => {
 
         <SecretConfirmationForm
           v-if="!details.show_secret"
-          :secret-key="secretKey"
+          :secretKey="secretKey"
           :record="record"
           :details="details"
-          :domain-id="domainId"
+          :domainId="domainId"
           @secret-loaded="handleSecretLoaded"
         />
 
         <SecretDisplayCase
           v-else
-          :secret-key="secretKey"
+          :displayPoweredBy="true"
           :record="record"
           :details="details"
-          :domain-id="domainId"
+          :domainId="domainId"
         />
       </div>
 
       <!-- Unknown Secret -->
-      <UnknownSecret v-else-if="!record" />
+      <UnknownSecret v-else-if="!record" :branded="true" />
 
       <div class="flex justify-center pt-16">
         <ThemeToggle />

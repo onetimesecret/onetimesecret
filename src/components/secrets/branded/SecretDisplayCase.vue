@@ -6,10 +6,10 @@ import { Secret, SecretDetails } from '@/schemas/models';
 import { ref } from 'vue';
 
 interface Props {
-  secretKey: string;
   record: Secret | null;
   details: SecretDetails | null;
   domainId: string;
+  displayPoweredBy: boolean;
 }
 
 const props = defineProps<Props>();
@@ -36,9 +36,9 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 
 <template>
   <BaseSecretDisplay
-    default-title="You have a message"
+    defaultTitle="You have a message"
     :instructions="domainBranding?.instructions_pre_reveal"
-    :domain-branding="domainBranding">
+    :domainBranding="domainBranding">
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
