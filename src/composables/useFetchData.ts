@@ -1,6 +1,7 @@
 // src/composables/useFetchData.ts
-import type { ApiRecordResponse, ApiRecordsResponse, BaseApiRecord, DetailsType } from '@/types/api/responses';
-import { ref, Ref, computed } from 'vue';
+import { BaseApiRecord, DetailsType } from '@/schemas/base';
+import type { ApiRecordResponse, ApiRecordsResponse } from '@/types/api/responses';
+import { computed, ref, Ref } from 'vue';
 
 interface FetchDataOptions<T extends BaseApiRecord> {
   url: string;
@@ -20,9 +21,13 @@ interface FetchDataOptions<T extends BaseApiRecord> {
   onError?: (error: Error, status?: number | null) => void;
 }
 
-export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError }: FetchDataOptions<T>) {
+export function useFetchData<T extends BaseApiRecord>({
+  url,
+  onSuccess,
+  onError,
+}: FetchDataOptions<T>) {
   const records = ref<T[]>([]) as Ref<T[]>;
-  const details = ref<DetailsType>(null);
+  const details = ref<DetailsType | undefined>(undefined);
   const isLoading = ref(false);
   const error = ref('');
   const count = ref<number>(0);
@@ -51,16 +56,14 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
       const jsonData: ApiRecordResponse<T> | ApiRecordsResponse<T> = await response.json();
 
       if ('record' in jsonData) {
-        records.value = [jsonData.record];
+        records.value = [jsonData.record as T];
         count.value = 1;
-        details.value = jsonData.details || null;
-
+        details.value = jsonData.details || undefined;
       } else if ('records' in jsonData) {
         records.value = jsonData.records;
         count.value = jsonData.count;
-        custid.value = jsonData.custid;
-        details.value = jsonData.details || null;
-
+        custid.value = jsonData.custid || null;
+        details.value = jsonData.details || undefined;
       } else {
         throw new Error('Unexpected response format');
       }
@@ -68,7 +71,6 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
       if (onSuccess) {
         onSuccess(records.value, details.value);
       }
-
     } catch (err: unknown) {
       if (err instanceof Error) {
         error.value = err.message;
@@ -80,7 +82,6 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
       if (onError) {
         onError(err as Error, status.value);
       }
-
     } finally {
       isLoading.value = false;
     }
@@ -99,7 +100,8 @@ export function useFetchData<T extends BaseApiRecord>({ url, onSuccess, onError 
 }
 
 export function useFetchDataRecord<T extends BaseApiRecord>(options: FetchDataOptions<T>) {
-  const { records, details, isLoading, error, count, custid, status, fetchData } = useFetchData<T>(options);
+  const { records, details, isLoading, error, count, custid, status, fetchData } =
+    useFetchData<T>(options);
 
   const record = computed(() => records.value[0] || null);
 
