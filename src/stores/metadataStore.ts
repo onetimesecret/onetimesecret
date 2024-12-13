@@ -1,16 +1,16 @@
 // src/stores/metadataStore.ts
 import {
   MetadataState,
-  metadataListInputSchema,
+  metadataListItemInputSchema,
   type Metadata,
   type MetadataDetails,
-  type MetadataList
+  type MetadataListItem,
 } from '@/schemas/models/metadata';
 import {
-  metadataRecordResponseSchema,
   apiRecordsResponseSchema,
+  metadataRecordResponseSchema,
   type ApiRecordsResponse,
-  type MetadataRecordApiResponse
+  type MetadataRecordApiResponse,
 } from '@/types/api/responses';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
@@ -51,18 +51,24 @@ export const useMetadataStore = defineStore('metadata', {
     getByKey: (state) => (key: string) => state.cache.get(key),
     isDestroyed: (state) => {
       if (!state.currentRecord) return false;
-      return state.currentRecord.state === MetadataState.RECEIVED ||
-             state.currentRecord.state === MetadataState.BURNED;
+      return (
+        state.currentRecord.state === MetadataState.RECEIVED ||
+        state.currentRecord.state === MetadataState.BURNED
+      );
     },
     canBurn: (state) => {
       // Can burn if:
       // 1. Record exists
       // 2. State is NEW, VIEWED or SHARED
       // 3. Not already destroyed
-      return state.currentRecord &&
-             allowedBurnStates.includes(state.currentRecord.state as typeof allowedBurnStates[number]) &&
-             !state.details?.is_destroyed;
-    }
+      return (
+        state.currentRecord &&
+        allowedBurnStates.includes(
+          state.currentRecord.state as (typeof allowedBurnStates)[number]
+        ) &&
+        !state.details?.is_destroyed
+      );
+    },
   },
 
   actions: {
@@ -87,14 +93,14 @@ export const useMetadataStore = defineStore('metadata', {
       let response; // Declare outside try block to access in catch
 
       try {
-        response = await api.get<ApiRecordsResponse<MetadataList>>('/api/v2/private/recent', {
-          signal: this.abortController.signal
+        response = await api.get<ApiRecordsResponse<MetadataListItem>>('/api/v2/private/recent', {
+          signal: this.abortController.signal,
         });
 
         let validated;
         try {
           validated = transformResponse(
-            apiRecordsResponseSchema(metadataListInputSchema),
+            apiRecordsResponseSchema(metadataListItemInputSchema),
             response.data
           );
         } catch (e) {
@@ -102,12 +108,12 @@ export const useMetadataStore = defineStore('metadata', {
           console.error('Validation error in fetchList:', e);
           validated = {
             records: response.data?.records || [],
-            details: null
+            details: null,
           };
         }
 
         // Convert list records to full metadata records
-        const fullRecords = validated.records.map(record => ({
+        const fullRecords = validated.records.map((record) => ({
           ...record,
           created_date_utc: new Date().toISOString(), // Default value
           expiration_stamp: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24h from now
@@ -123,12 +129,11 @@ export const useMetadataStore = defineStore('metadata', {
         this.records = fullRecords;
         this.details = null; // List view doesn't have details
 
-        fullRecords.forEach(record => {
+        fullRecords.forEach((record) => {
           this.cache.set(record.key, record);
         });
 
         return validated;
-
       } catch (error) {
         this.handleError(error);
         return null;
@@ -142,7 +147,7 @@ export const useMetadataStore = defineStore('metadata', {
       if (!bypassCache && this.cache.has(key)) {
         return {
           record: this.cache.get(key)!,
-          details: this.details
+          details: this.details,
         };
       }
 
@@ -155,21 +160,18 @@ export const useMetadataStore = defineStore('metadata', {
 
       try {
         const response = await api.get<MetadataRecordApiResponse>(`/api/v2/private/${key}`, {
-          signal: bypassCache ? this.abortController?.signal : undefined
+          signal: bypassCache ? this.abortController?.signal : undefined,
         });
 
         let validated;
         try {
-          validated = transformResponse(
-            metadataRecordResponseSchema,
-            response.data
-          );
+          validated = transformResponse(metadataRecordResponseSchema, response.data);
         } catch (e) {
           // On validation error, try to extract what we can
           console.error('Validation error in fetchOne:', e);
           validated = {
             record: response.data?.record,
-            details: null
+            details: null,
           };
         }
 
@@ -180,7 +182,6 @@ export const useMetadataStore = defineStore('metadata', {
         this.details = validated.details ?? null;
 
         return validated;
-
       } catch (error) {
         if (error instanceof Error) {
           if ('status' in error && error.status === 404) {
@@ -196,7 +197,6 @@ export const useMetadataStore = defineStore('metadata', {
         }
         this.handleError(error);
         return null;
-
       } finally {
         if (bypassCache) {
           this.abortController = null;
@@ -213,22 +213,19 @@ export const useMetadataStore = defineStore('metadata', {
       this.isLoading = true;
 
       try {
-        const response = await api.post<MetadataRecordApiResponse>(
-          `/api/v2/private/${key}/burn`,
-          { passphrase, continue: true }
-        );
+        const response = await api.post<MetadataRecordApiResponse>(`/api/v2/private/${key}/burn`, {
+          passphrase,
+          continue: true,
+        });
 
         let validated;
         try {
-          validated = transformResponse(
-            metadataRecordResponseSchema,
-            response.data
-          );
+          validated = transformResponse(metadataRecordResponseSchema, response.data);
         } catch (e) {
           console.error('Validation error in burnMetadata:', e);
           validated = {
             record: response.data?.record,
-            details: null
+            details: null,
           };
         }
 
@@ -236,13 +233,10 @@ export const useMetadataStore = defineStore('metadata', {
           this.clearRecord(key);
           this.currentRecord = validated.record;
           this.details = validated.details ?? null;
-          this.records = this.records.map(r =>
-            r.key === key ? validated.record : r
-          );
+          this.records = this.records.map((r) => (r.key === key ? validated.record : r));
         }
 
         return validated;
-
       } catch (error) {
         this.handleError(error);
         return null;
@@ -261,9 +255,7 @@ export const useMetadataStore = defineStore('metadata', {
           this.currentRecord = updated;
         }
 
-        this.records = this.records.map(r =>
-          r.key === key ? updated : r
-        );
+        this.records = this.records.map((r) => (r.key === key ? updated : r));
       }
     },
 
@@ -300,12 +292,12 @@ export const useMetadataStore = defineStore('metadata', {
         console.error('Metadata validation failed:', {
           error: 'TRANSFORM_ERROR',
           details: formatErrorDetails(error.details),
-          rawData: error.data
+          rawData: error.data,
         });
       }
       this.error = error instanceof Error ? error.message : 'Unknown error';
-    }
-  }
+    },
+  },
 });
 
 function formatErrorDetails(details: ZodIssue[] | string): string | Record<string, string> {
@@ -313,9 +305,12 @@ function formatErrorDetails(details: ZodIssue[] | string): string | Record<strin
     return details;
   }
 
-  return details.reduce((acc, issue) => {
-    const path = issue.path.join('.');
-    acc[path] = issue.message;
-    return acc;
-  }, {} as Record<string, string>);
+  return details.reduce(
+    (acc, issue) => {
+      const path = issue.path.join('.');
+      acc[path] = issue.message;
+      return acc;
+    },
+    {} as Record<string, string>
+  );
 }

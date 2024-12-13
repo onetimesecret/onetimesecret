@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { MetadataList } from '@/schemas/models';
+import { MetadataListItem } from '@/schemas/models';
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
 interface Props {
-  secretMetadata: MetadataList;
+  secretMetadata: MetadataListItem;
 }
 
 const props = defineProps<Props>();

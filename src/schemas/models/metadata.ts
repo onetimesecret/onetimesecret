@@ -1,6 +1,5 @@
 // src/schemas/models/metadata.ts
-import { baseApiRecordSchema } from '@/schemas/base';
-import { type DetailsType } from '@/schemas/base';
+import { baseApiRecordSchema, type DetailsType } from '@/schemas/base';
 import { secretInputSchema } from '@/schemas/models/secret';
 import { booleanFromString, numberFromString } from '@/utils/transforms';
 import { z } from 'zod';
@@ -27,7 +26,7 @@ export const MetadataState = {
   RECEIVED: 'received',
   BURNED: 'burned',
   VIEWED: 'viewed',
-} as const
+} as const;
 
 /**
  * Schema for metadata data from API
@@ -46,9 +45,9 @@ const metadataBaseSchema = z.object({
     MetadataState.BURNED,
     MetadataState.VIEWED,
   ]),
-})
+});
 
-const metadataListBaseSchema = z.object({
+const metadataListItemBaseSchema = z.object({
   custid: z.string(),
   secret_ttl: z.string().transform(Number),
   show_recipients: booleanFromString,
@@ -56,23 +55,22 @@ const metadataListBaseSchema = z.object({
   is_burned: booleanFromString,
   is_destroyed: booleanFromString,
   is_truncated: booleanFromString,
-})
+});
 
-export const metadataListInputSchema = baseApiRecordSchema
+export const metadataListItemInputSchema = baseApiRecordSchema
   .merge(metadataBaseSchema)
-  .merge(metadataListBaseSchema)
-  .strip()
+  .merge(metadataListItemBaseSchema)
+  .strip();
 
-const metadataListDetailsBaseSchema = z.object({
+const metadataListItemDetailsBaseSchema = z.object({
   since: z.number(),
   now: z.number(),
   has_items: booleanFromString,
-  received: z.array(metadataListInputSchema),
-  notreceived: z.array(metadataListInputSchema)
-})
+  received: z.array(metadataListItemInputSchema),
+  notreceived: z.array(metadataListItemInputSchema),
+});
 
-export const metadataListDetailsInputSchema = metadataListDetailsBaseSchema
-  .strip()
+export const metadataListItemDetailsInputSchema = metadataListItemDetailsBaseSchema.strip();
 
 const metadataExtendedBaseSchema = z.object({
   secret_key: z.string().optional(),
@@ -84,12 +82,12 @@ const metadataExtendedBaseSchema = z.object({
   share_url: z.string(),
   metadata_url: z.string(),
   burn_url: z.string(),
-})
+});
 
 export const metadataInputSchema = baseApiRecordSchema
   .merge(metadataBaseSchema)
   .merge(metadataExtendedBaseSchema)
-  .strip()
+  .strip();
 
 /**
  * Schema for metadata details view
@@ -115,15 +113,14 @@ const metadataDetailsBaseSchema = z.object({
   show_metadata_link: booleanFromString,
   show_metadata: booleanFromString,
   show_recipients: booleanFromString,
-})
+});
 
-export const metadataDetailsInputSchema = metadataDetailsBaseSchema
-  .strip()
+export const metadataDetailsInputSchema = metadataDetailsBaseSchema.strip();
 
-export type Metadata = z.infer<typeof metadataInputSchema>
-export type MetadataDetails = z.infer<typeof metadataDetailsInputSchema> & DetailsType
-export type MetadataList = z.infer<typeof metadataListInputSchema>
-export type MetadataListDetails = z.infer<typeof metadataListDetailsInputSchema>
+export type Metadata = z.infer<typeof metadataInputSchema>;
+export type MetadataDetails = z.infer<typeof metadataDetailsInputSchema> & DetailsType;
+export type MetadataListItem = z.infer<typeof metadataListItemInputSchema>;
+export type MetadataListItemDetails = z.infer<typeof metadataListItemDetailsInputSchema>;
 
 /**
  * Schema for combined secret and metadata (conceal data)
@@ -131,11 +128,9 @@ export type MetadataListDetails = z.infer<typeof metadataListDetailsInputSchema>
 const concealDataBaseSchema = z.object({
   metadata: metadataInputSchema,
   secret: secretInputSchema,
-  share_domain: z.string()
-})
+  share_domain: z.string(),
+});
 
-export const concealDataInputSchema = baseApiRecordSchema
-  .merge(concealDataBaseSchema)
-  .strip()
+export const concealDataInputSchema = baseApiRecordSchema.merge(concealDataBaseSchema).strip();
 
-export type ConcealData = z.infer<typeof concealDataInputSchema>
+export type ConcealData = z.infer<typeof concealDataInputSchema>;
