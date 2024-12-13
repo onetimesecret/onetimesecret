@@ -185,3 +185,4 @@ export type ImagePropsApiResponse = z.infer<typeof imagePropsResponseSchema>;
 export type CustomDomainRecordsApiResponse = z.infer<typeof customDomainRecordsResponseSchema>;
 export type UpdateDomainBrandResponse = z.infer<typeof customDomainResponseSchema>;
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
+export type ColonelData = z.infer<typeof colonelDataSchema>;
