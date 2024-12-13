@@ -2,7 +2,7 @@
 
 import { baseApiRecordSchema } from '@/schemas/base'
 import { type DetailsType } from '@/schemas/base'
-import { booleanFromString, numberFromString } from '@/utils/transforms'
+import { booleanFromString } from '@/utils/transforms'
 import { z } from 'zod'
 
 // Add state enum
@@ -14,6 +14,7 @@ export const SecretState = {
 } as const
 
 // Base schema for core fields
+// Base schema for core fields
 const secretBaseSchema = z.object({
   key: z.string(),
   shortkey: z.string(),
@@ -23,11 +24,9 @@ const secretBaseSchema = z.object({
     SecretState.BURNED,
     SecretState.VIEWED
   ]),
-  secret_ttl: numberFromString,
   is_truncated: booleanFromString,
-  is_burned: booleanFromString,
-  is_viewed: booleanFromString,
   has_passphrase: booleanFromString,
+  verification: booleanFromString,
 })
 
 export const secretListInputSchema = baseApiRecordSchema
@@ -38,34 +37,22 @@ export const secretListInputSchema = baseApiRecordSchema
 export const secretInputSchema = baseApiRecordSchema
   .merge(secretBaseSchema)
   .extend({
-    lifespan: numberFromString,
-    verification: booleanFromString,
-    original_size: numberFromString,
-    secret_value: z.string().optional(),
-    created_date_utc: z.string(),
-    expiration_stamp: z.string(),
-    view_path: z.string(),
-    burn_path: z.string(),
-    secret_url: z.string(),
-    burn_url: z.string(),
+    secret_ttl: z.number().nullable(),
+    lifespan: z.string(),
+    original_size: z.string(),
   })
   .strip()
 
 // Enhanced details schema
 export const secretDetailsInputSchema = z.object({
-  title: z.string(),
   continue: z.boolean(),
+  is_owner: z.boolean(),
   show_secret: z.boolean(),
   correct_passphrase: z.boolean(),
   display_lines: z.number(),
   one_liner: z.boolean().nullable(),
-  is_owner: booleanFromString,
-  display_feedback: booleanFromString,
-  no_cache: booleanFromString,
-  has_passphrase: booleanFromString,
-  maxviews: numberFromString,
-  view_count: numberFromString,
 })
+
 
 // Export types
 export type Secret = z.infer<typeof secretInputSchema>

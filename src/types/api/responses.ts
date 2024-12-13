@@ -7,6 +7,7 @@ import {
   concealDataInputSchema,
   metadataDetailsInputSchema,
   metadataInputSchema,
+  metadataListItemDetailsInputSchema,
 } from '@/schemas/models/metadata';
 import { secretDetailsInputSchema, secretInputSchema } from '@/schemas/models/secret';
 import { booleanFromString } from '@/utils/transforms';
@@ -65,7 +66,7 @@ export interface ApiClient {
 export const apiBaseResponseSchema = z.object({
   success: z.boolean(),
   custid: z.string().optional(),
-  shrimp: z.string().optional(),
+  shrimp: z.string().optional().default(''),
 });
 
 export const apiRecordResponseSchema = <T extends z.ZodType>(recordSchema: T) =>
@@ -78,7 +79,10 @@ export const apiRecordsResponseSchema = <T extends z.ZodType>(recordSchema: T) =
   apiBaseResponseSchema.extend({
     records: z.array(recordSchema),
     count: z.number(),
-    details: z.record(z.string(), z.unknown()).optional(),
+    details: z.discriminatedUnion('type', [
+      metadataListItemDetailsInputSchema,
+      metadataDetailsInputSchema,
+    ]).optional(),
   });
 
 // Generic response wrappers - used to type raw API responses
@@ -116,7 +120,7 @@ export const colonelDataSchema = baseApiRecordSchema.extend({
   apitoken: z.string(),
   active: z.string().transform((val) => val === '1'),
   recent_customers: z.array(customerInputSchema),
-  today_feedback: z.array(feedbackInputSchema), // Need to import feedbackInputSchema
+  today_feedback: z.array(feedbackInputSchema),
   yesterday_feedback: z.array(feedbackInputSchema),
   older_feedback: z.array(feedbackInputSchema),
   redis_info: z.string().transform(Number),

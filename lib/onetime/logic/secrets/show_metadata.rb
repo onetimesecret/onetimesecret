@@ -190,6 +190,7 @@ module Onetime::Logic
 
       def ancillary_attributes
         {
+          type: 'record',
           title: title,
           display_lines: display_lines,
           display_feedback: display_feedback,

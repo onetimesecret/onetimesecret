@@ -3,8 +3,8 @@ import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableIte
 import { MetadataListItem } from '@/schemas/models';
 
 interface Props {
-  notReceived: MetadataListItem[] | null;
-  received: MetadataListItem[] | null;
+  notReceived: MetadataListItem[];
+  received: MetadataListItem[];
   isLoading: boolean;
 }
 
