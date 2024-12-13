@@ -12,6 +12,12 @@ import { secretInputSchema } from '@/schemas/models/secret';
 import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
+export interface AsyncDataResult<T> {
+  data: T | null;
+  error: string | null;
+  status: number | null;
+}
+
 /**
  * @fileoverview API Response type definitions
  *
