@@ -3,10 +3,14 @@ import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirm
 import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import { useSecretsStore } from '@/stores/secretsStore';
-import { computed } from 'vue';
+import { useFormSubmission } from '@/composables/useFormSubmission';
+import { Secret, SecretDetails } from '@/schemas/models';
+import { AsyncDataResult, SecretRecordApiResponse } from '@/types';
+import { computed, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 import UnknownSecret from './UnknownSecret.vue';
+
 
 interface Props {
   secretKey: string;
@@ -15,10 +19,45 @@ interface Props {
   siteHost: string;
 }
 
-defineProps<Props>();
-const secretStore = useSecretsStore();
+const props = defineProps<Props>();
+const route = useRoute();
 
-const displayPoweredBy = computed(() => !!(true));
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretRecordApiResponse>);
+
+const finalRecord = ref<Secret | null>(null);
+const finalDetails = ref<SecretDetails | null>(null);
+
+const {
+  isSubmitting,
+} = useFormSubmission({
+  url: `/api/v2/secret/${props.secretKey}`,
+  successMessage: '',
+  onSuccess: (data: SecretRecordApiResponse) => {
+    finalRecord.value = data.record;
+    finalDetails.value = data.details;
+  },
+  onError: (data: { message: string; }) => {
+    console.debug('Error fetching secret:', data.message);
+    throw new Error(data.message);
+  },
+});
+
+// Compute the current state based on initial and final data
+const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
+const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
+const isLoading = computed(() => isSubmitting.value);
+
+const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) => {
+  finalRecord.value = data.record;
+  finalDetails.value = data.details;
+};
+
+// Watch for changes in the finalRecord and update the view accordingly
+watch(finalRecord, (newValue) => {
+  if (newValue) {
+    console.log('Secret fetched successfully');
+  }
+});
 
 const closeWarning = (event: Event) => {
   const element = event.target as HTMLElement;
@@ -28,13 +67,21 @@ const closeWarning = (event: Event) => {
 
 <template>
   <div class="container mx-auto mt-24 px-4">
+
+    <!-- Loading State -->
     <div
-      v-if="secretStore.record && secretStore.details"
+      v-if="isLoading"
+      class="flex items-center justify-center">
+      <div class="size-12 animate-spin rounded-full border-y-2 border-brand-500"></div>
+    </div>
+
+    <div
+      v-if="record && details"
       class="space-y-20">
       <!-- Owner warnings -->
-      <template v-if="!secretStore.record.verification">
+      <template v-if="!record.verification">
         <div
-          v-if="secretStore.details.is_owner && !secretStore.details.show_secret"
+          v-if="details.is_owner && !details.show_secret"
           class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
           role="alert">
           <button
@@ -49,7 +96,7 @@ const closeWarning = (event: Event) => {
         </div>
 
         <div
-          v-if="secretStore.details.is_owner && secretStore.details.show_secret"
+          v-if="details.is_owner && details.show_secret"
           class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4 text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
           role="alert">
           <button
@@ -63,15 +110,19 @@ const closeWarning = (event: Event) => {
         </div>
       </template>
 
-      <div v-if="!secretStore.details.show_secret">
+      <div v-if="!details.show_secret">
         <SecretConfirmationForm
-          :secret-key="secretKey"
-          :record="secretStore.record"
-          :details="secretStore.details"
+          :secretKey="secretKey"
+          :record="record"
+          :details="details"
+          :domainId="domainId"
+          @secret-loaded="handleSecretLoaded"
         />
 
-        <div v-if="!secretStore.record.verification">
-          <SecretRecipientOnboardingContent :display-powered-by="displayPoweredBy" />
+        <div v-if="!record.verification">
+          <SecretRecipientOnboardingContent
+            :displayPoweredBy="true"
+          />
         </div>
       </div>
 
@@ -83,16 +134,15 @@ const closeWarning = (event: Event) => {
         </h2>
 
         <SecretDisplayCase
-          :secret="secretStore.record"
-          :details="secretStore.details"
+          :displayPoweredBy="true"
+          :record="record"
+          :details="details"
         />
       </div>
     </div>
 
-    <UnknownSecret
-      v-else
-      :branded="false"
-    />
+    <!-- Unknown Secret -->
+    <UnknownSecret v-else-if="!record" :branded="false" />
 
     <div class="flex justify-center pt-16">
       <ThemeToggle />
