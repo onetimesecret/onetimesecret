@@ -134,6 +134,12 @@ export default [
       vue: pluginVue,
     },
     rules: {
+      // Prefer camelCase over kebab-case
+      "vue/attribute-hyphenation": ["error", "never", {
+        "ignore": [],
+        "ignoreTags": []
+      }],
+
       // Ensure valid template root
       'vue/valid-template-root': 'error',
       // Configure self-closing tag behavior
