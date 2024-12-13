@@ -39,7 +39,7 @@
  * providing type safety and enabling better tooling support, like auto-completion in
  * IDEs.
  */
-import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, Regions } from '@/types/core';
+import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, RegionsConfig } from '@/schemas/models';
 import { BrokenBrandSettings } from '@types/custom_domains';
 import type Stripe from 'stripe';
 
@@ -96,7 +96,7 @@ declare global {
     notreceived: Metadata[];
     has_items: boolean;
 
-    regions: Regions;
+    regions: RegionsConfig;
 
     incoming_recipient: string;
 
