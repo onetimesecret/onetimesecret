@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Metadata } from '@/schemas/models';
+import { MetadataList } from '@/schemas/models';
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
 interface Props {
-  secretMetadata: Metadata;
+  secretMetadata: MetadataList;
 }
 
 const props = defineProps<Props>();
@@ -22,7 +22,7 @@ const displayKey = computed(() => {
 
 <template>
   <router-link
-    :to="{ name: 'Metadata link', params: { metadataKey: secretMetadata.key } }"
+    :to="{ name: 'Metadata link', params: { metadataKey: secretMetadata.identifier } }"
     :class="[linkClass, 'transition-colors hover:text-brand-500 dark:hover:text-brand-500']"
     :title="secretMetadata.is_destroyed ? 'RECEIVED' : 'NOT RECEIVED'">
     {{ displayKey }}
@@ -35,9 +35,9 @@ const displayKey = computed(() => {
   <span class="ml-2 text-gray-500 dark:text-gray-400">-</span>
   <em
     class="italic text-gray-500 dark:text-gray-400"
-    :title="secretMetadata.updated">
+    :title="secretMetadata.updated.toLocaleString()">
     {{ secretMetadata.is_received ? $t('web.COMMON.word_received') : '' }}
-    {{ secretMetadata.is_burned ? $t('web.COMMON.word_burned') : '' }} {{ secretMetadata.stamp }}
+    {{ secretMetadata.is_burned ? $t('web.COMMON.word_burned') : '' }} {{ secretMetadata.updated }}
   </em>
 
   <router-link

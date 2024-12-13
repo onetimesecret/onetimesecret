@@ -126,25 +126,6 @@ export type MetadataList = z.infer<typeof metadataListInputSchema>
 export type MetadataListDetails = z.infer<typeof metadataListDetailsInputSchema>
 
 /**
- * Schema for dashboard metadata extensions
- */
-const dashboardMetadataBaseSchema = z.object({
-  shortkey: z.string(),
-  show_recipients: booleanFromString,
-  stamp: z.string(),
-  uri: z.string(),
-  is_received: booleanFromString,
-  is_burned: booleanFromString,
-  is_destroyed: booleanFromString
-})
-
-export const dashboardMetadataInputSchema = baseApiRecordSchema
-  .merge(dashboardMetadataBaseSchema)
-  .strip()
-
-export type DashboardMetadata = z.infer<typeof dashboardMetadataInputSchema>
-
-/**
  * Schema for combined secret and metadata (conceal data)
  */
 const concealDataBaseSchema = z.object({
