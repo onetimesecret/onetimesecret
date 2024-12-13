@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard';
 import { useWindowProp } from '@/composables/useWindowProps';
-import { SecretData, SecretDetails } from '@/schemas/models';
+import { Secret, SecretDetails } from '@/schemas/models';
 
 const siteHost = useWindowProp('site_host');
 
 interface Props {
-  secret: SecretData;
+  secret: Secret;
   details: SecretDetails;
 }
 
