@@ -6,9 +6,11 @@ import InstructionsModal from '@/components/account/InstructionsModal.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import type { BrandSettings, CustomDomain, ImageProps } from '@/schemas/models';
+import { brandSettingsInputSchema } from '@/schemas/models/domain/brand';
 import { useBrandingStore } from '@/stores/brandingStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
+import type { BrandSettingsApiResponse } from '@/types/api/responses';
 import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
@@ -78,14 +80,6 @@ const handleBeforeUnload = (e: BeforeUnloadEvent) => {
   }
 };
 
-
-// API response interface
-interface ApiResponse {
-  record: {
-    brand?: Partial<BrandSettings>;
-  };
-}
-
 // Fetch brand settings from the API
 const fetchBrandSettings = async () => {
   loading.value = true;
@@ -93,56 +87,47 @@ const fetchBrandSettings = async () => {
   success.value = null;
 
   try {
-    // Use preloaded data if available
-    if (initialData.value) {
+    let settings: BrandSettings;
 
-      if (initialData.value.data) {
-        customDomain.value = initialData.value.data.record;
-        const { brand } = customDomain.value;
-        const settings = {
-          primary_color: brand?.primary_color || '#ffffff',
-          instructions_pre_reveal: brand?.instructions_pre_reveal || '',
-          instructions_post_reveal: brand?.instructions_post_reveal || '',
-          instructions_reveal: brand?.instructions_reveal || '',
-          font_family: brand?.font_family || 'sans-serif',
-          corner_style: brand?.corner_style || 'rounded',
-          button_text_light: brand?.button_text_light || false,
-          allow_public_homepage: brand?.allow_public_homepage || false,
-          allow_public_api: brand?.allow_public_api || false,
+    if (initialData.value?.data) {
+      customDomain.value = initialData.value.data.record;
+      const { brand } = customDomain.value;
 
-        };
-        brandSettings.value = settings;
-        originalSettings.value = JSON.parse(JSON.stringify(settings)); // Deep copy initial settings
-        hasUnsavedChanges.value = false; // Explicitly set to false
-        return;
+      if (!brand) {
+        throw new Error('Brand settings not found');
       }
+
+      settings = brandSettingsInputSchema.parse(brand);
+    } else {
+      // Fallback to API call if no preloaded data
+      const response = await api.get<BrandSettingsApiResponse>(
+        `/api/v2/account/domains/${displayDomain.value}/brand`
+      );
+
+      if (!response.success || !response.data.record) {
+        throw new Error('Failed to fetch brand settings');
+      }
+
+      settings = brandSettingsInputSchema.parse(response.data.record);
     }
 
-    // Fallback to API call if no preloaded data
-    const response = await fetch(`/api/v2/account/domains/${displayDomain.value}/brand`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data: ApiResponse = await response.json();
-    const { brand } = data.record;
-    const settings = {
-      primary_color: brand?.primary_color || '#ffffff',
-      instructions_pre_reveal: brand?.instructions_pre_reveal || '',
-      instructions_post_reveal: brand?.instructions_post_reveal || '',
-      instructions_reveal: brand?.instructions_reveal || '',
-      font_family: brand?.font_family || 'sans-serif',
-      corner_style: brand?.corner_style || 'rounded',
-      button_text_light: brand?.button_text_light || false,
-      allow_public_homepage: brand?.allow_public_homepage || false,
-      allow_public_api: brand?.allow_public_api || false,
-
-    };
     brandSettings.value = settings;
-    originalSettings.value = JSON.parse(JSON.stringify(settings)); // Deep copy initial settings
-    hasUnsavedChanges.value = false; // Explicitly set to false
+    originalSettings.value = JSON.parse(JSON.stringify(settings));
+    hasUnsavedChanges.value = false;
+
   } catch (err) {
     console.error('Error fetching brand settings:', err);
-    error.value = err instanceof Error ? err.message : 'Failed to fetch brand settings. Please try again.';
+    error.value = err instanceof Error ? err.message : 'Failed to fetch brand settings';
+
+    // Set default values on error
+    brandSettings.value = brandSettingsInputSchema.parse({
+      primary_color: '#ffffff',
+      font_family: 'sans-serif',
+      corner_style: 'rounded',
+      button_text_light: false,
+      allow_public_homepage: false,
+      allow_public_api: false,
+    });
   } finally {
     loading.value = false;
   }
