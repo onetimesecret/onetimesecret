@@ -2,7 +2,7 @@
 
 import {
   secretResponseSchema,
-  type SecretData,
+  type Secret,
   type SecretDetails,
   type SecretResponse
 } from '@/schemas/models/secret';
@@ -13,7 +13,7 @@ import { defineStore } from 'pinia';
 const api = createApi()
 
 interface SecretState {
-  record: SecretData | null
+  record: Secret | null
   details: SecretDetails | null
   isLoading: boolean
   error: string | null

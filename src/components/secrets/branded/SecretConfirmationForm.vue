@@ -2,17 +2,15 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useDomainBranding } from '@/composables/useDomainBranding';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import { SecretData, SecretDetails } from '@/schemas/models';
+import { Secret, SecretDetails } from '@/schemas/models';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { ref } from 'vue';
 
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
-
-
 interface Props {
   secretKey: string;
-  record: SecretData | null;
+  record: Secret | null;
   details: SecretDetails | null;
   domainId: string;
 }
@@ -20,7 +18,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  (e: 'secret-loaded', data: { record: SecretData; details: SecretDetails; }): void;
+  (e: 'secret-loaded', data: { record: Secret; details: SecretDetails; }): void;
 }>();
 
 const domainBranding = useDomainBranding();
@@ -36,7 +34,7 @@ const {
 } = useFormSubmission({
   url: `/api/v2/secret/${props.secretKey}`,
   successMessage: '',
-  onSuccess: (data: { record: SecretData; details: SecretDetails; }) => {
+  onSuccess: (data: { record: Secret; details: SecretDetails; }) => {
     emit('secret-loaded', {
       record: data.record,
       details: data.details

@@ -8,7 +8,7 @@ import {
     metadataDetailsInputSchema,
     metadataInputSchema,
 } from '@/schemas/models/metadata';
-import { secretInputSchema } from '@/schemas/models/secret';
+import { secretInputSchema, secretDetailsInputSchema } from '@/schemas/models/secret';
 import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
@@ -103,6 +103,12 @@ export const metadataRecordResponseSchema = apiBaseResponseSchema.extend({
   details: metadataDetailsInputSchema.optional(),
 });
 
+// Ditto for secrets
+export const secretRecordResponseSchema = apiBaseResponseSchema.extend({
+  record: secretInputSchema,
+  details: secretDetailsInputSchema.optional(),
+});
+
 export type ApiRecordsResponse<T> = z.infer<
   ReturnType<typeof apiRecordsResponseSchema<z.ZodType<T>>>
 >;
@@ -160,11 +166,11 @@ export const apiTokenResponseSchema = apiRecordResponseSchema(apiTokenSchema);
 export const customDomainResponseSchema = apiRecordResponseSchema(customDomainInputSchema);
 export const customDomainRecordsResponseSchema = apiRecordsResponseSchema(customDomainInputSchema);
 export const accountResponseSchema = apiRecordResponseSchema(accountSchema);
-export const secretDataResponseSchema = apiRecordResponseSchema(secretInputSchema);
 export const concealDataResponseSchema = apiRecordResponseSchema(concealDataInputSchema);
 export const checkAuthDataResponseSchema = apiRecordResponseSchema(customerInputSchema);
 export const brandSettingsResponseSchema = apiRecordResponseSchema(brandSettingsInputSchema);
 export const imagePropsResponseSchema = apiRecordResponseSchema(imagePropsSchema);
+
 
 /**
  * Response type exports combining API structure with transformed app types
@@ -177,7 +183,7 @@ export type CustomDomainApiResponse = z.infer<typeof customDomainResponseSchema>
 export type AccountApiResponse = z.infer<typeof accountResponseSchema>;
 export type ColonelDataApiResponse = z.infer<typeof colonelDataResponseSchema>;
 export type MetadataRecordApiResponse = z.infer<typeof metadataRecordResponseSchema>;
-export type SecretDataApiResponse = z.infer<typeof secretDataResponseSchema>;
+export type SecretRecordApiResponse = z.infer<typeof secretRecordResponseSchema>;
 export type ConcealDataApiResponse = z.infer<typeof concealDataResponseSchema>;
 export type CheckAuthDataApiResponse = z.infer<typeof checkAuthDataResponseSchema>;
 export type BrandSettingsApiResponse = z.infer<typeof brandSettingsResponseSchema>;

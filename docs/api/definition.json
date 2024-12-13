@@ -840,7 +840,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/SecretDataApiResponse"
+                                    "$ref": "#/components/schemas/SecretRecordApiResponse"
                                 }
                             }
                         }
@@ -869,7 +869,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/SecretDataApiResponse"
+                                    "$ref": "#/components/schemas/SecretRecordApiResponse"
                                 }
                             }
                         }
@@ -1276,7 +1276,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/SecretDataApiResponse"
+                                    "$ref": "#/components/schemas/SecretRecordApiResponse"
                                 }
                             }
                         }
@@ -1969,7 +1969,7 @@
               }
             ]
           },
-          "SecretData": {
+          "Secret": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/BaseSecret"
@@ -2021,7 +2021,7 @@
                 "$ref": "#/components/schemas/Metadata"
               },
               "secret": {
-                "$ref": "#/components/schemas/SecretData"
+                "$ref": "#/components/schemas/Secret"
               },
               "share_domain": {
                 "type": "string"

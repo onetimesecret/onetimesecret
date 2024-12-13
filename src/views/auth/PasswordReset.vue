@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useFetchDataRecord } from '@/composables/useFetchData';
-import { SecretData } from '@/schemas/models';
+import { Secret } from '@/schemas/models';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })
 
-const { fetchData: fetchSecret } = useFetchDataRecord<SecretData>({
+const { fetchData: fetchSecret } = useFetchDataRecord<Secret>({
   url: `/api/v2/secret/${props.resetKey}`,
   onError,
 });

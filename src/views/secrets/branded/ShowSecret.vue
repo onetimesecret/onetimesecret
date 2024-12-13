@@ -3,8 +3,8 @@ import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmat
 import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { SecretData, SecretDetails } from '@/schemas/models';
-import { AsyncDataResult, SecretDataApiResponse } from '@/types/api';
+import type { Secret, SecretDetails } from '@/schemas/models';
+import { AsyncDataResult, SecretRecordApiResponse } from '@/types/api';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -20,9 +20,9 @@ interface Props {
 const props = defineProps<Props>();
 const route = useRoute();
 
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretRecordApiResponse>);
 
-const finalRecord = ref<SecretData | null>(null);
+const finalRecord = ref<Secret | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
 
 const {
@@ -30,7 +30,7 @@ const {
 } = useFormSubmission({
   url: `/api/v2/secret/${props.secretKey}`,
   successMessage: '',
-  onSuccess: (data: SecretDataApiResponse) => {
+  onSuccess: (data: SecretRecordApiResponse) => {
     finalRecord.value = data.record;
     finalDetails.value = data.details;
   },
@@ -45,7 +45,7 @@ const record = computed(() => finalRecord.value || (initialData?.value.data?.rec
 const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
 const isLoading = computed(() => isSubmitting.value);
 
-const handleSecretLoaded = (data: { record: SecretData; details: SecretDetails; }) => {
+const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) => {
   finalRecord.value = data.record;
   finalDetails.value = data.details;
 };

@@ -2,12 +2,12 @@
 import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
 import { useClipboard } from '@/composables/useClipboard';
 import { useDomainBranding } from '@/composables/useDomainBranding';
-import { SecretData, SecretDetails } from '@/schemas/models';
+import { Secret, SecretDetails } from '@/schemas/models';
 import { ref } from 'vue';
 
 interface Props {
   secretKey: string;
-  record: SecretData | null;
+  record: Secret | null;
   details: SecretDetails | null;
   domainId: string;
 }
