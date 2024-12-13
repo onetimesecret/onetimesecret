@@ -1,81 +1,96 @@
 <!-- src/components/secrets/BaseSecretDisplay.vue -->
 <script setup lang="ts">
-import { BrandSettings } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
+/**
+ * Core display component for branded secret workflows that provides consistent
+ * layout and styling across both confirmation and reveal states.
+ *
+ * This component is specifically designed for custom branded deployments where
+ * maintaining brand consistency is prioritized over marketing opportunities.
+ * For the core OneTimeSecret implementation, see the canonical SecretDisplayCase.
+ *
+ * @prop defaultTitle - Fallback title when branding is unavailable
+ * @prop instructions - Optional pre-reveal instructions from domain branding
+ * @prop domainBranding - Domain-specific styling configuration
+ *
+ * @slot logo - Domain logo or fallback icon
+ * @slot content - Main content area (confirmation form or secret content)
+ * @slot action-button - Action button slot (submit or copy)
+ */
+  import { BrandSettings } from '@/schemas/models';
+  import { Icon } from '@iconify/vue';
+  import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 
-const props = defineProps<{
-  instructions?: string;
-  defaultTitle?: string;
-  domainBranding: BrandSettings;
-}>();
+  const props = defineProps<{
+    instructions?: string;
+    defaultTitle?: string;
+    domainBranding: BrandSettings;
+  }>();
 
-// Text expansion logic
-const textRef = ref<HTMLElement | null>(null);
-const isExpanded = ref(false);
-const isLongText = ref(false);
+  // Text expansion logic
+  const textRef = ref<HTMLElement | null>(null);
+  const isExpanded = ref(false);
+  const isLongText = ref(false);
 
-// Reusable computed properties
-const textClasses = computed(() => ({
-  'text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed': true,
-  'line-clamp-6': !isExpanded.value,
-  'pb-6': isLongText.value && !isExpanded.value,
-}));
+  // Reusable computed properties
+  const textClasses = computed(() => ({
+    'text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed': true,
+    'line-clamp-6': !isExpanded.value,
+    'pb-6': isLongText.value && !isExpanded.value,
+  }));
 
-// Text length checking
-const checkTextLength = () => {
-  nextTick(() => {
-    const element = textRef.value;
-    if (element) {
-      element.classList.remove('line-clamp-6');
-      const lineHeight = parseInt(window.getComputedStyle(element).lineHeight);
-      isLongText.value = element.scrollHeight > (lineHeight * 4);
-      if (!isExpanded.value) {
-        element.classList.add('line-clamp-6');
+  // Text length checking
+  const checkTextLength = () => {
+    nextTick(() => {
+      const element = textRef.value;
+      if (element) {
+        element.classList.remove('line-clamp-6');
+        const lineHeight = parseInt(window.getComputedStyle(element).lineHeight);
+        isLongText.value = element.scrollHeight > lineHeight * 4;
+        if (!isExpanded.value) {
+          element.classList.add('line-clamp-6');
+        }
       }
+    });
+  };
+
+  onMounted(() => {
+    checkTextLength();
+    window.addEventListener('resize', checkTextLength);
+  });
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', checkTextLength);
+  });
+
+  const toggleExpand = () => {
+    isExpanded.value = !isExpanded.value;
+  };
+
+  const cornerClass = computed(() => {
+    switch (props.domainBranding.corner_style) {
+      case 'rounded':
+        return 'rounded-md'; // Updated to 'rounded-md' for a more subtle rounding
+      case 'pill':
+        return 'rounded-xl'; // Updated to 'rounded-xl' for a more subtle rounding
+      case 'square':
+        return 'rounded-none';
+      default:
+        return '';
     }
   });
-};
 
-onMounted(() => {
-  checkTextLength();
-  window.addEventListener('resize', checkTextLength);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkTextLength);
-});
-
-const toggleExpand = () => {
-  isExpanded.value = !isExpanded.value;
-};
-
-const cornerClass = computed(() => {
-  switch (props.domainBranding.corner_style) {
-    case 'rounded':
-      return 'rounded-md'; // Updated to 'rounded-md' for a more subtle rounding
-    case 'pill':
-      return 'rounded-xl'; // Updated to 'rounded-xl' for a more subtle rounding
-    case 'square':
-      return 'rounded-none';
-    default:
-      return '';
-  }
-});
-
-const fontFamilyClass = computed(() => {
-  switch (props.domainBranding.font_family) {
-    case 'sans':
-      return 'font-sans';
-    case 'serif':
-      return 'font-serif';
-    case 'mono':
-      return 'font-mono';
-    default:
-      return '';
-  }
-});
-
+  const fontFamilyClass = computed(() => {
+    switch (props.domainBranding.font_family) {
+      case 'sans':
+        return 'font-sans';
+      case 'serif':
+        return 'font-serif';
+      case 'mono':
+        return 'font-mono';
+      default:
+        return '';
+    }
+  });
 </script>
 
 <template>
@@ -108,14 +123,10 @@ const fontFamilyClass = computed(() => {
             <button
               v-if="isLongText"
               @click="toggleExpand"
-              class="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border border-gray-200 bg-white px-3
-                     py-1 text-xs text-gray-500
-                     shadow-sm transition-all duration-200 hover:text-gray-700
-                     hover:shadow dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400
-                     dark:hover:text-gray-300">
+              class="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-500 shadow-sm transition-all duration-200 hover:text-gray-700 hover:shadow dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
               <slot
                 name="expand-button"
-                :is-expanded="isExpanded">
+                :isExpanded="isExpanded">
                 {{ isExpanded ? 'Show Less' : 'Show More' }}
               </slot>
             </button>
@@ -127,10 +138,9 @@ const fontFamilyClass = computed(() => {
     <!-- Content Area -->
     <div class="my-3 sm:my-4">
       <div
-        class="flex min-h-32 w-full items-center justify-center bg-gray-100 dark:bg-gray-700 sm:min-h-36 "
+        class="flex min-h-32 w-full items-center justify-center bg-gray-100 dark:bg-gray-700 sm:min-h-36"
         :class="{
           [cornerClass]: true,
-
         }">
         <slot name="content"></slot>
       </div>

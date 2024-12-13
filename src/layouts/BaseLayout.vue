@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
+import { AuthenticationSettings, Customer } from '@/schemas/models';
 import { useBrandingStore } from '@/stores/brandingStore';
-import { AuthenticationSettings, Customer } from '@/types/core';
 import { computed, inject, ref, Ref } from 'vue';
 
 export interface Props {
@@ -20,10 +20,12 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   authenticated: false,
   colonel: false,
+  cust: undefined,
   plansEnabled: false,
   hasGlobalBanner: false,
   globalBanner: '',
-  primaryColor: 'bg-brand-500'
+  primaryColor: 'bg-brand-500',
+  supportHost: undefined
 })
 
 const color = inject('color', ref(props.primaryColor))as Ref<string>;
@@ -33,7 +35,7 @@ const primaryColorClass = computed(() => {
   if (brandingStore.isActive) {
     return '';
   }
-  console.log('Computing primaryColorClass with color:', color.value);
+  console.debug('Computing primaryColorClass with color:', color.value);
   return !isColorValue(color.value) ? color.value : '';
 });
 

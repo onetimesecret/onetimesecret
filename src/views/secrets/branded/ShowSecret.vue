@@ -1,10 +1,23 @@
 <script setup lang="ts">
+/**
+ * Branded secret display implementation that maintains consistent UI between confirmation
+ * and reveal states by leveraging BaseSecretDisplay for both.
+ *
+ * This component handles secrets for custom domains, ensuring brand consistency by:
+ * 1. Using identical layouts for both confirmation and reveal states
+ * 2. Applying domain-specific styling (colors, fonts, corner styles)
+ * 3. Displaying branded logos when available
+ *
+ * @see SecretConfirmationForm - Handles passphrase entry using BaseSecretDisplay
+ * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
+ */
+
 import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
 import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import type { SecretData, SecretDetails } from '@/schemas/models';
-import { AsyncDataResult, SecretDataApiResponse } from '@/types/api';
+import type { Secret, SecretDetails } from '@/schemas/models';
+import { AsyncDataResult, SecretRecordApiResponse } from '@/types/api';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -20,9 +33,9 @@ interface Props {
 const props = defineProps<Props>();
 const route = useRoute();
 
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretDataApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretRecordApiResponse>);
 
-const finalRecord = ref<SecretData | null>(null);
+const finalRecord = ref<Secret | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
 
 const {
@@ -30,7 +43,7 @@ const {
 } = useFormSubmission({
   url: `/api/v2/secret/${props.secretKey}`,
   successMessage: '',
-  onSuccess: (data: SecretDataApiResponse) => {
+  onSuccess: (data: SecretRecordApiResponse) => {
     finalRecord.value = data.record;
     finalDetails.value = data.details;
   },
@@ -45,7 +58,7 @@ const record = computed(() => finalRecord.value || (initialData?.value.data?.rec
 const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
 const isLoading = computed(() => isSubmitting.value);
 
-const handleSecretLoaded = (data: { record: SecretData; details: SecretDetails; }) => {
+const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) => {
   finalRecord.value = data.record;
   finalDetails.value = data.details;
 };
@@ -75,24 +88,24 @@ watch(finalRecord, (newValue) => {
 
         <SecretConfirmationForm
           v-if="!details.show_secret"
-          :secret-key="secretKey"
+          :secretKey="secretKey"
           :record="record"
           :details="details"
-          :domain-id="domainId"
+          :domainId="domainId"
           @secret-loaded="handleSecretLoaded"
         />
 
         <SecretDisplayCase
           v-else
-          :secret-key="secretKey"
+          :displayPoweredBy="true"
           :record="record"
           :details="details"
-          :domain-id="domainId"
+          :domainId="domainId"
         />
       </div>
 
       <!-- Unknown Secret -->
-      <UnknownSecret v-else-if="!record" />
+      <UnknownSecret v-else-if="!record" :branded="true" />
 
       <div class="flex justify-center pt-16">
         <ThemeToggle />

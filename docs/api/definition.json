@@ -744,7 +744,7 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiRecordsResponse",
-                                    "x-generic": "MetadataData"
+                                    "x-generic": "Metadata"
                                 }
                             }
                         }
@@ -808,7 +808,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MetadataDataApiResponse"
+                                    "$ref": "#/components/schemas/MetadataRecordApiResponse"
                                 }
                             }
                         }
@@ -840,7 +840,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/SecretDataApiResponse"
+                                    "$ref": "#/components/schemas/SecretRecordApiResponse"
                                 }
                             }
                         }
@@ -869,7 +869,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/SecretDataApiResponse"
+                                    "$ref": "#/components/schemas/SecretRecordApiResponse"
                                 }
                             }
                         }
@@ -1276,7 +1276,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/SecretDataApiResponse"
+                                    "$ref": "#/components/schemas/SecretRecordApiResponse"
                                 }
                             }
                         }
@@ -1845,7 +1845,7 @@
               }
             ]
           },
-          "MetadataData": {
+          "Metadata": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/BaseMetadata"
@@ -1969,7 +1969,7 @@
               }
             ]
           },
-          "SecretData": {
+          "Secret": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/BaseSecret"
@@ -2018,10 +2018,10 @@
             "type": "object",
             "properties": {
               "metadata": {
-                "$ref": "#/components/schemas/MetadataData"
+                "$ref": "#/components/schemas/Metadata"
               },
               "secret": {
-                "$ref": "#/components/schemas/SecretData"
+                "$ref": "#/components/schemas/Secret"
               },
               "share_domain": {
                 "type": "string"

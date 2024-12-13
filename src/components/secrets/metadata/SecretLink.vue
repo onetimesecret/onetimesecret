@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useClipboard } from '@/composables/useClipboard'
-import { MetadataData, MetadataDetails } from '@/types/core'
+import { Metadata, MetadataDetails } from '@/schemas/models'
 
 interface Props {
-  metadata: MetadataData;
+  metadata: Metadata;
   details: MetadataDetails;
 }
 

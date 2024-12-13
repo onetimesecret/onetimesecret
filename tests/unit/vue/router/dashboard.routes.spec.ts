@@ -1,8 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
-import { RouteRecordRaw, RouteLocationNormalized } from 'vue-router'
-import dashboardRoutes from '@/router/dashboard.routes'
-import { fetchInitialSecret } from '@/api/secrets'
-import { AsyncDataResult, SecretDataApiResponse } from '@/types/api/responses'
+import dashboardRoutes from '@/router/dashboard.routes';
+import { describe, expect, it, vi } from 'vitest';
+import { RouteRecordRaw } from 'vue-router';
 
 vi.mock('@/api/secrets', () => ({
   fetchInitialSecret: vi.fn(),

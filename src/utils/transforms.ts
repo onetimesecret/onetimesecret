@@ -1,6 +1,3 @@
-import type {
-  ApiRecordsResponse,
-} from '@/types/api/responses';
 import { z, ZodIssue } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 
@@ -19,7 +16,6 @@ import { fromZodError } from 'zod-validation-error';
  * 2. Allowing models to specify their identifier source
  * 3. Transforming as needed in model-specific schemas
  */
-
 
 /**
  * Common transform helpers for API -> App data conversion
@@ -49,7 +45,7 @@ export const createInputSchema = <T extends z.ZodType>(recordSchema: T) =>
   z.object({
     success: z.boolean(),
     record: recordSchema,
-    details: z.any().optional()
+    details: z.any().optional(),
   });
 
 export const createListInputSchema = <T extends z.ZodType>(recordSchema: T) =>
@@ -58,7 +54,7 @@ export const createListInputSchema = <T extends z.ZodType>(recordSchema: T) =>
     custid: z.string(),
     records: z.array(recordSchema),
     count: z.number(),
-    details: z.any().optional()
+    details: z.any().optional(),
   });
 
 /**
@@ -84,46 +80,30 @@ export function isTransformError(error: unknown): error is TransformError {
 /**
  * Main transform functions for API responses
  */
-export function transformResponse<T extends z.ZodType>(
-  schema: T,
-  data: unknown
-): z.infer<T> {
+export function transformResponse<T>(schema: z.ZodSchema<T>, data: unknown): T {
   try {
     return schema.parse(data);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.debug('Schema:', schema)
-      console.debug('Failed data:', data)
-      console.debug('Validation issues:', error.issues)
-      throw new TransformError(
-        'Validation failed',
-        fromZodError(error).details
+      console.debug('Schema:', schema);
+      console.debug('Failed data:', data);
+      console.debug('Validation issues:', error.issues);
+      console.debug(
+        JSON.stringify(
+          {
+            schema: schema,
+            failedData: data,
+            validationIssues: error.issues,
+          },
+          null,
+          2
+        )
       );
+      throw new TransformError('Validation failed', fromZodError(error).details);
     } else {
       console.error('Transform failed:', error);
     }
 
-    throw new TransformError('Transform failed');
-  }
-}
-
-export function transformRecordsResponse<T extends z.ZodType>(
-  schema: ReturnType<typeof createListInputSchema<T>>,
-  data: unknown
-): ApiRecordsResponse<z.infer<T>> {
-  try {
-    const result = schema.safeParse(data);
-
-    if (!result.success) {
-      throw new TransformError(
-        'Data validation failed',
-        fromZodError(result.error).details
-      );
-    }
-
-    return result.data;
-  } catch (error) {
-    if (error instanceof TransformError) throw error;
-    throw new TransformError('Transform failed');
+    throw new TransformError('Transform failed', 'Unknown error during transform');
   }
 }

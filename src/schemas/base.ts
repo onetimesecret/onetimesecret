@@ -11,16 +11,18 @@ export const baseApiResponseSchema = z.object({
   success: z.boolean(),
   record: z.object({
     // Use dateFromSeconds transform directly in the schema
-    created: z.union([z.string(), z.number()]).transform(val => dateFromSeconds.parse(val)),
-    updated: z.union([z.string(), z.number()]).transform(val => dateFromSeconds.parse(val)),
+    created: z.union([z.string(), z.number()]).transform((val) => dateFromSeconds.parse(val)),
+    updated: z.union([z.string(), z.number()]).transform((val) => dateFromSeconds.parse(val)),
     // Other fields as needed
-  })
+  }),
 });
+
+export const emptyApiRecordSchema = z.object({});
 
 export const baseApiRecordSchema = z.object({
   identifier: z.string(),
-  created: z.union([z.string(), z.number()]).transform(val => new Date(Number(val) * 1000)),
-  updated: z.union([z.string(), z.number()]).transform(val => new Date(Number(val) * 1000))
+  created: z.union([z.string(), z.number()]).transform((val) => new Date(Number(val) * 1000)),
+  updated: z.union([z.string(), z.number()]).transform((val) => new Date(Number(val) * 1000)),
 });
 
 // Transformed Base Record
@@ -28,7 +30,6 @@ export const transformedBaseRecordSchema = z.object({
   identifier: z.string(),
   created: dateFromSeconds,
   updated: dateFromSeconds,
-
 });
 
 // Type exports

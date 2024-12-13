@@ -1,6 +1,6 @@
 // src/router/resolvers/metadataResolver.ts
 import { useMetadataStore } from '@/stores/metadataStore';
-import type { AsyncDataResult, MetadataDataApiResponse } from '@/types/api/responses';
+import type { AsyncDataResult, MetadataRecordApiResponse } from '@/types/api/responses';
 import { NotFoundError } from '@/utils/errors';
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 
@@ -19,7 +19,7 @@ export async function resolveMetadata(
     }
 
     // Use either the result or fallback to store state
-    const initialData: AsyncDataResult<MetadataDataApiResponse> = {
+    const initialData: AsyncDataResult<MetadataRecordApiResponse> = {
       status: 200,
       data: {
         success: true,

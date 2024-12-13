@@ -115,8 +115,7 @@ To update your Onetime Secret Docker deployment to the latest version:
 
 Onetime Secret Docker images are tagged for different versions:
 
-- `latest`: The most recent stable release (Ruby 3+)
-- `v0.18.3` (and similar version numbers): Specific release versions
+- `latest`: The most recent stable release
 - `v0.18.3` (and similar version numbers): Specific release versions
 
 These version numbers (e.g., v0.18.3) correspond to the releases on our GitHub repository. You can find the full list of releases and their details at <https://github.com/onetimesecret/onetimesecret/releases>.

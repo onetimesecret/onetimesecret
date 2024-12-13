@@ -38,7 +38,7 @@ defineProps<{
     <FancyIcon
       v-if="domains_enabled && !planAllowsCustomDomains"
       to="/pricing"
-      aria-label="Click this lightning bolt to upgrade for custom domains"
+      ariaLabel="Click this lightning bolt to upgrade for custom domains"
     />
 
     <router-link

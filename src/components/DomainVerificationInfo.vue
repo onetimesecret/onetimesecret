@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CustomDomain } from '@/types/api/responses';
+import { CustomDomain } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
 //import StatusLabel from './StatusLabel.vue';
@@ -13,8 +13,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const isActive = computed(() => {
-  return props.domain.vhost?.status?.includes('ACTIVE');
-});
+  return props.domain.vhost?.status === 'ACTIVE'});
 
 const isWarning = computed(() => {
   return props.domain.vhost?.status === 'DNS_INCORRECT';
@@ -111,7 +110,7 @@ const formatDate = (dateString: string): string => {
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">SSL Renews</span>
             <span class="text-lg text-gray-900 dark:text-white"><span
-              v-if="domain?.vhost?.ssl_active_until">{{ formatDate(domain?.vhost?.ssl_active_until) }}</span></span>
+              v-if="domain?.vhost?.ssl_active_until">{{ formatDate(domain?.vhost?.ssl_active_until as string) }}</span></span>
           </div>
 
           <div class="flex flex-col">

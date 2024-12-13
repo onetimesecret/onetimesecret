@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { SecretData, SecretDetails } from '@/schemas/models';
+import { Secret, SecretDetails } from '@/schemas/models';
 import { useSecretsStore } from '@/stores/secretsStore';
 import { ref } from 'vue';
 
 interface Props {
   secretKey: string;
-  record: SecretData | null;
+  record: Secret | null;
   details: SecretDetails | null;
 }
 

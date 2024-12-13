@@ -1,12 +1,9 @@
 // src/composables/useAsyncData.ts
 
+import type { AsyncDataResult } from '@/types';
 import { ref, Ref, UnwrapRef } from 'vue';
 
-interface AsyncDataResult<T> {
-  data: T | null;
-  error: string | null;
-  status: number | null;
-}
+
 
 export function useAsyncData<T>(fetchFunction: () => Promise<AsyncDataResult<T>>) {
   const data = ref<T | null>(null) as Ref<UnwrapRef<T> | null>;

@@ -1,6 +1,6 @@
 // @/api/secrets.ts
 
-import { AsyncDataResult, SecretDataApiResponse } from '@/types/api';
+import { AsyncDataResult, SecretRecordApiResponse } from '@/types/api';
 import axios from 'axios';
 
 /**
@@ -25,9 +25,9 @@ import axios from 'axios';
  *
  * // Use data, error, and isLoading in your component
  */
-export async function fetchInitialSecret(secretKey: string): Promise<AsyncDataResult<SecretDataApiResponse>> {
+export async function fetchInitialSecret(secretKey: string): Promise<AsyncDataResult<SecretRecordApiResponse>> {
   try {
-    const response = await axios.get<SecretDataApiResponse>(`/api/v2/secret/${secretKey}`);
+    const response = await axios.get<SecretRecordApiResponse>(`/api/v2/secret/${secretKey}`);
     return {
       data: response.data,
       error: null,

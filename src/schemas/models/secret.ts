@@ -1,51 +1,70 @@
 // src/schemas/models/secret.ts
 
 import { baseApiRecordSchema } from '@/schemas/base'
-import { booleanFromString, numberFromString } from '@/utils/transforms'
+import { type DetailsType } from '@/schemas/base'
+import { booleanFromString } from '@/utils/transforms'
 import { z } from 'zod'
 
-/**
- * Schema for secret record from API
- * Handles string -> boolean coercion and optional fields
- */
-export const secretInputSchema = baseApiRecordSchema.extend({
-  // Core fields
+// Add state enum
+export const SecretState = {
+  NEW: 'new',
+  RECEIVED: 'received',
+  BURNED: 'burned',
+  VIEWED: 'viewed',
+} as const
+
+// Base schema for core fields
+// Base schema for core fields
+const secretBaseSchema = z.object({
   key: z.string(),
   shortkey: z.string(),
-  state: z.string(),
-  secret_ttl: numberFromString,
-  lifespan: numberFromString,
+  state: z.enum([
+    SecretState.NEW,
+    SecretState.RECEIVED,
+    SecretState.BURNED,
+    SecretState.VIEWED
+  ]),
   is_truncated: booleanFromString,
-  verification: booleanFromString,
-  original_size: numberFromString,
   has_passphrase: booleanFromString,
-
-  // Only present after reveal
+  verification: booleanFromString,
   secret_value: z.string().optional(),
 })
 
-/**
- * Schema for secret details/state
- */
-export const secretDetailsSchema = z.object({
+export const secretListInputSchema = baseApiRecordSchema
+  .merge(secretBaseSchema)
+  .strip()
+
+// Full secret schema with all fields
+export const secretInputSchema = baseApiRecordSchema
+  .merge(secretBaseSchema)
+  .extend({
+    secret_ttl: z.number().nullable(),
+    lifespan: z.string(),
+    original_size: z.string(),
+  })
+  .strip()
+
+// Enhanced details schema
+export const secretDetailsInputSchema = z.object({
   continue: z.boolean(),
+  is_owner: z.boolean(),
   show_secret: z.boolean(),
   correct_passphrase: z.boolean(),
   display_lines: z.number(),
-  one_liner: z.boolean().nullable().optional(),
-  is_owner: booleanFromString,
+  one_liner: z.boolean().nullable(),
 })
 
-export type SecretData = z.infer<typeof secretInputSchema>
-export type SecretDetails = z.infer<typeof secretDetailsSchema>
 
-/**
- * Combined schema for API responses
- */
+// Export types
+export type Secret = z.infer<typeof secretInputSchema>
+export type SecretDetails = z.infer<typeof secretDetailsInputSchema> & DetailsType
+export type SecretList = z.infer<typeof secretListInputSchema>
+
+// Response schemas
 export const secretResponseSchema = z.object({
   success: z.boolean(),
   record: secretInputSchema,
-  details: secretDetailsSchema
+  details: secretDetailsInputSchema
 })
 
 export type SecretResponse = z.infer<typeof secretResponseSchema>

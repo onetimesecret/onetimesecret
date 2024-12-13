@@ -3,8 +3,11 @@
 import { useCsrfStore } from '@/stores/csrfStore';
 import type { FormSubmissionOptions } from '@/types/ui';
 import { ref } from 'vue';
+import { z } from 'zod';
 
-export function useFormSubmission(options: FormSubmissionOptions) {
+export function useFormSubmission<ResponseSchema extends z.ZodType>(
+  options: FormSubmissionOptions<ResponseSchema>
+) {
   const isSubmitting = ref(false);
   const error = ref('');
   const success = ref('');
@@ -25,7 +28,6 @@ export function useFormSubmission(options: FormSubmissionOptions) {
           throw new Error('URL is required when using getFormData');
         }
         submissionUrl = options.url;
-
       } else if (event) {
         const form = event.target as HTMLFormElement;
         formData = new FormData(form);
@@ -45,9 +47,8 @@ export function useFormSubmission(options: FormSubmissionOptions) {
         throw new Error('No form data provided');
       }
 
-      const urlSearchParams = formData instanceof URLSearchParams
-        ? formData
-        : new URLSearchParams(formData as never);
+      const urlSearchParams =
+        formData instanceof URLSearchParams ? formData : new URLSearchParams(formData as never);
 
       const csrfStore = useCsrfStore();
       urlSearchParams.append('shrimp', csrfStore.shrimp);
@@ -60,22 +61,23 @@ export function useFormSubmission(options: FormSubmissionOptions) {
         body: urlSearchParams.toString(),
       });
 
-      let jsonData;
+      let jsonData: z.infer<ResponseSchema>;
       try {
-        jsonData = await response.json();
-
+        const rawData = await response.json();
+        // Use the provided schema or fallback to any
+        const responseSchema = (options.schema || z.any()) as ResponseSchema;
+        jsonData = responseSchema.parse(rawData);
+        //console.debug(rawData);
+        //console.debug(jsonData);
       } catch (error) {
-        // The API endoint didnt return JSON. This could be a network error
-        // but more likely the endpoint hasn't been added correctly yet.
-        const message = `Server returned an incomplete response (${url})`;
+        const message = `Server returned an invalid response (${submissionUrl})`;
         console.error(message, error);
-        // Handle the error appropriately, e.g., set json to a default value or rethrow the error
         throw new Error(message);
       }
 
       // If the json response includes a new shrimp,
       // let's update our shrimp state to reflect it.
-      if (jsonData?.shrimp) {
+      if ('shrimp' in jsonData && typeof jsonData.shrimp === 'string') {
         csrfStore.updateShrimp(jsonData.shrimp);
       }
 
@@ -85,7 +87,11 @@ export function useFormSubmission(options: FormSubmissionOptions) {
         }
 
         if (response.headers.get('content-type')?.includes('application/json')) {
-          throw new Error(jsonData.message || 'Request was not successful. Please try again later.');
+          throw new Error(
+            'message' in jsonData
+              ? (jsonData.message as string)
+              : 'Request was not successful. Please try again later.'
+          );
         } else {
           throw new Error('Please refresh the page and try again.');
         }
@@ -102,12 +108,11 @@ export function useFormSubmission(options: FormSubmissionOptions) {
           window.location.href = options.redirectUrl!;
         }, options.redirectDelay || 3000);
       }
-
     } catch (err: unknown) {
       if (err instanceof Error) {
         error.value = err.message;
       } else {
-        const msg = 'An unexpected error occurred'
+        const msg = 'An unexpected error occurred';
         console.error(msg, err);
         error.value = msg;
       }
@@ -120,6 +125,6 @@ export function useFormSubmission(options: FormSubmissionOptions) {
     isSubmitting,
     error,
     success,
-    submitForm
+    submitForm,
   };
 }

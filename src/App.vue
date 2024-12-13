@@ -1,66 +1,66 @@
 <script setup lang="ts">
-import { useDomainBranding } from '@/composables/useDomainBranding';
-import { useWindowProps } from '@/composables/useWindowProps';
-import QuietLayout from '@/layouts/QuietLayout.vue';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
+  import { useDomainBranding } from '@/composables/useDomainBranding';
+  import { useWindowProps } from '@/composables/useWindowProps';
+  import QuietLayout from '@/layouts/QuietLayout.vue';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute } from 'vue-router';
 
-import StatusBar from './components/StatusBar.vue';
+  import StatusBar from './components/StatusBar.vue';
 
-const { locale } = useI18n();
-const route = useRoute();
-const {
-  authenticated,
-  authentication,
-  cust,
-  ot_version,
-  plans_enabled,
-  support_host,
-  global_banner,
-} = useWindowProps([
-  'authenticated',
-  'authentication',
-  'cust',
-  'ot_version',
-  'plans_enabled',
-  'support_host',
-  'global_banner',
-]);
+  const { locale } = useI18n();
+  const route = useRoute();
+  const {
+    authenticated,
+    authentication,
+    cust,
+    ot_version,
+    plans_enabled,
+    support_host,
+    global_banner,
+  } = useWindowProps([
+    'authenticated',
+    'authentication',
+    'cust',
+    'ot_version',
+    'plans_enabled',
+    'support_host',
+    'global_banner',
+  ]);
 
-const layout = computed(() => {
-  return route.meta.layout || QuietLayout;
-});
+  const layout = computed(() => {
+    return route.meta.layout || QuietLayout;
+  });
 
-// Get branding settings from composable
-const domainBranding = useDomainBranding();
+  // Get branding settings from composable
+  const domainBranding = useDomainBranding();
 
-// Default props without branding
-const defaultProps = {
-  authenticated: authenticated.value,
-  authentication: authentication.value,
-  colonel: false,
-  cust: cust.value,
-  onetimeVersion: ot_version.value,
-  supportHost: support_host.value,
-  plansEnabled: plans_enabled.value,
-  defaultLocale: locale.value,
-  isDefaultLocale: true,
-  hasGlobalBanner: !!global_banner.value,
-  globalBanner: global_banner.value,
-  primaryColor: domainBranding?.value?.primary_color
-};
+  // Default props without branding
+  const defaultProps = {
+    authenticated: authenticated.value,
+    authentication: authentication.value,
+    colonel: false,
+    cust: cust.value,
+    onetimeVersion: ot_version.value,
+    supportHost: support_host.value,
+    plansEnabled: plans_enabled.value,
+    defaultLocale: locale.value,
+    isDefaultLocale: true,
+    hasGlobalBanner: !!global_banner.value,
+    globalBanner: global_banner.value,
+    primaryColor: domainBranding?.value?.primary_color,
+  };
 
-const layoutProps = computed(() => {
-  // Combine default props with branding
-  const props = defaultProps;
+  const layoutProps = computed(() => {
+    // Combine default props with branding
+    const props = defaultProps;
 
-  if (route.meta.layoutProps) {
-    return { ...props, ...route.meta.layoutProps };
-  }
+    if (route.meta.layoutProps) {
+      return { ...props, ...route.meta.layoutProps };
+    }
 
-  return props;
-});
+    return props;
+  });
 </script>
 
 <!-- App-wide setup lives here -->

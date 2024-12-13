@@ -1,6 +1,6 @@
 // src/stores/jurisdictionStore.ts
 
-import type { Jurisdiction, Regions } from '@/schemas/models';
+import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { defineStore } from 'pinia';
 
 
@@ -43,7 +43,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
   },
 
   actions: {
-    initializeStore(regionsConfig: Regions) {
+    initializeStore(regionsConfig: RegionsConfig) {
       if (!regionsConfig) {
         this.enabled = false;
         return;

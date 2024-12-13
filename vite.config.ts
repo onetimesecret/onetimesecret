@@ -24,7 +24,6 @@ export default defineConfig({
           // `app.config.compilerOptions.isCustomElement = tag => tag.startsWith('altcha-')`
           // in main.ts.
           isCustomElement: tag => tag.includes('altcha-')
-
         }
       }
     }),

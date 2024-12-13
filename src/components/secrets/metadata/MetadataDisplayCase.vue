@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { MetadataData, MetadataDetails } from '@/schemas/models';
+import type { Metadata, MetadataDetails } from '@/schemas/models';
 
 interface Props {
-  metadata: MetadataData;
+  metadata: Metadata;
   details: MetadataDetails;
 }
 

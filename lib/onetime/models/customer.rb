@@ -161,7 +161,7 @@ class Onetime::Customer < Familia::Horreum
     OT.info "[Customer.get_stripe_subscription_by_id] Fetching subscription: #{subscription_id} #{custid}"
     @stripe_subscription = Stripe::Subscription.retrieve(subscription_id)
   rescue Stripe::StripeError => e
-    OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message} #{e.backtrace}"
+    OT.le "[Customer.get_stripe_subscription_by_id] Error: #{e.message}"
     nil
   end
 
@@ -177,7 +177,7 @@ class Onetime::Customer < Familia::Horreum
       OT.le "Error: #{e.message}"
     else
       if subscriptions.data.empty?
-        OT.info "No subscriptions found for customer: #{customer_id}"
+        OT.info "No subscriptions found for customer: #{stripe_customer.id}"
       else
         OT.info "Found #{subscriptions.data.length} subscriptions"
         subscriptions = subscriptions.data

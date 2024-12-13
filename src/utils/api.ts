@@ -1,4 +1,5 @@
 import { useCsrfStore } from '@/stores/csrfStore';
+import type { ApiErrorResponse } from '@/types';
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
 /**
@@ -120,49 +121,67 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
     return Promise.reject(error);
   });
 
-api.interceptors.response.use(
-  (response) => {
-    const csrfStore = useCsrfStore();
-    console.debug('[Axios Interceptor] Success response:', {
-      url: response.config.url,
-      status: response.status,
-      hasShrimp: !!response.data?.shrimp,
-      shrimp: response.data?.shrimp?.slice(0, 8) + '...' // Log first 8 chars for debugging
-    });
+  api.interceptors.response.use(
+    (response) => {
+      const csrfStore = useCsrfStore();
+      const responseShrimp = response.data?.shrimp;
+      const shrimpSnippet = createLoggableShrimp(responseShrimp);
 
-    if (response.data?.shrimp) {
-      csrfStore.updateShrimp(response.data.shrimp);
-      console.debug('[Axios Interceptor] Updated shrimp token after success');
+      console.debug('[Axios Interceptor] Success response:', {
+        url: response.config.url,
+        status: response.status,
+        hasShrimp: !!responseShrimp,
+        shrimp: shrimpSnippet,
+      });
+
+      // Update CSRF token if provided in the response data
+      if (isValidShrimp(responseShrimp)) {
+        csrfStore.updateShrimp(responseShrimp);
+        console.debug('[Axios Interceptor] Updated shrimp token after success');
+      }
+
+      return response;
+    },
+    (error: AxiosError) => {
+      const csrfStore = useCsrfStore();
+      const errorData = error.response?.data as ApiErrorResponse;
+
+      // Existing logging for debugging
+      console.error('[Axios Interceptor] Error response:', {
+        url: error.config?.url,
+        status: error.response?.status,
+        hasShrimp: !!errorData.shrimp,
+        shrimp: errorData.shrimp?.slice(0, 8) + '...',
+        error: error.message,
+        errorDetails: error
+      });
+
+      // Update CSRF token if provided in the error response
+      if (errorData.shrimp) {
+        csrfStore.updateShrimp(errorData.shrimp);
+        console.debug('[Axios Interceptor] Updated shrimp token after error');
+      }
+
+      // Optionally, attach the server message to the error object
+      const serverMessage = errorData.message || error.message;
+      return Promise.reject(new Error(serverMessage));
     }
-    return response;
-  },
-  (error: AxiosError) => {
-    const csrfStore = useCsrfStore();
-
-    // Existing logging for debugging
-    console.error('[Axios Interceptor] Error response:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      hasShrimp: !!error.response?.data?.shrimp,
-      shrimp: error.response?.data?.shrimp?.slice(0, 8) + '...',
-      error: error.message,
-      errorDetails: error
-    });
-
-    // Update CSRF token if provided in the error response
-    if (error.response?.data?.shrimp) {
-      csrfStore.updateShrimp(error.response.data.shrimp);
-      console.debug('[Axios Interceptor] Updated shrimp token after error');
-    }
-
-    // Optionally, attach the server message to the error object
-    const serverMessage = error.response?.data?.message || error.message;
-    return Promise.reject(new Error(serverMessage));
-  }
-);
+  );
 
   return api;
 };
+
+const isValidShrimp = (shrimp: unknown): shrimp is string => {
+  return typeof shrimp === 'string' && shrimp.length > 0;
+};
+
+const createLoggableShrimp = (shrimp: unknown): string => {
+  if (!isValidShrimp(shrimp)) {
+    return '';
+  }
+  return `${shrimp.slice(0, 8)}...`;
+};
+
 
 /**
  * Default API instance without a custom domain.

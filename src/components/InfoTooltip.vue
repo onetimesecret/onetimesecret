@@ -29,29 +29,29 @@
 -->
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import { ref, computed } from 'vue';
+  import { Icon } from '@iconify/vue';
+  import { ref, computed } from 'vue';
 
-const props = defineProps({
-  color: {
-    type: String,
-    default: 'bg-white text-gray-800'
-  }
-});
+  const props = defineProps({
+    color: {
+      type: String,
+      default: 'bg-white text-gray-800',
+    },
+  });
 
-const isModalVisible = ref(false);
+  const isModalVisible = ref(false);
 
-const toggleModal = () => {
-  isModalVisible.value = !isModalVisible.value;
-};
+  const toggleModal = () => {
+    isModalVisible.value = !isModalVisible.value;
+  };
 
-const closeModal = () => {
-  isModalVisible.value = false;
-};
+  const closeModal = () => {
+    isModalVisible.value = false;
+  };
 
-const modalClasses = computed(() => {
-  return `${props.color} border-2 border-dashed`;
-});
+  const modalClasses = computed(() => {
+    return `${props.color} border-2 border-dashed`;
+  });
 </script>
 
 <template>
@@ -65,7 +65,7 @@ const modalClasses = computed(() => {
     <Transition name="fade">
       <div
         v-if="isModalVisible"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
         @click="closeModal">
         <div
           :class="['relative max-w-md rounded-lg p-6 shadow-lg', modalClasses]"
@@ -83,19 +83,19 @@ const modalClasses = computed(() => {
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity 0.3s ease;
+  }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
 
-/* Add this new rule */
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-}
+  /* Add this new rule */
+  .fade-enter-to,
+  .fade-leave-from {
+    opacity: 1;
+  }
 </style>

@@ -52,7 +52,7 @@ logic = OT::Logic::Secrets::ConcealSecret.new @sess, @cust, @secret_params
   logic.passphrase,
   logic.ttl,
   logic.recipient,
-  logic.recipient_safe
+  logic.recipient_safe,
 ]
 #=> ['test secret value', 'testpass123', 7200, ['recipient@example.com'], ["re*****@e*****.com"]]
 

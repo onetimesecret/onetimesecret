@@ -87,6 +87,7 @@ module Onetime::Logic
           record: secret.safe_dump,
           details: {
             continue: @continue,
+            is_owner: @is_owner,
             show_secret: @show_secret,
             correct_passphrase: @correct_passphrase,
             display_lines: @display_lines,

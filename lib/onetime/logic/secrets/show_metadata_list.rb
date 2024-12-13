@@ -22,21 +22,6 @@ module Onetime::Logic
         # Fetch entries from the sorted set within the past 30 days
         @query_results = cust.metadata.rangebyscore(since, @now.to_i)
 
-        #        metadata = cust.metadata_list.collect do |m|
-        #          { :uri => private_uri(m),
-        #            :stamp => natural_time(m.updated),
-        #            :updated => epochformat(m.updated),
-        #            :key => m.key,
-        #            :shortkey => m.key.slice(0,8),
-        #
-        #            :recipients => m.recipients,
-        #            :show_recipients => !m.recipients.to_s.empty?,
-        #
-        #            :is_received => m.state?(:received),
-        #            :is_burned => m.state?(:burned),
-        #            :is_destroyed => (m.state?(:received) || m.state?(:burned))}
-        #        end.compact
-
         # Get the safe fields for each record
         @records = query_results.filter_map do |identifier|
           md = OT::Metadata.from_identifier(identifier)
@@ -54,6 +39,7 @@ module Onetime::Logic
           count: records.count,
           records: records,
           details: {
+            type: 'list', # Add the type discriminator
             since: since,
             now: now,
             has_items: has_items,
