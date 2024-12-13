@@ -1,5 +1,6 @@
 // src/composables/useAsyncData.ts
 
+import type { AsyncDataResult } from '@/types';
 import { ref, Ref, UnwrapRef } from 'vue';
 
 
