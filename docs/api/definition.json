@@ -744,7 +744,7 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ApiRecordsResponse",
-                                    "x-generic": "MetadataData"
+                                    "x-generic": "Metadata"
                                 }
                             }
                         }
@@ -808,7 +808,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/MetadataDataApiResponse"
+                                    "$ref": "#/components/schemas/MetadataRecordApiResponse"
                                 }
                             }
                         }
@@ -1845,7 +1845,7 @@
               }
             ]
           },
-          "MetadataData": {
+          "Metadata": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/BaseMetadata"
@@ -2018,7 +2018,7 @@
             "type": "object",
             "properties": {
               "metadata": {
-                "$ref": "#/components/schemas/MetadataData"
+                "$ref": "#/components/schemas/Metadata"
               },
               "secret": {
                 "$ref": "#/components/schemas/SecretData"

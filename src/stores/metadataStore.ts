@@ -10,7 +10,7 @@ import {
   metadataRecordResponseSchema,
   apiRecordsResponseSchema,
   type ApiRecordsResponse,
-  type MetadataDataApiResponse
+  type MetadataRecordApiResponse
 } from '@/types/api/responses';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
@@ -66,7 +66,7 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
-    setData(response: MetadataDataApiResponse) {
+    setData(response: MetadataRecordApiResponse) {
       this.currentRecord = response.record;
       this.details = response.details ?? null;
     },
@@ -154,7 +154,7 @@ export const useMetadataStore = defineStore('metadata', {
       this.isLoading = true;
 
       try {
-        const response = await api.get<MetadataDataApiResponse>(`/api/v2/private/${key}`, {
+        const response = await api.get<MetadataRecordApiResponse>(`/api/v2/private/${key}`, {
           signal: bypassCache ? this.abortController?.signal : undefined
         });
 
@@ -213,7 +213,7 @@ export const useMetadataStore = defineStore('metadata', {
       this.isLoading = true;
 
       try {
-        const response = await api.post<MetadataDataApiResponse>(
+        const response = await api.post<MetadataRecordApiResponse>(
           `/api/v2/private/${key}/burn`,
           { passphrase, continue: true }
         );

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { MetadataData, MetadataDetails } from '@/types/core'
+import { Metadata, MetadataDetails } from '@/schemas/models'
 import { defineProps } from 'vue'
 
 interface Props {
-  metadata: MetadataData;
+  metadata: Metadata;
   details: MetadataDetails;
 }
 

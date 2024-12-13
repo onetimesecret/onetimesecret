@@ -7,7 +7,7 @@ import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCa
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { AsyncDataResult, MetadataDataApiResponse } from '@/types/api/responses';
+import { AsyncDataResult, MetadataRecordApiResponse } from '@/types/api/responses';
 import { storeToRefs } from 'pinia';
 import { computed, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
@@ -16,7 +16,7 @@ const route = useRoute();
 const store = useMetadataStore();
 
 // Get initial data from route resolver
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataDataApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataRecordApiResponse>);
 
 // Set up reactive refs to store state
 const { currentRecord: record, details, isLoading, error } = storeToRefs(store);
