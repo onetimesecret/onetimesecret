@@ -1,9 +1,10 @@
 <!-- src/components/LanguageToggle.vue -->
 <script setup lang="ts">
-import { useWindowProp } from '@/composables/useWindowProps';
+import { useValidatedWindowProp } from '@/composables/useWindowProps';
 import { setLanguage } from '@/i18n';
+import { customerInputSchema } from '@/schemas/models';
 import { useLanguageStore } from '@/stores/languageStore';
-import { ref, computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import DropdownToggle from './DropdownToggle.vue';
 
@@ -12,7 +13,7 @@ const emit = defineEmits(['localeChanged']);
 const languageStore = useLanguageStore();
 const supportedLocales = languageStore.getSupportedLocales;
 
-const cust = useWindowProp('cust');
+const cust = useValidatedWindowProp('cust', customerInputSchema);
 
 const selectedLocale = ref(languageStore.determineLocale(cust?.value?.locale));
 
@@ -46,8 +47,8 @@ onMounted(() => {
 <template>
   <DropdownToggle
     ref="dropdownRef"
-    aria-label="Change language"
-    :open-direction="'down'">
+    ariaLabel="Change language"
+    openDirection="down">
     <template #button-content>
       <svg
         xmlns="http://www.w3.org/2000/svg"
