@@ -2,7 +2,7 @@
 import { baseApiRecordSchema } from '@/schemas/base';
 import { type DetailsType } from '@/schemas/base';
 import { secretInputSchema } from '@/schemas/models/secret';
-import { booleanFromString } from '@/utils/transforms';
+import { booleanFromString, numberFromString } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
@@ -71,8 +71,7 @@ const metadataListDetailsBaseSchema = z.object({
   notreceived: z.array(metadataListInputSchema)
 })
 
-export const metadataListDetailsInputSchema = baseApiRecordSchema
-  .merge(metadataListDetailsBaseSchema)
+export const metadataListDetailsInputSchema = metadataListDetailsBaseSchema
   .strip()
 
 const metadataExtendedBaseSchema = z.object({
@@ -98,17 +97,16 @@ export const metadataInputSchema = baseApiRecordSchema
  */
 const metadataDetailsBaseSchema = z.object({
   title: z.string(),
-  body_class: z.string(),
-  display_lines: z.number(),
+  display_lines: numberFromString,
   display_feedback: booleanFromString,
   no_cache: booleanFromString,
-  received_date: z.string(),
-  received_date_utc: z.string(),
-  burned_date: z.string(),
-  burned_date_utc: z.string(),
-  maxviews: z.number(),
+  received_date: numberFromString,
+  received_date_utc: numberFromString,
+  burned_date: numberFromString,
+  burned_date_utc: numberFromString,
+  maxviews: numberFromString,
   has_maxviews: booleanFromString,
-  view_count: z.number(),
+  view_count: numberFromString,
   has_passphrase: booleanFromString,
   can_decrypt: booleanFromString,
   secret_value: z.string(),
@@ -119,8 +117,7 @@ const metadataDetailsBaseSchema = z.object({
   show_recipients: booleanFromString,
 })
 
-export const metadataDetailsInputSchema = baseApiRecordSchema
-  .merge(metadataDetailsBaseSchema)
+export const metadataDetailsInputSchema = metadataDetailsBaseSchema
   .strip()
 
 export type Metadata = z.infer<typeof metadataInputSchema>
