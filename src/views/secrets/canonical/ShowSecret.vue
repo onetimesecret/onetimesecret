@@ -1,4 +1,18 @@
 <script setup lang="ts">
+/**
+ * Core OneTimeSecret implementation that uses distinct layouts for confirmation
+ * and reveal states to optimize for marketing and user acquisition.
+ *
+ * This component deliberately uses different UIs:
+ * 1. Confirmation: Marketing-focused layout with onboarding content
+ * 2. Reveal: Simplified secret display focused on content delivery
+ *
+ * Unlike the branded implementation, this does not use BaseSecretDisplay for confirmation
+ * state to allow for richer marketing content placement.
+ *
+ * @see SecretConfirmationForm - Marketing-optimized confirmation layout
+ * @see SecretDisplayCase - Simplified secret reveal display
+ */
 import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
 import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';

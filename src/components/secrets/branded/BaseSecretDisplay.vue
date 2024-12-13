@@ -1,5 +1,21 @@
 <!-- src/components/secrets/BaseSecretDisplay.vue -->
 <script setup lang="ts">
+/**
+ * Core display component for branded secret workflows that provides consistent
+ * layout and styling across both confirmation and reveal states.
+ *
+ * This component is specifically designed for custom branded deployments where
+ * maintaining brand consistency is prioritized over marketing opportunities.
+ * For the core OneTimeSecret implementation, see the canonical SecretDisplayCase.
+ *
+ * @prop defaultTitle - Fallback title when branding is unavailable
+ * @prop instructions - Optional pre-reveal instructions from domain branding
+ * @prop domainBranding - Domain-specific styling configuration
+ *
+ * @slot logo - Domain logo or fallback icon
+ * @slot content - Main content area (confirmation form or secret content)
+ * @slot action-button - Action button slot (submit or copy)
+ */
   import { BrandSettings } from '@/schemas/models';
   import { Icon } from '@iconify/vue';
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';

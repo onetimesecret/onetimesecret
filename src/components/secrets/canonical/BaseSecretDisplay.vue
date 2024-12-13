@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useClipboard } from '@/composables/useClipboard';
 import { useWindowProp } from '@/composables/useWindowProps';
 import { Secret, SecretDetails } from '@/schemas/models';
 

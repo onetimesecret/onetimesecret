@@ -1,4 +1,17 @@
 <script setup lang="ts">
+/**
+ * Branded secret display implementation that maintains consistent UI between confirmation
+ * and reveal states by leveraging BaseSecretDisplay for both.
+ *
+ * This component handles secrets for custom domains, ensuring brand consistency by:
+ * 1. Using identical layouts for both confirmation and reveal states
+ * 2. Applying domain-specific styling (colors, fonts, corner styles)
+ * 3. Displaying branded logos when available
+ *
+ * @see SecretConfirmationForm - Handles passphrase entry using BaseSecretDisplay
+ * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
+ */
+
 import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
 import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
