@@ -7,7 +7,7 @@ module Onetime::Logic
       # Working variables
       attr_reader :key, :metadata, :secret
       # Template variables
-      attr_reader :title, :body_class, :metadata_key, :metadata_shortkey, :secret_key,
+      attr_reader :title, :metadata_key, :metadata_shortkey, :secret_key,
             :secret_shortkey, :recipients, :display_feedback, :no_cache,
             :created_date_utc, :expiration_stamp, :is_received, :is_burned,
             :is_destroyed, :received_date, :received_date_utc, :burned_date,
@@ -191,7 +191,6 @@ module Onetime::Logic
       def ancillary_attributes
         {
           title: title,
-          body_class: body_class,
           display_lines: display_lines,
           display_feedback: display_feedback,
           no_cache: no_cache,
