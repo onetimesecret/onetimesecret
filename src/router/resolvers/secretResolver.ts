@@ -50,8 +50,10 @@ export async function resolveSecret(
     const initialData: AsyncDataResult<SecretRecordApiResponse> = {
       status: 200,
       data: {
+        success: true,
         record: result.record,
-        details: result.details
+        details: result.details,
+        shrimp: '',
       },
       error: null
     }
@@ -61,8 +63,6 @@ export async function resolveSecret(
 
     next()
   } catch (error) {
-    console.error('Failed to load secret:', error)
-
     // Maintain same shape even for errors
     const initialData: AsyncDataResult<SecretRecordApiResponse> = {
       status: error instanceof Error ? 500 : 404,

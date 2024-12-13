@@ -27,6 +27,7 @@ const secretBaseSchema = z.object({
   is_truncated: booleanFromString,
   has_passphrase: booleanFromString,
   verification: booleanFromString,
+  secret_value: z.string().optional(),
 })
 
 export const secretListInputSchema = baseApiRecordSchema
