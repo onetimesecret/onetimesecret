@@ -2,13 +2,14 @@
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
 import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
+import { useValidatedWindowProp } from '@/composables/useWindowProps';
+import { customerInputSchema } from '@/schemas/models';
 import type { CustomDomain } from '@/schemas/models/domain.ts';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
 
-const cust = useWindowProp('cust'); // Used for feature flags
+const cust = useValidatedWindowProp('cust', customerInputSchema); // Used for feature flags
 
 defineProps<{
   domains: CustomDomain[];
@@ -74,13 +75,15 @@ const handleDelete = (domainId: string) => {
           <tr>
             <th
               scope="col"
-              class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500  dark:text-gray-400">
+              class="px-6 py-3 text-left text-xs font-medium tracking-wider
+              text-gray-500 dark:text-gray-400">
               <span class="uppercase">Domain & Status</span>
             </th>
 
             <th
               scope="col"
-              class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500  dark:text-gray-400">
+              class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500
+              dark:text-gray-400">
               <div
                 v-if="cust?.feature_flags?.homepage_toggle"
                 class="flex items-center justify-center">
@@ -88,7 +91,8 @@ const handleDelete = (domainId: string) => {
                 <div class="group relative ml-2">
                   <Icon
                     icon="heroicons:question-mark-circle"
-                    class="size-4 text-gray-400  transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
+                    class="size-4 text-gray-400  transition-colors duration-200 hover:text-gray-500
+                    dark:text-gray-400 dark:hover:text-gray-300"
                   />
                   <div
                     class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white
@@ -103,7 +107,8 @@ const handleDelete = (domainId: string) => {
 
             <th
               scope="col"
-              class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider
+              text-gray-500 dark:text-gray-400">
               Actions
             </th>
           </tr>
