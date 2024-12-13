@@ -1,4 +1,5 @@
-import { ref, readonly, Ref, unref } from 'vue';
+import { ref, readonly, Ref, unref, shallowRef } from 'vue';
+import { z } from 'zod';
 
 /**
  * With this caching mechanism:
@@ -31,12 +32,82 @@ export const useWindowProps = <T extends keyof Window>(props: T[]): { [K in T]: 
   return result as { [K in T]: Readonly<Ref<Window[K]>> };
 };
 
-// Helper function for type safety
+// Helper function
 export const useWindowProp = <T extends keyof Window>(prop: T): Readonly<Ref<Window[T]>> => {
   if (!cache[prop]) {
     cache[prop] = ref(window[prop]);
   }
   return readonly(cache[prop] as Ref<Window[T]>);
+};
+
+/**
+ * Validates and transforms a window property using a Zod schema.
+ *
+ * @description
+ * When the window property contains data that needs transformation (like the customer object),
+ * there can be a race condition between:
+ * 1. Initial component rendering
+ * 2. Schema validation and transformation
+ * 3. Cache population
+ *
+ * Timeline:
+ * ```
+ * T0: Component starts mounting
+ * T1: Template rendering begins with raw window data
+ * T2: useValidatedWindowProp called
+ * T3: Schema validation/transformation occurs
+ * T4: Transformed data cached
+ * ```
+ *
+ * During this process (particularly between T1-T4), the data might be:
+ * - Undefined (not yet validated)
+ * - Raw (pre-transformation)
+ * - Transformed (post-validation)
+ *
+ * Best practices:
+ * - Always use optional chaining (?.) when accessing transformed properties
+ * - Provide fallback values using nullish coalescing (??)
+ * - Consider v-if/v-show for template sections that depend on transformed data
+ *
+ * @example
+ * ```vue
+ * const cust = useValidatedWindowProp('cust', customerInputSchema);
+ *
+ * // In template
+ * <div v-if="cust?.feature_flags?.homepage_toggle">
+ *   {{ cust.feature_flags.homepage_toggle }}
+ * </div>
+ *
+ * // In script
+ * const showFeature = computed(() => cust.value?.feature_flags?.homepage_toggle ?? false);
+ * ```
+ *
+ * @template T - Window property key
+ * @template Input - Schema input type
+ * @template Output - Schema output type
+ * @param {T} prop - Window property key
+ * @param {z.ZodType<Output, z.ZodTypeDef, Input>} schema - Zod schema for validation/transformation
+ * @returns {Ref<Output | null>} Validated and transformed data as a Vue ref
+ */
+export const useValidatedWindowProp = <
+  T extends keyof Window,
+  Input,
+  Output
+>(
+  prop: T,
+  schema: z.ZodType<Output, z.ZodTypeDef, Input>
+): Ref<Output | null> => {
+  if (!cache[prop]) {
+    const value = window[prop] as unknown;
+    try {
+      const parsedValue = schema.parse(value);
+      cache[prop] = shallowRef(parsedValue);
+    } catch (error) {
+      console.error('Failed to validate window property:', error);
+      cache[prop] = shallowRef(null);
+    }
+  }
+  return cache[prop] as Ref<Output | null>;
 };
 
 // New helper function to return unref'd window props
