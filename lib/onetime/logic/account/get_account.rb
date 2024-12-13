@@ -99,9 +99,8 @@ module Onetime::Logic
 
         if show_stripe_section?
           ret[:record][:stripe_customer] = safe_stripe_customer_dump
-          ret[:record][:stripe_subscriptions] = [
-            safe_stripe_subscription_dump
-          ]
+          subscription = safe_stripe_subscription_dump
+          ret[:record][:stripe_subscriptions] = [subscription] if subscription
         end
 
         ret
