@@ -103,27 +103,6 @@ export function transformResponse<T extends z.ZodType>(
       console.error('Transform failed:', error);
     }
 
-    throw new TransformError('Transform failed');
-  }
-}
-
-export function transformRecordsResponse<T extends z.ZodType>(
-  schema: ReturnType<typeof createListInputSchema<T>>,
-  data: unknown
-): ApiRecordsResponse<z.infer<T>> {
-  try {
-    const result = schema.safeParse(data);
-
-    if (!result.success) {
-      throw new TransformError(
-        'Data validation failed',
-        fromZodError(result.error).details
-      );
-    }
-
-    return result.data;
-  } catch (error) {
-    if (error instanceof TransformError) throw error;
-    throw new TransformError('Transform failed');
+    throw new TransformError('Transform failed', 'Unknown error during transform');
   }
 }

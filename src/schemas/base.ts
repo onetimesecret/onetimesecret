@@ -28,7 +28,6 @@ export const transformedBaseRecordSchema = z.object({
   identifier: z.string(),
   created: dateFromSeconds,
   updated: dateFromSeconds,
-
 });
 
 // Type exports
