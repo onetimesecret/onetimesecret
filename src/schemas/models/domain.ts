@@ -106,6 +106,6 @@ const customDomainClusterBaseSchema = z.object({
   vhost_target: z.string()
 });
 
-export const customDomainClusterInputSchema = baseApiRecordSchema.merge(customDomainClusterBaseSchema);
+export const customDomainClusterInputSchema = customDomainClusterBaseSchema;
 
 export type CustomDomainCluster = z.infer<typeof customDomainClusterInputSchema>;
