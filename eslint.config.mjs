@@ -138,7 +138,6 @@ export default [
       // https://eslint.vuejs.org/rules/attribute-hyphenation.html
       "vue/attribute-hyphenation": ["error", "never", {
         "ignore": ["custom-prop", "aria-label"],
-        "ignoreTags": ["svg"],
       }],
 
       // Ensure valid template root
