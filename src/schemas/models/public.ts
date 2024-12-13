@@ -72,7 +72,7 @@ export const authenticationSchema = z.object({
 /**
  * Inferred TypeScript type for Authentication
  */
-export type Authentication = z.infer<typeof authenticationSchema>;
+export type AuthenticationSettings = z.infer<typeof authenticationSchema>;
 
 /**
  * Schema for the :jurisdiction section

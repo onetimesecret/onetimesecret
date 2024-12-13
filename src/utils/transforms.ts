@@ -95,6 +95,11 @@ export function transformResponse<T extends z.ZodType>(
       console.debug('Schema:', schema)
       console.debug('Failed data:', data)
       console.debug('Validation issues:', error.issues)
+      console.debug(JSON.stringify({
+        schema: schema,
+        failedData: data,
+        validationIssues: error.issues
+      }, null, 2));
       throw new TransformError(
         'Validation failed',
         fromZodError(error).details
