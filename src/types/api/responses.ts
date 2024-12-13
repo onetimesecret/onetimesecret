@@ -1,14 +1,15 @@
-import { baseApiRecordSchema } from '@/schemas/base';
+import { baseApiRecordSchema, emptyApiRecordSchema } from '@/schemas/base';
 import { feedbackInputSchema } from '@/schemas/models';
 import { customerInputSchema } from '@/schemas/models/customer';
 import { customDomainInputSchema } from '@/schemas/models/domain';
 import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import {
-    concealDataInputSchema,
-    metadataDetailsInputSchema,
-    metadataInputSchema,
+  concealDataInputSchema,
+  metadataDetailsInputSchema,
+  metadataInputSchema,
 } from '@/schemas/models/metadata';
-import { secretInputSchema, secretDetailsInputSchema } from '@/schemas/models/secret';
+import { secretDetailsInputSchema, secretInputSchema } from '@/schemas/models/secret';
+import { booleanFromString } from '@/utils/transforms';
 import type { Stripe } from 'stripe';
 import { z } from 'zod';
 
@@ -70,7 +71,8 @@ export interface ApiClient {
 
 export const apiBaseResponseSchema = z.object({
   success: z.boolean(),
-
+  custid: z.string().optional(),
+  shrimp: z.string().optional(),
 });
 
 export const apiRecordResponseSchema = <T extends z.ZodType>(recordSchema: T) =>
@@ -81,7 +83,6 @@ export const apiRecordResponseSchema = <T extends z.ZodType>(recordSchema: T) =>
 
 export const apiRecordsResponseSchema = <T extends z.ZodType>(recordSchema: T) =>
   apiBaseResponseSchema.extend({
-    custid: z.string(),
     records: z.array(recordSchema),
     count: z.number(),
     details: z.record(z.string(), z.unknown()).optional(),
@@ -93,9 +94,7 @@ export const apiErrorResponseSchema = apiBaseResponseSchema.extend({
   code: z.number(),
   record: z.unknown().nullable(),
   details: z.record(z.string(), z.unknown()).optional(),
-  shrimp: z.string().optional(),
 });
-
 
 // Specific metadata response schema with properly typed details
 export const metadataRecordResponseSchema = apiBaseResponseSchema.extend({
@@ -149,9 +148,10 @@ export const colonelDataSchema = baseApiRecordSchema.extend({
 export const colonelDataResponseSchema = apiRecordResponseSchema(colonelDataSchema);
 export const colonelDataRecordsResponseSchema = apiRecordsResponseSchema(colonelDataSchema);
 
-export const apiTokenSchema = baseApiRecordSchema.extend({
+// API Token response has only two fields - apitoken and active (and not the usual created/updated/identifier)
+export const apiTokenSchema = emptyApiRecordSchema.extend({
   apitoken: z.string(),
-  active: z.string().transform((val) => val === '1'),
+  active: booleanFromString,
 });
 
 export const accountSchema = baseApiRecordSchema.extend({
@@ -170,7 +170,6 @@ export const concealDataResponseSchema = apiRecordResponseSchema(concealDataInpu
 export const checkAuthDataResponseSchema = apiRecordResponseSchema(customerInputSchema);
 export const brandSettingsResponseSchema = apiRecordResponseSchema(brandSettingsInputSchema);
 export const imagePropsResponseSchema = apiRecordResponseSchema(imagePropsSchema);
-
 
 /**
  * Response type exports combining API structure with transformed app types
