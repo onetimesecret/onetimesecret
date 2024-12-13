@@ -1,4 +1,5 @@
 import { useCsrfStore } from '@/stores/csrfStore';
+import type { ApiErrorResponse } from '@/types';
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
 /**
@@ -138,25 +139,27 @@ api.interceptors.response.use(
   },
   (error: AxiosError) => {
     const csrfStore = useCsrfStore();
+    const errorData = error.response?.data as ApiErrorResponse;
 
     // Existing logging for debugging
     console.error('[Axios Interceptor] Error response:', {
       url: error.config?.url,
       status: error.response?.status,
-      hasShrimp: !!error.response?.data?.shrimp,
-      shrimp: error.response?.data?.shrimp?.slice(0, 8) + '...',
+      hasShrimp: !!errorData.shrimp,
+      shrimp: errorData.shrimp?.slice(0, 8) + '...',
       error: error.message,
       errorDetails: error
     });
 
     // Update CSRF token if provided in the error response
-    if (error.response?.data?.shrimp) {
-      csrfStore.updateShrimp(error.response.data.shrimp);
+    if (errorData.shrimp) {
+
+      csrfStore.updateShrimp(errorData.shrimp);
       console.debug('[Axios Interceptor] Updated shrimp token after error');
     }
 
     // Optionally, attach the server message to the error object
-    const serverMessage = error.response?.data?.message || error.message;
+    const serverMessage = errorData.message || error.message;
     return Promise.reject(new Error(serverMessage));
   }
 );

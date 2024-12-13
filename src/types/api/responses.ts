@@ -93,7 +93,9 @@ export const apiErrorResponseSchema = apiBaseResponseSchema.extend({
   code: z.number(),
   record: z.unknown().nullable(),
   details: z.record(z.string(), z.unknown()).optional(),
+  shrimp: z.string().optional(),
 });
+
 
 // Specific metadata response schema with properly typed details
 export const metadataRecordResponseSchema = apiBaseResponseSchema.extend({
@@ -182,3 +184,4 @@ export type BrandSettingsApiResponse = z.infer<typeof brandSettingsResponseSchem
 export type ImagePropsApiResponse = z.infer<typeof imagePropsResponseSchema>;
 export type CustomDomainRecordsApiResponse = z.infer<typeof customDomainRecordsResponseSchema>;
 export type UpdateDomainBrandResponse = z.infer<typeof customDomainResponseSchema>;
+export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
