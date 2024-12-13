@@ -28,6 +28,11 @@ const closeTruncatedWarning = (event: Event) => {
 </script>
 
 <template>
+  <BaseSecretDisplay
+    :record="record"
+    :details="details">
+
+    <template #content>
   <div class="relative">
     <textarea
       v-if="secret.secret_value"
@@ -76,7 +81,12 @@ const closeTruncatedWarning = (event: Event) => {
         />
       </svg>
     </button>
+
   </div>
+    </template>
+
+    <template #warnings>
+      <div>
 
   <p
     v-if="!secret.verification"
@@ -97,6 +107,10 @@ const closeTruncatedWarning = (event: Event) => {
     {{ $t('web.shared.secret_was_truncated') }} {{ secret.original_size }}.
   </div>
 
+      </div>
+    </template>
+
+    <template #cta>
   <div class="mt-4">
     <div
       v-if="!secret.verification"
@@ -120,27 +134,7 @@ const closeTruncatedWarning = (event: Event) => {
       </a>
     </div>
   </div>
+    </template>
 
-  <div class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600">
-    <div class="space-x-2">
-      <a
-        :href="`https://${siteHost}`"
-        class="hover:underline"
-        rel="noopener noreferrer">
-        Powered by Onetime Secret
-      </a>
-      <span>·</span>
-      <router-link
-        to="/info/terms"
-        class="hover:underline">
-        Terms
-      </router-link>
-      <span>·</span>
-      <router-link
-        to="/info/privacy"
-        class="hover:underline">
-        Privacy
-      </router-link>
-    </div>
-  </div>
+  </BaseSecretDisplay>
 </template>
