@@ -1,12 +1,13 @@
 // src/utils/formSubmission.ts
 
 import { useCsrfStore } from '@/stores/csrfStore';
-import { ApiDataResponse } from '@/types';
 import type { FormSubmissionOptions } from '@/types/ui';
 import { ref } from 'vue';
 import { z } from 'zod';
 
-export function useFormSubmission<T extends z.ZodType>(options: FormSubmissionOptions<T>) {
+export function useFormSubmission<ResponseSchema extends z.ZodType>(
+  options: FormSubmissionOptions<ResponseSchema>
+) {
   const isSubmitting = ref(false);
   const error = ref('');
   const success = ref('');
@@ -60,11 +61,11 @@ export function useFormSubmission<T extends z.ZodType>(options: FormSubmissionOp
         body: urlSearchParams.toString(),
       });
 
-      let jsonData: ApiDataResponse<z.infer<T>>;
+      let jsonData: z.infer<ResponseSchema>;
       try {
         const rawData = await response.json();
-        // Use the provided schema directly to validate the response
-        const responseSchema = options.schema || z.any();
+        // Use the provided schema or fallback to any
+        const responseSchema = (options.schema || z.any()) as ResponseSchema;
         jsonData = responseSchema.parse(rawData);
         //console.debug(rawData);
         //console.debug(jsonData);

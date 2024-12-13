@@ -1,4 +1,3 @@
-import type { ApiDataResponse } from '@/types/api/responses';
 import type { z } from 'zod';
 
 export type FormSubmissionOptions<ResponseSchema extends z.ZodType = z.ZodAny> = {
@@ -35,7 +34,7 @@ export type FormSubmissionOptions<ResponseSchema extends z.ZodType = z.ZodAny> =
   /**
    * Called after successful form submission with the transformed response data
    */
-  onSuccess?: (data: ApiDataResponse<z.infer<ResponseSchema>>) => void | Promise<void>;
+  onSuccess?: (data: z.infer<ResponseSchema>) => void | Promise<void>;
 
   /**
    * Called after failed form submission with the error response

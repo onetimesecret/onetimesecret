@@ -35,33 +35,26 @@ export interface AsyncDataResult<T> {
  * Actual data transformation happens in corresponding input schemas.
  */
 
-// API client interface - defines service shape, not data structure
 // API response with data schema
-export const apiDataResponseSchema = <T extends z.ZodType>(dataSchema: T) =>
-  apiBaseResponseSchema.extend({
-    data: dataSchema,
-  });
+export const apiDataResponseSchema = <T extends z.ZodType>(schema: T) => schema;
 
-// Type helper for API responses
-export type ApiDataResponse<T> = z.infer<ReturnType<typeof apiDataResponseSchema<z.ZodType<T>>>>;
+// Type helper for API responses - constrain T to be a ZodType
+export type ApiDataResponse<T extends z.ZodType> = z.infer<T>;
 
-// Updated API client interface using Zod schemas
+// Updated API client interface remains the same but will now return the direct schema type
 export interface ApiClient {
-  get<T extends z.ZodType>(url: string, schema: T): Promise<ApiDataResponse<z.infer<T>>>;
-
+  get<T extends z.ZodType>(url: string, schema: T): Promise<z.infer<T>>;
   post<T extends z.ZodType>(
     url: string,
     data: Record<string, unknown>,
     schema: T
-  ): Promise<ApiDataResponse<z.infer<T>>>;
-
+  ): Promise<z.infer<T>>;
   put<T extends z.ZodType>(
     url: string,
     data: Record<string, unknown>,
     schema: T
-  ): Promise<ApiDataResponse<z.infer<T>>>;
-
-  delete<T extends z.ZodType>(url: string, schema: T): Promise<ApiDataResponse<z.infer<T>>>;
+  ): Promise<z.infer<T>>;
+  delete<T extends z.ZodType>(url: string, schema: T): Promise<z.infer<T>>;
 }
 
 /**
