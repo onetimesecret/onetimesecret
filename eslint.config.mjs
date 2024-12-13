@@ -135,9 +135,10 @@ export default [
     },
     rules: {
       // Prefer camelCase over kebab-case
+      // https://eslint.vuejs.org/rules/attribute-hyphenation.html
       "vue/attribute-hyphenation": ["error", "never", {
-        "ignore": [],
-        "ignoreTags": []
+        "ignore": ["custom-prop", "aria-label"],
+        "ignoreTags": ["svg"],
       }],
 
       // Ensure valid template root
