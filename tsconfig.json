@@ -11,6 +11,7 @@
       "dom"
     ],
     "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo",  // Store in cache directory instead
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
