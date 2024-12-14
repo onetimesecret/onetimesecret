@@ -150,7 +150,7 @@ const closeWarning = (event: Event) => {
         v-if="details.show_secret"
         class="space-y-4">
         <h2
-          class="text-brand-600 dark:text-brand-400"
+          class="text-brand-600 dark:text-brand-100"
           id="secret-heading">
           {{ $t('web.shared.this_message_for_you') }}
         </h2>

@@ -123,16 +123,58 @@ const closeTruncatedWarning = (event: Event) => {
           role="alert">
           Secret value not available
         </div>
+      </div>
+    </template>
+
+    <template #warnings>
+      <div>
+        <p
+          v-if="!record?.verification"
+          class="text-sm text-branddim-500 dark:text-gray-500"
+          role="alert"
+          aria-live="polite">
+          ({{ $t('web.COMMON.careful_only_see_once') }})
+        </p>
+
+        <div
+          v-if="record?.is_truncated"
+          class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4
+            text-sm text-brandcomp-700 dark:bg-brandcomp-800 dark:text-brandcomp-200"
+          role="alert"
+          aria-live="polite">
+          <button
+            type="button"
+            class="float-right
+              hover:text-brandcomp-900 focus:outline-none
+              focus:ring-2 focus:ring-brandcomp-500 dark:hover:text-brandcomp-50"
+            @click="closeTruncatedWarning"
+            aria-label="Dismiss truncation warning">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <strong>{{ $t('web.COMMON.warning') }}</strong>
+          {{ $t('web.shared.secret_was_truncated') }} {{ record.original_size }}.
+        </div>
+      </div>
+    </template>
+
+    <template #cta>
+      <div class="mt-4">
         <button
           @click="copySecretContent"
           :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-          class="absolute right-2 top-2 rounded-md bg-brandcomp-200 hover:bg-brandcomp-300 focus:ring-brandcomp-500 dark:bg-brandcomp-700 dark:hover:bg-brandcomp-600 dark:focus:ring-brandcomp-400"
+          class="inline-flex items-center justify-center rounded-md bg-brand-100 px-4 py-2.5
+            text-sm font-medium text-brand-700
+            shadow-sm transition-colors duration-150
+            ease-in-out hover:bg-brand-200 hover:shadow
+            focus:outline-none focus:ring-2 focus:ring-brand-500
+            focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-700
+            dark:text-brand-100 dark:hover:bg-brand-600"
           :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
           :aria-pressed="isCopied">
           <svg
             v-if="!isCopied"
             xmlns="http://www.w3.org/2000/svg"
-            class="size-5 text-gray-600 dark:text-gray-300"
+            class="mr-2 size-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -147,7 +189,7 @@ const closeTruncatedWarning = (event: Event) => {
           <svg
             v-else
             xmlns="http://www.w3.org/2000/svg"
-            class="size-5 text-green-500"
+            class="mr-2 size-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -159,41 +201,8 @@ const closeTruncatedWarning = (event: Event) => {
               d="M5 13l4 4L19 7"
             />
           </svg>
+          <span>{{ isCopied ? 'Copied!' : 'Copy to clipboard' }}</span>
         </button>
-      </div>
-    </template>
-
-    <template #warnings>
-      <div>
-        <p
-          v-if="!record?.verification"
-          class="text-sm text-branddim-500 dark:text-branddim-400"
-          role="alert"
-          aria-live="polite">
-          ({{ $t('web.COMMON.careful_only_see_once') }})
-        </p>
-
-        <div
-          v-if="record?.is_truncated"
-          class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4
-            text-sm text-brandcomp-700 dark:bg-brandcomp-800 dark:text-brandcomp-200"
-          role="alert"
-          aria-live="polite">
-          <button
-            type="button"
-            class="float-right hover:text-brandcomp-900 dark:hover:text-brandcomp-50 focus:outline-none focus:ring-2 focus:ring-brandcomp-500"
-            @click="closeTruncatedWarning"
-            aria-label="Dismiss truncation warning">
-            <span aria-hidden="true">&times;</span>
-          </button>
-          <strong>{{ $t('web.COMMON.warning') }}</strong>
-          {{ $t('web.shared.secret_was_truncated') }} {{ record.original_size }}.
-        </div>
-      </div>
-    </template>
-
-    <template #cta>
-      <div class="mt-4">
         <div
           v-if="!record?.verification"
           class="my-16 mb-4 border-l-4 border-gray-400 bg-gray-100 p-4
@@ -201,7 +210,9 @@ const closeTruncatedWarning = (event: Event) => {
           role="status">
           <button
             type="button"
-            class="float-right hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            class="float-right
+              hover:text-gray-900
+              focus:outline-none focus:ring-2 focus:ring-gray-500 dark:hover:text-gray-100"
             @click="$event => ($event.target as HTMLElement).closest('.border-gray-400')?.remove()"
             aria-label="Dismiss navigation instructions">
             <span aria-hidden="true">&times;</span>
@@ -215,7 +226,9 @@ const closeTruncatedWarning = (event: Event) => {
           <a
             href="/signin"
             class="block w-full rounded-md border border-brand-500 bg-white px-4 py-2
-              text-center text-brand-500 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-brand-400 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700"
+              text-center text-brand-500 hover:bg-brand-50
+              focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+              dark:border-brand-400 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700"
             aria-label="Sign in to your account">
             {{ $t('web.COMMON.login_to_your_account') }}
           </a>

@@ -94,7 +94,7 @@
 </script>
 
 <template>
-  <div class="w-full rounded-lg bg-white p-4 dark:bg-gray-800 sm:p-6">
+  <div class="min-h-[50vh] w-full rounded-lg bg-white p-4 dark:bg-gray-800 sm:p-6">
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
       <!-- Logo slot -->
       <slot name="logo"></slot>
