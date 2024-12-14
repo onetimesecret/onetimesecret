@@ -1,9 +1,10 @@
-import { useMetadataStore } from "@/stores/metadataStore";
-import { useNotificationsStore } from "@/stores/notifications";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-
 // New composable: src/composables/useMetadataBurn.ts
+
+import { useMetadataStore } from '@/stores/metadataStore';
+import { useNotificationsStore } from '@/stores/notifications';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
 export function useMetadataBurn(metadataKey: string) {
   const metadataStore = useMetadataStore();
   const notifications = useNotificationsStore();
@@ -16,7 +17,7 @@ export function useMetadataBurn(metadataKey: string) {
       notifications.show('Secret burned successfully', 'success');
       router.push({
         name: 'Metadata link',
-        params: { metadataKey: result.record.key },
+        params: { metadataKey: result?.record.key },
       });
     } catch (error) {
       notifications.show(error instanceof Error ? error.message : 'Failed to burn secret', 'error');
@@ -26,6 +27,6 @@ export function useMetadataBurn(metadataKey: string) {
 
   return {
     passphrase,
-    handleBurn
+    handleBurn,
   };
 }

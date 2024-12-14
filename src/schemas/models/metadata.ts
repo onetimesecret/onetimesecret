@@ -127,7 +127,7 @@ const metadataDetailsBaseSchema = z.object({
   view_count: numberFromString,
   has_passphrase: booleanFromString,
   can_decrypt: booleanFromString,
-  secret_value: z.string(),
+  secret_value: z.string().nullable().optional(),
   show_secret: booleanFromString,
   show_secret_link: booleanFromString,
   show_metadata_link: booleanFromString,

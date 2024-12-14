@@ -88,22 +88,12 @@ export function transformResponse<T>(schema: z.ZodSchema<T>, data: unknown): T {
       console.debug('Schema:', schema);
       console.debug('Failed data:', data);
       console.debug('Validation issues:', error.issues);
-      console.debug(
-        JSON.stringify(
-          {
-            schema: schema,
-            failedData: data,
-            validationIssues: error.issues,
-          },
-          null,
-          2
-        )
-      );
+
       throw new TransformError('Validation failed', fromZodError(error).details);
     } else {
       console.error('Transform failed:', error);
     }
 
-    throw new TransformError('Transform failed', 'Unknown error during transform');
+    return data as T;
   }
 }
