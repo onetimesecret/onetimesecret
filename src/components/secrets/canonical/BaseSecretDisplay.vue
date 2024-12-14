@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { useWindowProp } from '@/composables/useWindowProps';
-import { Secret, SecretDetails } from '@/schemas/models';
 
 const siteHost = useWindowProp('site_host');
 
 interface Props {
-  record: Secret;
-  details: SecretDetails;
   displayPoweredBy: boolean;
 }
 
@@ -18,7 +15,7 @@ defineProps<Props>();
   <div>
     <slot name="content"></slot>
 
-    <slot name="warnings"> </slot>
+    <slot name="warnings"></slot>
 
     <slot name="cta"></slot>
 

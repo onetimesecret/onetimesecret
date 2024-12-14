@@ -3,32 +3,54 @@ import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vu
 import { useClipboard } from '@/composables/useClipboard';
 import { useDomainBranding } from '@/composables/useDomainBranding';
 import { Secret, SecretDetails } from '@/schemas/models';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 interface Props {
   record: Secret | null;
   details: SecretDetails | null;
   domainId: string;
   displayPoweredBy: boolean;
+  submissionStatus?: {
+    status: 'idle' | 'submitting' | 'success' | 'error';
+    message?: string;
+  };
 }
 
 const props = defineProps<Props>();
+
+const alertClasses = computed(() => ({
+  'mb-4 p-4 rounded-md': true,
+  'bg-branddim-50 text-branddim-700 dark:bg-branddim-900 dark:text-branddim-100':
+    props.submissionStatus?.status === 'error',
+  'bg-brand-50 text-brand-700 dark:bg-brand-900 dark:text-brand-100':
+    props.submissionStatus?.status === 'success',
+}));
 
 const domainBranding = useDomainBranding();
 
 const hasImageError = ref(false);
 const { isCopied, copyToClipboard } = useClipboard();
 
-const copySecretContent = () => {
+const copySecretContent = async () => {
   if (props.record?.secret_value === undefined) {
     return;
   }
 
-  copyToClipboard(props.record?.secret_value);
+  await copyToClipboard(props.record?.secret_value);
+
+  // Announce copy success to screen readers
+  const announcement = document.createElement('div');
+  announcement.setAttribute('role', 'status');
+  announcement.setAttribute('aria-live', 'polite');
+  announcement.textContent = 'Secret content copied to clipboard';
+  document.body.appendChild(announcement);
+  setTimeout(() => announcement.remove(), 1000);
 };
+
 const handleImageError = () => {
   hasImageError.value = true;
 };
+
 // Prepare the standardized path to the logo image.
 // Note that the file extension needs to be present but is otherwise not used.
 const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
@@ -39,6 +61,47 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     defaultTitle="You have a message"
     :instructions="domainBranding?.instructions_pre_reveal"
     :domainBranding="domainBranding">
+    <!-- Alert display -->
+    <div
+      v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"
+      :class="alertClasses"
+      role="alert"
+      aria-live="polite">
+      <div class="flex">
+        <div class="shrink-0">
+          <svg
+            v-if="submissionStatus.status === 'error'"
+            class="size-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <svg
+            v-else
+            class="size-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm">
+            {{ submissionStatus.message || (submissionStatus.status === 'error' ? 'An error occurred' : 'Success') }}
+          </p>
+        </div>
+      </div>
+    </div>
+
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
@@ -48,14 +111,17 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             'rounded-full': domainBranding?.corner_style === 'pill',
             'rounded-none': domainBranding?.corner_style === 'square'
           }"
-          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16">
+          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
+          role="img"
+          :aria-label="hasImageError ? 'Default lock icon' : 'Brand logo'">
           <!-- Default lock icon -->
           <svg
             v-if="!logoImage || hasImageError"
             class="size-8 text-gray-400 dark:text-gray-500"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor">
+            stroke="currentColor"
+            aria-hidden="true">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -82,28 +148,57 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     </template>
 
     <template #content>
-      <textarea
-        class="min-h-32 w-full resize-none rounded-md border border-gray-300 bg-gray-100
-            font-mono text-base focus:outline-none
-              focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white  sm:min-h-36"
-        readonly
-        :rows="details?.display_lines"
-        :value="record?.secret_value"></textarea>
+      <div class="relative size-full p-0">
+        <label
+          :for="'secret-content-' + record?.identifier"
+          class="sr-only">
+          Secret content
+        </label>
+        <textarea
+          :id="'secret-content-' + record?.identifier"
+          class="block size-full min-h-32 resize-none border border-gray-300 bg-gray-100 font-mono
+              text-base focus:outline-none focus:ring-2
+              focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white sm:min-h-36"
+          :class="{
+            'rounded-lg': domainBranding?.corner_style === 'rounded',
+            'rounded-full': domainBranding?.corner_style === 'pill',
+            'rounded-none': domainBranding?.corner_style === 'square'
+          }"
+          readonly
+          :rows="details?.display_lines"
+          :value="record?.secret_value"
+          aria-label="Secret content"
+          ref="secretContent"></textarea>
+      </div>
     </template>
 
     <template #action-button>
       <button
         @click="copySecretContent"
         :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-        class="rounded-md bg-gray-200 p-1.5 transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-600 dark:hover:bg-gray-500"
-        aria-label="Copy to clipboard">
+        class="inline-flex items-center justify-center rounded-md px-4 py-2.5
+          text-sm font-medium text-brand-700
+          shadow-sm transition-colors duration-150
+          ease-in-out hover:shadow
+          focus:outline-none focus:ring-2 focus:ring-brand-500
+          focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
+          dark:text-brand-100"
+        :style="{
+          backgroundColor: domainBranding?.primary_color || 'var(--tw-color-brand-500)',
+          color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
+          fontFamily: domainBranding?.font_family
+        }"
+        aria-live="polite"
+        :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
+        :aria-pressed="isCopied">
         <svg
           v-if="!isCopied"
           xmlns="http://www.w3.org/2000/svg"
-          class="size-5 text-gray-600 dark:text-gray-300"
+          class="mr-2 size-5"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor">
+          stroke="currentColor"
+          aria-hidden="true">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -114,10 +209,11 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
         <svg
           v-else
           xmlns="http://www.w3.org/2000/svg"
-          class="size-5 text-green-500"
+          class="mr-2 size-5"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor">
+          stroke="currentColor"
+          aria-hidden="true">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -125,9 +221,17 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             d="M5 13l4 4L19 7"
           />
         </svg>
+        <span>{{ isCopied ? 'Copied!' : 'Copy to clipboard' }}</span>
       </button>
     </template>
   </BaseSecretDisplay>
 </template>
 
-<style></style>
+<style scoped>
+/* Ensure focus outline is visible in all color schemes */
+:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+</style>
