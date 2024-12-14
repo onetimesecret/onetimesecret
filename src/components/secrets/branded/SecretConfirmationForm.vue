@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useDomainBranding } from '@/composables/useDomainBranding';
-import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Secret, SecretDetails } from '@/schemas/models';
-import { useCsrfStore } from '@/stores/csrfStore';
+import { useSecretsStore } from '@/stores/secretsStore';
 import { ref } from 'vue';
 
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
@@ -16,31 +15,30 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
-const emit = defineEmits<{
-  (e: 'secret-loaded', data: { record: Secret; details: SecretDetails; }): void;
-}>();
+const emit = defineEmits(['secret-loaded']); // Add this line
+const secretStore = useSecretsStore();
+const passphrase = ref('');
+const isSubmitting = ref(false);
 
 const domainBranding = useDomainBranding();
 
-const csrfStore = useCsrfStore();
-const passphrase = ref('');
+const submitForm = async () => {
+  if (isSubmitting.value) return;
 
-const {
-  isSubmitting,
-  error,
-  success,
-  submitForm
-} = useFormSubmission({
-  url: `/api/v2/secret/${props.secretKey}`,
-  successMessage: '',
-  onSuccess: (data: { record: Secret; details: SecretDetails; }) => {
+  isSubmitting.value = true;
+  try {
+    const response = await secretStore.revealSecret(props.secretKey, passphrase.value);
+    // Emit the secret-loaded event with the response data
     emit('secret-loaded', {
-      record: data.record,
-      details: data.details
+      record: response.record,
+      details: response.details
     });
+  } catch {
+    // Error handling done by store
+  } finally {
+    isSubmitting.value = false;
   }
-});
+};
 
 const hasImageError = ref(false);
 
@@ -118,70 +116,54 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     </template>
 
     <template #action-button>
-      <!-- Form -->
-      <form
-        @submit.prevent="submitForm"
-        class="space-y-4"
-        aria-label="Secret confirmation form">
+      <!-- Passphrase Input -->
+      <div
+        v-if="record?.has_passphrase"
+        class="space-y-2">
         <input
-          name="shrimp"
-          type="hidden"
-          :value="csrfStore.shrimp"
-        />
-        <input
-          name="continue"
-          type="hidden"
-          value="true"
-        />
-
-        <!-- Passphrase Input -->
-        <div
-          v-if="record?.has_passphrase"
-          class="space-y-2">
-          <input
-            v-model="passphrase"
-            type="password"
-            name="passphrase"
-            :class="{
-              'rounded-lg': domainBranding?.corner_style === 'rounded',
-              'rounded-2xl': domainBranding?.corner_style === 'pill',
-              'rounded-none': domainBranding?.corner_style === 'square',
-              'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
-            }"
-            :style="{ fontFamily: domainBranding?.font_family }"
-            autocomplete="current-password"
-            :aria-label="$t('web.COMMON.enter_passphrase_here')"
-            :placeholder="$t('web.COMMON.enter_passphrase_here')"
-          />
-        </div>
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          :disabled="isSubmitting"
+          v-model="passphrase"
+          type="password"
+          name="passphrase"
           :class="{
             'rounded-lg': domainBranding?.corner_style === 'rounded',
-            'rounded-full': domainBranding?.corner_style === 'pill',
+            'rounded-2xl': domainBranding?.corner_style === 'pill',
             'rounded-none': domainBranding?.corner_style === 'square',
-            'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
+            'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
           }"
-          :style="{
-            backgroundColor: domainBranding?.primary_color,
-            color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
-            fontFamily: domainBranding?.font_family
-          }"
-          aria-live="polite">
-          {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
-        </button>
-      </form>
+          :style="{ fontFamily: domainBranding?.font_family }"
+          autocomplete="current-password"
+          :aria-label="$t('web.COMMON.enter_passphrase_here')"
+          :placeholder="$t('web.COMMON.enter_passphrase_here')"
+        />
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        @click="submitForm"
+        :disabled="isSubmitting"
+        :class="{
+          'rounded-lg': domainBranding?.corner_style === 'rounded',
+          'rounded-full': domainBranding?.corner_style === 'pill',
+          'rounded-none': domainBranding?.corner_style === 'square',
+          'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
+        }"
+        :style="{
+          backgroundColor: domainBranding?.primary_color,
+          color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
+          fontFamily: domainBranding?.font_family
+        }"
+        aria-live="polite">
+        {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
+      </button>
 
       <!-- Alert Messages -->
-      <BasicFormAlerts
+      <!-- <BasicFormAlerts
         :success="success"
         :error="error"
         role="alert"
         class="mb-4 mt-8"
-      />
+      /> -->
     </template>
   </BaseSecretDisplay>
 </template>

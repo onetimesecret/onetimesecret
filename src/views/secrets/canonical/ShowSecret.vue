@@ -32,7 +32,6 @@ interface Props {
 }
 
 defineProps<Props>();
-
 const route = useRoute();
 
 const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretRecordApiResponse>);
@@ -44,7 +43,6 @@ const finalDetails = ref<SecretDetails | null>(null);
 // Compute the current state based on initial and final data
 const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
 const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
-
 
 const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) => {
   finalRecord.value = data.record;

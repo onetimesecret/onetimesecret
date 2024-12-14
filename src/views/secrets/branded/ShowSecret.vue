@@ -12,16 +12,17 @@
  * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
  */
 
-import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
-import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import { useFormSubmission } from '@/composables/useFormSubmission';
 import type { Secret, SecretDetails } from '@/schemas/models';
 import { AsyncDataResult, SecretRecordApiResponse } from '@/types/api';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router';
 
 import UnknownSecret from './UnknownSecret.vue';
+
+// Import components that will be used in dynamic component rendering
+const SecretConfirmationForm = defineAsyncComponent(() => import('@/components/secrets/branded/SecretConfirmationForm.vue'));
+const SecretDisplayCase = defineAsyncComponent(() => import('@/components/secrets/branded/SecretDisplayCase.vue'));
 
 interface Props {
   secretKey: string;
@@ -30,7 +31,7 @@ interface Props {
   siteHost: string;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 const route = useRoute();
 
 const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretRecordApiResponse>);
@@ -38,25 +39,9 @@ const initialData = computed(() => route.meta.initialData as AsyncDataResult<Sec
 const finalRecord = ref<Secret | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
 
-const {
-  isSubmitting,
-} = useFormSubmission({
-  url: `/api/v2/secret/${props.secretKey}`,
-  successMessage: '',
-  onSuccess: (data: SecretRecordApiResponse) => {
-    finalRecord.value = data.record;
-    finalDetails.value = data.details;
-  },
-  onError: (data: { message: string; }) => {
-    console.debug('Error fetching secret:', data.message);
-    throw new Error(data.message);
-  },
-});
-
 // Compute the current state based on initial and final data
 const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
 const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
-const isLoading = computed(() => isSubmitting.value);
 
 const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) => {
   finalRecord.value = data.record;
@@ -76,31 +61,18 @@ watch(finalRecord, (newValue) => {
 <template>
   <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
     <div class="w-full max-w-xl space-y-8">
-      <!-- Loading State -->
-      <div
-        v-if="isLoading"
-        class="flex items-center justify-center">
-        <div class="size-12 animate-spin rounded-full border-y-2 border-brand-500"></div>
-      </div>
 
-      <div v-else-if="record && details">
+      <div v-if="record && details">
         <!-- Secret Content -->
 
-        <SecretConfirmationForm
-          v-if="!details.show_secret"
+        <component
+          :is="details.show_secret ? SecretDisplayCase : SecretConfirmationForm"
           :secretKey="secretKey"
           :record="record"
           :details="details"
           :domainId="domainId"
-          @secret-loaded="handleSecretLoaded"
-        />
-
-        <SecretDisplayCase
-          v-else
           :displayPoweredBy="true"
-          :record="record"
-          :details="details"
-          :domainId="domainId"
+          @secret-loaded="handleSecretLoaded"
         />
       </div>
 
