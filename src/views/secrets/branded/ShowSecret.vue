@@ -100,7 +100,8 @@ watch(finalRecord, (newValue) => {
           aria-label="Footer navigation">
           <a
             :href="`https://${siteHost}`"
-            class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            class="hover:underline
+              focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
             rel="noopener noreferrer"
             aria-label="Visit Onetime Secret homepage">
             Powered by Onetime Secret
@@ -108,14 +109,16 @@ watch(finalRecord, (newValue) => {
           <span aria-hidden="true">·</span>
           <router-link
             to="/info/terms"
-            class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            class="hover:underline
+              focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
             aria-label="View Terms of Service">
             Terms
           </router-link>
           <span aria-hidden="true">·</span>
           <router-link
             to="/info/privacy"
-            class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            class="hover:underline
+              focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
             aria-label="View Privacy Policy">
             Privacy
           </router-link>
@@ -145,12 +148,4 @@ watch(finalRecord, (newValue) => {
   outline-offset: 2px;
 }
 
-/* Improve color contrast for dark mode */
-.dark .text-gray-400 {
-  color: #9CA3AF;
-}
-
-.dark .text-gray-600 {
-  color: #D1D5DB;
-}
 </style>

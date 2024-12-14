@@ -171,10 +171,11 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
           }"
           :style="{
-            backgroundColor: domainBranding?.primary_color,
+            backgroundColor: domainBranding?.primary_color || 'var(--tw-color-brand-500)',
             color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
             fontFamily: domainBranding?.font_family
           }"
+          class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           aria-live="polite">
           <span class="sr-only">{{ isSubmitting ? 'Submitting...' : 'Click to continue' }}</span>
           {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
@@ -198,12 +199,4 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
   outline-offset: 2px;
 }
 
-/* Improve color contrast for dark mode */
-.dark .text-gray-400 {
-  color: #9CA3AF;
-}
-
-.dark .text-gray-500 {
-  color: #D1D5DB;
-}
 </style>

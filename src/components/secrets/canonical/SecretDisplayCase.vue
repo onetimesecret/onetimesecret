@@ -19,8 +19,8 @@ const props = defineProps<Props>();
 
 const alertClasses = computed(() => ({
   'mb-4 p-4 rounded-md': true,
-  'bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-100': props.submissionStatus?.status === 'error',
-  'bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-100': props.submissionStatus?.status === 'success'
+  'bg-branddim-50 text-branddim-700 dark:bg-branddim-900 dark:text-branddim-100': props.submissionStatus?.status === 'error',
+  'bg-brand-50 text-brand-700 dark:bg-brand-900 dark:text-brand-100': props.submissionStatus?.status === 'success'
 }));
 
 const { isCopied, copyToClipboard } = useClipboard();
@@ -126,8 +126,7 @@ const closeTruncatedWarning = (event: Event) => {
         <button
           @click="copySecretContent"
           :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-          class="absolute right-2 top-2 rounded-md bg-gray-200 p-1.5
-            transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-600 dark:hover:bg-gray-500"
+          class="absolute right-2 top-2 rounded-md bg-brandcomp-200 hover:bg-brandcomp-300 focus:ring-brandcomp-500 dark:bg-brandcomp-700 dark:hover:bg-brandcomp-600 dark:focus:ring-brandcomp-400"
           :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
           :aria-pressed="isCopied">
           <svg
@@ -168,7 +167,7 @@ const closeTruncatedWarning = (event: Event) => {
       <div>
         <p
           v-if="!record?.verification"
-          class="text-sm text-gray-500 dark:text-gray-400"
+          class="text-sm text-branddim-500 dark:text-branddim-400"
           role="alert"
           aria-live="polite">
           ({{ $t('web.COMMON.careful_only_see_once') }})
@@ -177,7 +176,7 @@ const closeTruncatedWarning = (event: Event) => {
         <div
           v-if="record?.is_truncated"
           class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4
-            text-sm text-blue-700 dark:bg-blue-800 dark:text-blue-200"
+            text-sm text-brandcomp-700 dark:bg-brandcomp-800 dark:text-brandcomp-200"
           role="alert"
           aria-live="polite">
           <button
@@ -231,36 +230,5 @@ const closeTruncatedWarning = (event: Event) => {
 :focus {
   outline: 2px solid currentColor;
   outline-offset: 2px;
-}
-
-/* Improve color contrast for dark mode */
-.dark .text-gray-400 {
-  color: #9CA3AF;
-}
-
-.dark .text-gray-500 {
-  color: #D1D5DB;
-}
-
-/* Ensure sufficient contrast for alert messages */
-.dark .text-red-100 {
-  color: #FEE2E2;
-}
-
-.dark .text-green-100 {
-  color: #DCFCE7;
-}
-
-.dark .text-blue-200 {
-  color: #BFDBFE;
-}
-
-/* Ensure sufficient contrast for brand colors */
-.dark .text-brand-400 {
-  color: #60A5FA;
-}
-
-.dark .border-brand-400 {
-  border-color: #60A5FA;
 }
 </style>

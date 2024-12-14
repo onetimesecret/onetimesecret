@@ -100,7 +100,8 @@ const closeWarning = (event: Event) => {
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-amber-900 dark:hover:text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            class="float-right hover:text-amber-900 focus:outline-none
+              focus:ring-2 focus:ring-amber-500 dark:hover:text-amber-50"
             @click="closeWarning"
             aria-label="Dismiss warning">
             <span aria-hidden="true">&times;</span>
@@ -117,7 +118,8 @@ const closeWarning = (event: Event) => {
           aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-brand-900 dark:hover:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            class="float-right hover:text-brand-900 focus:outline-none
+              focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
             @click="closeWarning"
             aria-label="Dismiss notification">
             <span aria-hidden="true">&times;</span>
@@ -148,7 +150,7 @@ const closeWarning = (event: Event) => {
         v-if="details.show_secret"
         class="space-y-4">
         <h2
-          class="text-gray-600 dark:text-gray-400"
+          class="text-brand-600 dark:text-brand-400"
           id="secret-heading">
           {{ $t('web.shared.this_message_for_you') }}
         </h2>
@@ -179,23 +181,5 @@ const closeWarning = (event: Event) => {
 :focus {
   outline: 2px solid currentColor;
   outline-offset: 2px;
-}
-
-/* Improve color contrast for dark mode */
-.dark .text-gray-400 {
-  color: #9CA3AF;
-}
-
-.dark .text-gray-600 {
-  color: #D1D5DB;
-}
-
-/* Ensure sufficient color contrast for warning messages */
-.dark .text-amber-100 {
-  color: #FEF3C7;
-}
-
-.dark .text-brand-100 {
-  color: #E0F2FE;
 }
 </style>

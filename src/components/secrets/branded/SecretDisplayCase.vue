@@ -20,8 +20,10 @@ const props = defineProps<Props>();
 
 const alertClasses = computed(() => ({
   'mb-4 p-4 rounded-md': true,
-  'bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-100': props.submissionStatus?.status === 'error',
-  'bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-100': props.submissionStatus?.status === 'success'
+  'bg-branddim-50 text-branddim-700 dark:bg-branddim-900 dark:text-branddim-100':
+    props.submissionStatus?.status === 'error',
+  'bg-brand-50 text-brand-700 dark:bg-brand-900 dark:text-brand-100':
+    props.submissionStatus?.status === 'success',
 }));
 
 const domainBranding = useDomainBranding();
@@ -169,9 +171,8 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
       <button
         @click="copySecretContent"
         :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-        class="rounded-md bg-gray-200 p-1.5
-          transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500
-          dark:bg-gray-600 dark:hover:bg-gray-500"
+        class="rounded-md bg-brandcomp-200 hover:bg-brandcomp-300 focus:ring-brandcomp-500
+          dark:bg-brandcomp-700 dark:hover:bg-brandcomp-600 dark:focus:ring-brandcomp-400"
         :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
         :aria-pressed="isCopied">
         <svg
@@ -216,21 +217,4 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
   outline-offset: 2px;
 }
 
-/* Improve color contrast for dark mode */
-.dark .text-gray-400 {
-  color: #9CA3AF;
-}
-
-.dark .text-gray-500 {
-  color: #D1D5DB;
-}
-
-/* Ensure sufficient contrast for alert messages */
-.dark .text-red-100 {
-  color: #FEE2E2;
-}
-
-.dark .text-green-100 {
-  color: #DCFCE7;
-}
 </style>

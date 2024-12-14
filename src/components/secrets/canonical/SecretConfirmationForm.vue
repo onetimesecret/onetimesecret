@@ -115,8 +115,9 @@ const submitForm = async () => {
         type="submit"
         :disabled="isSubmitting"
         :class="[
-          'w-full rounded-md bg-brand-500 px-6 py-3 text-3xl font-semibold text-white transition duration-150 ease-in-out hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-gray-800',
-          'mt-4'
+          'w-full rounded-md bg-brand-500 px-6 py-3 text-3xl font-semibold text-white transition duration-150 ease-in-out',
+          'hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2',
+          'disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-600 dark:focus:ring-brand-400'
         ]"
         aria-live="polite">
         <span class="sr-only">{{ isSubmitting ? 'Submitting...' : 'Click to continue' }}</span>
@@ -140,24 +141,6 @@ const submitForm = async () => {
 :focus {
   outline: 2px solid currentColor;
   outline-offset: 2px;
-}
-
-/* Improve color contrast for dark mode */
-.dark .text-gray-400 {
-  color: #9CA3AF;
-}
-
-.dark .text-gray-500 {
-  color: #D1D5DB;
-}
-
-/* Ensure sufficient contrast for the submit button */
-.bg-brand-500 {
-  background-color: #2563EB; /* Ensure this meets WCAG contrast requirements */
-}
-
-.hover\:bg-brand-600:hover {
-  background-color: #1D4ED8; /* Ensure this meets WCAG contrast requirements */
 }
 
 /* Ensure disabled state maintains sufficient contrast */
