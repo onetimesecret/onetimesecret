@@ -49,6 +49,18 @@ const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) =
   finalDetails.value = data.details;
 };
 
+
+const submissionStatus = ref<{
+  status: 'idle' | 'submitting' | 'success' | 'error';
+  message?: string;
+}>({
+  status: 'idle'
+});
+
+const handleSubmissionStatus = (status: { status: string; message?: string }) => {
+  submissionStatus.value = status as typeof submissionStatus.value;
+};
+
 // Watch for changes in the finalRecord and update the view accordingly
 watch(finalRecord, (newValue) => {
   if (newValue) {
@@ -64,7 +76,6 @@ const closeWarning = (event: Event) => {
 
 <template>
   <div class="container mx-auto mt-24 px-4">
-
     <div
       v-if="record && details"
       class="space-y-20">
@@ -108,7 +119,9 @@ const closeWarning = (event: Event) => {
           :record="record"
           :details="details"
           :domainId="domainId"
+          :submissionStatus="submissionStatus"
           @secret-loaded="handleSecretLoaded"
+          @submission-status="handleSubmissionStatus"
         />
 
         <div v-if="!record.verification">
@@ -129,6 +142,9 @@ const closeWarning = (event: Event) => {
           :displayPoweredBy="true"
           :record="record"
           :details="details"
+          :submissionStatus="submissionStatus"
+          @secret-loaded="handleSecretLoaded"
+          @submission-status="handleSubmissionStatus"
         />
       </div>
     </div>

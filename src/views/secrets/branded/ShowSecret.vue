@@ -48,20 +48,30 @@ const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) =
   finalDetails.value = data.details;
 };
 
+const submissionStatus = ref<{
+  status: 'idle' | 'submitting' | 'success' | 'error';
+  message?: string;
+}>({
+  status: 'idle'
+});
+
+const handleSubmissionStatus = (status: { status: string; message?: string }) => {
+  submissionStatus.value = status as typeof submissionStatus.value;
+};
+
 // Watch for changes in the finalRecord and update the view accordingly
 watch(finalRecord, (newValue) => {
   if (newValue) {
     console.log('Secret fetched successfully');
   }
 });
-
-
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
+  <div
+    class="flex min-h-screen items-center justify-center
+    bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
     <div class="w-full max-w-xl space-y-8">
-
       <div v-if="record && details">
         <!-- Secret Content -->
 
@@ -72,16 +82,14 @@ watch(finalRecord, (newValue) => {
           :details="details"
           :domainId="domainId"
           :displayPoweredBy="true"
+          :submissionStatus="submissionStatus"
           @secret-loaded="handleSecretLoaded"
+          @submission-status="handleSubmissionStatus"
         />
       </div>
 
       <!-- Unknown Secret -->
       <UnknownSecret v-else-if="!record" :branded="true" />
-
-      <div class="flex justify-center pt-16">
-        <ThemeToggle />
-      </div>
 
       <div class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600">
         <div class="space-x-2">
@@ -105,6 +113,10 @@ watch(finalRecord, (newValue) => {
           </router-link>
         </div>
       </div>
+
+      <div class="flex justify-center pt-16">
+              <ThemeToggle />
+            </div>
     </div>
   </div>
 </template>

@@ -3,16 +3,26 @@ import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vu
 import { useClipboard } from '@/composables/useClipboard';
 import { useDomainBranding } from '@/composables/useDomainBranding';
 import { Secret, SecretDetails } from '@/schemas/models';
-import { ref } from 'vue';
+import { ref , computed} from 'vue';
 
 interface Props {
   record: Secret | null;
   details: SecretDetails | null;
   domainId: string;
   displayPoweredBy: boolean;
+  submissionStatus?: {
+    status: 'idle' | 'submitting' | 'success' | 'error';
+    message?: string;
+  };
 }
 
 const props = defineProps<Props>();
+
+const alertClasses = computed(() => ({
+  'mb-4 p-4 rounded-md': true,
+  'bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-100': props.submissionStatus?.status === 'error',
+  'bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-100': props.submissionStatus?.status === 'success'
+}));
 
 const domainBranding = useDomainBranding();
 
@@ -26,6 +36,7 @@ const copySecretContent = () => {
 
   copyToClipboard(props.record?.secret_value);
 };
+
 const handleImageError = () => {
   hasImageError.value = true;
 };
@@ -39,6 +50,44 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     defaultTitle="You have a message"
     :instructions="domainBranding?.instructions_pre_reveal"
     :domainBranding="domainBranding">
+    <!-- Alert display -->
+    <div
+      v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"
+      :class="alertClasses"
+      role="alert">
+      <div class="flex">
+        <div class="shrink-0">
+          <svg
+            v-if="submissionStatus.status === 'error'"
+            class="size-5"
+            viewBox="0 0 20 20"
+            fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <svg
+            v-else
+            class="size-5"
+            viewBox="0 0 20 20"
+            fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm">
+            {{ submissionStatus.message || (submissionStatus.status === 'error' ? 'An error occurred' : 'Success') }}
+          </p>
+        </div>
+      </div>
+    </div>
+
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
@@ -95,7 +144,9 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
       <button
         @click="copySecretContent"
         :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-        class="rounded-md bg-gray-200 p-1.5 transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-600 dark:hover:bg-gray-500"
+        class="rounded-md bg-gray-200 p-1.5
+          transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500
+          dark:bg-gray-600 dark:hover:bg-gray-500"
         aria-label="Copy to clipboard">
         <svg
           v-if="!isCopied"

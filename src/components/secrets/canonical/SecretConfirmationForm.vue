@@ -15,7 +15,6 @@ const secretStore = useSecretsStore();
 const passphrase = ref('');
 const isSubmitting = ref(false);
 
-
 const submitForm = async () => {
   if (isSubmitting.value) return;
 
@@ -43,7 +42,7 @@ const submitForm = async () => {
     ]">
     <p
       v-if="record?.verification && !record?.has_passphrase"
-      class="text-md text-gray-600 dark:text-gray-400">
+      class="text-base text-gray-600 dark:text-gray-400">
       {{ $t('web.COMMON.click_to_verify') }}
     </p>
 
@@ -73,7 +72,8 @@ const submitForm = async () => {
         v-model="passphrase"
         type="password"
         name="passphrase"
-        class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+        class="w-full rounded-md border border-gray-300 px-3 py-2
+          focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
         autocomplete="current-password"
         :aria-label="$t('web.COMMON.enter_passphrase_here')"
         :placeholder="$t('web.COMMON.enter_passphrase_here')"

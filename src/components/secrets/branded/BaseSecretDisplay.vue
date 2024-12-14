@@ -103,7 +103,8 @@
       <div class="flex-1 text-center sm:text-left">
         <div class="relative min-h-[5.5rem] sm:min-h-24">
           <h2
-            class="mb-2 text-base font-medium leading-normal text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl"
+            class="mb-2
+              text-base font-medium leading-normal text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl"
             :class="{
               [fontFamilyClass]: true,
             }">
@@ -123,7 +124,11 @@
             <button
               v-if="isLongText"
               @click="toggleExpand"
-              class="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-500 shadow-sm transition-all duration-200 hover:text-gray-700 hover:shadow dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
+              class="absolute bottom-0 left-1/2 -translate-x-1/2
+                rounded-full border border-gray-200 bg-white px-3 py-1
+                text-xs text-gray-500 shadow-sm transition-all duration-200
+                hover:text-gray-700 hover:shadow
+                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
               <slot
                 name="expand-button"
                 :isExpanded="isExpanded">
@@ -138,7 +143,8 @@
     <!-- Content Area -->
     <div class="my-3 sm:my-4">
       <div
-        class="flex min-h-32 w-full items-center justify-center bg-gray-100 dark:bg-gray-700 sm:min-h-36"
+        class="flex min-h-32 w-full items-center justify-center
+          bg-gray-100 dark:bg-gray-700 sm:min-h-36"
         :class="{
           [cornerClass]: true,
         }">

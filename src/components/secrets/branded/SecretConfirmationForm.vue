@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useDomainBranding } from '@/composables/useDomainBranding';
 import { Secret, SecretDetails } from '@/schemas/models';
 import { useSecretsStore } from '@/stores/secretsStore';
@@ -15,7 +14,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits(['secret-loaded']); // Add this line
+const emit = defineEmits(['secret-loaded']);
 const secretStore = useSecretsStore();
 const passphrase = ref('');
 const isSubmitting = ref(false);
@@ -156,14 +155,6 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
         aria-live="polite">
         {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
       </button>
-
-      <!-- Alert Messages -->
-      <!-- <BasicFormAlerts
-        :success="success"
-        :error="error"
-        role="alert"
-        class="mb-4 mt-8"
-      /> -->
     </template>
   </BaseSecretDisplay>
 </template>
