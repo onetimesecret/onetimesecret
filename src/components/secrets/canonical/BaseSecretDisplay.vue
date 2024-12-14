@@ -18,7 +18,7 @@ defineProps<Props>();
   <div>
     <slot name="content"></slot>
 
-    <slot name="warnings"> </slot>
+    <slot name="warnings"></slot>
 
     <slot name="cta"></slot>
 

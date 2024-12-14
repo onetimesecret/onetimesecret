@@ -10,16 +10,23 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const emit = defineEmits(['secret-loaded']); // Add this line
 const secretStore = useSecretsStore();
 const passphrase = ref('');
 const isSubmitting = ref(false);
+
 
 const submitForm = async () => {
   if (isSubmitting.value) return;
 
   isSubmitting.value = true;
   try {
-    await secretStore.revealSecret(props.secretKey, passphrase.value);
+    const response = await secretStore.revealSecret(props.secretKey, passphrase.value);
+    // Emit the secret-loaded event with the response data
+    emit('secret-loaded', {
+      record: response.record,
+      details: response.details
+    });
   } catch {
     // Error handling done by store
   } finally {

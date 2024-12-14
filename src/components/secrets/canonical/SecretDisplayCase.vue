@@ -2,6 +2,8 @@
 import { useClipboard } from '@/composables/useClipboard';
 import { Secret, SecretDetails } from '@/schemas/models';
 
+import BaseSecretDisplay from './BaseSecretDisplay.vue';
+
 interface Props {
   record: Secret;
   details: SecretDetails;
@@ -28,8 +30,8 @@ const closeTruncatedWarning = (event: Event) => {
 <template>
   <BaseSecretDisplay
     :record="record"
-    :details="details">
-
+    :details="details"
+    :displayPoweredBy="displayPoweredBy">
     <template #content>
       <div class="relative">
         <textarea
@@ -48,7 +50,8 @@ const closeTruncatedWarning = (event: Event) => {
         <button
           @click="copySecretContent"
           :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-          class="absolute right-2 top-2 rounded-md bg-gray-200 p-1.5 transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-600 dark:hover:bg-gray-500"
+          class="absolute right-2 top-2 rounded-md bg-gray-200 p-1.5
+            transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-600 dark:hover:bg-gray-500"
           aria-label="Copy to clipboard">
           <svg
             v-if="!isCopied"
@@ -94,7 +97,8 @@ const closeTruncatedWarning = (event: Event) => {
 
         <div
           v-if="record.is_truncated"
-          class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4 text-sm text-blue-700 dark:bg-blue-800 dark:text-blue-200">
+          class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4
+            text-sm text-blue-700 dark:bg-blue-800 dark:text-blue-200">
           <button
             type="button"
             class="float-right"
@@ -112,7 +116,8 @@ const closeTruncatedWarning = (event: Event) => {
       <div class="mt-4">
         <div
           v-if="!record.verification"
-          class="my-16 mb-4 border-l-4 border-gray-400 bg-gray-100 p-4 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+          class="my-16 mb-4 border-l-4 border-gray-400 bg-gray-100 p-4
+            text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
           <button
             type="button"
             class="float-right hover:text-gray-900 dark:hover:text-gray-100"
@@ -127,7 +132,8 @@ const closeTruncatedWarning = (event: Event) => {
         <div v-else>
           <a
             href="/signin"
-            class="block w-full rounded-md border border-brand-500 bg-white px-4 py-2 text-center text-brand-500 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-brand-400 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700">
+            class="block w-full rounded-md border border-brand-500 bg-white px-4 py-2
+              text-center text-brand-500 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-brand-400 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700">
             {{ $t('web.COMMON.login_to_your_account') }}
           </a>
         </div>
