@@ -39,7 +39,6 @@ const initialData = computed(() => route.meta.initialData as AsyncDataResult<Sec
 const finalRecord = ref<Secret | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
 
-
 // Compute the current state based on initial and final data
 const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
 const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
@@ -48,7 +47,6 @@ const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) =
   finalRecord.value = data.record;
   finalDetails.value = data.details;
 };
-
 
 const submissionStatus = ref<{
   status: 'idle' | 'submitting' | 'success' | 'error';
@@ -70,12 +68,25 @@ watch(finalRecord, (newValue) => {
 
 const closeWarning = (event: Event) => {
   const element = event.target as HTMLElement;
-  element.closest('.bg-amber-50, .bg-brand-50')?.remove();
+  const warning = element.closest('.bg-amber-50, .bg-brand-50');
+  if (warning) {
+    warning.remove();
+    // Announce removal to screen readers
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.textContent = 'Warning dismissed';
+    document.body.appendChild(announcement);
+    setTimeout(() => announcement.remove(), 1000);
+  }
 };
 </script>
 
 <template>
-  <div class="container mx-auto mt-24 px-4">
+  <main
+    class="container mx-auto mt-24 px-4"
+    role="main"
+    aria-label="Secret viewing page">
     <div
       v-if="record && details"
       class="space-y-20">
@@ -85,15 +96,16 @@ const closeWarning = (event: Event) => {
           v-if="details.is_owner && !details.show_secret"
           class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4
             text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
-          role="alert">
+          role="alert"
+          aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-amber-900 dark:hover:text-amber-50"
+            class="float-right hover:text-amber-900 dark:hover:text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-500"
             @click="closeWarning"
-            aria-label="Close warning">
-            &times;
+            aria-label="Dismiss warning">
+            <span aria-hidden="true">&times;</span>
           </button>
-          <strong class="font-medium">{{ $t('web.COMMON.warning') }}</strong>
+          <strong class="font-medium">{{ $t('web.COMMON.warning') }}:</strong>
           {{ $t('web.shared.you_created_this_secret') }}
         </div>
 
@@ -101,13 +113,14 @@ const closeWarning = (event: Event) => {
           v-if="details.is_owner && details.show_secret"
           class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4
             text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
-          role="alert">
+          role="alert"
+          aria-live="polite">
           <button
             type="button"
-            class="float-right hover:text-brand-900 dark:hover:text-brand-50"
+            class="float-right hover:text-brand-900 dark:hover:text-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500"
             @click="closeWarning"
-            aria-label="Close notification">
-            &times;
+            aria-label="Dismiss notification">
+            <span aria-hidden="true">&times;</span>
           </button>
           {{ $t('web.shared.viewed_own_secret') }}
         </div>
@@ -134,7 +147,9 @@ const closeWarning = (event: Event) => {
       <div
         v-if="details.show_secret"
         class="space-y-4">
-        <h2 class="text-gray-600 dark:text-gray-400">
+        <h2
+          class="text-gray-600 dark:text-gray-400"
+          id="secret-heading">
           {{ $t('web.shared.this_message_for_you') }}
         </h2>
 
@@ -143,6 +158,7 @@ const closeWarning = (event: Event) => {
           :record="record"
           :details="details"
           :submissionStatus="submissionStatus"
+          aria-labelledby="secret-heading"
           @secret-loaded="handleSecretLoaded"
           @submission-status="handleSubmissionStatus"
         />
@@ -155,5 +171,31 @@ const closeWarning = (event: Event) => {
     <div class="flex justify-center pt-16">
       <ThemeToggle />
     </div>
-  </div>
+  </main>
 </template>
+
+<style scoped>
+/* Ensure focus outline is visible in all color schemes */
+:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Improve color contrast for dark mode */
+.dark .text-gray-400 {
+  color: #9CA3AF;
+}
+
+.dark .text-gray-600 {
+  color: #D1D5DB;
+}
+
+/* Ensure sufficient color contrast for warning messages */
+.dark .text-amber-100 {
+  color: #FEF3C7;
+}
+
+.dark .text-brand-100 {
+  color: #E0F2FE;
+}
+</style>

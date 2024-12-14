@@ -27,6 +27,14 @@ const submitForm = async () => {
   isSubmitting.value = true;
   try {
     const response = await secretStore.revealSecret(props.secretKey, passphrase.value);
+    // Announce success to screen readers
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.textContent = 'Secret revealed successfully';
+    document.body.appendChild(announcement);
+    setTimeout(() => announcement.remove(), 1000);
+
     // Emit the secret-loaded event with the response data
     emit('secret-loaded', {
       record: response.record,
@@ -44,6 +52,7 @@ const hasImageError = ref(false);
 const handleImageError = () => {
   hasImageError.value = true;
 };
+
 // Prepare the standardized path to the logo image.
 // Note that the file extension needs to be present but is otherwise not used.
 const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
@@ -63,14 +72,17 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             'rounded-full': domainBranding?.corner_style === 'pill',
             'rounded-none': domainBranding?.corner_style === 'square'
           }"
-          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16">
+          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
+          role="img"
+          :aria-label="hasImageError ? 'Default lock icon' : 'Brand logo'">
           <!-- Default lock icon -->
           <svg
             v-if="!logoImage || hasImageError"
             class="size-8 text-gray-400 dark:text-gray-500"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor">
+            stroke="currentColor"
+            aria-hidden="true">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -97,12 +109,16 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     </template>
 
     <template #content>
-      <div class="flex items-center text-gray-400 dark:text-gray-500">
+      <div
+        class="flex items-center text-gray-400 dark:text-gray-500"
+        role="status"
+        aria-label="Content status">
         <svg
           class="mr-2 size-5"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor">
+          stroke="currentColor"
+          aria-hidden="true">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -115,46 +131,55 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     </template>
 
     <template #action-button>
-      <!-- Passphrase Input -->
-      <div
-        v-if="record?.has_passphrase"
-        class="space-y-2">
-        <input
-          v-model="passphrase"
-          type="password"
-          name="passphrase"
+      <form @submit.prevent="submitForm" aria-label="Secret access form">
+        <!-- Passphrase Input -->
+        <div
+          v-if="record?.has_passphrase"
+          class="space-y-2">
+          <label
+            :for="'passphrase-' + secretKey"
+            class="sr-only">
+            {{ $t('web.COMMON.enter_passphrase_here') }}
+          </label>
+          <input
+            v-model="passphrase"
+            :id="'passphrase-' + secretKey"
+            type="password"
+            name="passphrase"
+            :class="{
+              'rounded-lg': domainBranding?.corner_style === 'rounded',
+              'rounded-2xl': domainBranding?.corner_style === 'pill',
+              'rounded-none': domainBranding?.corner_style === 'square',
+              'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
+            }"
+            :style="{ fontFamily: domainBranding?.font_family }"
+            autocomplete="current-password"
+            :aria-label="$t('web.COMMON.enter_passphrase_here')"
+            :placeholder="$t('web.COMMON.enter_passphrase_here')"
+            aria-required="true"
+          />
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          :disabled="isSubmitting"
           :class="{
             'rounded-lg': domainBranding?.corner_style === 'rounded',
-            'rounded-2xl': domainBranding?.corner_style === 'pill',
+            'rounded-full': domainBranding?.corner_style === 'pill',
             'rounded-none': domainBranding?.corner_style === 'square',
-            'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
+            'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
           }"
-          :style="{ fontFamily: domainBranding?.font_family }"
-          autocomplete="current-password"
-          :aria-label="$t('web.COMMON.enter_passphrase_here')"
-          :placeholder="$t('web.COMMON.enter_passphrase_here')"
-        />
-      </div>
-
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        @click="submitForm"
-        :disabled="isSubmitting"
-        :class="{
-          'rounded-lg': domainBranding?.corner_style === 'rounded',
-          'rounded-full': domainBranding?.corner_style === 'pill',
-          'rounded-none': domainBranding?.corner_style === 'square',
-          'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
-        }"
-        :style="{
-          backgroundColor: domainBranding?.primary_color,
-          color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
-          fontFamily: domainBranding?.font_family
-        }"
-        aria-live="polite">
-        {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
-      </button>
+          :style="{
+            backgroundColor: domainBranding?.primary_color,
+            color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
+            fontFamily: domainBranding?.font_family
+          }"
+          aria-live="polite">
+          <span class="sr-only">{{ isSubmitting ? 'Submitting...' : 'Click to continue' }}</span>
+          {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
+        </button>
+      </form>
     </template>
   </BaseSecretDisplay>
 </template>
@@ -167,7 +192,18 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
   overflow: hidden;
 }
 
-/*p {
-  transition: all 0.3s ease-in-out;
-}*/
+/* Ensure focus outline is visible in all color schemes */
+:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Improve color contrast for dark mode */
+.dark .text-gray-400 {
+  color: #9CA3AF;
+}
+
+.dark .text-gray-500 {
+  color: #D1D5DB;
+}
 </style>

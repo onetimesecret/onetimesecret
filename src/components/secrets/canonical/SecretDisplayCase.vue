@@ -23,37 +23,56 @@ const alertClasses = computed(() => ({
   'bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-100': props.submissionStatus?.status === 'success'
 }));
 
-
 const { isCopied, copyToClipboard } = useClipboard();
 
-const copySecretContent = () => {
+const copySecretContent = async () => {
   if (props.record?.secret_value === undefined) {
     return;
   }
 
-  copyToClipboard(props.record?.secret_value);
+  await copyToClipboard(props.record?.secret_value);
+
+  // Announce copy success to screen readers
+  const announcement = document.createElement('div');
+  announcement.setAttribute('role', 'status');
+  announcement.setAttribute('aria-live', 'polite');
+  announcement.textContent = 'Secret content copied to clipboard';
+  document.body.appendChild(announcement);
+  setTimeout(() => announcement.remove(), 1000);
 };
 
 const closeTruncatedWarning = (event: Event) => {
-  (event.target as HTMLElement).closest('.bg-brandcomp-100')?.remove();
+  const element = event.target as HTMLElement;
+  const warning = element.closest('.bg-brandcomp-100');
+  if (warning) {
+    warning.remove();
+    // Announce removal to screen readers
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.textContent = 'Warning dismissed';
+    document.body.appendChild(announcement);
+    setTimeout(() => announcement.remove(), 1000);
+  }
 };
 </script>
 
 <template>
-  <BaseSecretDisplay
-    :displayPoweredBy="displayPoweredBy">
+  <BaseSecretDisplay :displayPoweredBy="displayPoweredBy">
     <!-- Alert display -->
     <div
       v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"
       :class="alertClasses"
-      role="alert">
+      role="alert"
+      aria-live="polite">
       <div class="flex">
         <div class="shrink-0">
           <svg
             v-if="submissionStatus.status === 'error'"
             class="size-5"
             viewBox="0 0 20 20"
-            fill="currentColor">
+            fill="currentColor"
+            aria-hidden="true">
             <path
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -64,7 +83,8 @@ const closeTruncatedWarning = (event: Event) => {
             v-else
             class="size-5"
             viewBox="0 0 20 20"
-            fill="currentColor">
+            fill="currentColor"
+            aria-hidden="true">
             <path
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -79,19 +99,28 @@ const closeTruncatedWarning = (event: Event) => {
         </div>
       </div>
     </div>
+
     <template #content>
       <div class="relative">
+        <label
+          :for="'secret-content-' + record?.identifier"
+          class="sr-only">
+          Secret content
+        </label>
         <textarea
           v-if="record?.secret_value"
+          :id="'secret-content-' + record?.identifier"
           class="w-full resize-none rounded-md border border-gray-300 bg-gray-100 px-3
             py-2 font-mono text-base
             leading-[1.2] tracking-wider focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           readonly
           :rows="details?.display_lines"
-          :value="record?.secret_value"></textarea>
+          :value="record?.secret_value"
+          aria-label="Secret content"></textarea>
         <div
           v-else
-          class="text-red-500 dark:text-red-400">
+          class="text-red-500 dark:text-red-400"
+          role="alert">
           Secret value not available
         </div>
         <button
@@ -99,14 +128,16 @@ const closeTruncatedWarning = (event: Event) => {
           :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
           class="absolute right-2 top-2 rounded-md bg-gray-200 p-1.5
             transition-colors duration-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:bg-gray-600 dark:hover:bg-gray-500"
-          aria-label="Copy to clipboard">
+          :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
+          :aria-pressed="isCopied">
           <svg
             v-if="!isCopied"
             xmlns="http://www.w3.org/2000/svg"
             class="size-5 text-gray-600 dark:text-gray-300"
             fill="none"
             viewBox="0 0 24 24"
-            stroke="currentColor">
+            stroke="currentColor"
+            aria-hidden="true">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -120,7 +151,8 @@ const closeTruncatedWarning = (event: Event) => {
             class="size-5 text-green-500"
             fill="none"
             viewBox="0 0 24 24"
-            stroke="currentColor">
+            stroke="currentColor"
+            aria-hidden="true">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -136,19 +168,24 @@ const closeTruncatedWarning = (event: Event) => {
       <div>
         <p
           v-if="!record?.verification"
-          class="text-sm text-gray-500 dark:text-gray-400">
+          class="text-sm text-gray-500 dark:text-gray-400"
+          role="alert"
+          aria-live="polite">
           ({{ $t('web.COMMON.careful_only_see_once') }})
         </p>
 
         <div
           v-if="record?.is_truncated"
           class="border-l-4 border-brandcomp-500 bg-brandcomp-100 p-4
-            text-sm text-blue-700 dark:bg-blue-800 dark:text-blue-200">
+            text-sm text-blue-700 dark:bg-blue-800 dark:text-blue-200"
+          role="alert"
+          aria-live="polite">
           <button
             type="button"
-            class="float-right"
-            @click="closeTruncatedWarning">
-            &times;
+            class="float-right hover:text-brandcomp-900 dark:hover:text-brandcomp-50 focus:outline-none focus:ring-2 focus:ring-brandcomp-500"
+            @click="closeTruncatedWarning"
+            aria-label="Dismiss truncation warning">
+            <span aria-hidden="true">&times;</span>
           </button>
           <strong>{{ $t('web.COMMON.warning') }}</strong>
           {{ $t('web.shared.secret_was_truncated') }} {{ record.original_size }}.
@@ -161,12 +198,14 @@ const closeTruncatedWarning = (event: Event) => {
         <div
           v-if="!record?.verification"
           class="my-16 mb-4 border-l-4 border-gray-400 bg-gray-100 p-4
-            text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+            text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+          role="status">
           <button
             type="button"
-            class="float-right hover:text-gray-900 dark:hover:text-gray-100"
-            onclick="this.parentElement.remove()">
-            &times;
+            class="float-right hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            @click="$event => ($event.target as HTMLElement).closest('.border-gray-400')?.remove()"
+            aria-label="Dismiss navigation instructions">
+            <span aria-hidden="true">&times;</span>
           </button>
           <p>
             Once you've finished viewing the secret, feel free to navigate away from this page or
@@ -177,7 +216,8 @@ const closeTruncatedWarning = (event: Event) => {
           <a
             href="/signin"
             class="block w-full rounded-md border border-brand-500 bg-white px-4 py-2
-              text-center text-brand-500 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-brand-400 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700">
+              text-center text-brand-500 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-brand-400 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700"
+            aria-label="Sign in to your account">
             {{ $t('web.COMMON.login_to_your_account') }}
           </a>
         </div>
@@ -185,3 +225,42 @@ const closeTruncatedWarning = (event: Event) => {
     </template>
   </BaseSecretDisplay>
 </template>
+
+<style scoped>
+/* Ensure focus outline is visible in all color schemes */
+:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Improve color contrast for dark mode */
+.dark .text-gray-400 {
+  color: #9CA3AF;
+}
+
+.dark .text-gray-500 {
+  color: #D1D5DB;
+}
+
+/* Ensure sufficient contrast for alert messages */
+.dark .text-red-100 {
+  color: #FEE2E2;
+}
+
+.dark .text-green-100 {
+  color: #DCFCE7;
+}
+
+.dark .text-blue-200 {
+  color: #BFDBFE;
+}
+
+/* Ensure sufficient contrast for brand colors */
+.dark .text-brand-400 {
+  color: #60A5FA;
+}
+
+.dark .border-brand-400 {
+  border-color: #60A5FA;
+}
+</style>

@@ -68,13 +68,14 @@ watch(finalRecord, (newValue) => {
 </script>
 
 <template>
-  <div
+  <main
     class="flex min-h-screen items-center justify-center
-    bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
+    bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8"
+    role="main"
+    aria-label="Secret viewing page">
     <div class="w-full max-w-xl space-y-8">
       <div v-if="record && details">
         <!-- Secret Content -->
-
         <component
           :is="details.show_secret ? SecretDisplayCase : SecretConfirmationForm"
           :secretKey="secretKey"
@@ -91,34 +92,41 @@ watch(finalRecord, (newValue) => {
       <!-- Unknown Secret -->
       <UnknownSecret v-else-if="!record" :branded="true" />
 
-      <div class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600">
-        <div class="space-x-2">
+      <footer
+        class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600"
+        role="contentinfo">
+        <nav
+          class="space-x-2"
+          aria-label="Footer navigation">
           <a
             :href="`https://${siteHost}`"
-            class="hover:underline"
-            rel="noopener noreferrer">
+            class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            rel="noopener noreferrer"
+            aria-label="Visit Onetime Secret homepage">
             Powered by Onetime Secret
           </a>
-          <span>·</span>
+          <span aria-hidden="true">·</span>
           <router-link
             to="/info/terms"
-            class="hover:underline">
+            class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            aria-label="View Terms of Service">
             Terms
           </router-link>
-          <span>·</span>
+          <span aria-hidden="true">·</span>
           <router-link
             to="/info/privacy"
-            class="hover:underline">
+            class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            aria-label="View Privacy Policy">
             Privacy
           </router-link>
-        </div>
-      </div>
+        </nav>
+      </footer>
 
       <div class="flex justify-center pt-16">
-              <ThemeToggle />
-            </div>
+        <ThemeToggle />
+      </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped>
@@ -129,5 +137,20 @@ watch(finalRecord, (newValue) => {
 .logo-container img {
   max-width: 100%;
   height: auto;
+}
+
+/* Ensure focus outline is visible in all color schemes */
+:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Improve color contrast for dark mode */
+.dark .text-gray-400 {
+  color: #9CA3AF;
+}
+
+.dark .text-gray-600 {
+  color: #D1D5DB;
 }
 </style>
