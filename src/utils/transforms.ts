@@ -27,8 +27,10 @@ export const booleanFromString = z.preprocess((val) => {
 
 export const numberFromString = z.preprocess((val) => {
   if (typeof val === 'number') return val;
-  return Number(val);
-}, z.number());
+  if (val === null || val === undefined || val === '') return null;
+  const num = Number(val);
+  return isNaN(num) ? null : num;
+}, z.number().nullable());
 
 export const dateFromSeconds = z.preprocess((val) => {
   if (val instanceof Date) return val;
