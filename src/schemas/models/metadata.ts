@@ -59,8 +59,10 @@ const metadataCommonSchema = z.object({
     MetadataState.BURNED,
     MetadataState.VIEWED,
   ]),
-  created: z.union([z.string(), z.number(), z.date()]).transform(unixTimestampToDate),
-  updated: z.union([z.string(), z.number(), z.date()]).transform(unixTimestampToDate),
+  created: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
+  updated: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
+  received: z.union([z.string(), z.number()]).transform(unixTimestampToDate).optional(),
+  burned: z.union([z.string(), z.number()]).transform(unixTimestampToDate).optional(),
 });
 
 // Base schema for list items
@@ -81,8 +83,8 @@ export const metadataListItemInputSchema = metadataCommonSchema.merge(metadataLi
 // Schema for extended metadata fields (single record view)
 const metadataExtendedBaseSchema = z.object({
   secret_key: z.string().optional(),
-  created_date_utc: z.string(),
-  expiration_stamp: z.string(),
+  natural_expiration: z.string(),
+  expiration: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
   share_path: z.string(),
   burn_path: z.string(),
   metadata_path: z.string(),
@@ -118,10 +120,6 @@ const metadataDetailsBaseSchema = z.object({
   display_lines: numberFromString,
   display_feedback: booleanFromString,
   no_cache: booleanFromString,
-  received_date: numberFromString,
-  received_date_utc: numberFromString,
-  burned_date: numberFromString,
-  burned_date_utc: numberFromString,
   maxviews: numberFromString,
   has_maxviews: booleanFromString,
   view_count: numberFromString,

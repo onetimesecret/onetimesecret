@@ -60,22 +60,22 @@ onUnmounted(() => {
 
         <!-- These facts are about the actual secret -- not this metadata -->
         <p class="mb-4 text-gray-600 dark:text-gray-400">
-          <template v-if="details.is_received && details.received_date">
-            <em>{{ $t('web.COMMON.received') }} {{ details.received_date }}. </em>
-            <span v-if="details.received_date_utc" class="text-sm text-gray-500 dark:text-gray-400">
-              ({{ details.received_date_utc }})
+          <template v-if="details.is_received && record.received">
+            <em>{{ $t('web.COMMON.received') }} {{ record.natural_expiration }}. </em>
+            <span v-if="record.received" class="text-sm text-gray-500 dark:text-gray-400">
+              ({{ record.received }})
             </span>
           </template>
-          <template v-else-if="details.is_burned && details.burned_date">
-            <em>{{ $t('web.COMMON.burned') }} {{ details.burned_date }}. </em>
-            <span v-if="details.burned_date_utc" class="text-sm text-gray-500 dark:text-gray-400">
-              ({{ details.burned_date_utc }})
+          <template v-else-if="details.is_burned ">
+            <em>{{ $t('web.COMMON.burned') }} {{ record.natural_expiration }}. </em>
+            <span v-if="record.burned" class="text-sm text-gray-500 dark:text-gray-400">
+              ({{ record.burned }})
             </span>
           </template>
           <template v-else-if="!details.is_destroyed">
-            <strong>{{ $t('web.COMMON.expires_in') }} {{ record.expiration_stamp }}. </strong>
+            <strong>{{ $t('web.COMMON.expires_in') }} {{ record.natural_expiration }}. </strong>
             <span class="text-sm text-gray-500 dark:text-gray-400">
-              ({{ record.created_date_utc }})
+              ({{ record.expiration }})
             </span>
           </template>
         </p>
