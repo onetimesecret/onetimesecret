@@ -12,6 +12,20 @@ import { storeToRefs } from 'pinia';
 import { computed, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 
+// Helper function to format dates
+const formatDate = (date: Date | undefined): string => {
+  if (!date) return '';
+  return new Intl.DateTimeFormat('default', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short'
+  }).format(date);
+};
+
 const route = useRoute();
 const store = useMetadataStore();
 
@@ -58,27 +72,39 @@ onUnmounted(() => {
           :details="details"
         />
 
-        <!-- These facts are about the actual secret -- not this metadata -->
-        <p class="mb-4 text-gray-600 dark:text-gray-400">
-          <template v-if="details.is_received && record.received">
-            <em>{{ $t('web.COMMON.received') }} {{ record.natural_expiration }}. </em>
-            <span v-if="record.received" class="text-sm text-gray-500 dark:text-gray-400">
-              ({{ record.received }})
-            </span>
-          </template>
-          <template v-else-if="details.is_burned ">
-            <em>{{ $t('web.COMMON.burned') }} {{ record.natural_expiration }}. </em>
-            <span v-if="record.burned" class="text-sm text-gray-500 dark:text-gray-400">
-              ({{ record.burned }})
-            </span>
-          </template>
-          <template v-else-if="!details.is_destroyed">
-            <strong>{{ $t('web.COMMON.expires_in') }} {{ record.natural_expiration }}. </strong>
-            <span class="text-sm text-gray-500 dark:text-gray-400">
-              ({{ record.expiration }})
-            </span>
-          </template>
-        </p>
+        <!-- Primary status information -->
+        <div class="mb-4">
+          <p class="text-lg text-gray-800 dark:text-gray-200">
+            <template v-if="details.is_received && record.received">
+              <strong>{{ $t('web.COMMON.received') }} {{ formatDate(record.received) }}</strong>
+            </template>
+            <template v-else-if="details.is_burned">
+              <strong>{{ $t('web.COMMON.burned') }} {{ formatDate(record.burned) }}</strong>
+            </template>
+            <template v-else-if="!details.is_destroyed">
+              <strong>{{ $t('web.COMMON.expires_in') }} {{ details.secret_realttl }}</strong>
+              <span class="text-sm text-gray-500 dark:text-gray-400 pl-1">({{ formatDate(record.expiration) }})</span>
+            </template>
+            <template v-else>
+              <strong>{{ $t('web.COMMON.destroyed', 'Destroyed') }} {{ details.secret_realttl }}</strong>
+            </template>
+
+          </p>
+
+          <!-- Secondary information with consistent layout -->
+          <div
+            v-if="record.state !== 'new'"
+            class="mt-2 grid gap-1 text-sm text-gray-500 dark:text-gray-400">
+            <p>
+              <span class="inline-block w-24">Lifetime:</span>
+              {{ record.natural_expiration }}
+            </p>
+            <p>
+              <span class="inline-block w-24">Created:</span>
+              {{ formatDate(record.created) }}
+            </p>
+          </div>
+        </div>
 
         <BurnButtonForm
           :metadata="record"

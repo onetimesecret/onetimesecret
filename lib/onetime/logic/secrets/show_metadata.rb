@@ -9,7 +9,7 @@ module Onetime::Logic
       # Template variables
       attr_reader :title, :metadata_key, :metadata_shortkey, :secret_key,
             :secret_shortkey, :recipients, :display_feedback, :no_cache,
-            :natural_expiration, :is_received, :is_burned,
+            :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
             :show_secret, :show_secret_link, :show_metadata_link,
@@ -61,6 +61,7 @@ module Onetime::Logic
           @is_burned = metadata.state?(:burned)
           @is_destroyed = @is_burned || @is_received
         else
+          @secret_realttl = secret.realttl
           @maxviews = secret.maxviews
           @has_maxviews = true if @maxviews > 1
           @view_count = secret.view_count # TODO: Remove
@@ -185,6 +186,7 @@ module Onetime::Logic
           is_received: is_received,
           is_burned: is_burned,
           is_destroyed: is_destroyed,
+          secret_realttl: secret_realttl,
           maxviews: maxviews,
           has_maxviews: has_maxviews,
           view_count: view_count,

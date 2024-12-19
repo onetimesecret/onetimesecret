@@ -1,7 +1,7 @@
 // src/schemas/models/metadata.ts
 import { baseApiRecordSchema } from '@/schemas/base';
 import { secretInputSchema } from '@/schemas/models/secret';
-import { booleanFromString, numberFromString } from '@/utils/transforms';
+import { booleanFromString, numberFromString, ttlToNaturalLanguage } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
@@ -120,6 +120,7 @@ const metadataDetailsBaseSchema = z.object({
   display_lines: numberFromString,
   display_feedback: booleanFromString,
   no_cache: booleanFromString,
+  secret_realttl: ttlToNaturalLanguage,
   maxviews: numberFromString,
   has_maxviews: booleanFromString,
   view_count: numberFromString,
