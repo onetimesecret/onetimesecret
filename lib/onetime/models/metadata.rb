@@ -148,7 +148,21 @@ module Onetime
       return unless state?(:new) || state?(:viewed)
       self.state = 'received'
       self.received = Time.now.utc.to_i
-      self.secret_key = ""
+      self.secret_key = ''
+      save update_expiration: false
+    end
+
+    # We use this method in special cases where a metadata record exists with
+    # a secret_key value but no valid secret object exists. This can happen
+    # when a secret is manually deleted but the metadata record is not. Otherwise
+    # it's a bug and although unintentional we want to handle it gracefully here.
+    def orphaned!
+      # A guard to prevent modifying metadata records that already have
+      # cleared out the secret (and that probably have alrady set a reason).
+      return if secret_key.to_s.empty?
+      self.state = 'orphaned'
+      self.updated = Time.now.utc.to_i
+      self.secret_key = ''
       save update_expiration: false
     end
 
@@ -157,7 +171,7 @@ module Onetime
       return unless state?(:new) || state?(:viewed)
       self.state = 'burned'
       self.burned = Time.now.utc.to_i
-      self.secret_key = ""
+      self.secret_key = ''
       save update_expiration: false
     end
 

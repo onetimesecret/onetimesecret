@@ -13,7 +13,7 @@ module Onetime::Logic
             :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
             :show_secret, :show_secret_link, :show_metadata_link,
-            :show_metadata, :show_recipients, :share_domain
+            :show_metadata, :show_recipients, :share_domain, :is_orphaned
       attr_reader :share_path, :burn_path, :metadata_path, :share_url,
             :metadata_url, :burn_url, :display_lines
 
@@ -57,9 +57,19 @@ module Onetime::Logic
         secret = metadata.load_secret
 
         if secret.nil?
+          # Take this opportunity to check whether the metadata still has a
+          # secret_key. If it does, then it's orphaned. This is a rare case
+          # but it can happen when the secret is manually deleted.
+          unless metadata.secret_key.to_s.empty?
+            OT.le("[show_metadata] Metadata has a secret_key but no secret. Orphaning metadata #{metadata.key}")
+            metadata.orphaned!
+          end
+
           @is_received = metadata.state?(:received)
           @is_burned = metadata.state?(:burned)
-          @is_destroyed = @is_burned || @is_received
+          @is_orphaned = metadata.state?(:orphaned)
+          @is_destroyed = @is_burned || @is_received || @is_orphaned
+
         else
           @secret_realttl = secret.realttl
           @maxviews = secret.maxviews
@@ -85,7 +95,7 @@ module Onetime::Logic
         #   2. The metadata state is NOT in any of these states: viewed,
         #      received, or burned
         #
-        @show_secret = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received) || metadata.state?(:burned))
+        @show_secret = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received) || metadata.state?(:burned) || metadata.state?(:orphaned))
 
         # The secret link is shown only when appropriate, considering the
         # state, ownership, and recipient information.
@@ -96,7 +106,7 @@ module Onetime::Logic
         #      the current customer is the owner of the metadata, AND
         #   3. There are no recipients specified (@recipients is nil)
         #
-        @show_secret_link = !(metadata.state?(:received) || metadata.state?(:burned)) &&
+        @show_secret_link = !(metadata.state?(:received) || metadata.state?(:burned) || metadata.state?(:orphaned)) &&
                             (@show_secret || metadata.owner?(cust)) &&
                             @recipients.empty?
 
@@ -185,6 +195,7 @@ module Onetime::Logic
           no_cache: no_cache,
           is_received: is_received,
           is_burned: is_burned,
+          is_orphaned: is_orphaned,
           is_destroyed: is_destroyed,
           secret_realttl: secret_realttl,
           maxviews: maxviews,

@@ -26,6 +26,7 @@ export const MetadataState = {
   RECEIVED: 'received',
   BURNED: 'burned',
   VIEWED: 'viewed',
+  ORPHANED: 'orphaned',
 } as const;
 
 // Helper for converting Unix timestamps to Date objects
@@ -58,11 +59,16 @@ const metadataCommonSchema = z.object({
     MetadataState.RECEIVED,
     MetadataState.BURNED,
     MetadataState.VIEWED,
+    MetadataState.ORPHANED,
   ]),
   created: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
   updated: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
   received: z.union([z.string(), z.number()]).transform(unixTimestampToDate).optional(),
   burned: z.union([z.string(), z.number()]).transform(unixTimestampToDate).optional(),
+  // There is no "orphaned" time field. We use updated. To be orphaned is an
+  // exceptional case and it's not something we specifically control. Unlike
+  // burning or receiving which are associated to human events, we don't know
+  // when the metadata got into an orphaned state; only when we flagged it.
 });
 
 // Base schema for list items
@@ -72,6 +78,7 @@ const metadataListItemBaseSchema = z.object({
   show_recipients: booleanFromString,
   is_received: booleanFromString,
   is_burned: booleanFromString,
+  is_orphaned: booleanFromString,
   is_destroyed: booleanFromString,
   is_truncated: booleanFromString,
   identifier: z.string(),
@@ -135,6 +142,7 @@ const metadataDetailsBaseSchema = z.object({
   is_destroyed: booleanFromString,
   is_received: booleanFromString,
   is_burned: booleanFromString,
+  is_orphaned: booleanFromString,
 });
 
 export const metadataDetailsInputSchema = metadataDetailsBaseSchema;
