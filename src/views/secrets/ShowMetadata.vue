@@ -85,11 +85,14 @@ onUnmounted(() => {
           :details="details"
         />
 
+        <hr class="mx-auto my-4 w-1/4 border-gray-200 dark:border-gray-600" />
+
         <a
           href="/"
           class="
             mx-auto
-            mb-4
+            mb-24
+            mt-12
             block
             w-2/3
             rounded-md

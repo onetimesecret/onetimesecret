@@ -46,6 +46,5 @@ defineProps<Props>()
       * {{ $t('web.COMMON.burn_this_secret_hint') }}.
     </p>
 
-    <hr class="mx-auto my-4 w-1/4 border-gray-200 dark:border-gray-600" />
   </div>
 </template>
