@@ -2103,10 +2103,13 @@
                   "type": "string"
                 }
               },
-              "created_date_utc": {
+              "created_date": {
                 "type": "string"
               },
-              "expiration_stamp": {
+              "natural_expiration": {
+                "type": "string"
+              },
+              "expiration": {
                 "type": "string"
               },
               "share_path": {
@@ -2131,12 +2134,6 @@
                 "type": "object",
                 "properties": {
                   "body_class": {
-                    "type": "string"
-                  },
-                  "burned_date_utc": {
-                    "type": "string"
-                  },
-                  "burned_date": {
                     "type": "string"
                   },
                   "can_decrypt": {
@@ -2169,12 +2166,6 @@
                   "no_cache": {
                     "type": "boolean"
                   },
-                  "received_date_utc": {
-                    "type": "string"
-                  },
-                  "received_date": {
-                    "type": "string"
-                  },
                   "show_metadata_link": {
                     "type": "boolean"
                   },
@@ -2201,8 +2192,9 @@
             },
             "required": [
               "recipients",
-              "created_date_utc",
-              "expiration_stamp",
+              "created",
+              "natural_expiration",
+              "expiration",
               "share_path",
               "burn_path",
               "metadata_path",

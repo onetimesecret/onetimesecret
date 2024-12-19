@@ -128,6 +128,7 @@ module Onetime
           '%d days' % duration_in_s.in_days
         end
       end
+
       # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize
       def natural_time(time_in_s)
         return if time_in_s.nil?

@@ -41,6 +41,9 @@ module Onetime
       :share_domain,
       :created,
       :updated,
+      :shared,
+      :received,
+      :burned,
       :recipients,
 
       { :shortkey => ->(m) { m.key.slice(0, 8) } },
