@@ -134,6 +134,8 @@ const metadataDetailsBaseSchema = z.object({
   show_metadata: booleanFromString,
   show_recipients: booleanFromString,
   is_destroyed: booleanFromString,
+  is_received: booleanFromString,
+  is_burned: booleanFromString,
 });
 
 export const metadataDetailsInputSchema = metadataDetailsBaseSchema;
