@@ -117,6 +117,17 @@ module Onetime
         time_in_s.strftime('%H:%M:%S')
       end
 
+      def natural_duration(duration_in_s)
+        if duration_in_s <= 1.minute
+          '%d seconds' % duration_in_s
+        elsif duration_in_s <= 1.hour
+          '%d minutes' % duration_in_s.in_minutes
+        elsif duration_in_s <= 1.day
+          '%d hours' % duration_in_s.in_hours
+        else
+          '%d days' % duration_in_s.in_days
+        end
+      end
       # rubocop:disable Metrics/PerceivedComplexity, Metrics/AbcSize
       def natural_time(time_in_s)
         return if time_in_s.nil?
