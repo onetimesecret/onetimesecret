@@ -40,6 +40,31 @@ export const dateFromSeconds = z.preprocess((val) => {
   return new Date(timestamp * 1000);
 }, z.date());
 
+export const ttlToNaturalLanguage = z.preprocess((val: unknown) => {
+  const seconds: number = typeof val === 'string' ? parseInt(val, 10) : (val as number);
+  if (isNaN(seconds) || seconds < 0) return null;
+
+  const intervals = [
+    { label: 'year', seconds: 31536000 },
+    { label: 'month', seconds: 2592000 },
+    { label: 'week', seconds: 604800 },
+    { label: 'day', seconds: 86400 },
+    { label: 'hour', seconds: 3600 },
+    { label: 'minute', seconds: 60 },
+    { label: 'second', seconds: 1 },
+  ];
+
+  for (const interval of intervals) {
+    const count = Math.floor(seconds / interval.seconds);
+    if (count >= 1) {
+      return count === 1
+        ? `1 ${interval.label} from now`
+        : `${count} ${interval.label}s from now`;
+    }
+  }
+  return 'a few seconds from now';
+}, z.string().nullable().optional());
+
 /**
  * Input schema creators for API responses
  */
