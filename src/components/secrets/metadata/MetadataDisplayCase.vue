@@ -2,41 +2,88 @@
 import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { computed } from 'vue';
 
-interface ExtendedMetadataDetails extends MetadataDetails {
-  is_truncated?: boolean;
-}
-
+// Types and interfaces
 interface Props {
   metadata: Metadata;
-  details: ExtendedMetadataDetails;
+  details: MetadataDetails;
 }
 
+type StateType = 'viewable' | 'burned' | 'received' | 'protected' | 'destroyed';
+
+interface CurrentState {
+  type: StateType;
+  icon: string;
+  color: string;
+  message: string;
+}
+
+// Component props
 const props = defineProps<Props>();
 
-// Core state management
-const isUnread = computed(() => props.details.show_secret)
-const isViewable = computed(() => isUnread.value && props.details.can_decrypt)
-const isBurned = computed(() => props.details.is_burned)
-const isReceived = computed(() => props.details.is_received)
-const hasPassphrase = computed(() => !props.details.can_decrypt && !isReceived.value)
-
+/**
+ * Icon path configurations for different states
+ */
 const iconPaths = {
   viewable: "M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z",
   burned: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
   protected: "M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z",
-  viewed: "M6 18L18 6M6 6l12 12" // X icon
-}
+  viewed: "M6 18L18 6M6 6l12 12",
+  destroyed: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+} as const;
 
-// Define the possible state types
-type StateType = 'viewable' | 'burned' | 'received' | 'protected';
-
+/**
+ * Status label mappings
+ */
 const statusLabels: Record<StateType, string> = {
   viewable: 'New',
   burned: 'Burned',
   received: 'Viewed',
-  protected: 'Encrypted'
+  protected: 'Encrypted',
+  destroyed: 'Destroyed'
+} as const;
+
+/**
+ * Core computed state properties
+ */
+const isUnread = computed(() => props.details.show_secret);
+const isViewable = computed(() => isUnread.value && props.details.can_decrypt);
+const isBurned = computed(() => props.details.is_burned);
+const isReceived = computed(() => props.details.is_received);
+const isDestroyed = computed(() => props.details.is_destroyed);
+const hasPassphrase = computed(() => !props.details.can_decrypt && !isReceived.value && !isDestroyed.value);
+
+/**
+ * Date formatting utilities
+ */
+const formatDate = (date: Date | undefined): string => {
+  if (!date) return '';
+
+  return new Intl.DateTimeFormat('default', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short'
+  }).format(date);
 };
 
+const formatRelativeTime = (date: Date | undefined): string => {
+  if (!date) return '';
+
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return 'just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  return `${Math.floor(diffInSeconds / 86400)} days ago`;
+};
+
+/**
+ * State configuration for different secret states
+ */
 const stateConfig = computed<Record<StateType, { icon: string; color: string; message: string }>>(() => ({
   viewable: {
     icon: iconPaths.viewable,
@@ -46,12 +93,12 @@ const stateConfig = computed<Record<StateType, { icon: string; color: string; me
   burned: {
     icon: iconPaths.burned,
     color: 'red',
-    message: 'This secret was permanently deleted before it was read'
+    message: `Burned ${formatRelativeTime(props.metadata.burned)}`
   },
   received: {
     icon: iconPaths.viewed,
     color: 'gray',
-    message: 'This secret has already been viewed'
+    message: `This secret was viewed ${formatRelativeTime(props.metadata.received)}`
   },
   protected: {
     icon: iconPaths.protected,
@@ -59,27 +106,37 @@ const stateConfig = computed<Record<StateType, { icon: string; color: string; me
     message: hasPassphrase.value
       ? 'This secret requires a passphrase to decrypt'
       : 'This secret is encrypted and can only be viewed once'
+  },
+  destroyed: {
+    icon: iconPaths.destroyed,
+    color: 'red',
+    message: `Destroyed ${formatRelativeTime(props.metadata.updated)}`
   }
 }));
 
-// Define the structure of currentState
-interface CurrentState {
-  type: StateType;
-  icon: string;
-  color: string;
-  message: string;
-}
-
+/**
+ * Determines the current state of the secret based on computed properties
+ * Priority: viewable > burned > received > protected > destroyed
+ */
 const currentState = computed<CurrentState>(() => {
   if (isViewable.value) return { type: 'viewable', ...stateConfig.value.viewable };
   if (isBurned.value) return { type: 'burned', ...stateConfig.value.burned };
   if (isReceived.value) return { type: 'received', ...stateConfig.value.received };
-  return { type: 'protected', ...stateConfig.value.protected };
+  if (!isDestroyed.value) return { type: 'protected', ...stateConfig.value.protected };
+
+  return { type: 'destroyed', ...stateConfig.value.destroyed };
 });
 
+/**
+ * Determines if the encrypted placeholder should be shown
+ */
 const showEncryptedPlaceholder = computed(() =>
-  !isViewable.value && !isBurned.value && !isReceived.value
-)
+  !isViewable.value &&
+  !isBurned.value &&
+  !isReceived.value &&
+  !isDestroyed.value &&
+  !props.details.has_passphrase
+);
 </script>
 
 <template>
@@ -139,7 +196,23 @@ const showEncryptedPlaceholder = computed(() =>
       </div>
 
       <!-- Secret Content -->
-      <div class="relative">
+      <div class="relative rounded-md border border-gray-200 p-4 dark:border-gray-800">
+        <!-- Metadata timing information -->
+        <div class="mb-4 grid gap-1 text-sm text-gray-500 dark:text-gray-400">
+          <p>
+            <span class="inline-block w-24">Lifespan:</span>
+            {{ metadata.natural_expiration }}
+          </p>
+          <p v-if="!isDestroyed">
+            <span class="inline-block w-24">Expires:</span>
+            {{ formatDate(metadata.expiration) }}
+          </p>
+          <p>
+            <span class="inline-block w-24">Created:</span>
+            {{ formatDate(metadata.created) }}
+          </p>
+        </div>
+
         <template v-if="isViewable">
           <textarea
             class="w-full resize-none rounded-md border-2 border-emerald-200 bg-white

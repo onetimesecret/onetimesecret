@@ -41,6 +41,8 @@ export const dateFromSeconds = z.preprocess((val) => {
 }, z.date());
 
 export const ttlToNaturalLanguage = z.preprocess((val: unknown) => {
+  if (val === null || val === undefined) return null;
+
   const seconds: number = typeof val === 'string' ? parseInt(val, 10) : (val as number);
   if (isNaN(seconds) || seconds < 0) return null;
 
