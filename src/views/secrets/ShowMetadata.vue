@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
@@ -6,6 +5,7 @@ import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
+import { isMetadataDetails } from '@/schemas/models/metadata';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { AsyncDataResult, MetadataRecordApiResponse } from '@/types/api/responses';
 import { storeToRefs } from 'pinia';
@@ -40,53 +40,84 @@ onUnmounted(() => {
       Loading...
     </div>
     <div v-else-if="record && details">
-      <SecretLink
-        v-if="details.show_secret_link"
-        :metadata="record"
-        :details="details"
-      />
+      <template v-if="isMetadataDetails(details)">
+        <SecretLink
+          v-if="details.show_secret_link"
+          :metadata="record"
+          :details="details"
+        />
 
-      <h3
-        v-if="details.show_recipients"
-        class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-        {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
-      </h3>
+        <h3
+          v-if="details.show_recipients"
+          class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
+        </h3>
 
-      <MetadataDisplayCase
-        :metadata="record"
-        :details="details"
-      />
+        <MetadataDisplayCase
+          :metadata="record"
+          :details="details"
+        />
 
-      <!-- These facts are about the actual secret -- not this metadata -->
-      <p class="mb-4 text-gray-600 dark:text-gray-400">
-        <template v-if="details.is_received">
-          <em>{{ $t('web.COMMON.received') }} {{ details.received_date }}. </em>
-          <span class="text-sm text-gray-500 dark:text-gray-400">({{ details.received_date_utc }})</span>
-        </template>
-        <template v-else-if="details.is_burned">
-          <em>{{ $t('web.COMMON.burned') }} {{ details.burned_date }}. </em>
-          <span class="text-sm text-gray-500 dark:text-gray-400">({{ details.burned_date_utc }})</span>
-        </template>
-        <template v-else-if="!details.is_destroyed">
-          <strong>{{ $t('web.COMMON.expires_in') }} {{ record.expiration_stamp }}. </strong>
-          <span class="text-sm text-gray-500 dark:text-gray-400">({{ record.created_date_utc }})</span>
-        </template>
-      </p>
+        <!-- These facts are about the actual secret -- not this metadata -->
+        <p class="mb-4 text-gray-600 dark:text-gray-400">
+          <template v-if="details.is_received && details.received_date">
+            <em>{{ $t('web.COMMON.received') }} {{ details.received_date }}. </em>
+            <span v-if="details.received_date_utc" class="text-sm text-gray-500 dark:text-gray-400">
+              ({{ details.received_date_utc }})
+            </span>
+          </template>
+          <template v-else-if="details.is_burned && details.burned_date">
+            <em>{{ $t('web.COMMON.burned') }} {{ details.burned_date }}. </em>
+            <span v-if="details.burned_date_utc" class="text-sm text-gray-500 dark:text-gray-400">
+              ({{ details.burned_date_utc }})
+            </span>
+          </template>
+          <template v-else-if="!details.is_destroyed">
+            <strong>{{ $t('web.COMMON.expires_in') }} {{ record.expiration_stamp }}. </strong>
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              ({{ record.created_date_utc }})
+            </span>
+          </template>
+        </p>
 
-      <BurnButtonForm
-        :metadata="record"
-        :details="details"
-      />
+        <BurnButtonForm
+          :metadata="record"
+          :details="details"
+        />
 
-      <a
-        href="/"
-        class="hover:border-grey-200 mx-auto mb-4 block w-2/3 rounded-md border-2 border-gray-300 bg-gray-200 px-4 py-2 text-center text-base font-medium text-gray-800 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-600">Create
-        another secret</a>
+        <a
+          href="/"
+          class="
+            mx-auto
+            mb-4
+            block
+            w-2/3
+            rounded-md
+            border-2
+            border-gray-300
+            bg-gray-200
+            px-4
+            py-2
+            text-center
+            text-base
+            font-medium
+            text-gray-800
+            hover:border-gray-200
+            hover:bg-gray-100
+            dark:border-gray-800
+            dark:bg-gray-700
+            dark:text-gray-200
+            dark:hover:border-gray-600
+            dark:hover:bg-gray-600
+          ">
+          Create another secret
+        </a>
 
-      <MetadataFAQ
-        :metadata="record"
-        :details="details"
-      />
+        <MetadataFAQ
+          :metadata="record"
+          :details="details"
+        />
+      </template>
     </div>
   </div>
 </template>
