@@ -42,7 +42,6 @@ on:
 
 jobs:
   build:
-    #
     # Can also be set to `self-hosted` if worker is running. Possible
     # issue when switching (or trying to run a mix of github-hosted
     # and self-hosted). All workflows in the repo stopped being queued
@@ -57,7 +56,7 @@ jobs:
     #
     # https://github.com/rubygems/rubygems/blob/master/CHANGELOG.md#breaking-changes
     #
-    runs-on: ubuntu-24
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
