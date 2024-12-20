@@ -120,8 +120,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Create Another Secret -->
-      <div class="pt-6 pb-12">
-
+      <div class="pt-6">
         <a
           href="/"
           class="
