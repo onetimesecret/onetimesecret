@@ -1,10 +1,8 @@
-// src/stores/customerStore.ts
-import { customerInputSchema, type Customer } from '@/schemas/models/customer';
-import { apiRecordResponseSchema } from '@/types/api/responses';
+import { apiResponseSchema } from '@/schemas/base';
+import { customerSchema, type Customer } from '@/schemas/models/customer';
 import { createApi } from '@/utils/api';
 import {
-  isTransformError,
-  transformResponse,
+  isTransformError
 } from '@/utils/transforms';
 import { defineStore } from 'pinia';
 
@@ -45,7 +43,6 @@ export const useCustomerStore = defineStore('customer', {
     }
   },
   actions: {
-
     /**
      * Fetches the current customer data from the API.
      * Sets the loading state to true while the request is in progress.
@@ -61,11 +58,9 @@ export const useCustomerStore = defineStore('customer', {
       try {
         const response = await api.get('/api/v2/account/customer', { signal });
 
-        // Transform at API boundary
-        const validated = transformResponse(
-          apiRecordResponseSchema(customerInputSchema),
-          response.data
-        );
+        // Transform at API boundary using the new schema system
+        const schema = apiResponseSchema(customerSchema);
+        const validated = schema.parse(response.data);
 
         // Store uses shared type with components
         this.currentCustomer = validated.record;
@@ -111,11 +106,9 @@ export const useCustomerStore = defineStore('customer', {
           updates
         );
 
-        // Transform response at API boundary
-        const validated = transformResponse(
-          apiRecordResponseSchema(customerInputSchema),
-          response.data
-        );
+        // Transform response using the new schema system
+        const schema = apiResponseSchema(customerSchema);
+        const validated = schema.parse(response.data);
 
         // Store uses shared type with components
         this.currentCustomer = validated.record;

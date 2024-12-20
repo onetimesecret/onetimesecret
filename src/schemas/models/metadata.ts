@@ -1,16 +1,14 @@
-import { baseApiRecordSchema } from '@/schemas/base';
+import { apiResponseSchema, baseRecordSchema, optional, transforms } from '@/schemas/base';
 import { secretInputSchema } from '@/schemas/models/secret';
-import { dateSchema } from '@/utils/dates';
-import { booleanFromString, numberFromString, ttlToNaturalLanguage } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
- * @fileoverview Metadata schema for API transformation boundaries
+ * @fileoverview Metadata schema with unified transformations
  *
- * Key Design Decisions:
- * 1. Input schemas handle API -> App transformation
- * 2. App uses single shared type between stores/components
- * 3. No explicit output schemas - serialize when needed
+ * Key improvements:
+ * 1. Unified transformation layer using base transforms
+ * 2. Clearer type flow from API to frontend
+ * 3. Maintained existing functionality
  *
  * Validation Rules:
  * - Boolean fields come as strings from Ruby/Redis ('true'/'false')
@@ -44,10 +42,10 @@ const metadataCommonSchema = z.object({
     MetadataState.VIEWED,
     MetadataState.ORPHANED,
   ]),
-  created: dateSchema,
-  updated: dateSchema,
-  received: dateSchema.optional(),
-  burned: dateSchema.optional(),
+  created: transforms.fromString.date,
+  updated: transforms.fromString.date,
+  received: optional(transforms.fromString.date),
+  burned: optional(transforms.fromString.date),
   // There is no "orphaned" time field. We use updated. To be orphaned is an
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are associated to human events, we don't know
@@ -58,12 +56,12 @@ const metadataCommonSchema = z.object({
 const metadataListItemBaseSchema = z.object({
   custid: z.string(),
   secret_ttl: z.union([z.string(), z.number()]).transform(Number),
-  show_recipients: booleanFromString,
-  is_received: booleanFromString,
-  is_burned: booleanFromString,
-  is_orphaned: booleanFromString,
-  is_destroyed: booleanFromString,
-  is_truncated: booleanFromString,
+  show_recipients: transforms.fromString.boolean,
+  is_received: transforms.fromString.boolean,
+  is_burned: transforms.fromString.boolean,
+  is_orphaned: transforms.fromString.boolean,
+  is_destroyed: transforms.fromString.boolean,
+  is_truncated: transforms.fromString.boolean,
   identifier: z.string(),
 });
 
@@ -74,7 +72,7 @@ export const metadataListItemInputSchema = metadataCommonSchema.merge(metadataLi
 const metadataExtendedBaseSchema = z.object({
   secret_key: z.string().optional(),
   natural_expiration: z.string(),
-  expiration: dateSchema,
+  expiration: transforms.fromString.date,
   share_path: z.string(),
   burn_path: z.string(),
   metadata_path: z.string(),
@@ -95,8 +93,8 @@ export const metadataInputSchema = metadataCommonSchema.merge(metadataExtendedBa
 const metadataListItemDetailsBaseSchema = z.object({
   type: z.literal('list'),
   since: z.number(),
-  now: dateSchema,
-  has_items: booleanFromString,
+  now: transforms.fromString.date,
+  has_items: transforms.fromString.boolean,
   received: z.array(metadataListItemInputSchema),
   notreceived: z.array(metadataListItemInputSchema),
 });
@@ -107,25 +105,25 @@ export const metadataListItemDetailsInputSchema = metadataListItemDetailsBaseSch
 const metadataDetailsBaseSchema = z.object({
   type: z.literal('record'),
   title: z.string(),
-  display_lines: numberFromString,
-  display_feedback: booleanFromString,
-  no_cache: booleanFromString,
-  secret_realttl: ttlToNaturalLanguage,
-  maxviews: numberFromString,
-  has_maxviews: booleanFromString,
-  view_count: numberFromString,
-  has_passphrase: booleanFromString,
-  can_decrypt: booleanFromString,
-  secret_value: z.string().nullable().optional(),
-  show_secret: booleanFromString,
-  show_secret_link: booleanFromString,
-  show_metadata_link: booleanFromString,
-  show_metadata: booleanFromString,
-  show_recipients: booleanFromString,
-  is_destroyed: booleanFromString,
-  is_received: booleanFromString,
-  is_burned: booleanFromString,
-  is_orphaned: booleanFromString,
+  display_lines: transforms.fromString.number,
+  display_feedback: transforms.fromString.boolean,
+  no_cache: transforms.fromString.boolean,
+  secret_realttl: z.string().transform((val) => val), // Preserve ttlToNaturalLanguage behavior
+  maxviews: transforms.fromString.number,
+  has_maxviews: transforms.fromString.boolean,
+  view_count: transforms.fromString.number,
+  has_passphrase: transforms.fromString.boolean,
+  can_decrypt: transforms.fromString.boolean,
+  secret_value: optional(z.string().nullable()),
+  show_secret: transforms.fromString.boolean,
+  show_secret_link: transforms.fromString.boolean,
+  show_metadata_link: transforms.fromString.boolean,
+  show_metadata: transforms.fromString.boolean,
+  show_recipients: transforms.fromString.boolean,
+  is_destroyed: transforms.fromString.boolean,
+  is_received: transforms.fromString.boolean,
+  is_burned: transforms.fromString.boolean,
+  is_orphaned: transforms.fromString.boolean,
 });
 
 export const metadataDetailsInputSchema = metadataDetailsBaseSchema;
@@ -152,7 +150,7 @@ const concealDataBaseSchema = z.object({
   share_domain: z.string(),
 });
 
-export const concealDataInputSchema = baseApiRecordSchema.merge(concealDataBaseSchema);
+export const concealDataInputSchema = baseRecordSchema.merge(concealDataBaseSchema);
 
 export type ConcealData = z.infer<typeof concealDataInputSchema>;
 
@@ -169,3 +167,7 @@ export function isMetadataDetails(
 ): details is MetadataDetails {
   return details !== null && details.type === 'record';
 }
+
+// API response types
+export type MetadataResponse = z.infer<ReturnType<typeof apiResponseSchema<typeof metadataInputSchema>>>;
+export type MetadataListResponse = z.infer<ReturnType<typeof apiResponseSchema<typeof metadataListItemDetailsInputSchema>>>;

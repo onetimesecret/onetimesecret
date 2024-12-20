@@ -1,33 +1,15 @@
-// src/schemas/models/customer.ts
-import { baseApiRecordSchema } from '@/schemas/base';
-// Note: This import is used to ensure TypeScript recognizes and loads API response types
-// even if they're not directly referenced in this file
-import type {} from '@/types/api/responses';
-import { booleanFromString, numberFromString } from '@/utils/transforms';
+import { apiResponseSchema, baseRecordSchema, optional, transforms } from '@/schemas/base';
 import { z } from 'zod';
 
 import { FeatureFlags } from './customer/feature_flags';
 
 /**
- * @fileoverview Customer schema for API transformation boundaries
+ * @fileoverview Customer schema with simplified type boundaries
  *
- * Key Design Decisions:
- * 1. Input schemas handle API -> App transformation
- * 2. App uses single shared type between stores/components
- * 3. No explicit output schemas - serialize when needed
- *
- * Type Flow:
- * API Response (strings) -> InputSchema -> Store/Components -> API Request
- *                          ^                                ^
- *                          |                                |
- *                       transform                       serialize
- *
- * Validation Rules:
- * - Boolean fields come as strings from Ruby/Redis ('true'/'false')
- * - Numeric counters come as strings from API
- * - Dates come as UTC seconds strings
- * - Role is validated against enum
- * - Optional fields explicitly marked
+ * Key improvements:
+ * 1. Unified transformation layer using base transforms
+ * 2. Clearer type flow from API to frontend
+ * 3. Simplified schema structure
  */
 
 // Role enum matching Ruby model
@@ -42,15 +24,15 @@ export const CustomerRole = {
  * Plan options schema matching Ruby model
  */
 export const planOptionsSchema = z.object({
-  ttl: z.number(),
-  size: z.number(),
-  api: z.boolean(),
+  ttl: transforms.fromString.number,
+  size: transforms.fromString.number,
+  api: transforms.fromString.boolean,
   name: z.string(),
-  email: z.boolean().optional(),
-  custom_domains: z.boolean().optional(),
-  dark_mode: z.boolean().optional(),
-  cname: z.boolean().optional(),
-  private: z.boolean().optional(),
+  email: optional(transforms.fromString.boolean),
+  custom_domains: optional(transforms.fromString.boolean),
+  dark_mode: optional(transforms.fromString.boolean),
+  cname: optional(transforms.fromString.boolean),
+  private: optional(transforms.fromString.boolean),
 });
 
 export type PlanOptions = z.infer<typeof planOptionsSchema>;
@@ -58,23 +40,19 @@ export type PlanOptions = z.infer<typeof planOptionsSchema>;
 /**
  * Plan schema for customer plans
  */
-export const planSchema = baseApiRecordSchema.extend({
+export const planSchema = baseRecordSchema.extend({
   planid: z.string(),
-  price: z.number(),
-  discount: z.number(),
+  price: transforms.fromString.number,
+  discount: transforms.fromString.number,
   options: planOptionsSchema,
 });
 
 export type Plan = z.infer<typeof planSchema>;
 
 /**
- * Input schema for customer from API
- * - Handles string -> boolean/number/date coercion from Ruby/Redis
- * - Validates role against enum
- * - Allows extra fields from API (passthrough)
+ * Customer schema with unified transformations
  */
-export const customerInputSchema = baseApiRecordSchema
-  .extend({
+export const customerSchema = baseRecordSchema.extend({
     // Core fields
     custid: z.string(),
     role: z.enum([
@@ -84,19 +62,31 @@ export const customerInputSchema = baseApiRecordSchema
       CustomerRole.USER_DELETED_SELF,
     ]),
 
-    // Boolean fields that come as strings from API
-    verified: booleanFromString,
-    active: booleanFromString,
-    contributor: booleanFromString.optional(),
+  // Boolean fields from API
+  verified: transforms.fromString.boolean,
+  active: transforms.fromString.boolean,
+  contributor: optional(transforms.fromString.boolean),
 
-    // Counter fields that come as strings from API
-    secrets_created: numberFromString.default(0),
-    secrets_burned: numberFromString.default(0),
-    secrets_shared: numberFromString.default(0),
-    emails_sent: numberFromString.default(0),
+  // Counter fields from API with default values
+  secrets_created: z.preprocess(
+    (val) => Number(val) || 0,
+    z.number()
+  ),
+  secrets_burned: z.preprocess(
+    (val) => Number(val) || 0,
+    z.number()
+  ),
+  secrets_shared: z.preprocess(
+    (val) => Number(val) || 0,
+    z.number()
+  ),
+  emails_sent: z.preprocess(
+    (val) => Number(val) || 0,
+    z.number()
+  ),
 
-    // Date fields (UTC seconds from API)
-    last_login: z.string().transform((val) => new Date(Number(val) * 1000)),
+  // Date fields
+  last_login: transforms.fromString.date,
 
     // Optional fields
     locale: z.string().optional(),
@@ -128,8 +118,8 @@ export type Customer = Omit<z.infer<typeof customerInputSchema>, 'created' | 'up
  * Schema for CheckAuthData
  * Extends Customer with an optional last_login as number
  */
-export const checkAuthDataSchema = customerInputSchema.extend({
-  last_login: z.number().optional(),
+export const checkAuthDataSchema = customerSchema.extend({
+  last_login: optional(transforms.fromString.number),
 });
 
 export type CheckAuthData = z.infer<typeof checkAuthDataSchema>;
@@ -143,10 +133,12 @@ export const checkAuthDetailsSchema = z.object({
 
 export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>;
 
-// ApiToken schema using baseApiRecordSchema
-export const apiTokenSchema = baseApiRecordSchema.extend({
+/**
+ * API token schema
+ */
+export const apiTokenSchema = baseRecordSchema.extend({
   apitoken: z.string(),
-  active: booleanFromString,
+  active: transforms.fromString.boolean,
 });
 
 export type ApiToken = z.infer<typeof apiTokenSchema>;
@@ -172,3 +164,7 @@ export const accountSchema = baseApiRecordSchema.extend({
 });
 
 export type Account = z.infer<typeof accountSchema>;
+
+// API response types
+export type CustomerResponse = z.infer<ReturnType<typeof apiResponseSchema<typeof customerSchema>>>;
+export type AccountResponse = z.infer<ReturnType<typeof apiResponseSchema<typeof accountSchema>>>;

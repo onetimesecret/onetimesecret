@@ -1,4 +1,5 @@
-import { useWindowProp } from '@/composables/useWindowProps'
+import { useValidatedWindowProp } from '@/composables/useWindowProps'
+import { customerInputSchema } from '@/schemas/models'
 import { useAuthStore } from '@/stores/authStore'
 import { useLanguageStore } from '@/stores/languageStore'
 import { Router, RouteLocationNormalized } from 'vue-router'
@@ -49,6 +50,6 @@ function redirectToSignIn(from: RouteLocationNormalized) {
  * allow us to drop-in a request to the server when we need to.
  */
 async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
-  const cust = useWindowProp('cust');
+  const cust = useValidatedWindowProp('cust', customerInputSchema);
   return { locale: cust.value?.locale }
 }

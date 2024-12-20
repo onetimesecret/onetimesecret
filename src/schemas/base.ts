@@ -1,58 +1,47 @@
-import { dateSchema } from '@/utils/dates';
 import { z } from 'zod';
 
 /**
- * Core schema definitions used across all models
- * Provides base transformation and validation rules
+ * Core schema definitions and transformers for API boundaries
  */
 
-// Base record fields that include timestamps
-const baseTimestampFields = {
-  created: dateSchema,
-  updated: dateSchema,
-};
+// Common transformers for API string conversions
+export const transforms = {
+  fromString: {
+    boolean: z.string().transform((val) => val === 'true'),
+    number: z.string().transform((val) => Number(val)),
+    date: z.string().transform((val) => new Date(Number(val) * 1000)),
+  },
+} as const;
 
-// Base API Response
-export const baseApiResponseSchema = z.object({
-  success: z.boolean(),
-  record: z.object({
-    ...baseTimestampFields,
-    // Other fields as needed
-  }),
-});
-
-export const emptyApiRecordSchema = z.object({});
-
-// Base schema for API records
-export const baseApiRecordSchema = z.object({
+// Base record schema with timestamps
+export const baseRecordSchema = z.object({
   identifier: z.string(),
-  ...baseTimestampFields,
+  created: transforms.fromString.date,
+  updated: transforms.fromString.date,
 });
 
-// Transformed Base Record - uses same date schema
-export const transformedBaseRecordSchema = z.object({
-  identifier: z.string(),
-  ...baseTimestampFields,
-});
-
-// Type exports
-export type BaseApiResponse = z.infer<typeof baseApiResponseSchema>;
-export type BaseApiRecord = {
+// Type for base record after transformation
+export type BaseRecord = {
   identifier: string;
   created: Date;
   updated: Date;
 };
 
-// Type helper for transformed record
-export type TransformedBaseRecord = z.infer<typeof transformedBaseRecordSchema>;
+// API response wrapper
+export const apiResponseSchema = <T extends z.ZodType>(recordSchema: T) =>
+  z.object({
+    success: z.boolean(),
+    record: recordSchema,
+  });
 
-export const detailsSchema = z.record(z.string(), z.unknown()).optional();
-export type DetailsType = z.infer<typeof detailsSchema>;
+// Type helper for API responses
+export type ApiResponse<T> = {
+  success: boolean;
+  record: T;
+};
 
-// Base schema for nested records that belong to a parent (e.g. domain->brand)
-export const baseNestedRecordSchema = z.object({
-  // Common fields for nested records can be added here
-});
+// Helper for optional fields
+export const optional = <T extends z.ZodType>(schema: T) => schema.optional();
 
-// Type exports
-export type BaseNestedRecord = z.infer<typeof baseNestedRecordSchema>;
+// Helper for arrays of records
+export const recordArray = <T extends z.ZodType>(schema: T) => z.array(schema);
