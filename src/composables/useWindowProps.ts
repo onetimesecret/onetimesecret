@@ -109,9 +109,3 @@ export const useValidatedWindowProp = <
   }
   return cache[prop] as Ref<Output | null>;
 };
-
-// New helper function to return unref'd window props
-export const useUnrefWindowProp = <T extends keyof Window>(prop: T): Window[T] => {
-  const windowPropRef = useWindowProp(prop);
-  return unref(windowPropRef);
-};

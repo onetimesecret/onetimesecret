@@ -32,7 +32,18 @@ export const useCustomerStore = defineStore('customer', {
     currentCustomer: null,
     isLoading: false
   }),
+  getters: {
+    getPlanSize(): number {
+      const DEFAULT_SIZE = 10000;
+      const customerPlan = this.currentCustomer?.plan ?? window.available_plans?.anonymous;
 
+      if (customerPlan?.options?.size !== undefined) {
+        return customerPlan.options.size;
+      }
+
+      return DEFAULT_SIZE;
+    }
+  },
   actions: {
 
     /**
