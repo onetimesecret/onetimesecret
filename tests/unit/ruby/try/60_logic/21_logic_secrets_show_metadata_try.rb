@@ -179,7 +179,7 @@ params = {
 }
 logic = Onetime::Logic::Secrets::ShowMetadata.new(@sess, @cust, params, 'en')
 logic.process
-logic.expiration_stamp
+logic.natural_expiration
 #=> "2 days"
 
 ## Knows that the metadata has been viewed b/c process has been called several times already

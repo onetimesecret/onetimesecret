@@ -14,6 +14,7 @@ const emit = defineEmits(['secret-loaded']);
 const secretStore = useSecretsStore();
 const passphrase = ref('');
 const isSubmitting = ref(false);
+const error = ref('');
 
 const submitForm = async () => {
   if (isSubmitting.value) return;
@@ -34,8 +35,8 @@ const submitForm = async () => {
       record: response.record,
       details: response.details
     });
-  } catch {
-    // Error handling done by store
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to reveal secret';
   } finally {
     isSubmitting.value = false;
   }
@@ -87,6 +88,12 @@ const submitForm = async () => {
       />
 
       <div v-if="record?.has_passphrase" class="space-y-2">
+        <p
+          v-if="error"
+          class="text-sm text-red-600 dark:text-red-400"
+          role="alert">
+          {{ error }}
+        </p>
         <label
           :for="'passphrase-' + secretKey"
           class="sr-only">
@@ -124,15 +131,6 @@ const submitForm = async () => {
         {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
       </button>
     </form>
-
-    <div class="mt-4 text-right">
-      <p
-        class="text-sm italic text-gray-500 dark:text-gray-400"
-        role="alert"
-        aria-live="polite">
-        {{ $t('web.COMMON.careful_only_see_once') }}
-      </p>
-    </div>
   </div>
 </template>
 

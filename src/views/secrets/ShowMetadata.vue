@@ -1,3 +1,46 @@
+<!--
+The metadata page has distinct states with specific visual priorities
+and transitions, primarily based on the parameters and state of the
+secret.
+
+1. Viewable (Initial State - New)
+   - Emerald color scheme
+   - Shows absolute URL to the secret link
+   - Shows actual secret content (unless the secret is protected by passphrase)
+   - Displays "New secret created successfully!"
+   - Emphasizes "you will only see this once"
+   - Prominently shows expiration timing
+
+2. Protected (After Page Refresh)
+   - Amber color scheme
+   - Hides secret content with bullet points
+   - Hides URL to the secret link (unless the user is the owner of the metadata/secret)
+   - Shows "Encrypted" status OR "Encrypted with passphrase"
+   - Maintains expiration timing display
+
+3. Received (After Recipient Receives the secret content)
+   - Gray color scheme
+   - Shows "Received X time ago" message
+   - Secret content is permanently removed (it is literally deleted from the database and not recoverable)
+   - Keeps creation/received timestamps
+
+4. Burned (Manual Destruction)
+   - Red color scheme
+   - Shows "Burned X time ago" message
+   - Secret content is permanently removed
+   - Hides all "Encrypted" status text
+   - Maintains burn timestamp
+
+5. Destroyed (Terminal State)
+   - Red color scheme
+   - Combines received/burned/orphan states
+   - Shows appropriate timing information based on update timestamp
+   - No access to secret content
+
+Each state transition is one-way and permanent, with visual elements
+like (icons, colors, messages) carefully designed to communicate the
+secret's current status and history.
+-->
 
 <script setup lang="ts">
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
@@ -6,6 +49,7 @@ import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
+import { isMetadataDetails } from '@/schemas/models/metadata';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { AsyncDataResult, MetadataRecordApiResponse } from '@/types/api/responses';
 import { storeToRefs } from 'pinia';
@@ -32,60 +76,86 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="max-w-4xl mx-auto px-4">
     <DashboardTabNav />
     <BasicFormAlerts :error="error" />
 
-    <div v-if="isLoading">
-      Loading...
+    <div v-if="isLoading" class="py-8 text-center text-gray-600">
+      <span class="loading">Loading...</span>
     </div>
-    <div v-else-if="record && details">
-      <SecretLink
-        v-if="details.show_secret_link"
-        :metadata="record"
-        :details="details"
-      />
 
-      <h3
-        v-if="details.show_recipients"
-        class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-        {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
-      </h3>
+    <div v-else-if="record && details && isMetadataDetails(details)" class="space-y-8">
+      <!-- Primary Content Section -->
+      <div class="space-y-6">
+        <SecretLink
+          v-if="details.show_secret_link"
+          :metadata="record"
+          :details="details"
+        />
 
-      <MetadataDisplayCase
-        :metadata="record"
-        :details="details"
-      />
+        <h3
+          v-if="details.show_recipients"
+          class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
+        </h3>
 
-      <!-- These facts are about the actual secret -- not this metadata -->
-      <p class="mb-4 text-gray-600 dark:text-gray-400">
-        <template v-if="details.is_received">
-          <em>{{ $t('web.COMMON.received') }} {{ details.received_date }}. </em>
-          <span class="text-sm text-gray-500 dark:text-gray-400">({{ details.received_date_utc }})</span>
-        </template>
-        <template v-else-if="details.is_burned">
-          <em>{{ $t('web.COMMON.burned') }} {{ details.burned_date }}. </em>
-          <span class="text-sm text-gray-500 dark:text-gray-400">({{ details.burned_date_utc }})</span>
-        </template>
-        <template v-else-if="!details.is_destroyed">
-          <strong>{{ $t('web.COMMON.expires_in') }} {{ record.expiration_stamp }}. </strong>
-          <span class="text-sm text-gray-500 dark:text-gray-400">({{ record.created_date_utc }})</span>
-        </template>
-      </p>
+        <MetadataDisplayCase
+          :metadata="record"
+          :details="details"
+          class="shadow-sm"
+        />
 
-      <BurnButtonForm
-        :metadata="record"
-        :details="details"
-      />
+        <BurnButtonForm
+          :metadata="record"
+          :details="details"
+          class="pt-2"
+        />
+      </div>
 
-      <a
-        href="/"
-        class="hover:border-grey-200 mx-auto mb-4 block w-2/3 rounded-md border-2 border-gray-300 bg-gray-200 px-4 py-2 text-center text-base font-medium text-gray-800 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-200 dark:hover:border-gray-600 dark:hover:bg-gray-600">Create
-        another secret</a>
+      <!-- Recipients Section -->
+      <div v-if="details.show_recipients" class="py-4 border-t border-gray-100 dark:border-gray-800">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+          {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
+        </h3>
+      </div>
 
+      <!-- Create Another Secret -->
+      <div class="pt-6">
+        <a
+          href="/"
+          class="
+            mx-auto
+            mb-24
+            mt-12
+            block
+            w-2/3
+            rounded-md
+            border-2
+            border-gray-300
+            bg-gray-200
+            px-4
+            py-2
+            text-center
+            text-base
+            font-medium
+            text-gray-800
+            hover:border-gray-200
+            hover:bg-gray-100
+            dark:border-gray-800
+            dark:bg-gray-700
+            dark:text-gray-200
+            dark:hover:border-gray-600
+            dark:hover:bg-gray-600
+          ">
+          Create another secret
+        </a>
+      </div>
+
+      <!-- FAQ Section -->
       <MetadataFAQ
         :metadata="record"
         :details="details"
+        class="border-t border-gray-100 dark:border-gray-800 pt-8"
       />
     </div>
   </div>

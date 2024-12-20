@@ -1,7 +1,7 @@
 // src/schemas/models/metadata.ts
 import { baseApiRecordSchema } from '@/schemas/base';
 import { secretInputSchema } from '@/schemas/models/secret';
-import { booleanFromString, numberFromString } from '@/utils/transforms';
+import { booleanFromString, numberFromString, ttlToNaturalLanguage } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
@@ -26,6 +26,7 @@ export const MetadataState = {
   RECEIVED: 'received',
   BURNED: 'burned',
   VIEWED: 'viewed',
+  ORPHANED: 'orphaned',
 } as const;
 
 // Helper for converting Unix timestamps to Date objects
@@ -58,9 +59,16 @@ const metadataCommonSchema = z.object({
     MetadataState.RECEIVED,
     MetadataState.BURNED,
     MetadataState.VIEWED,
+    MetadataState.ORPHANED,
   ]),
-  created: z.union([z.string(), z.number(), z.date()]).transform(unixTimestampToDate),
-  updated: z.union([z.string(), z.number(), z.date()]).transform(unixTimestampToDate),
+  created: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
+  updated: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
+  received: z.union([z.string(), z.number()]).transform(unixTimestampToDate).optional(),
+  burned: z.union([z.string(), z.number()]).transform(unixTimestampToDate).optional(),
+  // There is no "orphaned" time field. We use updated. To be orphaned is an
+  // exceptional case and it's not something we specifically control. Unlike
+  // burning or receiving which are associated to human events, we don't know
+  // when the metadata got into an orphaned state; only when we flagged it.
 });
 
 // Base schema for list items
@@ -70,6 +78,7 @@ const metadataListItemBaseSchema = z.object({
   show_recipients: booleanFromString,
   is_received: booleanFromString,
   is_burned: booleanFromString,
+  is_orphaned: booleanFromString,
   is_destroyed: booleanFromString,
   is_truncated: booleanFromString,
   identifier: z.string(),
@@ -81,8 +90,8 @@ export const metadataListItemInputSchema = metadataCommonSchema.merge(metadataLi
 // Schema for extended metadata fields (single record view)
 const metadataExtendedBaseSchema = z.object({
   secret_key: z.string().optional(),
-  created_date_utc: z.string(),
-  expiration_stamp: z.string(),
+  natural_expiration: z.string(),
+  expiration: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
   share_path: z.string(),
   burn_path: z.string(),
   metadata_path: z.string(),
@@ -118,22 +127,22 @@ const metadataDetailsBaseSchema = z.object({
   display_lines: numberFromString,
   display_feedback: booleanFromString,
   no_cache: booleanFromString,
-  received_date: numberFromString,
-  received_date_utc: numberFromString,
-  burned_date: numberFromString,
-  burned_date_utc: numberFromString,
+  secret_realttl: ttlToNaturalLanguage,
   maxviews: numberFromString,
   has_maxviews: booleanFromString,
   view_count: numberFromString,
   has_passphrase: booleanFromString,
   can_decrypt: booleanFromString,
-  secret_value: z.string(),
+  secret_value: z.string().nullable().optional(),
   show_secret: booleanFromString,
   show_secret_link: booleanFromString,
   show_metadata_link: booleanFromString,
   show_metadata: booleanFromString,
   show_recipients: booleanFromString,
   is_destroyed: booleanFromString,
+  is_received: booleanFromString,
+  is_burned: booleanFromString,
+  is_orphaned: booleanFromString,
 });
 
 export const metadataDetailsInputSchema = metadataDetailsBaseSchema;

@@ -27,8 +27,10 @@ export const booleanFromString = z.preprocess((val) => {
 
 export const numberFromString = z.preprocess((val) => {
   if (typeof val === 'number') return val;
-  return Number(val);
-}, z.number());
+  if (val === null || val === undefined || val === '') return null;
+  const num = Number(val);
+  return isNaN(num) ? null : num;
+}, z.number().nullable());
 
 export const dateFromSeconds = z.preprocess((val) => {
   if (val instanceof Date) return val;
@@ -37,6 +39,33 @@ export const dateFromSeconds = z.preprocess((val) => {
   if (isNaN(timestamp)) throw new Error('Invalid timestamp');
   return new Date(timestamp * 1000);
 }, z.date());
+
+export const ttlToNaturalLanguage = z.preprocess((val: unknown) => {
+  if (val === null || val === undefined) return null;
+
+  const seconds: number = typeof val === 'string' ? parseInt(val, 10) : (val as number);
+  if (isNaN(seconds) || seconds < 0) return null;
+
+  const intervals = [
+    { label: 'year', seconds: 31536000 },
+    { label: 'month', seconds: 2592000 },
+    { label: 'week', seconds: 604800 },
+    { label: 'day', seconds: 86400 },
+    { label: 'hour', seconds: 3600 },
+    { label: 'minute', seconds: 60 },
+    { label: 'second', seconds: 1 },
+  ];
+
+  for (const interval of intervals) {
+    const count = Math.floor(seconds / interval.seconds);
+    if (count >= 1) {
+      return count === 1
+        ? `1 ${interval.label} from now`
+        : `${count} ${interval.label}s from now`;
+    }
+  }
+  return 'a few seconds from now';
+}, z.string().nullable().optional());
 
 /**
  * Input schema creators for API responses
@@ -88,22 +117,12 @@ export function transformResponse<T>(schema: z.ZodSchema<T>, data: unknown): T {
       console.debug('Schema:', schema);
       console.debug('Failed data:', data);
       console.debug('Validation issues:', error.issues);
-      console.debug(
-        JSON.stringify(
-          {
-            schema: schema,
-            failedData: data,
-            validationIssues: error.issues,
-          },
-          null,
-          2
-        )
-      );
+
       throw new TransformError('Validation failed', fromZodError(error).details);
     } else {
       console.error('Transform failed:', error);
     }
 
-    throw new TransformError('Transform failed', 'Unknown error during transform');
+    return data as T;
   }
 }

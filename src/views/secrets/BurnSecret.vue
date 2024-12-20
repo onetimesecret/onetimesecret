@@ -20,8 +20,8 @@ const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
     <div
       v-if="!record || details?.is_destroyed"
       class="relative mb-4 rounded border border-red-400
-     bg-red-100 px-4 py-3
-     text-red-700 dark:border-red-600 dark:bg-red-900/50 dark:text-red-300">
+        bg-red-100 px-4 py-3
+        text-red-700 dark:border-red-600 dark:bg-red-900/50 dark:text-red-300">
       <span class="block sm:inline">
         <template v-if="details?.is_received">
           This secret was viewed on {{ details.received_date }}
@@ -38,9 +38,9 @@ const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
         v-if="record && record?.metadata_url"
         :href="record?.metadata_url"
         class="mt-2 block w-full rounded bg-gray-300
-     px-4 py-2 text-center text-gray-700
-     hover:bg-gray-300
-     dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+          px-4 py-2 text-center text-gray-700
+          hover:bg-gray-300
+          dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
         Back
       </a>
       <router-link
@@ -104,10 +104,10 @@ const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
         <a
           :href="record?.metadata_url"
           class="block w-full rounded bg-gray-200 px-4 py-2
-           text-center text-gray-700 transition duration-200 hover:bg-gray-300 dark:bg-gray-700
-           dark:text-gray-200 dark:hover:bg-gray-600">{{ $t('web.COMMON.word_cancel') }}</a>
+            text-center text-gray-700 transition duration-200 hover:bg-gray-300 dark:bg-gray-700
+            dark:text-gray-200 dark:hover:bg-gray-600">{{ $t('web.COMMON.word_cancel') }}</a>
         <hr class="border-gray-300 dark:border-gray-600" />
-        <p class="text-md text-gray-600 dark:text-gray-400">
+        <p class="text-base text-gray-600 dark:text-gray-400">
           {{ $t('web.COMMON.burn_this_secret_confirm_hint') }}
         </p>
       </form>

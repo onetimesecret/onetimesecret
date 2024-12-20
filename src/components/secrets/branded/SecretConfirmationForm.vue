@@ -18,6 +18,7 @@ const emit = defineEmits(['secret-loaded']);
 const secretStore = useSecretsStore();
 const passphrase = ref('');
 const isSubmitting = ref(false);
+const error = ref('');
 
 const domainBranding = useDomainBranding();
 
@@ -40,8 +41,8 @@ const submitForm = async () => {
       record: response.record,
       details: response.details
     });
-  } catch {
-    // Error handling done by store
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to reveal secret';
   } finally {
     isSubmitting.value = false;
   }
@@ -132,10 +133,18 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 
     <template #action-button>
       <form @submit.prevent="submitForm" aria-label="Secret access form">
+        <!-- Error Message -->
+        <div
+          v-if="error"
+          class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-200"
+          role="alert">
+          {{ error }}
+        </div>
+
         <!-- Passphrase Input -->
         <div
           v-if="record?.has_passphrase"
-          class="space-y-2">
+          class="mb-4 space-y-2">
           <label
             :for="'passphrase-' + secretKey"
             class="sr-only">
