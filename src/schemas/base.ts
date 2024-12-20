@@ -1,4 +1,4 @@
-import { dateFromSeconds } from '@/utils/transforms';
+import { dateSchema } from '@/utils/dates';
 import { z } from 'zod';
 
 /**
@@ -6,37 +6,39 @@ import { z } from 'zod';
  * Provides base transformation and validation rules
  */
 
+// Base record fields that include timestamps
+const baseTimestampFields = {
+  created: dateSchema,
+  updated: dateSchema,
+};
+
 // Base API Response
 export const baseApiResponseSchema = z.object({
   success: z.boolean(),
   record: z.object({
-    // Use dateFromSeconds transform directly in the schema
-    created: z.union([z.string(), z.number()]).transform((val) => dateFromSeconds.parse(val)),
-    updated: z.union([z.string(), z.number()]).transform((val) => dateFromSeconds.parse(val)),
+    ...baseTimestampFields,
     // Other fields as needed
   }),
 });
 
 export const emptyApiRecordSchema = z.object({});
 
+// Base schema for API records
 export const baseApiRecordSchema = z.object({
   identifier: z.string(),
-  created: z.union([z.string(), z.number()]).transform((val) => new Date(Number(val) * 1000)),
-  updated: z.union([z.string(), z.number()]).transform((val) => new Date(Number(val) * 1000)),
+  ...baseTimestampFields,
 });
 
-// Transformed Base Record
+// Transformed Base Record - uses same date schema
 export const transformedBaseRecordSchema = z.object({
   identifier: z.string(),
-  created: dateFromSeconds,
-  updated: dateFromSeconds,
+  ...baseTimestampFields,
 });
 
 // Type exports
 export type BaseApiResponse = z.infer<typeof baseApiResponseSchema>;
 export type BaseApiRecord = {
   identifier: string;
-  // These should be Date types since they're transformed
   created: Date;
   updated: Date;
 };

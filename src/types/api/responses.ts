@@ -96,7 +96,10 @@ export const apiErrorResponseSchema = apiBaseResponseSchema.extend({
 // Specific metadata response schema with properly typed details
 export const metadataRecordResponseSchema = apiBaseResponseSchema.extend({
   record: metadataInputSchema,
-  details: metadataDetailsInputSchema.optional(),
+  details: z.discriminatedUnion('type', [
+    metadataListItemDetailsInputSchema,
+    metadataDetailsInputSchema,
+  ]).optional(),
 });
 
 // Ditto for secrets

@@ -1,7 +1,6 @@
-// src/schemas/models/metadata.ts
 import { baseApiRecordSchema } from '@/schemas/base';
 import { secretInputSchema } from '@/schemas/models/secret';
-import { toDate } from '@/utils/dates';
+import { dateSchema } from '@/utils/dates';
 import { booleanFromString, numberFromString, ttlToNaturalLanguage } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -45,10 +44,10 @@ const metadataCommonSchema = z.object({
     MetadataState.VIEWED,
     MetadataState.ORPHANED,
   ]),
-  created: z.union([z.string(), z.number()]).transform(toDate),
-  updated: z.union([z.string(), z.number()]).transform(toDate),
-  received: z.union([z.string(), z.number()]).transform(toDate).optional(),
-  burned: z.union([z.string(), z.number()]).transform(toDate).optional(),
+  created: dateSchema,
+  updated: dateSchema,
+  received: dateSchema.optional(),
+  burned: dateSchema.optional(),
   // There is no "orphaned" time field. We use updated. To be orphaned is an
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are associated to human events, we don't know
@@ -75,7 +74,7 @@ export const metadataListItemInputSchema = metadataCommonSchema.merge(metadataLi
 const metadataExtendedBaseSchema = z.object({
   secret_key: z.string().optional(),
   natural_expiration: z.string(),
-  expiration: z.union([z.string(), z.number()]).transform(toDate),
+  expiration: dateSchema,
   share_path: z.string(),
   burn_path: z.string(),
   metadata_path: z.string(),
@@ -96,7 +95,7 @@ export const metadataInputSchema = metadataCommonSchema.merge(metadataExtendedBa
 const metadataListItemDetailsBaseSchema = z.object({
   type: z.literal('list'),
   since: z.number(),
-  now: z.union([z.string(), z.number(), z.date()]).transform(toDate),
+  now: dateSchema,
   has_items: booleanFromString,
   received: z.array(metadataListItemInputSchema),
   notreceived: z.array(metadataListItemInputSchema),

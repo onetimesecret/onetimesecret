@@ -1,4 +1,3 @@
-// src/router/resolvers/metadataResolver.ts
 import { useMetadataStore } from '@/stores/metadataStore';
 import type { AsyncDataResult, MetadataRecordApiResponse } from '@/types/api/responses';
 import { NotFoundError } from '@/utils/errors';
@@ -28,9 +27,6 @@ export async function resolveMetadata(
       throw new NotFoundError(`Complete metadata not found: ${metadataKey}`);
     }
 
-    // Ensure details are of the correct type
-    const details = result.details && result.details.type === 'record' ? result.details : undefined;
-
     // Use API response which has the complete record type
     const initialData: AsyncDataResult<MetadataRecordApiResponse> = {
       status: 200,
@@ -38,7 +34,7 @@ export async function resolveMetadata(
         success: true,
         shrimp: '',
         record: result.record,
-        details
+        details: result.details?.type === 'record' ? result.details : undefined
       },
       error: store.error
     };

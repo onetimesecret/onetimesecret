@@ -1,8 +1,9 @@
-// src/stores/metadataStore.ts
 import {
   MetadataState,
   isMetadataDetails,
   isMetadataListItemDetails,
+  metadataDetailsSchema,
+  metadataInputSchema,
   metadataListItemInputSchema,
   type Metadata,
   type MetadataDetailsUnion,
@@ -76,9 +77,10 @@ export const useMetadataStore = defineStore('metadata', {
 
   actions: {
     setData(response: MetadataRecordApiResponse) {
-      this.currentRecord = response.record;
-      if (response.details) {
-        this.details = response.details;
+      const validated = transformResponse(metadataRecordResponseSchema, response);
+      this.currentRecord = metadataInputSchema.parse(validated.record);
+      if (validated.details) {
+        this.details = metadataDetailsSchema.parse(validated.details);
       } else {
         this.details = null;
       }
@@ -110,16 +112,17 @@ export const useMetadataStore = defineStore('metadata', {
           response.data
         );
 
-        this.records = validated.records;
+        this.records = validated.records.map(record => metadataListItemInputSchema.parse(record));
         if (validated.details) {
-          this.details = validated.details;
+          this.details = metadataDetailsSchema.parse(validated.details);
         } else {
           this.details = null;
         }
 
         // Cache management - store list items
         validated.records.forEach((record) => {
-          this.cache.set(record.key, record);
+          const parsed = metadataListItemInputSchema.parse(record);
+          this.cache.set(parsed.key, parsed);
         });
 
         return validated;
@@ -161,11 +164,12 @@ export const useMetadataStore = defineStore('metadata', {
         const validated = transformResponse(metadataRecordResponseSchema, response.data);
 
         if (validated.record) {
-          this.cache.set(key, validated.record);
-          this.currentRecord = validated.record;
+          const parsed = metadataInputSchema.parse(validated.record);
+          this.cache.set(key, parsed);
+          this.currentRecord = parsed;
         }
         if (validated.details) {
-          this.details = validated.details;
+          this.details = metadataDetailsSchema.parse(validated.details);
         } else {
           this.details = null;
         }
@@ -211,16 +215,17 @@ export const useMetadataStore = defineStore('metadata', {
 
         if (validated.record) {
           this.clearRecord(key);
-          this.currentRecord = validated.record;
+          const parsed = metadataInputSchema.parse(validated.record);
+          this.currentRecord = parsed;
           if (validated.details) {
-            this.details = validated.details;
+            this.details = metadataDetailsSchema.parse(validated.details);
           } else {
             this.details = null;
           }
 
           // Update the record in the list if it exists
           this.records = this.records.map((r) =>
-            r.key === key ? { ...r, state: validated.record.state } : r
+            r.key === key ? { ...r, state: parsed.state } : r
           );
         }
 

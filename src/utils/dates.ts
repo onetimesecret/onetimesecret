@@ -1,25 +1,52 @@
 
-export const toDate = (val: unknown): Date => {
-  if (val instanceof Date) return val;
-  if (typeof val === 'number') {
-    // Convert seconds to milliseconds for Unix timestamps
-    return new Date(val * 1000);
-  }
-  if (typeof val === 'string') {
+import { z } from 'zod';
+
+/**
+ * Zod schema for transforming various date inputs to Date objects
+ * Handles:
+ * - Unix timestamps (seconds)
+ * - ISO strings
+ * - Date objects
+ */
+export const dateSchema = z.union([
+  z.date(),
+  z.number().transform(seconds => new Date(seconds * 1000)),
+  z.string().transform(val => {
     const num = Number(val);
     if (!isNaN(num)) {
-      return new Date(num * 1000);
+      return new Date(num * 1000); // Assume seconds
     }
-    return new Date(val);
+    const date = new Date(val);
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date string format');
+    }
+    return date;
+  })
+]);
+
+/**
+ * Transform any supported date format to a Date object
+ * @throws {Error} if value cannot be converted to a valid date
+ */
+export const toDate = (val: unknown): Date => {
+  try {
+    return dateSchema.parse(val);
+  } catch {
+    throw new Error(`Invalid date value: ${String(val)}`);
   }
-  throw new Error('Invalid date value');
 };
 
-export const formatDate = (epochSeconds: string | number): string => {
-  const date = toDate(epochSeconds);
-  return date.toLocaleString(); // Or use a more specific format as needed
-}
+/**
+ * Format a date value (seconds/string) to localized string
+ */
+export const formatDate = (val: unknown): string => {
+  const date = toDate(val);
+  return date.toLocaleString();
+};
 
+/**
+ * Format a date as a relative time string (e.g. "2 hours ago")
+ */
 export const formatRelativeTime = (date: Date | undefined): string => {
   if (!date) return '';
 
