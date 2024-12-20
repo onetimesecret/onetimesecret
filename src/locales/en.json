@@ -104,9 +104,14 @@
     },
     "private": {
       "pretext": "Share this link:",
-      "requires_passphrase": "Requires a passphrase.",
+      "requires_passphrase": "This secret requires a passphrase to decrypt.",
       "this_msg_is_encrypted": "This message is encrypted with your passphrase.",
-      "only_see_once": "you will only see this once"
+      "only_see_once": "you will only see this once",
+      "created_success": "New secret created successfully!",
+      "burned_ago": "Burned {time}",
+      "viewed_ago": "This secret was viewed {time}",
+      "encrypted_message": "This message is encrypted",
+      "destroyed_ago": "Destroyed {time}"
     },
     "shared": {
       "requires_passphrase": "This message requires a passphrase:",
