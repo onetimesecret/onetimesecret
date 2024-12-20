@@ -61,17 +61,15 @@ jobs:
     strategy:
       matrix:
         include:
+          - ruby: '3.4'
+            continue-on-error: true
+            experimental: true
+
           - ruby: '3.3'
-            bundler: latest
-            rubygems: latest
 
           - ruby: '3.2'
-            bundler: latest
-            rubygems: latest
 
           - ruby: '3.1'
-            bundler: latest
-            rubygems: latest
 
           - ruby: '3.0'
             bundler: latest
@@ -103,10 +101,11 @@ jobs:
 
       - name: Set up Ruby ${{ matrix.ruby }}
         uses: ruby/setup-ruby@v1
+        continue-on-error: ${{ matrix.continue-on-error || false }}
         with:
           ruby-version: ${{ matrix.ruby }}
-          rubygems: ${{ matrix.rubygems }}
-          bundler: ${{ matrix.bundler }}
+          rubygems: ${{ matrix.rubygems || 'latest' }}
+          bundler: ${{ matrix.bundler || 'latest' }}
           # When the following is true, also run "bundle install",
           # and cache the result automatically. Ran into an issue
           # with the caching and multiple ruby version? See commit
@@ -120,21 +119,22 @@ jobs:
           detached: true
 
       - name: Install dependencies (bundler ${{ matrix.bundler }})
+        continue-on-error: ${{ matrix.continue-on-error || false }}
         run: |
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
 
       - name: Run tryouts
-        continue-on-error: false
+        continue-on-error: ${{ matrix.continue-on-error || false }}
         run: |
           bundle exec try -vf
 
       - name: Typecheck with Sorbet
-        continue-on-error: true
+        continue-on-error: ${{ matrix.continue-on-error || true }}
         run: |
           bundle exec srb tc
 
       - name: Rubocop
-        continue-on-error: true
+        continue-on-error: ${{ matrix.continue-on-error || true }}
         run: |
           bundle exec rubocop --config .rubocop.yml --format json --fail-level warning
