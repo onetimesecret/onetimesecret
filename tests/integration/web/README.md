@@ -68,7 +68,7 @@ on:
 jobs:
   test:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4

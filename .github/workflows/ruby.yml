@@ -56,7 +56,7 @@ jobs:
     #
     # https://github.com/rubygems/rubygems/blob/master/CHANGELOG.md#breaking-changes
     #
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24
 
     strategy:
       matrix:

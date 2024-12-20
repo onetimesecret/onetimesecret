@@ -102,7 +102,7 @@ on:
 
 jobs:
   sync:
-  runs-on: ubuntu-latest
+  runs-on: ubuntu-24
   steps:
     - uses: actions/checkout@v2
     - name: Sync Collection
