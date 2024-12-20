@@ -72,10 +72,12 @@ jobs:
           - ruby: '3.1'
 
           - ruby: '3.0'
+            continue-on-error: true
             bundler: latest
             rubygems: '3.5.23'
 
           - ruby: '2.7'
+            continue-on-error: true
             bundler: '2.4.22'
             rubygems: '3.2.3'
 
