@@ -50,6 +50,12 @@ jobs:
     # PRs showed 0 checks at all (as though there were no workflow
     # yaml files at all). Adding a new workflow in a test branch
     # seemed to wake up the dragon and all was well in the world.
+    #
+    # Rubygems as of version 3.6.0 has dropped support for
+    # Ruby 3.0. Fair enough!
+    #
+    # https://github.com/rubygems/rubygems/blob/master/CHANGELOG.md#breaking-changes
+    #
     runs-on: ubuntu-latest
 
     strategy:
@@ -69,7 +75,7 @@ jobs:
 
           - ruby: '3.0'
             bundler: latest
-            rubygems: latest
+            rubygems: '3.5.23'
 
           - ruby: '2.7'
             bundler: '2.4.22'
