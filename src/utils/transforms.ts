@@ -32,12 +32,14 @@ export const numberFromString = z.preprocess((val) => {
   return isNaN(num) ? null : num;
 }, z.number().nullable());
 
+import { toDate } from './dates';
+
 export const dateFromSeconds = z.preprocess((val) => {
-  if (val instanceof Date) return val;
-  if (typeof val !== 'string') throw new Error('Expected string timestamp');
-  const timestamp = Number(val);
-  if (isNaN(timestamp)) throw new Error('Invalid timestamp');
-  return new Date(timestamp * 1000);
+  try {
+    return toDate(val);
+  } catch (error) {
+    throw new Error(`Invalid timestamp: ${error instanceof Error ? error.message : 'unknown error'}`);
+  }
 }, z.date());
 
 export const ttlToNaturalLanguage = z.preprocess((val: unknown) => {

@@ -1,6 +1,7 @@
 // src/schemas/models/metadata.ts
 import { baseApiRecordSchema } from '@/schemas/base';
 import { secretInputSchema } from '@/schemas/models/secret';
+import { toDate } from '@/utils/dates';
 import { booleanFromString, numberFromString, ttlToNaturalLanguage } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -29,23 +30,6 @@ export const MetadataState = {
   ORPHANED: 'orphaned',
 } as const;
 
-// Helper for converting Unix timestamps to Date objects
-const unixTimestampToDate = (val: unknown) => {
-  if (val instanceof Date) return val;
-  if (typeof val === 'number') {
-    // Convert seconds to milliseconds for Unix timestamps
-    return new Date(val * 1000);
-  }
-  if (typeof val === 'string') {
-    const num = Number(val);
-    if (!isNaN(num)) {
-      return new Date(num * 1000);
-    }
-    return new Date(val);
-  }
-  throw new Error('Invalid date value');
-};
-
 // Common base schema for all metadata records
 const metadataCommonSchema = z.object({
   key: z.string(),
@@ -61,10 +45,10 @@ const metadataCommonSchema = z.object({
     MetadataState.VIEWED,
     MetadataState.ORPHANED,
   ]),
-  created: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
-  updated: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
-  received: z.union([z.string(), z.number()]).transform(unixTimestampToDate).optional(),
-  burned: z.union([z.string(), z.number()]).transform(unixTimestampToDate).optional(),
+  created: z.union([z.string(), z.number()]).transform(toDate),
+  updated: z.union([z.string(), z.number()]).transform(toDate),
+  received: z.union([z.string(), z.number()]).transform(toDate).optional(),
+  burned: z.union([z.string(), z.number()]).transform(toDate).optional(),
   // There is no "orphaned" time field. We use updated. To be orphaned is an
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are associated to human events, we don't know
@@ -91,7 +75,7 @@ export const metadataListItemInputSchema = metadataCommonSchema.merge(metadataLi
 const metadataExtendedBaseSchema = z.object({
   secret_key: z.string().optional(),
   natural_expiration: z.string(),
-  expiration: z.union([z.string(), z.number()]).transform(unixTimestampToDate),
+  expiration: z.union([z.string(), z.number()]).transform(toDate),
   share_path: z.string(),
   burn_path: z.string(),
   metadata_path: z.string(),
@@ -112,7 +96,7 @@ export const metadataInputSchema = metadataCommonSchema.merge(metadataExtendedBa
 const metadataListItemDetailsBaseSchema = z.object({
   type: z.literal('list'),
   since: z.number(),
-  now: z.union([z.string(), z.number(), z.date()]).transform(unixTimestampToDate),
+  now: z.union([z.string(), z.number(), z.date()]).transform(toDate),
   has_items: booleanFromString,
   received: z.array(metadataListItemInputSchema),
   notreceived: z.array(metadataListItemInputSchema),

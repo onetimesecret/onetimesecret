@@ -14,17 +14,31 @@ export async function resolveMetadata(
 
   try {
     const result = await store.fetchOne(metadataKey, true);
-    if (!result && !store.currentRecord) {
-      throw new NotFoundError(`Metadata not found: ${metadataKey}`);
+
+    // Ensure we have a complete metadata record with all required fields
+    if (!result?.record ||
+        !('natural_expiration' in result.record) ||
+        !('expiration' in result.record) ||
+        !('share_path' in result.record) ||
+        !('burn_path' in result.record) ||
+        !('metadata_path' in result.record) ||
+        !('share_url' in result.record) ||
+        !('metadata_url' in result.record) ||
+        !('burn_url' in result.record)) {
+      throw new NotFoundError(`Complete metadata not found: ${metadataKey}`);
     }
 
-    // Use either the result or fallback to store state
+    // Ensure details are of the correct type
+    const details = result.details && result.details.type === 'record' ? result.details : undefined;
+
+    // Use API response which has the complete record type
     const initialData: AsyncDataResult<MetadataRecordApiResponse> = {
       status: 200,
       data: {
         success: true,
-        record: result?.record || store.currentRecord,
-        details: result?.details || store.details
+        shrimp: '',
+        record: result.record,
+        details
       },
       error: store.error
     };
