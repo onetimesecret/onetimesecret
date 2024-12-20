@@ -109,7 +109,7 @@ export const customerSchema = baseRecordSchema.extend({
   .passthrough();
 
 // Update the type to explicitly use Date for timestamps
-export type Customer = Omit<z.infer<typeof customerInputSchema>, 'created' | 'updated'> & {
+export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated'> & {
   created: Date;
   updated: Date;
 };
@@ -144,8 +144,8 @@ export const apiTokenSchema = baseRecordSchema.extend({
 export type ApiToken = z.infer<typeof apiTokenSchema>;
 
 // Account schema
-export const accountSchema = baseApiRecordSchema.extend({
-  cust: customerInputSchema,
+export const accountSchema = baseRecordSchema.extend({
+  cust: customerSchema,
   apitoken: z.string().optional(),
   stripe_customer: z.object({
     // Define Stripe.Customer schema fields

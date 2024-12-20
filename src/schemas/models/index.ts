@@ -8,7 +8,7 @@ export * from './public'
 export * from './secret'
 export * from './metadata'
 
-import { baseApiRecordSchema } from '@/schemas/base';
+import { baseRecordSchema } from '@/schemas/base';
 import { z } from 'zod'
 
 /**
@@ -24,7 +24,7 @@ const feedbackBaseSchema = z.object({
 })
 
 // Combine base record schema with feedback-specific fields
-export const feedbackInputSchema = baseApiRecordSchema.merge(feedbackBaseSchema)
+export const feedbackInputSchema = baseRecordSchema.merge(feedbackBaseSchema)
 
 // Export inferred type for use in stores/components
 export type Feedback = z.infer<typeof feedbackInputSchema>

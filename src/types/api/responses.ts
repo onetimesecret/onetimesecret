@@ -1,6 +1,6 @@
-import { baseApiRecordSchema, emptyApiRecordSchema } from '@/schemas/base';
+import { baseRecordSchema } from '@/schemas/base';
 import { feedbackInputSchema } from '@/schemas/models';
-import { customerInputSchema } from '@/schemas/models/customer';
+import { customerSchema } from '@/schemas/models/customer';
 import { customDomainInputSchema } from '@/schemas/models/domain';
 import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import {
@@ -119,10 +119,10 @@ export type ApiRecordResponse<T> = z.infer<
  * Raw API data structures before transformation
  * These represent the API shape that will be transformed by input schemas
  */
-export const colonelDataSchema = baseApiRecordSchema.extend({
+export const colonelDataSchema = baseRecordSchema.extend({
   apitoken: z.string(),
   active: z.string().transform((val) => val === '1'),
-  recent_customers: z.array(customerInputSchema),
+  recent_customers: z.array(customerSchema),
   today_feedback: z.array(feedbackInputSchema),
   yesterday_feedback: z.array(feedbackInputSchema),
   older_feedback: z.array(feedbackInputSchema),
@@ -149,13 +149,13 @@ export const colonelDataResponseSchema = apiRecordResponseSchema(colonelDataSche
 export const colonelDataRecordsResponseSchema = apiRecordsResponseSchema(colonelDataSchema);
 
 // API Token response has only two fields - apitoken and active (and not the usual created/updated/identifier)
-export const apiTokenSchema = emptyApiRecordSchema.extend({
+export const apiTokenSchema = z.object({
   apitoken: z.string(),
   active: booleanFromString,
 });
 
-export const accountSchema = baseApiRecordSchema.extend({
-  cust: customerInputSchema,
+export const accountSchema = baseRecordSchema.extend({
+  cust: customerSchema,
   apitoken: z.string().optional(),
   stripe_customer: z.custom<Stripe.Customer>(),
   stripe_subscriptions: z.array(z.custom<Stripe.Subscription>()),
@@ -167,7 +167,7 @@ export const customDomainResponseSchema = apiRecordResponseSchema(customDomainIn
 export const customDomainRecordsResponseSchema = apiRecordsResponseSchema(customDomainInputSchema);
 export const accountResponseSchema = apiRecordResponseSchema(accountSchema);
 export const concealDataResponseSchema = apiRecordResponseSchema(concealDataInputSchema);
-export const checkAuthDataResponseSchema = apiRecordResponseSchema(customerInputSchema);
+export const checkAuthDataResponseSchema = apiRecordResponseSchema(customerSchema);
 export const brandSettingsResponseSchema = apiRecordResponseSchema(brandSettingsInputSchema);
 export const imagePropsResponseSchema = apiRecordResponseSchema(imagePropsSchema);
 

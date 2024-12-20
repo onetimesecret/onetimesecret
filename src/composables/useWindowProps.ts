@@ -71,7 +71,7 @@ export const useWindowProp = <T extends keyof Window>(prop: T): Readonly<Ref<Win
  *
  * @example
  * ```vue
- * const cust = useValidatedWindowProp('cust', customerInputSchema);
+ * const cust = useValidatedWindowProp('cust', customerSchema);
  *
  * // In template
  * <div v-if="cust?.feature_flags?.homepage_toggle">

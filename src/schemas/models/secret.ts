@@ -1,6 +1,6 @@
 // src/schemas/models/secret.ts
 
-import { baseApiRecordSchema } from '@/schemas/base'
+import { baseRecordSchema } from '@/schemas/base'
 import { type DetailsType } from '@/schemas/base'
 import { booleanFromString } from '@/utils/transforms'
 import { z } from 'zod'
@@ -30,12 +30,12 @@ const secretBaseSchema = z.object({
   secret_value: z.string().optional(),
 })
 
-export const secretListInputSchema = baseApiRecordSchema
+export const secretListInputSchema = baseRecordSchema
   .merge(secretBaseSchema)
   .strip()
 
 // Full secret schema with all fields
-export const secretInputSchema = baseApiRecordSchema
+export const secretInputSchema = baseRecordSchema
   .merge(secretBaseSchema)
   .extend({
     secret_ttl: z.number().nullable(),

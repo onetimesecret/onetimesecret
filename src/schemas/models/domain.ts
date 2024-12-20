@@ -1,5 +1,5 @@
 // src/schemas/models/domain.ts
-import { baseApiRecordSchema } from '@/schemas/base'
+import { baseRecordSchema } from '@/schemas/base'
 import { booleanFromString } from '@/utils/transforms'
 import { z } from 'zod'
 
@@ -85,9 +85,9 @@ const customDomainBaseSchema = z.object({
 // The .strip() modifier removes all unknown properties throughout the entire
 // object hierarchy after validation. This ensures our domain objects maintain
 // a consistent shape regardless of API response variations.
-export const customDomainInputSchema = baseApiRecordSchema.merge(customDomainBaseSchema).strip();
+export const customDomainInputSchema = baseRecordSchema.merge(customDomainBaseSchema).strip();
 
-//export const customDomainInputSchema = baseApiRecordSchema.merge(
+//export const customDomainInputSchema = baseRecordSchema.merge(
 //  customDomainBaseSchema.partial() // Makes all fields optional temporarily
 //)
 

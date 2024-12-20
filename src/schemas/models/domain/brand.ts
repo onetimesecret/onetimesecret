@@ -1,5 +1,5 @@
 // src/schemas/models/domain/brand.ts
-import { baseNestedRecordSchema, type BaseNestedRecord } from '@/schemas/base';
+import { baseRecordSchema, type BaseRecord } from '@/schemas/base';
 import { booleanFromString } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -97,7 +97,7 @@ export const brandSettingsInputSchema = z
     font_family: z.enum(Object.values(FontFamily)).optional(),
     corner_style: z.enum(Object.values(CornerStyle)).optional(),
   })
-  .merge(baseNestedRecordSchema);
+  .merge(baseRecordSchema);
 
 export const imagePropsSchema = z
   .object({
@@ -109,11 +109,11 @@ export const imagePropsSchema = z
     height: z.number().optional(),
     ratio: z.number().optional(),
   })
-  .merge(baseNestedRecordSchema)
+  .merge(baseRecordSchema)
   .strip();
 
-export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseNestedRecord;
-export type ImageProps = z.infer<typeof imagePropsSchema> & BaseNestedRecord;
+export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseRecord;
+export type ImageProps = z.infer<typeof imagePropsSchema> & BaseRecord;
 
 export {
   CornerStyle,

@@ -1,5 +1,5 @@
 // src/schemas/models/domain/vhost.ts
-import { baseNestedRecordSchema, type BaseNestedRecord } from '@/schemas/base';
+import { baseRecordSchema, type BaseRecord } from '@/schemas/base';
 import { z } from 'zod'
 
 /**
@@ -42,7 +42,7 @@ export const vhostSchema = z.object({
   target_address: z.string().optional(),
   target_ports: z.string().optional(),
   user_message: z.string().optional(),
-}).merge(baseNestedRecordSchema);
+}).merge(baseRecordSchema);
 
 // Export inferred type for use in stores/components
-export type VHost = z.infer<typeof vhostSchema> & BaseNestedRecord;
+export type VHost = z.infer<typeof vhostSchema> & BaseRecord;
