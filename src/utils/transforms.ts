@@ -2,91 +2,59 @@ import { z, ZodIssue } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 
 /**
- * Base schema for all API records
- * Matches BaseApiRecord interface and handles identifier pattern
- *
- * Ruby models use different identifier patterns:
- * - Direct field (e.g. Customer.custid)
- * - Generated (e.g. Secret.generate_id)
- * - Derived (e.g. CustomDomain.derive_id)
- * - Composite (e.g. RateLimit.[fields].sha256)
- *
- * We standardize this in the schema layer by:
- * 1. Always including the identifier field from API
- * 2. Allowing models to specify their identifier source
- * 3. Transforming as needed in model-specific schemas
+ * Core Transformers
+ * Centralized string conversion utilities for API boundaries
  */
+export const transforms = {
+  fromString: {
+    boolean: z.preprocess((val) => {
+      if (typeof val === 'boolean') return val;
+      return val === 'true' || val === '1';
+    }, z.boolean()),
 
-/**
- * Common transform helpers for API -> App data conversion
- */
-export const booleanFromString = z.preprocess((val) => {
-  if (typeof val === 'boolean') return val;
-  return val === 'true';
-}, z.boolean());
+    number: z.preprocess((val) => {
+      if (typeof val === 'number') return val;
+      if (val === null || val === undefined || val === '') return null;
+      const num = Number(val);
+      return isNaN(num) ? null : num;
+    }, z.number().nullable()),
 
-export const numberFromString = z.preprocess((val) => {
-  if (typeof val === 'number') return val;
-  if (val === null || val === undefined || val === '') return null;
-  const num = Number(val);
-  return isNaN(num) ? null : num;
-}, z.number().nullable());
+    date: z.preprocess((val) => {
+      if (val instanceof Date) return val;
+      const timestamp = typeof val === 'string' ? parseInt(val, 10) : (val as number);
+      if (isNaN(timestamp)) throw new Error('Invalid timestamp');
+      return new Date(timestamp * 1000);
+    }, z.date()),
 
-import { toDate } from './dates';
+    ttlToNaturalLanguage: z.preprocess((val: unknown) => {
+      if (val === null || val === undefined) return null;
 
-export const dateFromSeconds = z.preprocess((val) => {
-  try {
-    return toDate(val);
-  } catch (error) {
-    throw new Error(`Invalid timestamp: ${error instanceof Error ? error.message : 'unknown error'}`);
-  }
-}, z.date());
+      const seconds: number = typeof val === 'string' ? parseInt(val, 10) : (val as number);
+      if (isNaN(seconds) || seconds < 0) return null;
 
-export const ttlToNaturalLanguage = z.preprocess((val: unknown) => {
-  if (val === null || val === undefined) return null;
+      const intervals = [
+        { label: 'year', seconds: 31536000 },
+        { label: 'month', seconds: 2592000 },
+        { label: 'week', seconds: 604800 },
+        { label: 'day', seconds: 86400 },
+        { label: 'hour', seconds: 3600 },
+        { label: 'minute', seconds: 60 },
+        { label: 'second', seconds: 1 },
+      ];
 
-  const seconds: number = typeof val === 'string' ? parseInt(val, 10) : (val as number);
-  if (isNaN(seconds) || seconds < 0) return null;
+      for (const interval of intervals) {
+        const count = Math.floor(seconds / interval.seconds);
+        if (count >= 1) {
+          return count === 1
+            ? `1 ${interval.label} from now`
+            : `${count} ${interval.label}s from now`;
+        }
+      }
+      return 'a few seconds from now';
+    }, z.string().nullable().optional())
+  },
+} as const;
 
-  const intervals = [
-    { label: 'year', seconds: 31536000 },
-    { label: 'month', seconds: 2592000 },
-    { label: 'week', seconds: 604800 },
-    { label: 'day', seconds: 86400 },
-    { label: 'hour', seconds: 3600 },
-    { label: 'minute', seconds: 60 },
-    { label: 'second', seconds: 1 },
-  ];
-
-  for (const interval of intervals) {
-    const count = Math.floor(seconds / interval.seconds);
-    if (count >= 1) {
-      return count === 1
-        ? `1 ${interval.label} from now`
-        : `${count} ${interval.label}s from now`;
-    }
-  }
-  return 'a few seconds from now';
-}, z.string().nullable().optional());
-
-/**
- * Input schema creators for API responses
- */
-export const createInputSchema = <T extends z.ZodType>(recordSchema: T) =>
-  z.object({
-    success: z.boolean(),
-    record: recordSchema,
-    details: z.any().optional(),
-  });
-
-export const createListInputSchema = <T extends z.ZodType>(recordSchema: T) =>
-  z.object({
-    success: z.boolean(),
-    custid: z.string(),
-    records: z.array(recordSchema),
-    count: z.number(),
-    details: z.any().optional(),
-  });
 
 /**
  * Transform error handling

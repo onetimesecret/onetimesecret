@@ -1,4 +1,4 @@
-import { apiResponseSchema, baseRecordSchema, optional, transforms } from '@/schemas/base';
+import { apiResponseSchema, baseRecordSchema, optional, transforms } from '@/schemas/models/base';
 import { secretInputSchema } from '@/schemas/models/secret';
 import { z } from 'zod';
 

@@ -1,4 +1,4 @@
-import { apiResponseSchema } from '@/schemas/base';
+import { apiResponseSchema } from '@/schemas/models/base';
 import { customerSchema, type Customer } from '@/schemas/models/customer';
 import { createApi } from '@/utils/api';
 import {

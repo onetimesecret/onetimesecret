@@ -51,22 +51,4 @@
  *    - Handle all edge cases explicitly
  *    - Proper error handling with details
  *
- *
- * * Key Design Decisions:
- * 1. Input schemas handle API -> App transformation
- * 2. App uses single shared type between stores/components
- * 3. No explicit output schemas - serialize when needed
- *
- * Type Flow:
- * API Response (strings) -> InputSchema -> Store/Components -> API Request
- *                          ^                                ^
- *                          |                                |
- *                       transform                       serialize
- *
- * Validation Rules:
- * - Boolean fields come as strings from Ruby/Redis ('true'/'false')
- * - Numeric counters come as strings from API
- * - Dates come as UTC seconds strings
- * - Role is validated against enum
- * - Optional fields explicitly marked
- */
+ * */

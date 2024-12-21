@@ -1,4 +1,5 @@
-import { apiResponseSchema, baseRecordSchema, optional, transforms } from '@/schemas/base';
+import { apiResponseSchema, baseRecordSchema, optional } from '@/schemas/models/base';
+import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
 import { FeatureFlags } from './customer/feature_flags';
@@ -135,8 +136,12 @@ export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>;
 
 /**
  * API token schema
+ *
+ * API Token response has only two fields - apitoken and
+ * active (and not the usual created/updated/identifier).
+ *
  */
-export const apiTokenSchema = baseRecordSchema.extend({
+export const apiTokenSchema = z.object({
   apitoken: z.string(),
   active: transforms.fromString.boolean,
 });
@@ -144,7 +149,7 @@ export const apiTokenSchema = baseRecordSchema.extend({
 export type ApiToken = z.infer<typeof apiTokenSchema>;
 
 // Account schema
-export const accountSchema = baseRecordSchema.extend({
+export const accountSchema = z.object({
   cust: customerSchema,
   apitoken: z.string().optional(),
   stripe_customer: z.object({

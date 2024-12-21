@@ -1,5 +1,5 @@
 // src/schemas/models/domain/vhost.ts
-import { baseRecordSchema, type BaseRecord } from '@/schemas/base';
+import { baseRecordSchema, type BaseRecord } from '@/schemas/models/base';
 import { z } from 'zod'
 
 /**

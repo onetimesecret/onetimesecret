@@ -1,5 +1,5 @@
 // src/schemas/models/domain/brand.ts
-import { baseRecordSchema, type BaseRecord } from '@/schemas/base';
+import { baseRecordSchema, type BaseRecord } from '@/schemas/models/base';
 import { booleanFromString } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -13,22 +13,7 @@ import { z } from 'zod';
  * 3. It allows direct imports of Brand-specific logic where needed
  * 4. It keeps Domain model focused on core domain logic
  *
- * Key Design Decisions:
- * 1. Input schemas handle API -> App transformation
- * 2. App uses single shared type between stores/components
- * 3. No explicit output schemas - serialize when needed
- *
- * Type Flow:
- * API Response (strings) -> InputSchema -> Store/Components -> API Request
- *                          ^                                ^
- *                          |                                |
- *                       transform                       serialize
- *
- * Validation Rules:
- * - Boolean fields come as strings from Ruby/Redis ('true'/'false')
- * - Colors must be valid hex codes
- * - Font family and corner style from predefined options
- */
+*/
 
 type Option = {
   value: string;

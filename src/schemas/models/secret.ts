@@ -1,7 +1,7 @@
 // src/schemas/models/secret.ts
 
-import { baseRecordSchema } from '@/schemas/base'
-import { type DetailsType } from '@/schemas/base'
+import { baseRecordSchema } from '@/schemas/models/base'
+import { type DetailsType } from '@/schemas/models/base'
 import { booleanFromString } from '@/utils/transforms'
 import { z } from 'zod'
 
