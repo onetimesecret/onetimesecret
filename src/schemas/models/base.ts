@@ -2,24 +2,6 @@ import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
- * Base Model Schema
- * Maps to Ruby's base model class and defines common model attributes
- */
-export const baseModelSchema = z.object({
-  identifier: z.string(),
-  created: transforms.fromString.date,
-  updated: transforms.fromString.date,
-});
-
-// Type helper for base model fields
-export type BaseModel = z.infer<typeof baseModelSchema>;
-
-// Helper to extend base model schema
-export const createModelSchema = <T extends z.ZodType>(
-  fields: T
-) => baseModelSchema.extend(fields.shape);
-
-/**
  * Base schema for all API records
  * Matches BaseApiRecord interface and handles identifier pattern
  *
@@ -35,32 +17,22 @@ export const createModelSchema = <T extends z.ZodType>(
  * 3. Transforming as needed in model-specific schemas
  */
 
-// Base record schema with timestamps
-export const baseRecordSchema = z.object({
+/**
+ * Base Model Schema
+ * Maps to Ruby's base model class and defines common model attributes
+ */
+export const baseModelSchema = z.object({
   identifier: z.string(),
   created: transforms.fromString.date,
   updated: transforms.fromString.date,
 });
 
-// Type for base record after transformation
-export type BaseRecord = {
-  identifier: string;
-  created: Date;
-  updated: Date;
-};
+// Type helper for base model fields
+export type BaseModel = z.infer<typeof baseModelSchema>;
 
-// API response wrapper
-export const apiResponseSchema = <T extends z.ZodType>(recordSchema: T) =>
-  z.object({
-    success: z.boolean(),
-    record: recordSchema,
-  });
-
-// Type helper for API responses
-export type ApiResponse<T> = {
-  success: boolean;
-  record: T;
-};
+// Helper to extend base model schema
+export const createModelSchema = <T extends z.ZodType>(fields: T) =>
+  baseModelSchema.extend(fields.shape);
 
 // Helper for optional fields
 export const optional = <T extends z.ZodType>(schema: T) => schema.optional();

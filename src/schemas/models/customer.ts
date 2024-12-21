@@ -1,4 +1,5 @@
-import { apiResponseSchema, baseRecordSchema, optional } from '@/schemas/models/base';
+import { createRecordResponseSchema } from '@/schemas/api/base';
+import { baseModelSchema, optional } from '@/schemas/models/base';
 import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -41,7 +42,7 @@ export type PlanOptions = z.infer<typeof planOptionsSchema>;
 /**
  * Plan schema for customer plans
  */
-export const planSchema = baseRecordSchema.extend({
+export const planSchema = baseModelSchema.extend({
   planid: z.string(),
   price: transforms.fromString.number,
   discount: transforms.fromString.number,
@@ -53,7 +54,7 @@ export type Plan = z.infer<typeof planSchema>;
 /**
  * Customer schema with unified transformations
  */
-export const customerSchema = baseRecordSchema.extend({
+export const customerSchema = baseModelSchema.extend({
     // Core fields
     custid: z.string(),
     role: z.enum([
@@ -63,31 +64,31 @@ export const customerSchema = baseRecordSchema.extend({
       CustomerRole.USER_DELETED_SELF,
     ]),
 
-  // Boolean fields from API
-  verified: transforms.fromString.boolean,
-  active: transforms.fromString.boolean,
-  contributor: optional(transforms.fromString.boolean),
+    // Boolean fields from API
+    verified: transforms.fromString.boolean,
+    active: transforms.fromString.boolean,
+    contributor: optional(transforms.fromString.boolean),
 
-  // Counter fields from API with default values
-  secrets_created: z.preprocess(
-    (val) => Number(val) || 0,
-    z.number()
-  ),
-  secrets_burned: z.preprocess(
-    (val) => Number(val) || 0,
-    z.number()
-  ),
-  secrets_shared: z.preprocess(
-    (val) => Number(val) || 0,
-    z.number()
-  ),
-  emails_sent: z.preprocess(
-    (val) => Number(val) || 0,
-    z.number()
-  ),
+    // Counter fields from API with default values
+    secrets_created: z.preprocess(
+      (val) => Number(val) || 0,
+      z.number()
+    ),
+    secrets_burned: z.preprocess(
+      (val) => Number(val) || 0,
+      z.number()
+    ),
+    secrets_shared: z.preprocess(
+      (val) => Number(val) || 0,
+      z.number()
+    ),
+    emails_sent: z.preprocess(
+      (val) => Number(val) || 0,
+      z.number()
+    ),
 
-  // Date fields
-  last_login: transforms.fromString.date,
+    // Date fields
+    last_login: transforms.fromString.date,
 
     // Optional fields
     locale: z.string().optional(),
@@ -119,18 +120,18 @@ export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated
  * Schema for CheckAuthData
  * Extends Customer with an optional last_login as number
  */
-export const checkAuthDataSchema = customerSchema.extend({
-  last_login: optional(transforms.fromString.number),
-});
+//export const checkAuthDataSchema = customerSchema.extend({
+//  last_login: optional(transforms.fromString.number),
+//});
 
 export type CheckAuthData = z.infer<typeof checkAuthDataSchema>;
 
 /**
  * Schema for CheckAuthDetails
  */
-export const checkAuthDetailsSchema = z.object({
-  authenticated: z.boolean(),
-});
+//export const checkAuthDetailsSchema = z.object({
+//  authenticated: z.boolean(),
+//});
 
 export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>;
 
@@ -138,7 +139,7 @@ export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>;
  * API token schema
  *
  * API Token response has only two fields - apitoken and
- * active (and not the usual created/updated/identifier).
+ * active (and not the full record created/updated/identifier).
  *
  */
 export const apiTokenSchema = z.object({
@@ -148,28 +149,8 @@ export const apiTokenSchema = z.object({
 
 export type ApiToken = z.infer<typeof apiTokenSchema>;
 
-// Account schema
-export const accountSchema = z.object({
-  cust: customerSchema,
-  apitoken: z.string().optional(),
-  stripe_customer: z.object({
-    // Define Stripe.Customer schema fields
-    // You'll want to replace this with actual Stripe customer schema
-    id: z.string(),
-    email: z.string().optional(),
-  }),
-  stripe_subscriptions: z.array(
-    z.object({
-      // Define Stripe.Subscription schema fields
-      // Replace with actual Stripe subscription schema details
-      id: z.string(),
-      status: z.string(),
-    })
-  ),
-});
-
-export type Account = z.infer<typeof accountSchema>;
-
 // API response types
-export type CustomerResponse = z.infer<ReturnType<typeof apiResponseSchema<typeof customerSchema>>>;
-export type AccountResponse = z.infer<ReturnType<typeof apiResponseSchema<typeof accountSchema>>>;
+export const customerResponseSchema = createRecordResponseSchema(customerSchema);
+export const apiTokenResponseSchema = createRecordResponseSchema(apiTokenSchema);
+export type CustomerResponse = z.infer<typeof customerResponseSchema>;
+export type ApiTokenResponse = z.infer<typeof apiTokenResponseSchema>;

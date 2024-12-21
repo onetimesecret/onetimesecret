@@ -30,8 +30,8 @@ export const apiErrorResponseSchema = apiResponseBaseSchema.extend({
   details: z.record(z.string(), z.unknown()).optional(),
 });
 
-// Type exports
-export type ApiResponse = z.infer<typeof apiResponseBaseSchema>;
+// Type exports for API responses
+export type ApiBaseResponse = z.infer<typeof apiResponseBaseSchema>;
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
 export type ApiRecordResponse<T> = z.infer<ReturnType<typeof createRecordResponseSchema<z.ZodType<T>>>>;
 export type ApiRecordsResponse<T> = z.infer<ReturnType<typeof createRecordsResponseSchema<z.ZodType<T>>>>;

@@ -1,5 +1,5 @@
-import { apiTokenSchema, customerSchema, feedbackInputSchema } from '@/schemas/models';
-import { baseRecordSchema } from '@/schemas/models/base';
+
+import { apiTokenSchema, customerSchema } from '@/schemas/models';
 import { customDomainInputSchema } from '@/schemas/models/domain';
 import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import {
@@ -76,13 +76,6 @@ export type ApiRecordResponse<T> = z.infer<
   ReturnType<typeof apiRecordResponseSchema<z.ZodType<T>>>
 >;
 
-
-export const accountSchema = baseRecordSchema.extend({
-  cust: customerSchema,
-  apitoken: z.string().optional(),
-  stripe_customer: z.custom<Stripe.Customer>(),
-  stripe_subscriptions: z.array(z.custom<Stripe.Subscription>()),
-});
 
 // Create response schemas for each type
 export const apiTokenResponseSchema = apiRecordResponseSchema(apiTokenSchema);
