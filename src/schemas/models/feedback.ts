@@ -1,20 +1,32 @@
-import { baseRecordSchema } from "@/schemas/models/base";
-import { z } from "zod";
+import { createModelSchema } from '@/schemas/models/base';
+import { createResponseSchema } from '@/schemas/models/response';
+import { transforms } from '@/utils/transforms';
+import { z } from 'zod';
 
 /**
- * Input schema for feedback messages from API
- * Handles basic feedback data with message and timestamp
+ * @fileoverview Feedback schema with standardized transformations
+ *
+ * Key improvements:
+ * 1. Consistent use of transforms for type conversion
+ * 2. Standardized response schema pattern
+ * 3. Clear type boundaries
  */
-export const feedbackBaseSchema = z.object({
+
+// Base feedback fields
+export const feedbackSchema = createModelSchema({
   // Feedback content
   msg: z.string().min(1),
+});
 
-  // Creation timestamp
-  created: z.string().datetime()
-})
+// Details schema for feedback-specific metadata
+export const feedbackDetailsSchema = z.object({
+  received: transforms.fromString.boolean.optional(),
+});
 
-// Combine base record schema with feedback-specific fields
-export const feedbackInputSchema = baseRecordSchema.merge(feedbackBaseSchema)
+// Export types
+export type Feedback = z.infer<typeof feedbackSchema>;
+export type FeedbackDetails = z.infer<typeof feedbackDetailsSchema>;
 
-// Export inferred type for use in stores/components
-export type Feedback = z.infer<typeof feedbackInputSchema>
+// API response schema
+export const feedbackResponseSchema = createResponseSchema(feedbackSchema, feedbackDetailsSchema);
+export type FeedbackResponse = z.infer<typeof feedbackResponseSchema>;

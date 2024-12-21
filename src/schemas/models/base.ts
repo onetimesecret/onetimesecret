@@ -29,7 +29,6 @@ export type BaseModel = z.infer<typeof baseModelSchema>;
  * This matches Zod's own API design (e.g., z.object()) and provides more
  * flexibility while reducing boilerplate. For reusable schemas, you can
  * still create named constants from the result (i.e. `userSchema`)
- *
  */
 export const createModelSchema = <T extends z.ZodRawShape>(fields: T) =>
   baseModelSchema.extend(fields);

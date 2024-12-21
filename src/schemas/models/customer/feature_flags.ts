@@ -1,41 +1,99 @@
-// src/schemas/models/customer/feature-flags.ts
+import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
- * Schema for customer feature flags configuration
+ * @fileoverview Feature flags schema with standardized validation
  *
- * @description Defines the structure for feature flags that control customer-specific functionality
- *
- * @example
- * ```typescript
- * const flags: FeatureFlags = {
- *   homepage_toggle: true,
- *   max_secrets: 100,     // Number of secrets allowed
- *   theme: 'dark',        // UI theme preference
- *   custom_field: 'value' // Dynamic fields supported
- * };
- * ```
+ * Key improvements:
+ * 1. Explicit validation for known flags
+ * 2. Consistent type conversion at API boundaries
+ * 3. Support for dynamic fields
+ * 4. Clear documentation of flag purposes
  */
-export const featureFlagsSchema = z
-  .object({
-    homepage_toggle: z.boolean().optional(),
-  })
+
+/**
+ * Known feature flag keys
+ * Using const enum pattern for better type safety and documentation
+ */
+export const FeatureFlagKeys = {
+  // UI/UX Flags
+  HOMEPAGE_TOGGLE: 'homepage_toggle', // Control branded homepage visibility
+  THEME: 'theme', // UI theme preference (light/dark)
+  LANGUAGE: 'language', // UI language preference
+
+  // Limit Flags
+  MAX_SECRETS: 'max_secrets', // Maximum number of secrets allowed
+  MAX_SIZE: 'max_size', // Maximum secret size in bytes
+  MAX_TTL: 'max_ttl', // Maximum time-to-live in seconds
+
+  // Feature Access Flags
+  API_ACCESS: 'api_access', // API access enabled
+  CUSTOM_DOMAINS: 'custom_domains', // Custom domain support
+  PRIVATE_SECRETS: 'private_secrets', // Private secret support
+} as const;
+
+/**
+ * Theme options for UI preference
+ */
+export const ThemeOptions = {
+  LIGHT: 'light',
+  DARK: 'dark',
+  SYSTEM: 'system',
+} as const;
+
+/**
+ * Known boolean flags schema
+ * These flags are expected to be boolean values from the API
+ */
+const booleanFlagsSchema = z.object({
+  [FeatureFlagKeys.HOMEPAGE_TOGGLE]: transforms.fromString.boolean.optional(),
+  [FeatureFlagKeys.API_ACCESS]: transforms.fromString.boolean.optional(),
+  [FeatureFlagKeys.CUSTOM_DOMAINS]: transforms.fromString.boolean.optional(),
+  [FeatureFlagKeys.PRIVATE_SECRETS]: transforms.fromString.boolean.optional(),
+});
+
+/**
+ * Known numeric flags schema
+ * These flags represent limits and should be numbers
+ */
+const numericFlagsSchema = z.object({
+  [FeatureFlagKeys.MAX_SECRETS]: transforms.fromString.number.optional(),
+  [FeatureFlagKeys.MAX_SIZE]: transforms.fromString.number.optional(),
+  [FeatureFlagKeys.MAX_TTL]: transforms.fromString.number.optional(),
+});
+
+/**
+ * Known string flags schema
+ * These flags represent preferences or identifiers
+ */
+const stringFlagsSchema = z.object({
+  [FeatureFlagKeys.THEME]: z.enum([
+    ThemeOptions.LIGHT,
+    ThemeOptions.DARK,
+    ThemeOptions.SYSTEM,
+  ]).optional(),
+  [FeatureFlagKeys.LANGUAGE]: z.string().optional(),
+});
+
+/**
+ * Combined feature flags schema
+ * Merges known flag schemas and allows additional dynamic fields
+ */
+export const featureFlagsSchema = booleanFlagsSchema
+  .merge(numericFlagsSchema)
+  .merge(stringFlagsSchema)
   .catchall(z.union([z.boolean(), z.number(), z.string()]));
 
 /**
- * Type definition for customer feature flags
- *
- * @remarks
- * Supports dynamic fields through catchall definition
- *
- * Feature flags include:
- *
- * - homepage_toggle: Controls visibility of branded homepage toggle on domains
- * table. By default, we keep secret generation on custom domains disabled to
- * avoid potential abuse and/or confusion on behalf of our customers, their
- * (intentional) users, and other (otherwise unknown) parties. This flag
- * allows customers to knowingly opt-in to this feature. Valid usecases
- * like training employees, sharing with partners, etc. are encouraged.
- *
+ * Type definition for feature flags
+ * Includes both known and dynamic fields
  */
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
+
+/**
+ * Type guard to check if a flag exists
+ * Uses type-safe approach to check flag existence
+ */
+export const isKnownFlag = (flag: string): flag is keyof typeof FeatureFlagKeys => {
+  return Object.values(FeatureFlagKeys).includes(flag as typeof FeatureFlagKeys[keyof typeof FeatureFlagKeys]);
+};

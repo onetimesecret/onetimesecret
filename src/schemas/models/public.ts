@@ -1,5 +1,6 @@
 // src/schemas/publicSettings.ts
 
+import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
@@ -22,11 +23,11 @@ export const secretOptionsSchema = z.object({
    * Default Time-To-Live (TTL) for secrets in seconds
    * Default: 604800 (7 days in seconds)
    */
-  default_ttl: z
-    .number()
+  default_ttl: z.number()
     .int()
     .positive()
-    .default(604800),
+    .default(604800)
+    .transform((val) => transforms.fromString.number.parse(val)),
 
   /**
    * Available TTL options for secret creation (in seconds)
@@ -36,6 +37,7 @@ export const secretOptionsSchema = z.object({
    */
   ttl_options: z
     .array(z.number().int().positive())
+    .transform((arr) => arr.map((val) => transforms.fromString.number.parse(val)))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600]),
 });
 
@@ -51,22 +53,22 @@ export const authenticationSchema = z.object({
   /**
    * Flag to enable or disable authentication
    */
-  enabled: z.boolean(),
+  enabled: transforms.fromString.boolean,
 
   /**
    * Flag to allow or disallow user sign-up
    */
-  signup: z.boolean(),
+  signup: transforms.fromString.boolean,
 
   /**
    * Flag to allow or disallow user sign-in
    */
-  signin: z.boolean(),
+  signin: transforms.fromString.boolean,
 
   /**
    * Flag to enable or disable automatic verification
    */
-  autoverify: z.boolean(),
+  autoverify: transforms.fromString.boolean,
 });
 
 /**
@@ -88,7 +90,7 @@ const jurisdictionSchema = z.object({
  * Schema for the :regions section
  */
 const regionsSchema = z.object({
-  enabled: z.boolean(),
+  enabled: transforms.fromString.boolean,
   current_jurisdiction: z.string().optional(),
   jurisdictions: z.array(jurisdictionSchema).optional(),
 });
@@ -109,7 +111,7 @@ const clusterSchema = z.object({
  * Schema for the :domains section
  */
 const domainsSchema = z.object({
-  enabled: z.any(),
+  enabled: transforms.fromString.boolean,
   default: z.string().optional(),
   cluster: clusterSchema,
 });
@@ -126,7 +128,7 @@ const authenticitySchema = z.object({
  * Schema for the :plans section
  */
 const plansSchema = z.object({
-  enabled: z.any(),
+  enabled: transforms.fromString.boolean,
   stripe_key: z.string().optional(),
   webook_signing_secret: z.string().optional(),
   payment_links: z.any().optional(),
@@ -145,7 +147,7 @@ const supportSchema = z.object({
 export const publicSettingsSchema = z.object({
   host: z.string(),
   domains: domainsSchema,
-  ssl: z.boolean(),
+  ssl: transforms.fromString.boolean,
   authentication: authenticationSchema,
   // secret: z.string(),
   authenticity: authenticitySchema,

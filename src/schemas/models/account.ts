@@ -1,9 +1,12 @@
-import type Stripe from "stripe";
-import { z } from "zod";
+import { createResponseSchema } from '@/schemas/models/response';
+import type Stripe from 'stripe';
+import { z } from 'zod';
 
-import { customerSchema } from "./customer";
+import { customerSchema } from './customer';
 
-// Account schema
+/**
+ * Account schema with Stripe integration
+ */
 export const accountSchema = z.object({
   cust: customerSchema,
   apitoken: z.string().optional(),
@@ -12,3 +15,7 @@ export const accountSchema = z.object({
 });
 
 export type Account = z.infer<typeof accountSchema>;
+
+// Response schema
+export const accountResponseSchema = createResponseSchema(accountSchema, z.object({}));
+export type AccountResponse = z.infer<typeof accountResponseSchema>;
