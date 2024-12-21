@@ -1,23 +1,19 @@
 // src/stores/domainsStore.ts
 
-import { brandSettingsInputSchema, type BrandSettings } from '@/schemas/models';
-import {
-  customDomainInputSchema,
-  type CustomDomain
-} from '@/schemas/models/domain';
-import type { UpdateDomainBrandRequest } from '@/types/api/requests';
+import type { UpdateDomainBrandRequest } from '@/schemas/api';
 import {
   ApiRecordResponse,
-  apiRecordResponseSchema,
   ApiRecordsResponse,
-  apiRecordsResponseSchema
-} from '@/types/api/responses';
+  createRecordResponseSchema,
+  createRecordsResponseSchema,
+} from '@/schemas/api';
+import { brandSettingsInputSchema, type BrandSettings } from '@/schemas/models';
+import { customDomainInputSchema, type CustomDomain } from '@/schemas/models/domain';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
 import axios from 'axios';
 import { defineStore } from 'pinia';
 import type { ZodIssue } from 'zod';
-
 
 //
 // API Input (strings) -> Store/Component (shared types) -> API Output (serialized)
@@ -36,13 +32,13 @@ const api = createApi();
  */
 export const useDomainsStore = defineStore('domains', {
   state: (): {
-    domains: CustomDomain[],
-    isLoading: boolean,
-    defaultBranding: BrandSettings
+    domains: CustomDomain[];
+    isLoading: boolean;
+    defaultBranding: BrandSettings;
   } => ({
     domains: [],
     isLoading: false,
-    defaultBranding: {} as BrandSettings
+    defaultBranding: {} as BrandSettings,
   }),
   actions: {
     /**
@@ -50,17 +46,13 @@ export const useDomainsStore = defineStore('domains', {
      */
     parseDomainBranding(data: { brand: Record<string, unknown> }): { brand: BrandSettings } {
       try {
-        const validated = transformResponse(
-          brandSettingsInputSchema,
-          data.brand
-        );
+        const validated = transformResponse(brandSettingsInputSchema, data.brand);
         return { brand: validated };
       } catch (error) {
         console.warn('Failed to parse domain branding:', error);
         return { brand: this.defaultBranding };
       }
     },
-
 
     /**
      * Centralized error handler for API errors
@@ -93,12 +85,11 @@ export const useDomainsStore = defineStore('domains', {
         const response = await api.get<ApiRecordsResponse<CustomDomain>>('/api/v2/account/domains');
 
         const validated = transformResponse(
-          apiRecordsResponseSchema(customDomainInputSchema),
+          createRecordsResponseSchema(customDomainInputSchema),
           response.data
         );
 
-        this.domains = validated.records;
-
+        this.domains = validated;
       } catch (error) {
         this.handleApiError(error);
       } finally {
@@ -120,11 +111,11 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          apiRecordResponseSchema(customDomainInputSchema),
+          createRecordResponseSchema(customDomainInputSchema),
           response.data
         );
 
-        const domainIndex = this.domains.findIndex(d => d.display_domain === domain);
+        const domainIndex = this.domains.findIndex((d) => d.display_domain === domain);
         if (domainIndex !== -1) {
           this.domains[domainIndex] = validated.record;
         } else {
@@ -132,7 +123,6 @@ export const useDomainsStore = defineStore('domains', {
         }
 
         return validated.record;
-
       } catch (error) {
         this.handleApiError(error);
       }
@@ -145,18 +135,20 @@ export const useDomainsStore = defineStore('domains', {
      */
     async addDomain(domain: string) {
       try {
-        const response = await api.post<ApiRecordResponse<CustomDomain>>('/api/v2/account/domains/add', {
-          domain
-        });
+        const response = await api.post<ApiRecordResponse<CustomDomain>>(
+          '/api/v2/account/domains/add',
+          {
+            domain,
+          }
+        );
 
         const validated = transformResponse(
-          apiRecordResponseSchema(customDomainInputSchema),
+          createRecordResponseSchema(customDomainInputSchema),
           response.data
         );
 
         this.domains.push(validated.record);
         return validated.record;
-
       } catch (error) {
         this.handleApiError(error);
       }
@@ -169,21 +161,17 @@ export const useDomainsStore = defineStore('domains', {
     async deleteDomain(domainName: string) {
       try {
         await api.post(`/api/v2/account/domains/${domainName}/remove`);
-        this.domains = this.domains.filter(domain => domain.display_domain !== domainName);
+        this.domains = this.domains.filter((domain) => domain.display_domain !== domainName);
       } catch (error) {
         this.handleApiError(error);
       }
     },
 
-
     // Get brand settings for a domain
     async getBrandSettings(domain: string) {
       try {
         const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
-        return transformResponse(
-          apiRecordResponseSchema(brandSettingsInputSchema),
-          response.data
-        );
+        return transformResponse(createRecordResponseSchema(brandSettingsInputSchema), response.data);
       } catch (error) {
         this.handleApiError(error);
       }
@@ -192,14 +180,10 @@ export const useDomainsStore = defineStore('domains', {
     // Update brand settings
     async updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
       try {
-        const response = await api.put(
-          `/api/v2/account/domains/${domain}/brand`,
-          { brand: settings }
-        );
-        return transformResponse(
-          apiRecordResponseSchema(brandSettingsInputSchema),
-          response.data
-        );
+        const response = await api.put(`/api/v2/account/domains/${domain}/brand`, {
+          brand: settings,
+        });
+        return transformResponse(createRecordResponseSchema(brandSettingsInputSchema), response.data);
       } catch (error) {
         this.handleApiError(error);
       }
@@ -212,7 +196,7 @@ export const useDomainsStore = defineStore('domains', {
      */
     async toggleHomepageAccess(domain: CustomDomain) {
       const newHomepageStatus = !domain.brand?.allow_public_homepage;
-      const domainIndex = this.domains.findIndex(d => d.display_domain === domain.display_domain);
+      const domainIndex = this.domains.findIndex((d) => d.display_domain === domain.display_domain);
 
       // Optimistic update
       if (domainIndex !== -1) {
@@ -220,15 +204,12 @@ export const useDomainsStore = defineStore('domains', {
           ...domain,
           brand: {
             ...(domain.brand || {}),
-            allow_public_homepage: newHomepageStatus
-          }
+            allow_public_homepage: newHomepageStatus,
+          },
         };
 
         // Validate optimistic update
-        const validated = transformResponse(
-          customDomainInputSchema,
-          optimisticUpdate
-        );
+        const validated = transformResponse(customDomainInputSchema, optimisticUpdate);
 
         this.domains[domainIndex] = validated;
       }
@@ -237,12 +218,12 @@ export const useDomainsStore = defineStore('domains', {
         const response = await api.put<ApiRecordResponse<CustomDomain>>(
           `/api/v2/account/domains/${domain.display_domain}/brand`,
           {
-            brand: { allow_public_homepage: newHomepageStatus }
+            brand: { allow_public_homepage: newHomepageStatus },
           }
         );
 
         const validated = transformResponse(
-          apiRecordResponseSchema(customDomainInputSchema),
+          createRecordResponseSchema(customDomainInputSchema),
           response.data
         );
 
@@ -252,7 +233,6 @@ export const useDomainsStore = defineStore('domains', {
         }
 
         return newHomepageStatus;
-
       } catch (error) {
         // Revert on error
         if (domainIndex !== -1) {
@@ -275,12 +255,12 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          apiRecordResponseSchema(customDomainInputSchema),
+          createRecordResponseSchema(customDomainInputSchema),
           response.data
         );
 
         const domainIndex = this.domains.findIndex(
-          d => d.display_domain === domain.display_domain
+          (d) => d.display_domain === domain.display_domain
         );
 
         if (domainIndex !== -1) {
@@ -290,13 +270,12 @@ export const useDomainsStore = defineStore('domains', {
         }
 
         return validated.record;
-
       } catch (error) {
         this.handleApiError(error);
       }
     },
-  }
-})
+  },
+});
 
 // Helper function to safely format error details
 function formatErrorDetails(details: ZodIssue[] | string): string | Record<string, string> {
@@ -304,9 +283,12 @@ function formatErrorDetails(details: ZodIssue[] | string): string | Record<strin
     return details;
   }
 
-  return details.reduce((acc, issue) => {
-    const path = issue.path.join('.');
-    acc[path] = issue.message;
-    return acc;
-  }, {} as Record<string, string>);
+  return details.reduce(
+    (acc, issue) => {
+      const path = issue.path.join('.');
+      acc[path] = issue.message;
+      return acc;
+    },
+    {} as Record<string, string>
+  );
 }

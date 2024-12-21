@@ -4,10 +4,10 @@ import { colonelDataResponseSchema } from '@/schemas/models/colonel';
 import { customDomainInputSchema } from '@/schemas/models/domain';
 import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import {
-  concealDataSchema,
-  metadataDetailsInputSchema,
-  metadataRecordsDetailsSchema,
-  metadataSchema,
+    concealDataSchema,
+    metadataDetailsInputSchema,
+    metadataRecordsDetailsSchema,
+    metadataSchema,
 } from '@/schemas/models/metadata';
 import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
 import { z } from 'zod';
@@ -61,3 +61,10 @@ export type UpdateDomainBrandResponse = z.infer<typeof customDomainResponseSchem
 
 // Colonel response types
 export type ColonelDataApiResponse = z.infer<typeof colonelDataResponseSchema>;
+
+export const CsrfResponse = z.object({
+  isValid: z.boolean(),
+  shrimp: z.string().optional()
+})
+
+export type TCsrfResponse = z.infer<typeof CsrfResponse>
