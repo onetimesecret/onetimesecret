@@ -1,3 +1,4 @@
+import { booleanFromString, dateFromSeconds, numberFromString } from '../utils/transforms';
 import { z } from 'zod';
 
 /**
@@ -7,9 +8,9 @@ import { z } from 'zod';
 // Common transformers for API string conversions
 export const transforms = {
   fromString: {
-    boolean: z.string().transform((val) => val === 'true'),
-    number: z.string().transform((val) => Number(val)),
-    date: z.string().transform((val) => new Date(Number(val) * 1000)),
+    boolean: booleanFromString,
+    number: numberFromString,
+    date: dateFromSeconds,
   },
 } as const;
 

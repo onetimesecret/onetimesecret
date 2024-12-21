@@ -6,7 +6,7 @@ import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/dom
 import {
   concealDataInputSchema,
   metadataDetailsInputSchema,
-  metadataInputSchema,
+  metadataSchema,
   metadataListItemDetailsInputSchema,
 } from '@/schemas/models/metadata';
 import { secretDetailsInputSchema, secretInputSchema } from '@/schemas/models/secret';
@@ -95,7 +95,7 @@ export const apiErrorResponseSchema = apiBaseResponseSchema.extend({
 
 // Specific metadata response schema with properly typed details
 export const metadataRecordResponseSchema = apiBaseResponseSchema.extend({
-  record: metadataInputSchema,
+  record: metadataSchema,
   details: z.discriminatedUnion('type', [
     metadataListItemDetailsInputSchema,
     metadataDetailsInputSchema,

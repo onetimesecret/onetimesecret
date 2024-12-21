@@ -83,7 +83,7 @@ const metadataExtendedBaseSchema = z.object({
 });
 
 // Schema for full metadata record
-export const metadataInputSchema = metadataCommonSchema.merge(metadataExtendedBaseSchema);
+export const metadataSchema = metadataCommonSchema.merge(metadataExtendedBaseSchema);
 
 /**
  * Schema for metadata details
@@ -135,7 +135,7 @@ export const metadataDetailsSchema = z.discriminatedUnion('type', [
 ]);
 
 // Export types
-export type Metadata = z.infer<typeof metadataInputSchema>;
+export type Metadata = z.infer<typeof metadataSchema>;
 export type MetadataDetails = z.infer<typeof metadataDetailsInputSchema>;
 export type MetadataListItem = z.infer<typeof metadataListItemInputSchema>;
 export type MetadataListItemDetails = z.infer<typeof metadataListItemDetailsInputSchema>;
@@ -145,7 +145,7 @@ export type MetadataDetailsUnion = z.infer<typeof metadataDetailsSchema>;
  * Schema for combined secret and metadata (conceal data)
  */
 const concealDataBaseSchema = z.object({
-  metadata: metadataInputSchema,
+  metadata: metadataSchema,
   secret: secretInputSchema,
   share_domain: z.string(),
 });
@@ -168,6 +168,8 @@ export function isMetadataDetails(
   return details !== null && details.type === 'record';
 }
 
+export const metadataResponseSchema = apiResponseSchema(metadataSchema);
+
 // API response types
-export type MetadataResponse = z.infer<ReturnType<typeof apiResponseSchema<typeof metadataInputSchema>>>;
+export type MetadataResponse = z.infer<typeof metadataResponseSchema>;
 export type MetadataListResponse = z.infer<ReturnType<typeof apiResponseSchema<typeof metadataListItemDetailsInputSchema>>>;

@@ -3,7 +3,7 @@ import {
   isMetadataDetails,
   isMetadataListItemDetails,
   metadataDetailsSchema,
-  metadataInputSchema,
+  metadataSchema,
   metadataListItemInputSchema,
   type Metadata,
   type MetadataDetailsUnion,
@@ -78,7 +78,7 @@ export const useMetadataStore = defineStore('metadata', {
   actions: {
     setData(response: MetadataRecordApiResponse) {
       const validated = transformResponse(metadataRecordResponseSchema, response);
-      this.currentRecord = metadataInputSchema.parse(validated.record);
+      this.currentRecord = metadataSchema.parse(validated.record);
       if (validated.details) {
         this.details = metadataDetailsSchema.parse(validated.details);
       } else {
@@ -164,7 +164,7 @@ export const useMetadataStore = defineStore('metadata', {
         const validated = transformResponse(metadataRecordResponseSchema, response.data);
 
         if (validated.record) {
-          const parsed = metadataInputSchema.parse(validated.record);
+          const parsed = metadataSchema.parse(validated.record);
           this.cache.set(key, parsed);
           this.currentRecord = parsed;
         }
@@ -215,7 +215,7 @@ export const useMetadataStore = defineStore('metadata', {
 
         if (validated.record) {
           this.clearRecord(key);
-          const parsed = metadataInputSchema.parse(validated.record);
+          const parsed = metadataSchema.parse(validated.record);
           this.currentRecord = parsed;
           if (validated.details) {
             this.details = metadataDetailsSchema.parse(validated.details);
