@@ -1,5 +1,6 @@
 import { apiResponseBaseSchema, createRecordResponseSchema, createRecordsResponseSchema } from '@/schemas/api/base';
 import { accountSchema, apiTokenSchema, customerSchema } from '@/schemas/models';
+import { colonelDataResponseSchema } from '@/schemas/models/colonel';
 import { customDomainInputSchema } from '@/schemas/models/domain';
 import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import {
@@ -8,7 +9,7 @@ import {
   metadataRecordsDetailsSchema,
   metadataSchema,
 } from '@/schemas/models/metadata';
-import { secretDetailsInputSchema, secretInputSchema } from '@/schemas/models/secret';
+import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
 import { z } from 'zod';
 
 export interface AsyncDataResult<T> {
@@ -28,8 +29,8 @@ export const metadataRecordResponseSchema = apiResponseBaseSchema.extend({
 
 // Specialized secret response schema
 export const secretRecordResponseSchema = apiResponseBaseSchema.extend({
-  record: secretInputSchema,
-  details: secretDetailsInputSchema.optional(),
+  record: secretSchema,
+  details: secretDetailsSchema.optional(),
 });
 
 // Model-specific response schemas
@@ -57,3 +58,6 @@ export type BrandSettingsApiResponse = z.infer<typeof brandSettingsResponseSchem
 export type ImagePropsApiResponse = z.infer<typeof imagePropsResponseSchema>;
 export type CustomDomainRecordsApiResponse = z.infer<typeof customDomainRecordsResponseSchema>;
 export type UpdateDomainBrandResponse = z.infer<typeof customDomainResponseSchema>;
+
+// Colonel response types
+export type ColonelDataApiResponse = z.infer<typeof colonelDataResponseSchema>;

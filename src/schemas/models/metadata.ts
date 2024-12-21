@@ -1,6 +1,6 @@
 
 import { createModelSchema } from '@/schemas/models/base';
-import { secretInputSchema } from '@/schemas/models/secret';
+import { secretSchema } from '@/schemas/models/secret';
 import { transforms } from '@/utils/transforms';
 import { optional, z } from 'zod';
 
@@ -146,7 +146,7 @@ export type MetadataDetailsUnion = z.infer<typeof metadataDetailsSchema>;
  */
 export const concealDataSchema = z.object({
   metadata: metadataSchema,
-  secret: secretInputSchema,
+  secret: secretSchema,
   share_domain: z.string(),
 });
 

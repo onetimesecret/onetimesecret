@@ -1,10 +1,9 @@
-import { createRecordResponseSchema, createRecordsResponseSchema } from "@/schemas/api/base";
-import { feedbackInputSchema } from "@/schemas/models";
-import { createModelSchema } from "@/schemas/models/base";
-import { customerSchema } from "@/schemas/models/customer";
-import { transforms } from "@/utils/transforms";
-import { z } from "zod";
-
+import { createRecordResponseSchema, createRecordsResponseSchema } from '@/schemas/api/base';
+import { feedbackSchema } from '@/schemas/models';
+import { createModelSchema } from '@/schemas/models/base';
+import { customerSchema } from '@/schemas/models/customer';
+import { transforms } from '@/utils/transforms';
+import { z } from 'zod';
 
 /**
  * Raw API data structures before transformation
@@ -14,9 +13,9 @@ export const colonelDataSchema = createModelSchema({
   apitoken: z.string(),
   active: z.string().transform((val) => val === '1'),
   recent_customers: z.array(customerSchema),
-  today_feedback: z.array(feedbackInputSchema),
-  yesterday_feedback: z.array(feedbackInputSchema),
-  older_feedback: z.array(feedbackInputSchema),
+  today_feedback: z.array(feedbackSchema),
+  yesterday_feedback: z.array(feedbackSchema),
+  older_feedback: z.array(feedbackSchema),
   redis_info: transforms.fromString.number,
   plans_enabled: transforms.fromString.number,
   counts: z.object({
@@ -38,3 +37,6 @@ export const colonelDataSchema = createModelSchema({
 // Response schemas using the specific record schemas
 export const colonelDataResponseSchema = createRecordResponseSchema(colonelDataSchema);
 export const colonelDataRecordsResponseSchema = createRecordsResponseSchema(colonelDataSchema);
+
+// Export types
+export type ColonelData = z.infer<typeof colonelDataSchema>;
