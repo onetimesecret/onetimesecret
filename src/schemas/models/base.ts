@@ -2,22 +2,6 @@ import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
- * Base schema for all API records
- * Matches BaseApiRecord interface and handles identifier pattern
- *
- * Ruby models use different identifier patterns:
- * - Direct field (e.g. Customer.custid)
- * - Generated (e.g. Secret.generate_id)
- * - Derived (e.g. CustomDomain.derive_id)
- * - Composite (e.g. RateLimit.[fields].sha256)
- *
- * We standardize this in the schema layer by:
- * 1. Always including the identifier field from API
- * 2. Allowing models to specify their identifier source
- * 3. Transforming as needed in model-specific schemas
- */
-
-/**
  * Base Model Schema
  * Maps to Ruby's base model class and defines common model attributes
  */
@@ -30,9 +14,25 @@ export const baseModelSchema = z.object({
 // Type helper for base model fields
 export type BaseModel = z.infer<typeof baseModelSchema>;
 
-// Helper to extend base model schema
-export const createModelSchema = <T extends z.ZodType>(fields: T) =>
-  baseModelSchema.extend(fields.shape);
+/**
+ * Helper to extend base model schema
+ * Takes a ZodRawShape following Zod's builder pattern conventions:
+ *
+ * Example:
+ * ```
+ * export const userSchema = createModelSchema({
+ *   name: z.string(),
+ *   email: z.string().email()
+ * })
+ * ```
+ *
+ * This matches Zod's own API design (e.g., z.object()) and provides more
+ * flexibility while reducing boilerplate. For reusable schemas, you can
+ * still create named constants from the result (i.e. `userSchema`)
+ *
+ */
+export const createModelSchema = <T extends z.ZodRawShape>(fields: T) =>
+  baseModelSchema.extend(fields);
 
 // Helper for optional fields
 export const optional = <T extends z.ZodType>(schema: T) => schema.optional();

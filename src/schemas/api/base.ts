@@ -26,6 +26,7 @@ export const createRecordsResponseSchema = <T extends z.ZodTypeAny>(recordSchema
 // Common error response schema
 export const apiErrorResponseSchema = apiResponseBaseSchema.extend({
   message: z.string(),
+  code: transforms.fromString.number,
   record: z.unknown().nullable(),
   details: z.record(z.string(), z.unknown()).optional(),
 });
