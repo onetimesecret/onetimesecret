@@ -1,5 +1,5 @@
 import { createRecordResponseSchema } from '@/schemas/api/base';
-import { baseModelSchema } from '@/schemas/models/base';
+import { baseModelSchema, createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/utils/transforms';
 import { optional, z } from 'zod';
 
@@ -42,7 +42,7 @@ export type PlanOptions = z.infer<typeof planOptionsSchema>;
 /**
  * Plan schema for customer plans
  */
-export const planSchema = baseModelSchema.extend({
+export const planSchema = z.object({
   planid: z.string(),
   price: transforms.fromString.number,
   discount: transforms.fromString.number,
@@ -54,7 +54,7 @@ export type Plan = z.infer<typeof planSchema>;
 /**
  * Customer schema with unified transformations
  */
-export const customerSchema = baseModelSchema.extend({
+export const customerSchema = createModelSchema({
     // Core fields
     custid: z.string(),
     role: z.enum([
@@ -108,7 +108,7 @@ export const customerSchema = baseModelSchema.extend({
       .transform((val): FeatureFlags => val as FeatureFlags)
       .default({}),  // allows for customer objects that don't have the field yet
   })
-  .passthrough();
+  .strict();
 
 // Update the type to explicitly use Date for timestamps
 export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated'> & {

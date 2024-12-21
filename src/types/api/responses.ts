@@ -3,9 +3,9 @@ import { accountSchema, apiTokenSchema, customerSchema } from '@/schemas/models'
 import { customDomainInputSchema } from '@/schemas/models/domain';
 import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import {
-  concealDataInputSchema,
+  concealDataSchema,
   metadataDetailsInputSchema,
-  metadataRecordsDetailsInputSchema,
+  metadataRecordsDetailsSchema,
   metadataSchema,
 } from '@/schemas/models/metadata';
 import { secretDetailsInputSchema, secretInputSchema } from '@/schemas/models/secret';
@@ -21,7 +21,7 @@ export interface AsyncDataResult<T> {
 export const metadataRecordResponseSchema = apiResponseBaseSchema.extend({
   record: metadataSchema,
   details: z.discriminatedUnion('type', [
-    metadataRecordsDetailsInputSchema,
+    metadataRecordsDetailsSchema,
     metadataDetailsInputSchema,
   ]).optional(),
 });
@@ -37,7 +37,7 @@ export const apiTokenResponseSchema = createRecordResponseSchema(apiTokenSchema)
 export const customDomainResponseSchema = createRecordResponseSchema(customDomainInputSchema);
 export const customDomainRecordsResponseSchema = createRecordsResponseSchema(customDomainInputSchema);
 export const accountResponseSchema = createRecordResponseSchema(accountSchema);
-export const concealDataResponseSchema = createRecordResponseSchema(concealDataInputSchema);
+export const concealDataResponseSchema = createRecordResponseSchema(concealDataSchema);
 export const checkAuthDataResponseSchema = createRecordResponseSchema(customerSchema);
 export const brandSettingsResponseSchema = createRecordResponseSchema(brandSettingsInputSchema);
 export const imagePropsResponseSchema = createRecordResponseSchema(imagePropsSchema);

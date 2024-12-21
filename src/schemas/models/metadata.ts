@@ -1,5 +1,5 @@
 
-import { baseModelSchema } from '@/schemas/models/base';
+import { createModelSchema } from '@/schemas/models/base';
 import { secretInputSchema } from '@/schemas/models/secret';
 import { transforms } from '@/utils/transforms';
 import { optional, z } from 'zod';
@@ -40,7 +40,7 @@ export const MetadataState = {
 } as const;
 
 // Common base schema for all metadata records
-const metadataCommonSchema = z.object({
+const metadataBaseSchema = createModelSchema({
   key: z.string(),
   shortkey: z.string(),
   secret_shortkey: z.string().optional(),
@@ -54,8 +54,6 @@ const metadataCommonSchema = z.object({
     MetadataState.VIEWED,
     MetadataState.ORPHANED,
   ]),
-  created: transforms.fromString.date,
-  updated: transforms.fromString.date,
   received: optional(transforms.fromString.date),
   burned: optional(transforms.fromString.date),
   // There is no "orphaned" time field. We use updated. To be orphaned is an
@@ -65,7 +63,7 @@ const metadataCommonSchema = z.object({
 });
 
 // The shape in list view
-export const metadataRecordsSchema = metadataCommonSchema.merge(z.object({
+export const metadataRecordsSchema = metadataBaseSchema.merge(z.object({
   custid: z.string(),
   secret_ttl: z.union([z.string(), z.number()]).transform(Number),
   show_recipients: transforms.fromString.boolean,
@@ -78,7 +76,7 @@ export const metadataRecordsSchema = metadataCommonSchema.merge(z.object({
 }));
 
 // The shape in single record view
-export const metadataSchema = metadataCommonSchema.merge(z.object({
+export const metadataSchema = metadataBaseSchema.merge(z.object({
   secret_key: z.string().optional(),
   natural_expiration: z.string(),
   expiration: transforms.fromString.date,
@@ -96,7 +94,7 @@ export const metadataSchema = metadataCommonSchema.merge(z.object({
  */
 
 // The details for each record in list view
-export const metadataRecordsDetailsInputSchema = z.object({
+export const metadataRecordsDetailsSchema = z.object({
   type: z.literal('list'),
   since: z.number(),
   now: transforms.fromString.date,
@@ -112,13 +110,13 @@ export const metadataDetailsInputSchema = z.object({
   display_lines: transforms.fromString.number,
   display_feedback: transforms.fromString.boolean,
   no_cache: transforms.fromString.boolean,
-  secret_realttl: z.string().transform((val) => val), // Preserve ttlToNaturalLanguage behavior
+  secret_realttl: z.string(), // Preserve ttlToNaturalLanguage behavior
   maxviews: transforms.fromString.number,
   has_maxviews: transforms.fromString.boolean,
   view_count: transforms.fromString.number,
   has_passphrase: transforms.fromString.boolean,
   can_decrypt: transforms.fromString.boolean,
-  secret_value: optional(z.string().nullable()),
+  secret_value: z.string().nullable().optional(),
   show_secret: transforms.fromString.boolean,
   show_secret_link: transforms.fromString.boolean,
   show_metadata_link: transforms.fromString.boolean,
@@ -132,7 +130,7 @@ export const metadataDetailsInputSchema = z.object({
 
 // Combined details schema for API responses with discriminated union
 export const metadataDetailsSchema = z.discriminatedUnion('type', [
-  metadataRecordsDetailsInputSchema,
+  metadataRecordsDetailsSchema,
   metadataDetailsInputSchema,
 ]);
 
@@ -140,21 +138,19 @@ export const metadataDetailsSchema = z.discriminatedUnion('type', [
 export type Metadata = z.infer<typeof metadataSchema>;
 export type MetadataDetails = z.infer<typeof metadataDetailsInputSchema>;
 export type MetadataRecords = z.infer<typeof metadataRecordsSchema>;
-export type MetadataRecordsDetails = z.infer<typeof metadataRecordsDetailsInputSchema>;
+export type MetadataRecordsDetails = z.infer<typeof metadataRecordsDetailsSchema>;
 export type MetadataDetailsUnion = z.infer<typeof metadataDetailsSchema>;
 
 /**
  * Schema for combined secret and metadata (conceal data)
  */
-const concealDataBaseSchema = z.object({
+export const concealDataSchema = z.object({
   metadata: metadataSchema,
   secret: secretInputSchema,
   share_domain: z.string(),
 });
 
-export const concealDataInputSchema = baseModelSchema.merge(concealDataBaseSchema);
-
-export type ConcealData = z.infer<typeof concealDataInputSchema>;
+export type ConcealData = z.infer<typeof concealDataSchema>;
 
 // Type guard to check if details are list details
 export function isMetadataRecordsDetails(

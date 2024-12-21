@@ -2604,7 +2604,7 @@
           "type"
         ]
       },
-      "concealDataInputSchema": {
+      "concealDataSchema": {
         "type": "object",
         "properties": {
           "secret": {
@@ -2647,7 +2647,7 @@
           }
         }
       },
-      "metadataRecordsDetailsInputSchema": {
+      "metadataRecordsDetailsSchema": {
         "type": "object",
         "properties": {
           "title": {
