@@ -83,7 +83,7 @@ jobs:
   test:
     name: Run Playwright Tests
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout code
