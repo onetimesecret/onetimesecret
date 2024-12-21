@@ -33,9 +33,3 @@ export type BaseModel = z.infer<typeof baseModelSchema>;
  */
 export const createModelSchema = <T extends z.ZodRawShape>(fields: T) =>
   baseModelSchema.extend(fields);
-
-// Helper for optional fields
-export const optional = <T extends z.ZodType>(schema: T) => schema.optional();
-
-// Helper for arrays of records
-export const recordArray = <T extends z.ZodType>(schema: T) => z.array(schema);

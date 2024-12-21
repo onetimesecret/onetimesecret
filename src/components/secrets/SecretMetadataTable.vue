@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
-import { MetadataListItem } from '@/schemas/models';
+import { MetadataRecords } from '@/schemas/models';
 
 interface Props {
-  notReceived: MetadataListItem[];
-  received: MetadataListItem[];
+  notReceived: MetadataRecords[];
+  received: MetadataRecords[];
   isLoading: boolean;
 }
 

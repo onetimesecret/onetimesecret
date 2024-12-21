@@ -1,7 +1,7 @@
 import { createRecordResponseSchema } from '@/schemas/api/base';
-import { baseModelSchema, optional } from '@/schemas/models/base';
+import { baseModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/utils/transforms';
-import { z } from 'zod';
+import { optional, z } from 'zod';
 
 import { FeatureFlags } from './customer/feature_flags';
 
@@ -120,18 +120,18 @@ export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated
  * Schema for CheckAuthData
  * Extends Customer with an optional last_login as number
  */
-//export const checkAuthDataSchema = customerSchema.extend({
-//  last_login: optional(transforms.fromString.number),
-//});
+export const checkAuthDataSchema = customerSchema.extend({
+  last_login: optional(transforms.fromString.number),
+});
 
 export type CheckAuthData = z.infer<typeof checkAuthDataSchema>;
 
 /**
  * Schema for CheckAuthDetails
  */
-//export const checkAuthDetailsSchema = z.object({
-//  authenticated: z.boolean(),
-//});
+export const checkAuthDetailsSchema = z.object({
+  authenticated: z.boolean(),
+});
 
 export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>;
 

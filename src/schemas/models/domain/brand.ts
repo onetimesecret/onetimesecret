@@ -1,6 +1,6 @@
 // src/schemas/models/domain/brand.ts
-import { baseRecordSchema, type BaseRecord } from '@/schemas/models/base';
-import { booleanFromString } from '@/utils/transforms';
+import { baseModelSchema, type BaseModel } from '@/schemas/models/base';
+import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
 /**
@@ -13,7 +13,7 @@ import { z } from 'zod';
  * 3. It allows direct imports of Brand-specific logic where needed
  * 4. It keeps Domain model focused on core domain logic
  *
-*/
+ */
 
 type Option = {
   value: string;
@@ -76,13 +76,13 @@ export const brandSettingsInputSchema = z
     instructions_reveal: z.string().optional(),
     instructions_post_reveal: z.string().optional(),
     description: z.string().optional(),
-    button_text_light: booleanFromString.default(false),
-    allow_public_homepage: booleanFromString.default(false),
-    allow_public_api: booleanFromString.default(false),
+    button_text_light: transforms.fromString.boolean.default(false),
+    allow_public_homepage: transforms.fromString.boolean.default(false),
+    allow_public_api: transforms.fromString.boolean.default(false),
     font_family: z.enum(Object.values(FontFamily)).optional(),
     corner_style: z.enum(Object.values(CornerStyle)).optional(),
   })
-  .merge(baseRecordSchema);
+  .merge(baseModelSchema);
 
 export const imagePropsSchema = z
   .object({
@@ -94,11 +94,11 @@ export const imagePropsSchema = z
     height: z.number().optional(),
     ratio: z.number().optional(),
   })
-  .merge(baseRecordSchema)
+  .merge(baseModelSchema)
   .strip();
 
-export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseRecord;
-export type ImageProps = z.infer<typeof imagePropsSchema> & BaseRecord;
+export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseModel;
+export type ImageProps = z.infer<typeof imagePropsSchema> & BaseModel;
 
 export {
   CornerStyle,

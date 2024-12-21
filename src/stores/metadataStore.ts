@@ -1,13 +1,13 @@
 import {
   MetadataState,
   isMetadataDetails,
-  isMetadataListItemDetails,
+  isMetadataRecordsDetails,
   metadataDetailsSchema,
   metadataSchema,
-  metadataListItemInputSchema,
+  metadataRecordsSchema,
   type Metadata,
   type MetadataDetailsUnion,
-  type MetadataListItem
+  type MetadataRecords
 } from '@/schemas/models/metadata';
 import {
   apiRecordsResponseSchema,
@@ -23,8 +23,8 @@ import type { ZodIssue } from 'zod';
 const api = createApi();
 
 interface MetadataStoreState {
-  cache: Map<string, MetadataListItem | Metadata>;
-  records: MetadataListItem[];
+  cache: Map<string, MetadataRecords | Metadata>;
+  records: MetadataRecords[];
   currentRecord: Metadata | null;
   details: MetadataDetailsUnion | null;
   isLoading: boolean;
@@ -58,7 +58,7 @@ export const useMetadataStore = defineStore('metadata', {
         if (isMetadataDetails(state.details)) {
           return state.details.is_destroyed;
         }
-        if (isMetadataListItemDetails(state.details)) {
+        if (isMetadataRecordsDetails(state.details)) {
           return state.details.received.some(r => r.key === state.currentRecord?.key);
         }
       }
@@ -100,7 +100,7 @@ export const useMetadataStore = defineStore('metadata', {
       this.isLoading = true;
 
       try {
-        const response = await api.get<ApiRecordsResponse<MetadataListItem>>(
+        const response = await api.get<ApiRecordsResponse<MetadataRecords>>(
           '/api/v2/private/recent',
           {
             signal: this.abortController.signal,
@@ -108,11 +108,11 @@ export const useMetadataStore = defineStore('metadata', {
         );
 
         const validated = transformResponse(
-          apiRecordsResponseSchema(metadataListItemInputSchema),
+          apiRecordsResponseSchema(metadataRecordsSchema),
           response.data
         );
 
-        this.records = validated.records.map(record => metadataListItemInputSchema.parse(record));
+        this.records = validated.records.map(record => metadataRecordsSchema.parse(record));
         if (validated.details) {
           this.details = metadataDetailsSchema.parse(validated.details);
         } else {
@@ -121,7 +121,7 @@ export const useMetadataStore = defineStore('metadata', {
 
         // Cache management - store list items
         validated.records.forEach((record) => {
-          const parsed = metadataListItemInputSchema.parse(record);
+          const parsed = metadataRecordsSchema.parse(record);
           this.cache.set(parsed.key, parsed);
         });
 

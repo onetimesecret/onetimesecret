@@ -5,7 +5,7 @@ import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/dom
 import {
   concealDataInputSchema,
   metadataDetailsInputSchema,
-  metadataListItemDetailsInputSchema,
+  metadataRecordsDetailsInputSchema,
   metadataSchema,
 } from '@/schemas/models/metadata';
 import { secretDetailsInputSchema, secretInputSchema } from '@/schemas/models/secret';
@@ -21,7 +21,7 @@ export interface AsyncDataResult<T> {
 export const metadataRecordResponseSchema = apiResponseBaseSchema.extend({
   record: metadataSchema,
   details: z.discriminatedUnion('type', [
-    metadataListItemDetailsInputSchema,
+    metadataRecordsDetailsInputSchema,
     metadataDetailsInputSchema,
   ]).optional(),
 });

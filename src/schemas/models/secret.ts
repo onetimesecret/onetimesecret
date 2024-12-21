@@ -1,9 +1,8 @@
 // src/schemas/models/secret.ts
 
-import { baseRecordSchema } from '@/schemas/models/base'
-import { type DetailsType } from '@/schemas/models/base'
-import { booleanFromString } from '@/utils/transforms'
-import { z } from 'zod'
+import { baseModelSchema, type DetailsType } from '@/schemas/models/base';
+import { transforms } from '@/utils/transforms';
+import { z } from 'zod';
 
 // Add state enum
 export const SecretState = {
@@ -11,38 +10,31 @@ export const SecretState = {
   RECEIVED: 'received',
   BURNED: 'burned',
   VIEWED: 'viewed',
-} as const
+} as const;
 
 // Base schema for core fields
 // Base schema for core fields
 const secretBaseSchema = z.object({
   key: z.string(),
   shortkey: z.string(),
-  state: z.enum([
-    SecretState.NEW,
-    SecretState.RECEIVED,
-    SecretState.BURNED,
-    SecretState.VIEWED
-  ]),
-  is_truncated: booleanFromString,
-  has_passphrase: booleanFromString,
-  verification: booleanFromString,
+  state: z.enum([SecretState.NEW, SecretState.RECEIVED, SecretState.BURNED, SecretState.VIEWED]),
+  is_truncated: transforms.fromString.boolean,
+  has_passphrase: transforms.fromString.boolean,
+  verification: transforms.fromString.boolean,
   secret_value: z.string().optional(),
-})
+});
 
-export const secretListInputSchema = baseRecordSchema
-  .merge(secretBaseSchema)
-  .strip()
+export const secretListInputSchema = baseModelSchema.merge(secretBaseSchema).strip();
 
 // Full secret schema with all fields
-export const secretInputSchema = baseRecordSchema
+export const secretInputSchema = baseModelSchema
   .merge(secretBaseSchema)
   .extend({
     secret_ttl: z.number().nullable(),
     lifespan: z.string(),
     original_size: z.string(),
   })
-  .strip()
+  .strip();
 
 // Enhanced details schema
 export const secretDetailsInputSchema = z.object({
@@ -52,19 +44,18 @@ export const secretDetailsInputSchema = z.object({
   correct_passphrase: z.boolean(),
   display_lines: z.number(),
   one_liner: z.boolean().nullable(),
-})
-
+});
 
 // Export types
-export type Secret = z.infer<typeof secretInputSchema>
-export type SecretDetails = z.infer<typeof secretDetailsInputSchema> & DetailsType
-export type SecretList = z.infer<typeof secretListInputSchema>
+export type Secret = z.infer<typeof secretInputSchema>;
+export type SecretDetails = z.infer<typeof secretDetailsInputSchema> & DetailsType;
+export type SecretList = z.infer<typeof secretListInputSchema>;
 
 // Response schemas
 export const secretResponseSchema = z.object({
   success: z.boolean(),
   record: secretInputSchema,
-  details: secretDetailsInputSchema
-})
+  details: secretDetailsInputSchema,
+});
 
-export type SecretResponse = z.infer<typeof secretResponseSchema>
+export type SecretResponse = z.infer<typeof secretResponseSchema>;

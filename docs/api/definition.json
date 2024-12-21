@@ -2647,7 +2647,7 @@
           }
         }
       },
-      "metadataListItemDetailsInputSchema": {
+      "metadataRecordsDetailsInputSchema": {
         "type": "object",
         "properties": {
           "title": {

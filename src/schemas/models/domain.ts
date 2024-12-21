@@ -1,6 +1,6 @@
 // src/schemas/models/domain.ts
-import { baseRecordSchema } from '@/schemas/models/base'
-import { booleanFromString } from '@/utils/transforms'
+import { baseModelSchema } from '@/schemas/models/base'
+import { transforms } from '@/utils/transforms'
 import { z } from 'zod'
 
 import { brandSettingsInputSchema } from './domain/brand'
@@ -38,8 +38,8 @@ const customDomainBaseSchema = z.object({
   _original_value: z.string(),
 
   // Boolean fields that come as strings from API
-  is_apex: booleanFromString,
-  verified: booleanFromString,
+  is_apex: transforms.fromString.boolean,
+  verified: transforms.fromString.boolean,
 
   // Validation fields
   txt_validation_host: z.string(),
@@ -66,9 +66,9 @@ const customDomainBaseSchema = z.object({
 // The .strip() modifier removes all unknown properties throughout the entire
 // object hierarchy after validation. This ensures our domain objects maintain
 // a consistent shape regardless of API response variations.
-export const customDomainInputSchema = baseRecordSchema.merge(customDomainBaseSchema).strip();
+export const customDomainInputSchema = baseModelSchema.merge(customDomainBaseSchema).strip();
 
-//export const customDomainInputSchema = baseRecordSchema.merge(
+//export const customDomainInputSchema = baseModelSchema.merge(
 //  customDomainBaseSchema.partial() // Makes all fields optional temporarily
 //)
 
