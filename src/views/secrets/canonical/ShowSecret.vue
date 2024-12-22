@@ -130,18 +130,18 @@ const closeWarning = (event: Event) => {
 
       <div v-if="!details.show_secret">
         <SecretConfirmationForm
-          :secretKey="secretKey"
+          :secret-key="secretKey"
           :record="record"
           :details="details"
-          :domainId="domainId"
-          :submissionStatus="submissionStatus"
+          :domain-id="domainId"
+          :submission-status="submissionStatus"
           @secret-loaded="handleSecretLoaded"
           @submission-status="handleSubmissionStatus"
         />
 
         <div v-if="!record.verification">
           <SecretRecipientOnboardingContent
-            :displayPoweredBy="true"
+            :display-powered-by="true"
           />
         </div>
       </div>
@@ -156,10 +156,10 @@ const closeWarning = (event: Event) => {
         </h2>
 
         <SecretDisplayCase
-          :displayPoweredBy="true"
+          :display-powered-by="true"
           :record="record"
           :details="details"
-          :submissionStatus="submissionStatus"
+          :submission-status="submissionStatus"
           aria-labelledby="secret-heading"
           @secret-loaded="handleSecretLoaded"
           @submission-status="handleSubmissionStatus"

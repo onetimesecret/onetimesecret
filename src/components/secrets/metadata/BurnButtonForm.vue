@@ -45,6 +45,5 @@ defineProps<Props>()
     <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
       * {{ $t('web.COMMON.burn_this_secret_hint') }}.
     </p>
-
   </div>
 </template>

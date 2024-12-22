@@ -61,8 +61,8 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 
 <template>
   <BaseSecretDisplay
-    defaultTitle="You have a message"
-    :domainBranding="domainBranding"
+    default-title="You have a message"
+    :domain-branding="domainBranding"
     :instructions="domainBranding?.instructions_pre_reveal">
     <template #logo>
       <!-- Brand Icon -->

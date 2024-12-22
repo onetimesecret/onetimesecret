@@ -147,7 +147,7 @@ const handleDelete = (domainId: string) => {
                 v-if="cust?.feature_flags?.homepage_toggle"
                 class="flex justify-center">
                 <HomepageAccessToggle
-                  :modelValue="!!domain.brand?.allow_public_homepage"
+                  :model-value="!!domain.brand?.allow_public_homepage"
                   :disabled="isToggling(domain.display_domain)"
                   @update:model-value="$emit('toggle-homepage', domain)"
                 />

@@ -58,7 +58,7 @@ const closeTruncatedWarning = (event: Event) => {
 </script>
 
 <template>
-  <BaseSecretDisplay :displayPoweredBy="displayPoweredBy">
+  <BaseSecretDisplay :display-powered-by="displayPoweredBy">
     <!-- Alert display -->
     <div
       v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"

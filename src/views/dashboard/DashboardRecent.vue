@@ -2,7 +2,7 @@
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
-import { MetadataRecords } from '@/schemas/models/metadata';
+import { MetadataRecords } from '@/schemas/api/endpoints';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, computed } from 'vue';
@@ -12,14 +12,14 @@ const { records, details, isLoading, error } = storeToRefs(store);
 
 // Add computed properties for received and not received items
 const receivedItems = computed(() => {
-  if (details.value && isMetadataRecordsDetails(details.value)) {
+  if (details.value) {
     return details.value.received;
   }
   return [] as MetadataRecords[];
 });
 
 const notReceivedItems = computed(() => {
-  if (details.value && isMetadataRecordsDetails(details.value)) {
+  if (details.value) {
     return details.value.notreceived;
   }
   return [] as MetadataRecords[];
@@ -47,9 +47,9 @@ onUnmounted(() => {
     <div v-else>
       <SecretMetadataTable
         v-if="records.length > 0"
-        :notReceived="notReceivedItems"
+        :not-received="notReceivedItems"
         :received="receivedItems"
-        :isLoading="isLoading"
+        :is-loading="isLoading"
       />
       <EmptyState v-else />
     </div>

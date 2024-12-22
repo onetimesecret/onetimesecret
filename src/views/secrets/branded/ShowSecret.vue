@@ -78,12 +78,12 @@ watch(finalRecord, (newValue) => {
         <!-- Secret Content -->
         <component
           :is="details.show_secret ? SecretDisplayCase : SecretConfirmationForm"
-          :secretKey="secretKey"
+          :secret-key="secretKey"
           :record="record"
           :details="details"
-          :domainId="domainId"
-          :displayPoweredBy="true"
-          :submissionStatus="submissionStatus"
+          :domain-id="domainId"
+          :display-powered-by="true"
+          :submission-status="submissionStatus"
           @secret-loaded="handleSecretLoaded"
           @submission-status="handleSubmissionStatus"
         />

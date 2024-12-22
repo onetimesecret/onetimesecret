@@ -3,10 +3,10 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import MoreInfoText from "@/components/MoreInfoText.vue";
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { type CustomDomainResponse, customDomainResponseSchema } from '@/schemas/api/responses';
+import { type CustomDomainResponse, responseSchemas } from '@/schemas/api/responses';
+import { CustomDomain } from '@/schemas/models'
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-
 
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);
@@ -25,7 +25,7 @@ const fetchDomain = async (): Promise<void> => {
     }
 
     const rawData = await response.json();
-    const json = customDomainResponseSchema.parse(rawData);
+    const json = responseSchemas.customDomain.parse(rawData);
     console.debug('json', json);
 
     domain.value = json.record;
@@ -90,8 +90,8 @@ onMounted(() => {
     </p>
 
     <MoreInfoText
-      textColor="text-brandcomp-800 dark:text-gray-100"
-      bgColor="bg-white dark:bg-gray-800">
+      text-color="text-brandcomp-800 dark:text-gray-100"
+      bg-color="bg-white dark:bg-gray-800">
       <div class="prose p-6">
         <div class="max-w-xl text-base text-gray-600 dark:text-gray-300">
           <p>
@@ -132,7 +132,7 @@ onMounted(() => {
       v-if="domain && cluster"
       :domain="domain"
       :cluster="cluster"
-      :withVerifyCTA="allowVerifyCTA"
+      :with-verify-c-t-a="allowVerifyCTA"
       @domain-verify="handleDomainVerify"
     />
     <p

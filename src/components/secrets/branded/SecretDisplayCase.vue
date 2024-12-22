@@ -58,9 +58,9 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 
 <template>
   <BaseSecretDisplay
-    defaultTitle="You have a message"
+    default-title="You have a message"
     :instructions="domainBranding?.instructions_pre_reveal"
-    :domainBranding="domainBranding">
+    :domain-branding="domainBranding">
     <!-- Alert display -->
     <div
       v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"

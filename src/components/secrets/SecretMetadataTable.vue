@@ -36,7 +36,7 @@ defineProps<Props>();
             v-for="item in notReceived"
             :key="item.key">
             <!-- Assuming there's a component for li_metadata -->
-            <SecretMetadataTableItem :secretMetadata="item" />
+            <SecretMetadataTableItem :secret-metadata="item" />
           </li>
         </ul>
         <p
@@ -62,7 +62,7 @@ defineProps<Props>();
             v-for="item in received"
             :key="item.key">
             <!-- Assuming there's a component for li_metadata -->
-            <SecretMetadataTableItem :secretMetadata="item" />
+            <SecretMetadataTableItem :secret-metadata="item" />
           </li>
         </ul>
         <p

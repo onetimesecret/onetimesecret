@@ -75,7 +75,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4">
+  <div class="mx-auto max-w-4xl px-4">
     <DashboardTabNav />
     <BasicFormAlerts :error="error" />
 
@@ -112,7 +112,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Recipients Section -->
-      <div v-if="details.show_recipients" class="py-4 border-t border-gray-100 dark:border-gray-800">
+      <div v-if="details.show_recipients" class="border-t border-gray-100 py-4 dark:border-gray-800">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
           {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
         </h3>
@@ -154,7 +154,7 @@ onUnmounted(() => {
       <MetadataFAQ
         :metadata="record"
         :details="details"
-        class="border-t border-gray-100 dark:border-gray-800 pt-8"
+        class="border-t border-gray-100 pt-8 dark:border-gray-800"
       />
     </div>
   </div>

@@ -47,8 +47,8 @@ onMounted(() => {
 <template>
   <DropdownToggle
     ref="dropdownRef"
-    ariaLabel="Change language"
-    openDirection="down">
+    aria-label="Change language"
+    open-direction="down">
     <template #button-content>
       <svg
         xmlns="http://www.w3.org/2000/svg"

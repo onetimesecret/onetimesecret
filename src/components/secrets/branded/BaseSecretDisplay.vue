@@ -131,7 +131,7 @@
                 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
               <slot
                 name="expand-button"
-                :isExpanded="isExpanded">
+                :is-expanded="isExpanded">
                 {{ isExpanded ? 'Show Less' : 'Show More' }}
               </slot>
             </button>
