@@ -56,12 +56,16 @@ export const createApiResponseSchema = <
   });
 };
 
-export const createApiListResponseSchema = <TRecord extends z.ZodTypeAny>(
-  recordSchema: TRecord
+export const createApiListResponseSchema = <
+  TRecord extends z.ZodTypeAny,
+  TDetails extends z.ZodTypeAny | undefined = undefined,
+>(
+  recordSchema: TRecord,
+  detailsSchema?: TDetails
 ) => {
   return apiResponseBaseSchema.extend({
     records: z.array(recordSchema),
-    details: z.record(z.string(), z.unknown()).optional(),
+    details: resolveDetailsSchema(detailsSchema).optional(),
     count: transforms.fromString.number.optional(),
   });
 };

@@ -1,12 +1,12 @@
 // stores/metadataStore.ts
+
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
-import { createApiError, zodErrorToApiError } from '@/schemas/api/errors';
+import { handleError } from '@/schemas/api/errors'; // Remove createApiError import
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { MetadataState } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
-import { z } from 'zod';
 
 const api = createApi();
 
@@ -18,52 +18,53 @@ interface StoreState {
   isLoadingDetail: boolean;
   isLoadingList: boolean;
 }
-export { StoreState as MetadataStoreState };
 
 export const useMetadataStore = defineStore('metadata', {
-  state: (): StoreState => ({
+  state: (): StoreState & { isLoading: boolean; error: null | Error } => ({
     currentRecord: null,
     currentDetails: null,
     listRecords: [],
     listDetails: null,
     isLoadingDetail: false,
     isLoadingList: false,
+    isLoading: false,
+    error: null,
   }),
 
   getters: {
-    canBurn: (state): boolean => {
+    canBurn(state): boolean {
       if (!state.currentRecord) return false;
+      const validStates = [
+        MetadataState.NEW,
+        MetadataState.SHARED,
+        MetadataState.VIEWED,
+      ] as const;
       return (
-        [MetadataState.NEW, MetadataState.SHARED, MetadataState.VIEWED].includes(
-          state.currentRecord.state
-        ) && !state.currentRecord.is_burned
+        validStates.includes(state.currentRecord.state as (typeof validStates)[number]) &&
+        !state.currentRecord.burned // this date field is only set after burning
       );
     },
   },
 
   actions: {
-    handleApiError(error: unknown): never {
-      if (error instanceof z.ZodError) {
-        throw zodErrorToApiError(error);
-      }
-      if (error instanceof Error && 'status' in error && error.status === 404) {
-        throw createApiError('NOT_FOUND', 'NOT_FOUND', 'Metadata not found');
-      }
-      throw createApiError(
-        'SERVER',
-        'SERVER_ERROR',
-        error instanceof Error ? error.message : 'Failed to fetch metadata'
-      );
+    handleError(error: unknown): never {
+      const apiError = handleError(error);
+      this.error = apiError;
+      throw apiError;
     },
 
     async fetchOne(key: string) {
+      this.isLoadingDetail = true;
       try {
         const response = await api.get(`/api/v2/private/${key}`);
         const validated = responseSchemas.metadata.parse(response.data);
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
+        return validated;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
+      } finally {
+        this.isLoadingDetail = false;
       }
     },
 
@@ -74,12 +75,9 @@ export const useMetadataStore = defineStore('metadata', {
         const validated = responseSchemas.metadataList.parse(response.data);
         this.listRecords = validated.records;
         this.listDetails = validated.details;
+        return validated;
       } catch (error) {
-        throw createApiError(
-          'SERVER',
-          'SERVER_ERROR',
-          error instanceof Error ? error.message : 'Failed to fetch metadata list'
-        );
+        this.handleError(error);
       } finally {
         this.isLoadingList = false;
       }
@@ -87,13 +85,10 @@ export const useMetadataStore = defineStore('metadata', {
 
     async burn(key: string, passphrase?: string) {
       if (!this.canBurn) {
-        throw createApiError(
-          'VALIDATION',
-          'VALIDATION_ERROR',
-          'Cannot burn this metadata'
-        );
+        this.handleError(new Error('Cannot burn this metadata'));
       }
 
+      this.isLoadingDetail = true;
       try {
         const response = await api.post(`/api/v2/private/${key}/burn`, {
           passphrase,
@@ -102,12 +97,11 @@ export const useMetadataStore = defineStore('metadata', {
         const validated = responseSchemas.metadata.parse(response.data);
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
+        return validated;
       } catch (error) {
-        throw createApiError(
-          'SERVER',
-          'SERVER_ERROR',
-          error instanceof Error ? error.message : 'Failed to burn metadata'
-        );
+        this.handleError(error);
+      } finally {
+        this.isLoadingDetail = false;
       }
     },
   },

@@ -5,7 +5,11 @@ import {
   checkAuthDetailsSchema,
 } from '@/schemas/api/endpoints/account';
 import { colonelDataResponseSchema } from '@/schemas/api/endpoints/colonel';
-import { concealDataSchema } from '@/schemas/api/endpoints/index';
+import {
+  concealDataSchema,
+  metadataRecordsDetailsSchema,
+  metadataRecordsSchema,
+} from '@/schemas/api/endpoints/index';
 import { customDomainSchema, customerSchema, secretListSchema } from '@/schemas/models';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import { feedbackDetailsSchema, feedbackSchema } from '@/schemas/models/feedback';
@@ -37,7 +41,10 @@ export const responseSchemas = {
 
   // List responses
   customDomainList: createApiListResponseSchema(customDomainSchema),
-  metadataList: createApiListResponseSchema(metadataSchema),
+  metadataList: createApiListResponseSchema(
+    metadataRecordsSchema,
+    metadataRecordsDetailsSchema
+  ),
   secretList: createApiListResponseSchema(secretListSchema),
 
   // Special responses

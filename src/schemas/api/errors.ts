@@ -1,58 +1,21 @@
-// src/schemas/api/errors.ts
+// schemas/api/errors.ts
 
+import { AxiosError } from 'axios';
 import { z } from 'zod';
 
-import { apiErrorResponseSchema } from './base';
-
-/**
-* try {
-  const data = secretSchema.parse(input);
-  return data;
-} catch (error) {
-  if (error instanceof z.ZodError) {
-    throw zodErrorToApiError(error);
-  }
-
-  // Handle other errors
-  throw createApiError(
-    'SERVER',
-    'SERVER_ERROR',
-    'An unexpected error occurred'
-  );
-}
-
-// Example for auth errors
-const handleAuth = () => {
-  if (!authenticated) {
-    throw createApiError(
-      'AUTH',
-      'INVALID_AUTH',
-      'Invalid authentication credentials'
-    );
+// First, let's define our base error class
+export class ApiError extends Error {
+  constructor(
+    public code: number,
+    message: string,
+    public details?: unknown
+  ) {
+    super(message);
+    this.name = this.constructor.name;
   }
 }
 
-1. Consistent error structure across the API
-2. Type-safe error creation
-3. Proper mapping from Zod validation errors
-4. Reusable error helpers
-
-When using this in components/stores:
-
-```typescript
-try {
-  await api.createSecret(data);
-} catch (error) {
-  if (isApiError(error)) { // Type guard we could add
-    // We now have typed error info
-    if (error.type === ErrorType.VALIDATION) {
-      // Handle validation error
-      console.log(`Field ${error.field} invalid: ${error.message}`);
-    }
-  }
-}
-```
-*/
+// Existing error type definitions...
 export const ErrorCode = {
   INVALID_AUTH: 401,
   NOT_FOUND: 404,
@@ -69,86 +32,35 @@ export const ErrorType = {
   SERVER: 'server_error',
 } as const;
 
-// Domain error schema
-export const apiErrorSchema = apiErrorResponseSchema.extend({
-  type: z.enum([
-    ErrorType.AUTH,
-    ErrorType.NOT_FOUND,
-    ErrorType.PERMISSION,
-    ErrorType.VALIDATION,
-    ErrorType.SERVER,
-  ]),
-  code: z.nativeEnum(ErrorCode),
-  field: z.string().optional(),
-});
-
-export type ApiError = z.infer<typeof apiErrorSchema>;
-
-// Helper to convert Zod errors to domain errors
-export function isApiError(error: unknown): error is ApiError {
-  return (
-    error !== null && typeof error === 'object' && 'type' in error && 'code' in error
-  );
-}
-
-// Improve zod error handling to preserve context
-export const zodErrorToApiError = (error: z.ZodError): ApiError => {
-  const firstError = error.errors[0];
-  return {
-    success: false,
-    type: ErrorType.VALIDATION,
-    code: ErrorCode.VALIDATION_ERROR,
-    message: firstError.message,
-    field: firstError.path.join('.'),
-    record: null,
-    shrimp: '',
-    details: {
-      errors: error.errors.map((err) => ({
+// Unified error handler
+export function handleError(error: unknown): ApiError {
+  // Zod validation errors
+  if (error instanceof z.ZodError) {
+    const firstError = error.errors[0];
+    return new ApiError(ErrorCode.VALIDATION_ERROR, firstError.message, {
+      type: ErrorType.VALIDATION,
+      field: firstError.path.join('.'),
+      details: error.errors.map((err) => ({
         path: err.path,
         message: err.message,
       })),
-    },
-  };
-};
+    });
+  }
 
-export const createApiError = (
-  type: keyof typeof ErrorType,
-  code: keyof typeof ErrorCode,
-  message: string,
-  field?: string
-): ApiError => ({
-  success: false,
-  type: ErrorType[type],
-  code: ErrorCode[code],
-  message,
-  field,
-  record: null,
-  shrimp: '', // Add required field
-  details: {},
-});
+  // API errors
+  if (error instanceof AxiosError) {
+    const status = error.response?.status || ErrorCode.SERVER_ERROR;
+    return new ApiError(status, error.message);
+  }
 
-export enum ValidationErrorType {
-  SCHEMA = 'schema_validation',
-  BUSINESS = 'business_validation',
-  TRANSFORM = 'transform_validation',
+  // Already handled errors
+  if (error instanceof ApiError) {
+    return error;
+  }
+
+  // Unexpected errors
+  return new ApiError(
+    ErrorCode.SERVER_ERROR,
+    error instanceof Error ? error.message : 'An unexpected error occurred'
+  );
 }
-
-export interface ValidationError {
-  type: ValidationErrorType;
-  field?: string;
-  message: string;
-  errors?: z.ZodError[]; // For schema validation
-}
-
-// Enhanced error creation
-export const createValidationError = (
-  type: ValidationErrorType,
-  message: string,
-  field?: string,
-  errors?: z.ZodError[]
-): ValidationError => ({
-  type,
-  message,
-  field,
-  errors,
-});
