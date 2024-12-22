@@ -4,19 +4,19 @@ import {
   secretResponseSchema,
   type Secret,
   type SecretDetails,
-  type SecretResponse
+  type SecretResponse,
 } from '@/schemas/models/secret';
+import { isTransformError, transformResponse } from '@/schemas/transforms';
 import { createApi } from '@/utils/api';
-import { isTransformError, transformResponse } from '@/utils/transforms';
 import { defineStore } from 'pinia';
 
-const api = createApi()
+const api = createApi();
 
 interface SecretState {
-  record: Secret | null
-  details: SecretDetails | null
-  isLoading: boolean
-  error: string | null
+  record: Secret | null;
+  details: SecretDetails | null;
+  isLoading: boolean;
+  error: string | null;
 }
 
 /**
@@ -28,7 +28,7 @@ export const useSecretsStore = defineStore('secrets', {
     record: null,
     details: null,
     isLoading: false,
-    error: null
+    error: null,
   }),
 
   actions: {
@@ -37,32 +37,27 @@ export const useSecretsStore = defineStore('secrets', {
      * Used by route resolver and initial component mount
      */
     async loadSecret(secretKey: string) {
-      this.isLoading = true
+      this.isLoading = true;
       try {
-        const response = await api.get<SecretResponse>(`/api/v2/secret/${secretKey}`)
+        const response = await api.get<SecretResponse>(`/api/v2/secret/${secretKey}`);
 
-        const validated = transformResponse(
-          secretResponseSchema,
-          response.data
-        )
+        const validated = transformResponse(secretResponseSchema, response.data);
 
-        this.record = validated.record
-        this.details = validated.details
-        this.error = null
+        this.record = validated.record;
+        this.details = validated.details;
+        this.error = null;
 
-        return validated
-
+        return validated;
       } catch (error) {
         if (isTransformError(error)) {
-          console.error('Secret validation failed:', error.details)
-          this.error = 'Invalid server response'
+          console.error('Secret validation failed:', error.details);
+          this.error = 'Invalid server response';
         } else {
-          this.error = error instanceof Error ? error.message : 'Failed to load secret'
+          this.error = error instanceof Error ? error.message : 'Failed to load secret';
         }
-        throw error
-
+        throw error;
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     },
 
@@ -71,37 +66,32 @@ export const useSecretsStore = defineStore('secrets', {
      * Handles passphrase verification if required
      */
     async revealSecret(secretKey: string, passphrase?: string) {
-      this.isLoading = true
+      this.isLoading = true;
       try {
         const response = await api.post<SecretResponse>(`/api/v2/secret/${secretKey}/reveal`, {
           passphrase,
-          continue: true
-        })
+          continue: true,
+        });
 
-        const validated = transformResponse(
-          secretResponseSchema,
-          response.data
-        )
+        const validated = transformResponse(secretResponseSchema, response.data);
 
-        this.record = validated.record
-        this.details = validated.details
-        this.error = null
+        this.record = validated.record;
+        this.details = validated.details;
+        this.error = null;
 
-        return validated
-
+        return validated;
       } catch (error) {
         if (isTransformError(error)) {
-          console.error('Secret validation failed:', error.details)
-          this.error = 'Invalid server response'
+          console.error('Secret validation failed:', error.details);
+          this.error = 'Invalid server response';
         } else {
-          const message = error instanceof Error ? error.message : 'Failed to reveal secret'
-          this.error = message
+          const message = error instanceof Error ? error.message : 'Failed to reveal secret';
+          this.error = message;
           // Preserve existing record/details on error
         }
-        throw error
-
+        throw error;
       } finally {
-        this.isLoading = false
+        this.isLoading = false;
       }
     },
 
@@ -110,9 +100,9 @@ export const useSecretsStore = defineStore('secrets', {
      * Used when navigating away or after errors
      */
     clearSecret() {
-      this.record = null
-      this.details = null
-      this.error = null
-    }
-  }
-})
+      this.record = null;
+      this.details = null;
+      this.error = null;
+    },
+  },
+});

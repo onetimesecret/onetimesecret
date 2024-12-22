@@ -1,20 +1,21 @@
-
 import { metadataBaseSchema } from '@/schemas/models';
-import { transforms } from '@/utils/transforms';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 // Metadata shape in list view
-export const metadataRecordsSchema = metadataBaseSchema.merge(z.object({
-  custid: z.string(),
-  secret_ttl: z.union([z.string(), z.number()]).transform(Number),
-  show_recipients: transforms.fromString.boolean,
-  is_received: transforms.fromString.boolean,
-  is_burned: transforms.fromString.boolean,
-  is_orphaned: transforms.fromString.boolean,
-  is_destroyed: transforms.fromString.boolean,
-  is_truncated: transforms.fromString.boolean,
-  identifier: z.string(),
-}));
+export const metadataRecordsSchema = metadataBaseSchema.merge(
+  z.object({
+    custid: z.string(),
+    secret_ttl: z.union([z.string(), z.number()]).transform(Number),
+    show_recipients: transforms.fromString.boolean,
+    is_received: transforms.fromString.boolean,
+    is_burned: transforms.fromString.boolean,
+    is_orphaned: transforms.fromString.boolean,
+    is_destroyed: transforms.fromString.boolean,
+    is_truncated: transforms.fromString.boolean,
+    identifier: z.string(),
+  })
+);
 
 // The details for each record in list view
 export const metadataRecordsDetailsSchema = z.object({

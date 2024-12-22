@@ -1,6 +1,5 @@
 // src/schemas/models/domain/brand.ts
-
-import { transforms } from '@/utils/transforms';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
@@ -19,13 +18,13 @@ import { z } from 'zod';
 enum FontFamily {
   SANS = 'sans',
   SERIF = 'serif',
-  MONO = 'mono'
+  MONO = 'mono',
 }
 
 enum CornerStyle {
   ROUNDED = 'rounded',
   PILL = 'pill',
-  SQUARE = 'square'
+  SQUARE = 'square',
 }
 
 // 2. Options arrays
@@ -36,26 +35,26 @@ const cornerStyleOptions = Object.values(CornerStyle) as [string, ...string[]];
 const fontDisplayMap: Record<FontFamily, string> = {
   [FontFamily.SANS]: 'Sans Serif',
   [FontFamily.SERIF]: 'Serif',
-  [FontFamily.MONO]: 'Monospace'
+  [FontFamily.MONO]: 'Monospace',
 };
 
 const cornerStyleDisplayMap: Record<CornerStyle, string> = {
   [CornerStyle.ROUNDED]: 'Rounded',
   [CornerStyle.PILL]: 'Pill Shape',
-  [CornerStyle.SQUARE]: 'Square'
+  [CornerStyle.SQUARE]: 'Square',
 };
 
 // 4. Icon maps
 const fontIconMap: Record<FontFamily, string> = {
   [FontFamily.SANS]: 'ph:text-aa-bold',
   [FontFamily.SERIF]: 'ph:text-t-bold',
-  [FontFamily.MONO]: 'ph:code'
+  [FontFamily.MONO]: 'ph:code',
 };
 
 const cornerStyleIconMap: Record<CornerStyle, string> = {
   [CornerStyle.ROUNDED]: 'tabler:border-corner-rounded',
   [CornerStyle.PILL]: 'tabler:border-corner-pill',
-  [CornerStyle.SQUARE]: 'tabler:border-corner-square'
+  [CornerStyle.SQUARE]: 'tabler:border-corner-square',
 };
 
 export const brandSettingschema = z.object({
@@ -72,15 +71,17 @@ export const brandSettingschema = z.object({
   corner_style: z.enum(cornerStyleOptions).optional(),
 });
 
-export const imagePropsSchema = z.object({
-  encoded: z.string().optional(),
-  content_type: z.string().optional(),
-  filename: z.string().optional(),
-  bytes: z.number().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-  ratio: z.number().optional(),
-}).strip();
+export const imagePropsSchema = z
+  .object({
+    encoded: z.string().optional(),
+    content_type: z.string().optional(),
+    filename: z.string().optional(),
+    bytes: z.number().optional(),
+    width: z.number().optional(),
+    height: z.number().optional(),
+    ratio: z.number().optional(),
+  })
+  .strip();
 
 export type BrandSettings = z.infer<typeof brandSettingschema>;
 export type ImageProps = z.infer<typeof imagePropsSchema>;

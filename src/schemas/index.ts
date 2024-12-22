@@ -85,7 +85,7 @@ export type {
   AccountResponse,
   ApiTokenResponse,
   MetadataResponse,
-  SecretRecordApiResponse,
+  SecretResponse,
 } from './api/responses';
 
 export type { ColonelData } from './api/endpoints/colonel';

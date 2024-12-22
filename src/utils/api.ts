@@ -1,6 +1,6 @@
+import type { ApiErrorResponse } from '@/schemas/api';
 import { useCsrfStore } from '@/stores/csrfStore';
-import type { ApiErrorResponse } from '@/types';
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosError, AxiosInstance } from 'axios';
 
 /**
  * BACKWARDS COMPATIBILITY NOTICE:
@@ -91,35 +91,38 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
     // Add more default configuration if needed
     withCredentials: true, // Important for cross-origin requests with cookies
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  });
+
+  api.interceptors.request.use(
+    (config) => {
+      const csrfStore = useCsrfStore();
+
+      console.debug('[Axios Interceptor] Request config:', {
+        url: config.url,
+        method: config.method,
+        baseURL: config.baseURL,
+      });
+
+      // We should only need to pass the CSRF token in via form field
+      // or HTTP header and not both. The old way was form field and
+      // the new way is header so we'll do this both ways for the time
+      // being until we can remove the form field method.
+      config.data = config.data || {};
+      config.data.shrimp = csrfStore.shrimp;
+
+      config.headers = config.headers || {};
+      config.headers['O-Shrimp'] = csrfStore.shrimp;
+
+      return config;
+    },
+    (error) => {
+      console.error('[Axios Interceptor] Request error:', error);
+      return Promise.reject(error);
     }
-  });
-
-  api.interceptors.request.use((config) => {
-    const csrfStore = useCsrfStore();
-
-    console.debug('[Axios Interceptor] Request config:', {
-      url: config.url,
-      method: config.method,
-      baseURL: config.baseURL
-    });
-
-    // We should only need to pass the CSRF token in via form field
-    // or HTTP header and not both. The old way was form field and
-    // the new way is header so we'll do this both ways for the time
-    // being until we can remove the form field method.
-    config.data = config.data || {};
-    config.data.shrimp = csrfStore.shrimp;
-
-    config.headers = config.headers || {};
-    config.headers['O-Shrimp'] = csrfStore.shrimp;
-
-    return config;
-  }, (error) => {
-    console.error('[Axios Interceptor] Request error:', error);
-    return Promise.reject(error);
-  });
+  );
 
   api.interceptors.response.use(
     (response) => {
@@ -153,7 +156,7 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
         hasShrimp: !!errorData.shrimp,
         shrimp: errorData.shrimp?.slice(0, 8) + '...',
         error: error.message,
-        errorDetails: error
+        errorDetails: error,
       });
 
       // Update CSRF token if provided in the error response
@@ -181,7 +184,6 @@ const createLoggableShrimp = (shrimp: unknown): string => {
   }
   return `${shrimp.slice(0, 8)}...`;
 };
-
 
 /**
  * Default API instance without a custom domain.

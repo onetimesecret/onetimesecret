@@ -4,8 +4,8 @@ import {
   colonelDataSchema,
   type ColonelData,
 } from '@/schemas/models/colonel';
+import { isTransformError, transformResponse } from '@/schemas/transforms';
 import { createApi } from '@/utils/api';
-import { isTransformError, transformResponse } from '@/utils/transforms';
 import axios from 'axios';
 import { defineStore } from 'pinia';
 import type { ZodIssue } from 'zod';

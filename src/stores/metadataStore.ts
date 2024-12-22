@@ -12,8 +12,8 @@ import {
     metadataSchema,
     type Metadata,
 } from '@/schemas/models/metadata';
+import { isTransformError, transformResponse } from '@/schemas/transforms';
 import { createApi } from '@/utils/api';
-import { isTransformError, transformResponse } from '@/utils/transforms';
 import { defineStore } from 'pinia';
 import type { ZodIssue } from 'zod';
 

@@ -1,6 +1,6 @@
 import { createApiResponseSchema } from '@/schemas/api';
 import { customerSchema } from '@/schemas/models/customer/index';
-import { transforms } from '@/utils/transforms';
+import { transforms } from '@/schemas/transforms';
 import type Stripe from 'stripe';
 import { z } from 'zod';
 

@@ -1,6 +1,5 @@
 // src/schemas/publicSettings.ts
-
-import { transforms } from '@/utils/transforms';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
@@ -23,7 +22,8 @@ export const secretOptionsSchema = z.object({
    * Default Time-To-Live (TTL) for secrets in seconds
    * Default: 604800 (7 days in seconds)
    */
-  default_ttl: z.number()
+  default_ttl: z
+    .number()
     .int()
     .positive()
     .default(604800)
@@ -98,14 +98,16 @@ const regionsSchema = z.object({
 /**
  * Schema for the :cluster section within :domains
  */
-const clusterSchema = z.object({
-  type: z.string().optional(),
-  //  api_key: z.string().optional(),
-  cluster_ip: z.string().optional(),
-  cluster_host: z.string().optional(),
-  cluster_name: z.string(),
-  vhost_target: z.string(),
-}).strip();
+const clusterSchema = z
+  .object({
+    type: z.string().optional(),
+    //  api_key: z.string().optional(),
+    cluster_ip: z.string().optional(),
+    cluster_host: z.string().optional(),
+    cluster_name: z.string(),
+    vhost_target: z.string(),
+  })
+  .strip();
 
 /**
  * Schema for the :domains section
@@ -119,10 +121,12 @@ const domainsSchema = z.object({
 /**
  * Schema for the :authenticity section
  */
-const authenticitySchema = z.object({
-  type: z.string(),
-  //  secret_key: z.string(),
-}).strip();
+const authenticitySchema = z
+  .object({
+    type: z.string(),
+    //  secret_key: z.string(),
+  })
+  .strip();
 
 /**
  * Schema for the :plans section
@@ -144,18 +148,20 @@ const supportSchema = z.object({
 /**
  * Combined Schema for PublicSettings based on :site in config.schema.yaml
  */
-export const publicSettingsSchema = z.object({
-  host: z.string(),
-  domains: domainsSchema,
-  ssl: transforms.fromString.boolean,
-  authentication: authenticationSchema,
-  // secret: z.string(),
-  authenticity: authenticitySchema,
-  plans: plansSchema,
-  support: supportSchema,
-  regions: regionsSchema,
-  secret_options: secretOptionsSchema,
-}).strict();
+export const publicSettingsSchema = z
+  .object({
+    host: z.string(),
+    domains: domainsSchema,
+    ssl: transforms.fromString.boolean,
+    authentication: authenticationSchema,
+    // secret: z.string(),
+    authenticity: authenticitySchema,
+    plans: plansSchema,
+    support: supportSchema,
+    regions: regionsSchema,
+    secret_options: secretOptionsSchema,
+  })
+  .strict();
 
 /**
  * Inferred TypeScript type for PublicSettings

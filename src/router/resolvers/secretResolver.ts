@@ -1,6 +1,6 @@
 // src/router/resolvers/secretResolver.ts
 
-import type { AsyncDataResult, SecretRecordApiResponse } from '@/schemas/api/responses';
+import type { AsyncDataResult, SecretResponse } from '@/schemas/api/responses';
 import { useSecretsStore } from '@/stores/secretsStore';
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 
@@ -47,7 +47,7 @@ export async function resolveSecret(
     const result = await store.loadSecret(secretKey);
 
     // Structure matches existing component expectations
-    const initialData: AsyncDataResult<SecretRecordApiResponse> = {
+    const initialData: AsyncDataResult<SecretResponse> = {
       status: 200,
       data: {
         success: true,
@@ -64,7 +64,7 @@ export async function resolveSecret(
     next();
   } catch (error) {
     // Maintain same shape even for errors
-    const initialData: AsyncDataResult<SecretRecordApiResponse> = {
+    const initialData: AsyncDataResult<SecretResponse> = {
       status: error instanceof Error ? 500 : 404,
       data: null,
       error: error instanceof Error ? error.message : 'Failed to load secret',

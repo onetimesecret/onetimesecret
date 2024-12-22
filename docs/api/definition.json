@@ -747,7 +747,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SecretRecordApiResponse"
+                  "$ref": "#/components/schemas/SecretResponse"
                 }
               }
             }
@@ -773,7 +773,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SecretRecordApiResponse"
+                  "$ref": "#/components/schemas/SecretResponse"
                 }
               }
             }
@@ -1222,7 +1222,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SecretRecordApiResponse"
+                  "$ref": "#/components/schemas/SecretResponse"
                 }
               }
             }

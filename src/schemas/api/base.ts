@@ -1,4 +1,4 @@
-import { transforms } from '@/utils/transforms';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>

@@ -1,6 +1,8 @@
 import { z, ZodIssue } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 
+// TODO: Find for isTransformError, replace with Zod's built-in error handling (if (error instanceof z.ZodError))
+
 /**
  * Core string transformers for API/Redis data conversion
  *
@@ -89,6 +91,11 @@ export function isTransformError(error: unknown): error is TransformError {
 
 /**
  * Main transform functions for API responses
+ *
+ * TODO: Replace with these changes:
+ * 1. Remove `transformResponse` wrapper and used Zod's `parse` directly
+ * 2. Change `isTransformError` check to `instanceof z.ZodError`
+ * 3. Change `error.details` to `error.errors` to use Zod's native error format
  */
 export function transformResponse<T>(schema: z.ZodSchema<T>, data: unknown): T {
   try {

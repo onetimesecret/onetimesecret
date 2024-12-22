@@ -1,6 +1,6 @@
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { createModelSchema } from '@/schemas/models/base';
-import { transforms } from '@/utils/transforms';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
