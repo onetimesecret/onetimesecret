@@ -1,10 +1,11 @@
 // stores/customerStore.ts
 
-import { createDomainError } from '@/schemas/api/errors';
+import { createApiError, zodErrorToApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Customer } from '@/schemas/models/customer';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
+import { z } from 'zod';
 
 const api = createApi();
 let abortController: AbortController | null = null;
@@ -24,6 +25,17 @@ export const useCustomerStore = defineStore('customer', {
   },
 
   actions: {
+    handleApiError(error: unknown): never {
+      if (error instanceof z.ZodError) {
+        throw zodErrorToApiError(error);
+      }
+      throw createApiError(
+        'SERVER',
+        'SERVER_ERROR',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
+    },
+
     async fetchCurrentCustomer() {
       this.isLoading = true;
       abortController = new AbortController();
@@ -38,11 +50,7 @@ export const useCustomerStore = defineStore('customer', {
           console.debug('Fetch aborted');
           return;
         }
-        throw createDomainError(
-          'SERVER',
-          'SERVER_ERROR',
-          error instanceof Error ? error.message : 'Failed to fetch customer'
-        );
+        this.handleApiError(error);
       } finally {
         this.isLoading = false;
         abortController = null;
@@ -57,7 +65,7 @@ export const useCustomerStore = defineStore('customer', {
 
     async updateCustomer(updates: Partial<Customer>) {
       if (!this.currentCustomer?.custid) {
-        throw createDomainError('VALIDATION', 'VALIDATION_ERROR', 'No current customer to update');
+        throw createApiError('VALIDATION', 'VALIDATION_ERROR', 'No current customer to update');
       }
 
       try {
@@ -68,11 +76,7 @@ export const useCustomerStore = defineStore('customer', {
         const validated = responseSchemas.customer.parse(response.data);
         this.currentCustomer = validated.record;
       } catch (error) {
-        throw createDomainError(
-          'SERVER',
-          'SERVER_ERROR',
-          error instanceof Error ? error.message : 'Failed to update customer'
-        );
+        this.handleApiError(error);
       }
     },
   },

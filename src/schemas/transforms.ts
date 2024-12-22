@@ -1,5 +1,4 @@
-import { z, ZodIssue } from 'zod';
-import { fromZodError } from 'zod-validation-error';
+import { z } from 'zod';
 
 // TODO: Find for isTransformError, replace with Zod's built-in error handling (if (error instanceof z.ZodError))
 
@@ -66,51 +65,3 @@ export const transforms = {
     }, z.string().nullable().optional()),
   },
 } as const;
-
-/**
- * Transform error handling
- *
- * TODO: Could use Zod's built-in error handling?
- */
-export class TransformError extends Error {
-  public details: ZodIssue[] | string;
-  public data: unknown;
-
-  constructor(message: string, details: ZodIssue[] | string, data?: unknown) {
-    super(message);
-    this.name = 'TransformError';
-    this.details = details;
-    this.data = data;
-    Object.setPrototypeOf(this, TransformError.prototype); // Is this necessary in 2024?
-  }
-}
-
-export function isTransformError(error: unknown): error is TransformError {
-  return error instanceof TransformError;
-}
-
-/**
- * Main transform functions for API responses
- *
- * TODO: Replace with these changes:
- * 1. Remove `transformResponse` wrapper and used Zod's `parse` directly
- * 2. Change `isTransformError` check to `instanceof z.ZodError`
- * 3. Change `error.details` to `error.errors` to use Zod's native error format
- */
-export function transformResponse<T>(schema: z.ZodSchema<T>, data: unknown): T {
-  try {
-    return schema.parse(data);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.debug('Schema:', schema);
-      console.debug('Failed data:', data);
-      console.debug('Validation issues:', error.issues);
-
-      throw new TransformError('Validation failed', fromZodError(error).details);
-    } else {
-      console.error('Transform failed:', error);
-    }
-
-    return data as T;
-  }
-}

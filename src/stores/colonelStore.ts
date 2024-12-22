@@ -1,5 +1,5 @@
-import { responseSchemas, type ColonelData, type ColonelResponse } from '@/schemas/api';
-import { zodErrorToDomainError } from '@/schemas/api/errors';
+import { responseSchemas, type ColonelData } from '@/schemas/api';
+import { createApiError, zodErrorToApiError } from '@/schemas/api/errors';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 import { z } from 'zod';
@@ -20,26 +20,35 @@ export const useColonelStore = defineStore('colonel', {
   }),
 
   actions: {
-    async fetchData(): Promise<ColonelData | null> {
+    handleApiError(error: unknown): never {
+      if (error instanceof z.ZodError) {
+        throw zodErrorToApiError(error);
+      }
+      throw createApiError(
+        'SERVER',
+        'SERVER_ERROR',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
+    },
+
+    async fetchData(): Promise<ColonelData> {
       this.isLoading = true;
       this.error = null;
 
       try {
-        const response = await api.get<ColonelResponse>('/api/v2/colonel/dashboard');
+        const response = await api.get('/api/v2/colonel/dashboard');
         const validated = responseSchemas.colonel.parse(response.data);
+        // The record contains the ColonelData
         this.data = validated.record;
         return this.data;
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          const domainError = zodErrorToDomainError(error);
-          this.error = domainError.message;
-          throw error;
-        }
-        this.error = error instanceof Error ? error.message : 'Unknown error';
-        throw error;
+        this.handleApiError(error);
       } finally {
         this.isLoading = false;
       }
+
+      // This line is needed to satisfy TypeScript's control flow analysis
+      throw new Error('Unreachable - handleApiError always throws');
     },
 
     dispose() {

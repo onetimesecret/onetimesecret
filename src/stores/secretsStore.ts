@@ -1,14 +1,9 @@
-// src/stores/secretsStore.ts
-
-import {
-  secretResponseSchema,
-  type Secret,
-  type SecretDetails,
-  type SecretResponse,
-} from '@/schemas/models/secret';
-import { isTransformError, transformResponse } from '@/schemas/transforms';
+import { responseSchemas, type SecretResponse } from '@/schemas/api';
+import { createApiError, zodErrorToApiError } from '@/schemas/api/errors';
+import { type Secret, type SecretDetails } from '@/schemas/models/secret';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
+import { z } from 'zod';
 
 const api = createApi();
 
@@ -19,10 +14,6 @@ interface SecretState {
   error: string | null;
 }
 
-/**
- * Store for managing secret state and API interactions
- * Handles both initial load and reveal flows with proper validation
- */
 export const useSecretsStore = defineStore('secrets', {
   state: (): SecretState => ({
     record: null,
@@ -32,39 +23,30 @@ export const useSecretsStore = defineStore('secrets', {
   }),
 
   actions: {
-    /**
-     * Initial load of secret details (no secret value)
-     * Used by route resolver and initial component mount
-     */
     async loadSecret(secretKey: string) {
       this.isLoading = true;
       try {
         const response = await api.get<SecretResponse>(`/api/v2/secret/${secretKey}`);
-
-        const validated = transformResponse(secretResponseSchema, response.data);
-
+        const validated = responseSchemas.secret.parse(response.data);
         this.record = validated.record;
         this.details = validated.details;
         this.error = null;
-
         return validated;
       } catch (error) {
-        if (isTransformError(error)) {
-          console.error('Secret validation failed:', error.details);
-          this.error = 'Invalid server response';
-        } else {
-          this.error = error instanceof Error ? error.message : 'Failed to load secret';
+        if (error instanceof z.ZodError) {
+          throw zodErrorToApiError(error);
         }
-        throw error;
+
+        throw createApiError(
+          'SERVER',
+          'SERVER_ERROR',
+          error instanceof Error ? error.message : 'Failed to load secret'
+        );
       } finally {
         this.isLoading = false;
       }
     },
 
-    /**
-     * Reveals secret value after user confirmation
-     * Handles passphrase verification if required
-     */
     async revealSecret(secretKey: string, passphrase?: string) {
       this.isLoading = true;
       try {
@@ -72,33 +54,24 @@ export const useSecretsStore = defineStore('secrets', {
           passphrase,
           continue: true,
         });
-
-        const validated = transformResponse(secretResponseSchema, response.data);
-
+        const validated = responseSchemas.secret.parse(response.data);
         this.record = validated.record;
         this.details = validated.details;
         this.error = null;
-
         return validated;
       } catch (error) {
-        if (isTransformError(error)) {
-          console.error('Secret validation failed:', error.details);
-          this.error = 'Invalid server response';
-        } else {
-          const message = error instanceof Error ? error.message : 'Failed to reveal secret';
-          this.error = message;
-          // Preserve existing record/details on error
+        if (error instanceof z.ZodError) {
+          throw zodErrorToApiError(error);
         }
-        throw error;
+
+        const message = error instanceof Error ? error.message : 'Failed to reveal secret';
+        this.error = message;
+        throw createApiError('SERVER', 'SERVER_ERROR', message);
       } finally {
         this.isLoading = false;
       }
     },
 
-    /**
-     * Clear current secret state
-     * Used when navigating away or after errors
-     */
     clearSecret() {
       this.record = null;
       this.details = null;

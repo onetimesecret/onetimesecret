@@ -1,5 +1,6 @@
 // src/stores/domainsStore.ts
 
+import { createApiError, zodErrorToApiError } from '@/schemas';
 import { UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { BrandSettings, CustomDomain } from '@/schemas/models';
@@ -25,9 +26,13 @@ export const useDomainsStore = defineStore('domains', {
   actions: {
     handleApiError(error: unknown): never {
       if (error instanceof z.ZodError) {
-        throw new Error('Data validation failed: ' + error.message);
+        throw zodErrorToApiError(error);
       }
-      throw error instanceof Error ? error : new Error('Unknown error occurred');
+      throw createApiError(
+        'SERVER',
+        'SERVER_ERROR',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
     },
 
     async refreshDomains() {

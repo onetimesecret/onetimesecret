@@ -10,11 +10,11 @@ import { apiErrorResponseSchema } from './base';
   return data;
 } catch (error) {
   if (error instanceof z.ZodError) {
-    throw zodErrorToDomainError(error);
+    throw zodErrorToApiError(error);
   }
 
   // Handle other errors
-  throw createDomainError(
+  throw createApiError(
     'SERVER',
     'SERVER_ERROR',
     'An unexpected error occurred'
@@ -24,7 +24,7 @@ import { apiErrorResponseSchema } from './base';
 // Example for auth errors
 const handleAuth = () => {
   if (!authenticated) {
-    throw createDomainError(
+    throw createApiError(
       'AUTH',
       'INVALID_AUTH',
       'Invalid authentication credentials'
@@ -43,7 +43,7 @@ When using this in components/stores:
 try {
   await api.createSecret(data);
 } catch (error) {
-  if (isDomainError(error)) { // Type guard we could add
+  if (isApiError(error)) { // Type guard we could add
     // We now have typed error info
     if (error.type === ErrorType.VALIDATION) {
       // Handle validation error
@@ -70,7 +70,7 @@ export const ErrorType = {
 } as const;
 
 // Domain error schema
-export const domainErrorSchema = apiErrorResponseSchema.extend({
+export const apiErrorSchema = apiErrorResponseSchema.extend({
   type: z.enum([
     ErrorType.AUTH,
     ErrorType.NOT_FOUND,
@@ -82,12 +82,16 @@ export const domainErrorSchema = apiErrorResponseSchema.extend({
   field: z.string().optional(),
 });
 
-export type DomainError = z.infer<typeof domainErrorSchema>;
+export type ApiError = z.infer<typeof apiErrorSchema>;
 
 // Helper to convert Zod errors to domain errors
-export const zodErrorToDomainError = (error: z.ZodError): DomainError => {
-  const firstError = error.errors[0];
+export function isApiError(error: unknown): error is ApiError {
+  return error !== null && typeof error === 'object' && 'type' in error && 'code' in error;
+}
 
+// Improve zod error handling to preserve context
+export const zodErrorToApiError = (error: z.ZodError): ApiError => {
+  const firstError = error.errors[0];
   return {
     success: false,
     type: ErrorType.VALIDATION,
@@ -95,17 +99,22 @@ export const zodErrorToDomainError = (error: z.ZodError): DomainError => {
     message: firstError.message,
     field: firstError.path.join('.'),
     record: null,
-    shrimp: '', // Add required field
-    details: {},
+    shrimp: '',
+    details: {
+      errors: error.errors.map((err) => ({
+        path: err.path,
+        message: err.message,
+      })),
+    },
   };
 };
 
-export const createDomainError = (
+export const createApiError = (
   type: keyof typeof ErrorType,
   code: keyof typeof ErrorCode,
   message: string,
   field?: string
-): DomainError => ({
+): ApiError => ({
   success: false,
   type: ErrorType[type],
   code: ErrorCode[code],
