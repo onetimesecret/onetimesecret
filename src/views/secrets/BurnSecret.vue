@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMetadataBurn } from '@/composables/useMetadataBurn';
+import { useMetadataBurn } from '@/composables/useMetadata';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
 

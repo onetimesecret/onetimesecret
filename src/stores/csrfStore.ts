@@ -1,23 +1,29 @@
+import { type CsrfResponse } from '@/schemas/api/responses';
 import { defineStore } from 'pinia';
 
 /**
  * Store for managing CSRF token (shrimp) state and validation.
+ *
+ * Key concepts:
+ * - Token validity is determined by server validation, not just presence
+ * - Server returns both validity status and optionally a new token
+ * - Periodic validation ensures token stays valid during session
  *
  * @example
  * import { useCsrfStore } from '@/stores/csrfStore';
  *
  * const csrfStore = useCsrfStore();
  *
- * // Start periodic checks
+ * // Start periodic validation
  * csrfStore.startPeriodicCheck(60000); // Check every minute
  *
- * // Stop checks when no longer needed
+ * // Stop validation when no longer needed
  * csrfStore.stopPeriodicCheck();
  *
- * // Update the token
+ * // Update token (typically handled by API interceptors)
  * csrfStore.updateShrimp(newToken);
  *
- * // Check if the token is valid
+ * // Check if token is valid according to server
  * if (csrfStore.isValid) {
  *   // Proceed with protected action
  * } else {
@@ -26,43 +32,17 @@ import { defineStore } from 'pinia';
  */
 export const useCsrfStore = defineStore('csrf', {
   state: () => ({
-    /** The current CSRF token */
     shrimp: window.shrimp || '',
-    /** Whether the current token is valid */
     isValid: false,
-    /** ID of the interval timer for periodic checks */
     intervalChecker: null as number | null,
   }),
-  actions: {
-    /**
-     * Updates the CSRF token (shrimp).
-     * @param {string} newShrimp - The new CSRF token.
-     */
-      updateShrimp(newShrimp: string) {
-        this.shrimp = newShrimp;
-        window.shrimp = newShrimp;
-        this.isValid = true;
-      },
 
-    /**
-     * Checks the validity of the current CSRF token with the server.
-     *
-     * Expected server API:
-     * - Endpoint: '/api/v2/check-shrimp'
-     * - Method: POST
-     * - Headers:
-     *   - 'Content-Type': 'application/json'
-     *   - 'O-Shrimp': The current token
-     * - Response: JSON object with `isValid` boolean property
-     *
-     * @example
-     * // Server-side pseudocode (Python with Flask)
-     * @app.route('/api/v2/check-shrimp', methods=['POST'])
-     * def check_csrf_token():
-     *     token = request.headers.get('O-Shrimp')
-     *     is_valid = validate_csrf_token(token)  # Your validation logic
-     *     return jsonify({'isValid': is_valid})
-     */
+  actions: {
+    updateShrimp(newShrimp: string) {
+      this.shrimp = newShrimp;
+      window.shrimp = newShrimp;
+    },
+
     async checkShrimpValidity() {
       try {
         const response = await fetch('/api/v2/validate-shrimp', {
@@ -74,16 +54,11 @@ export const useCsrfStore = defineStore('csrf', {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const data = (await response.json()) as CsrfResponse;
           this.isValid = data.isValid;
-
-
-          // If the json response includes a new shrimp,
-          // let's update our shrimp state to reflect it.
-          if (data?.shrimp) {
+          if (data.shrimp) {
             this.updateShrimp(data.shrimp);
           }
-
         } else {
           this.isValid = false;
         }
@@ -93,10 +68,6 @@ export const useCsrfStore = defineStore('csrf', {
       }
     },
 
-    /**
-     * Starts periodic checks of the CSRF token validity.
-     * @param {number} intervalMs - The interval in milliseconds between checks. Defaults to 60000 (1 minute).
-     */
     startPeriodicCheck(intervalMs: number = 60000) {
       this.stopPeriodicCheck();
       this.intervalChecker = window.setInterval(() => {
@@ -104,9 +75,6 @@ export const useCsrfStore = defineStore('csrf', {
       }, intervalMs);
     },
 
-    /**
-     * Stops the periodic checks of the CSRF token validity.
-     */
     stopPeriodicCheck() {
       if (this.intervalChecker !== null) {
         clearInterval(this.intervalChecker);

@@ -58,7 +58,10 @@ const cornerStyleIconMap: Record<CornerStyle, string> = {
 };
 
 export const brandSettingschema = z.object({
-  primary_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
+  primary_color: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
+    .default('#dc4a22'), // Default to Onetime Secret brand colour
   colour: z.string().optional(),
   instructions_pre_reveal: z.string().optional(),
   instructions_reveal: z.string().optional(),
