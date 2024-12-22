@@ -1,22 +1,16 @@
+import { createApiListResponseSchema, createApiResponseSchema } from '@/schemas/api/base';
 import {
-  createApiResponseSchema,
-  createApiListResponseSchema,
-} from '@/schemas/api/base';
-import {
-  concealDataSchema,
-} from '@/schemas/api/endpoints/secrets';
-import { accountSchema, apiTokenSchema, customerSchema } from '@/schemas/models';
+  accountSchema,
+  apiTokenSchema,
+  checkAuthDetailsSchema,
+} from '@/schemas/api/endpoints/account';
+import { concealDataSchema } from '@/schemas/api/endpoints/secrets';
+import { customDomainSchema, customerSchema } from '@/schemas/models';
 import { colonelDataResponseSchema } from '@/schemas/models/colonel';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
-import { customDomainSchema } from '@/schemas/models/domain/index';
-import {
-  metadataDetailsSchema,
-  metadataSchema,
-} from '@/schemas/models/metadata';
+import { metadataDetailsSchema, metadataSchema } from '@/schemas/models/metadata';
 import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
 import { z } from 'zod';
-
-import { metadataRecordsDetailsSchema } from './endpoints/index';
 
 export interface AsyncDataResult<T> {
   data: T | null;
@@ -25,17 +19,23 @@ export interface AsyncDataResult<T> {
 }
 
 // Specific metadata response schema with properly typed details
-export const metadataRecordResponseSchema = createApiResponseSchema(metadataSchema, metadataDetailsSchema);
-
-export const metadataRecordsResponseSchema = createApiListResponseSchema();
+export const metadataRecordResponseSchema = createApiResponseSchema(
+  metadataSchema,
+  metadataDetailsSchema
+);
+export const metadataRecordsResponseSchema = createApiListResponseSchema(metadataSchema);
 
 // Specialized secret response schema
-export const secretRecordResponseSchema = createApiResponseSchema({
-  record: secretSchema,
-  details: secretDetailsSchema.optional(),
-});
+export const secretRecordResponseSchema = createApiResponseSchema(
+  secretSchema,
+  secretDetailsSchema.optional()
+);
 
 // Model-specific response schemas
+export const customerResponseSchema = createApiResponseSchema(
+  customerSchema,
+  checkAuthDetailsSchema
+);
 export const apiTokenResponseSchema = createApiResponseSchema(apiTokenSchema);
 export const customDomainResponseSchema = createApiResponseSchema(customDomainSchema);
 export const customDomainRecordsResponseSchema = createApiListResponseSchema(customDomainSchema);
@@ -51,6 +51,7 @@ export const imagePropsResponseSchema = createApiResponseSchema(imagePropsSchema
  */
 export type ApiTokenApiResponse = z.infer<typeof apiTokenResponseSchema>;
 export type CustomDomainApiResponse = z.infer<typeof customDomainResponseSchema>;
+export type CustomerResponse = z.infer<typeof customerResponseSchema>;
 export type AccountApiResponse = z.infer<typeof accountResponseSchema>;
 export type MetadataRecordApiResponse = z.infer<typeof metadataRecordResponseSchema>;
 export type SecretRecordApiResponse = z.infer<typeof secretRecordResponseSchema>;

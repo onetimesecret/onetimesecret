@@ -58,7 +58,6 @@ const cornerStyleIconMap: Record<CornerStyle, string> = {
   [CornerStyle.SQUARE]: 'tabler:border-corner-square'
 };
 
-
 export const brandSettingschema = z.object({
   primary_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
   colour: z.string().optional(),

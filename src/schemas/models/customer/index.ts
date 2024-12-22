@@ -3,7 +3,7 @@ import { createResponseSchema } from '@/schemas/models/response';
 import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
-import { FeatureFlags } from './customer/feature_flags';
+import { FeatureFlags } from './feature_flags';
 
 /**
  * @fileoverview Customer schema with simplified type boundaries
@@ -106,41 +106,3 @@ export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated
   created: Date;
   updated: Date;
 };
-
-/**
- * Schema for CheckAuthData
- * Extends Customer with an optional last_login as number
- */
-export const checkAuthDataSchema = customerSchema.extend({
-  last_login: transforms.fromString.number.optional(),
-});
-
-export type CheckAuthData = z.infer<typeof checkAuthDataSchema>;
-
-/**
- * Schema for CheckAuthDetails
- */
-export const checkAuthDetailsSchema = z.object({
-  authenticated: z.boolean(),
-});
-
-export type CheckAuthDetails = z.infer<typeof checkAuthDetailsSchema>;
-
-/**
- * API token schema
- *
- * API Token response has only two fields - apitoken and
- * active (and not the full record created/updated/identifier).
- */
-export const apiTokenSchema = z.object({
-  apitoken: z.string(),
-  active: transforms.fromString.boolean,
-});
-
-export type ApiToken = z.infer<typeof apiTokenSchema>;
-
-// API response types
-export const customerResponseSchema = createResponseSchema(customerSchema, checkAuthDetailsSchema);
-export const apiTokenResponseSchema = createResponseSchema(apiTokenSchema, z.object({}));
-export type CustomerResponse = z.infer<typeof customerResponseSchema>;
-export type ApiTokenResponse = z.infer<typeof apiTokenResponseSchema>;
