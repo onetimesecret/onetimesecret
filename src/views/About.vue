@@ -2,7 +2,7 @@
 <script setup lang="ts">
 
 import { useWindowProps } from '@/composables/useWindowProps';
-import { Plan } from '@/schemas/models/customer/index';
+import { Plan } from '@/schemas/models/customer';
 import { ref, computed } from 'vue';
 import { onMounted } from 'vue';
 

@@ -86,9 +86,11 @@
            when users navigate back to previously visited routes. It's placed
            directly around router-view since that's where route components are
            rendered. -->
-      <keep-alive>
-        <router-view class="rounded-md" />
-      </keep-alive>
+      <router-view v-slot="{ Component }" class="rounded-md">
+        <keep-alive>
+          <component :is="Component" />
+        </keep-alive>
+      </router-view>
     </Component>
 
     <!-- StatusBar positioned independently -->
