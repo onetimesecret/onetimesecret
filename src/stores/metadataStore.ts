@@ -1,19 +1,16 @@
 import {
-  apiRecordsResponseSchema,
+  metadataRecordsSchema,
+  type MetadataRecords
+} from '@/schemas/api/endpoints/index';
+import {
   metadataRecordResponseSchema,
-  type ApiRecordsResponse,
   type MetadataRecordApiResponse,
 } from '@/schemas/api/responses';
 import {
   MetadataState,
-  isMetadataDetails,
-  isMetadataRecordsDetails,
   metadataDetailsSchema,
-  metadataRecordsSchema,
   metadataSchema,
   type Metadata,
-  type MetadataDetailsUnion,
-  type MetadataRecords,
 } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
@@ -57,12 +54,12 @@ export const useMetadataStore = defineStore('metadata', {
         return true;
       }
       if (state.details) {
-        if (isMetadataDetails(state.details)) {
-          return state.details.is_destroyed;
-        }
-        if (isMetadataRecordsDetails(state.details)) {
-          return state.details.received.some((r) => r.key === state.currentRecord?.key);
-        }
+        //if (isMetadataDetails(state.details)) {
+        //  return state.details.is_destroyed;
+        //}
+        //if (isMetadataRecordsDetails(state.details)) {
+        //  return state.details.received.some((r) => r.key === state.currentRecord?.key);
+        //}
       }
       return false;
     },

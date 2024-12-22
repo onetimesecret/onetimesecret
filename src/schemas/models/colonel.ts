@@ -1,7 +1,7 @@
-import { createRecordResponseSchema, createRecordsResponseSchema } from '@/schemas/api/base';
+import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
 import { feedbackSchema } from '@/schemas/models';
 import { createModelSchema } from '@/schemas/models/base';
-import { customerSchema } from '@/schemas/models/customer';
+import { customerSchema } from '@/schemas/models/customer/index';
 import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -35,8 +35,8 @@ export const colonelDataSchema = createModelSchema({
 });
 
 // Response schemas using the specific record schemas
-export const colonelDataResponseSchema = createRecordResponseSchema(colonelDataSchema);
-export const colonelDataRecordsResponseSchema = createRecordsResponseSchema(colonelDataSchema);
+export const colonelDataResponseSchema = createApiResponseSchema(colonelDataSchema);
+export const colonelDataRecordsResponseSchema = createApiListResponseSchema(colonelDataSchema);
 
 // Export types
 export type ColonelData = z.infer<typeof colonelDataSchema>;

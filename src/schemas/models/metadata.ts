@@ -1,6 +1,5 @@
 
 import { createModelSchema } from '@/schemas/models/base';
-import { secretSchema } from '@/schemas/models/secret';
 import { transforms } from '@/utils/transforms';
 import { optional, z } from 'zod';
 
@@ -40,7 +39,7 @@ export const MetadataState = {
 } as const;
 
 // Common base schema for all metadata records
-const metadataBaseSchema = createModelSchema({
+export const metadataBaseSchema = createModelSchema({
   key: z.string(),
   shortkey: z.string(),
   secret_shortkey: z.string().optional(),
@@ -62,20 +61,8 @@ const metadataBaseSchema = createModelSchema({
   // when the metadata got into an orphaned state; only when we flagged it.
 });
 
-// The shape in list view
-export const metadataRecordsSchema = metadataBaseSchema.merge(z.object({
-  custid: z.string(),
-  secret_ttl: z.union([z.string(), z.number()]).transform(Number),
-  show_recipients: transforms.fromString.boolean,
-  is_received: transforms.fromString.boolean,
-  is_burned: transforms.fromString.boolean,
-  is_orphaned: transforms.fromString.boolean,
-  is_destroyed: transforms.fromString.boolean,
-  is_truncated: transforms.fromString.boolean,
-  identifier: z.string(),
-}));
 
-// The shape in single record view
+// Metadata shape in single record view
 export const metadataSchema = metadataBaseSchema.merge(z.object({
   secret_key: z.string().optional(),
   natural_expiration: z.string(),
@@ -88,20 +75,6 @@ export const metadataSchema = metadataBaseSchema.merge(z.object({
   burn_url: z.string(),
   identifier: z.string(),
 }));
-
-/**
- * Schema for metadata details
- */
-
-// The details for each record in list view
-export const metadataRecordsDetailsSchema = z.object({
-  type: z.literal('list'),
-  since: z.number(),
-  now: transforms.fromString.date,
-  has_items: transforms.fromString.boolean,
-  received: z.array(metadataRecordsSchema),
-  notreceived: z.array(metadataRecordsSchema),
-});
 
 // The details for each record in single record details
 export const metadataDetailsSchema = z.object({
@@ -128,40 +101,6 @@ export const metadataDetailsSchema = z.object({
   is_orphaned: transforms.fromString.boolean,
 });
 
-// Combined details schema for API responses with discriminated union
-export const metadataDetailsSchema = z.discriminatedUnion('type', [
-  metadataRecordsDetailsSchema,
-  metadataDetailsSchema,
-]);
-
 // Export types
 export type Metadata = z.infer<typeof metadataSchema>;
 export type MetadataDetails = z.infer<typeof metadataDetailsSchema>;
-export type MetadataRecords = z.infer<typeof metadataRecordsSchema>;
-export type MetadataRecordsDetails = z.infer<typeof metadataRecordsDetailsSchema>;
-export type MetadataDetailsUnion = z.infer<typeof metadataDetailsSchema>;
-
-/**
- * Schema for combined secret and metadata (conceal data)
- */
-export const concealDataSchema = z.object({
-  metadata: metadataSchema,
-  secret: secretSchema,
-  share_domain: z.string(),
-});
-
-export type ConcealData = z.infer<typeof concealDataSchema>;
-
-// Type guard to check if details are list details
-export function isMetadataRecordsDetails(
-  details: MetadataDetailsUnion | null
-): details is MetadataRecordsDetails {
-  return details !== null && details.type === 'list';
-}
-
-// Type guard to check if details are record details
-export function isMetadataDetails(
-  details: MetadataDetailsUnion | null
-): details is MetadataDetails {
-  return details !== null && details.type === 'record';
-}

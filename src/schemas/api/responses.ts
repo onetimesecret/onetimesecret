@@ -1,20 +1,22 @@
 import {
-    apiResponseBaseSchema,
-    createRecordResponseSchema,
-    createRecordsResponseSchema,
+  createApiResponseSchema,
+  createApiListResponseSchema,
 } from '@/schemas/api/base';
+import {
+  concealDataSchema,
+} from '@/schemas/api/endpoints/secrets';
 import { accountSchema, apiTokenSchema, customerSchema } from '@/schemas/models';
 import { colonelDataResponseSchema } from '@/schemas/models/colonel';
-import { customDomainSchema } from '@/schemas/models/domain';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
+import { customDomainSchema } from '@/schemas/models/domain/index';
 import {
-    concealDataSchema,
-    metadataDetailsSchema,
-    metadataRecordsDetailsSchema,
-    metadataSchema,
+  metadataDetailsSchema,
+  metadataSchema,
 } from '@/schemas/models/metadata';
 import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
 import { z } from 'zod';
+
+import { metadataRecordsDetailsSchema } from './endpoints/index';
 
 export interface AsyncDataResult<T> {
   data: T | null;
@@ -23,28 +25,25 @@ export interface AsyncDataResult<T> {
 }
 
 // Specific metadata response schema with properly typed details
-export const metadataRecordResponseSchema = apiResponseBaseSchema.extend({
-  record: metadataSchema,
-  details: z
-    .discriminatedUnion('type', [metadataRecordsDetailsSchema, metadataDetailsSchema])
-    .optional(),
-});
+export const metadataRecordResponseSchema = createApiResponseSchema(metadataSchema, metadataDetailsSchema);
+
+export const metadataRecordsResponseSchema = createApiListResponseSchema();
 
 // Specialized secret response schema
-export const secretRecordResponseSchema = apiResponseBaseSchema.extend({
+export const secretRecordResponseSchema = createApiResponseSchema({
   record: secretSchema,
   details: secretDetailsSchema.optional(),
 });
 
 // Model-specific response schemas
-export const apiTokenResponseSchema = createRecordResponseSchema(apiTokenSchema);
-export const customDomainResponseSchema = createRecordResponseSchema(customDomainSchema);
-export const customDomainRecordsResponseSchema = createRecordsResponseSchema(customDomainSchema);
-export const accountResponseSchema = createRecordResponseSchema(accountSchema);
-export const concealDataResponseSchema = createRecordResponseSchema(concealDataSchema);
-export const checkAuthDataResponseSchema = createRecordResponseSchema(customerSchema);
-export const brandSettingsResponseSchema = createRecordResponseSchema(brandSettingschema);
-export const imagePropsResponseSchema = createRecordResponseSchema(imagePropsSchema);
+export const apiTokenResponseSchema = createApiResponseSchema(apiTokenSchema);
+export const customDomainResponseSchema = createApiResponseSchema(customDomainSchema);
+export const customDomainRecordsResponseSchema = createApiListResponseSchema(customDomainSchema);
+export const accountResponseSchema = createApiResponseSchema(accountSchema);
+export const concealDataResponseSchema = createApiResponseSchema(concealDataSchema);
+export const checkAuthDataResponseSchema = createApiResponseSchema(customerSchema);
+export const brandSettingsResponseSchema = createApiResponseSchema(brandSettingschema);
+export const imagePropsResponseSchema = createApiResponseSchema(imagePropsSchema);
 
 /**
  * Response type exports combining API structure with transformed app types

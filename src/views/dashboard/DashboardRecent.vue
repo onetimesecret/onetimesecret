@@ -2,7 +2,7 @@
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import EmptyState from '@/components/EmptyState.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
-import { MetadataRecords, isMetadataRecordsDetails } from '@/schemas/models/metadata';
+import { MetadataRecords } from '@/schemas/models/metadata';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, computed } from 'vue';

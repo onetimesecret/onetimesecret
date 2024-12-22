@@ -1,27 +1,45 @@
 import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
+type SchemaOptions<TRecord, TDetails> = {
+  recordSchema: TRecord;
+  detailsSchema?: TDetails;
+}
+
+const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
+  schema ?? z.record(z.string(), z.unknown());
+
+
 // Base schema that all API responses extend from
-export const apiResponseBaseSchema = z.object({
+const apiResponseBaseSchema = z.object({
   success: transforms.fromString.boolean,
   custid: z.string().optional(),
   shrimp: z.string().optional().default(''),
 });
 
-// Generic response wrapper for single record endpoints
-export const createRecordResponseSchema = <T extends z.ZodTypeAny>(recordSchema: T) =>
-  apiResponseBaseSchema.extend({
+// Base response schema with more flexible type inference
+// was: createApiResponseSchema
+export const createApiResponseSchema = <
+  TRecord extends z.ZodTypeAny,
+  TDetails extends z.ZodTypeAny | undefined = undefined
+>({ recordSchema, detailsSchema }: SchemaOptions<TRecord, TDetails>) => {
+  return apiResponseBaseSchema.extend({
     record: recordSchema,
-    details: z.record(z.string(), z.unknown()).optional(),
+    details: resolveDetailsSchema(detailsSchema).optional(),
   });
+};
 
-// Generic response wrapper for list endpoints
-export const createRecordsResponseSchema = <T extends z.ZodTypeAny>(recordSchema: T) =>
-  apiResponseBaseSchema.extend({
+// was: createRecordsResponseSchema
+export const createApiListResponseSchema = <
+  TRecord extends z.ZodTypeAny,
+  TDetails extends z.ZodTypeAny | undefined = undefined
+>({ recordSchema, detailsSchema }: SchemaOptions<TRecord, TDetails>) => {
+  return apiResponseBaseSchema.extend({
     records: z.array(recordSchema),
+    details: resolveDetailsSchema(detailsSchema).optional(),
     count: transforms.fromString.number.optional(),
-    details: z.record(z.string(), z.unknown()).optional(),
   });
+};
 
 // Common error response schema
 export const apiErrorResponseSchema = apiResponseBaseSchema.extend({
@@ -34,5 +52,5 @@ export const apiErrorResponseSchema = apiResponseBaseSchema.extend({
 // Type exports for API responses
 export type ApiBaseResponse = z.infer<typeof apiResponseBaseSchema>;
 export type ApiErrorResponse = z.infer<typeof apiErrorResponseSchema>;
-export type ApiRecordResponse<T> = z.infer<ReturnType<typeof createRecordResponseSchema<z.ZodType<T>>>>;
-export type ApiRecordsResponse<T> = z.infer<ReturnType<typeof createRecordsResponseSchema<z.ZodType<T>>>>;
+export type ApiRecordResponse<T> = z.infer<ReturnType<typeof createApiResponseSchema<z.ZodType<T>>>>;
+export type ApiRecordsResponse<T> = z.infer<ReturnType<typeof createApiListResponseSchema<z.ZodType<T>>>>;

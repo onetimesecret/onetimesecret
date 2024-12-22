@@ -1,9 +1,7 @@
 import { apiResponseSchema } from '@/schemas/models/base';
-import { customerSchema, type Customer } from '@/schemas/models/customer';
+import { customerSchema, type Customer } from '@/schemas/models/customer/index';
 import { createApi } from '@/utils/api';
-import {
-  isTransformError
-} from '@/utils/transforms';
+import { isTransformError } from '@/utils/transforms';
 import { defineStore } from 'pinia';
 
 //
@@ -13,7 +11,7 @@ import { defineStore } from 'pinia';
 //                  transform                        serialize
 //
 
-const api = createApi()
+const api = createApi();
 let abortController: AbortController | null = null;
 
 /**
@@ -24,11 +22,11 @@ let abortController: AbortController | null = null;
  */
 export const useCustomerStore = defineStore('customer', {
   state: (): {
-    currentCustomer: Customer | null
-    isLoading: boolean
+    currentCustomer: Customer | null;
+    isLoading: boolean;
   } => ({
     currentCustomer: null,
-    isLoading: false
+    isLoading: false,
   }),
   getters: {
     getPlanSize(): number {
@@ -40,7 +38,7 @@ export const useCustomerStore = defineStore('customer', {
       }
 
       return DEFAULT_SIZE;
-    }
+    },
   },
   actions: {
     /**
@@ -64,7 +62,6 @@ export const useCustomerStore = defineStore('customer', {
 
         // Store uses shared type with components
         this.currentCustomer = validated.record;
-
       } catch (error: Error | unknown) {
         if (isTransformError(error)) {
           console.error('Data validation failed:', error.details);
@@ -112,7 +109,6 @@ export const useCustomerStore = defineStore('customer', {
 
         // Store uses shared type with components
         this.currentCustomer = validated.record;
-
       } catch (error: Error | unknown) {
         if (isTransformError(error)) {
           console.error('Data validation failed:', error.details);
@@ -120,6 +116,6 @@ export const useCustomerStore = defineStore('customer', {
           throw error;
         }
       }
-    }
-  }
+    },
+  },
 });

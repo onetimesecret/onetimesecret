@@ -2,7 +2,7 @@ import { createResponseSchema } from '@/schemas/models/response';
 import type Stripe from 'stripe';
 import { z } from 'zod';
 
-import { customerSchema } from './customer';
+import { customerSchema } from './customer/index';
 
 /**
  * Account schema with Stripe integration

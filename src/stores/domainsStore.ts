@@ -4,11 +4,11 @@ import type { UpdateDomainBrandRequest } from '@/schemas/api';
 import {
   ApiRecordResponse,
   ApiRecordsResponse,
-  createRecordResponseSchema,
-  createRecordsResponseSchema,
+  createApiResponseSchema,
+  createApiListResponseSchema,
 } from '@/schemas/api';
 import { brandSettingschema, type BrandSettings } from '@/schemas/models';
-import { customDomainSchema, type CustomDomain } from '@/schemas/models/domain';
+import { customDomainSchema, type CustomDomain } from '@/schemas/models/domain/index';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
 import axios from 'axios';
@@ -78,7 +78,7 @@ export const useDomainsStore = defineStore('domains', {
         const response = await api.get<ApiRecordsResponse<CustomDomain>>('/api/v2/account/domains');
 
         const validated = transformResponse(
-          createRecordsResponseSchema(customDomainSchema),
+          createApiListResponseSchema(customDomainSchema),
           response.data
         );
 
@@ -104,7 +104,7 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          createRecordResponseSchema(customDomainSchema),
+          createApiResponseSchema(customDomainSchema),
           response.data
         );
 
@@ -136,7 +136,7 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          createRecordResponseSchema(customDomainSchema),
+          createApiResponseSchema(customDomainSchema),
           response.data
         );
 
@@ -164,7 +164,7 @@ export const useDomainsStore = defineStore('domains', {
     async getBrandSettings(domain: string) {
       try {
         const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
-        return transformResponse(createRecordResponseSchema(brandSettingschema), response.data);
+        return transformResponse(createApiResponseSchema(brandSettingschema), response.data);
       } catch (error) {
         this.handleApiError(error);
       }
@@ -176,7 +176,7 @@ export const useDomainsStore = defineStore('domains', {
         const response = await api.put(`/api/v2/account/domains/${domain}/brand`, {
           brand: settings,
         });
-        return transformResponse(createRecordResponseSchema(brandSettingschema), response.data);
+        return transformResponse(createApiResponseSchema(brandSettingschema), response.data);
       } catch (error) {
         this.handleApiError(error);
       }
@@ -216,7 +216,7 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          createRecordResponseSchema(customDomainSchema),
+          createApiResponseSchema(customDomainSchema),
           response.data
         );
 
@@ -248,7 +248,7 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          createRecordResponseSchema(customDomainSchema),
+          createApiResponseSchema(customDomainSchema),
           response.data
         );
 
