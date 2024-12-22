@@ -1,6 +1,9 @@
-import type { ApiErrorResponse } from '@/schemas/api';
-import { useCsrfStore } from '@/stores/csrfStore';
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import {
+  errorInterceptor,
+  requestInterceptor,
+  responseInterceptor,
+} from '@/plugins/axios/interceptors';
+import axios, { type AxiosInstance } from 'axios';
 
 /**
  * BACKWARDS COMPATIBILITY NOTICE:
@@ -88,122 +91,35 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
 
   const api = axios.create({
     baseURL,
-    // Add more default configuration if needed
-    withCredentials: true, // Important for cross-origin requests with cookies
+    withCredentials: true,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
   });
 
-  api.interceptors.request.use(
-    (config) => {
-      const csrfStore = useCsrfStore();
-
-      console.debug('[Axios Interceptor] Request config:', {
-        url: config.url,
-        method: config.method,
-        baseURL: config.baseURL,
-      });
-
-      // We should only need to pass the CSRF token in via form field
-      // or HTTP header and not both. The old way was form field and
-      // the new way is header so we'll do this both ways for the time
-      // being until we can remove the form field method.
-      config.data = config.data || {};
-      config.data.shrimp = csrfStore.shrimp;
-
-      config.headers = config.headers || {};
-      config.headers['O-Shrimp'] = csrfStore.shrimp;
-
-      return config;
-    },
-    (error) => {
-      console.error('[Axios Interceptor] Request error:', error);
-      return Promise.reject(error);
-    }
-  );
-
-  api.interceptors.response.use(
-    (response) => {
-      const csrfStore = useCsrfStore();
-      const responseShrimp = response.data?.shrimp;
-      const shrimpSnippet = createLoggableShrimp(responseShrimp);
-
-      console.debug('[Axios Interceptor] Success response:', {
-        url: response.config.url,
-        status: response.status,
-        hasShrimp: !!responseShrimp,
-        shrimp: shrimpSnippet,
-      });
-
-      // Update CSRF token if provided in the response data
-      if (isValidShrimp(responseShrimp)) {
-        csrfStore.updateShrimp(responseShrimp);
-        console.debug('[Axios Interceptor] Updated shrimp token after success');
-      }
-
-      return response;
-    },
-    (error: AxiosError) => {
-      const csrfStore = useCsrfStore();
-      const errorData = error.response?.data as ApiErrorResponse;
-
-      // Existing logging for debugging
-      console.error('[Axios Interceptor] Error response:', {
-        url: error.config?.url,
-        status: error.response?.status,
-        hasShrimp: !!errorData.shrimp,
-        shrimp: errorData.shrimp?.slice(0, 8) + '...',
-        error: error.message,
-        errorDetails: error,
-      });
-
-      // Update CSRF token if provided in the error response
-      if (errorData.shrimp) {
-        csrfStore.updateShrimp(errorData.shrimp);
-        console.debug('[Axios Interceptor] Updated shrimp token after error');
-      }
-
-      // Optionally, attach the server message to the error object
-      const serverMessage = errorData.message || error.message;
-      return Promise.reject(new Error(serverMessage));
-    }
-  );
+  api.interceptors.request.use(requestInterceptor);
+  api.interceptors.response.use(responseInterceptor, errorInterceptor);
 
   return api;
 };
 
-const isValidShrimp = (shrimp: unknown): shrimp is string => {
-  return typeof shrimp === 'string' && shrimp.length > 0;
-};
-
-const createLoggableShrimp = (shrimp: unknown): string => {
-  if (!isValidShrimp(shrimp)) {
-    return '';
-  }
-  return `${shrimp.slice(0, 8)}...`;
-};
-
 /**
- * Default API instance without a custom domain.
+ * Default API instance.
  *
- * @deprecated While still supported for backwards compatibility, new code should
- * use createApi() instead. This default export will be maintained but won't
- * receive new configuration options.
+ * @deprecated Use createApi() for new code.
+ * The default export is kept for compatibility.
+ * No new options will be added.
  *
  * @example
- * ```typescript
- * // Legacy usage (still supported)
+ * // Legacy pattern:
  * import api from '@/utils/api';
- * const response = await api.get('/users');
+ * const response = api.get('/items');
  *
- * // Preferred modern usage which supports an optional domain
- * // and custom configuration.
+ * // Modern pattern:
  * import { createApi } from '@/utils/api';
  * const api = createApi();
- * const response = await api.get('/users');
- * ```
+ * const response = api.get('/items');
  */
 const defaultApi = createApi();
 
