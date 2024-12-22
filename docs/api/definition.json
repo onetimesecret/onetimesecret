@@ -2629,7 +2629,7 @@
           "secret"
         ]
       },
-      "metadataDetailsInputSchema": {
+      "metadataDetailsSchema": {
         "type": "object",
         "properties": {
           "title": {
@@ -2663,7 +2663,7 @@
           }
         }
       },
-      "feedbackInputSchema": {
+      "feedbackSchema": {
         "type": "object",
         "properties": {
           "message": {

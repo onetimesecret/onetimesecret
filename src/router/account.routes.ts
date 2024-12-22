@@ -1,7 +1,7 @@
 
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses';
+import { AsyncDataResult, CustomDomainApiResponse } from '@/schemas/api/responses';
 import api from '@/utils/api';
 import { RouteRecordRaw } from 'vue-router';
 

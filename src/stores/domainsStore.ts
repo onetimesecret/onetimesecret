@@ -7,20 +7,13 @@ import {
   createRecordResponseSchema,
   createRecordsResponseSchema,
 } from '@/schemas/api';
-import { brandSettingsInputSchema, type BrandSettings } from '@/schemas/models';
-import { customDomainInputSchema, type CustomDomain } from '@/schemas/models/domain';
+import { brandSettingschema, type BrandSettings } from '@/schemas/models';
+import { customDomainSchema, type CustomDomain } from '@/schemas/models/domain';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
 import axios from 'axios';
 import { defineStore } from 'pinia';
 import type { ZodIssue } from 'zod';
-
-//
-// API Input (strings) -> Store/Component (shared types) -> API Output (serialized)
-//                       ^                               ^
-//                       |                               |
-//                    transform                      serialize
-//
 
 const api = createApi();
 
@@ -46,7 +39,7 @@ export const useDomainsStore = defineStore('domains', {
      */
     parseDomainBranding(data: { brand: Record<string, unknown> }): { brand: BrandSettings } {
       try {
-        const validated = transformResponse(brandSettingsInputSchema, data.brand);
+        const validated = transformResponse(brandSettingschema, data.brand);
         return { brand: validated };
       } catch (error) {
         console.warn('Failed to parse domain branding:', error);
@@ -85,7 +78,7 @@ export const useDomainsStore = defineStore('domains', {
         const response = await api.get<ApiRecordsResponse<CustomDomain>>('/api/v2/account/domains');
 
         const validated = transformResponse(
-          createRecordsResponseSchema(customDomainInputSchema),
+          createRecordsResponseSchema(customDomainSchema),
           response.data
         );
 
@@ -111,7 +104,7 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          createRecordResponseSchema(customDomainInputSchema),
+          createRecordResponseSchema(customDomainSchema),
           response.data
         );
 
@@ -143,7 +136,7 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          createRecordResponseSchema(customDomainInputSchema),
+          createRecordResponseSchema(customDomainSchema),
           response.data
         );
 
@@ -171,7 +164,7 @@ export const useDomainsStore = defineStore('domains', {
     async getBrandSettings(domain: string) {
       try {
         const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
-        return transformResponse(createRecordResponseSchema(brandSettingsInputSchema), response.data);
+        return transformResponse(createRecordResponseSchema(brandSettingschema), response.data);
       } catch (error) {
         this.handleApiError(error);
       }
@@ -183,7 +176,7 @@ export const useDomainsStore = defineStore('domains', {
         const response = await api.put(`/api/v2/account/domains/${domain}/brand`, {
           brand: settings,
         });
-        return transformResponse(createRecordResponseSchema(brandSettingsInputSchema), response.data);
+        return transformResponse(createRecordResponseSchema(brandSettingschema), response.data);
       } catch (error) {
         this.handleApiError(error);
       }
@@ -209,7 +202,7 @@ export const useDomainsStore = defineStore('domains', {
         };
 
         // Validate optimistic update
-        const validated = transformResponse(customDomainInputSchema, optimisticUpdate);
+        const validated = transformResponse(customDomainSchema, optimisticUpdate);
 
         this.domains[domainIndex] = validated;
       }
@@ -223,7 +216,7 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          createRecordResponseSchema(customDomainInputSchema),
+          createRecordResponseSchema(customDomainSchema),
           response.data
         );
 
@@ -255,7 +248,7 @@ export const useDomainsStore = defineStore('domains', {
         );
 
         const validated = transformResponse(
-          createRecordResponseSchema(customDomainInputSchema),
+          createRecordResponseSchema(customDomainSchema),
           response.data
         );
 

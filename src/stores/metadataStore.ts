@@ -1,20 +1,20 @@
 import {
-  MetadataState,
-  isMetadataDetails,
-  isMetadataRecordsDetails,
-  metadataDetailsSchema,
-  metadataSchema,
-  metadataRecordsSchema,
-  type Metadata,
-  type MetadataDetailsUnion,
-  type MetadataRecords
-} from '@/schemas/models/metadata';
-import {
   apiRecordsResponseSchema,
   metadataRecordResponseSchema,
   type ApiRecordsResponse,
   type MetadataRecordApiResponse,
-} from '@/types/api/responses';
+} from '@/schemas/api/responses';
+import {
+  MetadataState,
+  isMetadataDetails,
+  isMetadataRecordsDetails,
+  metadataDetailsSchema,
+  metadataRecordsSchema,
+  metadataSchema,
+  type Metadata,
+  type MetadataDetailsUnion,
+  type MetadataRecords,
+} from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
 import { defineStore } from 'pinia';
@@ -50,8 +50,10 @@ export const useMetadataStore = defineStore('metadata', {
     getByKey: (state) => (key: string) => state.cache.get(key),
     isDestroyed: (state): boolean => {
       if (!state.currentRecord) return false;
-      if (state.currentRecord.state === MetadataState.RECEIVED ||
-          state.currentRecord.state === MetadataState.BURNED) {
+      if (
+        state.currentRecord.state === MetadataState.RECEIVED ||
+        state.currentRecord.state === MetadataState.BURNED
+      ) {
         return true;
       }
       if (state.details) {
@@ -59,7 +61,7 @@ export const useMetadataStore = defineStore('metadata', {
           return state.details.is_destroyed;
         }
         if (isMetadataRecordsDetails(state.details)) {
-          return state.details.received.some(r => r.key === state.currentRecord?.key);
+          return state.details.received.some((r) => r.key === state.currentRecord?.key);
         }
       }
       return false;
@@ -112,7 +114,7 @@ export const useMetadataStore = defineStore('metadata', {
           response.data
         );
 
-        this.records = validated.records.map(record => metadataRecordsSchema.parse(record));
+        this.records = validated.records.map((record) => metadataRecordsSchema.parse(record));
         if (validated.details) {
           this.details = metadataDetailsSchema.parse(validated.details);
         } else {
@@ -249,9 +251,7 @@ export const useMetadataStore = defineStore('metadata', {
         }
 
         // Update the record in the list if it exists
-        this.records = this.records.map((r) =>
-          r.key === key ? { ...r, state: newState } : r
-        );
+        this.records = this.records.map((r) => (r.key === key ? { ...r, state: newState } : r));
       }
     },
 

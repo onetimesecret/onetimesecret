@@ -3,15 +3,10 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import MoreInfoText from "@/components/MoreInfoText.vue";
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { customDomainInputSchema } from '@/schemas/models/domain';
-import { apiRecordResponseSchema } from '@/types/api/responses';
-import { type CustomDomainApiResponse } from '@/types/api/responses';
+import { type CustomDomainApiResponse, customDomainResponseSchema } from '@/schemas/api/responses';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { z } from 'zod';
 
-type CustomDomain = z.infer<typeof customDomainInputSchema>;
-const domainResponseSchema = apiRecordResponseSchema(customDomainInputSchema);
 
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);
@@ -30,7 +25,7 @@ const fetchDomain = async (): Promise<void> => {
     }
 
     const rawData = await response.json();
-    const json = domainResponseSchema.parse(rawData);
+    const json = customDomainResponseSchema.parse(rawData);
     console.debug('json', json);
 
     domain.value = json.record;
@@ -49,7 +44,7 @@ const fetchDomain = async (): Promise<void> => {
       // check for this domain, let's make sure the verify button is
       // enabled and ready for action.
       if (timeDifference >= 30) {
-        console.debug("It has been at least 30 second since the last monitored time.", timeDifference);
+        console.debug("It has been at least 30 seconds since the last monitored time.", timeDifference);
         allowVerifyCTA.value = true;
       } else {
         console.debug('It has not been 30 seconds yet since the last monitored time.', timeDifference);
@@ -95,8 +90,8 @@ onMounted(() => {
     </p>
 
     <MoreInfoText
-      text-color="text-brandcomp-800 dark:text-gray-100"
-      bg-color="bg-white dark:bg-gray-800">
+      textColor="text-brandcomp-800 dark:text-gray-100"
+      bgColor="bg-white dark:bg-gray-800">
       <div class="prose p-6">
         <div class="max-w-xl text-base text-gray-600 dark:text-gray-300">
           <p>
@@ -137,7 +132,7 @@ onMounted(() => {
       v-if="domain && cluster"
       :domain="domain"
       :cluster="cluster"
-      :with-verify-c-t-a="allowVerifyCTA"
+      :withVerifyCTA="allowVerifyCTA"
       @domain-verify="handleDomainVerify"
     />
     <p

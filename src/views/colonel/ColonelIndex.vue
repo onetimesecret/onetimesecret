@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
 import { useFetchDataRecord } from '@/composables/useFetchData';
-import { ColonelData } from '@/types/api/responses';
+import { ColonelData } from '@/schemas/api/responses';
 import { computed, onMounted } from 'vue';
 
 const tabs = [

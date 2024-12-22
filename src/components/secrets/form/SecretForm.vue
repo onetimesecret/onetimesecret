@@ -3,7 +3,7 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { ConcealDataApiResponse } from '@/types/api/responses';
+import { ConcealDataApiResponse } from '@/schemas/api/responses';
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 

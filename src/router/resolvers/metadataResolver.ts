@@ -1,5 +1,5 @@
+import type { AsyncDataResult, MetadataRecordApiResponse } from '@/schemas/api/responses';
 import { useMetadataStore } from '@/stores/metadataStore';
-import type { AsyncDataResult, MetadataRecordApiResponse } from '@/types/api/responses';
 import { NotFoundError } from '@/utils/errors';
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 
@@ -15,15 +15,17 @@ export async function resolveMetadata(
     const result = await store.fetchOne(metadataKey, true);
 
     // Ensure we have a complete metadata record with all required fields
-    if (!result?.record ||
-        !('natural_expiration' in result.record) ||
-        !('expiration' in result.record) ||
-        !('share_path' in result.record) ||
-        !('burn_path' in result.record) ||
-        !('metadata_path' in result.record) ||
-        !('share_url' in result.record) ||
-        !('metadata_url' in result.record) ||
-        !('burn_url' in result.record)) {
+    if (
+      !result?.record ||
+      !('natural_expiration' in result.record) ||
+      !('expiration' in result.record) ||
+      !('share_path' in result.record) ||
+      !('burn_path' in result.record) ||
+      !('metadata_path' in result.record) ||
+      !('share_url' in result.record) ||
+      !('metadata_url' in result.record) ||
+      !('burn_url' in result.record)
+    ) {
       throw new NotFoundError(`Complete metadata not found: ${metadataKey}`);
     }
 
@@ -34,9 +36,9 @@ export async function resolveMetadata(
         success: true,
         shrimp: '',
         record: result.record,
-        details: result.details?.type === 'record' ? result.details : undefined
+        details: result.details?.type === 'record' ? result.details : undefined,
       },
-      error: store.error
+      error: store.error,
     };
 
     to.meta.initialData = initialData;
@@ -48,7 +50,7 @@ export async function resolveMetadata(
     to.meta.initialData = {
       status,
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to load metadata'
+      error: error instanceof Error ? error.message : 'Failed to load metadata',
     };
 
     if (status === 404 && to.name === 'Burn secret') {

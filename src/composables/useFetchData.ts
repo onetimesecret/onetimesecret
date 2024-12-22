@@ -1,6 +1,6 @@
 // src/composables/useFetchData.ts
+import type { ApiRecordResponse, ApiRecordsResponse } from '@/schemas/api/responses';
 import { BaseApiRecord, DetailsType } from '@/schemas/models/base';
-import type { ApiRecordResponse, ApiRecordsResponse } from '@/types/api/responses';
 import { computed, ref, Ref } from 'vue';
 
 interface FetchDataOptions<T extends BaseApiRecord> {

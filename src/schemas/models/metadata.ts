@@ -104,7 +104,7 @@ export const metadataRecordsDetailsSchema = z.object({
 });
 
 // The details for each record in single record details
-export const metadataDetailsInputSchema = z.object({
+export const metadataDetailsSchema = z.object({
   type: z.literal('record'),
   title: z.string(),
   display_lines: transforms.fromString.number,
@@ -131,12 +131,12 @@ export const metadataDetailsInputSchema = z.object({
 // Combined details schema for API responses with discriminated union
 export const metadataDetailsSchema = z.discriminatedUnion('type', [
   metadataRecordsDetailsSchema,
-  metadataDetailsInputSchema,
+  metadataDetailsSchema,
 ]);
 
 // Export types
 export type Metadata = z.infer<typeof metadataSchema>;
-export type MetadataDetails = z.infer<typeof metadataDetailsInputSchema>;
+export type MetadataDetails = z.infer<typeof metadataDetailsSchema>;
 export type MetadataRecords = z.infer<typeof metadataRecordsSchema>;
 export type MetadataRecordsDetails = z.infer<typeof metadataRecordsDetailsSchema>;
 export type MetadataDetailsUnion = z.infer<typeof metadataDetailsSchema>;

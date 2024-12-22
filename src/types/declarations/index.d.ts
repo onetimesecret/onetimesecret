@@ -1,5 +1,5 @@
 
-import { AsyncDataResult } from '@/types/api/responses'
+import { AsyncDataResult } from '@/schemas/api/responses'
 import { LayoutProps } from '@/types/ui'
 import type { Component } from 'vue';
 

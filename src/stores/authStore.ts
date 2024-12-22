@@ -1,6 +1,5 @@
-
+import { CheckAuthDataApiResponse } from '@/schemas/api/responses';
 import { CheckAuthDetails, Customer } from '@/schemas/models';
-import { CheckAuthDataApiResponse } from '@/types/api/responses';
 import axios, { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
 
@@ -152,7 +151,9 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT);
+        const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(
+          AUTH_CHECK_ENDPOINT
+        );
 
         this.isAuthenticated = Boolean(response.data.details.authenticated);
         this.customer = response.data.record;
@@ -160,11 +161,9 @@ export const useAuthStore = defineStore('auth', {
         this.failedAuthChecks = 0;
         this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
         this.lastAuthCheck = Date.now();
-
       } catch (error: unknown) {
         console.error('Auth check error:', error);
         this.handleAuthCheckError(error);
-
       } finally {
         if (this.isAuthenticated) {
           this.startAuthCheck();
@@ -246,7 +245,6 @@ export const useAuthStore = defineStore('auth', {
         this.$logout();
         return;
       }
-
     },
 
     /**
@@ -344,5 +342,5 @@ export const useAuthStore = defineStore('auth', {
     setCustomer(customer: Customer | undefined) {
       this.customer = customer;
     },
-  }
-})
+  },
+});

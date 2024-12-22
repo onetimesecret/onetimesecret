@@ -1,11 +1,15 @@
-import { apiResponseBaseSchema, createRecordResponseSchema, createRecordsResponseSchema } from '@/schemas/api/base';
+import {
+    apiResponseBaseSchema,
+    createRecordResponseSchema,
+    createRecordsResponseSchema,
+} from '@/schemas/api/base';
 import { accountSchema, apiTokenSchema, customerSchema } from '@/schemas/models';
 import { colonelDataResponseSchema } from '@/schemas/models/colonel';
-import { customDomainInputSchema } from '@/schemas/models/domain';
-import { brandSettingsInputSchema, imagePropsSchema } from '@/schemas/models/domain/brand';
+import { customDomainSchema } from '@/schemas/models/domain';
+import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import {
     concealDataSchema,
-    metadataDetailsInputSchema,
+    metadataDetailsSchema,
     metadataRecordsDetailsSchema,
     metadataSchema,
 } from '@/schemas/models/metadata';
@@ -21,10 +25,9 @@ export interface AsyncDataResult<T> {
 // Specific metadata response schema with properly typed details
 export const metadataRecordResponseSchema = apiResponseBaseSchema.extend({
   record: metadataSchema,
-  details: z.discriminatedUnion('type', [
-    metadataRecordsDetailsSchema,
-    metadataDetailsInputSchema,
-  ]).optional(),
+  details: z
+    .discriminatedUnion('type', [metadataRecordsDetailsSchema, metadataDetailsSchema])
+    .optional(),
 });
 
 // Specialized secret response schema
@@ -35,12 +38,12 @@ export const secretRecordResponseSchema = apiResponseBaseSchema.extend({
 
 // Model-specific response schemas
 export const apiTokenResponseSchema = createRecordResponseSchema(apiTokenSchema);
-export const customDomainResponseSchema = createRecordResponseSchema(customDomainInputSchema);
-export const customDomainRecordsResponseSchema = createRecordsResponseSchema(customDomainInputSchema);
+export const customDomainResponseSchema = createRecordResponseSchema(customDomainSchema);
+export const customDomainRecordsResponseSchema = createRecordsResponseSchema(customDomainSchema);
 export const accountResponseSchema = createRecordResponseSchema(accountSchema);
 export const concealDataResponseSchema = createRecordResponseSchema(concealDataSchema);
 export const checkAuthDataResponseSchema = createRecordResponseSchema(customerSchema);
-export const brandSettingsResponseSchema = createRecordResponseSchema(brandSettingsInputSchema);
+export const brandSettingsResponseSchema = createRecordResponseSchema(brandSettingschema);
 export const imagePropsResponseSchema = createRecordResponseSchema(imagePropsSchema);
 
 /**
@@ -64,7 +67,7 @@ export type ColonelDataApiResponse = z.infer<typeof colonelDataResponseSchema>;
 
 export const CsrfResponse = z.object({
   isValid: z.boolean(),
-  shrimp: z.string().optional()
-})
+  shrimp: z.string().optional(),
+});
 
-export type TCsrfResponse = z.infer<typeof CsrfResponse>
+export type TCsrfResponse = z.infer<typeof CsrfResponse>;

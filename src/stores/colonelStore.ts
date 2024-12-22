@@ -1,5 +1,9 @@
-import { colonelDataSchema, colonelDataResponseSchema, type ColonelData } from '@/schemas/models/colonel';
-import type { ApiRecordResponse } from '@/types/api/responses';
+import type { ApiRecordResponse } from '@/schemas/api/responses';
+import {
+  colonelDataResponseSchema,
+  colonelDataSchema,
+  type ColonelData,
+} from '@/schemas/models/colonel';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
 import axios from 'axios';
@@ -24,7 +28,7 @@ export const useColonelStore = defineStore('colonel', {
   state: (): ColonelStoreState => ({
     data: null,
     isLoading: false,
-    error: null
+    error: null,
   }),
 
   actions: {
@@ -62,14 +66,10 @@ export const useColonelStore = defineStore('colonel', {
       try {
         const response = await api.get<ApiRecordResponse<ColonelData>>('/api/v2/colonel/dashboard');
 
-        const validated = transformResponse(
-          colonelDataResponseSchema,
-          response.data
-        );
+        const validated = transformResponse(colonelDataResponseSchema, response.data);
 
         this.data = colonelDataSchema.parse(validated.record);
         return this.data;
-
       } catch (error) {
         this.handleApiError(error);
       } finally {
@@ -84,8 +84,8 @@ export const useColonelStore = defineStore('colonel', {
       this.data = null;
       this.error = null;
       this.isLoading = false;
-    }
-  }
+    },
+  },
 });
 
 // Helper function to safely format error details
@@ -94,9 +94,12 @@ function formatErrorDetails(details: ZodIssue[] | string): string | Record<strin
     return details;
   }
 
-  return details.reduce((acc, issue) => {
-    const path = issue.path.join('.');
-    acc[path] = issue.message;
-    return acc;
-  }, {} as Record<string, string>);
+  return details.reduce(
+    (acc, issue) => {
+      const path = issue.path.join('.');
+      acc[path] = issue.message;
+      return acc;
+    },
+    {} as Record<string, string>
+  );
 }
