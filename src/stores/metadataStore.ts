@@ -6,7 +6,8 @@ import { responseSchemas } from '@/schemas/api/responses';
 import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { MetadataState } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
-import { defineStore } from 'pinia';
+
+import { createBaseStore } from './baseStore';
 
 const api = createApi();
 
@@ -17,11 +18,14 @@ interface StoreState {
   listDetails: MetadataRecordsDetails | null;
   isLoadingDetail: boolean;
   isLoadingList: boolean;
+  isLoading: boolean;
+  error: Error | null;
 }
 
-export const useMetadataStore = defineStore('metadata', {
-  state: (): StoreState & { isLoading: boolean; error: null | Error } => ({
-    currentRecord: null,
+export const useMetadataStore = createBaseStore({
+  id: 'metadata',
+  state: (): StoreState => ({
+    currentRecord: null as Metadata | null,
     currentDetails: null,
     listRecords: [],
     listDetails: null,
@@ -32,7 +36,7 @@ export const useMetadataStore = defineStore('metadata', {
   }),
 
   getters: {
-    canBurn(state): boolean {
+    canBurn(state: StoreState): boolean {
       if (!state.currentRecord) return false;
       const validStates = [
         MetadataState.NEW,
@@ -54,18 +58,13 @@ export const useMetadataStore = defineStore('metadata', {
     },
 
     async fetchOne(key: string) {
-      this.isLoadingDetail = true;
-      try {
+      return await this.withLoading(async () => {
         const response = await api.get(`/api/v2/private/${key}`);
         const validated = responseSchemas.metadata.parse(response.data);
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
         return validated;
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoadingDetail = false;
-      }
+      });
     },
 
     async fetchList() {

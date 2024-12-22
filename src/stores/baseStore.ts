@@ -7,66 +7,54 @@ interface BaseState {
   error: ApiError | null;
 }
 
+// https://stackoverflow.com/questions/76928581/extending-or-composing-pinia-setup-stores-for-reusable-getters-setters-and-acti
+// https://github.com/vuejs/pinia/discussions/901
+// https://pinia.vuejs.org/cookbook/composing-stores.html
 export const createBaseStore = <T extends object>(options: {
   id: string;
   state?: () => T;
+  getters?: Record<string, any>;
+  actions?: Record<string, any>;
 }) => {
   return defineStore(options.id, {
     state: () =>
       ({
         isLoading: false,
         error: null,
-        ...(options.state ? options.state() : {}),
+        ...(options.state?.() || {}),
       }) as T & BaseState,
 
+    getters: options.getters,
+
     actions: {
-      handleError(error: unknown): never {
+      handleError(error: unknown) {
         const notifications = useNotificationsStore();
         const apiError = handleError(error);
+
         console.error('[Store Error]', {
           code: apiError.code,
           message: apiError.message,
           details: apiError.details,
         });
+
         this.error = apiError;
         notifications.show(apiError.message, 'error');
-        throw apiError;
+        return apiError;
       },
 
-      async withLoading<R>(operation: () => Promise<R>): Promise<R> {
+      async withLoading<R>(operation: () => Promise<R>): Promise<R | undefined> {
         this.startLoading();
         try {
-          const result = await operation();
-          return result;
+          return await operation();
         } catch (error) {
           this.handleError(error);
-          throw error; // Ensure we always return or throw
+          return undefined;
         } finally {
           this.stopLoading();
         }
       },
 
-      startLoading() {
-        this.isLoading = true;
-        this.error = null;
-      },
-
-      stopLoading() {
-        this.isLoading = false;
-      },
-
-      clearError() {
-        this.error = null;
-      },
-
-      resetState() {
-        const initialState = options.state?.() || {};
-        Object.assign(this, {
-          isLoading: false,
-          error: null,
-          ...initialState,
-        });
-      },
+      ...(options.actions || {}),
     },
   });
 };
