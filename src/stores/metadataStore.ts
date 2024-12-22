@@ -1,6 +1,6 @@
 // stores/metadataStore.ts
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
-import { createDomainError } from '@/schemas/api/errors';
+import { createApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { MetadataState } from '@/schemas/models/metadata';
@@ -50,9 +50,9 @@ export const useMetadataStore = defineStore('metadata', {
         this.currentDetails = validated.details;
       } catch (error) {
         if (error instanceof Error && 'status' in error && error.status === 404) {
-          throw createDomainError('NOT_FOUND', 'NOT_FOUND', 'Metadata not found');
+          throw createApiError('NOT_FOUND', 'NOT_FOUND', 'Metadata not found');
         }
-        throw createDomainError(
+        throw createApiError(
           'SERVER',
           'SERVER_ERROR',
           error instanceof Error ? error.message : 'Failed to fetch metadata'
@@ -70,7 +70,7 @@ export const useMetadataStore = defineStore('metadata', {
         this.listRecords = validated.records;
         this.listDetails = validated.details;
       } catch (error) {
-        throw createDomainError(
+        throw createApiError(
           'SERVER',
           'SERVER_ERROR',
           error instanceof Error ? error.message : 'Failed to fetch metadata list'
@@ -82,7 +82,7 @@ export const useMetadataStore = defineStore('metadata', {
 
     async burn(key: string, passphrase?: string) {
       if (!this.canBurn) {
-        throw createDomainError('VALIDATION', 'VALIDATION_ERROR', 'Cannot burn this metadata');
+        throw createApiError('VALIDATION', 'VALIDATION_ERROR', 'Cannot burn this metadata');
       }
 
       try {
@@ -94,7 +94,7 @@ export const useMetadataStore = defineStore('metadata', {
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
       } catch (error) {
-        throw createDomainError(
+        throw createApiError(
           'SERVER',
           'SERVER_ERROR',
           error instanceof Error ? error.message : 'Failed to burn metadata'

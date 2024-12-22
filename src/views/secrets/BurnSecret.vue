@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMetadataBurn } from '@/composables/useMetadata';
+import { useMetadata } from '@/composables/useMetadata';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
 
@@ -12,7 +12,7 @@ const props = defineProps<Props>();
 const metadataStore = useMetadataStore();
 const { currentRecord: record, details, isLoading } = storeToRefs(metadataStore);
 
-const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
+const { passphrase, handleBurn } = useMetadata(props.metadataKey);
 </script>
 
 <template>

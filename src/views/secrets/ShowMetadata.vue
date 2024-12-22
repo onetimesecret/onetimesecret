@@ -50,7 +50,6 @@ import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCa
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
 import { AsyncDataResult, MetadataResponse } from '@/schemas/api/responses';
-import { isMetadataDetails } from '@/schemas/models/metadata';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
 import { computed, onUnmounted } from 'vue';
@@ -84,7 +83,7 @@ onUnmounted(() => {
       <span class="loading">Loading...</span>
     </div>
 
-    <div v-else-if="record && details && isMetadataDetails(details)" class="space-y-8">
+    <div v-else-if="record && details" class="space-y-8">
       <!-- Primary Content Section -->
       <div class="space-y-6">
         <SecretLink

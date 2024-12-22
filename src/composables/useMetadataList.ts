@@ -1,6 +1,6 @@
 import type { MetadataRecords } from '@/schemas/api/endpoints';
 import type { MetadataRecordsDetails } from '@/schemas/api/endpoints/recent';
-import { createDomainError } from '@/schemas/api/errors';
+import { createApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import { createApi } from '@/utils/api';
 import { ref, type Ref } from 'vue';
@@ -35,7 +35,7 @@ export function useMetadataList() {
         console.debug('Metadata list fetch aborted');
         return;
       }
-      throw createDomainError(
+      throw createApiError(
         'SERVER',
         'SERVER_ERROR',
         error instanceof Error ? error.message : 'Failed to fetch metadata list'
