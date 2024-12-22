@@ -1,8 +1,7 @@
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
+import { withFeatureFlags } from '@/schemas/utils/feature_flags';
 import { z } from 'zod';
-
-import { FeatureFlags } from './feature_flags';
 
 /**
  * @fileoverview Customer schema with simplified type boundaries
@@ -53,52 +52,44 @@ export type Plan = z.infer<typeof planSchema>;
 /**
  * Customer schema with unified transformations
  */
-export const customerSchema = createModelSchema({
-  // Core fields
-  custid: z.string(),
-  role: z.enum([
-    CustomerRole.CUSTOMER,
-    CustomerRole.COLONEL,
-    CustomerRole.RECIPIENT,
-    CustomerRole.USER_DELETED_SELF,
-  ]),
+export const customerSchema = withFeatureFlags(
+  createModelSchema({
+    // Core fields
+    custid: z.string(),
+    role: z.enum([
+      CustomerRole.CUSTOMER,
+      CustomerRole.COLONEL,
+      CustomerRole.RECIPIENT,
+      CustomerRole.USER_DELETED_SELF,
+    ]),
 
-  // Boolean fields from API
-  verified: transforms.fromString.boolean,
-  active: transforms.fromString.boolean,
-  contributor: transforms.fromString.boolean.optional(),
+    // Boolean fields from API
+    verified: transforms.fromString.boolean,
+    active: transforms.fromString.boolean,
+    contributor: transforms.fromString.boolean.optional(),
 
-  // Counter fields from API with default values
-  secrets_created: transforms.fromString.number.default(0),
-  secrets_burned: transforms.fromString.number.default(0),
-  secrets_shared: transforms.fromString.number.default(0),
-  emails_sent: transforms.fromString.number.default(0),
+    // Counter fields from API with default values
+    secrets_created: transforms.fromString.number.default(0),
+    secrets_burned: transforms.fromString.number.default(0),
+    secrets_shared: transforms.fromString.number.default(0),
+    emails_sent: transforms.fromString.number.default(0),
 
-  // Date fields
-  last_login: transforms.fromString.date,
+    // Date fields
+    last_login: transforms.fromString.date,
 
-  // Optional fields
-  locale: z.string().nullable(),
-  planid: z.string().nullable(),
+    // Optional fields
+    locale: z.string().nullable(),
+    planid: z.string().nullable(),
 
-  // Plan data
-  plan: planSchema,
+    // Plan data
+    plan: planSchema,
 
-  // Stripe-related fields
-  stripe_customer_id: z.string().nullable(),
-  stripe_subscription_id: z.string().nullable(),
-  stripe_checkout_email: z.string().nullable(),
-
-  // Feature flags with strict typing
-  feature_flags: z
-    .record(z.union([z.boolean(), z.number(), z.string()]))
-    .transform((val): FeatureFlags => {
-      // Validate the shape matches FeatureFlags
-      const featureFlags = val as FeatureFlags;
-      return featureFlags;
-    })
-    .default({}),
-}).strict();
+    // Stripe-related fields
+    stripe_customer_id: z.string().nullable(),
+    stripe_subscription_id: z.string().nullable(),
+    stripe_checkout_email: z.string().nullable(),
+  }).strict()
+);
 
 // Update the type to explicitly use Date for timestamps
 export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated'> & {

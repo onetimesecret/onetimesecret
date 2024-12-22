@@ -1,5 +1,5 @@
-import { CheckAuthResponse } from '@/schemas/api/responses';
-import { CheckAuthDetails, Customer } from '@/schemas/models';
+import { ErrorCode, responseSchemas } from '@/schemas/api';
+import { Customer } from '@/schemas/models';
 import axios, { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
 
@@ -30,9 +30,13 @@ import { defineStore } from 'pinia';
  */
 
 /** Base interval for authentication checks (15 minutes) */
-const BASE_AUTH_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 /** Maximum interval for authentication checks (1 hour) */
-const MAX_AUTH_CHECK_INTERVAL_MS = 60 * 60 * 1000;
+const AUTH_CHECK_INTERVALS = {
+  BASE: 15 * 60 * 1000, // 15 min
+  MAX: 60 * 60 * 1000, // 1 hour
+  FUZZ: 90 * 1000, // 90 sec
+} as const;
+
 /** Endpoint for authentication checks */
 const AUTH_CHECK_ENDPOINT = '/api/v2/authcheck';
 
@@ -76,14 +80,14 @@ export const useAuthStore = defineStore('auth', {
     /** Timeout for periodic authentication checks. */
     authCheckInterval: null as ReturnType<typeof setTimeout> | null,
     /** Current backoff interval for authentication checks. */
-    currentBackoffInterval: BASE_AUTH_CHECK_INTERVAL_MS,
+    currentBackoffInterval: AUTH_CHECK_INTERVALS['BASE'],
     /** Number of consecutive failed auth checks. */
     failedAuthChecks: 0,
     lastAuthCheck: 0,
   }),
   getters: {
     isAuthStale(): boolean {
-      return Date.now() - this.lastAuthCheck > BASE_AUTH_CHECK_INTERVAL_MS;
+      return Date.now() - this.lastAuthCheck > AUTH_CHECK_INTERVALS['BASE'];
     },
   },
   actions: {
@@ -107,6 +111,21 @@ export const useAuthStore = defineStore('auth', {
       // Set initial lastAuthCheck if we start authenticated
       if (this.isAuthenticated) {
         this.lastAuthCheck = Date.now();
+      }
+    },
+
+    /**
+     * Handles HTTP error responses, logging out the user if the status is 401 or 403.
+     * This function can be extended to handle additional status codes as needed.
+     *
+     * @param error - The error object containing the HTTP response.
+     */
+    handleHttpError(error: AxiosError, withPessimism?: boolean): void {
+      const status = error.response?.status || 0;
+      const logoutStatuses = [401, 403];
+
+      if (logoutStatuses.includes(status) || withPessimism) {
+        this.logout();
       }
     },
 
@@ -151,18 +170,16 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const response = await axios.get<CheckAuthResponse & CheckAuthDetails>(
-          AUTH_CHECK_ENDPOINT
-        );
+        const response = await axios.get(AUTH_CHECK_ENDPOINT);
+        const validated = responseSchemas.checkAuth.parse(response.data);
 
-        this.isAuthenticated = Boolean(response.data.details.authenticated);
-        this.customer = response.data.record;
+        this.isAuthenticated = validated.details.authenticated;
+        this.customer = validated.record;
 
         this.failedAuthChecks = 0;
-        this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
+        this.currentBackoffInterval = AUTH_CHECK_INTERVALS['BASE'];
         this.lastAuthCheck = Date.now();
       } catch (error: unknown) {
-        console.error('Auth check error:', error);
         this.handleAuthCheckError(error);
       } finally {
         if (this.isAuthenticated) {
@@ -185,7 +202,7 @@ export const useAuthStore = defineStore('auth', {
     applyBackoff() {
       this.currentBackoffInterval = Math.min(
         this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
-        MAX_AUTH_CHECK_INTERVAL_MS
+        AUTH_CHECK_INTERVALS['MAX']
       );
     },
 
@@ -202,12 +219,7 @@ export const useAuthStore = defineStore('auth', {
     handleAuthCheckError(error: unknown) {
       this.failedAuthChecks++;
 
-      // Type guard and detailed error logging
-      if (!(error instanceof AxiosError)) {
-        console.error('Unexpected auth check error type:', error);
-        this.isAuthenticated = false;
-        return;
-      }
+      // TODO: Replace with errorHandling (Error Shandling)
 
       const statusCode = error.response?.status;
       const errorMessage = error.response?.data?.message || error.message;
@@ -219,46 +231,26 @@ export const useAuthStore = defineStore('auth', {
         failedAttempts: this.failedAuthChecks,
       });
 
-      // Handle specific HTTP status codes
-      switch (statusCode) {
-        case 401:
-        case 403:
-          // Authentication or authorization failure
-          return this.$logout();
-
-        case 500:
-        case 502:
-        case 503:
-        case 504:
-          // Server-side errors: apply backoff strategy
-          this.applyBackoff();
-          this.isAuthenticated = false;
-          break;
-
-        default:
-          return this.$logout();
-      }
-
       // Force logout after repeated failures - move this check to the top
       if (this.failedAuthChecks >= 3) {
         console.warn('Auth check failed 3 times, forcing logout');
         this.$logout();
         return;
       }
-    },
 
-    /**
-     * Handles HTTP error responses, logging out the user if the status is 401 or 403.
-     * This function can be extended to handle additional status codes as needed.
-     *
-     * @param error - The error object containing the HTTP response.
-     */
-    handleHttpError(error: AxiosError, withPessimism?: boolean): void {
-      const status = error.response?.status || 0;
-      const logoutStatuses = [401, 403];
+      // Handle specific HTTP status codes
+      switch (statusCode) {
+        case ErrorCode.INVALID_AUTH:
+        case ErrorCode.PERMISSION_DENIED:
+          return this.$logout();
 
-      if (logoutStatuses.includes(status) || withPessimism) {
-        this.logout();
+        case ErrorCode.SERVER_ERROR:
+          this.applyBackoff();
+          this.isAuthenticated = false;
+          break;
+
+        default:
+          return this.$logout();
       }
     },
 
@@ -287,14 +279,17 @@ export const useAuthStore = defineStore('auth', {
     /**
      * Returns a fuzzy authentication check interval with exponential backoff.
      * Adds or subtracts up to 90 seconds to the current backoff interval.
-     * Ensures the returned interval is between BASE_AUTH_CHECK_INTERVAL_MS and MAX_AUTH_CHECK_INTERVAL_MS.
+     * Ensures the returned interval is between AUTH_CHECK_INTERVALS['BASE'] and AUTH_CHECK_INTERVALS['MAX].
      * @returns {number} Fuzzy authentication check interval in milliseconds.
      */
     getFuzzyAuthCheckInterval(): number {
-      const maxFuzz = 90 * 1000; // 90 seconds in milliseconds
+      const maxFuzz = AUTH_CHECK_INTERVALS['FUZZ'] * 1000; // 90 seconds in milliseconds
       const fuzz = Math.floor(Math.random() * (2 * maxFuzz + 1)) - maxFuzz;
-      const interval = Math.min(this.currentBackoffInterval + fuzz, MAX_AUTH_CHECK_INTERVAL_MS);
-      return Math.max(interval, BASE_AUTH_CHECK_INTERVAL_MS);
+      const interval = Math.min(
+        this.currentBackoffInterval + fuzz,
+        AUTH_CHECK_INTERVALS['MAX']
+      );
+      return Math.max(interval, AUTH_CHECK_INTERVALS['BASE']);
     },
 
     /**

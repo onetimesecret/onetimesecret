@@ -1,4 +1,4 @@
-import { customerSchema } from '@/schemas/models/customer/index';
+import { customerSchema } from '@/schemas/models/customer';
 import { transforms } from '@/schemas/transforms';
 import type Stripe from 'stripe';
 import { z } from 'zod';
@@ -14,16 +14,6 @@ export const accountSchema = z.object({
 });
 
 export type Account = z.infer<typeof accountSchema>;
-
-/**
- * Schema for CheckAuthData
- * Extends Customer with an optional last_login as number
- */
-export const checkAuthDataSchema = customerSchema.extend({
-  last_login: transforms.fromString.number.optional(),
-});
-
-export type CheckAuthData = z.infer<typeof checkAuthDataSchema>;
 
 /**
  * Schema for CheckAuthDetails

@@ -86,7 +86,9 @@ export type ApiError = z.infer<typeof apiErrorSchema>;
 
 // Helper to convert Zod errors to domain errors
 export function isApiError(error: unknown): error is ApiError {
-  return error !== null && typeof error === 'object' && 'type' in error && 'code' in error;
+  return (
+    error !== null && typeof error === 'object' && 'type' in error && 'code' in error
+  );
 }
 
 // Improve zod error handling to preserve context
@@ -123,4 +125,30 @@ export const createApiError = (
   record: null,
   shrimp: '', // Add required field
   details: {},
+});
+
+export enum ValidationErrorType {
+  SCHEMA = 'schema_validation',
+  BUSINESS = 'business_validation',
+  TRANSFORM = 'transform_validation',
+}
+
+export interface ValidationError {
+  type: ValidationErrorType;
+  field?: string;
+  message: string;
+  errors?: z.ZodError[]; // For schema validation
+}
+
+// Enhanced error creation
+export const createValidationError = (
+  type: ValidationErrorType,
+  message: string,
+  field?: string,
+  errors?: z.ZodError[]
+): ValidationError => ({
+  type,
+  message,
+  field,
+  errors,
 });

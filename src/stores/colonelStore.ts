@@ -27,7 +27,7 @@ export const useColonelStore = defineStore('colonel', {
       throw createApiError(
         'SERVER',
         'SERVER_ERROR',
-        error instanceof Error ? error.message : 'Unknown error occurred'
+        error instanceof Error ? error.message : 'Error fetching colonel data'
       );
     },
 

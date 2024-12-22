@@ -1,7 +1,7 @@
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { feedbackSchema } from '@/schemas/models';
 import { createModelSchema } from '@/schemas/models/base';
-import { customerSchema } from '@/schemas/models/customer/index';
+import { customerSchema } from '@/schemas/models/customer';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 

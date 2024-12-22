@@ -1,8 +1,9 @@
 // src/stores/jurisdictionStore.ts
 
+import { createApiError, zodErrorToApiError } from '@/schemas/api';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { defineStore } from 'pinia';
-
+import { z } from 'zod';
 
 interface JurisdictionState {
   enabled: boolean;
@@ -12,7 +13,6 @@ interface JurisdictionState {
   error: string | null;
 }
 
-
 export const useJurisdictionStore = defineStore('jurisdiction', {
   state: (): JurisdictionState => ({
     enabled: true,
@@ -20,7 +20,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
       identifier: '',
       display_name: '',
       domain: '',
-      icon: ''
+      icon: '',
     },
     isLoading: false,
     error: null,
@@ -29,26 +29,35 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
 
   getters: {
     getCurrentJurisdiction(): Jurisdiction {
-      return this.currentJurisdiction ?? {
-        identifier: '',
-        display_name: '',
-        domain: '',
-        icon: ''
-      };
+      return this.currentJurisdiction;
     },
     getAllJurisdictions: (state): Jurisdiction[] => {
       return state.jurisdictions;
     },
-
   },
 
   actions: {
-    initializeStore(regionsConfig: RegionsConfig) {
-      if (!regionsConfig) {
+    handleApiError(error: unknown): never {
+      if (error instanceof z.ZodError) {
+        throw zodErrorToApiError(error);
+      }
+      throw createApiError(
+        'SERVER',
+        'SERVER_ERROR',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
+    },
+
+    /**
+     * Initialize the jurisdiction store with configuration from API
+     * Handles both enabled and disabled region scenarios
+     */
+    initializeStore(config: RegionsConfig) {
+      if (!config) {
         this.enabled = false;
         return;
       }
-      this.jurisdictions = regionsConfig.jurisdictions;
+      this.jurisdictions = config.jurisdictions;
 
       // For the time being (i.e. for our first few locations), the region and
       // jurisdiction are the same. EU is EU, US is US. They will differentiate
@@ -58,32 +67,37 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
       // US, I probably would prefer to use a US data center given the choice
       // even if the business I'm in is not a regulated industry. I find it
       // helpful to think of it as "compliant by default".
-      this.currentJurisdiction = this.findJurisdiction(regionsConfig.current_jurisdiction);
+      this.currentJurisdiction = this.findJurisdiction(config.current_jurisdiction);
 
       // If regions are not enabled, ensure we have at least one region
-      if (!regionsConfig.enabled && this.jurisdictions.length === 0) {
-        const jurisdiction = regionsConfig.jurisdictions[0];
-        this.jurisdictions = [{
-          identifier: jurisdiction.identifier,
-          display_name: jurisdiction.display_name,
-          domain: jurisdiction.domain,
-          icon: jurisdiction.icon,
-        }];
+      if (!config.enabled && this.jurisdictions.length === 0) {
+        const jurisdiction = config.jurisdictions[0];
+        this.jurisdictions = [
+          {
+            identifier: jurisdiction.identifier,
+            display_name: jurisdiction.display_name,
+            domain: jurisdiction.domain,
+            icon: jurisdiction.icon,
+          },
+        ];
       }
     },
     /**
      * Find a jurisdiction by its identifier.
      * @param identifier - The identifier of the jurisdiction to find.
      * @returns The jurisdiction with the given identifier.
-     * @throws Will throw an error if no jurisdiction is found with the given identifier.
+     * @throws ApiError if no jurisdiction is found with the given identifier.
      */
     findJurisdiction(identifier: string): Jurisdiction {
-      const jurisdiction = this.jurisdictions.find((jurisdiction: Jurisdiction) => jurisdiction.identifier === identifier);
+      const jurisdiction = this.jurisdictions.find((j) => j.identifier === identifier);
       if (!jurisdiction) {
-        throw new Error(`Jurisdiction with identifier "${identifier}" not found.`);
+        throw createApiError(
+          'NOT_FOUND',
+          'NOT_FOUND',
+          `Jurisdiction "${identifier}" not found`
+        );
       }
       return jurisdiction;
     },
-
   },
 });

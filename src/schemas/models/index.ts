@@ -5,7 +5,7 @@
  *
  */
 export * from './base';
-export * from './customer/index';
+export * from './customer';
 export * from './feedback';
 export * from './jurisdiction';
 export * from './public';

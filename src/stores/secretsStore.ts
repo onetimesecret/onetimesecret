@@ -23,25 +23,28 @@ export const useSecretsStore = defineStore('secrets', {
   }),
 
   actions: {
+    handleApiError(error: unknown): never {
+      if (error instanceof z.ZodError) {
+        throw zodErrorToApiError(error);
+      }
+      throw createApiError(
+        'SERVER',
+        'SERVER_ERROR',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
+    },
+
     async loadSecret(secretKey: string) {
       this.isLoading = true;
       try {
-        const response = await api.get<SecretResponse>(`/api/v2/secret/${secretKey}`);
+        const response = await api.get(`/api/v2/secret/${secretKey}`);
         const validated = responseSchemas.secret.parse(response.data);
         this.record = validated.record;
         this.details = validated.details;
         this.error = null;
         return validated;
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          throw zodErrorToApiError(error);
-        }
-
-        throw createApiError(
-          'SERVER',
-          'SERVER_ERROR',
-          error instanceof Error ? error.message : 'Failed to load secret'
-        );
+        this.handleApiError(error);
       } finally {
         this.isLoading = false;
       }
@@ -50,23 +53,20 @@ export const useSecretsStore = defineStore('secrets', {
     async revealSecret(secretKey: string, passphrase?: string) {
       this.isLoading = true;
       try {
-        const response = await api.post<SecretResponse>(`/api/v2/secret/${secretKey}/reveal`, {
-          passphrase,
-          continue: true,
-        });
+        const response = await api.post<SecretResponse>(
+          `/api/v2/secret/${secretKey}/reveal`,
+          {
+            passphrase,
+            continue: true,
+          }
+        );
         const validated = responseSchemas.secret.parse(response.data);
         this.record = validated.record;
         this.details = validated.details;
         this.error = null;
         return validated;
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          throw zodErrorToApiError(error);
-        }
-
-        const message = error instanceof Error ? error.message : 'Failed to reveal secret';
-        this.error = message;
-        throw createApiError('SERVER', 'SERVER_ERROR', message);
+        this.handleApiError(error);
       } finally {
         this.isLoading = false;
       }

@@ -1,11 +1,11 @@
 import { createApiListResponseSchema, createApiResponseSchema } from '@/schemas/api/base';
 import {
-    accountSchema,
-    apiTokenSchema,
-    checkAuthDetailsSchema,
+  accountSchema,
+  apiTokenSchema,
+  checkAuthDetailsSchema,
 } from '@/schemas/api/endpoints/account';
 import { colonelDataResponseSchema } from '@/schemas/api/endpoints/colonel';
-import { checkAuthDataSchema, concealDataSchema } from '@/schemas/api/endpoints/index';
+import { concealDataSchema } from '@/schemas/api/endpoints/index';
 import { customDomainSchema, customerSchema, secretListSchema } from '@/schemas/models';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import { feedbackDetailsSchema, feedbackSchema } from '@/schemas/models/feedback';
@@ -25,7 +25,7 @@ export const responseSchemas = {
   account: createApiResponseSchema(accountSchema),
   apiToken: createApiResponseSchema(apiTokenSchema),
   brandSettings: createApiResponseSchema(brandSettingschema),
-  checkAuth: createApiResponseSchema(checkAuthDataSchema),
+  checkAuth: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
   colonel: createApiResponseSchema(colonelDataResponseSchema),
   concealData: createApiResponseSchema(concealDataSchema),
   customDomain: createApiResponseSchema(customDomainSchema),

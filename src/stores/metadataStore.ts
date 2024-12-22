@@ -1,11 +1,12 @@
 // stores/metadataStore.ts
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
-import { createApiError } from '@/schemas/api/errors';
+import { createApiError, zodErrorToApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { MetadataState } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
+import { z } from 'zod';
 
 const api = createApi();
 
@@ -41,24 +42,28 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
+    handleApiError(error: unknown): never {
+      if (error instanceof z.ZodError) {
+        throw zodErrorToApiError(error);
+      }
+      if (error instanceof Error && 'status' in error && error.status === 404) {
+        throw createApiError('NOT_FOUND', 'NOT_FOUND', 'Metadata not found');
+      }
+      throw createApiError(
+        'SERVER',
+        'SERVER_ERROR',
+        error instanceof Error ? error.message : 'Failed to fetch metadata'
+      );
+    },
+
     async fetchOne(key: string) {
-      this.isLoadingDetail = true;
       try {
         const response = await api.get(`/api/v2/private/${key}`);
         const validated = responseSchemas.metadata.parse(response.data);
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
       } catch (error) {
-        if (error instanceof Error && 'status' in error && error.status === 404) {
-          throw createApiError('NOT_FOUND', 'NOT_FOUND', 'Metadata not found');
-        }
-        throw createApiError(
-          'SERVER',
-          'SERVER_ERROR',
-          error instanceof Error ? error.message : 'Failed to fetch metadata'
-        );
-      } finally {
-        this.isLoadingDetail = false;
+        this.handleApiError(error);
       }
     },
 
@@ -82,7 +87,11 @@ export const useMetadataStore = defineStore('metadata', {
 
     async burn(key: string, passphrase?: string) {
       if (!this.canBurn) {
-        throw createApiError('VALIDATION', 'VALIDATION_ERROR', 'Cannot burn this metadata');
+        throw createApiError(
+          'VALIDATION',
+          'VALIDATION_ERROR',
+          'Cannot burn this metadata'
+        );
       }
 
       try {

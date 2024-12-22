@@ -1,4 +1,5 @@
-import { type CsrfResponse } from '@/schemas/api/responses';
+import { createApiError } from '@/schemas/api/errors';
+import { responseSchemas } from '@/schemas/api/responses';
 import { defineStore } from 'pinia';
 
 /**
@@ -54,17 +55,21 @@ export const useCsrfStore = defineStore('csrf', {
         });
 
         if (response.ok) {
-          const data = (await response.json()) as CsrfResponse;
+          const data = responseSchemas.csrf.parse(await response.json());
           this.isValid = data.isValid;
           if (data.shrimp) {
             this.updateShrimp(data.shrimp);
           }
         } else {
-          this.isValid = false;
+          throw createApiError('SERVER', 'SERVER_ERROR', 'Failed to validate CSRF token');
         }
       } catch (error) {
-        console.error('Failed to check CSRF token validity:', error);
         this.isValid = false;
+        throw createApiError(
+          'SERVER',
+          'SERVER_ERROR',
+          error instanceof Error ? error.message : 'Failed to check CSRF token validity'
+        );
       }
     },
 
