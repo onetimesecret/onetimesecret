@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import APIKeyCard from '@/components/account/APIKeyCard.vue';
   import { useFormSubmission } from '@/composables/useFormSubmission';
+  import { apiTokenResponseSchema } from '@/schemas/api/endpoints';
   import { useCsrfStore } from '@/stores/csrfStore';
-  import { apiTokenResponseSchema } from '@/schemas/api/responses';
   import { ref, watch } from 'vue';
 
   const csrfStore = useCsrfStore();
