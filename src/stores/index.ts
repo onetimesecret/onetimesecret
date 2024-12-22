@@ -39,4 +39,4 @@ export { useNotificationsStore } from './notifications';
 export { useSecretsStore } from './secretsStore';
 
 // Plugin exports
-export { logoutPlugin } from './plugins/logoutPlugin';
+export { logoutPlugin } from '@/plugins/pinia/logoutPlugin';

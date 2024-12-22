@@ -1,8 +1,8 @@
 // stores/customerStore.ts
 
-import { responseSchemas } from '@/schemas/api';
 import { createDomainError } from '@/schemas/api/errors';
-import { type Customer } from '@/schemas/models/customer';
+import { responseSchemas } from '@/schemas/api/responses';
+import type { Customer } from '@/schemas/models/customer';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 

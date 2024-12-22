@@ -1,6 +1,5 @@
-import type { ColonelData } from '@/schemas/api/endpoints/colonel';
+import { responseSchemas, type ColonelData, type ColonelResponse } from '@/schemas/api';
 import { zodErrorToDomainError } from '@/schemas/api/errors';
-import { responseSchemas, type ColonelResponse } from '@/schemas/api/responses';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 import { z } from 'zod';

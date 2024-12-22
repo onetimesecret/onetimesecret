@@ -1,4 +1,3 @@
-import { createApiResponseSchema } from '@/schemas/api';
 import { customerSchema } from '@/schemas/models/customer/index';
 import { transforms } from '@/schemas/transforms';
 import type Stripe from 'stripe';
@@ -15,10 +14,6 @@ export const accountSchema = z.object({
 });
 
 export type Account = z.infer<typeof accountSchema>;
-
-// Response schema
-export const accountResponseSchema = createApiResponseSchema(accountSchema, z.object({}));
-export type AccountResponse = z.infer<typeof accountResponseSchema>;
 
 /**
  * Schema for CheckAuthData
@@ -51,7 +46,3 @@ export const apiTokenSchema = z.object({
 });
 
 export type ApiToken = z.infer<typeof apiTokenSchema>;
-
-// API response types
-export const apiTokenResponseSchema = createApiResponseSchema(apiTokenSchema, z.object({}));
-export type ApiTokenResponse = z.infer<typeof apiTokenResponseSchema>;
