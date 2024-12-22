@@ -2,35 +2,18 @@ import { z, ZodIssue } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 
 /**
- * Core Transformers
+ * Core string transformers for API/Redis data conversion
  *
- * Centralized string conversion utilities for API boundaries. Data coming from
- * the API is often from Redis which stores everything as strings. These
- * transformers help convert those strings into proper types.
+ * Uses z.preprocess() over z.coerce() because:
  *
+ * 1. Explicit handling of null/undefined/empty strings
+ * 2. Support for Redis bool formats ("0"/"1", "true"/"false")
+ * 3. Unix timestamp string conversion to JS dates
  *
- * About Space Characters
- *
- * We handle space characters (spaces, tabs, newlines, etc.) at the component level
- * rather than in schemas because:
- *
- * 1. Data Fidelity
- *    - Preserves original input in the data model
- *    - Prevents unintended data loss from automatic trimming
- *    - Critical for secrets/sensitive content where spacing may be significant
- *
- * 2. Separation of Concerns
- *    - Schemas validate data structure and constraints
- *    - Components handle user input formatting and display
- *    - Makes space character handling explicit where needed
- *
- * 3. Flexibility
- *    - Different components may need different spacing handling
- *    - Some fields may need to preserve all space characters
- *    - UI can show original vs cleaned versions if needed
- *
- * For form inputs where space cleaning is desired, handle it in the component's
- * input event handler or v-model transformer.
+ * Space characters (spaces, tabs, newlines) are handled in UI components:
+ * - Preserves data fidelity
+ * - Keeps schema validation separate from display formatting
+ * - Allows field-specific space handling
  */
 export const transforms = {
   fromString: {
@@ -84,6 +67,8 @@ export const transforms = {
 
 /**
  * Transform error handling
+ *
+ * TODO: Could use Zod's built-in error handling?
  */
 export class TransformError extends Error {
   public details: ZodIssue[] | string;
