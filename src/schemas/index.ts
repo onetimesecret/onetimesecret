@@ -84,7 +84,7 @@ export type {
 export type {
   AccountResponse,
   ApiTokenResponse,
-  MetadataRecordApiResponse,
+  MetadataResponse,
   SecretRecordApiResponse,
 } from './api/responses';
 

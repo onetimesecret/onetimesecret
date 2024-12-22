@@ -3,7 +3,7 @@
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { ConcealDataApiResponse } from '@/schemas/api/responses';
+import { ConcealDataResponse } from '@/schemas/api/responses';
 import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -89,7 +89,7 @@ const {
 } = useFormSubmission({
   url: '/api/v2/secret/conceal',
   successMessage: '',
-  onSuccess: (data: ConcealDataApiResponse) => {
+  onSuccess: (data: ConcealDataResponse) => {
     // Use router to redirect to the private metadata page
     router.push({
       name: 'Metadata link',

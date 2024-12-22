@@ -1,4 +1,4 @@
-import type { AsyncDataResult, MetadataRecordApiResponse } from '@/schemas/api/responses';
+import type { AsyncDataResult, MetadataResponse } from '@/schemas/api/responses';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { NotFoundError } from '@/utils/errors';
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
@@ -30,7 +30,7 @@ export async function resolveMetadata(
     }
 
     // Use API response which has the complete record type
-    const initialData: AsyncDataResult<MetadataRecordApiResponse> = {
+    const initialData: AsyncDataResult<MetadataResponse> = {
       status: 200,
       data: {
         success: true,

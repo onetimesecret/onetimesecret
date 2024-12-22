@@ -8,7 +8,7 @@ import { colonelDataResponseSchema } from '@/schemas/api/endpoints/colonel';
 import { checkAuthDataSchema, concealDataSchema } from '@/schemas/api/endpoints/index';
 import { customDomainSchema, customerSchema, secretListSchema } from '@/schemas/models';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
-import { feedbackSchema } from '@/schemas/models/feedback';
+import { feedbackDetailsSchema, feedbackSchema } from '@/schemas/models/feedback';
 import { metadataDetailsSchema, metadataSchema } from '@/schemas/models/metadata';
 import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
 import { z } from 'zod';
@@ -33,7 +33,7 @@ export const responseSchemas = {
   imageProps: createApiResponseSchema(imagePropsSchema),
   metadata: createApiResponseSchema(metadataSchema, metadataDetailsSchema),
   secret: createApiResponseSchema(secretSchema, secretDetailsSchema),
-  feedback: createApiResponseSchema(feedbackSchema,feedbackDetailsSchema),
+  feedback: createApiResponseSchema(feedbackSchema, feedbackDetailsSchema),
 
   // List responses
   customDomainList: createApiListResponseSchema(customDomainSchema),
@@ -68,17 +68,4 @@ export type MetadataListResponse = ResponseTypes['metadataList'];
 export type SecretResponse = ResponseTypes['secret'];
 export type SecretListResponse = ResponseTypes['secretList'];
 export type CsrfResponse = ResponseTypes['csrf'];
-
-// Legacy type aliases (for backwards compatibility)
-export type ApiTokenApiResponse = ApiTokenResponse;
-export type CustomDomainApiResponse = CustomDomainResponse;
-export type CustomDomainRecordsApiResponse = CustomDomainListResponse;
-export type AccountApiResponse = AccountResponse;
-export type MetadataRecordApiResponse = MetadataResponse;
-export type SecretRecordApiResponse = SecretResponse;
-export type ConcealDataApiResponse = ConcealDataResponse;
-export type CheckAuthDataApiResponse = CheckAuthResponse;
-export type BrandSettingsApiResponse = BrandSettingsResponse;
-export type ImagePropsApiResponse = ImagePropsResponse;
-export type UpdateDomainBrandResponse = CustomDomainResponse;
-export type ColonelDataApiResponse = ColonelResponse;
+export type FeedbackResponse = ResponseTypes['feedback'];

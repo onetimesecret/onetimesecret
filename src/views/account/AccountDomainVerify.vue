@@ -3,7 +3,7 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import MoreInfoText from "@/components/MoreInfoText.vue";
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { type CustomDomainApiResponse, customDomainResponseSchema } from '@/schemas/api/responses';
+import { type CustomDomainResponse, customDomainResponseSchema } from '@/schemas/api/responses';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -56,7 +56,7 @@ const fetchDomain = async (): Promise<void> => {
   }
 };
 
-const handleDomainVerify = async (data: CustomDomainApiResponse) => {
+const handleDomainVerify = async (data: CustomDomainResponse) => {
   console.debug('Domain verified: refreshing domain info', data);
   await fetchDomain();
 };

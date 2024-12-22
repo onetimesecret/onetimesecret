@@ -33,7 +33,7 @@
     successMessage: 'Token generated.',
     schema: apiTokenResponseSchema,
     onSuccess: async (data) => {
-      // data is now properly typed as ApiTokenApiResponse
+      // data is now properly typed as ApiTokenResponse
       const newToken = data.record?.apitoken || '';
       localApiToken.value = newToken;
       emit('update:apitoken', newToken);

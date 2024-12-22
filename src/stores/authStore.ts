@@ -1,4 +1,4 @@
-import { CheckAuthDataApiResponse } from '@/schemas/api/responses';
+import { CheckAuthResponse } from '@/schemas/api/responses';
 import { CheckAuthDetails, Customer } from '@/schemas/models';
 import axios, { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
@@ -151,7 +151,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(
+        const response = await axios.get<CheckAuthResponse & CheckAuthDetails>(
           AUTH_CHECK_ENDPOINT
         );
 

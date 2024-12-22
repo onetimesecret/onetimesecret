@@ -4,21 +4,45 @@ import { z } from 'zod';
 const resolveDetailsSchema = <T extends z.ZodTypeAny | undefined>(schema?: T) =>
   schema ?? z.record(z.string(), z.unknown());
 
-// Base schema that all API responses extend from
+/**
+ * Base schema patterns for API responses.
+ *
+ * Design Decisions:
+ *
+ * 1. Response Structure:
+ *    All API responses follow consistent patterns:
+ *    - success: boolean flag
+ *    - record/records: primary payload
+ *    - details: optional metadata
+ *
+ * 2. Single Record vs List Responses:
+ *    We explicitly distinguish between:
+ *    - Single record uses `record` field
+ *    - List response uses `records` field
+ *
+ *    Benefits:
+ *    - Explicit naming clearly indicates what to expect
+ *    - Matches Ruby backend's response format
+ *    - Type safety is more precise - compiler enforces correct expectations
+ *    - Preferred over generic `data` field for API clarity
+ *
+ * 3. Type Parameters:
+ *    Schemas use TypeScript generics to ensure:
+ *    - Type safety for records
+ *    - Flexible detail schemas
+ *    - Proper type inference
+ *
+ * 4. Details Handling:
+ *    - Optional details object
+ *    - Defaults to record<string, unknown>
+ *    - Can be extended with specific schemas
+ */
 const apiResponseBaseSchema = z.object({
   success: transforms.fromString.boolean,
   custid: z.string().optional(),
   shrimp: z.string().optional().default(''),
 });
 
-// Base response schema with more flexible type inference.
-//
-// NOTE: This is a more flexible version of the original createApiResponseSchema
-// that allows for more complex record and details schemas. We only use this
-// when we need to define a custom details schema which is only in a handful
-// of places, but when we do it's important to have the type safety.
-//
-// was: createApiResponseSchema
 export const createApiResponseSchema = <
   TRecord extends z.ZodTypeAny,
   TDetails extends z.ZodTypeAny | undefined = undefined,
@@ -32,7 +56,6 @@ export const createApiResponseSchema = <
   });
 };
 
-// was: createRecordsResponseSchema
 export const createApiListResponseSchema = <TRecord extends z.ZodTypeAny>(
   recordSchema: TRecord
 ) => {

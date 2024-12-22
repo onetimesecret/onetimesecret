@@ -1,16 +1,16 @@
 import {
-  metadataRecordsSchema,
-  type MetadataRecords
+    metadataRecordsSchema,
+    type MetadataRecords
 } from '@/schemas/api/endpoints/index';
 import {
-  metadataRecordResponseSchema,
-  type MetadataRecordApiResponse,
+    metadataRecordResponseSchema,
+    type MetadataResponse,
 } from '@/schemas/api/responses';
 import {
-  MetadataState,
-  metadataDetailsSchema,
-  metadataSchema,
-  type Metadata,
+    MetadataState,
+    metadataDetailsSchema,
+    metadataSchema,
+    type Metadata,
 } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
 import { isTransformError, transformResponse } from '@/utils/transforms';
@@ -75,7 +75,7 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
-    setData(response: MetadataRecordApiResponse) {
+    setData(response: MetadataResponse) {
       const validated = transformResponse(metadataRecordResponseSchema, response);
       this.currentRecord = metadataSchema.parse(validated.record);
       if (validated.details) {
@@ -156,7 +156,7 @@ export const useMetadataStore = defineStore('metadata', {
       this.isLoading = true;
 
       try {
-        const response = await api.get<MetadataRecordApiResponse>(`/api/v2/private/${key}`, {
+        const response = await api.get<MetadataResponse>(`/api/v2/private/${key}`, {
           signal: bypassCache ? this.abortController?.signal : undefined,
         });
 
@@ -205,7 +205,7 @@ export const useMetadataStore = defineStore('metadata', {
       this.isLoading = true;
 
       try {
-        const response = await api.post<MetadataRecordApiResponse>(`/api/v2/private/${key}/burn`, {
+        const response = await api.post<MetadataResponse>(`/api/v2/private/${key}/burn`, {
           passphrase,
           continue: true,
         });

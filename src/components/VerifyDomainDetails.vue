@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useFormSubmission } from '@/composables/useFormSubmission';
 import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
-import { CustomDomainApiResponse } from '@/schemas/api/responses';
+import { CustomDomainResponse } from '@/schemas/api/responses';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
 
@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Define the emit function with the type
 const emit = defineEmits<{
-  (e: 'domainVerify', data: CustomDomainApiResponse): void;
+  (e: 'domainVerify', data: CustomDomainResponse): void;
 }>();
 
 const { isSubmitting, error, success, submitForm } = useFormSubmission({
@@ -32,7 +32,7 @@ const { isSubmitting, error, success, submitForm } = useFormSubmission({
   getFormData: () => new URLSearchParams({
     domain: props.domain.display_domain,
   }),
-  onSuccess: (data: CustomDomainApiResponse) => {
+  onSuccess: (data: CustomDomainResponse) => {
     console.log('Verification initiated:', data);
     emit('domainVerify', data);
   },

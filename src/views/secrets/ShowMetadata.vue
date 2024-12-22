@@ -49,7 +49,7 @@ import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
-import { AsyncDataResult, MetadataRecordApiResponse } from '@/schemas/api/responses';
+import { AsyncDataResult, MetadataResponse } from '@/schemas/api/responses';
 import { isMetadataDetails } from '@/schemas/models/metadata';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
@@ -60,7 +60,7 @@ const route = useRoute();
 const store = useMetadataStore();
 
 // Get initial data from route resolver
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataRecordApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataResponse>);
 
 // Set up reactive refs to store state
 const { currentRecord: record, details, isLoading, error } = storeToRefs(store);

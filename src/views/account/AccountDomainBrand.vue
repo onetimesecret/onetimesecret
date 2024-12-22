@@ -10,8 +10,8 @@ import { brandSettingschema } from '@/schemas/models/domain/brand';
 import { useBrandingStore } from '@/stores/brandingStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { BrandSettingsApiResponse } from '@/schemas/api/responses';
-import { AsyncDataResult, CustomDomainApiResponse } from '@/schemas/api/responses';
+import { AsyncDataResult, CustomDomainResponse } from '@/schemas/api/responses';
+import type { BrandSettingsResponse } from '@/schemas/api/responses';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
 import { Icon } from '@iconify/vue';
@@ -27,7 +27,7 @@ const detectPlatform = (): 'safari' | 'edge' => {
 };
 
 const route = useRoute();
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<CustomDomainApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<CustomDomainResponse>);
 
 const notifications = useNotificationsStore();
 const csrfStore = useCsrfStore();
@@ -100,7 +100,7 @@ const fetchBrandSettings = async () => {
       settings = brandSettingschema.parse(brand);
     } else {
       // Fallback to API call if no preloaded data
-      const response = await api.get<BrandSettingsApiResponse>(
+      const response = await api.get<BrandSettingsResponse>(
         `/api/v2/account/domains/${displayDomain.value}/brand`
       );
 

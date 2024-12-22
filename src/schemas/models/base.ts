@@ -4,6 +4,24 @@ import { z } from 'zod';
 /**
  * Base Model Schema
  * Maps to Ruby's base model class and defines common model attributes
+ *
+ * Design Decisions:
+ *
+ * 1. Common Fields:
+ *    All models share:
+ *    - identifier: unique ID
+ *    - created/updated: timestamps
+ *    These match Ruby model conventions
+ *
+ * 2. Model Creation Pattern:
+ *    - createModelSchema helper enforces consistent model structure
+ *    - Ensures all models extend base fields
+ *    - Maintains type safety with Ruby models
+ *
+ * 3. Type Conversion:
+ *    - Handles Redis string -> proper type conversion
+ *    - Uses consistent transform patterns
+ *    - Maintains type safety across boundaries
  */
 export const baseModelSchema = z.object({
   identifier: z.string(),

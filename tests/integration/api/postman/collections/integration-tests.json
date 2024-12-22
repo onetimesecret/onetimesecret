@@ -482,7 +482,7 @@
 											],
 											"cookie": [],
 											"responseTime": null,
-											"body": "{\n  \"value\": \"reference #/components/schemas/ApiTokenApiResponse not found in the OpenAPI spec\"\n}"
+											"body": "{\n  \"value\": \"reference #/components/schemas/ApiTokenResponse not found in the OpenAPI spec\"\n}"
 										}
 									]
 								}
@@ -1114,7 +1114,7 @@
 									],
 									"cookie": [],
 									"responseTime": null,
-									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataApiResponse not found in the OpenAPI spec\"\n}"
+									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataResponse not found in the OpenAPI spec\"\n}"
 								}
 							]
 						},
@@ -1324,7 +1324,7 @@
 									],
 									"cookie": [],
 									"responseTime": null,
-									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataApiResponse not found in the OpenAPI spec\"\n}"
+									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataResponse not found in the OpenAPI spec\"\n}"
 								}
 							]
 						}
@@ -1432,7 +1432,7 @@
 									],
 									"cookie": [],
 									"responseTime": null,
-									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataApiResponse not found in the OpenAPI spec\"\n}"
+									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataResponse not found in the OpenAPI spec\"\n}"
 								}
 							]
 						},
@@ -2038,7 +2038,7 @@
 									],
 									"cookie": [],
 									"responseTime": null,
-									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataApiResponse not found in the OpenAPI spec\"\n}"
+									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataResponse not found in the OpenAPI spec\"\n}"
 								}
 							]
 						},
@@ -2312,7 +2312,7 @@
 									],
 									"cookie": [],
 									"responseTime": null,
-									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataApiResponse not found in the OpenAPI spec\"\n}"
+									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataResponse not found in the OpenAPI spec\"\n}"
 								}
 							]
 						},
@@ -2362,7 +2362,7 @@
 									],
 									"cookie": [],
 									"responseTime": null,
-									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataApiResponse not found in the OpenAPI spec\"\n}"
+									"body": "{\n  \"value\": \"reference #/components/schemas/ConcealDataResponse not found in the OpenAPI spec\"\n}"
 								}
 							]
 						},
@@ -2761,7 +2761,7 @@
 							],
 							"cookie": [],
 							"responseTime": null,
-							"body": "{\n  \"value\": \"reference #/components/schemas/CheckAuthDataApiResponse not found in the OpenAPI spec\"\n}"
+							"body": "{\n  \"value\": \"reference #/components/schemas/CheckAuthResponse not found in the OpenAPI spec\"\n}"
 						}
 					]
 				}
@@ -2820,7 +2820,7 @@
 									],
 									"cookie": [],
 									"responseTime": null,
-									"body": "{\n  \"value\": \"reference #/components/schemas/ColonelDataApiResponse not found in the OpenAPI spec\"\n}"
+									"body": "{\n  \"value\": \"reference #/components/schemas/ColonelResponse not found in the OpenAPI spec\"\n}"
 								}
 							]
 						}
