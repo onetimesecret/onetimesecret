@@ -1,7 +1,7 @@
 // src/plugins/axios/interceptors.ts
 import type { ApiErrorResponse } from '@/schemas/api';
 import { useCsrfStore } from '@/stores/csrfStore';
-import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 /**
  * CSRF Token Interceptors
@@ -56,7 +56,7 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   return config;
 };
 
-export const responseInterceptor = (response: any) => {
+export const responseInterceptor = (response: AxiosResponse) => {
   const csrfStore = useCsrfStore();
   const responseShrimp = response.data?.shrimp;
   const shrimpSnippet = createLoggableShrimp(responseShrimp);
