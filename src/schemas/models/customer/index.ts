@@ -1,5 +1,4 @@
 import { createModelSchema } from '@/schemas/models/base';
-import { createResponseSchema } from '@/schemas/models/response';
 import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 

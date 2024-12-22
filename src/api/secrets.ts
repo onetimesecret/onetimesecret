@@ -1,6 +1,4 @@
-// @/api/secrets.ts
-
-import { AsyncDataResult, SecretRecordApiResponse } from '@/types/api';
+import { AsyncDataResult, SecretResponse } from '@/schemas/api';
 import axios from 'axios';
 
 /**
@@ -8,30 +6,16 @@ import axios from 'axios';
  *
  * @param secretKey - The key of the secret to fetch.
  * @returns An object containing the fetched data, error message (if any), and status code.
- *
- * Usage example:
- *
- * import { useAsyncData } from '@/composables/useAsyncData';
- * import { fetchInitialSecret } from '@/api/secrets';
- * import { useRoute } from 'vue-router';
- *
- * const route = useRoute();
- * const secretKey = route.params.secretKey as string;
- *
- * const { data, error, isLoading, load } = useAsyncData(() => fetchInitialSecret(secretKey));
- *
- * // Load the data
- * load();
- *
- * // Use data, error, and isLoading in your component
  */
-export async function fetchInitialSecret(secretKey: string): Promise<AsyncDataResult<SecretRecordApiResponse>> {
+export async function fetchInitialSecret(
+  secretKey: string
+): Promise<AsyncDataResult<SecretResponse>> {
   try {
-    const response = await axios.get<SecretRecordApiResponse>(`/api/v2/secret/${secretKey}`);
+    const response = await axios.get<SecretResponse>(`/api/v2/secret/${secretKey}`);
     return {
       data: response.data,
       error: null,
-      status: response.status
+      status: response.status,
     };
   } catch (error) {
     let errorMessage = 'An unexpected error occurred';
@@ -52,7 +36,7 @@ export async function fetchInitialSecret(secretKey: string): Promise<AsyncDataRe
     return {
       data: null,
       error: errorMessage,
-      status: statusCode
+      status: statusCode,
     };
   }
 }

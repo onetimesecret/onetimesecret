@@ -1,5 +1,5 @@
+import { createApiResponseSchema } from '@/schemas/api/base';
 import { createModelSchema } from '@/schemas/models/base';
-import { createResponseSchema } from '@/schemas/models/response';
 import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -49,7 +49,7 @@ export type RegionsConfig = z.infer<typeof regionsConfigSchema>;
 export type JurisdictionDetails = z.infer<typeof jurisdictionDetailsSchema>;
 
 // API response schemas
-export const jurisdictionResponseSchema = createResponseSchema(
+export const jurisdictionResponseSchema = createApiResponseSchema(
   jurisdictionSchema,
   jurisdictionDetailsSchema
 );

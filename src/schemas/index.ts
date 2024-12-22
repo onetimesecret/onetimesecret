@@ -52,3 +52,43 @@
  *    - Proper error handling with details
  *
  * */
+// src/schemas/index.ts
+// Base exports
+export * from './api/base';
+export * from './models/base';
+
+// Error handling
+export * from './api/errors';
+
+// Core models
+export * from './models/customer';
+export * from './models/feedback';
+export * from './models/metadata';
+export * from './models/secret';
+
+// Domain models
+export * from './api/endpoints/colonel';
+export * from './models/domain/index';
+
+// API endpoints
+export * from './api/endpoints';
+
+// Response types - consolidated
+export type {
+  ApiBaseResponse,
+  ApiErrorResponse,
+  ApiRecordResponse,
+  ApiRecordsResponse,
+} from './api/base';
+
+export type {
+  AccountResponse,
+  ApiTokenResponse,
+  MetadataRecordApiResponse,
+  SecretRecordApiResponse,
+} from './api/responses';
+
+export type { ColonelData } from './api/endpoints/colonel';
+
+// Model types - consolidated
+export type { BaseModel, CustomDomain, Customer, Feedback, Metadata, Secret } from './models';

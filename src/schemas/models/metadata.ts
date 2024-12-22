@@ -1,7 +1,6 @@
-
 import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/utils/transforms';
-import { optional, z } from 'zod';
+import { z } from 'zod';
 
 /**
  * @fileoverview Metadata schema with unified transformations
@@ -17,7 +16,6 @@ import { optional, z } from 'zod';
  * - State field is validated against enum
  * - Optional fields explicitly marked
  */
-
 
 /**
  * Metadata state enum matching Ruby model
@@ -38,6 +36,11 @@ export const MetadataState = {
   ORPHANED: 'orphaned',
 } as const;
 
+export type MetadataState = (typeof MetadataState)[keyof typeof MetadataState];
+
+// Create a reusable schema for the state
+export const metadataStateSchema = z.enum(Object.values(MetadataState) as [string, ...string[]]);
+
 // Common base schema for all metadata records
 export const metadataBaseSchema = createModelSchema({
   key: z.string(),
@@ -45,36 +48,30 @@ export const metadataBaseSchema = createModelSchema({
   secret_shortkey: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).optional(),
   share_domain: z.string().optional(),
-  state: z.enum([
-    MetadataState.NEW,
-    MetadataState.SHARED,
-    MetadataState.RECEIVED,
-    MetadataState.BURNED,
-    MetadataState.VIEWED,
-    MetadataState.ORPHANED,
-  ]),
-  received: optional(transforms.fromString.date),
-  burned: optional(transforms.fromString.date),
+  state: metadataStateSchema,
+  received: transforms.fromString.date.optional(),
+  burned: transforms.fromString.date.optional(),
   // There is no "orphaned" time field. We use updated. To be orphaned is an
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are linked to user actions, we don't know
   // when the metadata got into an orphaned state; only when we flagged it.
 });
 
-
 // Metadata shape in single record view
-export const metadataSchema = metadataBaseSchema.merge(z.object({
-  secret_key: z.string().optional(),
-  natural_expiration: z.string(),
-  expiration: transforms.fromString.date,
-  share_path: z.string(),
-  burn_path: z.string(),
-  metadata_path: z.string(),
-  share_url: z.string(),
-  metadata_url: z.string(),
-  burn_url: z.string(),
-  identifier: z.string(),
-}));
+export const metadataSchema = metadataBaseSchema.merge(
+  z.object({
+    secret_key: z.string().optional(),
+    natural_expiration: z.string(),
+    expiration: transforms.fromString.date,
+    share_path: z.string(),
+    burn_path: z.string(),
+    metadata_path: z.string(),
+    share_url: z.string(),
+    metadata_url: z.string(),
+    burn_url: z.string(),
+    identifier: z.string(),
+  })
+);
 
 // The details for each record in single record details
 export const metadataDetailsSchema = z.object({

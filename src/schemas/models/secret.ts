@@ -1,5 +1,4 @@
 import { createModelSchema } from '@/schemas/models/base';
-import { createResponseSchema, createListResponseSchema } from '@/schemas/models/response';
 import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -19,11 +18,16 @@ export const SecretState = {
   VIEWED: 'viewed',
 } as const;
 
+export type SecretState = (typeof SecretState)[keyof typeof SecretState];
+
+// Create reusable schema for the state
+export const secretStateSchema = z.enum(Object.values(SecretState) as [string, ...string[]]);
+
 // Base schema for core fields
 const secretBaseSchema = z.object({
   key: z.string(),
   shortkey: z.string(),
-  state: z.enum([SecretState.NEW, SecretState.RECEIVED, SecretState.BURNED, SecretState.VIEWED]),
+  state: secretStateSchema,
   is_truncated: transforms.fromString.boolean,
   has_passphrase: transforms.fromString.boolean,
   verification: transforms.fromString.boolean,
@@ -55,10 +59,3 @@ export const secretDetailsSchema = z.object({
 export type Secret = z.infer<typeof secretSchema>;
 export type SecretDetails = z.infer<typeof secretDetailsSchema>;
 export type SecretList = z.infer<typeof secretListSchema>;
-
-// API response schemas using standard pattern
-export const secretResponseSchema = createResponseSchema(secretSchema, secretDetailsSchema);
-export const secretListResponseSchema = createListResponseSchema(secretListSchema);
-
-export type SecretResponse = z.infer<typeof secretResponseSchema>;
-export type SecretListResponse = z.infer<typeof secretListResponseSchema>;

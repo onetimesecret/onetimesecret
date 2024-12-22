@@ -1,9 +1,9 @@
 // src/schemas/models/domain/index.ts
-export * from './brand'
-export * from './vhost'
+export * from './brand';
+export * from './vhost';
 
 // src/schemas/models/domain.ts
-import { baseModelSchema } from '@/schemas/models/base';
+import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/utils/transforms';
 import { z } from 'zod';
 
@@ -26,7 +26,7 @@ export type DomainStrategy = (typeof DomainStrategyValues)[keyof typeof DomainSt
  * - Validates domain parts
  * - Handles nested objects (vhost, brand)
  */
-export const customDomainSchema = baseModelSchema.extend({
+export const customDomainSchema = createModelSchema({
   // Core identifiers
   domainid: z.string(),
   custid: z.string(),
@@ -67,7 +67,6 @@ export const customDomainSchema = baseModelSchema.extend({
   // object hierarchy after validation. This ensures our domain objects maintain
   // a consistent shape regardless of API response variations.
 }).strip();
-
 
 // Export inferred types for use in stores/components
 export type CustomDomain = z.infer<typeof customDomainSchema>;

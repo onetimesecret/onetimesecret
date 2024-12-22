@@ -11,7 +11,13 @@ const apiResponseBaseSchema = z.object({
   shrimp: z.string().optional().default(''),
 });
 
-// Base response schema with more flexible type inference
+// Base response schema with more flexible type inference.
+//
+// NOTE: This is a more flexible version of the original createApiResponseSchema
+// that allows for more complex record and details schemas. We only use this
+// when we need to define a custom details schema which is only in a handful
+// of places, but when we do it's important to have the type safety.
+//
 // was: createApiResponseSchema
 export const createApiResponseSchema = <
   TRecord extends z.ZodTypeAny,

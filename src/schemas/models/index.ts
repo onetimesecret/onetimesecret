@@ -4,7 +4,7 @@
  * Primary models
  *
  */
-export * from './colonel';
+export * from './base';
 export * from './customer/index';
 export * from './feedback';
 export * from './jurisdiction';

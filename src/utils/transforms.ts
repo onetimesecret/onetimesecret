@@ -3,7 +3,34 @@ import { fromZodError } from 'zod-validation-error';
 
 /**
  * Core Transformers
- * Centralized string conversion utilities for API boundaries
+ *
+ * Centralized string conversion utilities for API boundaries. Data coming from
+ * the API is often from Redis which stores everything as strings. These
+ * transformers help convert those strings into proper types.
+ *
+ *
+ * About Space Characters
+ *
+ * We handle space characters (spaces, tabs, newlines, etc.) at the component level
+ * rather than in schemas because:
+ *
+ * 1. Data Fidelity
+ *    - Preserves original input in the data model
+ *    - Prevents unintended data loss from automatic trimming
+ *    - Critical for secrets/sensitive content where spacing may be significant
+ *
+ * 2. Separation of Concerns
+ *    - Schemas validate data structure and constraints
+ *    - Components handle user input formatting and display
+ *    - Makes space character handling explicit where needed
+ *
+ * 3. Flexibility
+ *    - Different components may need different spacing handling
+ *    - Some fields may need to preserve all space characters
+ *    - UI can show original vs cleaned versions if needed
+ *
+ * For form inputs where space cleaning is desired, handle it in the component's
+ * input event handler or v-model transformer.
  */
 export const transforms = {
   fromString: {
@@ -51,10 +78,9 @@ export const transforms = {
         }
       }
       return 'a few seconds from now';
-    }, z.string().nullable().optional())
+    }, z.string().nullable().optional()),
   },
 } as const;
-
 
 /**
  * Transform error handling
