@@ -19,28 +19,40 @@ import { z } from 'zod';
 export const transforms = {
   fromString: {
     boolean: z.preprocess((val) => {
+      if (val === null || val === undefined || val === '') return false;
       if (typeof val === 'boolean') return val;
       return val === 'true' || val === '1';
     }, z.boolean()),
 
     number: z.preprocess((val) => {
-      if (typeof val === 'number') return val;
       if (val === null || val === undefined || val === '') return null;
+      if (typeof val === 'number') return val;
       const num = Number(val);
       return isNaN(num) ? null : num;
     }, z.number().nullable()),
 
     date: z.preprocess((val) => {
+      if (val === null || val === undefined || val === '') return null;
       if (val instanceof Date) return val;
+
       const timestamp = typeof val === 'string' ? parseInt(val, 10) : (val as number);
-      if (isNaN(timestamp)) throw new Error('Invalid timestamp');
+      if (isNaN(timestamp)) {
+        throw new z.ZodError([
+          {
+            code: z.ZodIssueCode.invalid_date,
+            path: [],
+            message: `Invalid timestamp value: "${val}" (type: ${typeof val})`,
+          },
+        ]);
+      }
       return new Date(timestamp * 1000);
-    }, z.date()),
+    }, z.date().nullable()),
 
     ttlToNaturalLanguage: z.preprocess((val: unknown) => {
       if (val === null || val === undefined) return null;
 
-      const seconds: number = typeof val === 'string' ? parseInt(val, 10) : (val as number);
+      const seconds: number =
+        typeof val === 'string' ? parseInt(val, 10) : (val as number);
       if (isNaN(seconds) || seconds < 0) return null;
 
       const intervals = [
