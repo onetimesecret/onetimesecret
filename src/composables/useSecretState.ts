@@ -1,5 +1,5 @@
 import { Metadata } from '@/schemas/models';
-import { formatRelativeTime } from '@/utils/dates';
+import { formatRelativeTime } from '@/utils/format';
 import type { ComputedRef } from 'vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
