@@ -39,7 +39,9 @@ export const MetadataState = {
 export type MetadataState = (typeof MetadataState)[keyof typeof MetadataState];
 
 // Create a reusable schema for the state
-export const metadataStateSchema = z.enum(Object.values(MetadataState) as [string, ...string[]]);
+export const metadataStateSchema = z.enum(
+  Object.values(MetadataState) as [string, ...string[]]
+);
 
 // Common base schema for all metadata records
 export const metadataBaseSchema = createModelSchema({
@@ -49,8 +51,8 @@ export const metadataBaseSchema = createModelSchema({
   recipients: z.array(z.string()).or(z.string()).optional(),
   share_domain: z.string().optional(),
   state: metadataStateSchema,
-  received: transforms.fromString.date.optional(),
-  burned: transforms.fromString.date.optional(),
+  received: transforms.fromString.dateNullable.optional(),
+  burned: transforms.fromString.dateNullable.optional(),
   // There is no "orphaned" time field. We use updated. To be orphaned is an
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are linked to user actions, we don't know
@@ -80,7 +82,7 @@ export const metadataDetailsSchema = z.object({
   display_lines: transforms.fromString.number,
   display_feedback: transforms.fromString.boolean,
   no_cache: transforms.fromString.boolean,
-  secret_realttl: z.string(), // Preserve ttlToNaturalLanguage behavior
+  secret_realttl: z.number(), // Preserve ttlToNaturalLanguage behavior
   maxviews: transforms.fromString.number,
   has_maxviews: transforms.fromString.boolean,
   view_count: transforms.fromString.number,
