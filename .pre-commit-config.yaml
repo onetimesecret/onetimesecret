@@ -50,7 +50,7 @@ default_stages: [pre-commit]
 fail_fast: true
 
 # Ignore generated and dependency directories
-exclude: '^(vendor|node_modules|dist|build)/'
+exclude: '^$'
 
 repos:
   # Meta hooks: basic checks for pre-commit config itself
@@ -59,7 +59,8 @@ repos:
       - id: check-hooks-apply
       - id: check-useless-excludes
       - id: identity
-        args: ['--verbose']
+        name: Identity Hook (for sanity checking)
+        args: ['--hello', '--world']
 
   # Standard pre-commit hooks: lightweight, universal checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -112,13 +113,13 @@ repos:
         pass_filenames: true
         files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)
 
-  # Local TypeScript type checking
+  # Local TypeScript type checking: quick type validation
   - repo: local
     hooks:
       - id: typescript-check-quick
         stages: [pre-commit]
         name: TypeScript Type Check
-        description: Comprehensive TypeScript type validation
+        description: Comprehensive TypeScript type validation (.ts only)
         entry: pnpm run type-check
         language: system
         pass_filenames: false
