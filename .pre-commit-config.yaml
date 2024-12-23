@@ -37,11 +37,11 @@
 
 # Hook installation configuration
 default_install_hook_types:
-  - pre-commit     # Primary code quality checks
-  - prepare-commit-msg  # Commit message preprocessing
-  - post-commit    # Actions after successful commit
-  - post-checkout  # Triggered after git checkout
-  - post-merge     # Triggered after git merge
+  - pre-commit # Primary code quality checks
+  - prepare-commit-msg # Commit message preprocessing
+  - post-commit # Actions after successful commit
+  - post-checkout # Triggered after git checkout
+  - post-merge # Triggered after git merge
 
 # Default execution stage
 default_stages: [pre-commit]
@@ -53,19 +53,27 @@ fail_fast: true
 exclude: '^(vendor|node_modules|dist|build)/'
 
 repos:
+  # Meta hooks: basic checks for pre-commit config itself
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+      - id: identity
+        args: ['--verbose']
+
   # Standard pre-commit hooks: lightweight, universal checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       # Formatting and basic sanitization
-      - id: trailing-whitespace     # Remove trailing whitespaces
-      - id: end-of-file-fixer       # Ensure files end with newline
-      - id: check-merge-conflict    # Detect unresolved merge conflicts
-      - id: detect-private-key      # Warn about committing private keys
+      - id: trailing-whitespace # Remove trailing whitespaces
+      - id: end-of-file-fixer # Ensure files end with newline
+      - id: check-merge-conflict # Detect unresolved merge conflicts
+      - id: detect-private-key # Warn about committing private keys
       - id: check-added-large-files # Prevent committing oversized files
-        args: ["--maxkb=2500"]      # 2.5MB file size threshold
-      - id: no-commit-to-branch     # Prevent direct commits to critical branches
-        args: ["--branch", "develop", "--branch", "rel/.*"]
+        args: ['--maxkb=2500'] # 2.5MB file size threshold
+      - id: no-commit-to-branch # Prevent direct commits to critical branches
+        args: ['--branch', 'develop', '--branch', 'rel/.*']
 
   # Local Ruby linting: syntax and basic style checks
   - repo: local
@@ -88,9 +96,9 @@ repos:
         stages: [prepare-commit-msg]
         description: Automatically prefix commits with issue numbers
         args:
-          - "--default=[UNTRACKED]"
-          - "--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}"
-          - "--template=[#{}]"
+          - '--default=[UNTRACKED]'
+          - '--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}'
+          - '--template=[#{}]'
 
   # Local JavaScript linting: quick syntax checks
   - repo: local
@@ -98,24 +106,24 @@ repos:
       - id: local-eslint-fast
         stages: [pre-commit]
         name: Quick ESLint
-        description: Lightweight JavaScript/TypeScript syntax validation
+        description: Lightweight TypeScript/Vue syntax validation
         entry: node_modules/.bin/eslint --quiet --flag unstable_ts_config
         language: system
         pass_filenames: true
         files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)
 
-  # TypeScript type checking
+  # Local TypeScript type checking
   - repo: local
     hooks:
-      - id: typescript-check-full
-        stages: [push]
+      - id: typescript-check-quick
+        stages: [pre-commit]
         name: TypeScript Type Check
         description: Comprehensive TypeScript type validation
         entry: pnpm run type-check
         language: system
-        pass_filenames: true
+        pass_filenames: false
         types: [file]
-        files: ^src/.*\.(ts|tsx|vue)$
+        files: ^src/.*\.(ts|tsx)$
 
   # Commit metadata tracking
   - repo: local
