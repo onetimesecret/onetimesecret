@@ -75,7 +75,7 @@ export const customerSchema = withFeatureFlags(
     emails_sent: transforms.fromString.number.default(0),
 
     // Date fields
-    last_login: transforms.fromString.date,
+    last_login: transforms.fromString.dateNullable,
 
     // Optional fields
     locale: z.string().nullable(),
