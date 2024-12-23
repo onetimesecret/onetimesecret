@@ -37,19 +37,14 @@ const createLoggableShrimp = (shrimp: unknown): string => {
 export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   const csrfStore = useCsrfStore();
 
-  console.debug('[Axios Interceptor] Request config:', {
+  console.debug('[debug] Request config:', {
     url: config.url,
     method: config.method,
     baseURL: config.baseURL,
   });
 
-  // We should only need to pass the CSRF token in via form field
-  // or HTTP header and not both. The old way was form field and
-  // the new way is header so we'll do this both ways for the time
-  // being until we can remove the form field method.
-  config.data = config.data || {};
-  config.data.shrimp = csrfStore.shrimp;
-
+  // Previously, we submitted CSRF token in form data. Now we
+  // submit it in headers only.
   config.headers = config.headers || {};
   config.headers['O-Shrimp'] = csrfStore.shrimp;
 
@@ -61,7 +56,7 @@ export const responseInterceptor = (response: AxiosResponse) => {
   const responseShrimp = response.data?.shrimp;
   const shrimpSnippet = createLoggableShrimp(responseShrimp);
 
-  console.debug('[Axios Interceptor] Success response:', {
+  console.debug('[debug] Success response:', {
     url: response.config.url,
     status: response.status,
     hasShrimp: !!responseShrimp,
@@ -71,7 +66,7 @@ export const responseInterceptor = (response: AxiosResponse) => {
   // Update CSRF token if provided in the response data
   if (isValidShrimp(responseShrimp)) {
     csrfStore.updateShrimp(responseShrimp);
-    console.debug('[Axios Interceptor] Updated shrimp token after success');
+    console.debug('[debug] Updated shrimp token after success');
   }
 
   return response;
@@ -81,7 +76,7 @@ export const errorInterceptor = (error: AxiosError) => {
   const csrfStore = useCsrfStore();
   const errorData = error.response?.data as ApiErrorResponse;
 
-  console.error('[Axios Interceptor] Error response:', {
+  console.error('Error response:', {
     url: error.config?.url,
     status: error.response?.status,
     hasShrimp: !!errorData.shrimp,
@@ -93,7 +88,7 @@ export const errorInterceptor = (error: AxiosError) => {
   // Update CSRF token if provided in the error response
   if (errorData.shrimp) {
     csrfStore.updateShrimp(errorData.shrimp);
-    console.debug('[Axios Interceptor] Updated shrimp token after error');
+    console.debug('[debug] Updated shrimp token after error');
   }
 
   // Optionally, attach the server message to the error object
