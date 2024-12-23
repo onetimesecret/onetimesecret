@@ -79,7 +79,7 @@ export const customerSchema = withFeatureFlags(
 
     // Optional fields
     locale: z.string().nullable(),
-    planid: z.string().nullable(),
+    planid: z.string().nullable().optional(),
 
     // Plan data
     plan: planSchema,
