@@ -1,51 +1,56 @@
 // stores/metadataStore.ts
-
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
-import { handleError } from '@/schemas/api/errors'; // Remove createApiError import
+import { handleError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
-import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
-import { MetadataState } from '@/schemas/models/metadata';
+import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
+import type { BaseStore } from '@/types/stores';
 import { createApi } from '@/utils/api';
-
-import { createBaseStore } from './baseStore';
+import { defineStore } from 'pinia';
 
 const api = createApi();
 
-interface StoreState {
+// Define valid states as a value (not just a type)
+export const METADATA_STATUS = {
+  NEW: 'new',
+  SHARED: 'shared',
+  RECEIVED: 'received',
+  BURNED: 'burned',
+  VIEWED: 'viewed',
+  ORPHANED: 'orphaned',
+} as const;
+
+interface StoreState extends BaseStore {
   currentRecord: Metadata | null;
   currentDetails: MetadataDetails | null;
   listRecords: MetadataRecords[];
   listDetails: MetadataRecordsDetails | null;
   isLoadingDetail: boolean;
   isLoadingList: boolean;
-  isLoading: boolean;
-  error: Error | null;
 }
 
-export const useMetadataStore = createBaseStore({
-  id: 'metadata',
+export const useMetadataStore = defineStore('metadata', {
   state: (): StoreState => ({
+    isLoading: false,
+    error: null,
     currentRecord: null as Metadata | null,
     currentDetails: null,
     listRecords: [],
     listDetails: null,
     isLoadingDetail: false,
     isLoadingList: false,
-    isLoading: false,
-    error: null,
   }),
 
   getters: {
     canBurn(state: StoreState): boolean {
       if (!state.currentRecord) return false;
       const validStates = [
-        MetadataState.NEW,
-        MetadataState.SHARED,
-        MetadataState.VIEWED,
+        METADATA_STATUS.NEW,
+        METADATA_STATUS.SHARED,
+        METADATA_STATUS.VIEWED,
       ] as const;
       return (
         validStates.includes(state.currentRecord.state as (typeof validStates)[number]) &&
-        !state.currentRecord.burned // this date field is only set after burning
+        !state.currentRecord.burned
       );
     },
   },
