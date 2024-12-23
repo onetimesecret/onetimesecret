@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { MetadataRecords } from '@/schemas/models';
+import { type MetadataRecords } from '@/schemas/api';
+import { formatRelativeTime } from '@/utils/format'
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -18,6 +19,10 @@ const linkClass = computed(() => {
 const displayKey = computed(() => {
   return `${props.secretMetadata.shortkey}`;
 });
+
+const formattedDate = computed(() =>
+  formatRelativeTime(props.secretMetadata.updated)
+);
 </script>
 
 <template>
@@ -32,12 +37,12 @@ const displayKey = computed(() => {
       ({{ $t('web.COMMON.sent_to') }} {{ secretMetadata.recipients }})
     </span>
   </router-link>
-  <span class="ml-2 text-gray-500 dark:text-gray-400">-</span>
+  <span class="ml-2 text-gray-500 dark:text-gray-400"> - </span>
   <em
     class="italic text-gray-500 dark:text-gray-400"
     :title="secretMetadata.updated.toLocaleString()">
     {{ secretMetadata.is_received ? $t('web.COMMON.word_received') : '' }}
-    {{ secretMetadata.is_burned ? $t('web.COMMON.word_burned') : '' }} {{ secretMetadata.updated }}
+    {{ secretMetadata.is_burned ? $t('web.COMMON.word_burned') : '' }} {{ formattedDate }}
   </em>
 
   <router-link
