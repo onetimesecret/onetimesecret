@@ -1,9 +1,9 @@
 // stores/metadataStore.ts
+import { useStoreError } from '@/composables/useStoreError';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
-import { handleError } from '@/schemas/api/errors';
+import { ApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
-import type { BaseStore } from '@/types/stores';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 
@@ -19,7 +19,11 @@ export const METADATA_STATUS = {
   ORPHANED: 'orphaned',
 } as const;
 
-interface StoreState extends BaseStore {
+interface StoreState {
+  // Base properties still needed in interface
+  isLoading: boolean;
+  error: ApiError | null;
+  // No longer needs to extend BaseStore as those fields are global
   currentRecord: Metadata | null;
   currentDetails: MetadataDetails | null;
   listRecords: MetadataRecords[];
@@ -56,10 +60,10 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
-    handleError(error: unknown): never {
-      const apiError = handleError(error);
-      this.error = apiError;
-      throw apiError;
+    handleError(error: unknown): ApiError {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      return this.error;
     },
 
     async fetchOne(key: string) {

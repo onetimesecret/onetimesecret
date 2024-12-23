@@ -15,7 +15,6 @@ export class ApiError extends Error {
   }
 }
 
-// Existing error type definitions...
 export const ErrorCode = {
   INVALID_AUTH: 401,
   NOT_FOUND: 404,
