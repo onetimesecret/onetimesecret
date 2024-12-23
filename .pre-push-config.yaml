@@ -70,19 +70,24 @@ repos:
         args: ["--autofix", "--no-sort-keys"]
         files: \.json$
         stages: [push]
+
       - id: mixed-line-ending
         name: Check line endings
         args: [--fix=lf]
         stages: [push]
+
       - id: check-case-conflict
         name: Check for case conflicts
         stages: [push]
+
       - id: check-executables-have-shebangs
         name: Check executable shebangs
         stages: [push]
+
       - id: check-shebang-scripts-are-executable
         name: Check shebang scripts are executable
         stages: [push]
+
       - id: forbid-submodules
         name: Check for submodules
         stages: [push]

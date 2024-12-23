@@ -47,14 +47,18 @@ repos:
     hooks:
       # Fast, essential checks only
       - id: trailing-whitespace
-        # Remove the --cached argument
+        stages: [pre-commit]
       - id: end-of-file-fixer
-        # Remove the --cached argument
+        stages: [pre-commit]
       - id: check-merge-conflict
+        stages: [pre-commit]
       - id: detect-private-key
+        stages: [pre-commit]
       - id: check-added-large-files
+        stages: [pre-commit]
         args: ["--maxkb=2500"]
       - id: no-commit-to-branch
+        stages: [pre-commit]
         args: ["--branch", "develop", "--branch", "rel/.*"]
 
   # Originally based on Rubocop's own pre-commit configuration
@@ -65,6 +69,7 @@ repos:
   - repo: local
     hooks:
       - id: local-rubocop-fast
+        stages: [pre-commit]
         name: Quick Rubocop
         entry: bundle exec rubocop --force-exclusion --config .rubocop.yml --format json --fail-level error --only Syntax,Layout --no-server
         language: system
@@ -86,6 +91,7 @@ repos:
   - repo: local
     hooks:
       - id: local-eslint-fast
+        stages: [pre-commit]
         name: Quick ESLint
         entry: node_modules/.bin/eslint --quiet --flag unstable_ts_config
         language: system
