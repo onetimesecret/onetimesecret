@@ -16,6 +16,7 @@ import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 
 import App from './App.vue';
+import { withLoadingPlugin } from './plugins/pinia/withLoadingPlugin';
 
 import './assets/style.css';
 
@@ -45,6 +46,7 @@ async function initializeApp() {
   const pinia = createPinia();
 
   pinia.use(logoutPlugin);
+  pinia.use(withLoadingPlugin);
   app.use(pinia);
 
   const jurisdictionStore = useJurisdictionStore();

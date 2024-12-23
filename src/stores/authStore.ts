@@ -142,6 +142,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const response = await api.get(AUTH_CHECK_CONFIG.ENDPOINT);
+
         const validated = responseSchemas.checkAuth.parse(response.data);
 
         this.isAuthenticated = validated.details.authenticated;
