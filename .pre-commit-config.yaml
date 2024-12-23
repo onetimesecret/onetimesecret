@@ -36,6 +36,8 @@ default_install_hook_types:
   - post-checkout
   - post-merge
 
+default_stages: [pre-commit]
+
 fail_fast: true
 
 # Skip generated/dependency directories
@@ -47,18 +49,12 @@ repos:
     hooks:
       # Fast, essential checks only
       - id: trailing-whitespace
-        stages: [pre-commit]
       - id: end-of-file-fixer
-        stages: [pre-commit]
       - id: check-merge-conflict
-        stages: [pre-commit]
       - id: detect-private-key
-        stages: [pre-commit]
       - id: check-added-large-files
-        stages: [pre-commit]
         args: ["--maxkb=2500"]
       - id: no-commit-to-branch
-        stages: [pre-commit]
         args: ["--branch", "develop", "--branch", "rel/.*"]
 
   # Originally based on Rubocop's own pre-commit configuration
@@ -95,8 +91,20 @@ repos:
         name: Quick ESLint
         entry: node_modules/.bin/eslint --quiet --flag unstable_ts_config
         language: system
-        types: [file]
+        pass_filenames: true
         files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)
+
+  # Quick TypeScript type checking
+  - repo: local
+    hooks:
+      - id: typescript-check-full
+        stages: [push]
+        name: TypeScript Type Check
+        entry: pnpm run type-check
+        language: system
+        pass_filenames: true
+        types: [file]
+        files: ^src/.*\.(ts|tsx|vue)$
 
   - repo: local
     hooks:

@@ -45,6 +45,12 @@ fail_fast: true
 # Skip generated/dependency directories
 exclude: '^(vendor|node_modules|dist|build)/'
 
+default_install_hook_types:
+  - pre-push
+  - push
+
+default_stages: [push]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -53,81 +59,71 @@ repos:
         name: Validate YAML files
         args: ["--allow-multiple-documents"]
         files: \.(yaml|yml)$
-        stages: [push]  # Specify stages per hook instead
 
       - id: check-toml
         name: Validate TOML files
         files: \.toml$
-        stages: [push]
 
       - id: check-json
         name: Validate JSON files
         files: \.json$
-        stages: [push]
 
       - id: pretty-format-json
         name: Format JSON files
         args: ["--autofix", "--no-sort-keys"]
         files: \.json$
-        stages: [push]
 
       - id: mixed-line-ending
         name: Check line endings
         args: [--fix=lf]
-        stages: [push]
 
       - id: check-case-conflict
         name: Check for case conflicts
-        stages: [push]
 
       - id: check-executables-have-shebangs
         name: Check executable shebangs
-        stages: [push]
 
       - id: check-shebang-scripts-are-executable
         name: Check shebang scripts are executable
-        stages: [push]
 
       - id: forbid-submodules
         name: Check for submodules
-        stages: [push]
 
   # Full Rubocop check
   - repo: local
     hooks:
       - id: local-rubocop-full
+        stages: [push]
         name: Full Rubocop Check
         entry: bundle exec rubocop --force-exclusion --config .rubocop.yml --format json --fail-level warning --no-server
         language: system
         types: [ruby]
         files: \.(rb|rake|ru)$
         pass_filenames: true
-        stages: [push]
-
 
   # Full ESLint check
   - repo: local
     hooks:
       - id: local-eslint-full
+        stages: [push]
         name: Full ESLint Check
         entry: node_modules/.bin/eslint
         language: system
-        types: [file]
+        pass_filenames: false
         files: ^src/.*\.(js|mjs|ts|tsx|vue)$
         args: [
           '--max-warnings=0',
           '--cache'
         ]
-        stages: [push]
 
-  # TypeScript type checking
+  # Full TypeScript type checking
   - repo: local
     hooks:
-      - id: typescript-check
+      - id: typescript-check-full
+        stages: [push]
         name: TypeScript Type Check
         entry: pnpm run type-check
         language: system
         pass_filenames: false
         types: [file]
         files: ^src/.*\.(ts|tsx|vue)$
-        stages: [push]
