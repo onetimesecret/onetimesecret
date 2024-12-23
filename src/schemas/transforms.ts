@@ -1,5 +1,5 @@
-import { ttlToNaturalLanguage } from '@/utils/format';
-import { parseBoolean, parseDateValue, parseNumber } from '@/utils/parse';
+import { ttlToNaturalLanguage } from '@/utils/format/index';
+import { parseBoolean, parseDateValue, parseNumber } from '@/utils/parse/index';
 import { z } from 'zod';
 
 /**
