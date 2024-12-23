@@ -54,7 +54,7 @@ repos:
     hooks:
       - id: check-yaml
         name: Validate YAML files
-        args: ["--allow-multiple-documents"]
+        args: ['--allow-multiple-documents']
         files: \.(yaml|yml)$
 
       - id: check-toml
@@ -67,7 +67,7 @@ repos:
 
       - id: pretty-format-json
         name: Format JSON files
-        args: ["--autofix", "--no-sort-keys"]
+        args: ['--autofix', '--no-sort-keys']
         files: \.json$
 
       - id: mixed-line-ending
@@ -108,12 +108,10 @@ repos:
         language: system
         pass_filenames: false
         files: ^src/.*\.(js|mjs|ts|tsx|vue)$
-        args: [
-          '--max-warnings=0',
-          '--cache'
-        ]
+        args: ['--max-warnings=0', '--cache']
 
   # Full TypeScript type checking
+  # See comment in tsconfig.json for configuration details
   - repo: local
     hooks:
       - id: typescript-check-full
@@ -122,5 +120,3 @@ repos:
         entry: pnpm run type-check
         language: system
         pass_filenames: false
-        types: [file]
-        files: ^src/.*\.(ts|tsx|vue)$

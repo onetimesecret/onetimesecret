@@ -1,6 +1,6 @@
 //import { createHtmlPlugin } from 'vite-plugin-html'
 import Vue from '@vitejs/plugin-vue';
-import path from 'path';
+import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
@@ -12,9 +12,8 @@ import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 // environment variables to the client-side code.
 const apiBaseUrl = process.env.VITE_API_BASE_URL || 'https://dev.onetimesecret.com';
 
-
 export default defineConfig({
-  root: "./src",
+  root: './src',
   plugins: [
     Vue({
       include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files
@@ -23,13 +22,15 @@ export default defineConfig({
           // Be cool and chill about 3rd party components. Alternatvely can use
           // `app.config.compilerOptions.isCustomElement = tag => tag.startsWith('altcha-')`
           // in main.ts.
-          isCustomElement: tag => tag.includes('altcha-')
-        }
-      }
+          isCustomElement: (tag) => tag.includes('altcha-'),
+        },
+      },
     }),
 
     // https://github.com/unplugin/unplugin-vue-markdown
-    Markdown({ /* options */ }),
+    Markdown({
+      /* options */
+    }),
 
     /**
      * Makes sure all text output files have a trailing newline.
@@ -51,9 +52,8 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@': path.resolve(process.cwd(), './src'),
-
-    }
+      '@': resolve(process.cwd(), './src'),
+    },
   },
 
   assetsInclude: ['assets/fonts/**/*.woff', 'assets/fonts/**/*.woff2'], // Include font files
@@ -120,7 +120,6 @@ export default defineConfig({
       //  chunkFileNames: 'assets/[name].[hash].js', // Single JS file
       //  assetFileNames: 'assets/[name].[hash].[ext]', // Single CSS file
       //},
-
     },
 
     // https://guybedford.com/es-module-preloading-integrity
@@ -142,10 +141,10 @@ export default defineConfig({
       'vue',
       'vue-router',
       'axios',
-    ]
+    ],
   },
 
   define: {
     'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
   },
-})
+});

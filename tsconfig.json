@@ -1,17 +1,43 @@
+// TypeScript Project Configuration
+//
+// IMPORTANT NOTE ON PRE-COMMIT TYPE CHECKING:
+// When running tsc/vue-tsc with specific files (e.g., in pre-commit hooks),
+// the compiler ignores tsconfig.json, leading to two issues:
+//
+// 1. Path aliases (@/*) won't work - this CANNOT be fixed by passing CLI options
+// 2. Module/target settings need explicit CLI args:
+//    pnpm exec vue-tsc --module nodenext --target es2022 --noEmit src/**/*.ts
+//
+// Solutions:
+//
+// 1. Run full project check (slow but correct):
+//    "pre-commit": "vue-tsc --noEmit -p tsconfig.json"
+//
+// 2. Use tsc-files package (3rd party, fast, but it never reports errors):
+//    pnpm add -D tsc-files
+//    "pre-commit": "tsc-files --noEmit src/**/*.{ts,vue}"
+//
+// 3. Ignore type-checking in pre-commit hooks (fast but risky):
+//    git push --no-verify
+//
+// References:
+// - TypeScript CLI limitation: https://github.com/microsoft/TypeScript/issues/27379
+// - Pre-commit setup: https://dev.to/samueldjones/run-a-typescript-type-check-in-your-pre-commit-hook-using-lint-staged-husky-30id
+// - tsc-files package: https://www.npmjs.com/package/tsc-files
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Node 22",
   "_version": "22.0.0",
 
+  // See:
+  // https://www.typescriptlang.org/tsconfig/
+  // https://github.com/tsconfig/bases/pull/265
   "compilerOptions": {
     "target": "es2022",
     "module": "es2022",
-    "lib": [
-      "es2023",
-      "dom"
-    ],
+    "lib": ["es2023", "dom"],
     "incremental": true,
-    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo",  // Store in cache directory instead
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo", // Store in cache directory instead
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -31,10 +57,7 @@
     "paths": {
       "@/*": ["*"]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types/declarations"
-    ]
+    "typeRoots": ["./node_modules/@types", "./src/types/declarations"]
   },
   "include": [
     "src/content/*.md",
@@ -43,9 +66,5 @@
     "src/**/*.ts",
     "src/**/*.vue"
   ],
-  "exclude": [
-    "node_modules",
-    "node_modules/**/*",
-    ".pnpm/**/*"
-  ]
+  "exclude": ["node_modules/**/*", "node_modules/.pnpm", ".pnpm/**/*"]
 }
