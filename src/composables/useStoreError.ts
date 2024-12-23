@@ -7,7 +7,10 @@ export function useStoreError() {
 
   return {
     handleError(error: unknown): ApiError {
-       console.debug('Handling error type:', error?.constructor?.name ?? typeof error);
+      console.debug(
+        '[debug] Handling error type:',
+        error?.constructor?.name ?? typeof error
+      );
 
       // Handle abort errors without showing notification
       if (error instanceof Error && error.name === 'AbortError') {
@@ -22,11 +25,20 @@ export function useStoreError() {
       // Handle Zod validation errors
       if (error instanceof ZodError) {
         console.error('Validation error:', error.errors);
+        const uniqueFields = new Set(
+          error.errors.map((err) => err.path[err.path.length - 1])
+        );
+
+        const userMessage = Array.from(uniqueFields)
+          .map((field) => `Invalid field(s): ${String(field)}`)
+          .join(', ');
+
         return {
-          message: 'Invalid data received from server',
-          code: 422, // Unprocessable Entity
+          message: userMessage || 'Invalid data received from server',
+          code: 422,
           name: 'ValidationError',
-          details: error.errors,
+          // Keep raw details for debugging but don't show in UI
+          debug: error.errors,
         };
       }
 
