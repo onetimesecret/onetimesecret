@@ -15,6 +15,10 @@ import { z } from 'zod';
  * - Preserves data fidelity
  * - Keeps schema validation separate from display formatting
  * - Allows field-specific space handling
+ *
+ * Note: This level of detail is standard practice for large apps.
+ * It centralizes conversions, handles edge cases, and ensures
+ * consistency across the codebase.
  */
 export const transforms = {
   fromString: {

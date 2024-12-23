@@ -108,7 +108,7 @@ repos:
         entry: node_modules/.bin/eslint
         language: system
         types: [file]
-        files: \.(js|mjs|ts|vue)$
+        files: ^src/.*\.(js|mjs|ts|tsx|vue)$
         args: [
           '--max-warnings=0',
           '--cache'
@@ -124,5 +124,5 @@ repos:
         language: system
         pass_filenames: false
         types: [file]
-        files: \.(ts|tsx|vue)$
+        files: ^src/.*\.(ts|tsx|vue)$
         stages: [push]

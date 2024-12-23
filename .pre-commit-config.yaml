@@ -57,7 +57,6 @@ repos:
       - id: no-commit-to-branch
         args: ["--branch", "develop", "--branch", "rel/.*"]
 
-
   # Originally based on Rubocop's own pre-commit configuration
   # https://github.com/rubocop/rubocop/blob/d5d8828/.pre-commit-hooks.yaml
   # NOTE: Don't enable '--autocorrect' until codebase is clean
