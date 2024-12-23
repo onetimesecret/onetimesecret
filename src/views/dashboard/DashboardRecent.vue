@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
 import { MetadataRecords } from '@/schemas/api/endpoints';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
-import { onMounted, onUnmounted, computed } from 'vue';
+import { onMounted, computed } from 'vue';
 
 const store = useMetadataStore();
 const { records, details, isLoading, error } = storeToRefs(store);
@@ -29,20 +30,15 @@ onMounted(async () => {
   await store.fetchList();
 });
 
-onUnmounted(() => {
-  store.abortPendingRequests();
-});
 </script>
 
 <template>
   <div>
     <DashboardTabNav />
 
-    <div v-if="isLoading">
+    <ErrorDisplay v-if="error" :error="error" />
+    <div v-else-if="isLoading">
       Loading...
-    </div>
-    <div v-else-if="error">
-      {{ error }}
     </div>
     <div v-else>
       <SecretMetadataTable
