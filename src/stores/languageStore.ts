@@ -122,12 +122,10 @@ export const useLanguageStore = defineStore('language', {
         });
 
         // The CSRF token (shrimp) will be automatically updated by the api interceptor
-
-        this.isLoading = false;
       } catch (error) {
         this.handleError(error);
       } finally {
-        this.isLoading = false;
+        this.isLoading = false; // <-- Single assignment in finally block
       }
     },
 

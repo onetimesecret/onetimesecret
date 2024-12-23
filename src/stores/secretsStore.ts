@@ -30,24 +30,18 @@ export const useSecretsStore = defineStore('secrets', {
     },
 
     async loadSecret(secretKey: string) {
-      this.isLoading = true;
-      try {
+      return await this.withLoading(async () => {
         const response = await api.get(`/api/v2/secret/${secretKey}`);
         const validated = responseSchemas.secret.parse(response.data);
         this.record = validated.record;
         this.details = validated.details;
         this.error = null;
         return validated;
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoading = false;
-      }
+      });
     },
 
     async revealSecret(secretKey: string, passphrase?: string) {
-      this.isLoading = true;
-      try {
+      return await this.withLoading(async () => {
         const response = await api.post<SecretResponse>(
           `/api/v2/secret/${secretKey}/reveal`,
           {
@@ -60,11 +54,7 @@ export const useSecretsStore = defineStore('secrets', {
         this.details = validated.details;
         this.error = null;
         return validated;
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoading = false;
-      }
+      });
     },
 
     clearSecret() {

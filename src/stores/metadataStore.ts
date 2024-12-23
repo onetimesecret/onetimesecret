@@ -77,18 +77,13 @@ export const useMetadataStore = defineStore('metadata', {
     },
 
     async fetchList() {
-      this.isLoadingList = true;
-      try {
+      return await this.withLoading(async () => {
         const response = await api.get('/api/v2/private/recent');
         const validated = responseSchemas.metadataList.parse(response.data);
         this.listRecords = validated.records;
         this.listDetails = validated.details;
         return validated;
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoadingList = false;
-      }
+      });
     },
 
     async burn(key: string, passphrase?: string) {
@@ -96,8 +91,7 @@ export const useMetadataStore = defineStore('metadata', {
         this.handleError(new Error('Cannot burn this metadata'));
       }
 
-      this.isLoadingDetail = true;
-      try {
+      return await this.withLoading(async () => {
         const response = await api.post(`/api/v2/private/${key}/burn`, {
           passphrase,
           continue: true,
@@ -106,11 +100,7 @@ export const useMetadataStore = defineStore('metadata', {
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
         return validated;
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoadingDetail = false;
-      }
+      });
     },
   },
 });

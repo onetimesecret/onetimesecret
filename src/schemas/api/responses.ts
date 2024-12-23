@@ -10,7 +10,13 @@ import {
   metadataRecordsDetailsSchema,
   metadataRecordsSchema,
 } from '@/schemas/api/endpoints/index';
-import { customDomainSchema, customerSchema, secretListSchema } from '@/schemas/models';
+import {
+  customDomainSchema,
+  customerSchema,
+  jurisdictionDetailsSchema,
+  jurisdictionSchema,
+  secretListSchema,
+} from '@/schemas/models';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import { feedbackDetailsSchema, feedbackSchema } from '@/schemas/models/feedback';
 import { metadataDetailsSchema, metadataSchema } from '@/schemas/models/metadata';
@@ -34,10 +40,11 @@ export const responseSchemas = {
   concealData: createApiResponseSchema(concealDataSchema),
   customDomain: createApiResponseSchema(customDomainSchema),
   customer: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
+  feedback: createApiResponseSchema(feedbackSchema, feedbackDetailsSchema),
   imageProps: createApiResponseSchema(imagePropsSchema),
+  jurisdiction: createApiResponseSchema(jurisdictionSchema, jurisdictionDetailsSchema),
   metadata: createApiResponseSchema(metadataSchema, metadataDetailsSchema),
   secret: createApiResponseSchema(secretSchema, secretDetailsSchema),
-  feedback: createApiResponseSchema(feedbackSchema, feedbackDetailsSchema),
 
   // List responses
   customDomainList: createApiListResponseSchema(customDomainSchema),
@@ -66,13 +73,13 @@ export type BrandSettingsResponse = ResponseTypes['brandSettings'];
 export type CheckAuthResponse = ResponseTypes['checkAuth'];
 export type ColonelResponse = ResponseTypes['colonel'];
 export type ConcealDataResponse = ResponseTypes['concealData'];
-export type CustomDomainResponse = ResponseTypes['customDomain'];
-export type CustomDomainListResponse = ResponseTypes['customDomainList'];
-export type CustomerResponse = ResponseTypes['customer'];
-export type ImagePropsResponse = ResponseTypes['imageProps'];
-export type MetadataResponse = ResponseTypes['metadata'];
-export type MetadataListResponse = ResponseTypes['metadataList'];
-export type SecretResponse = ResponseTypes['secret'];
-export type SecretListResponse = ResponseTypes['secretList'];
 export type CsrfResponse = ResponseTypes['csrf'];
+export type CustomDomainListResponse = ResponseTypes['customDomainList'];
+export type CustomDomainResponse = ResponseTypes['customDomain'];
+export type CustomerResponse = ResponseTypes['customer'];
 export type FeedbackResponse = ResponseTypes['feedback'];
+export type ImagePropsResponse = ResponseTypes['imageProps'];
+export type MetadataListResponse = ResponseTypes['metadataList'];
+export type MetadataResponse = ResponseTypes['metadata'];
+export type SecretListResponse = ResponseTypes['secretList'];
+export type SecretResponse = ResponseTypes['secret'];

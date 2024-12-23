@@ -36,7 +36,7 @@ export const useColonelStore = defineStore('colonel', {
         const response = await api.get('/api/v2/colonel/dashboard');
         const validated = responseSchemas.colonel.parse(response.data);
         // The record contains the ColonelData
-        this.data = validated.record;
+        this.data = validated.record ?? null;
         return this.data;
       } catch (error) {
         this.handleError(error); // Update to use new handleError

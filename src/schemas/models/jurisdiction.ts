@@ -1,28 +1,18 @@
-import { createApiResponseSchema } from '@/schemas/api/base';
-import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
  * @fileoverview Jurisdiction and region schemas with standardized transformations
  *
- * Key improvements:
- * 1. Uses standard model schema pattern
- * 2. Consistent transforms for type conversion
- * 3. Proper response schema handling
- * 4. Clear type boundaries
+ * We use these schemas for the settings defined in etc/config.yaml.
  */
 
-// Core jurisdiction fields
-const jurisdictionBaseSchema = z.object({
+// Jurisdiction schema
+export const jurisdictionSchema = z.object({
+  identifier: z.string().min(2).max(24),
   display_name: z.string(),
   domain: z.string(),
   icon: z.string(),
-});
-
-// Full jurisdiction schema with base model fields
-export const jurisdictionSchema = createModelSchema({
-  ...jurisdictionBaseSchema.shape,
   enabled: transforms.fromString.boolean.default(true),
 });
 
@@ -31,6 +21,7 @@ export const regionSchema = jurisdictionSchema;
 
 // Config schema for region/jurisdiction settings
 export const regionsConfigSchema = z.object({
+  identifier: z.string().min(2).max(24),
   enabled: transforms.fromString.boolean,
   current_jurisdiction: z.string(),
   jurisdictions: z.array(jurisdictionSchema),
@@ -47,10 +38,3 @@ export type Jurisdiction = z.infer<typeof jurisdictionSchema>;
 export type Region = z.infer<typeof regionSchema>;
 export type RegionsConfig = z.infer<typeof regionsConfigSchema>;
 export type JurisdictionDetails = z.infer<typeof jurisdictionDetailsSchema>;
-
-// API response schemas
-export const jurisdictionResponseSchema = createApiResponseSchema(
-  jurisdictionSchema,
-  jurisdictionDetailsSchema
-);
-export type JurisdictionResponse = z.infer<typeof jurisdictionResponseSchema>;

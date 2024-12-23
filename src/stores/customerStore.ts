@@ -58,26 +58,16 @@ export const useCustomerStore = defineStore('customer', {
       // Abort any pending request before starting new one
       this.abortPendingRequest();
 
-      this.isLoading = true;
-      this.abortController = new AbortController();
-
-      try {
+      return await this.withLoading(async () => {
+        this.abortController = new AbortController();
         const response = await api.get('/api/v2/account/customer', {
           signal: this.abortController.signal,
         });
         const validated = responseSchemas.customer.parse(response.data);
         this.currentCustomer = validated.record;
         this.error = null;
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          console.debug('Customer fetch aborted');
-          return;
-        }
-        this.handleError(error);
-      } finally {
-        this.isLoading = false;
         this.abortController = null;
-      }
+      });
     },
 
     async updateCustomer(updates: Partial<Customer>) {

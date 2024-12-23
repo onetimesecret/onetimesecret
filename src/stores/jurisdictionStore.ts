@@ -9,7 +9,7 @@ interface StoreState {
   isLoading: boolean;
   error: ApiError | null;
   enabled: boolean;
-  currentJurisdiction: Jurisdiction;
+  currentJurisdiction: Jurisdiction | null;
   jurisdictions: Jurisdiction[];
 }
 
@@ -18,17 +18,12 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
     isLoading: false,
     error: null,
     enabled: true,
-    currentJurisdiction: {
-      identifier: '',
-      display_name: '',
-      domain: '',
-      icon: '',
-    },
+    currentJurisdiction: null,
     jurisdictions: [],
   }),
 
   getters: {
-    getCurrentJurisdiction(): Jurisdiction {
+    getCurrentJurisdiction(): StoreState['currentJurisdiction'] {
       return this.currentJurisdiction;
     },
     getAllJurisdictions: (state): Jurisdiction[] => {
@@ -66,17 +61,10 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
 
       // If regions are not enabled, ensure we have at least one region
       if (!config.enabled && this.jurisdictions.length === 0) {
-        const jurisdiction = config.jurisdictions[0];
-        this.jurisdictions = [
-          {
-            identifier: jurisdiction.identifier,
-            display_name: jurisdiction.display_name,
-            domain: jurisdiction.domain,
-            icon: jurisdiction.icon,
-          },
-        ];
+        this.jurisdictions = [config.jurisdictions[0]];
       }
     },
+
     /**
      * Find a jurisdiction by its identifier.
      * @param identifier - The identifier of the jurisdiction to find.

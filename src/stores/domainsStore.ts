@@ -32,20 +32,16 @@ export const useDomainsStore = defineStore('domains', {
     },
 
     async refreshDomains() {
-      this.isLoading = true;
-      try {
+      return await this.withLoading(async () => {
         const response = await api.get('/api/v2/account/domains');
         const validated = responseSchemas.customDomainList.parse(response.data);
         this.domains = validated.records;
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoading = false;
-      }
+        return validated.records;
+      });
     },
 
     async updateDomainBrand(domain: string, brandUpdate: UpdateDomainBrandRequest) {
-      try {
+      return await this.withLoading(async () => {
         const response = await api.put(
           `/api/v2/account/domains/${domain}/brand`,
           brandUpdate
@@ -57,60 +53,50 @@ export const useDomainsStore = defineStore('domains', {
           this.domains[domainIndex] = validated.record;
         }
         return validated.record;
-      } catch (error) {
-        this.handleError(error);
-      }
+      });
     },
 
     async addDomain(domain: string) {
-      try {
+      return await this.withLoading(async () => {
         const response = await api.post('/api/v2/account/domains/add', { domain });
         const validated = responseSchemas.customDomain.parse(response.data);
         this.domains.push(validated.record);
         return validated.record;
-      } catch (error) {
-        this.handleError(error);
-      }
+      });
     },
 
     async deleteDomain(domainName: string) {
-      try {
+      return await this.withLoading(async () => {
         await api.post(`/api/v2/account/domains/${domainName}/remove`);
         this.domains = this.domains.filter(
           (domain) => domain.display_domain !== domainName
         );
-      } catch (error) {
-        this.handleError(error);
-      }
+      });
     },
 
     async getBrandSettings(domain: string) {
-      try {
+      return await this.withLoading(async () => {
         const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
         return responseSchemas.brandSettings.parse(response.data);
-      } catch (error) {
-        this.handleError(error);
-      }
+      });
     },
 
     async updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
-      try {
+      return await this.withLoading(async () => {
         const response = await api.put(`/api/v2/account/domains/${domain}/brand`, {
           brand: settings,
         });
         return responseSchemas.brandSettings.parse(response.data);
-      } catch (error) {
-        this.handleError(error);
-      }
+      });
     },
 
     async toggleHomepageAccess(domain: CustomDomain) {
-      const newHomepageStatus = !domain.brand?.allow_public_homepage;
-      const domainIndex = this.domains.findIndex(
-        (d) => d.display_domain === domain.display_domain
-      );
+      return await this.withLoading(async () => {
+        const newHomepageStatus = !domain.brand?.allow_public_homepage;
+        const domainIndex = this.domains.findIndex(
+          (d) => d.display_domain === domain.display_domain
+        );
 
-      try {
         const response = await api.put(
           `/api/v2/account/domains/${domain.display_domain}/brand`,
           {
@@ -123,17 +109,11 @@ export const useDomainsStore = defineStore('domains', {
           this.domains[domainIndex] = validated.record;
         }
         return newHomepageStatus;
-      } catch (error) {
-        // Revert on error
-        if (domainIndex !== -1) {
-          this.domains[domainIndex] = domain;
-        }
-        this.handleError(error);
-      }
+      });
     },
 
     async updateDomain(domain: CustomDomain) {
-      try {
+      return await this.withLoading(async () => {
         const response = await api.put(
           `/api/v2/account/domains/${domain.display_domain}`,
           domain
@@ -150,9 +130,7 @@ export const useDomainsStore = defineStore('domains', {
           this.domains.push(validated.record);
         }
         return validated.record;
-      } catch (error) {
-        this.handleError(error);
-      }
+      });
     },
   },
 });

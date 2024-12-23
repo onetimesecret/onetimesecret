@@ -1,6 +1,5 @@
 import type { MetadataRecords } from '@/schemas/api/endpoints';
 import type { MetadataRecordsDetails } from '@/schemas/api/endpoints/recent';
-import { createApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import { createApi } from '@/utils/api';
 import { ref, type Ref } from 'vue';
