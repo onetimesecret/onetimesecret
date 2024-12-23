@@ -1,38 +1,34 @@
 // src/stores/domainsStore.ts
 
-import { createApiError, zodErrorToApiError } from '@/schemas';
-import { UpdateDomainBrandRequest } from '@/schemas/api';
+import { useStoreError } from '@/composables/useStoreError';
+import { ApiError, UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { BrandSettings, CustomDomain } from '@/schemas/models';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
-import { z } from 'zod';
 
 const api = createApi();
 
 interface DomainsState {
-  domains: CustomDomain[];
   isLoading: boolean;
+  error: ApiError | null;
+  domains: CustomDomain[];
   defaultBranding: BrandSettings;
 }
 
 export const useDomainsStore = defineStore('domains', {
   state: (): DomainsState => ({
-    domains: [],
     isLoading: false,
+    error: null,
+    domains: [],
     defaultBranding: {} as BrandSettings,
   }),
 
   actions: {
-    handleApiError(error: unknown): never {
-      if (error instanceof z.ZodError) {
-        throw zodErrorToApiError(error);
-      }
-      throw createApiError(
-        'SERVER',
-        'SERVER_ERROR',
-        error instanceof Error ? error.message : 'Unknown error occurred'
-      );
+    handleError(error: unknown): ApiError {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      return this.error;
     },
 
     async refreshDomains() {
@@ -42,7 +38,7 @@ export const useDomainsStore = defineStore('domains', {
         const validated = responseSchemas.customDomainList.parse(response.data);
         this.domains = validated.records;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       } finally {
         this.isLoading = false;
       }
@@ -50,7 +46,10 @@ export const useDomainsStore = defineStore('domains', {
 
     async updateDomainBrand(domain: string, brandUpdate: UpdateDomainBrandRequest) {
       try {
-        const response = await api.put(`/api/v2/account/domains/${domain}/brand`, brandUpdate);
+        const response = await api.put(
+          `/api/v2/account/domains/${domain}/brand`,
+          brandUpdate
+        );
         const validated = responseSchemas.customDomain.parse(response.data);
 
         const domainIndex = this.domains.findIndex((d) => d.display_domain === domain);
@@ -59,7 +58,7 @@ export const useDomainsStore = defineStore('domains', {
         }
         return validated.record;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       }
     },
 
@@ -70,16 +69,18 @@ export const useDomainsStore = defineStore('domains', {
         this.domains.push(validated.record);
         return validated.record;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       }
     },
 
     async deleteDomain(domainName: string) {
       try {
         await api.post(`/api/v2/account/domains/${domainName}/remove`);
-        this.domains = this.domains.filter((domain) => domain.display_domain !== domainName);
+        this.domains = this.domains.filter(
+          (domain) => domain.display_domain !== domainName
+        );
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       }
     },
 
@@ -88,7 +89,7 @@ export const useDomainsStore = defineStore('domains', {
         const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
         return responseSchemas.brandSettings.parse(response.data);
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       }
     },
 
@@ -99,18 +100,23 @@ export const useDomainsStore = defineStore('domains', {
         });
         return responseSchemas.brandSettings.parse(response.data);
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       }
     },
 
     async toggleHomepageAccess(domain: CustomDomain) {
       const newHomepageStatus = !domain.brand?.allow_public_homepage;
-      const domainIndex = this.domains.findIndex((d) => d.display_domain === domain.display_domain);
+      const domainIndex = this.domains.findIndex(
+        (d) => d.display_domain === domain.display_domain
+      );
 
       try {
-        const response = await api.put(`/api/v2/account/domains/${domain.display_domain}/brand`, {
-          brand: { allow_public_homepage: newHomepageStatus },
-        });
+        const response = await api.put(
+          `/api/v2/account/domains/${domain.display_domain}/brand`,
+          {
+            brand: { allow_public_homepage: newHomepageStatus },
+          }
+        );
         const validated = responseSchemas.customDomain.parse(response.data);
 
         if (domainIndex !== -1) {
@@ -122,13 +128,16 @@ export const useDomainsStore = defineStore('domains', {
         if (domainIndex !== -1) {
           this.domains[domainIndex] = domain;
         }
-        this.handleApiError(error);
+        this.handleError(error);
       }
     },
 
     async updateDomain(domain: CustomDomain) {
       try {
-        const response = await api.put(`/api/v2/account/domains/${domain.display_domain}`, domain);
+        const response = await api.put(
+          `/api/v2/account/domains/${domain.display_domain}`,
+          domain
+        );
         const validated = responseSchemas.customDomain.parse(response.data);
 
         const domainIndex = this.domains.findIndex(
@@ -142,7 +151,7 @@ export const useDomainsStore = defineStore('domains', {
         }
         return validated.record;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       }
     },
   },

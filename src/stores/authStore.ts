@@ -1,4 +1,6 @@
-import { ApiError, handleError, responseSchemas } from '@/schemas/api';
+// stores/authStore.ts
+import { useStoreError } from '@/composables/useStoreError';
+import { ApiError, responseSchemas } from '@/schemas/api';
 import { Customer } from '@/schemas/models';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
@@ -30,14 +32,17 @@ const AUTH_CHECK_CONFIG = {
   ENDPOINT: '/api/v2/authcheck',
 } as const;
 
-interface AuthState {
+interface StoreState {
+  // Base properties required for all stores
+  isLoading: boolean;
+  error: ApiError | null;
+  // Auth-specific properties
   isAuthenticated: boolean;
   isCheckingAuth: boolean;
   customer: Customer | undefined;
   authCheckTimer: ReturnType<typeof setTimeout> | null;
   failureCount: number;
   lastCheckTime: number;
-  error: ApiError | null;
 }
 
 /**
@@ -60,14 +65,15 @@ interface AuthState {
  * ```
  */
 export const useAuthStore = defineStore('auth', {
-  state: (): AuthState => ({
+  state: (): StoreState => ({
+    isLoading: false,
+    error: null,
     isAuthenticated: false,
     isCheckingAuth: false,
     customer: undefined,
     authCheckTimer: null,
     failureCount: 0,
     lastCheckTime: 0,
-    error: null,
   }),
 
   getters: {
@@ -108,6 +114,12 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    handleError(error: unknown): ApiError {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      return this.error;
+    },
+
     /**
      * Checks the current authentication status with the server.
      *
@@ -143,7 +155,7 @@ export const useAuthStore = defineStore('auth', {
 
         return this.isAuthenticated;
       } catch (error) {
-        this.error = handleError(error);
+        this.handleError(error);
         this.failureCount++;
 
         if (this.failureCount >= AUTH_CHECK_CONFIG.MAX_FAILURES) {

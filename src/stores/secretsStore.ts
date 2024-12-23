@@ -1,37 +1,32 @@
+import { useStoreError } from '@/composables/useStoreError';
+import { ApiError } from '@/schemas';
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
-import { createApiError, zodErrorToApiError } from '@/schemas/api/errors';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
-import { z } from 'zod';
 
 const api = createApi();
 
-interface SecretState {
+interface StoreState {
+  isLoading: boolean;
+  error: ApiError | null;
   record: Secret | null;
   details: SecretDetails | null;
-  isLoading: boolean;
-  error: string | null;
 }
 
 export const useSecretsStore = defineStore('secrets', {
-  state: (): SecretState => ({
-    record: null,
-    details: null,
+  state: (): StoreState => ({
     isLoading: false,
     error: null,
+    record: null,
+    details: null,
   }),
 
   actions: {
-    handleApiError(error: unknown): never {
-      if (error instanceof z.ZodError) {
-        throw zodErrorToApiError(error);
-      }
-      throw createApiError(
-        'SERVER',
-        'SERVER_ERROR',
-        error instanceof Error ? error.message : 'Unknown error occurred'
-      );
+    handleError(error: unknown): ApiError {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      return this.error;
     },
 
     async loadSecret(secretKey: string) {
@@ -44,7 +39,7 @@ export const useSecretsStore = defineStore('secrets', {
         this.error = null;
         return validated;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       } finally {
         this.isLoading = false;
       }
@@ -66,7 +61,7 @@ export const useSecretsStore = defineStore('secrets', {
         this.error = null;
         return validated;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       } finally {
         this.isLoading = false;
       }

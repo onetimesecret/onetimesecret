@@ -37,6 +37,3 @@ export { useLanguageStore } from './languageStore';
 export { useMetadataStore } from './metadataStore';
 export { useNotificationsStore } from './notifications';
 export { useSecretsStore } from './secretsStore';
-
-// Plugin exports
-export { logoutPlugin } from '@/plugins/pinia/logoutPlugin';

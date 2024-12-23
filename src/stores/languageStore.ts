@@ -1,6 +1,7 @@
 // src/stores/languageStore.ts
 
-import { createApiError } from '@/schemas/api';
+import { useStoreError } from '@/composables/useStoreError';
+import { ApiError } from '@/schemas';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 import { z } from 'zod';
@@ -17,25 +18,25 @@ const localeSchema = z
   .max(5)
   .regex(/^[a-z]{2}(-[A-Z]{2})?$/);
 
-interface LanguageState {
+interface StoreState {
+  isLoading: boolean;
+  error: ApiError | null;
   storedLocale: string | null;
   currentLocale: string | null;
   supportedLocales: string[];
   defaultLocale: string;
-  isLoading: boolean;
-  error: string | null;
 }
 
 const SESSION_STORAGE_KEY = 'selected.locale';
 
 export const useLanguageStore = defineStore('language', {
-  state: (): LanguageState => ({
+  state: (): StoreState => ({
+    isLoading: false,
+    error: null,
     storedLocale: sessionStorage.getItem(SESSION_STORAGE_KEY),
     currentLocale: null,
     supportedLocales,
     defaultLocale,
-    isLoading: false,
-    error: null,
   }),
 
   getters: {
@@ -45,15 +46,10 @@ export const useLanguageStore = defineStore('language', {
   },
 
   actions: {
-    handleApiError(error: unknown): never {
-      if (error instanceof z.ZodError) {
-        throw createApiError('VALIDATION', 'VALIDATION_ERROR', 'Invalid locale format');
-      }
-      throw createApiError(
-        'SERVER',
-        'SERVER_ERROR',
-        error instanceof Error ? error.message : 'Unknown error occurred'
-      );
+    handleError(error: unknown): ApiError {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      throw this.error;
     },
 
     /**
@@ -129,8 +125,7 @@ export const useLanguageStore = defineStore('language', {
 
         this.isLoading = false;
       } catch (error) {
-        this.error = error instanceof Error ? error.message : 'Failed to update language';
-        this.handleApiError(error);
+        this.handleError(error);
       } finally {
         this.isLoading = false;
       }

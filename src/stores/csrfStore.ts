@@ -1,6 +1,16 @@
-import { createApiError } from '@/schemas/api/errors';
+// stores/csrfStore.ts
+
+import { ApiError } from '@/schemas';
 import { responseSchemas } from '@/schemas/api/responses';
 import { defineStore } from 'pinia';
+
+interface StoreState {
+  isLoading: boolean;
+  error: ApiError | null;
+  shrimp: string;
+  isValid: boolean;
+  intervalChecker: number | null;
+}
 
 /**
  * Store for managing CSRF token (shrimp) state and validation.
@@ -32,13 +42,26 @@ import { defineStore } from 'pinia';
  * }
  */
 export const useCsrfStore = defineStore('csrf', {
-  state: () => ({
+  state: (): StoreState => ({
+    isLoading: false,
+    error: null,
     shrimp: window.shrimp || '',
     isValid: false,
     intervalChecker: null as number | null,
   }),
 
   actions: {
+    handleError(error: unknown): ApiError {
+      const apiError = {
+        message: error instanceof Error ? error.message : 'CSRF validation error',
+        code: 500,
+        name: 'CsrfError',
+      };
+      console.error('[CSRF]', apiError.message, error);
+      this.error = apiError;
+      return apiError;
+    },
+
     updateShrimp(newShrimp: string) {
       this.shrimp = newShrimp;
       window.shrimp = newShrimp;
@@ -61,15 +84,11 @@ export const useCsrfStore = defineStore('csrf', {
             this.updateShrimp(data.shrimp);
           }
         } else {
-          throw createApiError('SERVER', 'SERVER_ERROR', 'Failed to validate CSRF token');
+          throw this.handleError('Failed to validate CSRF token');
         }
       } catch (error) {
         this.isValid = false;
-        throw createApiError(
-          'SERVER',
-          'SERVER_ERROR',
-          error instanceof Error ? error.message : 'Failed to check CSRF token validity'
-        );
+        throw this.handleError(error);
       }
     },
 

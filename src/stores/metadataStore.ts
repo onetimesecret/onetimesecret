@@ -20,10 +20,10 @@ export const METADATA_STATUS = {
 } as const;
 
 interface StoreState {
-  // Base properties still needed in interface
+  // Base properties required for all stores
   isLoading: boolean;
   error: ApiError | null;
-  // No longer needs to extend BaseStore as those fields are global
+  // Metadata-specific properties
   currentRecord: Metadata | null;
   currentDetails: MetadataDetails | null;
   listRecords: MetadataRecords[];

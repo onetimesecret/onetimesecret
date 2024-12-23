@@ -1,34 +1,31 @@
+// stores/colonelStore.ts
+
+import { useStoreError } from '@/composables/useStoreError';
 import { responseSchemas, type ColonelData } from '@/schemas/api';
-import { createApiError, zodErrorToApiError } from '@/schemas/api/errors';
+import { ApiError } from '@/schemas/api/errors';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
-import { z } from 'zod';
 
 const api = createApi();
 
-interface ColonelStoreState {
-  data: ColonelData | null;
+interface StoreState {
   isLoading: boolean;
-  error: string | null;
+  error: ApiError | null;
+  data: ColonelData | null;
 }
 
 export const useColonelStore = defineStore('colonel', {
-  state: (): ColonelStoreState => ({
-    data: null,
+  state: (): StoreState => ({
     isLoading: false,
     error: null,
+    data: null,
   }),
 
   actions: {
-    handleApiError(error: unknown): never {
-      if (error instanceof z.ZodError) {
-        throw zodErrorToApiError(error);
-      }
-      throw createApiError(
-        'SERVER',
-        'SERVER_ERROR',
-        error instanceof Error ? error.message : 'Error fetching colonel data'
-      );
+    handleError(error: unknown): ApiError {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      return this.error;
     },
 
     async fetchData(): Promise<ColonelData> {
@@ -42,7 +39,8 @@ export const useColonelStore = defineStore('colonel', {
         this.data = validated.record;
         return this.data;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error); // Update to use new handleError
+        throw error; // Re-throw to maintain current behavior
       } finally {
         this.isLoading = false;
       }

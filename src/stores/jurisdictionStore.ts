@@ -1,20 +1,22 @@
 // src/stores/jurisdictionStore.ts
 
-import { createApiError, zodErrorToApiError } from '@/schemas/api';
+import { useStoreError } from '@/composables/useStoreError';
+import { ApiError } from '@/schemas';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { defineStore } from 'pinia';
-import { z } from 'zod';
 
-interface JurisdictionState {
+interface StoreState {
+  isLoading: boolean;
+  error: ApiError | null;
   enabled: boolean;
   currentJurisdiction: Jurisdiction;
   jurisdictions: Jurisdiction[];
-  isLoading: boolean;
-  error: string | null;
 }
 
 export const useJurisdictionStore = defineStore('jurisdiction', {
-  state: (): JurisdictionState => ({
+  state: (): StoreState => ({
+    isLoading: false,
+    error: null,
     enabled: true,
     currentJurisdiction: {
       identifier: '',
@@ -22,8 +24,6 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
       domain: '',
       icon: '',
     },
-    isLoading: false,
-    error: null,
     jurisdictions: [],
   }),
 
@@ -37,15 +37,10 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
   },
 
   actions: {
-    handleApiError(error: unknown): never {
-      if (error instanceof z.ZodError) {
-        throw zodErrorToApiError(error);
-      }
-      throw createApiError(
-        'SERVER',
-        'SERVER_ERROR',
-        error instanceof Error ? error.message : 'Unknown error occurred'
-      );
+    handleError(error: unknown): never {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      throw this.error;
     },
 
     /**
@@ -91,11 +86,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
     findJurisdiction(identifier: string): Jurisdiction {
       const jurisdiction = this.jurisdictions.find((j) => j.identifier === identifier);
       if (!jurisdiction) {
-        throw createApiError(
-          'NOT_FOUND',
-          'NOT_FOUND',
-          `Jurisdiction "${identifier}" not found`
-        );
+        throw this.handleError(new Error(`Jurisdiction "${identifier}" not found`));
       }
       return jurisdiction;
     },

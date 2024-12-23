@@ -7,6 +7,7 @@ declare module 'pinia' {
   export interface PiniaCustomProperties {
     $logout: () => void;
     handleError: (error: unknown) => ApiError;
+    withLoading: <T>(operation: () => Promise<T>) => Promise<T | undefined>;
   }
 
   /**

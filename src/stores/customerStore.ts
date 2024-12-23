@@ -1,23 +1,26 @@
 // stores/customerStore.ts
-import { createApiError, zodErrorToApiError } from '@/schemas/api/errors';
+
+import { useStoreError } from '@/composables/useStoreError';
+import { ApiError } from '@/schemas';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Customer } from '@/schemas/models/customer';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
-import { z } from 'zod';
 
 const api = createApi();
 
-interface CustomerState {
-  currentCustomer: Customer | null;
+interface StoreState {
   isLoading: boolean;
+  error: ApiError | null;
+  currentCustomer: Customer | null;
   abortController: AbortController | null;
 }
 
 export const useCustomerStore = defineStore('customer', {
-  state: (): CustomerState => ({
-    currentCustomer: null,
+  state: (): StoreState => ({
     isLoading: false,
+    error: null,
+    currentCustomer: null,
     abortController: null,
   }),
 
@@ -31,15 +34,10 @@ export const useCustomerStore = defineStore('customer', {
   },
 
   actions: {
-    handleApiError(error: unknown): never {
-      if (error instanceof z.ZodError) {
-        throw zodErrorToApiError(error);
-      }
-      throw createApiError(
-        'SERVER',
-        'SERVER_ERROR',
-        error instanceof Error ? error.message : 'Unknown error occurred'
-      );
+    handleError(error: unknown): ApiError {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      return this.error;
     },
 
     /**
@@ -69,12 +67,13 @@ export const useCustomerStore = defineStore('customer', {
         });
         const validated = responseSchemas.customer.parse(response.data);
         this.currentCustomer = validated.record;
+        this.error = null;
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
           console.debug('Customer fetch aborted');
           return;
         }
-        this.handleApiError(error);
+        this.handleError(error);
       } finally {
         this.isLoading = false;
         this.abortController = null;
@@ -83,11 +82,8 @@ export const useCustomerStore = defineStore('customer', {
 
     async updateCustomer(updates: Partial<Customer>) {
       if (!this.currentCustomer?.custid) {
-        throw createApiError(
-          'VALIDATION',
-          'VALIDATION_ERROR',
-          'No current customer to update'
-        );
+        // Use handleError instead of throwing directly
+        return this.handleError(new Error('No current customer to update'));
       }
 
       try {
@@ -98,7 +94,7 @@ export const useCustomerStore = defineStore('customer', {
         const validated = responseSchemas.customer.parse(response.data);
         this.currentCustomer = validated.record;
       } catch (error) {
-        this.handleApiError(error);
+        this.handleError(error);
       }
     },
   },
