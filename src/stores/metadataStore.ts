@@ -26,10 +26,8 @@ interface StoreState {
   // Metadata-specific properties
   currentRecord: Metadata | null;
   currentDetails: MetadataDetails | null;
-  listRecords: MetadataRecords[];
-  listDetails: MetadataRecordsDetails | null;
-  isLoadingDetail: boolean;
-  isLoadingList: boolean;
+  records: MetadataRecords[];
+  details: MetadataRecordsDetails | null;
 }
 
 export const useMetadataStore = defineStore('metadata', {
@@ -38,10 +36,8 @@ export const useMetadataStore = defineStore('metadata', {
     error: null,
     currentRecord: null as Metadata | null,
     currentDetails: null,
-    listRecords: [],
-    listDetails: null,
-    isLoadingDetail: false,
-    isLoadingList: false,
+    records: [],
+    details: null,
   }),
 
   getters: {
@@ -66,6 +62,11 @@ export const useMetadataStore = defineStore('metadata', {
       return this.error;
     },
 
+    setData(data: { record: Metadata | null; details: MetadataDetails | null }) {
+      this.currentRecord = data.record;
+      this.currentDetails = data.details;
+    },
+
     async fetchOne(key: string) {
       return await this.withLoading(async () => {
         const response = await api.get(`/api/v2/private/${key}`);
@@ -80,8 +81,8 @@ export const useMetadataStore = defineStore('metadata', {
       return await this.withLoading(async () => {
         const response = await api.get('/api/v2/private/recent');
         const validated = responseSchemas.metadataList.parse(response.data);
-        this.listRecords = validated.records;
-        this.listDetails = validated.details;
+        this.records = validated.records;
+        this.details = validated.details;
         return validated;
       });
     },

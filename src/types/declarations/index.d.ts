@@ -1,6 +1,5 @@
-
-import { AsyncDataResult } from '@/schemas/api/responses'
-import { LayoutProps } from '@/types/ui'
+import { LayoutProps } from '@/types/ui';
+import type { AxiosResponse } from 'axios';
 import type { Component } from 'vue';
 
 // Modify the Vue Router module augmentation
@@ -11,14 +10,14 @@ declare module 'vue-router' {
     requiresAuth?: boolean;
     layout?: Component;
     layoutProps?: LayoutProps;
-    initialData?: AsyncDataResult<unknown>;
+    initialData?: AxiosResponse<unknown>;
   }
 }
 
 declare module 'api' {
-  export * from '../api'
+  export * from '../api';
 }
 
 declare module 'ui' {
-  export * from '../ui'
+  export * from '../ui';
 }

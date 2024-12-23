@@ -49,28 +49,22 @@ import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
-import { AsyncDataResult, MetadataResponse } from '@/schemas/api/responses';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
-import { computed, onUnmounted } from 'vue';
+import { onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const store = useMetadataStore();
 
-// Get initial data from route resolver
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataResponse>);
-
 // Set up reactive refs to store state
-const { currentRecord: record, details, isLoading, error } = storeToRefs(store);
+const { currentRecord: record, currentDetails: details, isLoading } = storeToRefs(store);
 
-// Initialize from route resolver data
-if (initialData.value?.data) {
-  store.setData(initialData.value.data);
-}
-// Clean up on unmount
-onUnmounted(() => {
-  store.abortPendingRequests();
+// Initial fetch when component mounts
+onMounted(() => {
+  if (route.params.metadataKey) {
+    store.fetchOne(route.params.metadataKey);
+  }
 });
 </script>
 
@@ -79,9 +73,11 @@ onUnmounted(() => {
     <DashboardTabNav />
     <BasicFormAlerts :error="error" />
 
+    <!-- Loading State -->
     <div v-if="isLoading" class="py-8 text-center text-gray-600">
       <span class="loading">Loading...</span>
     </div>
+
 
     <div v-else-if="record && details" class="space-y-8">
       <!-- Primary Content Section -->
