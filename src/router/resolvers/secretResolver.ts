@@ -1,7 +1,7 @@
 // src/router/resolvers/secretResolver.ts
 
+import type { AsyncDataResult, SecretResponse } from '@/schemas/api/responses';
 import { useSecretsStore } from '@/stores/secretsStore';
-import type { AsyncDataResult, SecretRecordApiResponse } from '@/types/api/responses';
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 
 /**
@@ -40,14 +40,14 @@ export async function resolveSecret(
   _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) {
-  const secretKey = to.params.secretKey as string
-  const store = useSecretsStore()
+  const secretKey = to.params.secretKey as string;
+  const store = useSecretsStore();
 
   try {
-    const result = await store.loadSecret(secretKey)
+    const result = await store.loadSecret(secretKey);
 
     // Structure matches existing component expectations
-    const initialData: AsyncDataResult<SecretRecordApiResponse> = {
+    const initialData: AsyncDataResult<SecretResponse> = {
       status: 200,
       data: {
         success: true,
@@ -55,22 +55,22 @@ export async function resolveSecret(
         details: result.details,
         shrimp: '',
       },
-      error: null
-    }
+      error: null,
+    };
 
     // Make data available to components via route meta
-    to.meta.initialData = initialData
+    to.meta.initialData = initialData;
 
-    next()
+    next();
   } catch (error) {
     // Maintain same shape even for errors
-    const initialData: AsyncDataResult<SecretRecordApiResponse> = {
+    const initialData: AsyncDataResult<SecretResponse> = {
       status: error instanceof Error ? 500 : 404,
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to load secret'
-    }
+      error: error instanceof Error ? error.message : 'Failed to load secret',
+    };
 
-    to.meta.initialData = initialData
-    next() // Still proceed to route to show error state
+    to.meta.initialData = initialData;
+    next(); // Still proceed to route to show error state
   }
 }

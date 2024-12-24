@@ -17,8 +17,8 @@ import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirm
 import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import { AsyncDataResult, SecretResponse } from '@/schemas/api';
 import { Secret, SecretDetails } from '@/schemas/models';
-import { AsyncDataResult, SecretRecordApiResponse } from '@/types';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -34,7 +34,7 @@ interface Props {
 defineProps<Props>();
 const route = useRoute();
 
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretRecordApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretResponse>);
 
 const finalRecord = ref<Secret | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
@@ -130,18 +130,18 @@ const closeWarning = (event: Event) => {
 
       <div v-if="!details.show_secret">
         <SecretConfirmationForm
-          :secretKey="secretKey"
+          :secret-key="secretKey"
           :record="record"
           :details="details"
-          :domainId="domainId"
-          :submissionStatus="submissionStatus"
+          :domain-id="domainId"
+          :submission-status="submissionStatus"
           @secret-loaded="handleSecretLoaded"
           @submission-status="handleSubmissionStatus"
         />
 
         <div v-if="!record.verification">
           <SecretRecipientOnboardingContent
-            :displayPoweredBy="true"
+            :display-powered-by="true"
           />
         </div>
       </div>
@@ -156,10 +156,10 @@ const closeWarning = (event: Event) => {
         </h2>
 
         <SecretDisplayCase
-          :displayPoweredBy="true"
+          :display-powered-by="true"
           :record="record"
           :details="details"
-          :submissionStatus="submissionStatus"
+          :submission-status="submissionStatus"
           aria-labelledby="secret-heading"
           @secret-loaded="handleSecretLoaded"
           @submission-status="handleSubmissionStatus"

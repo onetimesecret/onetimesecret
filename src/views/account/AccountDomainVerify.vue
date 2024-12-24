@@ -3,15 +3,10 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import MoreInfoText from "@/components/MoreInfoText.vue";
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { customDomainInputSchema } from '@/schemas/models/domain';
-import { apiRecordResponseSchema } from '@/types/api/responses';
-import { type CustomDomainApiResponse } from '@/types/api/responses';
+import { type CustomDomainResponse, responseSchemas } from '@/schemas/api/responses';
+import { CustomDomain } from '@/schemas/models'
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { z } from 'zod';
-
-type CustomDomain = z.infer<typeof customDomainInputSchema>;
-const domainResponseSchema = apiRecordResponseSchema(customDomainInputSchema);
 
 const route = useRoute();
 const domain = ref<CustomDomain | null>(null);
@@ -30,7 +25,7 @@ const fetchDomain = async (): Promise<void> => {
     }
 
     const rawData = await response.json();
-    const json = domainResponseSchema.parse(rawData);
+    const json = responseSchemas.customDomain.parse(rawData);
     console.debug('json', json);
 
     domain.value = json.record;
@@ -49,7 +44,7 @@ const fetchDomain = async (): Promise<void> => {
       // check for this domain, let's make sure the verify button is
       // enabled and ready for action.
       if (timeDifference >= 30) {
-        console.debug("It has been at least 30 second since the last monitored time.", timeDifference);
+        console.debug("It has been at least 30 seconds since the last monitored time.", timeDifference);
         allowVerifyCTA.value = true;
       } else {
         console.debug('It has not been 30 seconds yet since the last monitored time.', timeDifference);
@@ -61,7 +56,7 @@ const fetchDomain = async (): Promise<void> => {
   }
 };
 
-const handleDomainVerify = async (data: CustomDomainApiResponse) => {
+const handleDomainVerify = async (data: CustomDomainResponse) => {
   console.debug('Domain verified: refreshing domain info', data);
   await fetchDomain();
 };

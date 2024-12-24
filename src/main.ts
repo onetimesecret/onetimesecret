@@ -7,15 +7,16 @@
 import 'vite/modulepreload-polyfill';
 
 import i18n, { setLanguage } from '@/i18n';
+import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { createAppRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
-import { logoutPlugin } from '@/stores/plugins/logoutPlugin';
 import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 
 import App from './App.vue';
+import { withLoadingPlugin } from './plugins/pinia/withLoadingPlugin';
 
 import './assets/style.css';
 
@@ -45,6 +46,7 @@ async function initializeApp() {
   const pinia = createPinia();
 
   pinia.use(logoutPlugin);
+  pinia.use(withLoadingPlugin);
   app.use(pinia);
 
   const jurisdictionStore = useJurisdictionStore();
@@ -52,8 +54,8 @@ async function initializeApp() {
   // Initialize the store with the Regions config
   jurisdictionStore.initializeStore(window.regions);
 
-  const authStore = useAuthStore()
-  authStore.initialize()
+  const authStore = useAuthStore();
+  authStore.initialize();
 
   // Initialize language store
   const languageStore = useLanguageStore();
@@ -72,7 +74,8 @@ async function initializeApp() {
   watch(
     () => languageStore.currentLocale,
     async (newLocale) => {
-      if (newLocale) { // Type guard to ensure newLocale is not null
+      if (newLocale) {
+        // Type guard to ensure newLocale is not null
         console.debug('Language changed to:', newLocale);
         await setLanguage(newLocale);
 

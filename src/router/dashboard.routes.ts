@@ -1,18 +1,10 @@
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import AccountDomains from '@/views/account/AccountDomains.vue';
 import DashboardIndex from '@/views/dashboard/DashboardIndex.vue';
 import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
-import BurnSecret from '@/views/secrets/BurnSecret.vue';
-import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
 import { RouteRecordRaw } from 'vue-router';
 
-import { resolveMetadata } from './resolvers/metadataResolver';
-
-
 const routes: Array<RouteRecordRaw> = [
-
   {
     path: '/dashboard',
     name: 'Dashboard',
@@ -51,56 +43,6 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
-  {
-    path: '/account/domains',
-    name: 'AccountDomains',
-    components: {
-      default: AccountDomains,
-      header: DefaultHeader,
-      footer: DefaultFooter,
-    },
-    meta: {
-      requiresAuth: true,
-    },
-    props: true,
-  },
-  {
-    path: '/private/:metadataKey',
-    name: 'Metadata link',
-    component: ShowMetadata,
-    props: true,
-    beforeEnter: resolveMetadata,
-    meta: {
-      layout: DefaultLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayLinks: true,
-        displayFeedback: true,
-        displayVersion: true,
-        displayPoweredBy: true,
-      },
-    },
-  },
-  {
-    path: '/private/:metadataKey/burn',
-    name: 'Burn secret',
-    component: BurnSecret,
-    props: true,
-    beforeEnter: resolveMetadata,
-    meta: {
-      layout: DefaultLayout,
-      layoutProps: {
-        displayMasthead: false,
-        displayNavigation: false,
-        displayLinks: false,
-        displayFeedback: false,
-        displayVersion: true,
-        displayPoweredBy: true,
-      },
-    }
-  },
-
-]
+];
 
 export default routes;

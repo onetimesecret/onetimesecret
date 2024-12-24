@@ -1,54 +1,53 @@
 // src/stores/jurisdictionStore.ts
 
+import { useStoreError } from '@/composables/useStoreError';
+import { ApiError } from '@/schemas';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { defineStore } from 'pinia';
 
-
-interface JurisdictionState {
-  enabled: boolean;
-  currentJurisdiction: Jurisdiction;
-  jurisdictions: Jurisdiction[];
+interface StoreState {
   isLoading: boolean;
-  error: string | null;
+  error: ApiError | null;
+  enabled: boolean;
+  currentJurisdiction: Jurisdiction | null;
+  jurisdictions: Jurisdiction[];
 }
 
-
 export const useJurisdictionStore = defineStore('jurisdiction', {
-  state: (): JurisdictionState => ({
-    enabled: true,
-    currentJurisdiction: {
-      identifier: '',
-      display_name: '',
-      domain: '',
-      icon: ''
-    },
+  state: (): StoreState => ({
     isLoading: false,
     error: null,
+    enabled: true,
+    currentJurisdiction: null,
     jurisdictions: [],
   }),
 
   getters: {
-    getCurrentJurisdiction(): Jurisdiction {
-      return this.currentJurisdiction ?? {
-        identifier: '',
-        display_name: '',
-        domain: '',
-        icon: ''
-      };
+    getCurrentJurisdiction(): StoreState['currentJurisdiction'] {
+      return this.currentJurisdiction;
     },
     getAllJurisdictions: (state): Jurisdiction[] => {
       return state.jurisdictions;
     },
-
   },
 
   actions: {
-    initializeStore(regionsConfig: RegionsConfig) {
-      if (!regionsConfig) {
+    handleError(error: unknown): never {
+      const { handleError } = useStoreError();
+      this.error = handleError(error);
+      throw this.error;
+    },
+
+    /**
+     * Initialize the jurisdiction store with configuration from API
+     * Handles both enabled and disabled region scenarios
+     */
+    initializeStore(config: RegionsConfig) {
+      if (!config) {
         this.enabled = false;
         return;
       }
-      this.jurisdictions = regionsConfig.jurisdictions;
+      this.jurisdictions = config.jurisdictions;
 
       // For the time being (i.e. for our first few locations), the region and
       // jurisdiction are the same. EU is EU, US is US. They will differentiate
@@ -58,32 +57,26 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
       // US, I probably would prefer to use a US data center given the choice
       // even if the business I'm in is not a regulated industry. I find it
       // helpful to think of it as "compliant by default".
-      this.currentJurisdiction = this.findJurisdiction(regionsConfig.current_jurisdiction);
+      this.currentJurisdiction = this.findJurisdiction(config.current_jurisdiction);
 
       // If regions are not enabled, ensure we have at least one region
-      if (!regionsConfig.enabled && this.jurisdictions.length === 0) {
-        const jurisdiction = regionsConfig.jurisdictions[0];
-        this.jurisdictions = [{
-          identifier: jurisdiction.identifier,
-          display_name: jurisdiction.display_name,
-          domain: jurisdiction.domain,
-          icon: jurisdiction.icon,
-        }];
+      if (!config.enabled && this.jurisdictions.length === 0) {
+        this.jurisdictions = [config.jurisdictions[0]];
       }
     },
+
     /**
      * Find a jurisdiction by its identifier.
      * @param identifier - The identifier of the jurisdiction to find.
      * @returns The jurisdiction with the given identifier.
-     * @throws Will throw an error if no jurisdiction is found with the given identifier.
+     * @throws ApiError if no jurisdiction is found with the given identifier.
      */
     findJurisdiction(identifier: string): Jurisdiction {
-      const jurisdiction = this.jurisdictions.find((jurisdiction: Jurisdiction) => jurisdiction.identifier === identifier);
+      const jurisdiction = this.jurisdictions.find((j) => j.identifier === identifier);
       if (!jurisdiction) {
-        throw new Error(`Jurisdiction with identifier "${identifier}" not found.`);
+        throw this.handleError(new Error(`Jurisdiction "${identifier}" not found`));
       }
       return jurisdiction;
     },
-
   },
 });

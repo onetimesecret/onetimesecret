@@ -5,13 +5,13 @@ import DomainHeader from '@/components/account/DomainHeader.vue';
 import InstructionsModal from '@/components/account/InstructionsModal.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
+import type { BrandSettingsResponse } from '@/schemas/api/responses';
+import { AsyncDataResult, CustomDomainResponse } from '@/schemas/api/responses';
 import type { BrandSettings, CustomDomain, ImageProps } from '@/schemas/models';
-import { brandSettingsInputSchema } from '@/schemas/models/domain/brand';
+import { brandSettingschema } from '@/schemas/models/domain/brand';
 import { useBrandingStore } from '@/stores/brandingStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
-import type { BrandSettingsApiResponse } from '@/types/api/responses';
-import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
 import { Icon } from '@iconify/vue';
@@ -27,7 +27,7 @@ const detectPlatform = (): 'safari' | 'edge' => {
 };
 
 const route = useRoute();
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<CustomDomainApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<CustomDomainResponse>);
 
 const notifications = useNotificationsStore();
 const csrfStore = useCsrfStore();
@@ -97,10 +97,10 @@ const fetchBrandSettings = async () => {
         throw new Error('Brand settings not found');
       }
 
-      settings = brandSettingsInputSchema.parse(brand);
+      settings = brandSettingschema.parse(brand);
     } else {
       // Fallback to API call if no preloaded data
-      const response = await api.get<BrandSettingsApiResponse>(
+      const response = await api.get<BrandSettingsResponse>(
         `/api/v2/account/domains/${displayDomain.value}/brand`
       );
 
@@ -108,7 +108,7 @@ const fetchBrandSettings = async () => {
         throw new Error('Failed to fetch brand settings');
       }
 
-      settings = brandSettingsInputSchema.parse(response.data.record);
+      settings = brandSettingschema.parse(response.data.record);
     }
 
     brandSettings.value = settings;
@@ -120,7 +120,7 @@ const fetchBrandSettings = async () => {
     error.value = err instanceof Error ? err.message : 'Failed to fetch brand settings';
 
     // Set default values on error
-    brandSettings.value = brandSettingsInputSchema.parse({
+    brandSettings.value = brandSettingschema.parse({
       primary_color: '#ffffff',
       font_family: 'sans-serif',
       corner_style: 'rounded',

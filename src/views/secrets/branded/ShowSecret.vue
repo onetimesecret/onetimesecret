@@ -13,8 +13,8 @@
  */
 
 import ThemeToggle from '@/components/ThemeToggle.vue';
+import { AsyncDataResult, SecretResponse } from '@/schemas/api';
 import type { Secret, SecretDetails } from '@/schemas/models';
-import { AsyncDataResult, SecretRecordApiResponse } from '@/types/api';
 import { computed, ref, watch, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -34,7 +34,7 @@ interface Props {
 defineProps<Props>();
 const route = useRoute();
 
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretRecordApiResponse>);
+const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretResponse>);
 
 const finalRecord = ref<Secret | null>(null);
 const finalDetails = ref<SecretDetails | null>(null);
@@ -78,12 +78,12 @@ watch(finalRecord, (newValue) => {
         <!-- Secret Content -->
         <component
           :is="details.show_secret ? SecretDisplayCase : SecretConfirmationForm"
-          :secretKey="secretKey"
+          :secret-key="secretKey"
           :record="record"
           :details="details"
-          :domainId="domainId"
-          :displayPoweredBy="true"
-          :submissionStatus="submissionStatus"
+          :domain-id="domainId"
+          :display-powered-by="true"
+          :submission-status="submissionStatus"
           @secret-loaded="handleSecretLoaded"
           @submission-status="handleSubmissionStatus"
         />

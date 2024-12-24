@@ -1,51 +1,40 @@
-// src/schemas/jurisdiction/index.ts
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
+/**
+ * @fileoverview Jurisdiction and region schemas with standardized transformations
+ *
+ * We use these schemas for the settings defined in etc/config.yaml.
+ */
 
-// BaseEntity schema with common properties
-export const baseEntitySchema = z.object({
-  identifier: z.string(),
+// Jurisdiction schema
+export const jurisdictionSchema = z.object({
+  identifier: z.string().min(2).max(24),
   display_name: z.string(),
   domain: z.string(),
   icon: z.string(),
+  enabled: transforms.fromString.boolean.default(true),
 });
 
-/**
- * Inferred TypeScript type for BaseEntity
- */
-export type BaseEntity = z.infer<typeof baseEntitySchema>;
+// Region schema shares same shape as jurisdiction
+export const regionSchema = jurisdictionSchema;
 
-
-/**
- * Jurisdiction schema extending BaseEntity
- */
-export const jurisdictionSchema = baseEntitySchema.extend({});
-
-/**
- * Inferred TypeScript type for Jurisdiction
- */
-export type Jurisdiction = z.infer<typeof jurisdictionSchema>;
-
-/**
- * Region schema extending BaseEntity
- */
-export const regionSchema = baseEntitySchema.extend({});
-
-/**
- * Inferred TypeScript type for Region
- */
-export type Region = z.infer<typeof regionSchema>;
-
-/**
- * RegionsConfig schema
- */
+// Config schema for region/jurisdiction settings
 export const regionsConfigSchema = z.object({
-  enabled: z.boolean(),
+  identifier: z.string().min(2).max(24),
+  enabled: transforms.fromString.boolean,
   current_jurisdiction: z.string(),
   jurisdictions: z.array(jurisdictionSchema),
 });
 
-/**
- * Inferred TypeScript type for RegionsConfig
- */
+// Details schema for jurisdiction-specific metadata
+export const jurisdictionDetailsSchema = z.object({
+  is_default: transforms.fromString.boolean,
+  is_current: transforms.fromString.boolean,
+});
+
+// Export types
+export type Jurisdiction = z.infer<typeof jurisdictionSchema>;
+export type Region = z.infer<typeof regionSchema>;
 export type RegionsConfig = z.infer<typeof regionsConfigSchema>;
+export type JurisdictionDetails = z.infer<typeof jurisdictionDetailsSchema>;

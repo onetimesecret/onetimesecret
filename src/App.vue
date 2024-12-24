@@ -80,7 +80,17 @@
       :lang="locale"
       v-bind="layoutProps">
       <!-- See QuietLayout.vue for named views -->
-      <router-view class="rounded-md" />
+      <!-- The keep-alive wrapper here preserves the state of route components
+           when navigating between them. This prevents unnecessary re-rendering
+           and maintains component state (like form inputs, scroll position)
+           when users navigate back to previously visited routes. It's placed
+           directly around router-view since that's where route components are
+           rendered. -->
+      <router-view v-slot="{ Component }" class="rounded-md">
+        <keep-alive>
+          <component :is="Component" />
+        </keep-alive>
+      </router-view>
     </Component>
 
     <!-- StatusBar positioned independently -->

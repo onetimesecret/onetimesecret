@@ -1,5 +1,5 @@
 {
-  "printWidth": 100,
+  "printWidth": 90,
   "tabWidth": 2,
   "useTabs": false,
   "semi": true,
@@ -15,5 +15,9 @@
   "vueIndentScriptAndStyle": true,
   "singleAttributePerLine": true,
   "endOfLine": "lf",
-  "embeddedLanguageFormatting": "auto"
+  "embeddedLanguageFormatting": "auto",
+
+  "functionParenthesis": "multiline",
+  "arrayBrackets": "multiline",
+  "objectBraces": "multiline"
 }

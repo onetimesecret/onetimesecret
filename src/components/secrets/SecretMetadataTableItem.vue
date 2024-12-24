@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { MetadataListItem } from '@/schemas/models';
+import { type MetadataRecords } from '@/schemas/api';
+import { formatRelativeTime } from '@/utils/format'
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
 interface Props {
-  secretMetadata: MetadataListItem;
+  secretMetadata: MetadataRecords;
 }
 
 const props = defineProps<Props>();
@@ -18,6 +19,10 @@ const linkClass = computed(() => {
 const displayKey = computed(() => {
   return `${props.secretMetadata.shortkey}`;
 });
+
+const formattedDate = computed(() =>
+  formatRelativeTime(props.secretMetadata.updated)
+);
 </script>
 
 <template>
@@ -32,18 +37,19 @@ const displayKey = computed(() => {
       ({{ $t('web.COMMON.sent_to') }} {{ secretMetadata.recipients }})
     </span>
   </router-link>
-  <span class="ml-2 text-gray-500 dark:text-gray-400">-</span>
+  <span class="ml-2 text-gray-500 dark:text-gray-400"> - </span>
   <em
     class="italic text-gray-500 dark:text-gray-400"
     :title="secretMetadata.updated.toLocaleString()">
     {{ secretMetadata.is_received ? $t('web.COMMON.word_received') : '' }}
-    {{ secretMetadata.is_burned ? $t('web.COMMON.word_burned') : '' }} {{ secretMetadata.updated }}
+    {{ secretMetadata.is_burned ? $t('web.COMMON.word_burned') : '' }} {{ formattedDate }}
   </em>
 
   <router-link
     v-if="!secretMetadata.is_destroyed"
     :to="{ name: 'Burn secret', params: { metadataKey: secretMetadata.key } }"
-    class="burn-secret ml-2 text-red-500 transition-colors hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+    :class="['ml-2 text-red-500 transition-colors hover:text-red-600',
+             'dark:text-red-400 dark:hover:text-red-300']"
     :title="$t('web.COMMON.burn_this_secret')">
     <svg
       xmlns="http://www.w3.org/2000/svg"

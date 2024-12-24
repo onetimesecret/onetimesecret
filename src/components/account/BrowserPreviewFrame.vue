@@ -24,14 +24,14 @@ defineEmits<{
       v-if="browserType === 'safari'"
       class="flex items-center space-x-2 border-b border-gray-200 bg-gray-100 p-3 dark:border-gray-700 dark:bg-gray-800">
       <!-- Safari Controls -->
-      <div class="flex space-x-2 group/controls">
+      <div class="group/controls flex space-x-2">
         <!-- Close button -->
         <button
           @click="$emit('toggle-browser')"
           class="size-3 rounded-full bg-[#FF5F57] transition-colors hover:bg-[#E04940]"
           aria-label="Switch to Edge browser view">
           <svg
-            class="size-2 m-auto opacity-0 transition-opacity group-hover/controls:opacity-100"
+            class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
             viewBox="0 0 8 8"
             fill="none"
             stroke="rgba(0, 0, 0, 0.4)"
@@ -45,7 +45,7 @@ defineEmits<{
           class="size-3 rounded-full bg-[#FFBD2E] transition-colors hover:bg-[#E0A323]"
           aria-label="Minimize window">
           <svg
-            class="size-2 m-auto opacity-0 transition-opacity group-hover/controls:opacity-100"
+            class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
             viewBox="0 0 8 8"
             fill="none"
             stroke="rgba(0, 0, 0, 0.4)"
@@ -59,7 +59,7 @@ defineEmits<{
           class="size-3 rounded-full bg-[#28C840] transition-colors hover:bg-[#1FA833]"
           aria-label="Maximize window">
           <svg
-            class="size-2 m-auto opacity-0 transition-opacity group-hover/controls:opacity-100"
+            class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
             viewBox="0 0 8 8"
             fill="none"
             stroke="rgba(0, 0, 0, 0.4)"

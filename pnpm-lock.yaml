@@ -55,10 +55,10 @@ importers:
         version: 10.0.4(vue@3.5.13(typescript@5.6.3))
       zod:
         specifier: ^3.23.8
-        version: 3.23.8
+        version: 3.24.1
       zod-validation-error:
         specifier: ^3.4.0
-        version: 3.4.0(zod@3.23.8)
+        version: 3.4.0(zod@3.24.1)
     devDependencies:
       '@eslint/js':
         specifier: ^9.14.0
@@ -72,6 +72,9 @@ importers:
       '@iconify/vue':
         specifier: ^4.1.2
         version: 4.1.2(vue@3.5.13(typescript@5.6.3))
+      '@intlify/devtools-types':
+        specifier: ^10.0.5
+        version: 10.0.5
       '@intlify/eslint-plugin-vue-i18n':
         specifier: ^3.0.0
         version: 3.0.0(eslint@9.15.0(jiti@2.4.0))
@@ -455,12 +458,20 @@ packages:
     resolution: {integrity: sha512-GG428DkrrWCMhxRMRQZjuS7zmSUzarYcaHJqG9VB8dXAxw4iQDoKVQ7ChJRB6ZtsCsX3Jse1PEUlHrJiyQrOTg==}
     engines: {node: '>= 16'}
 
+  '@intlify/core-base@10.0.5':
+    resolution: {integrity: sha512-F3snDTQs0MdvnnyzTDTVkOYVAZOE/MHwRvF7mn7Jw1yuih4NrFYLNYIymGlLmq4HU2iIdzYsZ7f47bOcwY73XQ==}
+    engines: {node: '>= 16'}
+
   '@intlify/core-base@9.14.1':
     resolution: {integrity: sha512-rG5/hlNW6Qfve41go37szEf0mVLcfhYuOu83JcY0jZKasnwsrcZYYWDzebCcuO5I/6Sy1JFWo9p+nvkQS1Dy+w==}
     engines: {node: '>= 16'}
 
   '@intlify/core@9.14.1':
     resolution: {integrity: sha512-AT3x7F9YqcWRUBC2maPYven4dTeavJCBYEkDqy1WTif/qtVasDASayKLFf95DsFz7ajhu/3ep9IzTAZayvW9sA==}
+    engines: {node: '>= 16'}
+
+  '@intlify/devtools-types@10.0.5':
+    resolution: {integrity: sha512-bGnMQiG6zKlMa42MdWF26KKqYIDwOTV4zCY0j48KdTQa7eQGeHlYydfh7f0dUAcZ+FRMJ9o7j4l6KEKbO0okeg==}
     engines: {node: '>= 16'}
 
   '@intlify/eslint-plugin-vue-i18n@3.0.0':
@@ -473,12 +484,20 @@ packages:
     resolution: {integrity: sha512-AFbhEo10DP095/45EauinQJ5hJ3rJUmuuqltGguvc3WsvezZN+g8qNHLGWKu60FHQVizMrQY7VJ+zVlBXlQQkQ==}
     engines: {node: '>= 16'}
 
+  '@intlify/message-compiler@10.0.5':
+    resolution: {integrity: sha512-6GT1BJ852gZ0gItNZN2krX5QAmea+cmdjMvsWohArAZ3GmHdnNANEcF9JjPXAMRtQ6Ux5E269ymamg/+WU6tQA==}
+    engines: {node: '>= 16'}
+
   '@intlify/message-compiler@9.14.1':
     resolution: {integrity: sha512-MY8hwukJBnXvGAncVKlHsqKDQ5ZcQx4peqEmI8wBUTXn4pezrtTGYXNoz81cLyEEHB+L/zlKWVBSh5TiX4gYoQ==}
     engines: {node: '>= 16'}
 
   '@intlify/shared@10.0.4':
     resolution: {integrity: sha512-ukFn0I01HsSgr3VYhYcvkTCLS7rGa0gw4A4AMpcy/A9xx/zRJy7PS2BElMXLwUazVFMAr5zuiTk3MQeoeGXaJg==}
+    engines: {node: '>= 16'}
+
+  '@intlify/shared@10.0.5':
+    resolution: {integrity: sha512-bmsP4L2HqBF6i6uaMqJMcFBONVjKt+siGluRq4Ca4C0q7W2eMaVZr8iCgF9dKbcVXutftkC7D6z2SaSMmLiDyA==}
     engines: {node: '>= 16'}
 
   '@intlify/shared@9.14.1':
@@ -2926,8 +2945,8 @@ packages:
     peerDependencies:
       zod: ^3.18.0
 
-  zod@3.23.8:
-    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+  zod@3.24.1:
+    resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
 
 snapshots:
 
@@ -3125,6 +3144,11 @@ snapshots:
       '@intlify/message-compiler': 10.0.4
       '@intlify/shared': 10.0.4
 
+  '@intlify/core-base@10.0.5':
+    dependencies:
+      '@intlify/message-compiler': 10.0.5
+      '@intlify/shared': 10.0.5
+
   '@intlify/core-base@9.14.1':
     dependencies:
       '@intlify/message-compiler': 9.14.1
@@ -3134,6 +3158,11 @@ snapshots:
     dependencies:
       '@intlify/core-base': 9.14.1
       '@intlify/shared': 9.14.1
+
+  '@intlify/devtools-types@10.0.5':
+    dependencies:
+      '@intlify/core-base': 10.0.5
+      '@intlify/shared': 10.0.5
 
   '@intlify/eslint-plugin-vue-i18n@3.0.0(eslint@9.15.0(jiti@2.4.0))':
     dependencies:
@@ -3165,12 +3194,19 @@ snapshots:
       '@intlify/shared': 10.0.4
       source-map-js: 1.2.1
 
+  '@intlify/message-compiler@10.0.5':
+    dependencies:
+      '@intlify/shared': 10.0.5
+      source-map-js: 1.2.1
+
   '@intlify/message-compiler@9.14.1':
     dependencies:
       '@intlify/shared': 9.14.1
       source-map-js: 1.2.1
 
   '@intlify/shared@10.0.4': {}
+
+  '@intlify/shared@10.0.5': {}
 
   '@intlify/shared@9.14.1': {}
 
@@ -5813,8 +5849,8 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-validation-error@3.4.0(zod@3.23.8):
+  zod-validation-error@3.4.0(zod@3.24.1):
     dependencies:
-      zod: 3.23.8
+      zod: 3.24.1
 
-  zod@3.23.8: {}
+  zod@3.24.1: {}

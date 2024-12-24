@@ -1,4 +1,4 @@
-import { ref, readonly, Ref, unref, shallowRef } from 'vue';
+import { readonly, ref, Ref, shallowRef } from 'vue';
 import { z } from 'zod';
 
 /**
@@ -71,7 +71,7 @@ export const useWindowProp = <T extends keyof Window>(prop: T): Readonly<Ref<Win
  *
  * @example
  * ```vue
- * const cust = useValidatedWindowProp('cust', customerInputSchema);
+ * const cust = useValidatedWindowProp('cust', customerSchema);
  *
  * // In template
  * <div v-if="cust?.feature_flags?.homepage_toggle">
@@ -108,10 +108,4 @@ export const useValidatedWindowProp = <
     }
   }
   return cache[prop] as Ref<Output | null>;
-};
-
-// New helper function to return unref'd window props
-export const useUnrefWindowProp = <T extends keyof Window>(prop: T): Window[T] => {
-  const windowPropRef = useWindowProp(prop);
-  return unref(windowPropRef);
 };

@@ -3,13 +3,13 @@ import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
 import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
 import { useValidatedWindowProp } from '@/composables/useWindowProps';
-import { customerInputSchema } from '@/schemas/models';
+import { customerSchema } from '@/schemas/models';
 import type { CustomDomain } from '@/schemas/models/domain.ts';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
 
-const cust = useValidatedWindowProp('cust', customerInputSchema); // Used for feature flags
+const cust = useValidatedWindowProp('cust', customerSchema); // Used for feature flags
 
 defineProps<{
   domains: CustomDomain[];
@@ -147,7 +147,7 @@ const handleDelete = (domainId: string) => {
                 v-if="cust?.feature_flags?.homepage_toggle"
                 class="flex justify-center">
                 <HomepageAccessToggle
-                  :modelValue="!!domain.brand?.allow_public_homepage"
+                  :model-value="!!domain.brand?.allow_public_homepage"
                   :disabled="isToggling(domain.display_domain)"
                   @update:model-value="$emit('toggle-homepage', domain)"
                 />

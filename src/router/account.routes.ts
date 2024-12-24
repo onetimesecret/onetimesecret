@@ -1,7 +1,6 @@
-
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import { AsyncDataResult, CustomDomainApiResponse } from '@/types/api/responses';
+import { AsyncDataResult, CustomDomainResponse } from '@/schemas/api/responses';
 import api from '@/utils/api';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -43,7 +42,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layoutProps: {
         displayFeedback: false,
-      }
+      },
     },
     props: true,
   },
@@ -76,24 +75,24 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: async (to, from, next) => {
       try {
         const domain = to.params.domain as string;
-        const response = await api.get<CustomDomainApiResponse>(
+        const response = await api.get<CustomDomainResponse>(
           `/api/v2/account/domains/${domain}/brand`
         );
 
-        const initialData: AsyncDataResult<CustomDomainApiResponse> = {
+        const initialData: AsyncDataResult<CustomDomainResponse> = {
           status: response.status,
           data: response.data,
-          error: null
+          error: null,
         };
 
         to.meta.initialData = initialData;
         next();
       } catch (error) {
         console.error('Error fetching domain brand data:', error);
-        const initialData: AsyncDataResult<CustomDomainApiResponse> = {
+        const initialData: AsyncDataResult<CustomDomainResponse> = {
           status: 500,
           data: null,
-          error: error instanceof Error ? error.message : 'Failed to fetch domain brand data'
+          error: error instanceof Error ? error.message : 'Failed to fetch domain brand data',
         };
 
         to.meta.initialData = initialData;

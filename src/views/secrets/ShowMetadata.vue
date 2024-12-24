@@ -43,48 +43,49 @@ secret's current status and history.
 -->
 
 <script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
-import { isMetadataDetails } from '@/schemas/models/metadata';
-import { useMetadataStore } from '@/stores/metadataStore';
-import { AsyncDataResult, MetadataRecordApiResponse } from '@/types/api/responses';
-import { storeToRefs } from 'pinia';
-import { computed, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useMetadata } from '@/composables/useMetadata';
+import { onMounted } from 'vue';
+import { onBeforeRouteUpdate } from 'vue-router';
 
-const route = useRoute();
-const store = useMetadataStore();
+const props = defineProps<{
+  metadataKey: string | null,
+}>();
 
-// Get initial data from route resolver
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<MetadataRecordApiResponse>);
+const { record, details, isLoading, error, fetch } = useMetadata(props.metadataKey || '');
 
-// Set up reactive refs to store state
-const { currentRecord: record, details, isLoading, error } = storeToRefs(store);
+onBeforeRouteUpdate((to, from, next) => {
+  console.log('[ShowMetadata] Route updating', to.params.metadataKey);
+  if (props.metadataKey) {
+    fetch();
+  }
+  next();
+});
 
-// Initialize from route resolver data
-if (initialData.value?.data) {
-  store.setData(initialData.value.data);
-}
-// Clean up on unmount
-onUnmounted(() => {
-  store.abortPendingRequests();
+onMounted(() => {
+  if (props.metadataKey) {
+    fetch();
+  }
 });
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto px-4">
+  <div class="mx-auto max-w-4xl px-4">
     <DashboardTabNav />
-    <BasicFormAlerts :error="error" />
 
+    <ErrorDisplay v-if="error" :error="error" />
+
+    <!-- Loading State -->
     <div v-if="isLoading" class="py-8 text-center text-gray-600">
-      <span class="loading">Loading...</span>
+      <span class="">Loading...</span>
     </div>
 
-    <div v-else-if="record && details && isMetadataDetails(details)" class="space-y-8">
+    <div v-else-if="record && details" class="space-y-8">
       <!-- Primary Content Section -->
       <div class="space-y-6">
         <SecretLink
@@ -113,7 +114,9 @@ onUnmounted(() => {
       </div>
 
       <!-- Recipients Section -->
-      <div v-if="details.show_recipients" class="py-4 border-t border-gray-100 dark:border-gray-800">
+      <div
+        v-if="details.show_recipients"
+        class="border-t border-gray-100 py-4 dark:border-gray-800">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
           {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
         </h3>
@@ -155,7 +158,7 @@ onUnmounted(() => {
       <MetadataFAQ
         :metadata="record"
         :details="details"
-        class="border-t border-gray-100 dark:border-gray-800 pt-8"
+        class="border-t border-gray-100 pt-8 dark:border-gray-800"
       />
     </div>
   </div>

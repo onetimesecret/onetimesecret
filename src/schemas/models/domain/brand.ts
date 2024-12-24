@@ -1,6 +1,5 @@
 // src/schemas/models/domain/brand.ts
-import { baseNestedRecordSchema, type BaseNestedRecord } from '@/schemas/base';
-import { booleanFromString } from '@/utils/transforms';
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
@@ -13,91 +12,67 @@ import { z } from 'zod';
  * 3. It allows direct imports of Brand-specific logic where needed
  * 4. It keeps Domain model focused on core domain logic
  *
- * Key Design Decisions:
- * 1. Input schemas handle API -> App transformation
- * 2. App uses single shared type between stores/components
- * 3. No explicit output schemas - serialize when needed
- *
- * Type Flow:
- * API Response (strings) -> InputSchema -> Store/Components -> API Request
- *                          ^                                ^
- *                          |                                |
- *                       transform                       serialize
- *
- * Validation Rules:
- * - Boolean fields come as strings from Ruby/Redis ('true'/'false')
- * - Colors must be valid hex codes
- * - Font family and corner style from predefined options
  */
 
-type Option = {
-  value: string;
-  display: string;
-  icon: string;
+// 1. Base enums
+enum FontFamily {
+  SANS = 'sans',
+  SERIF = 'serif',
+  MONO = 'mono',
+}
+
+enum CornerStyle {
+  ROUNDED = 'rounded',
+  PILL = 'pill',
+  SQUARE = 'square',
+}
+
+// 2. Options arrays
+const fontOptions = Object.values(FontFamily) as [string, ...string[]];
+const cornerStyleOptions = Object.values(CornerStyle) as [string, ...string[]];
+
+// 3. Display maps
+const fontDisplayMap: Record<FontFamily, string> = {
+  [FontFamily.SANS]: 'Sans Serif',
+  [FontFamily.SERIF]: 'Serif',
+  [FontFamily.MONO]: 'Monospace',
 };
 
-type OptionConfig = Record<string, Option>;
-
-const createOptions = (config: OptionConfig) => {
-  const options = Object.values(config).map((opt) => opt.value);
-  const maps = Object.keys(config).reduce(
-    (acc, key) => {
-      const { value, display, icon } = config[key];
-      acc.displayMap[value] = display;
-      acc.iconMap[value] = icon;
-      acc.valueMap[key] = value;
-      return acc;
-    },
-    {
-      displayMap: {} as Record<string, string>,
-      iconMap: {} as Record<string, string>,
-      valueMap: {} as Record<string, string>,
-    }
-  );
-  return { options, ...maps };
+const cornerStyleDisplayMap: Record<CornerStyle, string> = {
+  [CornerStyle.ROUNDED]: 'Rounded',
+  [CornerStyle.PILL]: 'Pill Shape',
+  [CornerStyle.SQUARE]: 'Square',
 };
 
-const FontFamilyConfig: OptionConfig = {
-  SANS: { value: 'sans', display: 'Sans Serif', icon: 'ph:text-aa-bold' },
-  SERIF: { value: 'serif', display: 'Serif', icon: 'ph:text-t-bold' },
-  MONO: { value: 'mono', display: 'Monospace', icon: 'ph:code' },
+// 4. Icon maps
+const fontIconMap: Record<FontFamily, string> = {
+  [FontFamily.SANS]: 'ph:text-aa-bold',
+  [FontFamily.SERIF]: 'ph:text-t-bold',
+  [FontFamily.MONO]: 'ph:code',
 };
 
-const CornerStyleConfig: OptionConfig = {
-  ROUNDED: { value: 'rounded', display: 'Rounded', icon: 'tabler:border-corner-rounded' },
-  PILL: { value: 'pill', display: 'Pill Shape', icon: 'tabler:border-corner-pill' },
-  SQUARE: { value: 'square', display: 'Square', icon: 'tabler:border-corner-square' },
+const cornerStyleIconMap: Record<CornerStyle, string> = {
+  [CornerStyle.ROUNDED]: 'tabler:border-corner-rounded',
+  [CornerStyle.PILL]: 'tabler:border-corner-pill',
+  [CornerStyle.SQUARE]: 'tabler:border-corner-square',
 };
 
-const {
-  options: fontOptions,
-  displayMap: fontDisplayMap,
-  iconMap: fontIconMap,
-  valueMap: FontFamily,
-} = createOptions(FontFamilyConfig);
-
-const {
-  options: cornerStyleOptions,
-  displayMap: cornerStyleDisplayMap,
-  iconMap: cornerStyleIconMap,
-  valueMap: CornerStyle,
-} = createOptions(CornerStyleConfig);
-
-export const brandSettingsInputSchema = z
-  .object({
-    primary_color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color'),
-    colour: z.string().optional(),
-    instructions_pre_reveal: z.string().optional(),
-    instructions_reveal: z.string().optional(),
-    instructions_post_reveal: z.string().optional(),
-    description: z.string().optional(),
-    button_text_light: booleanFromString.default(false),
-    allow_public_homepage: booleanFromString.default(false),
-    allow_public_api: booleanFromString.default(false),
-    font_family: z.enum(Object.values(FontFamily)).optional(),
-    corner_style: z.enum(Object.values(CornerStyle)).optional(),
-  })
-  .merge(baseNestedRecordSchema);
+export const brandSettingschema = z.object({
+  primary_color: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
+    .default('#dc4a22'), // Default to Onetime Secret brand colour
+  colour: z.string().optional(),
+  instructions_pre_reveal: z.string().optional(),
+  instructions_reveal: z.string().optional(),
+  instructions_post_reveal: z.string().optional(),
+  description: z.string().optional(),
+  button_text_light: transforms.fromString.boolean.default(false),
+  allow_public_homepage: transforms.fromString.boolean.default(false),
+  allow_public_api: transforms.fromString.boolean.default(false),
+  font_family: z.enum(fontOptions).optional(),
+  corner_style: z.enum(cornerStyleOptions).optional(),
+});
 
 export const imagePropsSchema = z
   .object({
@@ -109,11 +84,10 @@ export const imagePropsSchema = z
     height: z.number().optional(),
     ratio: z.number().optional(),
   })
-  .merge(baseNestedRecordSchema)
   .strip();
 
-export type BrandSettings = z.infer<typeof brandSettingsInputSchema> & BaseNestedRecord;
-export type ImageProps = z.infer<typeof imagePropsSchema> & BaseNestedRecord;
+export type BrandSettings = z.infer<typeof brandSettingschema>;
+export type ImageProps = z.infer<typeof imagePropsSchema>;
 
 export {
   CornerStyle,

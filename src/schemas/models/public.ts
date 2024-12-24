@@ -1,5 +1,5 @@
 // src/schemas/publicSettings.ts
-
+import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
@@ -26,7 +26,8 @@ export const secretOptionsSchema = z.object({
     .number()
     .int()
     .positive()
-    .default(604800),
+    .default(604800)
+    .transform((val) => transforms.fromString.number.parse(val)),
 
   /**
    * Available TTL options for secret creation (in seconds)
@@ -36,6 +37,7 @@ export const secretOptionsSchema = z.object({
    */
   ttl_options: z
     .array(z.number().int().positive())
+    .transform((arr) => arr.map((val) => transforms.fromString.number.parse(val)))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600]),
 });
 
@@ -51,22 +53,22 @@ export const authenticationSchema = z.object({
   /**
    * Flag to enable or disable authentication
    */
-  enabled: z.boolean(),
+  enabled: transforms.fromString.boolean,
 
   /**
    * Flag to allow or disallow user sign-up
    */
-  signup: z.boolean(),
+  signup: transforms.fromString.boolean,
 
   /**
    * Flag to allow or disallow user sign-in
    */
-  signin: z.boolean(),
+  signin: transforms.fromString.boolean,
 
   /**
    * Flag to enable or disable automatic verification
    */
-  autoverify: z.boolean(),
+  autoverify: transforms.fromString.boolean,
 });
 
 /**
@@ -88,7 +90,7 @@ const jurisdictionSchema = z.object({
  * Schema for the :regions section
  */
 const regionsSchema = z.object({
-  enabled: z.boolean(),
+  enabled: transforms.fromString.boolean,
   current_jurisdiction: z.string().optional(),
   jurisdictions: z.array(jurisdictionSchema).optional(),
 });
@@ -96,20 +98,22 @@ const regionsSchema = z.object({
 /**
  * Schema for the :cluster section within :domains
  */
-const clusterSchema = z.object({
-  type: z.string().optional(),
-  //  api_key: z.string().optional(),
-  cluster_ip: z.string().optional(),
-  cluster_host: z.string().optional(),
-  cluster_name: z.string(),
-  vhost_target: z.string(),
-}).strip();
+const clusterSchema = z
+  .object({
+    type: z.string().optional(),
+    //  api_key: z.string().optional(),
+    cluster_ip: z.string().optional(),
+    cluster_host: z.string().optional(),
+    cluster_name: z.string(),
+    vhost_target: z.string(),
+  })
+  .strip();
 
 /**
  * Schema for the :domains section
  */
 const domainsSchema = z.object({
-  enabled: z.any(),
+  enabled: transforms.fromString.boolean,
   default: z.string().optional(),
   cluster: clusterSchema,
 });
@@ -117,16 +121,18 @@ const domainsSchema = z.object({
 /**
  * Schema for the :authenticity section
  */
-const authenticitySchema = z.object({
-  type: z.string(),
-  //  secret_key: z.string(),
-}).strip();
+const authenticitySchema = z
+  .object({
+    type: z.string(),
+    //  secret_key: z.string(),
+  })
+  .strip();
 
 /**
  * Schema for the :plans section
  */
 const plansSchema = z.object({
-  enabled: z.any(),
+  enabled: transforms.fromString.boolean,
   stripe_key: z.string().optional(),
   webook_signing_secret: z.string().optional(),
   payment_links: z.any().optional(),
@@ -142,18 +148,20 @@ const supportSchema = z.object({
 /**
  * Combined Schema for PublicSettings based on :site in config.schema.yaml
  */
-export const publicSettingsSchema = z.object({
-  host: z.string(),
-  domains: domainsSchema,
-  ssl: z.boolean(),
-  authentication: authenticationSchema,
-  // secret: z.string(),
-  authenticity: authenticitySchema,
-  plans: plansSchema,
-  support: supportSchema,
-  regions: regionsSchema,
-  secret_options: secretOptionsSchema,
-}).strict();
+export const publicSettingsSchema = z
+  .object({
+    host: z.string(),
+    domains: domainsSchema,
+    ssl: transforms.fromString.boolean,
+    authentication: authenticationSchema,
+    // secret: z.string(),
+    authenticity: authenticitySchema,
+    plans: plansSchema,
+    support: supportSchema,
+    regions: regionsSchema,
+    secret_options: secretOptionsSchema,
+  })
+  .strict();
 
 /**
  * Inferred TypeScript type for PublicSettings

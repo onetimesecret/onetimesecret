@@ -1,56 +1,63 @@
 <script setup lang="ts">
-import { useMetadataBurn } from '@/composables/useMetadataBurn';
-import { useMetadataStore } from '@/stores/metadataStore';
-import { storeToRefs } from 'pinia';
+import { useMetadata } from '@/composables/useMetadata';
+import { onMounted } from 'vue';
 
 interface Props {
-  metadataKey: string
+  metadataKey: string,
 }
-
 const props = defineProps<Props>();
 
-const metadataStore = useMetadataStore();
-const { currentRecord: record, details, isLoading } = storeToRefs(metadataStore);
+const { record, details, isLoading, passphrase, fetch, burn } = useMetadata(props.metadataKey);
 
-const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
+onMounted(() => {
+  fetch();
+});
 </script>
 
 <template>
   <div>
     <div
       v-if="!record || details?.is_destroyed"
-      class="relative mb-4 rounded border border-red-400
-        bg-red-100 px-4 py-3
-        text-red-700 dark:border-red-600 dark:bg-red-900/50 dark:text-red-300">
-      <span class="block sm:inline">
-        <template v-if="details?.is_received">
-          This secret was viewed on {{ details.received_date }}
-          and is no longer accessible.
-        </template>
-        <template v-else-if="details?.is_burned">
-          This secret was permanently deleted on {{ details.burned_date }}.
-        </template>
-        <template v-else>
-          This secret was permanently deleted.
-        </template>
-      </span>
-      <a
-        v-if="record && record?.metadata_url"
-        :href="record?.metadata_url"
-        class="mt-2 block w-full rounded bg-gray-300
-          px-4 py-2 text-center text-gray-700
-          hover:bg-gray-300
-          dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-        Back
-      </a>
-      <router-link
-        to="/"
-        class="mt-2 block w-full rounded bg-gray-300
-               px-4 py-2 text-center text-gray-700
-               hover:bg-gray-300
-               dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-        Home
-      </router-link>
+      role="alert"
+      class="space-y-4 rounded-lg border-l-4 border-red-500
+        bg-red-50 p-5 shadow-sm dark:border-red-600 dark:bg-red-900/30">
+      <!-- Status Message -->
+      <div class="flex items-center space-x-3">
+        <svg
+          class="size-6 text-red-500 dark:text-red-400"
+          fill="currentColor"
+          viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+        </svg>
+        <p class="text-base font-medium text-red-800 dark:text-red-200">
+          <template v-if="details?.is_received">
+            Viewed on {{ record?.received }}
+          </template>
+          <template v-else-if="details?.is_burned">
+            Deleted on {{ record?.burned }}
+          </template>
+          <template v-else>
+            Permanently deleted
+          </template>
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <a
+          v-if="record?.metadata_url"
+          :href="record.metadata_url"
+          class="flex-1 rounded-lg bg-white px-4 py-2.5
+            text-center font-brand font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+          Back to Details
+        </a>
+        <router-link
+          to="/"
+          class="flex-1 rounded-lg bg-red-600 px-4 py-2.5
+            text-center font-brand font-medium text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-600">
+          Create New Secret
+        </router-link>
+      </div>
     </div>
 
 
@@ -66,7 +73,7 @@ const { passphrase, handleBurn } = useMetadataBurn(props.metadataKey);
       </div>
 
       <form
-        @submit.prevent="handleBurn"
+        @submit.prevent="burn"
         class="space-y-4">
         <div v-if="details?.has_passphrase">
           <input

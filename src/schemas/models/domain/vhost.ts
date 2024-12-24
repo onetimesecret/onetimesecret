@@ -1,9 +1,15 @@
-// src/schemas/models/domain/vhost.ts
-import { baseNestedRecordSchema, type BaseNestedRecord } from '@/schemas/base';
-import { z } from 'zod'
+import { createModelSchema } from '@/schemas/models/base';
+import { transforms } from '@/schemas/transforms';
+import { z } from 'zod';
 
 /**
  * @fileoverview VHost schema for domain verification monitoring
+ *
+ * Key improvements:
+ * 1. Consistent use of transforms for type conversion
+ * 2. Proper date handling with transforms
+ * 3. Required fields properly marked
+ * 4. Clear type boundaries
  *
  * Model Organization:
  * VHost is a nested model of Domain that handles monitoring data for domain verification.
@@ -11,38 +17,38 @@ import { z } from 'zod'
  * 1. It has distinct validation rules and monitoring-specific fields
  * 2. It maintains separation of concerns and code organization
  * 3. It keeps Domain model focused on core domain logic
- *
- * Validation Rules:
- * - Boolean fields for verification status
- * - Timestamp fields as strings
- * - Numeric fields for IDs and Unix timestamps
- * - Status messages as strings
  */
-
 
 /**
- * VHost approximation schema
- * Handles monitoring data for domain verification
+ * VHost monitoring schema
+ * Handles domain verification monitoring data
  */
-export const vhostSchema = z.object({
-  apx_hit: z.boolean().optional(),
-  created_at: z.string().optional(),
-  dns_pointed_at: z.string().optional(),
-  has_ssl: z.boolean().optional(),
+export const vhostSchema = createModelSchema({
+  // Required fields
   id: z.number().optional(),
-  incoming_address: z.string().optional(),
-  is_resolving: z.boolean().optional(),
-  keep_host: z.string().nullable().optional(),
-  last_monitored_humanized: z.string().optional(),
-  last_monitored_unix: z.number().optional(),
-  ssl_active_from: z.string().nullable().optional(),
-  ssl_active_until: z.string().nullable().optional(),
   status: z.string().optional(),
-  status_message: z.string().optional(),
+  incoming_address: z.string().optional(),
   target_address: z.string().optional(),
   target_ports: z.string().optional(),
-  user_message: z.string().optional(),
-}).merge(baseNestedRecordSchema);
 
-// Export inferred type for use in stores/components
-export type VHost = z.infer<typeof vhostSchema> & BaseNestedRecord;
+  // Boolean status fields
+  apx_hit: transforms.fromString.boolean.optional(),
+  has_ssl: transforms.fromString.boolean.optional(),
+  is_resolving: transforms.fromString.boolean.optional(),
+
+  // Date fields using proper transforms
+  created_at: transforms.fromString.date.optional(),
+  last_monitored_unix: transforms.fromString.date.optional(),
+  ssl_active_from: transforms.fromString.date.nullable(),
+  ssl_active_until: transforms.fromString.date.nullable(),
+
+  // Optional string fields
+  dns_pointed_at: z.string().optional(),
+  keep_host: z.string().nullable(),
+  last_monitored_humanized: z.string().optional(),
+  status_message: z.string().optional(),
+  user_message: z.string().optional(),
+});
+
+// Export type for use in stores/components
+export type VHost = z.infer<typeof vhostSchema>;

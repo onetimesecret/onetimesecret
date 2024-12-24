@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { useValidatedWindowProp } from '@/composables/useWindowProps';
 import { setLanguage } from '@/i18n';
-import { customerInputSchema } from '@/schemas/models';
+import { customerSchema } from '@/schemas/models';
 import { useLanguageStore } from '@/stores/languageStore';
 import { computed, onMounted, ref } from 'vue';
 
@@ -13,7 +13,7 @@ const emit = defineEmits(['localeChanged']);
 const languageStore = useLanguageStore();
 const supportedLocales = languageStore.getSupportedLocales;
 
-const cust = useValidatedWindowProp('cust', customerInputSchema);
+const cust = useValidatedWindowProp('cust', customerSchema);
 
 const selectedLocale = ref(languageStore.determineLocale(cust?.value?.locale));
 
@@ -47,8 +47,8 @@ onMounted(() => {
 <template>
   <DropdownToggle
     ref="dropdownRef"
-    ariaLabel="Change language"
-    openDirection="down">
+    aria-label="Change language"
+    open-direction="down">
     <template #button-content>
       <svg
         xmlns="http://www.w3.org/2000/svg"

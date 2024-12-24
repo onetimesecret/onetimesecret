@@ -1,115 +1,106 @@
-
 <script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-import { useFormSubmission } from '@/composables/useFormSubmission';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { ConcealDataApiResponse } from '@/types/api/responses';
-import { computed, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+  import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+  import { useFormSubmission } from '@/composables/useFormSubmission';
+  import { ConcealDataResponse } from '@/schemas/api/responses';
+  import { useCsrfStore } from '@/stores/csrfStore';
+  import { computed, ref, watch } from 'vue';
+  import { useRouter } from 'vue-router';
 
-import CustomDomainPreview from './../../CustomDomainPreview.vue';
-import ConcealButton from './ConcealButton.vue';
-import GenerateButton from './GenerateButton.vue';
-import SecretContentInputArea from './SecretContentInputArea.vue';
-//import SecretContentInputArea from './SecretContentInputArea.gearicon.vue';
-//import SecretContentInputArea from './SecretContentInputArea.collapsed.vue';
-import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
+  import CustomDomainPreview from './../../CustomDomainPreview.vue';
+  import ConcealButton from './ConcealButton.vue';
+  import GenerateButton from './GenerateButton.vue';
+  import SecretContentInputArea from './SecretContentInputArea.vue';
+  import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
 
-const csrfStore = useCsrfStore();
+  const csrfStore = useCsrfStore();
 
-export interface Props {
-  enabled?: boolean;
-  withRecipient?: boolean;
-  withAsterisk?: boolean;
-  withGenerate?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  enabled: true,
-  withRecipient: false,
-  withAsterisk: false,
-  withGenerate: false,
-})
-
-const formFields = window.form_fields;
-const domainsEnabled = window.domains_enabled;
-const availableDomains = window.custom_domains || [];
-const defaultDomain = window.site_host;
-
-const hasInitialContent = computed(() => Boolean(formFields?.secret));
-
-// Add defaultDomain to the list of available domains if it's not already there
-if (!availableDomains.includes(defaultDomain)) {
-  availableDomains.push(defaultDomain);
-}
-
-// Function to get the saved domain or default to the first available domain
-const getSavedDomain = () => {
-  const savedDomain = localStorage.getItem('selectedDomain');
-  return savedDomain && availableDomains.includes(savedDomain)
-    ? savedDomain
-    : availableDomains[0];
-};
-
-// Initialize selectedDomain with the saved domain or default
-const selectedDomain = ref(getSavedDomain());
-
-// Watch for changes in selectedDomain and save to localStorage
-watch(selectedDomain, (newDomain) => {
-  localStorage.setItem('selectedDomain', newDomain);
-});
-
-const secretContent = ref('');
-const isFormValid = computed(() => {
-  return (secretContent.value.length > 0 || hasInitialContent.value);
-});
-
-// Function to update the selected domain
-const updateSelectedDomain = (domain: string) => {
-  selectedDomain.value = domain;
-};
-
-const isGenerateDisabled = computed(() => isFormValid.value);
-const isCreateDisabled = computed(() => !isFormValid.value);
-
-const router = useRouter();
-
-const formKind = ref('');
-
-const handleButtonClick = (kind: 'generate' | 'share') => {
-  formKind.value = kind;
-  submitForm();
-};
-
-const {
-  isSubmitting,
-  error,
-  success,
-  submitForm
-} = useFormSubmission({
-  url: '/api/v2/secret/conceal',
-  successMessage: '',
-  onSuccess: (data: ConcealDataApiResponse) => {
-    // Use router to redirect to the private metadata page
-    router.push({
-      name: 'Metadata link',
-      params: { metadataKey: data.record.metadata.key },
-    })
-  },
-  onError: (data: unknown) => {
-    console.error('Error fetching secret:', data)
-
-    // Let's try to get a new shrimp right away
-    csrfStore.checkShrimpValidity();
-  },
-  getFormData: () => {
-    const form = document.getElementById('createSecret') as HTMLFormElement;
-    const formData = new FormData(form);
-    formData.append('kind', formKind.value);
-    return formData;
+  export interface Props {
+    enabled?: boolean;
+    withRecipient?: boolean;
+    withAsterisk?: boolean;
+    withGenerate?: boolean;
   }
-});
 
+  const props = withDefaults(defineProps<Props>(), {
+    enabled: true,
+    withRecipient: false,
+    withAsterisk: false,
+    withGenerate: false,
+  });
+
+  const formFields = window.form_fields;
+  const domainsEnabled = window.domains_enabled;
+  const availableDomains = window.custom_domains || [];
+  const defaultDomain = window.site_host;
+
+  const hasInitialContent = computed(() => Boolean(formFields?.secret));
+
+  // Add defaultDomain to the list of available domains if it's not already there
+  if (!availableDomains.includes(defaultDomain)) {
+    availableDomains.push(defaultDomain);
+  }
+
+  // Function to get the saved domain or default to the first available domain
+  const getSavedDomain = () => {
+    const savedDomain = localStorage.getItem('selectedDomain');
+    return savedDomain && availableDomains.includes(savedDomain)
+      ? savedDomain
+      : availableDomains[0];
+  };
+
+  // Initialize selectedDomain with the saved domain or default
+  const selectedDomain = ref(getSavedDomain());
+
+  // Watch for changes in selectedDomain and save to localStorage
+  watch(selectedDomain, (newDomain) => {
+    localStorage.setItem('selectedDomain', newDomain);
+  });
+
+  const secretContent = ref('');
+  const isFormValid = computed(() => {
+    return secretContent.value.length > 0 || hasInitialContent.value;
+  });
+
+  // Function to update the selected domain
+  const updateSelectedDomain = (domain: string) => {
+    selectedDomain.value = domain;
+  };
+
+  const isGenerateDisabled = computed(() => isFormValid.value);
+  const isCreateDisabled = computed(() => !isFormValid.value);
+
+  const router = useRouter();
+
+  const formKind = ref('');
+
+  const handleButtonClick = (kind: 'generate' | 'share') => {
+    formKind.value = kind;
+    submitForm();
+  };
+
+  const { isSubmitting, error, success, submitForm } = useFormSubmission({
+    url: '/api/v2/secret/conceal',
+    successMessage: '',
+    onSuccess: (data: ConcealDataResponse) => {
+      // Use router to redirect to the private metadata page
+      router.push({
+        name: 'Metadata link',
+        params: { metadataKey: data.record.metadata.key },
+      });
+    },
+    onError: (data: unknown) => {
+      console.error('Error fetching secret:', data);
+
+      // Let's try to get a new shrimp right away
+      csrfStore.checkShrimpValidity();
+    },
+    getFormData: () => {
+      const form = document.getElementById('createSecret') as HTMLFormElement;
+      const formData = new FormData(form);
+      formData.append('kind', formKind.value);
+      return formData;
+    },
+  });
 </script>
 
 <template>

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import SecretMetadataTableItem from '@/components/secrets/SecretMetadataTableItem.vue';
-import { MetadataListItem } from '@/schemas/models';
+import { MetadataRecords } from '@/schemas/api/endpoints';
 
 interface Props {
-  notReceived: MetadataListItem[];
-  received: MetadataListItem[];
+  notReceived: MetadataRecords[];
+  received: MetadataRecords[];
   isLoading: boolean;
 }
 
@@ -35,8 +35,7 @@ defineProps<Props>();
           <li
             v-for="item in notReceived"
             :key="item.key">
-            <!-- Assuming there's a component for li_metadata -->
-            <SecretMetadataTableItem :secretMetadata="item" />
+            <SecretMetadataTableItem :secret-metadata="item" />
           </li>
         </ul>
         <p
@@ -61,8 +60,7 @@ defineProps<Props>();
           <li
             v-for="item in received"
             :key="item.key">
-            <!-- Assuming there's a component for li_metadata -->
-            <SecretMetadataTableItem :secretMetadata="item" />
+            <SecretMetadataTableItem :secret-metadata="item" />
           </li>
         </ul>
         <p

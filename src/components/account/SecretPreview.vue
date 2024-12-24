@@ -166,7 +166,6 @@ const fontFamilyClass = computed(() => {
     </template>
 
     <template #content>
-
       <textarea
         v-if="isRevealed"
         readonly
@@ -191,7 +190,6 @@ Or a multi-line message</textarea>
         />
         <span class="text-sm">Content hidden</span>
       </div>
-
     </template>
 
     <template #action-button>
