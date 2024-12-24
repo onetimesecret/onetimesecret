@@ -120,3 +120,4 @@ repos:
         entry: pnpm run type-check
         language: system
         pass_filenames: false
+        always_run: true
