@@ -47,6 +47,8 @@
     "useDefineForClassFields": true,
     "jsx": "preserve",
 
+    "noImplicitAny": true,
+
     "allowJs": false,
     "allowImportingTsExtensions": true,
     "resolvePackageJsonExports": true,
