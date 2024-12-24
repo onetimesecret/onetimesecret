@@ -33,12 +33,10 @@
   // https://www.typescriptlang.org/tsconfig/
   // https://github.com/tsconfig/bases/pull/265
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "lib": ["ES2022", "DOM"],
-    "incremental": true,
-    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo", // Store in cache directory instead
+    "target": "es2022",
+    "module": "es2022",
+    "lib": ["es2022", "dom"],
+    "moduleResolution": "node",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -50,14 +48,14 @@
     "noImplicitAny": true,
 
     "allowJs": false,
-    "allowImportingTsExtensions": true,
-    "resolvePackageJsonExports": true,
+    "allowImportingTsExtensions": false,
+    "resolvePackageJsonExports": false,
 
     "sourceMap": true,
     "noEmit": true,
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["./src/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types/declarations"]
   },
@@ -68,5 +66,5 @@
     "src/**/*.ts",
     "src/**/*.vue"
   ],
-  "exclude": ["node_modules/**/*", "node_modules/.pnpm", ".pnpm/**/*"]
+  "exclude": ["node_modules"]
 }

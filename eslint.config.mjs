@@ -54,15 +54,18 @@ export default [
           alphabetize: { order: 'asc', caseInsensitive: true }, // Sort imports alphabetically
         },
       ],
+      // Omit file extensions for JS/TS/Vue imports, ignore node_modules
       'import/extensions': [
         'error',
         'ignorePackages',
         {
-          'ts': 'always',
-          'vue': 'always',
+          'js': 'never',
+          'jsx': 'never',
+          'ts': 'never',
+          'tsx': 'never',
+          'vue': 'never'
         }
-      ],
-      // Add this rule configuration
+      ],      // Add this rule configuration
       'vue/component-tags-order': ['error', {
         order: ['script', 'template', 'style']
       }]
