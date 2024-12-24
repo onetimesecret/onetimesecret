@@ -12,6 +12,10 @@ declare module 'vue-router' {
     layoutProps?: LayoutProps;
     initialData?: AxiosResponse<unknown>;
   }
+
+  interface TypedRouteParams {
+    metadataKey: string; // TODO: Revisit b/c I'm pretty sure it doesn't affect anything
+  }
 }
 
 declare module 'api' {

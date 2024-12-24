@@ -43,8 +43,8 @@ secret's current status and history.
 -->
 
 <script setup lang="ts">
-import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
@@ -52,18 +52,20 @@ import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { storeToRefs } from 'pinia';
 import { onMounted } from 'vue';
-import { useRoute } from 'vue-router';
 
-const route = useRoute();
 const store = useMetadataStore();
 
 // Set up reactive refs to store state
-const { currentRecord: record, currentDetails: details, isLoading } = storeToRefs(store);
+const { currentRecord: record, currentDetails: details, isLoading, error } = storeToRefs(store);
+
+const props = defineProps<{
+  metadataKey: string | null,
+}>();
 
 // Initial fetch when component mounts
 onMounted(() => {
-  if (route.params.metadataKey) {
-    store.fetchOne(route.params.metadataKey);
+  if (props.metadataKey) {
+    store.fetchOne(props.metadataKey);
   }
 });
 </script>
@@ -71,13 +73,14 @@ onMounted(() => {
 <template>
   <div class="mx-auto max-w-4xl px-4">
     <DashboardTabNav />
-    <BasicFormAlerts :error="error" />
+
+
+    <ErrorDisplay v-if="error" :error="error" />
 
     <!-- Loading State -->
     <div v-if="isLoading" class="py-8 text-center text-gray-600">
-      <span class="loading">Loading...</span>
+      <span class="">Loading...</span>
     </div>
-
 
     <div v-else-if="record && details" class="space-y-8">
       <!-- Primary Content Section -->
@@ -108,7 +111,9 @@ onMounted(() => {
       </div>
 
       <!-- Recipients Section -->
-      <div v-if="details.show_recipients" class="border-t border-gray-100 py-4 dark:border-gray-800">
+      <div
+        v-if="details.show_recipients"
+        class="border-t border-gray-100 py-4 dark:border-gray-800">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
           {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
         </h3>

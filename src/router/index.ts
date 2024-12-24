@@ -2,6 +2,7 @@ import accountRoutes from '@/router/account.routes';
 import authRoutes from '@/router/auth.routes';
 import dashboardRoutes from '@/router/dashboard.routes';
 import { setupRouterGuards } from '@/router/guards.routes';
+import metadataRoutes from '@/router/metadata.routes';
 import productRoutes from '@/router/product.routes';
 import publicRoutes from '@/router/public.routes';
 import recipientRoutes from '@/router/recipient.routes';
@@ -12,10 +13,11 @@ import { createRouter, createWebHistory } from 'vue-router';
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,
   ...productRoutes,
-  ...dashboardRoutes,
-  ...authRoutes,
-  ...accountRoutes,
+  ...metadataRoutes,
   ...recipientRoutes,
+  ...authRoutes,
+  ...dashboardRoutes,
+  ...accountRoutes,
 ];
 
 /**
