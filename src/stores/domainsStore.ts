@@ -4,20 +4,19 @@ import { useStoreError } from '@/composables/useStoreError';
 import { ApiError, UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { BrandSettings, CustomDomain } from '@/schemas/models';
-import { useNotificationsStore } from '@/stores/notifications';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 
 const api = createApi();
 
-interface DomainsState {
+interface StoreState {
   isLoading: boolean;
   error: ApiError | null;
   domains: CustomDomain[];
 }
 
 export const useDomainsStore = defineStore('domains', {
-  state: (): DomainsState => ({
+  state: (): StoreState => ({
     isLoading: false,
     error: null,
     domains: [] as CustomDomain[],
@@ -28,6 +27,15 @@ export const useDomainsStore = defineStore('domains', {
       const { handleError } = useStoreError();
       this.error = handleError(error);
       return this.error;
+    },
+
+    async addDomain(domain: string) {
+      return await this.withLoading(async () => {
+        const response = await api.post('/api/v2/account/domains/add', { domain });
+        const validated = responseSchemas.customDomain.parse(response.data);
+        this.domains.push(validated.record);
+        return validated.record;
+      });
     },
 
     async refreshDomains() {
@@ -51,18 +59,6 @@ export const useDomainsStore = defineStore('domains', {
         if (domainIndex !== -1) {
           this.domains[domainIndex] = validated.record;
         }
-        return validated.record;
-      });
-    },
-
-    async addDomain(domain: string) {
-      const notifications = useNotificationsStore();
-
-      return await this.withLoading(async () => {
-        const response = await api.post('/api/v2/account/domains/add', { domain });
-        const validated = responseSchemas.customDomain.parse(response.data);
-        this.domains.push(validated.record);
-        notifications.show(`Added domain ${domain}`, 'success');
         return validated.record;
       });
     },

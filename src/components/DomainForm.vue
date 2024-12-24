@@ -1,25 +1,28 @@
 <script setup lang="ts">
+import { createDomainRequestSchema } from '@/schemas/api/requests';
 import { ref } from 'vue';
-
-import DomainInput from './DomainInput.vue';
 
 defineProps<{
   isSubmitting?: boolean,
 }>();
 
 const domain = ref('');
+const validationError = ref('');
+
+const isValid = ref(true);
 const emit = defineEmits<{
   (e: 'submit', domain: string): void
 }>();
 
-const isValid = ref(true); // Optionally manage validation state
-
 const handleSubmit = () => {
-  if (domain.value?.trim()) {
+  try {
+    const validated = createDomainRequestSchema.parse({ domain: domain.value });
+    validationError.value = '';
     isValid.value = true;
-    emit('submit', domain.value.trim());
-  } else {
-    isValid.value = false; // Update validation state
+    emit('submit', validated.domain);
+  } catch (err) {
+    validationError.value = err instanceof Error ? err.message : 'Invalid domain';
+    isValid.value = false;
   }
 };
 </script>
@@ -38,7 +41,9 @@ const handleSubmit = () => {
         class="dark:border-gray-700 dark:bg-gray-800 dark:text-white"
       />
 
-      <div class="flex flex-col-reverse space-y-4 space-y-reverse sm:flex-row sm:space-x-4 sm:space-y-0">
+      <div
+        class="flex flex-col-reverse
+        space-y-4 space-y-reverse sm:flex-row sm:space-x-4 sm:space-y-0">
         <!-- Cancel/Back Button -->
         <button
           type="button"

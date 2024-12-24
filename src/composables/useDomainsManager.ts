@@ -17,7 +17,6 @@ export function useDomainsManager() {
       store.handleError(new Error('Domain is required'));
       return null;
     }
-
     return await store.addDomain(domain);
   };
 
