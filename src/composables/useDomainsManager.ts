@@ -6,7 +6,7 @@ import { ref } from 'vue';
 export function useDomainsManager() {
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
-  const { domains, isLoading } = storeToRefs(store);
+  const { domains, isLoading, error } = storeToRefs(store);
 
   const togglingDomains = ref<Set<string>>(new Set());
   const isSubmitting = ref(false);
@@ -14,19 +14,15 @@ export function useDomainsManager() {
 
   const addDomain = async (domain: string) => {
     if (!domain) {
-      notifications.show('Domain is required', 'error');
+      store.handleError(new Error('Domain is required'));
       return null;
     }
 
     try {
-      const result = await store.addDomain(domain);
-      notifications.show(`Added domain ${domain}`, 'success');
-      return result;
+      return await store.addDomain(domain);
     } catch (error) {
-      notifications.show(
-        error instanceof Error ? error.message : 'Failed to add domain',
-        'error'
-      );
+      // Let the store handle the error
+      store.handleError(error);
       return null;
     }
   };
@@ -88,6 +84,7 @@ export function useDomainsManager() {
   return {
     domains,
     isLoading,
+    error,
     isSubmitting,
     isToggling,
     addDomain,

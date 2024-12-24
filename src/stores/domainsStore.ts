@@ -4,6 +4,7 @@ import { useStoreError } from '@/composables/useStoreError';
 import { ApiError, UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { BrandSettings, CustomDomain } from '@/schemas/models';
+import { useNotificationsStore } from '@/stores/notifications';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 
@@ -57,10 +58,13 @@ export const useDomainsStore = defineStore('domains', {
     },
 
     async addDomain(domain: string) {
+      const notifications = useNotificationsStore();
+
       return await this.withLoading(async () => {
         const response = await api.post('/api/v2/account/domains/add', { domain });
         const validated = responseSchemas.customDomain.parse(response.data);
         this.domains.push(validated.record);
+        notifications.show(`Added domain ${domain}`, 'success');
         return validated.record;
       });
     },
