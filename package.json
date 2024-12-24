@@ -34,10 +34,10 @@
     "test:watch:ui": "vitest --ui",
     "test:watch": "vitest",
     "test": "vitest run",
-    "type-check:base": "vue-tsc --noEmit --module nodenext --target es2022",
+    "type-check:base": "vue-tsc --noEmit --target es2022",
     "type-check": "pnpm run type-check:base",
     "type-check:watch": "pnpm run type-check:base --watch",
-    "type-check:parallel": "pnpm -r exec vue-tsc --module nodenext --target es2022 --build --noEmit"
+    "type-check:parallel": "pnpm -r exec vue-tsc --target es2022 --build --noEmit"
   },
   "keywords": [],
   "author": "",

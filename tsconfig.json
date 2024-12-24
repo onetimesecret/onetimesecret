@@ -33,15 +33,15 @@
   // https://www.typescriptlang.org/tsconfig/
   // https://github.com/tsconfig/bases/pull/265
   "compilerOptions": {
-    "target": "es2022",
-    "module": "es2022",
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "lib": ["es2023", "dom"],
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo", // Store in cache directory instead
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
