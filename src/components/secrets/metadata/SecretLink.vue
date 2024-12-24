@@ -17,13 +17,11 @@ const copySecretUrl = () => {
 </script>
 
 <template>
-  <div
-    class="rounded-lg border-2 border-brand-100
-              bg-brand-50/30 dark:border-brand-900 dark:bg-brand-950/30">
-    <!-- Encryption Status (if needed) -->
+  <div class="overflow-hidden rounded-xl border-2 border-brand-100 bg-gradient-to-b from-brand-50/40 to-brand-50/20 shadow-sm dark:border-brand-900 dark:from-brand-950/40 dark:to-brand-950/20">
+    <!-- Encryption Status -->
     <div
       v-if="details.has_passphrase"
-      class="flex items-center gap-2 border-b border-brand-100 px-4 py-2 dark:border-brand-900">
+      class="flex items-center gap-2.5 border-b border-brand-100/50 bg-amber-50/50 px-4 py-2.5 dark:border-brand-900/50 dark:bg-amber-950/30">
       <svg
         class="size-4 text-amber-500"
         fill="none"
@@ -42,30 +40,34 @@ const copySecretUrl = () => {
     </div>
 
     <!-- Share URL Section -->
-    <div class="p-4">
+    <div class="p-5">
       <label
         for="secreturi"
-        class="block text-base font-medium text-gray-700 dark:text-gray-300">
+        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
         Secret Share Link
       </label>
 
-      <div class="relative mt-2">
+      <div class="group relative mt-1.5">
         <input
           id="secreturi"
-          class="w-full rounded-lg border-2 border-gray-200
-                 bg-white px-4 py-3 pr-12 font-mono text-sm
-                 shadow-sm focus:border-brand-300 focus:outline-none focus:ring-2
-                 focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+          class="w-full rounded-lg border-2 border-gray-200 bg-white/80 px-4 py-3 pr-12
+                      font-mono text-sm shadow-sm transition-colors
+                      focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-2
+                      focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-900/80
+                      dark:text-gray-200 dark:focus:bg-gray-900"
           :value="metadata.share_url"
           readonly
+          aria-label="Secret sharing URL"
         />
+
         <button
           @click="copySecretUrl"
           :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-          class="absolute inset-y-0 right-0 flex items-center justify-center px-3
-                 text-gray-500 transition-colors hover:text-brand-600
-                 dark:text-gray-400 dark:hover:text-brand-400"
-          aria-label="Copy to clipboard">
+          class="absolute inset-y-0 right-0 flex items-center justify-center px-3.5
+                       text-gray-400 transition-colors hover:text-brand-600
+                       group-hover:text-gray-500 dark:text-gray-500
+                       dark:hover:text-brand-400 dark:group-hover:text-gray-400"
+          :aria-label="isCopied ? 'URL copied' : 'Copy URL to clipboard'">
           <svg
             v-if="!isCopied"
             class="size-5"
@@ -81,7 +83,7 @@ const copySecretUrl = () => {
           </svg>
           <svg
             v-else
-            class="size-5 text-green-500"
+            class="size-5 text-emerald-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor">

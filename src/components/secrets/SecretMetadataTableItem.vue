@@ -48,7 +48,8 @@ const formattedDate = computed(() =>
   <router-link
     v-if="!secretMetadata.is_destroyed"
     :to="{ name: 'Burn secret', params: { metadataKey: secretMetadata.key } }"
-    class="burn-secret ml-2 text-red-500 transition-colors hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+    :class="['ml-2 text-red-500 transition-colors hover:text-red-600',
+             'dark:text-red-400 dark:hover:text-red-300']"
     :title="$t('web.COMMON.burn_this_secret')">
     <svg
       xmlns="http://www.w3.org/2000/svg"
