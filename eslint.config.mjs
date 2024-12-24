@@ -54,6 +54,14 @@ export default [
           alphabetize: { order: 'asc', caseInsensitive: true }, // Sort imports alphabetically
         },
       ],
+      'import/extensions': [
+        'error',
+        'ignorePackages',
+        {
+          'ts': 'always',
+          'vue': 'always',
+        }
+      ],
       // Add this rule configuration
       'vue/component-tags-order': ['error', {
         order: ['script', 'template', 'style']

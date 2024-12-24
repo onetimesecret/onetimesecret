@@ -34,9 +34,9 @@
   // https://github.com/tsconfig/bases/pull/265
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "bundler",
-    "lib": ["es2023", "dom"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["ES2022", "DOM"],
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo", // Store in cache directory instead
     "strict": true,
