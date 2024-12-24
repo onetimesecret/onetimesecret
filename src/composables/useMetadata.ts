@@ -9,7 +9,7 @@ export function useMetadata(key: string) {
   const store = useMetadataStore();
   const notifications = useNotificationsStore();
   const router = useRouter();
-  const { currentRecord, currentDetails, isLoadingDetail } = storeToRefs(store);
+  const { currentRecord, currentDetails, isLoading, error } = storeToRefs(store);
 
   // Local state
   const passphrase = ref('');
@@ -23,11 +23,15 @@ export function useMetadata(key: string) {
       await store.burn(key, passphrase.value);
       notifications.show('Secret burned successfully', 'success');
       router.push({
-        name: 'MetadataDetail',
-        params: { key: currentRecord.value?.key },
+        name: 'Metadata link',
+        params: { metadataKey: key },
+        state: { metadataKey: key }, // Pass fresh state
       });
     } catch (error) {
-      notifications.show(error instanceof Error ? error.message : 'Failed to burn secret', 'error');
+      notifications.show(
+        error instanceof Error ? error.message : 'Failed to burn secret',
+        'error'
+      );
       console.error('Error burning secret:', error);
     }
   };
@@ -36,7 +40,8 @@ export function useMetadata(key: string) {
     // State
     record: currentRecord,
     details: currentDetails,
-    isLoading: isLoadingDetail,
+    isLoading,
+    error,
     passphrase,
 
     // Computed

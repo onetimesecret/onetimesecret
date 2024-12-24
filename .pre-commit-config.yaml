@@ -113,18 +113,19 @@ repos:
         pass_filenames: true
         files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)
 
+  # Disable type-checking while sorting out tsconfig.json ignore when files specified
   # Local TypeScript type checking: quick type validation
-  - repo: local
-    hooks:
-      - id: typescript-check-quick
-        stages: [pre-commit]
-        name: TypeScript Type Check
-        description: Comprehensive TypeScript type validation (.ts only)
-        entry: pnpm run type-check
-        language: system
-        pass_filenames: false
-        types: [file]
-        files: ^src/.*\.(ts|tsx)$
+  # - repo: local
+  #   hooks:
+  #     - id: typescript-check-quick
+  #       stages: [pre-commit]
+  #       name: TypeScript Type Check
+  #       description: Comprehensive TypeScript type validation (.ts only)
+  #       entry: pnpm run type-check
+  #       language: system
+  #       pass_filenames: false
+  #       types: [file]
+  #       files: ^src/.*\.(ts|tsx)$
 
   # Commit metadata tracking
   - repo: local

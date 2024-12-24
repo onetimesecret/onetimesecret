@@ -49,23 +49,18 @@ import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
-import { useMetadataStore } from '@/stores/metadataStore';
-import { storeToRefs } from 'pinia';
+import { useMetadata } from '@/composables/useMetadata';
 import { onMounted } from 'vue';
-
-const store = useMetadataStore();
-
-// Set up reactive refs to store state
-const { currentRecord: record, currentDetails: details, isLoading, error } = storeToRefs(store);
 
 const props = defineProps<{
   metadataKey: string | null,
 }>();
 
-// Initial fetch when component mounts
+const { record, details, isLoading, error, fetch } = useMetadata(props.metadataKey || '');
+
 onMounted(() => {
   if (props.metadataKey) {
-    store.fetchOne(props.metadataKey);
+    fetch(); // Fresh fetch ensures latest state after burn
   }
 });
 </script>
@@ -73,7 +68,6 @@ onMounted(() => {
 <template>
   <div class="mx-auto max-w-4xl px-4">
     <DashboardTabNav />
-
 
     <ErrorDisplay v-if="error" :error="error" />
 

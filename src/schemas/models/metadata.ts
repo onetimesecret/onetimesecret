@@ -82,7 +82,7 @@ export const metadataDetailsSchema = z.object({
   display_lines: transforms.fromString.number,
   display_feedback: transforms.fromString.boolean,
   no_cache: transforms.fromString.boolean,
-  secret_realttl: z.number(), // Preserve ttlToNaturalLanguage behavior
+  secret_realttl: z.number().nullable().optional(),
   maxviews: transforms.fromString.number,
   has_maxviews: transforms.fromString.boolean,
   view_count: transforms.fromString.number,

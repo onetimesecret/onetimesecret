@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { useMetadata } from '@/composables/useMetadata';
-import { useMetadataStore } from '@/stores/metadataStore';
-import { storeToRefs } from 'pinia';
+import { onMounted } from 'vue';
 
 interface Props {
-  metadataKey: string
+  metadataKey: string,
 }
-
 const props = defineProps<Props>();
 
-const metadataStore = useMetadataStore();
-const { currentRecord: record, details, isLoading } = storeToRefs(metadataStore);
+const { record, details, isLoading, passphrase, fetch, burn } = useMetadata(props.metadataKey);
 
-const { passphrase, handleBurn } = useMetadata(props.metadataKey);
+onMounted(() => {
+  fetch();
+});
 </script>
 
 <template>
@@ -24,11 +23,11 @@ const { passphrase, handleBurn } = useMetadata(props.metadataKey);
         text-red-700 dark:border-red-600 dark:bg-red-900/50 dark:text-red-300">
       <span class="block sm:inline">
         <template v-if="details?.is_received">
-          This secret was viewed on {{ details.received_date }}
+          This secret was viewed on {{ record?.received }}
           and is no longer accessible.
         </template>
         <template v-else-if="details?.is_burned">
-          This secret was permanently deleted on {{ details.burned_date }}.
+          This secret was permanently deleted on {{ record?.burned }}.
         </template>
         <template v-else>
           This secret was permanently deleted.
@@ -66,7 +65,7 @@ const { passphrase, handleBurn } = useMetadata(props.metadataKey);
       </div>
 
       <form
-        @submit.prevent="handleBurn"
+        @submit.prevent="burn"
         class="space-y-4">
         <div v-if="details?.has_passphrase">
           <input
