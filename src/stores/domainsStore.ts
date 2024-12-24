@@ -14,7 +14,6 @@ interface DomainsState {
   isLoading: boolean;
   error: ApiError | null;
   domains: CustomDomain[];
-  defaultBranding: BrandSettings;
 }
 
 export const useDomainsStore = defineStore('domains', {
@@ -22,7 +21,6 @@ export const useDomainsStore = defineStore('domains', {
     isLoading: false,
     error: null,
     domains: [] as CustomDomain[],
-    defaultBranding: {} as BrandSettings,
   }),
 
   actions: {

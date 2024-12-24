@@ -18,13 +18,7 @@ export function useDomainsManager() {
       return null;
     }
 
-    try {
-      return await store.addDomain(domain);
-    } catch (error) {
-      // Let the store handle the error
-      store.handleError(error);
-      return null;
-    }
+    return await store.addDomain(domain);
   };
 
   const deleteDomain = async (domainId: string) => {
