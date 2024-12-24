@@ -20,7 +20,7 @@ export const useDomainsStore = defineStore('domains', {
   state: (): DomainsState => ({
     isLoading: false,
     error: null,
-    domains: [],
+    domains: [] as CustomDomain[],
     defaultBranding: {} as BrandSettings,
   }),
 
