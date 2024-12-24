@@ -141,7 +141,7 @@ docker run -p 3000:3000 -d --name onetimesecret \
   -e HOST=$HOST \
   -e SSL=$SSL \
   -e RACK_ENV=$RACK_ENV \
-  onetimesecret/onetimesecret:latest-lite
+  onetimesecret/onetimesecret-lite:latest
 ```
 
 > [!TIP]
