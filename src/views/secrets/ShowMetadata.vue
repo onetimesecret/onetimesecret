@@ -51,6 +51,7 @@ import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
 import { useMetadata } from '@/composables/useMetadata';
 import { onMounted } from 'vue';
+import { onBeforeRouteUpdate } from 'vue-router';
 
 const props = defineProps<{
   metadataKey: string | null,
@@ -58,9 +59,17 @@ const props = defineProps<{
 
 const { record, details, isLoading, error, fetch } = useMetadata(props.metadataKey || '');
 
+onBeforeRouteUpdate((to, from, next) => {
+  console.log('[ShowMetadata] Route updating', to.params.metadataKey);
+  if (props.metadataKey) {
+    fetch();
+  }
+  next();
+});
+
 onMounted(() => {
   if (props.metadataKey) {
-    fetch(); // Fresh fetch ensures latest state after burn
+    fetch();
   }
 });
 </script>

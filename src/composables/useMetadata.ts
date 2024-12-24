@@ -22,10 +22,11 @@ export function useMetadata(key: string) {
     try {
       await store.burn(key, passphrase.value);
       notifications.show('Secret burned successfully', 'success');
+      await fetch();
       router.push({
         name: 'Metadata link',
         params: { metadataKey: key },
-        state: { metadataKey: key }, // Pass fresh state
+        query: { ts: Date.now().toString() },
       });
     } catch (error) {
       notifications.show(
