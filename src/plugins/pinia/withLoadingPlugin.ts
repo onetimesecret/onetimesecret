@@ -9,19 +9,8 @@ import type { PiniaPluginContext } from 'pinia';
  *
  * Key features:
  * - Automatic loading state management
- * - Consistent error handling via store.handleError
  * - Type-safe operation wrapper
  *
- * @example
- * ```ts
- * // In a store:
- * async fetchData() {
- *   return await this.withLoading(async () => {
- *     const response = await api.get('/endpoint');
- *     return response.data;
- *   });
- * }
- * ```
  */
 export function withLoadingPlugin({ store }: PiniaPluginContext) {
   /**
@@ -35,10 +24,9 @@ export function withLoadingPlugin({ store }: PiniaPluginContext) {
    * Design decisions:
    * 1. Sets isLoading before operation starts
    * 2. Guarantees isLoading is reset in finally block
-   * 3. Delegates error handling to store.handleError
-   * 4. Returns undefined on error to allow safe continuation
+   * 3. Allows errors to propogate up
    */
-  store.withLoading = async function <T>(operation: () => Promise<T>): Promise<T> {
+  store.withLoading = async function <T>(operation: () => Promise<T>) {
     this.isLoading = true;
     try {
       return await operation();

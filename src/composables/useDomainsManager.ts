@@ -18,14 +18,11 @@ export function useDomainsManager() {
   const showConfirmDialog = useConfirmDialog();
 
   const handleAddDomain = async (domain: string) => {
-    try {
-      const result = await store.addDomain(domain);
+    const result = await store.addDomain(domain);
+    if (result) {
       notifications.show('Domain added successfully', 'success');
-      return result;
-    } catch {
-      notifications.show('Failed to add domain', 'error');
-      return null;
     }
+    return result;
   };
 
   const deleteDomain = async (domainId: string) => {
