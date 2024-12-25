@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
-import HomepageAccessToggle from '@/components/HomepageAccessToggle.vue';
 import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
 import { useValidatedWindowProp } from '@/composables/useWindowProps';
 import { customerSchema } from '@/schemas/models';
-import type { CustomDomain } from '@/schemas/models/domain.ts';
+import type { CustomDomain } from '@/schemas/models/domain';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,8 +12,7 @@ const cust = useValidatedWindowProp('cust', customerSchema); // Used for feature
 
 defineProps<{
   domains: CustomDomain[];
-  isToggling: (domainId: string) => boolean;
-  isSubmitting: boolean;
+  isLoading: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -141,19 +139,6 @@ const handleDelete = (domainId: string) => {
               </div>
             </td>
 
-            <!-- Homepage access toggle column -->
-            <td class="px-6 py-4">
-              <div
-                v-if="cust?.feature_flags?.homepage_toggle"
-                class="flex justify-center">
-                <HomepageAccessToggle
-                  :model-value="!!domain.brand?.allow_public_homepage"
-                  :disabled="isToggling(domain.display_domain)"
-                  @update:model-value="$emit('toggle-homepage', domain)"
-                />
-              </div>
-            </td>
-
             <td class="px-6 py-4 text-right text-sm">
               <MinimalDropdownMenu>
                 <template #menu-items>
@@ -185,7 +170,7 @@ const handleDelete = (domainId: string) => {
                           active ? 'bg-gray-100 dark:bg-gray-800' : '',
                           'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300'
                         ]"
-                        :disabled="isSubmitting">
+                        :disabled="isLoading">
                         <Icon
                           icon="heroicons:trash-20-solid"
                           class="mr-2 size-4"
