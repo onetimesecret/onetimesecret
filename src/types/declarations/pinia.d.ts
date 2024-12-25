@@ -61,7 +61,7 @@ declare module 'pinia' {
  *
  *        actions: {
  *          handleError(error: unknown): ApiError {
- *            const { handleError } = useStoreError();
+ *            const { handleError } = useErrorHandler();
  *            this.error = handleError(error);
  *            return this.error;
  *          },

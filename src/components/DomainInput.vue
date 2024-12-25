@@ -6,7 +6,7 @@ import { defineEmits, defineProps } from 'vue';
 defineProps<{
   modelValue: string;
   placeholder: string;
-  isValid: boolean;
+  isValid: boolean | null;
 }>();
 
 // Define the emits to notify the parent of updates
@@ -35,15 +35,18 @@ const onInput = (event: Event) => {
         name="domain"
         id="domain"
         :placeholder="placeholder"
-        :aria-invalid="!isValid"
+        :aria-invalid="isValid === false"
         aria-describedby="domain-error"
         :value="modelValue"
         @input="onInput"
-        class="block w-full rounded-md border-0 py-3 pl-5 pr-10 text-xl text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brandcomp-600 dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:placeholder:text-gray-400 dark:focus:ring-brandcomp-500"
+        class="block w-full rounded-md border-0 py-3 pl-5 pr-10
+          text-xl text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+          placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brandcomp-600
+          dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:placeholder:text-gray-400 dark:focus:ring-brandcomp-500"
       />
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
         <Icon
-          v-if="!isValid"
+          v-if="isValid === false"
           icon="heroicons:exclamation-circle"
           class="size-6 text-red-500"
           aria-hidden="true"

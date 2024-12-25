@@ -1,6 +1,8 @@
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 
 /**
  *
@@ -13,16 +15,25 @@ import { storeToRefs } from 'pinia';
 export function useDomainsManager() {
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
+  const router = useRouter();
+  const goBack = () => router.back();
   const { domains, isLoading, error } = storeToRefs(store);
+  const { handleError } = useErrorHandler();
 
   const showConfirmDialog = useConfirmDialog();
 
   const handleAddDomain = async (domain: string) => {
-    const result = await store.addDomain(domain);
-    if (result) {
-      notifications.show('Domain added successfully', 'success');
+    try {
+      const result = await store.addDomain(domain);
+      if (result) {
+        router.push({ name: 'AccountDomainVerify', params: { domain } });
+        notifications.show('Domain added successfully', 'success');
+      }
+      return result;
+    } catch (err) {
+      handleError(err); // Will handle both validation and API errors
+      return null;
     }
-    return result;
   };
 
   const deleteDomain = async (domainId: string) => {
@@ -69,5 +80,6 @@ export function useDomainsManager() {
     handleAddDomain,
     deleteDomain,
     confirmDelete,
+    goBack,
   };
 }

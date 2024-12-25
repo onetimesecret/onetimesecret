@@ -1,6 +1,6 @@
 // stores/colonelStore.ts
 
-import { useStoreError } from '@/composables/useStoreError';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas, type ColonelData } from '@/schemas/api';
 import { ApiError } from '@/schemas/api/errors';
 import { createApi } from '@/utils/api';
@@ -23,7 +23,7 @@ export const useColonelStore = defineStore('colonel', {
 
   actions: {
     handleError(error: unknown): ApiError {
-      const { handleError } = useStoreError();
+      const { handleError } = useErrorHandler();
       this.error = handleError(error);
       return this.error;
     },

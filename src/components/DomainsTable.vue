@@ -74,14 +74,14 @@ const handleDelete = (domainId: string) => {
             <th
               scope="col"
               class="px-6 py-3 text-left text-xs font-medium tracking-wider
-              text-gray-500 dark:text-gray-400">
+                  text-gray-500 dark:text-gray-400">
               <span class="uppercase">Domain & Status</span>
             </th>
 
             <th
               scope="col"
               class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500
-              dark:text-gray-400">
+                  dark:text-gray-400">
               <div
                 v-if="cust?.feature_flags?.homepage_toggle"
                 class="flex items-center justify-center">
@@ -90,13 +90,13 @@ const handleDelete = (domainId: string) => {
                   <Icon
                     icon="heroicons:question-mark-circle"
                     class="size-4 text-gray-400  transition-colors duration-200 hover:text-gray-500
-                    dark:text-gray-400 dark:hover:text-gray-300"
+                        dark:text-gray-400 dark:hover:text-gray-300"
                   />
                   <div
                     class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white
-                                p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5
-                                transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100
-                                dark:shadow-gray-900/50 dark:ring-white/10">
+                                    p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5
+                                    transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100
+                                    dark:shadow-gray-900/50 dark:ring-white/10">
                     Control whether users can create secret links from your domain's homepage
                   </div>
                 </div>
@@ -106,7 +106,7 @@ const handleDelete = (domainId: string) => {
             <th
               scope="col"
               class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider
-              text-gray-500 dark:text-gray-400">
+                  text-gray-500 dark:text-gray-400">
               Actions
             </th>
           </tr>
@@ -123,7 +123,7 @@ const handleDelete = (domainId: string) => {
                 <router-link
                   :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
                   class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700
-                                    dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
+                                        dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
                   {{ domain.display_domain }}
                 </router-link>
                 <div class="mt-1 flex items-center gap-2">
@@ -133,13 +133,20 @@ const handleDelete = (domainId: string) => {
                   />
                   <span class="text-xs text-gray-500 dark:text-gray-400">
                     Added {{ formatDistanceToNow(domain.created, { addSuffix: true }) }}
-
                   </span>
                 </div>
               </div>
             </td>
 
-            <td class="px-6 py-4 text-right text-sm">
+            <!-- Homepage Access -->
+            <td class="px-6 py-4 text-center">
+              <div v-if="cust?.feature_flags?.homepage_toggle">
+                <!-- Add your homepage access toggle/content here -->
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4 text-right">
               <MinimalDropdownMenu>
                 <template #menu-items>
                   <div class="py-1">

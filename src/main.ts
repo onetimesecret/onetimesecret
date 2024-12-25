@@ -6,7 +6,7 @@
 // performance by preloading modules.
 import 'vite/modulepreload-polyfill';
 
-import { useStoreError } from '@/composables/useStoreError';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import i18n, { setLanguage } from '@/i18n';
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { createAppRouter } from '@/router';
@@ -50,7 +50,7 @@ async function initializeApp() {
   app.use(pinia);
 
   app.config.errorHandler = (error) => {
-    const { handleError } = useStoreError();
+    const { handleError } = useErrorHandler();
     handleError(error);
   };
 

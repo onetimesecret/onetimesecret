@@ -2,7 +2,7 @@ import { ApiError, handleError as apiHandleError } from '@/schemas/api/errors';
 import { useNotificationsStore } from '@/stores/notifications';
 import { ZodError } from 'zod';
 
-export function useStoreError() {
+export function useErrorHandler() {
   const notifications = useNotificationsStore();
 
   return {

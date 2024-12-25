@@ -1,5 +1,5 @@
 // stores/metadataStore.ts
-import { useStoreError } from '@/composables/useStoreError';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { ApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
@@ -57,7 +57,7 @@ export const useMetadataStore = defineStore('metadata', {
 
   actions: {
     handleError(error: unknown): ApiError {
-      const { handleError } = useStoreError();
+      const { handleError } = useErrorHandler();
       this.error = handleError(error);
       return this.error;
     },

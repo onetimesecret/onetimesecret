@@ -1,6 +1,6 @@
 // src/stores/languageStore.ts
 
-import { useStoreError } from '@/composables/useStoreError';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import { ApiError } from '@/schemas';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
@@ -47,7 +47,7 @@ export const useLanguageStore = defineStore('language', {
 
   actions: {
     handleError(error: unknown): ApiError {
-      const { handleError } = useStoreError();
+      const { handleError } = useErrorHandler();
       this.error = handleError(error);
       throw this.error;
     },

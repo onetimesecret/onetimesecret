@@ -1,6 +1,6 @@
 // src/stores/jurisdictionStore.ts
 
-import { useStoreError } from '@/composables/useStoreError';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import { ApiError } from '@/schemas';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { defineStore } from 'pinia';
@@ -33,7 +33,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
 
   actions: {
     handleError(error: unknown): never {
-      const { handleError } = useStoreError();
+      const { handleError } = useErrorHandler();
       this.error = handleError(error);
       throw this.error;
     },

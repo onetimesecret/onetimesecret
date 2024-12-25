@@ -2,17 +2,13 @@
 import DomainForm from '@/components/DomainForm.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
-import { useRouter } from 'vue-router';
 
-const router = useRouter();
-const { isLoading, handleAddDomain, error } = useDomainsManager();
-
-const onSubmit = async (domain: string) => {
-  const result = await handleAddDomain(domain);
-  if (result) {
-    router.push({ name: 'AccountDomainVerify', params: { domain } });
-  }
-};
+const {
+  isLoading,
+  error,
+  handleAddDomain,
+  goBack
+} = useDomainsManager();
 </script>
 
 <template>
@@ -25,7 +21,8 @@ const onSubmit = async (domain: string) => {
 
     <DomainForm
       :is-submitting="isLoading"
-      @submit="onSubmit"
+      @submit="handleAddDomain"
+      @back="goBack"
     />
   </div>
 </template>

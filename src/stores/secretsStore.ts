@@ -1,4 +1,4 @@
-import { useStoreError } from '@/composables/useStoreError';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import { ApiError } from '@/schemas';
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
@@ -24,7 +24,7 @@ export const useSecretsStore = defineStore('secrets', {
 
   actions: {
     handleError(error: unknown): ApiError {
-      const { handleError } = useStoreError();
+      const { handleError } = useErrorHandler();
       this.error = handleError(error);
       return this.error;
     },

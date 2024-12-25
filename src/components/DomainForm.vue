@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import DomainInput from '@/components/DomainInput.vue'
+import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { createDomainRequestSchema } from '@/schemas/api/requests';
 import { ref } from 'vue';
 
@@ -8,31 +9,39 @@ defineProps<{
 }>();
 
 const domain = ref('');
-const validationError = ref('');
+// Initialize as null to avoid showing initial error state
+const isValid = ref<boolean|null>(null);
+const localError = ref<string|undefined>();
 
-const isValid = ref(true);
 const emit = defineEmits<{
   (e: 'submit', domain: string): void
+  (e: 'back'): void
 }>();
 
 const handleSubmit = () => {
+  localError.value = undefined;
+
+  // Check for empty submission first
+  if (!domain.value.trim()) {
+    localError.value = "Please enter a domain name";
+    isValid.value = false;
+    return;
+  }
+
   try {
     const validated = createDomainRequestSchema.parse({ domain: domain.value });
-    validationError.value = '';
     isValid.value = true;
     emit('submit', validated.domain);
-  } catch (err) {
-    validationError.value = err instanceof Error ? err.message : 'Invalid domain';
+  } catch {
     isValid.value = false;
+    localError.value = "Please enter a valid domain name";
   }
 };
 </script>
 
 <template>
   <div class="mx-auto my-16 max-w-full space-y-9 px-4 dark:bg-gray-900 sm:px-6 lg:px-8">
-    <form
-      @submit.prevent="handleSubmit"
-      class="space-y-6">
+    <form @submit.prevent="handleSubmit" class="space-y-6">
       <DomainInput
         v-model="domain"
         :is-valid="isValid"
@@ -42,13 +51,19 @@ const handleSubmit = () => {
         class="dark:border-gray-700 dark:bg-gray-800 dark:text-white"
       />
 
+      <!-- Add error display -->
+      <ErrorDisplay
+        v-if="localError"
+        :error="localError"
+      />
+
       <div
         class="flex flex-col-reverse
         space-y-4 space-y-reverse sm:flex-row sm:space-x-4 sm:space-y-0">
         <!-- Cancel/Back Button -->
         <button
           type="button"
-          @click="$router.back()"
+          @click="$emit('back')"
           class="inline-flex w-full items-center justify-center rounded-md
             border border-gray-300
             bg-white px-4 py-2 text-base
