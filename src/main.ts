@@ -6,6 +6,7 @@
 // performance by preloading modules.
 import 'vite/modulepreload-polyfill';
 
+import { useStoreError } from '@/composables/useStoreError';
 import i18n, { setLanguage } from '@/i18n';
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { createAppRouter } from '@/router';
@@ -16,9 +17,8 @@ import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 
 import App from './App.vue';
-import { withLoadingPlugin } from './plugins/pinia/withLoadingPlugin';
-
 import './assets/style.css';
+import { withLoadingPlugin } from './plugins/pinia/withLoadingPlugin';
 
 /**
  * Initialize and mount the Vue application with proper language settings.
@@ -48,6 +48,11 @@ async function initializeApp() {
   pinia.use(logoutPlugin);
   pinia.use(withLoadingPlugin);
   app.use(pinia);
+
+  app.config.errorHandler = (error) => {
+    const { handleError } = useStoreError();
+    handleError(error);
+  };
 
   const jurisdictionStore = useJurisdictionStore();
 
