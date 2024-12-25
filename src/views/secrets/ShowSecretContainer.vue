@@ -15,12 +15,17 @@ defineProps<Props>();
 
 const route = useRoute();
 
-// Get values from route meta
-const displayDomain = computed(() => route.meta.display_domain as string);
-const domainId = computed(() => route.meta.domain_id as string);
-const siteHost = computed(() => route.meta.site_host as string);
+interface RouteMeta {
+  secretKey: string;
+  domainId: string;
+  display_domain: string;
+  siteHost: string;
+}
+
+const meta = route.meta as unknown as RouteMeta;
 
 const currentComponent = computed(() => {
+  console.debug('[ShowSecretContainer] meta=', meta.secretKey)
   return domainStrategy.value === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
 });
 </script>
@@ -28,9 +33,9 @@ const currentComponent = computed(() => {
 <template>
   <Component
     :is="currentComponent"
-    :secret-key="secretKey"
-    :domain-id="domainId"
-    :display-domain="displayDomain"
-    :site-host="siteHost"
+    :secret-key="meta.secretKey"
+    :domain-id="meta.domainId"
+    :display-domain="meta.display_domain"
+    :site-host="meta.siteHost"
   />
 </template>

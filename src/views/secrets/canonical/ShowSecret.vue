@@ -17,53 +17,40 @@ import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirm
 import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
 import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import { AsyncDataResult, SecretResponse } from '@/schemas/api';
-import { Secret, SecretDetails } from '@/schemas/models';
-import { computed, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useSecret } from '@/composables/useSecret';
+// import { useValidatedWindowProp } from '@/composables/useWindowProps';
+import { onMounted, Ref } from 'vue';
+import { onBeforeRouteUpdate } from 'vue-router';
 
 import UnknownSecret from './UnknownSecret.vue';
 
 interface Props {
   secretKey: string;
-  domainId: string | null;
-  displayDomain: string;
-  siteHost: string;
 }
 
-defineProps<Props>();
-const route = useRoute();
+const props = defineProps<Props>();
 
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretResponse>);
+const { record, details, isLoading, error, load, reveal } = useSecret(props.secretKey);
 
-const finalRecord = ref<Secret | null>(null);
-const finalDetails = ref<SecretDetails | null>(null);
+// const domain_strategy = useValidatedWindowProp('domain_strategy', z.string());
+// const display_domain = useValidatedWindowProp('display_domain', z.string());
+// const domainId = useValidatedWindowProp('domain_id', z.string());
+// const siteHost = useValidatedWindowProp('site_host', z.string());
 
-// Compute the current state based on initial and final data
-const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
-const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
-
-const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) => {
-  finalRecord.value = data.record;
-  finalDetails.value = data.details;
+const handleUserConfirmed = (passphrase: Ref) => {
+  console.debug('[ShowSecret] User confirmed', typeof(passphrase));
+  reveal(passphrase);
 };
 
-const submissionStatus = ref<{
-  status: 'idle' | 'submitting' | 'success' | 'error';
-  message?: string;
-}>({
-  status: 'idle'
+onBeforeRouteUpdate((to, from, next) => {
+  console.debug('[ShowSecret] Loading secret', to.params.secretKey);
+  load();
+  next();
 });
 
-const handleSubmissionStatus = (status: { status: string; message?: string }) => {
-  submissionStatus.value = status as typeof submissionStatus.value;
-};
-
-// Watch for changes in the finalRecord and update the view accordingly
-watch(finalRecord, (newValue) => {
-  if (newValue) {
-    console.log('Secret fetched successfully');
-  }
+onMounted(() => {
+  console.debug('[ShowSecret] Loading secret', props.secretKey);
+  load();
 });
 
 const closeWarning = (event: Event) => {
@@ -71,13 +58,6 @@ const closeWarning = (event: Event) => {
   const warning = element.closest('.bg-amber-50, .bg-brand-50');
   if (warning) {
     warning.remove();
-    // Announce removal to screen readers
-    const announcement = document.createElement('div');
-    announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.textContent = 'Warning dismissed';
-    document.body.appendChild(announcement);
-    setTimeout(() => announcement.remove(), 1000);
   }
 };
 </script>
@@ -133,10 +113,9 @@ const closeWarning = (event: Event) => {
           :secret-key="secretKey"
           :record="record"
           :details="details"
-          :domain-id="domainId"
-          :submission-status="submissionStatus"
-          @secret-loaded="handleSecretLoaded"
-          @submission-status="handleSubmissionStatus"
+          :error="error"
+          :is-submitting="isLoading"
+          @user-confirmed="handleUserConfirmed"
         />
 
         <div v-if="!record.verification">
@@ -156,13 +135,10 @@ const closeWarning = (event: Event) => {
         </h2>
 
         <SecretDisplayCase
+          aria-labelledby="secret-heading"
           :display-powered-by="true"
           :record="record"
           :details="details"
-          :submission-status="submissionStatus"
-          aria-labelledby="secret-heading"
-          @secret-loaded="handleSecretLoaded"
-          @submission-status="handleSubmissionStatus"
         />
       </div>
     </div>

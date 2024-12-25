@@ -5,7 +5,7 @@ import { setupRouterGuards } from '@/router/guards.routes';
 import metadataRoutes from '@/router/metadata.routes';
 import productRoutes from '@/router/product.routes';
 import publicRoutes from '@/router/public.routes';
-import recipientRoutes from '@/router/recipient.routes';
+import secretRoutes from '@/router/secret.routes';
 import NotFound from '@/views/NotFound.vue';
 import type { Router, RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
   ...publicRoutes,
   ...productRoutes,
   ...metadataRoutes,
-  ...recipientRoutes,
+  ...secretRoutes,
   ...authRoutes,
   ...dashboardRoutes,
   ...accountRoutes,

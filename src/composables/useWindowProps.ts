@@ -1,5 +1,5 @@
 import { readonly, ref, Ref, shallowRef } from 'vue';
-import { z } from 'zod';
+import { z, ZodType } from 'zod';
 
 /**
  * With this caching mechanism:
@@ -17,10 +17,12 @@ To summarize:
 The cached version is generally the better choice for most applications, as it optimizes memory usage and ensures consistency across your app.
 **/
 
-const cache: Partial<Record<keyof Window, Ref<Window[keyof Window]>>> = {};
+const cache: Partial<Record<string, Ref<Window[keyof Window]>>> = {};
 
-export const useWindowProps = <T extends keyof Window>(props: T[]): { [K in T]: Readonly<Ref<Window[K]>> } => {
-  const result: Partial<Record<T, Readonly<Ref<Window[T]>>>> = {};
+export const useWindowProps = <T extends keyof Window>(
+  props: string[]
+): { [K in T]: Readonly<Ref<Window[K]>> } => {
+  const result: Partial<Record<string, Readonly<Ref<Window[T]>>>> = {};
 
   props.forEach((prop) => {
     if (!cache[prop]) {
@@ -33,7 +35,9 @@ export const useWindowProps = <T extends keyof Window>(props: T[]): { [K in T]: 
 };
 
 // Helper function
-export const useWindowProp = <T extends keyof Window>(prop: T): Readonly<Ref<Window[T]>> => {
+export const useWindowProp = <T extends keyof Window>(
+  prop: string
+): Readonly<Ref<Window[T]>> => {
   if (!cache[prop]) {
     cache[prop] = ref(window[prop]);
   }
@@ -89,23 +93,16 @@ export const useWindowProp = <T extends keyof Window>(prop: T): Readonly<Ref<Win
  * @param {z.ZodType<Output, z.ZodTypeDef, Input>} schema - Zod schema for validation/transformation
  * @returns {Ref<Output | null>} Validated and transformed data as a Vue ref
  */
-export const useValidatedWindowProp = <
-  T extends keyof Window,
-  Input,
-  Output
->(
-  prop: T,
-  schema: z.ZodType<Output, z.ZodTypeDef, Input>
-): Ref<Output | null> => {
+export function useValidatedWindowProp<T>(prop: string, schema: ZodType<T>): T {
   if (!cache[prop]) {
     const value = window[prop] as unknown;
     try {
-      const parsedValue = schema.parse(value);
+      const parsedValue = schema.safeParse(value); // don't raise a fuss
       cache[prop] = shallowRef(parsedValue);
     } catch (error) {
       console.error('Failed to validate window property:', error);
       cache[prop] = shallowRef(null);
     }
   }
-  return cache[prop] as Ref<Output | null>;
-};
+  return cache[prop] as z.infer<typeof schema>;
+}

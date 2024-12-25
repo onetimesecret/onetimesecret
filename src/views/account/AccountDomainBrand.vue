@@ -9,7 +9,6 @@ import type { BrandSettingsResponse } from '@/schemas/api/responses';
 import { AsyncDataResult, CustomDomainResponse } from '@/schemas/api/responses';
 import type { BrandSettings, CustomDomain, ImageProps } from '@/schemas/models';
 import { brandSettingschema } from '@/schemas/models/domain/brand';
-import { useBrandingStore } from '@/stores/brandingStore';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notifications';
 import api from '@/utils/api';
@@ -293,18 +292,6 @@ watch(() => brandSettings.value.primary_color, (newColor) => {
     };
   }
 }, { immediate: true });
-
-const brandingStore = useBrandingStore();
-
-// Activate branding when the component is mounted
-onMounted(() => {
-  brandingStore.setActive(true);
-});
-
-// Deactivate branding when the component is unmounted
-onUnmounted(() => {
-  brandingStore.setActive(false);
-});
 
 // Update lifecycle hooks
 onMounted(() => {

@@ -1,45 +1,23 @@
 <script setup lang="ts">
 import { Secret, SecretDetails } from '@/schemas/models';
-import { useSecretsStore } from '@/stores/secretsStore';
 import { ref } from 'vue';
 
 interface Props {
   secretKey: string;
   record: Secret | null;
   details: SecretDetails | null;
+  isSubmitting: boolean;
+  error: unknown;
 }
 
-const props = defineProps<Props>();
-const emit = defineEmits(['secret-loaded']);
-const secretStore = useSecretsStore();
+defineProps<Props>();
+
+const emit = defineEmits(['user-confirmed']);
+// const useSecret = useSecret();
 const passphrase = ref('');
-const isSubmitting = ref(false);
-const error = ref('');
 
 const submitForm = async () => {
-  if (isSubmitting.value) return;
-
-  isSubmitting.value = true;
-  try {
-    const response = await secretStore.revealSecret(props.secretKey, passphrase.value);
-    // Announce success to screen readers
-    const announcement = document.createElement('div');
-    announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.textContent = 'Secret revealed successfully';
-    document.body.appendChild(announcement);
-    setTimeout(() => announcement.remove(), 1000);
-
-    // Emit the secret-loaded event with the response data
-    emit('secret-loaded', {
-      record: response.record,
-      details: response.details
-    });
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to reveal secret';
-  } finally {
-    isSubmitting.value = false;
-  }
+  emit('user-confirmed', passphrase);
 };
 </script>
 
@@ -71,22 +49,6 @@ const submitForm = async () => {
       class="space-y-4"
       aria-labelledby="passphrase-heading"
       :aria-describedby="record?.has_passphrase ? 'passphrase-description' : undefined">
-      <!-- Hidden honeypot field for bots -->
-      <input
-        name="shrimp"
-        type="hidden"
-        :value="1"
-        aria-hidden="true"
-        tabindex="-1"
-      />
-      <input
-        name="continue"
-        type="hidden"
-        value="true"
-        aria-hidden="true"
-        tabindex="-1"
-      />
-
       <div v-if="record?.has_passphrase" class="space-y-2">
         <p
           v-if="error"
@@ -133,16 +95,3 @@ const submitForm = async () => {
     </form>
   </div>
 </template>
-
-<style scoped>
-/* Ensure focus outline is visible in all color schemes */
-:focus {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
-/* Ensure disabled state maintains sufficient contrast */
-.disabled\:opacity-50:disabled {
-  opacity: 0.75; /* Increased from 0.5 for better contrast */
-}
-</style>

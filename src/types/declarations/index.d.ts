@@ -13,5 +13,10 @@ declare module 'vue-router' {
 
     // TODO: Do a find for this key and replace with data loading approach
     initialData?: AxiosResponse<unknown>;
+
+    domain_strategy?: string;
+    display_domain?: string;
+    domain_id?: string;
+    site_host?: string;
   }
 }
