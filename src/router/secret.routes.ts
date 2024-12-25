@@ -1,4 +1,4 @@
-import ShowSecret from '@/views/secrets/canonical/ShowSecret.vue';
+import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
 /**
@@ -34,7 +34,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/secret/:secretKey',
     name: 'Secret link',
-    component: ShowSecret,
+    component: ShowSecretContainer,
     ...withValidatedSecretKey,
   },
 ];

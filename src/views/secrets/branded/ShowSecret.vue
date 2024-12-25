@@ -1,3 +1,4 @@
+<!-- BrandedShowSecret.vue -->
 <script setup lang="ts">
 /**
  * Branded secret display implementation that maintains consistent UI between confirmation
@@ -12,86 +13,86 @@
  * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
  */
 
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import { AsyncDataResult, SecretResponse } from '@/schemas/api';
-import type { Secret, SecretDetails } from '@/schemas/models';
-import { computed, ref, watch, defineAsyncComponent } from 'vue';
-import { useRoute } from 'vue-router';
 
-import UnknownSecret from './UnknownSecret.vue';
+ import BaseShowSecret from '@/components/base/BaseShowSecret.vue';
+ import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
+ import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
+ import ThemeToggle from '@/components/ThemeToggle.vue';
 
-// Import components that will be used in dynamic component rendering
-const SecretConfirmationForm = defineAsyncComponent(() => import('@/components/secrets/branded/SecretConfirmationForm.vue'));
-const SecretDisplayCase = defineAsyncComponent(() => import('@/components/secrets/branded/SecretDisplayCase.vue'));
+ import UnknownSecret from './UnknownSecret.vue';
 
-interface Props {
-  secretKey: string;
-  domainId: string;
-  displayDomain: string;
-  siteHost: string;
-}
+ interface Props {
+   secretKey: string;
+   domainId: string;
+   displayDomain: string;
+   siteHost: string;
+ }
 
-defineProps<Props>();
-const route = useRoute();
-
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretResponse>);
-
-const finalRecord = ref<Secret | null>(null);
-const finalDetails = ref<SecretDetails | null>(null);
-
-// Compute the current state based on initial and final data
-const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
-const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
-
-const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) => {
-  finalRecord.value = data.record;
-  finalDetails.value = data.details;
-};
-
-const submissionStatus = ref<{
-  status: 'idle' | 'submitting' | 'success' | 'error';
-  message?: string;
-}>({
-  status: 'idle'
-});
-
-const handleSubmissionStatus = (status: { status: string; message?: string }) => {
-  submissionStatus.value = status as typeof submissionStatus.value;
-};
-
-// Watch for changes in the finalRecord and update the view accordingly
-watch(finalRecord, (newValue) => {
-  if (newValue) {
-    console.log('Secret fetched successfully');
-  }
-});
-</script>
+ defineProps<Props>();
+ </script>
 
 <template>
-  <main
+  <BaseShowSecret
+    :secret-key="secretKey"
+    :branded="true"
     class="flex min-h-screen items-center justify-center
-    bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8"
-    role="main"
-    aria-label="Secret viewing page">
-    <div class="w-full max-w-xl space-y-8">
-      <div v-if="record && details">
-        <!-- Secret Content -->
-        <component
-          :is="details.show_secret ? SecretDisplayCase : SecretConfirmationForm"
-          :secret-key="secretKey"
-          :record="record"
-          :details="details"
-          :domain-id="domainId"
-          :display-powered-by="true"
-          :submission-status="submissionStatus"
-          @secret-loaded="handleSecretLoaded"
-          @submission-status="handleSubmissionStatus"
-        />
+      bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
+    <!-- Loading slot -->
+    <template
+      #loading="{}">
+      <div class="flex justify-center">
+        <div
+          class="size-32 animate-spin
+          rounded-full border-4 border-brand-500 border-t-transparent"></div>
       </div>
+    </template>
 
-      <!-- Unknown Secret -->
-      <UnknownSecret v-else-if="!record" :branded="true" />
+    <!-- Error slot -->
+    <template #error="{ error }">
+      <div class="w-full max-w-xl rounded-lg bg-red-50 p-4 text-red-700">
+        {{ error }}
+      </div>
+    </template>
 
+    <!-- Header slot -->
+    <template #header>
+      <div class="w-full max-w-xl space-y-8">
+        <!-- Header content if needed -->
+      </div>
+    </template>
+
+    <!-- Confirmation slot -->
+    <template #confirmation="{ secretKey, record, details }">
+      <SecretConfirmationForm
+        :secret-key="secretKey"
+        :record="record"
+        :details="details"
+        :domain-id="domainId"
+        :display-powered-by="true"
+      />
+    </template>
+
+    <!-- Reveal slot -->
+    <template #reveal="{ record, details }">
+      <SecretDisplayCase
+        :secret-key="secretKey"
+        :record="record"
+        :details="details"
+        :domain-id="domainId"
+        :display-powered-by="true"
+      />
+    </template>
+
+    <!-- Unknown secret slot -->
+    <template #unknown="{ details }">
+      <UnknownSecret
+        :branded="true"
+        :brand-settings="details?.brand_settings"
+      />
+    </template>
+
+    <!-- Footer slot -->
+    <template #footer>
       <footer
         class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600"
         role="contentinfo">
@@ -128,24 +129,22 @@ watch(finalRecord, (newValue) => {
       <div class="flex justify-center pt-16">
         <ThemeToggle />
       </div>
-    </div>
-  </main>
+    </template>
+  </BaseShowSecret>
 </template>
 
-<style scoped>
-.logo-container {
-  transition: all 0.3s ease;
-}
+ <style scoped>
+ .logo-container {
+   transition: all 0.3s ease;
+ }
 
-.logo-container img {
-  max-width: 100%;
-  height: auto;
-}
+ .logo-container img {
+   max-width: 100%;
+   height: auto;
+ }
 
-/* Ensure focus outline is visible in all color schemes */
-:focus {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
-</style>
+ :focus {
+   outline: 2px solid currentColor;
+   outline-offset: 2px;
+ }
+ </style>
