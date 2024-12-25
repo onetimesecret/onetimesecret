@@ -38,14 +38,10 @@ export function withLoadingPlugin({ store }: PiniaPluginContext) {
    * 3. Delegates error handling to store.handleError
    * 4. Returns undefined on error to allow safe continuation
    */
-  store.withLoading = async function <T>(
-    operation: () => Promise<T>
-  ): Promise<T | undefined> {
+  store.withLoading = async function <T>(operation: () => Promise<T>): Promise<T> {
     this.isLoading = true;
     try {
       return await operation();
-    } catch (error) {
-      this.handleError(error);
     } finally {
       this.isLoading = false;
     }

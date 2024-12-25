@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DomainInput from '@/components/DomainInput.vue'
 import { createDomainRequestSchema } from '@/schemas/api/requests';
 import { ref } from 'vue';
 

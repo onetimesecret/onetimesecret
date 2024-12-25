@@ -1,15 +1,20 @@
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
 
+/**
+ *
+ * useDomainsManager's role should be:
+ * - Managing UI-specific state (loading states, toggling states)
+ * - Coordinating between stores and UI components
+ * - Handling user interactions and confirmations
+ * - Providing a simplified interface for common domain operations
+ */
 export function useDomainsManager() {
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
   const { domains, isLoading, error } = storeToRefs(store);
 
-  const togglingDomains = ref<Set<string>>(new Set());
-  const isSubmitting = ref(false);
   const showConfirmDialog = useConfirmDialog();
 
   const addDomain = async (domain: string) => {
@@ -34,24 +39,8 @@ export function useDomainsManager() {
     }
   };
 
-  const isToggling = (domainId: string): boolean => {
-    return togglingDomains.value.has(domainId);
-  };
-
-  const setTogglingStatus = (domainId: string, status: boolean) => {
-    if (status) {
-      togglingDomains.value.add(domainId);
-    } else {
-      togglingDomains.value.delete(domainId);
-    }
-  };
   const confirmDelete = async (domainId: string): Promise<string | null> => {
     console.debug('[useDomainsManager] Confirming delete for domain:', domainId);
-
-    if (isSubmitting.value) {
-      console.debug('[useDomainsManager] Already submitting, cancelling delete');
-      return null;
-    }
 
     try {
       const confirmed = await showConfirmDialog({
@@ -63,10 +52,9 @@ export function useDomainsManager() {
       });
 
       if (!confirmed) {
-        console.debug('[useDomainsManager] Domain deletion not confirmed');
+        console.debug('[useDomainsManager] Confirmation cancelled');
         return null;
       }
-
       return domainId;
     } catch (error) {
       console.error('[useDomainsManager] Error in confirm dialog:', error);
@@ -78,11 +66,8 @@ export function useDomainsManager() {
     domains,
     isLoading,
     error,
-    isSubmitting,
-    isToggling,
     addDomain,
     deleteDomain,
-    setTogglingStatus,
     confirmDelete,
   };
 }

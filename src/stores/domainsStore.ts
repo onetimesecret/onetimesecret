@@ -31,103 +31,116 @@ export const useDomainsStore = defineStore('domains', {
 
     async addDomain(domain: string) {
       return await this.withLoading(async () => {
-        const response = await api.post('/api/v2/account/domains/add', { domain });
-        const validated = responseSchemas.customDomain.parse(response.data);
-        this.domains.push(validated.record);
-        return validated.record;
+        try {
+          const response = await api.post('/api/v2/account/domains/add', { domain });
+          const validated = responseSchemas.customDomain.parse(response.data);
+          this.domains.push(validated.record);
+          return validated.record;
+        } catch (error) {
+          this.handleError(error);
+          throw error; // Allow caller to handle
+        }
       });
     },
 
     async refreshDomains() {
       return await this.withLoading(async () => {
-        const response = await api.get('/api/v2/account/domains');
-        const validated = responseSchemas.customDomainList.parse(response.data);
-        this.domains = validated.records;
-        return validated.records;
+        try {
+          const response = await api.get('/api/v2/account/domains');
+          const validated = responseSchemas.customDomainList.parse(response.data);
+          this.domains = validated.records;
+          return validated.records;
+        } catch (error) {
+          this.handleError(error);
+          throw error; // Allow caller to handle
+        }
       });
     },
 
     async updateDomainBrand(domain: string, brandUpdate: UpdateDomainBrandRequest) {
       return await this.withLoading(async () => {
-        const response = await api.put(
-          `/api/v2/account/domains/${domain}/brand`,
-          brandUpdate
-        );
-        const validated = responseSchemas.customDomain.parse(response.data);
+        try {
+          const response = await api.put(
+            `/api/v2/account/domains/${domain}/brand`,
+            brandUpdate
+          );
+          const validated = responseSchemas.customDomain.parse(response.data);
 
-        const domainIndex = this.domains.findIndex((d) => d.display_domain === domain);
-        if (domainIndex !== -1) {
-          this.domains[domainIndex] = validated.record;
+          const domainIndex = this.domains.findIndex((d) => d.display_domain === domain);
+          if (domainIndex !== -1) {
+            this.domains[domainIndex] = validated.record;
+          }
+          return validated.record;
+        } catch (error) {
+          this.handleError(error);
+          throw error; // Allow caller to handle
         }
-        return validated.record;
       });
     },
 
     async deleteDomain(domainName: string) {
       return await this.withLoading(async () => {
-        await api.post(`/api/v2/account/domains/${domainName}/remove`);
-        this.domains = this.domains.filter(
-          (domain) => domain.display_domain !== domainName
-        );
+        try {
+          await api.post(`/api/v2/account/domains/${domainName}/remove`);
+          this.domains = this.domains.filter(
+            (domain) => domain.display_domain !== domainName
+          );
+        } catch (error) {
+          this.handleError(error);
+          throw error; // Allow caller to handle
+        }
       });
     },
 
     async getBrandSettings(domain: string) {
       return await this.withLoading(async () => {
-        const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
-        return responseSchemas.brandSettings.parse(response.data);
+        try {
+          const response = await api.get(`/api/v2/account/domains/${domain}/brand`);
+          return responseSchemas.brandSettings.parse(response.data);
+        } catch (error) {
+          this.handleError(error);
+          throw error; // Allow caller to handle
+        }
       });
     },
 
     async updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
       return await this.withLoading(async () => {
-        const response = await api.put(`/api/v2/account/domains/${domain}/brand`, {
-          brand: settings,
-        });
-        return responseSchemas.brandSettings.parse(response.data);
-      });
-    },
-
-    async toggleHomepageAccess(domain: CustomDomain) {
-      return await this.withLoading(async () => {
-        const newHomepageStatus = !domain.brand?.allow_public_homepage;
-        const domainIndex = this.domains.findIndex(
-          (d) => d.display_domain === domain.display_domain
-        );
-
-        const response = await api.put(
-          `/api/v2/account/domains/${domain.display_domain}/brand`,
-          {
-            brand: { allow_public_homepage: newHomepageStatus },
-          }
-        );
-        const validated = responseSchemas.customDomain.parse(response.data);
-
-        if (domainIndex !== -1) {
-          this.domains[domainIndex] = validated.record;
+        try {
+          const response = await api.put(`/api/v2/account/domains/${domain}/brand`, {
+            brand: settings,
+          });
+          return responseSchemas.brandSettings.parse(response.data);
+        } catch (error) {
+          this.handleError(error);
+          throw error; // Allow caller to handle
         }
-        return newHomepageStatus;
       });
     },
 
     async updateDomain(domain: CustomDomain) {
       return await this.withLoading(async () => {
-        const response = await api.put(
-          `/api/v2/account/domains/${domain.display_domain}`,
-          domain
-        );
-        const validated = responseSchemas.customDomain.parse(response.data);
+        try {
+          const response = await api.put(
+            `/api/v2/account/domains/${domain.display_domain}`,
+            domain
+          );
+          const validated = responseSchemas.customDomain.parse(response.data);
 
-        const domainIndex = this.domains.findIndex(
-          (d) => d.display_domain === domain.display_domain
-        );
+          const domainIndex = this.domains.findIndex(
+            (d) => d.display_domain === domain.display_domain
+          );
 
-        if (domainIndex !== -1) {
-          this.domains[domainIndex] = validated.record;
-        } else {
-          this.domains.push(validated.record);
+          if (domainIndex !== -1) {
+            this.domains[domainIndex] = validated.record;
+          } else {
+            this.domains.push(validated.record);
+          }
+          return validated.record;
+        } catch (error) {
+          this.handleError(error);
+          throw error; // Allow caller to handle
         }
-        return validated.record;
       });
     },
   },
