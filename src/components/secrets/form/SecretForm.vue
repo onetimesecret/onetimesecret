@@ -116,7 +116,7 @@
       autocomplete="off"
       @submit.prevent="submitForm"
       action="/api/v2/secret/conceal"
-      class="form-horizontal"
+      class=""
       :disabled="!props.enabled">
       <input
         type="hidden"

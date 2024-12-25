@@ -12,6 +12,7 @@ interface StoreState {
   isLoading: boolean;
   error: ApiError | null;
   domains: CustomDomain[];
+  initialized: boolean;
 }
 
 export const useDomainsStore = defineStore('domains', {
@@ -19,7 +20,12 @@ export const useDomainsStore = defineStore('domains', {
     isLoading: false,
     error: null,
     domains: [] as CustomDomain[],
+    initialized: false,
   }),
+
+  getters: {
+    recordCount: (state) => state.domains.length,
+  },
 
   actions: {
     async addDomain(domain: string) {
@@ -31,7 +37,8 @@ export const useDomainsStore = defineStore('domains', {
       });
     },
 
-    async refreshDomains() {
+    async refreshRecords() {
+      if (this.initialized) return; // prevent repeated calls when 0 domains
       return await this.withLoading(async () => {
         const response = await api.get('/api/v2/account/domains');
         const validated = responseSchemas.customDomainList.parse(response.data);

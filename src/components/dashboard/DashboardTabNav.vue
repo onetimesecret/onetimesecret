@@ -1,11 +1,25 @@
 <script setup lang="ts">
 import { useWindowProps } from '@/composables/useWindowProps';
+import { useDomainsStore, useMetadataStore } from '@/stores';
+import { storeToRefs } from 'pinia';
+import { onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 
-const { authenticated, metadata_record_count, domains_enabled, custom_domains_record_count } =
-  useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'custom_domains_record_count']);
+const { authenticated, domains_enabled } =
+  useWindowProps(['authenticated', 'domains_enabled']);
 
 const route = useRoute();
+
+const metadataStore = useMetadataStore();
+const domainsStore = useDomainsStore();
+
+const { recordCount: metadataCount } = storeToRefs(metadataStore);
+const { recordCount: domainsCount } = storeToRefs(domainsStore);
+
+onMounted(() => {
+  metadataStore.refreshRecords();
+  domainsStore.refreshRecords();
+});
 
 /**
  * Checks if the current route path starts with the specified path.
@@ -83,9 +97,10 @@ const isActiveRoute = (path: string) => route.path.startsWith(path);
           <span class="block sm:hidden">{{ $t('web.COMMON.secret') }}</span>
           <span class="hidden sm:block">{{ $t('web.COMMON.title_recent_secrets') }}</span>
           <span
-            class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+            class="ml-2 rounded-full bg-gray-100 px-2 py-0.5
+              text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
             aria-label="Recent secrets count">
-            {{ metadata_record_count }}
+            {{ metadataCount }}
           </span>
         </router-link>
       </li>
@@ -121,9 +136,10 @@ const isActiveRoute = (path: string) => route.path.startsWith(path);
           <span class="block sm:hidden">Domains</span>
           <span class="hidden sm:block">Custom Domains</span>
           <span
-            class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+            class="ml-2 rounded-full bg-gray-100 px-2 py-0.5
+              text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
             aria-label="Custom domains count">
-            {{ custom_domains_record_count }}
+            {{ domainsCount }}
           </span>
         </router-link>
       </li>

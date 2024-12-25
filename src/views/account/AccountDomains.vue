@@ -25,7 +25,7 @@ const error = ref<string | null>(null);
 onMounted(async () => {
   try {
     console.debug('[AccountDomains] Attempting to refresh domains');
-    await domainsStore.refreshDomains();
+    await domainsStore.refreshRecords();
   } catch (err) {
     console.error('Failed to refresh domains:', err);
     error.value = err instanceof Error

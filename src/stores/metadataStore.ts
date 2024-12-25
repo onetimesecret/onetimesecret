@@ -28,6 +28,7 @@ interface StoreState {
   currentDetails: MetadataDetails | null;
   records: MetadataRecords[];
   details: MetadataRecordsDetails | null;
+  initialized: boolean;
 }
 
 export const useMetadataStore = defineStore('metadata', {
@@ -38,9 +39,12 @@ export const useMetadataStore = defineStore('metadata', {
     currentDetails: null,
     records: [],
     details: null,
+    initialized: false,
   }),
 
   getters: {
+    recordCount: (state) => state.records.length,
+
     canBurn(state: StoreState): boolean {
       if (!state.currentRecord) return false;
       const validStates = [
@@ -87,6 +91,14 @@ export const useMetadataStore = defineStore('metadata', {
       });
     },
 
+    async refreshRecords() {
+      if (this.initialized) return; // prevent repeated calls when 0 domains
+      return await this.withLoading(async () => {
+        this.fetchList();
+        this.initialized = true;
+      });
+    },
+
     async burn(key: string, passphrase?: string) {
       if (!this.canBurn) {
         this.handleError(new Error('Cannot burn this metadata'));
@@ -104,4 +116,8 @@ export const useMetadataStore = defineStore('metadata', {
       });
     },
   },
+
+  hydrate(store) {
+    store.refreshRecords();
+  }
 });
