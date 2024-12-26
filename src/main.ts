@@ -11,8 +11,11 @@ import i18n, { setLanguage } from '@/i18n';
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { createAppRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
+import { useDomainsStore } from '@/stores/domainsStore';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { createApi } from '@/utils/api';
 import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 
@@ -105,6 +108,14 @@ async function initializeApp() {
 
   // Let the greater js world know that there's a new sheriff in town.
   window.enjoyTheVue = true;
+
+  // Initialize the store with API instance
+  const api = createApi();
+  const metadataStore = useMetadataStore();
+  metadataStore.init(api);
+
+  const domainsStore = useDomainsStore();
+  domainsStore.init(api);
 
   // Mount the application
   // This is done last to ensure all setup is complete before rendering

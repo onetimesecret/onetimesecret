@@ -5,9 +5,8 @@ import { ApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
+import { type AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
-
-const api = createApi();
 
 // Define valid states as a value (not just a type)
 export const METADATA_STATUS = {
@@ -60,6 +59,14 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
+    // Inject API client through closure
+    _api: null as AxiosInstance | null,
+
+    // Initialization action
+    init(api: AxiosInstance = createApi()) {
+      this._api = api;
+    },
+
     handleError(error: unknown): ApiError {
       const { handleError } = useErrorHandler();
       this.error = handleError(error);
@@ -73,7 +80,7 @@ export const useMetadataStore = defineStore('metadata', {
 
     async fetchOne(key: string) {
       return await this.withLoading(async () => {
-        const response = await api.get(`/api/v2/private/${key}`);
+        const response = await this._api!.get(`http://localhost/api/v2/private/${key}`);
         const validated = responseSchemas.metadata.parse(response.data);
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
@@ -83,7 +90,7 @@ export const useMetadataStore = defineStore('metadata', {
 
     async fetchList() {
       return await this.withLoading(async () => {
-        const response = await api.get('/api/v2/private/recent');
+        const response = await this._api!.get('/api/v2/private/recent');
         const validated = responseSchemas.metadataList.parse(response.data);
         this.records = validated.records;
         this.details = validated.details;
@@ -105,7 +112,7 @@ export const useMetadataStore = defineStore('metadata', {
       }
 
       return await this.withLoading(async () => {
-        const response = await api.post(`/api/v2/private/${key}/burn`, {
+        const response = await this._api!.post(`/api/v2/private/${key}/burn`, {
           passphrase,
           continue: true,
         });
@@ -119,5 +126,5 @@ export const useMetadataStore = defineStore('metadata', {
 
   hydrate(store) {
     store.refreshRecords();
-  }
+  },
 });
