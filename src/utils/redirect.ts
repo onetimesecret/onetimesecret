@@ -16,7 +16,7 @@ function isPathRoute(route: RouteLocationRaw): route is RouteLocationPathRaw {
   return typeof route === 'object' && route !== null && 'path' in route;
 }
 
-export const validateRedirectPath = (path: string | RouteLocationRaw): boolean => {
+export const validateRedirect = (path: string | RouteLocationRaw): boolean => {
   if (!path) return false;
 
   try {
@@ -38,9 +38,9 @@ export const validateRedirectPath = (path: string | RouteLocationRaw): boolean =
 
     // Handle string paths
     if (typeof path === 'string') {
-      if (/^https?:\/\//i.test(path)) {
-        const url = new URL(path);
-        return url.hostname === window.location.hostname;
+      // Handle absolute URLs and protocol-relative URLs
+      if (path.startsWith('//') || /^https?:\/\//i.test(path)) {
+        return validateUrl(path);
       }
       return validatePathString(path);
     }
@@ -51,8 +51,13 @@ export const validateRedirectPath = (path: string | RouteLocationRaw): boolean =
   }
 };
 
-export function validatePathString(path: string): boolean {
+function validatePathString(path: string): boolean {
   try {
+    // Handle absolute URLs and protocol-relative URLs
+    if (path.startsWith('//') || /^https?:\/\//i.test(path)) {
+      return validateUrl(path);
+    }
+
     // Decode the path to catch encoded traversal attempts
     const decodedPath = decodeURIComponent(path);
 
@@ -61,27 +66,35 @@ export function validatePathString(path: string): boolean {
       return false;
     }
 
-    // Check for suspicious patterns
-    const suspiciousPatterns = [
-      /\/\/+/, // Multiple forward slashes
-      /javascript:/i, // JavaScript protocol
-      /data:/i, // Data protocol
-      /vbscript:/i, // VBScript protocol
-      /file:/i, // File protocol
-      /%2e/i, // Encoded dot
-      /\\+/, // Backslashes
-    ];
+    // Check for suspicious protocols
+    const suspiciousProtocols = [/javascript:/i, /data:/i, /vbscript:/i, /file:/i];
 
-    if (suspiciousPatterns.some((pattern) => pattern.test(decodedPath))) {
+    if (suspiciousProtocols.some((pattern) => pattern.test(decodedPath))) {
       return false;
     }
 
-    // Must start with single forward slash and contain no traversal
-    return (
-      decodedPath.startsWith('/') &&
-      !decodedPath.includes('\\') &&
-      !decodedPath.includes('\0')
-    );
+    // Must start with single forward slash
+    return decodedPath.startsWith('/');
+  } catch {
+    return false;
+  }
+}
+
+function validateUrl(url: string): boolean {
+  try {
+    // For protocol-relative URLs, use current protocol
+    let urlToValidate = url;
+    if (url.startsWith('//')) {
+      // Change from window.location.protocol to explicitly using https:
+      urlToValidate = `https:${url}`;
+    }
+
+    // For relative URLs, use current origin as base
+    const fullUrl = new URL(urlToValidate, window.location.origin);
+
+    // Compare hostnames, ignoring port numbers
+    const currentHostname = window.location.hostname;
+    return fullUrl.hostname === currentHostname;
   } catch {
     return false;
   }

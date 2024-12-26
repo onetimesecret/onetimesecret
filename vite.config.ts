@@ -17,7 +17,7 @@ export default defineConfig({
   // - All imports will be resolved relative to ./src
   // - Static assets should be placed in ./src/public
   // - Index.html should be in ./src
-  // root: './src',
+  root: './src',
   // If root is NOT set:
   // - Project root will be the directory with vite.config.ts
   // - Static assets go in ./public
