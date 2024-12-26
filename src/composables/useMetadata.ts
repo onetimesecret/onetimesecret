@@ -1,6 +1,6 @@
 // composables/useMetadata.ts
 import { useMetadataStore } from '@/stores/metadataStore';
-import { useNotificationsStore } from '@/stores/notifications';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';

@@ -5,7 +5,7 @@ import DomainsTable from '@/components/DomainsTable.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { useWindowProps } from '@/composables/useWindowProps';
 import { useDomainsStore } from '@/stores/domainsStore';
-import { useNotificationsStore } from '@/stores/notifications';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { computed, onMounted, ref } from 'vue';
 
 const { plan } = useWindowProps(['plan'])

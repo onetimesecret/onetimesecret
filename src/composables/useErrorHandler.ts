@@ -1,5 +1,5 @@
 import { ApiError, handleError as apiHandleError } from '@/schemas/api/errors';
-import { useNotificationsStore } from '@/stores/notifications';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { ZodError } from 'zod';
 
 export function useErrorHandler() {

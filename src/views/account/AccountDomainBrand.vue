@@ -10,7 +10,7 @@ import { AsyncDataResult, CustomDomainResponse } from '@/schemas/api/responses';
 import type { BrandSettings, CustomDomain, ImageProps } from '@/schemas/models';
 import { brandSettingschema } from '@/schemas/models/domain/brand';
 import { useCsrfStore } from '@/stores/csrfStore';
-import { useNotificationsStore } from '@/stores/notifications';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import api from '@/utils/api';
 import { shouldUseLightText } from '@/utils/colorUtils';
 import { Icon } from '@iconify/vue';

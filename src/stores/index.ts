@@ -11,5 +11,5 @@ export { useDomainsStore } from './domainsStore';
 export { useJurisdictionStore } from './jurisdictionStore';
 export { useLanguageStore } from './languageStore';
 export { useMetadataStore } from './metadataStore';
-export { useNotificationsStore } from './notifications';
+export { useNotificationsStore } from './notificationsStore';
 export { useSecretsStore } from './secretsStore';
