@@ -30,8 +30,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',  // or 'happy-dom' (light faster dom), 'jsdom' (more feature complete), 'node' (no dom, so no document or window) -- node is the default
     include: [
-      'tests/unit/vue/**/*.spec.ts',
-      'tests/unit/vue/**/*.spec.vue',
+      '**/*.spec.ts',
+      '**/*.spec.vue',
     ],
     exclude: [
       '**/node_modules/**',
