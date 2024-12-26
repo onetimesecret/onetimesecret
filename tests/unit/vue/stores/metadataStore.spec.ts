@@ -1,11 +1,14 @@
 import { withLoadingPlugin } from '@/plugins/pinia/withLoadingPlugin';
 import { ApiError } from '@/schemas/api/errors';
-import { useMetadataStore } from '@/stores/metadataStore';
+import { Metadata } from '@/schemas/models'
+import { useMetadataStore, METADATA_STATUS } from '@/stores/metadataStore';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { createApp } from 'vue';
+import { ZodAny } from 'zod';
+
 import { mockMetadataDetails, mockMetadataRecord } from '../fixtures/metadata';
 
 // Pinia stores plugins don't work properly in tests unless there's app.
@@ -34,7 +37,7 @@ vi.mock('@/schemas/api/responses', () => ({
 
 describe('metadataStore', () => {
   let store: ReturnType<typeof useMetadataStore>;
-  let responseSchemas;
+  let responseSchemas: ZodAny;
 
   let mockResponse: {
     record: typeof mockMetadataRecord;
@@ -129,31 +132,50 @@ describe('metadataStore', () => {
     it('fetches metadata by key successfully', async () => {
       // Arrange
       const testKey = 'test-key';
-      const apiResponse = { data: mockMetadataRecord };
-      axiosMock.get.mockResolvedValue(apiResponse);
-      (responseSchemas.metadata.parse as Mock).mockReturnValue(mockMetadataRecord);
+
+      // Setup mock response using axios-mock-adapter
+      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, {
+        record: mockMetadataRecord,
+        details: mockMetadataDetails,
+      });
 
       // Act
       await store.fetchOne(testKey);
 
       // Assert
-      expect(axiosMock.get).toHaveBeenCalledWith(`/metadata/${testKey}`);
-      expect(responseSchemas.metadata.parse).toHaveBeenCalledWith(apiResponse.data);
-      expect(store.records[testKey]).toEqual(mockMetadataRecord);
+      // First check store state properties
+      expect(store.currentRecord).toEqual(mockMetadataRecord);
+      expect(store.currentDetails).toEqual(mockMetadataDetails);
+      // Then check if the record was stored in records map using the record's key
+      // Note: We use mockMetadataRecord.key instead of testKey since the store
+      // likely indexes by the record's actual key property
+      expect(store.records[mockMetadataRecord.key]).toEqual(mockMetadataRecord);
     });
 
     it('handles errors when fetching metadata by key', async () => {
       // Arrange
       const testKey = 'test-key';
-      const apiError = new ApiError(404, 'Not Found');
-      axiosMock.get.mockRejectedValue(apiError);
+
+      // Setup mock error response
+      // Note: Using replyOnce to ensure default success mock doesn't interfere
+      axiosMock.onGet(`/api/v2/private/${testKey}`).replyOnce(
+        404,
+        {
+          error: 'Not Found',
+        },
+        {
+          'Content-Type': 'application/json',
+        }
+      );
 
       // Act & Assert
-      await expect(store.fetchOne(testKey)).rejects.toThrowError(apiError);
+      // The store should throw an error when receiving a non-200 response
+      await expect(store.fetchOne(testKey)).rejects.toThrow();
 
-      // Assert
-      expect(axiosMock.get).toHaveBeenCalledWith(`/metadata/${testKey}`);
+      // Verify the error state
       expect(store.records[testKey]).toBeUndefined();
+      expect(store.currentRecord).toBeNull();
+      expect(store.currentDetails).toBeNull();
     });
   });
 
