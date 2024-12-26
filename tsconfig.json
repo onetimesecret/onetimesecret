@@ -55,16 +55,24 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tests/*": ["./tests/*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types/declarations"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types/declarations",
+      "./tests/unit/vue/types.d.ts"
+    ],
+    "types": ["jsdom", "node"]
   },
   "include": [
+    "**/*.config.*s",
+    "src/**/*.ts",
+    "src/**/*.vue",
     "src/content/*.md",
     "src/types/**/*.ts",
     "src/types/declarations/**/*.d.ts",
-    "src/**/*.ts",
-    "src/**/*.vue"
-  ],
-  "exclude": ["node_modules"]
+    "tests/**/*.ts",
+    "tests/**/*.vue"
+  ]
 }

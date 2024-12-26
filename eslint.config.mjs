@@ -1,13 +1,36 @@
+/**
+ * ESLint Flat Config
+ *
+ * REQUIRED VS CODE SETTINGS:
+ * Add to either .vscode/settings.json (project) or User Settings (global):
+ * {
+ *   "eslint.useFlatConfig": true,
+ *   "eslint.validate": [
+ *     "javascript",
+ *     "javascriptreact",
+ *     "typescript",
+ *     "typescriptreact",
+ *     "vue"
+ *   ]
+ * }
+ *
+ * Add to .vscode/settings.json (project-specific):
+ * {
+ *   "eslint.options": {
+ *     "overrideConfigFile": "eslint.config.mjs"
+ *   }
+ * }
+ */
 
 import pluginVueI18n from '@intlify/eslint-plugin-vue-i18n';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import parserTs from '@typescript-eslint/parser';
+import * as importPlugin from 'eslint-plugin-import';
+import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
 import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import path from 'path';
 import vueEslintParser from 'vue-eslint-parser';
-import * as importPlugin from 'eslint-plugin-import';
-import pluginTailwindCSS from 'eslint-plugin-tailwindcss';
 
 export default [
 
@@ -16,7 +39,7 @@ export default [
    * Excludes all files except source and config files
    */
   {
-    ignores: ['**/*', '!src/**', '!*.config.ts'],
+    ignores: ['**/*', '!src/**', '!tests/**', '!*.config.ts', '!*.config.*js'],
   },
 
   /**
@@ -25,7 +48,7 @@ export default [
    * Handles basic ES features and import ordering
    */
   {
-    files: ['src/**/*.{js,mjs,cjs,ts,vue}', 'vite.config.ts'],
+    files: ['src/**/*.{js,mjs,cjs,ts,vue}', 'tests/**/*.{js,mjs,cjs,ts,vue}', 'vite.config.ts', 'eslint.config.mjs'],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -81,7 +104,7 @@ export default [
    * Configures TypeScript, i18n, and Tailwind linting
    */
   {
-    files: ['src/**/*.{ts,vue}'],
+    files: ['src/**/*.{ts,vue,d.ts}'],
     languageOptions: {
       parser: parserTs,
       parserOptions: {
@@ -119,6 +142,107 @@ export default [
         ignorePattern: '^((?!class=").)*$',
         ignoreUrls: true,
       }],
+
+      rules: {
+        // Code Structure & Complexity
+        'max-depth': [
+          'error',
+          3  // Limit nesting depth (if/while/for/etc) to 3 levels. Deep nesting is a strong indicator
+             // that code should be refactored using early returns, guard clauses, or helper functions.
+             // Example - Instead of:
+             //   if (a) { if (b) { if (c) { ... } } }
+             // Use:
+             //   if (!a || !b || !c) return;
+             //   // happy path code here
+        ],
+
+        'max-nested-callbacks': [
+          'error',
+          2  // Stricter than test files (4) because nested callbacks in production code almost always
+             // indicate a need for async/await, Promises, or function extraction.
+             // Example - Instead of:
+             //   getData(id, (err, data) => { processData(data, (err, result) => { ... }) })
+             // Use:
+             //   const data = await getData(id);
+             //   const result = await processData(data);
+        ],
+
+        'complexity': [
+          'error',
+          {
+            max: 10  // Cyclomatic complexity limit. Each path through code (if/else, switches, loops)
+                     // adds complexity. High complexity = harder to test & maintain.
+                     // Break complex functions into smaller, focused ones.
+          }
+        ],
+
+        'max-lines-per-function': [
+          'error',
+          {
+            max: 50,            // Target length for most functions
+            skipBlankLines: true,
+            skipComments: true,
+            IIFEs: true        // Include immediately-invoked function expressions
+          }
+        ],
+
+        'max-params': [
+          'warn',
+          3  // Functions with many parameters are hard to use and often indicate a need for
+             // object parameters or splitting functionality.
+             // Example - Instead of:
+             //   function updateUser(id, name, email, role, status)
+             // Use:
+             //   function updateUser({ id, name, email, role, status })
+        ],
+
+        'max-statements': [
+          'warn',
+          15  // Warn on functions with too many statements. Large functions typically try to do
+              // too much and should be split into focused, single-responsibility functions.
+        ],
+
+        // Code Quality & Style
+        'max-len': [
+          'error',
+          {
+            code: 100,         // Standard line length limit
+            tabWidth: 2,
+            ignoreComments: false,
+            ignoreTrailingComments: false,
+            ignoreUrls: true,
+            ignoreStrings: true,
+            ignoreTemplateLiterals: true,
+            ignoreRegExpLiterals: true
+          }
+        ],
+
+        'no-nested-ternary': 'error',  // Nested ternaries are hard to read. Use if statements
+                                      // or multiple assignments instead.
+
+        'arrow-body-style': [
+          'error',
+          'as-needed'  // Keep arrow functions concise. Only use blocks when necessary.
+                      // Example - Instead of: x => { return x + 1; }
+                      // Use: x => x + 1
+        ],
+
+        // Code Safety
+        'max-classes-per-file': [
+          'error',
+          1  // One class per file enforces single responsibility principle and
+             // makes code easier to find and maintain.
+        ],
+
+        'no-multiple-empty-lines': [
+          'error',
+          {
+            max: 1,           // Single blank line maximum
+            maxEOF: 1,        // Max blank lines at end of file
+            maxBOF: 0         // No blank lines at start of file
+          }
+        ]
+      }
     },
   },
 
@@ -194,6 +318,91 @@ export default [
     },
   },
 
+  /**
+   * Test Files Configuration
+   * Relaxes naming conventions and adds specific rules for test files
+   */
+  {
+    files: ['tests/unit/**/*.{ts,vue,d.ts}'],
+    languageOptions: {
+      parser: parserTs,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: './tsconfig.json',
+        extraFileExtensions: ['.vue']
+      },
+      globals: {
+        // Vitest globals
+        vitest: true,
+        describe: true,
+        it: true,
+        expect: true,
+        vi: true,
+        beforeEach: true,
+        afterEach: true,
+        beforeAll: true,
+        afterAll: true,
+        test: true,
+        suite: true
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,  // Add this line to properly register the plugin
+      vue: pluginVue
+    },
+    rules: {
+      'vue/multi-word-component-names': 'off', // Allow single-word names for test components
+
+      // Test structure rules
+      'max-nested-callbacks': ['error', 6], // Prevent test suite organization from becoming too granular and hard to navigate.
+      // Deep nesting often indicates over-categorization - prefer clear, descriptive test names instead.
+      'max-lines-per-function': ['warn', { max: 100 }], // Keep test cases focused
+      // ... existing code ...
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: 'block' },
+        { blankLine: 'always', prev: 'block', next: '*' },
+        { blankLine: 'always', prev: '*', next: 'function' },
+        { blankLine: 'always', prev: 'function', next: '*' }
+      ],
+      '@typescript-eslint/no-unused-expressions': ['error', {
+        allowShortCircuit: true, // Allow logical short-circuit evaluations
+        allowTernary: true, // Allow ternary expressions
+      }],
+      // Common test patterns
+      '@typescript-eslint/no-explicit-any': 'off', // Allow any for mocking
+      '@typescript-eslint/no-empty-function': 'off', // Allow empty mock functions
+      '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions in tests
+      'no-console': 'off', // Allow console usage in tests
+    }
+  },
+
+  /**
+   * TypeScript Declaration Files
+   * Specific configuration for .d.ts files
+   */
+  {
+    files: ['**/*.d.ts'],
+    languageOptions: {
+      parser: parserTs,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        project: './tsconfig.json',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      // Allow explicit any in declaration files
+      '@typescript-eslint/no-explicit-any': 'off',
+      // Allow empty interfaces in declaration files
+      '@typescript-eslint/no-empty-interface': 'off',
+    },
+  },
   // Include Tailwind recommended configuration
   ...pluginTailwindCSS.configs['flat/recommended'],
 

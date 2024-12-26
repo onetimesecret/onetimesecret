@@ -17,6 +17,9 @@ importers:
       '@types/dompurify':
         specifier: ^3.0.5
         version: 3.0.5
+      '@types/jsdom':
+        specifier: ^21.1.7
+        version: 21.1.7
       '@vueuse/integrations':
         specifier: ^11.2.0
         version: 11.2.0(axios@1.7.7)(focus-trap@7.6.0)(vue@3.5.13(typescript@5.6.3))
@@ -29,6 +32,9 @@ importers:
       axios-mock-adapter:
         specifier: ^2.1.0
         version: 2.1.0(axios@1.7.7)
+      client:
+        specifier: link:@vitejs/plugin-vue/client
+        version: link:@vitejs/plugin-vue/client
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -741,6 +747,9 @@ packages:
   '@types/estree@1.0.6':
     resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
 
+  '@types/jsdom@21.1.7':
+    resolution: {integrity: sha512-yOriVnggzrnQ3a9OKOCxaVuSug3w3/SbOj5i7VwXWZEyUNl3bLF9V3MfxGbZKuwqJOQyRfqXyROBB1CoZLFWzA==}
+
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
@@ -758,6 +767,9 @@ packages:
 
   '@types/node@22.9.0':
     resolution: {integrity: sha512-vuyHg81vvWA1Z1ELfvLko2c8f34gyA0zaic0+Rllc5lbCnbSyuvb2Oxpm6TAUAC/2xZN3QGqxBNggD1nNR2AfQ==}
+
+  '@types/tough-cookie@4.0.5':
+    resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
@@ -3428,6 +3440,12 @@ snapshots:
 
   '@types/estree@1.0.6': {}
 
+  '@types/jsdom@21.1.7':
+    dependencies:
+      '@types/node': 22.9.0
+      '@types/tough-cookie': 4.0.5
+      parse5: 7.2.1
+
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
@@ -3444,6 +3462,8 @@ snapshots:
   '@types/node@22.9.0':
     dependencies:
       undici-types: 6.19.8
+
+  '@types/tough-cookie@4.0.5': {}
 
   '@types/trusted-types@2.0.7': {}
 

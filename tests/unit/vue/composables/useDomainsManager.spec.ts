@@ -1,37 +1,16 @@
 // tests/unit/vue/composables/useDomainsManager.spec.ts
-import { mockDomains, newDomainData } from '@/../tests/unit/vue/fixtures/domains';
 import { useDomainsManager } from '@/composables/useDomainsManager';
-import type { Domain } from '@/schemas/models/domain';
+import { mockDomains, newDomainData } from '@tests/unit/vue/fixtures/domains';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Ref, ref } from 'vue';
+import { ref } from 'vue';
+
+import type { MockDependencies } from '../types.d';
 
 // Test constants
 const TEST_DOMAIN_ID = 'domain-1';
 const TEST_API_ERROR = new Error('API Error');
 const TEST_VALIDATION_ERROR = new Error('Invalid domain');
-
-// Mock dependencies type definition
-interface MockDependencies {
-  router: {
-    back: vi.Mock;
-    push: vi.Mock;
-  };
-  confirmDialog: vi.Mock;
-  errorHandler: {
-    handleError: vi.Mock;
-  };
-  domainsStore: {
-    domains: Ref<Record<string, Domain>>;
-    addDomain: vi.Mock;
-    deleteDomain: vi.Mock;
-    isLoading: Ref<boolean>;
-    error: Ref<Error | null>;
-  };
-  notificationsStore: {
-    show: vi.Mock;
-  };
-}
 
 // Mock Setup
 const mockDependencies: MockDependencies = {
