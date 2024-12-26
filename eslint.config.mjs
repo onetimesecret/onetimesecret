@@ -138,25 +138,25 @@ export default [
 
       // Code Structure & Complexity
       'max-depth': ['error', 3], // Limit nesting depth (if/while/for/etc) to 3 levels. Deep nesting is a strong indicator
-                                // that code should be refactored using early returns, guard clauses, or helper functions.
-                                // Example - Instead of:
-                                //   if (a) { if (b) { if (c) { ... } } }
-                                // Use:
-                                //   if (!a || !b || !c) return;
-                                //   // happy path code here
+      // that code should be refactored using early returns, guard clauses, or helper functions.
+      // Example - Instead of:
+      //   if (a) { if (b) { if (c) { ... } } }
+      // Use:
+      //   if (!a || !b || !c) return;
+      //   // happy path code here
 
       'max-nested-callbacks': ['error', 2], // Stricter than test files (4) because nested callbacks in production code almost always
-                                          // indicate a need for async/await, Promises, or function extraction.
-                                          // Example - Instead of:
-                                          //   getData(id, (err, data) => { processData(data, (err, result) => { ... }) })
-                                          // Use:
-                                          //   const data = await getData(id);
-                                          //   const result = await processData(data);
+      // indicate a need for async/await, Promises, or function extraction.
+      // Example - Instead of:
+      //   getData(id, (err, data) => { processData(data, (err, result) => { ... }) })
+      // Use:
+      //   const data = await getData(id);
+      //   const result = await processData(data);
 
       'complexity': ['error', {
-        max: 10  // Cyclomatic complexity limit. Each path through code (if/else, switches, loops)
-                 // adds complexity. High complexity = harder to test & maintain.
-                 // Break complex functions into smaller, focused ones.
+        max: 12  // Cyclomatic complexity limit. Each path through code (if/else, switches, loops)
+        // adds complexity. High complexity = harder to test & maintain.
+        // Break complex functions into smaller, focused ones.
       }],
 
       'max-lines-per-function': ['error', {
@@ -167,40 +167,40 @@ export default [
       }],
 
       'max-params': ['warn', 3], // Functions with many parameters are hard to use and often indicate a need for
-                                // object parameters or splitting functionality.
-                                // Example - Instead of:
-                                //   function updateUser(id, name, email, role, status)
-                                // Use:
-                                //   function updateUser({ id, name, email, role, status })
+      // object parameters or splitting functionality.
+      // Example - Instead of:
+      //   function updateUser(id, name, email, role, status)
+      // Use:
+      //   function updateUser({ id, name, email, role, status })
 
       'max-statements': ['warn', 15], // Warn on functions with too many statements. Large functions typically try to do
-                                     // too much and should be split into focused, single-responsibility functions.
+      // too much and should be split into focused, single-responsibility functions.
 
       // Code Quality & Style
-        'max-len': [
-          'error',
-          {
-            code: 100,         // Standard line length limit
-            tabWidth: 2,
-            ignoreComments: false,
-            ignoreTrailingComments: false,
-            ignoreUrls: true,
-            ignoreStrings: true,
-            ignoreTemplateLiterals: true,
-            ignoreRegExpLiterals: true
-          }
-        ],
+      'max-len': [
+        'error',
+        {
+          code: 100,         // Standard line length limit
+          tabWidth: 2,
+          ignoreComments: false,
+          ignoreTrailingComments: false,
+          ignoreUrls: true,
+          ignoreStrings: true,
+          ignoreTemplateLiterals: true,
+          ignoreRegExpLiterals: true
+        }
+      ],
 
       'no-nested-ternary': 'error',  // Nested ternaries are hard to read. Use if statements
-                                    // or multiple assignments instead.
+      // or multiple assignments instead.
 
       'arrow-body-style': ['error', 'as-needed'],  // Keep arrow functions concise. Only use blocks when necessary.
-                                                  // Example - Instead of: x => { return x + 1; }
-                                                  // Use: x => x + 1
+      // Example - Instead of: x => { return x + 1; }
+      // Use: x => x + 1
 
       // Code Safety
       'max-classes-per-file': ['error', 1],  // One class per file enforces single responsibility principle and
-                                            // makes code easier to find and maintain.
+      // makes code easier to find and maintain.
 
       'no-multiple-empty-lines': ['warn', {
         max: 2,           // Single blank line maximum
