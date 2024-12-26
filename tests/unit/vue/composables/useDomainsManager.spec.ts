@@ -5,162 +5,215 @@ import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 
-// Mock all external dependencies
-const mockRouter = {
-  back: vi.fn(),
-  push: vi.fn(),
+// Mock Setup
+const mockDependencies = {
+  router: {
+    back: vi.fn(),
+    push: vi.fn(),
+  },
+  confirmDialog: vi.fn(),
+  errorHandler: {
+    handleError: vi.fn(),
+  },
+  domainsStore: {
+    domains: ref(mockDomains),
+    addDomain: vi.fn(),
+    deleteDomain: vi.fn(),
+    isLoading: ref(false),
+    error: ref(null),
+  },
+  notificationsStore: {
+    show: vi.fn(),
+  },
 };
 
-const mockConfirmDialog = vi.fn();
-
-const mockErrorHandler = {
-  handleError: vi.fn(),
-};
-
-const mockDomainsStore = {
-  domains: ref(mockDomains),
-  addDomain: vi.fn(),
-  deleteDomain: vi.fn(),
-  isLoading: ref(false),
-  error: ref(null),
-};
-
-const mockNotificationsStore = {
-  show: vi.fn(),
-};
-
-// Setup mocks
 vi.mock('vue-router', () => ({
-  useRouter: () => mockRouter,
+  useRouter: () => mockDependencies.router,
 }));
 
 vi.mock('@/stores/domainsStore', () => ({
-  useDomainsStore: () => mockDomainsStore,
+  useDomainsStore: () => mockDependencies.domainsStore,
 }));
 
 vi.mock('@/stores/notificationsStore', () => ({
-  useNotificationsStore: () => mockNotificationsStore,
+  useNotificationsStore: () => mockDependencies.notificationsStore,
 }));
 
 vi.mock('@/composables/useConfirmDialog', () => ({
-  useConfirmDialog: () => mockConfirmDialog,
+  useConfirmDialog: () => mockDependencies.confirmDialog,
 }));
 
 vi.mock('@/composables/useErrorHandler', () => ({
-  useErrorHandler: () => mockErrorHandler,
+  useErrorHandler: () => mockDependencies.errorHandler,
 }));
 
 describe('useDomainsManager', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
+    // Reset reactive refs
+    mockDependencies.domainsStore.isLoading.value = false;
+    mockDependencies.domainsStore.error.value = null;
   });
 
-  describe('handleAddDomain', () => {
-    it('successfully adds a new domain', async () => {
-      mockDomainsStore.addDomain.mockResolvedValueOnce(newDomainData);
-      const { handleAddDomain } = useDomainsManager();
+  describe('domain addition', () => {
+    describe('handleAddDomain', () => {
+      it('successfully adds a new domain and navigates to verification', async () => {
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(newDomainData);
+        const { handleAddDomain } = useDomainsManager();
 
-      const result = await handleAddDomain(newDomainData.name);
+        const result = await handleAddDomain(newDomainData.name);
 
-      expect(result).toEqual(newDomainData);
-      expect(mockDomainsStore.addDomain).toHaveBeenCalledWith(newDomainData.name);
-      expect(mockRouter.push).toHaveBeenCalledWith({
-        name: 'AccountDomainVerify',
-        params: { domain: newDomainData.name },
+        expect(result).toEqual(newDomainData);
+        expect(mockDependencies.domainsStore.addDomain).toHaveBeenCalledWith(
+          newDomainData.name
+        );
+        expect(mockDependencies.router.push).toHaveBeenCalledWith({
+          name: 'AccountDomainVerify',
+          params: { domain: newDomainData.name },
+        });
+        expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
+          'Domain added successfully',
+          'success'
+        );
       });
-      expect(mockNotificationsStore.show).toHaveBeenCalledWith(
-        'Domain added successfully',
-        'success'
-      );
-    });
 
-    it('handles errors when adding domain fails', async () => {
-      const error = new Error('Failed to add domain');
-      mockDomainsStore.addDomain.mockRejectedValueOnce(error);
-      const { handleAddDomain } = useDomainsManager();
+      describe('error handling', () => {
+        it('handles API errors', async () => {
+          const apiError = new Error('API Error');
+          mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(apiError);
+          const { handleAddDomain } = useDomainsManager();
 
-      const result = await handleAddDomain(newDomainData.name);
+          const result = await handleAddDomain(newDomainData.name);
 
-      expect(result).toBeNull();
-      expect(mockErrorHandler.handleError).toHaveBeenCalledWith(error);
-    });
-  });
+          expect(result).toBeNull();
+          expect(mockDependencies.errorHandler.handleError).toHaveBeenCalledWith(
+            apiError
+          );
+          expect(mockDependencies.router.push).not.toHaveBeenCalled();
+        });
 
-  describe('deleteDomain', () => {
-    it('successfully deletes a domain after confirmation', async () => {
-      mockConfirmDialog.mockResolvedValueOnce(true);
-      const { deleteDomain } = useDomainsManager();
+        it('handles validation errors', async () => {
+          const validationError = new Error('Invalid domain');
+          mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(validationError);
+          const { handleAddDomain } = useDomainsManager();
 
-      await deleteDomain('domain-1');
+          const result = await handleAddDomain(newDomainData.name);
 
-      expect(mockDomainsStore.deleteDomain).toHaveBeenCalledWith('domain-1');
-      expect(mockNotificationsStore.show).toHaveBeenCalledWith(
-        'Domain removed successfully',
-        'success'
-      );
-    });
-
-    it('does not delete domain when confirmation is cancelled', async () => {
-      mockConfirmDialog.mockResolvedValueOnce(false);
-      const { deleteDomain } = useDomainsManager();
-
-      await deleteDomain('domain-1');
-
-      expect(mockDomainsStore.deleteDomain).not.toHaveBeenCalled();
-    });
-
-    it('handles errors during domain deletion', async () => {
-      mockConfirmDialog.mockResolvedValueOnce(true);
-      const error = new Error('Failed to remove domain');
-      mockDomainsStore.deleteDomain.mockRejectedValueOnce(error);
-      const { deleteDomain } = useDomainsManager();
-
-      await deleteDomain('domain-1');
-
-      expect(mockNotificationsStore.show).toHaveBeenCalledWith(
-        'Failed to remove domain',
-        'error'
-      );
+          expect(result).toBeNull();
+          expect(mockDependencies.errorHandler.handleError).toHaveBeenCalledWith(
+            validationError
+          );
+        });
+      });
     });
   });
 
-  describe('confirmDelete', () => {
-    it('returns domain ID when confirmed', async () => {
-      mockConfirmDialog.mockResolvedValueOnce(true);
-      const { confirmDelete } = useDomainsManager();
+  describe('domain deletion', () => {
+    describe('deleteDomain', () => {
+      it('successfully deletes a domain after confirmation', async () => {
+        mockDependencies.confirmDialog.mockResolvedValueOnce(true);
+        const { deleteDomain } = useDomainsManager();
 
-      const result = await confirmDelete('domain-1');
+        await deleteDomain('domain-1');
 
-      expect(result).toBe('domain-1');
+        expect(mockDependencies.domainsStore.deleteDomain).toHaveBeenCalledWith(
+          'domain-1'
+        );
+        expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
+          'Domain removed successfully',
+          'success'
+        );
+      });
+
+      it('aborts deletion when confirmation is cancelled', async () => {
+        mockDependencies.confirmDialog.mockResolvedValueOnce(false);
+        const { deleteDomain } = useDomainsManager();
+
+        await deleteDomain('domain-1');
+
+        expect(mockDependencies.domainsStore.deleteDomain).not.toHaveBeenCalled();
+        expect(mockDependencies.notificationsStore.show).not.toHaveBeenCalled();
+      });
+
+      describe('error handling', () => {
+        it('handles API errors during deletion', async () => {
+          mockDependencies.confirmDialog.mockResolvedValueOnce(true);
+          const error = new Error('Failed to remove domain');
+          mockDependencies.domainsStore.deleteDomain.mockRejectedValueOnce(error);
+          const { deleteDomain } = useDomainsManager();
+
+          await deleteDomain('domain-1');
+
+          expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
+            'Failed to remove domain',
+            'error'
+          );
+        });
+
+        it('handles confirmation dialog errors', async () => {
+          mockDependencies.confirmDialog.mockRejectedValueOnce(new Error('Dialog error'));
+          const { deleteDomain } = useDomainsManager();
+
+          await deleteDomain('domain-1');
+
+          expect(mockDependencies.domainsStore.deleteDomain).not.toHaveBeenCalled();
+        });
+      });
     });
 
-    it('returns null when cancelled', async () => {
-      mockConfirmDialog.mockResolvedValueOnce(false);
-      const { confirmDelete } = useDomainsManager();
+    describe('confirmDelete', () => {
+      it('returns domain ID when confirmed', async () => {
+        mockDependencies.confirmDialog.mockResolvedValueOnce(true);
+        const { confirmDelete } = useDomainsManager();
 
-      const result = await confirmDelete('domain-1');
+        const result = await confirmDelete('domain-1');
 
-      expect(result).toBeNull();
-    });
+        expect(result).toBe('domain-1');
+      });
 
-    it('handles confirmation dialog errors', async () => {
-      mockConfirmDialog.mockRejectedValueOnce(new Error('Dialog error'));
-      const { confirmDelete } = useDomainsManager();
+      it('returns null when cancelled', async () => {
+        mockDependencies.confirmDialog.mockResolvedValueOnce(false);
+        const { confirmDelete } = useDomainsManager();
 
-      const result = await confirmDelete('domain-1');
+        const result = await confirmDelete('domain-1');
 
-      expect(result).toBeNull();
+        expect(result).toBeNull();
+      });
+
+      it('handles dialog errors gracefully', async () => {
+        mockDependencies.confirmDialog.mockRejectedValueOnce(new Error('Dialog error'));
+        const { confirmDelete } = useDomainsManager();
+
+        const result = await confirmDelete('domain-1');
+
+        expect(result).toBeNull();
+      });
     });
   });
 
-  describe('reactive properties', () => {
+  describe('reactive state', () => {
     it('exposes store reactive properties', () => {
       const { domains, isLoading, error } = useDomainsManager();
 
       expect(domains.value).toEqual(mockDomains);
       expect(isLoading.value).toBe(false);
       expect(error.value).toBeNull();
+    });
+
+    it('reflects loading state changes', async () => {
+      mockDependencies.domainsStore.isLoading.value = true;
+      const { isLoading } = useDomainsManager();
+
+      expect(isLoading.value).toBe(true);
+    });
+
+    it('reflects error state changes', async () => {
+      const testError = new Error('Test error');
+      mockDependencies.domainsStore.error.value = testError;
+      const { error } = useDomainsManager();
+
+      expect(error.value).toBe(testError);
     });
   });
 });
