@@ -1,4 +1,5 @@
 import { withLoadingPlugin } from '@/plugins/pinia/withLoadingPlugin';
+import { ApiError } from '@/schemas/api/errors';
 import { useMetadataStore } from '@/stores/metadataStore';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
@@ -6,7 +7,6 @@ import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { createApp } from 'vue';
 import { mockMetadataDetails, mockMetadataRecord } from '../fixtures/metadata';
-import { ApiError } from '@/schemas/api/errors';
 
 // Pinia stores plugins don't work properly in tests unless there's app.
 const app = createApp({});
@@ -33,7 +33,6 @@ vi.mock('@/schemas/api/responses', () => ({
 }));
 
 describe('metadataStore', () => {
-
   let store: ReturnType<typeof useMetadataStore>;
   let responseSchemas;
 
@@ -43,13 +42,9 @@ describe('metadataStore', () => {
   };
 
   beforeEach(async () => {
-
     responseSchemas = await vi.importMock('@/schemas/api/responses');
 
     // Create fresh Pinia instance for each test
-
-
-
 
     store = useMetadataStore();
 
