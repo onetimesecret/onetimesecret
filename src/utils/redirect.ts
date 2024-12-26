@@ -1,4 +1,8 @@
-import type { RouteLocationRaw, RouteLocationNamedRaw, RouteLocationPathRaw } from 'vue-router';
+import type {
+  RouteLocationNamedRaw,
+  RouteLocationPathRaw,
+  RouteLocationRaw,
+} from 'vue-router';
 
 // Define allowed route names
 type AllowedRouteNames = 'Home' | 'Dashboard' | 'Profile';
@@ -12,10 +16,7 @@ function isPathRoute(route: RouteLocationRaw): route is RouteLocationPathRaw {
   return typeof route === 'object' && route !== null && 'path' in route;
 }
 
-export const validateRedirectPath = (
-  path: string | RouteLocationRaw
-): boolean => {
-
+export const validateRedirectPath = (path: string | RouteLocationRaw): boolean => {
   if (!path) return false;
 
   try {
@@ -29,9 +30,7 @@ export const validateRedirectPath = (
 
       // Validate path-based routes
       if (isPathRoute(path)) {
-        return typeof path.path === 'string' &&
-               path.path.startsWith('/') &&
-               !path.path.includes('..');
+        return typeof path.path === 'string' && validatePathString(path.path);
       }
 
       return false;
@@ -43,7 +42,7 @@ export const validateRedirectPath = (
         const url = new URL(path);
         return url.hostname === window.location.hostname;
       }
-      return path.startsWith('/') && !path.includes('..');
+      return validatePathString(path);
     }
 
     return false;
@@ -51,3 +50,39 @@ export const validateRedirectPath = (
     return false;
   }
 };
+
+export function validatePathString(path: string): boolean {
+  try {
+    // Decode the path to catch encoded traversal attempts
+    const decodedPath = decodeURIComponent(path);
+
+    // Check for path traversal attempts
+    if (decodedPath.includes('..') || decodedPath.includes('./')) {
+      return false;
+    }
+
+    // Check for suspicious patterns
+    const suspiciousPatterns = [
+      /\/\/+/, // Multiple forward slashes
+      /javascript:/i, // JavaScript protocol
+      /data:/i, // Data protocol
+      /vbscript:/i, // VBScript protocol
+      /file:/i, // File protocol
+      /%2e/i, // Encoded dot
+      /\\+/, // Backslashes
+    ];
+
+    if (suspiciousPatterns.some((pattern) => pattern.test(decodedPath))) {
+      return false;
+    }
+
+    // Must start with single forward slash and contain no traversal
+    return (
+      decodedPath.startsWith('/') &&
+      !decodedPath.includes('\\') &&
+      !decodedPath.includes('\0')
+    );
+  } catch {
+    return false;
+  }
+}
