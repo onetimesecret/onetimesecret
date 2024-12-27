@@ -80,7 +80,7 @@ export const useMetadataStore = defineStore('metadata', {
 
     async fetchOne(key: string) {
       return await this.withLoading(async () => {
-        const response = await this._api!.get(`http://localhost/api/v2/private/${key}`);
+        const response = await this._api!.get(`/api/v2/private/${key}`);
         const validated = responseSchemas.metadata.parse(response.data);
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
