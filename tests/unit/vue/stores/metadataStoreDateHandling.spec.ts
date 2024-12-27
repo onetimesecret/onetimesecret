@@ -136,7 +136,9 @@ describe('Metadata Date Handling', () => {
       axiosMock
         .onPost(
           `/api/v2/private/${testKey}/burn`,
-          { passphrase: undefined, continue: true },
+          // Request body as exact match object
+          { continue: true },
+          // Headers as third argument
           {
             headers: {
               Accept: 'application/json, text/plain, */*',
@@ -147,6 +149,17 @@ describe('Metadata Date Handling', () => {
         .reply(200, mockResponse);
 
       await store.burn(testKey);
+
+      // Debug: Log all requests that were made
+      // console.log('Mock history:', {
+      //   post: axiosMock.history.post,
+      //   all: axiosMock.history,
+      // });
+
+      // Check history after the request completes
+      // expect(axiosMock.history.post.length).toBe(1);
+      // expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ continue: true });
+      // expect(store.currentRecord?.burned).toEqual(TEST_DATES.now);
 
       expect(store.currentRecord?.burned).toEqual(TEST_DATES.now);
     });
@@ -285,8 +298,8 @@ describe('Metadata Date Handling', () => {
       const mockResponse = {
         record: {
           ...mockMetadataRecord,
-          created: 'invalid-date',
-          updated: null,
+          burned: 'invalid-date', // burned transforms to dateNullable
+          received: null, // received transforms to dateNullable as well
           expiration: TEST_DATES.expiration.toISOString(),
         },
         details: mockMetadataDetails,
@@ -296,9 +309,25 @@ describe('Metadata Date Handling', () => {
 
       await store.fetchOne(testKey);
 
-      expect(store.currentRecord?.created).toBeNull();
-      expect(store.currentRecord?.updated).toBeNull();
+      expect(store.currentRecord?.burned).toBeNull();
+      expect(store.currentRecord?.received).toBeNull();
       expect(store.currentRecord?.expiration).toEqual(TEST_DATES.expiration);
+    });
+
+    it('throws validation error for invalid required dates', async () => {
+      const testKey = 'testkey123';
+      const mockResponse = {
+        record: {
+          ...mockMetadataRecord,
+          created: 'invalid-date',
+          updated: null,
+        },
+        details: mockMetadataDetails,
+      };
+
+      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+
+      await expect(store.fetchOne(testKey)).rejects.toThrow('Validation Error');
     });
 
     it('maintains UTC consistency across transformations', async () => {
