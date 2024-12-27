@@ -1,5 +1,5 @@
 import { withLoadingPlugin } from '@/plugins/pinia/withLoadingPlugin';
-import { useMetadataStore } from '@/stores/metadataStore';
+import { METADATA_STATUS, useMetadataStore } from '@/stores/metadataStore';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, setActivePinia } from 'pinia';
@@ -24,6 +24,13 @@ vi.mock('@/composables/useErrorHandler', () => ({
     handleError: vi.fn().mockImplementation((error) => error),
   }),
 }));
+
+import { mockMetadataDetails, mockMetadataRecord } from '../fixtures/metadata';
+
+const mockResponse = {
+  record: mockMetadataRecord,
+  details: mockMetadataDetails,
+};
 
 // Setup Vue app with Pinia
 const app = createApp({});
