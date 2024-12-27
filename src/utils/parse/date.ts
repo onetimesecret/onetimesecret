@@ -9,18 +9,28 @@ export const parseDateValue = (val: unknown): Date | null => {
   if (val === null || val === undefined || val === '') return null;
   if (val instanceof Date) return val;
 
-  let timestamp: number;
+  // If string, try parsing as ISO date first
   if (typeof val === 'string') {
-    // Try parsing as timestamp first
-    timestamp = parseInt(val, 10);
-    // If not a valid timestamp, try as date string
-    if (isNaN(timestamp)) {
+    // Check if it's an ISO date string format
+    if (val.includes('T') || val.includes('-')) {
       const dateFromString = new Date(val);
-      return isNaN(dateFromString.getTime()) ? null : dateFromString;
+      if (!isNaN(dateFromString.getTime())) {
+        return dateFromString;
+      }
     }
-  } else {
-    timestamp = val as number;
+
+    // If not ISO format, try as timestamp
+    const timestamp = parseInt(val, 10);
+    if (!isNaN(timestamp)) {
+      return new Date(timestamp * 1000); // Convert seconds to milliseconds
+    }
+    return null;
   }
 
-  return isNaN(timestamp) ? null : new Date(timestamp * 1000);
+  // If number, treat as timestamp
+  if (typeof val === 'number') {
+    return new Date(val * 1000); // Convert seconds to milliseconds
+  }
+
+  return null;
 };
