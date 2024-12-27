@@ -85,7 +85,6 @@ export default [
         ...globals.browser,
         process: true, // Allow process global for environment variables
       },
-      // parser: parserTs, // Use TypeScript parser for .ts files
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
@@ -380,7 +379,6 @@ export default [
   {
     files: ['**/*.d.ts'],
     languageOptions: {
-      parser: parserTs,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
@@ -442,7 +440,6 @@ export default [
   {
     files: ['tests/**/*.spec.{ts,vue,d.ts}', 'tests/**/*.{vue,d.ts}'],
     languageOptions: {
-      parser: parserTs,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
