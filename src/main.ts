@@ -21,7 +21,6 @@ import { createApp, watch } from 'vue';
 
 import App from './App.vue';
 import './assets/style.css';
-import { withLoadingPlugin } from './plugins/pinia/withLoadingPlugin';
 
 /**
  * Initialize and mount the Vue application with proper language settings.
@@ -49,7 +48,6 @@ async function initializeApp() {
   const pinia = createPinia();
 
   pinia.use(logoutPlugin);
-  pinia.use(withLoadingPlugin);
   app.use(pinia);
 
   app.config.errorHandler = (error) => {
