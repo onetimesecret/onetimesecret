@@ -6,11 +6,11 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  createMetadataWithPassphrase,
-  mockBurnedMetadataDetails,
-  mockBurnedMetadataRecord,
-  mockMetadataDetails,
-  mockMetadataRecord,
+    createMetadataWithPassphrase,
+    mockBurnedMetadataDetails,
+    mockBurnedMetadataRecord,
+    mockMetadataDetails,
+    mockMetadataRecord,
 } from '../fixtures/metadata';
 
 describe('metadataStore', () => {
@@ -195,6 +195,36 @@ describe('metadataStore', () => {
       await expect(promise).rejects.toThrow();
       expect(store.isLoading).toBe(false);
     });
+
+    // Add to loading state describe block
+    it('tracks detailed loading state changes', async () => {
+      const loadingStates: boolean[] = [];
+      const mockResponse = {
+        record: mockMetadataRecord,
+        details: mockMetadataDetails,
+      };
+
+      // Subscribe to catch all state changes
+      store.$subscribe(() => {
+        loadingStates.push(store.isLoading);
+      });
+
+      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).reply(() => {
+        return new Promise((resolve) => {
+          setTimeout(() => resolve([200, mockResponse]), 50);
+        });
+      });
+
+      const promise = store.fetchOne(mockMetadataRecord.key);
+      expect(store.isLoading).toBe(true);
+
+      await promise;
+
+      expect(loadingStates).toContain(true);
+      expect(store.isLoading).toBe(false);
+      expect(loadingStates[loadingStates.length - 1]).toBe(false);
+    });
+
   });
 
   describe('refreshRecords', () => {
@@ -212,6 +242,79 @@ describe('metadataStore', () => {
       // Second call should not fetch
       await store.refreshRecords();
       expect(axiosMock.history.get.length).toBe(1);
+    });
+  });
+
+
+  describe('date handling', () => {
+    it('handles dates correctly when fetching metadata', async () => {
+      const testKey = mockMetadataRecord.key;
+      const now = new Date('2024-12-25T16:06:54.000Z');
+      const expiration = new Date('2024-12-26T00:06:54.000Z');
+
+      const mockResponse = {
+        record: {
+          ...mockMetadataRecord,
+          created: now.toISOString(),
+          updated: now.toISOString(),
+          expiration: expiration.toISOString(),
+        },
+        details: mockMetadataDetails,
+      };
+
+      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+
+      await store.fetchOne(testKey);
+
+      expect(store.currentRecord?.created).toEqual(now);
+      expect(store.currentRecord?.updated).toEqual(now);
+      expect(store.currentRecord?.expiration).toEqual(expiration);
+    });
+
+    it('handles dates correctly when burning metadata', async () => {
+      const testKey = mockMetadataRecord.key;
+      const now = new Date('2024-12-25T16:06:54.000Z');
+
+      const mockResponse = {
+        record: {
+          ...mockBurnedMetadataRecord,
+          burned: now.toISOString(),
+        },
+        details: mockBurnedMetadataDetails,
+      };
+
+      store.currentRecord = mockMetadataRecord;
+
+      axiosMock
+        .onPost(`/api/v2/private/${testKey}/burn`, {
+          passphrase: undefined,
+          continue: true,
+        })
+        .reply(200, mockResponse);
+
+      await store.burn(testKey);
+
+      expect(store.currentRecord?.burned).toEqual(now);
+    });
+  });
+
+
+  // Add hydration test if the feature is actually used
+  describe('hydration', () => {
+    it('refreshes records on store hydration', async () => {
+      const mockResponse = {
+        records: [mockMetadataRecord],
+        details: { total: 1, page: 1, per_page: 10 },
+      };
+
+      axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
+
+      await store.refreshRecords();
+      expect(store.initialized).toBe(true);
+
+      // Verify hydration behavior
+      await store.refreshRecords();
+      expect(axiosMock.history.get.length).toBe(1); // Should only call once
     });
   });
 });
