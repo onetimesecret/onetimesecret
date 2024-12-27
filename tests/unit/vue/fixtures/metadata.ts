@@ -8,7 +8,7 @@ export const mockMetadataRecord: Metadata = {
   secret_shortkey: 'xyz789',
   state: MetadataState.NEW,
   natural_expiration: '24 hours',
-  expiration: '2024-12-26T00:06:54Z',
+  expiration: new Date('2024-12-26T00:06:54Z'),
   share_path: '/share/abc123',
   burn_path: '/burn/abc123',
   metadata_path: '/metadata/abc123',
@@ -18,6 +18,8 @@ export const mockMetadataRecord: Metadata = {
   identifier: 'test-identifier',
   burned: null,
   received: null,
+  created: new Date('2024-12-25T16:06:54Z'),
+  updated: new Date('2024-12-26T09:06:54Z'),
 };
 
 export const mockMetadataDetails: MetadataDetails = {
