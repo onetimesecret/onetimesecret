@@ -1,5 +1,6 @@
 // stores/metadataStore.ts
 import { useErrorHandler } from '@/composables/useErrorHandler';
+import { ApiErrorResponse } from '@/schemas';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { ApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
@@ -83,24 +84,21 @@ export const useMetadataStore = defineStore('metadata', {
      */
     async _withLoading<T>(operation: () => Promise<T>) {
       this.isLoading = true;
-      const axiosInstance = this._api;
+      // Removed unused axiosInstance variable
 
       try {
         return await operation();
       } catch (error: unknown) {
         if (error && typeof error === 'object' && 'isAxiosError' in error) {
-          // Handle Axios errors
-          const axiosError = error as AxiosError;
+          const axiosError = error as AxiosError<ApiErrorResponse>;
           const message = axiosError.response?.data?.message || axiosError.message;
           throw new Error(`API Error: ${message}`);
         } else if (error instanceof ZodError) {
-          // Handle validation errors
           const issues = error.issues
             .map((issue: { message: string }) => issue.message)
             .join(', ');
           throw new Error(`Validation Error: ${issues}`);
         }
-        // Re-throw unknown errors
         throw error;
       } finally {
         this.isLoading = false;
@@ -163,7 +161,7 @@ export const useMetadataStore = defineStore('metadata', {
     },
   },
 
-  hydrate(store) {
-    store.refreshRecords();
-  },
+  // hydrate(store: Store) {
+  //   store.refreshRecords();
+  // },
 });
