@@ -85,12 +85,12 @@ export default [
         ...globals.browser,
         process: true, // Allow process global for environment variables
       },
+      parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url))
+        ? parserTs
+        : undefined,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        parser: ['.ts', '.tsx'].includes(path.extname(import.meta.url))
-          ? parserTs
-          : undefined,
       },
     },
     plugins: {

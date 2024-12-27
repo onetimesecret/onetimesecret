@@ -1,6 +1,6 @@
 // tests/unit/vue/fixtures/metadata.ts
-import { Secret, SecretState } from '@/schemas';
-import { Metadata, MetadataDetails, MetadataState } from '@/schemas/models/metadata';
+import { MetadataState, Secret, SecretState } from '@/schemas';
+import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 
 /**
  * Metadata fixtures for testing and merriment
