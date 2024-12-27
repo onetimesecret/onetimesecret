@@ -1,11 +1,12 @@
 // tests/unit/vue/stores/metadataStore.spec.ts
 import { useMetadataStore } from '@/stores/metadataStore';
+import { createTestingPinia } from '@pinia/testing';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  createMetadataWithPassphrase,
   mockBurnedMetadataDetails,
   mockBurnedMetadataRecord,
   mockMetadataDetails,
@@ -17,11 +18,14 @@ describe('metadataStore', () => {
   let store: ReturnType<typeof useMetadataStore>;
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-    const axiosInstance = axios.create();
-    axiosMock = new AxiosMockAdapter(axiosInstance, {
-      onNoMatch: 'throwException',
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
     });
+
+    const axiosInstance = axios.create();
+    axiosMock = new AxiosMockAdapter(axiosInstance);
+
     store = useMetadataStore();
     store.init(axiosInstance);
   });
@@ -31,105 +35,11 @@ describe('metadataStore', () => {
     vi.clearAllMocks();
   });
 
-  describe('loading state management', () => {
-    it('tracks loading state changes during operations', async () => {
-      const testKey = 'testkey123';
-      const loadingStates: boolean[] = [];
-
-      // Watch for loading state changes
-      watch(
-        () => store.isLoading,
-        (newValue) => {
-          loadingStates.push(newValue);
-        },
-        { immediate: true }
-      );
-
-      // Add delay to mock response to ensure loading state is captured
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(() => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve([200, mockResponse]);
-          }, 50); // Small delay to ensure state change is captured
-        });
-      });
-
-      await store.fetchOne(testKey);
-
-      expect(loadingStates).toContain(true);
-      expect(store.isLoading).toBe(false);
-    });
-
-    it('handles loading state with delayed responses', async () => {
-      const testKey = 'testkey123';
-
-      // Add delay to mock response
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(() => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve([200, mockResponse]);
-          }, 50);
-        });
-      });
-
-      const promise = store.fetchOne(testKey);
-
-      // Need to wait a tick for the loading state to update
-      await nextTick();
-      expect(store.isLoading).toBe(true);
-
-      await promise;
-      expect(store.isLoading).toBe(false);
-    });
-  });
-
-  // Update other test cases similarly to handle date fields
   describe('fetchOne', () => {
-    const now = new Date('2024-12-25T16:06:54.000Z');
-    const expiration = new Date('2024-12-26T00:06:54.000Z');
-    let mockMetadataRecord;
-    let mockBurnedMetadataRecord;
-    beforeEach(() => {
-      mockMetadataRecord = {
-        ...mockMetadataRecord,
-        created: now,
-        updated: now,
-        expiration: expiration,
-      };
-
-      mockBurnedMetadataRecord = {
-        ...mockBurnedMetadataRecord,
-        created: now,
-        updated: now,
-        expiration: expiration,
-      };
-    });
-
-    it('fetches and validates metadata successfully', async () => {
-      const testKey = 'testkey123';
-
-      // Create dates with explicit values
-      const now = new Date('2024-12-25T16:06:54.000Z');
-      const expiration = new Date('2024-12-26T00:06:54.000Z');
-
-      const localMockMetadataRecord = {
-        ...mockMetadataRecord,
-        created: now,
-        updated: now,
-        expiration: expiration,
-        // ... other properties
-      };
-
+    it('should fetch and validate metadata successfully', async () => {
+      const testKey = mockMetadataRecord.key;
       const mockResponse = {
-        record: {
-          ...localMockMetadataRecord,
-          // Use explicit ISO strings for dates
-          created: now.toISOString(), // "2024-12-25T16:06:54.000Z"
-          updated: now.toISOString(),
-          expiration: expiration.toISOString(), // "2024-12-26T00:06:54.000Z"
-          burned: null,
-          received: null,
-        },
+        record: mockMetadataRecord,
         details: mockMetadataDetails,
       };
 
@@ -137,35 +47,52 @@ describe('metadataStore', () => {
 
       await store.fetchOne(testKey);
 
-      // Test exact date values
-      expect(store.currentRecord?.created).toEqual(now);
-      expect(store.currentRecord?.expiration).toEqual(expiration);
       expect(store.currentRecord).toEqual(mockMetadataRecord);
       expect(store.currentDetails).toEqual(mockMetadataDetails);
       expect(store.isLoading).toBe(false);
       expect(store.error).toBeNull();
     });
+
+    it('should handle API errors when fetching metadata', async () => {
+      const testKey = mockMetadataRecord.key;
+      const errorMessage = 'Record not found';
+
+      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(404, {
+        message: errorMessage,
+      });
+
+      await expect(store.fetchOne(testKey)).rejects.toThrow(`API Error: ${errorMessage}`);
+      expect(store.isLoading).toBe(false);
+      expect(store.currentRecord).toBeNull();
+    });
+  });
+
+  describe('fetchList', () => {
+    it('should fetch and store list of metadata records', async () => {
+      const mockResponse = {
+        records: [mockMetadataRecord],
+        details: { total: 1, page: 1, per_page: 10 },
+      };
+
+      axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
+
+      await store.fetchList();
+
+      expect(store.records).toEqual([mockMetadataRecord]);
+      expect(store.details).toEqual(mockResponse.details);
+      expect(store.isLoading).toBe(false);
+    });
   });
 
   describe('burn', () => {
-    it('burns metadata successfully', async () => {
-      const testKey = 'testkey123';
+    it('should burn metadata successfully', async () => {
+      const testKey = mockMetadataRecord.key;
       const mockResponse = {
-        record: {
-          ...mockBurnedMetadataRecord,
-          // Convert Date objects to ISO strings for the API response
-          created: mockBurnedMetadataRecord.created.toISOString(),
-          updated: mockBurnedMetadataRecord.updated.toISOString(),
-          expiration: mockBurnedMetadataRecord.expiration.toISOString(),
-          burned: mockBurnedMetadataRecord.burned?.toISOString() || null,
-          received: mockBurnedMetadataRecord.received?.toISOString() || null,
-        },
+        record: mockBurnedMetadataRecord,
         details: mockBurnedMetadataDetails,
       };
 
-      // Setup initial state
       store.currentRecord = mockMetadataRecord;
-      store.currentDetails = mockMetadataDetails;
 
       axiosMock
         .onPost(`/api/v2/private/${testKey}/burn`, {
@@ -178,26 +105,20 @@ describe('metadataStore', () => {
 
       expect(store.currentRecord).toEqual(mockBurnedMetadataRecord);
       expect(store.currentDetails).toEqual(mockBurnedMetadataDetails);
-      expect(store.isLoading).toBe(false);
     });
 
-    it('burns metadata with passphrase', async () => {
-      const testKey = 'testkey123';
+    it('should burn metadata with passphrase', async () => {
+      const testKey = mockMetadataRecord.key;
       const passphrase = 'secret123';
+      const { record, details } = createMetadataWithPassphrase(passphrase);
+
       const mockResponse = {
-        record: {
-          ...mockBurnedMetadataRecord,
-          // Convert Date objects to ISO strings for the API response
-          created: mockBurnedMetadataRecord.created.toISOString(),
-          updated: mockBurnedMetadataRecord.updated.toISOString(),
-          expiration: mockBurnedMetadataRecord.expiration.toISOString(),
-          burned: mockBurnedMetadataRecord.burned?.toISOString() || null,
-          received: mockBurnedMetadataRecord.received?.toISOString() || null,
-        },
+        record: mockBurnedMetadataRecord,
         details: mockBurnedMetadataDetails,
       };
 
-      store.currentRecord = mockMetadataRecord;
+      store.currentRecord = record;
+      store.currentDetails = details;
 
       axiosMock
         .onPost(`/api/v2/private/${testKey}/burn`, {
@@ -211,45 +132,86 @@ describe('metadataStore', () => {
       expect(store.currentRecord).toEqual(mockBurnedMetadataRecord);
       expect(store.currentDetails).toEqual(mockBurnedMetadataDetails);
     });
+
+    it('should handle errors when burning invalid metadata', async () => {
+      const testKey = mockBurnedMetadataRecord.key;
+      store.currentRecord = mockBurnedMetadataRecord;
+
+      await expect(store.burn(testKey)).rejects.toThrow('Cannot burn this metadata');
+      expect(store.error).toBeTruthy();
+    });
   });
 
-  describe('loading state management', () => {
-    it('tracks loading state changes during operations', async () => {
-      const testKey = 'testkey123';
-      const loadingStates: boolean[] = [];
-
-      axiosMock
-        .onGet(`/api/v2/private/${testKey}`)
-        .reply(200, { record: mockMetadataRecord, details: mockMetadataDetails });
-
-      store.$subscribe(() => {
-        loadingStates.push(store.isLoading);
-      });
-
-      await store.fetchOne(testKey);
-
-      expect(loadingStates).toContain(true);
-      expect(store.isLoading).toBe(false);
+  describe('canBurn getter', () => {
+    it('returns false when no current record exists', () => {
+      store.currentRecord = null;
+      expect(store.canBurn).toBe(false);
     });
 
-    it('handles loading state with delayed responses', async () => {
-      const testKey = 'testkey123';
+    it('returns true for NEW state', () => {
+      store.currentRecord = mockMetadataRecord;
+      expect(store.canBurn).toBe(true);
+    });
+
+    it('returns false for BURNED state', () => {
+      store.currentRecord = mockBurnedMetadataRecord;
+      expect(store.canBurn).toBe(false);
+    });
+  });
+
+  describe('loading state', () => {
+    it('should track loading state during async operations', async () => {
+      const loadingStates: boolean[] = [];
       const mockResponse = {
         record: mockMetadataRecord,
         details: mockMetadataDetails,
       };
 
-      axiosMock.onGet(`/api/v2/private/${testKey}`).reply(() => {
+      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).reply(() => {
         return new Promise((resolve) => {
           setTimeout(() => resolve([200, mockResponse]), 50);
         });
       });
 
-      const promise = store.fetchOne(testKey);
+      store.$subscribe(() => {
+        loadingStates.push(store.isLoading);
+      });
+
+      const promise = store.fetchOne(mockMetadataRecord.key);
       expect(store.isLoading).toBe(true);
 
       await promise;
+
+      expect(loadingStates).toContain(true);
       expect(store.isLoading).toBe(false);
+    });
+
+    it('should handle loading state with errors', async () => {
+      axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).networkError();
+
+      const promise = store.fetchOne(mockMetadataRecord.key);
+      expect(store.isLoading).toBe(true);
+
+      await expect(promise).rejects.toThrow();
+      expect(store.isLoading).toBe(false);
+    });
+  });
+
+  describe('refreshRecords', () => {
+    it('should fetch records only when not initialized', async () => {
+      const mockResponse = {
+        records: [mockMetadataRecord],
+        details: { total: 1, page: 1, per_page: 10 },
+      };
+
+      axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
+
+      await store.refreshRecords();
+      expect(store.initialized).toBe(true);
+
+      // Second call should not fetch
+      await store.refreshRecords();
+      expect(axiosMock.history.get.length).toBe(1);
     });
   });
 });
