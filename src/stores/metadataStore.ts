@@ -31,8 +31,6 @@ interface StoreState {
   count: number | null;
 }
 
-const errorHandler = useErrorHandler();
-
 export const useMetadataStore = defineStore('metadata', {
   state: (): StoreState => ({
     isLoading: false,
@@ -63,8 +61,13 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
-    // Inject API client through closure
     _api: null as AxiosInstance | null,
+    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+
+    init(api: AxiosInstance = createApi()) {
+      this._api = api;
+      this._errorHandler = useErrorHandler();
+    },
 
     /**
      *  Wraps async operations with loading state management. A poor dude's plugin.
@@ -90,20 +93,28 @@ export const useMetadataStore = defineStore('metadata', {
       try {
         return await operation();
       } catch (error: unknown) {
-        // console.error('Error in _withLoading:', error);
         this.handleError(error); // Will handle both validation and API errors
       } finally {
         this.isLoading = false;
       }
     },
 
-    init(api: AxiosInstance = createApi()) {
-      this._api = api;
-    },
-
     handleError(error: unknown): ApiError {
-      const { handleError } = useErrorHandler();
-      this.error = handleError(error);
+      // Lazy initialize if not set
+      if (!this._errorHandler) {
+        this.init();
+      }
+
+      // Non-null assertion after guaranteed initialization
+      const processedError = this._errorHandler?.handleError(error);
+
+      // Ensure a non-null ApiError is always returned
+      this.error = processedError ?? {
+        message: 'An unexpected error occurred',
+        code: 500,
+        name: 'UnhandledError',
+      };
+
       return this.error;
     },
 
