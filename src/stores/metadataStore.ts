@@ -1,8 +1,8 @@
 // stores/metadataStore.ts
 import { useErrorHandler } from '@/composables/useErrorHandler';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
-import { ApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
+import { ApiError } from '@/schemas/errors/api';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
 import { type AxiosInstance } from 'axios';

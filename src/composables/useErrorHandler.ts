@@ -1,4 +1,4 @@
-import { ApiError, handleError as apiHandleError } from '@/schemas/api/errors';
+import { ApiError, handleError as apiHandleError } from '@/schemas/errors/api';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import axios from 'axios';
 import { ZodError } from 'zod';

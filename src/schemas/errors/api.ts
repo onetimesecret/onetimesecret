@@ -1,4 +1,4 @@
-// schemas/api/errors.ts
+// schemas/errors/api.ts
 
 import { AxiosError } from 'axios';
 import { z } from 'zod';

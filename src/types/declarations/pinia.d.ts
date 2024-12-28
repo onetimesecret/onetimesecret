@@ -1,4 +1,4 @@
-import type { ApiError } from '@/schemas/api/errors';
+import type { ApiError } from '@/schemas/errors/api';
 
 /**
  * Store Architecture & Error Handling

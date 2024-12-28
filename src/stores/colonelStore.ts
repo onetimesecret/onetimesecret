@@ -2,7 +2,7 @@
 
 import { useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas, type ColonelData } from '@/schemas/api';
-import { ApiError } from '@/schemas/api/errors';
+import { ApiError } from '@/schemas/errors/api';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
 

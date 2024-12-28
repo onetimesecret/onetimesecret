@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ApiError } from '@/schemas/api/errors';
+import type { ApiError } from '@/schemas/errors/api';
 import { computed } from 'vue';
 import { ZodError } from 'zod';
 
