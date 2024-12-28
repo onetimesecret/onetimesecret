@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import APIKeyCard from '@/components/account/APIKeyCard.vue';
   import { useFormSubmission } from '@/composables/useFormSubmission';
-  import { apiTokenResponseSchema } from '@/schemas/api/endpoints';
+  import { responseSchemas } from '@/schemas/api/responses';
   import { useCsrfStore } from '@/stores/csrfStore';
   import { ref, watch } from 'vue';
 
@@ -31,7 +31,7 @@
   } = useFormSubmission({
     url: '/api/v2/account/apitoken',
     successMessage: 'Token generated.',
-    schema: apiTokenResponseSchema,
+    schema: responseSchemas.apiToken,
     onSuccess: async (data) => {
       // data is now properly typed as ApiTokenResponse
       const newToken = data.record?.apitoken || '';

@@ -1,13 +1,12 @@
 // stores/metadataStore.ts
-import { useStoreError } from '@/composables/useStoreError';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { ApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
+import { type AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
-
-const api = createApi();
 
 // Define valid states as a value (not just a type)
 export const METADATA_STATUS = {
@@ -27,7 +26,9 @@ interface StoreState {
   currentRecord: Metadata | null;
   currentDetails: MetadataDetails | null;
   records: MetadataRecords[];
-  details: MetadataRecordsDetails | null;
+  details: MetadataRecordsDetails | {};
+  initialized: boolean;
+  count: number | null;
 }
 
 export const useMetadataStore = defineStore('metadata', {
@@ -37,10 +38,14 @@ export const useMetadataStore = defineStore('metadata', {
     currentRecord: null as Metadata | null,
     currentDetails: null,
     records: [],
-    details: null,
+    details: {},
+    initialized: false,
+    count: null,
   }),
 
   getters: {
+    recordCount: (state) => state.count,
+
     canBurn(state: StoreState): boolean {
       if (!state.currentRecord) return false;
       const validStates = [
@@ -56,20 +61,66 @@ export const useMetadataStore = defineStore('metadata', {
   },
 
   actions: {
+    _api: null as AxiosInstance | null,
+    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+
+    init(api: AxiosInstance = createApi()) {
+      this._api = api;
+      this._errorHandler = useErrorHandler();
+    },
+
+    /**
+     *  Wraps async operations with loading state management. A poor dude's plugin.
+     *
+     * Implementation Note: Originally attempted as a Pinia plugin but moved to a
+     * store action due to testing challenges. The plugin approach required complex
+     * setup with proper plugin initialization in tests, which introduced more
+     * complexity than value. While plugins are better for cross-store
+     * functionality, this simple loading pattern works fine as a store
+     * action and is much easier to test.
+     *
+     * The original plugin implementation kept failing with "_withLoading does not
+     * exist" errors in tests, likely due to plugin initialization timing issues.
+     * This direct approach sidesteps those problems entirely.
+     *
+     * @template T The type of value returned by the operation
+     * @param operation The async operation to execute with loading state
+     * @returns Promise of the operation result
+     */
+    async _withLoading<T>(operation: () => Promise<T>) {
+      this.isLoading = true;
+
+      try {
+        return await operation();
+      } catch (error: unknown) {
+        this.handleError(error); // Will handle both validation and API errors
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     handleError(error: unknown): ApiError {
-      const { handleError } = useStoreError();
-      this.error = handleError(error);
+      // Lazy initialize if not set
+      if (!this._errorHandler) {
+        this.init();
+      }
+
+      // Non-null assertion after guaranteed initialization
+      const processedError = this._errorHandler?.handleError(error);
+
+      // Ensure a non-null ApiError is always returned
+      this.error = processedError ?? {
+        message: 'An unexpected error occurred',
+        code: 500,
+        name: 'UnhandledError',
+      };
+
       return this.error;
     },
 
-    setData(data: { record: Metadata | null; details: MetadataDetails | null }) {
-      this.currentRecord = data.record;
-      this.currentDetails = data.details;
-    },
-
     async fetchOne(key: string) {
-      return await this.withLoading(async () => {
-        const response = await api.get(`/api/v2/private/${key}`);
+      return await this._withLoading(async () => {
+        const response = await this._api!.get(`/api/v2/private/${key}`);
         const validated = responseSchemas.metadata.parse(response.data);
         this.currentRecord = validated.record;
         this.currentDetails = validated.details;
@@ -78,12 +129,31 @@ export const useMetadataStore = defineStore('metadata', {
     },
 
     async fetchList() {
-      return await this.withLoading(async () => {
-        const response = await api.get('/api/v2/private/recent');
+      return await this._withLoading(async () => {
+        const response = await this._api!.get('/api/v2/private/recent');
+        // console.debug('API Response:', response.data);
+
         const validated = responseSchemas.metadataList.parse(response.data);
-        this.records = validated.records;
-        this.details = validated.details;
+
+        this.records = validated.records ?? ([] as MetadataRecords[]);
+        this.details = validated.details ?? ({} as MetadataRecordsDetails);
+        this.count = validated.count ?? 0;
+
+        // console.log('Store State After Update:', {
+        //   records: this.records,
+        //   details: this.details,
+        //   count: this.count,
+        // });
+
         return validated;
+      });
+    },
+
+    async refreshRecords() {
+      if (this.initialized) return; // prevent repeated calls when 0 domains
+      return await this._withLoading(async () => {
+        this.fetchList();
+        this.initialized = true;
       });
     },
 
@@ -92,8 +162,8 @@ export const useMetadataStore = defineStore('metadata', {
         this.handleError(new Error('Cannot burn this metadata'));
       }
 
-      return await this.withLoading(async () => {
-        const response = await api.post(`/api/v2/private/${key}/burn`, {
+      return await this._withLoading(async () => {
+        const response = await this._api!.post(`/api/v2/private/${key}/burn`, {
           passphrase,
           continue: true,
         });
@@ -104,4 +174,8 @@ export const useMetadataStore = defineStore('metadata', {
       });
     },
   },
+
+  // hydrate(store: Store) {
+  //   store.refreshRecords();
+  // },
 });

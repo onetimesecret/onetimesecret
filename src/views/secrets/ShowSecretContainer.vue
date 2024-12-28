@@ -1,8 +1,9 @@
 <!-- ShowSecretContainer.vue -->
 <script setup lang="ts">
-import { domainStrategy } from '@/composables/useDomainBranding';
+// import { domainStrategy } from '@/composables/useDomainBranding';
+import { useValidatedWindowProp } from '@/composables/useWindowProps';
 import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { z } from 'zod';
 
 import ShowSecretBranded from './branded/ShowSecret.vue';
 import ShowSecretCanonical from './canonical/ShowSecret.vue';
@@ -11,17 +12,16 @@ import ShowSecretCanonical from './canonical/ShowSecret.vue';
 interface Props {
   secretKey: string;
 }
-defineProps<Props>();
+const props = defineProps<Props>();
 
-const route = useRoute();
-
-// Get values from route meta
-const displayDomain = computed(() => route.meta.display_domain as string);
-const domainId = computed(() => route.meta.domain_id as string);
-const siteHost = computed(() => route.meta.site_host as string);
+const domainStrategy = useValidatedWindowProp('domain_strategy', z.string());
+const displayDomain = useValidatedWindowProp('display_domain', z.string());
+const domainId = useValidatedWindowProp('domain_id', z.string());
+const siteHost = useValidatedWindowProp('site_host', z.string());
 
 const currentComponent = computed(() => {
-  return domainStrategy.value === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
+  console.debug('[ShowSecretContainer] meta=', props.secretKey, domainStrategy)
+  return domainStrategy === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
 });
 </script>
 

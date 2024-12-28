@@ -1,4 +1,4 @@
-// src/stores/notifications.ts
+// src/stores/notificationsStore.ts
 import { defineStore } from 'pinia';
 
 interface NotificationState {

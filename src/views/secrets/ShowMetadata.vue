@@ -53,25 +53,21 @@ import { useMetadata } from '@/composables/useMetadata';
 import { onMounted } from 'vue';
 import { onBeforeRouteUpdate } from 'vue-router';
 
-const props = defineProps<{
-  metadataKey: string | null,
-}>();
+// Define props
+interface Props {
+  metadataKey: string,
+}
+const props = defineProps<Props>();
 
-const { record, details, isLoading, error, fetch } = useMetadata(props.metadataKey || '');
+const { record, details, isLoading, error, fetch } = useMetadata(props.metadataKey);
 
 onBeforeRouteUpdate((to, from, next) => {
-  console.log('[ShowMetadata] Route updating', to.params.metadataKey);
-  if (props.metadataKey) {
-    fetch();
-  }
+  console.debug('[ShowMetadata] Route updating', to.params.metadataKey);
+  fetch();
   next();
 });
 
-onMounted(() => {
-  if (props.metadataKey) {
-    fetch();
-  }
-});
+onMounted(fetch);
 </script>
 
 <template>

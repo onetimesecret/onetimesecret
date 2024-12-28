@@ -1,5 +1,5 @@
 // stores/authStore.ts
-import { useStoreError } from '@/composables/useStoreError';
+import { useErrorHandler } from '@/composables/useErrorHandler';
 import { ApiError, responseSchemas } from '@/schemas/api';
 import { Customer } from '@/schemas/models';
 import { createApi } from '@/utils/api';
@@ -115,7 +115,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     handleError(error: unknown): ApiError {
-      const { handleError } = useStoreError();
+      const { handleError } = useErrorHandler();
       this.error = handleError(error);
       return this.error;
     },

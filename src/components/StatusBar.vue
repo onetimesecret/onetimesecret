@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useNotificationsStore } from '@/stores/notifications';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
 

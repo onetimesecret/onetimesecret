@@ -13,7 +13,15 @@ import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 const apiBaseUrl = process.env.VITE_API_BASE_URL || 'https://dev.onetimesecret.com';
 
 export default defineConfig({
+  // Sets project root to ./src directory
+  // - All imports will be resolved relative to ./src
+  // - Static assets should be placed in ./src/public
+  // - Index.html should be in ./src
   root: './src',
+  // If root is NOT set:
+  // - Project root will be the directory with vite.config.ts
+  // - Static assets go in ./public
+  // - Index.html should be in project root
   plugins: [
     Vue({
       include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files

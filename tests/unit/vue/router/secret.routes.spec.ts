@@ -1,10 +1,10 @@
-// tests/unit/vue/router/recipient.routes.spec.ts
+// tests/unit/vue/router/secret.routes.spec.ts
 
 import { useSecretsStore } from '@/stores/secretsStore'
 import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import routes from '@/router/recipient.routes'
+import routes from '@/router/secret.routes'
 
 // Mock the secrets store
 vi.mock('@/stores/secretsStore', () => ({

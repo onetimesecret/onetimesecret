@@ -1,6 +1,6 @@
-import { defineConfig } from 'vitest/config'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import vue from '@vitejs/plugin-vue';
+import { resolve } from 'path';
+import { defineConfig } from 'vitest/config';
 
 // use mock service workers lib to mock API requests (any fetch or axios requests).
 
@@ -28,24 +28,26 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     globals: true,
-    environment: 'jsdom',  // or 'happy-dom' (light faster dom), 'jsdom' (more feature complete), 'node' (no dom, so no document or window) -- node is the default
-    include: [
-      'tests/unit/vue/**/*.spec.ts',
-      'tests/unit/vue/**/*.spec.vue',
-    ],
+    environment: 'jsdom',
+    include: ['**/*.spec.ts', '**/*.spec.vue'],
     exclude: [
       '**/node_modules/**',
       '**/.trunk/**',
       '**/dist/**',
       '**/.{idea,git,cache,output,temp}/**',
     ],
-    setupFiles: [
-      'tests/unit/vue/setup.ts',
-    ],
+    setupFiles: ['tests/unit/vue/setup.ts'],
+    sequence: {
+      hooks: 'list', // runs beforeEachand afterEach in the order defined
+    },
+    typecheck: {
+      tsconfig: './tsconfig.json',
+    },
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': resolve(process.cwd(), './src'),
+      '@tests': resolve(process.cwd(), './tests'),
     },
   },
-})
+});

@@ -19,9 +19,9 @@ tests/
 │   ├── fixtures/
 │   └── ... (Test fixtures for integration tests)
 ├── performance/
-│   └── ... (Performance and load tests)
+│   └── ... (Performance and load tests - WIP)
 └── security/
-    └── ... (Security-related tests)
+    └── ... (Security-related tests - WIP)
 ```
 
 ## Test Types

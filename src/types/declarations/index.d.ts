@@ -10,18 +10,13 @@ declare module 'vue-router' {
     requiresAuth?: boolean;
     layout?: Component;
     layoutProps?: LayoutProps;
+
+    // TODO: Do a find for this key and replace with data loading approach
     initialData?: AxiosResponse<unknown>;
+
+    domain_strategy?: string;
+    display_domain?: string;
+    domain_id?: string;
+    site_host?: string;
   }
-
-  interface TypedRouteParams {
-    metadataKey: string; // TODO: Revisit b/c I'm pretty sure it doesn't affect anything
-  }
-}
-
-declare module 'api' {
-  export * from '../api';
-}
-
-declare module 'ui' {
-  export * from '../ui';
 }

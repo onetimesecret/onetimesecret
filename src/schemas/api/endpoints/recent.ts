@@ -19,7 +19,7 @@ export const metadataRecordsSchema = metadataBaseSchema.merge(
 
 // The details for each record in list view
 export const metadataRecordsDetailsSchema = z.object({
-  type: z.literal('list'),
+  type: z.string(), // literally the word "list"
   since: z.number(),
   now: transforms.fromString.date,
   has_items: transforms.fromString.boolean,

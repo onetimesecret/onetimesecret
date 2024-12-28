@@ -1,3 +1,4 @@
+<!-- ShowSecret.vue -->
 <script setup lang="ts">
 /**
  * Core OneTimeSecret implementation that uses distinct layouts for confirmation
@@ -13,95 +14,60 @@
  * @see SecretConfirmationForm - Marketing-optimized confirmation layout
  * @see SecretDisplayCase - Simplified secret reveal display
  */
-import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
-import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
-import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-import { AsyncDataResult, SecretResponse } from '@/schemas/api';
-import { Secret, SecretDetails } from '@/schemas/models';
-import { computed, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+ import BaseShowSecret, {type Props} from '@/components/base/BaseShowSecret.vue';
+ import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
+ import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
+ import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
+ import ThemeToggle from '@/components/ThemeToggle.vue';
 
-import UnknownSecret from './UnknownSecret.vue';
+ import UnknownSecret from './UnknownSecret.vue';
 
-interface Props {
-  secretKey: string;
-  domainId: string | null;
-  displayDomain: string;
-  siteHost: string;
-}
 
-defineProps<Props>();
-const route = useRoute();
+ defineProps<Props>();
 
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<SecretResponse>);
-
-const finalRecord = ref<Secret | null>(null);
-const finalDetails = ref<SecretDetails | null>(null);
-
-// Compute the current state based on initial and final data
-const record = computed(() => finalRecord.value || (initialData?.value.data?.record ?? null));
-const details = computed(() => finalDetails.value || (initialData?.value.data?.details ?? null));
-
-const handleSecretLoaded = (data: { record: Secret; details: SecretDetails; }) => {
-  finalRecord.value = data.record;
-  finalDetails.value = data.details;
-};
-
-const submissionStatus = ref<{
-  status: 'idle' | 'submitting' | 'success' | 'error';
-  message?: string;
-}>({
-  status: 'idle'
-});
-
-const handleSubmissionStatus = (status: { status: string; message?: string }) => {
-  submissionStatus.value = status as typeof submissionStatus.value;
-};
-
-// Watch for changes in the finalRecord and update the view accordingly
-watch(finalRecord, (newValue) => {
-  if (newValue) {
-    console.log('Secret fetched successfully');
-  }
-});
-
-const closeWarning = (event: Event) => {
-  const element = event.target as HTMLElement;
-  const warning = element.closest('.bg-amber-50, .bg-brand-50');
-  if (warning) {
-    warning.remove();
-    // Announce removal to screen readers
-    const announcement = document.createElement('div');
-    announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.textContent = 'Warning dismissed';
-    document.body.appendChild(announcement);
-    setTimeout(() => announcement.remove(), 1000);
-  }
-};
-</script>
+ const closeWarning = (event: Event) => {
+   const element = event.target as HTMLElement;
+   const warning = element.closest('.bg-amber-50, .bg-brand-50');
+   if (warning) {
+     warning.remove();
+   }
+ };
+ </script>
 
 <template>
-  <main
-    class="container mx-auto mt-24 px-4"
-    role="main"
-    aria-label="Secret viewing page">
-    <div
-      v-if="record && details"
-      class="space-y-20">
-      <!-- Owner warnings -->
+  <BaseShowSecret
+    :secret-key="secretKey"
+    :branded="false"
+    class="container mx-auto mt-24 px-4">
+    <!-- Loading slot -->
+    <template #loading="{}">
+      <div class="flex justify-center">
+        <div
+          class="size-32 animate-spin
+          rounded-full border-4 border-brand-500 border-t-transparent"></div>
+      </div>
+    </template>
+
+    <!-- Error slot -->
+    <template #error="{ error }">
+      <div class="rounded-lg border-l-4 border-red-500 bg-red-50 p-4 text-red-700">
+        {{ error }}
+      </div>
+    </template>
+
+    <!-- Alerts slot -->
+    <template #alerts="{ record, isOwner, showSecret }">
       <template v-if="!record.verification">
         <div
-          v-if="details.is_owner && !details.show_secret"
+          v-if="isOwner && !showSecret"
           class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4
-            text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
+             text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
           role="alert"
           aria-live="polite">
           <button
             type="button"
             class="float-right hover:text-amber-900 focus:outline-none
-              focus:ring-2 focus:ring-amber-500 dark:hover:text-amber-50"
+               focus:ring-2 focus:ring-amber-500 dark:hover:text-amber-50"
             @click="closeWarning"
             aria-label="Dismiss warning">
             <span aria-hidden="true">&times;</span>
@@ -111,15 +77,15 @@ const closeWarning = (event: Event) => {
         </div>
 
         <div
-          v-if="details.is_owner && details.show_secret"
+          v-if="isOwner && showSecret"
           class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4
-            text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
+             text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
           role="alert"
           aria-live="polite">
           <button
             type="button"
             class="float-right hover:text-brand-900 focus:outline-none
-              focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
+               focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
             @click="closeWarning"
             aria-label="Dismiss notification">
             <span aria-hidden="true">&times;</span>
@@ -127,28 +93,34 @@ const closeWarning = (event: Event) => {
           {{ $t('web.shared.viewed_own_secret') }}
         </div>
       </template>
+    </template>
 
-      <div v-if="!details.show_secret">
+    <!-- Confirmation slot -->
+    <template #confirmation="{ record, details, error, isLoading, onConfirm }">
+      <div class="space-y-20">
         <SecretConfirmationForm
           :secret-key="secretKey"
           :record="record"
           :details="details"
-          :domain-id="domainId"
-          :submission-status="submissionStatus"
-          @secret-loaded="handleSecretLoaded"
-          @submission-status="handleSubmissionStatus"
+          :error="error"
+          :is-submitting="isLoading"
+          @user-confirmed="onConfirm"
         />
-
-        <div v-if="!record.verification">
-          <SecretRecipientOnboardingContent
-            :display-powered-by="true"
-          />
-        </div>
       </div>
+    </template>
 
-      <div
-        v-if="details.show_secret"
-        class="space-y-4">
+    <!-- Onboarding slot -->
+    <template #onboarding="{ record }">
+      <div v-if="!record.verification">
+        <SecretRecipientOnboardingContent
+          :display-powered-by="true"
+        />
+      </div>
+    </template>
+
+    <!-- Reveal slot -->
+    <template #reveal="{ record, details }">
+      <div class="space-y-4">
         <h2
           class="text-brand-600 dark:text-brand-100"
           id="secret-heading">
@@ -156,30 +128,31 @@ const closeWarning = (event: Event) => {
         </h2>
 
         <SecretDisplayCase
+          aria-labelledby="secret-heading"
           :display-powered-by="true"
           :record="record"
           :details="details"
-          :submission-status="submissionStatus"
-          aria-labelledby="secret-heading"
-          @secret-loaded="handleSecretLoaded"
-          @submission-status="handleSubmissionStatus"
         />
       </div>
-    </div>
+    </template>
 
-    <!-- Unknown Secret -->
-    <UnknownSecret v-else-if="!record" :branded="false" />
+    <!-- Unknown secret slot -->
+    <template #unknown="{ branded }">
+      <UnknownSecret :branded="branded" />
+    </template>
 
-    <div class="flex justify-center pt-16">
-      <ThemeToggle />
-    </div>
-  </main>
+    <!-- Footer slot -->
+    <template #footer="{}">
+      <div class="flex justify-center pt-16">
+        <ThemeToggle />
+      </div>
+    </template>
+  </BaseShowSecret>
 </template>
 
-<style scoped>
-/* Ensure focus outline is visible in all color schemes */
-:focus {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-</style>
+ <style scoped>
+ :focus {
+   outline: 2px solid currentColor;
+   outline-offset: 2px;
+ }
+ </style>

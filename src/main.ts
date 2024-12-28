@@ -7,17 +7,19 @@
 import 'vite/modulepreload-polyfill';
 
 import i18n, { setLanguage } from '@/i18n';
+import { ErrorHandlerPlugin } from '@/plugins';
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { createAppRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
+import { useDomainsStore } from '@/stores/domainsStore';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useMetadataStore } from '@/stores/metadataStore';
+import { createApi } from '@/utils/api';
 import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 
 import App from './App.vue';
-import { withLoadingPlugin } from './plugins/pinia/withLoadingPlugin';
-
 import './assets/style.css';
 
 /**
@@ -44,10 +46,14 @@ async function initializeApp() {
   // Create Vue app instance and Pinia store
   const app = createApp(App);
   const pinia = createPinia();
+  app.use(pinia);
+
+  // Add the global error handler early, before we can get ourselves in trouble
+  app.use(ErrorHandlerPlugin, {
+    debug: process.env.NODE_ENV === 'development',
+  });
 
   pinia.use(logoutPlugin);
-  pinia.use(withLoadingPlugin);
-  app.use(pinia);
 
   const jurisdictionStore = useJurisdictionStore();
 
@@ -100,6 +106,14 @@ async function initializeApp() {
 
   // Let the greater js world know that there's a new sheriff in town.
   window.enjoyTheVue = true;
+
+  // Initialize the store with API instance
+  const api = createApi();
+  const metadataStore = useMetadataStore();
+  metadataStore.init(api);
+
+  const domainsStore = useDomainsStore();
+  domainsStore.init(api);
 
   // Mount the application
   // This is done last to ensure all setup is complete before rendering
