@@ -1,160 +1,75 @@
-// schemas/errors/api.ts
+export const enum HttpStatus {
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  NOT_FOUND = 404,
+  VALIDATION_ERROR = 422,
+  RATE_LIMIT = 429,
+  SERVER_ERROR = 500,
+}
 
-import { AxiosError } from 'axios';
-import { z } from 'zod';
-import { DomainError } from './domain';
+export interface TechnicalError {
+  kind: 'technical';
+  code: number;
+  message: string;
+  userMessage: string;
+  retryable: boolean;
+  details?: unknown;
+}
 
-export class TechnicalError extends Error {
-  constructor(
-    public code: number,
-    message: string,
-    public userMessage: string,
-    public retryable: boolean = false,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = this.constructor.name;
+export function createApiError(
+  status: number,
+  message: string,
+  userMessage?: string
+): TechnicalError {
+  return {
+    kind: 'technical',
+    code: status,
+    message,
+    userMessage: userMessage ?? getDefaultUserMessage(status),
+    retryable: status >= 500 || status === HttpStatus.RATE_LIMIT,
+  };
+}
+
+function getDefaultUserMessage(status: number): string {
+  switch (status) {
+    case HttpStatus.UNAUTHORIZED:
+      return 'Please sign in again to continue';
+    case HttpStatus.NOT_FOUND:
+      return 'The requested item could not be found';
+    case HttpStatus.RATE_LIMIT:
+      return 'Please wait a moment before trying again';
+    default:
+      return 'Something went wrong. Please try again later.';
   }
 }
 
-export class ApiError extends TechnicalError {
-  static readonly CODES = {
-    INVALID_AUTH: 401,
-    NOT_FOUND: 404,
-    PERMISSION_DENIED: 403,
-    VALIDATION_ERROR: 422,
-    RATE_LIMIT: 429,
-    SERVER_ERROR: 500,
-    GATEWAY_ERROR: 502,
-    SERVICE_UNAVAILABLE: 503,
-  } as const;
+export const isTechnicalError = (error: unknown): error is TechnicalError =>
+  typeof error === 'object' &&
+  error != null &&
+  'kind' in error &&
+  error.kind === 'technical';
 
-  constructor(
-    code: number,
-    message: string,
-    userMessage: string,
-    retryable: boolean = false,
-    details?: unknown
-  ) {
-    super(code, message, userMessage, retryable, details);
-  }
-
-  static fromStatus(status: number, message?: string): ApiError {
-    switch (status) {
-      case this.CODES.INVALID_AUTH:
-        return new ApiError(
-          status,
-          message || 'Authentication failed',
-          'Please sign in again to continue',
-          false
-        );
-      case this.CODES.NOT_FOUND:
-        return new ApiError(
-          status,
-          message || 'Resource not found',
-          'The requested item could not be found',
-          false
-        );
-      case this.CODES.PERMISSION_DENIED:
-        return new ApiError(
-          status,
-          message || 'Permission denied',
-          "You don't have permission to perform this action",
-          false
-        );
-      case this.CODES.RATE_LIMIT:
-        return new ApiError(
-          status,
-          message || 'Too many requests',
-          'Please wait a moment before trying again',
-          true
-        );
-      case this.CODES.VALIDATION_ERROR:
-        return new ApiError(
-          status,
-          message || 'Validation failed',
-          'Please check your input and try again',
-          false
-        );
-      default:
-        return new ApiError(
-          status,
-          message || 'Server error occurred',
-          'Something went wrong. Please try again later.',
-          status >= 500
-        );
-    }
-  }
-}
-
-export class NetworkError extends TechnicalError {
-  constructor(message: string, details?: unknown) {
-    super(
-      0,
-      message,
-      'Unable to connect to the server. Please check your connection.',
-      true,
-      details
-    );
-  }
-}
-
-export class ValidationError extends TechnicalError {
-  constructor(errors: z.ZodError) {
-    const details = errors.errors.map((err) => ({
-      path: err.path,
-      message: err.message,
-    }));
-
-    super(
-      422,
-      'Validation failed',
-      'Please check your input and try again',
-      false,
-      details
-    );
-  }
-}
-
-// Type guard helpers
-export function isTechnicalError(error: unknown): error is TechnicalError {
-  return error instanceof TechnicalError;
-}
-
-export function isNetworkError(error: unknown): error is NetworkError {
-  return error instanceof NetworkError;
-}
-
-// Enhanced error handler
 export function handleError(error: unknown): TechnicalError | DomainError {
-  // Handle Zod validation errors
+  if (isDomainError(error) || isTechnicalError(error)) {
+    return error;
+  }
+
   if (error instanceof z.ZodError) {
-    return new ValidationError(error);
+    return createApiError(
+      HttpStatus.VALIDATION_ERROR,
+      'Validation failed',
+      'Please check your input and try again'
+    );
   }
 
-  // Handle Axios errors
   if (error instanceof AxiosError) {
-    if (!error.response) {
-      return new NetworkError(error.message);
-    }
-    return ApiError.fromStatus(error.response.status, error.message);
+    return error.response
+      ? createApiError(error.response.status, error.message)
+      : createApiError(0, error.message, 'Unable to connect to the server');
   }
 
-  // Pass through domain errors
-  if (error instanceof DomainError) {
-    return error;
-  }
-
-  // Handle technical errors
-  if (error instanceof TechnicalError) {
-    return error;
-  }
-
-  // Default error handling
-  return new ApiError(
-    500,
-    error instanceof Error ? error.message : 'An unexpected error occurred',
-    'Something went wrong. Please try again later.',
-    true
+  return createApiError(
+    HttpStatus.SERVER_ERROR,
+    error instanceof Error ? error.message : 'An unexpected error occurred'
   );
 }
