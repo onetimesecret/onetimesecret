@@ -6,11 +6,12 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  createMetadataWithPassphrase,
-  mockBurnedMetadataDetails,
-  mockBurnedMetadataRecord,
-  mockMetadataDetails,
-  mockMetadataRecord,
+    createMetadataWithPassphrase,
+    mockBurnedMetadataDetails,
+    mockBurnedMetadataRecord,
+    mockMetadataDetails,
+    mockMetadataRecent,
+    mockMetadataRecord,
 } from '../fixtures/metadata';
 
 describe('metadataStore', () => {
@@ -70,16 +71,52 @@ describe('metadataStore', () => {
   describe('fetchList', () => {
     it('should fetch and store list of metadata records', async () => {
       const mockResponse = {
-        records: [mockMetadataRecord],
-        details: { total: 1, page: 1, per_page: 10 },
+        custid: 'user-123',
+        count: 2,
+        ...mockMetadataRecent,
+      };
+
+      console.log('Mock Data Being Used:', mockResponse);
+
+      axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
+
+      await store.fetchList();
+
+      console.log('Store State in Test:', {
+        records: store.records,
+        details: store.details,
+        count: store.count,
+        isLoading: store.isLoading,
+      });
+
+      expect(store.records).toEqual(mockMetadataRecent.records);
+      expect(store.details).toEqual(mockMetadataRecent.details);
+      expect(store.isLoading).toBe(false);
+    });
+
+    it('should handle empty metadata list', async () => {
+      const mockResponse = {
+        custid: 'user-123',
+        count: 0,
+        records: [],
+        details: {
+          type: 'list',
+          since: 3600 * 24 * 7,
+          now: new Date(),
+          has_items: false,
+          received: [],
+          notreceived: [],
+        },
       };
 
       axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
 
       await store.fetchList();
 
-      // expect(store.records).toEqual([mockMetadataRecord]);
-      expect(store.details).toEqual(mockResponse.details);
+      expect(store.count).toBe(0);
+      expect(store.records).toHaveLength(0);
+      expect(store.details.received).toHaveLength(0);
+      expect(store.details.notreceived).toHaveLength(0);
       expect(store.isLoading).toBe(false);
     });
   });

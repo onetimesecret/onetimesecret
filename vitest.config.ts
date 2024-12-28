@@ -37,6 +37,9 @@ export default defineConfig({
       '**/.{idea,git,cache,output,temp}/**',
     ],
     setupFiles: ['tests/unit/vue/setup.ts'],
+    sequence: {
+      hooks: 'list', // runs beforeEachand afterEach in the order defined
+    },
     typecheck: {
       tsconfig: './tsconfig.json',
     },

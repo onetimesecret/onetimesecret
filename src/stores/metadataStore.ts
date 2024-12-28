@@ -1,14 +1,12 @@
 // stores/metadataStore.ts
 import { useErrorHandler } from '@/composables/useErrorHandler';
-import { ApiErrorResponse } from '@/schemas';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { ApiError } from '@/schemas/api/errors';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
-import { AxiosError, type AxiosInstance } from 'axios';
+import { type AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
-import { ZodError } from 'zod';
 
 // Define valid states as a value (not just a type)
 export const METADATA_STATUS = {
@@ -28,8 +26,9 @@ interface StoreState {
   currentRecord: Metadata | null;
   currentDetails: MetadataDetails | null;
   records: MetadataRecords[];
-  details: MetadataRecordsDetails | null;
+  details: MetadataRecordsDetails | {};
   initialized: boolean;
+  count: number | null;
 }
 
 export const useMetadataStore = defineStore('metadata', {
@@ -39,12 +38,13 @@ export const useMetadataStore = defineStore('metadata', {
     currentRecord: null as Metadata | null,
     currentDetails: null,
     records: [],
-    details: null,
+    details: {},
     initialized: false,
+    count: null,
   }),
 
   getters: {
-    recordCount: (state) => state.records.length,
+    recordCount: (state) => state.count,
 
     canBurn(state: StoreState): boolean {
       if (!state.currentRecord) return false;
@@ -89,17 +89,19 @@ export const useMetadataStore = defineStore('metadata', {
       try {
         return await operation();
       } catch (error: unknown) {
-        if (error && typeof error === 'object' && 'isAxiosError' in error) {
-          const axiosError = error as AxiosError<ApiErrorResponse>;
-          const message = axiosError.response?.data?.message || axiosError.message;
-          throw new Error(`API Error: ${message}`);
-        } else if (error instanceof ZodError) {
-          const issues = error.issues
-            .map((issue: { message: string }) => issue.message)
-            .join(', ');
-          throw new Error(`Validation Error: ${issues}`);
-        }
-        throw error;
+        this.handleError(error); // Will handle both validation and API errors
+
+        // if (error && typeof error === 'object' && 'isAxiosError' in error) {
+        //   const axiosError = error as AxiosError<ApiErrorResponse>;
+        //   const message = axiosError.response?.data?.message || axiosError.message;
+        //   throw new Error(`API Error: ${message}`);
+        // } else if (error instanceof ZodError) {
+        //   const issues = error.issues
+        //     .map((issue: { message: string }) => issue.message)
+        //     .join(', ');
+        //   throw new Error(`Validation Error: ${issues}`);
+        // }
+        // throw error;
       } finally {
         this.isLoading = false;
       }
@@ -128,9 +130,20 @@ export const useMetadataStore = defineStore('metadata', {
     async fetchList() {
       return await this._withLoading(async () => {
         const response = await this._api!.get('/api/v2/private/recent');
+        console.log('API Response:', response.data);
+
         const validated = responseSchemas.metadataList.parse(response.data);
-        this.records = validated.records;
-        this.details = validated.details;
+
+        this.records = validated.records ?? ([] as MetadataRecords[]);
+        this.details = validated.details ?? ({} as MetadataRecordsDetails);
+        this.count = validated.count ?? 0;
+
+        console.log('Store State After Update:', {
+          records: this.records,
+          details: this.details,
+          count: this.count,
+        });
+
         return validated;
       });
     },
