@@ -1,7 +1,17 @@
-// tests/unit/vue/composables/useErrorHandler.spec.ts
 import { useErrorHandler } from '@/composables/useErrorHandler';
 import type { ApplicationError } from '@/schemas/errors';
+import { createError } from '@/schemas/errors/factory';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Mock the error classifier
+vi.mock('@/schemas/errors/classifier', () => ({
+  classifyError: (error: unknown) => {
+    if ((error as ApplicationError).type) {
+      return error as ApplicationError;
+    }
+    return createError(error instanceof Error ? error.message : String(error));
+  },
+}));
 
 describe('useErrorHandler', () => {
   const mockOptions = {
@@ -40,15 +50,10 @@ describe('useErrorHandler', () => {
 
     it('handles human errors with notification', async () => {
       const { withErrorHandling } = useErrorHandler(mockOptions);
-      const humanError: ApplicationError = {
-        name: 'Error',
-        message: 'User-facing error',
-        type: 'human',
-        severity: 'error',
-      };
+      const humanError = createError('User-facing error', 'human', 'error');
       const mockOperation = vi.fn().mockRejectedValue(humanError);
 
-      await expect(withErrorHandling(mockOperation)).rejects.toThrow();
+      await expect(withErrorHandling(mockOperation)).rejects.toThrow(humanError);
 
       expect(mockOptions.notify).toHaveBeenCalledWith('User-facing error', 'error');
       expect(mockOptions.log).toHaveBeenCalledWith(humanError);
