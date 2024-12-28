@@ -6,14 +6,20 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-    createMetadataWithPassphrase,
-    mockBurnedMetadataDetails,
-    mockBurnedMetadataRecord,
-    mockMetadataDetails,
-    mockMetadataRecent,
-    mockMetadataRecord,
+  createMetadataWithPassphrase,
+  mockBurnedMetadataDetails,
+  mockBurnedMetadataRecord,
+  mockMetadataDetails,
+  mockMetadataRecent,
+  mockMetadataRecord,
 } from '../fixtures/metadata';
 
+/**
+ * NOTE: These tests run using a simple Axios mock adapter to simulate API responses. They do not
+ * actually make network requests. However, the adapter also does not include the full Axios
+ * request/response lifecycle (our interceptors in utils/api) which can affect how errors are
+ * propagated. This is a limitation of the current test setup.
+ */
 describe('metadataStore', () => {
   let axiosMock: AxiosMockAdapter;
   let store: ReturnType<typeof useMetadataStore>;
@@ -62,6 +68,11 @@ describe('metadataStore', () => {
         message: errorMessage,
       });
 
+      console.log('Mock history:', {
+        get: axiosMock.history.get,
+        all: axiosMock.history,
+      });
+
       await expect(store.fetchOne(testKey)).rejects.toThrow(`API Error: ${errorMessage}`);
       expect(store.isLoading).toBe(false);
       expect(store.currentRecord).toBeNull();
@@ -76,18 +87,18 @@ describe('metadataStore', () => {
         ...mockMetadataRecent,
       };
 
-      console.log('Mock Data Being Used:', mockResponse);
+      // console.log('Mock Data Being Used:', mockResponse);
 
       axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
 
       await store.fetchList();
 
-      console.log('Store State in Test:', {
-        records: store.records,
-        details: store.details,
-        count: store.count,
-        isLoading: store.isLoading,
-      });
+      // console.log('Store State in Test:', {
+      //   records: store.records,
+      //   details: store.details,
+      //   count: store.count,
+      //   isLoading: store.isLoading,
+      // });
 
       expect(store.records).toEqual(mockMetadataRecent.records);
       expect(store.details).toEqual(mockMetadataRecent.details);

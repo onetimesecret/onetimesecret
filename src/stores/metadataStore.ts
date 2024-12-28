@@ -31,6 +31,8 @@ interface StoreState {
   count: number | null;
 }
 
+const errorHandler = useErrorHandler();
+
 export const useMetadataStore = defineStore('metadata', {
   state: (): StoreState => ({
     isLoading: false,
@@ -84,24 +86,12 @@ export const useMetadataStore = defineStore('metadata', {
      */
     async _withLoading<T>(operation: () => Promise<T>) {
       this.isLoading = true;
-      // Removed unused axiosInstance variable
 
       try {
         return await operation();
       } catch (error: unknown) {
+        // console.error('Error in _withLoading:', error);
         this.handleError(error); // Will handle both validation and API errors
-
-        // if (error && typeof error === 'object' && 'isAxiosError' in error) {
-        //   const axiosError = error as AxiosError<ApiErrorResponse>;
-        //   const message = axiosError.response?.data?.message || axiosError.message;
-        //   throw new Error(`API Error: ${message}`);
-        // } else if (error instanceof ZodError) {
-        //   const issues = error.issues
-        //     .map((issue: { message: string }) => issue.message)
-        //     .join(', ');
-        //   throw new Error(`Validation Error: ${issues}`);
-        // }
-        // throw error;
       } finally {
         this.isLoading = false;
       }
@@ -130,7 +120,7 @@ export const useMetadataStore = defineStore('metadata', {
     async fetchList() {
       return await this._withLoading(async () => {
         const response = await this._api!.get('/api/v2/private/recent');
-        console.log('API Response:', response.data);
+        // console.debug('API Response:', response.data);
 
         const validated = responseSchemas.metadataList.parse(response.data);
 
@@ -138,11 +128,11 @@ export const useMetadataStore = defineStore('metadata', {
         this.details = validated.details ?? ({} as MetadataRecordsDetails);
         this.count = validated.count ?? 0;
 
-        console.log('Store State After Update:', {
-          records: this.records,
-          details: this.details,
-          count: this.count,
-        });
+        // console.log('Store State After Update:', {
+        //   records: this.records,
+        //   details: this.details,
+        //   count: this.count,
+        // });
 
         return validated;
       });

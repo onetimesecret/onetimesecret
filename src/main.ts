@@ -6,8 +6,8 @@
 // performance by preloading modules.
 import 'vite/modulepreload-polyfill';
 
-import { useErrorHandler } from '@/composables/useErrorHandler';
 import i18n, { setLanguage } from '@/i18n';
+import { ErrorHandlerPlugin } from '@/plugins';
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { createAppRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
@@ -45,15 +45,15 @@ import './assets/style.css';
 async function initializeApp() {
   // Create Vue app instance and Pinia store
   const app = createApp(App);
-  const pinia = createPinia();
 
+  // Add the global error handler early, before we can get ourselves in trouble
+  app.use(ErrorHandlerPlugin, {
+    debug: process.env.NODE_ENV === 'development'
+  })
+
+  const pinia = createPinia();
   pinia.use(logoutPlugin);
   app.use(pinia);
-
-  app.config.errorHandler = (error) => {
-    const { handleError } = useErrorHandler();
-    handleError(error);
-  };
 
   const jurisdictionStore = useJurisdictionStore();
 

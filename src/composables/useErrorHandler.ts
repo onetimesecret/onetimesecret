@@ -1,5 +1,6 @@
 import { ApiError, handleError as apiHandleError } from '@/schemas/api/errors';
 import { useNotificationsStore } from '@/stores/notificationsStore';
+import axios from 'axios'; // not for making requests
 import { ZodError } from 'zod';
 
 export function useErrorHandler() {
@@ -7,10 +8,26 @@ export function useErrorHandler() {
 
   return {
     handleError(error: unknown): ApiError {
-      console.debug(
+      console.error(
         '[debug] Handling error type:',
         error?.constructor?.name ?? typeof error
       );
+
+      let errorMessage = 'An unexpected error occurred';
+      let statusCode = null;
+
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          statusCode = error.response.status;
+          errorMessage =
+            statusCode === 404
+              ? 'Secret not found or already viewed'
+              : error.response.data?.message ||
+                'An error occurred while fetching the secret';
+        } else if (error.request) {
+          errorMessage = 'No response received from server';
+        }
+      }
 
       // Handle abort errors without showing notification
       if (error instanceof Error && error.name === 'AbortError') {
