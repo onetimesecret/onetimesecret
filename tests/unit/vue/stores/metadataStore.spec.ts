@@ -60,20 +60,25 @@ describe('metadataStore', () => {
       expect(store.error).toBeNull();
     });
 
-    it('should handle API errors when fetching metadata', async () => {
+    it('should handle not found errors when fetching metadata', async () => {
       const testKey = mockMetadataRecord.key;
-      const errorMessage = 'Record not found';
+      const errorMessage = 'Secret not found or already viewed';
 
       axiosMock.onGet(`/api/v2/private/${testKey}`).reply(404, {
         message: errorMessage,
       });
 
-      console.log('Mock history:', {
-        get: axiosMock.history.get,
-        all: axiosMock.history,
+      const result = await store.fetchOne(testKey);
+
+      expect(result).toEqual({
+        status: 'error',
+        error: {
+          kind: 'not_found',
+          message: errorMessage,
+        },
       });
 
-      await expect(store.fetchOne(testKey)).rejects.toThrow(`API Error: ${errorMessage}`);
+      // Side effects should still occur
       expect(store.isLoading).toBe(false);
       expect(store.currentRecord).toBeNull();
     });
