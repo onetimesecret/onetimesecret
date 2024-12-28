@@ -5,19 +5,34 @@
  * - Maintaining flexibility for API error responses
  * - Matching type patterns used by Vue tooling (Pinia, Router, etc)
  */
-export type ErrorType = 'technical' | 'business' | 'security';
+export type ErrorType = 'technical' | 'human' | 'security';
 export type ErrorSeverity = 'error' | 'warning' | 'info';
+
+/**
+ * Intended to supplement Vue 3's built-in error handling with a structured error
+ * object that can be passed between components and services.
+ *
+ *   Vue 3's Built-in Error Handling:
+ *   ```ts
+ *   // Vue's error handling hierarchy
+ *   app.config.errorHandler = (err, instance, info) => {
+ *     // Global error handler
+ *   }
+ *
+ *   // Component-level error handling
+ *   onErrorCaptured((err, instance, info) => {
+ *     // Handle error in component tree
+ *     return false // prevent error propagation
+ *   })
+ *   ```
+ *
+ */
 
 export interface ApplicationError extends Error {
   type: ErrorType;
   severity: ErrorSeverity;
   code?: string;
   details?: Record<string, unknown>;
-}
-
-// interface-based approach is better for Vue 3 apps. If type checking is needed, we can use type predicates:
-export function isApplicationError(error: unknown): error is ApplicationError {
-  return error instanceof Error && 'type' in error && 'severity' in error;
 }
 
 /**
