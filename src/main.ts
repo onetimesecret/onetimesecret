@@ -45,15 +45,15 @@ import './assets/style.css';
 async function initializeApp() {
   // Create Vue app instance and Pinia store
   const app = createApp(App);
+  const pinia = createPinia();
+  app.use(pinia);
 
   // Add the global error handler early, before we can get ourselves in trouble
   app.use(ErrorHandlerPlugin, {
-    debug: process.env.NODE_ENV === 'development'
-  })
+    debug: process.env.NODE_ENV === 'development',
+  });
 
-  const pinia = createPinia();
   pinia.use(logoutPlugin);
-  app.use(pinia);
 
   const jurisdictionStore = useJurisdictionStore();
 
