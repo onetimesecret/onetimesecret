@@ -119,6 +119,61 @@ describe('Metadata Date Handling', () => {
     });
   });
 
+  it('handles dates correctly when fetching metadata', async () => {
+    const testKey = mockMetadataRecord.key;
+    const now = new Date('2024-12-25T16:06:54.000Z');
+    const expiration = new Date('2024-12-26T00:06:54.000Z');
+
+    const mockResponse = {
+      record: {
+        ...mockMetadataRecord,
+        created: now.toISOString(),
+        updated: now.toISOString(),
+        expiration: expiration.toISOString(),
+      },
+      details: mockMetadataDetails,
+    };
+
+    axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
+
+    await store.fetchOne(testKey);
+
+    expect(store.currentRecord?.created).toEqual(now);
+    expect(store.currentRecord?.updated).toEqual(now);
+    expect(store.currentRecord?.expiration).toEqual(expiration);
+  });
+
+  it('handles dates correctly when burning metadata', async () => {
+    // ISSUE: testKey was using mockMetadataRecord.key ('testkey123')
+    // but mock was set up for testKey variable directly ('testKey'),
+    // causing a URL mismatch
+    const testKey = mockMetadataRecord.key; // 'testkey123'
+    const now = new Date('2024-12-25T16:06:54.000Z');
+
+    const mockResponse = {
+      record: {
+        ...mockBurnedMetadataRecord,
+        burned: now.toISOString(),
+      },
+      details: mockBurnedMetadataDetails,
+    };
+
+    store.currentRecord = mockMetadataRecord;
+
+    // Fix: Match exact URL that will be used in request
+    axiosMock
+      .onPost(`/api/v2/private/testkey123/burn`, {
+        continue: true,
+      })
+      .reply(200, mockResponse);
+
+    await store.burn(testKey);
+
+    // Verify the date was parsed correctly from ISO string to Date
+    expect(store.currentRecord?.burned).toBeInstanceOf(Date);
+    expect(store.currentRecord?.burned?.toISOString()).toBe(now.toISOString());
+  });
+
   describe('State Change Dates', () => {
     it('properly validates burned date when burning metadata (strict headers)', async () => {
       const testKey = 'testkey123';

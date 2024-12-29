@@ -1,6 +1,6 @@
 // tests/unit/composables/useErrorHandler.spec.ts
 import { useErrorHandler } from '@/composables/useErrorHandler';
-import { createError } from '@/schemas/errors/factory';
+import { createError } from '@/schemas/errors/classifier';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('useErrorHandler', () => {
