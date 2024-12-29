@@ -110,7 +110,7 @@ async function initializeApp() {
   // Initialize the store with API instance
   const api = createApi();
   const metadataStore = useMetadataStore();
-  metadataStore.init(api);
+  metadataStore.setupErrorHandler(api);
 
   const domainsStore = useDomainsStore();
   domainsStore.init(api);
