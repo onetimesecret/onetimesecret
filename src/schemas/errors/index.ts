@@ -9,8 +9,8 @@ export type ErrorType = 'technical' | 'human' | 'security';
 export type ErrorSeverity = 'error' | 'warning' | 'info';
 
 /**
- * Intended to supplement Vue 3's built-in error handling with a structured error
- * object that can be passed between components and services.
+ * Intended to supplement Vue 3's built-in error handling with a structured errorl
+ * object that can be passed between components and services.l
  *
  *   Vue 3's Built-in Error Handling:
  *   ```ts
