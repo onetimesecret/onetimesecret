@@ -1,8 +1,10 @@
 // stores/authStore.ts
-import { useErrorHandler } from '@/composables/useErrorHandler';
-import { ApiError, responseSchemas } from '@/schemas/api';
+import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { responseSchemas } from '@/schemas/api';
+import { ApplicationError } from '@/schemas/errors';
 import { Customer } from '@/schemas/models';
 import { createApi } from '@/utils/api';
+import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 
 const api = createApi();
@@ -21,7 +23,7 @@ const api = createApi();
  * 2. The 15-minute base interval already provides adequate spacing
  * 3. Backoff could mask serious issues by waiting longer between retries
  */
-const AUTH_CHECK_CONFIG = {
+export const AUTH_CHECK_CONFIG = {
   /** Base interval between checks (15 minutes) */
   INTERVAL: 15 * 60 * 1000,
   /** Maximum random variation (±90 seconds) to prevent synchronized requests */
@@ -32,17 +34,18 @@ const AUTH_CHECK_CONFIG = {
   ENDPOINT: '/api/v2/authcheck',
 } as const;
 
-interface StoreState {
+export interface StoreState {
   // Base properties required for all stores
   isLoading: boolean;
-  error: ApiError | null;
+  error: ApplicationError | null;
   // Auth-specific properties
   isAuthenticated: boolean;
   isCheckingAuth: boolean;
   customer: Customer | undefined;
   authCheckTimer: ReturnType<typeof setTimeout> | null;
-  failureCount: number;
-  lastCheckTime: number;
+  failureCount: number | null;
+  lastCheckTime: number | null;
+  initialized: boolean;
 }
 
 /**
@@ -72,8 +75,9 @@ export const useAuthStore = defineStore('auth', {
     isCheckingAuth: false,
     customer: undefined,
     authCheckTimer: null,
-    failureCount: 0,
-    lastCheckTime: 0,
+    failureCount: null,
+    lastCheckTime: null,
+    initialized: false,
   }),
 
   getters: {
@@ -81,12 +85,21 @@ export const useAuthStore = defineStore('auth', {
      * Determines if the last auth check is older than the check interval.
      * Used to decide whether to perform a fresh check when a tab becomes visible.
      */
-    needsCheck(): boolean {
-      return Date.now() - this.lastCheckTime > AUTH_CHECK_CONFIG.INTERVAL;
+    needsCheck(state: StoreState): boolean {
+      // First check if state exists
+      if (!state) return true;
+
+      // Then check lastCheckTime
+      if (state.lastCheckTime === null) return true;
+
+      return Date.now() - state.lastCheckTime > AUTH_CHECK_CONFIG.INTERVAL;
     },
   },
 
   actions: {
+    _api: null as AxiosInstance | null,
+    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+
     /**
      * Initializes the auth store.
      * Sets up the visibility listener, sets initial auth state, and customer data.
@@ -94,7 +107,9 @@ export const useAuthStore = defineStore('auth', {
      * The visibility listener helps maintain auth state when tabs become
      * active after being inactive for extended periods.
      */
-    async initialize() {
+    initialize() {
+      this.setupErrorHandler(); // Set up error handler first
+
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && this.needsCheck) {
           this.checkAuthStatus();
@@ -107,22 +122,45 @@ export const useAuthStore = defineStore('auth', {
         this.customer = window.cust;
       }
 
+      // Schedule async operations after sync initialization
       if (this.isAuthenticated) {
-        this.lastCheckTime = Date.now();
-        await this.checkAuthStatus(); // Initial check
         this.$scheduleNextCheck();
+        // Queue the first check but don't await it
+        this.checkAuthStatus();
+      }
+
+      this.initialized = true;
+    },
+
+    // Separate method for async operations if needed
+    async refreshInitialState() {
+      if (this.isAuthenticated) {
+        await this.checkAuthStatus();
       }
     },
 
-    handleError(error: unknown): ApiError {
-      const { handleError } = useErrorHandler();
-      this.error = handleError(error);
-      return this.error;
+    _ensureErrorHandler() {
+      if (!this._errorHandler) this.setupErrorHandler();
+    },
+
+    setupErrorHandler(
+      api: AxiosInstance = createApi(),
+      options: ErrorHandlerOptions = {}
+    ) {
+      this._api = api;
+      this._errorHandler = useErrorHandler({
+        setLoading: (isLoading) => {
+          this.isLoading = isLoading;
+        },
+        notify: options.notify,
+        log: options.log,
+      });
     },
 
     /**
      * Checks the current authentication status with the server.
-     *
+     *©196
+
      * @description
      * This method implements a robust authentication check mechanism:
      * 1. Validates current auth state with server
@@ -139,10 +177,10 @@ export const useAuthStore = defineStore('auth', {
     async checkAuthStatus() {
       if (!this.isAuthenticated) return false;
       this.isCheckingAuth = true;
+      this._ensureErrorHandler();
 
-      try {
+      return await this._errorHandler!.withErrorHandling(async () => {
         const response = await api.get(AUTH_CHECK_CONFIG.ENDPOINT);
-
         const validated = responseSchemas.checkAuth.parse(response.data);
 
         this.isAuthenticated = validated.details.authenticated;
@@ -155,18 +193,18 @@ export const useAuthStore = defineStore('auth', {
         window.cust = this.customer;
 
         return this.isAuthenticated;
-      } catch (error) {
-        this.handleError(error);
-        this.failureCount++;
-
-        if (this.failureCount >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-          this.logout();
-        }
-
-        return false;
-      } finally {
-        this.isCheckingAuth = false;
-      }
+      })
+        .catch(() => {
+          // Initialize failureCount if this is first failure
+          this.failureCount = (this.failureCount ?? 0) + 1;
+          if (this.failureCount >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
+            this.logout();
+          }
+          return false;
+        })
+        .finally(() => {
+          this.isCheckingAuth = false;
+        });
     },
 
     /**
