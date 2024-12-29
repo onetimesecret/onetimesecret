@@ -1,7 +1,6 @@
 // stores/metadataStore.ts
 import { createError, useErrorHandler } from '@/composables/useErrorHandler';
 import { ApplicationError, ErrorSeverity } from '@/schemas';
-import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
@@ -19,12 +18,9 @@ export const METADATA_STATUS = {
 
 interface StoreState {
   isLoading: boolean;
-  currentRecord: Metadata | null;
-  currentDetails: MetadataDetails | null;
-  records: MetadataRecords[];
-  details: MetadataRecordsDetails | {};
+  record: Metadata | null;
+  details: MetadataDetails | null;
   initialized: boolean;
-  count: number | null;
 }
 
 interface InitOptions {
@@ -35,19 +31,14 @@ interface InitOptions {
 export const useMetadataStore = defineStore('metadata', {
   state: (): StoreState => ({
     isLoading: false,
-    currentRecord: null,
-    currentDetails: null,
-    records: [],
-    details: {},
+    record: null,
+    details: null,
     initialized: false,
-    count: null,
   }),
 
   getters: {
-    recordCount: (state) => state.count,
-
     canBurn(state: StoreState): boolean {
-      if (!state.currentRecord) {
+      if (!state.record) {
         return false;
       }
 
@@ -60,8 +51,8 @@ export const useMetadataStore = defineStore('metadata', {
 
       // If record is already burned or in invalid state, not burnable
       if (
-        state.currentRecord.burned ||
-        !validStates.includes(state.currentRecord.state as (typeof validStates)[number])
+        state.record.burned ||
+        !validStates.includes(state.record.state as (typeof validStates)[number])
       ) {
         return false;
       }
@@ -90,7 +81,7 @@ export const useMetadataStore = defineStore('metadata', {
       });
     },
 
-    async fetchOne(key: string) {
+    async fetch(key: string) {
       this._ensureInitialized();
 
       /**
@@ -111,35 +102,9 @@ export const useMetadataStore = defineStore('metadata', {
       return await this._errorHandler!.withErrorHandling(async () => {
         const response = await this._api!.get(`/api/v2/private/${key}`);
         const validated = responseSchemas.metadata.parse(response.data);
-        this.currentRecord = validated.record;
-        this.currentDetails = validated.details;
+        this.record = validated.record;
+        this.details = validated.details;
         return validated;
-      });
-    },
-
-    async fetchList() {
-      this._ensureInitialized();
-
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await this._api!.get('/api/v2/private/recent');
-        const validated = responseSchemas.metadataList.parse(response.data);
-
-        this.records = validated.records ?? [];
-        this.details = validated.details ?? {};
-        this.count = validated.count ?? 0;
-
-        return validated;
-      });
-    },
-
-    async refreshRecords() {
-      if (this.initialized) return;
-
-      this._ensureInitialized();
-
-      return await this._errorHandler!.withErrorHandling(async () => {
-        await this.fetchList();
-        this.initialized = true;
       });
     },
 
@@ -156,8 +121,8 @@ export const useMetadataStore = defineStore('metadata', {
           continue: true,
         });
         const validated = responseSchemas.metadata.parse(response.data);
-        this.currentRecord = validated.record;
-        this.currentDetails = validated.details;
+        this.record = validated.record;
+        this.details = validated.details;
         return validated;
       });
     },

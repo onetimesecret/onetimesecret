@@ -43,7 +43,7 @@ describe('metadataStore', () => {
     vi.clearAllMocks();
   });
 
-  describe('fetchOne', () => {
+  describe('fetch', () => {
     it('should fetch and validate metadata successfully', async () => {
       const testKey = mockMetadataRecord.key;
       const mockResponse = {
@@ -53,7 +53,7 @@ describe('metadataStore', () => {
 
       axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
 
-      await store.fetchOne(testKey);
+      await store.fetch(testKey);
 
       expect(store.currentRecord).toEqual(mockMetadataRecord);
       expect(store.currentDetails).toEqual(mockMetadataDetails);
@@ -70,7 +70,7 @@ describe('metadataStore', () => {
       });
 
       try {
-        await store.fetchOne(testKey);
+        await store.fetch(testKey);
         expect.fail('Expected error to be thrown');
       } catch (error) {
         const appError = error as ApplicationError;
@@ -259,7 +259,7 @@ describe('metadataStore', () => {
         loadingStates.push(store.isLoading);
       });
 
-      const promise = store.fetchOne(mockMetadataRecord.key);
+      const promise = store.fetch(mockMetadataRecord.key);
       expect(store.isLoading).toBe(true);
 
       await promise;
@@ -271,7 +271,7 @@ describe('metadataStore', () => {
     it('should handle loading state with errors', async () => {
       axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).networkError();
 
-      const promise = store.fetchOne(mockMetadataRecord.key);
+      const promise = store.fetch(mockMetadataRecord.key);
       expect(store.isLoading).toBe(true);
 
       await expect(promise).rejects.toThrow();
@@ -297,7 +297,7 @@ describe('metadataStore', () => {
         });
       });
 
-      const promise = store.fetchOne(mockMetadataRecord.key);
+      const promise = store.fetch(mockMetadataRecord.key);
       expect(store.isLoading).toBe(true);
 
       await promise;
@@ -326,31 +326,12 @@ describe('metadataStore', () => {
     });
   });
 
-  // Add hydration test if the feature is actually used
-  describe('hydration', () => {
-    it('refreshes records on store hydration', async () => {
-      const mockResponse = {
-        records: [mockMetadataRecord],
-        details: { total: 1, page: 1, per_page: 10 },
-      };
-
-      axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
-
-      await store.refreshRecords();
-      expect(store.initialized).toBe(true);
-
-      // Verify hydration behavior
-      await store.refreshRecords();
-      expect(axiosMock.history.get.length).toBe(1); // Should only call once
-    });
-  });
-
   describe('error handling', () => {
     it('handles API errors correctly', async () => {
       // Simulate network error
       axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).networkError();
 
-      await expect(store.fetchOne(mockMetadataRecord.key)).rejects.toThrow();
+      await expect(store.fetch(mockMetadataRecord.key)).rejects.toThrow();
       expect(store.error).toBeTruthy();
       expect(store.isLoading).toBe(false);
     });
@@ -361,7 +342,7 @@ describe('metadataStore', () => {
         record: { invalid: 'data' },
       });
 
-      await expect(store.fetchOne(mockMetadataRecord.key)).rejects.toThrow();
+      await expect(store.fetch(mockMetadataRecord.key)).rejects.toThrow();
       expect(store.error).toBeTruthy();
       expect(store.isLoading).toBe(false);
     });
@@ -369,7 +350,7 @@ describe('metadataStore', () => {
     it('resets error state between requests', async () => {
       // First request fails
       axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).networkError();
-      await expect(store.fetchOne(mockMetadataRecord.key)).rejects.toThrow();
+      await expect(store.fetch(mockMetadataRecord.key)).rejects.toThrow();
       expect(store.error).toBeTruthy();
 
       // Second request succeeds
@@ -378,7 +359,7 @@ describe('metadataStore', () => {
         details: mockMetadataDetails,
       });
 
-      await store.fetchOne(mockMetadataRecord.key);
+      await store.fetch(mockMetadataRecord.key);
       expect(store.error).toBeNull();
     });
   });
@@ -415,7 +396,7 @@ describe('metadataStore', () => {
           message: 'Secret not found or expired',
         });
 
-        await expect(store.fetchOne(mockMetadataRecord.key)).rejects.toMatchObject({
+        await expect(store.fetch(mockMetadataRecord.key)).rejects.toMatchObject({
           type: 'human',
           severity: 'error',
           message: expect.stringContaining('Secret not found'),
@@ -437,7 +418,7 @@ describe('metadataStore', () => {
         // Simulate network error - typically a technical error
         axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).networkError();
 
-        await expect(store.fetchOne(mockMetadataRecord.key)).rejects.toMatchObject({
+        await expect(store.fetch(mockMetadataRecord.key)).rejects.toMatchObject({
           type: 'technical',
           severity: 'error',
         });
@@ -458,7 +439,7 @@ describe('metadataStore', () => {
           },
         });
 
-        const error = await store.fetchOne(mockMetadataRecord.key).catch((e) => e);
+        const error = await store.fetch(mockMetadataRecord.key).catch((e) => e);
 
         expect(error).toMatchObject({
           type: 'technical',
@@ -476,7 +457,7 @@ describe('metadataStore', () => {
           message: 'Invalid authentication credentials',
         });
 
-        const error = await store.fetchOne(mockMetadataRecord.key).catch((e) => e);
+        const error = await store.fetch(mockMetadataRecord.key).catch((e) => e);
 
         expect(error).toMatchObject({
           type: 'security',
@@ -505,7 +486,7 @@ describe('metadataStore', () => {
 
         expect(store.isLoading).toBe(false); // Initial state
 
-        const promise = store.fetchOne(mockMetadataRecord.key);
+        const promise = store.fetch(mockMetadataRecord.key);
         expect(store.isLoading).toBe(true); // Loading started
 
         await promise;
@@ -525,7 +506,7 @@ describe('metadataStore', () => {
 
         expect(store.isLoading).toBe(false); // Initial state
 
-        await expect(store.fetchOne(mockMetadataRecord.key)).rejects.toThrow();
+        await expect(store.fetch(mockMetadataRecord.key)).rejects.toThrow();
 
         expect(store.isLoading).toBe(false); // Should reset on error
         expect(loadingStates).toEqual([true, false]); // Should capture error transition
@@ -556,8 +537,8 @@ describe('metadataStore', () => {
         });
 
         // Start concurrent requests
-        const promise1 = store.fetchOne('key1');
-        const promise2 = store.fetchOne('key2');
+        const promise1 = store.fetch('key1');
+        const promise2 = store.fetch('key2');
 
         expect(store.isLoading).toBe(true);
 
@@ -574,7 +555,7 @@ describe('metadataStore', () => {
         // First request fails
         axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).reply(500);
 
-        await expect(store.fetchOne(mockMetadataRecord.key)).rejects.toThrow();
+        await expect(store.fetch(mockMetadataRecord.key)).rejects.toThrow();
 
         // Second request succeeds
         axiosMock.onGet(`/api/v2/private/${mockMetadataRecord.key}`).reply(200, {
@@ -582,7 +563,7 @@ describe('metadataStore', () => {
           details: mockMetadataDetails,
         });
 
-        await store.fetchOne(mockMetadataRecord.key);
+        await store.fetch(mockMetadataRecord.key);
         expect(store.isLoading).toBe(false);
         expect(store.currentRecord).toBeTruthy();
       });

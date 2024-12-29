@@ -154,71 +154,75 @@ export const createMetadataWithPassphrase = (
   },
 });
 
-export const mockMetadataRecent = {
-  records: [
-    // Should be an array, not an object
+export const mockMetadataRecentRecords = [
+  // Should be an array, not an object
+  {
+    custid: 'customer123',
+    secret_ttl: 3600,
+    show_recipients: true,
+    is_received: false,
+    is_burned: false,
+    is_orphaned: true,
+    is_destroyed: false,
+    is_truncated: true,
+    identifier: 'abc123def456',
+    // Add these required fields from metadataBaseSchema
+    state: 'new',
+    key: 'key123',
+    shortkey: 'short123',
+    created: new Date(),
+    updated: new Date(),
+  },
+];
+
+export const mockMetadataRecentDetails = {
+  type: 'list',
+  since: Date.now(),
+  now: new Date(),
+  has_items: true,
+  received: [
     {
-      custid: 'customer123',
-      secret_ttl: 3600,
-      show_recipients: true,
-      is_received: false,
+      key: 'received-metadata-1',
+      shortkey: 'rcv-short-1',
+      secret_shortkey: 'sec-rcv-1',
+      custid: 'user-789',
+      secret_ttl: 1800, // 30 minutes
+      state: MetadataState.RECEIVED,
+      created: new Date('2024-12-25T16:06:54Z'),
+      updated: new Date('2024-12-26T09:06:54Z'),
+      show_recipients: false,
+      is_received: true,
       is_burned: false,
-      is_orphaned: true,
+      is_orphaned: false,
       is_destroyed: false,
-      is_truncated: true,
-      identifier: 'abc123def456',
-      // Add these required fields from metadataBaseSchema
-      state: 'new',
-      key: 'key123',
-      shortkey: 'short123',
-      created: new Date(),
-      updated: new Date(),
+      is_truncated: false,
+      identifier: 'received-metadata-1',
     },
   ],
-  details: {
-    type: 'list',
-    since: Date.now(),
-    now: new Date(),
-    has_items: true,
-    received: [
-      {
-        key: 'received-metadata-1',
-        shortkey: 'rcv-short-1',
-        secret_shortkey: 'sec-rcv-1',
-        custid: 'user-789',
-        secret_ttl: 1800, // 30 minutes
-        state: MetadataState.RECEIVED,
-        created: new Date('2024-12-25T16:06:54Z'),
-        updated: new Date('2024-12-26T09:06:54Z'),
-        show_recipients: false,
-        is_received: true,
-        is_burned: false,
-        is_orphaned: false,
-        is_destroyed: false,
-        is_truncated: false,
-        identifier: 'received-metadata-1',
-      },
-    ],
-    notreceived: [
-      {
-        key: 'not-received-metadata-1',
-        shortkey: 'nrcv-short-1',
-        secret_shortkey: 'sec-nrcv-1',
-        custid: 'user-101',
-        secret_ttl: 5400, // 1.5 hours
-        state: MetadataState.NEW,
-        created: new Date('2024-12-25T16:06:54Z'),
-        updated: new Date('2024-12-26T09:06:54Z'),
-        show_recipients: false,
-        is_received: false,
-        is_burned: false,
-        is_orphaned: false,
-        is_destroyed: false,
-        is_truncated: false,
-        identifier: 'not-received-metadata-1',
-      },
-    ],
-  },
+  notreceived: [
+    {
+      key: 'not-received-metadata-1',
+      shortkey: 'nrcv-short-1',
+      secret_shortkey: 'sec-nrcv-1',
+      custid: 'user-101',
+      secret_ttl: 5400, // 1.5 hours
+      state: MetadataState.NEW,
+      created: new Date('2024-12-25T16:06:54Z'),
+      updated: new Date('2024-12-26T09:06:54Z'),
+      show_recipients: false,
+      is_received: false,
+      is_burned: false,
+      is_orphaned: false,
+      is_destroyed: false,
+      is_truncated: false,
+      identifier: 'not-received-metadata-1',
+    },
+  ],
+};
+
+export const mockMetadataRecent = {
+  records: mockMetadataRecentRecords,
+  details: mockMetadataRecentDetails,
 };
 
 export const mockSecretRecord: Secret = {

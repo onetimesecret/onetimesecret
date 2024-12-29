@@ -429,30 +429,6 @@ describe('Metadata Date Handling', () => {
       expect(store.currentDetails).toBeNull();
     });
 
-    // .toMatchObject({
-    //   type: 'technical',
-    //   details: undefined,
-    // });
-    // Alternative with   try-catch for more detailed inspection
-    // try {
-    //   await store.fetchOne(testKey);
-    //   expect.fail('Expected ApplicationError to be thrown');
-    // } catch (error) {
-    //   expect(error).toBeInstanceOf(Error);
-    //   expect(error).toMatchObject({
-    //     type: 'technical',
-    //     cause: expect.any(Object),
-    //   });
-
-    //   // If you need to check specific validation details
-    //   if ('cause' in error) {
-    //     expect(error.cause).toMatchObject({
-    //       code: 'invalid_type',
-    //       // Add other expected validation error properties
-    //     });
-    //   }
-    // }
-
     it('maintains UTC consistency across transformations', async () => {
       const testKey = 'testkey123';
       const utcDates = {
