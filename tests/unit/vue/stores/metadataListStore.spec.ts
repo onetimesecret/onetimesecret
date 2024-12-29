@@ -25,7 +25,7 @@ describe('metadataListStore', () => {
     axiosMock = new AxiosMockAdapter(axiosInstance);
 
     store = useMetadataListStore();
-    store.init(axiosInstance);
+    store.setupErrorHandler(axiosInstance);
   });
 
   afterEach(() => {
@@ -197,17 +197,17 @@ describe('metadataListStore', () => {
       });
 
       store = useMetadataListStore();
-      store.init(axiosInstance);
+      store.setupErrorHandler(axiosInstance);
     });
     describe('error propagation and classification', () => {
       it('propagates human-facing errors to UI', async () => {
         store = useMetadataListStore();
-        store.init(axiosInstance, { notify: notifySpy });
+        store.setupErrorHandler(axiosInstance, { notify: notifySpy });
       });
 
       it('handles technical errors without user notification', async () => {
         store = useMetadataListStore();
-        store.init(axiosInstance, {
+        store.setupErrorHandler(axiosInstance, {
           notify: notifySpy,
           log: logSpy,
         });
@@ -215,7 +215,7 @@ describe('metadataListStore', () => {
 
       it('classifies schema validation errors as technical errors', async () => {
         store = useMetadataListStore();
-        store.init(axiosInstance, { notify: notifySpy });
+        store.setupErrorHandler(axiosInstance, { notify: notifySpy });
 
         // Send malformed data that won't match schema
         axiosMock.onGet(`/api/v2/private/recent`).reply(200, {
@@ -236,7 +236,7 @@ describe('metadataListStore', () => {
 
       it.skip('handles security-related errors appropriately', async () => {
         store = useMetadataListStore();
-        store.init(axiosInstance, { notify: notifySpy });
+        store.setupErrorHandler(axiosInstance, { notify: notifySpy });
 
         // Simulate 403 Forbidden
         axiosMock.onGet(`/api/v2/private/recent`).reply(403, {

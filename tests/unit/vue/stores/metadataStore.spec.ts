@@ -37,7 +37,7 @@ describe('metadataStore', () => {
     axiosMock = new AxiosMockAdapter(axiosInstance);
 
     store = useMetadataStore();
-    store.init(axiosInstance);
+    store.setupErrorHandler(axiosInstance);
   });
 
   afterEach(() => {
@@ -379,7 +379,7 @@ describe('metadataStore', () => {
         const mockLog = vi.fn();
 
         const store = useMetadataStore();
-        store.init(axios.create(), {
+        store.setupErrorHandler(axios.create(), {
           notify: mockNotify,
           log: mockLog,
         });
@@ -392,7 +392,7 @@ describe('metadataStore', () => {
         const store = useMetadataStore();
 
         // Should not throw when initialized with minimal parameters
-        expect(() => store.init()).not.toThrow();
+        expect(() => store.setupErrorHandler()).not.toThrow();
       });
     });
 

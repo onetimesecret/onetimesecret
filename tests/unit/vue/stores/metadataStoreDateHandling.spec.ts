@@ -47,7 +47,7 @@ describe('Metadata Date Handling', () => {
     //  return [404]; // This won't be reached if there's a more specific handler
     //});
     store = useMetadataStore();
-    store.init(axiosInstance);
+    store.setupErrorHandler(axiosInstance);
   });
 
   afterEach(() => {
@@ -70,11 +70,11 @@ describe('Metadata Date Handling', () => {
 
       axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
 
-      await store.fetchOne(testKey);
+      await store.fetch(testKey);
 
-      expect(store.currentRecord?.created).toEqual(TEST_DATES.now);
-      expect(store.currentRecord?.updated).toEqual(TEST_DATES.now);
-      expect(store.currentRecord?.expiration).toEqual(TEST_DATES.expiration);
+      expect(store.record?.created).toEqual(TEST_DATES.now);
+      expect(store.record?.updated).toEqual(TEST_DATES.now);
+      expect(store.record?.expiration).toEqual(TEST_DATES.expiration);
     });
 
     it('properly validates expiration date from ISO string', async () => {
@@ -91,9 +91,9 @@ describe('Metadata Date Handling', () => {
 
       axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
 
-      await store.fetchOne(testKey);
+      await store.fetch(testKey);
 
-      expect(store.currentRecord?.expiration).toEqual(TEST_DATES.expiration);
+      expect(store.record?.expiration).toEqual(TEST_DATES.expiration);
     });
 
     it('handles timezone conversions correctly', async () => {

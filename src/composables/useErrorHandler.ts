@@ -7,7 +7,7 @@ import {
   isOfHumanInterest,
 } from '@/schemas/errors/classifier';
 
-interface ErrorHandlerOptions {
+export interface ErrorHandlerOptions {
   /**
    * Optional handler for user-facing notifications
    */

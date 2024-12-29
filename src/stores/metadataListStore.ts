@@ -1,6 +1,5 @@
 // stores/metadataListStore.ts
-import { useErrorHandler } from '@/composables/useErrorHandler';
-import { ApplicationError, ErrorSeverity } from '@/schemas';
+import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { responseSchemas } from '@/schemas/api/responses';
 import { createApi } from '@/utils/api';
@@ -13,11 +12,6 @@ interface StoreState {
   details: MetadataRecordsDetails | null;
   initialized: boolean;
   count: number | null;
-}
-
-interface InitOptions {
-  notify?: (message: string, severity: ErrorSeverity) => void;
-  log?: (error: ApplicationError) => void;
 }
 
 export const useMetadataListStore = defineStore('metadataList', {
@@ -37,11 +31,14 @@ export const useMetadataListStore = defineStore('metadataList', {
     _api: null as AxiosInstance | null,
     _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
 
-    _ensureInitialized() {
-      if (!this._errorHandler) this.init();
+    _ensureErrorHandler() {
+      if (!this._errorHandler) this.setupErrorHandler();
     },
 
-    init(api: AxiosInstance = createApi(), options: InitOptions = {}) {
+    setupErrorHandler(
+      api: AxiosInstance = createApi(),
+      options: ErrorHandlerOptions = {}
+    ) {
       this._api = api;
       this._errorHandler = useErrorHandler({
         setLoading: (isLoading) => {
@@ -53,7 +50,7 @@ export const useMetadataListStore = defineStore('metadataList', {
     },
 
     async fetchList() {
-      this._ensureInitialized();
+      this._ensureErrorHandler();
 
       return await this._errorHandler!.withErrorHandling(async () => {
         const response = await this._api!.get('/api/v2/private/recent');
@@ -70,7 +67,7 @@ export const useMetadataListStore = defineStore('metadataList', {
     async refreshRecords() {
       if (this.initialized) return;
 
-      this._ensureInitialized();
+      this._ensureErrorHandler();
 
       return await this._errorHandler!.withErrorHandling(async () => {
         await this.fetchList();
