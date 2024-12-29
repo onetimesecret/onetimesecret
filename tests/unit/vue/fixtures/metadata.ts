@@ -128,8 +128,8 @@ export const mockOrphanedMetadataRecord: Metadata = {
   key: 'orphanedkey',
   shortkey: 'orphan123',
   state: MetadataState.ORPHANED,
-  secret_key: 'secret-orphaned-key-123', // Secret should not exist
-  secret_shortkey: 'so-abc123',
+  secret_key: 'secret-orphaned-key-123',
+  secret_shortkey: 'secret-orphaned-abc123', // Changed from 'so-abc123'
 };
 
 export const mockOrphanedMetadataDetails: MetadataDetails = {
