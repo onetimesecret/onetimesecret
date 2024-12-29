@@ -4,6 +4,12 @@ import type { ApplicationError, ErrorSeverity, ErrorType } from './index';
 export function classifyError(error: unknown): ApplicationError {
   if (isApplicationError(error)) return error;
 
+  if (isApiError(error)) {
+    // HTTP 404, 403, etc are typically human-facing errors
+    const isHumanError = error.status && [403, 404].includes(error.status);
+    return createError(error.message, isHumanError ? 'human' : 'technical', 'error');
+  }
+
   if (error instanceof Error) {
     return createError(error.message);
   }
@@ -17,6 +23,12 @@ export function isApplicationError(error: unknown): error is ApplicationError {
 
 export function isOfHumanInterest(error: ApplicationError): boolean {
   return error.type === 'human';
+}
+
+export function isApiError(
+  error: unknown
+): error is { message: string; status?: number } {
+  return typeof error === 'object' && error !== null && 'message' in error;
 }
 
 /**
