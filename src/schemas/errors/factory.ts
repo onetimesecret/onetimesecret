@@ -8,8 +8,9 @@ import type { ApplicationError, ErrorSeverity, ErrorType } from './index';
 // };
 
 // Separated out from index.ts so that we can avoid circular dependencies
+
 /**
- *
+ * * Creates a structured ApplicationError with consistent typing and metadata
  *
  * Usage example:
  *   throw createTechnicalError(`Failed to fetch secret: ${response.statusText}`, {
@@ -23,8 +24,8 @@ import type { ApplicationError, ErrorSeverity, ErrorType } from './index';
  * @param severity
  * @param details
  * @returns
+ *
  */
-
 export function createError(
   message: string,
   type: ErrorType = 'technical',
