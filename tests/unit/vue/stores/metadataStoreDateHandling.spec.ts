@@ -33,16 +33,19 @@ describe('Metadata Date Handling', () => {
       onNoMatch: 'throwException',
       delayResponse: 0,
     });
-    // Add a handler to log all requests
-    // axiosMock.onAny().reply((config) => {
-    //   console.log('Received request:', {
-    //     method: config.method,
-    //     url: config.url,
-    //     headers: config.headers,
-    //     data: config.data ? JSON.parse(config.data) : undefined,
-    //   });
-    //   return [404]; // This won't be reached if there's a more specific handler
-    // });
+    /**
+     * Add a handler to log all requests
+     * NOTE: This will interfere with other tests when enabled.
+     */
+    //axiosMock.onAny().reply((config) => {
+    //  console.log('Received request:', {
+    //    method: config.method,
+    //    url: config.url,
+    //    headers: config.headers,
+    //    data: config.data ? JSON.parse(config.data) : undefined,
+    //  });
+    //  return [404]; // This won't be reached if there's a more specific handler
+    //});
     store = useMetadataStore();
     store.init(axiosInstance);
   });
@@ -193,18 +196,20 @@ describe('Metadata Date Handling', () => {
 
       expect(store.currentRecord?.burned).toEqual(TEST_DATES.now);
     });
+
     it('properly validates burned date when burning metadata (alt)', async () => {
-      const testKey = 'testkey123';
+      const testKey = 'burnedkey';
       const mockResponse = {
         record: {
-          ...mockBurnedMetadataRecord,
+          ...mockMetadataRecord, // endpoit will raise error if we use burnedMetadataRecord (b/c it's already burned, canburn is false)
           created: TEST_DATES.now.toISOString(),
           updated: TEST_DATES.now.toISOString(),
           expiration: TEST_DATES.expiration.toISOString(),
           burned: TEST_DATES.now.toISOString(),
         },
-        details: mockBurnedMetadataDetails,
+        details: mockMetadataDetails,
       };
+
       // Log the exact mock we're setting up
       console.log('Setting up mock for:', {
         url: `/api/v2/private/${testKey}/burn`,
@@ -228,6 +233,13 @@ describe('Metadata Date Handling', () => {
       });
 
       await store.burn(testKey);
+
+      // Debug: Log all requests that were made
+      console.log('Mock history:', {
+        post: axiosMock.history.post,
+        all: axiosMock.history,
+      });
+
       expect(store.currentRecord?.burned).toEqual(TEST_DATES.now);
     });
 
@@ -315,20 +327,76 @@ describe('Metadata Date Handling', () => {
     });
 
     it('throws validation error for invalid required dates', async () => {
+      // Test setup
       const testKey = 'testkey123';
       const mockResponse = {
         record: {
           ...mockMetadataRecord,
-          created: 'invalid-date',
+          created: 'invalid-date', // Invalid date that should trigger validation error
           updated: null,
         },
         details: mockMetadataDetails,
       };
 
+      // Setup mock API response
       axiosMock.onGet(`/api/v2/private/${testKey}`).reply(200, mockResponse);
 
-      await expect(store.fetchOne(testKey)).rejects.toThrow('Validation Error');
+      // Test the validation error
+      await expect(async () => {
+        await store.fetchOne(testKey);
+      }).rejects.toMatchObject({
+        type: 'technical', // Error is classified as technical
+        severity: 'error',
+        message: JSON.stringify(
+          [
+            {
+              code: 'invalid_type',
+              expected: 'date',
+              received: 'null',
+              path: ['record', 'created'],
+              message: 'Expected date, received null',
+            },
+            {
+              code: 'invalid_type',
+              expected: 'date',
+              received: 'null',
+              path: ['record', 'updated'],
+              message: 'Expected date, received null',
+            },
+          ],
+          null,
+          2
+        ),
+      });
+
+      // Verify store state remains unchanged
+      expect(store.currentRecord).toBeNull();
+      expect(store.currentDetails).toBeNull();
     });
+
+    // .toMatchObject({
+    //   type: 'technical',
+    //   details: undefined,
+    // });
+    // Alternative with   try-catch for more detailed inspection
+    // try {
+    //   await store.fetchOne(testKey);
+    //   expect.fail('Expected ApplicationError to be thrown');
+    // } catch (error) {
+    //   expect(error).toBeInstanceOf(Error);
+    //   expect(error).toMatchObject({
+    //     type: 'technical',
+    //     cause: expect.any(Object),
+    //   });
+
+    //   // If you need to check specific validation details
+    //   if ('cause' in error) {
+    //     expect(error.cause).toMatchObject({
+    //       code: 'invalid_type',
+    //       // Add other expected validation error properties
+    //     });
+    //   }
+    // }
 
     it('maintains UTC consistency across transformations', async () => {
       const testKey = 'testkey123';
