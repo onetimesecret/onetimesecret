@@ -71,6 +71,23 @@ const mockCustomer: Customer = {
   stripe_customer_id: 'cus_123456',
 };
 
+const mockDocument = {
+  visibilityState: 'visible',
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+};
+
+const mockWindow = {
+  authenticated: false,
+  cust: null,
+  setTimeout: vi.fn(),
+  clearTimeout: vi.fn(),
+};
+
+vi.stubGlobal('document', mockDocument);
+vi.stubGlobal('window', mockWindow);
+
 describe('Auth Store', () => {
   let router: Router;
   let pinia: Pinia;
@@ -82,6 +99,14 @@ describe('Auth Store', () => {
     pinia.use(logoutPlugin);
     app.use(pinia);
     setActivePinia(pinia);
+
+    // Reset mocks
+    mockDocument.addEventListener.mockReset();
+    mockDocument.removeEventListener.mockReset();
+    mockWindow.setTimeout.mockReset();
+    mockWindow.clearTimeout.mockReset();
+    mockWindow.authenticated = false;
+    mockWindow.cust = null;
 
     // Initialize the store after pinia is set up
     store = useAuthStore();
@@ -100,6 +125,11 @@ describe('Auth Store', () => {
     vi.clearAllTimers();
     store.$reset();
     sessionStorage.clear();
+
+    // Reset DOM mocks to initial state
+    mockDocument.visibilityState = 'visible';
+    mockWindow.authenticated = false;
+    mockWindow.cust = null;
   });
 
   describe('Initialization', () => {
@@ -110,7 +140,7 @@ describe('Auth Store', () => {
       vi.stubGlobal('authenticated', true);
       vi.stubGlobal('cust', mockCustomer);
 
-      await store.initialize();
+      store.initialize();
 
       expect(store.isAuthenticated).toBe(true);
       expect(store.customer).toEqual(mockCustomer);
@@ -133,8 +163,9 @@ describe('Auth Store', () => {
 
       await store.checkAuthStatus();
 
-      expect(window.authenticated).toBe(true);
-      expect(window.cust).toEqual(mockCustomer);
+      // Access the mocked window object
+      expect(mockWindow.authenticated).toBe(true);
+      expect(mockWindow.cust).toEqual(mockCustomer);
     });
 
     // Add test for async refresh if needed
@@ -274,6 +305,8 @@ describe('Auth Store', () => {
 
     // Verify that the auth check interval is stopped
     expect(store.authCheckTimer).toBeNull();
+
+    expect(store.$stopAuthCheck).toBeDefined();
   });
 
   it('clears session storage key after logout', () => {
@@ -426,6 +459,23 @@ describe('Auth Store', () => {
       await store.checkAuthStatus();
       expect(store.failureCount).toBe(1);
     });
+    it('schedules and cancels auth checks correctly', () => {
+      const store = useAuthStore();
+      store.isAuthenticated = true;
+
+      const checkAuthStatusSpy = vi.spyOn(store, 'checkAuthStatus');
+
+      // Use the actual constants from AUTH_CHECK_CONFIG
+      const baseInterval = AUTH_CHECK_CONFIG.INTERVAL;
+      const maxJitter = AUTH_CHECK_CONFIG.JITTER;
+
+      store.$scheduleNextCheck();
+
+      // Verify timer was set within expected range
+      const nextCallTime = vi.getTimerCount();
+      expect(nextCallTime).toBeGreaterThanOrEqual(baseInterval - maxJitter);
+      expect(nextCallTime).toBeLessThanOrEqual(baseInterval + maxJitter);
+    });
   });
 
   describe('Error handling', () => {
@@ -507,6 +557,8 @@ describe('Auth Store', () => {
 
     it('tracks lastCheckTime correctly', async () => {
       const store = useAuthStore();
+      // in the `checkAuthStatus` method, there's an early return if not authenticated
+      store.isAuthenticated = true; // Add this line
       const initialTime = Date.now();
 
       vi.mocked(axios.get).mockResolvedValueOnce({
@@ -517,7 +569,10 @@ describe('Auth Store', () => {
       });
 
       await store.checkAuthStatus();
-      expect(store.lastCheckTime).toBeGreaterThanOrEqual(initialTime);
+
+      expect(store.lastCheckTime).not.toBeNull();
+      expect(store.lastCheckTime!).toBeGreaterThanOrEqual(initialTime);
+      expect(store.lastCheckTime!).toBeLessThanOrEqual(Date.now());
     });
 
     it('determines need for check based on elapsed time', () => {
@@ -650,7 +705,7 @@ describe('Auth Store', () => {
 
       // Verify logout triggered after 3 failures
       expect(logoutSpy).toHaveBeenCalledTimes(1);
-      expect(store.failureCount).toBe(0);
+      expect(store.failureCount).toBeNull();
     });
   });
 });

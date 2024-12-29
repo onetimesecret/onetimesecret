@@ -1,7 +1,7 @@
-import { useAuthStore } from '@/stores/authStore'
-import { useCsrfStore } from '@/stores/csrfStore'
-import { useLanguageStore } from '@/stores/languageStore'
-import { PiniaPluginContext } from 'pinia'
+import { useAuthStore } from '@/stores/authStore';
+import { useCsrfStore } from '@/stores/csrfStore';
+import { useLanguageStore } from '@/stores/languageStore';
+import { PiniaPluginContext } from 'pinia';
 
 // By default, $reset() will not reset state added by plugins but you can override it
 
@@ -9,7 +9,7 @@ export function logoutPlugin(context: PiniaPluginContext) {
   const deleteCookie = (name: string) => {
     console.debug('Deleting cookie:', name);
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-  }
+  };
 
   /**
    * Clears authentication state and storage.
@@ -36,11 +36,11 @@ export function logoutPlugin(context: PiniaPluginContext) {
     deleteCookie('locale');
 
     // Stop any ongoing auth checks
-    authStore.stopAuthCheck()
+    authStore.$stopAuthCheck();
 
     // Clear all session storage;
     sessionStorage.clear();
 
     console.debug('Goodnight Irene');
-  }
+  };
 }
