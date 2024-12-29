@@ -1,7 +1,11 @@
 // src/composables/useErrorHandler.ts
 
 import type { ApplicationError, ErrorSeverity } from '@/schemas/errors';
-import { classifyError, isOfHumanInterest } from '@/schemas/errors/classifier';
+import {
+  classifyError,
+  createError,
+  isOfHumanInterest,
+} from '@/schemas/errors/classifier';
 
 interface ErrorHandlerOptions {
   /**
@@ -17,6 +21,8 @@ interface ErrorHandlerOptions {
    */
   setLoading?: (isLoading: boolean) => void;
 }
+
+export { createError }; // Re-export createError
 
 /**
  * Composable for handling async operations with consistent error handling.
