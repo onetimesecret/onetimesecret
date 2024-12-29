@@ -1,12 +1,27 @@
-// schemas/errors/classifier.ts
 import type { ApplicationError, ErrorSeverity, ErrorType } from './index';
 
+/**
+ * Classifies errors into application-specific categories based on their properties.
+ *
+ * HTTP Status Code Classification:
+ * - 403 Forbidden -> Security Error (authentication/authorization issues)
+ * - 404 Not Found -> Human Error (user-facing navigation/resource issues)
+ * - Others -> Technical Error (system/infrastructure issues)
+ *
+ * @param error - The error to classify
+ * @returns ApplicationError with appropriate type and severity
+ */
 export function classifyError(error: unknown): ApplicationError {
   if (isApplicationError(error)) return error;
 
   if (isApiError(error)) {
-    // HTTP 404, 403, etc are typically human-facing errors
-    const isHumanError = error.status && [403, 404].includes(error.status);
+    // Security-related HTTP status codes
+    if (error.status === 403) {
+      return createError(error.message, 'security', 'error');
+    }
+
+    // User-facing HTTP status codes
+    const isHumanError = error.status && [404].includes(error.status);
     return createError(error.message, isHumanError ? 'human' : 'technical', 'error');
   }
 
@@ -17,14 +32,30 @@ export function classifyError(error: unknown): ApplicationError {
   return createError(String(error));
 }
 
+/**
+ * Type guard to check if an error is already classified as an ApplicationError
+ */
 export function isApplicationError(error: unknown): error is ApplicationError {
   return error instanceof Error && 'type' in error && 'severity' in error;
 }
 
+/**
+ * Type guard to check if an error is human-facing
+ */
 export function isOfHumanInterest(error: ApplicationError): boolean {
   return error.type === 'human';
 }
 
+/**
+ * Type guard to check if an error is security-related
+ */
+export function isSecurityIssue(error: ApplicationError): boolean {
+  return error.type === 'security';
+}
+
+/**
+ * Type guard to check if an object is an API error with status code
+ */
 export function isApiError(
   error: unknown
 ): error is { message: string; status?: number } {
