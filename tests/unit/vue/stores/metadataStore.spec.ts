@@ -11,7 +11,6 @@ import {
   mockBurnedMetadataDetails,
   mockBurnedMetadataRecord,
   mockMetadataDetails,
-  mockMetadataRecent,
   mockMetadataRecord,
 } from '../fixtures/metadata';
 
@@ -55,8 +54,8 @@ describe('metadataStore', () => {
 
       await store.fetch(testKey);
 
-      expect(store.currentRecord).toEqual(mockMetadataRecord);
-      expect(store.currentDetails).toEqual(mockMetadataDetails);
+      expect(store.record).toEqual(mockMetadataRecord);
+      expect(store.details).toEqual(mockMetadataDetails);
       expect(store.isLoading).toBe(false);
       expect(store.error).toBeUndefined();
     });
@@ -81,60 +80,7 @@ describe('metadataStore', () => {
 
       // Side effects should still occur
       expect(store.isLoading).toBe(false);
-      expect(store.currentRecord).toBeNull();
-    });
-  });
-
-  describe('fetchList', () => {
-    it('should fetch and store list of metadata records', async () => {
-      const mockResponse = {
-        custid: 'user-123',
-        count: 2,
-        ...mockMetadataRecent,
-      };
-
-      // console.log('Mock Data Being Used:', mockResponse);
-
-      axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
-
-      await store.fetchList();
-
-      // console.log('Store State in Test:', {
-      //   records: store.records,
-      //   details: store.details,
-      //   count: store.count,
-      //   isLoading: store.isLoading,
-      // });
-
-      expect(store.records).toEqual(mockMetadataRecent.records);
-      expect(store.details).toEqual(mockMetadataRecent.details);
-      expect(store.isLoading).toBe(false);
-    });
-
-    it('should handle empty metadata list', async () => {
-      const mockResponse = {
-        custid: 'user-123',
-        count: 0,
-        records: [],
-        details: {
-          type: 'list',
-          since: 3600 * 24 * 7,
-          now: new Date(),
-          has_items: false,
-          received: [],
-          notreceived: [],
-        },
-      };
-
-      axiosMock.onGet('/api/v2/private/recent').reply(200, mockResponse);
-
-      await store.fetchList();
-
-      expect(store.count).toBe(0);
-      expect(store.records).toHaveLength(0);
-      expect(store.details.received).toHaveLength(0);
-      expect(store.details.notreceived).toHaveLength(0);
-      expect(store.isLoading).toBe(false);
+      expect(store.record).toBeNull();
     });
   });
 
@@ -147,8 +93,8 @@ describe('metadataStore', () => {
       };
 
       // Set initial state
-      store.currentRecord = mockMetadataRecord;
-      store.currentDetails = mockMetadataDetails;
+      store.record = mockMetadataRecord;
+      store.details = mockMetadataDetails;
 
       // Verify the exact URL and request body that will be sent
       axiosMock
@@ -167,8 +113,8 @@ describe('metadataStore', () => {
         expect(axiosMock.history.post[0].url).toBe(`/api/v2/private/${testKey}/burn`);
 
         // Verify the state changes
-        expect(store.currentRecord).toEqual(mockBurnedMetadataRecord);
-        expect(store.currentDetails).toEqual(mockBurnedMetadataDetails);
+        expect(store.record).toEqual(mockBurnedMetadataRecord);
+        expect(store.details).toEqual(mockBurnedMetadataDetails);
         expect(store.error).toBeNull();
 
         // Verify the returned data
@@ -183,8 +129,8 @@ describe('metadataStore', () => {
     // Add test for invalid burn attempt
     it('should reject burn request for invalid state', async () => {
       const testKey = mockBurnedMetadataRecord.key;
-      store.currentRecord = mockBurnedMetadataRecord;
-      store.currentDetails = mockBurnedMetadataDetails;
+      store.record = mockBurnedMetadataRecord;
+      store.details = mockBurnedMetadataDetails;
 
       await expect(store.burn(testKey)).rejects.toThrow('Cannot burn this metadata');
     });
@@ -199,8 +145,8 @@ describe('metadataStore', () => {
         details: mockBurnedMetadataDetails,
       };
 
-      store.currentRecord = record;
-      store.currentDetails = details;
+      store.record = record;
+      store.details = details;
 
       axiosMock
         .onPost(`/api/v2/private/${testKey}/burn`, {
@@ -211,13 +157,13 @@ describe('metadataStore', () => {
 
       await store.burn(testKey, passphrase);
 
-      expect(store.currentRecord).toEqual(mockBurnedMetadataRecord);
-      expect(store.currentDetails).toEqual(mockBurnedMetadataDetails);
+      expect(store.record).toEqual(mockBurnedMetadataRecord);
+      expect(store.details).toEqual(mockBurnedMetadataDetails);
     });
 
     it('should handle errors when burning invalid metadata', async () => {
       const testKey = mockBurnedMetadataRecord.key;
-      store.currentRecord = mockBurnedMetadataRecord;
+      store.record = mockBurnedMetadataRecord;
 
       await expect(store.burn(testKey)).rejects.toThrow('Cannot burn this metadata');
       expect(store.error).toBeTruthy();
@@ -226,17 +172,17 @@ describe('metadataStore', () => {
 
   describe('canBurn getter', () => {
     it('returns false when no current record exists', () => {
-      store.currentRecord = null;
+      store.record = null;
       expect(store.canBurn).toBe(false);
     });
 
     it('returns true for NEW state', () => {
-      store.currentRecord = mockMetadataRecord;
+      store.record = mockMetadataRecord;
       expect(store.canBurn).toBe(true);
     });
 
     it('returns false for BURNED state', () => {
-      store.currentRecord = mockBurnedMetadataRecord;
+      store.record = mockBurnedMetadataRecord;
       expect(store.canBurn).toBe(false);
     });
   });
@@ -565,7 +511,7 @@ describe('metadataStore', () => {
 
         await store.fetch(mockMetadataRecord.key);
         expect(store.isLoading).toBe(false);
-        expect(store.currentRecord).toBeTruthy();
+        expect(store.record).toBeTruthy();
       });
     });
   });
