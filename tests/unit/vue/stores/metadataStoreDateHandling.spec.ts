@@ -301,7 +301,7 @@ describe('Metadata Date Handling', () => {
         all: axiosMock.history,
       });
 
-      expect(store.record?.burned).toBeNull();
+      expect(store.record).toBeNull();
     });
 
     it('properly validates received date when receiving metadata', async () => {
