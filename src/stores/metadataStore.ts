@@ -8,7 +8,6 @@ import { createApi } from '@/utils/api';
 import { type AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 
-// Define valid states as a value (not just a type)
 export const METADATA_STATUS = {
   NEW: 'new',
   SHARED: 'shared',
@@ -19,10 +18,8 @@ export const METADATA_STATUS = {
 } as const;
 
 interface StoreState {
-  // Base properties required for all stores
   isLoading: boolean;
   error: ApiError | null;
-  // Metadata-specific properties
   currentRecord: Metadata | null;
   currentDetails: MetadataDetails | null;
   records: MetadataRecords[];
@@ -35,7 +32,7 @@ export const useMetadataStore = defineStore('metadata', {
   state: (): StoreState => ({
     isLoading: false,
     error: null,
-    currentRecord: null as Metadata | null,
+    currentRecord: null,
     currentDetails: null,
     records: [],
     details: {},
@@ -66,60 +63,34 @@ export const useMetadataStore = defineStore('metadata', {
 
     init(api: AxiosInstance = createApi()) {
       this._api = api;
-      this._errorHandler = useErrorHandler();
-    },
-
-    /**
-     *  Wraps async operations with loading state management. A poor dude's plugin.
-     *
-     * Implementation Note: Originally attempted as a Pinia plugin but moved to a
-     * store action due to testing challenges. The plugin approach required complex
-     * setup with proper plugin initialization in tests, which introduced more
-     * complexity than value. While plugins are better for cross-store
-     * functionality, this simple loading pattern works fine as a store
-     * action and is much easier to test.
-     *
-     * The original plugin implementation kept failing with "_withLoading does not
-     * exist" errors in tests, likely due to plugin initialization timing issues.
-     * This direct approach sidesteps those problems entirely.
-     *
-     * @template T The type of value returned by the operation
-     * @param operation The async operation to execute with loading state
-     * @returns Promise of the operation result
-     */
-    async _withLoading<T>(operation: () => Promise<T>) {
-      this.isLoading = true;
-
-      try {
-        return await operation();
-      } catch (error: unknown) {
-        this.handleError(error); // Will handle both validation and API errors
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    handleError(error: unknown): ApiError {
-      // Lazy initialize if not set
-      if (!this._errorHandler) {
-        this.init();
-      }
-
-      // Non-null assertion after guaranteed initialization
-      const processedError = this._errorHandler?.handleError(error);
-
-      // Ensure a non-null ApiError is always returned
-      this.error = processedError ?? {
-        message: 'An unexpected error occurred',
-        code: 500,
-        name: 'UnhandledError',
-      };
-
-      return this.error;
+      this._errorHandler = useErrorHandler({
+        setLoading: (isLoading) => {
+          this.isLoading = isLoading;
+        },
+        notify: undefined, // Let the UI layer handle notifications
+        log: undefined, // Let the app's global error handler manage logging
+      });
     },
 
     async fetchOne(key: string) {
-      return await this._withLoading(async () => {
+      if (!this._errorHandler) this.init();
+
+      /**
+       *  Wraps async operations with loading state management. A poor dude's plugin.
+       *
+       * Implementation Note: Originally attempted as a Pinia plugin but moved to a
+       * store action due to testing challenges. The plugin approach required complex
+       * setup with proper plugin initialization in tests, which introduced more
+       * complexity than value. While plugins are better for cross-store
+       * functionality, this simple loading pattern works fine as a store
+       * action and is much easier to test.
+       *
+       * The original plugin implementation kept failing with "_withLoading does not
+       * exist" errors in tests, likely due to plugin initialization timing issues.
+       * This direct approach sidesteps those problems entirely.
+       *
+       */
+      return await this._errorHandler!.withErrorHandling(async () => {
         const response = await this._api!.get(`/api/v2/private/${key}`);
         const validated = responseSchemas.metadata.parse(response.data);
         this.currentRecord = validated.record;
@@ -129,40 +100,35 @@ export const useMetadataStore = defineStore('metadata', {
     },
 
     async fetchList() {
-      return await this._withLoading(async () => {
-        const response = await this._api!.get('/api/v2/private/recent');
-        // console.debug('API Response:', response.data);
+      if (!this._errorHandler) this.init();
 
+      return await this._errorHandler!.withErrorHandling(async () => {
+        const response = await this._api!.get('/api/v2/private/recent');
         const validated = responseSchemas.metadataList.parse(response.data);
 
-        this.records = validated.records ?? ([] as MetadataRecords[]);
-        this.details = validated.details ?? ({} as MetadataRecordsDetails);
+        this.records = validated.records ?? [];
+        this.details = validated.details ?? {};
         this.count = validated.count ?? 0;
-
-        // console.log('Store State After Update:', {
-        //   records: this.records,
-        //   details: this.details,
-        //   count: this.count,
-        // });
 
         return validated;
       });
     },
 
     async refreshRecords() {
-      if (this.initialized) return; // prevent repeated calls when 0 domains
-      return await this._withLoading(async () => {
-        this.fetchList();
+      if (this.initialized) return;
+
+      if (!this._errorHandler) this.init();
+
+      return await this._errorHandler!.withErrorHandling(async () => {
+        await this.fetchList();
         this.initialized = true;
       });
     },
 
     async burn(key: string, passphrase?: string) {
-      if (!this.canBurn) {
-        this.handleError(new Error('Cannot burn this metadata'));
-      }
+      if (!this._errorHandler) this.init();
 
-      return await this._withLoading(async () => {
+      return await this._errorHandler!.withErrorHandling(async () => {
         const response = await this._api!.post(`/api/v2/private/${key}/burn`, {
           passphrase,
           continue: true,
@@ -174,8 +140,4 @@ export const useMetadataStore = defineStore('metadata', {
       });
     },
   },
-
-  // hydrate(store: Store) {
-  //   store.refreshRecords();
-  // },
 });

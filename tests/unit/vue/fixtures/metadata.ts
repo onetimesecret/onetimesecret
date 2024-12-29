@@ -90,6 +90,8 @@ export const mockMetadataDetails: MetadataDetails = {
 
 export const mockBurnedMetadataRecord: Metadata = {
   ...mockMetadataRecord,
+  key: 'burnedkey',
+  shortkey: 'b123',
   state: MetadataState.BURNED,
   burned: new Date('2024-12-25T16:06:54Z'),
   secret_key: 'secret-burned-key-123', // Updated
@@ -107,6 +109,8 @@ export const mockBurnedMetadataDetails: MetadataDetails = {
 
 export const mockReceivedMetadataRecord: Metadata = {
   ...mockMetadataRecord,
+  key: 'receivedkey',
+  shortkey: 'rcv123',
   state: MetadataState.RECEIVED,
   received: new Date('2024-12-25T16:06:54Z'),
   secret_key: 'secret-received-key-123', // Updated
@@ -121,9 +125,11 @@ export const mockReceivedMetadataDetails: MetadataDetails = {
 
 export const mockOrphanedMetadataRecord: Metadata = {
   ...mockMetadataRecord,
+  key: 'orphanedkey',
+  shortkey: 'orphan123',
   state: MetadataState.ORPHANED,
-  secret_key: 'secret-orphaned-key-123', // Updated
-  secret_shortkey: 'secret-orphaned-abc123', // Updated
+  secret_key: 'secret-orphaned-key-123', // Secret should not exist
+  secret_shortkey: 'so-abc123',
 };
 
 export const mockOrphanedMetadataDetails: MetadataDetails = {

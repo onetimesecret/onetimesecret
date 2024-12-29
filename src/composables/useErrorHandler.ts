@@ -85,7 +85,7 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
   async function withErrorHandling<T>(operation: () => Promise<T>): Promise<T> {
     try {
       options.setLoading?.(true);
-      return await operation();
+      return await operation(); // <-- run the async operation
     } catch (error) {
       const classifiedError = classifyError(error);
 
