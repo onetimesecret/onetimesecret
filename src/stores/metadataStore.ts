@@ -1,6 +1,9 @@
 // stores/metadataStore.ts
-import { createError, useErrorHandler } from '@/composables/useErrorHandler';
-import { ApplicationError, ErrorSeverity } from '@/schemas';
+import {
+  createError,
+  ErrorHandlerOptions,
+  useErrorHandler,
+} from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
@@ -20,12 +23,6 @@ interface StoreState {
   isLoading: boolean;
   record: Metadata | null;
   details: MetadataDetails | null;
-  initialized: boolean;
-}
-
-interface InitOptions {
-  notify?: (message: string, severity: ErrorSeverity) => void;
-  log?: (error: ApplicationError) => void;
 }
 
 export const useMetadataStore = defineStore('metadata', {
@@ -33,13 +30,12 @@ export const useMetadataStore = defineStore('metadata', {
     isLoading: false,
     record: null,
     details: null,
-    initialized: false,
   }),
 
   getters: {
     canBurn(state: StoreState): boolean {
       if (!state.record) {
-        return false;
+        throw createError('No state metadata record', 'technical', 'error');
       }
 
       // Check state validity
@@ -65,12 +61,15 @@ export const useMetadataStore = defineStore('metadata', {
     _api: null as AxiosInstance | null,
     _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
 
-    _ensureInitialized() {
-      if (!this._errorHandler) this.init();
+    _ensureErrorHandler() {
+      if (!this._errorHandler) this.setupErrorHandler();
     },
 
     // Allow passing options during initialization
-    init(api: AxiosInstance = createApi(), options: InitOptions = {}) {
+    setupErrorHandler(
+      api: AxiosInstance = createApi(),
+      options: ErrorHandlerOptions = {}
+    ) {
       this._api = api;
       this._errorHandler = useErrorHandler({
         setLoading: (isLoading) => {
@@ -82,7 +81,7 @@ export const useMetadataStore = defineStore('metadata', {
     },
 
     async fetch(key: string) {
-      this._ensureInitialized();
+      this._ensureErrorHandler();
 
       /**
        *  Wraps async operations with loading state management. A poor dude's plugin.
@@ -109,7 +108,7 @@ export const useMetadataStore = defineStore('metadata', {
     },
 
     async burn(key: string, passphrase?: string) {
-      this._ensureInitialized();
+      this._ensureErrorHandler();
 
       if (!this.canBurn) {
         throw createError('Cannot burn this metadata', 'human', 'error');

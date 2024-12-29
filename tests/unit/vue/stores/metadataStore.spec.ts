@@ -1,11 +1,11 @@
 // tests/unit/vue/stores/metadataStore.spec.ts
-import { ApplicationError, isApplicationError } from '@/schemas/errors';
+import { isApplicationError } from '@/schemas/errors';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { createTestingPinia } from '@pinia/testing';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ZodError } from 'zod';
+import { ZodError, ZodIssue } from 'zod';
 
 import {
   createMetadataWithPassphrase,
@@ -15,7 +15,11 @@ import {
   mockMetadataRecord,
 } from '../fixtures/metadata';
 
-let plop: ApplicationError;
+function isZodInvalidTypeIssue(
+  issue: ZodIssue
+): issue is ZodIssue & { code: 'invalid_type'; received: string } {
+  return issue.code === 'invalid_type' && 'received' in issue;
+}
 
 /**
  * NOTE: These tests run using a simple Axios mock adapter to simulate API responses. They do not
@@ -161,9 +165,18 @@ describe('metadataStore', () => {
   });
 
   describe('canBurn getter', () => {
-    it('returns false when no current record exists', () => {
+    it('throws ApplicationError when no current record exists', () => {
       store.record = null;
-      expect(store.canBurn).toBe(false);
+      expect(() => store.canBurn).toThrow();
+      try {
+        void store.canBurn;
+      } catch (error) {
+        expect(error).toMatchObject({
+          message: 'No state metadata record',
+          type: 'technical',
+          severity: 'error',
+        });
+      }
     });
 
     it('returns true for NEW state', () => {
@@ -321,6 +334,7 @@ describe('metadataStore', () => {
 
           // Null field checks
           const nullFields = validationErrors
+            .filter(isZodInvalidTypeIssue)
             .filter((err) => err.received === 'null')
             .map((err) => err.path.join('.'));
 
