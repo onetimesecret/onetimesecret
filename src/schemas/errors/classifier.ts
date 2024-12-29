@@ -1,4 +1,4 @@
-import type { ApplicationError, ErrorSeverity, ErrorType } from './index';
+import type { ApplicationError, ErrorSeverity, ErrorType } from './types';
 
 /**
  * Classifies errors into application-specific categories based on their properties.
