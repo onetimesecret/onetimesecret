@@ -95,13 +95,13 @@ export const useAuthStore = defineStore('auth', {
     _api: null as AxiosInstance | null,
     _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
 
-    init() {
+    init(api: AxiosInstance = createApi()) {
       if (this._initialized) return this;
 
-      this.setupErrorHandler();
+      this.setupErrorHandler(api);
 
       const windowStore = useWindowStore();
-      windowStore.init();
+      windowStore.init(); // TODO: Should we be passing the api instance here?
 
       // Explicitly use the values from windowObj without fallbacks
       const windowData = {
@@ -177,15 +177,6 @@ export const useAuthStore = defineStore('auth', {
         }
         return false;
       });
-    },
-
-    // Separate method for async operations if needed
-    async refreshInitialState() {
-      if (this.isAuthenticated) {
-        await this.checkAuthStatus();
-        // Ensure lastCheckTime is set
-        this.lastCheckTime = Date.now();
-      }
     },
 
     /**

@@ -60,7 +60,7 @@ interface ApiConfig {
 const createApi = (config: ApiConfig = {}): AxiosInstance => {
   let baseURL = config.domain?.trim();
 
-  console.debug('[createApi] Initializing API with config:', config);
+  // console.debug('[createApi] Initializing API with config:', config);
 
   if (baseURL) {
     // If no protocol specified, prepend https://
