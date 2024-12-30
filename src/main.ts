@@ -113,7 +113,7 @@ async function initializeApp() {
   metadataStore.setupErrorHandler(api);
 
   const domainsStore = useDomainsStore();
-  domainsStore.init(api);
+  domainsStore.setupErrorHandler(api);
 
   // Mount the application
   // This is done last to ensure all setup is complete before rendering

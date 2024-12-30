@@ -1,77 +1,15 @@
-import { readonly, ref, Ref, shallowRef } from 'vue';
+// src/composables/useWindowProps.ts
+import { useWindowStore } from '@/stores/windowStore';
+import { OnetimeWindow } from '@/types/declarations/window';
+import { computed } from 'vue';
 import { z, ZodType } from 'zod';
-
-/**
- * With this caching mechanism:
-
-1. The first time a property is requested, a new ref is created and stored in the `cache` object.
-2. Subsequent calls for the same property will return the cached ref.
-3. This ensures that only one ref is created per window property, regardless of how many components use it.
-
-This approach is more efficient in terms of memory usage and ensures consistency across your application. All components using the same window property will share the same ref, so they'll all update together if the underlying window property changes.
-
-To summarize:
-- The original implementation recreates refs each time it's called.
-- This improved, cached version creates refs only once and reuses them across all calls.
-
-The cached version is generally the better choice for most applications, as it optimizes memory usage and ensures consistency across your app.
-**/
-
-const cache: Partial<Record<string, Ref<Window[keyof Window]>>> = {};
-
-export const useWindowProps = <T extends keyof Window>(
-  props: string[]
-): { [K in T]: Readonly<Ref<Window[K]>> } => {
-  const result: Partial<Record<string, Readonly<Ref<Window[T]>>>> = {};
-
-  props.forEach((prop) => {
-    if (!cache[prop]) {
-      cache[prop] = ref(window[prop]);
-    }
-    result[prop] = readonly(cache[prop] as Ref<Window[T]>);
-  });
-
-  return result as { [K in T]: Readonly<Ref<Window[K]>> };
-};
-
-// Helper function
-export const useWindowProp = <T extends keyof Window>(
-  prop: string
-): Readonly<Ref<Window[T]>> => {
-  if (!cache[prop]) {
-    cache[prop] = ref(window[prop]);
-  }
-  return readonly(cache[prop] as Ref<Window[T]>);
-};
 
 /**
  * Validates and transforms a window property using a Zod schema.
  *
  * @description
- * When the window property contains data that needs transformation (like the customer object),
- * there can be a race condition between:
- * 1. Initial component rendering
- * 2. Schema validation and transformation
- * 3. Cache population
- *
- * Timeline:
- * ```
- * T0: Component starts mounting
- * T1: Template rendering begins with raw window data
- * T2: useValidatedWindowProp called
- * T3: Schema validation/transformation occurs
- * T4: Transformed data cached
- * ```
- *
- * During this process (particularly between T1-T4), the data might be:
- * - Undefined (not yet validated)
- * - Raw (pre-transformation)
- * - Transformed (post-validation)
- *
- * Best practices:
- * - Always use optional chaining (?.) when accessing transformed properties
- * - Provide fallback values using nullish coalescing (??)
- * - Consider v-if/v-show for template sections that depend on transformed data
+ * This composable accesses the window property through the window store and applies
+ * validation and transformation using the provided Zod schema.
  *
  * @example
  * ```vue
@@ -86,23 +24,25 @@ export const useWindowProp = <T extends keyof Window>(
  * const showFeature = computed(() => cust.value?.feature_flags?.homepage_toggle ?? false);
  * ```
  *
- * @template T - Window property key
- * @template Input - Schema input type
- * @template Output - Schema output type
- * @param {T} prop - Window property key
- * @param {z.ZodType<Output, z.ZodTypeDef, Input>} schema - Zod schema for validation/transformation
- * @returns {Ref<Output | null>} Validated and transformed data as a Vue ref
+ * @template T - The type inferred from the schema
+ * @param {keyof OnetimeWindow} prop - Window property key
+ * @param {z.ZodType<T>} schema - Zod schema for validation/transformation
+ * @returns {ComputedRef<T | null>} Validated and transformed data as a computed ref
  */
-export function useValidatedWindowProp<T>(prop: string, schema: ZodType<T>): T {
-  if (!cache[prop]) {
-    const value = window[prop] as unknown;
-    try {
-      const parsedValue = schema.safeParse(value); // don't raise a fuss
-      cache[prop] = shallowRef(parsedValue);
-    } catch (error) {
-      console.error('Failed to validate window property:', error);
-      cache[prop] = shallowRef(null);
+export function useValidatedWindowProp<T>(prop: keyof OnetimeWindow, schema: ZodType<T>) {
+  const windowStore = useWindowStore();
+
+  const validatedProp = computed(() => {
+    const value = windowStore[prop] as unknown;
+    const result = schema.safeParse(value);
+
+    if (result.success) {
+      return result.data;
+    } else {
+      console.error(`Failed to validate window property '${prop}':`, result.error);
+      return null;
     }
-  }
-  return cache[prop] as z.infer<typeof schema>;
+  });
+
+  return validatedProp;
 }
