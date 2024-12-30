@@ -130,10 +130,30 @@ export const useAuthStore = defineStore('auth', {
       return this;
     },
 
+    _setupVisibilityHandler() {
+      const handler = this.handleVisibilityChange.bind(this);
+      document.addEventListener('visibilitychange', handler);
+      this._visibilityHandler = handler;
+    },
+
+    _setInitialState() {
+      this.$patch({
+        isAuthenticated: Boolean(window.authenticated),
+        customer: window.cust || undefined,
+        initialized: true,
+      });
+    },
+
     // Add separate method for visibility handling
     handleVisibilityChange() {
-      if (document.visibilityState === 'visible' && this.needsCheck) {
-        void this.checkAuthStatus().catch(console.error);
+      // Only check if document is visible AND we need a check
+      if (
+        document.visibilityState === 'visible' &&
+        this.isAuthenticated &&
+        this.needsCheck
+      ) {
+        // Ensure we call checkAuthStatus() directly
+        void this.checkAuthStatus();
       }
     },
 
@@ -150,6 +170,8 @@ export const useAuthStore = defineStore('auth', {
     async refreshInitialState() {
       if (this.isAuthenticated) {
         await this.checkAuthStatus();
+        // Ensure lastCheckTime is set
+        this.lastCheckTime = Date.now();
       }
     },
 
