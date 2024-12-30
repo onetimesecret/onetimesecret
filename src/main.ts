@@ -61,13 +61,11 @@ async function initializeApp() {
   jurisdictionStore.initializeStore(window.regions);
 
   const authStore = useAuthStore();
-  authStore.initialize();
+  authStore.init();
 
   // Initialize language store
-  const languageStore = useLanguageStore();
-
-  // Get the initial locale and use it to set the language
-  const initialLocale = languageStore.initializeCurrentLocale(navigator.language);
+  const languageStore = useLanguageStore(); // TODO: navigator.language
+  const initialLocale = languageStore.init();
 
   // Set language before mounting the app
   // This ensures correct translations are available for the initial render

@@ -1,15 +1,17 @@
 // src/stores/languageStore.ts
 
-import { useErrorHandler } from '@/composables/useErrorHandler';
-import { ApiError } from '@/schemas';
+import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { createApi } from '@/utils/api';
+import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { z } from 'zod';
 
-const api = createApi();
+import { useWindowStore } from './windowStore';
 
-const supportedLocales = window.supported_locales;
-const defaultLocale = 'en';
+const SESSION_STORAGE_KEY = 'selected.locale';
+const DEFAULT_LOCALE = 'en';
+
+//const supportedLocales = window.supported_locales;
 
 // Schema for locale validation
 const localeSchema = z
@@ -18,38 +20,68 @@ const localeSchema = z
   .max(5)
   .regex(/^[a-z]{2}(-[A-Z]{2})?$/);
 
-interface StoreState {
-  isLoading: boolean;
-  error: ApiError | null;
-  storedLocale: string | null;
-  currentLocale: string | null;
-  supportedLocales: string[];
-  defaultLocale: string;
+interface LanguageStoreOptions {
+  deviceLocale?: string;
+  storageKey?: string;
 }
 
-const SESSION_STORAGE_KEY = 'selected.locale';
+interface StoreState {
+  isLoading: boolean;
+  deviceLocale: string;
+  storageKey: string;
+  supportedLocales: string[];
+  storedLocale: string | null;
+  currentLocale: string | null;
+}
 
 export const useLanguageStore = defineStore('language', {
-  state: (): StoreState => ({
+  state: (options?: LanguageStoreOptions): StoreState => ({
     isLoading: false,
-    error: null,
-    storedLocale: sessionStorage.getItem(SESSION_STORAGE_KEY),
+    deviceLocale: options?.deviceLocale ?? DEFAULT_LOCALE,
+    storageKey: options?.storageKey ?? SESSION_STORAGE_KEY,
+    supportedLocales: [],
+    storedLocale: null,
     currentLocale: null,
-    supportedLocales,
-    defaultLocale,
   }),
 
   getters: {
+    getDeviceLocale: (state) => state.deviceLocale,
     getCurrentLocale: (state) => state.currentLocale,
+    getStorageKey: (state) => state.storageKey,
     getSupportedLocales: (state) => state.supportedLocales,
-    getStorageKey: () => SESSION_STORAGE_KEY,
   },
 
   actions: {
-    handleError(error: unknown): ApiError {
-      const { handleError } = useErrorHandler();
-      this.error = handleError(error);
-      throw this.error;
+    _api: null as AxiosInstance | null,
+    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+
+    init(api?: AxiosInstance) {
+      this._ensureErrorHandler(api);
+
+      const windowStore = useWindowStore();
+      windowStore.init();
+
+      this.supportedLocales = windowStore.supported_locales ?? [];
+
+      return this.initializeLocale();
+    },
+
+    _ensureErrorHandler(api?: AxiosInstance) {
+      if (!this._errorHandler) this.setupErrorHandler(api);
+    },
+
+    setupErrorHandler(
+      api: AxiosInstance = createApi(),
+      options: ErrorHandlerOptions = {}
+    ) {
+      this._api = api;
+      this._errorHandler = useErrorHandler({
+        setLoading: (isLoading) => {
+          this.isLoading = isLoading;
+        },
+        notify: options.notify,
+        log: options.log,
+      });
     },
 
     /**
@@ -61,17 +93,21 @@ export const useLanguageStore = defineStore('language', {
      * NOTE: When we start up, we may have the device locale but we won't have
      * the user's preferred locale yet. This method sets a definite initial
      * locale to get things going with the information we have.
+     *
+     * This is a synchronous method that should be called once during store initialization.
      */
-    initializeCurrentLocale(deviceLocale: string) {
+    initializeLocale() {
       try {
+        this.storedLocale = sessionStorage.getItem(this.storageKey);
+
         // Extract primary language code (e.g., 'en-NZ' -> 'en')
-        const primaryLocale = deviceLocale.split('-')[0];
-        this.currentLocale = this.storedLocale || primaryLocale || this.defaultLocale;
+        const primaryLocale = this.deviceLocale.split('-')[0];
+        this.currentLocale = this.storedLocale || primaryLocale;
+
         return this.currentLocale;
       } catch (error) {
-        console.error('Error initializing current locale:', error);
-        this.currentLocale = this.defaultLocale;
-        return this.defaultLocale;
+        console.error('[initializeLocale] Error:', error, this.currentLocale);
+        return (this.currentLocale = this.deviceLocale);
       }
     },
 
@@ -102,14 +138,11 @@ export const useLanguageStore = defineStore('language', {
         (locale) => locale && this.supportedLocales.includes(locale)
       );
 
-      return supported ?? this.defaultLocale;
+      return supported ?? DEFAULT_LOCALE;
     },
 
     async updateLanguage(newLocale: string) {
-      this.isLoading = true;
-      this.error = null;
-
-      try {
+      return await this._errorHandler!.withErrorHandling(async () => {
         // Validate locale format
         const validatedLocale = localeSchema.parse(newLocale);
 
@@ -117,16 +150,10 @@ export const useLanguageStore = defineStore('language', {
         this.setCurrentLocale(validatedLocale);
 
         // Update the language for the user using the api instance
-        await api.post('/api/v2/account/update-locale', {
+        await this._api!.post('/api/v2/account/update-locale', {
           locale: validatedLocale,
         });
-
-        // The CSRF token (shrimp) will be automatically updated by the api interceptor
-      } catch (error) {
-        this.handleError(error);
-      } finally {
-        this.isLoading = false; // <-- Single assignment in finally block
-      }
+      });
     },
 
     setCurrentLocale(locale: string) {
