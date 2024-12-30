@@ -46,6 +46,7 @@ export interface StoreState {
   failureCount: number | null;
   lastCheckTime: number | null;
   initialized: boolean;
+  _visibilityHandler: ((this: Document, ev: Event) => void) | null;
 }
 
 /**
@@ -78,6 +79,7 @@ export const useAuthStore = defineStore('auth', {
     failureCount: null,
     lastCheckTime: null,
     initialized: false,
+    _visibilityHandler: null,
   }),
 
   getters: {
@@ -108,28 +110,40 @@ export const useAuthStore = defineStore('auth', {
      * active after being inactive for extended periods.
      */
     initialize() {
-      this.setupErrorHandler(); // Set up error handler first
+      if (this.initialized) return this;
 
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && this.needsCheck) {
-          this.checkAuthStatus();
-        }
-      });
+      this.setupErrorHandler();
 
-      // Ensure boolean value and sync with window state
-      this.isAuthenticated = Boolean(window.authenticated ?? false);
-      if (window.cust) {
-        this.customer = window.cust;
-      }
+      // Set up visibility handler first
+      const handler = this.handleVisibilityChange.bind(this);
+      document.addEventListener('visibilitychange', handler);
+      this._visibilityHandler = handler;
 
-      // Schedule async operations after sync initialization
+      // Then set initial state
+      this._setInitialState();
+
       if (this.isAuthenticated) {
         this.$scheduleNextCheck();
-        // Queue the first check but don't await it
-        this.checkAuthStatus();
       }
 
       this.initialized = true;
+      return this;
+    },
+
+    // Add separate method for visibility handling
+    handleVisibilityChange() {
+      if (document.visibilityState === 'visible' && this.needsCheck) {
+        void this.checkAuthStatus().catch(console.error);
+      }
+    },
+
+    // Add a separate method for async initialization if needed
+    async initializeAsync() {
+      this.initialize();
+      if (this.isAuthenticated) {
+        await this.checkAuthStatus();
+      }
+      return this;
     },
 
     // Separate method for async operations if needed
@@ -253,6 +267,15 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.$stopAuthCheck();
       this.$logout();
+    },
+
+    // Add cleanup in $dispose
+    $dispose() {
+      if (this._visibilityHandler) {
+        document.removeEventListener('visibilitychange', this._visibilityHandler);
+        this._visibilityHandler = null;
+      }
+      this.$stopAuthCheck();
     },
 
     /**

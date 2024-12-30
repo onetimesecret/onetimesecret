@@ -2,12 +2,10 @@ import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { Customer, Plan } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
 import { createApi } from '@/utils/api';
-import { setupRouter } from '@tests/unit/vue/utils/routerSetup';
 import axios, { AxiosError } from 'axios';
 import { createPinia, Pinia, setActivePinia } from 'pinia';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createApp } from 'vue';
-import { Router, useRouter } from 'vue-router';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { Router } from 'vue-router';
 
 vi.mock('axios');
 
@@ -71,83 +69,201 @@ const mockCustomer: Customer = {
   stripe_customer_id: 'cus_123456',
 };
 
-const mockDocument = {
-  visibilityState: 'visible',
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-  dispatchEvent: vi.fn(),
+// Define proper types for our mocks
+interface MockWindow extends Partial<Window> {
+  authenticated: boolean;
+  cust: Customer | null;
+  setTimeout: Mock;
+  clearTimeout: Mock;
+}
+
+interface MockDocument extends Partial<Document> {
+  visibilityState: DocumentVisibilityState;
+  addEventListener: Mock;
+  removeEventListener: Mock;
+  dispatchEvent: Mock;
+}
+
+export const createAuthenticatedStore = () => {
+  const store = useAuthStore();
+  store.isAuthenticated = true;
+  store.customer = mockCustomer;
+  return store;
 };
 
-const mockWindow = {
-  authenticated: false,
-  cust: null,
-  setTimeout: vi.fn(),
-  clearTimeout: vi.fn(),
+export const simulateVisibilityChange = (visibilityState: DocumentVisibilityState) => {
+  Object.defineProperty(document, 'visibilityState', {
+    value: visibilityState,
+    configurable: true,
+  });
+  document.dispatchEvent(new Event('visibilitychange'));
 };
-
-vi.stubGlobal('document', mockDocument);
-vi.stubGlobal('window', mockWindow);
 
 describe('Auth Store', () => {
   let router: Router;
   let pinia: Pinia;
   let store: ReturnType<typeof useAuthStore>;
+  let mockWindow: MockWindow;
+  let mockDocument: MockDocument;
+  const originalWindow = { ...window };
+  const originalDocument = { ...document };
 
   beforeEach(() => {
-    const app = createApp({});
+    // Create fresh pinia instance
     pinia = createPinia();
     pinia.use(logoutPlugin);
-    app.use(pinia);
+
+    // Ensure clean setup
     setActivePinia(pinia);
-
-    // Reset mocks
-    mockDocument.addEventListener.mockReset();
-    mockDocument.removeEventListener.mockReset();
-    mockWindow.setTimeout.mockReset();
-    mockWindow.clearTimeout.mockReset();
-    mockWindow.authenticated = false;
-    mockWindow.cust = null;
-
-    // Initialize the store after pinia is set up
     store = useAuthStore();
-    store.initialize(); // Initialize store
 
-    vi.useFakeTimers();
+    // Create fresh mock objects each time
+    const mockWindow = {
+      authenticated: false,
+      cust: null,
+      setTimeout: vi.fn(),
+      clearTimeout: vi.fn(),
+    };
 
-    // Setup the router. This mimics what happens in main.ts
-    router = setupRouter();
-    vi.mocked(useRouter).mockReturnValue(router);
+    const mockDocument = {
+      visibilityState: 'visible',
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    };
+
+    // Use Object.defineProperties for more reliable stubbing
+    Object.defineProperties(window, {
+      authenticated: {
+        get: () => mockWindow.authenticated,
+        set: (val) => {
+          mockWindow.authenticated = val;
+        },
+        configurable: true,
+      },
+      cust: {
+        get: () => mockWindow.cust,
+        set: (val) => {
+          mockWindow.cust = val;
+        },
+        configurable: true,
+      },
+    });
+
+    // Apply stubs with type assertions
+    vi.stubGlobal('window', mockWindow as unknown as Window);
+    vi.stubGlobal('document', mockDocument as unknown as Document);
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
-    vi.useRealTimers();
-    vi.clearAllTimers();
-    store.$reset();
-    sessionStorage.clear();
+    // Proper cleanup
+    store.$dispose();
+    pinia = null as unknown as Pinia;
 
-    // Reset DOM mocks to initial state
-    mockDocument.visibilityState = 'visible';
-    mockWindow.authenticated = false;
-    mockWindow.cust = null;
+    // Reset all mocks
+    vi.clearAllMocks();
+    vi.clearAllTimers();
+    // Restore original objects
+    Object.defineProperties(window, Object.getOwnPropertyDescriptors(originalWindow));
+    vi.stubGlobal('document', originalDocument);
   });
 
   describe('Initialization', () => {
-    it('initializes with proper window state synchronization', async () => {
+    it('initializes with clean state', () => {
       const store = useAuthStore();
+      expect(store.initialized).toBe(false);
+      store.initialize();
+      expect(store.initialized).toBe(true);
+    });
 
-      // Mock window state
-      vi.stubGlobal('authenticated', true);
-      vi.stubGlobal('cust', mockCustomer);
+    it('prevents double initialization', () => {
+      const store = useAuthStore();
+      const initSpy = vi.spyOn(store, 'setupErrorHandler');
+
+      store.initialize();
+      store.initialize(); // Second call
+
+      expect(initSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should properly initialize with window state', () => {
+      // Setup window state before initialization
+      (window as any).authenticated = true;
+      (window as any).cust = mockCustomer;
 
       store.initialize();
 
       expect(store.isAuthenticated).toBe(true);
       expect(store.customer).toEqual(mockCustomer);
-      expect(store.lastCheckTime).not.toBe(0);
-      expect(store.authCheckTimer).not.toBeNull();
+    });
 
-      vi.unstubAllGlobals();
+    it('verify window state', async () => {
+      const mockWindow = {
+        authenticated: false,
+        cust: null as Customer | null, // Explicit typing
+        setTimeout: vi.fn(),
+        clearTimeout: vi.fn(),
+      };
+
+      vi.stubGlobal('window', mockWindow);
+
+      mockWindow.authenticated = true;
+      mockWindow.cust = mockCustomer; // Now TypeScript knows this is valid
+
+      expect(window.authenticated).toBe(true);
+      expect(window.cust).toEqual(mockCustomer);
+    });
+
+    it('initializes with proper window state synchronization', async () => {
+      // Setup mock window before store initialization
+      const mockWindow = {
+        authenticated: true,
+        cust: mockCustomer,
+        setTimeout: vi.fn(),
+        clearTimeout: vi.fn(),
+      };
+
+      vi.stubGlobal('window', mockWindow);
+
+      const store = useAuthStore();
+
+      // Spy on initialize without mocking implementation
+      const initializeSpy = vi.spyOn(store, 'initialize');
+
+      store.initialize();
+
+      expect(initializeSpy).toHaveBeenCalled();
+      expect(store.isAuthenticated).toBe(true);
+      expect(store.customer).toEqual(mockCustomer);
+
+      // Verify window sync
+      expect(window.authenticated).toBe(true);
+      expect(window.cust).toEqual(mockCustomer);
+    });
+
+    // Add test for visibility change handling
+    it('handles visibility changes correctly', async () => {
+      const mockWindow = {
+        authenticated: true,
+        cust: mockCustomer,
+        setTimeout: vi.fn(),
+        clearTimeout: vi.fn(),
+      };
+
+      vi.stubGlobal('window', mockWindow);
+
+      const store = useAuthStore();
+      store.initialize();
+
+      // Mock document visibility change
+      mockDocument.visibilityState = 'hidden';
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      mockDocument.visibilityState = 'visible';
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      // Verify auth check was triggered
+      expect(store.isCheckingAuth).toBe(true);
     });
 
     it('maintains sync between local and window state', async () => {

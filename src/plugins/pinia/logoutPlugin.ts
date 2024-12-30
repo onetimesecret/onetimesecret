@@ -11,36 +11,36 @@ export function logoutPlugin(context: PiniaPluginContext) {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
   };
 
-  /**
-   * Clears authentication state and storage.
-   *
-   * This method resets the store state to its initial values using `this.$reset()`.
-   * It also clears session storage and stops any ongoing authentication checks.
-   * This is typically used during logout to ensure that all user-specific data
-   * is cleared and the store is returned to its default state.
-   */
-  context.store.$logout = () => {
-    const authStore = useAuthStore();
-    const languageStore = useLanguageStore();
-    const csrfStore = useCsrfStore();
+  // Add $logout to the store type
+  if (!context.store.$logout) {
+    /**
+     * Clears authentication state and storage.
+     *
+     * This method resets the store state to its initial values using `this.$reset()`.
+     * It also clears session storage and stops any ongoing authentication checks.
+     * This is typically used during logout to ensure that all user-specific data
+     * is cleared and the store is returned to its default state.
+     */
+    context.store.$logout = function () {
+      const authStore = useAuthStore();
+      const languageStore = useLanguageStore();
+      const csrfStore = useCsrfStore();
 
-    // Reset all stores
-    authStore.$reset();
-    languageStore.$reset();
-    csrfStore.$reset();
+      // Reset all stores
+      authStore.$reset();
+      languageStore.$reset();
+      csrfStore.$reset();
 
-    window.cust = null;
-    window.authenticated = false;
+      // Sync window state
+      window.cust = null;
+      window.authenticated = false;
 
-    deleteCookie('sess');
-    deleteCookie('locale');
-
-    // Stop any ongoing auth checks
-    authStore.$stopAuthCheck();
-
-    // Clear all session storage;
-    sessionStorage.clear();
-
-    console.debug('Goodnight Irene');
-  };
+      deleteCookie('sess');
+      deleteCookie('locale');
+      // Stop any ongoing auth checks
+      authStore.$stopAuthCheck();
+      // Clear all session storage;
+      sessionStorage.clear();
+    };
+  }
 }

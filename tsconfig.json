@@ -58,12 +58,8 @@
       "@/*": ["./src/*"],
       "@tests/*": ["./tests/*"]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types/declarations",
-      "./tests/unit/vue/types.d.ts"
-    ],
-    "types": ["jsdom", "node"]
+    "typeRoots": ["./node_modules/@types", "./src/types", "./tests/unit/vue"],
+    "types": ["jsdom", "node", "vitest/globals"]
   },
   "include": [
     "**/*.config.*s",

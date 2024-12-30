@@ -1,4 +1,3 @@
-
 /**
  * This file, `types/window.d.ts`, is a TypeScript declaration file. It exists to help
  * our TypeScript code understand custom properties that we add to the global `window`
@@ -39,7 +38,15 @@
  * providing type safety and enabling better tooling support, like auto-completion in
  * IDEs.
  */
-import { AuthenticationSettings, Customer, Plan, Metadata, AvailablePlans, SecretOptions, RegionsConfig } from '@/schemas/models';
+import {
+  AuthenticationSettings,
+  AvailablePlans,
+  Customer,
+  Metadata,
+  Plan,
+  RegionsConfig,
+  SecretOptions,
+} from '@/schemas/models';
 import { BrokenBrandSettings } from '@types/custom_domains';
 import type Stripe from 'stripe';
 
