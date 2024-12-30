@@ -537,48 +537,58 @@ describe('authStore', () => {
     });
   });
 
-  describe.skip('Error Handling', () => {
+  describe('Error Handling', () => {
     let store: ReturnType<typeof useAuthStore>;
 
-    beforeEach(() => {
-      // Create fresh pinia instance with non-stubbed actions
-      setActivePinia(createTestingPinia({ stubActions: false }));
+    beforeEach(() => {});
+
+    afterEach(() => {
+      console.log('failures', store.failureCount);
+      axiosMock.restore();
+      store.reset();
+    });
+
+    it('integrates with error handler for consistent error management', async () => {
       store = useAuthStore();
-      vi.useFakeTimers();
+      store.init(axiosInstance);
+      store.isAuthenticated = true;
+      const errorHandlerSpy = vi.spyOn(store._errorHandler!, 'withErrorHandling');
+
+      axiosMock.onGet('/api/v2/authcheck').networkError();
+
+      await store.checkAuthStatus();
+
+      expect(errorHandlerSpy).toHaveBeenCalled();
     });
 
     it('handles network timeouts appropriately', async () => {
+      store = useAuthStore();
+      store.init(axiosInstance);
       store.isAuthenticated = true;
 
-      vi.mocked(axios.get).mockRejectedValueOnce(new Error('Network timeout'));
+      axiosMock.onGet('/api/v2/authcheck').timeoutOnce();
 
       await store.checkAuthStatus();
       expect(store.failureCount).toBe(1);
     });
 
     it('recovers from temporary network failures', async () => {
+      store = useAuthStore();
+      store.init(axiosInstance);
       store.isAuthenticated = true;
+
       store.failureCount = 1; // Simulate previous failure
 
-      vi.mocked(axios.get).mockResolvedValueOnce({
-        data: {
-          details: { authenticated: true },
-        },
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        details: { authenticated: true },
+        record: mockCustomer,
       });
 
+      expect(store.failureCount).toBe(1);
+
       await store.checkAuthStatus();
+
       expect(store.failureCount).toBe(0);
-    });
-
-    it('integrates with error handler for consistent error management', async () => {
-      store.isAuthenticated = true;
-      const errorHandlerSpy = vi.spyOn(store._errorHandler!, 'withErrorHandling');
-
-      vi.mocked(axios.get).mockRejectedValueOnce(new Error('Test error'));
-
-      await store.checkAuthStatus();
-
-      expect(errorHandlerSpy).toHaveBeenCalled();
     });
   });
 });
