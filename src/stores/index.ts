@@ -10,6 +10,7 @@ export { useCustomerStore } from './customerStore';
 export { useDomainsStore } from './domainsStore';
 export { useJurisdictionStore } from './jurisdictionStore';
 export { useLanguageStore } from './languageStore';
+export { useMetadataListStore } from './metadataListStore';
 export { useMetadataStore } from './metadataStore';
 export { useNotificationsStore } from './notificationsStore';
 export { useSecretsStore } from './secretsStore';

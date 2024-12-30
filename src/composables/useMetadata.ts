@@ -1,7 +1,7 @@
 // composables/useMetadata.ts
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { storeToRefs } from 'pinia';
+import { StoreGeneric, storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -14,13 +14,17 @@ export function useMetadata(metadataKey: string) {
   const store = useMetadataStore();
   const notifications = useNotificationsStore();
   const router = useRouter();
-  const { currentRecord, currentDetails, isLoading, error } = storeToRefs(store);
+
+  // The `StoreGeneric` type assertion helps bridge the gap between the specific
+  // store type and the generic store. This is a known issue when using
+  // `storeToRefs` with stores that have complex types.
+  const { record, details, isLoading } = storeToRefs(store as StoreGeneric);
 
   // Local state
   const passphrase = ref('');
 
   const fetch = async () => {
-    await store.fetchOne(metadataKey);
+    await store.fetch(metadataKey);
   };
 
   const handleBurn = async () => {
@@ -42,12 +46,17 @@ export function useMetadata(metadataKey: string) {
     }
   };
 
+  const reset = () => {
+    // Reset local state
+    passphrase.value = '';
+    store.$reset();
+  };
+
   return {
     // State
-    record: currentRecord,
-    details: currentDetails,
+    record: record,
+    details: details,
     isLoading,
-    error,
     passphrase,
 
     // Computed
@@ -56,6 +65,7 @@ export function useMetadata(metadataKey: string) {
     // Actions
     fetch,
     burn: handleBurn,
+    reset,
   };
 }
 

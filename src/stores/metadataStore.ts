@@ -19,7 +19,7 @@ export const METADATA_STATUS = {
   ORPHANED: 'orphaned',
 } as const;
 
-interface StoreState {
+export interface StoreState {
   isLoading: boolean;
   record: Metadata | null;
   details: MetadataDetails | null;
@@ -127,3 +127,5 @@ export const useMetadataStore = defineStore('metadata', {
     },
   },
 });
+
+export type MetadataStore = ReturnType<typeof useMetadataStore>;

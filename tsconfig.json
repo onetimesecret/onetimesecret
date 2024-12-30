@@ -59,7 +59,7 @@
       "@tests/*": ["./tests/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types", "./tests/unit/vue"],
-    "types": ["jsdom", "node", "vitest/globals"]
+    "types": ["jsdom", "node", "vitest"]
   },
   "include": [
     "**/*.config.*s",
