@@ -144,7 +144,7 @@ describe('windowStore', () => {
       });
     });
 
-    it('only initializes once', () => {
+    it('initializes only once', () => {
       store.init();
 
       const initialState = { ...store.$state };

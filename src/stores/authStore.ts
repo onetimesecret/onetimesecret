@@ -1,11 +1,11 @@
 // stores/authStore.ts
 import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api';
-import { ApplicationError } from '@/schemas/errors';
-import { Customer } from '@/schemas/models';
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
+
+import { useWindowStore } from './windowStore';
 
 const api = createApi();
 
@@ -35,18 +35,12 @@ export const AUTH_CHECK_CONFIG = {
 } as const;
 
 export interface StoreState {
-  // Base properties required for all stores
   isLoading: boolean;
-  error: ApplicationError | null;
-  // Auth-specific properties
-  isAuthenticated: boolean;
-  isCheckingAuth: boolean;
-  customer: Customer | undefined;
+  isAuthenticated: boolean | null;
   authCheckTimer: ReturnType<typeof setTimeout> | null;
   failureCount: number | null;
   lastCheckTime: number | null;
-  initialized: boolean;
-  _visibilityHandler: ((this: Document, ev: Event) => void) | null;
+  _initialized: boolean;
 }
 
 /**
@@ -60,7 +54,7 @@ export interface StoreState {
  * import { storeToRefs } from 'pinia'
  *
  * const authStore = useAuthStore()
- * const { isAuthenticated, customer } = storeToRefs(authStore)
+ * const { isAuthenticated } = storeToRefs(authStore)
  *
  * // React to auth state changes
  * watch(isAuthenticated, (newValue) => {
@@ -71,15 +65,11 @@ export interface StoreState {
 export const useAuthStore = defineStore('auth', {
   state: (): StoreState => ({
     isLoading: false,
-    error: null,
-    isAuthenticated: false,
-    isCheckingAuth: false,
-    customer: undefined,
+    isAuthenticated: null,
     authCheckTimer: null,
     failureCount: null,
     lastCheckTime: null,
-    initialized: false,
-    _visibilityHandler: null,
+    _initialized: false,
   }),
 
   getters: {
@@ -96,83 +86,37 @@ export const useAuthStore = defineStore('auth', {
 
       return Date.now() - state.lastCheckTime > AUTH_CHECK_CONFIG.INTERVAL;
     },
+    isInitialized(state: StoreState): boolean {
+      return state._initialized;
+    },
   },
 
   actions: {
     _api: null as AxiosInstance | null,
     _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
 
-    /**
-     * Initializes the auth store.
-     * Sets up the visibility listener, sets initial auth state, and customer data.
-     *
-     * The visibility listener helps maintain auth state when tabs become
-     * active after being inactive for extended periods.
-     */
-    initialize() {
-      if (this.initialized) return this;
+    init() {
+      if (this._initialized) return this;
 
       this.setupErrorHandler();
 
-      // Set up visibility handler first
-      const handler = this.handleVisibilityChange.bind(this);
-      document.addEventListener('visibilitychange', handler);
-      this._visibilityHandler = handler;
+      const windowStore = useWindowStore();
+      windowStore.init();
 
-      // Then set initial state
-      this._setInitialState();
+      // Explicitly use the values from windowObj without fallbacks
+      const windowData = {
+        isAuthenticated: windowStore.isAuthenticated === true, // only when exactly true
+      };
+
+      // Remove the nullish coalescing since we want to use the exact values
+      this.$patch(windowData);
 
       if (this.isAuthenticated) {
         this.$scheduleNextCheck();
       }
 
-      this.initialized = true;
+      this._initialized = true;
       return this;
-    },
-
-    _setupVisibilityHandler() {
-      const handler = this.handleVisibilityChange.bind(this);
-      document.addEventListener('visibilitychange', handler);
-      this._visibilityHandler = handler;
-    },
-
-    _setInitialState() {
-      this.$patch({
-        isAuthenticated: Boolean(window.authenticated),
-        customer: window.cust || undefined,
-        initialized: true,
-      });
-    },
-
-    // Add separate method for visibility handling
-    handleVisibilityChange() {
-      // Only check if document is visible AND we need a check
-      if (
-        document.visibilityState === 'visible' &&
-        this.isAuthenticated &&
-        this.needsCheck
-      ) {
-        // Ensure we call checkAuthStatus() directly
-        void this.checkAuthStatus();
-      }
-    },
-
-    // Add a separate method for async initialization if needed
-    async initializeAsync() {
-      this.initialize();
-      if (this.isAuthenticated) {
-        await this.checkAuthStatus();
-      }
-      return this;
-    },
-
-    // Separate method for async operations if needed
-    async refreshInitialState() {
-      if (this.isAuthenticated) {
-        await this.checkAuthStatus();
-        // Ensure lastCheckTime is set
-        this.lastCheckTime = Date.now();
-      }
     },
 
     _ensureErrorHandler() {
@@ -212,7 +156,7 @@ export const useAuthStore = defineStore('auth', {
      */
     async checkAuthStatus() {
       if (!this.isAuthenticated) return false;
-      this.isCheckingAuth = true;
+
       this._ensureErrorHandler();
 
       return await this._errorHandler!.withErrorHandling(async () => {
@@ -220,27 +164,38 @@ export const useAuthStore = defineStore('auth', {
         const validated = responseSchemas.checkAuth.parse(response.data);
 
         this.isAuthenticated = validated.details.authenticated;
-        this.customer = validated.record;
+        // this.customer = validated.record;
         this.failureCount = 0;
         this.lastCheckTime = Date.now();
 
-        // Keep window state in sync
-        window.authenticated = this.isAuthenticated;
-        window.cust = this.customer;
-
         return this.isAuthenticated;
-      })
-        .catch(() => {
-          // Initialize failureCount if this is first failure
-          this.failureCount = (this.failureCount ?? 0) + 1;
-          if (this.failureCount >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-            this.logout();
-          }
-          return false;
-        })
-        .finally(() => {
-          this.isCheckingAuth = false;
-        });
+      }).catch(() => {
+        // Initialize failureCount if this is first failure
+        this.failureCount = (this.failureCount ?? 0) + 1;
+        if (this.failureCount >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
+          this.logout();
+        }
+        return false;
+      });
+    },
+
+    // Separate method for async operations if needed
+    async refreshInitialState() {
+      if (this.isAuthenticated) {
+        await this.checkAuthStatus();
+        // Ensure lastCheckTime is set
+        this.lastCheckTime = Date.now();
+      }
+    },
+
+    /**
+     * Forces an immediate auth check and reschedules next check.
+     * Useful when the application needs to ensure fresh auth state.
+     */
+    async refreshAuthState() {
+      return this.checkAuthStatus().then(() => {
+        this.$scheduleNextCheck();
+      });
     },
 
     /**
@@ -291,23 +246,21 @@ export const useAuthStore = defineStore('auth', {
       this.$logout();
     },
 
-    // Add cleanup in $dispose
+    /**
+     * Disposes of the store, stopping the auth check.
+     *
+     * - Disposing of a store does not reset its state. If you recreate the store,
+     *   it will start with its initial state as defined in the store definition.
+     * - Once a store is disposed of, it should not be used again.
+     *
+     */
     $dispose() {
-      if (this._visibilityHandler) {
-        document.removeEventListener('visibilitychange', this._visibilityHandler);
-        this._visibilityHandler = null;
-      }
       this.$stopAuthCheck();
     },
 
-    /**
-     * Forces an immediate auth check and reschedules next check.
-     * Useful when the application needs to ensure fresh auth state.
-     */
-    async refreshAuthState() {
-      return this.checkAuthStatus().then(() => {
-        this.$scheduleNextCheck();
-      });
+    reset() {
+      this.$reset();
+      this._initialized = false; // Explicitly reset initialization flag
     },
   },
 });

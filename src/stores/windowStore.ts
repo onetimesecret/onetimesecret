@@ -59,11 +59,6 @@ export const useWindowStore = defineStore('window', {
       });
     },
 
-    reset() {
-      this.$reset();
-      this._initialized = false; // Explicitly reset initialization flag
-    },
-
     // Initialize store state from window properties
     init(windowObj: Partial<OnetimeWindow> = window as OnetimeWindow) {
       if (this._initialized) return;
@@ -96,6 +91,11 @@ export const useWindowStore = defineStore('window', {
         // Update store state
         this.$patch(mapAllWindowProperties(data));
       });
+    },
+
+    reset() {
+      this.$reset();
+      this._initialized = false; // Explicitly reset initialization flag
     },
   },
 });
