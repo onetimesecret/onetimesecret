@@ -39,7 +39,7 @@
     "@headlessui/vue": "^1.7.23",
     "@intlify/core": "^9.14.1",
     "@types/dompurify": "^3.0.5",
-    "@vueuse/integrations": "^11.2.0",
+    "@vueuse/integrations": "^12.2.0",
     "altcha": "^1.0.6",
     "axios": "^1.7.7",
     "dompurify": "^3.1.7",
