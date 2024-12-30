@@ -26,9 +26,8 @@ import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axio
  * @param shrimp - The value to validate
  * @returns boolean indicating if the value is a valid string token
  */
-const isValidShrimp = (shrimp: unknown): shrimp is string => {
-  return typeof shrimp === 'string' && shrimp.length > 0;
-};
+const isValidShrimp = (shrimp: unknown): shrimp is string =>
+  typeof shrimp === 'string' && shrimp.length > 0;
 
 /**
  * Creates a truncated version of the shrimp token for safe logging
@@ -50,11 +49,11 @@ const createLoggableShrimp = (shrimp: unknown): string => {
 export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   const csrfStore = useCsrfStore();
 
-  console.debug('[debug] Request config:', {
-    url: config.url,
-    method: config.method,
-    baseURL: config.baseURL,
-  });
+  // console.debug('[debug] Request config:', {
+  //   url: config.url,
+  //   method: config.method,
+  //   baseURL: config.baseURL,
+  // });
 
   // Set CSRF token in headers
   config.headers = config.headers || {};
@@ -71,14 +70,14 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
 export const responseInterceptor = (response: AxiosResponse) => {
   const csrfStore = useCsrfStore();
   const responseShrimp = response.data?.shrimp;
-  const shrimpSnippet = createLoggableShrimp(responseShrimp);
 
-  console.debug('[debug] Success response:', {
-    url: response.config.url,
-    status: response.status,
-    hasShrimp: !!responseShrimp,
-    shrimp: shrimpSnippet,
-  });
+  //const shrimpSnippet = createLoggableShrimp(responseShrimp);
+  // console.debug('[debug] Success response:', {
+  //   url: response.config.url,
+  //   status: response.status,
+  //   hasShrimp: !!responseShrimp,
+  //   shrimp: shrimpSnippet,
+  // });
 
   if (isValidShrimp(responseShrimp)) {
     csrfStore.updateShrimp(responseShrimp);

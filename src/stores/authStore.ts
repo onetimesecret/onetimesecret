@@ -7,8 +7,6 @@ import { defineStore } from 'pinia';
 
 import { useWindowStore } from './windowStore';
 
-const api = createApi();
-
 /**
  * Configuration for authentication check behavior.
  *
@@ -86,6 +84,7 @@ export const useAuthStore = defineStore('auth', {
 
       return Date.now() - state.lastCheckTime > AUTH_CHECK_CONFIG.INTERVAL;
     },
+
     isInitialized(state: StoreState): boolean {
       return state._initialized;
     },
@@ -95,7 +94,7 @@ export const useAuthStore = defineStore('auth', {
     _api: null as AxiosInstance | null,
     _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
 
-    init(api: AxiosInstance = createApi()) {
+    init(api: AxiosInstance) {
       if (this._initialized) return this;
 
       this.setupErrorHandler(api);
@@ -108,7 +107,6 @@ export const useAuthStore = defineStore('auth', {
         isAuthenticated: windowStore.isAuthenticated === true, // only when exactly true
       };
 
-      // Remove the nullish coalescing since we want to use the exact values
       this.$patch(windowData);
 
       if (this.isAuthenticated) {
@@ -160,7 +158,7 @@ export const useAuthStore = defineStore('auth', {
       this._ensureErrorHandler();
 
       return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await api.get(AUTH_CHECK_CONFIG.ENDPOINT);
+        const response = await this._api!.get(AUTH_CHECK_CONFIG.ENDPOINT);
         const validated = responseSchemas.checkAuth.parse(response.data);
 
         this.isAuthenticated = validated.details.authenticated;

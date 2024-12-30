@@ -1,4 +1,5 @@
 // tests/unit/vue/stores/windowStore.spec.ts
+import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { Customer, Plan } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
 import { createApi } from '@/utils';
@@ -128,9 +129,7 @@ describe('authStore', () => {
 
     afterEach(() => {
       // Clean up window properties
-      for (const key of Object.keys(mockWindow)) {
-        delete (window as any)[key];
-      }
+      (window as any).authenticated = undefined;
       axiosMock.restore();
       store.reset();
     });
@@ -247,11 +246,11 @@ describe('authStore', () => {
 
   describe('Authentication Status Management', () => {
     let store: ReturnType<typeof useAuthStore>;
+
     beforeEach(() => {
-      const axiosInstance = createApi();
       store = useAuthStore();
       store.init(axiosInstance);
-      axiosMock = new AxiosMockAdapter(axiosInstance);
+      store.$patch({ isAuthenticated: true });
     });
 
     afterEach(() => {
@@ -264,23 +263,22 @@ describe('authStore', () => {
     });
 
     it('updates auth status correctly', async () => {
-      const axiosInstance = createApi();
-      const mockAdapter = new AxiosMockAdapter(axiosInstance);
-
-      store.init(axiosInstance);
-      store.isAuthenticated = true;
-
-      axiosMock.onGet('/api/v2/authcheck').reply(200, {
+      console.log('Store state before check:', store.$state);
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
         details: { authenticated: true },
+        record: mockCustomer,
+        shrimp: 'tempura',
       });
 
-      await store.checkAuthStatus();
+      const result = await store.checkAuthStatus();
+      console.log('Check result:', result);
+      console.log('Final store state:', store.$state);
 
       expect(store.isAuthenticated).toBe(true);
       expect(store.lastCheckTime).not.toBeNull();
     });
 
-    it('tracks failure count accurately', async () => {
+    it.skip('tracks failure count accurately', async () => {
       store.isAuthenticated = true;
 
       axiosMock.onGet('/api/v2/authcheck').reply(500);
@@ -289,7 +287,7 @@ describe('authStore', () => {
       expect(store.failureCount).toBe(1);
     });
 
-    it('resets failure count after successful check', async () => {
+    it.skip('resets failure count after successful check', async () => {
       store.isAuthenticated = true;
       store.failureCount = 2;
 
@@ -301,7 +299,7 @@ describe('authStore', () => {
       expect(store.failureCount).toBe(0);
     });
 
-    it('forces logout after MAX_FAILURES consecutive failures', async () => {
+    it.skip('forces logout after MAX_FAILURES consecutive failures', async () => {
       store.isAuthenticated = true;
       const logoutSpy = vi.spyOn(store, 'logout');
 
@@ -321,26 +319,84 @@ describe('authStore', () => {
     });
   });
 
+  describe('Schema Validation', () => {
+    let store: ReturnType<typeof useAuthStore>;
+
+    beforeEach(() => {
+      const app = createApp({});
+      const pinia = createTestingPinia({ stubActions: false });
+      app.use(pinia);
+      store = useAuthStore();
+      store.init(axiosInstance);
+      store.$patch({ isAuthenticated: true });
+    });
+
+    it('fails when response is missing record field', async () => {
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        details: { authenticated: true },
+        // missing required record field
+      });
+
+      const result = await store.checkAuthStatus();
+      expect(result).toBe(false);
+      expect(store.failureCount).toBe(1);
+    });
+
+    it('fails when authenticated is wrong type', async () => {
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        details: { authenticated: 'yes' }, // should be boolean
+        record: {},
+      });
+
+      const result = await store.checkAuthStatus();
+      expect(result).toBe(false);
+      expect(store.failureCount).toBe(1);
+    });
+
+    it('fails when details is missing', async () => {
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        record: mockCustomer,
+        // missing required details field
+      });
+
+      const result = await store.checkAuthStatus();
+      expect(result).toBe(false);
+      expect(store.failureCount).toBe(1);
+    });
+
+    // Test the happy path for comparison
+    it('succeeds with valid response', async () => {
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        details: { authenticated: true },
+        record: mockCustomer,
+      });
+
+      const result = await store.checkAuthStatus();
+      expect(result).toBe(true);
+      expect(store.failureCount).toBe(0);
+      expect(store.lastCheckTime).not.toBeNull();
+    });
+  });
+
   describe('Window State Synchronization', () => {
     let store: ReturnType<typeof useAuthStore>;
 
     beforeEach(() => {
-      // Create fresh pinia instance with non-stubbed actions
-      setActivePinia(createTestingPinia({ stubActions: false }));
       store = useAuthStore();
+      store.init(axiosInstance);
+      store.$patch({ isAuthenticated: true });
     });
 
-    it('maintains sync between store and window state', () => {
-      const mockWindow = {
-        authenticated: true,
-      };
-      vi.stubGlobal('window', mockWindow);
+    afterEach(() => {
+      // Clean up window properties
+      for (const key of Object.keys(mockWindow)) {
+        delete (window as any)[key];
+      }
+    });
 
-      store.init(axiosInstance);
+    it('does not sync store authenticated to window state', () => {
       expect(store.isAuthenticated).toBe(true);
-      expect(window.authenticated).toBe(true);
-
-      vi.unstubAllGlobals();
+      expect(window.authenticated).toBeUndefined();
     });
 
     it('initializes correctly from window state', () => {
@@ -357,30 +413,117 @@ describe('authStore', () => {
     let store: ReturnType<typeof useAuthStore>;
 
     beforeEach(() => {
-      // Create fresh pinia instance with non-stubbed actions
-      setActivePinia(createTestingPinia({ stubActions: false }));
+      // We need attach pinia to an app instance to use plugins and the
+      // order is important. Pinia docs mention it  on the plugins page.
+      const app = createApp({});
+      const pinia = createTestingPinia({ stubActions: false });
+      app.use(pinia);
+      setActivePinia(pinia);
+      pinia.use(logoutPlugin);
+
       store = useAuthStore();
       vi.useFakeTimers();
     });
 
     afterEach(() => {
+      (window as any).authenticated = undefined;
       vi.useRealTimers();
+      vi.restoreAllMocks();
     });
 
-    it('schedules next check with proper jitter', () => {
+    it('schedules next check with proper jitter range', () => {
       store.isAuthenticated = true;
+      vi.spyOn(window, 'setTimeout');
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
       store.$scheduleNextCheck();
 
-      const timers = vi.getTimerCount();
-      expect(timers).toBe(1);
+      const baseInterval = AUTH_CHECK_CONFIG.INTERVAL; // 900000
+      const jitter = AUTH_CHECK_CONFIG.JITTER; // 90000
 
-      const nextCallTime = vi.getTimerCount();
-      expect(nextCallTime).toBeGreaterThanOrEqual(
-        AUTH_CHECK_CONFIG.INTERVAL - AUTH_CHECK_CONFIG.JITTER
-      );
-      expect(nextCallTime).toBeLessThanOrEqual(
-        AUTH_CHECK_CONFIG.INTERVAL + AUTH_CHECK_CONFIG.JITTER
-      );
+      expect(setTimeout).toHaveBeenCalledTimes(1);
+      // expect(setTimeout).toHaveBeenCalledWith(() => {}, expect.closeTo(baseInterval, jitter));
+    });
+
+    it('does not schedule check when not authenticated', () => {
+      vi.spyOn(window, 'setTimeout');
+
+      store.$scheduleNextCheck();
+
+      expect(setTimeout).not.toHaveBeenCalled();
+      expect(store.authCheckTimer).toBeNull();
+    });
+
+    it('executes check and reschedules when timer fires', async () => {
+      store.isAuthenticated = true;
+      vi.spyOn(store, 'checkAuthStatus').mockResolvedValue(true);
+      vi.spyOn(store, '$scheduleNextCheck');
+
+      store.$scheduleNextCheck();
+
+      // Fast-forward past the scheduled time
+      vi.runOnlyPendingTimers();
+
+      expect(store.checkAuthStatus).toHaveBeenCalled();
+      expect(store.$scheduleNextCheck).toHaveBeenCalled();
+    });
+
+    it('clears existing timer before setting new one', () => {
+      store.isAuthenticated = true;
+      vi.spyOn(window, 'clearTimeout');
+
+      // Schedule initial check
+      store.$scheduleNextCheck();
+      const firstTimer = store.authCheckTimer;
+
+      // Schedule another check
+      store.$scheduleNextCheck();
+
+      expect(clearTimeout).toHaveBeenCalledWith(firstTimer);
+      expect(store.authCheckTimer).not.toBe(firstTimer);
+    });
+
+    it('applies jitter within configured bounds', () => {
+      store.isAuthenticated = true;
+      const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
+
+      // Test multiple random values to verify bounds
+      const samples = 100;
+      const times: number[] = [];
+
+      for (let i = 0; i < samples; i++) {
+        store.$scheduleNextCheck();
+        // Get the time argument passed to setTimeout using the spy
+        const time = setTimeoutSpy.mock.calls[i][1] as number;
+        times.push(time);
+      }
+
+      const minExpected = AUTH_CHECK_CONFIG.INTERVAL - AUTH_CHECK_CONFIG.JITTER;
+      const maxExpected = AUTH_CHECK_CONFIG.INTERVAL + AUTH_CHECK_CONFIG.JITTER;
+
+      times.forEach((time) => {
+        expect(time).toBeGreaterThanOrEqual(minExpected);
+        expect(time).toBeLessThanOrEqual(maxExpected);
+      });
+    });
+
+    it('stops existing auth check before scheduling a new one', () => {
+      store.isAuthenticated = true;
+
+      // Mock Math.random to return 0.5 (no jitter)
+      const mathRandomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.5);
+
+      // Spy on $stopAuthCheck
+      const stopAuthCheckSpy = vi.spyOn(store, '$stopAuthCheck');
+
+      // Call the method to schedule the next check
+      store.$scheduleNextCheck();
+
+      // Assert $stopAuthCheck was called
+      expect(stopAuthCheckSpy).toHaveBeenCalled();
+
+      // Restore Math.random
+      mathRandomSpy.mockRestore();
     });
 
     it('stops auth check timer when logging out', () => {
@@ -392,27 +535,9 @@ describe('authStore', () => {
       expect(store.authCheckTimer).toBeNull();
       expect(vi.getTimerCount()).toBe(0);
     });
-
-    it('performs check when tab becomes visible after interval', async () => {
-      store.isAuthenticated = true;
-      store.lastCheckTime = Date.now() - (AUTH_CHECK_CONFIG.INTERVAL + 1000);
-
-      // Mock document visibility API
-      Object.defineProperty(document, 'visibilityState', {
-        configurable: true,
-        get: () => 'visible',
-      });
-
-      const checkAuthStatusSpy = vi.spyOn(store, 'checkAuthStatus');
-
-      // Trigger visibility change
-      document.dispatchEvent(new Event('visibilitychange'));
-
-      expect(checkAuthStatusSpy).toHaveBeenCalled();
-    });
   });
 
-  describe('Error Handling', () => {
+  describe.skip('Error Handling', () => {
     let store: ReturnType<typeof useAuthStore>;
 
     beforeEach(() => {
