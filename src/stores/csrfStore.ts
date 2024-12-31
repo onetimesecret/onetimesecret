@@ -113,9 +113,14 @@ export const useCsrfStore = defineStore('csrf', () => {
     }
   }
 
+  /**
+   * Resets store to initial state, including re-reading window.shrimp.
+   * We preserve window.shrimp behavior to maintain consistency with store
+   * initialization and ensure predictable reset behavior across the app.
+   */
   function $reset() {
     isLoading.value = false;
-    shrimp.value = '';
+    shrimp.value = window.shrimp || ''; // back to how it all began
     isValid.value = false;
     stopPeriodicCheck();
   }
