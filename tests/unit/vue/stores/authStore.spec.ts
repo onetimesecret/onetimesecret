@@ -72,6 +72,7 @@ describe('authStore', () => {
     axiosMock = new AxiosMockAdapter(axiosInstance);
 
     const app = createApp({});
+
     // `createTestingPinia()` creates a testing version of Pinia that mocks all
     // actions by default. Use `createTestingPinia({ stubActions: false })` if
     // you want to test actions. Otherwise they don't actually get called.
@@ -123,7 +124,6 @@ describe('authStore', () => {
 
     beforeEach(() => {
       store = useAuthStore();
-
       axiosMock = new AxiosMockAdapter(axios);
     });
 

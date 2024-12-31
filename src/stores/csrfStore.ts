@@ -1,21 +1,10 @@
 // stores/csrfStore.ts
-
-import {
-  createError,
-  ErrorHandlerOptions,
-  useErrorHandler,
-} from '@/composables/useErrorHandler';
+import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api/responses';
 import { createApi } from '@/utils';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
-
-interface StoreState {
-  isLoading: boolean;
-  shrimp: string;
-  isValid: boolean;
-  intervalChecker: number | null;
-}
+import { handleError, ref } from 'vue';
 
 /**
  * Store for managing CSRF token (shrimp) state and validation.
@@ -39,90 +28,107 @@ interface StoreState {
  * // Update token (typically handled by API interceptors)
  * csrfStore.updateShrimp(newToken);
  *
- * // Ask the server whether the token is valid
- * csrfStore.checkShrimpValidity().then(() => {});
- *
+ * // Check if token is valid according to server
+ * if (csrfStore.isValid) {
+ *   // Proceed with protected action
+ * } else {
+ *   // Handle invalid token scenario
+ * }
  */
-export const useCsrfStore = defineStore('csrf', {
-  state: (): StoreState => ({
-    isLoading: false,
-    shrimp: window.shrimp || '',
-    isValid: false,
-    intervalChecker: null as number | null,
-  }),
 
-  actions: {
-    _api: null as AxiosInstance | null,
-    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+/* eslint-disable max-lines-per-function */
+export const useCsrfStore = defineStore('csrf', () => {
+  // State
+  const isLoading = ref(false);
+  const shrimp = ref(window.shrimp || '');
+  const isValid = ref(false);
+  const intervalChecker = ref<number | null>(null);
 
-    _ensureErrorHandler() {
-      if (!this._errorHandler) this.setupErrorHandler();
-    },
+  // Private state
+  let _api: AxiosInstance | null = null;
+  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
 
-    // Allow passing options during initialization
-    setupErrorHandler(
-      api: AxiosInstance = createApi(),
-      options: ErrorHandlerOptions = {}
-    ) {
-      this._api = api;
-      this._errorHandler = useErrorHandler({
-        setLoading: (isLoading) => {
-          this.isLoading = isLoading;
+  // Actions
+  function init(api?: AxiosInstance) {
+    _ensureErrorHandler(api);
+  }
+
+  function _ensureErrorHandler(api?: AxiosInstance) {
+    if (!_errorHandler) setupErrorHandler(api);
+  }
+
+  function setupErrorHandler(
+    api: AxiosInstance = createApi(),
+    options: ErrorHandlerOptions = {}
+  ) {
+    _api = api;
+    _errorHandler = useErrorHandler({
+      setLoading: (loading) => (isLoading.value = loading),
+      notify: options.notify,
+      log: options.log,
+    });
+  }
+
+  function updateShrimp(newShrimp: string) {
+    shrimp.value = newShrimp;
+    isValid.value = true;
+  }
+
+  async function checkShrimpValidity() {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!('/api/v2/validate-shrimp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'O-Shrimp': shrimp.value,
         },
-        notify: options.notify, // Allow UI layer to handle notifications if provided
-        log: options.log, // Allow custom logging if provided
       });
-    },
 
-    updateShrimp(newShrimp: string) {
-      this.shrimp = newShrimp;
-      window.shrimp = newShrimp;
-    },
-
-    async checkShrimpValidity() {
-      this._ensureErrorHandler();
-
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await fetch('/api/v2/validate-shrimp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'O-Shrimp': this.shrimp,
-          },
-        });
-
-        if (response.ok) {
-          const data = responseSchemas.csrf.parse(await response.json());
-          this.isValid = data.isValid;
-          if (data.shrimp) {
-            this.updateShrimp(data.shrimp);
-          }
-        } else {
-          throw createError('Failed to validate CSRF token', 'technical', 'error');
-        }
-      });
-    },
-
-    startPeriodicCheck(intervalMs: number = 60000) {
-      this.stopPeriodicCheck();
-      this.intervalChecker = window.setInterval(() => {
-        this.checkShrimpValidity();
-      }, intervalMs);
-    },
-
-    stopPeriodicCheck() {
-      if (this.intervalChecker !== null) {
-        clearInterval(this.intervalChecker);
-        this.intervalChecker = null;
+      const validated = responseSchemas.csrf.parse(response.data);
+      isValid.value = validated.isValid;
+      if (validated.shrimp) {
+        updateShrimp(validated.shrimp);
       }
-    },
+    });
+  }
 
-    reset() {
-      this.isLoading = false;
-      this.shrimp = '';
-      this.isValid = false;
-      this.$reset();
-      this.stopPeriodicCheck();
-    },
-  },
+  function startPeriodicCheck(intervalMs: number = 60000) {
+    stopPeriodicCheck();
+    intervalChecker.value = window.setInterval(() => {
+      checkShrimpValidity();
+    }, intervalMs);
+  }
+
+  function stopPeriodicCheck() {
+    if (intervalChecker.value !== null) {
+      clearInterval(intervalChecker.value);
+      intervalChecker.value = null;
+    }
+  }
+
+  function $reset() {
+    isLoading.value = false;
+    shrimp.value = '';
+    isValid.value = false;
+    stopPeriodicCheck();
+  }
+
+  return {
+    // State
+    isLoading,
+    shrimp,
+    isValid,
+    intervalChecker,
+
+    // Actions
+    init,
+    handleError,
+    updateShrimp,
+    checkShrimpValidity,
+    startPeriodicCheck,
+    stopPeriodicCheck,
+    $reset,
+  };
 });

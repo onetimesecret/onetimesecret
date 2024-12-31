@@ -18,7 +18,7 @@ const localeSchema = z
   .max(5)
   .regex(/^[a-z]{2}(-[A-Z]{2})?$/);
 
-interface LanguageStoreOptions {
+interface StoreOptions {
   deviceLocale?: string;
   storageKey?: string;
 }
@@ -44,7 +44,7 @@ export const useLanguageStore = defineStore('language', () => {
   const getSupportedLocales = computed(() => supportedLocales.value);
 
   // Actions
-  function init(api?: AxiosInstance, options?: LanguageStoreOptions) {
+  function init(api?: AxiosInstance, options?: StoreOptions) {
     _ensureErrorHandler(api);
 
     // Set device locale from options if provided
