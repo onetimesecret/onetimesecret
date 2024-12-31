@@ -76,7 +76,6 @@ export const useCsrfStore = defineStore('csrf', () => {
 
   function updateShrimp(newShrimp: string) {
     shrimp.value = newShrimp;
-    isValid.value = true;
   }
 
   async function checkShrimpValidity() {
@@ -93,9 +92,10 @@ export const useCsrfStore = defineStore('csrf', () => {
 
       const validated = responseSchemas.csrf.parse(response.data);
       isValid.value = validated.isValid;
-      if (validated.shrimp) {
+      if (validated.isValid) {
         updateShrimp(validated.shrimp);
       }
+      return validated;
     });
   }
 
