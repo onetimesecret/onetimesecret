@@ -4,16 +4,14 @@ import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHand
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
 import { z } from 'zod';
 
 import { useWindowStore } from './windowStore';
 
-const SESSION_STORAGE_KEY = 'selected.locale';
-const DEFAULT_LOCALE = 'en';
+export const SESSION_STORAGE_KEY = 'selected.locale';
+export const DEFAULT_LOCALE = 'en';
 
-//const supportedLocales = window.supported_locales;
-
-// Schema for locale validation
 const localeSchema = z
   .string()
   .min(2)
@@ -25,144 +23,143 @@ interface LanguageStoreOptions {
   storageKey?: string;
 }
 
-interface StoreState {
-  isLoading: boolean;
-  deviceLocale: string;
-  storageKey: string;
-  supportedLocales: string[];
-  storedLocale: string | null;
-  currentLocale: string | null;
-}
+/* eslint-disable max-lines-per-function */
+export const useLanguageStore = defineStore('language', () => {
+  // State
+  const isLoading = ref<boolean>(false);
+  const deviceLocale = ref<string | null>(null);
+  const currentLocale = ref<string | null>(null);
+  const storageKey = ref<string | null>(null);
+  const supportedLocales = ref<string[]>([]);
+  const storedLocale = ref<string | null>(null);
 
-export const useLanguageStore = defineStore('language', {
-  state: (options?: LanguageStoreOptions): StoreState => ({
-    isLoading: false,
-    deviceLocale: options?.deviceLocale ?? DEFAULT_LOCALE,
-    storageKey: options?.storageKey ?? SESSION_STORAGE_KEY,
-    supportedLocales: [],
-    storedLocale: null,
-    currentLocale: null,
-  }),
+  // Private state
+  let _api: AxiosInstance | null = null;
+  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
 
-  getters: {
-    getDeviceLocale: (state) => state.deviceLocale,
-    getCurrentLocale: (state) => state.currentLocale,
-    getStorageKey: (state) => state.storageKey,
-    getSupportedLocales: (state) => state.supportedLocales,
-  },
+  // Getters
+  const getDeviceLocale = computed(() => deviceLocale.value);
+  const getCurrentLocale = computed(() => currentLocale.value ?? DEFAULT_LOCALE);
+  const getStorageKey = computed(() => storageKey.value ?? SESSION_STORAGE_KEY);
+  const getSupportedLocales = computed(() => supportedLocales.value);
 
-  actions: {
-    _api: null as AxiosInstance | null,
-    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+  // Actions
+  function init(api?: AxiosInstance, options?: LanguageStoreOptions) {
+    _ensureErrorHandler(api);
 
-    init(api?: AxiosInstance) {
-      this._ensureErrorHandler(api);
+    // Set device locale from options if provided
+    if (options?.deviceLocale) {
+      deviceLocale.value = options.deviceLocale;
+    }
 
+    // Set custom storage key if provided
+    if (options?.storageKey) {
+      storageKey.value = options.storageKey;
+    }
+
+    return initializeLocale();
+  }
+
+  function setupErrorHandler(
+    api: AxiosInstance = createApi(),
+    options: ErrorHandlerOptions = {}
+  ) {
+    _api = api;
+    _errorHandler = useErrorHandler({
+      setLoading: (loading) => (isLoading.value = loading),
+      notify: options.notify,
+      log: options.log,
+    });
+  }
+
+  function _ensureErrorHandler(api?: AxiosInstance) {
+    if (!_errorHandler) setupErrorHandler(api);
+  }
+
+  function initializeLocale() {
+    try {
       const windowStore = useWindowStore();
       windowStore.init();
+      supportedLocales.value = windowStore.supported_locales ?? [];
 
-      this.supportedLocales = windowStore.supported_locales ?? [];
-
-      return this.initializeLocale();
-    },
-
-    _ensureErrorHandler(api?: AxiosInstance) {
-      if (!this._errorHandler) this.setupErrorHandler(api);
-    },
-
-    setupErrorHandler(
-      api: AxiosInstance = createApi(),
-      options: ErrorHandlerOptions = {}
-    ) {
-      this._api = api;
-      this._errorHandler = useErrorHandler({
-        setLoading: (isLoading) => {
-          this.isLoading = isLoading;
-        },
-        notify: options.notify,
-        log: options.log,
-      });
-    },
-
-    /**
-     * Sets initial locale based on priority:
-     * 1. Stored locale
-     * 2. Browser language
-     * 3. Default locale
-     *
-     * NOTE: When we start up, we may have the device locale but we won't have
-     * the user's preferred locale yet. This method sets a definite initial
-     * locale to get things going with the information we have.
-     *
-     * This is a synchronous method that should be called once during store initialization.
-     */
-    initializeLocale() {
-      try {
-        this.storedLocale = sessionStorage.getItem(this.storageKey);
-
-        // Extract primary language code (e.g., 'en-NZ' -> 'en')
-        const primaryLocale = this.deviceLocale.split('-')[0];
-        this.currentLocale = this.storedLocale || primaryLocale;
-
-        return this.currentLocale;
-      } catch (error) {
-        console.error('[initializeLocale] Error:', error, this.currentLocale);
-        return (this.currentLocale = this.deviceLocale);
+      storedLocale.value = sessionStorage.getItem(getStorageKey.value);
+      if (deviceLocale.value !== null) {
+        const primaryLocale = deviceLocale.value.split('-')[0];
+        currentLocale.value = storedLocale.value || primaryLocale;
       }
-    },
+      return getCurrentLocale;
+    } catch (error) {
+      console.error('[initializeLocale] Error:', error, currentLocale.value);
+      return (currentLocale.value = deviceLocale.value);
+    }
+  }
 
-    /**
-     * Determines the appropriate locale (if supported) based on the following priority:
-     * 1. Preferred locale
-     * 2. Primary language code of preferred locale
-     * 3. Current locale (the initialized locale or modified during this run)
-     * 4. Stored locale preference (if set)
-     * 5. Default locale (fallback)
-     *
-     * Implementation Note:
-     * The array-based approach is intentionally chosen over simplified conditionals because:
-     * - It makes the priority order above directly visible in the code
-     * - It matches standard browser locale negotiation patterns
-     * - It enables safe, documented evolution of the fallback strategy
-     * - It prevents subtle bugs by making all fallbacks explicit
-     */
-    determineLocale(preferredLocale?: string): string {
-      const locales = [
-        preferredLocale,
-        preferredLocale?.split('-')[0],
-        this.currentLocale,
-        this.storedLocale,
-      ];
+  function determineLocale(preferredLocale?: string): string {
+    const locales = [
+      preferredLocale,
+      preferredLocale?.split('-')[0],
+      currentLocale.value,
+      storedLocale.value,
+    ];
 
-      const supported = locales.find(
-        (locale) => locale && this.supportedLocales.includes(locale)
-      );
+    const supported = locales.find(
+      (locale) => locale && supportedLocales.value.includes(locale)
+    );
 
-      return supported ?? DEFAULT_LOCALE;
-    },
+    return supported ?? DEFAULT_LOCALE;
+  }
 
-    async updateLanguage(newLocale: string) {
-      return await this._errorHandler!.withErrorHandling(async () => {
-        // Validate locale format
-        const validatedLocale = localeSchema.parse(newLocale);
+  function setCurrentLocale(locale: string) {
+    if (supportedLocales.value.includes(locale)) {
+      currentLocale.value = locale;
+      sessionStorage.setItem(getStorageKey.value, locale);
+    } else {
+      console.warn(`Unsupported locale: ${locale}`);
+    }
+  }
 
-        // Update local state
-        this.setCurrentLocale(validatedLocale);
-
-        // Update the language for the user using the api instance
-        await this._api!.post('/api/v2/account/update-locale', {
-          locale: validatedLocale,
-        });
+  async function updateLanguage(newLocale: string) {
+    return await _errorHandler!.withErrorHandling(async () => {
+      const validatedLocale = localeSchema.parse(newLocale);
+      setCurrentLocale(validatedLocale);
+      await _api!.post('/api/v2/account/update-locale', {
+        locale: validatedLocale,
       });
-    },
+    });
+  }
 
-    setCurrentLocale(locale: string) {
-      if (this.supportedLocales.includes(locale)) {
-        this.currentLocale = locale; // Direct assignment for reactivity
-        sessionStorage.setItem(SESSION_STORAGE_KEY, locale);
-      } else {
-        console.warn(`Unsupported locale: ${locale}`);
-      }
-    },
-  },
+  function $reset() {
+    isLoading.value = false;
+    deviceLocale.value = null;
+    currentLocale.value = null;
+    storageKey.value = null;
+    supportedLocales.value = [];
+    storedLocale.value = null;
+  }
+
+  return {
+    // State
+    isLoading,
+    deviceLocale,
+    storageKey,
+    supportedLocales,
+    storedLocale,
+    currentLocale,
+
+    // Getters
+    getDeviceLocale,
+    getCurrentLocale,
+    getStorageKey,
+    getSupportedLocales,
+
+    // Actions
+    init,
+    setupErrorHandler,
+    initializeLocale,
+    determineLocale,
+    updateLanguage,
+    setCurrentLocale,
+
+    $reset,
+  };
 });
