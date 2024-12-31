@@ -8,11 +8,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError, ZodIssue } from 'zod';
 
 import {
-  createMetadataWithPassphrase,
-  mockBurnedMetadataDetails,
-  mockBurnedMetadataRecord,
-  mockMetadataDetails,
-  mockMetadataRecord,
+    createMetadataWithPassphrase,
+    mockBurnedMetadataDetails,
+    mockBurnedMetadataRecord,
+    mockMetadataDetails,
+    mockMetadataRecord,
 } from '../fixtures/metadata';
 
 function isZodInvalidTypeIssue(
@@ -388,25 +388,63 @@ describe('metadataStore', () => {
   describe('Advanced Metadata Store Scenarios', () => {
     // Initialization Flexibility
     describe('Store Initialization', () => {
-      it('supports custom error handling during initialization', () => {
+      it('supports custom error handling during initialization', async () => {
         const mockNotify = vi.fn();
         const mockLog = vi.fn();
+        const mockAxios = axios.create();
 
+        // Setup store with custom error handlers
         const store = useMetadataStore();
-        store.setupErrorHandler(axios.create(), {
+        store.setupErrorHandler(mockAxios, {
           notify: mockNotify,
           log: mockLog,
         });
 
-        // Verify custom handlers are set
-        expect(store._errorHandler).toBeTruthy();
+        // Mock API to return a 404 error with error response data
+        axiosMock = new AxiosMockAdapter(mockAxios);
+        axiosMock.onGet('/api/v2/private/test-key').reply(404, {
+          error: {
+            message: 'Secret not found',
+            code: 'NOT_FOUND'
+          }
+        });
+
+        // Attempt to fetch which should trigger error handling
+        await expect(store.fetch('test-key')).rejects.toMatchObject({
+          type: 'human',
+          severity: 'error',
+          message: 'Request failed with status code 404' // Match actual Axios error message
+        });
+
+        // Verify error handlers were called with appropriate args
+        expect(mockNotify).toHaveBeenCalledWith(
+          'Request failed with status code 404',
+          'error'
+        );
+
+        expect(mockLog).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'human',
+            severity: 'error',
+            message: 'Request failed with status code 404'
+          })
+        );
+
+        // Verify store state
+        expect(store.isLoading).toBe(false);
+        expect(store.record).toBeNull();
       });
 
-      it('handles initialization without optional parameters', () => {
+      it('handles initialization without optional parameters', async () => {
         const store = useMetadataStore();
 
         // Should not throw when initialized with minimal parameters
         expect(() => store.setupErrorHandler()).not.toThrow();
+
+        // Verify basic initialization works
+        expect(store.isLoading).toBe(false);
+        expect(store.record).toBeNull();
+        expect(store.details).toBeNull();
       });
     });
 
