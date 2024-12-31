@@ -57,7 +57,7 @@ export const responseSchemas = {
   // Special responses
   csrf: z.object({
     isValid: z.boolean(),
-    shrimp: z.string().optional(),
+    shrimp: z.string(),
   }),
 } as const;
 
