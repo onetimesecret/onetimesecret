@@ -1,7 +1,13 @@
 // stores/csrfStore.ts
 
-
+import {
+  createError,
+  ErrorHandlerOptions,
+  useErrorHandler,
+} from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api/responses';
+import { createApi } from '@/utils';
+import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 
 interface StoreState {
@@ -33,12 +39,9 @@ interface StoreState {
  * // Update token (typically handled by API interceptors)
  * csrfStore.updateShrimp(newToken);
  *
- * // Check if token is valid according to server
- * if (csrfStore.isValid) {
- *   // Proceed with protected action
- * } else {
- *   // Handle invalid token scenario
- * }
+ * // Ask the server whether the token is valid
+ * csrfStore.checkShrimpValidity().then(() => {});
+ *
  */
 export const useCsrfStore = defineStore('csrf', {
   state: (): StoreState => ({
@@ -49,14 +52,26 @@ export const useCsrfStore = defineStore('csrf', {
   }),
 
   actions: {
-    handleError(error: unknown): Error {
-      const apiError = {
-        message: error instanceof Error ? error.message : 'CSRF validation error',
-        code: 500,
-        name: 'CsrfError',
-      };
-      console.error('[CSRF]', apiError.message, error);
-      return apiError;
+    _api: null as AxiosInstance | null,
+    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+
+    _ensureErrorHandler() {
+      if (!this._errorHandler) this.setupErrorHandler();
+    },
+
+    // Allow passing options during initialization
+    setupErrorHandler(
+      api: AxiosInstance = createApi(),
+      options: ErrorHandlerOptions = {}
+    ) {
+      this._api = api;
+      this._errorHandler = useErrorHandler({
+        setLoading: (isLoading) => {
+          this.isLoading = isLoading;
+        },
+        notify: options.notify, // Allow UI layer to handle notifications if provided
+        log: options.log, // Allow custom logging if provided
+      });
     },
 
     updateShrimp(newShrimp: string) {
@@ -65,7 +80,9 @@ export const useCsrfStore = defineStore('csrf', {
     },
 
     async checkShrimpValidity() {
-      try {
+      this._ensureErrorHandler();
+
+      return await this._errorHandler!.withErrorHandling(async () => {
         const response = await fetch('/api/v2/validate-shrimp', {
           method: 'POST',
           headers: {
@@ -81,12 +98,9 @@ export const useCsrfStore = defineStore('csrf', {
             this.updateShrimp(data.shrimp);
           }
         } else {
-          throw this.handleError('Failed to validate CSRF token');
+          throw createError('Failed to validate CSRF token', 'technical', 'error');
         }
-      } catch (error) {
-        this.isValid = false;
-        throw this.handleError(error);
-      }
+      });
     },
 
     startPeriodicCheck(intervalMs: number = 60000) {
