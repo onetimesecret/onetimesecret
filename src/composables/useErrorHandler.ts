@@ -20,6 +20,11 @@ export interface ErrorHandlerOptions {
    * Optional loading state handler
    */
   setLoading?: (isLoading: boolean) => void;
+  /**
+   * Optional callback for when an error occurs, called before error is thrown
+   * Useful for state cleanup, invalidation, etc.
+   */
+  onError?: (error: ApplicationError) => void;
 }
 
 export { createError }; // Re-export createError
@@ -94,6 +99,16 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
       return await operation(); // <-- run the async operation
     } catch (error) {
       const classifiedError = classifyError(error);
+
+      // Call onError callback first
+      if (options.onError) {
+        try {
+          options.onError(classifiedError);
+        } catch (callbackError) {
+          // Log but don't throw callback errors to preserve original error
+          options.log?.(classifyError(callbackError));
+        }
+      }
 
       // Log all errors
       options.log?.(classifiedError);
