@@ -2,7 +2,7 @@
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { Customer, Plan } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
-import { createApi } from '@/utils';
+import { createApi } from '@/utils/api';
 import { createTestingPinia } from '@pinia/testing';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';

@@ -1,7 +1,7 @@
 // stores/csrfStore.ts
 import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api/responses';
-import { createApi } from '@/utils';
+import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { handleError, ref } from 'vue';
