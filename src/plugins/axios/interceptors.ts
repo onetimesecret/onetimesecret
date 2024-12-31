@@ -32,13 +32,13 @@ const isValidShrimp = (shrimp: unknown): shrimp is string =>
 /**
  * Creates a truncated version of the shrimp token for safe logging
  * @param shrimp - The token to process
- * @returns A truncated version of the token (first 8 chars + "...")
+ * @returns A truncated version of the token (first 4 chars + "...")
  */
 const createLoggableShrimp = (shrimp: unknown): string => {
   if (!isValidShrimp(shrimp)) {
     return '';
   }
-  return `${shrimp.slice(0, 8)}...`;
+  return `${shrimp.slice(0, 4)}...`;
 };
 
 /**
@@ -71,17 +71,8 @@ export const responseInterceptor = (response: AxiosResponse) => {
   const csrfStore = useCsrfStore();
   const responseShrimp = response.data?.shrimp;
 
-  //const shrimpSnippet = createLoggableShrimp(responseShrimp);
-  // console.debug('[debug] Success response:', {
-  //   url: response.config.url,
-  //   status: response.status,
-  //   hasShrimp: !!responseShrimp,
-  //   shrimp: shrimpSnippet,
-  // });
-
   if (isValidShrimp(responseShrimp)) {
     csrfStore.updateShrimp(responseShrimp);
-    console.debug('[debug] Updated shrimp token after success');
   }
 
   return response;
@@ -94,21 +85,23 @@ export const responseInterceptor = (response: AxiosResponse) => {
  */
 export const errorInterceptor = (error: AxiosError) => {
   const csrfStore = useCsrfStore();
-  const errorData = error.response?.data as ApiErrorResponse;
+  const responseData = error.response?.data as ApiErrorResponse | undefined;
+  const responseShrimp = responseData?.shrimp;
 
-  console.error('Error response:', {
+  console.error('[errorInterceptor] ', {
     url: error.config?.url,
+    method: error.config?.method,
     status: error.response?.status,
-    hasShrimp: !!errorData.shrimp,
-    shrimp: createLoggableShrimp(errorData.shrimp),
+    hasShrimp: responseData?.shrimp ? true : false,
+    shrimp: createLoggableShrimp(responseShrimp),
     error: error.message,
-    errorDetails: error,
+    name: error.name,
   });
 
-  if (errorData.shrimp) {
-    csrfStore.updateShrimp(errorData.shrimp);
-    console.debug('[debug] Updated shrimp token after error');
+  // Update our local shrimp token if new one is provided
+  if (isValidShrimp(responseShrimp)) {
+    csrfStore.updateShrimp(responseShrimp);
   }
 
-  return Promise.reject(new Error(errorData.message || error.message));
+  return Promise.reject(error); // no gate keeping, just pass the error along
 };
