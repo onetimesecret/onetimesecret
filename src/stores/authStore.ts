@@ -2,8 +2,9 @@
 import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api';
 import { createApi } from '@/utils/api';
-import { AxiosInstance } from 'axios';
+import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
 
 import { useWindowStore } from './windowStore';
 
@@ -22,24 +23,11 @@ import { useWindowStore } from './windowStore';
  * 3. Backoff could mask serious issues by waiting longer between retries
  */
 export const AUTH_CHECK_CONFIG = {
-  /** Base interval between checks (15 minutes) */
   INTERVAL: 15 * 60 * 1000,
-  /** Maximum random variation (±90 seconds) to prevent synchronized requests */
   JITTER: 90 * 1000,
-  /** Number of consecutive failures before forced logout */
   MAX_FAILURES: 3,
-  /** API endpoint for authentication checks */
   ENDPOINT: '/api/v2/authcheck',
 } as const;
-
-export interface StoreState {
-  isLoading: boolean;
-  isAuthenticated: boolean | null;
-  authCheckTimer: ReturnType<typeof setTimeout> | null;
-  failureCount: number | null;
-  lastCheckTime: number | null;
-  _initialized: boolean;
-}
 
 /**
  * Authentication store for managing user authentication state.
@@ -60,195 +48,221 @@ export interface StoreState {
  * })
  * ```
  */
-export const useAuthStore = defineStore('auth', {
-  state: (): StoreState => ({
-    isLoading: false,
-    isAuthenticated: null,
-    authCheckTimer: null,
-    failureCount: null,
-    lastCheckTime: null,
-    _initialized: false,
-  }),
+/* eslint-disable max-lines-per-function */
+export const useAuthStore = defineStore('auth', () => {
+  // State
+  const isLoading = ref(false);
+  const isAuthenticated = ref<boolean | null>(null);
+  const authCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+  const failureCount = ref<number | null>(null);
+  const lastCheckTime = ref<number | null>(null);
+  const _initialized = ref(false);
 
-  getters: {
+  // Private properties
+  let _api: AxiosInstance | null = null;
+  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+
+  // Getters
+  const needsCheck = computed((): boolean => {
     /**
      * Determines if the last auth check is older than the check interval.
      * Used to decide whether to perform a fresh check when a tab becomes visible.
      */
-    needsCheck(state: StoreState): boolean {
-      // First check if state exists
-      if (!state) return true;
+    if (!lastCheckTime.value) return true;
+    return Date.now() - lastCheckTime.value > AUTH_CHECK_CONFIG.INTERVAL;
+  });
 
-      // Then check lastCheckTime
-      if (state.lastCheckTime === null) return true;
+  const isInitialized = computed(() => _initialized.value);
 
-      return Date.now() - state.lastCheckTime > AUTH_CHECK_CONFIG.INTERVAL;
-    },
+  // Actions
+  function init(api?: AxiosInstance) {
+    if (_initialized.value) return { needsCheck, isInitialized };
 
-    isInitialized(state: StoreState): boolean {
-      return state._initialized;
-    },
-  },
+    setupErrorHandler(api);
 
-  actions: {
-    _api: null as AxiosInstance | null,
-    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+    const windowStore = useWindowStore();
+    windowStore.init();
 
-    init(api?: AxiosInstance) {
-      if (this._initialized) return this;
+    const windowData = {
+      isAuthenticated: windowStore.isAuthenticated === true,
+    };
 
-      this.setupErrorHandler(api);
+    isAuthenticated.value = windowData.isAuthenticated;
 
-      const windowStore = useWindowStore();
-      windowStore.init(); // TODO: Should we be passing the api instance here?
+    if (isAuthenticated.value) {
+      $scheduleNextCheck();
+    }
 
-      // Explicitly use the values from windowObj without fallbacks
-      const windowData = {
-        isAuthenticated: windowStore.isAuthenticated === true, // only when exactly true
-      };
+    _initialized.value = true;
+    return { needsCheck, isInitialized };
+  }
 
-      this.$patch(windowData);
+  function _ensureErrorHandler() {
+    if (!_errorHandler) setupErrorHandler();
+  }
 
-      if (this.isAuthenticated) {
-        this.$scheduleNextCheck();
-      }
+  function setupErrorHandler(
+    api: AxiosInstance = createApi(),
+    options: ErrorHandlerOptions = {}
+  ) {
+    _api = api;
+    _errorHandler = useErrorHandler({
+      setLoading: (loading) => (isLoading.value = loading),
+      notify: options.notify,
+      log: options.log,
+      onError: () => {
+        //
+      },
+    });
+  }
 
-      this._initialized = true;
-      return this;
-    },
+  /**
+   * Checks the current authentication status with the server.
+   *
+   * @description
+   * This method implements a robust authentication check mechanism:
+   * 1. Validates current auth state with server
+   * 2. Updates local and window state
+   * 3. Manages failure counting
+   *
+   * Key behaviors:
+   * - Automatic logout after MAX_FAILURES consecutive failures
+   * - Resets failure counter on successful check
+   * - Maintains sync between local and window state
+   *
+   * @returns Current authentication state
+   */
+  async function checkAuthStatus() {
+    if (!isAuthenticated.value) return false;
 
-    _ensureErrorHandler() {
-      if (!this._errorHandler) this.setupErrorHandler();
-    },
+    _ensureErrorHandler();
 
-    setupErrorHandler(
-      api: AxiosInstance = createApi(),
-      options: ErrorHandlerOptions = {}
-    ) {
-      this._api = api;
-      this._errorHandler = useErrorHandler({
-        setLoading: (isLoading) => {
-          this.isLoading = isLoading;
-        },
-        notify: options.notify,
-        log: options.log,
-      });
-    },
-
-    /**
-     * Checks the current authentication status with the server.
-     *
-     * @description
-     * This method implements a robust authentication check mechanism:
-     * 1. Validates current auth state with server
-     * 2. Updates local and window state
-     * 3. Manages failure counting
-     *
-     * Key behaviors:
-     * - Automatic logout after MAX_FAILURES consecutive failures
-     * - Resets failure counter on successful check
-     * - Maintains sync between local and window state
-     *
-     * @returns Current authentication state
-     */
-    async checkAuthStatus() {
-      if (!this.isAuthenticated) return false;
-
-      this._ensureErrorHandler();
-
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await this._api!.get(AUTH_CHECK_CONFIG.ENDPOINT);
+    return await _errorHandler!
+      .withErrorHandling(async () => {
+        const response = await _api!.get(AUTH_CHECK_CONFIG.ENDPOINT);
         const validated = responseSchemas.checkAuth.parse(response.data);
 
-        this.isAuthenticated = validated.details.authenticated;
-        // this.customer = validated.record;
-        this.failureCount = 0;
-        this.lastCheckTime = Date.now();
+        isAuthenticated.value = validated.details.authenticated;
+        failureCount.value = 0;
+        lastCheckTime.value = Date.now();
 
-        return this.isAuthenticated;
-      }).catch(() => {
-        // Initialize failureCount if this is first failure
-        this.failureCount = (this.failureCount ?? 0) + 1;
-        if (this.failureCount >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-          this.logout();
+        return isAuthenticated.value;
+      })
+      .catch(() => {
+        failureCount.value = (failureCount.value ?? 0) + 1;
+        if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
+          logout();
         }
         return false;
       });
-    },
+  }
 
-    /**
-     * Forces an immediate auth check and reschedules next check.
-     * Useful when the application needs to ensure fresh auth state.
-     */
-    async refreshAuthState() {
-      return this.checkAuthStatus().then(() => {
-        this.$scheduleNextCheck();
-      });
-    },
+  /**
+   * Forces an immediate auth check and reschedules next check.
+   * Useful when the application needs to ensure fresh auth state.
+   */
+  async function refreshAuthState() {
+    return checkAuthStatus().then(() => {
+      $scheduleNextCheck();
+    });
+  }
+  /**
+   * Schedules the next authentication check with a randomized interval.
+   *
+   * The random jitter added to the base interval helps prevent
+   * synchronized requests from multiple clients hitting the server
+   * at the same time, which could cause load spikes.
+   *
+   * The jitter is ±90 seconds, providing a good balance between
+   * regular checks and load distribution.
+   */
+  function $scheduleNextCheck() {
+    $stopAuthCheck();
 
-    /**
-     * Schedules the next authentication check with a randomized interval.
-     *
-     * The random jitter added to the base interval helps prevent
-     * synchronized requests from multiple clients hitting the server
-     * at the same time, which could cause load spikes.
-     *
-     * The jitter is ±90 seconds, providing a good balance between
-     * regular checks and load distribution.
-     */
-    $scheduleNextCheck() {
-      this.$stopAuthCheck();
+    if (!isAuthenticated.value) return;
 
-      if (!this.isAuthenticated) return;
+    const jitter = (Math.random() - 0.5) * 2 * AUTH_CHECK_CONFIG.JITTER;
+    const nextCheck = AUTH_CHECK_CONFIG.INTERVAL + jitter;
 
-      const jitter = (Math.random() - 0.5) * 2 * AUTH_CHECK_CONFIG.JITTER;
-      const nextCheck = AUTH_CHECK_CONFIG.INTERVAL + jitter;
+    authCheckTimer.value = setTimeout(async () => {
+      await checkAuthStatus(); // Make sure to await this
+      $scheduleNextCheck(); // Schedule next check after current one completes
+    }, nextCheck);
+  }
 
-      this.authCheckTimer = setTimeout(() => {
-        this.checkAuthStatus();
-        this.$scheduleNextCheck();
-      }, nextCheck);
-    },
+  /**
+   * Stops the periodic authentication check.
+   * Clears the existing timeout and resets the authCheckTimer.
+   */
+  async function $stopAuthCheck() {
+    if (authCheckTimer.value !== null) {
+      clearTimeout(authCheckTimer.value);
+      authCheckTimer.value = null;
+    }
+  }
 
-    /**
-     * Stops the periodic authentication check.
-     * Clears the existing timeout and resets the authCheckTimer.
-     */
-    $stopAuthCheck() {
-      if (this.authCheckTimer !== null) {
-        clearTimeout(this.authCheckTimer);
-        this.authCheckTimer = null;
-      }
-    },
+  /**
+   * Logs out the current user and resets the auth state.
+   * Uses the global $logout plugin which handles:
+   * - Clearing cookies
+   * - Resetting all related stores
+   * - Clearing session storage
+   * - Updating window state
+   */
+  async function logout() {
+    await $stopAuthCheck();
+    // @ts-expect-error: $logout is added by a plugin
+    // eslint-disable-next-line no-undef
+    $logout();
+  }
+  /**
+   * Disposes of the store, stopping the auth check.
+   *
+   * - Disposing of a store does not reset its state. If you recreate the store,
+   *   it will start with its initial state as defined in the store definition.
+   * - Once a store is disposed of, it should not be used again.
+   *
+   */
+  async function $dispose() {
+    await $stopAuthCheck();
+  }
 
-    /**
-     * Logs out the current user and resets the auth state.
-     * Uses the global $logout plugin which handles:
-     * - Clearing cookies
-     * - Resetting all related stores
-     * - Clearing session storage
-     * - Updating window state
-     */
-    logout() {
-      this.$stopAuthCheck();
-      this.$logout();
-    },
+  function $reset() {
+    isLoading.value = false;
+    isAuthenticated.value = null;
+    authCheckTimer.value = null;
+    failureCount.value = null;
+    lastCheckTime.value = null;
+    _initialized.value = false;
+  }
 
-    /**
-     * Disposes of the store, stopping the auth check.
-     *
-     * - Disposing of a store does not reset its state. If you recreate the store,
-     *   it will start with its initial state as defined in the store definition.
-     * - Once a store is disposed of, it should not be used again.
-     *
-     */
-    $dispose() {
-      this.$stopAuthCheck();
-    },
+  return {
+    // State
+    isLoading,
+    isAuthenticated,
+    authCheckTimer,
+    failureCount,
+    lastCheckTime,
+    _initialized,
 
-    reset() {
-      this.$reset();
-      this._initialized = false; // Explicitly reset initialization flag
-    },
-  },
+    // Getters
+    needsCheck,
+    isInitialized,
+
+    // Actions
+    init,
+    setupErrorHandler,
+    checkAuthStatus,
+    refreshAuthState,
+    logout,
+
+    $scheduleNextCheck,
+    $stopAuthCheck,
+    $dispose,
+    $reset,
+
+    // Expose internal properties for testing
+    _getApi: () => _api,
+    _getErrorHandler: () => _errorHandler,
+  };
 });
