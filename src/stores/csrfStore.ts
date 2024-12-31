@@ -40,7 +40,7 @@ import { handleError, ref } from 'vue';
 export const useCsrfStore = defineStore('csrf', () => {
   // State
   const isLoading = ref(false);
-  const shrimp = ref(window.shrimp || '');
+  const shrimp = ref('');
   const isValid = ref(false);
   const intervalChecker = ref<number | null>(null);
 
@@ -50,6 +50,7 @@ export const useCsrfStore = defineStore('csrf', () => {
 
   // Actions
   function init(api?: AxiosInstance) {
+    shrimp.value = window.shrimp || '';
     _ensureErrorHandler(api);
   }
 
