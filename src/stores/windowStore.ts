@@ -1,7 +1,7 @@
 // stores/windowStore.ts
 import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { OnetimeWindow } from '@/types/declarations/window';
-import { createApi } from '@/utils';
+import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 

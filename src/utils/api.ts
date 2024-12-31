@@ -5,6 +5,8 @@ import {
 } from '@/plugins/axios/interceptors';
 import axios, { type AxiosInstance } from 'axios';
 
+// NOTE: Import createApi directly from '@/utils/api' in new code.
+
 /**
  * BACKWARDS COMPATIBILITY NOTICE:
  * This module provides both a default export and a createApi factory function.
