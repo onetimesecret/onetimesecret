@@ -5,32 +5,35 @@ import { createApi } from '@/utils';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 
+function mapAllWindowProperties(window: OnetimeWindow) {
+  return { ...window };
+}
+
 export interface StoreState extends Partial<OnetimeWindow> {
   isLoading: boolean;
   _initialized: boolean;
 }
 
-function mapAllWindowProperties(window: OnetimeWindow) {
-  return { ...window };
-}
-
-export const useWindowStore = defineStore('window', {
-  state: (): StoreState => ({
+// Map window properties to initial store state
+const getInitialState = (): StoreState => {
+  // Create base state with required properties
+  const baseState: StoreState = {
     isLoading: false,
     _initialized: false,
-    authenticated: false,
-    email: '',
-    baseuri: '',
-    cust: null,
-    is_paid: false,
-    domains_enabled: false,
-    plans_enabled: false,
-    // Include other properties as needed
-  }),
+  };
+
+  // Get all window properties and merge with base state
+  const windowState = window as unknown as OnetimeWindow;
+  return {
+    ...baseState,
+    ...windowState,
+  };
+};
+
+export const useWindowStore = defineStore('window', {
+  state: () => getInitialState(),
 
   getters: {
-    // Add getters here
-    // For example:
     isAuthenticated(state) {
       return state.authenticated;
     },
@@ -93,6 +96,10 @@ export const useWindowStore = defineStore('window', {
       });
     },
 
+    // NOTE: In Option Stores, you can reset the state to its initial value by
+    // calling $reset(). Internally, this calls the state() function to create
+    // a new state object and replaces the current state with it. In Setup
+    // Stores, you need to create your own $reset.
     reset() {
       this.$reset();
       this._initialized = false; // Explicitly reset initialization flag
