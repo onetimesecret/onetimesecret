@@ -1,12 +1,11 @@
 // stores/csrfStore.ts
 
-import { ApiError } from '@/schemas';
+
 import { responseSchemas } from '@/schemas/api/responses';
 import { defineStore } from 'pinia';
 
 interface StoreState {
   isLoading: boolean;
-  error: ApiError | null;
   shrimp: string;
   isValid: boolean;
   intervalChecker: number | null;
@@ -44,21 +43,19 @@ interface StoreState {
 export const useCsrfStore = defineStore('csrf', {
   state: (): StoreState => ({
     isLoading: false,
-    error: null,
     shrimp: window.shrimp || '',
     isValid: false,
     intervalChecker: null as number | null,
   }),
 
   actions: {
-    handleError(error: unknown): ApiError {
+    handleError(error: unknown): Error {
       const apiError = {
         message: error instanceof Error ? error.message : 'CSRF validation error',
         code: 500,
         name: 'CsrfError',
       };
       console.error('[CSRF]', apiError.message, error);
-      this.error = apiError;
       return apiError;
     },
 
@@ -108,7 +105,6 @@ export const useCsrfStore = defineStore('csrf', {
 
     reset() {
       this.isLoading = false;
-      this.error = null;
       this.shrimp = '';
       this.isValid = false;
       this.$reset();
