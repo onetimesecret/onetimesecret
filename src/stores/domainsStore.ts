@@ -6,141 +6,193 @@ import type { BrandSettings, CustomDomain } from '@/schemas/models';
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
 
-interface StoreState {
-  isLoading: boolean;
-  domains: CustomDomain[];
-  initialized: boolean;
-}
+/**
+ * Store for managing custom domains and their brand settings
+ * Uses closure for dependency injection of API client and error handler
+ */
+/** eslint-disable max-lines-per-function */
+export const useDomainsStore = defineStore('domains', () => {
+  // State
+  const isLoading = ref(false);
+  const domains = ref<CustomDomain[]>([]);
+  const initialized = ref(false);
 
-export const useDomainsStore = defineStore('domains', {
-  state: (): StoreState => ({
-    isLoading: false,
-    domains: [] as CustomDomain[],
-    initialized: false,
-  }),
+  // Private store instance vars (closure based DI)
+  let _api: AxiosInstance | null = null;
+  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
 
-  getters: {
-    recordCount: (state) => state.domains.length,
-  },
+  // Getters
+  const recordCount = computed(() => domains.value.length);
 
-  actions: {
-    // Inject API client through closure
-    _api: null as AxiosInstance | null,
-    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+  // Internal utilities
+  function _ensureErrorHandler() {
+    if (!_errorHandler) setupErrorHandler();
+  }
 
-    _ensureErrorHandler() {
-      if (!this._errorHandler) this.setupErrorHandler();
-    },
+  /**
+   * Initialize error handling with optional custom API client and options
+   */
+  function setupErrorHandler(
+    api: AxiosInstance = createApi(),
+    options: ErrorHandlerOptions = {}
+  ) {
+    _api = api;
+    _errorHandler = useErrorHandler({
+      setLoading: (loading) => (isLoading.value = loading),
+      notify: options.notify,
+      log: options.log,
+    });
+  }
 
-    // Allow passing options during initialization
-    setupErrorHandler(
-      api: AxiosInstance = createApi(),
-      options: ErrorHandlerOptions = {}
-    ) {
-      this._api = api;
-      this._errorHandler = useErrorHandler({
-        setLoading: (isLoading) => {
-          this.isLoading = isLoading;
-        },
-        notify: options.notify, // Allow UI layer to handle notifications if provided
-        log: options.log, // Allow custom logging if provided
+  /**
+   * Reset store state to initial values
+   */
+  function $reset() {
+    isLoading.value = false;
+    domains.value = [];
+    initialized.value = false;
+  }
+
+  /**
+   * Add a new custom domain
+   */
+  async function addDomain(domain: string) {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.post('/api/v2/account/domains/add', { domain });
+      const validated = responseSchemas.customDomain.parse(response.data);
+      domains.value.push(validated.record);
+      return validated.record;
+    });
+  }
+
+  /**
+   * Load all domains if not already initialized
+   */
+  async function refreshRecords() {
+    if (initialized.value) return;
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.get('/api/v2/account/domains');
+      const validated = responseSchemas.customDomainList.parse(response.data);
+      domains.value = validated.records;
+      initialized.value = true;
+      return validated.records;
+    });
+  }
+
+  /**
+   * Update brand settings for a domain
+   */
+  async function updateDomainBrand(
+    domain: string,
+    brandUpdate: UpdateDomainBrandRequest
+  ) {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.put(
+        `/api/v2/account/domains/${domain}/brand`,
+        brandUpdate
+      );
+      const validated = responseSchemas.customDomain.parse(response.data);
+
+      const domainIndex = domains.value.findIndex((d) => d.display_domain === domain);
+      if (domainIndex !== -1) {
+        domains.value[domainIndex] = validated.record;
+      }
+      return validated.record;
+    });
+  }
+
+  /**
+   * Delete a domain by name
+   */
+  async function deleteDomain(domainName: string) {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      await _api!.post(`/api/v2/account/domains/${domainName}/remove`);
+      domains.value = domains.value.filter(
+        (domain) => domain.display_domain !== domainName
+      );
+    });
+  }
+
+  /**
+   * Get brand settings for a domain
+   */
+  async function getBrandSettings(domain: string) {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.get(`/api/v2/account/domains/${domain}/brand`);
+      return responseSchemas.brandSettings.parse(response.data);
+    });
+  }
+
+  /**
+   * Update brand settings for a domain
+   */
+  async function updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.put(`/api/v2/account/domains/${domain}/brand`, {
+        brand: settings,
       });
-    },
+      return responseSchemas.brandSettings.parse(response.data);
+    });
+  }
 
-    async addDomain(domain: string) {
-      this._ensureErrorHandler();
+  /**
+   * Update an existing domain
+   */
+  async function updateDomain(domain: CustomDomain) {
+    _ensureErrorHandler();
 
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await this._api!.post('/api/v2/account/domains/add', { domain });
-        const validated = responseSchemas.customDomain.parse(response.data);
-        this.domains.push(validated.record);
-        return validated.record;
-      });
-    },
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.put(
+        `/api/v2/account/domains/${domain.display_domain}`,
+        domain
+      );
+      const validated = responseSchemas.customDomain.parse(response.data);
 
-    async refreshRecords() {
-      if (this.initialized) return; // prevent repeated calls when 0 domains
-      this._ensureErrorHandler();
+      const domainIndex = domains.value.findIndex(
+        (d) => d.display_domain === domain.display_domain
+      );
 
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await this._api!.get('/api/v2/account/domains');
-        const validated = responseSchemas.customDomainList.parse(response.data);
-        this.domains = validated.records;
-        return validated.records;
-      });
-    },
+      if (domainIndex !== -1) {
+        domains.value[domainIndex] = validated.record;
+      } else {
+        domains.value.push(validated.record);
+      }
+      return validated.record;
+    });
+  }
 
-    async updateDomainBrand(domain: string, brandUpdate: UpdateDomainBrandRequest) {
-      this._ensureErrorHandler();
+  return {
+    // State
+    isLoading,
+    domains,
+    initialized,
 
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await this._api!.put(
-          `/api/v2/account/domains/${domain}/brand`,
-          brandUpdate
-        );
-        const validated = responseSchemas.customDomain.parse(response.data);
+    // Getters
+    recordCount,
 
-        const domainIndex = this.domains.findIndex((d) => d.display_domain === domain);
-        if (domainIndex !== -1) {
-          this.domains[domainIndex] = validated.record;
-        }
-        return validated.record;
-      });
-    },
-
-    async deleteDomain(domainName: string) {
-      this._ensureErrorHandler();
-
-      return await this._errorHandler!.withErrorHandling(async () => {
-        await this._api!.post(`/api/v2/account/domains/${domainName}/remove`);
-        this.domains = this.domains.filter(
-          (domain) => domain.display_domain !== domainName
-        );
-      });
-    },
-
-    async getBrandSettings(domain: string) {
-      this._ensureErrorHandler();
-
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await this._api!.get(`/api/v2/account/domains/${domain}/brand`);
-        return responseSchemas.brandSettings.parse(response.data);
-      });
-    },
-
-    async updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
-      this._ensureErrorHandler();
-
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await this._api!.put(`/api/v2/account/domains/${domain}/brand`, {
-          brand: settings, // Note: We wrap settings in a brand object
-        });
-        return responseSchemas.brandSettings.parse(response.data);
-      });
-    },
-
-    async updateDomain(domain: CustomDomain) {
-      this._ensureErrorHandler();
-
-      return await this._errorHandler!.withErrorHandling(async () => {
-        const response = await this._api!.put(
-          `/api/v2/account/domains/${domain.display_domain}`,
-          domain
-        );
-        const validated = responseSchemas.customDomain.parse(response.data);
-
-        const domainIndex = this.domains.findIndex(
-          (d) => d.display_domain === domain.display_domain
-        );
-
-        if (domainIndex !== -1) {
-          this.domains[domainIndex] = validated.record;
-        } else {
-          this.domains.push(validated.record);
-        }
-        return validated.record;
-      });
-    },
-  },
+    // Actions
+    setupErrorHandler,
+    $reset,
+    addDomain,
+    refreshRecords,
+    updateDomainBrand,
+    deleteDomain,
+    getBrandSettings,
+    updateBrandSettings,
+    updateDomain,
+  };
 });
