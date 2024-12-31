@@ -114,7 +114,7 @@ export const useDomainsStore = defineStore('domains', {
 
       return await this._errorHandler!.withErrorHandling(async () => {
         const response = await this._api!.put(`/api/v2/account/domains/${domain}/brand`, {
-          brand: settings,
+          brand: settings, // Note: We wrap settings in a brand object
         });
         return responseSchemas.brandSettings.parse(response.data);
       });
