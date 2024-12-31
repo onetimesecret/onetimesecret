@@ -67,6 +67,10 @@ export const useCsrfStore = defineStore('csrf', () => {
       setLoading: (loading) => (isLoading.value = loading),
       notify: options.notify,
       log: options.log,
+      onError: () => {
+        // Any error invalidates the token
+        isValid.value = false;
+      },
     });
   }
 
