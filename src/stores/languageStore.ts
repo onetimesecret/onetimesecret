@@ -83,10 +83,17 @@ export const useLanguageStore = defineStore('language', () => {
       supportedLocales.value = windowStore.supported_locales ?? [];
 
       storedLocale.value = sessionStorage.getItem(getStorageKey.value);
-      if (deviceLocale.value !== null) {
-        const primaryLocale = deviceLocale.value.split('-')[0];
-        currentLocale.value = storedLocale.value || primaryLocale;
+
+      // First try to use stored locale
+      if (storedLocale.value) {
+        currentLocale.value = storedLocale.value;
       }
+      // Then fallback to device locale if available
+      else if (deviceLocale.value) {
+        const primaryLocale = deviceLocale.value.split('-')[0];
+        currentLocale.value = primaryLocale;
+      }
+
       return getCurrentLocale;
     } catch (error) {
       console.error('[initializeLocale] Error:', error, currentLocale.value);

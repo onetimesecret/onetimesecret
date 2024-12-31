@@ -68,11 +68,11 @@ describe('Language Store', () => {
     });
 
     it('initializes with stored locale', () => {
-      const store = useLanguageStore();
-      store.init();
       const setupErrorHandlerSpy = vi
         .spyOn(sessionStorage, 'getItem')
         .mockReturnValueOnce('fr');
+      const store = useLanguageStore();
+      store.init();
       expect(store.currentLocale).toBe('fr');
       expect(setupErrorHandlerSpy).toBeCalled();
     });
