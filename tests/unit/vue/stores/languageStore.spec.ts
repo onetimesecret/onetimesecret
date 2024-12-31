@@ -1,5 +1,8 @@
 // src/stores/languageStore.spec.ts
+import { ApplicationError } from '@/schemas';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/stores/languageStore';
+import { createApi } from '@/utils/api';
+import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -79,8 +82,24 @@ describe('Language Store', () => {
   });
 
   describe('Language Updates', () => {
+    let axiosMock: AxiosMockAdapter;
+    let axiosInstance: ReturnType<typeof createApi>;
+    let store: ReturnType<typeof useLanguageStore>;
+
+    beforeEach(() => {
+      axiosInstance = createApi();
+      axiosMock = new AxiosMockAdapter(axiosInstance);
+      store = useLanguageStore();
+      store.setupErrorHandler(axiosInstance);
+      store.supportedLocales = ['en', 'fr'];
+    });
+
+    afterEach(() => {
+      store.$dispose();
+      axiosMock.reset();
+    });
+
     it('should set current locale correctly', () => {
-      const store = useLanguageStore();
       store.supportedLocales = ['en', 'fr'];
 
       store.setCurrentLocale('fr');
@@ -95,7 +114,6 @@ describe('Language Store', () => {
     });
 
     it('should determine locale correctly', () => {
-      const store = useLanguageStore();
       store.supportedLocales = ['en', 'fr'];
 
       expect(store.determineLocale('fr-FR')).toBe('fr');
@@ -104,24 +122,119 @@ describe('Language Store', () => {
     });
 
     it('should handle updateLanguage correctly', async () => {
-      const store = useLanguageStore();
-      const api = { post: vi.fn().mockResolvedValue({}) };
-      store.setupErrorHandler(api);
+      axiosMock.onPost('/api/v2/account/update-locale').reply(200, {});
 
       await store.updateLanguage('fr');
-      expect(api.post).toHaveBeenCalledWith('/api/v2/account/update-locale', {
-        locale: 'fr',
-      });
+      expect(axiosMock.history.post[0].data).toBe(JSON.stringify({ locale: 'fr' }));
     });
-  });
 
-  describe('Error Handling', () => {
-    it('should handle errors in updateLanguage', async () => {
-      const store = useLanguageStore();
-      const api = { post: vi.fn().mockRejectedValue(new Error('Network error')) };
-      store.setupErrorHandler(api);
+    describe('Error Handling', () => {
+      it.skip('server should not allow two-part locales updateLanguage', async () => {
+        const locale = 'en-US';
 
-      await expect(store.updateLanguage('invalid!')).rejects.toThrow();
+        // Setup axiosMock with 404 response
+        axiosMock.onPost('/api/v2/account/update-locale', { locale }).reply(400); // TODO: Not correct
+
+        let caughtError: ApplicationError;
+        try {
+          await store.updateLanguage(locale);
+          throw new Error('Failed testcase: expected error not thrown');
+        } catch (err) {
+          caughtError = err as ApplicationError;
+        }
+
+        // // Verify specific error properties
+        expect(caughtError).toBeDefined();
+        expect(caughtError.type).toBe('technical');
+        expect(caughtError.severity).toBe('error');
+
+        // Verify API was called with correct parameters
+        expect(axiosMock.history.post).toHaveLength(1);
+        expect(axiosMock.history.post[0].url).toBe('/api/v2/account/update-locale');
+        expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
+      });
+
+      it('should handle network errors in updateLanguage', async () => {
+        const locale = 'fr';
+
+        // Setup axiosMock
+        axiosMock.onPost('/api/v2/account/update-locale', { locale }).networkError();
+
+        let caughtError: ApplicationError;
+        try {
+          await store.updateLanguage(locale);
+          throw new Error('Failed testcase: expected error not thrown');
+        } catch (err) {
+          caughtError = err as ApplicationError;
+          // console.log(caughtError);
+        }
+
+        // Verify specific error properties
+        expect(caughtError).toBeDefined();
+        expect(caughtError.type).toBe('technical');
+        expect(caughtError.severity).toBe('error');
+
+        // Verify API was called with correct parameters
+        expect(axiosMock.history.post).toHaveLength(1);
+        expect(axiosMock.history.post[0].url).toBe('/api/v2/account/update-locale');
+        expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
+      });
+
+      it('should handle server errors in updateLanguage', async () => {
+        const locale = 'fr';
+
+        // Setup axiosMock with 500 response
+        axiosMock
+          .onPost('/api/v2/account/update-locale', { locale })
+          .reply(500, { message: 'Internal Server Error' });
+
+        let caughtError: ApplicationError;
+        try {
+          await store.updateLanguage(locale);
+          throw new Error('Failed testcase: expected error not thrown');
+        } catch (err) {
+          caughtError = err as ApplicationError;
+          // console.log(caughtError);
+        }
+
+        // Verify specific error properties
+        expect(caughtError).toBeDefined();
+        expect(caughtError.type).toBe('technical');
+        expect(caughtError.severity).toBe('error');
+
+        // Verify API was called correctly
+        expect(axiosMock.history.post).toHaveLength(1);
+        expect(axiosMock.history.post[0].url).toBe('/api/v2/account/update-locale');
+        expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({ locale });
+      });
+
+      it('should handle invalid locale validation', async () => {
+        const locale = 'invalid!';
+
+        let caughtError: ApplicationError;
+
+        try {
+          await store.updateLanguage(locale);
+          throw new Error('Failed testcase: expected error not thrown');
+        } catch (err) {
+          caughtError = err as ApplicationError;
+        }
+
+        // Verify no API call was made
+        expect(axiosMock.history.post).toHaveLength(0);
+
+        // Verify specific error properties
+        expect(caughtError).toBeDefined();
+        expect(caughtError.type).toBe('technical');
+        expect(caughtError.severity).toBe('error');
+
+        // Verify the error contains validation details
+        const errorData = JSON.parse(caughtError.message);
+        expect(errorData).toMatchObject([
+          { code: 'too_big' },
+          { code: 'invalid_string' },
+        ]);
+      });
     });
   });
 });
