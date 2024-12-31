@@ -37,10 +37,13 @@ export function logoutPlugin(context: PiniaPluginContext) {
 
       deleteCookie('sess');
       deleteCookie('locale');
+
       // Stop any ongoing auth checks
       authStore.$stopAuthCheck();
       // Clear all session storage;
       sessionStorage.clear();
+      // Remove any and all lingering store state
+      context.pinia.state.value = {};
     };
   }
 }
