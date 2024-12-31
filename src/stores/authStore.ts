@@ -94,7 +94,7 @@ export const useAuthStore = defineStore('auth', {
     _api: null as AxiosInstance | null,
     _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
 
-    init(api: AxiosInstance) {
+    init(api?: AxiosInstance) {
       if (this._initialized) return this;
 
       this.setupErrorHandler(api);
@@ -137,8 +137,7 @@ export const useAuthStore = defineStore('auth', {
 
     /**
      * Checks the current authentication status with the server.
-     *©196
-
+     *
      * @description
      * This method implements a robust authentication check mechanism:
      * 1. Validates current auth state with server
