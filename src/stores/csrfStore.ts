@@ -105,5 +105,14 @@ export const useCsrfStore = defineStore('csrf', {
         this.intervalChecker = null;
       }
     },
+
+    reset() {
+      this.isLoading = false;
+      this.error = null;
+      this.shrimp = '';
+      this.isValid = false;
+      this.$reset();
+      this.stopPeriodicCheck();
+    },
   },
 });
