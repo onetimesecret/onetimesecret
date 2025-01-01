@@ -58,7 +58,7 @@ async function initializeApp() {
   const jurisdictionStore = useJurisdictionStore();
 
   // Initialize the store with the Regions config
-  jurisdictionStore.initializeStore(window.regions);
+  jurisdictionStore.init(window.regions);
 
   const authStore = useAuthStore();
   authStore.init();

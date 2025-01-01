@@ -166,6 +166,7 @@ export const useAuthStore = defineStore('auth', () => {
       $scheduleNextCheck();
     });
   }
+
   /**
    * Schedules the next authentication check with a randomized interval.
    *
