@@ -336,7 +336,7 @@ export const mockSecretResponse = {
   },
 };
 
-const mockSecretRevealed = {
+export const mockSecretRevealed = {
   ...mockSecretResponse,
   record: {
     ...mockSecretRecord,
@@ -348,4 +348,13 @@ const mockSecretRevealed = {
     correct_passphrase: true,
     is_owner: false, // Add this field to match schema
   },
+};
+
+export const mockSecretDetails = {
+  continue: false,
+  is_owner: false,
+  show_secret: false,
+  correct_passphrase: false,
+  display_lines: 1,
+  one_liner: true,
 };
