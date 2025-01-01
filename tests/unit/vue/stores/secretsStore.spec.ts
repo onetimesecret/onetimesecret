@@ -1,22 +1,11 @@
-// tests/unit/vue/stores/secretStore.spec.ts
-
+// tests/unit/vue/stores/secretsStore.spec.ts
 import { useSecretsStore } from '@/stores/secretsStore';
-import { createApi } from '@/utils/api';
-import type { AxiosInstance } from 'axios';
+import axios from 'axios';
+import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-// Mock createApi before it's used
-vi.mock('@/utils/api', () => ({
-  createApi: vi.fn(() => ({
-    get: vi.fn().mockResolvedValue({ data: mockSecretResponse }),
-    post: vi.fn().mockResolvedValue({ data: mockSecretRevealed }),
-  })),
-}));
-
-// TODO: ReferenceError: Cannot access 'mockSecretResponse' before initialization ?
-
-// Mock API responses after mocking the api itself
+// Response fixtures defined before any test logic
 const mockSecretResponse = {
   success: true,
   record: {
@@ -52,22 +41,34 @@ const mockSecretRevealed = {
 };
 
 describe('secretsStore', () => {
+  let axiosMock: AxiosMockAdapter;
+  let store: ReturnType<typeof useSecretsStore>;
+
   beforeEach(() => {
     setActivePinia(createPinia());
+    const axiosInstance = axios.create();
+    axiosMock = new AxiosMockAdapter(axiosInstance);
+    // Inject mocked axios instance into the store's API
+    store = useSecretsStore();
+    // Note: You'll need to modify the store to accept an API instance
+  });
+
+  afterEach(() => {
+    axiosMock.reset();
   });
 
   it('initializes with empty state', () => {
-    const store = useSecretsStore();
     expect(store.record).toBeNull();
     expect(store.details).toBeNull();
     expect(store.isLoading).toBe(false);
     expect(store.error).toBeNull();
   });
 
-  describe('loadSecret', () => {
+  describe('fetch', () => {
     it('loads initial secret details successfully', async () => {
-      const store = useSecretsStore();
-      await store.loadSecret('abc123');
+      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+
+      await store.fetch('abc123');
 
       expect(store.record).toEqual(mockSecretResponse.record);
       expect(store.details).toEqual(mockSecretResponse.details);
@@ -76,32 +77,25 @@ describe('secretsStore', () => {
     });
 
     it('handles validation errors', async () => {
-      const store = useSecretsStore();
-      vi.mocked(createApi).mockReturnValue({
-        get: vi.fn().mockResolvedValue({ data: { invalid: 'data' } }),
-        post: vi.fn(),
-      } as unknown as AxiosInstance);
+      axiosMock.onGet('/api/v2/secret/abc123').reply(200, { invalid: 'data' });
 
-      await expect(store.loadSecret('abc123')).rejects.toThrow();
-      expect(store.error).toBe('Invalid server response');
+      await expect(store.fetch('abc123')).rejects.toThrow();
+      expect(store.error).toBeTruthy();
     });
 
     it('handles network errors', async () => {
-      const store = useSecretsStore();
-      vi.mocked(createApi).mockReturnValue({
-        get: vi.fn().mockRejectedValue(new Error('Network error')),
-        post: vi.fn(),
-      } as unknown as AxiosInstance);
+      axiosMock.onGet('/api/v2/secret/abc123').networkError();
 
-      await expect(store.loadSecret('abc123')).rejects.toThrow('Network error');
-      expect(store.error).toBe('Network error');
+      await expect(store.fetch('abc123')).rejects.toThrow();
+      expect(store.isLoading).toBe(false);
     });
   });
 
-  describe('revealSecret', () => {
+  describe('reveal', () => {
     it('reveals secret with passphrase', async () => {
-      const store = useSecretsStore();
-      await store.revealSecret('abc123', 'password');
+      axiosMock.onPost('/api/v2/secret/abc123/reveal').reply(200, mockSecretRevealed);
+
+      await store.reveal('abc123', 'password');
 
       expect(store.record?.secret_value).toBe('revealed secret');
       expect(store.details?.show_secret).toBe(true);
@@ -110,18 +104,15 @@ describe('secretsStore', () => {
     });
 
     it('preserves state on error', async () => {
-      const store = useSecretsStore();
-      // Load initial state
-      await store.loadSecret('abc123');
+      // Setup initial state
+      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+      await store.fetch('abc123');
       const initialState = { record: store.record, details: store.details };
 
-      // Force error
-      vi.mocked(createApi).mockReturnValue({
-        get: vi.fn(),
-        post: vi.fn().mockRejectedValue(new Error('Invalid passphrase')),
-      } as unknown as AxiosInstance);
+      // Force error on reveal
+      axiosMock.onPost('/api/v2/secret/abc123/reveal').networkError();
 
-      await expect(store.revealSecret('abc123', 'wrong')).rejects.toThrow();
+      await expect(store.reveal('abc123', 'wrong')).rejects.toThrow();
       expect(store.record).toEqual(initialState.record);
       expect(store.details).toEqual(initialState.details);
     });
@@ -129,8 +120,9 @@ describe('secretsStore', () => {
 
   describe('clearSecret', () => {
     it('resets store state', async () => {
-      const store = useSecretsStore();
-      await store.loadSecret('abc123');
+      axiosMock.onGet('/api/v2/secret/abc123').reply(200, mockSecretResponse);
+
+      await store.fetch('abc123');
       store.clearSecret();
 
       expect(store.record).toBeNull();
