@@ -11,11 +11,11 @@ export function useSecret(key: string) {
   const passphrase = ref('');
 
   const load = async () => {
-    await store.loadSecret(key);
+    await store.fetch(key);
   };
 
   const reveal = async (passphrase: Ref) => {
-    await store.revealSecret(key, passphrase.value);
+    await store.reveal(key, passphrase.value);
   };
 
   return {
