@@ -26,12 +26,15 @@ export const useMetadataStore = defineStore('metadata', () => {
   const isLoading = ref(false);
   const record = ref<Metadata | null>(null);
   const details = ref<MetadataDetails | null>(null);
+  const _initialized = ref(false);
 
   // Private store utilities
   let _api: AxiosInstance | null = null;
   let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
 
   // Getters
+  const isInitialized = computed(() => _initialized.value);
+
   const canBurn = computed((): boolean => {
     if (!record.value) {
       throw createError('No state metadata record', 'technical', 'error');
@@ -54,6 +57,15 @@ export const useMetadataStore = defineStore('metadata', () => {
   });
 
   // Actions
+  function init(api?: AxiosInstance) {
+    if (_initialized.value) return { isInitialized };
+
+    _initialized.value = true;
+    setupErrorHandler(api);
+
+    return { isInitialized };
+  }
+
   function _ensureErrorHandler() {
     if (!_errorHandler) setupErrorHandler();
   }
@@ -122,6 +134,7 @@ export const useMetadataStore = defineStore('metadata', () => {
     canBurn,
 
     // Actions
+    init,
     setupErrorHandler,
     fetch,
     burn,
