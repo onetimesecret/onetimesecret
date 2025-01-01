@@ -21,7 +21,9 @@ export const SecretState = {
 export type SecretState = (typeof SecretState)[keyof typeof SecretState];
 
 // Create reusable schema for the state
-export const secretStateSchema = z.enum(Object.values(SecretState) as [string, ...string[]]);
+export const secretStateSchema = z.enum(
+  Object.values(SecretState) as [string, ...string[]]
+);
 
 // Base schema for core fields
 const secretBaseSchema = z.object({
@@ -41,7 +43,7 @@ export const secretListSchema = createModelSchema(secretBaseSchema.shape).strip(
 export const secretSchema = createModelSchema({
   ...secretBaseSchema.shape,
   secret_ttl: transforms.fromString.number.nullable(),
-  lifespan: transforms.fromString.ttlToNaturalLanguage,
+  lifespan: z.string().nullable(), // see update 2024-12-31
   original_size: z.string(),
 }).strip();
 
@@ -59,3 +61,18 @@ export const secretDetailsSchema = z.object({
 export type Secret = z.infer<typeof secretSchema>;
 export type SecretDetails = z.infer<typeof secretDetailsSchema>;
 export type SecretList = z.infer<typeof secretListSchema>;
+
+/**
+ * CHANGELOG
+ * ═══════════════════════
+ *
+ * [2024-12-31] BREAKING
+ * ────────────────────────
+ * lifespan: string → string | null
+ *
+ * transform:
+ *   string().transforms.ttlToNaturalLanguage().optional()
+ *   → string().nullable()
+ *
+ * why: Server now handles TTL transformation
+ */
