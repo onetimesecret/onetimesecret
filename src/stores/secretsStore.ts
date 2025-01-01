@@ -2,7 +2,7 @@
 import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
-import api, { createApi } from '@/utils/api';
+import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
@@ -84,7 +84,7 @@ export const useSecretsStore = defineStore('secrets', () => {
     _ensureErrorHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
-      const response = await api.post<SecretResponse>(
+      const response = await _api!.post<SecretResponse>(
         `/api/v2/secret/${secretKey}/reveal`,
         {
           passphrase,
@@ -98,6 +98,11 @@ export const useSecretsStore = defineStore('secrets', () => {
 
       return validated;
     });
+  }
+
+  function clear() {
+    record.value = null;
+    details.value = null;
   }
 
   /**
@@ -116,6 +121,7 @@ export const useSecretsStore = defineStore('secrets', () => {
 
     // Actions
     init,
+    clear,
     fetch,
     reveal,
     $reset,

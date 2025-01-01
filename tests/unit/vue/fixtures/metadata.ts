@@ -322,3 +322,30 @@ export const mockNotReceivedSecretRecord1: Secret = {
   lifespan: '30 minutes',
   original_size: '42 bytes',
 };
+
+export const mockSecretResponse = {
+  success: true,
+  record: { ...mockSecretRecord }, // This part is fine
+  details: {
+    continue: false,
+    show_secret: false,
+    correct_passphrase: false,
+    display_lines: 1,
+    one_liner: true,
+    is_owner: false, // Add this field to match schema
+  },
+};
+
+const mockSecretRevealed = {
+  ...mockSecretResponse,
+  record: {
+    ...mockSecretRecord,
+    secret_value: 'revealed secret',
+  },
+  details: {
+    ...mockSecretResponse.details,
+    show_secret: true,
+    correct_passphrase: true,
+    is_owner: false, // Add this field to match schema
+  },
+};
