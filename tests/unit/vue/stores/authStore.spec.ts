@@ -311,11 +311,11 @@ describe('authStore', () => {
     });
 
     it('updates auth status correctly', async () => {
-      console.log('Store state before check:', {
-        isAuthenticated: store.isAuthenticated,
-        failureCount: store.failureCount,
-        lastCheckTime: store.lastCheckTime,
-      });
+      // console.log('Store state before check:', {
+      //   isAuthenticated: store.isAuthenticated,
+      //   failureCount: store.failureCount,
+      //   lastCheckTime: store.lastCheckTime,
+      // });
 
       axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
         details: { authenticated: true },
@@ -325,11 +325,11 @@ describe('authStore', () => {
 
       const result = await store.checkAuthStatus();
 
-      console.log('Final store state:', {
-        isAuthenticated: store.isAuthenticated,
-        failureCount: store.failureCount,
-        lastCheckTime: store.lastCheckTime,
-      });
+      // console.log('Final store state:', {
+      //   isAuthenticated: store.isAuthenticated,
+      //   failureCount: store.failureCount,
+      //   lastCheckTime: store.lastCheckTime,
+      // });
 
       expect(store.isAuthenticated).toBe(true);
       expect(store.lastCheckTime).not.toBeNull();

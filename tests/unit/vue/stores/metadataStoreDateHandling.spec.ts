@@ -266,19 +266,19 @@ describe('Metadata Date Handling', () => {
       };
 
       // Log the exact mock we're setting up
-      console.log('Setting up mock for:', {
-        url: `/api/v2/private/${testKey}/burn`,
-        expectedData: { continue: true },
-      });
+      // console.log('Setting up mock for:', {
+      //   url: `/api/v2/private/${testKey}/burn`,
+      //   expectedData: { continue: true },
+      // });
 
       axiosMock.onPost(`/api/v2/private/${testKey}/burn`).reply(function (config) {
         // Log the actual request for comparison
-        console.log('Actual request:', {
-          url: config.url,
-          method: config.method,
-          data: JSON.parse(config.data),
-          headers: config.headers,
-        });
+        // console.log('Actual request:', {
+        //   url: config.url,
+        //   method: config.method,
+        //   data: JSON.parse(config.data),
+        //   headers: config.headers,
+        // });
 
         const data = JSON.parse(config.data);
         if (data.continue === true && data.passphrase === undefined) {
@@ -296,10 +296,10 @@ describe('Metadata Date Handling', () => {
       });
 
       // Debug: Log all requests that were made
-      console.log('Mock history (properly fails ):', {
-        post: axiosMock.history.post,
-        all: axiosMock.history,
-      });
+      // console.log('Mock history (properly fails ):', {
+      //   post: axiosMock.history.post,
+      //   all: axiosMock.history,
+      // });
 
       expect(store.record).toBeNull();
     });

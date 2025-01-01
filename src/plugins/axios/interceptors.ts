@@ -88,15 +88,15 @@ export const errorInterceptor = (error: AxiosError) => {
   const responseData = error.response?.data as ApiErrorResponse | undefined;
   const responseShrimp = responseData?.shrimp;
 
-  console.error('[errorInterceptor] ', {
-    url: error.config?.url,
-    method: error.config?.method,
-    status: error.response?.status,
-    hasShrimp: responseData?.shrimp ? true : false,
-    shrimp: createLoggableShrimp(responseShrimp),
-    error: error.message,
-    name: error.name,
-  });
+   console.error('[errorInterceptor] ', {
+     url: error.config?.url,
+     method: error.config?.method,
+     status: error.response?.status,
+     hasShrimp: responseData?.shrimp ? true : false,
+     shrimp: createLoggableShrimp(responseShrimp),
+     error: error.message,
+     name: error.name,
+   });
 
   // Update our local shrimp token if new one is provided
   if (isValidShrimp(responseShrimp)) {

@@ -117,8 +117,8 @@ describe('domainsStore', () => {
       const brandUpdate = { brand: mockCustomBranding };
 
       // console.log('Test Starting ================');
-      console.log('Initial domain from fixture:', JSON.stringify(domain, null, 2));
-      console.log('Brand update:', JSON.stringify(brandUpdate, null, 2));
+      // console.log('Initial domain from fixture:', JSON.stringify(domain, null, 2));
+      // console.log('Brand update:', JSON.stringify(brandUpdate, null, 2));
 
       // Setup mock response
       axiosMock
@@ -142,14 +142,14 @@ describe('domainsStore', () => {
         // console.log('Update successful');
         // console.log('Updated store domains:', JSON.stringify(store.domains, null, 2));
       } catch (error) {
-        console.error('Update failed:', error);
+        //console.error('Update failed:', error);
         if (error.details) {
-          console.error('Validation Details:', JSON.stringify(error.details, null, 2));
+          //console.error('Validation Details:', JSON.stringify(error.details, null, 2));
         }
         throw error;
       }
 
-      console.log('Test Ending ================');
+      //console.log('Test Ending ================');
     });
 
     it('should delete a domain', async () => {
