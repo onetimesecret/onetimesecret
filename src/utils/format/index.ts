@@ -8,10 +8,11 @@ import { parseDateValue } from '../parse/date';
  */
 
 /**
- * Converts a TTL (Time To Live) value in seconds to human-readable text
- * @param val - Number of seconds as number or string. Uses radix 10 for string
- *              parsing to handle leading zeros correctly
- * @returns Formatted string like "2 days from now" or null if invalid input
+ * Transforms time-to-live values into human readable strings
+ * Only transforms numeric values - preserves any existing string formatting
+ * Uses radix 10 for string parsing to handle leading zeros correctly.
+ * @param val - Raw TTL value (number in seconds) or pre-formatted string
+ * @returns Formatted duration string or null
  * @example
  * ttlToNaturalLanguage(3600) // "1 hour from now"
  * ttlToNaturalLanguage("86400") // "1 day from now"
@@ -21,7 +22,23 @@ import { parseDateValue } from '../parse/date';
 export function ttlToNaturalLanguage(val: unknown): string | null {
   if (val === null || val === undefined) return null;
 
-  const seconds: number = typeof val === 'string' ? parseInt(val, 10) : (val as number);
+  // If string with any non-numeric characters, preserve as-is
+  if (typeof val === 'string' && /[^0-9.]/.test(val)) {
+    return val;
+  }
+
+  // Parse number, using parseInt with radix 10 for strings to handle leading zeros
+  //
+  // The difference between `parseInt()` and `Number()`:
+  // - `parseInt('08', 10)` correctly gives `8`
+  // - `Number('08')` also gives `8` but doesn't handle octal notation in older JS engines
+  // - Using `parseInt` with radix 10 is more explicit about our decimal number intentions
+  //
+  const seconds =
+    typeof val === 'string'
+      ? parseInt(val, 10) // Use radix 10 for strings (handles "08" correctly)
+      : Number(val); // Use Number() for other types
+
   if (isNaN(seconds) || seconds < 0) return null;
 
   const intervals = [
