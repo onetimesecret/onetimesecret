@@ -6,6 +6,7 @@ interface NotificationState {
   type: 'success' | 'error' | 'info' | null;
   isVisible: boolean;
   position?: 'top' | 'bottom';
+  _initialized: boolean;
 }
 
 export const useNotificationsStore = defineStore('notifications', {
@@ -14,6 +15,7 @@ export const useNotificationsStore = defineStore('notifications', {
     type: null,
     isVisible: false,
     position: 'bottom',
+    _initialized: false,
   }),
 
   actions: {

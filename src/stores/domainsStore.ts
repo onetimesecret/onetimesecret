@@ -12,12 +12,13 @@ import { computed, ref } from 'vue';
  * Store for managing custom domains and their brand settings
  * Uses closure for dependency injection of API client and error handler
  */
-/** eslint-disable max-lines-per-function */
+
+/* eslint-disable max-lines-per-function */
 export const useDomainsStore = defineStore('domains', () => {
   // State
   const isLoading = ref(false);
   const domains = ref<CustomDomain[]>([]);
-  const initialized = ref(false);
+  const _initialized = ref(false);
 
   // Private store instance vars (closure based DI)
   let _api: AxiosInstance | null = null;
@@ -47,15 +48,6 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   /**
-   * Reset store state to initial values
-   */
-  function $reset() {
-    isLoading.value = false;
-    domains.value = [];
-    initialized.value = false;
-  }
-
-  /**
    * Add a new custom domain
    */
   async function addDomain(domain: string) {
@@ -70,17 +62,17 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   /**
-   * Load all domains if not already initialized
+   * Load all domains if not already _initialized
    */
   async function refreshRecords() {
-    if (initialized.value) return;
+    if (_initialized.value) return;
     _ensureErrorHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       const response = await _api!.get('/api/v2/account/domains');
       const validated = responseSchemas.customDomainList.parse(response.data);
       domains.value = validated.records;
-      initialized.value = true;
+      _initialized.value = true;
       return validated.records;
     });
   }
@@ -175,11 +167,20 @@ export const useDomainsStore = defineStore('domains', () => {
     });
   }
 
+  /**
+   * Reset store state to initial values
+   */
+  function $reset() {
+    isLoading.value = false;
+    domains.value = [];
+    _initialized.value = false;
+  }
+
   return {
     // State
     isLoading,
     domains,
-    initialized,
+    _initialized,
 
     // Getters
     recordCount,

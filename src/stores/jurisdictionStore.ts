@@ -11,6 +11,7 @@ interface StoreState {
   enabled: boolean;
   currentJurisdiction: Jurisdiction | null;
   jurisdictions: Jurisdiction[];
+  _initialized: boolean;
 }
 
 export const useJurisdictionStore = defineStore('jurisdiction', {
@@ -20,13 +21,14 @@ export const useJurisdictionStore = defineStore('jurisdiction', {
     enabled: true,
     currentJurisdiction: null,
     jurisdictions: [],
+    _initialized: false,
   }),
 
   getters: {
     getCurrentJurisdiction(): StoreState['currentJurisdiction'] {
       return this.currentJurisdiction;
     },
-    getAllJurisdictions: (state): Jurisdiction[] => {
+    getAllJurisdictions(state): Jurisdiction[] {
       return state.jurisdictions;
     },
   },

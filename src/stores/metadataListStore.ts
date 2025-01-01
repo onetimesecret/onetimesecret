@@ -17,7 +17,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   const isLoading = ref(false);
   const records: Ref<MetadataRecords[] | null> = ref(null);
   const details: Ref<MetadataRecordsDetails | null> = ref(null);
-  const initialized = ref(false);
+  const _initialized = ref(false);
   const count = ref<number | null>(null);
 
   // Internal references
@@ -62,13 +62,11 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   }
 
   async function refreshRecords() {
-    if (initialized.value) return;
-
     _ensureErrorHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       await fetchList();
-      initialized.value = true;
+      _initialized.value = true;
     });
   }
 
@@ -76,11 +74,11 @@ export const useMetadataListStore = defineStore('metadataList', () => {
    * Reset store state to initial values.
    * Implementation of $reset() for setup stores since it's not automatically available.
    */
-  function reset() {
+  function $reset() {
     isLoading.value = false;
     records.value = null;
     details.value = null;
-    initialized.value = false;
+    _initialized.value = false;
     count.value = null;
     _api = null;
     _errorHandler = null;
@@ -91,7 +89,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     isLoading,
     records,
     details,
-    initialized,
+    _initialized,
     count,
 
     // Getters
@@ -101,6 +99,6 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     setupErrorHandler,
     fetchList,
     refreshRecords,
-    reset,
+    $reset,
   };
 });

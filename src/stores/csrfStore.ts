@@ -43,6 +43,7 @@ export const useCsrfStore = defineStore('csrf', () => {
   const shrimp = ref('');
   const isValid = ref(false);
   const intervalChecker = ref<number | null>(null);
+  const _initialized = ref(false);
 
   // Private state
   let _api: AxiosInstance | null = null;
@@ -122,6 +123,7 @@ export const useCsrfStore = defineStore('csrf', () => {
     isLoading.value = false;
     shrimp.value = window.shrimp || ''; // back to how it all began
     isValid.value = false;
+    _initialized.value = false;
     stopPeriodicCheck();
   }
 

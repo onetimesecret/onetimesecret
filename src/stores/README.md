@@ -138,6 +138,13 @@ be misleading as it's only used **if the store created that time**.
 
 ## Resetting State
 
+Use `$reset()` (with sigil) to revert state to its initial value in Option Stores:
+
+```ts
+    const store = useStore()
+    store.$reset()
+```
+
 https://stackoverflow.com/questions/71690883/pinia-reset-alternative-when-using-setup-syntax/71760032#71760032
 
 

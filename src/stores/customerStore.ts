@@ -14,6 +14,7 @@ interface StoreState {
   error: ApiError | null;
   currentCustomer: Customer | null;
   abortController: AbortController | null;
+  _initialized: boolean;
 }
 
 export const useCustomerStore = defineStore('customer', {
@@ -22,6 +23,7 @@ export const useCustomerStore = defineStore('customer', {
     error: null,
     currentCustomer: null,
     abortController: null,
+    _initialized: false,
   }),
 
   getters: {

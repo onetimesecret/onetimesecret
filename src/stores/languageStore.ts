@@ -32,6 +32,7 @@ export const useLanguageStore = defineStore('language', () => {
   const storageKey = ref<string | null>(null);
   const supportedLocales = ref<string[]>([]);
   const storedLocale = ref<string | null>(null);
+  const _initialized = ref(false);
 
   // Private state
   let _api: AxiosInstance | null = null;
@@ -142,6 +143,7 @@ export const useLanguageStore = defineStore('language', () => {
     storageKey.value = null;
     supportedLocales.value = [];
     storedLocale.value = null;
+    _initialized.value = false;
   }
 
   return {

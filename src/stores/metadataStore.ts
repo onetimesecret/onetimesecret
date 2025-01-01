@@ -120,6 +120,7 @@ export const useMetadataStore = defineStore('metadata', () => {
     isLoading.value = false;
     record.value = null;
     details.value = null;
+    _initialized.value = false;
     _api = null;
     _errorHandler = null;
   }

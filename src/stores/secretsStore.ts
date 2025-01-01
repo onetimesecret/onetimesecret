@@ -111,6 +111,7 @@ export const useSecretsStore = defineStore('secrets', () => {
   function $reset() {
     record.value = null;
     details.value = null;
+    _initialized.value = false;
   }
 
   return {

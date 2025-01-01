@@ -68,7 +68,6 @@ export const useWindowStore = defineStore('window', {
 
       this._ensureErrorHandler();
 
-      // Explicitly use the values from windowObj without fallbacks
       const windowData = {
         authenticated: windowObj.authenticated,
         email: windowObj.email,
@@ -79,7 +78,6 @@ export const useWindowStore = defineStore('window', {
         plans_enabled: windowObj.plans_enabled,
       };
 
-      // Remove the nullish coalescing since we want to use the exact values
       this.$patch(windowData);
       this._initialized = true;
     },
@@ -100,9 +98,9 @@ export const useWindowStore = defineStore('window', {
     // calling $reset(). Internally, this calls the state() function to create
     // a new state object and replaces the current state with it. In Setup
     // Stores, you need to create your own $reset.
-    reset() {
-      this.$reset();
-      this._initialized = false; // Explicitly reset initialization flag
-    },
+    // $reset() {
+    //   this.isLoading = false; // Reset loading state
+    //   this._initialized = false; // Explicitly reset initialization flag
+    // },
   },
 });

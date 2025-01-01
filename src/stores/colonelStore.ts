@@ -11,6 +11,7 @@ export const useColonelStore = defineStore('colonel', () => {
   // State
   const isLoading = ref(false);
   const pageData = ref<ColonelData | null>(null);
+  const _initialized = ref(false);
 
   // Private store instance vars (closure based DI)
   let _api: AxiosInstance | null = null;
@@ -58,8 +59,9 @@ export const useColonelStore = defineStore('colonel', () => {
    * Reset store state to initial values
    */
   function $reset() {
-    pageData.value = null;
     isLoading.value = false;
+    pageData.value = null;
+    _initialized.value = false;
   }
 
   // Expose store interface
