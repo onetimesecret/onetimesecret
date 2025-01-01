@@ -1,6 +1,6 @@
 // tests/unit/vue/stores/jurisdictionStore.spec.ts
 
-import { ApiError } from '@/schemas';
+import { ApiError, ApplicationError } from '@/schemas';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { createTestingPinia } from '@pinia/testing';
@@ -46,9 +46,17 @@ describe('jurisdictionStore', () => {
     it('initializes with valid config', () => {
       store.init(mockRegionConfig);
 
-      expect(store.enabled).toBe(true);
-      expect(store.jurisdictions).toHaveLength(2);
-      expect(store.currentJurisdiction).toEqual(mockJurisdictions[0]);
+      // Test full jurisdiction object structure
+      expect(store.currentJurisdiction).toEqual({
+        identifier: 'us-east',
+        display_name: 'US East',
+        domain: 'us-east.example.com',
+        icon: 'us-flag',
+        enabled: true,
+      });
+
+      // Verify array contents explicitly
+      expect(store.jurisdictions).toEqual([mockJurisdictions[0], mockJurisdictions[1]]);
     });
 
     it('handles disabled config', () => {
@@ -100,12 +108,84 @@ describe('jurisdictionStore', () => {
         store.findJurisdiction('EU-WEST');
       }).toThrow(ApiError);
     });
+
+    it('throws descriptive ApplicationError for non-existent jurisdiction', () => {
+      store.init(mockRegionConfig);
+
+      let thrownError: ApplicationError;
+      try {
+        store.findJurisdiction('non-existent');
+      } catch (e) {
+        thrownError = e as ApplicationError;
+      }
+
+      expect(thrownError!).toBeDefined();
+      expect(thrownError!.message).toMatch(/Jurisdiction "non-existent" not found/i);
+      expect(thrownError!.type).toBe('technical');
+      expect(thrownError!.severity).toBe('error');
+      expect(thrownError!.details).toEqual({
+        identifier: 'non-existent',
+      });
+    });
+
+    // Add a test for case sensitivity
+    it('throws ApplicationError with correct details for case-sensitive match', () => {
+      store.init(mockRegionConfig);
+
+      let thrownError: ApplicationError;
+      try {
+        store.findJurisdiction('EU-WEST');
+      } catch (e) {
+        thrownError = e as ApplicationError;
+      }
+
+      expect(thrownError!).toBeDefined();
+      expect(thrownError!.type).toBe('technical');
+      expect(thrownError!.severity).toBe('error');
+      expect(thrownError!.details).toEqual({
+        identifier: 'EU-WEST',
+      });
+    });
+
+    it('throws ApplicationError for non-existent jurisdiction', () => {
+      let thrownError: ApplicationError;
+      try {
+        store.findJurisdiction('non-existent');
+      } catch (e) {
+        thrownError = e as ApplicationError;
+      }
+
+      expect(thrownError!).toBeDefined();
+      expect(thrownError!.type).toBe('technical');
+      expect(thrownError!.severity).toBe('error');
+      expect(thrownError!.details).toMatchObject({
+        identifier: 'non-existent',
+      });
+    });
+
+    it('maintains error type consistency', () => {
+      const errorTypes = new Set<string>();
+
+      try {
+        store.findJurisdiction('fake-id');
+      } catch (e) {
+        errorTypes.add((e as ApplicationError).type);
+      }
+
+      try {
+        store.init(null as any);
+      } catch (e) {
+        errorTypes.add((e as ApplicationError).type);
+      }
+
+      // All errors should be of the same type
+      expect(errorTypes.size).toBe(1);
+      expect(errorTypes.has('technical')).toBe(true);
+    });
   });
 
   describe('error handling', () => {
-    beforeEach(() => {
-      store.init(mockRegionConfig);
-    });
+    beforeEach(() => {});
 
     it('handles null config gracefully', () => {
       expect(() => {
@@ -115,7 +195,7 @@ describe('jurisdictionStore', () => {
       expect(store.enabled).toBe(false);
     });
 
-    it('handles malformed jurisdiction data', () => {
+    it('handles malformed jurisdiction data (easy)', () => {
       const malformedConfig = {
         ...mockRegionConfig,
         jurisdictions: [{ identifier: 'broken' }], // Missing required fields
@@ -126,7 +206,7 @@ describe('jurisdictionStore', () => {
       }).toThrow();
     });
 
-    it('handles missing current_jurisdiction', () => {
+    it('handles missing current_jurisdiction (easy)', () => {
       const invalidConfig = {
         ...mockRegionConfig,
         current_jurisdiction: undefined,
@@ -135,6 +215,45 @@ describe('jurisdictionStore', () => {
       expect(() => {
         store.init(invalidConfig as any);
       }).toThrow();
+    });
+
+    it('handles malformed jurisdiction data with specific error', () => {
+      const malformedConfig = {
+        ...mockRegionConfig,
+        jurisdictions: [{ identifier: 'broken' }], // Missing required fields
+      };
+
+      let thrownError: ApplicationError;
+      try {
+        store.init(malformedConfig as any);
+      } catch (e) {
+        thrownError = e as ApplicationError;
+      }
+
+      expect(thrownError!).toBeDefined();
+      expect(thrownError!.type).toBe('technical');
+      expect(thrownError!.severity).toBe('error');
+      expect(thrownError!.details).toBeDefined();
+    });
+
+    it('handles missing current_jurisdiction with specific error', () => {
+      const invalidConfig = {
+        ...mockRegionConfig,
+        current_jurisdiction: undefined,
+      };
+
+      let thrownError: ApplicationError;
+      try {
+        store.init(invalidConfig as any);
+      } catch (e) {
+        thrownError = e as ApplicationError;
+      }
+
+      expect(thrownError!).toBeDefined();
+      expect(thrownError!.type).toBe('technical');
+      expect(thrownError!.details).toMatchObject({
+        identifier: undefined,
+      });
     });
   });
 
@@ -152,6 +271,50 @@ describe('jurisdictionStore', () => {
         store.init(emptyConfig);
       }).toThrow(); //
 
+      expect(store.jurisdictions).toHaveLength(0);
+      expect(store.currentJurisdiction).toBeNull();
+    });
+
+    it('handles empty jurisdictions array correctly', () => {
+      const emptyConfig: RegionsConfig = {
+        identifier: 'default',
+        enabled: true,
+        current_jurisdiction: 'default',
+        jurisdictions: [],
+      };
+
+      let thrownError: Error;
+      try {
+        store.init(emptyConfig);
+      } catch (e) {
+        thrownError = e as Error;
+      }
+
+      // Verify error and state
+      expect(thrownError!).toBeDefined();
+      expect(thrownError!.message).toMatch(/Jurisdiction.+ not found/i);
+      expect(store.jurisdictions).toHaveLength(0);
+      expect(store.currentJurisdiction).toBeNull();
+    });
+
+    it('handles empty jurisdictions array with proper error', () => {
+      const emptyConfig: RegionsConfig = {
+        identifier: 'default',
+        enabled: true,
+        current_jurisdiction: 'default',
+        jurisdictions: [],
+      };
+
+      let thrownError: ApplicationError;
+      try {
+        store.init(emptyConfig);
+      } catch (e) {
+        thrownError = e as ApplicationError;
+      }
+
+      expect(thrownError!).toBeDefined();
+      expect(thrownError!.type).toBe('technical');
+      expect(thrownError!.details).toBeDefined();
       expect(store.jurisdictions).toHaveLength(0);
       expect(store.currentJurisdiction).toBeNull();
     });
@@ -181,6 +344,26 @@ describe('jurisdictionStore', () => {
       expect(() => {
         store.init(invalidConfig);
       }).toThrow();
+    });
+
+    it('validates jurisdiction identifier format strictly', () => {
+      const tooShortId = { ...mockJurisdictions[0], identifier: 'a' };
+      const tooLongId = { ...mockJurisdictions[0], identifier: 'a'.repeat(25) };
+
+      // Test both bounds
+      expect(() =>
+        store.init({
+          ...mockRegionConfig,
+          jurisdictions: [tooShortId],
+        })
+      ).toThrow(/Jurisdiction "us-east" not found/i);
+
+      expect(() =>
+        store.init({
+          ...mockRegionConfig,
+          jurisdictions: [tooLongId],
+        })
+      ).toThrow(/Jurisdiction "us-east" not found/i);
     });
   });
 
