@@ -65,7 +65,8 @@ async function initializeApp() {
 
   // Initialize language store
   const languageStore = useLanguageStore(); // TODO: navigator.language
-  const initialLocale = languageStore.init();
+  languageStore.init();
+  const initialLocale = languageStore.getCurrentLocale;
 
   // Set language before mounting the app
   // This ensures correct translations are available for the initial render
