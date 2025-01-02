@@ -172,7 +172,7 @@ describe('windowStore', () => {
 
     afterEach(() => {
       axiosMock.restore();
-      store.reset();
+      store.$reset();
     });
 
     it('initializes with the whole hog', () => {

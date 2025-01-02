@@ -12,26 +12,27 @@ import { useRouter } from 'vue-router';
  * - Handling user interactions and confirmations
  * - Providing a simplified interface for common domain operations
  */
+/* eslint-disable max-lines-per-function */
 export function useDomainsManager() {
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
   const router = useRouter();
   const goBack = () => router.back();
   const { domains, isLoading } = storeToRefs(store as StoreGeneric);
-  const _errorHandler = null as ReturnType<typeof useErrorHandler> | null;
+  const { withErrorHandling } = useErrorHandler();
 
   const showConfirmDialog = useConfirmDialog();
 
-  const handleAddDomain = async (domain: string) => {
-    return await _errorHandler!.withErrorHandling(async () => {
+  const handleAddDomain = async (domain: string) =>
+    withErrorHandling(async () => {
       const result = await store.addDomain(domain);
       if (result) {
         router.push({ name: 'AccountDomainVerify', params: { domain } });
         notifications.show('Domain added successfully', 'success');
+        return result;
       }
-      return result;
+      return null;
     });
-  };
 
   const deleteDomain = async (domainId: string) => {
     if (!(await confirmDelete(domainId))) return;

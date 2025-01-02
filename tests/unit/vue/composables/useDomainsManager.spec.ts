@@ -21,6 +21,7 @@ const mockDependencies: MockDependencies = {
   confirmDialog: vi.fn(),
   errorHandler: {
     handleError: vi.fn(),
+    withErrorHandling: vi.fn(),
   },
   domainsStore: {
     domains: ref(mockDomains),
@@ -67,18 +68,22 @@ describe('useDomainsManager', () => {
   describe('domain addition', () => {
     describe('handleAddDomain', () => {
       it('successfully adds a new domain and navigates to verification', async () => {
+        // Setup withErrorHandling to execute the callback
+        mockDependencies.errorHandler.withErrorHandling.mockImplementation(
+          async (fn) => await fn()
+        );
         mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(newDomainData);
-        const { handleAddDomain } = useDomainsManager();
 
-        const result = await handleAddDomain(newDomainData.name);
+        const { handleAddDomain } = useDomainsManager();
+        const result = await handleAddDomain(newDomainData.domainid);
 
         expect(result).toEqual(newDomainData);
         expect(mockDependencies.domainsStore.addDomain).toHaveBeenCalledWith(
-          newDomainData.name
+          newDomainData.domainid
         );
         expect(mockDependencies.router.push).toHaveBeenCalledWith({
-          name: 'AccountDomainVerify',
-          params: { domain: newDomainData.name },
+          name: 'AccountDomainVerify', // name of the route
+          params: { domain: newDomainData.domainid },
         });
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
           'Domain added successfully',
@@ -89,10 +94,21 @@ describe('useDomainsManager', () => {
       describe('error handling', () => {
         it('handles API errors', async () => {
           const apiError = new Error('API Error');
+          // Setup withErrorHandling to return null on error
+          mockDependencies.errorHandler.withErrorHandling.mockImplementation(
+            async (fn) => {
+              try {
+                return await fn();
+              } catch (error) {
+                mockDependencies.errorHandler.handleError(error);
+                return null;
+              }
+            }
+          );
           mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(apiError);
-          const { handleAddDomain } = useDomainsManager();
 
-          const result = await handleAddDomain(newDomainData.name);
+          const { handleAddDomain } = useDomainsManager();
+          const result = await handleAddDomain(newDomainData.domainid);
 
           expect(result).toBeNull();
           expect(mockDependencies.errorHandler.handleError).toHaveBeenCalledWith(
@@ -106,7 +122,7 @@ describe('useDomainsManager', () => {
           mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(validationError);
           const { handleAddDomain } = useDomainsManager();
 
-          const result = await handleAddDomain(newDomainData.name);
+          const result = await handleAddDomain(newDomainData.domainid);
 
           expect(result).toBeNull();
           expect(mockDependencies.errorHandler.handleError).toHaveBeenCalledWith(

@@ -39,6 +39,10 @@ export { createError }; // Re-export createError
  * NOTE: For component-level error boundaries, use Vue's built-in
  * errorCaptured hook instead.
  *
+ * We use the errorHandler composable across our pinia stores. We also have a global
+ * ErrorHandlerPlugin that logs and notifies users of errors. The useDomainsManager
+ * composable uses the errorHandler to for async errors. Other exceptions propogate
+ * up to Vue 3 handle errors.
  *
  * Raison d'être:
  *
@@ -79,6 +83,22 @@ export { createError }; // Re-export createError
  * ```
  */
 export function useErrorHandler(options: ErrorHandlerOptions = {}) {
+  // Default implementations that will be used if no options provided
+  const handlers = {
+    notify:
+      options.notify ??
+      ((message: string, severity: ErrorSeverity) => {
+        console.warn(`[${severity}] ${message}`);
+      }),
+    log:
+      options.log ??
+      ((error: ApplicationError) => {
+        console.error('[ErrorHandler]', error);
+      }),
+    setLoading: options.setLoading ?? (() => {}),
+    onError: options.onError,
+  };
+
   /**
    * Wraps an async operation with consistent error handling
    *
@@ -95,37 +115,37 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
    */
   async function withErrorHandling<T>(operation: () => Promise<T>): Promise<T> {
     try {
-      options.setLoading?.(true);
+      handlers.setLoading?.(true);
       return await operation(); // <-- run the async operation
     } catch (error) {
       const classifiedError = classifyError(error);
 
       // Call onError callback first
-      if (options.onError) {
+      if (handlers.onError) {
         try {
-          options.onError(classifiedError);
+          handlers.onError(classifiedError);
         } catch (callbackError) {
           // Log but don't throw callback errors to preserve original error
-          options.log?.(classifyError(callbackError));
+          handlers.log?.(classifyError(callbackError));
         }
       }
 
       // Log all errors
-      options.log?.(classifiedError);
+      handlers.log?.(classifiedError);
 
       // Only notify for human-facing errors
-      if (isOfHumanInterest(classifiedError) && options.notify) {
+      if (isOfHumanInterest(classifiedError) && handlers.notify) {
         try {
-          options.notify(classifiedError.message, classifiedError.severity);
+          handlers.notify(classifiedError.message, classifiedError.severity);
         } catch (notifyError) {
           // Swallow notification errors to preserve original error
-          options.log?.(classifyError(notifyError));
+          handlers.log?.(classifyError(notifyError));
         }
       }
 
       throw classifiedError;
     } finally {
-      options.setLoading?.(false);
+      handlers.setLoading?.(false);
     }
   }
 
