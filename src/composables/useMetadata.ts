@@ -1,24 +1,30 @@
 // composables/useMetadata.ts
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { StoreGeneric, storeToRefs } from 'pinia';
+import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 /**
  *
- * @param key
- * @returns
  */
 export function useMetadata(metadataKey: string) {
-  const store = useMetadataStore();
-  const notifications = useNotificationsStore();
   const router = useRouter();
+  const notifications = useNotificationsStore();
+  const store = useMetadataStore();
+
+  store.init();
+  store.setupErrorHandler(undefined, {
+    notify: notifications.show,
+    log: (error) => {
+      notifications.show(error.message, 'error');
+    },
+  });
 
   // The `StoreGeneric` type assertion helps bridge the gap between the specific
   // store type and the generic store. This is a known issue when using
   // `storeToRefs` with stores that have complex types.
-  const { record, details, isLoading } = storeToRefs(store as StoreGeneric);
+  const { record, details, isLoading, canBurn } = storeToRefs(store);
 
   // Local state
   const passphrase = ref('');
@@ -28,22 +34,19 @@ export function useMetadata(metadataKey: string) {
   };
 
   const handleBurn = async () => {
-    try {
-      await store.burn(metadataKey, passphrase.value);
-      notifications.show('Secret burned successfully', 'success');
-      await fetch();
-      router.push({
-        name: 'Metadata link',
-        params: { metadataKey: metadataKey },
-        query: { ts: Date.now().toString() },
-      });
-    } catch (error) {
-      notifications.show(
-        error instanceof Error ? error.message : 'Failed to burn secret',
-        'error'
-      );
-      console.error('Error burning secret:', error);
+    if (!canBurn.value) {
+      return;
     }
+
+    await store.burn(metadataKey, passphrase.value);
+
+    notifications.show('Secret burned successfully', 'success');
+    await fetch();
+    router.push({
+      name: 'Metadata link',
+      params: { metadataKey: metadataKey },
+      query: { ts: Date.now().toString() },
+    });
   };
 
   const reset = () => {
@@ -54,8 +57,8 @@ export function useMetadata(metadataKey: string) {
 
   return {
     // State
-    record: record,
-    details: details,
+    record,
+    details,
     isLoading,
     passphrase,
 
