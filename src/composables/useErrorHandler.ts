@@ -130,7 +130,7 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
         }
       }
 
-      // Log all errors
+      // Log all errors regardless
       handlers.log?.(classifiedError);
 
       // Only notify for human-facing errors

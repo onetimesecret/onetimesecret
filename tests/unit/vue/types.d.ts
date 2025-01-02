@@ -11,6 +11,7 @@ export interface MockDependencies {
   errorHandler: {
     handleError: Mock;
     withErrorHandling: Mock;
+    createError: Mock;
   };
   domainsStore: {
     domains: Ref<Record<string, CustomDomain>>;

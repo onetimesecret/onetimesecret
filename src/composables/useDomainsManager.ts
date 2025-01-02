@@ -1,7 +1,9 @@
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
-import { useErrorHandler } from '@/composables/useErrorHandler';
+import { createError, useErrorHandler } from '@/composables/useErrorHandler';
+import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs, type StoreGeneric } from 'pinia';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 /**
@@ -19,7 +21,16 @@ export function useDomainsManager() {
   const router = useRouter();
   const goBack = () => router.back();
   const { domains, isLoading } = storeToRefs(store as StoreGeneric);
-  const { withErrorHandling } = useErrorHandler();
+  const error = ref<ApplicationError | null>(null); // Add local error state
+  const { withErrorHandling } = useErrorHandler({
+    onError: (e) => {
+      error.value = e;
+    },
+    notify: (message) => {
+      notifications.show(message, 'error');
+      // There's a second var here available for severity
+    },
+  });
 
   const showConfirmDialog = useConfirmDialog();
 
@@ -31,6 +42,7 @@ export function useDomainsManager() {
         notifications.show('Domain added successfully', 'success');
         return result;
       }
+      error.value = createError('Failed to add domain', 'human', 'error');
       return null;
     });
 
@@ -78,5 +90,6 @@ export function useDomainsManager() {
     deleteDomain,
     confirmDelete,
     goBack,
+    error,
   };
 }

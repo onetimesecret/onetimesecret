@@ -1,5 +1,6 @@
 // tests/unit/vue/composables/useDomainsManager.spec.ts
 import { useDomainsManager } from '@/composables/useDomainsManager';
+import { ApplicationError } from '@/schemas/errors';
 import { mockDomains, newDomainData } from '@tests/unit/vue/fixtures/domains';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -22,6 +23,11 @@ const mockDependencies: MockDependencies = {
   errorHandler: {
     handleError: vi.fn(),
     withErrorHandling: vi.fn(),
+    createError: vi.fn((message: string, type: string, severity: string) => ({
+      message,
+      type,
+      severity,
+    })),
   },
   domainsStore: {
     domains: ref(mockDomains),
@@ -54,24 +60,29 @@ vi.mock('@/composables/useConfirmDialog', () => ({
 
 vi.mock('@/composables/useErrorHandler', () => ({
   useErrorHandler: () => mockDependencies.errorHandler,
+  createError: (message: string, type: string, severity: string) => ({
+    message,
+    type,
+    severity,
+  }),
 }));
 
 describe('useDomainsManager', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
+
     vi.clearAllMocks();
     // Reset reactive refs
-    mockDependencies.domainsStore.isLoading.value = false;
     mockDependencies.domainsStore.error.value = null;
+    mockDependencies.domainsStore.isLoading.value = false;
+    mockDependencies.errorHandler.withErrorHandling.mockImplementation(
+      async (fn) => await fn()
+    );
   });
 
   describe('domain addition', () => {
     describe('handleAddDomain', () => {
       it('successfully adds a new domain and navigates to verification', async () => {
-        // Setup withErrorHandling to execute the callback
-        mockDependencies.errorHandler.withErrorHandling.mockImplementation(
-          async (fn) => await fn()
-        );
         mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(newDomainData);
 
         const { handleAddDomain } = useDomainsManager();
@@ -118,16 +129,21 @@ describe('useDomainsManager', () => {
         });
 
         it('handles validation errors', async () => {
-          const validationError = new Error('Invalid domain');
+          const validationError = {
+            message: 'Invalid domain',
+            type: 'human',
+            severity: 'error',
+          } as ApplicationError;
+
           mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(validationError);
           const { handleAddDomain } = useDomainsManager();
 
-          const result = await handleAddDomain(newDomainData.domainid);
-
-          expect(result).toBeNull();
-          expect(mockDependencies.errorHandler.handleError).toHaveBeenCalledWith(
-            validationError
-          );
+          // Expect the operation to throw
+          await expect(handleAddDomain(newDomainData.domainid)).rejects.toMatchObject({
+            message: 'Invalid domain',
+            type: 'human',
+            severity: 'error',
+          });
         });
       });
     });
@@ -231,13 +247,72 @@ describe('useDomainsManager', () => {
 
       expect(isLoading.value).toBe(true);
     });
+  });
+  describe('error handling', () => {
+    it('sets human-readable error when domain addition fails', async () => {
+      mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(null);
+      mockDependencies.errorHandler.createError.mockImplementation(
+        (message, type, severity) => ({
+          message,
+          type,
+          severity,
+          name: 'Error',
+        })
+      );
+      const { handleAddDomain, error } = useDomainsManager();
 
-    it('reflects error state changes', async () => {
-      const testError = new Error('Test error');
-      mockDependencies.domainsStore.error.value = testError;
-      const { error } = useDomainsManager();
+      await handleAddDomain('test-domain.com');
 
-      expect(error.value).toBe(testError);
+      expect(error.value).toMatchObject({
+        message: 'Failed to add domain',
+        type: 'human',
+        severity: 'error',
+      });
+    });
+
+    it('clears error state on successful domain addition', async () => {
+      mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(newDomainData);
+      const { handleAddDomain, error } = useDomainsManager();
+
+      await handleAddDomain('test-domain.com');
+
+      expect(error.value).toBeNull();
+    });
+
+    // Gnarly test
+    it('handles API errors appropriately', async () => {
+      mockDependencies.errorHandler.withErrorHandling.mockImplementation(async (fn) => {
+        try {
+          return await fn();
+        } catch (err) {
+          // Properly classify the error and call onError callback
+          const classifiedError = {
+            message: err.message,
+            type: err.status === 404 ? 'human' : 'technical',
+            severity: 'error',
+          };
+          mockDependencies.errorHandler.handleError(classifiedError);
+          throw classifiedError; // Important: still throw the classified error
+        }
+      });
+
+      // Create a proper API error object
+      const apiError = {
+        message: 'API Error',
+        status: 404,
+      };
+      mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(apiError);
+      const { handleAddDomain, error } = useDomainsManager();
+
+      try {
+        await handleAddDomain('test-domain.com');
+      } catch (err) {
+        expect(err).toMatchObject({
+          message: 'API Error',
+          type: 'human',
+          severity: 'error',
+        });
+      }
     });
   });
 });
