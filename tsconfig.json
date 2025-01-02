@@ -45,7 +45,11 @@
     "useDefineForClassFields": true,
     "jsx": "preserve",
 
+    // Or use ESLint rules `@typescript-eslint/no-this-alias` or `no-invalid-this`
+    // Enable strict, or at the very least, noImplicitThis, and Pinia will infer
+    // the type of your state automatically (sometimes hints helps).
     "noImplicitAny": true,
+    "noImplicitThis": null,
 
     "allowJs": false,
     "allowImportingTsExtensions": false,
@@ -58,11 +62,7 @@
       "@/*": ["./src/*"],
       "@tests/*": ["./tests/*"]
     },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types/declarations",
-      "./tests/unit/vue/types.d.ts"
-    ],
+    "typeRoots": ["./node_modules/@types", "./src/types", "./tests/unit/vue"],
     "types": ["jsdom", "node"]
   },
   "include": [

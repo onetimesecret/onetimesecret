@@ -1,23 +1,24 @@
 <script setup lang="ts">
-import { useWindowProps } from '@/composables/useWindowProps';
-import { useDomainsStore, useMetadataStore } from '@/stores';
-import { storeToRefs } from 'pinia';
+import { useValidatedWindowProp } from '@/composables/useWindowProps';
+import { useDomainsStore, useMetadataListStore } from '@/stores';
+import { StoreGeneric, storeToRefs } from 'pinia';
 import { onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { z } from 'zod';
 
-const { authenticated, domains_enabled } =
-  useWindowProps(['authenticated', 'domains_enabled']);
+const authenticated = useValidatedWindowProp('authenticated', z.boolean());
+const domains_enabled = useValidatedWindowProp('domains_enabled', z.boolean());
 
 const route = useRoute();
 
-const metadataStore = useMetadataStore();
+const metadataListStore = useMetadataListStore();
 const domainsStore = useDomainsStore();
 
-const { recordCount: metadataCount } = storeToRefs(metadataStore);
-const { recordCount: domainsCount } = storeToRefs(domainsStore);
+const { count: metadataCount } = storeToRefs(metadataListStore as StoreGeneric);
+const { count: domainsCount } = storeToRefs(domainsStore as StoreGeneric);
 
 onMounted(() => {
-  metadataStore.refreshRecords();
+  metadataListStore.refreshRecords();
   domainsStore.refreshRecords();
 });
 

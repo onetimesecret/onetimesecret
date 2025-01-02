@@ -27,7 +27,7 @@ const submitForm = async () => {
 
   isSubmitting.value = true;
   try {
-    const response = await secretStore.revealSecret(props.secretKey, passphrase.value);
+    const response = await secretStore.reveal(props.secretKey, passphrase.value);
     // Announce success to screen readers
     const announcement = document.createElement('div');
     announcement.setAttribute('role', 'status');

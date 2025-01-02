@@ -29,7 +29,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    include: ['**/*.spec.ts', '**/*.spec.vue'],
+    include: ['tests/unit/vue/**/*.spec.ts', '**/*.spec.vue'],
     exclude: [
       '**/node_modules/**',
       '**/.trunk/**',

@@ -1,58 +1,78 @@
 // stores/colonelStore.ts
 
-import { useErrorHandler } from '@/composables/useErrorHandler';
+import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas, type ColonelData } from '@/schemas/api';
-import { ApiError } from '@/schemas/api/errors';
 import { createApi } from '@/utils/api';
+import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
-const api = createApi();
+export const useColonelStore = defineStore('colonel', () => {
+  // State
+  const isLoading = ref(false);
+  const pageData = ref<ColonelData | null>(null);
+  const _initialized = ref(false);
 
-interface StoreState {
-  isLoading: boolean;
-  error: ApiError | null;
-  data: ColonelData | null;
-}
+  // Private store instance vars (closure based DI)
+  let _api: AxiosInstance | null = null;
+  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
 
-export const useColonelStore = defineStore('colonel', {
-  state: (): StoreState => ({
-    isLoading: false,
-    error: null,
-    data: null,
-  }),
+  // Internal utilities
+  function _ensureErrorHandler() {
+    if (!_errorHandler) setupErrorHandler();
+  }
 
-  actions: {
-    handleError(error: unknown): ApiError {
-      const { handleError } = useErrorHandler();
-      this.error = handleError(error);
-      return this.error;
-    },
+  /**
+   * Initialize error handling with optional custom API client and options
+   */
+  function setupErrorHandler(
+    api: AxiosInstance = createApi(),
+    options: ErrorHandlerOptions = {}
+  ) {
+    _api = api;
+    _errorHandler = useErrorHandler({
+      setLoading: (loading) => (isLoading.value = loading),
+      notify: options.notify,
+      log: options.log,
+    });
+  }
 
-    async fetchData(): Promise<ColonelData> {
-      this.isLoading = true;
-      this.error = null;
+  // Actions
+  async function fetch() {
+    _ensureErrorHandler();
 
-      try {
-        const response = await api.get('/api/v2/colonel/dashboard');
-        const validated = responseSchemas.colonel.parse(response.data);
-        // The record contains the ColonelData
-        this.data = validated.record ?? null;
-        return this.data;
-      } catch (error) {
-        this.handleError(error); // Update to use new handleError
-        throw error; // Re-throw to maintain current behavior
-      } finally {
-        this.isLoading = false;
-      }
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.get('/api/v2/colonel/dashboard');
+      const validated = responseSchemas.colonel.parse(response.data);
+      // Access the record property which contains the ColonelData
+      pageData.value = validated.record;
+      return pageData.value;
+    });
+  }
 
-      // This line is needed to satisfy TypeScript's control flow analysis
-      throw new Error('Unreachable - handleApiError always throws');
-    },
+  function dispose() {
+    pageData.value = null;
+    isLoading.value = false;
+  }
 
-    dispose() {
-      this.data = null;
-      this.error = null;
-      this.isLoading = false;
-    },
-  },
+  /**
+   * Reset store state to initial values
+   */
+  function $reset() {
+    isLoading.value = false;
+    pageData.value = null;
+    _initialized.value = false;
+  }
+
+  // Expose store interface
+  return {
+    // State
+    isLoading,
+    pageData,
+
+    // Actions
+    fetch,
+    dispose,
+    $reset,
+  };
 });

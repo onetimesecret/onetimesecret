@@ -1,7 +1,9 @@
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
-import { useErrorHandler } from '@/composables/useErrorHandler';
+import { createError, useErrorHandler } from '@/composables/useErrorHandler';
+import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
-import { storeToRefs } from 'pinia';
+import { storeToRefs, type StoreGeneric } from 'pinia';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 /**
@@ -12,29 +14,37 @@ import { useRouter } from 'vue-router';
  * - Handling user interactions and confirmations
  * - Providing a simplified interface for common domain operations
  */
+/* eslint-disable max-lines-per-function */
 export function useDomainsManager() {
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
   const router = useRouter();
   const goBack = () => router.back();
-  const { domains, isLoading, error } = storeToRefs(store);
-  const { handleError } = useErrorHandler();
+  const { domains, isLoading } = storeToRefs(store as StoreGeneric);
+  const error = ref<ApplicationError | null>(null); // Add local error state
+  const { withErrorHandling } = useErrorHandler({
+    onError: (e) => {
+      error.value = e;
+    },
+    notify: (message) => {
+      notifications.show(message, 'error');
+      // There's a second var here available for severity
+    },
+  });
 
   const showConfirmDialog = useConfirmDialog();
 
-  const handleAddDomain = async (domain: string) => {
-    try {
+  const handleAddDomain = async (domain: string) =>
+    withErrorHandling(async () => {
       const result = await store.addDomain(domain);
       if (result) {
         router.push({ name: 'AccountDomainVerify', params: { domain } });
         notifications.show('Domain added successfully', 'success');
+        return result;
       }
-      return result;
-    } catch (err) {
-      handleError(err); // Will handle both validation and API errors
+      error.value = createError('Failed to add domain', 'human', 'error');
       return null;
-    }
-  };
+    });
 
   const deleteDomain = async (domainId: string) => {
     if (!(await confirmDelete(domainId))) return;
@@ -76,10 +86,10 @@ export function useDomainsManager() {
   return {
     domains,
     isLoading,
-    error,
     handleAddDomain,
     deleteDomain,
     confirmDelete,
     goBack,
+    error,
   };
 }

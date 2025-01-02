@@ -1,14 +1,16 @@
 // stores/metadataStore.ts
-import { useErrorHandler } from '@/composables/useErrorHandler';
-import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
-import { ApiError } from '@/schemas/api/errors';
+import {
+  createError,
+  ErrorHandlerOptions,
+  useErrorHandler,
+} from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
 import { type AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
 
-// Define valid states as a value (not just a type)
 export const METADATA_STATUS = {
   NEW: 'new',
   SHARED: 'shared',
@@ -18,164 +20,127 @@ export const METADATA_STATUS = {
   ORPHANED: 'orphaned',
 } as const;
 
-interface StoreState {
-  // Base properties required for all stores
-  isLoading: boolean;
-  error: ApiError | null;
-  // Metadata-specific properties
-  currentRecord: Metadata | null;
-  currentDetails: MetadataDetails | null;
-  records: MetadataRecords[];
-  details: MetadataRecordsDetails | {};
-  initialized: boolean;
-  count: number | null;
-}
+/* eslint-disable max-lines-per-function */
+export const useMetadataStore = defineStore('metadata', () => {
+  // State
+  const isLoading = ref(false);
+  const record = ref<Metadata | null>(null);
+  const details = ref<MetadataDetails | null>(null);
+  const _initialized = ref(false);
 
-export const useMetadataStore = defineStore('metadata', {
-  state: (): StoreState => ({
-    isLoading: false,
-    error: null,
-    currentRecord: null as Metadata | null,
-    currentDetails: null,
-    records: [],
-    details: {},
-    initialized: false,
-    count: null,
-  }),
+  // Private store utilities
+  let _api: AxiosInstance | null = null;
+  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
 
-  getters: {
-    recordCount: (state) => state.count,
+  // Getters
+  const isInitialized = computed(() => _initialized.value);
 
-    canBurn(state: StoreState): boolean {
-      if (!state.currentRecord) return false;
-      const validStates = [
-        METADATA_STATUS.NEW,
-        METADATA_STATUS.SHARED,
-        METADATA_STATUS.VIEWED,
-      ] as const;
-      return (
-        validStates.includes(state.currentRecord.state as (typeof validStates)[number]) &&
-        !state.currentRecord.burned
-      );
-    },
-  },
+  const canBurn = computed((): boolean => {
+    if (!record.value) {
+      throw createError('No state metadata record', 'technical', 'error');
+    }
 
-  actions: {
-    _api: null as AxiosInstance | null,
-    _errorHandler: null as ReturnType<typeof useErrorHandler> | null,
+    const validStates = [
+      METADATA_STATUS.NEW,
+      METADATA_STATUS.SHARED,
+      METADATA_STATUS.VIEWED,
+    ] as const;
 
-    init(api: AxiosInstance = createApi()) {
-      this._api = api;
-      this._errorHandler = useErrorHandler();
-    },
+    if (
+      record.value.burned ||
+      !validStates.includes(record.value.state as (typeof validStates)[number])
+    ) {
+      return false;
+    }
 
-    /**
-     *  Wraps async operations with loading state management. A poor dude's plugin.
-     *
-     * Implementation Note: Originally attempted as a Pinia plugin but moved to a
-     * store action due to testing challenges. The plugin approach required complex
-     * setup with proper plugin initialization in tests, which introduced more
-     * complexity than value. While plugins are better for cross-store
-     * functionality, this simple loading pattern works fine as a store
-     * action and is much easier to test.
-     *
-     * The original plugin implementation kept failing with "_withLoading does not
-     * exist" errors in tests, likely due to plugin initialization timing issues.
-     * This direct approach sidesteps those problems entirely.
-     *
-     * @template T The type of value returned by the operation
-     * @param operation The async operation to execute with loading state
-     * @returns Promise of the operation result
-     */
-    async _withLoading<T>(operation: () => Promise<T>) {
-      this.isLoading = true;
+    return true;
+  });
 
-      try {
-        return await operation();
-      } catch (error: unknown) {
-        this.handleError(error); // Will handle both validation and API errors
-      } finally {
-        this.isLoading = false;
-      }
-    },
+  // Actions
+  function init(api?: AxiosInstance) {
+    if (_initialized.value) return { isInitialized };
 
-    handleError(error: unknown): ApiError {
-      // Lazy initialize if not set
-      if (!this._errorHandler) {
-        this.init();
-      }
+    _initialized.value = true;
+    setupErrorHandler(api);
 
-      // Non-null assertion after guaranteed initialization
-      const processedError = this._errorHandler?.handleError(error);
+    return { isInitialized };
+  }
 
-      // Ensure a non-null ApiError is always returned
-      this.error = processedError ?? {
-        message: 'An unexpected error occurred',
-        code: 500,
-        name: 'UnhandledError',
-      };
+  function _ensureErrorHandler() {
+    if (!_errorHandler) setupErrorHandler();
+  }
 
-      return this.error;
-    },
+  function setupErrorHandler(
+    api: AxiosInstance = createApi(),
+    options: ErrorHandlerOptions = {}
+  ) {
+    _api = api;
+    _errorHandler = useErrorHandler({
+      setLoading: (loading) => {
+        isLoading.value = loading;
+      },
+      notify: options.notify,
+      log: options.log,
+    });
+  }
 
-    async fetchOne(key: string) {
-      return await this._withLoading(async () => {
-        const response = await this._api!.get(`/api/v2/private/${key}`);
-        const validated = responseSchemas.metadata.parse(response.data);
-        this.currentRecord = validated.record;
-        this.currentDetails = validated.details;
-        return validated;
+  async function fetch(key: string) {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.get(`/api/v2/private/${key}`);
+      const validated = responseSchemas.metadata.parse(response.data);
+      record.value = validated.record;
+      details.value = validated.details;
+      return validated;
+    });
+  }
+
+  async function burn(key: string, passphrase?: string) {
+    _ensureErrorHandler();
+
+    if (!canBurn.value) {
+      throw createError('Cannot burn this metadata', 'human', 'error');
+    }
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.post(`/api/v2/private/${key}/burn`, {
+        passphrase,
+        continue: true,
       });
-    },
+      const validated = responseSchemas.metadata.parse(response.data);
+      record.value = validated.record;
+      details.value = validated.details;
+      return validated;
+    });
+  }
 
-    async fetchList() {
-      return await this._withLoading(async () => {
-        const response = await this._api!.get('/api/v2/private/recent');
-        // console.debug('API Response:', response.data);
+  // Implement $reset for setup store
+  function $reset() {
+    isLoading.value = false;
+    record.value = null;
+    details.value = null;
+    _initialized.value = false;
+    _api = null;
+    _errorHandler = null;
+  }
 
-        const validated = responseSchemas.metadataList.parse(response.data);
+  return {
+    // State
+    isLoading,
+    record,
+    details,
 
-        this.records = validated.records ?? ([] as MetadataRecords[]);
-        this.details = validated.details ?? ({} as MetadataRecordsDetails);
-        this.count = validated.count ?? 0;
+    // Getters
+    canBurn,
 
-        // console.log('Store State After Update:', {
-        //   records: this.records,
-        //   details: this.details,
-        //   count: this.count,
-        // });
-
-        return validated;
-      });
-    },
-
-    async refreshRecords() {
-      if (this.initialized) return; // prevent repeated calls when 0 domains
-      return await this._withLoading(async () => {
-        this.fetchList();
-        this.initialized = true;
-      });
-    },
-
-    async burn(key: string, passphrase?: string) {
-      if (!this.canBurn) {
-        this.handleError(new Error('Cannot burn this metadata'));
-      }
-
-      return await this._withLoading(async () => {
-        const response = await this._api!.post(`/api/v2/private/${key}/burn`, {
-          passphrase,
-          continue: true,
-        });
-        const validated = responseSchemas.metadata.parse(response.data);
-        this.currentRecord = validated.record;
-        this.currentDetails = validated.details;
-        return validated;
-      });
-    },
-  },
-
-  // hydrate(store: Store) {
-  //   store.refreshRecords();
-  // },
+    // Actions
+    init,
+    setupErrorHandler,
+    fetch,
+    burn,
+    $reset,
+  };
 });
+
+export type MetadataStore = ReturnType<typeof useMetadataStore>;

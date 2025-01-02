@@ -1,4 +1,3 @@
-import { createApiResponseSchema } from '@/schemas/api/base';
 import { feedbackSchema } from '@/schemas/models';
 import { createModelSchema } from '@/schemas/models/base';
 import { customerSchema } from '@/schemas/models/customer';
@@ -33,9 +32,6 @@ export const colonelDataSchema = createModelSchema({
     older_feedback_count: transforms.fromString.number,
   }),
 });
-
-// Response schemas using the specific record schemas
-export const colonelDataResponseSchema = createApiResponseSchema(colonelDataSchema);
 
 // Export types
 export type ColonelData = z.infer<typeof colonelDataSchema>;

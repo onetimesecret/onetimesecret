@@ -32,9 +32,6 @@ export const transforms = {
     ),
     number: z.preprocess(parseNumber, z.number().nullable()),
     boolean: z.preprocess(parseBoolean, z.boolean()),
-    ttlToNaturalLanguage: z.preprocess(
-      ttlToNaturalLanguage,
-      z.string().nullable().optional()
-    ),
+    ttlToNaturalLanguage: z.preprocess(ttlToNaturalLanguage, z.string().nullable()),
   },
 } as const;

@@ -1,66 +1,130 @@
-import { useErrorHandler } from '@/composables/useErrorHandler';
-import { ApiError } from '@/schemas';
+// src/stores/secretsStore.ts
+import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
 import { createApi } from '@/utils/api';
+import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
 
-const api = createApi();
+/**
+ * Store for managing secret records and their details
+ */
 
-interface StoreState {
-  isLoading: boolean;
-  error: ApiError | null;
-  record: Secret | null;
-  details: SecretDetails | null;
-}
+/* eslint-disable max-lines-per-function */
+export const useSecretsStore = defineStore('secrets', () => {
+  // State
+  const isLoading = ref(false);
+  const record = ref<Secret | null>(null);
+  const details = ref<SecretDetails | null>(null);
+  const _initialized = ref(false);
 
-export const useSecretsStore = defineStore('secrets', {
-  state: (): StoreState => ({
-    isLoading: false,
-    error: null,
-    record: null,
-    details: null,
-  }),
+  // Private properties
+  let _api: AxiosInstance | null = null;
+  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
 
-  actions: {
-    handleError(error: unknown): ApiError {
-      const { handleError } = useErrorHandler();
-      this.error = handleError(error);
-      return this.error;
-    },
+  // Getters
+  const isInitialized = computed(() => _initialized.value);
 
-    async loadSecret(secretKey: string) {
-      return await this.withLoading(async () => {
-        const response = await api.get(`/api/v2/secret/${secretKey}`);
-        const validated = responseSchemas.secret.parse(response.data);
-        this.record = validated.record;
-        this.details = validated.details;
-        this.error = null;
-        return validated;
-      });
-    },
+  // Actions
+  function init(api?: AxiosInstance) {
+    if (_initialized.value) return { isInitialized };
 
-    async revealSecret(secretKey: string, passphrase?: string) {
-      return await this.withLoading(async () => {
-        const response = await api.post<SecretResponse>(
-          `/api/v2/secret/${secretKey}/reveal`,
-          {
-            passphrase,
-            continue: true,
-          }
-        );
-        const validated = responseSchemas.secret.parse(response.data);
-        this.record = validated.record;
-        this.details = validated.details;
-        this.error = null;
-        return validated;
-      });
-    },
+    _initialized.value = true;
+    setupErrorHandler(api);
 
-    clearSecret() {
-      this.record = null;
-      this.details = null;
-      this.error = null;
-    },
-  },
+    return { isInitialized };
+  }
+
+  function _ensureErrorHandler() {
+    if (!_errorHandler) setupErrorHandler();
+  }
+
+  function setupErrorHandler(
+    api: AxiosInstance = createApi(),
+    options: ErrorHandlerOptions = {}
+  ) {
+    _api = api;
+    _errorHandler = useErrorHandler({
+      setLoading: (loading) => {
+        isLoading.value = loading;
+      },
+      notify: options.notify,
+      log: options.log,
+    });
+  }
+
+  /**
+   * Loads a secret by its key
+   * @param secretKey - Unique identifier for the secret
+   * @throws Will throw an error if the API call fails
+   * @returns Validated secret response
+   */
+  async function fetch(secretKey: string) {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.get(`/api/v2/secret/${secretKey}`);
+      const validated = responseSchemas.secret.parse(response.data);
+      record.value = validated.record;
+      details.value = validated.details;
+
+      return validated;
+    });
+  }
+
+  /**
+   * Reveals a secret's contents using an optional passphrase
+   * @param secretKey - Unique identifier for the secret
+   * @param passphrase - Optional passphrase to decrypt the secret
+   * @throws Will throw an error if the API call fails
+   * @returns Validated secret response
+   */
+  async function reveal(secretKey: string, passphrase?: string) {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!.post<SecretResponse>(
+        `/api/v2/secret/${secretKey}/reveal`,
+        {
+          passphrase,
+          continue: true,
+        }
+      );
+
+      const validated = responseSchemas.secret.parse(response.data);
+      record.value = validated.record;
+      details.value = validated.details;
+
+      return validated;
+    });
+  }
+
+  function clear() {
+    record.value = null;
+    details.value = null;
+  }
+
+  /**
+   * Resets the store state to its initial values
+   */
+  function $reset() {
+    record.value = null;
+    details.value = null;
+    _initialized.value = false;
+  }
+
+  return {
+    // State
+    isLoading,
+    record,
+    details,
+
+    // Actions
+    init,
+    clear,
+    fetch,
+    reveal,
+    $reset,
+  };
 });

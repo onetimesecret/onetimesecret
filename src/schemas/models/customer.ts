@@ -41,6 +41,7 @@ export type PlanOptions = z.infer<typeof planOptionsSchema>;
  * Plan schema for customer plans
  */
 export const planSchema = z.object({
+  identifier: z.string(),
   planid: z.string(),
   price: transforms.fromString.number,
   discount: transforms.fromString.number,

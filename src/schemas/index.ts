@@ -50,8 +50,10 @@
 // Exports organized by architectural layer
 // Base schemas and utilities
 export * from './api/base';
-export * from './api/errors';
 export * from './models/base';
+
+// Error Flynn
+export * from './errors/index';
 
 // Core domain models
 export * from './models/customer';

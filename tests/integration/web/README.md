@@ -6,20 +6,25 @@ Playwright is a powerful tool for browser automation and end-to-end testing. Thi
 
 1. Install dependencies:
 
-npm install
+```bash
+pnpm install
+pnpm exec playwright install
+```
 
 2. Set up the environment:
 
 Before running the tests, ensure you have the necessary environment variables configured. These typically include:
 
-- API_URL: The URL of the Onetime Secret API (e.g., https://onetimesecret.com/api)
-- TEST_USER: A test user account for running the integration tests
+- `API_URL`: The URL of the Onetime Secret API (e.g., https://onetimesecret.com/api)
+- `TEST_USER`: A test user account for running the integration tests
 
 3. Running the tests:
 
 To run the Playwright tests, use the following command:
 
-npm run test:integration
+```bash
+pnpm run playwright
+```
 
 This will execute all integration tests, including those that interact with the Onetime Secret web interface.
 
@@ -100,9 +105,7 @@ To view test results:
 2. Click on the relevant workflow run.
 3. Download the playwright-report artifact to view detailed test results.
 
-This setup ensures that our integration tests are run consistently across different environments and that any issues are caught early in the development process.
-
-
+This setup ensures that our integration tests are run consistently across different environments and that any issues are caught early in the development process
 
 
 ## Writing Tests

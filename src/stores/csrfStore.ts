@@ -1,16 +1,10 @@
 // stores/csrfStore.ts
-
-import { ApiError } from '@/schemas';
+import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api/responses';
+import { createApi } from '@/utils/api';
+import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
-
-interface StoreState {
-  isLoading: boolean;
-  error: ApiError | null;
-  shrimp: string;
-  isValid: boolean;
-  intervalChecker: number | null;
-}
+import { handleError, ref } from 'vue';
 
 /**
  * Store for managing CSRF token (shrimp) state and validation.
@@ -41,69 +35,112 @@ interface StoreState {
  *   // Handle invalid token scenario
  * }
  */
-export const useCsrfStore = defineStore('csrf', {
-  state: (): StoreState => ({
-    isLoading: false,
-    error: null,
-    shrimp: window.shrimp || '',
-    isValid: false,
-    intervalChecker: null as number | null,
-  }),
 
-  actions: {
-    handleError(error: unknown): ApiError {
-      const apiError = {
-        message: error instanceof Error ? error.message : 'CSRF validation error',
-        code: 500,
-        name: 'CsrfError',
-      };
-      console.error('[CSRF]', apiError.message, error);
-      this.error = apiError;
-      return apiError;
-    },
+/* eslint-disable max-lines-per-function */
+export const useCsrfStore = defineStore('csrf', () => {
+  // State
+  const isLoading = ref(false);
+  const shrimp = ref('');
+  const isValid = ref(false);
+  const intervalChecker = ref<number | null>(null);
+  const _initialized = ref(false);
 
-    updateShrimp(newShrimp: string) {
-      this.shrimp = newShrimp;
-      window.shrimp = newShrimp;
-    },
+  // Private state
+  let _api: AxiosInstance | null = null;
+  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
 
-    async checkShrimpValidity() {
-      try {
-        const response = await fetch('/api/v2/validate-shrimp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'O-Shrimp': this.shrimp,
-          },
-        });
+  // Actions
+  function init(api?: AxiosInstance) {
+    shrimp.value = window.shrimp || '';
+    _ensureErrorHandler(api);
+  }
 
-        if (response.ok) {
-          const data = responseSchemas.csrf.parse(await response.json());
-          this.isValid = data.isValid;
-          if (data.shrimp) {
-            this.updateShrimp(data.shrimp);
-          }
-        } else {
-          throw this.handleError('Failed to validate CSRF token');
-        }
-      } catch (error) {
-        this.isValid = false;
-        throw this.handleError(error);
+  function _ensureErrorHandler(api?: AxiosInstance) {
+    if (!_errorHandler) setupErrorHandler(api);
+  }
+
+  function setupErrorHandler(
+    api: AxiosInstance = createApi(),
+    options: ErrorHandlerOptions = {}
+  ) {
+    _api = api;
+    _errorHandler = useErrorHandler({
+      setLoading: (loading) => (isLoading.value = loading),
+      notify: options.notify,
+      log: options.log,
+      onError: () => {
+        // Any error invalidates the token
+        isValid.value = false;
+      },
+    });
+  }
+
+  function updateShrimp(newShrimp: string) {
+    shrimp.value = newShrimp;
+  }
+
+  async function checkShrimpValidity() {
+    _ensureErrorHandler();
+
+    return await _errorHandler!.withErrorHandling(async () => {
+      const response = await _api!('/api/v2/validate-shrimp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'O-Shrimp': shrimp.value,
+        },
+      });
+
+      const validated = responseSchemas.csrf.parse(response.data);
+      isValid.value = validated.isValid;
+      if (validated.isValid) {
+        updateShrimp(validated.shrimp);
       }
-    },
+      return validated;
+    });
+  }
 
-    startPeriodicCheck(intervalMs: number = 60000) {
-      this.stopPeriodicCheck();
-      this.intervalChecker = window.setInterval(() => {
-        this.checkShrimpValidity();
-      }, intervalMs);
-    },
+  function startPeriodicCheck(intervalMs: number = 60000) {
+    stopPeriodicCheck();
+    intervalChecker.value = window.setInterval(() => {
+      checkShrimpValidity();
+    }, intervalMs);
+  }
 
-    stopPeriodicCheck() {
-      if (this.intervalChecker !== null) {
-        clearInterval(this.intervalChecker);
-        this.intervalChecker = null;
-      }
-    },
-  },
+  function stopPeriodicCheck() {
+    if (intervalChecker.value !== null) {
+      clearInterval(intervalChecker.value);
+      intervalChecker.value = null;
+    }
+  }
+
+  /**
+   * Resets store to initial state, including re-reading window.shrimp.
+   * We preserve window.shrimp behavior to maintain consistency with store
+   * initialization and ensure predictable reset behavior across the app.
+   */
+  function $reset() {
+    isLoading.value = false;
+    shrimp.value = window.shrimp || ''; // back to how it all began
+    isValid.value = false;
+    _initialized.value = false;
+    stopPeriodicCheck();
+  }
+
+  return {
+    // State
+    isLoading,
+    shrimp,
+    isValid,
+    intervalChecker,
+
+    // Actions
+    init,
+    handleError,
+    updateShrimp,
+    checkShrimpValidity,
+    startPeriodicCheck,
+    stopPeriodicCheck,
+    $reset,
+  };
 });

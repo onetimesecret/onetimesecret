@@ -58,16 +58,15 @@ async function initializeApp() {
   const jurisdictionStore = useJurisdictionStore();
 
   // Initialize the store with the Regions config
-  jurisdictionStore.initializeStore(window.regions);
+  jurisdictionStore.init(window.regions);
 
   const authStore = useAuthStore();
-  authStore.initialize();
+  authStore.init();
 
   // Initialize language store
-  const languageStore = useLanguageStore();
-
-  // Get the initial locale and use it to set the language
-  const initialLocale = languageStore.initializeCurrentLocale(navigator.language);
+  const languageStore = useLanguageStore(); // TODO: navigator.language
+  languageStore.init();
+  const initialLocale = languageStore.getCurrentLocale;
 
   // Set language before mounting the app
   // This ensures correct translations are available for the initial render
@@ -110,10 +109,10 @@ async function initializeApp() {
   // Initialize the store with API instance
   const api = createApi();
   const metadataStore = useMetadataStore();
-  metadataStore.init(api);
+  metadataStore.setupErrorHandler(api);
 
   const domainsStore = useDomainsStore();
-  domainsStore.init(api);
+  domainsStore.setupErrorHandler(api);
 
   // Mount the application
   // This is done last to ensure all setup is complete before rendering

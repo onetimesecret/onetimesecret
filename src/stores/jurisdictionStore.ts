@@ -1,82 +1,114 @@
 // src/stores/jurisdictionStore.ts
 
-import { useErrorHandler } from '@/composables/useErrorHandler';
-import { ApiError } from '@/schemas';
+import { createError } from '@/composables/useErrorHandler';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
+import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
 
-interface StoreState {
-  isLoading: boolean;
-  error: ApiError | null;
-  enabled: boolean;
-  currentJurisdiction: Jurisdiction | null;
-  jurisdictions: Jurisdiction[];
-}
+/**
+ * N.B.
+ * For the time being (i.e. for our first few locations), the region and
+ * jurisdiction are the same. EU is EU, US is US. They will differentiate
+ * once we get to for example, "California" is US and also California. The
+ * reason we make the distinction is that there can be (and are) "layers"
+ * of regulations and market forces involved. If I have a business in the
+ * US, I probably would prefer to use a US data center given the choice
+ * even if the business I'm in is not a regulated industry. I find it
+ * helpful to think of it as "compliant by default".
+ */
+/* eslint-disable max-lines-per-function */
+export const useJurisdictionStore = defineStore('jurisdiction', () => {
+  // State
+  const isLoading = ref(false);
+  const enabled = ref(false); // originally true
+  const currentJurisdiction = ref<Jurisdiction | null>(null);
+  const jurisdictions = ref<Jurisdiction[]>([]);
+  const _initialized = ref(false);
 
-export const useJurisdictionStore = defineStore('jurisdiction', {
-  state: (): StoreState => ({
-    isLoading: false,
-    error: null,
-    enabled: true,
-    currentJurisdiction: null,
-    jurisdictions: [],
-  }),
+  // Private store properties
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  let _api: AxiosInstance | null = null;
+  /* eslint-enable @typescript-eslint/no-unused-vars */
+  // NOTE: We don't use errorHandler here bc this code is synchronous-only.
 
-  getters: {
-    getCurrentJurisdiction(): StoreState['currentJurisdiction'] {
-      return this.currentJurisdiction;
-    },
-    getAllJurisdictions: (state): Jurisdiction[] => {
-      return state.jurisdictions;
-    },
-  },
+  // Getters
+  const getCurrentJurisdiction = computed(() => currentJurisdiction.value);
+  const getAllJurisdictions = computed(() => jurisdictions.value);
 
-  actions: {
-    handleError(error: unknown): never {
-      const { handleError } = useErrorHandler();
-      this.error = handleError(error);
-      throw this.error;
-    },
+  // Actions
 
-    /**
-     * Initialize the jurisdiction store with configuration from API
-     * Handles both enabled and disabled region scenarios
-     */
-    initializeStore(config: RegionsConfig) {
-      if (!config) {
-        this.enabled = false;
-        return;
-      }
-      this.jurisdictions = config.jurisdictions;
+  /**
+   * Initialize the jurisdiction store with configuration from API
+   * Handles both enabled and disabled region scenarios
+   */
+  function init(config: RegionsConfig | null) {
+    if (_initialized.value) return;
 
-      // For the time being (i.e. for our first few locations), the region and
-      // jurisdiction are the same. EU is EU, US is US. They will differentiate
-      // once we get to for example, "California" is US and also California. The
-      // reason we make the distinction is that there can be (and are) "layers"
-      // of regulations and market forces involved. If I have a business in the
-      // US, I probably would prefer to use a US data center given the choice
-      // even if the business I'm in is not a regulated industry. I find it
-      // helpful to think of it as "compliant by default".
-      this.currentJurisdiction = this.findJurisdiction(config.current_jurisdiction);
+    if (!config) {
+      enabled.value = false;
+      jurisdictions.value = [];
+      currentJurisdiction.value = null;
+      return;
+    }
 
-      // If regions are not enabled, ensure we have at least one region
-      if (!config.enabled && this.jurisdictions.length === 0) {
-        this.jurisdictions = [config.jurisdictions[0]];
-      }
-    },
+    enabled.value = config.enabled;
+    jurisdictions.value = config.jurisdictions;
 
-    /**
-     * Find a jurisdiction by its identifier.
-     * @param identifier - The identifier of the jurisdiction to find.
-     * @returns The jurisdiction with the given identifier.
-     * @throws ApiError if no jurisdiction is found with the given identifier.
-     */
-    findJurisdiction(identifier: string): Jurisdiction {
-      const jurisdiction = this.jurisdictions.find((j) => j.identifier === identifier);
-      if (!jurisdiction) {
-        throw this.handleError(new Error(`Jurisdiction "${identifier}" not found`));
-      }
-      return jurisdiction;
-    },
-  },
+    const jurisdiction = findJurisdiction(config.current_jurisdiction);
+    currentJurisdiction.value = jurisdiction;
+
+    // If regions are disabled, ensure we only have the current jurisdiction
+    if (!config.enabled) {
+      jurisdictions.value = [jurisdiction];
+    }
+
+    _initialized.value = true;
+  }
+
+  /**
+   * Find a jurisdiction by its identifier.
+   * @throws ApiError if no jurisdiction is found with the given identifier.
+   * @param identifier - The identifier of the jurisdiction to find.
+   * @returns The found jurisdiction
+   */
+  function findJurisdiction(identifier: string): Jurisdiction {
+    const jurisdiction = jurisdictions.value.find((j) => j.identifier === identifier);
+
+    if (!jurisdiction) {
+      throw createError(`Jurisdiction "${identifier}" not found`, 'technical', 'error', {
+        identifier,
+      });
+    }
+    return jurisdiction;
+  }
+
+  /**
+   * Reset store state to initial values
+   */
+  function $reset() {
+    isLoading.value = false;
+    enabled.value = true;
+    currentJurisdiction.value = null;
+    jurisdictions.value = [];
+    _initialized.value = false;
+    _api = null;
+  }
+
+  return {
+    // State
+    isLoading,
+    enabled,
+    currentJurisdiction,
+    jurisdictions,
+
+    // Getters
+    getCurrentJurisdiction,
+    getAllJurisdictions,
+
+    // Actions
+    init,
+    findJurisdiction,
+    $reset,
+  };
 });

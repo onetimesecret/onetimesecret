@@ -1,41 +1,69 @@
 // src/stores/notificationsStore.ts
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
-interface NotificationState {
-  message: string;
-  type: 'success' | 'error' | 'info' | null;
-  isVisible: boolean;
-  position?: 'top' | 'bottom';
-}
+type NotificationPosition = 'top' | 'bottom';
+type NotificationSeverity = 'success' | 'error' | 'info' | 'warning' | null;
 
-export const useNotificationsStore = defineStore('notifications', {
-  state: (): NotificationState => ({
-    message: '',
-    type: null,
-    isVisible: false,
-    position: 'bottom',
-  }),
+/**
+ * Store for managing global notification state and behaviors
+ */
+export const useNotificationsStore = defineStore('notifications', () => {
+  // State
+  const message = ref('');
+  const severity = ref<NotificationSeverity>(null);
+  const isVisible = ref(false);
+  const position = ref<NotificationPosition>('bottom');
+  const _initialized = ref(false);
 
-  actions: {
-    show(
-      message: string,
-      type: 'success' | 'error' | 'info',
-      position?: 'top' | 'bottom'
-    ) {
-      this.message = message;
-      this.type = type;
-      this.position = position || 'bottom';
-      this.isVisible = true;
+  /**
+   * Display a notification message with specified settings
+   * @param msg - The message to display
+   * @param sev - Severity level of the notification
+   * @param pos - Optional position of notification
+   */
+  function show(msg: string, sev: 'success' | 'error' | 'info', pos?: 'top' | 'bottom') {
+    message.value = msg;
+    severity.value = sev;
+    position.value = pos || 'bottom';
+    isVisible.value = true;
 
-      setTimeout(() => {
-        this.hide();
-      }, 5000);
-    },
+    setTimeout(() => {
+      hide();
+    }, 5000);
+  }
 
-    hide() {
-      this.isVisible = false;
-      this.message = '';
-      this.type = null;
-    },
-  },
+  /**
+   * Hide the current notification and reset its state
+   */
+  function hide() {
+    isVisible.value = false;
+    message.value = '';
+    severity.value = null;
+  }
+
+  /**
+   * Reset store state to initial values
+   */
+  function $reset() {
+    message.value = '';
+    severity.value = null;
+    isVisible.value = false;
+    position.value = 'bottom';
+    _initialized.value = false;
+  }
+
+  return {
+    // State
+    message,
+    severity,
+    isVisible,
+    position,
+    _initialized,
+
+    // Actions
+    show,
+    hide,
+    $reset,
+  };
 });

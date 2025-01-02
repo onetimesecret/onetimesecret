@@ -359,6 +359,9 @@ export class ErrorLogger {
 ```
 
 ### Error Metrics Collection
+
+*Marked for future implementation*
+
 ```typescript
 // utils/errorMetrics.ts
 export class ErrorMetrics {
