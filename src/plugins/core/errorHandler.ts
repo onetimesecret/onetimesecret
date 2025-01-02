@@ -1,5 +1,6 @@
 // src/plugins/errorHandler/index.ts
-import { classifyError } from '@/schemas/errors/classifier';
+import { ErrorSeverity } from '@/schemas';
+import { classifyError, isOfHumanInterest } from '@/schemas/errors/classifier';
 import { loggingService } from '@/services/logging';
 import type { App, Plugin } from 'vue';
 
@@ -32,7 +33,7 @@ export const ErrorHandlerPlugin: Plugin = {
       loggingService.error(classifiedError);
 
       // Only notify user for human-facing errors
-      if (classifiedError.isOfHumanInterest && options.notify) {
+      if (isOfHumanInterest(classifiedError) && options.notify) {
         options.notify(classifiedError.message, classifiedError.severity);
       }
 

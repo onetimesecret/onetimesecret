@@ -14,10 +14,10 @@ import { ref, type Ref } from 'vue';
 /* eslint-disable max-lines-per-function */
 export const useMetadataListStore = defineStore('metadataList', () => {
   // State
+  const _initialized = ref(false);
   const isLoading = ref(false);
   const records: Ref<MetadataRecords[] | null> = ref(null);
   const details: Ref<MetadataRecordsDetails | null> = ref(null);
-  const _initialized = ref(false);
   const count = ref<number | null>(null);
 
   // Internal references
@@ -26,6 +26,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
 
   // Getters
   const recordCount = () => count.value;
+  const initialized = () => _initialized.value;
 
   // Actions
   function _ensureErrorHandler() {
@@ -61,7 +62,9 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     });
   }
 
-  async function refreshRecords() {
+  async function refreshRecords(force = false) {
+    if (!force && _initialized.value) return;
+
     _ensureErrorHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
@@ -94,6 +97,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
 
     // Getters
     recordCount,
+    initialized,
 
     // Actions
     setupErrorHandler,
