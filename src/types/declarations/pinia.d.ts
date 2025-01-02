@@ -1,4 +1,6 @@
-import type { ApiError } from '@/schemas/errors/api';
+import type { ErrorHandler } from '@/composables/useErrorHandler';
+import type { AxiosInstance } from 'axios';
+import 'pinia';
 
 /**
  * Store Architecture & Error Handling
@@ -24,28 +26,27 @@ declare module 'pinia' {
    *  Required reactive state properties that stores must include in their `state()`.
    */
   export interface PiniaCustomProperties {
+    $api: AxiosInstance;
+    $errorHandler: ErrorHandler;
     $logout: () => void;
-    withLoading: <T>(operation: () => Promise<T>) => Promise<T | undefined>;
+    $reset: () => void;
   }
 
   /**
    * Required state properties for all stores.
    * Each store must implement:
    * - isLoading: to indicate async operation status
-   * - error: to maintain error state
    *
    * @example
    * ```ts
    * interface StoreState {
    *   isLoading: boolean;
-   *   error: ApiError | null;
    *   // Store-specific state...
    * }
    * ```
    */
   export interface PiniaCustomStateProperties {
     isLoading: boolean;
-    error: ApiError | null;
   }
 }
 

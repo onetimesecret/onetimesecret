@@ -1,6 +1,4 @@
-/**
- * Description: Main entry point for the Vue application.
- */
+// main.ts
 
 // Ensures modulepreload works in all browsers, improving
 // performance by preloading modules.
@@ -8,7 +6,7 @@ import 'vite/modulepreload-polyfill';
 
 import i18n, { setLanguage } from '@/i18n';
 import { ErrorHandlerPlugin } from '@/plugins';
-import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
+import { initWithPlugins } from '@/plugins/pinia/initPlugin';
 import { createAppRouter } from '@/router';
 import { useAuthStore } from '@/stores/authStore';
 import { useDomainsStore } from '@/stores/domainsStore';
@@ -16,7 +14,6 @@ import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { createApi } from '@/utils/api';
-import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 
 import App from './App.vue';
@@ -45,15 +42,27 @@ import './assets/style.css';
 async function initializeApp() {
   // Create Vue app instance and Pinia store
   const app = createApp(App);
-  const pinia = createPinia();
+
+  // Create notifications store first (if needed for error handling)
+  const pinia = initWithPlugins({
+    errorHandler: {
+      notify: (message, type) => {
+        // Could use a simple notification system here
+        // or configure it after store initialization
+        console.log(`[notify] ${type}: ${message}`);
+      },
+      log: (error) => {
+        console.error('Error:', error);
+      },
+    },
+  });
+
   app.use(pinia);
 
   // Add the global error handler early, before we can get ourselves in trouble
   app.use(ErrorHandlerPlugin, {
     debug: process.env.NODE_ENV === 'development',
   });
-
-  pinia.use(logoutPlugin);
 
   const jurisdictionStore = useJurisdictionStore();
 
