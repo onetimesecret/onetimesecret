@@ -2,47 +2,42 @@
 import { useWindowStore } from '@/stores/windowStore';
 import { OnetimeWindow } from '@/types/declarations/window';
 import { computed } from 'vue';
-import { z, ZodType } from 'zod';
+import { z } from 'zod';
 
 /**
- * Validates and transforms a window property using a Zod schema.
- *
- * @description
- * This composable accesses the window property through the window store and applies
- * validation and transformation using the provided Zod schema.
+ * Provides type-safe access to window properties through the window store.
+ * Ensures store is initialized before access.
  *
  * @example
- * ```vue
- * const cust = useValidatedWindowProp('cust', customerSchema);
  *
- * // In template
- * <div v-if="cust?.feature_flags?.homepage_toggle">
- *   {{ cust.feature_flags.homepage_toggle }}
- * </div>
+ * const cust = useValidatedWindowProp('cust');
  *
- * // In script
- * const showFeature = computed(() => cust.value?.feature_flags?.homepage_toggle ?? false);
- * ```
+ * // Access is type-safe
+ * const customerId = computed(() => cust.value?.id);
  *
- * @template T - The type inferred from the schema
+ *
  * @param {keyof OnetimeWindow} prop - Window property key
- * @param {z.ZodType<T>} schema - Zod schema for validation/transformation
- * @returns {ComputedRef<T | null>} Validated and transformed data as a computed ref
+ * @returns {ComputedRef<OnetimeWindow[K] | undefined>} Typed window property
  */
-export function useValidatedWindowProp<T>(prop: keyof OnetimeWindow, schema: ZodType<T>) {
+export function useValidatedWindowProp<K extends keyof OnetimeWindow>(
+  prop: K
+) {
   const windowStore = useWindowStore();
 
-  const validatedProp = computed(() => {
-    const value = windowStore[prop] as unknown;
-    const result = schema.safeParse(value);
+  // Initialize store if needed
+  if (!windowStore._initialized) {
+    windowStore.init();
+  }
 
-    if (result.success) {
-      return result.data;
-    } else {
-      console.error(`Failed to validate window property '${prop}':`, result.error);
-      return null;
-    }
-  });
+  const typedProp = computed(() => windowStore[prop] as OnetimeWindow[K]);
 
-  return validatedProp;
+  return typedProp;
+}
+
+export const useWindowProp = useValidatedWindowProp;
+
+export function useWindowProps(...fields: Array<keyof OnetimeWindow>) {
+  // Map each field to a validated prop
+  const props = fields.map((field) => useValidatedWindowProp(field, z.any()));
+  return props;
 }
