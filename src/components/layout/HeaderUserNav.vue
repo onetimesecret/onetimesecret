@@ -1,12 +1,21 @@
+<!-- src/components/layout/HeaderUserNav.vue -->
+
 <script setup lang="ts">
 import FancyIcon from '@/components/ctas/FancyIcon.vue';
-import { useWindowProps } from '@/composables/useWindowProps';
 import { Customer } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
 import { ref, computed } from 'vue';
-const { domains_enabled, plan } = useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
+import { WindowService } from '@/services/window.service';
 
-const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
+// Access the necessary window properties with defaults
+const windowProps = WindowService.getMultiple({
+  domains_enabled: false,
+  plan: {},
+});
+
+const domainsEnabled = windowProps.domains_enabled;
+const planAllowsCustomDomains = windowProps.plan.options?.custom_domains === true;
+const showUpgrade = computed(() => domainsEnabled && !planAllowsCustomDomains);
 
 // Allows for highlighting feature to user just one
 // time to false after user has seen it once. Setting
@@ -36,7 +45,7 @@ defineProps<{
     </router-link>
 
     <FancyIcon
-      v-if="domains_enabled && !planAllowsCustomDomains"
+      v-if="showUpgrade"
       to="/pricing"
       aria-label="Click this lightning bolt to upgrade for custom domains"
     />
@@ -60,7 +69,6 @@ defineProps<{
 
 <style>
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;

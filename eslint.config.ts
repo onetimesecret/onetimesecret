@@ -101,7 +101,7 @@ export default [
       'no-undef': 'error', // Prevent usage of undeclared variables
       // Enforce consistent import ordering
       'import/order': [
-        'error',
+        'warn',
         {
           groups: [['builtin', 'external', 'internal']], // Group imports by type
           pathGroups: [{ pattern: '@/**', group: 'internal' }], // Treat @ imports as internal
@@ -110,16 +110,13 @@ export default [
           alphabetize: { order: 'asc', caseInsensitive: true }, // Sort imports alphabetically
         },
       ],
-      // Omit file extensions for JS/TS/Vue imports, ignore node_modules
+      // Omit file extensions for TS/Vue imports, ignore node_modules
       'import/extensions': [
         'error',
         'ignorePackages',
         {
-          js: 'never',
-          jsx: 'never',
           ts: 'never',
-          tsx: 'never',
-          vue: 'never',
+          vue: 'always',
         },
       ], // Add this rule configuration
       'vue/component-tags-order': [

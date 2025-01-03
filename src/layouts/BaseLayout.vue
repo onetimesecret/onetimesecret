@@ -1,23 +1,13 @@
+<!-- src/layouts/BaseLayout.vue -->
+
 <script setup lang="ts">
-import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
-import { AuthenticationSettings, Customer } from '@/schemas/models';
-import { useBrandingStore } from '@/stores/brandingStore';
 import { computed, inject, ref, Ref } from 'vue';
-
-export interface Props {
-  authenticated: boolean
-  authentication: AuthenticationSettings
-  hasGlobalBanner: boolean
-  colonel?: boolean
-  cust?: Customer
-  onetimeVersion: string
-  plansEnabled?: boolean
-  supportHost?: string
-  globalBanner?: string
-  primaryColor?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
+import { defineProps, withDefaults } from 'vue';
+import type { LayoutProps } from '@/types/ui/layouts';
+import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
+import { useBrandingStore } from '@/stores/brandingStore';
+import { isColorValue } from '@/utils/color-utils';
+const props = withDefaults(defineProps<LayoutProps>(), {
   authenticated: false,
   colonel: false,
   cust: undefined,
@@ -25,36 +15,26 @@ const props = withDefaults(defineProps<Props>(), {
   hasGlobalBanner: false,
   plansEnabled: false,
   primaryColor: 'bg-brand-500',
-  supportHost: undefined
-})
+  supportHost: undefined,
+});
 
-const color = inject('color', ref(props.primaryColor))as Ref<string>;
+const color = inject('color', ref(props.primaryColor)) as Ref<string>;
 const brandingStore = useBrandingStore();
 
 const primaryColorClass = computed(() => {
-  if (brandingStore.isActive) {
-    return '';
-  }
-  console.debug('Computing primaryColorClass with color:', color.value);
+  if (brandingStore.isActive) return '';
   return !isColorValue(color.value) ? color.value : '';
 });
 
 const primaryColorStyle = computed(() => {
   if (brandingStore.isActive) {
-    const color = brandingStore.primaryColor;
-    return isColorValue(color)
-      ? { backgroundColor: color }
-      : {};
+    const brandColor = brandingStore.primaryColor;
+    return isColorValue(brandColor) ? { backgroundColor: brandColor } : {};
   }
-
   return isColorValue(color.value)
     ? { backgroundColor: color.value }
     : {};
 });
-
-function isColorValue(value: string): boolean {
-  return /^#|^rgb\(|^hsl\(/.test(value);
-}
 
 </script>
 

@@ -1,14 +1,8 @@
+<!-- src/components/layout/FooterLinkLists.vue -->
 <script setup lang="ts">
-import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
-// Define the props for this layout, extending the DefaultLayout props
-export interface Props extends DefaultProps {
-  displayFeedback?: boolean
-  displayLinks?: boolean
-  displayVersion?: boolean
-  displayToggles?: boolean
-}
+import type { LayoutProps } from '@/types/ui/layouts';
 
-withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<LayoutProps>(), {
   displayFeedback: true,
   displayLinks: true,
   displayVersion: true,

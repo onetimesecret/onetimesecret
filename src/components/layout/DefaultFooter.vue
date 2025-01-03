@@ -1,27 +1,32 @@
+<!-- src/components/layout/DefaultFooter.vue -->
+
 <script setup lang="ts">
 import FeedbackToggle from '@/components/FeedbackToggle.vue';
 import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
 import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import { useWindowProps } from '@/composables/useWindowProps';
-import type { Props as DefaultProps } from '@/layouts/DefaultLayout.vue';
+import { WindowService } from '@/services/window.service';
+import type { LayoutProps } from '@/types/ui/layouts';
 import { ref } from 'vue';
 
-export interface Props extends DefaultProps {
-  displayFeedback?: boolean;
-  displayLinks?: boolean;
-  displayVersion?: boolean;
-  displayToggles?: boolean;
-}
-
-withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<LayoutProps>(), {
   displayFeedback: true,
   displayLinks: true,
   displayVersion: true,
   displayToggles: true,
 });
 
-const { regions_enabled: regionsEnabled, regions } = useWindowProps(['regions_enabled', 'regions']);
+const windowProps = WindowService.getMultiple({
+  authentication: {
+    enabled: true,
+  },
+  regions_enabled: false,
+  regions: null,
+});
+
+const regionsEnabled = windowProps.regions_enabled;
+const regions = windowProps.regions;
+
 const companyName = ref('OnetimeSecret.com');
 </script>
 
@@ -90,7 +95,7 @@ const companyName = ref('OnetimeSecret.com');
           />
 
           <FeedbackToggle
-            v-if="displayFeedback && authentication.enabled"
+            v-if="displayFeedback && authentication?.enabled"
             class="
             text-gray-500 transition-colors
             duration-200 hover:text-gray-800

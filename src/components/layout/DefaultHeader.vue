@@ -1,17 +1,11 @@
 <script setup lang="ts">
 import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
 import SettingsModal from '@/components/modals/SettingsModal.vue';
-import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
+import type { LayoutProps } from '@/types/ui/layouts';
 import { Icon } from '@iconify/vue';
 import { computed, ref } from 'vue';
 
-// Define the props for this layout, extending the BaseLayout props
-export interface Props extends BaseProps {
-  displayMasthead?: boolean;
-  displayNavigation?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<LayoutProps>(), {
   displayMasthead: true,
   displayNavigation: true,
   colonel: false,

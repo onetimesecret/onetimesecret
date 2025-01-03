@@ -1,28 +1,19 @@
+<!-- src/layouts/DefaultLayout.vue -->
 <script setup lang="ts">
+import { defineProps, withDefaults } from 'vue';
+import type { LayoutProps } from '@/types/ui/layouts';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
-
 import BaseLayout from './BaseLayout.vue';
 
-// Define the props for this layout, extending the BaseLayout props
-export interface Props extends BaseProps {
-  displayFeedback?: boolean
-  displayLinks?: boolean
-  displayMasthead?: boolean
-  displayNavigation?: boolean
-  displayVersion?: boolean
-  displayToggles?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<LayoutProps>(), {
   displayFeedback: true,
   displayLinks: true,
   displayMasthead: true,
   displayNavigation: true,
   displayVersion: true,
   displayToggles: true,
-})
+});
 </script>
 
 <template>
