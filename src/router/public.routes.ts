@@ -1,4 +1,3 @@
-import { useWindowProps } from '@/composables/useWindowProps';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import Homepage from '@/views/Homepage.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
@@ -9,15 +8,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: 'Home',
     component: Homepage,
-    beforeEnter: (to, from, next) => {
-      const authState = useWindowProps(['authenticated']);
-      console.debug('authState.value', authState.value);
-      if (authState.value) {
-        next({ name: 'Dashboard' });
-      } else {
-        next();
-      }
-    },
     meta: {
       requiresAuth: false,
       layout: DefaultLayout,

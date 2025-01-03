@@ -26,7 +26,7 @@ export const ErrorHandlerPlugin: Plugin = {
      */
     app.config.errorHandler = (error, instance, info) => {
       const classifiedError = classifyError(error);
-      loggingService.error(classifiedError);
+      loggingService.error(error); // was: classifiedError
 
       // Only notify user for human-facing errors
       if (isOfHumanInterest(classifiedError) && options.notify) {

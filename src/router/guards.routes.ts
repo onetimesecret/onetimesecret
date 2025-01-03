@@ -1,14 +1,23 @@
+// src/router/guards.ts
+
 import { useValidatedWindowProp } from '@/composables/useWindowProps';
 import { customerSchema } from '@/schemas/models';
 import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
 
-// src/router/guards.ts
 export function setupRouterGuards(router: Router) {
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
+
+    // Handle root path redirect for authenticated users
+    if (to.path === '/') {
+      if (authStore.isAuthenticated) {
+        return { name: 'Dashboard' };
+      }
+      return true;
+    }
 
     // Don't check auth for sign-in page to avoid redirect loops
     if (to.path === '/signin') {
@@ -32,6 +41,7 @@ export function setupRouterGuards(router: Router) {
         languageStore.setCurrentLocale(userPreferences.locale);
       }
     }
+    return true; // Always return true for non-auth routes
   });
 }
 
