@@ -1,6 +1,7 @@
 // stores/authStore.ts
 import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api';
+import { WindowService } from '@/services/window';
 import { createApi } from '@/utils/api';
 import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
@@ -78,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     setupErrorHandler(api);
 
-    isAuthenticated.value = window.authenticated === true;
+    isAuthenticated.value = WindowService.get('authenticated', false) ?? null;
 
     if (isAuthenticated.value) {
       $scheduleNextCheck();

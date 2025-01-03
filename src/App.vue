@@ -1,59 +1,56 @@
 <script setup lang="ts">
   import { useDomainBranding } from '@/composables/useDomainBranding';
-  import { useWindowProps } from '@/composables/useWindowProps';
+  import { WindowService } from '@/services/window';
   import QuietLayout from '@/layouts/QuietLayout.vue';
   import { computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute } from 'vue-router';
-
+  import type { LayoutProps } from '@/layouts/QuietLayout.vue'; // Import type definition
   import StatusBar from './components/StatusBar.vue';
 
   const { locale } = useI18n();
   const route = useRoute();
+
+
+  const authenticated = WindowService.get('authenticated', false);
+  const ot_version = WindowService.get('ot_version', '');
   const {
-    authenticated,
     authentication,
     cust,
-    ot_version,
     plans_enabled,
     support_host,
     global_banner,
-  } = useWindowProps([
-    'authenticated',
+  } = WindowService.getMultiple([
     'authentication',
     'cust',
-    'ot_version',
     'plans_enabled',
     'support_host',
     'global_banner',
   ]);
 
-  const layout = computed(() => {
-    return route.meta.layout || QuietLayout;
-  });
-
-  // Get branding settings from composable
-  const domainBranding = useDomainBranding();
+  // const layout = computed(() => {
+  //   return route.meta.layout || QuietLayout;
+  // });
 
   // Default props without branding
-  const defaultProps = {
-    authenticated: authenticated.value,
-    authentication: authentication.value,
+  const defaultProps: LayoutProps = {
+    authenticated: authenticated,
+    onetimeVersion: ot_version,
+    authentication: authentication,
     colonel: false,
-    cust: cust.value,
-    onetimeVersion: ot_version.value,
-    supportHost: support_host.value,
-    plansEnabled: plans_enabled.value,
+    cust: cust,
+    supportHost: support_host,
+    plansEnabled: plans_enabled,
     defaultLocale: locale.value,
     isDefaultLocale: true,
-    hasGlobalBanner: !!global_banner.value,
-    globalBanner: global_banner.value,
-    primaryColor: domainBranding?.value?.primary_color,
+    hasGlobalBanner: !!global_banner,
+    globalBanner: global_banner,
+    // primaryColor: domainBranding?.primary_color, // TODO: Revisit
   };
 
   const layoutProps = computed(() => {
     // Combine default props with branding
-    const props = defaultProps;
+    const props: LayoutProps = { ...defaultProps };
 
     if (route.meta.layoutProps) {
       return { ...props, ...route.meta.layoutProps };
@@ -76,7 +73,7 @@
         each route, without having to manually manage this in each individual
         page component. -->
     <Component
-      :is="layout"
+      :is="QuietLayout"
       :lang="locale"
       v-bind="layoutProps">
       <!-- See QuietLayout.vue for named views -->

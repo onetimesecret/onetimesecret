@@ -62,6 +62,9 @@ async function initializeApp() {
 
   // Initialize core stores & language
   const api = createApi();
+
+  // NOTE (Jan 3): Issue is here, comment out to remove brower console error.
+  // Continue replacing WindowProps with WindowService
   initializeStores(api);
 
   app.mount('#app');

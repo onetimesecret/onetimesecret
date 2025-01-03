@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
 
+export type LayoutProps = BaseProps;
+
 import BaseLayout from './BaseLayout.vue';
 
 const props = withDefaults(defineProps<BaseProps>(), {
