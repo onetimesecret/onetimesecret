@@ -1,7 +1,7 @@
 // stores/authStore.ts
 import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api';
-import { WindowService } from '@/services/window';
+import { WindowService } from '@/services/window.service';
 import { createApi } from '@/utils/api';
 import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';

@@ -14,3 +14,7 @@ export function shouldUseLightText(hexColor: string): boolean {
   // Use light text if background is dark (luminance < 0.5)
   return luminance < 0.5;
 }
+
+export function isColorValue(value: string): boolean {
+  return /^#|^rgb\(|^hsl\(/.test(value);
+}

@@ -1,4 +1,4 @@
-// main.ts
+// src/main.ts
 
 // Ensures modulepreload works in all browsers, improving
 // performance by preloading modules.
@@ -6,19 +6,19 @@ import i18n, { setLanguage } from '@/i18n';
 import { ErrorHandlerPlugin } from '@/plugins';
 import { initWithPlugins } from '@/plugins/pinia';
 import { createAppRouter } from '@/router';
-import { AxiosInstance } from 'axios';
-import 'vite/modulepreload-polyfill';
-import { createApp, watch } from 'vue';
-
-import App from './App.vue';
-import './assets/style.css';
 import {
   useAuthStore,
   useDomainsStore,
   useJurisdictionStore,
   useLanguageStore,
   useMetadataStore,
-} from './stores';
+} from '@/stores';
+import { AxiosInstance } from 'axios';
+import 'vite/modulepreload-polyfill';
+import { createApp, watch } from 'vue';
+
+import App from './App.vue';
+import './assets/style.css';
 import { createApi } from './utils/api';
 
 /**

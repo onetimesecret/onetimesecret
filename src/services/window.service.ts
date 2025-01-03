@@ -1,67 +1,37 @@
-// services/window.ts
+// src/services/window.service.ts
 import type { OnetimeWindow } from '@/types/declarations/window';
 
 /**
- * Service for safely accessing window properties.
+ * Service for accessing window properties prior to store initialization.
  *
- * Recommended for initial page load state retrieval before reactive
- * stores are fully initialized.
- *
- * @example
- * ```typescript
- *
- *    const initialLanguage = WindowService.get('userLanguage', 'en');
- *
- *    const appConfig = WindowService.getMultiple([
- *      'appName', 'environment', 'version',
- *    ]);
- *
- * }
- * ```
+ * Use this service to retrieve properties from the global window object
+ * with type safety and default values. Recommended for initial page load
+ * state retrieval before reactive stores are fully available.
  */
 export const WindowService = {
   /**
-   * Safely retrieves a window property with optional type casting
-   * @param key Property name to retrieve from window object
-   * @param defaultValue Optional fallback value if property is undefined
-   * @returns Property value or default
+   * Retrieves a window property with an optional default value.
+   * @param key - The property name to retrieve from the window object.
+   * @param defaultValue - A fallback value if the property is undefined.
+   * @returns The property value or the default.
    */
   get<K extends keyof OnetimeWindow>(
     key: K,
     defaultValue: OnetimeWindow[K]
   ): OnetimeWindow[K] {
-    try {
-      return window[key as keyof Window] ?? defaultValue;
-    } catch {
-      return defaultValue;
-    }
+    return (window as OnetimeWindow)[key] ?? defaultValue;
   },
 
   /**
-   * Checks if a window property exists
-   * @param key Property name to check
-   * @returns Boolean indicating property existence
+   * Retrieves multiple window properties safely.
+   * @param defaults - An object with keys as property names and values as default values.
+   * @returns An object containing the retrieved properties.
    */
-  has(key: keyof OnetimeWindow): boolean {
-    try {
-      return key in window;
-    } catch {
-      return false;
+  getMultiple<T extends Partial<OnetimeWindow>>(defaults: T): T {
+    const result = {} as T;
+    for (const key in defaults) {
+      result[key] = this.get(key as keyof OnetimeWindow, defaults[key]);
     }
-  },
-
-  /**
-   * Retrieves multiple window properties safely
-   * @param keys Array of property names to retrieve
-   * @returns Object with retrieved properties
-   */
-  getMultiple(defaults: Partial<OnetimeWindow>): Partial<OnetimeWindow> {
-    return Object.entries(defaults).reduce((acc, [key, defaultValue]) => {
-      acc[key as keyof typeof defaults] = this.get(
-        key as keyof OnetimeWindow,
-        defaultValue
-      );
-      return acc;
-    }, {} as Partial<OnetimeWindow>);
+    return result;
   },
 };
