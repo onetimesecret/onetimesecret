@@ -13,7 +13,7 @@ import {
   mockBurnedMetadataRecord,
   mockMetadataDetails,
   mockMetadataRecord,
-} from '../fixtures/metadata';
+} from '../fixtures/metadata.fixture';
 
 describe('Metadata Date Handling', () => {
   let axiosMock: AxiosMockAdapter;

@@ -10,7 +10,7 @@ import {
   mockBurnedMetadataRecord,
   mockMetadataDetails,
   mockMetadataRecord,
-} from '../fixtures/metadata';
+} from '../fixtures/metadata.fixture';
 
 vi.mock('@/stores/metadataStore');
 vi.mock('@/stores/notificationsStore');

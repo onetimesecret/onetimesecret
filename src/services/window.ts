@@ -13,7 +13,6 @@ interface WindowProperties {
  * @example
  * ```typescript
  *
- *
  *    const initialLanguage = WindowService.get('userLanguage', 'en');
  *
  *    const appConfig = WindowService.getMultiple([

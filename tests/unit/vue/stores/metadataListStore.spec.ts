@@ -9,7 +9,7 @@ import {
   mockMetadataRecent,
   mockMetadataRecentDetails,
   mockMetadataRecentRecords,
-} from '../fixtures/metadata';
+} from '../fixtures/metadata.fixture';
 
 describe('metadataListStore', () => {
   let axiosMock: AxiosMockAdapter;

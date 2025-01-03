@@ -12,7 +12,7 @@ import { brandSettingschema } from '@/schemas/models/domain/brand';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import api from '@/utils/api';
-import { shouldUseLightText } from '@/utils/colorUtils';
+import { shouldUseLightText } from '@/utils/color-utils';
 import { Icon } from '@iconify/vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
