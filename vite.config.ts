@@ -26,6 +26,32 @@ export default defineConfig({
     Vue({
       include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files
       template: {
+        /**
+         * RABBIT HOLE AVOIDANCE: Vue Runtime Compiler Warning
+         * --------------------------------------------------------
+         * In the browser console, you may see the following warning:
+         * "[Vue warn]: The `compilerOptions` config option is only respected when using a build
+         *  of Vue.js that includes the runtime compiler (aka "full build")..."
+         *
+         * when _any_ code reads app.config.compilerOptions at runtime. This includes:
+         * - Direct access in application code
+         * - Indirect access via Vue Devtools (confirmed source via stack trace)
+         * - Pinia devtools integration
+         *
+         * This warning is _expected_ in development and can be safely ignored. It occurs bc
+         * Vue's runtime-only build (default in Vite) doesn't include the compiler.
+         *
+         * To debug if warning source is unclear:
+         * 1. In browser console:
+         *    debug(console.warn, (args) => args[0].includes('compilerOptions'))
+         * 2. Check stack trace for Pinia/Devtools initialization
+         *
+         * To verify this is dev-only, run `npm run build &&  npm run preview`
+         * The warning should not appear in the production build.
+         *
+         * Reference: Discovered via stack trace to Pinia devtools initialization:
+         * $subscribe @ pinia.js -> devtoolsInitApp @ chunk-LR5MW2GB.js -> mount
+         */
         compilerOptions: {
           // Be cool and chill about 3rd party components. Alternatvely can use
           // `app.config.compilerOptions.isCustomElement = tag => tag.startsWith('altcha-')`
@@ -61,6 +87,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(process.cwd(), './src'),
+      // vue: 'vue/dist/vue.runtime.esm-bundler.js',
     },
   },
 
