@@ -1,12 +1,15 @@
 
 <script setup lang="ts">
 
-import { useWindowProps } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { Plan } from '@/schemas/models/customer';
 import { ref, computed } from 'vue';
 import { onMounted } from 'vue';
 
-const { available_plans, default_planid } = useWindowProps(['available_plans', 'default_planid']);
+const { available_plans, default_planid } = WindowService.getMultiple({
+  available_plans: null,
+  default_planid: 'basic',
+});
 const defaultPlan = ref({} as Plan);
 const anonymousPlan = ref({} as Plan);
 
@@ -24,15 +27,16 @@ const bytesToKB = (bytes: number) => {
 // up to {{ defaultSizeKB }} KB in size. Account holders also get access to
 // additional features like burn-before-reading options, which allow senders to
 // delete secrets before they're received.
-const anonymousTtlDays = computed(() => secondsToDays(anonymousPlan.value?.options?.ttl));
-const anonymousSizeKB = computed(() => bytesToKB(anonymousPlan.value?.options?.size));
-const defaultTtlDays = computed(() => secondsToDays(defaultPlan.value?.options?.ttl));
-const defaultSizeKB = computed(() => bytesToKB(defaultPlan.value?.options?.size));
+// TODO: Cleanup this mess of plans
+const anonymousTtlDays = computed(() => secondsToDays(anonymousPlan?.value?.options?.ttl));
+const anonymousSizeKB = computed(() => bytesToKB(anonymousPlan?.value?.options?.size));
+const defaultTtlDays = computed(() => secondsToDays(defaultPlan?.value?.options?.ttl));
+const defaultSizeKB = computed(() => bytesToKB(defaultPlan?.value?.options?.size));
 
 onMounted(() => {
-  if (available_plans.value && default_planid.value) {
-    defaultPlan.value = available_plans.value[default_planid.value] ?? null;
-    anonymousPlan.value = available_plans.value.anonymous;
+  if (available_plans && default_planid) {
+    defaultPlan.value = available_plans[default_planid] ?? null;
+    anonymousPlan.value = available_plans?.anonymous;
   }
 });
 

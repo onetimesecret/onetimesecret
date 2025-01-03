@@ -2,7 +2,7 @@
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
 import { useExceptionReporting } from '@/composables/useExceptionReporting';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import { useWindowProps } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { onMounted, ref } from 'vue';
 
@@ -32,7 +32,10 @@ onMounted(() => {
 
 
 // We use this to determine whether to include the authenticity check
-const { cust, ot_version } = useWindowProps(['cust', 'ot_version']);
+const windowProps = WindowService.getMultiple({
+  cust: null,
+  ot_version: '',
+});
 
 const emit = defineEmits(['feedback-sent']);
 
@@ -50,7 +53,7 @@ const handleSpecialMessages = (message: string) => {
       line: 0,
       column: 0,
       environment: 'production',
-      release: ot_version.value || 'unknown'
+      release: windowProps.ot_version || 'unknown'
     });
     return true;
   }
@@ -126,7 +129,7 @@ const {
               <input
                 type="hidden"
                 name="version"
-                :value="ot_version"
+                :value="windowProps.ot_version"
               />
             </div>
 
@@ -147,7 +150,7 @@ const {
             </div>
           </div>
 
-          <AltchaChallenge v-if="!cust" />
+          <AltchaChallenge v-if="!windowProps.cust" />
         </form>
 
         <div
@@ -170,7 +173,7 @@ const {
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li
-            v-if="cust"
+            v-if="windowProps.cust"
             class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"
@@ -184,7 +187,7 @@ const {
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
               />
             </svg>
-            Customer ID: {{ cust?.custid }}
+            Customer ID: {{ windowProps.cust?.custid }}
           </li>
           <li class="flex items-center">
             <svg
@@ -214,7 +217,7 @@ const {
                 d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
               />
             </svg>
-            Website Version: v{{ ot_version }}
+            Website Version: v{{ windowProps.ot_version }}
           </li>
         </ul>
       </div>

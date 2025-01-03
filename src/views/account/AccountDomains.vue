@@ -3,12 +3,12 @@ import AccountDomasCTA from '@/components/ctas/AccountDomainsCTA.vue'
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainsTable from '@/components/DomainsTable.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
-import { useWindowProps } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { useDomainsStore } from '@/stores/domainsStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import { computed, onMounted, ref } from 'vue';
 
-const { plan } = useWindowProps(['plan'])
+const plan = WindowService.get('plan', null)
 
 const domainsStore = useDomainsStore();
 const notifications = useNotificationsStore();

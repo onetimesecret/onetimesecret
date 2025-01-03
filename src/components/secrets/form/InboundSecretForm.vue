@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useWindowProps } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { ref } from 'vue';
 
@@ -15,7 +15,7 @@ withDefaults(defineProps<Props>(), {
   enabled: true,
 })
 
-const {incoming_recipient} = useWindowProps(['incoming_recipient']);
+const incomingRecipient = WindowService.get('incoming_recipient', null);
 
 
 </script>
@@ -106,7 +106,7 @@ const {incoming_recipient} = useWindowProps(['incoming_recipient']);
               {{ $t('web.incoming.incoming_recipient_address') }}:
             </label>
             <div class="mt-1 text-gray-900 dark:text-gray-100">
-              {{ incoming_recipient }}
+              {{ incomingRecipient }}
             </div>
           </div>
         </div>

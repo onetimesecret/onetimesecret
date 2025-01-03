@@ -1,8 +1,7 @@
 <!-- src/components/LanguageToggle.vue -->
 <script setup lang="ts">
-import { useValidatedWindowProp } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { setLanguage } from '@/i18n';
-import { customerSchema } from '@/schemas/models';
 import { useLanguageStore } from '@/stores/languageStore';
 import { computed, onMounted, ref } from 'vue';
 
@@ -13,7 +12,7 @@ const emit = defineEmits(['localeChanged']);
 const languageStore = useLanguageStore();
 const supportedLocales = languageStore.getSupportedLocales;
 
-const cust = useValidatedWindowProp('cust', customerSchema);
+const cust = WindowService.get('cust', null);
 
 const selectedLocale = ref(languageStore.determineLocale(cust?.value?.locale));
 

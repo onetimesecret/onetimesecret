@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useWindowProps } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { FocusTrap } from 'focus-trap-vue';
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import GeneralTab from './settings/GeneralTab.vue';
 import JurisdictionTab from './settings/JurisdictionTab.vue';
 
-const { regions_enabled: regionsEnabled } = useWindowProps(['regions_enabled']);
+const regionsEnabled = WindowService.get('regions_enabled', false);
 
 interface Tab {
   id: string;
@@ -29,7 +29,7 @@ const tabs = ref<Tab[]>([
   { id: 'general', label: 'General' },
 ]);
 
-if (regionsEnabled.value) {
+if (regionsEnabled) {
   tabs.value.push({ id: 'data-region', label: 'Data Region' });
 }
 const handleKeydown = (e: KeyboardEvent) => {

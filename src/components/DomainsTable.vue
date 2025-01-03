@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
-import { useValidatedWindowProp } from '@/composables/useWindowProps';
-import { customerSchema } from '@/schemas/models';
+import { WindowService } from '@/services/window.service'
 import type { CustomDomain } from '@/schemas/models/domain';
 import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
 
-const cust = useValidatedWindowProp('cust', customerSchema); // Used for feature flags
+const cust = WindowService.get('cust', null); // Used for feature flags
 
 defineProps<{
   domains: CustomDomain[];

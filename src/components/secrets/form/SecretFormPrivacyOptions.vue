@@ -4,16 +4,17 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import SecretFormDrawer from './SecretFormDrawer.vue';
+import { WindowService } from '@/services/window.service';
 
-// TODO; Was useWindowProps(['plan', 'secret_options']);
-const plan = 'basic';
-const secretOptions = {
+// TODO; Was WindowService.getMultiple(['plan', 'secret_options']);
+const plan = WindowService.get('planid', 'basic');
+const secretOptions = WindowService.get('secret_options', {
   ttl: 7200,
   recipient: '',
   passphrase: '',
   metadata_only: false,
   precomputed_burn: false
-};
+});
 
 interface Props {
   enabled?: boolean;

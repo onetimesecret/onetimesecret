@@ -1,14 +1,15 @@
-import accountRoutes from '@/router/account.routes';
-import authRoutes from '@/router/auth.routes';
-import dashboardRoutes from '@/router/dashboard.routes';
 import { setupRouterGuards } from '@/router/guards.routes';
-import metadataRoutes from '@/router/metadata.routes';
-import productRoutes from '@/router/product.routes';
-import publicRoutes from '@/router/public.routes';
-import secretRoutes from '@/router/secret.routes';
 import NotFound from '@/views/NotFound.vue';
 import type { Router, RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
+
+import accountRoutes from './account.routes';
+import authRoutes from './auth.routes';
+import dashboardRoutes from './dashboard.routes';
+import metadataRoutes from './metadata.routes';
+import productRoutes from './product.routes';
+import publicRoutes from './public.routes';
+import secretRoutes from './secret.routes';
 
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useWindowProp } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
@@ -7,13 +7,13 @@ import { computed } from 'vue';
 import JurisdictionInfo from './JurisdictionInfo.vue';
 import JurisdictionList from './JurisdictionList.vue';
 
-const cust = useWindowProp('cust');
-const supportHost = useWindowProp('support_host');
+const cust = WindowService.get('cust', null);
+const supportHost = WindowService.get('support_host', null);
 
 const jurisdictionStore = useJurisdictionStore();
 const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
 const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
-const customerId = computed(() => cust.value?.custid);
+const customerId = computed(() => cust?.custid);
 </script>
 
 <template>
@@ -31,17 +31,17 @@ const customerId = computed(() => cust.value?.custid);
         <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
           <div class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
             <Icon
-              :icon="currentJurisdiction.icon"
+              :icon="currentJurisdiction?.icon"
               class="size-8 text-brand-600 dark:text-brand-400 sm:size-10"
               aria-hidden="true"
             />
           </div>
           <div class="space-y-1 text-center sm:text-left">
             <div class="text-base font-medium text-gray-900 dark:text-white">
-              {{ currentJurisdiction.display_name }}
+              {{ currentJurisdiction?.display_name }}
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">
-              Data center location: {{ currentJurisdiction.identifier }}
+              Data center location: {{ currentJurisdiction?.identifier }}
             </div>
           </div>
         </div>

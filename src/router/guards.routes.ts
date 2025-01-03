@@ -1,7 +1,6 @@
 // src/router/guards.ts
 
-import { useValidatedWindowProp } from '@/composables/useWindowProps';
-import { customerSchema } from '@/schemas/models';
+import { WindowService } from '@/services/window.service';
 import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
@@ -64,6 +63,6 @@ function redirectToSignIn(from: RouteLocationNormalized) {
  * allow us to drop-in a request to the server when we need to.
  */
 async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
-  const cust = useValidatedWindowProp('cust', customerSchema);
-  return { locale: cust.value?.locale };
+  const cust = WindowService.get('cust', null);
+  return { locale: cust?.locale };
 }
