@@ -7,8 +7,8 @@ module Onetime::Logic
       # Working variables
       attr_reader :key, :metadata, :secret
       # Template variables
-      attr_reader :title, :metadata_key, :metadata_shortkey, :secret_key,
-            :secret_shortkey, :recipients, :display_feedback, :no_cache,
+      attr_reader :metadata_key, :metadata_shortkey, :secret_key,
+            :secret_shortkey, :recipients, :no_cache,
             :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
@@ -30,7 +30,6 @@ module Onetime::Logic
       def process
         @secret = @metadata.load_secret
 
-        @title = "You saved a secret"
         @metadata_key = metadata.key
         @metadata_shortkey = metadata.shortkey
         @secret_key = metadata.secret_key
@@ -44,7 +43,6 @@ module Onetime::Logic
         # like: `@recipients.empty?`.
         @recipients = metadata.recipients.to_s
 
-        @display_feedback = false
         @no_cache = true
         # Metadata now lives twice as long as the original secret.
         # Prior to the change they had the same value so we can
@@ -189,9 +187,7 @@ module Onetime::Logic
       def ancillary_attributes
         {
           type: 'record',
-          title: title,
           display_lines: display_lines,
-          display_feedback: display_feedback,
           no_cache: no_cache,
           is_received: is_received,
           is_burned: is_burned,

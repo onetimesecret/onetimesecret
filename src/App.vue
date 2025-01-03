@@ -14,7 +14,7 @@ const route = useRoute();
 const windowProps = WindowService.getMultiple({
   authenticated: false,
   ot_version: '',
-  authentication: {},
+  authentication: null,
   cust: null,
   plans_enabled: false,
   support_host: '',

@@ -33,8 +33,6 @@ export const windowFixture: OnetimeWindow = {
   },
   available_plans: {},
   support_host: 'https://docs.onetime.co',
-  display_links: true,
-  display_masthead: true,
   metadata_record_count: 0,
   plan: {
     identifier: 'anonymous',

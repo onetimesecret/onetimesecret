@@ -5,7 +5,6 @@ import {
   AvailablePlans,
   BrokenBrandSettings,
   Customer,
-  Metadata,
   Plan,
   RegionsConfig,
   SecretOptions,
@@ -26,10 +25,9 @@ export interface OnetimeWindow {
   apitoken?: string;
   authenticated: boolean;
   baseuri: string;
-  cust: Customer | undefined | null;
+  cust: Customer | null;
   custid: string;
   customer_since?: string;
-  custom_domains_record_count?: number;
   custom_domains?: string[];
   domains_enabled: boolean;
   email: string;
@@ -42,37 +40,26 @@ export interface OnetimeWindow {
   regions_enabled: boolean;
   ruby_version: string;
 
-  // Our CSRF token, to be used in POST requests to the backend. The
-  // Ruby app plops the current shrimp at the time of page load into
-  // the window object here but it will change if something on the
-  // page makes a POST request. Use useCsrfStore() to stay cool and current.
+  /**
+   * CSRF token for POST request validation.
+   * Updated dynamically after POST requests.
+   * Use useCsrfStore() to access current token.
+   */
   shrimp: string;
 
   site_host: string;
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
   form_fields?: { [key: string]: string };
-  authentication: AuthenticationSettings;
-  secret_options: SecretOptions | undefined | null;
+  authentication: AuthenticationSettings | null;
+  secret_options: SecretOptions | null;
 
   available_plans: AvailablePlans;
   support_host?: string;
 
-  // Display site links in footer
-  display_links: boolean;
-
-  // Display logo and top nav
-  display_masthead: boolean;
-
-  metadata_record_count: number;
-
   plan: Plan;
   is_paid: boolean;
   default_planid: string;
-
-  received: Metadata[];
-  notreceived: Metadata[];
-  has_items: boolean;
 
   regions: RegionsConfig;
 
@@ -80,12 +67,13 @@ export interface OnetimeWindow {
 
   available_jurisdictions: string[];
 
-  // Used by the pre-Vue colour mode detection to go inert once
-  // the Vue app takes control over the UI. See index.html.
+  /**
+   * Flag to disable pre-Vue color mode detection
+   * after Vue app initialization
+   */
   enjoyTheVue: boolean;
 
-  // When present, the global banner is displayed at the top of the
-  // page. NOTE: Can contain HTML.
+  /** Optional HTML banner displayed at page top */
   global_banner?: string;
 
   canonical_domain: string | null;
