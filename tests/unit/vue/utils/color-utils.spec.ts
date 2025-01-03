@@ -1,5 +1,5 @@
-import { shouldUseLightText } from '@/utils/colorUtils';
-import { describe, it, expect } from 'vitest';
+import { shouldUseLightText } from '@/utils/color-utils';
+import { describe, expect, it } from 'vitest';
 
 describe('shouldUseLightText', () => {
   it('should return true for dark colors', () => {

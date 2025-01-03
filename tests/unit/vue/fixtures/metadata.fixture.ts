@@ -1,4 +1,4 @@
-// tests/unit/vue/fixtures/metadata.ts
+// tests/unit/vue/fixtures/metadata.fixture.ts
 import { MetadataState, Secret, SecretState } from '@/schemas';
 import type { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 

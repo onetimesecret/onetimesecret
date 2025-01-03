@@ -1,4 +1,4 @@
-// tests/unit/fixtures/domains.ts
+// tests/unit/fixtures/domains.fixture.ts
 import type { CustomDomain } from '@/schemas/models';
 
 export const mockDomainsOld: Record<string, CustomDomain> = {
