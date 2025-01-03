@@ -1,22 +1,22 @@
-// tests/unit/vue/fixtures/metadata.spec.ts
+// tests/unit/vue/fixtures/metadata.fixture.spec.ts
 import { MetadataState } from '@/schemas/models/metadata';
 import { SecretState } from '@/schemas/models/secret';
 import { describe, expect, it } from 'vitest';
 
 import {
-    mockBurnedMetadataRecord,
-    mockBurnedSecretRecord,
-    mockMetadataRecent,
-    mockMetadataRecord,
-    mockNotReceivedSecretRecord1,
-    mockOrphanedMetadataRecord,
-    mockOrphanedSecretRecord,
-    mockReceivedMetadataRecord,
-    mockReceivedSecretRecord,
-    mockReceivedSecretRecord1,
-    mockReceivedSecretRecord2,
-    mockSecretRecord,
-} from '../fixtures/metadata';
+  mockBurnedMetadataRecord,
+  mockBurnedSecretRecord,
+  mockMetadataRecent,
+  mockMetadataRecord,
+  mockNotReceivedSecretRecord1,
+  mockOrphanedMetadataRecord,
+  mockOrphanedSecretRecord,
+  mockReceivedMetadataRecord,
+  mockReceivedSecretRecord,
+  mockReceivedSecretRecord1,
+  mockReceivedSecretRecord2,
+  mockSecretRecord,
+} from '../fixtures/metadata.fixture';
 
 describe('Metadata Fixtures Integrity', () => {
   describe('Individual Metadata Records', () => {
@@ -94,7 +94,7 @@ describe('Metadata Fixtures Integrity', () => {
       expect(() => {
         const invalidRecord = {
           ...mockMetadataRecord,
-          state: 'INVALID_STATE'
+          state: 'INVALID_STATE',
         };
 
         if (!isValidState(invalidRecord.state)) {

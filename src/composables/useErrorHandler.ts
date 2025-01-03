@@ -25,6 +25,7 @@ export interface ErrorHandlerOptions {
    * Useful for state cleanup, invalidation, etc.
    */
   onError?: (error: ApplicationError) => void;
+  debug?: boolean;
 }
 
 export { createError }; // Re-export createError

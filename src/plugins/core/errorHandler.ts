@@ -1,13 +1,9 @@
-// src/plugins/errorHandler/index.ts
-import { ErrorSeverity } from '@/schemas';
+// src/plugins/core/errorHandler.ts
+
+import { ErrorHandlerOptions } from '@/composables/useErrorHandler';
 import { classifyError, isOfHumanInterest } from '@/schemas/errors/classifier';
 import { loggingService } from '@/services/logging';
 import type { App, Plugin } from 'vue';
-
-export interface ErrorHandlerOptions {
-  debug?: boolean;
-  notify?: (message: string, severity: ErrorSeverity) => void;
-}
 
 /**
  * Global error handling plugin for Vue 3 applications that connects
@@ -30,7 +26,7 @@ export const ErrorHandlerPlugin: Plugin = {
      */
     app.config.errorHandler = (error, instance, info) => {
       const classifiedError = classifyError(error);
-      loggingService.error(classifiedError);
+      loggingService.error(error); // was: classifiedError
 
       // Only notify user for human-facing errors
       if (isOfHumanInterest(classifiedError) && options.notify) {

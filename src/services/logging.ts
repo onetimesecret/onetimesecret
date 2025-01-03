@@ -12,7 +12,7 @@ export interface LoggingService {
 // import type { ApplicationError } from '@/schemas/errors';
 
 export class ConsoleLoggingService implements LoggingService {
-  error(error: ApplicationError): void {
+  error(error: Error): void {
     console.error(error.message, error);
   }
 

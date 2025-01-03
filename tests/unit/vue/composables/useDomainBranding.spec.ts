@@ -1,9 +1,9 @@
 // tests/unit/vue/composables/useDomainBranding.spec.ts
 import {
-    mockCustomBranding,
-    mockDefaultBranding,
-    mockDomains,
-} from '@/../tests/unit/vue/fixtures/domainBranding';
+  mockCustomBranding,
+  mockDefaultBranding,
+  mockDomains,
+} from '@/../tests/unit/vue/fixtures/domainBranding.fixture';
 import { useDomainBranding } from '@/composables/useDomainBranding';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

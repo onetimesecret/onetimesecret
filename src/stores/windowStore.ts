@@ -34,8 +34,8 @@ export const useWindowStore = defineStore('window', {
   state: () => getInitialState(),
 
   getters: {
-    isAuthenticated(state) {
-      return state.authenticated;
+    isAuthenticated() {
+      return window.authenticated === true;
     },
   },
 
@@ -69,7 +69,6 @@ export const useWindowStore = defineStore('window', {
       this._ensureErrorHandler();
 
       const windowData = {
-        authenticated: windowObj.authenticated,
         email: windowObj.email,
         baseuri: windowObj.baseuri,
         cust: windowObj.cust,

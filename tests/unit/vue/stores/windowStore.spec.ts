@@ -7,7 +7,7 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from 'vue';
 
-import { windowFixture } from '../fixtures/window';
+import { windowFixture } from '../fixtures/window.fixture';
 
 const mockWindow = {
   authenticated: true,

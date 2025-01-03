@@ -7,12 +7,12 @@ import { computed, inject, ref, Ref } from 'vue';
 export interface Props {
   authenticated: boolean
   authentication: AuthenticationSettings
+  hasGlobalBanner: boolean
   colonel?: boolean
   cust?: Customer
   onetimeVersion: string
   plansEnabled?: boolean
   supportHost?: string
-  hasGlobalBanner: boolean
   globalBanner?: string
   primaryColor?: string
 }
@@ -21,9 +21,9 @@ const props = withDefaults(defineProps<Props>(), {
   authenticated: false,
   colonel: false,
   cust: undefined,
-  plansEnabled: false,
-  hasGlobalBanner: false,
   globalBanner: '',
+  hasGlobalBanner: false,
+  plansEnabled: false,
   primaryColor: 'bg-brand-500',
   supportHost: undefined
 })

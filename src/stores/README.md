@@ -123,15 +123,63 @@ refs are typed using generic parameters:
 
 ### Passing Arguments
 
-Add an action and calling upon creation because having it as an argument could
+#### Safe Store Initialization Pattern
+
+Add an action and call upon creation because having it as an argument could
 be misleading as it's only used **if the store created that time**.
 
 ✅ Use an init method to pass arguments:
 
 ```ts
-    const store = useStore()
-    store.init(arguments)
+const store = useStore()
+store.init(arguments)
 ```
+
+##### Core Principle: Avoid Reactive State Initialization Conflicts
+
+Prevent:
+- Circular dependencies
+- Stack overflows from reactive chains
+- Initialization order problems
+
+##### Example Implementation
+
+```typescript
+// services/auth.ts
+export const AuthService = {
+  getInitialState() {
+    return window.authenticated === true;
+  }
+};
+
+// stores/auth.ts
+export function useAuthStore() {
+  const _initialized = ref(false);
+  const isAuthenticated = ref(false);
+
+  function init(api?: AxiosInstance) {
+    if (_initialized.value) return;
+
+    // Use non-reactive service for initial state
+    isAuthenticated.value = AuthService.getInitialState();
+
+    // Setup reactive relationships AFTER initialization
+    watch(() => {
+      // Safe to access other stores here
+    });
+
+    _initialized.value = true;
+  }
+}
+```
+
+##### Best Practices
+
+1. Use non-reactive services for initial state
+2. Separate initialization from reactive relationships
+3. Mark store as initialized
+4. Setup reactive relationships afterward
+
 
 [source - posva](https://github.com/vuejs/pinia/discussions/826#discussioncomment-1690020)
 

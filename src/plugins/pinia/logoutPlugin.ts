@@ -3,7 +3,7 @@ import { useCsrfStore } from '@/stores/csrfStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { PiniaPluginContext } from 'pinia';
 
-// By default, $reset() will not reset state added by plugins but you can override it
+// NOTE: For SSR, wrap document calls in a “process.client” or environment check.
 
 export function logoutPlugin(context: PiniaPluginContext) {
   const deleteCookie = (name: string) => {

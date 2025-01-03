@@ -5,8 +5,8 @@ import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { mockCustomBranding } from '../fixtures/domainBranding';
-import { mockDomains, newDomainData } from '../fixtures/domains'; // <-- CORRECT fixture import
+import { mockCustomBranding } from '../fixtures/domainBranding.fixture';
+import { mockDomains, newDomainData } from '../fixtures/domains.fixture'; // <-- CORRECT fixture import
 
 describe('domainsStore', () => {
   let axiosMock: AxiosMockAdapter;

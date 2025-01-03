@@ -5,7 +5,7 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { mockSecretRecord, mockSecretResponse } from '../fixtures/metadata';
+import { mockSecretRecord, mockSecretResponse } from '../fixtures/metadata.fixture';
 
 describe('secretsStore', () => {
   let axiosMock: AxiosMockAdapter;

@@ -130,10 +130,18 @@ export default [
       ],
     },
     settings: {
-      'import/resolver': { typescript: {} }, // Enable TypeScript import resolution
+      // Enable TypeScript import resolution
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+        node: {
+          extensions: ['.ts', '.vue'],
+        },
+      },
     },
   },
-
   /**
    * Typescript Rules
    * Applies to .ts et al. files

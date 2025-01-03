@@ -13,7 +13,7 @@ import {
     mockBurnedMetadataRecord,
     mockMetadataDetails,
     mockMetadataRecord,
-} from '../fixtures/metadata';
+} from '../fixtures/metadata.fixture';
 
 function isZodInvalidTypeIssue(
   issue: ZodIssue

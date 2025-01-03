@@ -1,12 +1,11 @@
 // stores/authStore.ts
 import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
 import { responseSchemas } from '@/schemas/api';
+import { WindowService } from '@/services/window';
 import { createApi } from '@/utils/api';
 import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-
-import { useWindowStore } from './windowStore';
 
 /**
  * Configuration for authentication check behavior.
@@ -80,14 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     setupErrorHandler(api);
 
-    const windowStore = useWindowStore();
-    windowStore.init();
-
-    const windowData = {
-      isAuthenticated: windowStore.isAuthenticated === true,
-    };
-
-    isAuthenticated.value = windowData.isAuthenticated;
+    isAuthenticated.value = WindowService.get('authenticated', false) ?? null;
 
     if (isAuthenticated.value) {
       $scheduleNextCheck();
