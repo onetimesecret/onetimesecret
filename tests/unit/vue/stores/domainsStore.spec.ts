@@ -29,11 +29,6 @@ describe('domainsStore', () => {
     });
 
     store = useDomainsStore();
-    store.setupErrorHandler(axiosInstance, {
-      notify: notifySpy,
-      log: logSpy,
-      onError: errorCallback,
-    });
   });
 
   afterEach(() => {

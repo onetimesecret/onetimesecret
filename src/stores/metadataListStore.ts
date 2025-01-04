@@ -1,11 +1,29 @@
 // stores/metadataListStore.ts
-import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { responseSchemas } from '@/schemas/api/responses';
-import { createApi } from '@/utils/api';
-import { type AxiosInstance } from 'axios';
-import { defineStore } from 'pinia';
+import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref, type Ref } from 'vue';
+
+/**
+ * Type definition for MetadataListStore.
+ */
+type MetadataListStore = {
+  // State
+  _initialized: boolean;
+  isLoading: boolean;
+  records: MetadataRecords[] | null;
+  details: MetadataRecordsDetails | null;
+  count: number | null;
+
+  // Getters
+  recordCount: number | null;
+  initialized: boolean;
+
+  // Actions
+  fetchList: () => Promise<void>;
+  refreshRecords: (force?: boolean) => Promise<void>;
+  $reset: () => void;
+} & PiniaCustomProperties;
 
 /**
  * Store for managing metadata records and their related operations.
@@ -20,38 +38,13 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   const details: Ref<MetadataRecordsDetails | null> = ref(null);
   const count = ref<number | null>(null);
 
-  // Internal references
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
-
   // Getters
   const recordCount = () => count.value;
   const initialized = () => _initialized.value;
 
-  // Actions
-  function _ensureAsyncHandler() {
-    if (!_errorHandler) setupAsyncHandler();
-  }
-
-  function setupAsyncHandler(
-    api: AxiosInstance = createApi(),
-    options: AsyncHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useAsyncHandler({
-      setLoading: (loading: boolean) => {
-        isLoading.value = loading;
-      },
-      notify: options.notify,
-      log: options.log,
-    });
-  }
-
-  async function fetchList() {
-    _ensureAsyncHandler();
-
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.get('/api/v2/private/recent');
+  async function fetchList(this: MetadataListStore) {
+    return await this.$errorHandler.withErrorHandling(async () => {
+      const response = await this.$api.get('/api/v2/private/recent');
       const validated = responseSchemas.metadataList.parse(response.data);
 
       records.value = validated.records ?? [];
@@ -62,13 +55,11 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     });
   }
 
-  async function refreshRecords(force = false) {
+  async function refreshRecords(this: MetadataListStore, force = false) {
     if (!force && _initialized.value) return;
 
-    _ensureAsyncHandler();
-
-    return await _errorHandler!.withErrorHandling(async () => {
-      await fetchList();
+    return await this.$errorHandler.withErrorHandling(async () => {
+      await this.fetchList();
       _initialized.value = true;
     });
   }
@@ -77,14 +68,12 @@ export const useMetadataListStore = defineStore('metadataList', () => {
    * Reset store state to initial values.
    * Implementation of $reset() for setup stores since it's not automatically available.
    */
-  function $reset() {
+  function $reset(this: MetadataListStore) {
     isLoading.value = false;
     records.value = null;
     details.value = null;
     _initialized.value = false;
     count.value = null;
-    _api = null;
-    _errorHandler = null;
   }
 
   return {
@@ -100,7 +89,6 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     initialized,
 
     // Actions
-    setupAsyncHandler,
     fetchList,
     refreshRecords,
     $reset,

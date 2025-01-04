@@ -1,93 +1,144 @@
 // stores/customerStore.ts
-
-import { useAsyncHandler } from '@/composables/useAsyncHandler';
-import { ApiError } from '@/schemas';
+import { createError, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Customer } from '@/schemas/models/customer';
 import { createApi } from '@/utils/api';
 import { defineStore } from 'pinia';
+import { computed, handleError, ref } from 'vue';
 
 const api = createApi();
 
-interface StoreState {
+/**
+ * Type definition for CustomerStore.
+ */
+type CustomerStore = {
+  // State
   isLoading: boolean;
-  error: ApiError | null;
   currentCustomer: Customer | null;
   abortController: AbortController | null;
   _initialized: boolean;
-}
 
-export const useCustomerStore = defineStore('customer', {
-  state: (): StoreState => ({
-    isLoading: false,
-    error: null,
-    currentCustomer: null,
-    abortController: null,
-    _initialized: false,
-  }),
+  // Getters
+  getPlanSize: number;
 
-  getters: {
-    getPlanSize(): number {
-      const DEFAULT_SIZE = 10000;
-      const customerPlan =
-        this.currentCustomer?.plan ?? window.available_plans?.anonymous;
-      return customerPlan?.options?.size ?? DEFAULT_SIZE;
-    },
-  },
+  // Actions
+  abort: () => void;
+  fetch: () => Promise<void>;
+  updateCustomer: (updates: Partial<Customer>) => Promise<void>;
+  $reset: () => void;
+};
 
-  actions: {
-    handleError(error: unknown): ApiError {
-      const { handleError } = useAsyncHandler();
-      this.error = handleError(error);
-      return this.error;
-    },
+/**
+ * Store for managing customer data, including current customer information and related actions.
+ */
+/* eslint-disable max-lines-per-function */
+export const useCustomerStore = defineStore('customer', () => {
+  // State
+  const isLoading = ref(false);
+  const currentCustomer = ref<Customer | null>(null);
+  const abortController = ref<AbortController | null>(null);
+  const _initialized = ref(false);
 
-    /**
-     * Cancels any in-flight customer data request.
-     * Critical for:
-     * - Preventing race conditions on rapid view switches
-     * - Cleanup during logout
-     * - Explicit cancellation when data is no longer needed
-     */
-    abortPendingRequest() {
-      if (this.abortController) {
-        this.abortController.abort();
-        this.abortController = null;
-      }
-    },
+  // Getters
+  const isInitialized = computed(() => _initialized.value);
+  const getPlanSize = computed(() => {
+    const DEFAULT_SIZE = 10000;
+    const customerPlan = currentCustomer.value?.plan ?? window.available_plans?.anonymous;
+    return customerPlan?.options?.size ?? DEFAULT_SIZE;
+  });
 
-    async fetchCurrentCustomer() {
-      // Abort any pending request before starting new one
-      this.abortPendingRequest();
+  // Actions
 
-      return await this.withLoading(async () => {
-        this.abortController = new AbortController();
-        const response = await api.get('/api/v2/account/customer', {
-          signal: this.abortController.signal,
-        });
-        const validated = responseSchemas.customer.parse(response.data);
-        this.currentCustomer = validated.record;
-        this.error = null;
-        this.abortController = null;
+  function init(this: CustomerStore) {
+    if (_initialized.value) return { isInitialized };
+
+    _initialized.value = true;
+
+    return { isInitialized };
+  }
+
+  /**
+   * Cancels any in-flight customer data request.
+   * Critical for:
+   * - Preventing race conditions on rapid view switches
+   * - Cleanup during logout
+   * - Explicit cancellation when data is no longer needed
+   */
+  function abort(this: CustomerStore) {
+    if (abortController.value) {
+      abortController.value.abort();
+      abortController.value = null;
+    }
+  }
+
+  /**
+   * Fetches the current customer's data from the API.
+   * @throws Will handle and set any errors encountered during the API call.
+   */
+  async function fetch(this: CustomerStore) {
+    // Abort any pending request before starting a new one
+    this.abort();
+
+    const { withErrorHandling } = useAsyncHandler();
+
+    return await withErrorHandling(async () => {
+      abortController.value = new AbortController();
+      const response = await api.get('/api/v2/account/customer', {
+        signal: abortController.value.signal,
       });
-    },
+      const validated = responseSchemas.customer.parse(response.data);
+      currentCustomer.value = validated.record;
+    });
+  }
 
-    async updateCustomer(updates: Partial<Customer>) {
-      if (!this.currentCustomer?.custid) {
-        // Use handleError instead of throwing directly
-        return this.handleError(new Error('No current customer to update'));
-      }
+  /**
+   * Updates the current customer's data with the provided updates.
+   * @param updates - Partial customer data to update.
+   * @throws Will handle and set any errors encountered during the API call.
+   */
+  async function updateCustomer(this: CustomerStore, updates: Partial<Customer>) {
+    if (!currentCustomer.value?.custid) {
+      // Use handleError instead of throwing directly
+      return createError('No current customer to update', 'human', 'error');
+    }
+    const { withErrorHandling } = useAsyncHandler();
 
-      try {
-        const response = await api.put(
-          `/api/v2/account/customer/${this.currentCustomer.custid}`,
-          updates
-        );
-        const validated = responseSchemas.customer.parse(response.data);
-        this.currentCustomer = validated.record;
-      } catch (error) {
-        this.handleError(error);
-      }
-    },
-  },
+    withErrorHandling(async () => {
+      const response = await api.put(
+        `/api/v2/account/customer/${currentCustomer?.value?.custid}`,
+        updates
+      );
+      const validated = responseSchemas.customer.parse(response.data);
+      currentCustomer.value = validated.record;
+    });
+  }
+
+  /**
+   * Resets the store state to its initial values.
+   */
+  function $reset(this: CustomerStore) {
+    isLoading.value = false;
+    currentCustomer.value = null;
+    abortController.value = null;
+    _initialized.value = false;
+  }
+
+  return {
+    // State
+    init,
+    isLoading,
+    currentCustomer,
+    abortController,
+    _initialized,
+
+    // Getters
+    getPlanSize,
+
+    // Actions
+    handleError,
+    abort,
+    fetch,
+    updateCustomer,
+    $reset,
+  };
 });

@@ -98,7 +98,7 @@ describe('authStore', () => {
       vi.stubGlobal('window', mockWindow);
 
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
     });
 
     afterEach(() => {
@@ -147,48 +147,48 @@ describe('authStore', () => {
 
     it('initializes with flag', () => {
       expect(store.isInitialized).toBe(false);
-      store.init(axiosInstance);
+      store.init();
       expect(store.isInitialized).toBe(true);
     });
 
     it('initializes correctly (when undefined)', () => {
       expect(store.isAuthenticated).toBe(null);
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when null)', () => {
       Object.assign(window, { authenticated: null });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when false)', () => {
       Object.assign(window, { authenticated: false });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when bad data)', () => {
       Object.assign(window, { authenticated: 123 });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when true)', () => {
       Object.assign(window, { authenticated: true });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(true);
     });
 
     it('initializes correctly (when "true")', () => {
       Object.assign(window, { authenticated: 'true' });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly', () => {
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
       expect(store.failureCount).toBe(null);
       expect(store.lastCheckTime).toBeDefined();
@@ -217,32 +217,30 @@ describe('authStore', () => {
 
     it('initializes only once', () => {
       // First initialization
-      store.init(axiosInstance);
+      store.init();
       expect(store.isInitialized).toBe(true);
 
       const initialAuthState = store.isAuthenticated;
-      const initialErrorHandler = store._getErrorHandler();
 
       // Second initialization attempt
-      store.init(axiosInstance);
+      store.init();
 
       // Verify critical state hasn't changed
       expect(store.isAuthenticated).toBe(initialAuthState);
-      expect(store._getErrorHandler()).toBe(initialErrorHandler);
     });
 
     it('prevents double initialization', () => {
-      // Instead of spying on setupErrorHandler, let's verify the behavior:
+      // Let's verify the behavior:
       // 1. Store gets initialized
       // 2. Second init doesn't change state
       // 3. Initial values are preserved
 
       // First init
-      const result1 = store.init(axiosInstance);
+      const result1 = store.init();
       const initializedState = { ...store.$state };
 
       // Second init
-      const result2 = store.init(axiosInstance);
+      const result2 = store.init();
 
       // Verify behavior we care about
       expect(store._initialized).toBe(true);
@@ -253,10 +251,9 @@ describe('authStore', () => {
     });
 
     it('handles proper error handler setup', () => {
-      store.setupErrorHandler();
 
-      const errorHandler = store._getErrorHandler();
-      const api = store._getApi();
+      const errorHandler = store.$errorHandler;
+      const api = store.$api;
 
       expect(errorHandler).not.toBeNull();
       expect(api).not.toBeNull();
@@ -265,7 +262,7 @@ describe('authStore', () => {
 
     it('properly disposes resources and listeners', async () => {
       // Setup
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
       store.$scheduleNextCheck(); // Start a timer
 
@@ -280,7 +277,7 @@ describe('authStore', () => {
     });
 
     it('cleans up resources on dispose', async () => {
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
       store.$scheduleNextCheck(); // Start a timer
 
@@ -297,7 +294,7 @@ describe('authStore', () => {
 
     beforeEach(() => {
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
     });
 
@@ -384,7 +381,7 @@ describe('authStore', () => {
       const pinia = createTestingPinia({ stubActions: false });
       app.use(pinia);
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
     });
 
@@ -440,7 +437,7 @@ describe('authStore', () => {
 
     beforeEach(() => {
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
     });
 
@@ -459,7 +456,7 @@ describe('authStore', () => {
     it('initializes correctly from window state', () => {
       vi.stubGlobal('window', { authenticated: true });
 
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(true);
 
       vi.unstubAllGlobals();
@@ -514,7 +511,7 @@ describe('authStore', () => {
     it('executes check and reschedules when timer fires', async () => {
       // Setup fresh store instance
       const store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
 
       // Mock successful auth check response
       axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
@@ -634,10 +631,10 @@ describe('authStore', () => {
     });
 
     it('integrates with error handler for consistent error management', async () => {
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
 
-      const errorHandler = store._getErrorHandler();
+      const errorHandler = store._getAsyncHandler();
       const errorHandlerSpy = vi.spyOn(errorHandler!, 'withErrorHandling');
 
       axiosMock.onGet('/api/v2/authcheck').networkError();
@@ -649,7 +646,7 @@ describe('authStore', () => {
 
     it('handles network timeouts appropriately', async () => {
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
 
       axiosMock.onGet('/api/v2/authcheck').timeoutOnce();
@@ -660,7 +657,7 @@ describe('authStore', () => {
 
     it('recovers from temporary network failures', async () => {
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
 
       store.failureCount = 1; // Simulate previous failure

@@ -23,7 +23,7 @@ describe('secretsStore', () => {
     axiosMock = new AxiosMockAdapter(axiosInstance);
     // Inject mocked axios instance into the store's API
     store = useSecretsStore();
-    store.init(axiosInstance);
+    store.init();
   });
 
   afterEach(() => {
@@ -39,7 +39,7 @@ describe('secretsStore', () => {
       const axiosInstance = axios.create();
       axiosMock = new AxiosMockAdapter(axiosInstance);
       store = useSecretsStore();
-      store.init(axiosInstance);
+      store.init();
     });
 
     afterEach(() => {

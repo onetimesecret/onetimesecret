@@ -13,14 +13,6 @@ export function useMetadata(metadataKey: string) {
   const notifications = useNotificationsStore();
   const store = useMetadataStore();
 
-  store.init();
-  store.setupAsyncHandler(undefined, {
-    notify: notifications.show,
-    log: (error) => {
-      notifications.show(error.message, 'error');
-    },
-  });
-
   // The `StoreGeneric` type assertion helps bridge the gap between the specific
   // store type and the generic store. This is a known issue when using
   // `storeToRefs` with stores that have complex types.

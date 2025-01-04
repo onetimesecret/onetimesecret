@@ -158,7 +158,7 @@ export function useAuthStore() {
   const _initialized = ref(false);
   const isAuthenticated = ref(false);
 
-  function init(api?: AxiosInstance) {
+  function init(this: PiniaCustomProperties) {
     if (_initialized.value) return;
 
     // Use non-reactive service for initial state

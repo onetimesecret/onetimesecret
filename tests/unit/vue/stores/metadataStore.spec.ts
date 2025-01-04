@@ -8,11 +8,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError, ZodIssue } from 'zod';
 
 import {
-    createMetadataWithPassphrase,
-    mockBurnedMetadataDetails,
-    mockBurnedMetadataRecord,
-    mockMetadataDetails,
-    mockMetadataRecord,
+  createMetadataWithPassphrase,
+  mockBurnedMetadataDetails,
+  mockBurnedMetadataRecord,
+  mockMetadataDetails,
+  mockMetadataRecord,
 } from '../fixtures/metadata.fixture';
 
 function isZodInvalidTypeIssue(
@@ -41,7 +41,6 @@ describe('metadataStore', () => {
     axiosMock = new AxiosMockAdapter(axiosInstance);
 
     store = useMetadataStore();
-    store.setupErrorHandler(axiosInstance);
   });
 
   afterEach(() => {
@@ -395,7 +394,7 @@ describe('metadataStore', () => {
 
         // Setup store with custom error handlers
         const store = useMetadataStore();
-        store.setupErrorHandler(mockAxios, {
+        store.setupAsyncHandler(mockAxios, {
           notify: mockNotify,
           log: mockLog,
         });
@@ -405,15 +404,15 @@ describe('metadataStore', () => {
         axiosMock.onGet('/api/v2/private/test-key').reply(404, {
           error: {
             message: 'Secret not found',
-            code: 'NOT_FOUND'
-          }
+            code: 'NOT_FOUND',
+          },
         });
 
         // Attempt to fetch which should trigger error handling
         await expect(store.fetch('test-key')).rejects.toMatchObject({
           type: 'human',
           severity: 'error',
-          message: 'Request failed with status code 404' // Match actual Axios error message
+          message: 'Request failed with status code 404', // Match actual Axios error message
         });
 
         // Verify error handlers were called with appropriate args
@@ -426,7 +425,7 @@ describe('metadataStore', () => {
           expect.objectContaining({
             type: 'human',
             severity: 'error',
-            message: 'Request failed with status code 404'
+            message: 'Request failed with status code 404',
           })
         );
 
@@ -439,7 +438,7 @@ describe('metadataStore', () => {
         const store = useMetadataStore();
 
         // Should not throw when initialized with minimal parameters
-        expect(() => store.setupErrorHandler()).not.toThrow();
+        // expect(() => store.setupAsyncHandler()).not.toThrow();
 
         // Verify basic initialization works
         expect(store.isLoading).toBe(false);

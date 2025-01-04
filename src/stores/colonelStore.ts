@@ -1,11 +1,23 @@
 // stores/colonelStore.ts
 
-import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { responseSchemas, type ColonelData } from '@/schemas/api';
-import { createApi } from '@/utils/api';
-import { AxiosInstance } from 'axios';
-import { defineStore } from 'pinia';
+import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref } from 'vue';
+
+/**
+ * Type definition for ColonelStore.
+ */
+type ColonelStore = {
+  // State
+  isLoading: boolean;
+  pageData: ColonelData | null;
+  _initialized: boolean;
+
+  // Actions
+  fetch: () => Promise<ColonelData>;
+  dispose: () => void;
+  $reset: () => void;
+} & PiniaCustomProperties;
 
 export const useColonelStore = defineStore('colonel', () => {
   // State
@@ -13,36 +25,10 @@ export const useColonelStore = defineStore('colonel', () => {
   const pageData = ref<ColonelData | null>(null);
   const _initialized = ref(false);
 
-  // Private store instance vars (closure based DI)
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
-
-  // Internal utilities
-  function _ensureAsyncHandler() {
-    if (!_errorHandler) setupAsyncHandler();
-  }
-
-  /**
-   * Initialize error handling with optional custom API client and options
-   */
-  function setupAsyncHandler(
-    api: AxiosInstance = createApi(),
-    options: AsyncHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useAsyncHandler({
-      setLoading: (loading) => (isLoading.value = loading),
-      notify: options.notify,
-      log: options.log,
-    });
-  }
-
   // Actions
-  async function fetch() {
-    _ensureAsyncHandler();
-
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.get('/api/v2/colonel/dashboard');
+  async function fetch(this: ColonelStore) {
+    return await this.$errorHandler.withErrorHandling(async () => {
+      const response = await this.$api.get('/api/v2/colonel/dashboard');
       const validated = responseSchemas.colonel.parse(response.data);
       // Access the record property which contains the ColonelData
       pageData.value = validated.record;
@@ -50,7 +36,7 @@ export const useColonelStore = defineStore('colonel', () => {
     });
   }
 
-  function dispose() {
+  function dispose(this: ColonelStore) {
     pageData.value = null;
     isLoading.value = false;
   }
@@ -58,7 +44,7 @@ export const useColonelStore = defineStore('colonel', () => {
   /**
    * Reset store state to initial values
    */
-  function $reset() {
+  function $reset(this: ColonelStore) {
     isLoading.value = false;
     pageData.value = null;
     _initialized.value = false;

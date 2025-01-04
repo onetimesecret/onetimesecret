@@ -1,16 +1,34 @@
 // src/stores/secretsStore.ts
-import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
-import { createApi } from '@/utils/api';
-import { AxiosInstance } from 'axios';
-import { defineStore } from 'pinia';
+import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
+
+/**
+ * Type definition for SecretsStore.
+ */
+type SecretsStore = {
+  // State
+  isLoading: boolean;
+  record: Secret | null;
+  details: SecretDetails | null;
+  _initialized: boolean;
+
+  // Getters
+  isInitialized: boolean;
+
+  // Actions
+  init: () => { isInitialized: boolean };
+  fetch: (secretKey: string) => Promise<void>;
+  reveal: (secretKey: string, passphrase?: string) => Promise<void>;
+  clear: () => void;
+  $reset: () => void;
+} & PiniaCustomProperties;
+
 
 /**
  * Store for managing secret records and their details
  */
-
 /* eslint-disable max-lines-per-function */
 export const useSecretsStore = defineStore('secrets', () => {
   // State
@@ -19,39 +37,16 @@ export const useSecretsStore = defineStore('secrets', () => {
   const details = ref<SecretDetails | null>(null);
   const _initialized = ref(false);
 
-  // Private properties
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
-
   // Getters
   const isInitialized = computed(() => _initialized.value);
 
   // Actions
-  function init(api?: AxiosInstance) {
+  function init(this: SecretsStore) {
     if (_initialized.value) return { isInitialized };
 
     _initialized.value = true;
-    setupAsyncHandler(api);
 
     return { isInitialized };
-  }
-
-  function _ensureAsyncHandler() {
-    if (!_errorHandler) setupAsyncHandler();
-  }
-
-  function setupAsyncHandler(
-    api: AxiosInstance = createApi(),
-    options: AsyncHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useAsyncHandler({
-      setLoading: (loading) => {
-        isLoading.value = loading;
-      },
-      notify: options.notify,
-      log: options.log,
-    });
   }
 
   /**
@@ -60,11 +55,9 @@ export const useSecretsStore = defineStore('secrets', () => {
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
-  async function fetch(secretKey: string) {
-    _ensureAsyncHandler();
-
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.get(`/api/v2/secret/${secretKey}`);
+  async function fetch(this: SecretsStore, secretKey: string) {
+    return await this.$errorHandler.withErrorHandling(async () => {
+      const response = await this.$api.get(`/api/v2/secret/${secretKey}`);
       const validated = responseSchemas.secret.parse(response.data);
       record.value = validated.record;
       details.value = validated.details;
@@ -80,11 +73,9 @@ export const useSecretsStore = defineStore('secrets', () => {
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
-  async function reveal(secretKey: string, passphrase?: string) {
-    _ensureAsyncHandler();
-
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.post<SecretResponse>(
+  async function reveal(this: SecretsStore, secretKey: string, passphrase?: string) {
+    return await this.$errorHandler.withErrorHandling(async () => {
+      const response = await this.$api.post<SecretResponse>(
         `/api/v2/secret/${secretKey}/reveal`,
         {
           passphrase,
@@ -100,7 +91,7 @@ export const useSecretsStore = defineStore('secrets', () => {
     });
   }
 
-  function clear() {
+  function clear(this: SecretsStore) {
     record.value = null;
     details.value = null;
   }
@@ -108,7 +99,7 @@ export const useSecretsStore = defineStore('secrets', () => {
   /**
    * Resets the store state to its initial values
    */
-  function $reset() {
+  function $reset(this: SecretsStore) {
     record.value = null;
     details.value = null;
     _initialized.value = false;

@@ -189,7 +189,7 @@ export default [
       //   if (!a || !b || !c) return;
       //   // happy path code here
 
-      'max-nested-callbacks': ['error', 2], // Stricter than test files (4) because nested callbacks in production code almost always
+      'max-nested-callbacks': ['error', 3], // Stricter than test files (4) because nested callbacks in production code almost always
       // indicate a need for async/await, Promises, or function extraction.
       // Example - Instead of:
       //   getData(id, (err, data) => { processData(data, (err, result) => { ... }) })

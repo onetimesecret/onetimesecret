@@ -1,8 +1,6 @@
 // src/stores/languageStore.ts
 
-import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
-import { createApi } from '@/utils/api';
-import { AxiosInstance } from 'axios';
+import type { PiniaCustomProperties } from 'pinia';
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { z } from 'zod';
@@ -24,6 +22,34 @@ interface StoreOptions {
   storageKey?: string;
 }
 
+/**
+ * Type definition for LanguageStore.
+ */
+type LanguageStore = {
+  // State
+  isLoading: boolean;
+  deviceLocale: string | null;
+  currentLocale: string;
+  storageKey: string;
+  supportedLocales: string[];
+  storedLocale: string | null;
+  _initialized: boolean;
+
+  // Getters
+  getDeviceLocale: string | null;
+  getCurrentLocale: string;
+  getStorageKey: string;
+  getSupportedLocales: string[];
+
+  // Actions
+  init: (options?: StoreOptions) => void;
+  initializeLocale: () => string | null;
+  determineLocale: (preferredLocale?: string) => string;
+  setCurrentLocale: (locale: string) => void;
+  updateLanguage: (newLocale: string) => Promise<void>;
+  $reset: () => void;
+} & PiniaCustomProperties;
+
 /* eslint-disable max-lines-per-function */
 export const useLanguageStore = defineStore('language', () => {
   // State
@@ -35,10 +61,6 @@ export const useLanguageStore = defineStore('language', () => {
   const storedLocale = ref<string | null>(null);
   const _initialized = ref(false);
 
-  // Private state
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
-
   // Getters
   const getDeviceLocale = computed(() => deviceLocale.value);
   const getCurrentLocale = computed(() => currentLocale.value ?? DEFAULT_LOCALE);
@@ -46,8 +68,7 @@ export const useLanguageStore = defineStore('language', () => {
   const getSupportedLocales = computed(() => supportedLocales.value);
 
   // Actions
-  function init(api?: AxiosInstance, options?: StoreOptions) {
-    _ensureAsyncHandler(api);
+  function init(this: LanguageStore, options?: StoreOptions) {
 
     // Set device locale from options if provided
     if (options?.deviceLocale) {
@@ -70,26 +91,10 @@ export const useLanguageStore = defineStore('language', () => {
       }
     );
 
-    return initializeLocale();
+    return this.initializeLocale();
   }
 
-  function setupAsyncHandler(
-    api: AxiosInstance = createApi(),
-    options: AsyncHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useAsyncHandler({
-      setLoading: (loading) => (isLoading.value = loading),
-      notify: options.notify,
-      log: options.log,
-    });
-  }
-
-  function _ensureAsyncHandler(api?: AxiosInstance) {
-    if (!_errorHandler) setupAsyncHandler(api);
-  }
-
-  function initializeLocale() {
+  function initializeLocale(this: LanguageStore) {
     try {
 
       supportedLocales.value = WindowService.get("supported_locales", []);
@@ -137,11 +142,11 @@ export const useLanguageStore = defineStore('language', () => {
     }
   }
 
-  async function updateLanguage(newLocale: string) {
-    return await _errorHandler!.withErrorHandling(async () => {
+  async function updateLanguage(this: LanguageStore, newLocale: string) {
+    return await this.$errorHandler.withErrorHandling(async () => {
       const validatedLocale = localeSchema.parse(newLocale);
       setCurrentLocale(validatedLocale);
-      await _api!.post('/api/v2/account/update-locale', {
+      await this.$api.post('/api/v2/account/update-locale', {
         locale: validatedLocale,
       });
     });
@@ -174,7 +179,6 @@ export const useLanguageStore = defineStore('language', () => {
 
     // Actions
     init,
-    setupAsyncHandler,
     initializeLocale,
     determineLocale,
     updateLanguage,

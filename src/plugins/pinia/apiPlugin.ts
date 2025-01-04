@@ -18,9 +18,6 @@ export function apiPlugin(apiInstance?: AxiosInstance) {
     //   });
     // }
     //
-    //if (typeof store.setupAsyncHandler === 'function') {
-    //  store.setupAsyncHandler(apiInstance);
-    //}
 
     store.$api = api;
   };

@@ -1,10 +1,7 @@
 // stores/authStore.ts
-import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { responseSchemas } from '@/schemas/api';
 import { WindowService } from '@/services/window.service';
-import { createApi } from '@/utils/api';
-import type { AxiosInstance } from 'axios';
-import { defineStore } from 'pinia';
+import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
 
 /**
@@ -27,6 +24,36 @@ export const AUTH_CHECK_CONFIG = {
   MAX_FAILURES: 3,
   ENDPOINT: '/api/v2/authcheck',
 } as const;
+
+
+
+/**
+ * Type definition for AuthStore.
+ */
+type AuthStore = {
+  // State
+  isLoading: boolean;
+  isAuthenticated: boolean | null;
+  authCheckTimer: ReturnType<typeof setTimeout> | null;
+  failureCount: number | null;
+  lastCheckTime: number | null;
+  _initialized: boolean;
+
+  // Getters
+  needsCheck: boolean;
+  isInitialized: boolean;
+
+  // Actions
+  init: () => { needsCheck: boolean; isInitialized: boolean };
+  checkAuthStatus: () => Promise<boolean>;
+  refreshAuthState: () => Promise<boolean>;
+  logout: () => Promise<void>;
+  $scheduleNextCheck: () => void;
+  $stopAuthCheck: () => Promise<void>;
+  $dispose: () => Promise<void>;
+  $reset: () => void;
+  //$logout: () => void;
+} & PiniaCustomProperties;
 
 /**
  * Authentication store for managing user authentication state.
@@ -57,10 +84,6 @@ export const useAuthStore = defineStore('auth', () => {
   const lastCheckTime = ref<number | null>(null);
   const _initialized = ref(false);
 
-  // Private properties
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
-
   // Getters
   const needsCheck = computed((): boolean => {
     /**
@@ -74,38 +97,17 @@ export const useAuthStore = defineStore('auth', () => {
   const isInitialized = computed(() => _initialized.value);
 
   // Actions
-  function init(api?: AxiosInstance) {
+  function init(this: AuthStore) {
     if (_initialized.value) return { needsCheck, isInitialized };
-
-    setupAsyncHandler(api);
 
     isAuthenticated.value = WindowService.get('authenticated', false) ?? null;
 
     if (isAuthenticated.value) {
-      $scheduleNextCheck();
+      this.$scheduleNextCheck();
     }
 
     _initialized.value = true;
     return { needsCheck, isInitialized };
-  }
-
-  function _ensureAsyncHandler() {
-    if (!_errorHandler) setupAsyncHandler();
-  }
-
-  function setupAsyncHandler(
-    api: AxiosInstance = createApi(),
-    options: AsyncHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useAsyncHandler({
-      setLoading: (loading) => (isLoading.value = loading),
-      notify: options.notify,
-      log: options.log,
-      onError: () => {
-        //
-      },
-    });
   }
 
   /**
@@ -124,14 +126,12 @@ export const useAuthStore = defineStore('auth', () => {
    *
    * @returns Current authentication state
    */
-  async function checkAuthStatus() {
+  async function checkAuthStatus(this: AuthStore) {
     if (!isAuthenticated.value) return false;
 
-    _ensureAsyncHandler();
-
-    return await _errorHandler!
+    return await this.$errorHandler
       .withErrorHandling(async () => {
-        const response = await _api!.get(AUTH_CHECK_CONFIG.ENDPOINT);
+        const response = await this.$api.get(AUTH_CHECK_CONFIG.ENDPOINT);
         const validated = responseSchemas.checkAuth.parse(response.data);
 
         isAuthenticated.value = validated.details.authenticated;
@@ -143,7 +143,7 @@ export const useAuthStore = defineStore('auth', () => {
       .catch(() => {
         failureCount.value = (failureCount.value ?? 0) + 1;
         if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-          logout();
+          this.logout();
         }
         return false;
       });
@@ -153,9 +153,9 @@ export const useAuthStore = defineStore('auth', () => {
    * Forces an immediate auth check and reschedules next check.
    * Useful when the application needs to ensure fresh auth state.
    */
-  async function refreshAuthState() {
-    return checkAuthStatus().then(() => {
-      $scheduleNextCheck();
+  async function refreshAuthState(this: AuthStore) {
+    return this.checkAuthStatus().then(() => {
+      this.$scheduleNextCheck();
     });
   }
 
@@ -169,8 +169,8 @@ export const useAuthStore = defineStore('auth', () => {
    * The jitter is ±90 seconds, providing a good balance between
    * regular checks and load distribution.
    */
-  function $scheduleNextCheck() {
-    $stopAuthCheck();
+  function $scheduleNextCheck(this: AuthStore) {
+    this.$stopAuthCheck();
 
     if (!isAuthenticated.value) return;
 
@@ -178,8 +178,8 @@ export const useAuthStore = defineStore('auth', () => {
     const nextCheck = AUTH_CHECK_CONFIG.INTERVAL + jitter;
 
     authCheckTimer.value = setTimeout(async () => {
-      await checkAuthStatus(); // Make sure to await this
-      $scheduleNextCheck(); // Schedule next check after current one completes
+      await this.checkAuthStatus(); // Make sure to await this
+      this.$scheduleNextCheck(); // Schedule next check after current one completes
     }, nextCheck);
   }
 
@@ -187,7 +187,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Stops the periodic authentication check.
    * Clears the existing timeout and resets the authCheckTimer.
    */
-  async function $stopAuthCheck() {
+  async function $stopAuthCheck(this: AuthStore) {
     if (authCheckTimer.value !== null) {
       clearTimeout(authCheckTimer.value);
       authCheckTimer.value = null;
@@ -202,11 +202,9 @@ export const useAuthStore = defineStore('auth', () => {
    * - Clearing session storage
    * - Updating window state
    */
-  async function logout() {
-    await $stopAuthCheck();
-    // @ts-expect-error: $logout is added by a plugin
-    // eslint-disable-next-line no-undef
-    $logout();
+  async function logout(this: AuthStore) {
+    await this.$stopAuthCheck();
+    this.$logout();
   }
   /**
    * Disposes of the store, stopping the auth check.
@@ -216,11 +214,11 @@ export const useAuthStore = defineStore('auth', () => {
    * - Once a store is disposed of, it should not be used again.
    *
    */
-  async function $dispose() {
-    await $stopAuthCheck();
+  async function $dispose(this: AuthStore) {
+    await this.$stopAuthCheck();
   }
 
-  function $reset() {
+  function $reset(this: AuthStore) {
     isLoading.value = false;
     isAuthenticated.value = null;
     authCheckTimer.value = null;
@@ -244,7 +242,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Actions
     init,
-    setupAsyncHandler,
     checkAuthStatus,
     refreshAuthState,
     logout,
@@ -253,9 +250,5 @@ export const useAuthStore = defineStore('auth', () => {
     $stopAuthCheck,
     $dispose,
     $reset,
-
-    // Expose internal properties for testing
-    _getApi: () => _api,
-    _getAsyncHandler: () => _errorHandler,
   };
 });
