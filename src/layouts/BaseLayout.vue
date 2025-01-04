@@ -2,21 +2,13 @@
 
 <script setup lang="ts">
 import { computed, inject, ref, Ref } from 'vue';
-import { defineProps, withDefaults } from 'vue';
+import { defineProps } from 'vue';
 import type { LayoutProps } from '@/types/ui/layouts';
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import { useBrandingStore } from '@/stores/brandingStore';
 import { isColorValue } from '@/utils/color-utils';
-const props = withDefaults(defineProps<LayoutProps>(), {
-  authenticated: false,
-  colonel: false,
-  cust: undefined,
-  globalBanner: '',
-  hasGlobalBanner: false,
-  plansEnabled: false,
-  primaryColor: 'bg-brand-500',
-  supportHost: undefined,
-});
+
+const props = defineProps<LayoutProps>();
 
 const color = inject('color', ref(props.primaryColor)) as Ref<string>;
 const brandingStore = useBrandingStore();

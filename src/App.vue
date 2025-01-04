@@ -33,6 +33,8 @@ const defaultProps: LayoutProps = {
   globalBanner: windowProps.global_banner,
 };
 
+const layout = computed(() => { return route.meta.layout || QuietLayout });
+
 const layoutProps = computed(() => {
   // Merge defaults with any per-route overrides
   return {
@@ -54,7 +56,7 @@ const layoutProps = computed(() => {
     each route, without having to manually manage this in each individual
     page component. -->
   <Component
-  :is="QuietLayout"
+  :is="layout"
   :lang="locale"
   v-bind="layoutProps">
       <!-- The keep-alive wrapper here preserves the state of route components

@@ -25,12 +25,10 @@ export const AUTH_CHECK_CONFIG = {
   ENDPOINT: '/api/v2/authcheck',
 } as const;
 
-
-
 /**
  * Type definition for AuthStore.
  */
-type AuthStore = {
+export type AuthStore = {
   // State
   isLoading: boolean;
   isAuthenticated: boolean | null;

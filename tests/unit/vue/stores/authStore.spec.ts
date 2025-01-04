@@ -1,7 +1,8 @@
 // tests/unit/vue/stores/authStore.spec.ts
+import { apiPlugin } from '@/plugins/pinia/apiPlugin';
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { Customer, Plan } from '@/schemas/models';
-import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
+import { AUTH_CHECK_CONFIG, useAuthStore, type AuthStore} from '@/stores/authStore';
 import { createApi } from '@/utils/api';
 import { createTestingPinia } from '@pinia/testing';
 import axios from 'axios';
@@ -64,20 +65,24 @@ const mockCustomer: Customer = {
 describe('authStore', () => {
   let axiosMock: AxiosMockAdapter;
   let axiosInstance: ReturnType<typeof createApi>;
+  let store: AuthStore;
 
   beforeEach(() => {
-    // Create a fresh axios instance for testing
-    axiosInstance = createApi();
-    // Create the mock adapter with this instance
-    axiosMock = new AxiosMockAdapter(axiosInstance);
-
     const app = createApp({});
-
-    // `createTestingPinia()` creates a testing version of Pinia that mocks all
-    // actions by default. Use `createTestingPinia({ stubActions: false })` if
-    // you want to test actions. Otherwise they don't actually get called.
     const pinia = createTestingPinia({ stubActions: false });
+
     app.use(pinia);
+    setActivePinia(pinia);
+
+    // Apply plugins
+    pinia.use(apiPlugin);
+    pinia.use(logoutPlugin);
+
+    // Create the mock adapter for the axios instance used in the store
+    store = useAuthStore();
+    axiosMock = new AxiosMockAdapter(store.$api);
+
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
@@ -251,7 +256,6 @@ describe('authStore', () => {
     });
 
     it('handles proper error handler setup', () => {
-
       const errorHandler = store.$errorHandler;
       const api = store.$api;
 

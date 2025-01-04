@@ -2,9 +2,10 @@
 import HomepagePlansCTA from '@/components/ctas/HomepagePlansCTA.vue';
 import HomepageTaglines from '@/components/HomepageTaglines.vue';
 import SecretForm from '@/components/secrets/form/SecretForm.vue';
+import { WindowService } from '@/services/window.service';
 
-const authenticated = window.authenticated;
-const authenticationSettings = window.authentication;
+const authenticated = WindowService.get('authenticated', false);
+const authenticationSettings = WindowService.get('authentication', null);
 </script>
 
 <template>
@@ -15,7 +16,7 @@ const authenticationSettings = window.authentication;
     />
 
     <HomepagePlansCTA
-      v-if="authenticationSettings.signup"
+      v-if="authenticationSettings?.signup"
       class="mb-6"
     />
 

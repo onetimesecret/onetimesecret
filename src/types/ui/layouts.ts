@@ -3,28 +3,36 @@
 import { AuthenticationSettings, Customer } from '@/schemas/models';
 
 /**
- * Single interface for all layout properties.
- * Update as new fields become necessary.
+ * Core application configuration passed from server
  */
-export interface LayoutProps {
-  /* BaseLayout fields */
-  authenticated?: boolean;
-  colonel?: boolean;
+export interface WindowConfig {
+  authenticated: boolean;
+  colonel: boolean;
   cust?: Customer;
-  onetimeVersion?: string;
+  onetimeVersion: string;
   authentication?: AuthenticationSettings;
-  plansEnabled?: boolean;
-  supportHost?: string;
+  plansEnabled: boolean;
+  supportHost: string;
   globalBanner?: string;
   hasGlobalBanner?: boolean;
   primaryColor?: string;
-
-  /* Common UI toggles */
-  displayMasthead?: boolean;
-  displayNavigation?: boolean;
-  displayLinks?: boolean;
-  displayFeedback?: boolean;
-  displayVersion?: boolean;
-  displayPoweredBy?: boolean;
-  displayToggles?: boolean;
 }
+
+/**
+ * UI display configuration for layout components
+ */
+export interface LayoutDisplay {
+  displayMasthead: boolean;
+  displayNavigation: boolean;
+  displayLinks: boolean;
+  displayFeedback: boolean;
+  displayVersion: boolean;
+  displayPoweredBy: boolean;
+  displayToggles: boolean;
+}
+
+/**
+ * Single interface for all layout properties.
+ * Update as new fields become necessary.
+ */
+export type LayoutProps = Partial<WindowConfig & LayoutDisplay>;
