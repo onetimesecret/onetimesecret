@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
+import checker from 'vite-plugin-checker';
 //import vueDevTools from 'vite-plugin-vue-devtools';
 //import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
 import { DEBUG } from './src/utils/debug';
@@ -26,6 +27,10 @@ export default defineConfig({
   // - Static assets go in ./public
   // - Index.html should be in project root
   plugins: [
+    // re: order of plugins
+    // - Vue plugin should be early in the chain
+    // - Transformation/checking plugins follow framework plugins
+    // - Plugins that modify code should precede diagnostic plugins
     Vue({
       include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files
       template: {
@@ -62,6 +67,12 @@ export default defineConfig({
           isCustomElement: (tag) => tag.includes('altcha-'),
         },
       },
+    }),
+
+    // Enable type checking and linting w/o blocking hmr
+    checker({
+      typescript: true,
+      vueTsc: true,
     }),
 
     // Enable Vue Devtools
