@@ -29,10 +29,10 @@ const closeSettingsModal = () => {
 
 <template>
   <header class="bg-white dark:bg-gray-900">
-    <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
+    <div class="container mx-auto min-w-[320px] max-w-2xl p-4">{{props}}
       <div
         v-if="displayMasthead"
-        class="w-full">
+        class="w-full">{{props}}
         <div class="flex flex-col items-center justify-between sm:flex-row">
           <div class="mb-4 sm:mb-0">
             <router-link

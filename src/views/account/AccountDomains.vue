@@ -4,13 +4,14 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainsTable from '@/components/DomainsTable.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { WindowService } from '@/services/window.service';
-import { useDomainsStore } from '@/stores/domainsStore';
+import { useDomainsStore, type DomainsStore } from '@/stores/domainsStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import { computed, onMounted, ref } from 'vue';
+import type { Plan } from '@/schemas/models';
 
-const plan = WindowService.get('plan', null)
+const plan = ref<Plan>(WindowService.get('plan', null));
 
-const domainsStore = useDomainsStore();
+const domainsStore = useDomainsStore() as DomainsStore;
 const notifications = useNotificationsStore();
 
 const {
