@@ -22,7 +22,7 @@ const windowProps = WindowService.getMultiple({
 });
 
 const defaultProps: LayoutProps = {
-  authentication: windowProps.authentication,
+  authentication: windowProps.authentication ?? null,
   cust: windowProps.cust,
   authenticated: windowProps.authenticated,
   onetimeVersion: windowProps.ot_version,
@@ -37,7 +37,7 @@ const layoutProps = computed(() => {
   // Merge defaults with any per-route overrides
   return {
     ...defaultProps,
-    ...(route.meta.layoutProps || {}),
+     ...(route.meta.layoutProps || {}),
   } as LayoutProps;
 });
 </script>

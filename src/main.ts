@@ -2,24 +2,16 @@
 
 // Ensures modulepreload works in all browsers, improving
 // performance by preloading modules.
-import i18n, { setLanguage } from '@/i18n';
+import i18n from '@/i18n';
+import { initWithPlugins } from '@/plugins/pinia/initPlugin';
 import { ErrorHandlerPlugin } from '@/plugins';
-import { initWithPlugins } from '@/plugins/pinia';
-import { createAppRouter } from '@/router';
-import {
-  useAuthStore,
-  useDomainsStore,
-  useJurisdictionStore,
-  useLanguageStore,
-  useMetadataStore,
-} from '@/stores';
-import { AxiosInstance } from 'axios';
+import { DEBUG } from '@/utils/debug';
 import 'vite/modulepreload-polyfill';
-import { createApp, watch } from 'vue';
+import { createApp } from 'vue';
 
 import App from './App.vue';
 import './assets/style.css';
-import { createApi } from './utils/api';
+import { createAppRouter } from './router';
 
 /**
  * Initialize and mount the Vue application with proper language settings.
@@ -54,54 +46,12 @@ async function initializeApp() {
   app.use(pinia);
 
   // Core plugins
-  app.use(ErrorHandlerPlugin, {
-    debug: process.env.NODE_ENV === 'development',
-  });
+  app.use(ErrorHandlerPlugin, { debug: DEBUG });
+
   app.use(i18n);
   app.use(createAppRouter());
 
-  // Initialize core stores & language
-  const api = createApi();
-
-  // NOTE (Jan 3): Issue is here, comment out to remove brower console error.
-  // Continue replacing WindowProps with WindowService
-  initializeStores(api);
-
   app.mount('#app');
-}
-
-// Separate function to initialize stores
-function initializeStores(api: AxiosInstance) {
-  // Create stores in order of dependencies
-  const jurisdictionStore = useJurisdictionStore();
-  const authStore = useAuthStore();
-  const languageStore = useLanguageStore();
-  const metadataStore = useMetadataStore();
-  const domainsStore = useDomainsStore();
-
-  // Initialize stores in order
-  jurisdictionStore.init(window.regions);
-  authStore.init();
-
-  // Language initialization
-  languageStore.init();
-  const initialLocale = languageStore.getCurrentLocale;
-  setLanguage(initialLocale);
-  languageStore.setCurrentLocale(initialLocale);
-
-  // Set up watchers AFTER store initialization
-  watch(
-    () => languageStore.currentLocale,
-    async (newLocale) => {
-      if (newLocale) {
-        await setLanguage(newLocale);
-      }
-    }
-  );
-
-  // Initialize API-dependent stores last
-  metadataStore.setupErrorHandler(api);
-  domainsStore.setupErrorHandler(api);
 }
 
 // Start the application initialization process
