@@ -7,7 +7,7 @@ import { ref, type Ref } from 'vue';
 /**
  * Type definition for MetadataListStore.
  */
-type MetadataListStore = {
+export type MetadataListStore = {
   // State
   _initialized: boolean;
   isLoading: boolean;

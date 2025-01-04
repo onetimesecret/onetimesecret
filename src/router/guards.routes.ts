@@ -1,13 +1,13 @@
 // src/router/guards.ts
 
 import { WindowService } from '@/services/window.service';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore, type AuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
 
 export function setupRouterGuards(router: Router) {
   router.beforeEach(async (to: RouteLocationNormalized) => {
-    const authStore = useAuthStore();
+    const authStore = useAuthStore() as AuthStore;
     const languageStore = useLanguageStore();
 
     // Handle root path redirect for authenticated users
@@ -27,10 +27,15 @@ export function setupRouterGuards(router: Router) {
       // Only check if we need a fresh auth state
       if (authStore.needsCheck) {
         const isAuthenticated = await authStore.checkAuthStatus();
+        // TODO: When this check comes back false, we get redirected to /signin
+        // but if we sign in again, we get "already signed in".This is why if the
+        // window stays open I'll eventually be back on the sign in page.
         if (!isAuthenticated) {
+          console.debug('redirectToSignIn1', to);
           return redirectToSignIn(to);
         }
       } else if (!authStore.isAuthenticated) {
+        console.debug('redirectToSignIn2', to);
         return redirectToSignIn(to);
       }
 

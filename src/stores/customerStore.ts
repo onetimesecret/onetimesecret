@@ -11,7 +11,7 @@ const api = createApi();
 /**
  * Type definition for CustomerStore.
  */
-type CustomerStore = {
+export type CustomerStore = {
   // State
   isLoading: boolean;
   currentCustomer: Customer | null;

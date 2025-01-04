@@ -7,7 +7,7 @@ import { ref } from 'vue';
 /**
  * Type definition for BrandingStore.
  */
-type BrandingStore = {
+export type BrandingStore = {
   // State
   primaryColor: string;
   _initialized: boolean;

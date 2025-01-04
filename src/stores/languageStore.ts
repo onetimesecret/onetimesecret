@@ -25,7 +25,7 @@ interface StoreOptions {
 /**
  * Type definition for LanguageStore.
  */
-type LanguageStore = {
+export type LanguageStore = {
   // State
   isLoading: boolean;
   deviceLocale: string | null;

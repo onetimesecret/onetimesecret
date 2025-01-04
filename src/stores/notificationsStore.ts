@@ -8,7 +8,7 @@ type NotificationSeverity = 'success' | 'error' | 'info' | 'warning' | null;
 /**
  * Type definition for NotificationsStore.
  */
-type NotificationsStore = {
+export type NotificationsStore = {
   // State
   message: string;
   severity: NotificationSeverity;

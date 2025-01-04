@@ -17,7 +17,7 @@ export const METADATA_STATUS = {
 /**
  * Type definition for MetadataStore.
  */
-type MetadataStore = {
+export type MetadataStore = {
   // State
   isLoading: boolean;
   record: Metadata | null;

@@ -36,7 +36,7 @@ import { handleError, ref } from 'vue';
 /**
  * Type definition for CsrfStore.
  */
-type CsrfStore = {
+export type CsrfStore = {
   // State
   isLoading: boolean;
   shrimp: string;

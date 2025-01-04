@@ -14,7 +14,7 @@ import { computed, ref } from 'vue';
 /**
  * Custom type for the DomainsStore, including plugin-injected properties.
  */
-type DomainsStore = {
+export type DomainsStore = {
   isLoading: boolean;
   domains: CustomDomain[];
   initialized: boolean;

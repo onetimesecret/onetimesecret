@@ -22,7 +22,7 @@ import { computed, ref } from 'vue';
 /**
  * Type definition for JurisdictionStore.
  */
-type JurisdictionStore = {
+export type JurisdictionStore = {
   // State
   isLoading: boolean;
   enabled: boolean;

@@ -7,7 +7,7 @@ import { computed, ref } from 'vue';
 /**
  * Type definition for SecretStore.
  */
-type SecretStore = {
+export type SecretStore = {
   // State
   isLoading: boolean;
   record: Secret | null;

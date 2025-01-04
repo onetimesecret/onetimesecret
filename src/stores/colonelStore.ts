@@ -7,7 +7,7 @@ import { ref } from 'vue';
 /**
  * Type definition for ColonelStore.
  */
-type ColonelStore = {
+export type ColonelStore = {
   // State
   isLoading: boolean;
   pageData: ColonelData | null;
