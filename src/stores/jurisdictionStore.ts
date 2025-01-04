@@ -63,7 +63,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
     if (_initialized.value) return;
     let config: RegionsConfig | null;
 
-    config = WindowService.get('regions', null);
+    config = WindowService.get('regions');
 
     if (!config) {
       enabled.value = false;

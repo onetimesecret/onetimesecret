@@ -326,7 +326,7 @@ export default [
       ],
       // Enforce consistent line breaks in template elements
       'vue/html-closing-bracket-newline': [
-        'error',
+        'warn',
         {
           singleline: 'never',
           multiline: 'never',

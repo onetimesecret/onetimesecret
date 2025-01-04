@@ -1,34 +1,33 @@
 <script setup lang="ts">
-import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
-import { computed, ref } from 'vue';
+  import UpgradeIdentityModal from '@/components/modals/UpgradeIdentityModal.vue';
+  import { computed, ref } from 'vue';
 
-defineProps<{
-  ariaLabel: string;
-  to: string;
-  colonel?: boolean;
-}>();
+  defineProps<{
+    ariaLabel: string;
+    to: string;
+    colonel?: boolean;
+  }>();
 
-const showUpgradeNudge = computed(() => {
-  // Logic to determine if the user should see the upgrade nudge
-  // For example, check if the user is on a free plan
-  //return !cust.value.isPremium
-  return true;
-})
+  const showUpgradeNudge = computed(() => {
+    // Logic to determine if the user should see the upgrade nudge
+    // For example, check if the user is on a free plan
+    //return !cust.value.isPremium
+    return true;
+  });
 
-const isUpgradeModalOpen = ref(false)
+  const isUpgradeModalOpen = ref(false);
 
-const openUpgradeModal = () => {
-  isUpgradeModalOpen.value = true
-}
+  const openUpgradeModal = () => {
+    isUpgradeModalOpen.value = true;
+  };
 
-const closeUpgradeModal = () => {
-  isUpgradeModalOpen.value = false
-}
+  const closeUpgradeModal = () => {
+    isUpgradeModalOpen.value = false;
+  };
 
-const handleUpgrade = () => {
-  // Handle any additional logic here when the user has clicked the upgrade button.
-};
-
+  const handleUpgrade = () => {
+    // Handle any additional logic here when the user has clicked the upgrade button.
+  };
 </script>
 
 <template>
@@ -63,8 +62,7 @@ const handleUpgrade = () => {
                   attributeName="stop-color"
                   values="#EC4899; #A855F7; #EAB308; #EC4899"
                   dur="7s"
-                  repeatCount="indefinite"
-                />
+                  repeatCount="indefinite" />
               </stop>
               <stop
                 offset="100%"
@@ -73,8 +71,7 @@ const handleUpgrade = () => {
                   attributeName="stop-color"
                   values="#EAB308; #EC4899; #A855F7; #EAB308"
                   dur="5s"
-                  repeatCount="indefinite"
-                />
+                  repeatCount="indefinite" />
               </stop>
             </linearGradient>
           </defs>
@@ -89,8 +86,7 @@ const handleUpgrade = () => {
               M11.1 1.246A1 1 0 0112 2.2v4.8h4a1 1 0 01.82 1.573l-7.2 9.8A1 1 0 018 18v-5H3.8a1 1 0 01-.82-1.573l7.2-9.8a1 1 0 01.92-.381z;
               M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
               dur="10s"
-              repeatCount="indefinite"
-            />
+              repeatCount="indefinite" />
           </path>
         </svg>
       </button>
@@ -100,18 +96,15 @@ const handleUpgrade = () => {
       :is-open="isUpgradeModalOpen"
       to="/plans/identity"
       @close="closeUpgradeModal"
-      @upgrade="handleUpgrade"
-    />
+      @upgrade="handleUpgrade" />
   </div>
 </template>
 
-
 <style scoped>
-@media (prefers-reduced-motion: reduce) {
-
-  svg,
-  svg * {
-    animation: none !important;
+  @media (prefers-reduced-motion: reduce) {
+    svg,
+    svg * {
+      animation: none !important;
+    }
   }
-}
 </style>

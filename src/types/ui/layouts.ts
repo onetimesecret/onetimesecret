@@ -4,6 +4,10 @@ import { AuthenticationSettings, Customer } from '@/schemas/models';
 
 /**
  * Core application configuration passed from server
+ *
+ * @deprecated Components use WindowService to access this data
+ * now. Keeping for reference until all components are updated.
+ *
  */
 export interface WindowConfig {
   authenticated: boolean;
@@ -35,4 +39,4 @@ export interface LayoutDisplay {
  * Single interface for all layout properties.
  * Update as new fields become necessary.
  */
-export type LayoutProps = Partial<WindowConfig & LayoutDisplay>;
+export type LayoutProps = Partial<LayoutDisplay>;

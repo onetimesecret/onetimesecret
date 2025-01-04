@@ -20,7 +20,6 @@ import { computed } from 'vue';
 //
 // See: https://vuejs.org/guide/typescript/composition-api.html#props-default-values
 
-
 export interface Props {
   content: string; // Can contain HTML
   show: boolean;

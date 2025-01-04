@@ -1,16 +1,21 @@
 <!-- src/layouts/BaseLayout.vue -->
 
 <script setup lang="ts">
-import { computed, inject, ref, Ref } from 'vue';
-import { defineProps } from 'vue';
-import type { LayoutProps } from '@/types/ui/layouts';
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
+import { WindowService } from '@/services/window.service';
 import { useBrandingStore } from '@/stores/brandingStore';
+import type { LayoutProps } from '@/types/ui/layouts';
 import { isColorValue } from '@/utils/color-utils';
+import { computed, defineProps, ref } from 'vue';
 
-const props = defineProps<LayoutProps>();
+defineProps<LayoutProps>();
+const globalBanner = WindowService.get('global_banner');
+const hasGlobalBanner = computed(() => { return !!globalBanner });
 
-const color = inject('color', ref(props.primaryColor)) as Ref<string>;
+/* =============================== */
+/* TODO: PRIMARY COLOUR  */
+// const color = inject('color', ref(props.primaryColor)) as Ref<string>;
+const color = ref('#dc4a22');
 const brandingStore = useBrandingStore();
 
 const primaryColorClass = computed(() => {
@@ -27,22 +32,21 @@ const primaryColorStyle = computed(() => {
     ? { backgroundColor: color.value }
     : {};
 });
+/* =============================== */
+
 
 </script>
 
 <template>
   <div>
     <!-- All along the watch tower -->
-    <div
-      class="fixed left-0 top-0 z-50 h-1 w-full"
-      :class="primaryColorClass"
-      :style="primaryColorStyle"></div>
+    <div class="fixed left-0 top-0 z-50 h-1 w-full"
+         :class="primaryColorClass"
+         :style="primaryColorStyle"></div>
 
     <!-- Good morning Vietnam -->
-    <GlobalBroadcast
-      :show="hasGlobalBanner"
-      :content="globalBanner"
-    />
+    <GlobalBroadcast :show="hasGlobalBanner"
+                     :content="globalBanner" />
 
     <!-- Header content, Ramos territory -->
     <slot name="header"></slot>

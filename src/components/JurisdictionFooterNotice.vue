@@ -6,8 +6,23 @@ import { computed, ref } from 'vue';
 
 const jurisdictionStore = useJurisdictionStore();
 
-const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
-const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
+/* Vue 3 Reactivity Guide: Rules for Store Access
+ * ─────────────────────────────────────────
+ * ❌ Destructuring breaks reactivity chain:
+ *    const { getCurrentJurisdiction } = jurisdictionStore
+ *    <template>{{ getCurrentJurisdiction }}</template> => undefined
+ *
+ * ✓ Computed preserves reactive reference:
+ *    const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
+ *    <template>{{ currentJurisdiction }}</template> => {...}
+ *
+ * ✓ Direct store access maintains reactivity:
+ *    const jurisdictionStore = useJurisdictionStore()
+ *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
+ */
+const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
+const jurisdictions = computed(() => jurisdictionStore.getJurisdictions)
+
 const isOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 
@@ -24,6 +39,7 @@ useClickOutside(dropdownRef, closeDropdown);
 
 <template>
   <div
+    v-if="currentJurisdiction"
     ref="dropdownRef"
     class="relative inline-flex items-center space-x-2 rounded-full bg-gray-100 px-3
            py-1 text-base font-medium text-gray-500
