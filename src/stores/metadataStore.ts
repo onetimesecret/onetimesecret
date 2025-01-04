@@ -1,9 +1,9 @@
 // stores/metadataStore.ts
 import {
   createError,
-  ErrorHandlerOptions,
-  useErrorHandler,
-} from '@/composables/useErrorHandler';
+  AsyncHandlerOptions,
+  useAsyncHandler,
+} from '@/composables/useAsyncHandler';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { createApi } from '@/utils/api';
@@ -30,7 +30,7 @@ export const useMetadataStore = defineStore('metadata', () => {
 
   // Private store utilities
   let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
@@ -61,21 +61,21 @@ export const useMetadataStore = defineStore('metadata', () => {
     if (_initialized.value) return { isInitialized };
 
     _initialized.value = true;
-    setupErrorHandler(api);
+    setupAsyncHandler(api);
 
     return { isInitialized };
   }
 
-  function _ensureErrorHandler() {
-    if (!_errorHandler) setupErrorHandler();
+  function _ensureAsyncHandler() {
+    if (!_errorHandler) setupAsyncHandler();
   }
 
-  function setupErrorHandler(
+  function setupAsyncHandler(
     api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
+    options: AsyncHandlerOptions = {}
   ) {
     _api = api;
-    _errorHandler = useErrorHandler({
+    _errorHandler = useAsyncHandler({
       setLoading: (loading) => {
         isLoading.value = loading;
       },
@@ -85,7 +85,7 @@ export const useMetadataStore = defineStore('metadata', () => {
   }
 
   async function fetch(key: string) {
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       const response = await _api!.get(`/api/v2/private/${key}`);
@@ -97,7 +97,7 @@ export const useMetadataStore = defineStore('metadata', () => {
   }
 
   async function burn(key: string, passphrase?: string) {
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     if (!canBurn.value) {
       throw createError('Cannot burn this metadata', 'human', 'error');
@@ -136,7 +136,7 @@ export const useMetadataStore = defineStore('metadata', () => {
 
     // Actions
     init,
-    setupErrorHandler,
+    setupAsyncHandler,
     fetch,
     burn,
     $reset,

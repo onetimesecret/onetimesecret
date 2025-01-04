@@ -1,13 +1,13 @@
-// plugins/pinia/errorHandlingPlugin.ts
+// src/plugins/pinia/asyncErrorBoundary.ts
 
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { PiniaPluginContext } from 'pinia';
 import { markRaw } from 'vue';
 
-export function errorHandlingPlugin(options?: ErrorHandlerOptions) {
+export function asyncErrorBoundary(options?: AsyncHandlerOptions) {
   return ({ store }: PiniaPluginContext) => {
     store.$errorHandler = markRaw(
-      useErrorHandler({
+      useAsyncHandler({
         setLoading: (loading) => {
           if ('isLoading' in store) {
             store.isLoading = loading;

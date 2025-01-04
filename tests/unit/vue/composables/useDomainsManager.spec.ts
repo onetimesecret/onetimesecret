@@ -58,8 +58,8 @@ vi.mock('@/composables/useConfirmDialog', () => ({
   useConfirmDialog: () => mockDependencies.confirmDialog,
 }));
 
-vi.mock('@/composables/useErrorHandler', () => ({
-  useErrorHandler: () => mockDependencies.errorHandler,
+vi.mock('@/composables/useAsyncHandler', () => ({
+  useAsyncHandler: () => mockDependencies.errorHandler,
   createError: (message: string, type: string, severity: string) => ({
     message,
     type,

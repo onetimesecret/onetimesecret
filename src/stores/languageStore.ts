@@ -1,13 +1,13 @@
 // src/stores/languageStore.ts
 
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { z } from 'zod';
 
-//import { setLanguage } from '@/i18n';
+import { setLanguage } from '@/i18n';
 import { WindowService } from '@/services/window.service';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
@@ -37,7 +37,7 @@ export const useLanguageStore = defineStore('language', () => {
 
   // Private state
   let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
 
   // Getters
   const getDeviceLocale = computed(() => deviceLocale.value);
@@ -47,7 +47,7 @@ export const useLanguageStore = defineStore('language', () => {
 
   // Actions
   function init(api?: AxiosInstance, options?: StoreOptions) {
-    _ensureErrorHandler(api);
+    _ensureAsyncHandler(api);
 
     // Set device locale from options if provided
     if (options?.deviceLocale) {
@@ -59,23 +59,34 @@ export const useLanguageStore = defineStore('language', () => {
       storageKey.value = options.storageKey;
     }
 
+    setLanguage(getCurrentLocale.value);
+
+    watch(
+      () => currentLocale.value,
+      async (newLocale) => {
+        if (newLocale) {
+          await setLanguage(newLocale);
+        }
+      }
+    );
+
     return initializeLocale();
   }
 
-  function setupErrorHandler(
+  function setupAsyncHandler(
     api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
+    options: AsyncHandlerOptions = {}
   ) {
     _api = api;
-    _errorHandler = useErrorHandler({
+    _errorHandler = useAsyncHandler({
       setLoading: (loading) => (isLoading.value = loading),
       notify: options.notify,
       log: options.log,
     });
   }
 
-  function _ensureErrorHandler(api?: AxiosInstance) {
-    if (!_errorHandler) setupErrorHandler(api);
+  function _ensureAsyncHandler(api?: AxiosInstance) {
+    if (!_errorHandler) setupAsyncHandler(api);
   }
 
   function initializeLocale() {
@@ -163,7 +174,7 @@ export const useLanguageStore = defineStore('language', () => {
 
     // Actions
     init,
-    setupErrorHandler,
+    setupAsyncHandler,
     initializeLocale,
     determineLocale,
     updateLanguage,

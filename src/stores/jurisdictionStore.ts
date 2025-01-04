@@ -1,6 +1,6 @@
 // src/stores/jurisdictionStore.ts
 
-import { createError } from '@/composables/useErrorHandler';
+import { createError } from '@/composables/useAsyncHandler';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';

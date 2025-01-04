@@ -1,5 +1,5 @@
 // stores/authStore.ts
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { responseSchemas } from '@/schemas/api';
 import { WindowService } from '@/services/window.service';
 import { createApi } from '@/utils/api';
@@ -59,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Private properties
   let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
 
   // Getters
   const needsCheck = computed((): boolean => {
@@ -77,7 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
   function init(api?: AxiosInstance) {
     if (_initialized.value) return { needsCheck, isInitialized };
 
-    setupErrorHandler(api);
+    setupAsyncHandler(api);
 
     isAuthenticated.value = WindowService.get('authenticated', false) ?? null;
 
@@ -89,16 +89,16 @@ export const useAuthStore = defineStore('auth', () => {
     return { needsCheck, isInitialized };
   }
 
-  function _ensureErrorHandler() {
-    if (!_errorHandler) setupErrorHandler();
+  function _ensureAsyncHandler() {
+    if (!_errorHandler) setupAsyncHandler();
   }
 
-  function setupErrorHandler(
+  function setupAsyncHandler(
     api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
+    options: AsyncHandlerOptions = {}
   ) {
     _api = api;
-    _errorHandler = useErrorHandler({
+    _errorHandler = useAsyncHandler({
       setLoading: (loading) => (isLoading.value = loading),
       notify: options.notify,
       log: options.log,
@@ -127,7 +127,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function checkAuthStatus() {
     if (!isAuthenticated.value) return false;
 
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     return await _errorHandler!
       .withErrorHandling(async () => {
@@ -244,7 +244,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Actions
     init,
-    setupErrorHandler,
+    setupAsyncHandler,
     checkAuthStatus,
     refreshAuthState,
     logout,
@@ -256,6 +256,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Expose internal properties for testing
     _getApi: () => _api,
-    _getErrorHandler: () => _errorHandler,
+    _getAsyncHandler: () => _errorHandler,
   };
 });

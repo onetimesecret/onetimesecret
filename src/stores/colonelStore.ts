@@ -1,6 +1,6 @@
 // stores/colonelStore.ts
 
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { responseSchemas, type ColonelData } from '@/schemas/api';
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
@@ -15,22 +15,22 @@ export const useColonelStore = defineStore('colonel', () => {
 
   // Private store instance vars (closure based DI)
   let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
 
   // Internal utilities
-  function _ensureErrorHandler() {
-    if (!_errorHandler) setupErrorHandler();
+  function _ensureAsyncHandler() {
+    if (!_errorHandler) setupAsyncHandler();
   }
 
   /**
    * Initialize error handling with optional custom API client and options
    */
-  function setupErrorHandler(
+  function setupAsyncHandler(
     api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
+    options: AsyncHandlerOptions = {}
   ) {
     _api = api;
-    _errorHandler = useErrorHandler({
+    _errorHandler = useAsyncHandler({
       setLoading: (loading) => (isLoading.value = loading),
       notify: options.notify,
       log: options.log,
@@ -39,7 +39,7 @@ export const useColonelStore = defineStore('colonel', () => {
 
   // Actions
   async function fetch() {
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       const response = await _api!.get('/api/v2/colonel/dashboard');

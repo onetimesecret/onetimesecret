@@ -16,6 +16,11 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const position = ref<NotificationPosition>('bottom');
   const _initialized = ref(false);
 
+  function init() {
+    if (_initialized.value) return;
+    _initialized.value = true;
+  }
+
   /**
    * Display a notification message with specified settings
    * @param msg - The message to display
@@ -54,6 +59,8 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   return {
+    init,
+
     // State
     message,
     severity,

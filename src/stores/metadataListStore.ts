@@ -1,5 +1,5 @@
 // stores/metadataListStore.ts
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { responseSchemas } from '@/schemas/api/responses';
 import { createApi } from '@/utils/api';
@@ -22,23 +22,23 @@ export const useMetadataListStore = defineStore('metadataList', () => {
 
   // Internal references
   let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
 
   // Getters
   const recordCount = () => count.value;
   const initialized = () => _initialized.value;
 
   // Actions
-  function _ensureErrorHandler() {
-    if (!_errorHandler) setupErrorHandler();
+  function _ensureAsyncHandler() {
+    if (!_errorHandler) setupAsyncHandler();
   }
 
-  function setupErrorHandler(
+  function setupAsyncHandler(
     api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
+    options: AsyncHandlerOptions = {}
   ) {
     _api = api;
-    _errorHandler = useErrorHandler({
+    _errorHandler = useAsyncHandler({
       setLoading: (loading: boolean) => {
         isLoading.value = loading;
       },
@@ -48,7 +48,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   }
 
   async function fetchList() {
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       const response = await _api!.get('/api/v2/private/recent');
@@ -65,7 +65,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   async function refreshRecords(force = false) {
     if (!force && _initialized.value) return;
 
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       await fetchList();
@@ -100,7 +100,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     initialized,
 
     // Actions
-    setupErrorHandler,
+    setupAsyncHandler,
     fetchList,
     refreshRecords,
     $reset,

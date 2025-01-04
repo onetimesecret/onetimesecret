@@ -1,5 +1,5 @@
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
-import { createError, useErrorHandler } from '@/composables/useErrorHandler';
+import { createError, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs, type StoreGeneric } from 'pinia';
@@ -22,7 +22,7 @@ export function useDomainsManager() {
   const goBack = () => router.back();
   const { domains, isLoading } = storeToRefs(store as StoreGeneric);
   const error = ref<ApplicationError | null>(null); // Add local error state
-  const { withErrorHandling } = useErrorHandler({
+  const { withErrorHandling } = useAsyncHandler({
     onError: (e) => {
       error.value = e;
     },

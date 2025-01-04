@@ -3,11 +3,12 @@
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { PiniaPluginContext } from 'pinia';
-import { markRaw } from 'vue';
 
-export function apiPlugin(customApi?: AxiosInstance) {
+export function apiPlugin(apiInstance?: AxiosInstance) {
+  const api = apiInstance || createApi();
+
   return ({ store }: PiniaPluginContext) => {
-    const api = markRaw(customApi || createApi());
+    // const api = markRaw(;
 
     /* TODO: optional flags for shrimp interceptors and logging (e.g. like general access logs) */
     // if (enableLogging) {
@@ -16,6 +17,10 @@ export function apiPlugin(customApi?: AxiosInstance) {
     //     return config;
     //   });
     // }
+    //
+    //if (typeof store.setupAsyncHandler === 'function') {
+    //  store.setupAsyncHandler(apiInstance);
+    //}
 
     store.$api = api;
   };

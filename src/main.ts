@@ -4,7 +4,7 @@
 // performance by preloading modules.
 import i18n from '@/i18n';
 import { initWithPlugins } from '@/plugins/pinia/initPlugin';
-import { ErrorHandlerPlugin } from '@/plugins';
+import { GlobalErrorBoundary } from '@/plugins';
 import { DEBUG } from '@/utils/debug';
 import 'vite/modulepreload-polyfill';
 import { createApp } from 'vue';
@@ -46,7 +46,7 @@ async function initializeApp() {
   app.use(pinia);
 
   // Core plugins
-  app.use(ErrorHandlerPlugin, { debug: DEBUG });
+  app.use(GlobalErrorBoundary, { debug: DEBUG });
 
   app.use(i18n);
   app.use(createAppRouter());

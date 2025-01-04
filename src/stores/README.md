@@ -14,6 +14,7 @@ direct references or proper destructuring techniques.
 - **State Reset**: `$reset()` for reverting to initial state
 - **Batch Updates**: `$patch` for multiple changes
 - **State Subscriptions**: `$subscribe()` for change monitoring
+- **Plugins**: Extend store functionality with custom logic
 
 ### Store Requirements
 - All state properties must be returned in setup stores

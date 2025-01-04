@@ -1,5 +1,5 @@
 // src/stores/secretsStore.ts
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
 import { createApi } from '@/utils/api';
@@ -21,7 +21,7 @@ export const useSecretsStore = defineStore('secrets', () => {
 
   // Private properties
   let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
@@ -31,21 +31,21 @@ export const useSecretsStore = defineStore('secrets', () => {
     if (_initialized.value) return { isInitialized };
 
     _initialized.value = true;
-    setupErrorHandler(api);
+    setupAsyncHandler(api);
 
     return { isInitialized };
   }
 
-  function _ensureErrorHandler() {
-    if (!_errorHandler) setupErrorHandler();
+  function _ensureAsyncHandler() {
+    if (!_errorHandler) setupAsyncHandler();
   }
 
-  function setupErrorHandler(
+  function setupAsyncHandler(
     api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
+    options: AsyncHandlerOptions = {}
   ) {
     _api = api;
-    _errorHandler = useErrorHandler({
+    _errorHandler = useAsyncHandler({
       setLoading: (loading) => {
         isLoading.value = loading;
       },
@@ -61,7 +61,7 @@ export const useSecretsStore = defineStore('secrets', () => {
    * @returns Validated secret response
    */
   async function fetch(secretKey: string) {
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       const response = await _api!.get(`/api/v2/secret/${secretKey}`);
@@ -81,7 +81,7 @@ export const useSecretsStore = defineStore('secrets', () => {
    * @returns Validated secret response
    */
   async function reveal(secretKey: string, passphrase?: string) {
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       const response = await _api!.post<SecretResponse>(

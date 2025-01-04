@@ -1,5 +1,5 @@
 // stores/csrfStore.ts
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { responseSchemas } from '@/schemas/api/responses';
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
@@ -47,24 +47,24 @@ export const useCsrfStore = defineStore('csrf', () => {
 
   // Private state
   let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+  let _errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
 
   // Actions
   function init(api?: AxiosInstance) {
     shrimp.value = window.shrimp || '';
-    _ensureErrorHandler(api);
+    _ensureAsyncHandler(api);
   }
 
-  function _ensureErrorHandler(api?: AxiosInstance) {
-    if (!_errorHandler) setupErrorHandler(api);
+  function _ensureAsyncHandler(api?: AxiosInstance) {
+    if (!_errorHandler) setupAsyncHandler(api);
   }
 
-  function setupErrorHandler(
+  function setupAsyncHandler(
     api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
+    options: AsyncHandlerOptions = {}
   ) {
     _api = api;
-    _errorHandler = useErrorHandler({
+    _errorHandler = useAsyncHandler({
       setLoading: (loading) => (isLoading.value = loading),
       notify: options.notify,
       log: options.log,
@@ -80,7 +80,7 @@ export const useCsrfStore = defineStore('csrf', () => {
   }
 
   async function checkShrimpValidity() {
-    _ensureErrorHandler();
+    _ensureAsyncHandler();
 
     return await _errorHandler!.withErrorHandling(async () => {
       const response = await _api!('/api/v2/validate-shrimp', {

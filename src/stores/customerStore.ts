@@ -1,6 +1,6 @@
 // stores/customerStore.ts
 
-import { useErrorHandler } from '@/composables/useErrorHandler';
+import { useAsyncHandler } from '@/composables/useAsyncHandler';
 import { ApiError } from '@/schemas';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Customer } from '@/schemas/models/customer';
@@ -37,7 +37,7 @@ export const useCustomerStore = defineStore('customer', {
 
   actions: {
     handleError(error: unknown): ApiError {
-      const { handleError } = useErrorHandler();
+      const { handleError } = useAsyncHandler();
       this.error = handleError(error);
       return this.error;
     },

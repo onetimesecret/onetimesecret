@@ -1,1 +1,1 @@
-export { ErrorHandlerPlugin } from './core/errorHandler';
+export { GlobalErrorBoundary } from './core/globalErrorBoundary';

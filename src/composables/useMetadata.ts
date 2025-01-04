@@ -14,7 +14,7 @@ export function useMetadata(metadataKey: string) {
   const store = useMetadataStore();
 
   store.init();
-  store.setupErrorHandler(undefined, {
+  store.setupAsyncHandler(undefined, {
     notify: notifications.show,
     log: (error) => {
       notifications.show(error.message, 'error');

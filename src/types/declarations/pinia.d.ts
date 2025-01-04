@@ -1,83 +1,67 @@
-import type { ErrorHandler } from '@/composables/useErrorHandler';
+// types/declarations/pinia.d.ts
+
+import type { AsyncHandler } from '@/composables/useAsyncHandler';
 import type { AxiosInstance } from 'axios';
+import { ComputedRef, Ref } from 'vue';
 import 'pinia';
 
 /**
  * Store Architecture & Error Handling
  *
- * Our stores directly handle both state management and API calls because:
- * 1. Single Source of Truth - stores ARE our service layer
+ * Stores combine state management and API calls because:
+ * 1. Single Source of Truth - stores serve as the service layer
  * 2. Schema Integration - Zod handles validation and typing
- * 3. Practical Benefits - no artificial abstraction layers
+ * 3. Zero Abstraction - direct mapping of API to state
  *
- * Error Handling Pattern:
- * 1. Stores - focus on data operations, let errors propagate up
- * 2. Composables - handle errors, notifications, and user feedback
- * 3. Components - use composables for error handling
- *
- * This architecture provides:
- * - Clear boundaries between API and store state
- * - Natural type safety flow from schema to UI
- * - Focused, testable code with clear responsibilities
+ * Error Flow:
+ * - Stores propagate errors up
+ * - Composables handle errors and notifications
+ * - Components use composables for error handling
  */
-
 declare module 'pinia' {
   /**
-   *  Required reactive state properties that stores must include in their `state()`.
+   * Required properties injected into all stores
+   * Provides consistent API access, error handling, and lifecycle methods
    */
   export interface PiniaCustomProperties {
     $api: AxiosInstance;
-    $errorHandler: ErrorHandler;
+    $errorHandler: AsyncHandler;
     $logout: () => void;
-    $reset: () => void;
+
+    /**
+     * Store initialization method
+     * @param api Optional API instance override
+     * @returns Object containing initialization state
+     */
+    init?: (api?: AxiosInstance) => { isInitialized: ComputedRef<boolean> };
   }
 
   /**
-   * Required state properties for all stores.
-   * Each store must implement:
-   * - isLoading: to indicate async operation status
-   *
-   * @example
-   * ```ts
-   * interface StoreState {
-   *   isLoading: boolean;
-   *   // Store-specific state...
-   * }
-   * ```
+   * Base store options that all stores should implement
+   * Ensures consistent state management patterns
    */
-  export interface PiniaCustomStateProperties {
-    isLoading: boolean;
+  export interface DefineStoreOptionsBase<S, Store> {
+    _initialized?: Ref<boolean>;
+    isLoading?: Ref<boolean>;
   }
 }
 
 /**
- * Example store implementation:
- *
- *      export const useExampleStore = defineStore('example', {
- *        state: () => ({
- *          isLoading: false,
- *          error: null as ApiError | null,
- *          // other state...
- *        }),
- *
- *        actions: {
- *          handleError(error: unknown): ApiError {
- *            const { handleError } = useErrorHandler();
- *            this.error = handleError(error);
- *            return this.error;
- *          },
- *
- *          async someAction() {
- *            this.isLoading = true;
- *            try {
- *              // do something
- *            } catch (error) {
- *              this.handleError(error);
- *            } finally {
- *              this.isLoading = false;
- *            }
- *          }
- *        }
- *      });
- *
+ * Configuration options for Pinia plugins
+ * Enables customization of API, error handling, and logging behavior
  */
+export interface PiniaPluginOptions {
+  api?: AxiosInstance;
+  errorHandler?: AsyncHandlerOptions;
+  enableLogging?: boolean;
+}
+
+/**
+ * Interface for stores using the initialization pattern
+ * Ensures consistent implementation of loading and initialization state
+ */
+export interface InitializableStore {
+  _initialized: Ref<boolean>;
+  isLoading: Ref<boolean>;
+  init: (api?: AxiosInstance) => { isInitialized: ComputedRef<boolean> };
+}

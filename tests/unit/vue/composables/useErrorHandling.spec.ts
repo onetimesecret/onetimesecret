@@ -1,9 +1,9 @@
-// tests/unit/composables/useErrorHandler.spec.ts
-import { useErrorHandler } from '@/composables/useErrorHandler';
+// tests/unit/composables/useAsyncHandler.spec.ts
+import { useAsyncHandler } from '@/composables/useAsyncHandler';
 import { createError } from '@/schemas/errors/classifier';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('useErrorHandler', () => {
+describe('useAsyncHandler', () => {
   const mockOptions = {
     notify: vi.fn(),
     log: vi.fn(),
@@ -16,7 +16,7 @@ describe('useErrorHandler', () => {
 
   describe('loading state management', () => {
     it('manages loading state for successful operations', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const mockOperation = vi.fn().mockResolvedValue('success');
 
       await withErrorHandling(mockOperation);
@@ -27,7 +27,7 @@ describe('useErrorHandler', () => {
     });
 
     it('ensures loading state is cleared after error', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const mockOperation = vi.fn().mockRejectedValue(new Error('fail'));
 
       await expect(withErrorHandling(mockOperation)).rejects.toThrow();
@@ -39,7 +39,7 @@ describe('useErrorHandler', () => {
 
   describe('error classification', () => {
     it('classifies raw errors into ApplicationErrors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const mockOperation = vi.fn().mockRejectedValue(new Error('raw error'));
 
       await expect(withErrorHandling(mockOperation)).rejects.toMatchObject({
@@ -50,7 +50,7 @@ describe('useErrorHandler', () => {
     });
 
     it('preserves existing ApplicationErrors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const applicationError = createError('known error', 'human', 'warning');
       const mockOperation = vi.fn().mockRejectedValue(applicationError);
 
@@ -64,7 +64,7 @@ describe('useErrorHandler', () => {
 
   describe('user feedback', () => {
     it('notifies only for human errors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const humanError = createError('user message', 'human', 'warning');
       const mockOperation = vi.fn().mockRejectedValue(humanError);
 
@@ -74,7 +74,7 @@ describe('useErrorHandler', () => {
     });
 
     it('logs but does not notify for technical errors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const technicalError = createError('system error', 'technical', 'error');
       const mockOperation = vi.fn().mockRejectedValue(technicalError);
 
@@ -93,7 +93,7 @@ describe('useErrorHandler', () => {
         log: vi.fn(),
         setLoading: vi.fn(),
       };
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const humanError = createError('user message', 'human', 'warning');
       const mockOperation = vi.fn().mockRejectedValue(humanError);
 
@@ -104,7 +104,7 @@ describe('useErrorHandler', () => {
 
   describe('error classification behavior', () => {
     it('correctly identifies human errors for notification', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const humanErrors = [
         createError('user message 1', 'human', 'warning'),
         createError('user message 2', 'human', 'error'),
@@ -122,7 +122,7 @@ describe('useErrorHandler', () => {
     });
 
     it('correctly identifies technical errors for suppressing notifications', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const technicalErrors = [
         createError('system error', 'technical', 'error'),
         new TypeError('type error'),
@@ -138,7 +138,7 @@ describe('useErrorHandler', () => {
     });
 
     it('handles various non-error throwables consistently', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const throwables = ['string error', 123, { custom: 'error' }, null, undefined];
 
       for (const throwable of throwables) {
@@ -154,7 +154,7 @@ describe('useErrorHandler', () => {
     });
 
     it('preserves error details when classifying ApplicationErrors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const originalError = createError('known error', 'human', 'warning', {
         code: 'VALIDATION_ERROR',
         field: 'email',
@@ -173,7 +173,7 @@ describe('useErrorHandler', () => {
     });
 
     it('ensures classified errors maintain instanceof Error', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const mockOperation = vi.fn().mockRejectedValue('string error');
 
       try {
@@ -188,7 +188,7 @@ describe('useErrorHandler', () => {
 
   describe('error propagation', () => {
     it('preserves stack traces when classifying errors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const originalError = new Error('original error');
       const mockOperation = vi.fn().mockRejectedValue(originalError);
 
@@ -202,7 +202,7 @@ describe('useErrorHandler', () => {
     });
 
     it('maintains error chain for nested operations', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const innerOp = () => Promise.reject(new Error('inner error'));
       const outerOp = async () => {
         try {
@@ -217,7 +217,7 @@ describe('useErrorHandler', () => {
     });
 
     it('maintains error context through multiple handling layers', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
 
       const level3 = () => Promise.reject(createError('db error', 'technical'));
       const level2 = async () => {
@@ -254,7 +254,7 @@ describe('useErrorHandler', () => {
 
   describe('operation handling', () => {
     it('allows successful operations to pass through unchanged', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const expectedResult = { data: 'success' };
       const mockOperation = vi.fn().mockResolvedValue(expectedResult);
 
@@ -263,7 +263,7 @@ describe('useErrorHandler', () => {
     });
 
     it('handles async operations that return undefined', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const mockOperation = vi.fn().mockResolvedValue(undefined);
 
       const result = await withErrorHandling(mockOperation);
@@ -271,7 +271,7 @@ describe('useErrorHandler', () => {
     });
 
     it('handles synchronous errors in async operations', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const mockOperation = vi.fn().mockImplementation(() => {
         throw new Error('sync error');
       });
@@ -282,7 +282,7 @@ describe('useErrorHandler', () => {
 
   describe('optional dependencies', () => {
     it('functions without notification handler', async () => {
-      const { withErrorHandling } = useErrorHandler({
+      const { withErrorHandling } = useAsyncHandler({
         log: mockOptions.log,
         setLoading: mockOptions.setLoading,
       });
@@ -294,7 +294,7 @@ describe('useErrorHandler', () => {
     });
 
     it('functions without logging handler', async () => {
-      const { withErrorHandling } = useErrorHandler({
+      const { withErrorHandling } = useAsyncHandler({
         notify: mockOptions.notify,
         setLoading: mockOptions.setLoading,
       });
@@ -305,7 +305,7 @@ describe('useErrorHandler', () => {
     });
 
     it('functions without loading state handler', async () => {
-      const { withErrorHandling } = useErrorHandler({
+      const { withErrorHandling } = useAsyncHandler({
         notify: mockOptions.notify,
         log: mockOptions.log,
       });
@@ -318,7 +318,7 @@ describe('useErrorHandler', () => {
 
   describe('API operation scenarios', () => {
     it('handles API timeout errors appropriately', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const timeoutError = new Error('Request timeout');
       timeoutError.name = 'TimeoutError';
       const mockApiCall = vi.fn().mockRejectedValue(timeoutError);
@@ -332,7 +332,7 @@ describe('useErrorHandler', () => {
     });
 
     it('handles API validation errors as human errors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const validationError = createError('Invalid email format', 'human', 'warning', {
         field: 'email',
       });
@@ -347,7 +347,7 @@ describe('useErrorHandler', () => {
     });
 
     it('manages loading state through entire API call duration', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       let isLoadingDuringCall = false;
 
       const mockApiCall = vi.fn().mockImplementation(async () => {
@@ -365,7 +365,7 @@ describe('useErrorHandler', () => {
 
   describe('API error notification strategies', () => {
     it('notifies users of recoverable API errors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const recoverableErrors = [
         createError('Your session has expired, please login again', 'human', 'warning'),
         createError('This file is too large, max size is 5MB', 'human', 'warning'),
@@ -384,7 +384,7 @@ describe('useErrorHandler', () => {
     });
 
     it('suppresses notifications for network/infrastructure errors', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const technicalErrors = [
         new TypeError('Failed to fetch'), // Browser network error
         createError('ECONNREFUSED', 'technical'), // Server connection refused
@@ -402,7 +402,7 @@ describe('useErrorHandler', () => {
     });
 
     it('handles API rate limiting as a human error', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const rateLimitError = createError(
         'Too many requests, please try again in 5 minutes',
         'human',
@@ -421,7 +421,7 @@ describe('useErrorHandler', () => {
 
   describe('loading state management during API calls', () => {
     it('handles rapid successive API calls correctly', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const mockApiCall1 = vi
         .fn()
         .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 50)));
@@ -446,7 +446,7 @@ describe('useErrorHandler', () => {
     });
 
     it('maintains loading state during retries', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       let attempts = 0;
       const mockApiCall = vi.fn().mockImplementation(async () => {
         attempts++;
@@ -474,7 +474,7 @@ describe('useErrorHandler', () => {
     });
 
     it('properly resets loading state after unexpected promise behavior', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const mockApiCall = vi.fn().mockImplementation(() => {
         // This creates an invalid async operation
         return Promise.reject(createError('Invalid operation', 'technical'));
@@ -491,7 +491,7 @@ describe('useErrorHandler', () => {
     });
 
     it('handles cancellation of API calls gracefully', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const abortController = new AbortController();
       const mockApiCall = vi.fn().mockImplementation(() => {
         return new Promise((_, reject) => {
@@ -510,7 +510,7 @@ describe('useErrorHandler', () => {
 
     // Add to "loading state management during API calls" describe block
     it('handles overlapping async operations correctly', async () => {
-      const { withErrorHandling } = useErrorHandler(mockOptions);
+      const { withErrorHandling } = useAsyncHandler(mockOptions);
       const slowOp = vi
         .fn()
         .mockImplementation(

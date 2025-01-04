@@ -1,5 +1,5 @@
 // src/stores/domainsStore.ts
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { BrandSettings, CustomDomain } from '@/schemas/models';
@@ -20,41 +20,29 @@ export const useDomainsStore = defineStore('domains', () => {
   const domains = ref<CustomDomain[]>([]);
   const _initialized = ref(false);
 
-  // Private store instance vars (closure based DI)
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
+  let $errorHandler: ReturnType<typeof useAsyncHandler> | null = null;
 
   // Getters
+  const isInitialized = computed(() => _initialized.value);
   const recordCount = computed(() => domains.value.length);
 
-  // Internal utilities
-  function _ensureErrorHandler() {
-    if (!_errorHandler) setupErrorHandler();
+  function init(api?: AxiosInstance) {
+    if (_initialized.value) return { isInitialized };
+
+    _initialized.value = true;
+
+
+    return { isInitialized };
   }
 
-  /**
-   * Initialize error handling with optional custom API client and options
-   */
-  function setupErrorHandler(
-    api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useErrorHandler({
-      setLoading: (loading) => (isLoading.value = loading),
-      notify: options.notify,
-      log: options.log,
-    });
-  }
 
   /**
    * Add a new custom domain
    */
   async function addDomain(domain: string) {
-    _ensureErrorHandler();
 
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.post('/api/v2/account/domains/add', { domain });
+    return await $errorHandler!.withErrorHandling(async () => {
+      const response = await $api!.post('/api/v2/account/domains/add', { domain });
       const validated = responseSchemas.customDomain.parse(response.data);
       domains.value.push(validated.record);
       return validated.record;
@@ -66,10 +54,9 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   async function refreshRecords() {
     if (_initialized.value) return;
-    _ensureErrorHandler();
 
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.get('/api/v2/account/domains');
+    return await $errorHandler!.withErrorHandling(async () => {
+      const response = await $api!.get('/api/v2/account/domains');
       const validated = responseSchemas.customDomainList.parse(response.data);
       domains.value = validated.records;
       _initialized.value = true;
@@ -84,10 +71,9 @@ export const useDomainsStore = defineStore('domains', () => {
     domain: string,
     brandUpdate: UpdateDomainBrandRequest
   ) {
-    _ensureErrorHandler();
 
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.put(
+    return await $errorHandler.withErrorHandling(async () => {
+      const response = await $api!.put(
         `/api/v2/account/domains/${domain}/brand`,
         brandUpdate
       );
@@ -105,10 +91,9 @@ export const useDomainsStore = defineStore('domains', () => {
    * Delete a domain by name
    */
   async function deleteDomain(domainName: string) {
-    _ensureErrorHandler();
 
-    return await _errorHandler!.withErrorHandling(async () => {
-      await _api!.post(`/api/v2/account/domains/${domainName}/remove`);
+    return await $errorHandler!.withErrorHandling(async () => {
+      await $api!.post(`/api/v2/account/domains/${domainName}/remove`);
       domains.value = domains.value.filter(
         (domain) => domain.display_domain !== domainName
       );
@@ -119,10 +104,9 @@ export const useDomainsStore = defineStore('domains', () => {
    * Get brand settings for a domain
    */
   async function getBrandSettings(domain: string) {
-    _ensureErrorHandler();
 
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.get(`/api/v2/account/domains/${domain}/brand`);
+    return await $errorHandler!.withErrorHandling(async () => {
+      const response = await $api!.get(`/api/v2/account/domains/${domain}/brand`);
       return responseSchemas.brandSettings.parse(response.data);
     });
   }
@@ -131,10 +115,9 @@ export const useDomainsStore = defineStore('domains', () => {
    * Update brand settings for a domain
    */
   async function updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
-    _ensureErrorHandler();
 
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.put(`/api/v2/account/domains/${domain}/brand`, {
+    return await $errorHandler!.withErrorHandling(async () => {
+      const response = await $api!.put(`/api/v2/account/domains/${domain}/brand`, {
         brand: settings,
       });
       return responseSchemas.brandSettings.parse(response.data);
@@ -145,10 +128,9 @@ export const useDomainsStore = defineStore('domains', () => {
    * Update an existing domain
    */
   async function updateDomain(domain: CustomDomain) {
-    _ensureErrorHandler();
 
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.put(
+    return await $errorHandler!.withErrorHandling(async () => {
+      const response = await $api!.put(
         `/api/v2/account/domains/${domain.display_domain}`,
         domain
       );
@@ -177,6 +159,8 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   return {
+    init,
+
     // State
     isLoading,
     domains,
@@ -186,7 +170,7 @@ export const useDomainsStore = defineStore('domains', () => {
     recordCount,
 
     // Actions
-    setupErrorHandler,
+    setupAsyncHandler,
     $reset,
     addDomain,
     refreshRecords,

@@ -1,6 +1,6 @@
-// src/plugins/core/errorHandler.ts
-
-import { ErrorHandlerOptions } from '@/composables/useErrorHandler';
+// src/plugins/core/globalErrorBoundary.ts
+//
+import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { classifyError, isOfHumanInterest } from '@/schemas/errors/classifier';
 import { loggingService } from '@/services/logging';
 import type { App, Plugin } from 'vue';
@@ -11,10 +11,10 @@ import type { App, Plugin } from 'vue';
  *
  * @description Provides a centralized error handling mechanism for the entire Vue application
  * @param {App} app - Vue application instance
- * @param {ErrorHandlerOptions} [options={}] - Plugin options
+ * @param {AsyncHandlerOptions} [options={}] - Plugin options
  */
-export const ErrorHandlerPlugin: Plugin = {
-  install(app: App, options: ErrorHandlerOptions = {}) {
+export const GlobalErrorBoundary: Plugin = {
+  install(app: App, options: AsyncHandlerOptions = {}) {
     /**
      * Vue 3 global error handler
      *
@@ -34,7 +34,7 @@ export const ErrorHandlerPlugin: Plugin = {
       }
 
       if (options.debug) {
-        console.debug('[ErrorHandler]', { error, instance, info });
+        console.debug('[AsyncHandler]', { error, instance, info });
       }
     };
   },

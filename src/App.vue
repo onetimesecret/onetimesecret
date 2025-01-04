@@ -22,7 +22,7 @@ const windowProps = WindowService.getMultiple({
 });
 
 const defaultProps: LayoutProps = {
-  authentication: windowProps.authentication ?? null,
+  authentication: windowProps.authentication,
   cust: windowProps.cust,
   authenticated: windowProps.authenticated,
   onetimeVersion: windowProps.ot_version,
