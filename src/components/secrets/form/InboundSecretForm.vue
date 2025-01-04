@@ -15,7 +15,7 @@ withDefaults(defineProps<Props>(), {
   enabled: true,
 })
 
-const incomingRecipient = WindowService.get('incoming_recipient', null);
+const incomingRecipient = WindowService.get('incoming_recipient');
 
 
 </script>

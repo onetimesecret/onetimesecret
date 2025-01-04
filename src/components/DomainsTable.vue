@@ -7,7 +7,7 @@ import { MenuItem } from '@headlessui/vue';
 import { Icon } from '@iconify/vue';
 import { formatDistanceToNow } from 'date-fns';
 
-const cust = WindowService.get('cust', null); // Used for feature flags
+const cust = WindowService.get('cust'); // Used for feature flags
 
 defineProps<{
   domains: CustomDomain[];

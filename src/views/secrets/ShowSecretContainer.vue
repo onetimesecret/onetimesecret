@@ -13,10 +13,10 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const domainStrategy = WindowService.get('domain_strategy', null);
-const displayDomain = WindowService.get('display_domain', null);
-const domainId = WindowService.get('domain_id', null);
-const siteHost = WindowService.get('site_host', null);
+const domainStrategy = WindowService.get('domain_strategy');
+const displayDomain = WindowService.get('display_domain');
+const domainId = WindowService.get('domain_id');
+const siteHost = WindowService.get('site_host');
 
 const currentComponent = computed(() => {
   console.debug('[ShowSecretContainer] meta=', props.secretKey, domainStrategy)

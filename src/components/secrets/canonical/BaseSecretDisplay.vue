@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { WindowService } from '@/services/window.service';
 
-const siteHost = WindowService.get('site_host', null);
+const siteHost = WindowService.get('site_host');
 
 interface Props {
   displayPoweredBy: boolean;

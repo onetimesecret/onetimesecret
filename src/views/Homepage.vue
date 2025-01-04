@@ -5,7 +5,7 @@ import SecretForm from '@/components/secrets/form/SecretForm.vue';
 import { WindowService } from '@/services/window.service';
 
 const authenticated = WindowService.get('authenticated', false);
-const authenticationSettings = WindowService.get('authentication', null);
+const authenticationSettings = WindowService.get('authentication');
 </script>
 
 <template>

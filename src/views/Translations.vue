@@ -7,7 +7,7 @@ import translations from '@/sources/translations.json';
 import { useLanguageStore } from '@/stores/languageStore';
 
 const languageStore = useLanguageStore();
-const cust = WindowService.get('cust', null);
+const cust = WindowService.get('cust');
 
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {

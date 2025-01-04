@@ -7,7 +7,7 @@ import SecretFormDrawer from './SecretFormDrawer.vue';
 import { WindowService } from '@/services/window.service';
 
 // TODO; Was WindowService.getMultiple(['plan', 'secret_options']);
-const plan = WindowService.get('plan', null);
+const plan = WindowService.get('plan');
 const secretOptions = WindowService.get('secret_options', {
   ttl: 7200,
   recipient: '',

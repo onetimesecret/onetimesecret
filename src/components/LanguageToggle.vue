@@ -12,7 +12,7 @@ const emit = defineEmits(['localeChanged']);
 const languageStore = useLanguageStore();
 const supportedLocales = languageStore.getSupportedLocales;
 
-const cust = WindowService.get('cust', null);
+const cust = WindowService.get('cust');
 
 const selectedLocale = ref(languageStore.determineLocale(cust?.value?.locale));
 

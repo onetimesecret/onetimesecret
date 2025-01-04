@@ -3,7 +3,7 @@
 import {
   AuthenticationSettings,
   AvailablePlans,
-  BrokenBrandSettings,
+  BrandSettings,
   Customer,
   Plan,
   RegionsConfig,
@@ -80,5 +80,5 @@ export interface OnetimeWindow {
   domain_strategy: string;
   domain_id: string;
   display_domain: string;
-  domain_branding: BrokenBrandSettings;
+  domain_branding: BrandSettings;
 }

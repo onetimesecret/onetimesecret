@@ -68,6 +68,6 @@ function redirectToSignIn(from: RouteLocationNormalized) {
  * allow us to drop-in a request to the server when we need to.
  */
 async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
-  const cust = WindowService.get('cust', null);
+  const cust = WindowService.get('cust');
   return { locale: cust?.locale };
 }
