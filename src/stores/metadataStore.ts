@@ -75,7 +75,7 @@ export const useMetadataStore = defineStore('metadata', () => {
   }
 
   async function fetch(this: MetadataStore, key: string) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.get(`/api/v2/private/${key}`);
       const validated = responseSchemas.metadata.parse(response.data);
       record.value = validated.record;
@@ -89,7 +89,7 @@ export const useMetadataStore = defineStore('metadata', () => {
       throw createError('Cannot burn this metadata', 'human', 'error');
     }
 
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.post(`/api/v2/private/${key}/burn`, {
         passphrase,
         continue: true,

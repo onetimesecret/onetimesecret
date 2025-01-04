@@ -43,7 +43,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   const initialized = () => _initialized.value;
 
   async function fetchList(this: MetadataListStore) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.get('/api/v2/private/recent');
       const validated = responseSchemas.metadataList.parse(response.data);
 
@@ -58,7 +58,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   async function refreshRecords(this: MetadataListStore, force = false) {
     if (!force && _initialized.value) return;
 
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       await this.fetchList();
       _initialized.value = true;
     });

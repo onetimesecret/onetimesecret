@@ -22,7 +22,7 @@ const mockDependencies: MockDependencies = {
   confirmDialog: vi.fn(),
   errorHandler: {
     handleError: vi.fn(),
-    withErrorHandling: vi.fn(),
+    wrap: vi.fn(),
     createError: vi.fn((message: string, type: string, severity: string) => ({
       message,
       type,
@@ -75,9 +75,7 @@ describe('useDomainsManager', () => {
     // Reset reactive refs
     mockDependencies.domainsStore.error.value = null;
     mockDependencies.domainsStore.isLoading.value = false;
-    mockDependencies.errorHandler.withErrorHandling.mockImplementation(
-      async (fn) => await fn()
-    );
+    mockDependencies.errorHandler.wrap.mockImplementation(async (fn) => await fn());
   });
 
   describe('domain addition', () => {
@@ -105,17 +103,15 @@ describe('useDomainsManager', () => {
       describe('error handling', () => {
         it('handles API errors', async () => {
           const apiError = new Error('API Error');
-          // Setup withErrorHandling to return null on error
-          mockDependencies.errorHandler.withErrorHandling.mockImplementation(
-            async (fn) => {
-              try {
-                return await fn();
-              } catch (error) {
-                mockDependencies.errorHandler.handleError(error);
-                return null;
-              }
+          // Setup wrap to return null on error
+          mockDependencies.errorHandler.wrap.mockImplementation(async (fn) => {
+            try {
+              return await fn();
+            } catch (error) {
+              mockDependencies.errorHandler.handleError(error);
+              return null;
             }
-          );
+          });
           mockDependencies.domainsStore.addDomain.mockRejectedValueOnce(apiError);
 
           const { handleAddDomain } = useDomainsManager();
@@ -280,7 +276,7 @@ describe('useDomainsManager', () => {
 
     // Gnarly test
     it('handles API errors appropriately', async () => {
-      mockDependencies.errorHandler.withErrorHandling.mockImplementation(async (fn) => {
+      mockDependencies.errorHandler.wrap.mockImplementation(async (fn) => {
         try {
           return await fn();
         } catch (err) {

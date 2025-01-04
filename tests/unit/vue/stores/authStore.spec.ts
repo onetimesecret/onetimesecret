@@ -2,7 +2,7 @@
 import { apiPlugin } from '@/plugins/pinia/apiPlugin';
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { Customer, Plan } from '@/schemas/models';
-import { AUTH_CHECK_CONFIG, useAuthStore, type AuthStore} from '@/stores/authStore';
+import { AUTH_CHECK_CONFIG, useAuthStore, type AuthStore } from '@/stores/authStore';
 import { createApi } from '@/utils/api';
 import { createTestingPinia } from '@pinia/testing';
 import axios from 'axios';
@@ -256,12 +256,12 @@ describe('authStore', () => {
     });
 
     it('handles proper error handler setup', () => {
-      const errorHandler = store.$errorHandler;
+      const errorHandler = store.$asyncHandler;
       const api = store.$api;
 
       expect(errorHandler).not.toBeNull();
       expect(api).not.toBeNull();
-      expect(typeof errorHandler?.withErrorHandling).toBe('function');
+      expect(typeof errorHandler?.wrap).toBe('function');
     });
 
     it('properly disposes resources and listeners', async () => {
@@ -639,7 +639,7 @@ describe('authStore', () => {
       store.$patch({ isAuthenticated: true });
 
       const errorHandler = store._getAsyncHandler();
-      const errorHandlerSpy = vi.spyOn(errorHandler!, 'withErrorHandling');
+      const errorHandlerSpy = vi.spyOn(errorHandler!, 'wrap');
 
       axiosMock.onGet('/api/v2/authcheck').networkError();
 

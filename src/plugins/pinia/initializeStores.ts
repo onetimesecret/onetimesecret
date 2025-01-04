@@ -8,12 +8,12 @@ import { PiniaPluginContext } from 'pinia';
 //     queueMicrotask(() => {
 //       if (typeof store.init === 'function') {
 //         // Verify all required properties are available
-//         if (!store.$api || !store.$errorHandler) {
+//         if (!store.$api || !store.$asyncHandler) {
 //           console.warn(
 //             `[Store ${store.$id}] Missing required properties before initialization:`,
 //             {
 //               hasApi: !!store.$api,
-//               hasAsyncHandler: !!store.$errorHandler,
+//               hasAsyncHandler: !!store.$asyncHandler,
 //             }
 //           );
 //           return;
@@ -30,7 +30,7 @@ export function initializeStores() {
     // console.debug(`[InitializeStores0] Initializing store: ${store.$id}`);
     // console.debug(`[InitializeStores1] Preparing to initialize store: ${store.$id}`, {
     //   $api: store.$api,
-    //   $errorHandler: store.$errorHandler,
+    //   $asyncHandler: store.$asyncHandler,
     //   $logout: store.$logout,
     //   init: store.init,
     // });
@@ -38,7 +38,7 @@ export function initializeStores() {
     queueMicrotask(() => {
       // console.debug(` -> Deferred check for ${store.$id}`, {
       //   $api: store.$api,
-      //   $errorHandler: store.$errorHandler,
+      //   $asyncHandler: store.$asyncHandler,
       //   $logout: store.$logout,
       // });
 
@@ -47,7 +47,7 @@ export function initializeStores() {
 
         // console.debug(`[InitializeStores4] Post-init state for ${store.$id}`, {
         //   $api: store.$api,
-        //   $errorHandler: store.$errorHandler,
+        //   $asyncHandler: store.$asyncHandler,
         //   $logout: store.$logout,
         // });
       }

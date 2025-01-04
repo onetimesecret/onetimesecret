@@ -10,7 +10,7 @@ export interface MockDependencies {
   confirmDialog: Mock;
   errorHandler: {
     handleError: Mock;
-    withErrorHandling: Mock;
+    wrap: Mock;
     createError: Mock;
   };
   domainsStore: {

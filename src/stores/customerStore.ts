@@ -79,9 +79,9 @@ export const useCustomerStore = defineStore('customer', () => {
     // Abort any pending request before starting a new one
     this.abort();
 
-    const { withErrorHandling } = useAsyncHandler();
+    const { wrap } = useAsyncHandler();
 
-    return await withErrorHandling(async () => {
+    return await wrap(async () => {
       abortController.value = new AbortController();
       const response = await api.get('/api/v2/account/customer', {
         signal: abortController.value.signal,
@@ -101,9 +101,9 @@ export const useCustomerStore = defineStore('customer', () => {
       // Use handleError instead of throwing directly
       return createError('No current customer to update', 'human', 'error');
     }
-    const { withErrorHandling } = useAsyncHandler();
+    const { wrap } = useAsyncHandler();
 
-    withErrorHandling(async () => {
+    wrap(async () => {
       const response = await api.put(
         `/api/v2/account/customer/${currentCustomer?.value?.custid}`,
         updates

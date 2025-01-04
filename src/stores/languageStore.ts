@@ -69,7 +69,6 @@ export const useLanguageStore = defineStore('language', () => {
 
   // Actions
   function init(this: LanguageStore, options?: StoreOptions) {
-
     // Set device locale from options if provided
     if (options?.deviceLocale) {
       deviceLocale.value = options.deviceLocale;
@@ -96,8 +95,7 @@ export const useLanguageStore = defineStore('language', () => {
 
   function initializeLocale(this: LanguageStore) {
     try {
-
-      supportedLocales.value = WindowService.get("supported_locales", []);
+      supportedLocales.value = WindowService.get('supported_locales', []);
 
       storedLocale.value = sessionStorage.getItem(getStorageKey.value);
 
@@ -143,7 +141,7 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   async function updateLanguage(this: LanguageStore, newLocale: string) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const validatedLocale = localeSchema.parse(newLocale);
       setCurrentLocale(validatedLocale);
       await this.$api.post('/api/v2/account/update-locale', {

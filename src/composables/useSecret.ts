@@ -1,10 +1,10 @@
 // composables/useSecret.ts
-import { useSecretsStore } from '@/stores/secretsStore';
+import { SecretStore, useSecretStore } from '@/stores/secretStore';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 
 export function useSecret(key: string) {
-  const store = useSecretsStore();
+  const store = useSecretStore() as SecretStore;
   const { record, details, isLoading } = storeToRefs(store);
 
   // Local state

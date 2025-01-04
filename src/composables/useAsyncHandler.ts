@@ -70,14 +70,14 @@ export { createError }; // Re-export createError
  * Example usage:
  *
  *    ```ts
- *    const { withErrorHandling } = useAsyncHandler({
+ *    const { wrap } = useAsyncHandler({
  *      notify: useNotifications(),
  *      setLoading: useLoadingState(),
  *      log: useLogger()
  *    });
  *
  *    // In an async operation:
- *    const data = await withErrorHandling(async () => {
+ *    const data = await wrap(async () => {
  *      const response = await api.fetchData();
  *      return response.data;
  *    });
@@ -105,16 +105,16 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
    *
    * @example
    * ```ts
-   * const { withErrorHandling } = useAsyncHandler({
+   * const { wrap } = useAsyncHandler({
    *   notify: (msg, severity) => toast(msg, severity),
    *   setLoading: (isLoading) => store.setLoading(isLoading)
    * });
    *
    * // In a component or service:
-   * const data = await withErrorHandling(() => api.fetchData());
+   * const data = await wrap(() => api.fetchData());
    * ```
    */
-  async function withErrorHandling<T>(operation: () => Promise<T>): Promise<T> {
+  async function wrap<T>(operation: () => Promise<T>): Promise<T> {
     try {
       handlers.setLoading?.(true);
       return await operation(); // <-- run the async operation
@@ -150,5 +150,5 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
     }
   }
 
-  return { withErrorHandling };
+  return { wrap };
 }

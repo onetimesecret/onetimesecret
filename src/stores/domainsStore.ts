@@ -62,7 +62,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Add a new custom domain
    */
   async function addDomain(this: DomainsStore, domain: string) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.post('/api/v2/account/domains/add', { domain });
       const validated = responseSchemas.customDomain.parse(response.data);
       domains.value.push(validated.record);
@@ -76,7 +76,7 @@ export const useDomainsStore = defineStore('domains', () => {
   async function refreshRecords(this: DomainsStore) {
     if (_initialized.value) return;
 
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.get('/api/v2/account/domains');
       const validated = responseSchemas.customDomainList.parse(response.data);
       domains.value = validated.records;
@@ -88,7 +88,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Delete a domain by name
    */
   async function deleteDomain(this: DomainsStore, domainName: string) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       await this.$api.post(`/api/v2/account/domains/${domainName}/remove`);
       domains.value = domains.value.filter(
         (domain) => domain.display_domain !== domainName
@@ -100,7 +100,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Get brand settings for a domain
    */
   async function getBrandSettings(this: DomainsStore, domain: string) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.get(`/api/v2/account/domains/${domain}/brand`);
       return responseSchemas.brandSettings.parse(response.data);
     });
@@ -114,7 +114,7 @@ export const useDomainsStore = defineStore('domains', () => {
     domain: string,
     settings: Partial<BrandSettings>
   ) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.put(`/api/v2/account/domains/${domain}/brand`, {
         brand: settings,
       });
@@ -130,7 +130,7 @@ export const useDomainsStore = defineStore('domains', () => {
     domain: string,
     brandUpdate: UpdateDomainBrandRequest
   ) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.put(
         `/api/v2/account/domains/${domain}/brand`,
         brandUpdate
@@ -149,7 +149,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Update an existing domain
    */
   async function updateDomain(this: DomainsStore, domain: CustomDomain) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.put(
         `/api/v2/account/domains/${domain.display_domain}`,
         domain

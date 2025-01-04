@@ -6,7 +6,7 @@ import { markRaw } from 'vue';
 
 export function asyncErrorBoundary(options?: AsyncHandlerOptions) {
   return ({ store }: PiniaPluginContext) => {
-    store.$errorHandler = markRaw(
+    store.$asyncHandler = markRaw(
       useAsyncHandler({
         setLoading: (loading) => {
           if ('isLoading' in store) {

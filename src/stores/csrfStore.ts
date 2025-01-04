@@ -33,7 +33,6 @@ import { handleError, ref } from 'vue';
  * }
  */
 
-
 /**
  * Type definition for CsrfStore.
  */
@@ -76,8 +75,7 @@ export const useCsrfStore = defineStore('csrf', () => {
   }
 
   async function checkShrimpValidity(this: CsrfStore) {
-
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.post('/api/v2/validate-shrimp', {
         method: 'POST',
         headers: {

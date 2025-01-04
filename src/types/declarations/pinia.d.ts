@@ -9,7 +9,7 @@ import { ComputedRef, Ref } from 'vue';
  */
 export interface PiniaCustomProperties {
   $api: AxiosInstance;
-  $errorHandler: AsyncHandler;
+  $asyncHandler: AsyncHandler;
   $logout: () => void;
 
   /**
@@ -21,7 +21,8 @@ export interface PiniaCustomProperties {
 
 declare module 'pinia' {
   // Extend the module to include custom properties
-  export interface PiniaCustomProperties extends Omit<globalThis.PiniaCustomProperties, 'init'> {
+  export interface PiniaCustomProperties
+    extends Omit<globalThis.PiniaCustomProperties, 'init'> {
     /**
      * Store initialization method
      * @returns Object containing initialization state

@@ -18,8 +18,8 @@ const useTestStore = defineStore('test', {
     },
 
     async fetchData(this: PiniaCustomProperties, id: string) {
-      const { withErrorHandling } = this.useAsyncHandler();
-      return await withErrorHandling(async () => {
+      const { wrap } = this.useAsyncHandler();
+      return await wrap(async () => {
         const response = await this.$api.get(`/api/data/${id}`);
         this.data = response.data;
         return response.data;

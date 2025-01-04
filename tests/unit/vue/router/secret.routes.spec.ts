@@ -1,14 +1,14 @@
 // tests/unit/vue/router/secret.routes.spec.ts
 
 import routes from '@/router/secret.routes';
-import { useSecretsStore } from '@/stores/secretsStore';
+import { useSecretStore } from '@/stores/secretStore';
 import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the secrets store
-vi.mock('@/stores/secretsStore', () => ({
-  useSecretsStore: vi.fn(() => ({
+vi.mock('@/stores/secretStore', () => ({
+  useSecretStore: vi.fn(() => ({
     fetch: vi.fn().mockResolvedValue({
       record: {
         key: 'test123',
@@ -64,7 +64,7 @@ describe('Recipient Routes', () => {
 
     it('should handle error when fetching initial secret data', async () => {
       // Override store mock for error case
-      vi.mocked(useSecretsStore).mockImplementationOnce(() => ({
+      vi.mocked(useSecretStore).mockImplementationOnce(() => ({
         fetch: vi.fn().mockRejectedValue(new Error('Failed to load')),
       }));
 

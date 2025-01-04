@@ -127,8 +127,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function checkAuthStatus(this: AuthStore) {
     if (!isAuthenticated.value) return false;
 
-    return await this.$errorHandler
-      .withErrorHandling(async () => {
+    return await this.$asyncHandler
+      .wrap(async () => {
         const response = await this.$api.get(AUTH_CHECK_CONFIG.ENDPOINT);
         const validated = responseSchemas.checkAuth.parse(response.data);
 

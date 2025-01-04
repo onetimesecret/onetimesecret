@@ -1,7 +1,8 @@
-import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { createError, useAsyncHandler } from '@/composables/useAsyncHandler';
+import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
+import type { DomainsStore } from '@/stores/domainsStore'; // Add type import
 import { storeToRefs, type StoreGeneric } from 'pinia';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -16,13 +17,13 @@ import { useRouter } from 'vue-router';
  */
 /* eslint-disable max-lines-per-function */
 export function useDomainsManager() {
-  const store = useDomainsStore();
+  const store = useDomainsStore() as DomainsStore;
   const notifications = useNotificationsStore();
   const router = useRouter();
   const goBack = () => router.back();
   const { domains, isLoading } = storeToRefs(store as StoreGeneric);
   const error = ref<ApplicationError | null>(null); // Add local error state
-  const { withErrorHandling } = useAsyncHandler({
+  const { wrap } = useAsyncHandler({
     onError: (e) => {
       error.value = e;
     },
@@ -35,7 +36,7 @@ export function useDomainsManager() {
   const showConfirmDialog = useConfirmDialog();
 
   const handleAddDomain = async (domain: string) =>
-    withErrorHandling(async () => {
+    wrap(async () => {
       const result = await store.addDomain(domain);
       if (result) {
         router.push({ name: 'AccountDomainVerify', params: { domain } });

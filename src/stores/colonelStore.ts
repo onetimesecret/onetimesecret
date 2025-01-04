@@ -27,7 +27,7 @@ export const useColonelStore = defineStore('colonel', () => {
 
   // Actions
   async function fetch(this: ColonelStore) {
-    return await this.$errorHandler.withErrorHandling(async () => {
+    return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.get('/api/v2/colonel/dashboard');
       const validated = responseSchemas.colonel.parse(response.data);
       // Access the record property which contains the ColonelData
