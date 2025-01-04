@@ -2,36 +2,59 @@
 import type { OnetimeWindow } from '@/types/declarations/window';
 
 /**
- * Service for accessing window properties prior to store initialization.
+ * Service for accessing typed window properties defined in window.d.ts.
+ * Provides type-safe access to server-injected window properties with
+ * optional default values.
  *
- * Use this service to retrieve properties from the global window object
- * with type safety and default values. Recommended for initial page load
- * state retrieval before reactive stores are fully available.
+ * Can safely be used prior to full store hydration.
+ *
  */
 export const WindowService = {
   /**
-   * Retrieves a window property with an optional default value.
-   * @param key - The property name to retrieve from the window object.
-   * @param defaultValue - A fallback value if the property is undefined.
-   * @returns The property value or the default.
+   * Retrieves a single window property with type inference.
+   * @param key - Property name defined in OnetimeWindow interface
+   * @returns The typed window property value
    */
-  get<K extends keyof OnetimeWindow>(
-    key: K,
-    defaultValue: OnetimeWindow[K]
-  ): OnetimeWindow[K] {
-    return (window as OnetimeWindow)[key] ?? defaultValue;
+  get<K extends keyof OnetimeWindow>(key: K): OnetimeWindow[K] {
+    return (window as OnetimeWindow)[key];
   },
 
   /**
-   * Retrieves multiple window properties safely.
-   * @param defaults - An object with keys as property names and values as default values.
-   * @returns An object containing the retrieved properties.
+   * Retrieves multiple window properties with flexible input patterns.
+   * Supports both default value objects and property name arrays.
+   *
+   * @example
+   * // With defaults
+   * const props = WindowService.getMultiple({
+   *   authenticated: false,
+   *   ot_version: ''
+   * });
+   *
+   * @example
+   * // Without defaults
+   * const { regions_enabled, regions } = WindowService.getMultiple([
+   *   'regions_enabled',
+   *   'regions'
+   * ]);
+   *
+   * @param input - Either an array of property names or an object with default values
+   * @returns Object containing requested window properties with proper typing
    */
-  getMultiple<T extends Partial<OnetimeWindow>>(defaults: T): T {
-    const result = {} as T;
-    for (const key in defaults) {
-      result[key] = this.get(key as keyof OnetimeWindow, defaults[key]);
+  getMultiple<K extends keyof OnetimeWindow>(
+    input: K[] | Partial<Record<K, OnetimeWindow[K]>>
+  ): Pick<OnetimeWindow, K> {
+    if (Array.isArray(input)) {
+      return Object.fromEntries(input.map((key) => [key, this.get(key)])) as Pick<
+        OnetimeWindow,
+        K
+      >;
     }
-    return result;
+
+    return Object.fromEntries(
+      Object.entries(input).map(([key, defaultValue]) => [
+        key,
+        this.get(key as K) ?? defaultValue,
+      ])
+    ) as Pick<OnetimeWindow, K>;
   },
 };
