@@ -28,7 +28,6 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Node 22",
   "_version": "22.0.0",
-
   // See:
   // https://www.typescriptlang.org/tsconfig/
   // https://github.com/tsconfig/bases/pull/265
@@ -44,17 +43,14 @@
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
     "jsx": "preserve",
-
     // Or use ESLint rules `@typescript-eslint/no-this-alias` or `no-invalid-this`
     // Enable strict, or at the very least, noImplicitThis, and Pinia will infer
     // the type of your state automatically (sometimes hints helps).
     "noImplicitAny": true,
     "noImplicitThis": null,
-
     "allowJs": false,
     "allowImportingTsExtensions": false,
     "resolvePackageJsonExports": false,
-
     "sourceMap": true,
     "noEmit": true,
     "baseUrl": ".",
@@ -71,8 +67,8 @@
     "src/**/*.vue",
     "src/content/*.md",
     "src/types/**/*.ts",
-    "src/types/declarations/**/*.d.ts",
-    "tests/**/*.ts",
-    "tests/**/*.vue"
+    "src/types/declarations/**/*.d.ts"
+    // "tests/**/*.ts",
+    // "tests/**/*.vue"
   ]
 }

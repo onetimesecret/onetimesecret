@@ -1,5 +1,5 @@
-import { defineConfig, mergeConfig } from 'vite'
-import baseConfig from './vite.config.ts';
+import { defineConfig, mergeConfig } from 'vite';
+import baseConfig from './vite.config';
 
 /**
  * Local Vite Configuration
