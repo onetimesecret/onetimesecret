@@ -1,7 +1,7 @@
 // plugins/pinia/index.ts
 
 export * from './apiPlugin';
-export * from './errorHandlingPlugin';
+export * from './asyncErrorBoundary';
 export * from './initPlugin';
 export * from './logoutPlugin';
 export * from './types';

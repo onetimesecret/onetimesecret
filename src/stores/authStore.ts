@@ -98,7 +98,11 @@ export const useAuthStore = defineStore('auth', () => {
   function init(this: AuthStore) {
     if (_initialized.value) return { needsCheck, isInitialized };
 
-    isAuthenticated.value = WindowService.get('authenticated', false) ?? null;
+    const inputValue = WindowService.get('authenticated');
+
+    // Regardless of what the value is, if it isn't exactly true, it's false.
+    // i.e. unlimited ways to fail, only one way to succeed.
+    isAuthenticated.value = inputValue === true;
 
     if (isAuthenticated.value) {
       this.$scheduleNextCheck();
