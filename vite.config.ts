@@ -4,6 +4,9 @@ import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
+//import vueDevTools from 'vite-plugin-vue-devtools';
+//import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
+import { DEBUG } from './src/utils/debug';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 
@@ -60,6 +63,10 @@ export default defineConfig({
         },
       },
     }),
+
+    // Enable Vue Devtools
+    //vueDevTools(),
+    //Inspector(),
 
     // https://github.com/unplugin/unplugin-vue-markdown
     Markdown({
@@ -181,5 +188,6 @@ export default defineConfig({
 
   define: {
     'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
+    __VUE_PROD_DEVTOOLS__: DEBUG,
   },
 });
