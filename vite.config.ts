@@ -105,6 +105,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(process.cwd(), './src'),
+      '@tests': resolve(process.cwd(), './tests'),
       // vue: 'vue/dist/vue.runtime.esm-bundler.js',
     },
   },
