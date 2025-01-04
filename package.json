@@ -17,7 +17,7 @@
     "lint:base": "eslint --quiet --flag unstable_ts_config",
     "lint:tests": "pnpm run lint:base 'tests/**/*.{mjs,ts,vue}'",
     "lint:quick": "pnpm run lint:base 'src/**/*.{mjs,ts}' './*.{mjs,ts,js}'",
-    "lint": "pnpm run lint:base --max-warnings=0 --cache 'src/**/*.{mjs,ts,d.ts,vue}' './*.{mjs,ts,js}'",
+    "lint": "pnpm run lint:base --max-warnings=0 --cache-location ./node_modules/.cache/eslint --cache 'src/**/*.{mjs,ts,d.ts,vue}' './*.{mjs,ts,js}'",
     "lint:quick:fix": "pnpm run lint:base --fix 'src/**/*.{mjs,ts}' './*.{mjs,ts,d.ts,js}'",
     "lint:fix": "pnpm run lint:base --fix 'src/**/*.{mjs,ts,vue}' './*.{mjs,ts,d.ts,vue}'",
     "optimize:local": "vite optimize --config vite.config.local.ts",
