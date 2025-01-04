@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useDomainBranding } from '@/composables/useDomainBranding';
 import { Secret, SecretDetails } from '@/schemas/models';
-import { useSecretsStore } from '@/stores/secretsStore';
+import { useSecretStore } from '@/stores/secretStore';
 import { ref } from 'vue';
 
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
@@ -15,7 +15,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits(['secret-loaded']);
-const secretStore = useSecretsStore();
+const secretStore = useSecretStore();
 const passphrase = ref('');
 const isSubmitting = ref(false);
 const error = ref('');

@@ -30,7 +30,7 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const { record, details, isLoading, error, load, reveal } = useSecret(props.secretKey);
+const { record, details, isLoading, load, reveal } = useSecret(props.secretKey);
 
 const handleUserConfirmed = (passphrase: Ref) => {
   reveal(passphrase);

@@ -1,13 +1,13 @@
+<!-- src/components/dashboard/DashboardTabNav.vue -->
 <script setup lang="ts">
-import { useValidatedWindowProp } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { useDomainsStore, useMetadataListStore } from '@/stores';
 import { StoreGeneric, storeToRefs } from 'pinia';
 import { onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { z } from 'zod';
 
-const authenticated = useValidatedWindowProp('authenticated', z.boolean());
-const domains_enabled = useValidatedWindowProp('domains_enabled', z.boolean());
+const authenticated = WindowService.get('authenticated', false);
+const domains_enabled = WindowService.get('domains_enabled', false);
 
 const route = useRoute();
 

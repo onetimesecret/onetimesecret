@@ -4,6 +4,10 @@ import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
+import checker from 'vite-plugin-checker';
+//import vueDevTools from 'vite-plugin-vue-devtools';
+//import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
+import { DEBUG } from './src/utils/debug';
 
 import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 
@@ -23,6 +27,10 @@ export default defineConfig({
   // - Static assets go in ./public
   // - Index.html should be in project root
   plugins: [
+    // re: order of plugins
+    // - Vue plugin should be early in the chain
+    // - Transformation/checking plugins follow framework plugins
+    // - Plugins that modify code should precede diagnostic plugins
     Vue({
       include: [/\.vue$/, /\.md$/], // <-- allows Vue to compile Markdown files
       template: {
@@ -61,6 +69,16 @@ export default defineConfig({
       },
     }),
 
+    // Enable type checking and linting w/o blocking hmr
+    checker({
+      typescript: true,
+      vueTsc: true,
+    }),
+
+    // Enable Vue Devtools
+    //vueDevTools(),
+    //Inspector(),
+
     // https://github.com/unplugin/unplugin-vue-markdown
     Markdown({
       /* options */
@@ -87,6 +105,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(process.cwd(), './src'),
+      '@tests': resolve(process.cwd(), './tests'),
       // vue: 'vue/dist/vue.runtime.esm-bundler.js',
     },
   },
@@ -181,5 +200,6 @@ export default defineConfig({
 
   define: {
     'process.env.API_BASE_URL': JSON.stringify(apiBaseUrl),
+    __VUE_PROD_DEVTOOLS__: DEBUG,
   },
 });

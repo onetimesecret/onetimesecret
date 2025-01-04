@@ -47,7 +47,7 @@ describe('Metadata Date Handling', () => {
     //  return [404]; // This won't be reached if there's a more specific handler
     //});
     store = useMetadataStore();
-    store.setupErrorHandler(axiosInstance);
+    store.setupAsyncHandler(axiosInstance);
   });
 
   afterEach(() => {

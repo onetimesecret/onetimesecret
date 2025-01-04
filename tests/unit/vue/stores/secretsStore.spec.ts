@@ -1,5 +1,5 @@
-// tests/unit/vue/stores/secretsStore.spec.ts
-import { useSecretsStore } from '@/stores/secretsStore';
+// tests/unit/vue/stores/secretStore.spec.ts
+import { useSecretsStore } from '@/stores/secretStore';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { createPinia, setActivePinia } from 'pinia';
@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { mockSecretRecord, mockSecretResponse } from '../fixtures/metadata.fixture';
 
-describe('secretsStore', () => {
+describe('secretStore', () => {
   let axiosMock: AxiosMockAdapter;
   let store: ReturnType<typeof useSecretsStore>;
 
@@ -17,7 +17,7 @@ describe('secretsStore', () => {
     axiosMock = new AxiosMockAdapter(axiosInstance);
     // Inject mocked axios instance into the store's API
     store = useSecretsStore();
-    store.init(axiosInstance);
+    store.init();
   });
 
   afterEach(() => {

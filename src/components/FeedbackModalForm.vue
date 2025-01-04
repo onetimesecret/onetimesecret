@@ -2,7 +2,7 @@
 import AltchaChallenge from '@/components/AltchaChallenge.vue';
 import { useExceptionReporting } from '@/composables/useExceptionReporting';
 import { useFormSubmission } from '@/composables/useFormSubmission';
-import { useValidatedWindowProp } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useMediaQuery } from '@vueuse/core';
 import { computed, onMounted, ref } from 'vue';
@@ -33,8 +33,8 @@ onMounted(() => {
 });
 
 // We use this to determine whether to include the authenticity check
-const cust = useValidatedWindowProp('cust', z.object());
-const ot_version = useValidatedWindowProp('ot_version', z.string());
+const cust = WindowService.get('cust', z.object());
+const ot_version = WindowService.get('ot_version', z.string());
 
 const emit = defineEmits(['feedback-sent']);
 

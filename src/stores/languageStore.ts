@@ -1,13 +1,12 @@
 // src/stores/languageStore.ts
 
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
-import { createApi } from '@/utils/api';
-import { AxiosInstance } from 'axios';
+import type { PiniaCustomProperties } from 'pinia';
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { z } from 'zod';
 
-import { useWindowStore } from './windowStore';
+import { setLanguage } from '@/i18n';
+import { WindowService } from '@/services/window.service';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
@@ -23,6 +22,34 @@ interface StoreOptions {
   storageKey?: string;
 }
 
+/**
+ * Type definition for LanguageStore.
+ */
+export type LanguageStore = {
+  // State
+  isLoading: boolean;
+  deviceLocale: string | null;
+  currentLocale: string;
+  storageKey: string;
+  supportedLocales: string[];
+  storedLocale: string | null;
+  _initialized: boolean;
+
+  // Getters
+  getDeviceLocale: string | null;
+  getCurrentLocale: string;
+  getStorageKey: string;
+  getSupportedLocales: string[];
+
+  // Actions
+  init: (options?: StoreOptions) => void;
+  initializeLocale: () => string | null;
+  determineLocale: (preferredLocale?: string) => string;
+  setCurrentLocale: (locale: string) => void;
+  updateLanguage: (newLocale: string) => Promise<void>;
+  $reset: () => void;
+} & PiniaCustomProperties;
+
 /* eslint-disable max-lines-per-function */
 export const useLanguageStore = defineStore('language', () => {
   // State
@@ -34,10 +61,6 @@ export const useLanguageStore = defineStore('language', () => {
   const storedLocale = ref<string | null>(null);
   const _initialized = ref(false);
 
-  // Private state
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
-
   // Getters
   const getDeviceLocale = computed(() => deviceLocale.value);
   const getCurrentLocale = computed(() => currentLocale.value ?? DEFAULT_LOCALE);
@@ -45,9 +68,7 @@ export const useLanguageStore = defineStore('language', () => {
   const getSupportedLocales = computed(() => supportedLocales.value);
 
   // Actions
-  function init(api?: AxiosInstance, options?: StoreOptions) {
-    _ensureErrorHandler(api);
-
+  function init(this: LanguageStore, options?: StoreOptions) {
     // Set device locale from options if provided
     if (options?.deviceLocale) {
       deviceLocale.value = options.deviceLocale;
@@ -58,30 +79,23 @@ export const useLanguageStore = defineStore('language', () => {
       storageKey.value = options.storageKey;
     }
 
-    return initializeLocale();
+    setLanguage(getCurrentLocale.value);
+
+    watch(
+      () => currentLocale.value,
+      async (newLocale) => {
+        if (newLocale) {
+          await setLanguage(newLocale);
+        }
+      }
+    );
+
+    return this.initializeLocale();
   }
 
-  function setupErrorHandler(
-    api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useErrorHandler({
-      setLoading: (loading) => (isLoading.value = loading),
-      notify: options.notify,
-      log: options.log,
-    });
-  }
-
-  function _ensureErrorHandler(api?: AxiosInstance) {
-    if (!_errorHandler) setupErrorHandler(api);
-  }
-
-  function initializeLocale() {
+  function initializeLocale(this: LanguageStore) {
     try {
-      const windowStore = useWindowStore();
-      windowStore.init();
-      supportedLocales.value = windowStore.supported_locales ?? [];
+      supportedLocales.value = WindowService.get('supported_locales', []);
 
       storedLocale.value = sessionStorage.getItem(getStorageKey.value);
 
@@ -126,11 +140,11 @@ export const useLanguageStore = defineStore('language', () => {
     }
   }
 
-  async function updateLanguage(newLocale: string) {
-    return await _errorHandler!.withErrorHandling(async () => {
+  async function updateLanguage(this: LanguageStore, newLocale: string) {
+    return await this.$asyncHandler.wrap(async () => {
       const validatedLocale = localeSchema.parse(newLocale);
       setCurrentLocale(validatedLocale);
-      await _api!.post('/api/v2/account/update-locale', {
+      await this.$api.post('/api/v2/account/update-locale', {
         locale: validatedLocale,
       });
     });
@@ -163,7 +177,6 @@ export const useLanguageStore = defineStore('language', () => {
 
     // Actions
     init,
-    setupErrorHandler,
     initializeLocale,
     determineLocale,
     updateLanguage,

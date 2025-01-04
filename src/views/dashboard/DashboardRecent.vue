@@ -4,12 +4,12 @@ import EmptyState from '@/components/EmptyState.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
 import { MetadataRecords } from '@/schemas/api/endpoints';
-import { useMetadataStore } from '@/stores/metadataStore';
+import { useMetadataListStore } from '@/stores/metadataListStore';
 import { storeToRefs } from 'pinia';
 import { onMounted, computed } from 'vue';
 
-const store = useMetadataStore();
-const { records, details, isLoading, error } = storeToRefs(store);
+const store = useMetadataListStore();
+const { records, details, isLoading } = storeToRefs(store);
 
 // Add computed properties for received and not received items
 const receivedItems = computed(() => {

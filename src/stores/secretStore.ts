@@ -1,57 +1,51 @@
-// src/stores/secretsStore.ts
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+// src/stores/secretStore.ts
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
-import { createApi } from '@/utils/api';
-import { AxiosInstance } from 'axios';
-import { defineStore } from 'pinia';
+import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
+
+/**
+ * Type definition for SecretStore.
+ */
+export type SecretStore = {
+  // State
+  isLoading: boolean;
+  record: Secret | null;
+  details: SecretDetails | null;
+  _initialized: boolean;
+
+  // Getters
+  isInitialized: boolean;
+
+  // Actions
+  init: () => { isInitialized: boolean };
+  fetch: (secretKey: string) => Promise<void>;
+  reveal: (secretKey: string, passphrase?: string) => Promise<void>;
+  clear: () => void;
+  $reset: () => void;
+} & PiniaCustomProperties;
 
 /**
  * Store for managing secret records and their details
  */
-
 /* eslint-disable max-lines-per-function */
-export const useSecretsStore = defineStore('secrets', () => {
+export const useSecretStore = defineStore('secrets', () => {
   // State
   const isLoading = ref(false);
   const record = ref<Secret | null>(null);
   const details = ref<SecretDetails | null>(null);
   const _initialized = ref(false);
 
-  // Private properties
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
-
   // Getters
   const isInitialized = computed(() => _initialized.value);
 
   // Actions
-  function init(api?: AxiosInstance) {
+  function init(this: SecretStore) {
     if (_initialized.value) return { isInitialized };
 
     _initialized.value = true;
-    setupErrorHandler(api);
 
     return { isInitialized };
-  }
-
-  function _ensureErrorHandler() {
-    if (!_errorHandler) setupErrorHandler();
-  }
-
-  function setupErrorHandler(
-    api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useErrorHandler({
-      setLoading: (loading) => {
-        isLoading.value = loading;
-      },
-      notify: options.notify,
-      log: options.log,
-    });
   }
 
   /**
@@ -60,11 +54,9 @@ export const useSecretsStore = defineStore('secrets', () => {
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
-  async function fetch(secretKey: string) {
-    _ensureErrorHandler();
-
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.get(`/api/v2/secret/${secretKey}`);
+  async function fetch(this: SecretStore, secretKey: string) {
+    return await this.$asyncHandler.wrap(async () => {
+      const response = await this.$api.get(`/api/v2/secret/${secretKey}`);
       const validated = responseSchemas.secret.parse(response.data);
       record.value = validated.record;
       details.value = validated.details;
@@ -80,11 +72,9 @@ export const useSecretsStore = defineStore('secrets', () => {
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
-  async function reveal(secretKey: string, passphrase?: string) {
-    _ensureErrorHandler();
-
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!.post<SecretResponse>(
+  async function reveal(this: SecretStore, secretKey: string, passphrase?: string) {
+    return await this.$asyncHandler.wrap(async () => {
+      const response = await this.$api.post<SecretResponse>(
         `/api/v2/secret/${secretKey}/reveal`,
         {
           passphrase,
@@ -100,7 +90,7 @@ export const useSecretsStore = defineStore('secrets', () => {
     });
   }
 
-  function clear() {
+  function clear(this: SecretStore) {
     record.value = null;
     details.value = null;
   }
@@ -108,7 +98,7 @@ export const useSecretsStore = defineStore('secrets', () => {
   /**
    * Resets the store state to its initial values
    */
-  function $reset() {
+  function $reset(this: SecretStore) {
     record.value = null;
     details.value = null;
     _initialized.value = false;

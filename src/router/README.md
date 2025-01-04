@@ -1,33 +1,31 @@
-# Routing Layout Patterns
+# Routing & Page Composition
 
-This guide explains the two layout patterns used in our routing system.
+This guide explains the two kinds layouts used in our routing system and how props are made available to components.
 
 ## Overview
 
-We maintain two distinct layout patterns to efficiently handle different routing scenarios:
+We maintain two distinct layout patterns to handle different routing scenarios:
 
-### 1. Composite Pattern
+### The Two Layout Patterns
+
+#### 1. Composite (named views)
+
+A list of named components. Typically used for complex, dynamic pages. e.g. Dashboards, Timelines, etc.
 
 ```js
 {
   components: {
     default: DashboardContent,
-    header: DashboardHeader,  // includes dashboard-specific navigation
-    footer: DashboardFooter,
+    header: DashboardHeader,
+    footer: DefaultFooter,
   }
 }
 ```
 
-- Composes page from multiple components
-- Each section independently routable
-- Typically used for complex, dynamic pages
 
-**Best for:**
-- Routes needing independent header/footer components
-- Dashboard-style pages with complex navigation
-- Pages where header/footer need their own state/logic
+#### 2. Container (layout meta)
 
-### 2. Container Pattern
+A single component within a layout container. Usually used for pages that benefit from a consistent layout. e.g. Sign In, Sign Up, etc.
 
 ```js
 {
@@ -38,17 +36,9 @@ We maintain two distinct layout patterns to efficiently handle different routing
 }
 ```
 
-- Single content component within layout container
-- Layout wraps and provides structure
-- Best for consistent, themed pages
+### Visual Comparison
 
-**Best for:**
-- Simple pages with consistent layouts
-- Auth pages, forms, static content
-- Pages sharing identical header/footer
-
-## Structure
-
+```plaintext
 ┌─────────────────┐    ┌──────────────────────┐
 │  Composite      │    │  Container           │
 │                 │    │                      │
@@ -57,12 +47,15 @@ We maintain two distinct layout patterns to efficiently handle different routing
 │   ├── Main      │    │        └── Component │
 │   └── Footer    │    │                      │
 └─────────────────┘    └──────────────────────┘
+```
 
-### Method 1: Composite Pattern
+### Examples from the codebase
+
+
 ```
 App.vue
-└── QuietLayout/DefaultLayout
-    └── RouterView (named views)
+└── QuietLayout<-BaseLayout
+    └── RouterView
         ├── "header": DefaultHeader
         ├── "default": DashboardIndex
         └── "footer": DefaultFooter
@@ -72,20 +65,66 @@ App.vue
 ```
 App.vue
 └── Component (specified in route.meta.layout)
-    └── RouterView (single view)
-        └── SignIn/Other Component
+    └── RouterView
+        └── SignIn.vue
 ```
 
-## Decision Guide
+### When to use each pattern
 
-### Use Named Views when:
+**Use Composite Named Views when:**
 1. The header/footer need their own routing logic
 2. Components need to manage their own state
 3. You need dynamic loading of header/footer
 
-### Use Layout Meta when:
+**Use Container Layout Meta when:**
 1. The page follows a standard layout
 2. Header/footer are consistent
 3. Layout can be configured via props
 
-The presence of both patterns provides flexibility without compromising maintainability, as each serves a distinct purpose.
+
+## Layouts and props
+
+Key Points:
+- Router config sets per-route layout and props
+- App.vue merges window properties with route props
+- Layouts receive combined props object
+- Child components receive subset of props
+- WindowService accessed at App.vue and some components
+
+```
+Router Config                        Window Properties
+(meta.layoutProps)                   (WindowService)
+       │                                   │
+       │                                   │
+       ▼                                   ▼
+    App.vue ────────────────────► layoutProps = {
+       │                           defaultProps + route.meta.layoutProps
+       │                         }
+       │
+       ├──────────────┬─────────────┐
+       │              │             │
+DefaultLayout    QuietLayout    Other Layouts
+       │
+       ├──────────────┬─────────────┐
+       │              │             │
+ BaseLayout     DefaultHeader  DefaultFooter
+(core structure) (auth, cust)  (auth, regions)
+       │
+       │
+ <router-view>
+(page components)
+
+Props Flow:
+App.vue [layoutProps] ─────┐
+                           │
+                           ▼
+DefaultLayout [v-bind="props"] ─────┐
+                                    │
+                                    ▼
+BaseLayout, DefaultHeader, DefaultFooter
+[individual props from LayoutProps interface]
+
+Layout Selection:
+route.meta.layout determines which layout wraps page
+route.meta.layoutProps overrides default layout props
+```

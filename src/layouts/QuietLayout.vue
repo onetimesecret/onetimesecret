@@ -1,12 +1,10 @@
+<!-- src/layouts/QuietLayout.vue -->
 <script setup lang="ts">
-import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
-
-export type LayoutProps = BaseProps;
-
+import { defineProps, withDefaults } from 'vue';
+import type { LayoutProps } from '@/types/ui/layouts';
 import BaseLayout from './BaseLayout.vue';
 
-const props = withDefaults(defineProps<BaseProps>(), {
-});
+const props = withDefaults(defineProps<LayoutProps>(), {});
 </script>
 
 <template>

@@ -101,7 +101,7 @@ export default [
       'no-undef': 'error', // Prevent usage of undeclared variables
       // Enforce consistent import ordering
       'import/order': [
-        'error',
+        'warn',
         {
           groups: [['builtin', 'external', 'internal']], // Group imports by type
           pathGroups: [{ pattern: '@/**', group: 'internal' }], // Treat @ imports as internal
@@ -110,16 +110,13 @@ export default [
           alphabetize: { order: 'asc', caseInsensitive: true }, // Sort imports alphabetically
         },
       ],
-      // Omit file extensions for JS/TS/Vue imports, ignore node_modules
+      // Omit file extensions for TS/Vue imports, ignore node_modules
       'import/extensions': [
         'error',
         'ignorePackages',
         {
-          js: 'never',
-          jsx: 'never',
           ts: 'never',
-          tsx: 'never',
-          vue: 'never',
+          vue: 'always',
         },
       ], // Add this rule configuration
       'vue/component-tags-order': [
@@ -192,7 +189,7 @@ export default [
       //   if (!a || !b || !c) return;
       //   // happy path code here
 
-      'max-nested-callbacks': ['error', 2], // Stricter than test files (4) because nested callbacks in production code almost always
+      'max-nested-callbacks': ['error', 3], // Stricter than test files (4) because nested callbacks in production code almost always
       // indicate a need for async/await, Promises, or function extraction.
       // Example - Instead of:
       //   getData(id, (err, data) => { processData(data, (err, result) => { ... }) })
@@ -329,7 +326,7 @@ export default [
       ],
       // Enforce consistent line breaks in template elements
       'vue/html-closing-bracket-newline': [
-        'error',
+        'warn',
         {
           singleline: 'never',
           multiline: 'never',

@@ -13,4 +13,4 @@ export { useLanguageStore } from './languageStore';
 export { useMetadataListStore } from './metadataListStore';
 export { useMetadataStore } from './metadataStore';
 export { useNotificationsStore } from './notificationsStore';
-export { useSecretsStore } from './secretsStore';
+export { useSecretStore } from './secretStore';

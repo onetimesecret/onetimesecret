@@ -1,7 +1,8 @@
-// tests/unit/vue/stores/windowStore.spec.ts
+// tests/unit/vue/stores/authStore.spec.ts
+import { apiPlugin } from '@/plugins/pinia/apiPlugin';
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { Customer, Plan } from '@/schemas/models';
-import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';
+import { AUTH_CHECK_CONFIG, useAuthStore, type AuthStore } from '@/stores/authStore';
 import { createApi } from '@/utils/api';
 import { createTestingPinia } from '@pinia/testing';
 import axios from 'axios';
@@ -64,20 +65,24 @@ const mockCustomer: Customer = {
 describe('authStore', () => {
   let axiosMock: AxiosMockAdapter;
   let axiosInstance: ReturnType<typeof createApi>;
+  let store: AuthStore;
 
   beforeEach(() => {
-    // Create a fresh axios instance for testing
-    axiosInstance = createApi();
-    // Create the mock adapter with this instance
-    axiosMock = new AxiosMockAdapter(axiosInstance);
-
     const app = createApp({});
-
-    // `createTestingPinia()` creates a testing version of Pinia that mocks all
-    // actions by default. Use `createTestingPinia({ stubActions: false })` if
-    // you want to test actions. Otherwise they don't actually get called.
     const pinia = createTestingPinia({ stubActions: false });
+
     app.use(pinia);
+    setActivePinia(pinia);
+
+    // Apply plugins
+    pinia.use(apiPlugin);
+    pinia.use(logoutPlugin);
+
+    // Create the mock adapter for the axios instance used in the store
+    store = useAuthStore();
+    axiosMock = new AxiosMockAdapter(store.$api);
+
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
@@ -98,7 +103,7 @@ describe('authStore', () => {
       vi.stubGlobal('window', mockWindow);
 
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
     });
 
     afterEach(() => {
@@ -147,48 +152,48 @@ describe('authStore', () => {
 
     it('initializes with flag', () => {
       expect(store.isInitialized).toBe(false);
-      store.init(axiosInstance);
+      store.init();
       expect(store.isInitialized).toBe(true);
     });
 
     it('initializes correctly (when undefined)', () => {
       expect(store.isAuthenticated).toBe(null);
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when null)', () => {
       Object.assign(window, { authenticated: null });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when false)', () => {
       Object.assign(window, { authenticated: false });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when bad data)', () => {
       Object.assign(window, { authenticated: 123 });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when true)', () => {
       Object.assign(window, { authenticated: true });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(true);
     });
 
     it('initializes correctly (when "true")', () => {
       Object.assign(window, { authenticated: 'true' });
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly', () => {
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(false);
       expect(store.failureCount).toBe(null);
       expect(store.lastCheckTime).toBeDefined();
@@ -217,32 +222,30 @@ describe('authStore', () => {
 
     it('initializes only once', () => {
       // First initialization
-      store.init(axiosInstance);
+      store.init();
       expect(store.isInitialized).toBe(true);
 
       const initialAuthState = store.isAuthenticated;
-      const initialErrorHandler = store._getErrorHandler();
 
       // Second initialization attempt
-      store.init(axiosInstance);
+      store.init();
 
       // Verify critical state hasn't changed
       expect(store.isAuthenticated).toBe(initialAuthState);
-      expect(store._getErrorHandler()).toBe(initialErrorHandler);
     });
 
     it('prevents double initialization', () => {
-      // Instead of spying on setupErrorHandler, let's verify the behavior:
+      // Let's verify the behavior:
       // 1. Store gets initialized
       // 2. Second init doesn't change state
       // 3. Initial values are preserved
 
       // First init
-      const result1 = store.init(axiosInstance);
+      const result1 = store.init();
       const initializedState = { ...store.$state };
 
       // Second init
-      const result2 = store.init(axiosInstance);
+      const result2 = store.init();
 
       // Verify behavior we care about
       expect(store._initialized).toBe(true);
@@ -253,19 +256,17 @@ describe('authStore', () => {
     });
 
     it('handles proper error handler setup', () => {
-      store.setupErrorHandler();
-
-      const errorHandler = store._getErrorHandler();
-      const api = store._getApi();
+      const errorHandler = store.$asyncHandler;
+      const api = store.$api;
 
       expect(errorHandler).not.toBeNull();
       expect(api).not.toBeNull();
-      expect(typeof errorHandler?.withErrorHandling).toBe('function');
+      expect(typeof errorHandler?.wrap).toBe('function');
     });
 
     it('properly disposes resources and listeners', async () => {
       // Setup
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
       store.$scheduleNextCheck(); // Start a timer
 
@@ -280,7 +281,7 @@ describe('authStore', () => {
     });
 
     it('cleans up resources on dispose', async () => {
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
       store.$scheduleNextCheck(); // Start a timer
 
@@ -297,7 +298,7 @@ describe('authStore', () => {
 
     beforeEach(() => {
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
     });
 
@@ -384,7 +385,7 @@ describe('authStore', () => {
       const pinia = createTestingPinia({ stubActions: false });
       app.use(pinia);
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
     });
 
@@ -440,7 +441,7 @@ describe('authStore', () => {
 
     beforeEach(() => {
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
     });
 
@@ -459,7 +460,7 @@ describe('authStore', () => {
     it('initializes correctly from window state', () => {
       vi.stubGlobal('window', { authenticated: true });
 
-      store.init(axiosInstance);
+      store.init();
       expect(store.isAuthenticated).toBe(true);
 
       vi.unstubAllGlobals();
@@ -514,7 +515,7 @@ describe('authStore', () => {
     it('executes check and reschedules when timer fires', async () => {
       // Setup fresh store instance
       const store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
 
       // Mock successful auth check response
       axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
@@ -634,11 +635,11 @@ describe('authStore', () => {
     });
 
     it('integrates with error handler for consistent error management', async () => {
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
 
-      const errorHandler = store._getErrorHandler();
-      const errorHandlerSpy = vi.spyOn(errorHandler!, 'withErrorHandling');
+      const errorHandler = store._getAsyncHandler();
+      const errorHandlerSpy = vi.spyOn(errorHandler!, 'wrap');
 
       axiosMock.onGet('/api/v2/authcheck').networkError();
 
@@ -649,7 +650,7 @@ describe('authStore', () => {
 
     it('handles network timeouts appropriately', async () => {
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
 
       axiosMock.onGet('/api/v2/authcheck').timeoutOnce();
@@ -660,7 +661,7 @@ describe('authStore', () => {
 
     it('recovers from temporary network failures', async () => {
       store = useAuthStore();
-      store.init(axiosInstance);
+      store.init();
       store.$patch({ isAuthenticated: true });
 
       store.failureCount = 1; // Simulate previous failure

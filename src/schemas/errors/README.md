@@ -67,8 +67,8 @@ The `schemas/errors` approach emphasizes that errors are:
 While this approach differs from typical Vue.js patterns, it complements Vue's reactivity system and composable patterns:
 
 ```typescript
-// composables/useErrorHandler.ts
-export function useErrorHandler() {
+// composables/useAsyncHandler.ts
+export function useAsyncHandler() {
   const handleError = (error: unknown) => {
     // Type-safe error handling with schema validation
     const result = errorSchema.safeParse(error);

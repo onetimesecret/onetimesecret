@@ -66,9 +66,8 @@ export const mockMetadataRecord: Metadata = {
 
 export const mockMetadataDetails: MetadataDetails = {
   type: 'record',
-  title: 'Test Secret',
+
   display_lines: 1,
-  display_feedback: true,
   no_cache: false,
   secret_realttl: 86400,
   maxviews: 1,

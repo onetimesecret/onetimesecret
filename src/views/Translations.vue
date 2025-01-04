@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import EmailObfuscator from '@/components/EmailObfuscator.vue';
 import GithubCorner from '@/components/GithubCorner.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { setLanguage } from '@/i18n';
 import translations from '@/sources/translations.json';
 import { useLanguageStore } from '@/stores/languageStore';
 
 const languageStore = useLanguageStore();
-const cust = useWindowProp('cust');
+const cust = WindowService.get('cust', null);
 
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {

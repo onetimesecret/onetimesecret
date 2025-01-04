@@ -1,9 +1,6 @@
-// stores/csrfStore.ts
-import { ErrorHandlerOptions, useErrorHandler } from '@/composables/useErrorHandler';
+// src/stores/csrfStore.ts
 import { responseSchemas } from '@/schemas/api/responses';
-import { createApi } from '@/utils/api';
-import { AxiosInstance } from 'axios';
-import { defineStore } from 'pinia';
+import { defineStore, PiniaCustomProperties } from 'pinia';
 import { handleError, ref } from 'vue';
 
 /**
@@ -36,6 +33,26 @@ import { handleError, ref } from 'vue';
  * }
  */
 
+/**
+ * Type definition for CsrfStore.
+ */
+export type CsrfStore = {
+  // State
+  isLoading: boolean;
+  shrimp: string;
+  isValid: boolean;
+  intervalChecker: number | null;
+  _initialized: boolean;
+
+  // Actions
+  init: () => void;
+  updateShrimp: (newShrimp: string) => void;
+  checkShrimpValidity: () => Promise<void>;
+  startPeriodicCheck: (intervalMs?: number) => void;
+  stopPeriodicCheck: () => void;
+  $reset: () => void;
+} & PiniaCustomProperties;
+
 /* eslint-disable max-lines-per-function */
 export const useCsrfStore = defineStore('csrf', () => {
   // State
@@ -45,45 +62,21 @@ export const useCsrfStore = defineStore('csrf', () => {
   const intervalChecker = ref<number | null>(null);
   const _initialized = ref(false);
 
-  // Private state
-  let _api: AxiosInstance | null = null;
-  let _errorHandler: ReturnType<typeof useErrorHandler> | null = null;
-
   // Actions
-  function init(api?: AxiosInstance) {
+  function init(this: CsrfStore) {
+    if (_initialized.value) return;
     shrimp.value = window.shrimp || '';
-    _ensureErrorHandler(api);
+    _initialized.value = true;
+    return _initialized;
   }
 
-  function _ensureErrorHandler(api?: AxiosInstance) {
-    if (!_errorHandler) setupErrorHandler(api);
-  }
-
-  function setupErrorHandler(
-    api: AxiosInstance = createApi(),
-    options: ErrorHandlerOptions = {}
-  ) {
-    _api = api;
-    _errorHandler = useErrorHandler({
-      setLoading: (loading) => (isLoading.value = loading),
-      notify: options.notify,
-      log: options.log,
-      onError: () => {
-        // Any error invalidates the token
-        isValid.value = false;
-      },
-    });
-  }
-
-  function updateShrimp(newShrimp: string) {
+  function updateShrimp(this: CsrfStore, newShrimp: string) {
     shrimp.value = newShrimp;
   }
 
-  async function checkShrimpValidity() {
-    _ensureErrorHandler();
-
-    return await _errorHandler!.withErrorHandling(async () => {
-      const response = await _api!('/api/v2/validate-shrimp', {
+  async function checkShrimpValidity(this: CsrfStore) {
+    return await this.$asyncHandler.wrap(async () => {
+      const response = await this.$api.post('/api/v2/validate-shrimp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,20 +87,20 @@ export const useCsrfStore = defineStore('csrf', () => {
       const validated = responseSchemas.csrf.parse(response.data);
       isValid.value = validated.isValid;
       if (validated.isValid) {
-        updateShrimp(validated.shrimp);
+        this.updateShrimp(validated.shrimp);
       }
       return validated;
     });
   }
 
-  function startPeriodicCheck(intervalMs: number = 60000) {
-    stopPeriodicCheck();
+  function startPeriodicCheck(this: CsrfStore, intervalMs: number = 60000) {
+    this.stopPeriodicCheck();
     intervalChecker.value = window.setInterval(() => {
-      checkShrimpValidity();
+      this.checkShrimpValidity();
     }, intervalMs);
   }
 
-  function stopPeriodicCheck() {
+  function stopPeriodicCheck(this: CsrfStore) {
     if (intervalChecker.value !== null) {
       clearInterval(intervalChecker.value);
       intervalChecker.value = null;
@@ -119,12 +112,12 @@ export const useCsrfStore = defineStore('csrf', () => {
    * We preserve window.shrimp behavior to maintain consistency with store
    * initialization and ensure predictable reset behavior across the app.
    */
-  function $reset() {
+  function $reset(this: CsrfStore) {
     isLoading.value = false;
     shrimp.value = window.shrimp || ''; // back to how it all began
     isValid.value = false;
     _initialized.value = false;
-    stopPeriodicCheck();
+    this.stopPeriodicCheck();
   }
 
   return {

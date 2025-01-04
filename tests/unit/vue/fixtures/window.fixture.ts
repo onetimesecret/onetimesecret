@@ -33,9 +33,6 @@ export const windowFixture: OnetimeWindow = {
   },
   available_plans: {},
   support_host: 'https://docs.onetime.co',
-  display_links: true,
-  display_masthead: true,
-  metadata_record_count: 0,
   plan: {
     identifier: 'anonymous',
     planid: 'anonymous',
@@ -50,20 +47,20 @@ export const windowFixture: OnetimeWindow = {
   },
   is_paid: false,
   default_planid: 'basic',
-  received: [],
-  notreceived: [],
-  has_items: false,
   regions: {
+    identifier: 'EU',
     enabled: true,
     current_jurisdiction: 'EU',
     jurisdictions: [
       {
+        enabled: true,
         identifier: 'EU',
         display_name: 'European Union',
         domain: 'eu.onetimesecret.com',
         icon: 'fa6-solid:earth-europe',
       },
       {
+        enabled: true,
         identifier: 'US',
         display_name: 'United States',
         domain: 'us.onetimesecret.com',

@@ -5,7 +5,7 @@ import AccountDeleteButtonWithModalForm from '@/components/account/AccountDelete
 import APIKeyForm from '@/components/account/APIKeyForm.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import { useFetchDataRecord } from '@/composables/useFetchData';
-import { useWindowProps } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 import { Account } from '@/schemas/api/endpoints';
 import { onMounted } from 'vue';
 
@@ -13,7 +13,11 @@ import { onMounted } from 'vue';
 // preformatted template variables (i.e. the jsvars from Onetime::App::View)
 // rather than re-implement them here in Vue. We'll replace all of them
 // eventually, but for now, this is a good way to keep momentum going.
-const { plan, cust, customer_since } = useWindowProps([ 'plan', 'cust', 'customer_since' ]);
+const windowProps = WindowService.getMultiple({
+  plan: null,
+  cust: null,
+  customer_since: null,
+});
 
 
 const { record: account, fetchData: fetchAccount } = useFetchDataRecord<Account>({
@@ -36,7 +40,7 @@ onMounted(fetchAccount);
       Your Account
     </h1>
     <p class="mb-4 text-lg dark:text-gray-300">
-      Account type: {{ plan?.options?.name }}
+      Account type: {{ windowProps.plan?.options?.name }}
     </p>
 
     <!-- API KEY -->
@@ -77,14 +81,14 @@ onMounted(fetchAccount);
 
         <!-- Ensure cust is not null or undefined before rendering the component -->
         <AccountDeleteButtonWithModalForm
-          v-if="cust"
-          :cust="cust"
+          v-if="windowProps.cust"
+          :cust="windowProps.cust"
         />
       </div>
     </div>
 
     <p class="mt-6 text-sm text-gray-600 dark:text-gray-400">
-      Created {{ cust?.secrets_created }} secrets since {{ customer_since }}.
+      Created {{ windowProps.cust?.secrets_created }} secrets since {{ windowProps.customer_since }}.
     </p>
   </div>
 </template>

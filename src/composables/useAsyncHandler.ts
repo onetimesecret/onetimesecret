@@ -1,4 +1,4 @@
-// src/composables/useErrorHandler.ts
+// src/composables/useAsyncHandler.ts
 
 import type { ApplicationError, ErrorSeverity } from '@/schemas/errors';
 import {
@@ -7,7 +7,7 @@ import {
   isOfHumanInterest,
 } from '@/schemas/errors/classifier';
 
-export interface ErrorHandlerOptions {
+export interface AsyncHandlerOptions {
   /**
    * Optional handler for user-facing notifications
    */
@@ -41,7 +41,7 @@ export { createError }; // Re-export createError
  * errorCaptured hook instead.
  *
  * We use the errorHandler composable across our pinia stores. We also have a global
- * ErrorHandlerPlugin that logs and notifies users of errors. The useDomainsManager
+ * GlobalErrorBoundary that logs and notifies users of errors. The useDomainsManager
  * composable uses the errorHandler to for async errors. Other exceptions propogate
  * up to Vue 3 handle errors.
  *
@@ -70,20 +70,20 @@ export { createError }; // Re-export createError
  * Example usage:
  *
  *    ```ts
- *    const { withErrorHandling } = useErrorHandler({
+ *    const { wrap } = useAsyncHandler({
  *      notify: useNotifications(),
  *      setLoading: useLoadingState(),
  *      log: useLogger()
  *    });
  *
  *    // In an async operation:
- *    const data = await withErrorHandling(async () => {
+ *    const data = await wrap(async () => {
  *      const response = await api.fetchData();
  *      return response.data;
  *    });
  * ```
  */
-export function useErrorHandler(options: ErrorHandlerOptions = {}) {
+export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   // Default implementations that will be used if no options provided
   const handlers = {
     notify:
@@ -94,7 +94,7 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
     log:
       options.log ??
       ((error: ApplicationError) => {
-        console.error('[ErrorHandler]', error);
+        console.error('[AsyncHandler]', error);
       }),
     setLoading: options.setLoading ?? (() => {}),
     onError: options.onError,
@@ -105,16 +105,16 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
    *
    * @example
    * ```ts
-   * const { withErrorHandling } = useErrorHandler({
+   * const { wrap } = useAsyncHandler({
    *   notify: (msg, severity) => toast(msg, severity),
    *   setLoading: (isLoading) => store.setLoading(isLoading)
    * });
    *
    * // In a component or service:
-   * const data = await withErrorHandling(() => api.fetchData());
+   * const data = await wrap(() => api.fetchData());
    * ```
    */
-  async function withErrorHandling<T>(operation: () => Promise<T>): Promise<T> {
+  async function wrap<T>(operation: () => Promise<T>): Promise<T> {
     try {
       handlers.setLoading?.(true);
       return await operation(); // <-- run the async operation
@@ -150,5 +150,5 @@ export function useErrorHandler(options: ErrorHandlerOptions = {}) {
     }
   }
 
-  return { withErrorHandling };
+  return { wrap };
 }

@@ -4,16 +4,17 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import SecretFormDrawer from './SecretFormDrawer.vue';
+import { WindowService } from '@/services/window.service';
 
-// TODO; Was useWindowProps(['plan', 'secret_options']);
-const plan = 'basic';
-const secretOptions = {
+// TODO; Was WindowService.getMultiple(['plan', 'secret_options']);
+const plan = WindowService.get('plan', null);
+const secretOptions = WindowService.get('secret_options', {
   ttl: 7200,
   recipient: '',
   passphrase: '',
   metadata_only: false,
   precomputed_burn: false
-};
+});
 
 interface Props {
   enabled?: boolean;
@@ -34,19 +35,19 @@ const { t } = useI18n();
 const showPassphrase = ref(false);
 const currentPassphrase = ref('');
 
-const selectedLifetime = ref(secretOptions.value?.default_ttl?.toString() || 604800); // Default to 7 days if not set
+const selectedLifetime = ref(secretOptions?.default_ttl?.toString() || 604800); // Default to 7 days if not set
 console.debug('Initial selectedLifetime:', selectedLifetime.value);
 
 const lifetimeOptions = computed(() => {
-  const options = secretOptions.value?.ttl_options;
+  const options = secretOptions?.ttl_options;
   if (!Array.isArray(options)) {
     console.warn('ttl_options is not an array:', options);
     return [];
   }
   const mappedOptions = options.map(seconds => {
     const option = {
-      value: seconds.toString(),
-      label: formatDuration(seconds)
+      value: seconds?.toString(),
+      label: formatDuration(seconds ?? 0)
     };
 
     return option;
@@ -85,14 +86,14 @@ const formatDuration = (seconds: number): string => {
 
 const filteredLifetimeOptions = computed(() => {
   console.debug('Computing filteredLifetimeOptions');
-  const planTtl = plan.value?.options?.ttl || 0;
+  const planTtl = plan?.options?.ttl || 0;
   console.debug('Plan TTL:', planTtl);
   if (!Array.isArray(lifetimeOptions.value)) {
     console.warn('lifetimeOptions is not an array:', lifetimeOptions.value);
     return [];
   }
   const filtered = lifetimeOptions.value.filter(option => {
-    const optionValue = parseFloat(option.value);
+    const optionValue = parseFloat(option.value ?? 0);
     const isValid = !isNaN(optionValue) && optionValue <= planTtl;
     console.debug('Filtering option:', option, 'Is valid:', isValid);
     return isValid;

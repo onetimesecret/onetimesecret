@@ -31,7 +31,7 @@ describe('CSRF Store', () => {
       vi.stubGlobal('window', { shrimp: undefined });
 
       const store = useCsrfStore();
-      store.init(axiosInstance);
+      store.init();
 
       expect(store.shrimp).toBe('');
     });
@@ -41,7 +41,7 @@ describe('CSRF Store', () => {
       vi.stubGlobal('window', { shrimp: 'yum' });
 
       const store = useCsrfStore();
-      store.init(axiosInstance);
+      store.init();
 
       expect(store.shrimp).toBe('yum');
     });
@@ -51,7 +51,7 @@ describe('CSRF Store', () => {
       vi.stubGlobal('window', { shrimp: 'initial' });
 
       const store = useCsrfStore();
-      store.init(axiosInstance);
+      store.init();
       expect(store.shrimp).toBe('initial');
 
       // Update store value
@@ -68,7 +68,7 @@ describe('CSRF Store', () => {
       vi.stubGlobal('window', { shrimp: '' });
 
       const store = useCsrfStore();
-      store.init(axiosInstance);
+      store.init();
 
       expect(store.shrimp).toBe('');
     });
@@ -89,7 +89,7 @@ describe('CSRF Store', () => {
       axiosMock = new AxiosMockAdapter(axiosInstance);
 
       store = useCsrfStore();
-      store.init(axiosInstance);
+      store.init();
 
       vi.useFakeTimers();
       vi.spyOn(window, 'setInterval');
@@ -115,7 +115,7 @@ describe('CSRF Store', () => {
 
       // Create fresh store instance after window.shrimp is set
       const store = useCsrfStore();
-      store.init(axiosInstance);
+      store.init();
 
       expect(store.shrimp).toBe('yum');
 

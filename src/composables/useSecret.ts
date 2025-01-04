@@ -1,11 +1,11 @@
 // composables/useSecret.ts
-import { useSecretsStore } from '@/stores/secretsStore';
+import { SecretStore, useSecretStore } from '@/stores/secretStore';
 import { storeToRefs } from 'pinia';
-import { ref, type Ref } from 'vue';
+import { ref } from 'vue';
 
 export function useSecret(key: string) {
-  const store = useSecretsStore();
-  const { record, details, isLoading, error } = storeToRefs(store);
+  const store = useSecretStore() as SecretStore;
+  const { record, details, isLoading } = storeToRefs(store);
 
   // Local state
   const passphrase = ref('');
@@ -14,8 +14,8 @@ export function useSecret(key: string) {
     await store.fetch(key);
   };
 
-  const reveal = async (passphrase: Ref) => {
-    await store.reveal(key, passphrase.value);
+  const reveal = async (passphrase: string) => {
+    await store.reveal(key, passphrase);
   };
 
   return {
@@ -23,7 +23,6 @@ export function useSecret(key: string) {
     record: record,
     details: details,
     isLoading,
-    error,
     passphrase,
 
     // Computed

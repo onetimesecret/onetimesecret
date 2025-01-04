@@ -70,15 +70,17 @@ module Onetime
         self[:jsvars] << jsvar(:global_banner, OT.global_banner) if OT.global_banner
 
         # Pass the authentication flag settings to the frontends.
-        self[:jsvars] << jsvar(:authentication, authentication)
+        self[:jsvars] << jsvar(:authentication, authentication) # nil is okay
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
 
         # Only send the regions config when the feature is enabled.
         self[:jsvars] << jsvar(:regions_enabled, regions_enabled)
         self[:jsvars] << jsvar(:regions, regions) if regions_enabled
 
+        # Ensure that these keys are always present in jsvars, even if nil
+        ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains]
+
         if authenticated && cust
-          self[:jsvars] << jsvar(:metadata_record_count, cust.metadata_list.length)
           self[:jsvars] << jsvar(:domains_enabled, domains_enabled) # only for authenticated
 
           self[:jsvars] << jsvar(:custid, cust.custid)
@@ -104,8 +106,13 @@ module Onetime
 
               obj.display_domain
             end
-            self[:jsvars] << jsvar(:custom_domains_record_count, custom_domains.length)
             self[:jsvars] << jsvar(:custom_domains, custom_domains.sort)
+          end
+        else
+          # We do this so that in our typescript we can assume either a value
+          # or nil (null), avoiding undefined altogether.
+          ensure_exist.each do |key|
+            self[:jsvars] << jsvar(key, nil)
           end
         end
 

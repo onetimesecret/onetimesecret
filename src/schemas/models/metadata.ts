@@ -78,9 +78,7 @@ export const metadataSchema = metadataBaseSchema.merge(
 // The details for each record in single record details
 export const metadataDetailsSchema = z.object({
   type: z.literal('record'),
-  title: z.string(),
   display_lines: transforms.fromString.number,
-  display_feedback: transforms.fromString.boolean,
   no_cache: transforms.fromString.boolean,
   secret_realttl: z.number().nullable().optional(),
   maxviews: transforms.fromString.number,

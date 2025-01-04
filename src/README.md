@@ -24,7 +24,7 @@ components/
   DefaultHeader.vue
 
 composables/
-  useWindowProps.ts    // Composable hooks
+  useMetadata.ts    // Composable hooks
 
 layouts/
   DefaultLayout.vue    // Page layouts

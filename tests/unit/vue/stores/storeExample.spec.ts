@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { createPinia, defineStore, PiniaCustomProperties, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Minimal store implementation
@@ -9,33 +9,23 @@ const useTestStore = defineStore('test', {
     isLoading: false,
     data: null as any,
     error: null as Error | null,
+    _api: null as AxiosInstance | null,
   }),
 
   actions: {
-    // Inject API client through closure
-    _api: null as AxiosInstance | null,
-
-    init(api: AxiosInstance) {
-      this._api = api;
+    init(this: PiniaCustomProperties, api: AxiosInstance) {
+      this.state._api = api;
     },
 
-    async _withLoading<T>(operation: () => Promise<T>): Promise<T> {
-      this.isLoading = true;
-      try {
-        return await operation();
-      } finally {
-        this.isLoading = false;
-      }
-    },
-
-    async fetchData(id: string) {
-      return await this._withLoading(async () => {
-        const response = await this._api!.get(`/api/data/${id}`);
+    async fetchData(this: PiniaCustomProperties, id: string) {
+      const { wrap } = this.useAsyncHandler();
+      return await wrap(async () => {
+        const response = await this.$api.get(`/api/data/${id}`);
         this.data = response.data;
         return response.data;
       });
-    }
-  }
+    },
+  },
 });
 
 describe('Store Testing Pattern', () => {
@@ -50,12 +40,12 @@ describe('Store Testing Pattern', () => {
     // 2. Create fresh axios instance and mock
     const axiosInstance = axios.create();
     axiosMock = new AxiosMockAdapter(axiosInstance, {
-      onNoMatch: 'throwException'
+      onNoMatch: 'throwException',
     });
 
     // 3. Initialize store with mocked axios
     store = useTestStore();
-    store.init(axiosInstance);
+    store.init();
   });
 
   afterEach(() => {
@@ -66,9 +56,7 @@ describe('Store Testing Pattern', () => {
 
   it('handles successful data fetch with loading state', async () => {
     // 1. Setup mock response BEFORE the request
-    axiosMock
-      .onGet('/api/data/123')
-      .reply(200, mockData);
+    axiosMock.onGet('/api/data/123').reply(200, mockData);
 
     // 2. Track loading states
     const loadingStates: boolean[] = [];
@@ -85,14 +73,12 @@ describe('Store Testing Pattern', () => {
 
     // 5. Verify loading state lifecycle
     expect(loadingStates).toContain(true); // Was loading during operation
-    expect(store.isLoading).toBe(false);   // Not loading after completion
+    expect(store.isLoading).toBe(false); // Not loading after completion
   });
 
   it('handles network errors properly', async () => {
     // 1. Setup error response
-    axiosMock
-      .onGet('/api/data/123')
-      .networkError();
+    axiosMock.onGet('/api/data/123').networkError();
 
     // 2. Verify error handling
     await expect(store.fetchData('123')).rejects.toThrow();
@@ -101,15 +87,13 @@ describe('Store Testing Pattern', () => {
 
   it('handles delayed responses correctly', async () => {
     // 1. Setup delayed response
-    axiosMock
-      .onGet('/api/data/123')
-      .reply(() => {
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve([200, mockData]);
-          }, 50);
-        });
+    axiosMock.onGet('/api/data/123').reply(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve([200, mockData]);
+        }, 50);
       });
+    });
 
     // 2. Start the request
     const promise = store.fetchData('123');

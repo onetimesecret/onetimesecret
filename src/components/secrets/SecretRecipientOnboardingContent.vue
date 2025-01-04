@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useWindowProp } from '@/composables/useWindowProps';
+import { WindowService } from '@/services/window.service';
 
 interface Props {
   displayPoweredBy: boolean;
 }
 defineProps<Props>();
 
-const siteHost = useWindowProp('site_host');
+const siteHost = WindowService.get('site_host', null);
 </script>
 
 <template>
