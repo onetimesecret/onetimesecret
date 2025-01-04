@@ -2,6 +2,7 @@
 
 import { createError } from '@/composables/useErrorHandler';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
+import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
@@ -42,8 +43,11 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
    * Initialize the jurisdiction store with configuration from API
    * Handles both enabled and disabled region scenarios
    */
-  function init(config: RegionsConfig | null) {
+  function init() {
     if (_initialized.value) return;
+    let config: RegionsConfig | null;
+
+    config = WindowService.get('regions', null);
 
     if (!config) {
       enabled.value = false;

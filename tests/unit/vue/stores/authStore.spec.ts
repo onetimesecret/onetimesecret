@@ -1,4 +1,4 @@
-// tests/unit/vue/stores/windowStore.spec.ts
+// tests/unit/vue/stores/authStore.spec.ts
 import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { Customer, Plan } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/stores/authStore';

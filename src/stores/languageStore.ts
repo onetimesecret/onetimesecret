@@ -7,7 +7,8 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { z } from 'zod';
 
-import { useWindowStore } from './windowStore';
+//import { setLanguage } from '@/i18n';
+import { WindowService } from '@/services/window.service';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
@@ -79,9 +80,8 @@ export const useLanguageStore = defineStore('language', () => {
 
   function initializeLocale() {
     try {
-      const windowStore = useWindowStore();
-      windowStore.init();
-      supportedLocales.value = windowStore.supported_locales ?? [];
+
+      supportedLocales.value = WindowService.get("supported_locales", []);
 
       storedLocale.value = sessionStorage.getItem(getStorageKey.value);
 
