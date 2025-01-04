@@ -5,7 +5,6 @@ import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
 
-
 export const METADATA_STATUS = {
   NEW: 'new',
   SHARED: 'shared',
@@ -48,9 +47,7 @@ export const useMetadataStore = defineStore('metadata', () => {
   const isInitialized = computed(() => _initialized.value);
 
   const canBurn = computed((): boolean => {
-    if (!record.value) {
-      throw createError('No state metadata record', 'technical', 'error');
-    }
+    if (!record.value) return false;
 
     const validStates = [
       METADATA_STATUS.NEW,

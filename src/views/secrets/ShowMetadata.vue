@@ -59,7 +59,7 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const { record, details, isLoading, error, fetch } = useMetadata(props.metadataKey);
+const { record, details, isLoading, fetch } = useMetadata(props.metadataKey);
 
 onBeforeRouteUpdate((to, from, next) => {
   console.debug('[ShowMetadata] Route updating', to.params.metadataKey);

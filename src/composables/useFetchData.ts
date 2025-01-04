@@ -1,5 +1,5 @@
 // src/composables/useFetchData.ts
-import type { ApiRecordResponse, ApiRecordsResponse } from '@/schemas/api/responses';
+import type { ApiRecordResponse, ApiRecordsResponse } from '@/schemas/api';
 import { BaseApiRecord, DetailsType } from '@/schemas/models/base';
 import { computed, ref, Ref } from 'vue';
 
@@ -21,6 +21,7 @@ interface FetchDataOptions<T extends BaseApiRecord> {
   onError?: (error: Error, status?: number | null) => void;
 }
 
+/* eslint-disable max-lines-per-function */
 export function useFetchData<T extends BaseApiRecord>({
   url,
   onSuccess,
@@ -53,7 +54,8 @@ export function useFetchData<T extends BaseApiRecord>({
         throw new Error(`Failed to fetch data from ${url}`);
       }
 
-      const jsonData: ApiRecordResponse<T> | ApiRecordsResponse<T> = await response.json();
+      const jsonData: ApiRecordResponse<T> | ApiRecordsResponse<T> =
+        await response.json();
 
       if ('record' in jsonData) {
         records.value = [jsonData.record as T];
@@ -61,7 +63,7 @@ export function useFetchData<T extends BaseApiRecord>({
         details.value = jsonData.details || undefined;
       } else if ('records' in jsonData) {
         records.value = jsonData.records;
-        count.value = jsonData.count;
+        count.value = jsonData.count ?? 0;
         custid.value = jsonData.custid || null;
         details.value = jsonData.details || undefined;
       } else {
@@ -99,8 +101,10 @@ export function useFetchData<T extends BaseApiRecord>({
   };
 }
 
-export function useFetchDataRecord<T extends BaseApiRecord>(options: FetchDataOptions<T>) {
-  const { records, details, isLoading, error, count, custid, status, fetchData } =
+export function useFetchDataRecord<T extends BaseApiRecord>(
+  options: FetchDataOptions<T>
+) {
+  const { records, details, isLoading, count, custid, status, fetchData, error } =
     useFetchData<T>(options);
 
   const record = computed(() => records.value[0] || null);

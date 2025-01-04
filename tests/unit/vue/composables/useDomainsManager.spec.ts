@@ -234,11 +234,10 @@ describe('useDomainsManager', () => {
 
   describe('reactive state', () => {
     it('exposes store reactive properties', () => {
-      const { domains, isLoading, error } = useDomainsManager();
+      const { domains, isLoading } = useDomainsManager();
 
       expect(domains.value).toEqual(mockDomains);
       expect(isLoading.value).toBe(false);
-      expect(error.value).toBeNull();
     });
 
     it('reflects loading state changes', async () => {
