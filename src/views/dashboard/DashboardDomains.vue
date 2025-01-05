@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AccountDomasCTA from '@/components/ctas/DomainsCTA.vue'
+import CustomDomainsCTA from '@/components/ctas/CustomDomainsCTA.vue'
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainsTable from '@/components/DomainsTable.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
@@ -71,7 +71,7 @@ const handleConfirmDelete = async (domainId: string) => {
     <div
       v-else-if="!planAllowsCustomDomains"
       class="w-full">
-      <AccountDomasCTA />
+      <CustomDomainsCTA />
     </div>
 
     <div
