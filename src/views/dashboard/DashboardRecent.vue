@@ -4,12 +4,15 @@ import EmptyState from '@/components/EmptyState.vue';
 import ErrorDisplay from '@/components/ErrorDisplay.vue';
 import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
 import { MetadataRecords } from '@/schemas/api/endpoints';
-import { useMetadataListStore } from '@/stores/metadataListStore';
-import { storeToRefs } from 'pinia';
+import { useMetadataList } from '@/composables/useMetadataList';
 import { onMounted, computed } from 'vue';
 
-const store = useMetadataListStore();
-const { records, details } = storeToRefs(store);
+// Define props
+interface Props {
+}
+defineProps<Props>();
+
+const { records, details, isLoading, fetch, error } = useMetadataList();
 
 // Add computed properties for received and not received items
 const receivedItems = computed(() => {
@@ -26,8 +29,8 @@ const notReceivedItems = computed(() => {
   return [] as MetadataRecords[];
 });
 
-onMounted(async () => {
-  await store.fetchList();
+onMounted(() => {
+  fetch()
 });
 
 </script>
@@ -42,7 +45,7 @@ onMounted(async () => {
     </div>
     <div v-else>
       <SecretMetadataTable
-        v-if="records.length > 0"
+        v-if="records?.length > 0"
         :not-received="notReceivedItems"
         :received="receivedItems"
         :is-loading="isLoading"

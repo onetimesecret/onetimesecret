@@ -1,18 +1,12 @@
-// composables/useMetadata.ts
+// src/composables/useMetadata.ts
+
 import { ApplicationError } from '@/schemas';
-import { loggingService } from '@/services/logging';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { NotificationSeverity, useNotificationsStore } from '@/stores/notificationsStore';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAsyncHandler } from './useAsyncHandler';
-
-export const defaultAsyncHandlerOptions = {
-  notify: (message: string, severity: string) =>
-    loggingService.info(`[notify] ${severity}: ${message}`),
-  log: (error: Error) => loggingService.error(error),
-};
+import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
  *
@@ -33,12 +27,15 @@ export function useMetadata(metadataKey: string) {
   const isLoading = ref(false);
   const error = ref<ApplicationError | null>(null);
 
-  const { wrap, createError } = useAsyncHandler({
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) =>
       notifications.show(message, severity as NotificationSeverity),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => (error.value = err),
-  });
+  };
+
+  // Composable async handler
+  const { wrap, createError } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   const fetch = async () =>
     wrap(async () => {

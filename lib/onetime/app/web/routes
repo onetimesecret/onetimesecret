@@ -31,7 +31,8 @@ POST  /forgot/:key                               Onetime::App::Data#request_rese
 
 GET   /dashboard                                 Onetime::App::Page#customers_only
 GET   /recent                                    Onetime::App::Page#customers_only
-
+GET   /domains/*                                 Onetime::App::Page#customers_only
+GET   /domains                                   Onetime::App::Page#customers_only
 GET   /account/*                                 Onetime::App::Page#customers_only
 GET   /account                                   Onetime::App::Page#customers_only
 GET   /account/billing_portal                    Onetime::App::Data#customer_portal_redirect
