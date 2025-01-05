@@ -15,7 +15,6 @@ import { computed, ref } from 'vue';
  * Custom type for the DomainsStore, including plugin-injected properties.
  */
 export type DomainsStore = {
-  isLoading: boolean;
   domains: CustomDomain[];
   initialized: boolean;
   isInitialized: boolean;
@@ -40,7 +39,6 @@ export type DomainsStore = {
 /* eslint-disable max-lines-per-function */
 export const useDomainsStore = defineStore('domains', () => {
   // Statell
-  const isLoading = ref(false);
   const domains = ref<CustomDomain[]>([]);
   const _initialized = ref(false);
 
@@ -60,12 +58,10 @@ export const useDomainsStore = defineStore('domains', () => {
    * Add a new custom domain
    */
   async function addDomain(this: DomainsStore, domain: string) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.post('/api/v2/domains/add', { domain });
-      const validated = responseSchemas.customDomain.parse(response.data);
-      domains.value.push(validated.record);
-      return validated.record;
-    });
+    const response = await this.$api.post('/api/v2/domains/add', { domain });
+    const validated = responseSchemas.customDomain.parse(response.data);
+    domains.value.push(validated.record);
+    return validated.record;
   }
 
   /**
@@ -74,34 +70,28 @@ export const useDomainsStore = defineStore('domains', () => {
   async function refreshRecords(this: DomainsStore) {
     if (_initialized.value) return;
 
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.get('/api/v2/domains');
-      const validated = responseSchemas.customDomainList.parse(response.data);
-      domains.value = validated.records;
-      return validated.records;
-    });
+    const response = await this.$api.get('/api/v2/domains');
+    const validated = responseSchemas.customDomainList.parse(response.data);
+    domains.value = validated.records;
+    return validated.records;
   }
 
   /**
    * Delete a domain by name
    */
   async function deleteDomain(this: DomainsStore, domainName: string) {
-    return await this.$asyncHandler.wrap(async () => {
-      await this.$api.post(`/api/v2/domains/${domainName}/remove`);
-      domains.value = domains.value.filter(
-        (domain) => domain.display_domain !== domainName
-      );
-    });
+    await this.$api.post(`/api/v2/domains/${domainName}/remove`);
+    domains.value = domains.value.filter(
+      (domain) => domain.display_domain !== domainName
+    );
   }
 
   /**
    * Get brand settings for a domain
    */
   async function getBrandSettings(this: DomainsStore, domain: string) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.get(`/api/v2/domains/${domain}/brand`);
-      return responseSchemas.brandSettings.parse(response.data);
-    });
+    const response = await this.$api.get(`/api/v2/domains/${domain}/brand`);
+    return responseSchemas.brandSettings.parse(response.data);
   }
 
   /**
@@ -112,12 +102,10 @@ export const useDomainsStore = defineStore('domains', () => {
     domain: string,
     settings: Partial<BrandSettings>
   ) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.put(`/api/v2/domains/${domain}/brand`, {
-        brand: settings,
-      });
-      return responseSchemas.brandSettings.parse(response.data);
+    const response = await this.$api.put(`/api/v2/domains/${domain}/brand`, {
+      brand: settings,
     });
+    return responseSchemas.brandSettings.parse(response.data);
   }
 
   /**
@@ -128,50 +116,42 @@ export const useDomainsStore = defineStore('domains', () => {
     domain: string,
     brandUpdate: UpdateDomainBrandRequest
   ) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.put(
-        `/api/v2/domains/${domain}/brand`,
-        brandUpdate
-      );
-      const validated = responseSchemas.customDomain.parse(response.data);
+    const response = await this.$api.put(`/api/v2/domains/${domain}/brand`, brandUpdate);
+    const validated = responseSchemas.customDomain.parse(response.data);
 
-      const domainIndex = domains.value.findIndex((d) => d.display_domain === domain);
-      if (domainIndex !== -1) {
-        domains.value[domainIndex] = validated.record;
-      }
-      return validated.record;
-    });
+    const domainIndex = domains.value.findIndex((d) => d.display_domain === domain);
+    if (domainIndex !== -1) {
+      domains.value[domainIndex] = validated.record;
+    }
+    return validated.record;
   }
 
   /**
    * Update an existing domain
    */
   async function updateDomain(this: DomainsStore, domain: CustomDomain) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.put(
-        `/api/v2/domains/${domain.display_domain}`,
-        domain
-      );
-      const validated = responseSchemas.customDomain.parse(response.data);
+    const response = await this.$api.put(
+      `/api/v2/domains/${domain.display_domain}`,
+      domain
+    );
+    const validated = responseSchemas.customDomain.parse(response.data);
 
-      const domainIndex = domains.value.findIndex(
-        (d) => d.display_domain === domain.display_domain
-      );
+    const domainIndex = domains.value.findIndex(
+      (d) => d.display_domain === domain.display_domain
+    );
 
-      if (domainIndex !== -1) {
-        domains.value[domainIndex] = validated.record;
-      } else {
-        domains.value.push(validated.record);
-      }
-      return validated.record;
-    });
+    if (domainIndex !== -1) {
+      domains.value[domainIndex] = validated.record;
+    } else {
+      domains.value.push(validated.record);
+    }
+    return validated.record;
   }
 
   /**
    * Reset store state to initial values
    */
   function $reset(this: DomainsStore) {
-    isLoading.value = false;
     domains.value = [];
     _initialized.value = false;
   }
@@ -180,7 +160,6 @@ export const useDomainsStore = defineStore('domains', () => {
     init,
 
     // State
-    isLoading,
     domains,
     _initialized,
 

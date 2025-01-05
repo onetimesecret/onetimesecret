@@ -73,7 +73,6 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     // State
     records,
     details,
-    _initialized,
     count,
 
     // Getters

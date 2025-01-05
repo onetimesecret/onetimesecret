@@ -9,7 +9,6 @@ import { computed, ref } from 'vue';
  */
 export type SecretStore = {
   // State
-  isLoading: boolean;
   record: Secret | null;
   details: SecretDetails | null;
   _initialized: boolean;
@@ -31,7 +30,6 @@ export type SecretStore = {
 /* eslint-disable max-lines-per-function */
 export const useSecretStore = defineStore('secrets', () => {
   // State
-  const isLoading = ref(false);
   const record = ref<Secret | null>(null);
   const details = ref<SecretDetails | null>(null);
   const _initialized = ref(false);
@@ -55,14 +53,12 @@ export const useSecretStore = defineStore('secrets', () => {
    * @returns Validated secret response
    */
   async function fetch(this: SecretStore, secretKey: string) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.get(`/api/v2/secret/${secretKey}`);
-      const validated = responseSchemas.secret.parse(response.data);
-      record.value = validated.record;
-      details.value = validated.details;
+    const response = await this.$api.get(`/api/v2/secret/${secretKey}`);
+    const validated = responseSchemas.secret.parse(response.data);
+    record.value = validated.record;
+    details.value = validated.details;
 
-      return validated;
-    });
+    return validated;
   }
 
   /**
@@ -73,21 +69,19 @@ export const useSecretStore = defineStore('secrets', () => {
    * @returns Validated secret response
    */
   async function reveal(this: SecretStore, secretKey: string, passphrase?: string) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.post<SecretResponse>(
-        `/api/v2/secret/${secretKey}/reveal`,
-        {
-          passphrase,
-          continue: true,
-        }
-      );
+    const response = await this.$api.post<SecretResponse>(
+      `/api/v2/secret/${secretKey}/reveal`,
+      {
+        passphrase,
+        continue: true,
+      }
+    );
 
-      const validated = responseSchemas.secret.parse(response.data);
-      record.value = validated.record;
-      details.value = validated.details;
+    const validated = responseSchemas.secret.parse(response.data);
+    record.value = validated.record;
+    details.value = validated.details;
 
-      return validated;
-    });
+    return validated;
   }
 
   function clear(this: SecretStore) {
@@ -106,7 +100,6 @@ export const useSecretStore = defineStore('secrets', () => {
 
   return {
     // State
-    isLoading,
     record,
     details,
 

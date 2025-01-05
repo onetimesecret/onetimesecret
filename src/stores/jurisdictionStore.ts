@@ -24,7 +24,6 @@ import { computed, ref } from 'vue';
  */
 export type JurisdictionStore = {
   // State
-  isLoading: boolean;
   enabled: boolean;
   currentJurisdiction: Jurisdiction | null;
   jurisdictions: Jurisdiction[];
@@ -43,7 +42,6 @@ export type JurisdictionStore = {
 /* eslint-disable max-lines-per-function */
 export const useJurisdictionStore = defineStore('jurisdiction', () => {
   // State
-  const isLoading = ref(false);
   const enabled = ref(false); // originally true
   const currentJurisdiction = ref<Jurisdiction | null>(null);
   const jurisdictions = ref<Jurisdiction[]>([]);
@@ -96,9 +94,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
     const jurisdiction = jurisdictions.value.find((j) => j.identifier === identifier);
 
     if (!jurisdiction) {
-      throw createError(`Jurisdiction "${identifier}" not found`, 'technical', 'error', {
-        identifier,
-      });
+      throw createError(`Jurisdiction "${identifier}" not found`, 'technical', 'error');
     }
     return jurisdiction;
   }
@@ -107,7 +103,6 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
    * Reset store state to initial values
    */
   function $reset(this: JurisdictionStore) {
-    isLoading.value = false;
     enabled.value = true;
     currentJurisdiction.value = null;
     jurisdictions.value = [];
@@ -116,7 +111,6 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
 
   return {
     // State
-    isLoading,
     enabled,
     currentJurisdiction,
     jurisdictions,
