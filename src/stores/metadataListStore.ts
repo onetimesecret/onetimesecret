@@ -10,7 +10,6 @@ import { ref, type Ref } from 'vue';
 export type MetadataListStore = {
   // State
   _initialized: boolean;
-  isLoading: boolean;
   records: MetadataRecords[] | null;
   details: MetadataRecordsDetails | null;
   count: number | null;
@@ -33,7 +32,6 @@ export type MetadataListStore = {
 export const useMetadataListStore = defineStore('metadataList', () => {
   // State
   const _initialized = ref(false);
-  const isLoading = ref(false);
   const records: Ref<MetadataRecords[] | null> = ref(null);
   const details: Ref<MetadataRecordsDetails | null> = ref(null);
   const count = ref<number | null>(null);
@@ -43,25 +41,21 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   const initialized = () => _initialized.value;
 
   async function fetchList(this: MetadataListStore) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.get('/api/v2/private/recent');
-      const validated = responseSchemas.metadataList.parse(response.data);
+    const response = await this.$api.get('/api/v2/private/recent');
+    const validated = responseSchemas.metadataList.parse(response.data);
 
-      records.value = validated.records ?? [];
-      details.value = validated.details ?? {};
-      count.value = validated.count ?? 0;
+    records.value = validated.records ?? [];
+    details.value = validated.details ?? {};
+    count.value = validated.count ?? 0;
 
-      return validated;
-    });
+    return validated;
   }
 
   async function refreshRecords(this: MetadataListStore, force = false) {
     if (!force && _initialized.value) return;
 
-    return await this.$asyncHandler.wrap(async () => {
-      await this.fetchList();
-      _initialized.value = true;
-    });
+    await this.fetchList();
+    _initialized.value = true;
   }
 
   /**
@@ -69,7 +63,6 @@ export const useMetadataListStore = defineStore('metadataList', () => {
    * Implementation of $reset() for setup stores since it's not automatically available.
    */
   function $reset(this: MetadataListStore) {
-    isLoading.value = false;
     records.value = null;
     details.value = null;
     _initialized.value = false;
@@ -78,7 +71,6 @@ export const useMetadataListStore = defineStore('metadataList', () => {
 
   return {
     // State
-    isLoading,
     records,
     details,
     _initialized,
