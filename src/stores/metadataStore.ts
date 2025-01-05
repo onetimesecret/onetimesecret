@@ -38,7 +38,6 @@ export type MetadataStore = {
 /* eslint-disable max-lines-per-function */
 export const useMetadataStore = defineStore('metadata', () => {
   // State
-  const isLoading = ref(false);
   const record = ref<Metadata | null>(null);
   const details = ref<MetadataDetails | null>(null);
   const _initialized = ref(false);
@@ -75,13 +74,11 @@ export const useMetadataStore = defineStore('metadata', () => {
   }
 
   async function fetch(this: MetadataStore, key: string) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.get(`/api/v2/private/${key}`);
-      const validated = responseSchemas.metadata.parse(response.data);
-      record.value = validated.record;
-      details.value = validated.details;
-      return validated;
-    });
+    const response = await this.$api.get(`/api/v2/private/${key}`);
+    const validated = responseSchemas.metadata.parse(response.data);
+    record.value = validated.record;
+    details.value = validated.details;
+    return validated;
   }
 
   async function burn(this: MetadataStore, key: string, passphrase?: string) {
@@ -89,21 +86,18 @@ export const useMetadataStore = defineStore('metadata', () => {
       throw createError('Cannot burn this metadata', 'human', 'error');
     }
 
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.post(`/api/v2/private/${key}/burn`, {
-        passphrase,
-        continue: true,
-      });
-      const validated = responseSchemas.metadata.parse(response.data);
-      record.value = validated.record;
-      details.value = validated.details;
-      return validated;
+    const response = await this.$api.post(`/api/v2/private/${key}/burn`, {
+      passphrase,
+      continue: true,
     });
+    const validated = responseSchemas.metadata.parse(response.data);
+    record.value = validated.record;
+    details.value = validated.details;
+    return validated;
   }
 
   // Implement $reset for setup store
   function $reset(this: MetadataStore) {
-    isLoading.value = false;
     record.value = null;
     details.value = null;
     _initialized.value = false;
@@ -111,7 +105,6 @@ export const useMetadataStore = defineStore('metadata', () => {
 
   return {
     // State
-    isLoading,
     record,
     details,
 
