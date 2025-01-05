@@ -7,8 +7,7 @@ import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCa
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
 import { useMetadata } from '@/composables/useMetadata';
-import { onMounted, onErrorCaptured, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, onUnmounted, watch } from 'vue';
 
 // Define props
 interface Props {
@@ -16,26 +15,27 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const { record, details, isLoading, fetch, error } = useMetadata(props.metadataKey);
+const { record, details, isLoading, fetch, error, reset } = useMetadata(props.metadataKey);
 
-/**
- * Route change handling decision:
- * - Use watch: For reactive side-effects after navigation (current case)
- * - Use onBeforeRouteUpdate: When needing to block navigation pending async ops
- */
-const route = useRoute();
+// Watch for route parameter changes to refetch data
 watch(
-  () => route.params.metadataKey,
-  () => fetch(),
-  { immediate: true }
+  () => props.metadataKey,
+  (newKey) => {
+    reset();
+    if (newKey) {
+      fetch();
+    }
+  }
 );
 
-onErrorCaptured((error) => {
-  console.error('[ShowMetadata] Error captured:', error);
-  return false; // Stop propagation
+onMounted(() => {
+  fetch();
 });
 
-onMounted(fetch);
+// Ensure cleanup when component unmounts
+onUnmounted(() => {
+  reset();
+});
 </script>
 
 <template>

@@ -40,7 +40,7 @@ export function useMetadata(metadataKey: string) {
     onError: (err) => (error.value = err),
   });
 
-  const fetch = () =>
+  const fetch = async () =>
     wrap(async () => {
       const result = await store.fetch(metadataKey);
       return result;
@@ -64,9 +64,10 @@ export function useMetadata(metadataKey: string) {
   const reset = () => {
     // Reset local state
     passphrase.value = '';
-    store.$reset();
-    isLoading.value = false;
     error.value = null;
+    isLoading.value = false;
+    // Reset store state
+    store.$reset();
   };
 
   return {

@@ -19,7 +19,6 @@ export const METADATA_STATUS = {
  */
 export type MetadataStore = {
   // State
-  isLoading: boolean;
   record: Metadata | null;
   details: MetadataDetails | null;
   _initialized: boolean;
@@ -64,15 +63,27 @@ export const useMetadataStore = defineStore('metadata', () => {
     return true;
   });
 
-  // Actions
+  /**
+   * Initializes the metadata store.
+   * Idempotent - subsequent calls have no effect if already initialized.
+   *
+   * @returns Object containing initialization status
+   */
   function init(this: MetadataStore) {
     if (_initialized.value) return { isInitialized };
-
     _initialized.value = true;
-
     return { isInitialized };
   }
 
+  /**
+   * Fetches metadata for given key from API.
+   * Validates response against metadata schema using Zod.
+   * Updates store state with validated response.
+   *
+   * @param key - Metadata identifier
+   * @throws {ZodError} When response fails schema validation
+   * @throws {AxiosError} When request fails
+   */
   async function fetch(this: MetadataStore, key: string) {
     const response = await this.$api.get(`/api/v2/private/${key}`);
     const validated = responseSchemas.metadata.parse(response.data);
@@ -81,6 +92,17 @@ export const useMetadataStore = defineStore('metadata', () => {
     return validated;
   }
 
+  /**
+   * Burns (destroys) metadata identified by key.
+   * Validates current state allows burning via canBurn.
+   * Updates store state with validated response.
+   *
+   * @param key - Metadata identifier
+   * @param passphrase - Optional passphrase required for some secrets
+   * @throws {ApplicationError} When metadata cannot be burned
+   * @throws {ZodError} When response fails schema validation
+   * @throws {AxiosError} When request fails
+   */
   async function burn(this: MetadataStore, key: string, passphrase?: string) {
     if (!canBurn.value) {
       throw createError('Cannot burn this metadata', 'human', 'error');
@@ -90,13 +112,18 @@ export const useMetadataStore = defineStore('metadata', () => {
       passphrase,
       continue: true,
     });
+
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
     details.value = validated.details;
+
     return validated;
   }
 
-  // Implement $reset for setup store
+  /**
+   * Resets store state to initial values.
+   * Clears record, details and initialization status.
+   */
   function $reset(this: MetadataStore) {
     record.value = null;
     details.value = null;
