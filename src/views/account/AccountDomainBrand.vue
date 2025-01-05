@@ -5,18 +5,11 @@ import DomainHeader from '@/components/account/DomainHeader.vue';
 import InstructionsModal from '@/components/account/InstructionsModal.vue';
 import SecretPreview from '@/components/account/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
-import type { BrandSettingsResponse } from '@/schemas/api/responses';
-import { AsyncDataResult, CustomDomainResponse } from '@/schemas/api/responses';
-import type { BrandSettings, CustomDomain, ImageProps } from '@/schemas/models';
-import { brandSettingschema } from '@/schemas/models/domain/brand';
-import { useCsrfStore } from '@/stores/csrfStore';
-import { useNotificationsStore } from '@/stores/notificationsStore';
-import api from '@/utils/api';
-import { shouldUseLightText } from '@/utils/color-utils';
+import { useBranding } from '@/composables/useBranding';
+import type { CustomDomain } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
-import { useDomainBranding } from '@/composables/useDomainBranding';
 
 const props = defineProps<{ domain: string }>();
 const {
@@ -27,17 +20,14 @@ const {
   hasUnsavedChanges,
   logoImage,
   fetchBranding,
-  saveBranding,
   submitBrandSettings,
   handleLogoUpload,
   detectPlatform,
   removeLogo,
   primaryColor,
-} = useDomainBranding(props.domain);
+} = useBranding(props.domain);
 
 const route = useRoute();
-
-const notifications = useNotificationsStore();
 
 const displayDomain = computed(() => `${props.domain || route.params.domain as string}`);
 const customDomain = ref<CustomDomain | null>(null);
@@ -70,20 +60,15 @@ onBeforeRouteLeave((to, from, next) => {
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header Section -->
     <div class="sticky top-0 z-30">
-      <DomainHeader
-        :display-domain="displayDomain"
-        :domain="customDomain"
-      />
+      <DomainHeader :display-domain="displayDomain"
+                    :domain="customDomain" />
 
-      <BrandSettingsBar
-        v-model="brand"
-        :is-submitting="loading"
-        @submit="submitBrandSettings">
+      <BrandSettingsBar v-model="brand"
+                        :is-submitting="loading"
+                        @submit="submitBrandSettings">
         <template #instructions-button>
-          <InstructionsModal
-            v-model="brandSettings.instructions_pre_reveal"
-            @update:model-value="(value) => brandSettings.instructions_pre_reveal = value"
-          />
+          <InstructionsModal v-model="brandSettings.instructions_pre_reveal"
+                             @update:model-value="(value) => brandSettings.instructions_pre_reveal = value" />
         </template>
       </BrandSettingsBar>
     </div>
@@ -92,16 +77,14 @@ onBeforeRouteLeave((to, from, next) => {
     <div class="mx-auto max-w-7xl p-4 sm:px-6 sm:py-8 lg:px-8">
       <!-- Preview Section -->
       <div class="relative mb-6 sm:mb-12">
-        <h2
-          id="previewHeading"
-          class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
+        <h2 id="previewHeading"
+            class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
           Preview & Customize
         </h2>
 
         <!-- Instructions for screen readers -->
-        <div
-          class="sr-only"
-          role="note">
+        <div class="sr-only"
+             role="note">
           This is an interactive preview of how recipients will see your secure messages. You can:
           - Customize colors and fonts using the controls above
           - Upload a logo (minimum 128x128 pixels recommended, 1MB max)
@@ -109,71 +92,58 @@ onBeforeRouteLeave((to, from, next) => {
         </div>
 
         <!-- Visual instructions -->
-        <ul
-          class="mb-4 space-y-1 text-sm sm:mb-6 sm:space-y-2"
-          :aria-hidden="true">
+        <ul class="mb-4 space-y-1 text-sm sm:mb-6 sm:space-y-2"
+            :aria-hidden="true">
           <li class="flex items-center gap-2">
-            <Icon
-              icon="mdi:palette-outline"
-              class="size-5"
-              aria-label="Customization icon"
-            />
+            <Icon icon="mdi:palette-outline"
+                  class="size-5"
+                  aria-label="Customization icon" />
             Use the controls above to customize brand color, styles, and recipient instructions
           </li>
 
           <li class="flex items-center gap-2">
-            <Icon
-              icon="mdi:image-outline"
-              class="size-5"
-              aria-label="Image icon"
-            />
+            <Icon icon="mdi:image-outline"
+                  class="size-5"
+                  aria-label="Image icon" />
             Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)
           </li>
 
           <li class="flex items-center gap-2">
-            <Icon
-              icon="mdi:eye-outline"
-              class="size-5"
-              aria-label="Eye icon"
-            />
+            <Icon icon="mdi:eye-outline"
+                  class="size-5"
+                  aria-label="Eye icon" />
             Preview how recipients will see your secrets by testing the "View Secret" button
           </li>
         </ul>
 
-        <BrowserPreviewFrame
-          class="mx-auto w-full max-w-3xl overflow-hidden"
-          :domain="displayDomain"
-          :browser-type="selectedBrowserType"
-          @toggle-browser="toggleBrowser"
-          aria-labelledby="previewHeading">
-          <div
-            class=" z-50 h-1 w-full"
-            :style="{ backgroundColor: color }"></div>
-          <SecretPreview
-            v-if="!loading && !error"
-            ref="secretPreview"
-            :domain-branding="brandSettings"
-            :logo-image="logoImage"
-            :on-logo-upload="handleLogoUpload"
-            :on-logo-remove="removeLogo"
-            secret-key="abcd"
-            class="max-w-full transition-all duration-200 hover:scale-[1.02]"
-          />
+        <BrowserPreviewFrame class="mx-auto w-full max-w-3xl overflow-hidden"
+                             :domain="displayDomain"
+                             :browser-type="selectedBrowserType"
+                             @toggle-browser="toggleBrowser"
+                             aria-labelledby="previewHeading">
+          <div class=" z-50 h-1 w-full"
+               :style="{ backgroundColor: color }"></div>
+          <SecretPreview v-if="!loading && !error"
+                         ref="secretPreview"
+                         :domain-branding="brandSettings"
+                         :logo-image="logoImage"
+                         :on-logo-upload="handleLogoUpload"
+                         :on-logo-remove="removeLogo"
+                         secret-key="abcd"
+                         class="max-w-full transition-all duration-200 hover:scale-[1.02]" />
         </BrowserPreviewFrame>
 
         <!-- Loading and Error States -->
-        <div
-          v-if="loading"
-          role="status"
-          class="py-8 text-center">
+        <div v-if="loading"
+             role="status"
+             class="py-8 text-center">
           <span class="sr-only">Loading preview...</span>
           <!-- Add loading spinner -->
         </div>
 
-        <div
-          v-if="error"
-          role="alert"
-          class="py-8 text-center text-red-600">
+        <div v-if="error"
+             role="alert"
+             class="py-8 text-center text-red-600">
           {{ error }}
         </div>
       </div>
@@ -181,9 +151,7 @@ onBeforeRouteLeave((to, from, next) => {
 
 
     <!-- Loading Overlay -->
-    <LoadingOverlay
-      :show="loading"
-      message="Loading brand settings"
-    />
+    <LoadingOverlay :show="loading"
+                    message="Loading brand settings" />
   </div>
 </template>

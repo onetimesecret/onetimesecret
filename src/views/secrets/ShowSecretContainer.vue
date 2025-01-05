@@ -1,6 +1,6 @@
 <!-- ShowSecretContainer.vue -->
 <script setup lang="ts">
-// import { domainStrategy } from '@/composables/useDomainBranding';
+// import { domainStrategy } from '@/composables/useBranding';
 import { WindowService } from '@/services/window.service';
 import { computed } from 'vue';
 

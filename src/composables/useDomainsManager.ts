@@ -8,6 +8,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 /**
+ * Composable for managing custom domains and their brand settings
  *
  * useDomainsManager's role should be:
  * - Managing UI-specific state (loading states, toggling states)

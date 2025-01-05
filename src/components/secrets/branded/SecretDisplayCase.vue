@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
 import { useClipboard } from '@/composables/useClipboard';
-import { useDomainBranding } from '@/composables/useDomainBranding';
+import { useBranding } from '@/composables/useBranding';
 import { Secret, SecretDetails } from '@/schemas/models';
 import { ref, computed } from 'vue';
 
@@ -26,7 +26,7 @@ const alertClasses = computed(() => ({
     props.submissionStatus?.status === 'success',
 }));
 
-const domainBranding = useDomainBranding();
+const domainBranding = useBranding();
 
 const hasImageError = ref(false);
 const { isCopied, copyToClipboard } = useClipboard();

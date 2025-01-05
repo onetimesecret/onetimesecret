@@ -3,7 +3,7 @@
 // See store design docs in types/declarations/pinia.d.ts
 
 export { useAuthStore } from './authStore';
-export { useBrandingStore } from './brandingStore';
+export { useBrandStore } from './brandStore';
 export { useColonelStore } from './colonelStore';
 export { useCsrfStore } from './csrfStore';
 export { useCustomerStore } from './customerStore';

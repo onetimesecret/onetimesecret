@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import { WindowService } from '@/services/window.service';
-import { useBrandingStore } from '@/stores/brandingStore';
+import { useBrandStore } from '@/stores/brandStore';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { isColorValue } from '@/utils/color-utils';
 import { computed, defineProps, ref } from 'vue';
@@ -16,16 +16,16 @@ const hasGlobalBanner = computed(() => { return !!globalBanner });
 /* TODO: PRIMARY COLOUR  */
 // const color = inject('color', ref(props.primaryColor)) as Ref<string>;
 const color = ref('#dc4a22');
-const brandingStore = useBrandingStore();
+const brandStore = useBrandStore();
 
 const primaryColorClass = computed(() => {
-  if (brandingStore.isActive) return '';
+  if (brandStore.isActive) return '';
   return !isColorValue(color.value) ? color.value : '';
 });
 
 const primaryColorStyle = computed(() => {
-  if (brandingStore.isActive) {
-    const brandColor = brandingStore.primaryColor;
+  if (brandStore.isActive) {
+    const brandColor = brandStore.primaryColor;
     return isColorValue(brandColor) ? { backgroundColor: brandColor } : {};
   }
   return isColorValue(color.value)

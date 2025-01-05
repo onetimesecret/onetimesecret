@@ -1,17 +1,13 @@
-// src/composables/useDomainBranding.ts
+// src/composables/useBranding.ts
+import { loggingService } from '@/services/logging';
 import { ImageProps, type BrandSettings } from '@/schemas/models/domain';
 import { useNotificationsStore } from '@/stores';
 import { useDomainsStore } from '@/stores/domainsStore';
 import { shouldUseLightText } from '@/utils';
 import { computed, ref, watch } from 'vue';
 
-// Use this improved composable/and/store approach for window props
-// Use only validated window props, inside window.onetime object
-// Add API endpoint for fetching the exact window props that are included in the onetime object
-// Get generating tests goddammit.
-//
 /**
- * Composable for domain-specific branding settings and related UI helpers
+ * Composable for displaying domain-specific branding settings
  *
  * Separate from useDomainsManager which handles full domain CRUD. This one
  * focuses on the expression of brand settings and UI styling based on domain.
@@ -25,7 +21,8 @@ import { computed, ref, watch } from 'vue';
  * @returns Brand settings and computed helpers
  *
  */
-export function useDomainBranding(domainId?: string) {
+/* eslint max-lines-per-function: off */
+export function useBranding(domainId?: string) {
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
 
@@ -122,6 +119,7 @@ export function useDomainBranding(domainId?: string) {
       notifications.show('Logo uploaded successfully', 'success');
     } catch (err) {
       notifications.show('Failed to upload logo', 'error');
+      loggingService.info('Failed to upload logo', { error: err });
     } finally {
       loading.value = false;
     }
@@ -135,6 +133,7 @@ export function useDomainBranding(domainId?: string) {
       notifications.show('Logo removed successfully', 'success');
     } catch (err) {
       notifications.show('Failed to remove logo', 'error');
+      loggingService.info('Failed to upload logo', { error: err });
     } finally {
       loading.value = false;
     }
