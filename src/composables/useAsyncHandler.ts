@@ -103,48 +103,52 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   /**
    * Wraps an async operation with consistent error handling
    *
+   * Key features:
+   * - Loading state management
+   * - Error classification and structured handling
+   * - User notifications for human-facing errors
+   * - Error logging and optional error callbacks
+   * - Error boundary - stops error propagation
+   *
    * @example
    * ```ts
    * const { wrap } = useAsyncHandler({
    *   notify: (msg, severity) => toast(msg, severity),
-   *   setLoading: (isLoading) => store.setLoading(isLoading)
+   *   setLoading: (isLoading) => store.setLoading(isLoading),
+   *   onError: (error) => store.reset()
    * });
    *
    * // In a component or service:
    * const data = await wrap(() => api.fetchData());
    * ```
    */
-  async function wrap<T>(operation: () => Promise<T>): Promise<T> {
+  async function wrap<T>(operation: () => Promise<T>): Promise<T | undefined> {
     try {
       handlers.setLoading?.(true);
       return await operation(); // <-- run the async operation
     } catch (error) {
       const classifiedError = classifyError(error);
 
-      // Call onError callback first
+      // Call onError callback before  everything else
       if (handlers.onError) {
         try {
           handlers.onError(classifiedError);
         } catch (callbackError) {
-          // Log but don't throw callback errors to preserve original error
+          // Log but don't throw callback errors
           handlers.log?.(classifyError(callbackError));
         }
       }
 
-      // Log all errors regardless
+      // Log all errors regardless of the logic prior to this
       handlers.log?.(classifiedError);
 
       // Only notify for human-facing errors
       if (isOfHumanInterest(classifiedError) && handlers.notify) {
-        try {
-          handlers.notify(classifiedError.message, classifiedError.severity);
-        } catch (notifyError) {
-          // Swallow notification errors to preserve original error
-          handlers.log?.(classifyError(notifyError));
-        }
+        handlers.notify(classifiedError.message, classifiedError.severity);
       }
 
-      throw classifiedError;
+      // Handle error here - don't let it propagate
+      return undefined;
     } finally {
       handlers.setLoading?.(false);
     }

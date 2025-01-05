@@ -1,12 +1,61 @@
-import type { ApplicationError, ErrorSeverity, ErrorType } from './types';
+import {
+  createApplicationError,
+  type ApplicationError,
+  type ErrorSeverity,
+  type ErrorType,
+} from './types';
+
+// HTTP status codes categorized by error type
+const SECURITY_STATUS_CODES = new Set([
+  401, // Unauthorized
+  403, // Forbidden
+  429, // Too Many Requests
+  407, // Proxy Authentication Required
+  423, // Locked
+]);
+
+const HUMAN_STATUS_CODES = new Set([
+  404, // Not Found
+  409, // Conflict
+  400, // Bad Request
+  405, // Method Not Allowed
+  410, // Gone
+]);
+
+/**
+ * * Creates a structured ApplicationError with consistent typing and metadata
+ *
+ * Usage example:
+ *   throw createTechnicalError(`Failed to fetch secret: ${response.statusText}`, {
+ *     status: response.status,
+ *     key
+ *   });
+ *
+ *
+ * @param message
+ * @param type
+ * @param severity
+ * @param details
+ * @returns
+ *
+ */
+export function createError(
+  message: string,
+  type: ErrorType = 'technical',
+  severity: ErrorSeverity = 'error'
+): ApplicationError {
+  const error = createApplicationError(message, type, severity);
+  Error.captureStackTrace(error, createError);
+  return error;
+}
 
 /**
  * Classifies errors into application-specific categories based on their properties.
  *
- * HTTP Status Code Classification:
- * - 403 Forbidden -> Security Error (authentication/authorization issues)
- * - 404 Not Found -> Human Error (user-facing navigation/resource issues)
- * - Others -> Technical Error (system/infrastructure issues)
+ * Error Type Classification:
+ * - Security: Status codes in SECURITY_STATUS_CODES (auth/rate-limit issues)
+ * - Human: Status codes in HUMAN_STATUS_CODES (user-facing resource issues)
+ * - Technical: System errors and unclassified status codes
  *
  * @param error - The error to classify
  * @returns ApplicationError with appropriate type and severity
@@ -14,29 +63,32 @@ import type { ApplicationError, ErrorSeverity, ErrorType } from './types';
 export function classifyError(error: unknown): ApplicationError {
   if (isApplicationError(error)) return error;
 
-  if (isApiError(error)) {
-    // Security-related HTTP status codes
-    if (error.status === 403) {
-      return createError(error.message, 'security', 'error');
+  const message = error instanceof Error ? error.message : String(error);
+  let type: ErrorType = 'technical';
+
+  if (isApiError(error) && error.status) {
+    if (SECURITY_STATUS_CODES.has(error.status)) {
+      type = 'security';
+    } else if (HUMAN_STATUS_CODES.has(error.status)) {
+      type = 'human';
     }
-
-    // User-facing HTTP status codes
-    const isHumanError = error.status && [404].includes(error.status);
-    return createError(error.message, isHumanError ? 'human' : 'technical', 'error');
   }
 
-  if (error instanceof Error) {
-    return createError(error.message);
-  }
-
-  return createError(String(error));
+  const classified = createError(message, type, 'error');
+  Error.captureStackTrace(classified, classifyError);
+  return classified;
 }
 
 /**
  * Type guard to check if an error is already classified as an ApplicationError
  */
 export function isApplicationError(error: unknown): error is ApplicationError {
-  return error instanceof Error && 'type' in error && 'severity' in error;
+  return (
+    error instanceof Error &&
+    'type' in error &&
+    'severity' in error &&
+    error.name === 'ApplicationError'
+  );
 }
 
 /**
@@ -60,34 +112,4 @@ export function isApiError(
   error: unknown
 ): error is { message: string; status?: number } {
   return typeof error === 'object' && error !== null && 'message' in error;
-}
-
-/**
- * * Creates a structured ApplicationError with consistent typing and metadata
- *
- * Usage example:
- *   throw createTechnicalError(`Failed to fetch secret: ${response.statusText}`, {
- *     status: response.status,
- *     key
- *   });
- *
- *
- * @param message
- * @param type
- * @param severity
- * @param details
- * @returns
- *
- */
-export function createError(
-  message: string,
-  type: ErrorType = 'technical',
-  severity: ErrorSeverity = 'error',
-  details?: Record<string, unknown>
-): ApplicationError {
-  const error = new Error(message) as ApplicationError;
-  error.type = type;
-  error.severity = severity;
-  error.details = details;
-  return error;
 }

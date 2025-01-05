@@ -30,18 +30,6 @@ const isValidShrimp = (shrimp: unknown): shrimp is string =>
   typeof shrimp === 'string' && shrimp.length > 0;
 
 /**
- * Creates a truncated version of the shrimp token for safe logging
- * @param shrimp - The token to process
- * @returns A truncated version of the token (first 4 chars + "...")
- */
-const createLoggableShrimp = (shrimp: unknown): string => {
-  if (!isValidShrimp(shrimp)) {
-    return '';
-  }
-  return `${shrimp.slice(0, 4)}...`;
-};
-
-/**
  * Request interceptor that adds the CSRF token to outgoing requests
  * @param config - Axios request configuration
  * @returns Modified config with CSRF token in headers
@@ -88,15 +76,15 @@ export const errorInterceptor = (error: AxiosError) => {
   const responseData = error.response?.data as ApiErrorResponse | undefined;
   const responseShrimp = responseData?.shrimp;
 
-   console.error('[errorInterceptor] ', {
-     url: error.config?.url,
-     method: error.config?.method,
-     status: error.response?.status,
-     hasShrimp: responseData?.shrimp ? true : false,
-     shrimp: createLoggableShrimp(responseShrimp),
-     error: error.message,
-     name: error.name,
-   });
+  // console.error('[errorInterceptor] ', {
+  //   url: error.config?.url,
+  //   method: error.config?.method,
+  //   status: error.response?.status,
+  //   hasShrimp: responseData?.shrimp ? true : false,
+  //   shrimp: createLoggableShrimp(responseShrimp),
+  //   error: error.message,
+  //   name: error.name,
+  // });
 
   // Update our local shrimp token if new one is provided
   if (isValidShrimp(responseShrimp)) {
@@ -104,4 +92,16 @@ export const errorInterceptor = (error: AxiosError) => {
   }
 
   return Promise.reject(error); // no gate keeping, just pass the error along
+};
+
+/**
+ * Creates a truncated version of the shrimp token for safe logging
+ * @param shrimp - The token to process
+ * @returns A truncated version of the token (first 4 chars + "...")
+ */
+export const createLoggableShrimp = (shrimp: unknown): string => {
+  if (!isValidShrimp(shrimp)) {
+    return '';
+  }
+  return `${shrimp.slice(0, 4)}...`;
 };
