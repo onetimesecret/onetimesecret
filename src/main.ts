@@ -6,12 +6,11 @@ import 'vite/modulepreload-polyfill';
 import { createApp } from 'vue';
 import App from './App.vue';
 import './assets/style.css';
-import { initializeApp } from './plugins/core/appInitializer';
+import { AppInitializer } from './plugins/core/appInitializer';
 
 /**
- * Initialize and mount the Vue application with all required services.
- *
+ * Initialize and mount the Vue application with all required plugins.
  */
 const app = createApp(App);
-initializeApp(app, { debug: false });
+app.use(AppInitializer, { debug: false });
 app.mount('#app');
