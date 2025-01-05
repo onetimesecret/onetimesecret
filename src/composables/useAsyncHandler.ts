@@ -154,5 +154,5 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
     }
   }
 
-  return { wrap };
+  return { wrap, createError };
 }

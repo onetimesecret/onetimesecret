@@ -51,7 +51,6 @@ export const useDomainsStore = defineStore('domains', () => {
   function init(this: DomainsStore) {
     if (_initialized.value) return { isInitialized };
 
-    this.refreshRecords();
 
     _initialized.value = true;
     console.debug('[init]', this.$api);
