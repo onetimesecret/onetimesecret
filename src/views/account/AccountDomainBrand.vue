@@ -16,21 +16,32 @@ import { shouldUseLightText } from '@/utils/color-utils';
 import { Icon } from '@iconify/vue';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
+import { useDomainBranding } from '@/composables/useDomainBranding';
 
-// Import components
-
-const detectPlatform = (): 'safari' | 'edge' => {
-  const ua = window.navigator.userAgent.toLowerCase();
-  const isMac = /macintosh|mac os x|iphone|ipad|ipod/.test(ua);
-  return isMac ? 'safari' : 'edge';
-};
+const props = defineProps<{ domain: string }>();
+const {
+  brand,
+  brandSettings,
+  loading,
+  error,
+  hasUnsavedChanges,
+  logoImage,
+  fetchBranding,
+  saveBranding,
+  submitBrandSettings,
+  handleLogoUpload,
+  detectPlatform,
+  removeLogo,
+  primaryColor,
+} = useDomainBranding(props.domain);
 
 const route = useRoute();
-const initialData = computed(() => route.meta.initialData as AsyncDataResult<CustomDomainResponse>);
 
 const notifications = useNotificationsStore();
-const csrfStore = useCsrfStore();
 
+const displayDomain = computed(() => `${props.domain || route.params.domain as string}`);
+const customDomain = ref<CustomDomain | null>(null);
+const color = computed(() => primaryColor.value);
 
 const selectedBrowserType = ref<'safari' | 'edge'>(detectPlatform());
 
@@ -38,289 +49,21 @@ const toggleBrowser = () => {
   selectedBrowserType.value = selectedBrowserType.value === 'safari' ? 'edge' : 'safari';
 };
 
-const props = defineProps<{
-  domain?: string;
-}>();
-
-const displayDomain = computed(() => `${props.domain || route.params.domain as string}`);
-const customDomain = ref<CustomDomain | null>(null);
-
-
-// State management
-const brandSettings = ref<BrandSettings>({
-  primary_color: '#000000',
-  instructions_pre_reveal: '',
-  instructions_post_reveal: '',
-  instructions_reveal: '',
-  font_family: 'sans-serif',
-  corner_style: 'rounded',
-  button_text_light: false,
-  allow_public_homepage: false,
-  allow_public_api: false,
-});
-
-const loading = ref(true);
-const error = ref<string | null>(null);
-const success = ref<string | null>(null);
-const isSubmitting = ref(false);
-//const domain = ref({} as CustomDomain)
-
-// Add after other refs
-// Move this up near the other refs, after the brandSettings ref
-const hasUnsavedChanges = ref(false);
-const originalSettings = ref<BrandSettings | null>(null);
-
-// Create a new function to handle beforeunload event
-const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-  if (hasUnsavedChanges.value) {
-    e.preventDefault();
-    e.returnValue = '';
-    return '';
-  }
-};
-
-// Fetch brand settings from the API
-const fetchBrandSettings = async () => {
-  loading.value = true;
-  error.value = null;
-  success.value = null;
-
-  try {
-    let settings: BrandSettings;
-
-    if (initialData.value?.data) {
-      customDomain.value = initialData.value.data.record;
-      const { brand } = customDomain.value;
-
-      if (!brand) {
-        throw new Error('Brand settings not found');
-      }
-
-      settings = brandSettingschema.parse(brand);
-    } else {
-      // Fallback to API call if no preloaded data
-      const response = await api.get<BrandSettingsResponse>(
-        `/api/v2/account/domains/${displayDomain.value}/brand`
-      );
-
-      if (!response.success || !response.data.record) {
-        throw new Error('Failed to fetch brand settings');
-      }
-
-      settings = brandSettingschema.parse(response.data.record);
-    }
-
-    brandSettings.value = settings;
-    originalSettings.value = JSON.parse(JSON.stringify(settings));
-    hasUnsavedChanges.value = false;
-
-  } catch (err) {
-    console.error('Error fetching brand settings:', err);
-    error.value = err instanceof Error ? err.message : 'Failed to fetch brand settings';
-
-    // Set default values on error
-    brandSettings.value = brandSettingschema.parse({
-      primary_color: '#ffffff',
-      font_family: 'sans-serif',
-      corner_style: 'rounded',
-      button_text_light: false,
-      allow_public_homepage: false,
-      allow_public_api: false,
-    });
-  } finally {
-    loading.value = false;
-  }
-};
-
-
-// Update the updateBrandSettings function to properly merge the settings
-const updateBrandSettings = (newSettings: Partial<BrandSettings>, showSuccessMessage: boolean = true) => {
-  const textLight = shouldUseLightText(newSettings.primary_color || brandSettings.value.primary_color);
-
-  brandSettings.value = {
-    ...brandSettings.value,
-    ...newSettings,
-    instructions_pre_reveal: newSettings.instructions_pre_reveal ?? brandSettings.value.instructions_pre_reveal,
-    instructions_post_reveal: newSettings.instructions_post_reveal ?? brandSettings.value.instructions_post_reveal,
-    instructions_reveal: newSettings.instructions_reveal ?? brandSettings.value.instructions_reveal,
-    button_text_light: textLight
-  };
-
-  // Set hasUnsavedChanges to true if current settings differ from original
-  if (originalSettings.value) {
-    hasUnsavedChanges.value = JSON.stringify(brandSettings.value) !== JSON.stringify(originalSettings.value);
-  }
-
-  if (showSuccessMessage) {
-    success.value = 'Brand settings updated successfully';
-    // Reset hasUnsavedChanges after successful save
-    hasUnsavedChanges.value = false;
-    // Update original settings
-    originalSettings.value = { ...brandSettings.value };
-  } else {
-    success.value = null;
-  }
-};
-
-
-// Form submission handler
-const submitForm = async () => {
-  try {
-    isSubmitting.value = true;
-
-    // Create a clean payload object with all the necessary fields
-    const payload = {
-      brand: {
-        primary_color: brandSettings.value.primary_color,
-        font_family: brandSettings.value.font_family,
-        corner_style: brandSettings.value.corner_style,
-        button_text_light: brandSettings.value.button_text_light,
-        instructions_pre_reveal: brandSettings.value.instructions_pre_reveal,
-        instructions_post_reveal: brandSettings.value.instructions_post_reveal,
-        instructions_reveal: brandSettings.value.instructions_reveal,
-        // Include other fields as needed
-      },
-      shrimp: csrfStore.shrimp
-    };
-
-    const response = await api.put(`/api/v2/account/domains/${displayDomain.value}/brand`, payload);
-
-    if (response.data.success) {
-      // Make sure we're getting all fields back from the response
-      updateBrandSettings({
-        ...brandSettings.value, // Keep existing values
-        ...response.data.record.brand // Override with response data
-      }, true);
-      originalSettings.value = { ...brandSettings.value }; // Update original settings
-      hasUnsavedChanges.value = false; // Reset changes flag
-
-      notifications.show('Brand settings saved successfully', 'success', 'bottom');
-    } else {
-      throw new Error(response.data.message || 'Failed to save brand settings');
-    }
-  } catch (err) {
-    console.error('Error saving brand settings:', err);
-    notifications.show(
-      err instanceof Error ? err.message : 'Failed to save brand settings. Please try again.',
-      'error'
-    );
-  } finally {
-    isSubmitting.value = false;
-  }
-};
-
-const logoImage = ref<ImageProps | null>(null);
-
-// Add function to fetch logo
-const fetchLogo = async () => {
-  try {
-    const response = await api.get(`/api/v2/account/domains/${displayDomain.value}/logo`);
-    if (response.data.success && response.data.record) {
-      logoImage.value = response.data.record;
-    }
-  } catch {
-    // Nothing to do here. This will fail until a logo is uploaded.
-  }
-};
-
-// Update handleLogoUpload to set logo data after successful upload
-const handleLogoUpload = async (file: File) => {
-  try {
-    isSubmitting.value = true;
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const response = await api.post(
-      `/api/v2/account/domains/${displayDomain.value}/logo`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-
-    if (response.data.success) {
-      // Update logo image data
-      await fetchLogo();
-      notifications.show('Logo uploaded successfully', 'success', 'bottom');
-    } else {
-      throw new Error(response.data.message || 'Failed to upload logo');
-    }
-  } catch (err) {
-    console.error('Error uploading logo:', err);
-    notifications.show(
-      err instanceof Error ? err.message : 'Failed to upload logo. Please try again.',
-      'error'
-    );
-  } finally {
-    isSubmitting.value = false;
-  }
-};
-
-// Update removeLogo to clear logo data
-const removeLogo = async () => {
-  try {
-    isSubmitting.value = true;
-    const response = await api.delete(`/api/v2/account/domains/${displayDomain.value}/logo`);
-
-    if (response.data.success) {
-      logoImage.value = null;
-      notifications.show('Logo removed successfully', 'success', 'bottom');
-    } else {
-      throw new Error('Failed to remove logo');
-    }
-  } catch (err) {
-    console.error('Error removing logo:', err);
-    notifications.show(
-      err instanceof Error ? err.message : 'Failed to remove logo. Please try again.',
-      'error'
-    );
-  } finally {
-    isSubmitting.value = false;
-  }
-};
-
-// Watch effect for primary color
-watch(() => brandSettings.value.primary_color, (newColor) => {
-  const textLight = shouldUseLightText(newColor);
-  if (newColor) {
-
-    brandSettings.value = {
-      ...brandSettings.value,
-      button_text_light: textLight
-    };
-  }
-}, { immediate: true });
-
-// Update lifecycle hooks
 onMounted(() => {
-  fetchBrandSettings();
-  fetchLogo();
-  window.addEventListener('beforeunload', handleBeforeUnload);
+  fetchBranding();
+  console.log("brandSettings", brandSettings.value)
 });
 
-
-onUnmounted(() => {
-  window.removeEventListener('beforeunload', handleBeforeUnload);
-});
-
-// Navigation guard
+// Only keep navigation guards and browser preview logic in component
 onBeforeRouteLeave((to, from, next) => {
   if (hasUnsavedChanges.value) {
-    const answer = window.confirm('You have unsaved changes. Are you sure you want to leave?');
-    if (answer) {
-      next();
-    } else {
-      next(false);
-    }
+    const answer = window.confirm('You have unsaved changes. Are you sure?');
+    if (answer) next();
+    else next(false);
   } else {
     next();
   }
 });
-
-const color = computed(() => brandSettings.value.primary_color);
-
 </script>
 
 <template>
@@ -333,10 +76,9 @@ const color = computed(() => brandSettings.value.primary_color);
       />
 
       <BrandSettingsBar
-        v-model="brandSettings"
-        :shrimp="csrfStore.shrimp"
-        :is-submitting="isSubmitting"
-        @submit="submitForm">
+        v-model="brand"
+        :is-submitting="loading"
+        @submit="submitBrandSettings">
         <template #instructions-button>
           <InstructionsModal
             v-model="brandSettings.instructions_pre_reveal"

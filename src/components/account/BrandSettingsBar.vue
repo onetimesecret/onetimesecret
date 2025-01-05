@@ -19,7 +19,6 @@ import CycleButton from '../common/CycleButton.vue'
 
 const props = defineProps<{
   modelValue: BrandSettings
-  shrimp: string
   isSubmitting: boolean
 }>()
 
@@ -58,6 +57,7 @@ const setDirtyState = () => {
 
 onMounted(() => {
   originalValues.value = { ...props.modelValue }
+  console.log('modelValue', props.modelValue)
 })
 
 onBeforeRouteLeave((to, from, next) => {
@@ -83,11 +83,6 @@ const handleSubmit = () => {
       <form
         @submit.prevent="handleSubmit"
         class="flex flex-wrap items-center gap-4">
-        <input
-          type="hidden"
-          name="shrimp"
-          :value="shrimp"
-        />
 
         <!-- Color Picker -->
         <ColorPicker
