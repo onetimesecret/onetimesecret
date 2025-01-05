@@ -3,7 +3,7 @@ import HomepageTaglines from '@/components/HomepageTaglines.vue';
 import InboundSecretForm from '@/components/secrets/form/InboundSecretForm.vue';
 import { WindowService } from '@/services/window.service';
 
-const authenticated = WindowService.get('authenticated', false);
+const authenticated = WindowService.get('authenticated') ?? false;
 
 </script>
 

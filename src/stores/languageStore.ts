@@ -97,7 +97,7 @@ export const useLanguageStore = defineStore('language', () => {
 
   function initializeLocale(this: LanguageStore) {
     try {
-      supportedLocales.value = WindowService.get('supported_locales', []);
+      supportedLocales.value = WindowService.get('supported_locales') ?? [];
 
       storedLocale.value = sessionStorage.getItem(getStorageKey.value);
 

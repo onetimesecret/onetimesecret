@@ -6,7 +6,6 @@ import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useMediaQuery } from '@vueuse/core';
 import { computed, onMounted, ref } from 'vue';
-import { z } from 'zod';
 
 const csrfStore = useCsrfStore();
 
@@ -33,8 +32,8 @@ onMounted(() => {
 });
 
 // We use this to determine whether to include the authenticity check
-const cust = WindowService.get('cust', z.object());
-const ot_version = WindowService.get('ot_version', z.string());
+const cust = WindowService.get('cust');
+const ot_version = WindowService.get('ot_version');
 
 const emit = defineEmits(['feedback-sent']);
 
@@ -115,28 +114,21 @@ const submitWithCheck = async (event?: Event) => {
 <template>
   <div class="space-y-8">
     <!-- Feedback Form -->
-    <form
-      @submit.prevent="submitWithCheck"
-      class="space-y-6">
-      <input
-        type="hidden"
-        name="utf8"
-        value="✓"
-      />
-      <input
-        type="hidden"
-        name="shrimp"
-        :value="csrfStore.shrimp"
-      />
+    <form @submit.prevent="submitWithCheck"
+          class="space-y-6">
+      <input type="hidden"
+             name="utf8"
+             value="✓" />
+      <input type="hidden"
+             name="shrimp"
+             :value="csrfStore.shrimp" />
 
       <div>
-        <label
-          for="feedback-message"
-          class="sr-only">Your feedback</label>
-        <textarea
-          id="feedback-message"
-          v-model="feedbackMessage"
-          class="w-full
+        <label for="feedback-message"
+               class="sr-only">Your feedback</label>
+        <textarea id="feedback-message"
+                  v-model="feedbackMessage"
+                  class="w-full
                 rounded-md border
                 border-gray-300
                 bg-gray-50 px-3
@@ -144,32 +136,27 @@ const submitWithCheck = async (event?: Event) => {
                 placeholder:text-gray-400 focus:border-red-500 focus:outline-none focus:ring-2
                 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700
                 dark:text-white"
-          name="msg"
-          rows="4"
-          required
-          @keydown="handleKeydown"
-          :placeholder="$t('web.COMMON.feedback_text')"
-          aria-label="Enter your feedback"></textarea>
+                  name="msg"
+                  rows="4"
+                  required
+                  @keydown="handleKeydown"
+                  :placeholder="$t('web.COMMON.feedback_text')"
+                  aria-label="Enter your feedback"></textarea>
         <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>
       </div>
 
-      <input
-        type="hidden"
-        name="tz"
-        :value="userTimezone"
-      />
-      <input
-        type="hidden"
-        name="version"
-        :value="ot_version"
-      />
+      <input type="hidden"
+             name="tz"
+             :value="userTimezone" />
+      <input type="hidden"
+             name="version"
+             :value="ot_version" />
 
-      <button
-        type="submit"
-        :disabled="isSubmitting"
-        class="w-full
+      <button type="submit"
+              :disabled="isSubmitting"
+              class="w-full
                     rounded-md bg-red-600
                     px-4
                     py-2 font-medium
@@ -179,21 +166,19 @@ const submitWithCheck = async (event?: Event) => {
                     focus:ring-offset-gray-50
                     disabled:cursor-not-allowed disabled:opacity-50
                     dark:focus:ring-offset-gray-800"
-        aria-label="Send feedback">
+              aria-label="Send feedback">
         {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
       </button>
 
       <AltchaChallenge v-if="!cust" />
     </form>
 
-    <div
-      v-if="error"
-      class="mt-4 text-red-600 dark:text-red-400">
+    <div v-if="error"
+         class="mt-4 text-red-600 dark:text-red-400">
       {{ error }}
     </div>
-    <div
-      v-if="success"
-      class="mt-4 text-green-600 dark:text-green-400">
+    <div v-if="success"
+         class="mt-4 text-green-600 dark:text-green-400">
       {{ success }}
     </div>
 

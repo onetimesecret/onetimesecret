@@ -6,7 +6,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import GeneralTab from './settings/GeneralTab.vue';
 import JurisdictionTab from './settings/JurisdictionTab.vue';
 
-const regionsEnabled = WindowService.get('regions_enabled', false);
+const regionsEnabled = WindowService.get('regions_enabled');
 
 interface Tab {
   id: string;

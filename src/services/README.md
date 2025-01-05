@@ -38,7 +38,7 @@ function getSafeWindowProperty(key: string) {
    const language = typeof window !== 'undefined' ? window.language : 'en';
 
    // With WindowService
-   const language = WindowService.get('language', 'en');
+   const language = WindowService.get('language') ?? 'en';
    ```
 
 2. **Testability**
