@@ -10,12 +10,18 @@ import type { PiniaPluginOptions } from './types';
 export function initWithPlugins(options: PiniaPluginOptions = {}) {
   const pinia = createPinia();
 
-  // Add plugins in order of dependency
+  // Plugins must be added in specific order to ensure dependencies are available:
+  // 1. API plugin provides $api instance for HTTP requests
   pinia.use(apiPlugin(options.api));
+
+  // 2. Error boundary adds $asyncHandler for consistent error handling
   pinia.use(asyncErrorBoundary(options.errorHandler));
+
+  // 3. Logout plugin adds $logout for auth state cleanup
   pinia.use(logoutPlugin);
+
+  // 4. Store initializer runs last when all required plugins are ready
   pinia.use(initializeStores());
-  console.debug('[Pinia] Initialized Pinia with plugins:', pinia);
 
   return pinia;
 }

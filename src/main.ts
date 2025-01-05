@@ -3,8 +3,8 @@
 // Ensures modulepreload works in all browsers, improving
 // performance by preloading modules.
 import i18n from '@/i18n';
-import { initWithPlugins } from '@/plugins/pinia/initPlugin';
 import { GlobalErrorBoundary } from '@/plugins';
+import { initWithPlugins } from '@/plugins/pinia/initPlugin';
 import { DEBUG } from '@/utils/debug';
 import 'vite/modulepreload-polyfill';
 import { createApp } from 'vue';
@@ -14,29 +14,34 @@ import './assets/style.css';
 import { createAppRouter } from './router';
 
 /**
- * Initialize and mount the Vue application with proper language settings.
+ * Initialize and mount the Vue application with all required services.
  *
- * The initialization process follows these steps:
- * 1. Create the Vue app instance and Pinia store.
- * 2. Determine the initial locale based on user preference or system settings.
- * 3. Set the application language before mounting.
- * 4. Update the language store for consistency.
- * 5. Apply plugins (i18n, router).
- * 6. Mount the application.
+ * Initialization sequence:
+ * 1. Create Vue app instance
+ * 2. Initialize Pinia store system
+ *    - API service injection
+ *    - Error handling setup
+ *    - Authentication management
+ *    - Synchronous store initialization
+ * 3. Setup core application services
+ *    - Global error boundary
+ *    - Internationalization
+ *    - Router with authenticated guards
+ * 4. Mount application
  *
- * This order ensures that:
- * - The correct language is available from the first render.
- * - User language preferences are respected.
- * - The language store is consistent with the actual app language.
- * - All components have access to the correct translations immediately.
+ * This strict ordering ensures:
+ * - Store state is fully initialized before router guards execute
+ * - Authentication status is valid before protected routes load
+ * - Error handling is available throughout the initialization process
  *
- * Using an async function allows us to wait for language loading
- * before mounting the app, preventing any flash of untranslated content.
+ * The async function allows for potential future async initialization
+ * steps while maintaining proper error handling via the catch block.
  */
 async function initializeApp() {
   const app = createApp(App);
 
-  // Initialize Pinia with plugins
+  // Initialize Pinia first so stores are ready before router creation
+  // Store initialization happens synchronously during plugin setup
   const pinia = initWithPlugins({
     errorHandler: {
       notify: (message, severity) => console.log(`[notify] ${severity}: ${message}`),
@@ -45,9 +50,9 @@ async function initializeApp() {
   });
   app.use(pinia);
 
-  // Core plugins
+  // Router must be created after Pinia to ensure store state is available
+  // for route guards and navigation handling
   app.use(GlobalErrorBoundary, { debug: DEBUG });
-
   app.use(i18n);
   app.use(createAppRouter());
 

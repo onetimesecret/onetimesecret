@@ -105,6 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated.value = inputValue === true;
 
     if (isAuthenticated.value) {
+      lastCheckTime.value = Date.now(); // Add this
       this.$scheduleNextCheck();
     }
 
@@ -138,7 +139,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         isAuthenticated.value = validated.details.authenticated;
         failureCount.value = 0;
-        lastCheckTime.value = Date.now();
+        lastCheckTime.value = Date.now(); // This exists but isn't getting called
 
         return isAuthenticated.value;
       })
