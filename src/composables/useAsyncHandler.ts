@@ -1,11 +1,11 @@
 // src/composables/useAsyncHandler.ts
-
 import type { ApplicationError, ErrorSeverity } from '@/schemas/errors';
 import {
   classifyError,
   createError,
   isOfHumanInterest,
 } from '@/schemas/errors/classifier';
+import { loggingService } from '@/services/logging';
 
 export interface AsyncHandlerOptions {
   /**
@@ -28,7 +28,7 @@ export interface AsyncHandlerOptions {
   debug?: boolean;
 }
 
-export { createError }; // Re-export createError
+export { createError }; // Re-export for convenience
 
 /**
  * Composable for handling async operations with consistent error handling.
@@ -89,12 +89,12 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
     notify:
       options.notify ??
       ((message: string, severity: ErrorSeverity) => {
-        console.warn(`[${severity}] ${message}`);
+        loggingService.info(`[notify] [${severity}] ${message}`);
       }),
     log:
       options.log ??
       ((error: ApplicationError) => {
-        console.error('[AsyncHandler]', error);
+        loggingService.error(error);
       }),
     setLoading: options.setLoading ?? (() => {}),
     onError: options.onError,

@@ -5,7 +5,6 @@
 import i18n from '@/i18n';
 import { GlobalErrorBoundary } from '@/plugins';
 import { initWithPlugins } from '@/plugins/pinia/initPlugin';
-import { DEBUG } from '@/utils/debug';
 import 'vite/modulepreload-polyfill';
 import { createApp } from 'vue';
 
@@ -52,7 +51,7 @@ async function initializeApp() {
 
   // Router must be created after Pinia to ensure store state is available
   // for route guards and navigation handling
-  app.use(GlobalErrorBoundary, { debug: DEBUG });
+  app.use(GlobalErrorBoundary, { debug: false }); // DEBUG
   app.use(i18n);
   app.use(createAppRouter());
 
