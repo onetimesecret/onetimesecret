@@ -25,7 +25,7 @@ const error = ref<string | null>(null);
 
 onMounted(async () => {
   try {
-    console.debug('[AccountDomains] Attempting to refresh domains');
+    console.debug('[DashboardDomains] Attempting to refresh domains');
     await domainsStore.refreshRecords();
   } catch (err) {
     console.error('Failed to refresh domains:', err);
@@ -55,7 +55,9 @@ const handleConfirmDelete = async (domainId: string) => {
 
 <template>
   <div class="dark:bg-gray-900">
+
     <DashboardTabNav />
+
     <div
       v-if="isLoading"
       class="py-8 text-center dark:text-gray-200">

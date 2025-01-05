@@ -9,7 +9,7 @@ import { storeToRefs } from 'pinia';
 import { onMounted, computed } from 'vue';
 
 const store = useMetadataListStore();
-const { records, details, isLoading } = storeToRefs(store);
+const { records, details } = storeToRefs(store);
 
 // Add computed properties for received and not received items
 const receivedItems = computed(() => {

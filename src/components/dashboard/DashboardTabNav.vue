@@ -103,7 +103,7 @@ const isActiveRoute = (path: string) => route.path.startsWith(path);
       <!-- Custom Domains -->
       <li v-if="domainsEnabled"
           role="none">
-        <router-link to="/account/domains"
+        <router-link to="/domains"
                      role="menuitem"
                      :class="[
             'inline-flex items-center py-2 text-lg transition-colors duration-200',
