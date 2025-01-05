@@ -30,7 +30,6 @@ export const AUTH_CHECK_CONFIG = {
  */
 export type AuthStore = {
   // State
-  isLoading: boolean;
   isAuthenticated: boolean | null;
   authCheckTimer: ReturnType<typeof setTimeout> | null;
   failureCount: number | null;
@@ -75,7 +74,6 @@ export type AuthStore = {
 /* eslint-disable max-lines-per-function */
 export const useAuthStore = defineStore('auth', () => {
   // State
-  const isLoading = ref(false);
   const isAuthenticated = ref<boolean | null>(null);
   const authCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null);
   const failureCount = ref<number | null>(null);
@@ -222,7 +220,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function $reset(this: AuthStore) {
-    isLoading.value = false;
     isAuthenticated.value = null;
     authCheckTimer.value = null;
     failureCount.value = null;
@@ -232,7 +229,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     // State
-    isLoading,
     isAuthenticated,
     authCheckTimer,
     failureCount,

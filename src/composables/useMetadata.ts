@@ -1,11 +1,18 @@
 // composables/useMetadata.ts
 import { ApplicationError } from '@/schemas';
+import { loggingService } from '@/services/logging';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { NotificationSeverity, useNotificationsStore } from '@/stores/notificationsStore';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAsyncHandler } from './useAsyncHandler';
+
+export const defaultAsyncHandlerOptions = {
+  notify: (message: string, severity: string) =>
+    loggingService.info(`[notify] ${severity}: ${message}`),
+  log: (error: Error) => loggingService.error(error),
+};
 
 /**
  *

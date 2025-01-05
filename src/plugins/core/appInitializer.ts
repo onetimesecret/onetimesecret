@@ -1,23 +1,18 @@
 // src/plugins/core/appInitializer.ts
 
-import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
 import { loggingService } from '@/services/logging';
+import { AxiosInstance } from 'axios';
+import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
-import { initWithPlugins } from '../pinia/initPlugin';
+import { piniaPlugin } from '../pinia';
 import { GlobalErrorBoundary } from './globalErrorBoundary';
 
 interface AppInitializerOptions {
-  errorHandler?: AsyncHandlerOptions;
+  api?: AxiosInstance;
   debug?: boolean;
 }
-
-const defaultErrorHandler = {
-  notify: (message: string, severity: string) =>
-    loggingService.info(`[notify] ${severity}: ${message}`),
-  log: (error: Error) => loggingService.error(error),
-};
 
 /** Makes initializeApp available as a proper Vue plugin */
 export const AppInitializer: Plugin<AppInitializerOptions> = {
@@ -36,18 +31,20 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  * 2. Global error boundary
  * 3. Internationalization
  * 4. Routing
+ *
+ * We separate this from the main plugin to interface for testing purposes.
  */
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
-  // Configure Pinia and its plugin chain
-  const pinia = initWithPlugins({
-    errorHandler: {
-      ...defaultErrorHandler,
-      ...options.errorHandler,
-    },
-  });
-  app.use(pinia);
+  const pinia = createPinia();
 
-  // Register core plugins in dependency order
+  // Register Pinia with its core plugin chain
+  pinia.use(
+    piniaPlugin({
+      api: options.api,
+    })
+  );
+
+  app.use(pinia);
   app.use(GlobalErrorBoundary, { debug: options.debug });
   app.use(i18n);
   app.use(createAppRouter());

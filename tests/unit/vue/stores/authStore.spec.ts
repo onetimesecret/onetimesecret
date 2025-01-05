@@ -69,7 +69,7 @@ describe('authStore', () => {
     axiosMock = new AxiosMockAdapter(api);
     store = useAuthStore();
 
-    // NOTE: the initializeStores plugin is called during setupTestPinia
+    // NOTE: the autoInitPlugin plugin is called during setupTestPinia
     // which automatically calls store.init() for us. If you need to call
     // store.init() manually, run store.$reset() first to clear the state.
 
