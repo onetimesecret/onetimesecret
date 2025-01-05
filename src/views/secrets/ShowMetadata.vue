@@ -1,46 +1,3 @@
-<!--
-The metadata page has distinct states with specific visual priorities
-and transitions, primarily based on the parameters and state of the
-secret.
-
-1. Viewable (Initial State - New)
-   - Emerald color scheme
-   - Shows absolute URL to the secret link
-   - Shows actual secret content (unless the secret is protected by passphrase)
-   - Displays "New secret created successfully!"
-   - Emphasizes "you will only see this once"
-   - Prominently shows expiration timing
-
-2. Protected (After Page Refresh)
-   - Amber color scheme
-   - Hides secret content with bullet points
-   - Hides URL to the secret link (unless the user is the owner of the metadata/secret)
-   - Shows "Encrypted" status OR "Encrypted with passphrase"
-   - Maintains expiration timing display
-
-3. Received (After Recipient Receives the secret content)
-   - Gray color scheme
-   - Shows "Received X time ago" message
-   - Secret content is permanently removed (it is literally deleted from the database and not recoverable)
-   - Keeps creation/received timestamps
-
-4. Burned (Manual Destruction)
-   - Red color scheme
-   - Shows "Burned X time ago" message
-   - Secret content is permanently removed
-   - Hides all "Encrypted" status text
-   - Maintains burn timestamp
-
-5. Destroyed (Terminal State)
-   - Red color scheme
-   - Combines received/burned/orphan states
-   - Shows appropriate timing information based on update timestamp
-   - No access to secret content
-
-Each state transition is one-way and permanent, with visual elements
-like (icons, colors, messages) carefully designed to communicate the
-secret's current status and history.
--->
 
 <script setup lang="ts">
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
@@ -50,8 +7,8 @@ import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCa
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
 import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
 import { useMetadata } from '@/composables/useMetadata';
-import { onMounted } from 'vue';
-import { onBeforeRouteUpdate } from 'vue-router';
+import { onMounted, onErrorCaptured, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 // Define props
 interface Props {
@@ -59,12 +16,23 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const { record, details, isLoading, fetch } = useMetadata(props.metadataKey);
+const { record, details, isLoading, fetch, error } = useMetadata(props.metadataKey);
 
-onBeforeRouteUpdate((to, from, next) => {
-  console.debug('[ShowMetadata] Route updating', to.params.metadataKey);
-  fetch();
-  next();
+/**
+ * Route change handling decision:
+ * - Use watch: For reactive side-effects after navigation (current case)
+ * - Use onBeforeRouteUpdate: When needing to block navigation pending async ops
+ */
+const route = useRoute();
+watch(
+  () => route.params.metadataKey,
+  () => fetch(),
+  { immediate: true }
+);
+
+onErrorCaptured((error) => {
+  console.error('[ShowMetadata] Error captured:', error);
+  return false; // Stop propagation
 });
 
 onMounted(fetch);
