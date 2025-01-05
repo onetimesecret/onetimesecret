@@ -85,14 +85,15 @@ const routes: Array<RouteRecordRaw> = [
           error: null,
         };
 
-        to.meta.initialData = initialData;
+        to.meta.initialData = initialData; // Could fix this by adding a AccountInitialData type
         next();
       } catch (error) {
         console.error('Error fetching domain brand data:', error);
         const initialData: AsyncDataResult<CustomDomainResponse> = {
           status: 500,
           data: null,
-          error: error instanceof Error ? error.message : 'Failed to fetch domain brand data',
+          error:
+            error instanceof Error ? error.message : 'Failed to fetch domain brand data',
         };
 
         to.meta.initialData = initialData;

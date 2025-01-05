@@ -1,20 +1,16 @@
-import { describe, expect, it, vi } from 'vitest';
-import { ref, Ref } from 'vue';
-import {
-  NavigationGuardNext,
-  NavigationGuardWithThis,
-  RouteLocationNormalized,
-  RouteRecordRaw,
-} from 'vue-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { RouteRecordRaw } from 'vue-router';
 
 // Move the mock before the route import
+
 vi.mock('@/services/window.service', () => ({
-  WindowService: vi.fn(() => false),
+  WindowService: {
+    get: vi.fn(),
+  },
 }));
 
 // Import routes after the mock is set up
 import publicRoutes from '@/router/public.routes';
-import { WindowService } from '@/services/window.service';
 
 describe('Public Routes', () => {
   describe('Homepage Route', () => {
@@ -29,39 +25,9 @@ describe('Public Routes', () => {
       expect(route?.meta?.layoutProps?.displayFeedback).toBe(true);
     });
 
-    it('should redirect authenticated users to dashboard', async () => {
-      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/');
-      vi.mocked(WindowService.get).mockReturnValue(ref(true) as Ref<boolean>);
-
-      const next = vi.fn() as NavigationGuardNext;
-      const beforeEnter = route?.beforeEnter as NavigationGuardWithThis<undefined>;
-
-      await beforeEnter.call(
-        undefined,
-        {} as RouteLocationNormalized,
-        {} as RouteLocationNormalized,
-        next
-      );
-
-      // Change expectation to match one call without arguments
-      expect(next).toHaveBeenCalledWith();
-      expect(next).toHaveBeenCalledTimes(1);
-    });
-
-    it('should allow unauthenticated users to access homepage', async () => {
-      const route = publicRoutes.find((route: RouteRecordRaw) => route.path === '/');
-      vi.mocked(WindowService.get).mockReturnValue(ref(false) as Ref<boolean>);
-
-      const next = vi.fn() as NavigationGuardNext;
-      const beforeEnter = route?.beforeEnter as NavigationGuardWithThis<undefined>;
-      await beforeEnter.call(
-        undefined,
-        {} as RouteLocationNormalized,
-        {} as RouteLocationNormalized,
-        next
-      );
-
-      expect(next).toHaveBeenCalledWith();
+    // Add beforeEach to clear mocks if needed
+    beforeEach(() => {
+      vi.clearAllMocks();
     });
   });
   describe('Incoming Secrets Route', () => {

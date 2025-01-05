@@ -11,6 +11,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/auth/Signin.vue'),
     meta: {
       requiresAuth: false,
+      isAuthRoute: true,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,
@@ -39,6 +40,7 @@ const routes: Array<RouteRecordRaw> = [
     ],
     meta: {
       requiresAuth: false,
+      isAuthRoute: true,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,
@@ -66,6 +68,7 @@ const routes: Array<RouteRecordRaw> = [
     ],
     meta: {
       requiresAuth: false,
+      isAuthRoute: true,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,

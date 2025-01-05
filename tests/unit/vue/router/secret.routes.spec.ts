@@ -1,102 +1,62 @@
 // tests/unit/vue/router/secret.routes.spec.ts
 
 import routes from '@/router/secret.routes';
-import { useSecretStore } from '@/stores/secretStore';
 import ShowSecretContainer from '@/views/secrets/ShowSecretContainer.vue';
-import { createPinia, setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-// Mock the secrets store
-vi.mock('@/stores/secretStore', () => ({
-  useSecretStore: vi.fn(() => ({
-    fetch: vi.fn().mockResolvedValue({
-      record: {
-        key: 'test123',
-        // ... other record fields
-      },
-      details: {
-        // ... details fields
-      },
-    }),
-  })),
-}));
+describe('Secret Routes', () => {
+  const secretRoute = routes.find((route) => route.path === '/secret/:secretKey');
 
-describe('Recipient Routes', () => {
-  beforeEach(() => {
-    // Set up Pinia for each test
-    setActivePinia(createPinia());
+  describe('route configuration', () => {
+    it('should define basic route properties correctly', () => {
+      expect(secretRoute).toBeDefined();
+      expect(secretRoute?.path).toBe('/secret/:secretKey');
+      expect(secretRoute?.name).toBe('Secret link');
+      expect(secretRoute?.component).toBe(ShowSecretContainer);
+    });
   });
 
-  describe('Secret Link Route', () => {
-    it('should define secret link route correctly', () => {
-      const route = routes.find((route) => route.path === '/secret/:secretKey');
-
-      expect(route).toBeDefined();
-      expect(route?.component).toBe(ShowSecretContainer); // Changed from components.default
-      expect(route?.name).toBe('Secret link');
-      expect(route?.props).toBe(true);
-    });
-
-    it('should fetch initial secret data before entering the route', async () => {
-      const route = routes.find((route) => route.path === '/secret/:secretKey');
-      expect(route?.beforeEnter).toBeDefined();
+  describe('secretKey validation', () => {
+    it('should allow valid secret keys', () => {
+      const guard = secretRoute?.beforeEnter;
+      if (!guard) throw new Error('beforeEnter guard not defined');
 
       const mockRoute = {
-        params: { secretKey: 'test123' },
-        meta: {},
+        params: { secretKey: 'abc123' },
       };
-      const mockNext = vi.fn();
 
-      // Get the beforeEnter guard
-      const beforeEnter = route?.beforeEnter;
-      if (!beforeEnter) {
-        throw new Error('beforeEnter not defined');
-      }
-
-      await beforeEnter(mockRoute as any, {} as any, mockNext);
-
-      // Verify the route meta was set correctly
-      expect(mockRoute.meta.initialData).toBeDefined();
-      expect(mockRoute.meta.initialData.status).toBe(200);
-      expect(mockRoute.meta.initialData.error).toBeNull();
-      expect(mockNext).toHaveBeenCalled();
+      const result = guard(mockRoute as any);
+      expect(result).toBeUndefined(); // guard allows navigation to proceed
     });
 
-    it('should handle error when fetching initial secret data', async () => {
-      // Override store mock for error case
-      vi.mocked(useSecretStore).mockImplementationOnce(() => ({
-        fetch: vi.fn().mockRejectedValue(new Error('Failed to load')),
-      }));
+    it('should redirect to Not Found for invalid secret keys', () => {
+      const guard = secretRoute?.beforeEnter;
+      if (!guard) throw new Error('beforeEnter guard not defined');
 
-      const route = routes.find((route) => route.path === '/secret/:secretKey');
-      const mockRoute = {
-        params: { secretKey: 'test123' },
-        meta: {},
-      };
-      const mockNext = vi.fn();
+      const invalidKeys = ['abc 123', 'abc@123', '', 'abc/123'];
 
-      const beforeEnter = route?.beforeEnter;
-      if (!beforeEnter) {
-        throw new Error('beforeEnter not defined');
-      }
+      invalidKeys.forEach((key) => {
+        const mockRoute = {
+          params: { secretKey: key },
+        };
 
-      await beforeEnter(mockRoute as any, {} as any, mockNext);
-
-      expect(mockRoute.meta.initialData.status).toBe(500);
-      expect(mockRoute.meta.initialData.data).toBeNull();
-      expect(mockRoute.meta.initialData.error).toBe('Failed to load');
-      expect(mockNext).toHaveBeenCalled();
-    });
-
-    it('should set correct meta data for domain handling', () => {
-      const route = routes.find((route) => route.path === '/secret/:secretKey');
-
-      expect(route?.meta).toEqual({
-        domain_strategy: window.domain_strategy,
-        display_domain: window.display_domain,
-        domain_id: window.domain_id,
-        site_host: window.site_host,
+        const result = guard(mockRoute as any);
+        expect(result).toEqual({ name: 'Not Found' });
       });
+    });
+  });
+
+  describe('props', () => {
+    it('should pass secretKey as a prop', () => {
+      const propsFunc = secretRoute?.props;
+      if (typeof propsFunc !== 'function') throw new Error('props should be a function');
+
+      const mockRoute = {
+        params: { secretKey: 'abc123' },
+      };
+
+      const props = propsFunc(mockRoute as any);
+      expect(props).toEqual({ secretKey: 'abc123' });
     });
   });
 });
