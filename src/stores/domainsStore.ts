@@ -46,11 +46,10 @@ export const useDomainsStore = defineStore('domains', () => {
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
-  const recordCount = computed(() => domains.value.length);
+  const recordCount = computed(() => domains?.value?.length ?? 0);
 
   function init(this: DomainsStore) {
     if (_initialized.value) return { isInitialized };
-
 
     _initialized.value = true;
     console.debug('[init]', this.$api);

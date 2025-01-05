@@ -2,8 +2,8 @@
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref } from 'vue';
 
-type NotificationPosition = 'top' | 'bottom';
-type NotificationSeverity = 'success' | 'error' | 'info' | 'warning' | null;
+export type NotificationPosition = 'top' | 'bottom';
+export type NotificationSeverity = 'success' | 'error' | 'info' | 'warning' | null;
 
 /**
  * Type definition for NotificationsStore.

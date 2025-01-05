@@ -39,7 +39,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   const count = ref<number | null>(null);
 
   // Getters
-  const recordCount = () => count.value;
+  const recordCount = () => count.value ?? 0;
   const initialized = () => _initialized.value;
 
   async function fetchList(this: MetadataListStore) {
