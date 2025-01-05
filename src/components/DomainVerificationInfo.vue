@@ -59,7 +59,7 @@ const formatDate = (dateString: string): string => {
   <div>
     <RouterLink
       v-if="mode === 'icon'"
-      :to="`/account/domains/${domain?.display_domain}/verify`"
+      :to="`/domains/${domain?.display_domain}/verify`"
       class="tooltip inline-flex"
       data-tooltip="View domain verification status">
       <Icon

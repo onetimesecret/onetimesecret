@@ -40,7 +40,7 @@ export function useDomainsManager() {
     wrap(async () => {
       const result = await store.addDomain(domain);
       if (result) {
-        router.push({ name: 'AccountDomainVerify', params: { domain } });
+        router.push({ name: 'DomainVerify', params: { domain } });
         notifications.show('Domain added successfully', 'success');
         return result;
       }

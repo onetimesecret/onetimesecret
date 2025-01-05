@@ -61,7 +61,7 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   async function addDomain(this: DomainsStore, domain: string) {
     return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.post('/api/v2/account/domains/add', { domain });
+      const response = await this.$api.post('/api/v2/domains/add', { domain });
       const validated = responseSchemas.customDomain.parse(response.data);
       domains.value.push(validated.record);
       return validated.record;
@@ -75,7 +75,7 @@ export const useDomainsStore = defineStore('domains', () => {
     if (_initialized.value) return;
 
     return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.get('/api/v2/account/domains');
+      const response = await this.$api.get('/api/v2/domains');
       const validated = responseSchemas.customDomainList.parse(response.data);
       domains.value = validated.records;
       return validated.records;
@@ -87,7 +87,7 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   async function deleteDomain(this: DomainsStore, domainName: string) {
     return await this.$asyncHandler.wrap(async () => {
-      await this.$api.post(`/api/v2/account/domains/${domainName}/remove`);
+      await this.$api.post(`/api/v2/domains/${domainName}/remove`);
       domains.value = domains.value.filter(
         (domain) => domain.display_domain !== domainName
       );
@@ -99,7 +99,7 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   async function getBrandSettings(this: DomainsStore, domain: string) {
     return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.get(`/api/v2/account/domains/${domain}/brand`);
+      const response = await this.$api.get(`/api/v2/domains/${domain}/brand`);
       return responseSchemas.brandSettings.parse(response.data);
     });
   }
@@ -113,7 +113,7 @@ export const useDomainsStore = defineStore('domains', () => {
     settings: Partial<BrandSettings>
   ) {
     return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.put(`/api/v2/account/domains/${domain}/brand`, {
+      const response = await this.$api.put(`/api/v2/domains/${domain}/brand`, {
         brand: settings,
       });
       return responseSchemas.brandSettings.parse(response.data);
@@ -130,7 +130,7 @@ export const useDomainsStore = defineStore('domains', () => {
   ) {
     return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.put(
-        `/api/v2/account/domains/${domain}/brand`,
+        `/api/v2/domains/${domain}/brand`,
         brandUpdate
       );
       const validated = responseSchemas.customDomain.parse(response.data);
@@ -149,7 +149,7 @@ export const useDomainsStore = defineStore('domains', () => {
   async function updateDomain(this: DomainsStore, domain: CustomDomain) {
     return await this.$asyncHandler.wrap(async () => {
       const response = await this.$api.put(
-        `/api/v2/account/domains/${domain.display_domain}`,
+        `/api/v2/domains/${domain.display_domain}`,
         domain
       );
       const validated = responseSchemas.customDomain.parse(response.data);

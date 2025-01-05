@@ -41,7 +41,7 @@ const handleDelete = (domainId: string) => {
         </p>
       </div>
       <router-link
-        to="/account/domains/add"
+        to="/domains/add"
         class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand
                             text-base font-medium text-white transition-colors
                             duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2
@@ -120,7 +120,7 @@ const handleDelete = (domainId: string) => {
             <td class="px-6 py-4">
               <div class="flex flex-col">
                 <router-link
-                  :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
+                  :to="{ name: 'DomainBrand', params: { domain: domain.display_domain } }"
                   class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700
                                         dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
                   {{ domain.display_domain }}
@@ -151,7 +151,7 @@ const handleDelete = (domainId: string) => {
                   <div class="py-1">
                     <MenuItem v-slot="{ active }">
                       <router-link
-                        :to="{ name: 'AccountDomainVerify', params: { domain: domain.display_domain } }"
+                        :to="{ name: 'DomainVerify', params: { domain: domain.display_domain } }"
                         :class="[
                           active ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white' : 'text-gray-700 dark:text-gray-200',
                           'block px-4 py-2 text-sm transition-colors duration-200'
@@ -161,7 +161,7 @@ const handleDelete = (domainId: string) => {
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                       <router-link
-                        :to="{ name: 'AccountDomainBrand', params: { domain: domain.display_domain } }"
+                        :to="{ name: 'DomainBrand', params: { domain: domain.display_domain } }"
                         :class="[
                           active ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white' : 'text-gray-700 dark:text-gray-200',
                           'block px-4 py-2 text-sm transition-colors duration-200'

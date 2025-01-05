@@ -107,7 +107,7 @@ const isActiveRoute = (path: string) => route.path.startsWith(path);
                      role="menuitem"
                      :class="[
             'inline-flex items-center py-2 text-lg transition-colors duration-200',
-            isActiveRoute('/account/domains')
+            isActiveRoute('/domains')
               ? 'border-b-2 border-brand-500 font-semibold text-brand-500'
               : 'text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-500'
           ]">

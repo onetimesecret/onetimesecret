@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AccountDomasCTA from '@/components/ctas/AccountDomainsCTA.vue'
+import AccountDomasCTA from '@/components/ctas/DomainsCTA.vue'
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainsTable from '@/components/DomainsTable.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
@@ -79,7 +79,7 @@ const handleConfirmDelete = async (domainId: string) => {
       class="py-8 text-center text-gray-500 dark:text-gray-400">
       No domains found.
       <router-link
-        to="/account/domains/add"
+        to="/domains/add"
         class="text-brandcomp-600 underline hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
         Add a domain
       </router-link>

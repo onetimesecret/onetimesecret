@@ -15,7 +15,7 @@
 							"name": "add Copy",
 							"item": [
 								{
-									"name": "/v2/account/domains/add",
+									"name": "/v2/domains/add",
 									"id": "d7f4c9e2-d0cf-44e7-99da-f9eddcc2a590",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
@@ -38,7 +38,7 @@
 												}
 											]
 										},
-										"url": "{{baseUrl}}/v2/account/domains/add"
+										"url": "{{baseUrl}}/v2/domains/add"
 									},
 									"response": [
 										{
@@ -67,7 +67,7 @@
 														}
 													]
 												},
-												"url": "{{baseUrl}}/v2/account/domains/add"
+												"url": "{{baseUrl}}/v2/domains/add"
 											},
 											"status": "OK",
 											"code": 200,
@@ -89,7 +89,7 @@
 									"name": "remove",
 									"item": [
 										{
-											"name": "/v2/account/domains/:domain/remove",
+											"name": "/v2/domains/:domain/remove",
 											"id": "f3184aed-51fa-44dd-b26d-26b89cd0d129",
 											"protocolProfileBehavior": {
 												"disableBodyPruning": true
@@ -98,7 +98,7 @@
 												"method": "POST",
 												"header": [],
 												"url": {
-													"raw": "{{baseUrl}}/v2/account/domains/:domain/remove",
+													"raw": "{{baseUrl}}/v2/domains/:domain/remove",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -133,7 +133,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/v2/account/domains/:domain/remove",
+															"raw": "{{baseUrl}}/v2/domains/:domain/remove",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -168,7 +168,7 @@
 									"name": "verify",
 									"item": [
 										{
-											"name": "/v2/account/domains/:domain/verify",
+											"name": "/v2/domains/:domain/verify",
 											"id": "48a5c175-2529-4728-9b02-fd74455fbcaf",
 											"protocolProfileBehavior": {
 												"disableBodyPruning": true
@@ -177,7 +177,7 @@
 												"method": "POST",
 												"header": [],
 												"url": {
-													"raw": "{{baseUrl}}/v2/account/domains/:domain/verify",
+													"raw": "{{baseUrl}}/v2/domains/:domain/verify",
 													"host": [
 														"{{baseUrl}}"
 													],
@@ -212,7 +212,7 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/v2/account/domains/:domain/verify",
+															"raw": "{{baseUrl}}/v2/domains/:domain/verify",
 															"host": [
 																"{{baseUrl}}"
 															],
@@ -244,7 +244,7 @@
 									"id": "96a743a1-4e32-4948-873e-f7461683cf2f"
 								},
 								{
-									"name": "/v2/account/domains/:domain",
+									"name": "/v2/domains/:domain",
 									"id": "8eccf45e-a3f9-4eae-8b1b-a09f9d192e08",
 									"protocolProfileBehavior": {
 										"disableBodyPruning": true
@@ -253,7 +253,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{baseUrl}}/v2/account/domains/:domain",
+											"raw": "{{baseUrl}}/v2/domains/:domain",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -287,7 +287,7 @@
 													}
 												],
 												"url": {
-													"raw": "{{baseUrl}}/v2/account/domains/:domain",
+													"raw": "{{baseUrl}}/v2/domains/:domain",
 													"host": [
 														"{{baseUrl}}"
 													],

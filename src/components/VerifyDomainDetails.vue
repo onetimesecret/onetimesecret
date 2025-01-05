@@ -27,7 +27,7 @@ const emit = defineEmits<{
 }>();
 
 const { isSubmitting, error, success, submitForm } = useFormSubmission({
-  url: `/api/v2/account/domains/${props.domain.display_domain}/verify`,
+  url: `/api/v2/domains/${props.domain.display_domain}/verify`,
   successMessage: 'Domain verification initiated successfully.',
   getFormData: () => new URLSearchParams({
     domain: props.domain.display_domain,

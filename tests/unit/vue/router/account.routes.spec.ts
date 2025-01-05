@@ -19,7 +19,7 @@ describe('Account Routes', () => {
   describe('Account Domain Verify Route', () => {
     it('should define account domain verify route correctly', () => {
       const route = accountRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/account/domains/:domain/verify'
+        (route: RouteRecordRaw) => route.path === '/domains/:domain/verify'
       );
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);
@@ -32,7 +32,7 @@ describe('Account Routes', () => {
   describe('Account Domain Add Route', () => {
     it('should define account domain add route correctly', () => {
       const route = accountRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/account/domains/add'
+        (route: RouteRecordRaw) => route.path === '/domains/add'
       );
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);
@@ -46,7 +46,7 @@ describe('Account Routes', () => {
   describe('Account Domains Route', () => {
     it('should define account domains route correctly', () => {
       const route = accountRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/account/domains'
+        (route: RouteRecordRaw) => route.path === '/domains'
       );
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);

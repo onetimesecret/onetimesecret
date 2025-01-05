@@ -421,7 +421,7 @@
         "tags": ["authentication"]
       }
     },
-    "/v2/account/domains/add": {
+    "/v2/domains/add": {
       "post": {
         "summary": "Add Domain",
         "requestBody": {
@@ -448,7 +448,7 @@
         "tags": ["v2", "accounts", "domains"]
       }
     },
-    "/v2/account/domains/{domain}": {
+    "/v2/domains/{domain}": {
       "get": {
         "summary": "Get Domain",
         "parameters": [
@@ -472,7 +472,7 @@
         "tags": ["v2", "accounts", "domains"]
       }
     },
-    "/v2/account/domains": {
+    "/v2/domains": {
       "get": {
         "summary": "List Domains",
         "responses": {
@@ -483,7 +483,7 @@
         "tags": ["v2", "accounts", "domains"]
       }
     },
-    "/v2/account/domains/{domain}/remove": {
+    "/v2/domains/{domain}/remove": {
       "post": {
         "summary": "Remove Domain",
         "parameters": [
@@ -504,7 +504,7 @@
         "tags": ["v2", "accounts", "domains"]
       }
     },
-    "/v2/account/domains/{domain}/verify": {
+    "/v2/domains/{domain}/verify": {
       "post": {
         "summary": "Verify Domain",
         "parameters": [
@@ -979,7 +979,7 @@
         "tags": ["v2", "colonel"]
       }
     },
-    "/v2/account/domains/{domain}/brand": {
+    "/v2/domains/{domain}/brand": {
       "post": {
         "summary": "Update domain brand settings",
         "parameters": [
@@ -1017,7 +1017,7 @@
         "tags": ["v2", "domains", "branding"]
       }
     },
-    "/v2/account/domains/{domain}/brand/image": {
+    "/v2/domains/{domain}/brand/image": {
       "post": {
         "summary": "Upload domain brand image",
         "parameters": [
@@ -1055,7 +1055,7 @@
         "tags": ["v2", "domains", "branding"]
       }
     },
-    "/v2/account/domains/{domain}/brand/remove-image": {
+    "/v2/domains/{domain}/brand/remove-image": {
       "post": {
         "summary": "Remove domain brand image",
         "parameters": [
@@ -1343,7 +1343,13 @@
                 "type": "string"
               }
             },
-            "required": ["key", "shortkey", "secret_key", "secret_shortkey", "share_domain"]
+            "required": [
+              "key",
+              "shortkey",
+              "secret_key",
+              "secret_shortkey",
+              "share_domain"
+            ]
           }
         ]
       },
@@ -1440,7 +1446,13 @@
                 "type": "boolean"
               }
             },
-            "required": ["custid", "display_domain", "base_domain", "subdomain", "verified"]
+            "required": [
+              "custid",
+              "display_domain",
+              "base_domain",
+              "subdomain",
+              "verified"
+            ]
           }
         ]
       },

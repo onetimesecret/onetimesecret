@@ -46,22 +46,6 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/domains/add',
-    name: 'AccountDomainAdd',
-    components: {
-      default: () => import('@/views/account/AccountDomainAdd.vue'),
-      header: DefaultHeader,
-      footer: DefaultFooter,
-    },
-    meta: {
-      requiresAuth: true,
-      layoutProps: {
-        displayFeedback: false,
-      },
-    },
-    props: true,
-  },
-  {
     path: '/domains',
     name: 'DashboardDomains',
     components: {
@@ -75,10 +59,26 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/domains/:domain/verify',
-    name: 'AccountDomainVerify',
+    path: '/domains/add',
+    name: 'DomainAdd',
     components: {
-      default: () => import('@/views/account/AccountDomainVerify.vue'),
+      default: () => import('@/views/dashboard/DashboardDomainAdd.vue'),
+      header: DefaultHeader,
+      footer: DefaultFooter,
+    },
+    meta: {
+      requiresAuth: true,
+      layoutProps: {
+        displayFeedback: false,
+      },
+    },
+    props: true,
+  },
+  {
+    path: '/domains/:domain/verify',
+    name: 'DomainVerify',
+    components: {
+      default: () => import('@/views/dashboard/DashboardDomainVerify.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -89,9 +89,9 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/domains/:domain/brand',
-    name: 'AccountDomainBrand',
+    name: 'DomainBrand',
     components: {
-      default: () => import('@/views/account/AccountDomainBrand.vue'),
+      default: () => import('@/views/dashboard/DashboardDomainBrand.vue'),
       header: DefaultHeader,
       footer: DefaultFooter,
     },
@@ -103,7 +103,7 @@ const routes: Array<RouteRecordRaw> = [
       try {
         const domain = to.params.domain as string;
         const response = await api.get<CustomDomainResponse>(
-          `/api/v2/account/domains/${domain}/brand`
+          `/api/v2/domains/${domain}/brand`
         );
 
         const initialData: AsyncDataResult<CustomDomainResponse> = {

@@ -19,7 +19,7 @@ const allowVerifyCTA = ref(false);
 const fetchDomain = async (): Promise<void> => {
   const domainName: string = route.params.domain as string;
   try {
-    const response: Response = await fetch(`/api/v2/account/domains/${domainName}`);
+    const response: Response = await fetch(`/api/v2/domains/${domainName}`);
     if (!response.ok) {
       throw new Error('Failed to fetch domain information');
     }
@@ -62,7 +62,7 @@ const handleDomainVerify = async (data: CustomDomainResponse) => {
 };
 
 onMounted(() => {
-  console.debug('AccountDomainVerify component mounted');
+  console.debug('DomainVerify component mounted');
   console.debug('Domain parameter:', route.params.domain);
   fetchDomain();
 });

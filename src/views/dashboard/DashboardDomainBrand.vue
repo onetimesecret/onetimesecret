@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import BrandSettingsBar from '@/components/account/BrandSettingsBar.vue';
-import BrowserPreviewFrame from '@/components/account/BrowserPreviewFrame.vue';
-import DomainHeader from '@/components/account/DomainHeader.vue';
-import InstructionsModal from '@/components/account/InstructionsModal.vue';
-import SecretPreview from '@/components/account/SecretPreview.vue';
+import BrandSettingsBar from '@/components/dashboard/BrandSettingsBar.vue';
+import BrowserPreviewFrame from '@/components/dashboard/BrowserPreviewFrame.vue';
+import DomainHeader from '@/components/dashboard/DomainHeader.vue';
+import InstructionsModal from '@/components/dashboard/InstructionsModal.vue';
+import SecretPreview from '@/components/dashboard/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import { useBranding } from '@/composables/useBranding';
 import type { CustomDomain } from '@/schemas/models';

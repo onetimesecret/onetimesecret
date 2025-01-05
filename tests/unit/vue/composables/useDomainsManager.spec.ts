@@ -91,7 +91,7 @@ describe('useDomainsManager', () => {
           newDomainData.domainid
         );
         expect(mockDependencies.router.push).toHaveBeenCalledWith({
-          name: 'AccountDomainVerify', // name of the route
+          name: 'DomainVerify', // name of the route
           params: { domain: newDomainData.domainid },
         });
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
