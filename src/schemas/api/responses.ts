@@ -11,6 +11,7 @@ import {
   metadataRecordsSchema,
 } from '@/schemas/api/endpoints/index';
 import {
+  customDomainDetailsSchema,
   customDomainSchema,
   customerSchema,
   jurisdictionDetailsSchema,
@@ -38,7 +39,7 @@ export const responseSchemas = {
   checkAuth: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
   colonel: createApiResponseSchema(colonelDataSchema),
   concealData: createApiResponseSchema(concealDataSchema),
-  customDomain: createApiResponseSchema(customDomainSchema),
+  customDomain: createApiResponseSchema(customDomainSchema, customDomainDetailsSchema),
   customer: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
   feedback: createApiResponseSchema(feedbackSchema, feedbackDetailsSchema),
   imageProps: createApiResponseSchema(imagePropsSchema),
@@ -47,7 +48,10 @@ export const responseSchemas = {
   secret: createApiResponseSchema(secretSchema, secretDetailsSchema),
 
   // List responses
-  customDomainList: createApiListResponseSchema(customDomainSchema),
+  customDomainList: createApiListResponseSchema(
+    customDomainSchema,
+    customDomainDetailsSchema
+  ),
   metadataList: createApiListResponseSchema(
     metadataRecordsSchema,
     metadataRecordsDetailsSchema

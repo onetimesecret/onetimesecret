@@ -10,6 +10,7 @@ const domainsEnabled = WindowService.get('domains_enabled');
 
 const route = useRoute();
 
+// TODO: Should be the composables
 const metadataListStore = useMetadataListStore();
 const domainsStore = useDomainsStore();
 

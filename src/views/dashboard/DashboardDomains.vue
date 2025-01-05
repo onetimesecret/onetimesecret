@@ -4,53 +4,33 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainsTable from '@/components/DomainsTable.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { WindowService } from '@/services/window.service';
-import { useDomainsStore, type DomainsStore } from '@/stores/domainsStore';
-import { useNotificationsStore } from '@/stores/notificationsStore';
 import { computed, onMounted, ref } from 'vue';
-import type { Plan } from '@/schemas/models';
+import type { Plan, CustomDomain } from '@/schemas/models';
 
-const plan = ref<Plan>(WindowService.get('plan', null));
+const plan = ref<Plan>(WindowService.get('plan'));
 
-const domainsStore = useDomainsStore() as DomainsStore;
-const notifications = useNotificationsStore();
+// const domainsStore = useDomainsStore() as DomainsStore;
 
 const {
   isLoading,
-  confirmDelete
+  confirmDelete,
+  records,
+  error,
+  fetch,
 } = useDomainsManager();
 
 const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
-const domains = computed(() => domainsStore.domains);
-const error = ref<string | null>(null);
 
-onMounted(async () => {
-  try {
-    console.debug('[DashboardDomains] Attempting to refresh domains');
-    await domainsStore.refreshRecords();
-  } catch (err) {
-    console.error('Failed to refresh domains:', err);
-    error.value = err instanceof Error
-      ? `Failed to refresh domains: ${err.message}`
-      : 'An unknown error occurred while refreshing domains';
+const domains = computed(() => {
+  if (records.value) {
+    return records.value;
   }
+  return [] as CustomDomain[];
 });
 
-const handleConfirmDelete = async (domainId: string) => {
-  const confirmedDomainId = await confirmDelete(domainId);
-  if (confirmedDomainId) {
-    try {
-      await domainsStore.deleteDomain(confirmedDomainId);
-      notifications.show(`Removed ${domainId}`, 'success');
-    } catch (err) {
-      console.error('Failed to delete domain:', err);
-      notifications.show('Could not remove domain at this time', 'error');
-      error.value = err instanceof Error
-        ? err.message
-        : 'Failed to delete domain';
-    }
-  }
-};
-
+onMounted(() => {
+  fetch()
+});
 </script>
 
 <template>
@@ -89,7 +69,7 @@ const handleConfirmDelete = async (domainId: string) => {
       v-else
       :domains="domains"
       :is-loading="isLoading"
-      @confirm-delete="handleConfirmDelete"
+      @confirm-delete="confirmDelete"
     />
   </div>
 </template>

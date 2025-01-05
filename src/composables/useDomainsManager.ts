@@ -1,8 +1,13 @@
-import { createError, useAsyncHandler } from '@/composables/useAsyncHandler';
+import {
+  AsyncHandlerOptions,
+  createError,
+  useAsyncHandler,
+} from '@/composables/useAsyncHandler';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import type { DomainsStore } from '@/stores/domainsStore'; // Add type import
+import { NotificationSeverity } from '@/stores/notificationsStore';
 import { storeToRefs, type StoreGeneric } from 'pinia';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -22,19 +27,29 @@ export function useDomainsManager() {
   const notifications = useNotificationsStore();
   const router = useRouter();
   const goBack = () => router.back();
-  const { domains, isLoading } = storeToRefs(store as StoreGeneric);
+  const { records, details } = storeToRefs(store as StoreGeneric);
+
+  // Local state
+  const isLoading = ref(false);
   const error = ref<ApplicationError | null>(null); // Add local error state
-  const { wrap } = useAsyncHandler({
-    onError: (e) => {
-      error.value = e;
-    },
-    notify: (message) => {
-      notifications.show(message, 'error');
-      // There's a second var here available for severity
-    },
-  });
+
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+    notify: (message, severity) =>
+      notifications.show(message, severity as NotificationSeverity),
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => (error.value = err),
+  };
+
+  // Composable async handler
+  const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   const showConfirmDialog = useConfirmDialog();
+
+  /**
+   * Fetch domains list
+   * @param force - Force refresh even if already initialized
+   */
+  const fetch = async () => wrap(async () => await store.fetchList());
 
   const handleAddDomain = async (domain: string) =>
     wrap(async () => {
@@ -86,12 +101,17 @@ export function useDomainsManager() {
   };
 
   return {
-    domains,
+    // State
+    records,
+    details,
     isLoading,
+    error,
+
+    // Actions
+    fetch,
     handleAddDomain,
     deleteDomain,
     confirmDelete,
     goBack,
-    error,
   };
 }

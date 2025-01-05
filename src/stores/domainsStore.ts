@@ -2,9 +2,9 @@
 //
 import { UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
-import type { BrandSettings, CustomDomain } from '@/schemas/models';
+import type { BrandSettings, CustomDomain, CustomDomainDetails } from '@/schemas/models';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, ref } from 'vue';
+import { ref, Ref } from 'vue';
 
 /**
  * Store for managing custom domains and their brand settings
@@ -15,12 +15,19 @@ import { computed, ref } from 'vue';
  * Custom type for the DomainsStore, including plugin-injected properties.
  */
 export type DomainsStore = {
-  domains: CustomDomain[];
-  initialized: boolean;
-  isInitialized: boolean;
+  // State
+  _initialized: boolean;
+  records: CustomDomain[];
+  details: CustomDomainDetails | null;
+  count: number | null;
+
+  // Getters
   recordCount: number;
-  init: () => void;
+  initialized: boolean;
+
+  // Actions
   addDomain: (domain: string) => Promise<CustomDomain>;
+  fetchList: () => Promise<void>;
   refreshRecords: () => Promise<CustomDomain[]>;
   updateDomainBrand: (
     domain: string,
@@ -38,20 +45,21 @@ export type DomainsStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useDomainsStore = defineStore('domains', () => {
-  // Statell
-  const domains = ref<CustomDomain[]>([]);
+  // State
   const _initialized = ref(false);
+  const records: Ref<CustomDomain[] | null> = ref(null);
+  const details: Ref<CustomDomainDetails | null> = ref(null);
+  const count = ref<number | null>(null);
 
   // Getters
-  const isInitialized = computed(() => _initialized.value);
-  const recordCount = computed(() => domains?.value?.length ?? 0);
+  const initialized = _initialized.value;
+  const recordCount = count.value ?? 0;
 
   function init(this: DomainsStore) {
-    if (_initialized.value) return { isInitialized };
+    if (_initialized.value) return { initialized };
 
     _initialized.value = true;
-    console.debug('[init]', this.$api);
-    return { isInitialized };
+    return { initialized };
   }
 
   /**
@@ -60,20 +68,29 @@ export const useDomainsStore = defineStore('domains', () => {
   async function addDomain(this: DomainsStore, domain: string) {
     const response = await this.$api.post('/api/v2/domains/add', { domain });
     const validated = responseSchemas.customDomain.parse(response.data);
-    domains.value.push(validated.record);
+    if (!records.value) records.value = [];
+    records.value.push(validated.record);
     return validated.record;
   }
 
   /**
    * Load all domains if not already _initialized
    */
-  async function refreshRecords(this: DomainsStore) {
-    if (_initialized.value) return;
-
+  async function fetchList(this: DomainsStore) {
     const response = await this.$api.get('/api/v2/domains');
     const validated = responseSchemas.customDomainList.parse(response.data);
-    domains.value = validated.records;
-    return validated.records;
+    records.value = validated.records ?? [];
+    details.value = validated.details ?? {};
+    count.value = validated.count ?? 0;
+
+    return validated;
+  }
+
+  async function refreshRecords(this: DomainsStore, force = false) {
+    if (!force && _initialized.value) return;
+
+    await this.fetchList();
+    _initialized.value = true;
   }
 
   /**
@@ -81,7 +98,8 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   async function deleteDomain(this: DomainsStore, domainName: string) {
     await this.$api.post(`/api/v2/domains/${domainName}/remove`);
-    domains.value = domains.value.filter(
+    if (!records.value) return;
+    records.value = records.value.filter(
       (domain) => domain.display_domain !== domainName
     );
   }
@@ -118,10 +136,11 @@ export const useDomainsStore = defineStore('domains', () => {
   ) {
     const response = await this.$api.put(`/api/v2/domains/${domain}/brand`, brandUpdate);
     const validated = responseSchemas.customDomain.parse(response.data);
+    if (!records.value) return validated.record;
 
-    const domainIndex = domains.value.findIndex((d) => d.display_domain === domain);
+    const domainIndex = records.value.findIndex((d) => d.display_domain === domain);
     if (domainIndex !== -1) {
-      domains.value[domainIndex] = validated.record;
+      records.value[domainIndex] = validated.record;
     }
     return validated.record;
   }
@@ -136,14 +155,15 @@ export const useDomainsStore = defineStore('domains', () => {
     );
     const validated = responseSchemas.customDomain.parse(response.data);
 
-    const domainIndex = domains.value.findIndex(
+    if (!records.value) records.value = [];
+    const domainIndex = records.value.findIndex(
       (d) => d.display_domain === domain.display_domain
     );
 
     if (domainIndex !== -1) {
-      domains.value[domainIndex] = validated.record;
+      records.value[domainIndex] = validated.record;
     } else {
-      domains.value.push(validated.record);
+      records.value.push(validated.record);
     }
     return validated.record;
   }
@@ -152,7 +172,7 @@ export const useDomainsStore = defineStore('domains', () => {
    * Reset store state to initial values
    */
   function $reset(this: DomainsStore) {
-    domains.value = [];
+    records.value = [];
     _initialized.value = false;
   }
 
@@ -160,21 +180,23 @@ export const useDomainsStore = defineStore('domains', () => {
     init,
 
     // State
-    domains,
-    _initialized,
+    records,
+    details,
+    count,
 
     // Getters
     recordCount,
+    initialized,
 
     // Actions
-
-    $reset,
     addDomain,
+    fetchList,
     refreshRecords,
     updateDomainBrand,
     deleteDomain,
     getBrandSettings,
     updateBrandSettings,
     updateDomain,
+    $reset,
   };
 });

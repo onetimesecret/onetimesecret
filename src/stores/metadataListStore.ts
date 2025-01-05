@@ -10,7 +10,7 @@ import { ref, type Ref } from 'vue';
 export type MetadataListStore = {
   // State
   _initialized: boolean;
-  records: MetadataRecords[] | null;
+  records: MetadataRecords[];
   details: MetadataRecordsDetails | null;
   count: number | null;
 
@@ -37,8 +37,15 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   const count = ref<number | null>(null);
 
   // Getters
-  const recordCount = () => count.value ?? 0;
   const initialized = () => _initialized.value;
+  const recordCount = () => count.value ?? 0;
+
+  function init(this: MetadataListStore) {
+    if (_initialized.value) return { initialized };
+
+    _initialized.value = true;
+    return { initialized };
+  }
 
   async function fetchList(this: MetadataListStore) {
     const response = await this.$api.get('/api/v2/private/recent');
@@ -70,6 +77,8 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   }
 
   return {
+    init,
+
     // State
     records,
     details,

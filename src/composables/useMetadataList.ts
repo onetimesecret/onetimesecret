@@ -34,7 +34,7 @@ export function useMetadataList() {
 
   /**
    * Fetch metadata list
-   * @param force - Force refresh even if already initialized
+
    */
   const fetch = async () => wrap(async () => await store.fetchList());
 
