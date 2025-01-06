@@ -1,10 +1,10 @@
 // src/composables/useBranding.ts
 import { ImageProps, type BrandSettings } from '@/schemas/models/domain';
-import { loggingService } from '@/services/logging';
 import { useNotificationsStore } from '@/stores';
 import { useDomainsStore } from '@/stores/domainsStore';
-import { shouldUseLightText } from '@/utils';
+import { detectPlatform, shouldUseLightText } from '@/utils';
 import { computed, onMounted, ref, watch } from 'vue';
+import { createError, useAsyncHandler } from './useAsyncHandler';
 
 /**
  * Composable for displaying domain-specific branding settings
@@ -36,33 +36,30 @@ export function useBranding(domainId?: string) {
     allow_public_homepage: false,
   };
 
-  const initialize = async () => {
-    if (!domainId) return;
-
-    isLoading.value = true;
-    try {
-      const settings = await store.getBrandSettings(domainId);
-      brand.value = settings;
-      brandSettings.value = { ...settings };
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to load settings';
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  onMounted(initialize);
-
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
 
   // State
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+
+  const { wrap } = useAsyncHandler({
+    notify: (message, severity) => notifications.show(message, severity),
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => (error.value = err),
+  });
+
+  const initialize = () =>
+    wrap(async () => {
+      if (!domainId) return;
+      const settings = await store.getBrandSettings(domainId);
+      brand.value = settings;
+      brandSettings.value = { ...settings };
+    });
+  onMounted(initialize);
+
   const logoImage = ref<ImageProps | null>(null);
-
   const brand = ref<BrandSettings>(defaultBranding);
-
   const brandSettings = ref<BrandSettings>({ ...defaultBranding });
 
   const primaryColor = computed(() => brandSettings.value.primary_color);
@@ -118,84 +115,42 @@ export function useBranding(domainId?: string) {
   });
 
   // Methods
-  const fetchBranding = async () => {
-    if (!domainId) {
-      error.value = 'No domain ID provided';
-      return;
-    }
-
-    isLoading.value = true;
-    try {
+  const fetchBranding = () =>
+    wrap(async () => {
+      if (!domainId) throw createError('No domain ID provided', 'human');
       const result = await store.getBrandSettings(domainId);
       brand.value = result;
       originalSettings.value = { ...result };
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to fetch brand settings';
-      throw err; // Allow parent to handle
-    } finally {
-      isLoading.value = false;
-    }
-  };
+    });
 
-  const saveBranding = async (updates: Partial<BrandSettings>) => {
-    if (!domainId) return;
-
-    isLoading.value = true;
-    try {
+  const saveBranding = (updates: Partial<BrandSettings>) =>
+    wrap(async () => {
+      if (!domainId) return;
       await store.updateBrandSettings(domainId, updates);
       originalSettings.value = { ...brandSettings.value, ...updates };
       notifications.show('Brand settings saved successfully', 'success');
-    } catch (err) {
-      notifications.show('Failed to save brand settings', 'error');
-      throw err;
-    } finally {
-      isLoading.value = false;
-    }
-  };
+    });
 
-  // Logo management
-  const handleLogoUpload = async (file: File) => {
-    if (!domainId) return;
-
-    isLoading.value = true;
-    try {
+  const handleLogoUpload = (file: File) =>
+    wrap(async () => {
+      if (!domainId) return;
       await store.uploadLogo(domainId, file);
       logoImage.value = await store.fetchLogo(domainId);
       notifications.show('Logo uploaded successfully', 'success');
-    } catch (err) {
-      notifications.show('Failed to upload logo', 'error');
-      loggingService.info('Failed to upload logo', { error: err });
-    } finally {
-      isLoading.value = false;
-    }
-  };
+    });
 
-  const removeLogo = async () => {
-    try {
-      isLoading.value = true;
+  const removeLogo = () =>
+    wrap(async () => {
+      if (!domainId) return;
       await store.removeLogo(domainId);
       logoImage.value = null;
       notifications.show('Logo removed successfully', 'success');
-    } catch (err) {
-      notifications.show('Failed to remove logo', 'error');
-      loggingService.info('Failed to upload logo', { error: err });
-    } finally {
-      isLoading.value = false;
-    }
-  };
+    });
 
-  const detectPlatform = (): 'safari' | 'edge' => {
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isMac = /macintosh|mac os x|iphone|ipad|ipod/.test(ua);
-    return isMac ? 'safari' : 'edge';
-  };
+  const submitBrandSettings = (settings: BrandSettings) =>
+    wrap(async () => {
+      if (!domainId) return;
 
-  const submitBrandSettings = async (settings: BrandSettings) => {
-    if (!domainId) return;
-
-    isLoading.value = true;
-    try {
-      // Create payload with CSRF token
       const payload = {
         brand: {
           primary_color: settings.primary_color,
@@ -212,15 +167,7 @@ export function useBranding(domainId?: string) {
       originalSettings.value = { ...settings };
       hasUnsavedChanges.value = false;
       notifications.show('Brand settings saved successfully', 'success');
-    } catch (err) {
-      notifications.show(
-        err instanceof Error ? err.message : 'Failed to save brand settings',
-        'error'
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  };
+    });
 
   return {
     initialize,
