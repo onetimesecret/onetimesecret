@@ -1,4 +1,4 @@
-// stores/authStore.ts
+// src/stores/authStore.ts
 import { responseSchemas } from '@/schemas/api';
 import { WindowService } from '@/services/window.service';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -30,7 +30,6 @@ export const AUTH_CHECK_CONFIG = {
  */
 export type AuthStore = {
   // State
-  isLoading: boolean;
   isAuthenticated: boolean | null;
   authCheckTimer: ReturnType<typeof setTimeout> | null;
   failureCount: number | null;
@@ -75,7 +74,6 @@ export type AuthStore = {
 /* eslint-disable max-lines-per-function */
 export const useAuthStore = defineStore('auth', () => {
   // State
-  const isLoading = ref(false);
   const isAuthenticated = ref<boolean | null>(null);
   const authCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null);
   const failureCount = ref<number | null>(null);
@@ -98,9 +96,14 @@ export const useAuthStore = defineStore('auth', () => {
   function init(this: AuthStore) {
     if (_initialized.value) return { needsCheck, isInitialized };
 
-    isAuthenticated.value = WindowService.get('authenticated', false) ?? null;
+    const inputValue = WindowService.get('authenticated');
+
+    // Regardless of what the value is, if it isn't exactly true, it's false.
+    // i.e. unlimited ways to fail, only one way to succeed.
+    isAuthenticated.value = inputValue === true;
 
     if (isAuthenticated.value) {
+      lastCheckTime.value = Date.now(); // Add this
       this.$scheduleNextCheck();
     }
 
@@ -126,25 +129,22 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function checkAuthStatus(this: AuthStore) {
     if (!isAuthenticated.value) return false;
+    try {
+      const response = await this.$api.get(AUTH_CHECK_CONFIG.ENDPOINT);
+      const validated = responseSchemas.checkAuth.parse(response.data);
 
-    return await this.$asyncHandler
-      .wrap(async () => {
-        const response = await this.$api.get(AUTH_CHECK_CONFIG.ENDPOINT);
-        const validated = responseSchemas.checkAuth.parse(response.data);
+      isAuthenticated.value = validated.details.authenticated;
+      failureCount.value = 0;
+      lastCheckTime.value = Date.now(); // This exists but isn't getting called
 
-        isAuthenticated.value = validated.details.authenticated;
-        failureCount.value = 0;
-        lastCheckTime.value = Date.now();
-
-        return isAuthenticated.value;
-      })
-      .catch(() => {
-        failureCount.value = (failureCount.value ?? 0) + 1;
-        if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-          this.logout();
-        }
-        return false;
-      });
+      return isAuthenticated.value;
+    } catch {
+      failureCount.value = (failureCount.value ?? 0) + 1;
+      if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
+        this.logout();
+      }
+      return false;
+    }
   }
 
   /**
@@ -217,7 +217,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function $reset(this: AuthStore) {
-    isLoading.value = false;
     isAuthenticated.value = null;
     authCheckTimer.value = null;
     failureCount.value = null;
@@ -227,7 +226,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     // State
-    isLoading,
     isAuthenticated,
     authCheckTimer,
     failureCount,

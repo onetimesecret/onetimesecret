@@ -27,7 +27,6 @@ interface StoreOptions {
  */
 export type LanguageStore = {
   // State
-  isLoading: boolean;
   deviceLocale: string | null;
   currentLocale: string;
   storageKey: string;
@@ -53,7 +52,6 @@ export type LanguageStore = {
 /* eslint-disable max-lines-per-function */
 export const useLanguageStore = defineStore('language', () => {
   // State
-  const isLoading = ref<boolean>(false);
   const deviceLocale = ref<string | null>(null);
   const currentLocale = ref<string | null>(null);
   const storageKey = ref<string | null>(null);
@@ -79,7 +77,11 @@ export const useLanguageStore = defineStore('language', () => {
       storageKey.value = options.storageKey;
     }
 
-    setLanguage(getCurrentLocale.value);
+    // Don't set language here. We want to allow the calling code to set the
+    // language if it so chooses. It does this for example in the LanguageToggle
+    // component.
+    //
+    // ❌ setLanguage(getCurrentLocale.value);
 
     watch(
       () => currentLocale.value,
@@ -95,7 +97,7 @@ export const useLanguageStore = defineStore('language', () => {
 
   function initializeLocale(this: LanguageStore) {
     try {
-      supportedLocales.value = WindowService.get('supported_locales', []);
+      supportedLocales.value = WindowService.get('supported_locales') ?? [];
 
       storedLocale.value = sessionStorage.getItem(getStorageKey.value);
 
@@ -141,17 +143,14 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   async function updateLanguage(this: LanguageStore, newLocale: string) {
-    return await this.$asyncHandler.wrap(async () => {
-      const validatedLocale = localeSchema.parse(newLocale);
-      setCurrentLocale(validatedLocale);
-      await this.$api.post('/api/v2/account/update-locale', {
-        locale: validatedLocale,
-      });
+    const validatedLocale = localeSchema.parse(newLocale);
+    setCurrentLocale(validatedLocale);
+    await this.$api.post('/api/v2/account/update-locale', {
+      locale: validatedLocale,
     });
   }
 
   function $reset() {
-    isLoading.value = false;
     deviceLocale.value = null;
     currentLocale.value = null;
     storageKey.value = null;
@@ -162,7 +161,6 @@ export const useLanguageStore = defineStore('language', () => {
 
   return {
     // State
-    isLoading,
     deviceLocale,
     storageKey,
     supportedLocales,

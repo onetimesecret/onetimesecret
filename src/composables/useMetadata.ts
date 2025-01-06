@@ -1,13 +1,17 @@
-// composables/useMetadata.ts
+// src/composables/useMetadata.ts
+
+import { ApplicationError } from '@/schemas';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { useNotificationsStore } from '@/stores/notificationsStore';
+import { NotificationSeverity, useNotificationsStore } from '@/stores/notificationsStore';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
  *
  */
+/* eslint-disable max-lines-per-function */
 export function useMetadata(metadataKey: string) {
   const router = useRouter();
   const notifications = useNotificationsStore();
@@ -16,34 +20,50 @@ export function useMetadata(metadataKey: string) {
   // The `StoreGeneric` type assertion helps bridge the gap between the specific
   // store type and the generic store. This is a known issue when using
   // `storeToRefs` with stores that have complex types.
-  const { record, details, isLoading, canBurn } = storeToRefs(store);
+  const { record, details, canBurn } = storeToRefs(store);
 
   // Local state
   const passphrase = ref('');
+  const isLoading = ref(false);
+  const error = ref<ApplicationError | null>(null);
 
-  const fetch = async () => {
-    await store.fetch(metadataKey);
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+    notify: (message, severity) =>
+      notifications.show(message, severity as NotificationSeverity),
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => (error.value = err),
   };
 
-  const handleBurn = async () => {
-    if (!canBurn.value) {
-      return;
-    }
+  // Composable async handler
+  const { wrap, createError } = useAsyncHandler(defaultAsyncHandlerOptions);
 
-    await store.burn(metadataKey, passphrase.value);
-
-    notifications.show('Secret burned successfully', 'success');
-    await fetch();
-    router.push({
-      name: 'Metadata link',
-      params: { metadataKey: metadataKey },
-      query: { ts: Date.now().toString() },
+  const fetch = async () =>
+    wrap(async () => {
+      const result = await store.fetch(metadataKey);
+      return result;
     });
-  };
+
+  const handleBurn = () =>
+    wrap(async () => {
+      if (!canBurn.value) {
+        throw createError('Cannot burn this secret', 'human', 'error');
+      }
+      await store.burn(metadataKey, passphrase.value);
+      notifications.show('Secret burned successfully', 'success');
+      await fetch();
+      router.push({
+        name: 'Metadata link',
+        params: { metadataKey },
+        query: { ts: Date.now().toString() },
+      });
+    });
 
   const reset = () => {
     // Reset local state
     passphrase.value = '';
+    error.value = null;
+    isLoading.value = false;
+    // Reset store state
     store.$reset();
   };
 
@@ -53,6 +73,7 @@ export function useMetadata(metadataKey: string) {
     details,
     isLoading,
     passphrase,
+    error,
 
     // Computed
     canBurn: computed(() => store.canBurn),
@@ -66,8 +87,6 @@ export function useMetadata(metadataKey: string) {
 
 /**
  * Suggestions:
- * 1. Consider adding a `reset()` method to clear state
- * 2. Add proper typing for error states
- * 3. Consider adding validation for the passphrase before attempting to burn
- * 4. Add proper cleanup in case the component is unmounted during async operations
+ * 1. Consider adding validation for the passphrase before attempting to burn
+ * 2. Add proper cleanup in case the component is unmounted during async operations
  */

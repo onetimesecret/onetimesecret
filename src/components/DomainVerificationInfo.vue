@@ -59,7 +59,7 @@ const formatDate = (dateString: string): string => {
   <div>
     <RouterLink
       v-if="mode === 'icon'"
-      :to="`/account/domains/${domain?.display_domain}/verify`"
+      :to="`/domains/${domain?.display_domain}/verify`"
       class="tooltip inline-flex"
       data-tooltip="View domain verification status">
       <Icon
@@ -126,24 +126,6 @@ const formatDate = (dateString: string): string => {
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Monitored</span>
             <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.last_monitored_humanized }}</span>
           </div>
-
-          <!-- Full-width row that spans both columns -->
-          <!--<div class="col-span-full bg-gray-100 p-4 rounded-lg">
-            <div class="flex items-center space-x-2">
-              <Icon icon="mdi:information" class="text-blue-500 w-5 h-5" />
-              <span class="text-sm font-medium text-gray-700">
-                <StatusLabelRow
-                      :statuses="[
-                        { label: 'APX Hit', status: 'check' },
-                        { label: 'DNS', status: 'check' },
-                        { label: 'Resolving', status: 'check' },
-                        { label: 'SSL', status: 'check' }
-                      ]"
-                      summaryText="All systems are operational"
-                    />
-              </span>
-            </div>
-          </div>-->
         </div>
       </div>
     </div>

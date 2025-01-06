@@ -1,61 +1,64 @@
-import type { AsyncHandler, AsyncHandlerOptions } from '@/composables/useAsyncHandler';
+// src/types/declarations/pinia.d.ts
+
 import type { AxiosInstance } from 'axios';
 import 'pinia';
+import { PiniaCustomProperties } from 'pinia';
 import { ComputedRef, Ref } from 'vue';
 
 /**
- * Required properties injected into all stores
- * Provides consistent API access, error handling, and lifecycle methods
+ * Core store functionality injected by plugins
  */
-export interface PiniaCustomProperties {
+interface StoreCore {
   $api: AxiosInstance;
-  $asyncHandler: AsyncHandler;
-  $logout: () => void;
+  $logout: () => Promise<void>;
+}
 
+/**
+ * Store initialization pattern
+ */
+interface StoreInit {
   /**
    * Store initialization method
-   * @returns Object containing initialization state
+   * @returns Initialization state
    */
-  init?: (this: PiniaCustomProperties) => { isInitialized: ComputedRef<boolean> };
+  init?: (this: PiniaCustomProperties) => {
+    isInitialized: ComputedRef<boolean>;
+  };
 }
 
 declare module 'pinia' {
-  // Extend the module to include custom properties
-  export interface PiniaCustomProperties
-    extends Omit<globalThis.PiniaCustomProperties, 'init'> {
-    /**
-     * Store initialization method
-     * @returns Object containing initialization state
-     */
-    init?: (this: PiniaCustomProperties) => { isInitialized: ComputedRef<boolean> };
-  }
+  /**
+   * Custom properties available on all stores
+   */
+  export interface PiniaCustomProperties extends StoreCore, StoreInit {}
 
   /**
-   * Base store options that all stores should implement
-   * Ensures consistent state management patterns
+   * Base configuration required for all stores
    */
   export interface DefineStoreOptionsBase {
+    /**
+     * Initialization state tracking
+     */
     _initialized?: Ref<boolean>;
-    isLoading?: Ref<boolean>;
   }
 }
 
 /**
- * Configuration options for Pinia plugins
- * Enables customization of API, error handling, and logging behavior
+ * Plugin configuration options
  */
 export interface PiniaPluginOptions {
+  /**
+   * API client instance
+   */
   api?: AxiosInstance;
-  errorHandler?: AsyncHandlerOptions;
-  enableLogging?: boolean;
 }
 
 /**
- * Interface for stores using the initialization pattern
- * Ensures consistent implementation of loading and initialization state
+ * Interface for stores implementing initialization pattern
  */
 export interface InitializableStore {
   _initialized: Ref<boolean>;
-  isLoading: Ref<boolean>;
-  init: (this: PiniaCustomProperties) => { isInitialized: ComputedRef<boolean> };
+  init: (this: PiniaCustomProperties) => {
+    isInitialized: ComputedRef<boolean>;
+  };
 }

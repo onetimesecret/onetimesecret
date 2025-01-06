@@ -1,4 +1,5 @@
-// composables/useSecret.ts
+// src/composables/useSecret.ts
+
 import { SecretStore, useSecretStore } from '@/stores/secretStore';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';

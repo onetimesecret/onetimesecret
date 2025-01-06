@@ -5,9 +5,9 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 /**
- * Type definition for BrandingStore.
+ * Type definition for BrandStore.
  */
-export type BrandingStore = {
+export type BrandStore = {
   // State
   primaryColor: string;
   _initialized: boolean;
@@ -18,21 +18,21 @@ export type BrandingStore = {
   init: () => void;
 } & PiniaCustomProperties;
 
-export const useBrandingStore = defineStore('branding', () => {
+export const useBrandStore = defineStore('branding', () => {
   const primaryColor = ref(brandSettingschema.shape.primary_color.parse(undefined));
 
   const _initialized = ref(false);
 
-  function init(this: BrandingStore) {
+  function init(this: BrandStore) {
     if (_initialized.value) return;
     _initialized.value = true;
   }
 
-  function setPrimaryColor(this: BrandingStore, color: string) {
+  function setPrimaryColor(this: BrandStore, color: string) {
     primaryColor.value = brandSettingschema.shape.primary_color.parse(color);
   }
 
-  function $reset(this: BrandingStore) {
+  function $reset(this: BrandStore) {
     /* Reset primaryColor by passing undefined through primary_color field validator
      * This triggers Zod schema's default value if defined
      * schema.shape provides access to individual field validators

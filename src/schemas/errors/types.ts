@@ -35,6 +35,25 @@ export interface ApplicationError extends Error {
   details?: Record<string, unknown>;
 }
 
+export function createApplicationError(
+  message: string,
+  type: ErrorType = 'technical',
+  severity: ErrorSeverity = 'error',
+  code?: string,
+  details?: Record<string, unknown>
+): ApplicationError {
+  const error = Object.assign(new Error(message), {
+    name: 'ApplicationError',
+    type,
+    severity,
+    code,
+    details,
+  });
+
+  Error.captureStackTrace(error, createApplicationError);
+  return error as ApplicationError;
+}
+
 /**
  * Type predicates are TypeScript's way of doing custom type checks. Here's a
  * practical example:

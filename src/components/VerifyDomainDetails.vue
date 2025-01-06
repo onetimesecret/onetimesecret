@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useFormSubmission } from '@/composables/useFormSubmission';
+import { useDomainsManager } from '@/composables/useDomainsManager';
 import { CustomDomainResponse } from '@/schemas/api/responses';
 import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
 import { Icon } from '@iconify/vue';
@@ -7,7 +7,6 @@ import { computed, ref } from 'vue';
 
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DetailField from './DetailField.vue';
-
 
 interface Props {
   domain: CustomDomain;
@@ -26,35 +25,27 @@ const emit = defineEmits<{
   (e: 'domainVerify', data: CustomDomainResponse): void;
 }>();
 
-const { isSubmitting, error, success, submitForm } = useFormSubmission({
-  url: `/api/v2/account/domains/${props.domain.display_domain}/verify`,
-  successMessage: 'Domain verification initiated successfully.',
-  getFormData: () => new URLSearchParams({
-    domain: props.domain.display_domain,
-  }),
-  onSuccess: (data: CustomDomainResponse) => {
-    console.log('Verification initiated:', data);
-    emit('domainVerify', data);
-  },
-  onError: (data: unknown) => {
-    console.error('Verification failed:', data);
-  },
-});
+const { verifyDomain, isLoading, error } = useDomainsManager();
 
+const success = ref<string | null>(null);
 const buttonDisabledDelay = ref(false);
-const isButtonDisabled = computed(() => isSubmitting.value || buttonDisabledDelay.value);
+const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
 
-const verify = () => {
-  // Implement verification logic here
+const verify = async () => {
   console.info('Refreshing DNS verification details...');
 
-  submitForm().finally(() => {
+  try {
+    const result = await verifyDomain(props.domain.display_domain);
+    success.value = "Domain verification initiated successfully."
+    emit('domainVerify', result);
 
     buttonDisabledDelay.value = true;
     setTimeout(() => {
       buttonDisabledDelay.value = false;
-    }, 10000); // 4 seconds
-  });
+    }, 10000);
+  } catch (err) {
+    console.error('Verification failed:', err);
+  }
 };
 </script>
 
@@ -83,11 +74,11 @@ const verify = () => {
           text-white transition
           duration-100
           ease-in-out hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-400">
-        <span>{{ isSubmitting ? 'Verifying...' : 'Verify Domain' }}</span>
+        <span>{{ isLoading ? 'Verifying...' : 'Verify Domain' }}</span>
         <Icon
-          :icon="isSubmitting ? 'mdi:loading' : 'mdi:check-circle'"
+          :icon="isLoading ? 'mdi:loading' : 'mdi:check-circle'"
           class="size-5"
-          :class="{ 'animate-spin': isSubmitting }"
+          :class="{ 'animate-spin': isLoading }"
           aria-hidden="true"
         />
       </button>

@@ -1,10 +1,17 @@
 // services/logging.ts
-import type { ApplicationError } from '@/schemas/errors';
+
+const STARTUP_BANNER = `
+┏┓┳┓┏┓┏┳┓┳┳┳┓┏┓
+┃┃┃┃┣  ┃ ┃┃┃┃┣
+┗┛┛┗┗┛ ┻ ┻┛ ┗┗┛
+`;
 
 export interface LoggingService {
-  error(error: ApplicationError): void;
+  error(error: Error): void;
   warn(message: string, context?: Record<string, unknown>): void;
   info(message: string, context?: Record<string, unknown>): void;
+  debug(message: string, context?: Record<string, unknown>): void;
+  banner(): void;
 }
 
 // services/logging/console.ts
@@ -22,6 +29,14 @@ export class ConsoleLoggingService implements LoggingService {
 
   info(message: string, context?: Record<string, unknown>): void {
     console.info(message, context);
+  }
+
+  debug(message: string, context?: Record<string, unknown>): void {
+    console.debug(message, context);
+  }
+
+  banner(): void {
+    console.log(STARTUP_BANNER);
   }
 }
 

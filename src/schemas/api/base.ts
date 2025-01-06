@@ -49,12 +49,11 @@ export const createApiResponseSchema = <
 >(
   recordSchema: TRecord,
   detailsSchema?: TDetails
-) => {
-  return apiResponseBaseSchema.extend({
+) =>
+  apiResponseBaseSchema.extend({
     record: recordSchema,
     details: resolveDetailsSchema(detailsSchema).optional(),
   });
-};
 
 export const createApiListResponseSchema = <
   TRecord extends z.ZodTypeAny,
@@ -62,13 +61,12 @@ export const createApiListResponseSchema = <
 >(
   recordSchema: TRecord,
   detailsSchema?: TDetails
-) => {
-  return apiResponseBaseSchema.extend({
+) =>
+  apiResponseBaseSchema.extend({
     records: z.array(recordSchema),
     details: resolveDetailsSchema(detailsSchema).optional(),
     count: transforms.fromString.number.optional(),
   });
-};
 
 // Common error response schema
 export const apiErrorResponseSchema = apiResponseBaseSchema.extend({

@@ -1,13 +1,17 @@
-import { createError, useAsyncHandler } from '@/composables/useAsyncHandler';
+import {
+  AsyncHandlerOptions,
+  createError,
+  useAsyncHandler,
+} from '@/composables/useAsyncHandler';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
-import type { DomainsStore } from '@/stores/domainsStore'; // Add type import
-import { storeToRefs, type StoreGeneric } from 'pinia';
+import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 /**
+ * Composable for managing custom domains and their brand settings
  *
  * useDomainsManager's role should be:
  * - Managing UI-specific state (loading states, toggling states)
@@ -17,29 +21,61 @@ import { useRouter } from 'vue-router';
  */
 /* eslint-disable max-lines-per-function */
 export function useDomainsManager() {
-  const store = useDomainsStore() as DomainsStore;
+  const store = useDomainsStore();
   const notifications = useNotificationsStore();
   const router = useRouter();
   const goBack = () => router.back();
-  const { domains, isLoading } = storeToRefs(store as StoreGeneric);
+  const { records, details } = storeToRefs(store);
+
+  // Local state
+  const isLoading = ref(false);
   const error = ref<ApplicationError | null>(null); // Add local error state
-  const { wrap } = useAsyncHandler({
-    onError: (e) => {
-      error.value = e;
-    },
-    notify: (message) => {
-      notifications.show(message, 'error');
-      // There's a second var here available for severity
-    },
-  });
+
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+    notify: (message, severity: 'success' | 'error' | 'info') =>
+      notifications.show(message, severity),
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => (error.value = err),
+  };
+
+  // Composable async handler
+  const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   const showConfirmDialog = useConfirmDialog();
+
+  /**
+   * Fetch domains list
+   * @param force - Force refresh even if already initialized
+   */
+  const fetch = async () => wrap(async () => await store.fetchList());
+
+  const getDomain = async (domainName: string) =>
+    wrap(async () => {
+      const domainData = await store.getDomain(domainName);
+      const domain = domainData.record;
+      const currentTime = Math.floor(Date.now() / 1000);
+      const lastMonitored = domain?.vhost?.last_monitored_unix || currentTime;
+      const canVerify = currentTime - lastMonitored >= 30;
+
+      return {
+        domain,
+        cluster: domainData?.details?.cluster,
+        canVerify,
+      };
+    });
+
+  const verifyDomain = async (domainName: string) =>
+    wrap(async () => {
+      const result = await store.verifyDomain(domainName);
+      notifications.show('Domain verification initiated successfully', 'success');
+      return result;
+    });
 
   const handleAddDomain = async (domain: string) =>
     wrap(async () => {
       const result = await store.addDomain(domain);
       if (result) {
-        router.push({ name: 'AccountDomainVerify', params: { domain } });
+        router.push({ name: 'DomainVerify', params: { domain } });
         notifications.show('Domain added successfully', 'success');
         return result;
       }
@@ -47,19 +83,14 @@ export function useDomainsManager() {
       return null;
     });
 
-  const deleteDomain = async (domainId: string) => {
-    if (!(await confirmDelete(domainId))) return;
+  const deleteDomain = async (domainId: string) =>
+    wrap(async () => {
+      const confirmed = await confirmDelete(domainId);
+      if (!confirmed) return;
 
-    try {
       await store.deleteDomain(domainId);
       notifications.show('Domain removed successfully', 'success');
-    } catch (error) {
-      notifications.show(
-        error instanceof Error ? error.message : 'Failed to remove domain',
-        'error'
-      );
-    }
-  };
+    });
 
   const confirmDelete = async (domainId: string): Promise<string | null> => {
     console.debug('[useDomainsManager] Confirming delete for domain:', domainId);
@@ -85,12 +116,18 @@ export function useDomainsManager() {
   };
 
   return {
-    domains,
+    // State
+    records,
+    details,
     isLoading,
+    error,
+
+    // Actions
+    fetch,
+    getDomain,
+    verifyDomain,
     handleAddDomain,
     deleteDomain,
-    confirmDelete,
     goBack,
-    error,
   };
 }

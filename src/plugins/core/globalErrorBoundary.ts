@@ -26,7 +26,7 @@ export const GlobalErrorBoundary: Plugin = {
      */
     app.config.errorHandler = (error, instance, info) => {
       const classifiedError = classifyError(error);
-      loggingService.error(error); // was: classifiedError
+      loggingService.error(error as Error); // was: classifiedError
 
       // Only notify user for human-facing errors
       if (isOfHumanInterest(classifiedError) && options.notify) {
@@ -34,7 +34,7 @@ export const GlobalErrorBoundary: Plugin = {
       }
 
       if (options.debug) {
-        console.debug('[AsyncHandler]', { error, instance, info });
+        loggingService.debug('[ErrorContext]', { instance, info });
       }
     };
   },

@@ -27,35 +27,34 @@ const layoutProps = computed(() => ({
   ...(route.meta.layoutProps ?? {})
 }));
 </script>
-
-<!-- App-wide setup lives here -->
+<!--
+/**
+ * Root application component managing layouts and routing.
+ *
+ * Security Note:
+ * - No keep-alive to prevent caching of sensitive data
+ * - Components force re-creation via :key binding
+ * - Each route gets fresh component instance
+ *
+ * Routing Strategy:
+ * - Dynamic layout selection via route.meta.layout
+ * - Full component reset on navigation using :key="$route.fullPath"
+ * - Layout remains stable while route components update
+ *
+ * @see /src/router/index.ts for route definitions
+ * @see /src/layouts for available layouts
+ */
+-->
 <template>
-  <!-- Dynamic Components: The <component> element is a built-in Vue
-    component that allows you to dynamically render different components.
-    :is Binding: The :is attribute is bound to the layout computed
-    property. This binding determines which component should be rendered.
-    This approach allows for flexible layout management in a Vue
-    application, where you can easily switch between different layouts
-    (like DefaultLayout and QuietLayout) based on the requirements of
-    each route, without having to manually manage this in each individual
-    page component. -->
-  <Component :is="layout"
+  <!-- Dynamic layout selection based on route.meta.layout -->
+  <component :is="layout"
              :lang="locale"
              v-bind="layoutProps">
-    <!-- The keep-alive wrapper here preserves the state of route components
-           when navigating between them. This prevents unnecessary re-rendering
-           and maintains component state (like form inputs, scroll position)
-           when users navigate back to previously visited routes. It's placed
-           directly around router-view since that's where route components are
-           rendered. -->
-    <router-view v-slot="{ Component }"
-                 class="rounded-md">
-      <keep-alive>
-        <component :is="Component" />
-      </keep-alive>
+    <!-- Router view with forced component recreation on route changes -->
+    <router-view v-slot="{ Component }" class="rounded-md">
+      <component :is="Component" :key="$route.fullPath" />
     </router-view>
 
-    <!-- StatusBar positioned independently -->
     <StatusBar position="bottom" />
-  </Component>
+  </component>
 </template>

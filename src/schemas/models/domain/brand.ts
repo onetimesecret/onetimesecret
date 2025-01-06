@@ -79,10 +79,10 @@ export const imagePropsSchema = z
     encoded: z.string().optional(),
     content_type: z.string().optional(),
     filename: z.string().optional(),
-    bytes: z.number().optional(),
-    width: z.number().optional(),
-    height: z.number().optional(),
-    ratio: z.number().optional(),
+    bytes: transforms.fromString.number.optional(),
+    width: transforms.fromString.number.optional(),
+    height: transforms.fromString.number.optional(),
+    ratio: transforms.fromString.number.optional(),
   })
   .strip();
 

@@ -18,7 +18,8 @@ export const DomainStrategyValues = {
   INVALID: 'invalid',
 } as const;
 
-export type DomainStrategy = (typeof DomainStrategyValues)[keyof typeof DomainStrategyValues];
+export type DomainStrategy =
+  (typeof DomainStrategyValues)[keyof typeof DomainStrategyValues];
 
 /**
  * Input schema for custom domain from API
@@ -68,21 +69,26 @@ export const customDomainSchema = createModelSchema({
   // a consistent shape regardless of API response variations.
 }).strip();
 
-// Export inferred types for use in stores/components
-export type CustomDomain = z.infer<typeof customDomainSchema>;
-
 /**
  * Input schema for domain cluster from API
  * Used for managing domain routing/infrastructure
  */
-const customDomainClusterBaseSchema = z.object({
-  type: z.string(),
-  cluster_ip: z.string(),
-  cluster_name: z.string(),
-  cluster_host: z.string(),
-  vhost_target: z.string(),
+const customDomainClusterSchema = z
+  .object({
+    type: z.string().nullable().optional(),
+    cluster_ip: z.string(),
+    cluster_name: z.string(),
+    cluster_host: z.string(),
+    vhost_target: z.string(),
+  })
+  .strip();
+
+export const customDomainDetailsSchema = z.object({
+  cluster: customDomainClusterSchema,
 });
 
-export const customDomainClusterSchema = customDomainClusterBaseSchema;
-
 export type CustomDomainCluster = z.infer<typeof customDomainClusterSchema>;
+
+// Export types
+export type CustomDomain = z.infer<typeof customDomainSchema>;
+export type CustomDomainDetails = z.infer<typeof customDomainDetailsSchema>;

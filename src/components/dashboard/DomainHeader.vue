@@ -13,7 +13,7 @@ defineProps<{
       <!-- Back button section -->
       <div class="flex items-center space-x-4">
         <RouterLink
-          to="/account/domains"
+          to="/domains"
           class="inline-flex items-center text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
           aria-label="Return to domains list">
           <svg

@@ -35,7 +35,7 @@
     "target": "es2022",
     "module": "es2022",
     "lib": ["es2022", "dom"],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -67,8 +67,8 @@
     "src/**/*.vue",
     "src/content/*.md",
     "src/types/**/*.ts",
-    "src/types/declarations/**/*.d.ts"
-    // "tests/**/*.ts",
-    // "tests/**/*.vue"
+    "src/types/declarations/**/*.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.vue"
   ]
 }

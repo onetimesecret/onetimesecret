@@ -6,7 +6,7 @@ interface Props {
 }
 defineProps<Props>();
 
-const siteHost = WindowService.get('site_host', null);
+const siteHost = WindowService.get('site_host');
 </script>
 
 <template>

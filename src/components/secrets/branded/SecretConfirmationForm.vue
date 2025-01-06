@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDomainBranding } from '@/composables/useDomainBranding';
+import { useBranding } from '@/composables/useBranding';
 import { Secret, SecretDetails } from '@/schemas/models';
 import { useSecretStore } from '@/stores/secretStore';
 import { ref } from 'vue';
@@ -20,7 +20,7 @@ const passphrase = ref('');
 const isSubmitting = ref(false);
 const error = ref('');
 
-const domainBranding = useDomainBranding();
+const domainBranding = useBranding();
 
 const submitForm = async () => {
   if (isSubmitting.value) return;

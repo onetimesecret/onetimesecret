@@ -7,8 +7,8 @@ import { computed } from 'vue';
 import JurisdictionInfo from './JurisdictionInfo.vue';
 import JurisdictionList from './JurisdictionList.vue';
 
-const cust = WindowService.get('cust', null);
-const supportHost = WindowService.get('support_host', null);
+const cust = WindowService.get('cust');
+const supportHost = WindowService.get('support_host');
 
 const jurisdictionStore = useJurisdictionStore();
 const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);

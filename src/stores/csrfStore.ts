@@ -38,7 +38,6 @@ import { handleError, ref } from 'vue';
  */
 export type CsrfStore = {
   // State
-  isLoading: boolean;
   shrimp: string;
   isValid: boolean;
   intervalChecker: number | null;
@@ -56,7 +55,6 @@ export type CsrfStore = {
 /* eslint-disable max-lines-per-function */
 export const useCsrfStore = defineStore('csrf', () => {
   // State
-  const isLoading = ref(false);
   const shrimp = ref('');
   const isValid = ref(false);
   const intervalChecker = ref<number | null>(null);
@@ -75,22 +73,20 @@ export const useCsrfStore = defineStore('csrf', () => {
   }
 
   async function checkShrimpValidity(this: CsrfStore) {
-    return await this.$asyncHandler.wrap(async () => {
-      const response = await this.$api.post('/api/v2/validate-shrimp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'O-Shrimp': shrimp.value,
-        },
-      });
-
-      const validated = responseSchemas.csrf.parse(response.data);
-      isValid.value = validated.isValid;
-      if (validated.isValid) {
-        this.updateShrimp(validated.shrimp);
-      }
-      return validated;
+    const response = await this.$api.post('/api/v2/validate-shrimp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'O-Shrimp': shrimp.value,
+      },
     });
+
+    const validated = responseSchemas.csrf.parse(response.data);
+    isValid.value = validated.isValid;
+    if (validated.isValid) {
+      this.updateShrimp(validated.shrimp);
+    }
+    return validated;
   }
 
   function startPeriodicCheck(this: CsrfStore, intervalMs: number = 60000) {
@@ -113,7 +109,6 @@ export const useCsrfStore = defineStore('csrf', () => {
    * initialization and ensure predictable reset behavior across the app.
    */
   function $reset(this: CsrfStore) {
-    isLoading.value = false;
     shrimp.value = window.shrimp || ''; // back to how it all began
     isValid.value = false;
     _initialized.value = false;
@@ -122,7 +117,6 @@ export const useCsrfStore = defineStore('csrf', () => {
 
   return {
     // State
-    isLoading,
     shrimp,
     isValid,
     intervalChecker,

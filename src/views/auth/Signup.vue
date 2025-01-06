@@ -12,7 +12,7 @@ import { ref, computed } from 'vue';
 const jurisdictionStore = useJurisdictionStore();
 const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
-const default_planid = WindowService.get('default_planid', 'basic');
+const default_planid = WindowService.get('default_planid') ?? 'basic';
 
 const currentPlanId = ref(default_planid);
 
