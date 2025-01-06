@@ -23,8 +23,8 @@ const counts = computed(() => ({
 onMounted(() => {
   // console.log('[authed]', counts, authenticated);
   if (authenticated) {
-    metadataListStore.refreshRecords();
-    domainsStore.refreshRecords();
+    metadataListStore.refreshRecords(true);
+    domainsStore.refreshRecords(true);
   }
 });
 
