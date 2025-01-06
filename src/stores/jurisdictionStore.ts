@@ -3,6 +3,7 @@
 import { createError } from '@/composables/useAsyncHandler';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
+import { AxiosInstance } from 'axios';
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
@@ -57,7 +58,13 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
    * Initialize the jurisdiction store with configuration from API
    * Handles both enabled and disabled region scenarios
    */
-  function init(this: JurisdictionStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return;
     let config: RegionsConfig | null;
 

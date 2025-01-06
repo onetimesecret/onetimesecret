@@ -1,6 +1,7 @@
 // src/stores/authStore.ts
 import { responseSchemas } from '@/schemas/api';
 import { WindowService } from '@/services/window.service';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -93,7 +94,13 @@ export const useAuthStore = defineStore('auth', () => {
   const isInitialized = computed(() => _initialized.value);
 
   // Actions
-  function init(this: AuthStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return { needsCheck, isInitialized };
 
     const inputValue = WindowService.get('authenticated');

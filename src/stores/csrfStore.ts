@@ -1,5 +1,6 @@
 // src/stores/csrfStore.ts
 import { responseSchemas } from '@/schemas/api/responses';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { handleError, ref } from 'vue';
 
@@ -61,7 +62,13 @@ export const useCsrfStore = defineStore('csrf', () => {
   const _initialized = ref(false);
 
   // Actions
-  function init(this: CsrfStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return;
     shrimp.value = window.shrimp || '';
     _initialized.value = true;

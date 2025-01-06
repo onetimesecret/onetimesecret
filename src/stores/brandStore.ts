@@ -1,5 +1,6 @@
 //
 import { brandSettingschema } from '@/schemas/models/domain/brand';
+import { AxiosInstance } from 'axios';
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
@@ -23,7 +24,13 @@ export const useBrandStore = defineStore('branding', () => {
 
   const _initialized = ref(false);
 
-  function init(this: BrandStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return;
     _initialized.value = true;
   }

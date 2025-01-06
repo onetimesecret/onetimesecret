@@ -2,6 +2,7 @@
 import { createError } from '@/composables/useAsyncHandler';
 import { responseSchemas } from '@/schemas/api/responses';
 import type { Customer } from '@/schemas/models/customer';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, handleError, ref } from 'vue';
 
@@ -44,7 +45,13 @@ export const useCustomerStore = defineStore('customer', () => {
 
   // Actions
 
-  function init(this: CustomerStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return { isInitialized };
 
     _initialized.value = true;

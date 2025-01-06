@@ -1,4 +1,5 @@
 // src/stores/notificationsStore.ts
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref } from 'vue';
 
@@ -38,7 +39,13 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const position = ref<NotificationPosition>('bottom');
   const _initialized = ref(false);
 
-  function init(this: NotificationsStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return;
     _initialized.value = true;
   }

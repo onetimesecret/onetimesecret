@@ -8,6 +8,7 @@ import type {
   CustomDomainDetails,
   ImageProps,
 } from '@/schemas/models';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref, Ref } from 'vue';
 
@@ -68,7 +69,13 @@ export const useDomainsStore = defineStore('domains', () => {
   const initialized = _initialized.value;
   const recordCount = count.value ?? 0;
 
-  function init(this: DomainsStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return { initialized };
 
     _initialized.value = true;

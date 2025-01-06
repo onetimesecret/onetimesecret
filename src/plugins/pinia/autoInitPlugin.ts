@@ -1,6 +1,7 @@
 // src/plugins/pinia/autoInitPlugin.ts
 
 import { PiniaPluginContext } from 'pinia';
+import type { PiniaPluginOptions } from './types';
 
 /**
  * Store initialization must run synchronously to ensure store state
@@ -10,10 +11,12 @@ import { PiniaPluginContext } from 'pinia';
  * - $api from apiPlugin
  * - $logout from logoutPlugin
  */
-export function autoInitPlugin() {
+export function autoInitPlugin(options: PiniaPluginOptions = {}) {
+  console.log('[autoInit0]', options.api);
   return ({ store }: PiniaPluginContext) => {
     if (typeof store.init === 'function') {
-      store.init();
+      console.log('[autoInit1]', options.api);
+      store.init({ api: options.api });
     }
   };
 }

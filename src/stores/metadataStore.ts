@@ -2,6 +2,7 @@
 import { createError } from '@/composables/useAsyncHandler';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -69,7 +70,13 @@ export const useMetadataStore = defineStore('metadata', () => {
    *
    * @returns Object containing initialization status
    */
-  function init(this: MetadataStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return { isInitialized };
     _initialized.value = true;
     return { isInitialized };

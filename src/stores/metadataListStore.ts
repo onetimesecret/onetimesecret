@@ -1,6 +1,7 @@
 // stores/metadataListStore.ts
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { responseSchemas } from '@/schemas/api/responses';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref, type Ref } from 'vue';
 
@@ -40,7 +41,13 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   const initialized = () => _initialized.value;
   const recordCount = () => count.value ?? 0;
 
-  function init(this: MetadataListStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return { initialized };
 
     _initialized.value = true;

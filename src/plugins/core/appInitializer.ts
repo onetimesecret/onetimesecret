@@ -3,6 +3,7 @@
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
 import { loggingService } from '@/services/logging';
+import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
@@ -36,11 +37,12 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  */
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
   const pinia = createPinia();
+  const api = createApi();
 
-  // Register Pinia with its core plugin chain
+  // Register Pinia with its plugin chain
   pinia.use(
     piniaPlugin({
-      api: options.api,
+      api: options.api ?? api,
     })
   );
 

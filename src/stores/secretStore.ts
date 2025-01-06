@@ -1,6 +1,7 @@
 // src/stores/secretStore.ts
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref } from 'vue';
 
@@ -38,7 +39,13 @@ export const useSecretStore = defineStore('secrets', () => {
   const isInitialized = computed(() => _initialized.value);
 
   // Actions
-  function init(this: SecretStore) {
+  interface StoreOptions {
+    deviceLocale?: string;
+    storageKey?: string;
+    api?: AxiosInstance;
+  }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return { isInitialized };
 
     _initialized.value = true;

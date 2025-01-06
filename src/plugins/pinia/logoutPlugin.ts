@@ -47,3 +47,13 @@ export function logoutPlugin(context: PiniaPluginContext) {
     };
   }
 }
+
+export function apiPlugin(apiInstance?: AxiosInstance) {
+  const api = apiInstance || createApi();
+
+  return (context: PiniaPluginContext) => {
+    if (!context.store.$api) {
+      context.store.$api = api;
+    }
+  };
+}
