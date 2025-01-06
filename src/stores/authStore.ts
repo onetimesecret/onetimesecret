@@ -1,4 +1,4 @@
-// stores/authStore.ts
+// src/stores/authStore.ts
 import { responseSchemas } from '@/schemas/api';
 import { WindowService } from '@/services/window.service';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -129,25 +129,22 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function checkAuthStatus(this: AuthStore) {
     if (!isAuthenticated.value) return false;
+    try {
+      const response = await this.$api.get(AUTH_CHECK_CONFIG.ENDPOINT);
+      const validated = responseSchemas.checkAuth.parse(response.data);
 
-    return await this.$asyncHandler
-      .wrap(async () => {
-        const response = await this.$api.get(AUTH_CHECK_CONFIG.ENDPOINT);
-        const validated = responseSchemas.checkAuth.parse(response.data);
+      isAuthenticated.value = validated.details.authenticated;
+      failureCount.value = 0;
+      lastCheckTime.value = Date.now(); // This exists but isn't getting called
 
-        isAuthenticated.value = validated.details.authenticated;
-        failureCount.value = 0;
-        lastCheckTime.value = Date.now(); // This exists but isn't getting called
-
-        return isAuthenticated.value;
-      })
-      .catch(() => {
-        failureCount.value = (failureCount.value ?? 0) + 1;
-        if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
-          this.logout();
-        }
-        return false;
-      });
+      return isAuthenticated.value;
+    } catch {
+      failureCount.value = (failureCount.value ?? 0) + 1;
+      if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
+        this.logout();
+      }
+      return false;
+    }
   }
 
   /**

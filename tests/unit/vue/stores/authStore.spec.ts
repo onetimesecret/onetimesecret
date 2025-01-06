@@ -212,15 +212,6 @@ describe('authStore', () => {
       expect(result1).toEqual(result2);
     });
 
-    it('handles proper error handler setup', () => {
-      const errorHandler = store.$asyncHandler;
-      const api = store.$api;
-
-      expect(errorHandler).not.toBeNull();
-      expect(api).not.toBeNull();
-      expect(typeof errorHandler?.wrap).toBe('function');
-    });
-
     it('properly disposes resources and listeners', async () => {
       // Setup
       store.init();
