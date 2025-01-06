@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps<{
-  modelValue: string;
-  label?: string;
-  name?: string;
+const props = withDefaults(defineProps<{
+  modelValue?: string;
+  name: string;
+  label: string;
   id?: string;
-}>();
+}>(), {
+  modelValue: '#000000', // Provide default color
+  id: undefined
+});
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
@@ -16,6 +19,7 @@ const emit = defineEmits<{
 const label = computed(() => props.label || 'Color Picker');
 const id = computed(() => props.id || 'color-picker');
 const name = computed(() => props.name || 'color');
+const currentColor = computed(() => props.modelValue || '#000000');
 
 const updateColor = (event: Event, isText = false) => {
   const target = event.target as HTMLInputElement;
@@ -60,9 +64,9 @@ const updateColor = (event: Event, isText = false) => {
           :style="{ backgroundColor: modelValue }">
           <input
             type="color"
-            :value="modelValue"
-            @input="updateColor"
             :name="name"
+            :value="currentColor"
+            @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
             class="absolute inset-0 size-full cursor-pointer opacity-0"
             :aria-labelledby="id + '-label'"
           />

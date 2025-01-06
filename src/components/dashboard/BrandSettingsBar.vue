@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BrandSettings } from '@/schemas/models'
+import type { BrandSettings } from '@/schemas/models';
 import {
   CornerStyle,
   cornerStyleDisplayMap,
@@ -9,26 +9,36 @@ import {
   FontFamily,
   fontIconMap,
   fontOptions,
-} from '@/schemas/models/domain/brand'
+} from '@/schemas/models/domain/brand';
 import { Icon } from '@iconify/vue'
-import { onMounted, ref } from 'vue'
-import { onBeforeRouteLeave } from 'vue-router'
+import { computed } from 'vue'
 
 import ColorPicker from '../common/ColorPicker.vue'
 import CycleButton from '../common/CycleButton.vue'
 
-const props = defineProps<{
-  modelValue: BrandSettings
-  isSubmitting: boolean
-}>()
+const props = withDefaults(defineProps<{
+  modelValue: BrandSettings;
+  isLoading: boolean;
+}>(), {
+  modelValue: () => ({
+    primary_color: '#000000',
+    font_family: 'sans',
+    corner_style: 'rounded',
+    button_text_light: true,
+    instructions_pre_reveal: '',
+    instructions_post_reveal: '',
+    instructions_reveal: ''
+  }),
+  isLoading: false
+});
 
+// Add emit definitions
 const emit = defineEmits<{
   (e: 'update:modelValue', value: BrandSettings): void
   (e: 'submit'): void
 }>()
 
-const isDirty = ref(false)
-const originalValues = ref<BrandSettings | null>(null)
+const primaryColor = computed(() => props.modelValue?.primary_color || '#000000');
 
 const updateBrandSetting = <K extends keyof BrandSettings>(
   key: K,
@@ -38,7 +48,6 @@ const updateBrandSetting = <K extends keyof BrandSettings>(
     ...props.modelValue,
     [key]: value,
   })
-  setDirtyState()
 }
 
 const updateFontFamilyStyle = (value: string) => {
@@ -49,32 +58,9 @@ const updateCornerStyle = (value: string) => {
   updateBrandSetting('corner_style', value as keyof typeof CornerStyle)
 }
 
-const setDirtyState = () => {
-  if (!originalValues.value) return
-
-  isDirty.value = true;
-}
-
-onMounted(() => {
-  originalValues.value = { ...props.modelValue }
-  console.log('modelValue', props.modelValue)
-})
-
-onBeforeRouteLeave((to, from, next) => {
-  if (!isDirty.value) {
-    return next()
-  }
-
-  next(window.confirm('You have unsaved changes. Are you sure you want to leave?'))
-})
-
-// Reset original values after successful save
 const handleSubmit = () => {
   emit('submit')
-  originalValues.value = { ...props.modelValue }
-  isDirty.value = false
 }
-
 </script>
 
 <template>
@@ -86,7 +72,7 @@ const handleSubmit = () => {
 
         <!-- Color Picker -->
         <ColorPicker
-          :model-value="modelValue.primary_color"
+        :model-value="primaryColor"
           name="brand[primary_color]"
           label="Brand Color"
           id="brand-color"
@@ -129,10 +115,10 @@ const handleSubmit = () => {
         <!-- Save Button -->
         <button
           type="submit"
-          :disabled="isSubmitting"
+          :disabled="isLoading"
           class="inline-flex h-11 w-full items-center justify-center rounded-lg border border-transparent bg-brand-600 px-4 text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:text-sm">
           <Icon
-            v-if="isSubmitting"
+            v-if="isLoading"
             icon="mdi:loading"
             class="-ml-1 mr-2 size-4 animate-spin"
           />
@@ -141,7 +127,7 @@ const handleSubmit = () => {
             icon="mdi:content-save"
             class="-ml-1 mr-2 size-4"
           />
-          {{ isSubmitting ? 'Save' : 'Save' }}
+          {{ isLoading ? 'Save' : 'Save' }}
         </button>
       </form>
     </div>

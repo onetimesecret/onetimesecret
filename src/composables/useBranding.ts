@@ -1,10 +1,10 @@
 // src/composables/useBranding.ts
-import { loggingService } from '@/services/logging';
 import { ImageProps, type BrandSettings } from '@/schemas/models/domain';
+import { loggingService } from '@/services/logging';
 import { useNotificationsStore } from '@/stores';
 import { useDomainsStore } from '@/stores/domainsStore';
 import { shouldUseLightText } from '@/utils';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 /**
  * Composable for displaying domain-specific branding settings
@@ -23,26 +23,53 @@ import { computed, ref, watch } from 'vue';
  */
 /* eslint max-lines-per-function: off */
 export function useBranding(domainId?: string) {
+  // Add default brand settings
+  const defaultBranding: BrandSettings = {
+    primary_color: '#000000',
+    font_family: 'sans',
+    corner_style: 'rounded',
+    button_text_light: true,
+    instructions_pre_reveal: '',
+    instructions_post_reveal: '',
+    instructions_reveal: '',
+    allow_public_api: false,
+    allow_public_homepage: false,
+  };
+
+  const initialize = async () => {
+    if (!domainId) return;
+
+    isLoading.value = true;
+    try {
+      const settings = await store.getBrandSettings(domainId);
+      brand.value = settings;
+      brandSettings.value = { ...settings };
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load settings';
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  onMounted(initialize);
+
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
 
   // State
-  const loading = ref(false);
+  const isLoading = ref(false);
   const error = ref<string | null>(null);
   const logoImage = ref<ImageProps | null>(null);
 
-  const brand = ref<BrandSettings | null>(null);
+  const brand = ref<BrandSettings>(defaultBranding);
 
-  // Computed properties from existing implementation
-  const brandSettings = computed(() => {
-    if (!brand.value) return store.defaultBranding;
-    return brand.value;
-  });
+  const brandSettings = ref<BrandSettings>({ ...defaultBranding });
 
   const primaryColor = computed(() => brandSettings.value.primary_color);
   const fontFamily = computed(() => brandSettings.value.font_family);
   const cornerStyle = computed(() => brandSettings.value.corner_style);
   const hasCustomBranding = computed(() => brandSettings.value !== store.defaultBranding);
+  const selectedBrowserType = computed(() => detectPlatform());
   const getButtonClass = computed(() => ({
     'text-light': brandSettings.value.button_text_light,
     [`corner-${brandSettings.value.corner_style}`]: true,
@@ -51,13 +78,11 @@ export function useBranding(domainId?: string) {
   // Track changes between current and original settings
   watch(
     () => brand.value,
-    () => {
-      if (originalSettings.value) {
-        hasUnsavedChanges.value =
-          JSON.stringify(brandSettings.value) !== JSON.stringify(originalSettings.value);
+    (newValue) => {
+      if (newValue) {
+        brandSettings.value = { ...newValue };
       }
-    },
-    { deep: true }
+    }
   );
 
   // Auto-adjust text color based on background
@@ -74,28 +99,48 @@ export function useBranding(domainId?: string) {
   const originalSettings = ref<BrandSettings | null>(null);
   const hasUnsavedChanges = computed(() => {
     if (!originalSettings.value) return false;
-    return JSON.stringify(brandSettings.value) !== JSON.stringify(originalSettings.value);
+
+    // Compare only serializable properties
+    const compare = (a: BrandSettings, b: BrandSettings) => {
+      const keys: (keyof BrandSettings)[] = [
+        'primary_color',
+        'font_family',
+        'corner_style',
+        'button_text_light',
+        'instructions_pre_reveal',
+        'instructions_post_reveal',
+      ];
+
+      return keys.some((key) => a[key] !== b[key]);
+    };
+
+    return compare(brandSettings.value, originalSettings.value);
   });
 
   // Methods
   const fetchBranding = async () => {
-    if (!domainId) return;
+    if (!domainId) {
+      error.value = 'No domain ID provided';
+      return;
+    }
 
-    loading.value = true;
+    isLoading.value = true;
     try {
-      brand.value = await store.getBrandSettings(domainId);
-      originalSettings.value = brand;
+      const result = await store.getBrandSettings(domainId);
+      brand.value = result;
+      originalSettings.value = { ...result };
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch brand settings';
+      throw err; // Allow parent to handle
     } finally {
-      loading.value = false;
+      isLoading.value = false;
     }
   };
 
   const saveBranding = async (updates: Partial<BrandSettings>) => {
     if (!domainId) return;
 
-    loading.value = true;
+    isLoading.value = true;
     try {
       await store.updateBrandSettings(domainId, updates);
       originalSettings.value = { ...brandSettings.value, ...updates };
@@ -104,7 +149,7 @@ export function useBranding(domainId?: string) {
       notifications.show('Failed to save brand settings', 'error');
       throw err;
     } finally {
-      loading.value = false;
+      isLoading.value = false;
     }
   };
 
@@ -112,7 +157,7 @@ export function useBranding(domainId?: string) {
   const handleLogoUpload = async (file: File) => {
     if (!domainId) return;
 
-    loading.value = true;
+    isLoading.value = true;
     try {
       await store.uploadLogo(domainId, file);
       logoImage.value = await store.fetchLogo(domainId);
@@ -121,13 +166,13 @@ export function useBranding(domainId?: string) {
       notifications.show('Failed to upload logo', 'error');
       loggingService.info('Failed to upload logo', { error: err });
     } finally {
-      loading.value = false;
+      isLoading.value = false;
     }
   };
 
   const removeLogo = async () => {
     try {
-      loading.value = true;
+      isLoading.value = true;
       await store.removeLogo(domainId);
       logoImage.value = null;
       notifications.show('Logo removed successfully', 'success');
@@ -135,7 +180,7 @@ export function useBranding(domainId?: string) {
       notifications.show('Failed to remove logo', 'error');
       loggingService.info('Failed to upload logo', { error: err });
     } finally {
-      loading.value = false;
+      isLoading.value = false;
     }
   };
 
@@ -148,7 +193,7 @@ export function useBranding(domainId?: string) {
   const submitBrandSettings = async (settings: BrandSettings) => {
     if (!domainId) return;
 
-    loading.value = true;
+    isLoading.value = true;
     try {
       // Create payload with CSRF token
       const payload = {
@@ -173,13 +218,15 @@ export function useBranding(domainId?: string) {
         'error'
       );
     } finally {
-      loading.value = false;
+      isLoading.value = false;
     }
   };
 
   return {
+    initialize,
+
     // State
-    loading,
+    isLoading,
     error,
     logoImage,
     brand,
@@ -192,6 +239,13 @@ export function useBranding(domainId?: string) {
     hasCustomBranding,
     getButtonClass,
     hasUnsavedChanges,
+
+    selectedBrowserType: ref(detectPlatform()),
+    color: computed(() => primaryColor.value),
+    toggleBrowser: () => {
+      selectedBrowserType.value =
+        selectedBrowserType.value === 'safari' ? 'edge' : 'safari';
+    },
 
     // Methods
     fetchBranding,
