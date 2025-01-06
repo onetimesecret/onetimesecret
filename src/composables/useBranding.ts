@@ -72,7 +72,6 @@ export function useBranding(domainId?: string) {
   const fontFamily = computed(() => brandSettings.value.font_family);
   const cornerStyle = computed(() => brandSettings.value.corner_style);
   const hasCustomBranding = computed(() => brandSettings.value !== store.defaultBranding);
-  const selectedBrowserType = computed(() => detectPlatform());
   const getButtonClass = computed(() => ({
     'text-light': brandSettings.value.button_text_light,
     [`corner-${brandSettings.value.corner_style}`]: true,
@@ -197,12 +196,7 @@ export function useBranding(domainId?: string) {
     getButtonClass,
     hasUnsavedChanges,
 
-    selectedBrowserType: ref(detectPlatform()),
     color: computed(() => primaryColor.value),
-    toggleBrowser: () => {
-      selectedBrowserType.value =
-        selectedBrowserType.value === 'safari' ? 'edge' : 'safari';
-    },
 
     // Methods
     fetchBranding,

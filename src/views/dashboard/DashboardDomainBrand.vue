@@ -8,6 +8,7 @@ import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import { useBranding } from '@/composables/useBranding';
 import type { CustomDomain } from '@/schemas/models';
 import { Icon } from '@iconify/vue';
+import { detectPlatform } from '@/utils';
 import { computed, onMounted, watch, ref } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
 
@@ -18,11 +19,9 @@ const {
   fetchBranding,
   isLoading,
   error,
-  selectedBrowserType,
   hasUnsavedChanges,
   primaryColor,
   submitBrandSettings,
-  toggleBrowser,
   logoImage,
   handleLogoUpload,
   removeLogo,
@@ -35,6 +34,11 @@ const isReady = computed(() => !isLoading.value && brandSettings.value);
 const displayDomain = computed(() => props.domain || route.params.domain as string);
 const customDomain = ref<CustomDomain | null>(null);
 const color = computed(() => primaryColor.value);
+const browserType = ref<'safari' | 'edge'>(detectPlatform());
+
+const toggleBrowser = () => {
+  browserType.value = browserType.value === 'safari' ? 'edge' : 'safari';
+};
 
 // Add isLoading guard
 watch(() => isLoading.value, (isLoading) => {
@@ -133,7 +137,7 @@ onBeforeRouteLeave((to, from, next) => {
 
           <BrowserPreviewFrame class="mx-auto w-full max-w-3xl overflow-hidden"
                               :domain="displayDomain"
-                              :browser-type="selectedBrowserType"
+                              :browser-type="browserType"
                               @toggle-browser="toggleBrowser"
                               aria-labelledby="previewHeading">
             <div class=" z-50 h-1 w-full"
