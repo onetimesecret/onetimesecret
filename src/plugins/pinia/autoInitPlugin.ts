@@ -12,11 +12,9 @@ import type { PiniaPluginOptions } from './types';
  * - $logout from logoutPlugin
  */
 export function autoInitPlugin(options: PiniaPluginOptions = {}) {
-  console.log('[autoInit0]', options.api);
   return ({ store }: PiniaPluginContext) => {
     if (typeof store.init === 'function') {
-      console.log('[autoInit1]', options.api);
-      store.init({ api: options.api });
+      store.init(options);
     }
   };
 }

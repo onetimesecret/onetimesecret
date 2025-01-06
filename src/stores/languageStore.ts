@@ -2,12 +2,12 @@
 
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore } from 'pinia';
-import { computed, Ref, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 import { z } from 'zod';
 
 import { setLanguage } from '@/i18n';
+import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { WindowService } from '@/services/window.service';
-import { AxiosInstance } from 'axios';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
@@ -18,10 +18,9 @@ const localeSchema = z
   .max(5)
   .regex(/^[a-z]{2}(-[A-Z]{2})?$/);
 
-interface StoreOptions {
+interface StoreOptions extends PiniaPluginOptions {
   deviceLocale?: string;
   storageKey?: string;
-  api?: AxiosInstance;
 }
 
 /**
@@ -49,14 +48,12 @@ export type LanguageStore = {
   setCurrentLocale: (locale: string) => void;
   updateLanguage: (newLocale: string) => Promise<void>;
   $reset: () => void;
-} & PiniaCustomProperties & {
-    $api: {
-      post: (url: string, data: any) => Promise<any>;
-    };
-  };
+} & PiniaCustomProperties;
 
 /* eslint-disable max-lines-per-function */
 export const useLanguageStore = defineStore('language', () => {
+  const $api = inject('api');
+
   // State
   const deviceLocale = ref<string | null>(null);
   const currentLocale = ref<string | null>(null);
@@ -64,7 +61,6 @@ export const useLanguageStore = defineStore('language', () => {
   const supportedLocales = ref<string[]>([]);
   const storedLocale = ref<string | null>(null);
   const _initialized = ref(false);
-  const $api: Ref<AxiosInstance | null> = ref(null);
 
   // Getters
   const getDeviceLocale = computed(() => deviceLocale.value);
@@ -73,11 +69,6 @@ export const useLanguageStore = defineStore('language', () => {
   const getSupportedLocales = computed(() => supportedLocales.value);
 
   // Actions
-  interface StoreOptions {
-    deviceLocale?: string;
-    storageKey?: string;
-    api?: AxiosInstance;
-  }
 
   function init(options?: StoreOptions) {
     // Set device locale from options if provided
