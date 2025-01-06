@@ -131,14 +131,29 @@ export const useDomainsStore = defineStore('domains', () => {
     const formData = new FormData();
     formData.append('image', file);
 
-    await this.$api.post(`/api/v2/domains/${domain}/logo`, formData, {
+    const response = await this.$api.post(`/api/v2/domains/${domain}/logo`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+
+    // Validate upload response
+    const validated = responseSchemas.imageProps.parse(response.data);
+    return validated.record;
   }
 
-  async function fetchLogo(this: DomainsStore, domain: string) {
-    const response = await this.$api.get(`/api/v2/domains/${domain}/logo`);
-    return response.data.record;
+  async function fetchLogo(
+    this: DomainsStore,
+    domain: string
+  ): Promise<ImageProps | null> {
+    try {
+      const response = await this.$api.get(`/api/v2/domains/${domain}/logo`);
+      // Use the existing schema to validate the response
+      const validated = responseSchemas.imageProps.parse(response.data);
+      return validated.record;
+    } catch (error) {
+      // Handle 404 or other expected errors silently
+      if (error.response?.status === 404) return null;
+      throw error;
+    }
   }
 
   async function removeLogo(this: DomainsStore, domain: string) {

@@ -52,10 +52,16 @@ export function useBranding(domainId?: string) {
   const initialize = () =>
     wrap(async () => {
       if (!domainId) return;
-      const settings = await store.getBrandSettings(domainId);
+      const [settings, logo] = await Promise.all([
+        store.getBrandSettings(domainId),
+        store.fetchLogo(domainId).catch(() => null),
+      ]);
+
       brand.value = settings;
       brandSettings.value = { ...settings };
+      logoImage.value = logo;
     });
+
   onMounted(initialize);
 
   const logoImage = ref<ImageProps | null>(null);
@@ -134,8 +140,9 @@ export function useBranding(domainId?: string) {
   const handleLogoUpload = (file: File) =>
     wrap(async () => {
       if (!domainId) return;
-      await store.uploadLogo(domainId, file);
-      logoImage.value = await store.fetchLogo(domainId);
+
+      const uploadedLogo = await store.uploadLogo(domainId, file);
+      logoImage.value = uploadedLogo;
       notifications.show('Logo uploaded successfully', 'success');
     });
 
