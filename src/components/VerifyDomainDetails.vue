@@ -8,7 +8,6 @@ import { computed, ref } from 'vue';
 import BasicFormAlerts from './BasicFormAlerts.vue';
 import DetailField from './DetailField.vue';
 
-
 interface Props {
   domain: CustomDomain;
   cluster: CustomDomainCluster;

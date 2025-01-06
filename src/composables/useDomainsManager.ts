@@ -51,6 +51,20 @@ export function useDomainsManager() {
    */
   const fetch = async () => wrap(async () => await store.fetchList());
 
+  const getDomain = async (domainName: string) =>
+    wrap(async () => {
+      const domain = await store.getDomain(domainName);
+      const currentTime = Math.floor(Date.now() / 1000);
+      const lastMonitored = domain?.updated || currentTime;
+      const canVerify = currentTime - lastMonitored >= 30;
+
+      return {
+        domain,
+        cluster: details.value?.cluster,
+        canVerify,
+      };
+    });
+
   const handleAddDomain = async (domain: string) =>
     wrap(async () => {
       const result = await store.addDomain(domain);
@@ -104,6 +118,7 @@ export function useDomainsManager() {
 
     // Actions
     fetch,
+    getDomain,
     handleAddDomain,
     deleteDomain,
     goBack,

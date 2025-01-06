@@ -28,6 +28,7 @@ export type DomainsStore = {
   // Actions
   addDomain: (domain: string) => Promise<CustomDomain>;
   fetchList: () => Promise<void>;
+  getDomain: (domainName: string) => Promise<CustomDomain>;
   refreshRecords: () => Promise<CustomDomain[]>;
   updateDomainBrand: (
     domain: string,
@@ -84,6 +85,12 @@ export const useDomainsStore = defineStore('domains', () => {
     count.value = validated.count ?? 0;
 
     return validated;
+  }
+
+  async function getDomain(this: DomainsStore, domainName: string) {
+    const response = await this.$api.get(`/api/v2/domains/${domainName}`);
+    const validated = responseSchemas.customDomain.parse(response.data);
+    return validated.record;
   }
 
   async function refreshRecords(this: DomainsStore, force = false) {
@@ -194,6 +201,7 @@ export const useDomainsStore = defineStore('domains', () => {
     refreshRecords,
     updateDomainBrand,
     deleteDomain,
+    getDomain,
     getBrandSettings,
     updateBrandSettings,
     updateDomain,

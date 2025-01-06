@@ -3,56 +3,26 @@ import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
 import MoreInfoText from "@/components/MoreInfoText.vue";
 import VerifyDomainDetails from '@/components/VerifyDomainDetails.vue';
-import { type CustomDomainResponse, responseSchemas } from '@/schemas/api/responses';
-import { CustomDomain } from '@/schemas/models'
+import { type CustomDomainResponse } from '@/schemas/api/responses';
+import { useDomainsManager } from '@/composables/useDomainsManager';
+import { CustomDomain, CustomDomainCluster } from '@/schemas/models';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute();
+const { getDomain } = useDomainsManager();
+
 const domain = ref<CustomDomain | null>(null);
-const cluster = ref<{ cluster_host: string; cluster_name: string } | null>(null);
-
-console.debug("VerifyDomain.ts", route.params.domain);
-
+const cluster = ref<CustomDomainCluster | null>(null);
 const allowVerifyCTA = ref(false);
 
 const fetchDomain = async (): Promise<void> => {
-  const domainName: string = route.params.domain as string;
-  try {
-    const response: Response = await fetch(`/api/v2/domains/${domainName}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch domain information');
-    }
-
-    const rawData = await response.json();
-    const json = responseSchemas.customDomain.parse(rawData);
-    console.debug('json', json);
-
-    domain.value = json.record;
-
-    if (json.details?.cluster) {
-      cluster.value = json.details.cluster as { cluster_host: string; cluster_name: string };
-    }
-
-    const currentTime = Math.floor(Date.now() / 1000);
-    const last_monitored_unix = (domain.value?.updated || currentTime) as number;
-
-    if (last_monitored_unix) {
-      const timeDifference = currentTime - last_monitored_unix;
-
-      // If it's been at least N minutes since the most recent monitor
-      // check for this domain, let's make sure the verify button is
-      // enabled and ready for action.
-      if (timeDifference >= 30) {
-        console.debug("It has been at least 30 seconds since the last monitored time.", timeDifference);
-        allowVerifyCTA.value = true;
-      } else {
-        console.debug('It has not been 30 seconds yet since the last monitored time.', timeDifference);
-        allowVerifyCTA.value = false;
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching domain:', error);
+  const domainName = route.params.domain as string;
+  const result = await getDomain(domainName);
+  if (result) {
+    domain.value = result.domain;
+    cluster.value = result.cluster;
+    allowVerifyCTA.value = result.canVerify;
   }
 };
 
