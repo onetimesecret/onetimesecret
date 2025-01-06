@@ -58,17 +58,6 @@ export type DomainsStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useDomainsStore = defineStore('domains', () => {
-  // Add default branding
-  const defaultBranding: BrandSettings = {
-    primary_color: '#000000',
-    font_family: 'sans',
-    corner_style: 'rounded',
-    button_text_light: true,
-    instructions_pre_reveal: '',
-    instructions_post_reveal: '',
-    instructions_reveal: '',
-  };
-
   // State
   const _initialized = ref(false);
   const records: Ref<CustomDomain[] | null> = ref(null);
@@ -186,13 +175,8 @@ export const useDomainsStore = defineStore('domains', () => {
     this: DomainsStore,
     domain: string
   ): Promise<BrandSettings> {
-    try {
-      const response = await this.$api.get(`/api/v2/domains/${domain}/brand`);
-      return responseSchemas.brandSettings.parse(response.data);
-    } catch (err) {
-      console.error('Failed to fetch brand settings:', err);
-      return defaultBranding;
-    }
+    const response = await this.$api.get(`/api/v2/domains/${domain}/brand`);
+    return responseSchemas.brandSettings.parse(response.data);
   }
 
   /**

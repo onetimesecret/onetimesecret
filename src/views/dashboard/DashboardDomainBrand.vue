@@ -30,7 +30,7 @@ const {
 const route = useRoute();
 
 // Ensure brand is initialized before rendering
-const isReady = computed(() => !isLoading.value && brandSettings.value);
+// const isReady = computed(() => !isLoading.value && brandSettings.value);
 const displayDomain = computed(() => props.domain || route.params.domain as string);
 const customDomain = ref<CustomDomain | null>(null);
 const color = computed(() => primaryColor.value);
@@ -69,12 +69,8 @@ onBeforeRouteLeave((to, from, next) => {
 </script>
 
 <template>
-  <div v-if="isLoading">
-    <LoadingOverlay show message="Loading brand settings" />
-  </div>
 
-  <!-- Main content -->
-  <div v-else-if="isReady">
+  <div>
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
 
       <!-- Header Section -->
@@ -82,12 +78,15 @@ onBeforeRouteLeave((to, from, next) => {
         <DomainHeader :display-domain="displayDomain"
                       :domain="customDomain" />
 
-        <BrandSettingsBar v-model="brand"
-                          :is-loading="isLoading"
-                          @submit="submitBrandSettings">
+        <BrandSettingsBar
+          v-model="brandSettings"
+          :is-loading="isLoading"
+          @submit="submitBrandSettings">
           <template #instructions-button>
-            <InstructionsModal v-model="brandSettings.instructions_pre_reveal"
-                              @update:model-value="(value) => brandSettings.instructions_pre_reveal = value" />
+            <InstructionsModal
+              v-model="brandSettings.instructions_pre_reveal"
+              @update:model-value="(value) => brandSettings.instructions_pre_reveal = value"
+            />
           </template>
         </BrandSettingsBar>
       </div>
@@ -167,7 +166,6 @@ onBeforeRouteLeave((to, from, next) => {
           </div>
         </div>
       </div>
-
 
       <!-- Loading Overlay -->
       <LoadingOverlay :show="isLoading"

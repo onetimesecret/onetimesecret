@@ -11,34 +11,19 @@ import {
   fontOptions,
 } from '@/schemas/models/domain/brand';
 import { Icon } from '@iconify/vue'
-import { computed } from 'vue'
 
 import ColorPicker from '../common/ColorPicker.vue'
 import CycleButton from '../common/CycleButton.vue'
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   modelValue: BrandSettings;
   isLoading: boolean;
-}>(), {
-  modelValue: () => ({
-    primary_color: '#000000',
-    font_family: 'sans',
-    corner_style: 'rounded',
-    button_text_light: true,
-    instructions_pre_reveal: '',
-    instructions_post_reveal: '',
-    instructions_reveal: ''
-  }),
-  isLoading: false
-});
+}>();
 
-// Add emit definitions
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: BrandSettings): void
-  (e: 'submit'): void
-}>()
-
-const primaryColor = computed(() => props.modelValue?.primary_color || '#000000');
+  (e: 'update:modelValue', value: BrandSettings): void;
+  (e: 'submit'): void;
+}>();
 
 const updateBrandSetting = <K extends keyof BrandSettings>(
   key: K,
@@ -50,13 +35,13 @@ const updateBrandSetting = <K extends keyof BrandSettings>(
   })
 }
 
-const updateFontFamilyStyle = (value: string) => {
-  updateBrandSetting('font_family', value as keyof typeof FontFamily)
-}
+// const updateFontFamilyStyle = (value: string) => {
+//   updateBrandSetting('font_family', value as keyof typeof FontFamily)
+// }
 
-const updateCornerStyle = (value: string) => {
-  updateBrandSetting('corner_style', value as keyof typeof CornerStyle)
-}
+// const updateCornerStyle = (value: string) => {
+//   updateBrandSetting('corner_style', value as keyof typeof CornerStyle)
+// }
 
 const handleSubmit = () => {
   emit('submit')
@@ -72,11 +57,11 @@ const handleSubmit = () => {
 
         <!-- Color Picker -->
         <ColorPicker
-        :model-value="primaryColor"
+        :model-value="modelValue.primary_color"
+          @update:model-value="(value) => updateBrandSetting('primary_color', value)"
           name="brand[primary_color]"
           label="Brand Color"
           id="brand-color"
-          @update:model-value="updateBrandSetting('primary_color', $event)"
         />
 
 
@@ -84,8 +69,8 @@ const handleSubmit = () => {
           <!-- Corner Style -->
           <CycleButton
             :model-value="modelValue.corner_style"
+            @update:model-value="(value) => updateBrandSetting('corner_style', value)"
             :default-value="CornerStyle.ROUNDED"
-            @update:model-value="updateCornerStyle"
             :options="cornerStyleOptions"
             label="Corner Style"
             :display-map="cornerStyleDisplayMap"
@@ -95,8 +80,8 @@ const handleSubmit = () => {
           <!-- Font Family -->
           <CycleButton
             :model-value="modelValue.font_family"
+            @update:model-value="(value) => updateBrandSetting('font_family', value)"
             :default-value="FontFamily.SANS"
-            @update:model-value="updateFontFamilyStyle"
             :options="fontOptions"
             label="Font Family"
             :display-map="fontDisplayMap"
@@ -107,7 +92,6 @@ const handleSubmit = () => {
         <!-- Instructions Field -->
 
         <slot name="instructions-button"></slot>
-
 
         <!-- Spacer -->
         <div class="flex-1"></div>

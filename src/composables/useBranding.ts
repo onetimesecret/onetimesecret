@@ -57,8 +57,10 @@ export function useBranding(domainId?: string) {
         store.fetchLogo(domainId).catch(() => null),
       ]);
 
-      brand.value = settings;
+      // Important: Set both refs with the fetched settings
+      brand.value = { ...settings };
       brandSettings.value = { ...settings };
+      originalSettings.value = { ...settings };
       logoImage.value = logo;
     });
 
@@ -124,7 +126,7 @@ export function useBranding(domainId?: string) {
     wrap(async () => {
       if (!domainId) throw createError('No domain ID provided', 'human');
       const result = await store.getBrandSettings(domainId);
-      brand.value = result;
+      brand.value = { ...result };
       originalSettings.value = { ...result };
     });
 
