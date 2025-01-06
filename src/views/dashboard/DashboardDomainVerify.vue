@@ -19,11 +19,17 @@ const allowVerifyCTA = ref(false);
 const fetchDomain = async (): Promise<void> => {
   const domainName = route.params.domain as string;
   const result = await getDomain(domainName);
-  if (result) {
-    domain.value = result.domain;
+  if (!result) return;
+
+  domain.value = result.domain;
+  // Ensure cluster data is present before assigning
+  if (result.cluster) {
     cluster.value = result.cluster;
-    allowVerifyCTA.value = result.canVerify;
+  } else {
+    console.warn('No cluster data available for domain:', domainName);
+    cluster.value = null;
   }
+  allowVerifyCTA.value = result.canVerify;
 };
 
 const handleDomainVerify = async (data: CustomDomainResponse) => {
@@ -99,7 +105,7 @@ onMounted(() => {
     </MoreInfoText>
 
     <VerifyDomainDetails
-      v-if="domain && cluster"
+      v-if="domain"
       :domain="domain"
       :cluster="cluster"
       :with-verify-c-t-a="allowVerifyCTA"

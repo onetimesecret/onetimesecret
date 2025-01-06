@@ -6,9 +6,7 @@ import {
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
-import type { DomainsStore } from '@/stores/domainsStore'; // Add type import
-import { NotificationSeverity } from '@/stores/notificationsStore';
-import { storeToRefs, type StoreGeneric } from 'pinia';
+import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -23,19 +21,19 @@ import { useRouter } from 'vue-router';
  */
 /* eslint-disable max-lines-per-function */
 export function useDomainsManager() {
-  const store = useDomainsStore() as DomainsStore;
+  const store = useDomainsStore();
   const notifications = useNotificationsStore();
   const router = useRouter();
   const goBack = () => router.back();
-  const { records, details } = storeToRefs(store as StoreGeneric);
+  const { records, details } = storeToRefs(store);
 
   // Local state
   const isLoading = ref(false);
   const error = ref<ApplicationError | null>(null); // Add local error state
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) =>
-      notifications.show(message, severity as NotificationSeverity),
+    notify: (message, severity: 'success' | 'error' | 'info') =>
+      notifications.show(message, severity),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => (error.value = err),
   };
@@ -53,16 +51,24 @@ export function useDomainsManager() {
 
   const getDomain = async (domainName: string) =>
     wrap(async () => {
-      const domain = await store.getDomain(domainName);
+      const domainData = await store.getDomain(domainName);
+      const domain = domainData.record;
       const currentTime = Math.floor(Date.now() / 1000);
-      const lastMonitored = domain?.updated || currentTime;
+      const lastMonitored = domain?.vhost?.last_monitored_unix || currentTime;
       const canVerify = currentTime - lastMonitored >= 30;
 
       return {
         domain,
-        cluster: details.value?.cluster,
+        cluster: domainData?.details?.cluster,
         canVerify,
       };
+    });
+
+  const verifyDomain = async (domainName: string) =>
+    wrap(async () => {
+      const result = await store.verifyDomain(domainName);
+      notifications.show('Domain verification initiated successfully', 'success');
+      return result;
     });
 
   const handleAddDomain = async (domain: string) =>
@@ -119,6 +125,7 @@ export function useDomainsManager() {
     // Actions
     fetch,
     getDomain,
+    verifyDomain,
     handleAddDomain,
     deleteDomain,
     goBack,
