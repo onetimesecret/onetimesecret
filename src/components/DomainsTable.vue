@@ -15,12 +15,12 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'confirm-delete', domainId: string): void;
+  (e: 'delete', domainId: string): void;
   (e: 'toggle-homepage', domain: CustomDomain): void;
 }>();
 
 const handleDelete = (domainId: string) => {
-  emit('confirm-delete', domainId);
+  emit('delete', domainId);
 };
 </script>
 

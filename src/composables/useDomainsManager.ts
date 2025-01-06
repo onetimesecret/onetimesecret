@@ -63,19 +63,14 @@ export function useDomainsManager() {
       return null;
     });
 
-  const deleteDomain = async (domainId: string) => {
-    if (!(await confirmDelete(domainId))) return;
+  const deleteDomain = async (domainId: string) =>
+    wrap(async () => {
+      const confirmed = await confirmDelete(domainId);
+      if (!confirmed) return;
 
-    try {
       await store.deleteDomain(domainId);
       notifications.show('Domain removed successfully', 'success');
-    } catch (error) {
-      notifications.show(
-        error instanceof Error ? error.message : 'Failed to remove domain',
-        'error'
-      );
-    }
-  };
+    });
 
   const confirmDelete = async (domainId: string): Promise<string | null> => {
     console.debug('[useDomainsManager] Confirming delete for domain:', domainId);
@@ -111,7 +106,6 @@ export function useDomainsManager() {
     fetch,
     handleAddDomain,
     deleteDomain,
-    confirmDelete,
     goBack,
   };
 }

@@ -13,7 +13,7 @@ const plan = ref<Plan>(WindowService.get('plan'));
 
 const {
   isLoading,
-  confirmDelete,
+  deleteDomain,
   records,
   error,
   fetch,
@@ -69,7 +69,7 @@ onMounted(() => {
       v-else
       :domains="domains"
       :is-loading="isLoading"
-      @confirm-delete="confirmDelete"
+      @delete="deleteDomain"
     />
   </div>
 </template>
