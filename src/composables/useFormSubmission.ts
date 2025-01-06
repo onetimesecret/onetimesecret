@@ -5,6 +5,15 @@ import type { FormSubmissionOptions } from '@/types/ui';
 import { ref } from 'vue';
 import { z } from 'zod';
 
+/**
+ *
+ * @param options
+ * @returns
+ *
+ * @deprecated
+ */
+/* eslint-disable max-lines-per-function */
+/* eslint-disable complexity */
 export function useFormSubmission<ResponseSchema extends z.ZodType>(
   options: FormSubmissionOptions<ResponseSchema>
 ) {
@@ -12,6 +21,7 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
   const error = ref('');
   const success = ref('');
 
+  /* eslint-disable max-lines-per-function */
   const submitForm = async (event?: Event) => {
     isSubmitting.value = true;
     error.value = '';
@@ -48,7 +58,9 @@ export function useFormSubmission<ResponseSchema extends z.ZodType>(
       }
 
       const urlSearchParams =
-        formData instanceof URLSearchParams ? formData : new URLSearchParams(formData as never);
+        formData instanceof URLSearchParams
+          ? formData
+          : new URLSearchParams(formData as never);
 
       const csrfStore = useCsrfStore();
       urlSearchParams.append('shrimp', csrfStore.shrimp);
