@@ -1,7 +1,5 @@
-
 <script setup lang="ts">
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
 import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
 import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
@@ -15,7 +13,7 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const { record, details, isLoading, fetch, error, reset } = useMetadata(props.metadataKey);
+const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataKey);
 
 // Watch for route parameter changes to refetch data
 watch(
@@ -39,48 +37,42 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl px-4">
+  <div class="">
     <DashboardTabNav />
 
-    <ErrorDisplay v-if="error" :error="error" />
+    <!-- <ErrorDisplay v-if="error" :error="error" /> -->
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="py-8 text-center text-gray-600">
+    <div v-if="isLoading"
+         class="py-8 text-center text-gray-600">
       <span class="">Loading...</span>
     </div>
 
-    <div v-else-if="record && details" class="space-y-8">
+    <div v-else-if="record && details"
+         class="space-y-8">
       <!-- Primary Content Section -->
       <div class="space-y-6">
-        <SecretLink
-          v-if="details.show_secret_link"
-          :metadata="record"
-          :details="details"
-        />
+        <SecretLink v-if="details.show_secret_link"
+                    :metadata="record"
+                    :details="details" />
 
-        <h3
-          v-if="details.show_recipients"
-          class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
+        <h3 v-if="details.show_recipients"
+            class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
           {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
         </h3>
 
-        <MetadataDisplayCase
-          :metadata="record"
-          :details="details"
-          class="shadow-sm"
-        />
+        <MetadataDisplayCase :metadata="record"
+                             :details="details"
+                             class="shadow-sm" />
 
-        <BurnButtonForm
-          :metadata="record"
-          :details="details"
-          class="pt-2"
-        />
+        <BurnButtonForm :metadata="record"
+                        :details="details"
+                        class="pt-2" />
       </div>
 
       <!-- Recipients Section -->
-      <div
-        v-if="details.show_recipients"
-        class="border-t border-gray-100 py-4 dark:border-gray-800">
+      <div v-if="details.show_recipients"
+           class="border-t border-gray-100 py-4 dark:border-gray-800">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
           {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
         </h3>
@@ -88,9 +80,8 @@ onUnmounted(() => {
 
       <!-- Create Another Secret -->
       <div class="pt-6">
-        <a
-          href="/"
-          class="
+        <a href="/"
+           class="
             mx-auto
             mb-24
             mt-12
@@ -119,11 +110,9 @@ onUnmounted(() => {
       </div>
 
       <!-- FAQ Section -->
-      <MetadataFAQ
-        :metadata="record"
-        :details="details"
-        class="border-t border-gray-100 pt-8 dark:border-gray-800"
-      />
+      <MetadataFAQ :metadata="record"
+                   :details="details"
+                   class="border-t border-gray-100 pt-8 dark:border-gray-800" />
     </div>
   </div>
 </template>
