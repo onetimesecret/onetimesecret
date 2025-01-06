@@ -2,7 +2,12 @@
 //
 import { UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
-import type { BrandSettings, CustomDomain, CustomDomainDetails } from '@/schemas/models';
+import type {
+  BrandSettings,
+  CustomDomain,
+  CustomDomainDetails,
+  ImageProps,
+} from '@/schemas/models';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { ref, Ref } from 'vue';
 
@@ -29,19 +34,25 @@ export type DomainsStore = {
   addDomain: (domain: string) => Promise<CustomDomain>;
   fetchList: () => Promise<void>;
   getDomain: (domainName: string) => Promise<CustomDomain>;
+  updateDomain: (domain: CustomDomain) => Promise<CustomDomain>;
   verifyDomain: (domainName: string) => Promise<CustomDomain>;
+  deleteDomain: (domainName: string) => Promise<void>;
+
+  uploadLogo: (domain: string, file: File) => Promise<void>;
+  fetchLogo: (domain: string) => Promise<ImageProps>;
+  removeLogo: (domain: string) => Promise<void>;
+
   refreshRecords: () => Promise<CustomDomain[]>;
+  getBrandSettings: (domain: string) => Promise<BrandSettings>;
   updateDomainBrand: (
     domain: string,
     brandUpdate: UpdateDomainBrandRequest
   ) => Promise<CustomDomain>;
-  deleteDomain: (domainName: string) => Promise<void>;
-  getBrandSettings: (domain: string) => Promise<BrandSettings>;
   updateBrandSettings: (
     domain: string,
     settings: Partial<BrandSettings>
   ) => Promise<BrandSettings>;
-  updateDomain: (domain: CustomDomain) => Promise<CustomDomain>;
+
   reset: () => void;
 } & PiniaCustomProperties;
 
@@ -114,6 +125,24 @@ export const useDomainsStore = defineStore('domains', () => {
     });
     const validated = responseSchemas.customDomain.parse(response.data);
     return validated;
+  }
+
+  async function uploadLogo(this: DomainsStore, domain: string, file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    await this.$api.post(`/api/v2/domains/${domain}/logo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+
+  async function fetchLogo(this: DomainsStore, domain: string) {
+    const response = await this.$api.get(`/api/v2/domains/${domain}/logo`);
+    return response.data.record;
+  }
+
+  async function removeLogo(this: DomainsStore, domain: string) {
+    await this.$api.delete(`/api/v2/domains/${domain}/logo`);
   }
 
   async function refreshRecords(this: DomainsStore, force = false) {
@@ -229,15 +258,21 @@ export const useDomainsStore = defineStore('domains', () => {
 
     // Actions
     addDomain,
-    fetchList,
-    refreshRecords,
-    updateDomainBrand,
     deleteDomain,
     getDomain,
     verifyDomain,
+    updateDomain,
+
+    updateDomainBrand,
     getBrandSettings,
     updateBrandSettings,
-    updateDomain,
+
+    uploadLogo,
+    fetchLogo,
+    removeLogo,
+
+    fetchList,
+    refreshRecords,
     $reset,
   };
 });

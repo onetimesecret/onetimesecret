@@ -7,7 +7,6 @@ import SecretPreview from '@/components/dashboard/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import { useBranding } from '@/composables/useBranding';
 import type { CustomDomain } from '@/schemas/models';
-import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { Icon } from '@iconify/vue';
 import { computed, onMounted, watch, ref } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
@@ -68,10 +67,6 @@ onBeforeRouteLeave((to, from, next) => {
 <template>
   <div v-if="isLoading">
     <LoadingOverlay show message="Loading brand settings" />
-  </div>
-
-  <div v-else-if="error">
-    <ErrorDisplay :message="error" />
   </div>
 
   <!-- Main content -->

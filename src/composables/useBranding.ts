@@ -46,7 +46,7 @@ export function useBranding(domainId?: string) {
   const { wrap } = useAsyncHandler({
     notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isLoading.value = loading),
-    onError: (err) => (error.value = err),
+    // onError: (err) => (error.value = err),
   });
 
   const initialize = () =>
@@ -147,25 +147,28 @@ export function useBranding(domainId?: string) {
       notifications.show('Logo removed successfully', 'success');
     });
 
-  const submitBrandSettings = (settings: BrandSettings) =>
+  const submitBrandSettings = (settings?: BrandSettings) =>
     wrap(async () => {
       if (!domainId) return;
 
+      // Use either passed settings or current brandSettings
+      const brandData = settings || brandSettings.value;
+      if (!brandData) throw createError('No brand settings to save', 'human');
+
       const payload = {
         brand: {
-          primary_color: settings.primary_color,
-          font_family: settings.font_family,
-          corner_style: settings.corner_style,
-          button_text_light: settings.button_text_light,
-          instructions_pre_reveal: settings.instructions_pre_reveal,
-          instructions_post_reveal: settings.instructions_post_reveal,
-          instructions_reveal: settings.instructions_reveal,
+          primary_color: brandData.primary_color,
+          font_family: brandData.font_family,
+          corner_style: brandData.corner_style,
+          button_text_light: brandData.button_text_light,
+          instructions_pre_reveal: brandData.instructions_pre_reveal,
+          instructions_post_reveal: brandData.instructions_post_reveal,
+          instructions_reveal: brandData.instructions_reveal,
         },
       };
 
       await store.updateDomainBrand(domainId, payload);
-      originalSettings.value = { ...settings };
-      hasUnsavedChanges.value = false;
+      originalSettings.value = { ...brandData };
       notifications.show('Brand settings saved successfully', 'success');
     });
 
