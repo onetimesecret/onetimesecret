@@ -1,22 +1,19 @@
 // src/composables/useAsyncHandler.ts
-import type { ApplicationError, NotificationSeverity } from '@/schemas/errors';
-import {
-  classifyError,
-  createError,
-  isOfHumanInterest,
-} from '@/schemas/errors/classifier';
+import type { ApplicationError } from '@/schemas/errors';
+import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import type {} from '@/stores/notificationsStore';
+import type { NotificationSeverity } from '@/types/ui/notifications';
 
 export interface AsyncHandlerOptions {
   /**
    * Optional handler for user-facing notifications
    */
-  notify?: (message: string, severity: NotificationSeverity) => void;
+  notify?: ((message: string, severity: NotificationSeverity) => void) | false;
   /**
    * Optional error logging implementation
    */
-  log?: (error: ApplicationError) => void;
+  log?: ((error: ApplicationError) => void) | false;
   /**
    * Optional loading state handler
    */
@@ -29,7 +26,7 @@ export interface AsyncHandlerOptions {
   debug?: boolean;
 }
 
-export { createError }; // Re-export for convenience
+export { createError, errorGuards, wrapError }; // Re-export for convenience
 
 /**
  * Composable for handling async operations with consistent error handling.
@@ -133,7 +130,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
       handlers.setLoading?.(true);
       return await operation(); // <-- run the async operation
     } catch (error) {
-      const classifiedError = classifyError(error);
+      const classifiedError = classifyError(error as Error);
 
       // Call onError callback before  everything else
       if (handlers.onError) {
@@ -141,7 +138,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
           handlers.onError(classifiedError);
         } catch (callbackError) {
           // Log but don't throw callback errors
-          handlers.log?.(classifyError(callbackError));
+          handlers.log?.(classifyError(callbackError as Error));
         }
       }
 
@@ -149,7 +146,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
       handlers.log?.(classifiedError);
 
       // Only notify for human-facing errors
-      if (isOfHumanInterest(classifiedError) && handlers.notify) {
+      if (errorGuards.isOfHumanInterest(classifiedError) && handlers.notify) {
         handlers.notify(classifiedError.message, classifiedError.severity);
       }
 
@@ -160,5 +157,5 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
     }
   }
 
-  return { wrap, createError };
+  return { wrap, wrapError, createError };
 }

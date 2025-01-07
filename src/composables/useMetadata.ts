@@ -2,7 +2,8 @@
 
 import { ApplicationError } from '@/schemas';
 import { useMetadataStore } from '@/stores/metadataStore';
-import { NotificationSeverity, useNotificationsStore } from '@/stores/notificationsStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
+import { NotificationSeverity } from '@/types/ui/notifications';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';

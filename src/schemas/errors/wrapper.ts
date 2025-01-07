@@ -28,3 +28,12 @@ export function wrapError(
 
   return error;
 }
+
+export function createError(
+  message: string,
+  type: ErrorType,
+  severity: ErrorSeverity,
+  details?: Record<string, unknown>
+): ApplicationError {
+  return wrapError(message, type, severity, new Error(message), details);
+}

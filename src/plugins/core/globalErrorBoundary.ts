@@ -1,7 +1,7 @@
 // src/plugins/core/globalErrorBoundary.ts
 //
 import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
-import { classifyError, isOfHumanInterest } from '@/schemas/errors/classifier';
+import { classifyError, errorGuards } from '@/schemas/errors/classifier';
 import { loggingService } from '@/services/logging.service';
 import type { App, Plugin } from 'vue';
 
@@ -29,7 +29,7 @@ export const GlobalErrorBoundary: Plugin = {
       loggingService.error(error as Error); // was: classifiedError
 
       // Only notify user for human-facing errors
-      if (isOfHumanInterest(classifiedError) && options.notify) {
+      if (errorGuards.isOfHumanInterest(classifiedError) && options.notify) {
         options.notify(classifiedError.message, classifiedError.severity);
       }
 
