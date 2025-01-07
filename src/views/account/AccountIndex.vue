@@ -62,7 +62,6 @@ onMounted(accountStore.fetch);
         <i class="fas fa-lock mr-2"></i> Update Password
       </h2>
       <div class="pl-3">
-        <!-- Added padding-left to align with the title text -->
         <AccountChangePasswordForm />
       </div>
     </div>
