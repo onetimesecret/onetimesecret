@@ -38,11 +38,9 @@
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="-1">
 {{/no_cache}}
-<script type="text/javascript">
-{{#jsvars}}
-  var {{name}} = {{{value}}};
-{{/jsvars}}
-</script>
+
+{{! <!-- Passes data to the Vuejs frontend --> }}
+{{{jsvars_to_script}}}
 
 {{#frontend_development}}
 {{! <!-- if development --> }}
