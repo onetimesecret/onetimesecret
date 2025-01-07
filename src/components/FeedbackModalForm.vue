@@ -93,7 +93,7 @@ const handleSpecialMessages = (message: string) => {
       line: 0,
       column: 0,
       environment: 'production',
-      release: ot_version.value || 'unknown'
+      release: ot_version || 'unknown'
     });
     return true;
   }

@@ -31,6 +31,7 @@ const customerId = computed(() => cust?.custid);
         <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
           <div class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
             <Icon
+              v-if="currentJurisdiction?.icon"
               :icon="currentJurisdiction?.icon"
               class="size-8 text-brand-600 dark:text-brand-400 sm:size-10"
               aria-hidden="true"
@@ -69,6 +70,7 @@ const customerId = computed(() => cust?.custid);
       <div class="prose prose-base max-w-none rounded-lg bg-gray-50 p-4 dark:prose-invert dark:bg-gray-800 sm:p-6">
         <div class="space-y-4">
           <JurisdictionInfo
+            v-if="currentJurisdiction"
             :jurisdiction="currentJurisdiction"
             :support-host="supportHost"
           />
@@ -83,7 +85,7 @@ const customerId = computed(() => cust?.custid);
 
         <JurisdictionList
           :jurisdictions="jurisdictions"
-          :current-jurisdiction="currentJurisdiction"
+          :currentJurisdiction="currentJurisdiction"
         />
       </div>
     </section>

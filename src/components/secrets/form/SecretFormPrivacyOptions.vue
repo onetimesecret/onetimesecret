@@ -93,7 +93,7 @@ const filteredLifetimeOptions = computed(() => {
     return [];
   }
   const filtered = lifetimeOptions.value.filter(option => {
-    const optionValue = parseFloat(option.value ?? 0);
+    const optionValue = parseFloat(option.value ?? '0');
     const isValid = !isNaN(optionValue) && optionValue <= planTtl;
     console.debug('Filtering option:', option, 'Is valid:', isValid);
     return isValid;

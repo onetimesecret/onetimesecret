@@ -114,7 +114,7 @@ const closeTruncatedWarning = (event: Event) => {
             py-2 font-mono text-base
             leading-[1.2] tracking-wider focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
           readonly
-          :rows="details?.display_lines"
+          :rows="details?.display_lines ?? 4"
           :value="record?.secret_value"
           aria-label="Secret content"></textarea>
         <div

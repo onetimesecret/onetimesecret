@@ -9,7 +9,7 @@ import { isColorValue } from '@/utils/color-utils';
 import { computed, defineProps, ref } from 'vue';
 
 defineProps<LayoutProps>();
-const globalBanner = WindowService.get('global_banner');
+const globalBanner = WindowService.get('global_banner') ?? null;
 const hasGlobalBanner = computed(() => { return !!globalBanner });
 
 /* =============================== */

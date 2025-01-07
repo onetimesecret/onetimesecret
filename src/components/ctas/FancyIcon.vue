@@ -3,7 +3,7 @@
   import { computed, ref } from 'vue';
 
   defineProps<{
-    ariaLabel: string;
+    ariaLabel?: string;
     to: string;
     colonel?: boolean;
   }>();
