@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { setLanguage } from '@/i18n';
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { WindowService } from '@/services/window.service';
+import { AxiosInstance } from 'axios';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
@@ -52,7 +53,7 @@ export type LanguageStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useLanguageStore = defineStore('language', () => {
-  const $api = inject('api');
+  const $api = inject('api') as AxiosInstance;
 
   // State
   const deviceLocale = ref<string | null>(null);

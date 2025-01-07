@@ -1,9 +1,13 @@
 // src/stores/secretStore.ts
+import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
+import { loggingService } from '@/services/logging';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
+
+interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for SecretStore.
@@ -30,6 +34,7 @@ export type SecretStore = {
  */
 /* eslint-disable max-lines-per-function */
 export const useSecretStore = defineStore('secrets', () => {
+  const $api = inject('api') as AxiosInstance;
   // State
   const record = ref<Secret | null>(null);
   const details = ref<SecretDetails | null>(null);
@@ -39,14 +44,11 @@ export const useSecretStore = defineStore('secrets', () => {
   const isInitialized = computed(() => _initialized.value);
 
   // Actions
-  interface StoreOptions {
-    deviceLocale?: string;
-    storageKey?: string;
-    api?: AxiosInstance;
-  }
 
   function init(options?: StoreOptions) {
     if (_initialized.value) return { isInitialized };
+
+    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
 
@@ -59,8 +61,8 @@ export const useSecretStore = defineStore('secrets', () => {
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
-  async function fetch(this: SecretStore, secretKey: string) {
-    const response = await this.$api.get(`/api/v2/secret/${secretKey}`);
+  async function fetch(secretKey: string) {
+    const response = await $api.get(`/api/v2/secret/${secretKey}`);
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
     details.value = validated.details;
@@ -75,8 +77,8 @@ export const useSecretStore = defineStore('secrets', () => {
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
-  async function reveal(this: SecretStore, secretKey: string, passphrase?: string) {
-    const response = await this.$api.post<SecretResponse>(
+  async function reveal(secretKey: string, passphrase?: string) {
+    const response = await $api.post<SecretResponse>(
       `/api/v2/secret/${secretKey}/reveal`,
       {
         passphrase,
@@ -91,7 +93,7 @@ export const useSecretStore = defineStore('secrets', () => {
     return validated;
   }
 
-  function clear(this: SecretStore) {
+  function clear() {
     record.value = null;
     details.value = null;
   }
@@ -99,7 +101,7 @@ export const useSecretStore = defineStore('secrets', () => {
   /**
    * Resets the store state to its initial values
    */
-  function $reset(this: SecretStore) {
+  function $reset() {
     record.value = null;
     details.value = null;
     _initialized.value = false;

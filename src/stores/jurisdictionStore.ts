@@ -1,12 +1,13 @@
 // src/stores/jurisdictionStore.ts
 
 import { createError } from '@/composables/useAsyncHandler';
+import { PiniaPluginOptions } from '@/plugins/pinia';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 
 /**
  * N.B.
@@ -42,6 +43,8 @@ export type JurisdictionStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useJurisdictionStore = defineStore('jurisdiction', () => {
+  const $api = inject('api') as AxiosInstance; // eslint-disable-line
+
   // State
   const enabled = ref(false); // originally true
   const currentJurisdiction = ref<Jurisdiction | null>(null);
@@ -58,17 +61,15 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
    * Initialize the jurisdiction store with configuration from API
    * Handles both enabled and disabled region scenarios
    */
-  interface StoreOptions {
-    deviceLocale?: string;
-    storageKey?: string;
-    api?: AxiosInstance;
+  interface StoreOptions extends PiniaPluginOptions {
+    regions?: RegionsConfig;
   }
 
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
     let config: RegionsConfig | null;
 
-    config = WindowService.get('regions');
+    config = options?.regions ?? WindowService.get('regions');
 
     if (!config) {
       enabled.value = false;
@@ -80,7 +81,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
     enabled.value = config.enabled;
     jurisdictions.value = config.jurisdictions;
 
-    const jurisdiction = this.findJurisdiction(config.current_jurisdiction);
+    const jurisdiction = findJurisdiction(config.current_jurisdiction);
     currentJurisdiction.value = jurisdiction;
 
     // If regions are disabled, ensure we only have the current jurisdiction
@@ -97,7 +98,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
    * @param identifier - The identifier of the jurisdiction to find.
    * @returns The found jurisdiction
    */
-  function findJurisdiction(this: JurisdictionStore, identifier: string): Jurisdiction {
+  function findJurisdiction(identifier: string): Jurisdiction {
     const jurisdiction = jurisdictions.value.find((j) => j.identifier === identifier);
 
     if (!jurisdiction) {
@@ -109,7 +110,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
   /**
    * Reset store state to initial values
    */
-  function $reset(this: JurisdictionStore) {
+  function $reset() {
     enabled.value = true;
     currentJurisdiction.value = null;
     jurisdictions.value = [];

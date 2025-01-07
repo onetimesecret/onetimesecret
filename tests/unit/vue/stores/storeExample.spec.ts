@@ -1,7 +1,8 @@
 import axios, { type AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
-import { createPinia, defineStore, PiniaCustomProperties, setActivePinia } from 'pinia';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { inject } from 'vue';
 
 // Minimal store implementation
 const useTestStore = defineStore('test', {
@@ -13,17 +14,14 @@ const useTestStore = defineStore('test', {
   }),
 
   actions: {
-    init(this: PiniaCustomProperties, api: AxiosInstance) {
-      this.state._api = api;
+    init() {
+      this._api = inject('api') as AxiosInstance;
     },
 
-    async fetchData(this: PiniaCustomProperties, id: string) {
-      const { wrap } = this.useAsyncHandler();
-      return await wrap(async () => {
-        const response = await this.$api.get(`/api/data/${id}`);
-        this.data = response.data;
-        return response.data;
-      });
+    async fetchData(id: string) {
+      const response = await this._api!.get(`/api/data/${id}`);
+      this.data = response.data;
+      return response.data;
     },
   },
 });

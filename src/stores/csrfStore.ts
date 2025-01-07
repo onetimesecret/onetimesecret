@@ -1,8 +1,13 @@
 // src/stores/csrfStore.ts
+import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/responses';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { handleError, ref } from 'vue';
+import { handleError, inject, ref } from 'vue';
+
+interface StoreOptions extends PiniaPluginOptions {
+  shrimp?: string;
+}
 
 /**
  * Store for managing CSRF token (shrimp) state and validation.
@@ -55,32 +60,27 @@ export type CsrfStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useCsrfStore = defineStore('csrf', () => {
+  const $api = inject('api') as AxiosInstance;
+
   // State
   const shrimp = ref('');
   const isValid = ref(false);
   const intervalChecker = ref<number | null>(null);
   const _initialized = ref(false);
 
-  // Actions
-  interface StoreOptions {
-    deviceLocale?: string;
-    storageKey?: string;
-    api?: AxiosInstance;
-  }
-
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
-    shrimp.value = window.shrimp || '';
+    shrimp.value = options?.shrimp || window.shrimp || '';
     _initialized.value = true;
     return _initialized;
   }
 
-  function updateShrimp(this: CsrfStore, newShrimp: string) {
+  function updateShrimp(newShrimp: string) {
     shrimp.value = newShrimp;
   }
 
-  async function checkShrimpValidity(this: CsrfStore) {
-    const response = await this.$api.post('/api/v2/validate-shrimp', {
+  async function checkShrimpValidity() {
+    const response = await $api.post('/api/v2/validate-shrimp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -91,19 +91,19 @@ export const useCsrfStore = defineStore('csrf', () => {
     const validated = responseSchemas.csrf.parse(response.data);
     isValid.value = validated.isValid;
     if (validated.isValid) {
-      this.updateShrimp(validated.shrimp);
+      updateShrimp(validated.shrimp);
     }
     return validated;
   }
 
-  function startPeriodicCheck(this: CsrfStore, intervalMs: number = 60000) {
-    this.stopPeriodicCheck();
+  function startPeriodicCheck(intervalMs: number = 60000) {
+    stopPeriodicCheck();
     intervalChecker.value = window.setInterval(() => {
-      this.checkShrimpValidity();
+      checkShrimpValidity();
     }, intervalMs);
   }
 
-  function stopPeriodicCheck(this: CsrfStore) {
+  function stopPeriodicCheck() {
     if (intervalChecker.value !== null) {
       clearInterval(intervalChecker.value);
       intervalChecker.value = null;
@@ -115,11 +115,11 @@ export const useCsrfStore = defineStore('csrf', () => {
    * We preserve window.shrimp behavior to maintain consistency with store
    * initialization and ensure predictable reset behavior across the app.
    */
-  function $reset(this: CsrfStore) {
+  function $reset() {
     shrimp.value = window.shrimp || ''; // back to how it all began
     isValid.value = false;
     _initialized.value = false;
-    this.stopPeriodicCheck();
+    stopPeriodicCheck();
   }
 
   return {
