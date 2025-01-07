@@ -1,6 +1,8 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import { WindowService } from '@/services/window.service';
+
 import { ref } from 'vue';
 
 interface DomainProps {
@@ -8,8 +10,10 @@ interface DomainProps {
   availableDomains: string[];
 }
 
+const siteHost = WindowService.get('site_host');
+
 const props = withDefaults(defineProps<DomainProps>(), {
-  defaultDomain: window.site_host as string,
+  defaultDomain: siteHost,
   availableDomains: () => [],
 });
 

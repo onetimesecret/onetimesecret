@@ -78,9 +78,11 @@
 // 1. Imports
 import { Icon } from '@iconify/vue';
 import { computed, ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
+import { WindowService } from '@/services/window.service';
 
-const availablePlans = window.available_plans;
-const cust = window.cust;
+const availablePlans = WindowService.get('available_plans') ?? [];
+const cust = WindowService.get('cust');
+
 const planOptions = cust?.plan.options || availablePlans?.anonymous.options;
 const maxSize = planOptions?.size || 10000; // in characters
 

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-
+import { WindowService } from '@/services/window.service';
 import SecretFormDrawer from './secrets/form/SecretFormDrawer.vue';
 
 const props = defineProps({
   default_domain: {
     type: String,
     required: false,
-    default: window.site_host,
+    default: WindowService.get('site_host'),
   }
 });
 </script>

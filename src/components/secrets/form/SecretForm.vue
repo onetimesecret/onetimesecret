@@ -4,6 +4,7 @@
   import { ConcealDataResponse } from '@/schemas/api/responses';
   import { useCsrfStore } from '@/stores/csrfStore';
   import { computed, ref, watch } from 'vue';
+  import { WindowService } from '@/services/window.service';
   import { useRouter } from 'vue-router';
 
   import CustomDomainPreview from './../../CustomDomainPreview.vue';
@@ -28,11 +29,8 @@
     withGenerate: false,
   });
 
-  const formFields = window.form_fields;
-  const domainsEnabled = window.domains_enabled;
-  const availableDomains = window.custom_domains || [];
-  const defaultDomain = window.site_host;
-
+  const { form_fields: formFields, domains_enabled: domainsEnabled, site_host: defaultDomain } = WindowService.getMultiple(['form_fields', 'domains_enabled', 'custom_domains', 'site_host']);
+  const availableDomains = WindowService.get('custom_domains') ?? [];
   const hasInitialContent = computed(() => Boolean(formFields?.secret));
 
   // Add defaultDomain to the list of available domains if it's not already there
