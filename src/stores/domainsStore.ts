@@ -1,5 +1,6 @@
 // src/stores/domainsStore.ts
 //
+import { PiniaPluginOptions } from '@/plugins/pinia';
 import { UpdateDomainBrandRequest } from '@/schemas/api';
 import { responseSchemas } from '@/schemas/api/responses';
 import type {
@@ -8,8 +9,10 @@ import type {
   CustomDomainDetails,
   ImageProps,
 } from '@/schemas/models';
+import { loggingService } from '@/services/logging';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { ref, Ref } from 'vue';
+import { inject, ref, Ref } from 'vue';
 
 /**
  * Store for managing custom domains and their brand settings
@@ -58,6 +61,8 @@ export type DomainsStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useDomainsStore = defineStore('domains', () => {
+  const $api = inject('api') as AxiosInstance;
+
   // State
   const _initialized = ref(false);
   const records: Ref<CustomDomain[] | null> = ref(null);
@@ -68,8 +73,12 @@ export const useDomainsStore = defineStore('domains', () => {
   const initialized = _initialized.value;
   const recordCount = count.value ?? 0;
 
-  function init(this: DomainsStore) {
+  interface StoreOptions extends PiniaPluginOptions {}
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return { initialized };
+
+    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
     return { initialized };
@@ -78,8 +87,8 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Add a new custom domain
    */
-  async function addDomain(this: DomainsStore, domain: string) {
-    const response = await this.$api.post('/api/v2/domains/add', { domain });
+  async function addDomain(domain: string) {
+    const response = await $api.post('/api/v2/domains/add', { domain });
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) records.value = [];
     records.value.push(validated.record);
@@ -89,8 +98,8 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Load all domains if not already _initialized
    */
-  async function fetchList(this: DomainsStore) {
-    const response = await this.$api.get('/api/v2/domains');
+  async function fetchList() {
+    const response = await $api.get('/api/v2/domains');
     const validated = responseSchemas.customDomainList.parse(response.data);
     records.value = validated.records ?? [];
     details.value = validated.details ?? {};
@@ -99,8 +108,8 @@ export const useDomainsStore = defineStore('domains', () => {
     return validated;
   }
 
-  async function getDomain(this: DomainsStore, domainName: string) {
-    const response = await this.$api.get(`/api/v2/domains/${domainName}`);
+  async function getDomain(domainName: string) {
+    const response = await $api.get(`/api/v2/domains/${domainName}`);
     const validated = responseSchemas.customDomain.parse(response.data);
     return {
       record: validated.record,
@@ -108,19 +117,19 @@ export const useDomainsStore = defineStore('domains', () => {
     };
   }
 
-  async function verifyDomain(this: DomainsStore, domainName: string) {
-    const response = await this.$api.post(`/api/v2/domains/${domainName}/verify`, {
+  async function verifyDomain(domainName: string) {
+    const response = await $api.post(`/api/v2/domains/${domainName}/verify`, {
       domain: domainName,
     });
     const validated = responseSchemas.customDomain.parse(response.data);
     return validated;
   }
 
-  async function uploadLogo(this: DomainsStore, domain: string, file: File) {
+  async function uploadLogo(domain: string, file: File) {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await this.$api.post(`/api/v2/domains/${domain}/logo`, formData, {
+    const response = await $api.post(`/api/v2/domains/${domain}/logo`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
@@ -129,12 +138,9 @@ export const useDomainsStore = defineStore('domains', () => {
     return validated.record;
   }
 
-  async function fetchLogo(
-    this: DomainsStore,
-    domain: string
-  ): Promise<ImageProps | null> {
+  async function fetchLogo(domain: string): Promise<ImageProps | null> {
     try {
-      const response = await this.$api.get(`/api/v2/domains/${domain}/logo`);
+      const response = await $api.get(`/api/v2/domains/${domain}/logo`);
       // Use the existing schema to validate the response
       const validated = responseSchemas.imageProps.parse(response.data);
       return validated.record;
@@ -145,22 +151,22 @@ export const useDomainsStore = defineStore('domains', () => {
     }
   }
 
-  async function removeLogo(this: DomainsStore, domain: string) {
-    await this.$api.delete(`/api/v2/domains/${domain}/logo`);
+  async function removeLogo(domain: string) {
+    await $api.delete(`/api/v2/domains/${domain}/logo`);
   }
 
-  async function refreshRecords(this: DomainsStore, force = false) {
+  async function refreshRecords(force = false) {
     if (!force && _initialized.value) return;
 
-    await this.fetchList();
+    await fetchList();
     _initialized.value = true;
   }
 
   /**
    * Delete a domain by name
    */
-  async function deleteDomain(this: DomainsStore, domainName: string) {
-    await this.$api.post(`/api/v2/domains/${domainName}/remove`);
+  async function deleteDomain(domainName: string) {
+    await $api.post(`/api/v2/domains/${domainName}/remove`);
     if (!records.value) return;
     records.value = records.value.filter(
       (domain) => domain.display_domain !== domainName
@@ -171,23 +177,16 @@ export const useDomainsStore = defineStore('domains', () => {
    * Get brand settings for a domain
    */
   // Ensure getBrandSettings always returns valid data
-  async function getBrandSettings(
-    this: DomainsStore,
-    domain: string
-  ): Promise<BrandSettings> {
-    const response = await this.$api.get(`/api/v2/domains/${domain}/brand`);
+  async function getBrandSettings(domain: string): Promise<BrandSettings> {
+    const response = await $api.get(`/api/v2/domains/${domain}/brand`);
     return responseSchemas.brandSettings.parse(response.data);
   }
 
   /**
    * Update brand settings for a domain
    */
-  async function updateBrandSettings(
-    this: DomainsStore,
-    domain: string,
-    settings: Partial<BrandSettings>
-  ) {
-    const response = await this.$api.put(`/api/v2/domains/${domain}/brand`, {
+  async function updateBrandSettings(domain: string, settings: Partial<BrandSettings>) {
+    const response = await $api.put(`/api/v2/domains/${domain}/brand`, {
       brand: settings,
     });
     return responseSchemas.brandSettings.parse(response.data);
@@ -197,11 +196,10 @@ export const useDomainsStore = defineStore('domains', () => {
    * Update brand settings for a domain
    */
   async function updateDomainBrand(
-    this: DomainsStore,
     domain: string,
     brandUpdate: UpdateDomainBrandRequest
   ) {
-    const response = await this.$api.put(`/api/v2/domains/${domain}/brand`, brandUpdate);
+    const response = await $api.put(`/api/v2/domains/${domain}/brand`, brandUpdate);
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) return validated.record;
 
@@ -215,11 +213,8 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Update an existing domain
    */
-  async function updateDomain(this: DomainsStore, domain: CustomDomain) {
-    const response = await this.$api.put(
-      `/api/v2/domains/${domain.display_domain}`,
-      domain
-    );
+  async function updateDomain(domain: CustomDomain) {
+    const response = await $api.put(`/api/v2/domains/${domain.display_domain}`, domain);
     const validated = responseSchemas.customDomain.parse(response.data);
 
     if (!records.value) records.value = [];
@@ -238,7 +233,7 @@ export const useDomainsStore = defineStore('domains', () => {
   /**
    * Reset store state to initial values
    */
-  function $reset(this: DomainsStore) {
+  function $reset() {
     records.value = [];
     _initialized.value = false;
   }

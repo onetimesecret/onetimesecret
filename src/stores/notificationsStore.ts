@@ -1,9 +1,14 @@
 // src/stores/notificationsStore.ts
+import { PiniaPluginOptions } from '@/plugins/pinia';
+import { loggingService } from '@/services/logging';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 
 export type NotificationPosition = 'top' | 'bottom';
 export type NotificationSeverity = 'success' | 'error' | 'info' | 'warning' | null;
+
+interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for NotificationsStore.
@@ -31,6 +36,8 @@ export type NotificationsStore = {
  * Store for managing global notification state and behaviors
  */
 export const useNotificationsStore = defineStore('notifications', () => {
+  const $api = inject('api') as AxiosInstance; // eslint-disable-line
+
   // State
   const message = ref('');
   const severity = ref<NotificationSeverity>(null);
@@ -38,8 +45,11 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const position = ref<NotificationPosition>('bottom');
   const _initialized = ref(false);
 
-  function init(this: NotificationsStore) {
+  function init(options?: StoreOptions) {
     if (_initialized.value) return;
+
+    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
+
     _initialized.value = true;
   }
 
@@ -49,26 +59,21 @@ export const useNotificationsStore = defineStore('notifications', () => {
    * @param sev - Severity level of the notification
    * @param pos - Optional position of notification
    */
-  function show(
-    this: NotificationsStore,
-    msg: string,
-    sev: 'success' | 'error' | 'info',
-    pos?: 'top' | 'bottom'
-  ) {
+  function show(msg: string, sev: 'success' | 'error' | 'info', pos?: 'top' | 'bottom') {
     message.value = msg;
     severity.value = sev;
     position.value = pos || 'bottom';
     isVisible.value = true;
 
     setTimeout(() => {
-      this.hide();
+      hide();
     }, 5000);
   }
 
   /**
    * Hide the current notification and reset its state
    */
-  function hide(this: NotificationsStore) {
+  function hide() {
     isVisible.value = false;
     message.value = '';
     severity.value = null;
@@ -77,7 +82,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   /**
    * Reset store state to initial values
    */
-  function $reset(this: NotificationsStore) {
+  function $reset() {
     message.value = '';
     severity.value = null;
     isVisible.value = false;

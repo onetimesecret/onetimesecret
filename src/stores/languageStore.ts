@@ -2,11 +2,13 @@
 
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 import { z } from 'zod';
 
 import { setLanguage } from '@/i18n';
+import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { WindowService } from '@/services/window.service';
+import { AxiosInstance } from 'axios';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
@@ -17,7 +19,7 @@ const localeSchema = z
   .max(5)
   .regex(/^[a-z]{2}(-[A-Z]{2})?$/);
 
-interface StoreOptions {
+interface StoreOptions extends PiniaPluginOptions {
   deviceLocale?: string;
   storageKey?: string;
 }
@@ -51,6 +53,8 @@ export type LanguageStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useLanguageStore = defineStore('language', () => {
+  const $api = inject('api') as AxiosInstance;
+
   // State
   const deviceLocale = ref<string | null>(null);
   const currentLocale = ref<string | null>(null);
@@ -66,7 +70,8 @@ export const useLanguageStore = defineStore('language', () => {
   const getSupportedLocales = computed(() => supportedLocales.value);
 
   // Actions
-  function init(this: LanguageStore, options?: StoreOptions) {
+
+  function init(options?: StoreOptions) {
     // Set device locale from options if provided
     if (options?.deviceLocale) {
       deviceLocale.value = options.deviceLocale;
@@ -76,6 +81,11 @@ export const useLanguageStore = defineStore('language', () => {
     if (options?.storageKey) {
       storageKey.value = options.storageKey;
     }
+    // console.log(100000, options);
+    // // Set custom storage key if provided
+    // if (options?.api) {
+    //   $api = options.api;
+    // }
 
     // Don't set language here. We want to allow the calling code to set the
     // language if it so chooses. It does this for example in the LanguageToggle
@@ -92,10 +102,10 @@ export const useLanguageStore = defineStore('language', () => {
       }
     );
 
-    return this.initializeLocale();
+    return initializeLocale();
   }
 
-  function initializeLocale(this: LanguageStore) {
+  function initializeLocale() {
     try {
       supportedLocales.value = WindowService.get('supported_locales') ?? [];
 
@@ -142,10 +152,10 @@ export const useLanguageStore = defineStore('language', () => {
     }
   }
 
-  async function updateLanguage(this: LanguageStore, newLocale: string) {
+  async function updateLanguage(newLocale: string) {
     const validatedLocale = localeSchema.parse(newLocale);
     setCurrentLocale(validatedLocale);
-    await this.$api.post('/api/v2/account/update-locale', {
+    await $api.post('/api/v2/account/update-locale', {
       locale: validatedLocale,
     });
   }
@@ -160,6 +170,8 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   return {
+    _initialized,
+
     // State
     deviceLocale,
     storageKey,

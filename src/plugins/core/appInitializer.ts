@@ -3,10 +3,11 @@
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
 import { loggingService } from '@/services/logging';
+import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
-import { piniaPlugin } from '../pinia';
+import { autoInitPlugin } from '../pinia/autoInitPlugin';
 import { GlobalErrorBoundary } from './globalErrorBoundary';
 
 interface AppInitializerOptions {
@@ -36,13 +37,13 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  */
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
   const pinia = createPinia();
+  const api = options.api ?? createApi();
 
-  // Register Pinia with its core plugin chain
-  pinia.use(
-    piniaPlugin({
-      api: options.api,
-    })
-  );
+  // Make API client available to Vue app (and pinia stores)
+  app.provide('api', api);
+
+  // Register auto-init plugin before creating stores
+  pinia.use(autoInitPlugin(options));
 
   app.use(pinia);
   app.use(GlobalErrorBoundary, { debug: options.debug });

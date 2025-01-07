@@ -7,34 +7,41 @@ import { computed, onMounted, ref } from 'vue';
 
 import DropdownToggle from './DropdownToggle.vue';
 
-const emit = defineEmits(['localeChanged']);
+const emit = defineEmits<{
+  (e: 'localeChanged', locale: string): void
+}>();
 
 const languageStore = useLanguageStore();
 const supportedLocales = languageStore.getSupportedLocales;
 
 const cust = WindowService.get('cust');
 
-const selectedLocale = ref(languageStore.determineLocale(cust?.value?.locale));
+const selectedLocale = ref(languageStore.determineLocale(cust?.locale ?? 'en'));
 
 const currentLocale = computed(() => selectedLocale.value);
 
 const dropdownRef = ref<InstanceType<typeof DropdownToggle> | null>(null);
 
 const changeLocale = async (newLocale: string) => {
-  if (languageStore.getSupportedLocales.includes(newLocale)) {
-    try {
-      if (cust.value) {
-        cust.value.locale = newLocale;
-      }
-      await languageStore.updateLanguage(newLocale);
-      await setLanguage(newLocale);
-      selectedLocale.value = newLocale;
-      emit('localeChanged', newLocale);
-    } catch (err) {
-      console.error('Failed to update language:', err);
-    } finally {
-      dropdownRef.value?.closeMenu();
+  if (!languageStore.getSupportedLocales.includes(newLocale)) {
+    console.warn(`Unsupported locale: ${newLocale}`);
+    return;
+  }
+
+  try {
+    if (cust?.locale) {
+      cust.locale = newLocale;
     }
+    await Promise.all([
+      languageStore.updateLanguage(newLocale),
+      setLanguage(newLocale)
+    ]);
+    selectedLocale.value = newLocale;
+    emit('localeChanged', newLocale);
+  } catch (err) {
+    console.error('Failed to update language:', err);
+  } finally {
+    dropdownRef.value?.closeMenu();
   }
 };
 
@@ -46,7 +53,7 @@ onMounted(() => {
 <template>
   <DropdownToggle
     ref="dropdownRef"
-    aria-label="Change language"
+    ariaLabel="Change language"
     open-direction="down">
     <template #button-content>
       <svg

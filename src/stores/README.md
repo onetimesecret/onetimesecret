@@ -81,6 +81,7 @@ When passed a Setup function:
     // and `Store` (e.g. `useUserStore`, `useCartStore`, `useProductStore`)
     // the first argument is a unique id of the store across your application
     export const useBlounterStore = defineStore('blounter', () => {
+      const $api = inject('api') as AxiosInstance;
       const count = ref(0)
       const name = ref('Blounter')
       const doubleCount = computed(() => count.value * 2)
@@ -158,7 +159,13 @@ export function useAuthStore() {
   const _initialized = ref(false);
   const isAuthenticated = ref(false);
 
-  function init(this: PiniaCustomProperties) {
+    interface StoreOptions {
+      deviceLocale?: string;
+      storageKey?: string;
+      api?: AxiosInstance;
+    }
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return;
 
     // Use non-reactive service for initial state

@@ -1,8 +1,11 @@
 // stores/metadataListStore.ts
+import { PiniaPluginOptions } from '@/plugins/pinia';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { responseSchemas } from '@/schemas/api/responses';
+import { loggingService } from '@/services/logging';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { ref, type Ref } from 'vue';
+import { inject, ref, type Ref } from 'vue';
 
 /**
  * Type definition for MetadataListStore.
@@ -30,6 +33,8 @@ export type MetadataListStore = {
  */
 /* eslint-disable max-lines-per-function */
 export const useMetadataListStore = defineStore('metadataList', () => {
+  const $api = inject('api') as AxiosInstance;
+
   // State
   const _initialized = ref(false);
   const records: Ref<MetadataRecords[] | null> = ref(null);
@@ -40,15 +45,19 @@ export const useMetadataListStore = defineStore('metadataList', () => {
   const initialized = () => _initialized.value;
   const recordCount = () => count.value ?? 0;
 
-  function init(this: MetadataListStore) {
+  interface StoreOptions extends PiniaPluginOptions {}
+
+  function init(options?: StoreOptions) {
     if (_initialized.value) return { initialized };
+
+    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
     return { initialized };
   }
 
-  async function fetchList(this: MetadataListStore) {
-    const response = await this.$api.get('/api/v2/private/recent');
+  async function fetchList() {
+    const response = await $api.get('/api/v2/private/recent');
     const validated = responseSchemas.metadataList.parse(response.data);
 
     records.value = validated.records ?? [];
@@ -58,10 +67,10 @@ export const useMetadataListStore = defineStore('metadataList', () => {
     return validated;
   }
 
-  async function refreshRecords(this: MetadataListStore, force = false) {
+  async function refreshRecords(force = false) {
     if (!force && _initialized.value) return;
 
-    await this.fetchList();
+    await fetchList();
     _initialized.value = true;
   }
 
@@ -69,7 +78,7 @@ export const useMetadataListStore = defineStore('metadataList', () => {
    * Reset store state to initial values.
    * Implementation of $reset() for setup stores since it's not automatically available.
    */
-  function $reset(this: MetadataListStore) {
+  function $reset() {
     records.value = null;
     details.value = null;
     _initialized.value = false;

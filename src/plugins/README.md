@@ -53,7 +53,7 @@ const useUserStore = defineStore('user', {
   actions: {
     async fetchProfile() {
       // Can use plugin-added properties
-      this.profile = await this.$api.get('/profile')
+      this.profile = await $api.get('/profile')
     }
   }
 })

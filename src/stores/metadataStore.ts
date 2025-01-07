@@ -1,9 +1,12 @@
 // stores/metadataStore.ts
 import { createError } from '@/composables/useAsyncHandler';
+import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
+import { loggingService } from '@/services/logging';
+import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 
 export const METADATA_STATUS = {
   NEW: 'new',
@@ -13,6 +16,8 @@ export const METADATA_STATUS = {
   VIEWED: 'viewed',
   ORPHANED: 'orphaned',
 } as const;
+
+interface StoreOptions extends PiniaPluginOptions {}
 
 /**
  * Type definition for MetadataStore.
@@ -36,6 +41,7 @@ export type MetadataStore = {
 
 /* eslint-disable max-lines-per-function */
 export const useMetadataStore = defineStore('metadata', () => {
+  const $api = inject('api') as AxiosInstance;
   // State
   const record = ref<Metadata | null>(null);
   const details = ref<MetadataDetails | null>(null);
@@ -43,6 +49,21 @@ export const useMetadataStore = defineStore('metadata', () => {
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
+
+  /**
+   * Initializes the metadata store.
+   * Idempotent - subsequent calls have no effect if already initialized.
+   *
+   * @returns Object containing initialization status
+   */
+  function init(options?: StoreOptions) {
+    if (_initialized.value) return { isInitialized };
+
+    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
+
+    _initialized.value = true;
+    return { isInitialized };
+  }
 
   const canBurn = computed((): boolean => {
     if (!record.value) return false;
@@ -64,18 +85,6 @@ export const useMetadataStore = defineStore('metadata', () => {
   });
 
   /**
-   * Initializes the metadata store.
-   * Idempotent - subsequent calls have no effect if already initialized.
-   *
-   * @returns Object containing initialization status
-   */
-  function init(this: MetadataStore) {
-    if (_initialized.value) return { isInitialized };
-    _initialized.value = true;
-    return { isInitialized };
-  }
-
-  /**
    * Fetches metadata for given key from API.
    * Validates response against metadata schema using Zod.
    * Updates store state with validated response.
@@ -84,8 +93,8 @@ export const useMetadataStore = defineStore('metadata', () => {
    * @throws {ZodError} When response fails schema validation
    * @throws {AxiosError} When request fails
    */
-  async function fetch(this: MetadataStore, key: string) {
-    const response = await this.$api.get(`/api/v2/private/${key}`);
+  async function fetch(key: string) {
+    const response = await $api.get(`/api/v2/private/${key}`);
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
     details.value = validated.details;
@@ -103,12 +112,12 @@ export const useMetadataStore = defineStore('metadata', () => {
    * @throws {ZodError} When response fails schema validation
    * @throws {AxiosError} When request fails
    */
-  async function burn(this: MetadataStore, key: string, passphrase?: string) {
+  async function burn(key: string, passphrase?: string) {
     if (!canBurn.value) {
       throw createError('Cannot burn this metadata', 'human', 'error');
     }
 
-    const response = await this.$api.post(`/api/v2/private/${key}/burn`, {
+    const response = await $api.post(`/api/v2/private/${key}/burn`, {
       passphrase,
       continue: true,
     });
@@ -124,7 +133,7 @@ export const useMetadataStore = defineStore('metadata', () => {
    * Resets store state to initial values.
    * Clears record, details and initialization status.
    */
-  function $reset(this: MetadataStore) {
+  function $reset() {
     record.value = null;
     details.value = null;
     _initialized.value = false;
