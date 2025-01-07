@@ -25,14 +25,14 @@
 <meta name="theme-color" content="#dc4a22">
 <meta name="apple-mobile-web-app-title" content="{{page_title}}">
 <meta name="application-name" content="{{page_title}}">
-<link rel="icon" type="image/png" href="/img/favicon.png" />
-<link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
-<link rel="manifest" href="/site.webmanifest?v=3">
-<link rel="mask-icon" href="/safari-pinned-tab.svg?v=3" color="#dc4a22">
-<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link nonce="{{ nonce }}" rel="icon" type="image/png" href="/img/favicon.png" />
+<link nonce="{{ nonce }}" rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+<link nonce="{{ nonce }}" rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+<link nonce="{{ nonce }}" rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+<link nonce="{{ nonce }}" rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=3">
+<link nonce="{{ nonce }}" rel="manifest" href="/site.webmanifest?v=3">
+<link nonce="{{ nonce }}" rel="mask-icon" href="/safari-pinned-tab.svg?v=3" color="#dc4a22">
+<link nonce="{{ nonce }}" rel="shortcut icon" href="/favicon.ico?v=3">
 
 {{#no_cache}}
 <meta http-equiv="pragma" content="no-cache">
@@ -44,8 +44,8 @@
 
 {{#frontend_development}}
 {{! <!-- if development --> }}
-<script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
-<script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
+<script type="module" nonce="{{ nonce }}" src="{{ frontend_host }}/dist/main.ts"></script>
+<script type="module" nonce="{{ nonce }}" src="{{ frontend_host }}/dist/@vite/client"></script>
 {{/frontend_development}}
 {{^frontend_development}}
 {{! <!-- if production --> }}

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" class="light">
   <head>
-    <script language="javascript" type="text/javascript">
+    <script nonce="{{ nonce }}" language="javascript" type="text/javascript">
       (() => {
         var { matches: isRestMode } = window.matchMedia('(prefers-color-scheme: dark)');
         var hasHumanOverride = (typeof localStorage !== 'undefined' && localStorage.getItem('restMode') !== null);
