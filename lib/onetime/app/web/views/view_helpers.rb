@@ -10,7 +10,7 @@ module Onetime
         end
 
         def jsvars_to_script
-          OT::Utils::Sanitation.serialize_to_script(self[:jsvars], id: 'onetime-state')
+          OT::Utils::Sanitation.serialize_to_script(self[:jsvars], id: 'onetime-state', nonce: self[:nonce])
         end
 
         # Caches the result of a method call for a specified duration.
