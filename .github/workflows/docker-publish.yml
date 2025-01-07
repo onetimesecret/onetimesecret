@@ -32,7 +32,7 @@ jobs:
       image_tags: |
         type=ref,event=branch
         type=ref,event=tag
-        type=raw,value=next,enable=${{ contains(github.ref, '-rc') }}
+        type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
     secrets: inherit
 
   build-and-publish-lite:
@@ -44,5 +44,5 @@ jobs:
       image_tags: |
         type=ref,event=branch
         type=ref,event=tag
-        type=raw,value=next,enable=${{ contains(github.ref, '-rc') }}
+        type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
     secrets: inherit

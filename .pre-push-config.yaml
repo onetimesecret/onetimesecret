@@ -1,49 +1,52 @@
 ##
-# Pre-Push Configuration
+# Pre-Push Hooks Configuration
 #
-# This configuration runs more thorough checks before pushing code to remote.
-# These checks are intentionally separated from pre-commit to keep commits fast
-# while ensuring code quality before sharing.
+# Quality control checks that run before code is pushed to remote repositories
 #
-# Initial setup:
-#
+# Setup:
 #   1. Install the pre-push hook:
+#       $ pre-commit install --hook-type pre-push
 #
-#         $ pre-commit install --hook-type pre-push
-#
-#   2. Ensure all dependencies are installed:
-#         - Ruby/Rubocop (for Ruby checks)
-#         - Node/ESLint (for JS/TS checks)
-#         - TypeScript (for type checking)
+#   2. Install required dependencies:
+#       - Ruby + Rubocop
+#       - Node.js + ESLint
+#       - TypeScript compiler
 #
 # Usage:
+#   Hooks run automatically on 'git push'
 #
-#   The hooks will run automatically on 'git push'
-#
-#   To run manually:
+#   Manual execution:
+#   - Run all checks:
 #     $ pre-commit run --config .pre-push-config.yaml --all-files
 #
-#   To run specific hooks:
-#     $ pre-commit run check-yaml --config .pre-push-config.yaml
-#     $ pre-commit run local-rubocop-full --config .pre-push-config.yaml
+#   - Run single check:
+#     $ pre-commit run <hook-id> --config .pre-push-config.yaml
+#     Example: pre-commit run rubocop --config .pre-push-config.yaml
 #
-# This config includes:
-#   - Full linting (Rubocop, ESLint)
-#   - Config file validation (YAML, JSON, TOML)
+# Included Checks:
+#   - Full codebase linting (Rubocop, ESLint)
+#   - YAML/JSON validation
 #   - TypeScript type checking
-#   - Code style and format checks
-#   - Security checks
+#   - Code style enforcement
+#   - Security vulnerability scanning
 #
-# See also:
-#   - .pre-commit-config.yaml for faster commit-time checks
-#   - https://pre-commit.com for more information
-#   - https://pre-commit.com/hooks.html for more hooks
+# Related Files:
+#   - .pre-commit-config.yaml: Lightweight pre-commit checks
+#   - Documentation: https://pre-commit.com
 #
+# Note: These intensive checks run before pushing to catch issues early
+# but allow faster local development with lighter pre-commit hooks.
 
 fail_fast: true
 
 # Skip generated/dependency directories
 exclude: '^(vendor|node_modules|dist|build)/'
+
+default_install_hook_types:
+  - pre-push
+  - push
+
+default_stages: [push]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -51,78 +54,70 @@ repos:
     hooks:
       - id: check-yaml
         name: Validate YAML files
-        args: ["--allow-multiple-documents"]
+        args: ['--allow-multiple-documents']
         files: \.(yaml|yml)$
-        stages: [push]  # Specify stages per hook instead
 
       - id: check-toml
         name: Validate TOML files
         files: \.toml$
-        stages: [push]
 
       - id: check-json
         name: Validate JSON files
         files: \.json$
-        stages: [push]
 
       - id: pretty-format-json
         name: Format JSON files
-        args: ["--autofix", "--no-sort-keys"]
+        args: ['--autofix', '--no-sort-keys']
         files: \.json$
-        stages: [push]
+
       - id: mixed-line-ending
         name: Check line endings
         args: [--fix=lf]
-        stages: [push]
+
       - id: check-case-conflict
         name: Check for case conflicts
-        stages: [push]
+
       - id: check-executables-have-shebangs
         name: Check executable shebangs
-        stages: [push]
+
       - id: check-shebang-scripts-are-executable
         name: Check shebang scripts are executable
-        stages: [push]
+
       - id: forbid-submodules
         name: Check for submodules
-        stages: [push]
 
   # Full Rubocop check
   - repo: local
     hooks:
       - id: local-rubocop-full
+        stages: [push]
         name: Full Rubocop Check
         entry: bundle exec rubocop --force-exclusion --config .rubocop.yml --format json --fail-level warning --no-server
         language: system
         types: [ruby]
         files: \.(rb|rake|ru)$
         pass_filenames: true
-        stages: [push]
-
 
   # Full ESLint check
   - repo: local
     hooks:
       - id: local-eslint-full
+        stages: [push]
         name: Full ESLint Check
         entry: node_modules/.bin/eslint
         language: system
-        types: [file]
-        files: \.(js|mjs|ts|vue)$
-        args: [
-          '--max-warnings=0',
-          '--cache'
-        ]
-        stages: [push]
+        pass_filenames: false
+        files: ^src/.*\.(js|mjs|ts|tsx|vue)$
+        args: ['--max-warnings=0', '--cache']
 
-  # TypeScript type checking
+  # Full TypeScript type checking
+  # See comment in tsconfig.json for configuration details
   - repo: local
     hooks:
-      - id: typescript-check
+      - id: typescript-check-full
+        stages: [push]
         name: TypeScript Type Check
         entry: pnpm run type-check
         language: system
         pass_filenames: false
-        types: [file]
-        files: \.(ts|tsx|vue)$
-        stages: [push]
+        always_run: true

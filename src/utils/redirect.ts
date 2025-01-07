@@ -1,4 +1,8 @@
-import type { RouteLocationRaw, RouteLocationNamedRaw, RouteLocationPathRaw } from 'vue-router';
+import type {
+  RouteLocationNamedRaw,
+  RouteLocationPathRaw,
+  RouteLocationRaw,
+} from 'vue-router';
 
 // Define allowed route names
 type AllowedRouteNames = 'Home' | 'Dashboard' | 'Profile';
@@ -12,10 +16,7 @@ function isPathRoute(route: RouteLocationRaw): route is RouteLocationPathRaw {
   return typeof route === 'object' && route !== null && 'path' in route;
 }
 
-export const validateRedirectPath = (
-  path: string | RouteLocationRaw
-): boolean => {
-
+export const validateRedirect = (path: string | RouteLocationRaw): boolean => {
   if (!path) return false;
 
   try {
@@ -29,9 +30,7 @@ export const validateRedirectPath = (
 
       // Validate path-based routes
       if (isPathRoute(path)) {
-        return typeof path.path === 'string' &&
-               path.path.startsWith('/') &&
-               !path.path.includes('..');
+        return typeof path.path === 'string' && validatePathString(path.path);
       }
 
       return false;
@@ -39,11 +38,11 @@ export const validateRedirectPath = (
 
     // Handle string paths
     if (typeof path === 'string') {
-      if (/^https?:\/\//i.test(path)) {
-        const url = new URL(path);
-        return url.hostname === window.location.hostname;
+      // Handle absolute URLs and protocol-relative URLs
+      if (path.startsWith('//') || /^https?:\/\//i.test(path)) {
+        return validateUrl(path);
       }
-      return path.startsWith('/') && !path.includes('..');
+      return validatePathString(path);
     }
 
     return false;
@@ -51,3 +50,52 @@ export const validateRedirectPath = (
     return false;
   }
 };
+
+function validatePathString(path: string): boolean {
+  try {
+    // Handle absolute URLs and protocol-relative URLs
+    if (path.startsWith('//') || /^https?:\/\//i.test(path)) {
+      return validateUrl(path);
+    }
+
+    // Decode the path to catch encoded traversal attempts
+    const decodedPath = decodeURIComponent(path);
+
+    // Check for path traversal attempts
+    if (decodedPath.includes('..') || decodedPath.includes('./')) {
+      return false;
+    }
+
+    // Check for suspicious protocols
+    const suspiciousProtocols = [/javascript:/i, /data:/i, /vbscript:/i, /file:/i];
+
+    if (suspiciousProtocols.some((pattern) => pattern.test(decodedPath))) {
+      return false;
+    }
+
+    // Must start with single forward slash
+    return decodedPath.startsWith('/');
+  } catch {
+    return false;
+  }
+}
+
+function validateUrl(url: string): boolean {
+  try {
+    // For protocol-relative URLs, use current protocol
+    let urlToValidate = url;
+    if (url.startsWith('//')) {
+      // Change from window.location.protocol to explicitly using https:
+      urlToValidate = `https:${url}`;
+    }
+
+    // For relative URLs, use current origin as base
+    const fullUrl = new URL(urlToValidate, window.location.origin);
+
+    // Compare hostnames, ignoring port numbers
+    const currentHostname = window.location.hostname;
+    return fullUrl.hostname === currentHostname;
+  } catch {
+    return false;
+  }
+}

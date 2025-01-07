@@ -1,25 +1,13 @@
+import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import Homepage from '@/views/Homepage.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
-import { useWindowProp } from '@/composables/useWindowProps';
 import { RouteRecordRaw } from 'vue-router';
-import DefaultLayout from '@/layouts/DefaultLayout.vue';
-
-const authState = useWindowProp('authenticated');
 
 const routes: Array<RouteRecordRaw> = [
-
   {
     path: '/',
     name: 'Home',
     component: Homepage,
-    beforeEnter: (to, from, next) => {
-      console.debug('authState.value', authState.value)
-      if (authState.value) {
-        next({ name: 'Dashboard' })
-      } else {
-        next()
-      }
-    },
     meta: {
       requiresAuth: false,
       layout: DefaultLayout,
@@ -27,7 +15,7 @@ const routes: Array<RouteRecordRaw> = [
         displayMasthead: true,
         displayLinks: true,
         displayFeedback: true,
-      }
+      },
     },
   },
 
@@ -113,7 +101,6 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
-
-]
+];
 
 export default routes;

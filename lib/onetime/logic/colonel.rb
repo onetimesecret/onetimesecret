@@ -6,7 +6,7 @@ module Onetime::Logic
   module Colonel
 
     class GetColonel < OT::Logic::Base
-      attr_reader :plans_enabled, :title, :stathat_chart, :body_class, :session_count,
+      attr_reader :plans_enabled, :title, :stathat_chart, :session_count,
                   :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
                   :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
                   :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
@@ -25,7 +25,6 @@ module Onetime::Logic
       def process
         @title = "Home"
         @stathat_chart = OT.conf[:stathat][:default_chart] if OT.conf[:stathat]
-        @body_class = :colonel
         @session_count = OT::Session.recent(5.minutes).size
 
         process_feedback
@@ -102,7 +101,8 @@ module Onetime::Logic
 
       def success_data
         {
-          record: {
+          record: {},
+          details: {
             recent_customers: recent_customers,
             today_feedback: today_feedback,
             yesterday_feedback: yesterday_feedback,
@@ -123,8 +123,6 @@ module Onetime::Logic
               yesterday_feedback_count: yesterday_feedback_count,
               older_feedback_count: older_feedback_count
             }
-          },
-          details: {
           }
         }
       end

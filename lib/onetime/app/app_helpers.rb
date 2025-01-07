@@ -45,6 +45,12 @@ module Onetime::App
         OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
       end
 
+      obscured = if cust.anonymous?
+        'anonymous'
+      else
+        OT::Utils.obscure_email(cust.custid)
+      end
+
       return_value
 
     rescue OT::Redirect => ex
@@ -58,14 +64,14 @@ module Onetime::App
     rescue OT::BadShrimp => ex
       # If it's a json response, no need to set an error message on the session
       if res.header['Content-Type'] == 'application/json'
-        error_response 'Please refresh the page and try again'
+        error_response 'Please refresh the page and try again', reason: "Bad shrimp 🍤"
       else
         sess.set_error_message "Please go back, refresh the page, and try again."
         res.redirect redirect
       end
 
     rescue OT::FormError => ex
-      OT.ld "[carefully] FormError: #{ex.message} (#{req.path} redirect:#{redirect})"
+      OT.ld "[carefully] FormError: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
       if redirect
         handle_form_error ex, redirect
       else
@@ -79,28 +85,32 @@ module Onetime::App
       secret_not_found_response
 
     rescue OT::RecordNotFound => ex
-      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path} redirect:#{redirect})"
-      not_found_response ex.message
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path}) redirect:#{redirect || 'n/a'}"
+      not_found_response ex.message, shrimp: sess.add_shrimp
 
     rescue OT::LimitExceeded => ex
-      obscured = if cust.anonymous?
-                   'anonymous'
-                 else
-                   OT::Utils.obscure_email(cust.custid)
-                 end
       OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
-      throttle_response "Cripes! You have been rate limited."
+      throttle_response "Cripes! You have been rate limited.", shrimp: sess.add_shrimp
+
+    rescue Familia::HighRiskFactor => ex
+      OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
+
+      # Include fresh shrimp so they can try again 🦐
+      error_response "We're sorry, but we can't process your request at this time.", shrimp: sess.add_shrimp
 
     rescue Familia::NotConnected, Familia::Problem => ex
       OT.le "#{ex.class}: #{ex.message}"
       OT.le ex.backtrace
-      error_response "An error occurred :["
+
+      # Include fresh shrimp so they can try again 🦐
+      error_response "An error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     rescue Errno::ECONNREFUSED => ex
       OT.le ex.message
       OT.le ex.backtrace
-      error_response "We'll be back shortly!"
+
+      error_response "We'll be back shortly!", shrimp: sess ? sess.add_shrimp : nil
 
     rescue StandardError => ex
       custid = cust&.custid || '<notset>'
@@ -108,7 +118,7 @@ module Onetime::App
       OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{sessid} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
 
-      error_response "An unexpected error occurred :["
+      error_response "An unexpected error occurred :[", shrimp: sess ? sess.add_shrimp : nil
 
     ensure
       @sess ||= OT::Session.new 'failover', 'anon'
@@ -307,7 +317,7 @@ module Onetime::App
       details = [
         req.ip,
         "#{req.request_method} #{req.path_info}?#{req.query_string}",
-        "Proxy[#{header_details}]"
+        "Proxy[#{header_details}]",
       ]
 
       # Convert the details array to a string for logging

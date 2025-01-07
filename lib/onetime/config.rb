@@ -85,7 +85,7 @@ module Onetime
         1.day,          # 86400
         3.days,         # 259200
         1.week,         # 604800
-        2.weeks         # 1209600
+        2.weeks,        # 1209600
       ]
 
       # Disable all authentication sub-features when main feature is off for
@@ -108,7 +108,7 @@ module Onetime
         klass.vhost_target = cluster[:vhost_target]
         OT.ld "Domains config: #{cluster}"
         unless klass.api_key
-          raise OT::Problem, "No `site.domains.cluster` api key (#{klass.api_key})"
+          raise OT::Problem.new "No `site.domains.cluster` api key (#{klass.api_key})"
         end
       end
 
@@ -137,7 +137,6 @@ module Onetime
 
         require 'stripe'
         Stripe.api_key = stripe_key
-        #require_relative 'refinements/stripe_refinements'
       end
 
       mtc = conf[:mail][:truemail]

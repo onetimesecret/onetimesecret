@@ -1,19 +1,58 @@
+<!-- src/components/dashboard/DashboardTabNav.vue -->
+<script setup lang="ts">
+import { WindowService } from '@/services/window.service';
+import { useDomainsStore, useMetadataListStore } from '@/stores';
+import { computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+
+const authenticated = WindowService.get('authenticated');
+const domainsEnabled = WindowService.get('domains_enabled');
+
+const route = useRoute();
+
+// TODO: Should be the composables
+const metadataListStore = useMetadataListStore();
+const domainsStore = useDomainsStore();
+
+// Use computed properties to access counts after they're loaded
+const counts = computed(() => ({
+  metadata: metadataListStore.count,
+  domains: domainsStore.count
+}));
+
+onMounted(() => {
+  // console.log('[authed]', counts, authenticated);
+  if (authenticated) {
+    metadataListStore.refreshRecords(true);
+    domainsStore.refreshRecords(true);
+  }
+});
+
+/**
+ * Checks if the current route path starts with the specified path.
+ * @param path - The path to check against the current route.
+ * @returns True if the current route path starts with the specified path, false otherwise.
+ */
+const isActiveRoute = (path: string) => route.path.startsWith(path);
+</script>
+
 <template>
-  <nav aria-label="Dashboard Navigation"
-       class="mb-6 px-4 py-2 bg-gray-50/50 dark:bg-gray-800/50"><!-- Shadow approach -->
-    <ul v-if="authenticated"
-        class="flex flex-wrap justify-between gap-x-6 gap-y-2 max-w-7xl mx-auto font-brand"
+  <nav v-if="authenticated"
+       aria-label="Dashboard Navigation"
+       class="mb-6 bg-gray-50/50 px-4 py-2 dark:bg-gray-800/50">
+    <!-- Shadow approach -->
+    <ul class="mx-auto flex max-w-7xl flex-wrap justify-between gap-x-6 gap-y-2 font-brand"
         role="menubar">
       <!-- Home -->
       <li role="none">
         <router-link to="/dashboard"
                      role="menuitem"
                      :class="[
-                      'inline-flex items-center py-2 text-lg transition-colors duration-200',
-                      isActiveRoute('/dashboard')
-                        ? 'text-brand-500 font-semibold border-b-2 border-brand-500'
-                        : 'text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-500'
-                    ]">
+            'inline-flex items-center py-2 text-lg transition-colors duration-200',
+            isActiveRoute('/dashboard')
+              ? 'border-b-2 border-brand-500 font-semibold text-brand-500'
+              : 'text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-500'
+          ]">
           <svg aria-hidden="true"
                class="mr-2"
                width="20"
@@ -35,11 +74,11 @@
         <router-link to="/recent"
                      role="menuitem"
                      :class="[
-                      'inline-flex items-center py-2 text-lg transition-colors duration-200',
-                      isActiveRoute('/recent')
-                        ? 'text-brand-500 font-semibold border-b-2 border-brand-500'
-                        : 'text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-500'
-                    ]">
+            'inline-flex items-center py-2 text-lg transition-colors duration-200',
+            isActiveRoute('/recent')
+              ? 'border-b-2 border-brand-500 font-semibold text-brand-500'
+              : 'text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-500'
+          ]">
           <svg aria-hidden="true"
                class="mr-2"
                width="20"
@@ -54,24 +93,25 @@
           </svg>
           <span class="block sm:hidden">{{ $t('web.COMMON.secret') }}</span>
           <span class="hidden sm:block">{{ $t('web.COMMON.title_recent_secrets') }}</span>
-          <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+          <span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5
+              text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                 aria-label="Recent secrets count">
-            {{ metadata_record_count }}
+            {{ counts.metadata }}
           </span>
         </router-link>
       </li>
 
       <!-- Custom Domains -->
-      <li v-if="domains_enabled && planAllowsCustomDomains"
+      <li v-if="domainsEnabled"
           role="none">
-        <router-link to="/account/domains"
+        <router-link to="/domains"
                      role="menuitem"
                      :class="[
-                      'inline-flex items-center py-2 text-lg transition-colors duration-200',
-                      isActiveRoute('/account/domains')
-                        ? 'text-brand-500 font-semibold border-b-2 border-brand-500'
-                        : 'text-gray-700 dark:text-gray-300 hover:text-brand-500 dark:hover:text-brand-500'
-                    ]">
+            'inline-flex items-center py-2 text-lg transition-colors duration-200',
+            isActiveRoute('/domains')
+              ? 'border-b-2 border-brand-500 font-semibold text-brand-500'
+              : 'text-gray-700 hover:text-brand-500 dark:text-gray-300 dark:hover:text-brand-500'
+          ]">
           <svg aria-hidden="true"
                class="mr-2"
                width="20"
@@ -86,34 +126,13 @@
           </svg>
           <span class="block sm:hidden">Domains</span>
           <span class="hidden sm:block">Custom Domains</span>
-          <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+          <span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5
+              text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                 aria-label="Custom domains count">
-            {{ custom_domains_record_count }}
+            {{ counts.domains }}
           </span>
         </router-link>
       </li>
     </ul>
   </nav>
 </template>
-
-
-
-<script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useWindowProps } from '@/composables/useWindowProps';
-
-const { authenticated, metadata_record_count, domains_enabled, plan, custom_domains_record_count } =
-  useWindowProps(['authenticated', 'metadata_record_count', 'domains_enabled', 'plan', 'custom_domains_record_count']);
-
-const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
-
-const route = useRoute();
-
-/**
- * Checks if the current route path starts with the specified path.
- * @param path - The path to check against the current route.
- * @returns True if the current route path starts with the specified path, false otherwise.
- */
-const isActiveRoute = (path: string) => route.path.startsWith(path);
-</script>

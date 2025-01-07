@@ -46,7 +46,7 @@ test.describe('Create secret', () => {
     await expect(page.getByRole('button', { name: 'Click to reveal →' })).toBeVisible();
     await expect(page.getByPlaceholder('Enter the passphrase here')).toBeVisible();
     await expect(page.getByRole('main')).toContainText('This message requires a passphrase');
-    await expect(page.getByRole('main')).toContainText('careful: we will only show it once');
+    await expect(page.getByRole('main')).toContainText('Careful: we will only show it once');
     await page.getByPlaceholder('Enter the passphrase here').click();
     await page.getByPlaceholder('Enter the passphrase here').fill(SECRET_CONTENT);
     await page.getByRole('button', { name: 'Click to reveal →' }).click();

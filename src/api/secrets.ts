@@ -1,68 +1,42 @@
-// @/api/secrets.ts
-
-import axios, { AxiosError } from 'axios';
-import { SecretDataApiResponse, AsyncDataResult } from '@/types/onetime';
+import { AsyncDataResult, SecretResponse } from '@/schemas/api';
+import axios from 'axios';
 
 /**
  * Fetches the initial secret data from the API.
  *
  * @param secretKey - The key of the secret to fetch.
  * @returns An object containing the fetched data, error message (if any), and status code.
- *
- * Usage example:
- *
- * import { useAsyncData } from '@/composables/useAsyncData';
- * import { fetchInitialSecret } from '@/api/secrets';
- * import { useRoute } from 'vue-router';
- *
- * const route = useRoute();
- * const secretKey = route.params.secretKey as string;
- *
- * const { data, error, isLoading, load } = useAsyncData(() => fetchInitialSecret(secretKey));
- *
- * // Load the data
- * load();
- *
- * // Use data, error, and isLoading in your component
  */
-export async function fetchInitialSecret(secretKey: string): Promise<AsyncDataResult<SecretDataApiResponse>> {
+export async function fetchInitialSecret(
+  secretKey: string
+): Promise<AsyncDataResult<SecretResponse>> {
   try {
-    const response = await axios.get<SecretDataApiResponse>(`/api/v2/secret/${secretKey}`);
+    const response = await axios.get<SecretResponse>(`/api/v2/secret/${secretKey}`);
     return {
       data: response.data,
       error: null,
-      status: response.status
+      status: response.status,
     };
   } catch (error) {
+    let errorMessage = 'An unexpected error occurred';
+    let statusCode = null;
+
     if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      if (axiosError.response) {
-        const { status, data } = axiosError.response;
-        if (status === 404) {
-          return {
-            data: null,
-            error: 'Secret not found or already viewed',
-            status: 404
-          };
-        }
-        return {
-          data: null,
-          error: data.message || 'An error occurred while fetching the secret',
-          status
-        };
-      } else if (axiosError.request) {
-        return {
-          data: null,
-          error: 'No response received from server',
-          status: null
-        };
+      if (error.response) {
+        statusCode = error.response.status;
+        errorMessage =
+          statusCode === 404
+            ? 'Secret not found or already viewed'
+            : error.response.data?.message || 'An error occurred while fetching the secret';
+      } else if (error.request) {
+        errorMessage = 'No response received from server';
       }
     }
 
     return {
       data: null,
-      error: 'An unexpected error occurred',
-      status: null
+      error: errorMessage,
+      status: statusCode,
     };
   }
 }

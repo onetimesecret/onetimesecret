@@ -1,13 +1,4 @@
 <!-- EmailObfuscator.vue -->
-<template>
-  <a
-    @click="handleClick"
-    class="email cursor-pointer text-brand-500 dark:text-brand-400 hover:underline"
-  >
-    {{ displayedEmail }}
-  </a>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 
@@ -50,3 +41,11 @@ onMounted(() => {
   displayedEmail.value = deobfuscateEmail(props.email);
 });
 </script>
+
+<template>
+  <a
+    @click="handleClick"
+    class="email cursor-pointer text-brand-500 hover:underline dark:text-brand-400">
+    {{ displayedEmail }}
+  </a>
+</template>

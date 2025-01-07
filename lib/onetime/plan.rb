@@ -1,7 +1,12 @@
 
 module Onetime
   class Plan
-    @safe_dump_fields = [:planid, :price, :discount, :options]
+    extend Familia::Features::SafeDump::ClassMethods
+
+    @safe_dump_fields = [
+      { :identifier => ->(obj) { obj.planid } },
+      :planid, :price, :discount, :options
+    ]
 
     attr_reader :planid, :price, :discount, :options
 

@@ -61,5 +61,5 @@ etc/config.yaml
 !vite.config.ts
 !postcss.config.mjs
 !tailwind.config.ts
-!eslint.config.mjs
+!eslint.config.ts
 !.commit_hash.txt

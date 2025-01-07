@@ -1,348 +1,291 @@
-
-import { CheckAuthDataApiResponse, CheckAuthDetails, Customer } from '@/types/onetime';
-
-import axios, { AxiosError } from 'axios';
-import { defineStore } from 'pinia';
+// src/stores/authStore.ts
+import { PiniaPluginOptions } from '@/plugins/pinia/types';
+import { responseSchemas } from '@/schemas/api';
+import { loggingService } from '@/services/logging.service';
+import { WindowService } from '@/services/window.service';
+import { AxiosInstance } from 'axios';
+import { defineStore, PiniaCustomProperties } from 'pinia';
+import { computed, inject, ref } from 'vue';
 
 /**
- * Backoff Logic Summary:
+ * Configuration for authentication check behavior.
  *
- * 1. Initial interval: Starts at BASE_AUTH_CHECK_INTERVAL_MS (15 minutes).
+ * The timing strategy uses two mechanisms:
+ * 1. Base interval (15 minutes) for regular checks
+ * 2. Random jitter (±90 seconds) to prevent synchronized client requests
+ *    across multiple browser sessions, reducing server load spikes
  *
- * 2. On successful auth check:
- *    - Reset failedAuthChecks to 0
- *    - Reset currentBackoffInterval to BASE_AUTH_CHECK_INTERVAL_MS
- *
- * 3. On failed auth check:
- *    - Increment failedAuthChecks
- *    - Double the currentBackoffInterval (capped at MAX_AUTH_CHECK_INTERVAL_MS)
- *    - If failedAuthChecks reaches 3, trigger logout
- *
- * 4. Fuzzy interval:
- *    - Add/subtract up to 90 seconds from currentBackoffInterval
- *    - Ensure final interval is between BASE_AUTH_CHECK_INTERVAL_MS and MAX_AUTH_CHECK_INTERVAL_MS
- *
- * 5. Next check scheduling:
- *    - Always schedule next check after current check completes (success or failure)
- *    - Use setTimeout with the calculated fuzzy interval
- *
- * This approach provides exponential backoff on failures, quick recovery on success,
- * and randomization to prevent synchronized requests from multiple clients.
+ * Note: Exponential backoff was intentionally removed in favor of a simpler
+ * "3 strikes" model because:
+ * 1. Immediate logout after 3 failures provides clearer UX
+ * 2. The 15-minute base interval already provides adequate spacing
+ * 3. Backoff could mask serious issues by waiting longer between retries
  */
+export const AUTH_CHECK_CONFIG = {
+  INTERVAL: 15 * 60 * 1000,
+  JITTER: 90 * 1000,
+  MAX_FAILURES: 3,
+  ENDPOINT: '/api/v2/authcheck',
+} as const;
 
-/** Base interval for authentication checks (15 minutes) */
-const BASE_AUTH_CHECK_INTERVAL_MS = 15 * 60 * 1000;
-/** Maximum interval for authentication checks (1 hour) */
-const MAX_AUTH_CHECK_INTERVAL_MS = 60 * 60 * 1000;
-/** Endpoint for authentication checks */
-const AUTH_CHECK_ENDPOINT = '/api/v2/authcheck';
+interface StoreOptions extends PiniaPluginOptions {}
+
+/**
+ * Type definition for AuthStore.
+ */
+export type AuthStore = {
+  // State
+  isAuthenticated: boolean | null;
+  authCheckTimer: ReturnType<typeof setTimeout> | null;
+  failureCount: number | null;
+  lastCheckTime: number | null;
+  _initialized: boolean;
+
+  // Getters
+  needsCheck: boolean;
+  isInitialized: boolean;
+
+  // Actions
+  init: () => { needsCheck: boolean; isInitialized: boolean };
+  checkAuthStatus: () => Promise<boolean>;
+  refreshAuthState: () => Promise<boolean>;
+  logout: () => Promise<void>;
+  $scheduleNextCheck: () => void;
+  $stopAuthCheck: () => Promise<void>;
+  $dispose: () => Promise<void>;
+  $reset: () => void;
+} & PiniaCustomProperties;
 
 /**
  * Authentication store for managing user authentication state.
+ * Uses Pinia for state management, providing reactive auth state
+ * that can be observed using storeToRefs:
  *
  * @example
- * ```typescript
+ * ```ts
  * import { useAuthStore } from '@/stores/authStore'
- *
- * // In a Vue component setup function or script setup
- * const authStore = useAuthStore()
- *
- * // Initialize the store
- * authStore.initialize()
- *
- * // Check authentication status
- * await authStore.checkAuthStatus()
- *
- * // Access store state
- * console.log(authStore.isAuthenticated)
- * console.log(authStore.customer)
- *
- * // If you want to destructure reactive properties, use
- * // storeToRefs. See more info at the end of this file.
  * import { storeToRefs } from 'pinia'
- * const { isAuthenticated, customer } = storeToRefs(authStore)
  *
- * // Logout
- * authStore.logout()
+ * const authStore = useAuthStore()
+ * const { isAuthenticated } = storeToRefs(authStore)
+ *
+ * // React to auth state changes
+ * watch(isAuthenticated, (newValue) => {
+ *   console.log('Auth state changed:', newValue)
+ * })
  * ```
  */
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    /** Indicates whether the user is currently authenticated. */
-    isAuthenticated: false,
-    /** Add loading state */
-    isCheckingAuth: false,
-    /** The currently authenticated customer, if any. */
-    customer: undefined as Customer | undefined,
-    /** Timeout for periodic authentication checks. */
-    authCheckInterval: null as ReturnType<typeof setTimeout> | null,
-    /** Current backoff interval for authentication checks. */
-    currentBackoffInterval: BASE_AUTH_CHECK_INTERVAL_MS,
-    /** Number of consecutive failed auth checks. */
-    failedAuthChecks: 0,
-    lastAuthCheck: 0,
-  }),
-  getters: {
-    isAuthStale(): boolean {
-      return Date.now() - this.lastAuthCheck > BASE_AUTH_CHECK_INTERVAL_MS;
-    },
-  },
-  actions: {
+/* eslint-disable max-lines-per-function */
+export const useAuthStore = defineStore('auth', () => {
+  const $api = inject('api') as AxiosInstance;
+
+  // State
+  const isAuthenticated = ref<boolean | null>(null);
+  const authCheckTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+  const failureCount = ref<number | null>(null);
+  const lastCheckTime = ref<number | null>(null);
+  const _initialized = ref(false);
+
+  // Getters
+  const needsCheck = computed((): boolean => {
     /**
-     * Initializes the auth store.
-     * Sets up the Axios interceptor, visibility listener, sets initial auth state, and customer data.
+     * Determines if the last auth check is older than the check interval.
+     * Used to decide whether to perform a fresh check when a tab becomes visible.
      */
-    initialize() {
-      this.setupAxiosInterceptor();
-      this.setupVisibilityListener();
+    if (!lastCheckTime.value) return true;
+    return Date.now() - lastCheckTime.value > AUTH_CHECK_CONFIG.INTERVAL;
+  });
 
-      // Ensure boolean value and log
-      const initialAuthState = Boolean(window.authenticated ?? false);
+  const isInitialized = computed(() => _initialized.value);
 
-      this.isAuthenticated = initialAuthState;
+  // Actions
 
-      if (window.cust) {
-        this.setCustomer(window.cust as Customer);
-      }
+  function init(options?: StoreOptions) {
+    if (_initialized.value) return { needsCheck, isInitialized };
 
-      // Set initial lastAuthCheck if we start authenticated
-      if (this.isAuthenticated) {
-        this.lastAuthCheck = Date.now();
-      }
-    },
+    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
-    /**
-     * Sets up a visibility change listener to check auth status when tab becomes visible
-     * after being inactive for a while.
-     */
-    setupVisibilityListener() {
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && this.isAuthStale) {
-          this.refreshAuthState();
-        }
-      });
-    },
+    const inputValue = WindowService.get('authenticated');
 
-    /**
-     * Checks the current authentication status with the server.
-     *
-     * @description
-     * This method implements a robust authentication check mechanism:
-     * 1. Exponential backoff: Increases wait time between checks on consecutive failures.
-     * 2. Graceful degradation: Handles authentication failures with increasing severity.
-     * 3. Auto-recovery: Resets failure count and backoff interval on successful checks.
-     *
-     * Key behaviors:
-     * - Immediate logout on 401 or 403 status codes.
-     * - Applies exponential backoff for 500+ status codes.
-     * - Logs out the user after 3 failed attempts.
-     * - Resets failed check counter on success.
-     *
-     * Implications:
-     *  + Allows immediate recovery after a successful check
-     *  + Prevents accumulation of sporadic failures over time
-     *  - May not accurately represent patterns of intermittent failures
-     *  - Could potentially hide underlying issues if failures are frequent
-     *    but not consecutive
-     */
-    async checkAuthStatus() {
-      // If we already know we're not authenticated, don't make a request
-      if (!this.isAuthenticated) {
-        return false;
-      }
+    // Regardless of what the value is, if it isn't exactly true, it's false.
+    // i.e. unlimited ways to fail, only one way to succeed.
+    isAuthenticated.value = inputValue === true;
 
-      try {
-        const response = await axios.get<CheckAuthDataApiResponse & CheckAuthDetails>(AUTH_CHECK_ENDPOINT);
+    if (isAuthenticated.value) {
+      lastCheckTime.value = Date.now(); // Add this
+      $scheduleNextCheck();
+    }
 
-        this.isAuthenticated = Boolean(response.data.details.authenticated);
-        this.customer = response.data.record;
-
-        this.failedAuthChecks = 0;
-        this.currentBackoffInterval = BASE_AUTH_CHECK_INTERVAL_MS;
-        this.lastAuthCheck = Date.now();
-
-      } catch (error: unknown) {
-        console.error('Auth check error:', error);
-        this.handleAuthCheckError(error);
-
-      } finally {
-        if (this.isAuthenticated) {
-          this.startAuthCheck();
-        }
-      }
-
-      return this.isAuthenticated;
-    },
-
-    // Add method to force refresh auth state
-    async refreshAuthState() {
-      await this.checkAuthStatus();
-    },
-
-    /**
-     * Applies exponential backoff to the current check interval.
-     * Doubles the interval on each consecutive failure, up to MAX_AUTH_CHECK_INTERVAL_MS.
-     */
-    applyBackoff() {
-      this.currentBackoffInterval = Math.min(
-        this.currentBackoffInterval * Math.pow(2, this.failedAuthChecks),
-        MAX_AUTH_CHECK_INTERVAL_MS
-      );
-    },
-
-    /**
-     * Handles authentication check errors with specific responses based on error type.
-     *
-     * Error handling strategy:
-     * - 401/403: Immediate auth state update (unauthorized/forbidden)
-     * - 500+: Apply exponential backoff for server errors
-     * - After 3 consecutive failures: Force logout
-     *
-     * @param error - The error object from the failed auth check
-     */
-    handleAuthCheckError(error: unknown) {
-      this.failedAuthChecks++;
-
-      // Type guard and detailed error logging
-      if (!(error instanceof AxiosError)) {
-        console.error('Unexpected auth check error type:', error);
-        this.isAuthenticated = false;
-        return;
-      }
-
-      const statusCode = error.response?.status;
-      const errorMessage = error.response?.data?.message || error.message;
-
-      // Log detailed error information
-      console.error('Auth check failed:', {
-        statusCode,
-        message: errorMessage,
-        failedAttempts: this.failedAuthChecks,
-      });
-
-      // Handle specific HTTP status codes
-      switch (statusCode) {
-        case 401:
-        case 403:
-          // Authentication or authorization failure
-          return this.$logout();
-
-        case 500:
-        case 502:
-        case 503:
-        case 504:
-          // Server-side errors: apply backoff strategy
-          this.applyBackoff();
-          this.isAuthenticated = false;
-          break;
-
-        default:
-          return this.$logout();
-      }
-
-      // Force logout after repeated failures - move this check to the top
-      if (this.failedAuthChecks >= 3) {
-        console.warn('Auth check failed 3 times, forcing logout');
-        this.$logout();
-        return;
-      }
-
-    },
-
-    /**
-     * Handles HTTP error responses, logging out the user if the status is 401 or 403.
-     * This function can be extended to handle additional status codes as needed.
-     *
-     * @param error - The error object containing the HTTP response.
-     */
-    handleHttpError(error: AxiosError, withPessimism?: boolean): void {
-      const status = error.response?.status || 0;
-      const logoutStatuses = [401, 403];
-
-      if (logoutStatuses.includes(status) || withPessimism) {
-        this.logout();
-      }
-    },
-
-    /**
-     * Logs out the current user and resets the auth state.
-     * Stops auth checks and redirects to the signin page.
-     */
-    logout() {
-      // Use the global logout function
-      this.$logout();
-    },
-
-    /**
-     * Starts the periodic authentication check with exponential backoff.
-     * Uses a fuzzy interval to prevent synchronized requests from multiple clients.
-     */
-    startAuthCheck() {
-      this.stopAuthCheck(); // Clear any existing interval
-      const intervalMillis = this.getFuzzyAuthCheckInterval();
-
-      this.authCheckInterval = setTimeout(() => {
-        this.checkAuthStatus();
-      }, intervalMillis);
-    },
-
-    /**
-     * Returns a fuzzy authentication check interval with exponential backoff.
-     * Adds or subtracts up to 90 seconds to the current backoff interval.
-     * Ensures the returned interval is between BASE_AUTH_CHECK_INTERVAL_MS and MAX_AUTH_CHECK_INTERVAL_MS.
-     * @returns {number} Fuzzy authentication check interval in milliseconds.
-     */
-    getFuzzyAuthCheckInterval(): number {
-      const maxFuzz = 90 * 1000; // 90 seconds in milliseconds
-      const fuzz = Math.floor(Math.random() * (2 * maxFuzz + 1)) - maxFuzz;
-      const interval = Math.min(this.currentBackoffInterval + fuzz, MAX_AUTH_CHECK_INTERVAL_MS);
-      return Math.max(interval, BASE_AUTH_CHECK_INTERVAL_MS);
-    },
-
-    /**
-     * Stops the periodic authentication check.
-     * Clears the existing timeout and resets the authCheckInterval.
-     */
-    stopAuthCheck() {
-      if (this.authCheckInterval !== null) {
-        clearTimeout(this.authCheckInterval);
-        this.authCheckInterval = null;
-      }
-    },
-
-    /**
-     * Sets up an Axios interceptor to handle 401 errors.
-     * Automatically logs out the user on receiving a 401 response.
-     */
-    setupAxiosInterceptor() {
-      axios.interceptors.response.use(
-        (response) => response,
-        (error) => {
-          this.handleHttpError(error);
-          return Promise.reject(error);
-        }
-      );
-    },
-
-    /**
-     * Sets the authentication status and manages the auth check interval.
-     * @param status - The new authentication status.
-     */
-    setAuthenticated(status: boolean) {
-      this.isAuthenticated = status;
-      if (status) {
-        this.startAuthCheck();
-      } else {
-        this.stopAuthCheck();
-      }
-    },
-
-    /**
-     * Sets the current customer.
-     * @param customer - The customer object to set.
-     */
-    setCustomer(customer: Customer | undefined) {
-      this.customer = customer;
-    },
+    _initialized.value = true;
+    return { needsCheck, isInitialized };
   }
-})
+
+  /**
+   * Checks the current authentication status with the server.
+   *
+   * @description
+   * This method implements a robust authentication check mechanism:
+   * 1. Validates current auth state with server
+   * 2. Updates local and window state
+   * 3. Manages failure counting
+   *
+   * Key behaviors:
+   * - Automatic logout after MAX_FAILURES consecutive failures
+   * - Resets failure counter on successful check
+   * - Maintains sync between local and window state
+   *
+   * @returns Current authentication state
+   */
+  async function checkAuthStatus() {
+    if (!isAuthenticated.value) return false;
+    try {
+      const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);
+      const validated = responseSchemas.checkAuth.parse(response.data);
+
+      isAuthenticated.value = validated.details.authenticated;
+      failureCount.value = 0;
+      lastCheckTime.value = Date.now(); // This exists but isn't getting called
+
+      return isAuthenticated.value;
+    } catch {
+      failureCount.value = (failureCount.value ?? 0) + 1;
+      if (failureCount.value >= AUTH_CHECK_CONFIG.MAX_FAILURES) {
+        logout();
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Forces an immediate auth check and reschedules next check.
+   * Useful when the application needs to ensure fresh auth state.
+   */
+  async function refreshAuthState() {
+    return checkAuthStatus().then(() => {
+      $scheduleNextCheck();
+    });
+  }
+
+  /**
+   * Schedules the next authentication check with a randomized interval.
+   *
+   * The random jitter added to the base interval helps prevent
+   * synchronized requests from multiple clients hitting the server
+   * at the same time, which could cause load spikes.
+   *
+   * The jitter is ±90 seconds, providing a good balance between
+   * regular checks and load distribution.
+   */
+  function $scheduleNextCheck() {
+    $stopAuthCheck();
+
+    if (!isAuthenticated.value) return;
+
+    const jitter = (Math.random() - 0.5) * 2 * AUTH_CHECK_CONFIG.JITTER;
+    const nextCheck = AUTH_CHECK_CONFIG.INTERVAL + jitter;
+
+    authCheckTimer.value = setTimeout(async () => {
+      await checkAuthStatus(); // Make sure to await this
+      $scheduleNextCheck(); // Schedule next check after current one completes
+    }, nextCheck);
+  }
+
+  /**
+   * Stops the periodic authentication check.
+   * Clears the existing timeout and resets the authCheckTimer.
+   */
+  async function $stopAuthCheck() {
+    if (authCheckTimer.value !== null) {
+      clearTimeout(authCheckTimer.value);
+      authCheckTimer.value = null;
+    }
+  }
+
+  /**
+   * Logs out the current user and resets the auth state.
+   *
+   * - Clearing cookies
+   * - Resetting all related stores
+   * - Clearing session storage
+   * - Updating window state
+   * Clears authentication state and storage.
+   *
+   * This method resets the store state to its initial values using `this.$reset()`.
+   * It also clears session storage and stops any ongoing authentication checks.
+   * This is typically used during logout to ensure that all user-specific data
+   * is cleared and the store is returned to its default state.
+   */
+  async function logout() {
+    await $stopAuthCheck();
+
+    // const authStore = useAuthStore();
+    // const languageStore = useLanguageStore();
+    // const csrfStore = useCsrfStore();
+
+    // // Reset all stores
+    // authStore.$reset();
+    // languageStore.$reset();
+    // csrfStore.$reset();
+
+    // Sync window state
+    window.cust = null;
+    window.authenticated = false;
+
+    deleteCookie('sess');
+    deleteCookie('locale');
+
+    // Clear all session storage;
+    sessionStorage.clear();
+
+    // Remove any and all lingering store state
+    // context.pinia.state.value = {};
+  }
+  /**
+   * Disposes of the store, stopping the auth check.
+   *
+   * - Disposing of a store does not reset its state. If you recreate the store,
+   *   it will start with its initial state as defined in the store definition.
+   * - Once a store is disposed of, it should not be used again.
+   *
+   */
+  async function $dispose() {
+    await $stopAuthCheck();
+  }
+
+  function $reset() {
+    isAuthenticated.value = null;
+    authCheckTimer.value = null;
+    failureCount.value = null;
+    lastCheckTime.value = null;
+    _initialized.value = false;
+  }
+
+  return {
+    // State
+    isAuthenticated,
+    authCheckTimer,
+    failureCount,
+    lastCheckTime,
+    _initialized,
+
+    // Getters
+    needsCheck,
+    isInitialized,
+
+    // Actions
+    init,
+    checkAuthStatus,
+    refreshAuthState,
+    logout,
+
+    $scheduleNextCheck,
+    $stopAuthCheck,
+    $dispose,
+    $reset,
+  };
+});
+
+const deleteCookie = (name: string) => {
+  console.debug('Deleting cookie:', name);
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+};

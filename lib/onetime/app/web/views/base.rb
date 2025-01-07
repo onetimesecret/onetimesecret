@@ -5,26 +5,38 @@ module Onetime
 
     class View < Mustache
       include Onetime::App::Views::ViewHelpers
+      include Onetime::TimeUtils
 
       self.template_path = './templates/web'
       self.template_extension = 'html'
       self.view_namespace = Onetime::App::Views
       self.view_path = './app/web/views'
 
-      attr_reader :req, :plan, :is_paid
+      attr_reader :req, :plan, :is_paid, :canonical_domain, :display_domain, :domain_strategy
+      attr_reader :domain_id, :domain_branding, :custom_domain
       attr_accessor :sess, :cust, :locale, :messages, :form_fields, :pagename
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
         @messages = { :info => [], :error => [] }
+        site = OT.conf.fetch(:site, {})
         is_default_locale = OT.conf[:locales].first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
+
+        # TODO: This only needs to happen once at boot time.
+        @canonical_domain = Onetime::DomainStrategy.normalize_canonical_domain(site) # can be nil
+        @domain_strategy = req.env['onetime.domain_strategy'] # never nil
+        @display_domain = req.env['onetime.display_domain'] # can be nil
+        if @domain_strategy == :custom
+          @custom_domain = OT::CustomDomain.from_display_domain(@display_domain)
+          @domain_id = custom_domain&.domainid
+          @domain_branding = (custom_domain&.brand&.hgetall || {}).to_h # bools are strings
+        end
 
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
         # across release versions where the config may change and existing
         # installs may not have had a chance to update theirs yet.
-        site = OT.conf.fetch(:site, {})
         secret_options = site.fetch(:secret_options, {})
         domains = site.fetch(:domains, {})
         regions = site.fetch(:regions, {})
@@ -58,15 +70,17 @@ module Onetime
         self[:jsvars] << jsvar(:global_banner, OT.global_banner) if OT.global_banner
 
         # Pass the authentication flag settings to the frontends.
-        self[:jsvars] << jsvar(:authentication, authentication)
+        self[:jsvars] << jsvar(:authentication, authentication) # nil is okay
         self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
 
         # Only send the regions config when the feature is enabled.
         self[:jsvars] << jsvar(:regions_enabled, regions_enabled)
         self[:jsvars] << jsvar(:regions, regions) if regions_enabled
 
+        # Ensure that these keys are always present in jsvars, even if nil
+        ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains]
+
         if authenticated && cust
-          self[:jsvars] << jsvar(:metadata_record_count, cust.metadata_list.length)
           self[:jsvars] << jsvar(:domains_enabled, domains_enabled) # only for authenticated
 
           self[:jsvars] << jsvar(:custid, cust.custid)
@@ -92,8 +106,13 @@ module Onetime
 
               obj.display_domain
             end
-            self[:jsvars] << jsvar(:custom_domains_record_count, custom_domains.length)
             self[:jsvars] << jsvar(:custom_domains, custom_domains.sort)
+          end
+        else
+          # We do this so that in our typescript we can assume either a value
+          # or nil (null), avoiding undefined altogether.
+          ensure_exist.each do |key|
+            self[:jsvars] << jsvar(key, nil)
           end
         end
 
@@ -120,6 +139,11 @@ module Onetime
         self[:jsvars] << jsvar(:frontend_host, frontend_host)
         self[:jsvars] << jsvar(:authenticated, authenticated)
         self[:jsvars] << jsvar(:site_host, site[:host])
+        self[:jsvars] << jsvar(:canonical_domain, canonical_domain)
+        self[:jsvars] << jsvar(:domain_strategy, domain_strategy)
+        self[:jsvars] << jsvar(:domain_id, domain_id)
+        self[:jsvars] << jsvar(:domain_branding, domain_branding)
+        self[:jsvars] << jsvar(:display_domain, display_domain)
 
         # The form fields hash is populated by handle_form_error so only when there's
         # been a form error in the request immediately prior to this one being served

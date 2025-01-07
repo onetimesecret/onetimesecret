@@ -51,84 +51,6 @@
 
 -->
 
-<template>
-  <div class="relative"
-       @mouseenter="handleMouseEnter"
-       @mouseleave="handleMouseLeave">
-    <textarea ref="textareaRef"
-              v-model="content"
-              @input="checkContentLength"
-              :maxlength="maxLength"
-              class="w-full min-h-[6rem] max-h-[400px] p-4 font-mono text-base leading-[1.2] tracking-wide
-            border-gray-300 rounded-md shadow-sm
-            focus:ring-brandcomp-500 focus:border-brandcomp-500
-            bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white
-            placeholder-gray-400 dark:placeholder-gray-500
-            resize-none overflow-y-auto transition-colors duration-200"
-              name="secret"
-              autofocus
-              autocomplete="off"
-              :placeholder="$t('web.COMMON.secret_placeholder')"
-              aria-label="Enter the secret content to share here">
-    </textarea>
-
-    <!--
-      Generally speaking, v-if has higher toggle costs while v-show has higher
-      initial render costs. So prefer v-show if you need to toggle something
-      very often, and prefer v-if if the condition is unlikely to change at
-      runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
-    -->
-    <div v-if="showCounter" class="hidden bg-white dark:bg-gray-800 rounded-full px-3 py-1 text-sm text-gray-400 dark:text-gray-500 shadow-sm select-none pointer-events-none transition-colors duration-200">
-      {{ formattedCharCount }} / {{ formattedMaxLength }} chars
-    </div>
-
-    <div v-if="withDomainDropdown"
-         class="absolute bottom-4 right-4">
-      <div class="relative inline-block text-left"
-           ref="dropdownRef">
-        <button type="button"
-                @click="toggleDropdown"
-                class="inline-flex justify-between items-center w-full rounded-md px-4 py-2
-              bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600
-              text-sm font-medium text-gray-700 dark:text-gray-300
-              hover:bg-gray-50 dark:hover:bg-gray-700
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 dark:focus:ring-offset-gray-800
-              transition-colors duration-200">
-          <span class="truncate max-w-[150px]">
-            {{ selectedDomain || 'Select Domain' }}
-          </span>
-          <Icon icon="heroicons-solid:chevron-down"
-                class="ml-2 flex-shrink-0 h-5 w-5 text-gray-400 dark:text-gray-500"
-                aria-hidden="true" />
-        </button>
-
-        <div v-if="isOpen"
-             class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg
-              bg-white dark:bg-gray-800
-              ring-1 ring-black ring-opacity-5 dark:ring-gray-700
-              focus:outline-none z-50
-              max-h-60 overflow-y-auto">
-          <div class="py-1"
-               role="menu"
-               aria-orientation="vertical"
-               aria-labelledby="options-menu">
-            <a v-for="domain in availableDomains"
-               :key="domain"
-               href="#"
-               @click.prevent="selectDomain(domain)"
-               class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300
-                  hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white
-                  transition-colors duration-200"
-               role="menuitem">
-              {{ domain }}
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 /**
  * SecretContentInputArea Component
@@ -154,8 +76,8 @@
  */
 
 // 1. Imports
-import { computed, ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
 import { Icon } from '@iconify/vue';
+import { computed, ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
 
 const availablePlans = window.available_plans;
 const cust = window.cust;
@@ -291,6 +213,96 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleEscapeKey);
 });
 </script>
+
+<template>
+  <div
+    class="relative"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave">
+    <textarea
+      ref="textareaRef"
+      v-model="content"
+      @input="checkContentLength"
+      :maxlength="maxLength"
+      class="max-h-[400px] min-h-24 w-full resize-none overflow-y-auto rounded-md border-gray-300 bg-white
+            p-4 font-mono text-base
+            leading-[1.2] tracking-wide
+            shadow-sm transition-colors duration-200 placeholder:text-gray-400
+            focus:border-brandcomp-500 focus:ring-brandcomp-500
+            dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+      name="secret"
+      autofocus
+      autocomplete="off"
+      :placeholder="$t('web.COMMON.secret_placeholder')"
+      aria-label="Enter the secret content to share here">
+    </textarea>
+
+    <!--
+      Generally speaking, v-if has higher toggle costs while v-show has higher
+      initial render costs. So prefer v-show if you need to toggle something
+      very often, and prefer v-if if the condition is unlikely to change at
+      runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
+    -->
+    <div
+      v-if="showCounter"
+      class="pointer-events-none hidden select-none rounded-full bg-white px-3 py-1 text-sm text-gray-400 shadow-sm transition-colors duration-200 dark:bg-gray-800 dark:text-gray-500">
+      {{ formattedCharCount }} / {{ formattedMaxLength }} chars
+    </div>
+
+    <div
+      v-if="withDomainDropdown"
+      class="absolute bottom-4 right-4">
+      <div
+        class="relative inline-block text-left"
+        ref="dropdownRef">
+        <button
+          type="button"
+          @click="toggleDropdown"
+          class="inline-flex w-full items-center justify-between rounded-md border border-gray-300
+              bg-white px-4 py-2 text-sm font-medium
+              text-gray-700 transition-colors duration-200 hover:bg-gray-50
+              focus:outline-none focus:ring-2
+              focus:ring-brandcomp-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300
+              dark:hover:bg-gray-700 dark:focus:ring-offset-gray-800">
+          <span class="max-w-[150px] truncate">
+            {{ selectedDomain || 'Select Domain' }}
+          </span>
+          <Icon
+            icon="heroicons-solid:chevron-down"
+            class="ml-2 size-5 shrink-0 text-gray-400 dark:text-gray-500"
+            aria-hidden="true"
+          />
+        </button>
+
+        <div
+          v-if="isOpen"
+          class="absolute right-0 z-50 mt-2 max-h-60 w-56 origin-top-right
+              overflow-y-auto rounded-md
+              bg-white shadow-lg ring-1 ring-black
+              ring-opacity-5 focus:outline-none
+              dark:bg-gray-800 dark:ring-gray-700">
+          <div
+            class="py-1"
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="options-menu">
+            <a
+              v-for="domain in availableDomains"
+              :key="domain"
+              href="#"
+              @click.prevent="selectDomain(domain)"
+              class="block px-4 py-2 text-sm text-gray-700 transition-colors
+                  duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300
+                  dark:hover:bg-gray-700 dark:hover:text-white"
+              role="menuitem">
+              {{ domain }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 /* Ensure the dropdown container has a higher z-index than the input field */

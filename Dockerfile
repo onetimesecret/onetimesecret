@@ -104,10 +104,10 @@ ARG PACKAGES="build-essential rsync netcat-openbsd"
 
 # Fast fail on errors while installing system packages
 RUN set -eux \
-    && apt-get update \
-    && apt-get install -y $PACKAGES \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+  && apt-get update \
+  && apt-get install -y $PACKAGES \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy Node.js and npm from the official image
 COPY --from=docker.io/library/node:22 /usr/local/bin/node /usr/local/bin/
@@ -115,15 +115,15 @@ COPY --from=docker.io/library/node:22 /usr/local/lib/node_modules /usr/local/lib
 
 # Create necessary symlinks
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
-    && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+  && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 # Verify Node.js and npm installation
 RUN node --version && npm --version
 
 # Install necessary tools
 RUN set -eux \
-    && gem install bundler \
-    && npm install -g pnpm
+  && gem install bundler \
+  && npm install -g pnpm
 
 ##
 # DEPENDENCIES LAYER
@@ -139,8 +139,8 @@ ARG VERSION
 
 # Create the directories that we need in the following image
 RUN set -eux \
-    && echo "Creating directories" \
-    && mkdir -p $CODE_ROOT $ONETIME_HOME/{log,tmp}
+  && echo "Creating directories" \
+  && mkdir -p $CODE_ROOT $ONETIME_HOME/{log,tmp}
 
 WORKDIR $CODE_ROOT
 
@@ -151,10 +151,10 @@ COPY Gemfile Gemfile.lock ./
 COPY package.json pnpm-lock.yaml ./
 
 RUN set -eux \
-    && bundle config set --local without 'development test' \
-    && bundle update --bundler \
-    && bundle install \
-    && pnpm install --frozen-lockfile
+  && bundle config set --local without 'development test' \
+  && bundle update --bundler \
+  && bundle install \
+  && pnpm install --frozen-lockfile
 
 ##
 # BUILD LAYER
@@ -168,16 +168,16 @@ WORKDIR $CODE_ROOT
 COPY public $CODE_ROOT/public
 COPY templates $CODE_ROOT/templates
 COPY src $CODE_ROOT/src
-COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.mjs ./
+COPY package.json pnpm-lock.yaml tsconfig.json vite.config.ts postcss.config.mjs tailwind.config.ts eslint.config.ts ./
 
 # Remove pnpm after use
 RUN set -eux \
-    && pnpm run type-check \
-    && pnpm run build-only \
-    && pnpm prune --prod \
-    && rm -rf node_modules \
-    && npm uninstall -g pnpm \
-    && touch .commit_hash.txt  # avoid ignorable error later on
+  && pnpm run type-check \
+  && pnpm run build-only \
+  && pnpm prune --prod \
+  && rm -rf node_modules \
+  && npm uninstall -g pnpm \
+  && touch .commit_hash.txt  # avoid ignorable error later on
 
 ##
 # APPLICATION LAYER (FINAL)
@@ -230,7 +230,7 @@ WORKDIR $CODE_ROOT
 # (and modified) the "--no-clobber" argument prevents
 # those changes from being overwritten.
 RUN set -eux \
-    && cp --preserve --no-clobber etc/config.example.yaml etc/config.yaml
+  && cp --preserve --no-clobber etc/config.example.yaml etc/config.yaml
 
 # About the interplay between the Dockerfile CMD, ENTRYPOINT,
 # and the Docker Compose command settings:

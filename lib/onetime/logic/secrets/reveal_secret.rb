@@ -18,7 +18,6 @@ module Onetime::Logic
         @secret = Onetime::Secret.load key
         @passphrase = params[:passphrase].to_s
         @continue = params[:continue].to_s == 'true'
-
       end
 
       def raise_concerns
@@ -85,19 +84,10 @@ module Onetime::Logic
 
       def success_data
         ret = {
-          record: {
-            key: @secret_key,
-            secret_key: @secret_key,
-            secret_shortkey: @secret_shortkey,
-            is_truncated: @is_truncated,
-            original_size: @original_size,
-            verification: @verification,
-            share_domain: @share_domain,
-            is_owner: @is_owner,
-            has_passphrase: @has_passphrase
-          },
+          record: secret.safe_dump,
           details: {
             continue: @continue,
+            is_owner: @is_owner,
             show_secret: @show_secret,
             correct_passphrase: @correct_passphrase,
             display_lines: @display_lines,

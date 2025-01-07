@@ -1,40 +1,12 @@
-
-<template>
-  <BaseLayout v-bind="props">
-    <template #header>
-      <DefaultHeader v-bind="props"/>
-    </template>
-
-    <template #main>
-      <main class="container mx-auto p-4" name="WideLayout">
-        <slot></slot>
-      </main>
-    </template>
-
-    <template #footer>
-      <DefaultFooter v-bind="props"/>
-    </template>
-
-  </BaseLayout>
-</template>
-
+<!-- src/layouts/WideLayout.vue -->
 <script setup lang="ts">
-import BaseLayout from './BaseLayout.vue';
-import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+import { defineProps, withDefaults } from 'vue';
+import type { LayoutProps } from '@/types/ui/layouts';
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
-import type { Props as BaseProps } from '@/layouts/BaseLayout.vue';
+import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+import BaseLayout from './BaseLayout.vue';
 
-// Define the props for this layout, extending the BaseLayout props
-export interface Props extends BaseProps {
-  displayFeedback?: boolean
-  displayLinks?: boolean
-  displayMasthead?: boolean
-  displayNavigation?: boolean
-  displayVersion?: boolean
-  displayToggles?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<LayoutProps>(), {
   displayFeedback: true,
   displayLinks: true,
   displayMasthead: true,
@@ -42,5 +14,24 @@ const props = withDefaults(defineProps<Props>(), {
   displayVersion: true,
   displayToggles: true,
 });
-
 </script>
+
+<template>
+  <BaseLayout v-bind="props">
+    <template #header>
+      <DefaultHeader v-bind="props" />
+    </template>
+
+    <template #main>
+      <main
+        class="container mx-auto p-4"
+        name="WideLayout">
+        <slot></slot>
+      </main>
+    </template>
+
+    <template #footer>
+      <DefaultFooter v-bind="props" />
+    </template>
+  </BaseLayout>
+</template>

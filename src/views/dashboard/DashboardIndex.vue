@@ -1,16 +1,17 @@
+<script setup lang="ts">
+  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+  import SecretForm from '@/components/secrets/form/SecretForm.vue';
+</script>
 
 <template>
-  <div class="min-h-[50vh]">
-    <DashboardTabNav />
+  <keep-alive>
+    <div class="min-h-[50vh]">
+      <DashboardTabNav />
 
-    <SecretForm
-      :withGenerate="true"
-      :withRecipient="true"
-    />
-  </div>
+      <SecretForm
+        :with-generate="true"
+        :with-recipient="true"
+      />
+    </div>
+  </keep-alive>
 </template>
-
-<script setup lang="ts">
-import SecretForm from '@/components/secrets/form/SecretForm.vue';
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-</script>

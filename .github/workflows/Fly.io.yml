@@ -28,7 +28,7 @@ on:
 jobs:
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: Fly.io
     steps:
       # Step 1: Check this out
@@ -38,7 +38,7 @@ jobs:
       # Step 2: Always leave a note
       - name: Record commit hash and display version info
         run: |
-          git rev-parse --short HEAD > .commit_hash.txt
+          echo ${GITHUB_SHA::7} > .commit_hash.txt
           echo Commit hash recorded
           head -4 .commit_hash.txt package.json
 
@@ -54,6 +54,5 @@ jobs:
           # Generate a long-lived token for reliable automated deployments
           # Command: flyctl tokens create deploy -x 13140h (valid 18 months)
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
 # Fortune: As this code vanishes into the ether, so too shall your
 # secrets be whispered once and forgotten.

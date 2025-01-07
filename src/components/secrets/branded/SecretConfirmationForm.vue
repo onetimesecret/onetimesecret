@@ -1,0 +1,211 @@
+<script setup lang="ts">
+import { useBranding } from '@/composables/useBranding';
+import { Secret, SecretDetails } from '@/schemas/models';
+import { useSecretStore } from '@/stores/secretStore';
+import { ref } from 'vue';
+
+import BaseSecretDisplay from './BaseSecretDisplay.vue';
+
+interface Props {
+  secretKey: string;
+  record: Secret | null;
+  details: SecretDetails | null;
+  domainId: string;
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits(['secret-loaded']);
+const secretStore = useSecretStore();
+const passphrase = ref('');
+const isSubmitting = ref(false);
+const error = ref('');
+
+const { brandSettings } = useBranding();
+
+const submitForm = async () => {
+  if (isSubmitting.value) return;
+
+  isSubmitting.value = true;
+  try {
+    const response = await secretStore.reveal(props.secretKey, passphrase.value);
+    // Announce success to screen readers
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.textContent = 'Secret revealed successfully';
+    document.body.appendChild(announcement);
+    setTimeout(() => announcement.remove(), 1000);
+
+    // Emit the secret-loaded event with the response data
+    emit('secret-loaded', {
+      record: response.record,
+      details: response.details
+    });
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to reveal secret';
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
+const hasImageError = ref(false);
+
+const handleImageError = () => {
+  hasImageError.value = true;
+};
+
+// Prepare the standardized path to the logo image.
+// Note that the file extension needs to be present but is otherwise not used.
+const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
+</script>
+
+<template>
+  <BaseSecretDisplay
+    default-title="You have a message"
+    :domain-branding="brandSettings"
+    :instructions="brandSettings?.instructions_pre_reveal">
+    <template #logo>
+      <!-- Brand Icon -->
+      <div class="relative mx-auto sm:mx-0">
+        <div
+          :class="{
+            'rounded-lg': brandSettings?.corner_style === 'rounded',
+            'rounded-full': brandSettings?.corner_style === 'pill',
+            'rounded-none': brandSettings?.corner_style === 'square'
+          }"
+          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
+          role="img"
+          :aria-label="hasImageError ? 'Default lock icon' : 'Brand logo'">
+          <!-- Default lock icon -->
+          <svg
+            v-if="!logoImage || hasImageError"
+            class="size-8 text-gray-400 dark:text-gray-500"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+
+          <!-- Logo -->
+          <img
+            v-if="logoImage && !hasImageError"
+            :src="logoImage"
+            alt="Brand logo"
+            class="size-16 object-contain"
+            :class="{
+              'rounded-lg': brandSettings?.corner_style === 'rounded',
+              'rounded-full': brandSettings?.corner_style === 'pill',
+              'rounded-none': brandSettings?.corner_style === 'square'
+            }"
+            @error="handleImageError"
+          />
+        </div>
+      </div>
+    </template>
+
+    <template #content>
+      <div
+        class="flex items-center text-gray-400 dark:text-gray-500"
+        role="status"
+        aria-label="Content status">
+        <svg
+          class="mr-2 size-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          aria-hidden="true">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7A9.97 9.97 0 014.02 8.971m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+          />
+        </svg>
+        <span class="text-sm">Content hidden</span>
+      </div>
+    </template>
+
+    <template #action-button>
+      <form @submit.prevent="submitForm" aria-label="Secret access form">
+        <!-- Error Message -->
+        <div
+          v-if="error"
+          class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-200"
+          role="alert">
+          {{ error }}
+        </div>
+
+        <!-- Passphrase Input -->
+        <div
+          v-if="record?.has_passphrase"
+          class="mb-4 space-y-2">
+          <label
+            :for="'passphrase-' + secretKey"
+            class="sr-only">
+            {{ $t('web.COMMON.enter_passphrase_here') }}
+          </label>
+          <input
+            v-model="passphrase"
+            :id="'passphrase-' + secretKey"
+            type="password"
+            name="passphrase"
+            :class="{
+              'rounded-lg': brandSettings?.corner_style === 'rounded',
+              'rounded-2xl': brandSettings?.corner_style === 'pill',
+              'rounded-none': brandSettings?.corner_style === 'square',
+              'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
+            }"
+            :style="{ fontFamily: brandSettings?.font_family }"
+            autocomplete="current-password"
+            :aria-label="$t('web.COMMON.enter_passphrase_here')"
+            :placeholder="$t('web.COMMON.enter_passphrase_here')"
+            aria-required="true"
+          />
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          :disabled="isSubmitting"
+          :class="{
+            'rounded-lg': brandSettings?.corner_style === 'rounded',
+            'rounded-full': brandSettings?.corner_style === 'pill',
+            'rounded-none': brandSettings?.corner_style === 'square',
+            'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
+          }"
+          :style="{
+            backgroundColor: brandSettings?.primary_color || 'var(--tw-color-brand-500)',
+            color: brandSettings?.button_text_light ? '#ffffff' : '#000000',
+            fontFamily: brandSettings?.font_family
+          }"
+          class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+          aria-live="polite">
+          <span class="sr-only">{{ isSubmitting ? 'Submitting...' : 'Click to continue' }}</span>
+          {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
+        </button>
+      </form>
+    </template>
+  </BaseSecretDisplay>
+</template>
+
+<style>
+.line-clamp-6 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Ensure focus outline is visible in all color schemes */
+:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+</style>

@@ -6,6 +6,7 @@ module Onetime::App
 
     class Base < Mustache
       include Onetime::App::Views::ViewHelpers
+
       self.template_path = './templates/mail'
       self.view_namespace = Onetime::App::Mail
       self.view_path = './onetime/email'
@@ -93,6 +94,31 @@ module Onetime::App
         OT.info "[email-sent] to #{email_address_obscured} #{self[:cust].identifier} #{message_identifier}"
         mailer_response
       end
+
+      def private_uri(obj)
+        format('/private/%s', obj.key)
+      end
+
+      def secret_uri(obj)
+        format('/secret/%s', obj.key)
+      end
+
+      def secret_display_domain(obj)
+        scheme = base_scheme
+        host = obj.share_domain || Onetime.conf[:site][:host]
+        [scheme, host].join
+      end
+
+      def base_scheme
+        Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
+      end
+
+      def baseuri
+        scheme = base_scheme
+        host = Onetime.conf[:site][:host]
+        [scheme, host].join
+      end
+
     end
 
   end

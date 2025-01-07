@@ -1,16 +1,17 @@
+/* src/router/auth.routes.ts */
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import QuietLayout from '@/layouts/QuietLayout.vue';
 import { useAuthStore } from '@/stores/authStore';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
-
   {
     path: '/signin',
     name: 'Sign In',
     component: () => import('@/views/auth/Signin.vue'),
     meta: {
       requiresAuth: false,
+      isAuthRoute: true,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,
@@ -39,6 +40,7 @@ const routes: Array<RouteRecordRaw> = [
     ],
     meta: {
       requiresAuth: false,
+      isAuthRoute: true,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: false,
@@ -66,6 +68,7 @@ const routes: Array<RouteRecordRaw> = [
     ],
     meta: {
       requiresAuth: false,
+      isAuthRoute: true,
       layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
@@ -83,7 +86,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       requiresAuth: true,
       layout: QuietLayout,
-      layoutProps: {}
+      layoutProps: {},
     },
     beforeEnter: async () => {
       const authStore = useAuthStore();
@@ -91,15 +94,14 @@ const routes: Array<RouteRecordRaw> = [
       try {
         // Call centralized logout logic
         await authStore.logout(); // this returns a promise
-
       } catch (error) {
         console.error('Logout failed:', error);
       }
 
       // Force a full page load from the server
       window.location.href = '/logout';
-    }
+    },
   },
-]
+];
 
 export default routes;

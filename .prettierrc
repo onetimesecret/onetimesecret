@@ -1,5 +1,5 @@
 {
-  "printWidth": 100,
+  "printWidth": 90,
   "tabWidth": 2,
   "useTabs": false,
   "semi": true,
@@ -11,8 +11,13 @@
   "bracketSameLine": true,
   "arrowParens": "always",
   "proseWrap": "preserve",
-  "htmlWhitespaceSensitivity": "css",
+  "htmlWhitespaceSensitivity": "strict",
   "vueIndentScriptAndStyle": true,
+  "singleAttributePerLine": true,
   "endOfLine": "lf",
-  "embeddedLanguageFormatting": "auto"
+  "embeddedLanguageFormatting": "auto",
+
+  "functionParenthesis": "multiline",
+  "arrayBrackets": "multiline",
+  "objectBraces": "multiline"
 }

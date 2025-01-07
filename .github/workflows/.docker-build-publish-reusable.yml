@@ -22,7 +22,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
@@ -30,12 +30,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Record commit hash and display version info
-        run: |
-          git rev-parse --short HEAD > .commit_hash.txt
-          echo Commit hash recorded
-          head -4 .commit_hash.txt package.json
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0
@@ -75,6 +69,12 @@ jobs:
             ${{ github.repository }}${{ inputs.image-suffix }}
           flavor: |
             latest=${{ !contains(github.ref, '-rc') }}
+
+      - name: Record commit hash and display version info
+        run: |
+          echo "${GITHUB_SHA:0:7}" > .commit_hash.txt
+          echo Commit hash recorded
+          head -4 .commit_hash.txt package.json
 
       - name: Build and push Docker image
         id: build-and-push

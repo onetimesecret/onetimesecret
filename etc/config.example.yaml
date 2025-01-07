@@ -84,6 +84,7 @@
     :metadata: 7
     :email_receipt: 8
     :secret: 8
+    :rate_limit: 2
     :feedback: 11
     :exception_info: 12
 :colonels:
@@ -239,6 +240,7 @@
   :get_domain: 100
   :verify_domain: 25
   :report_exception: 50
+  :attempt_secret_access: 10
 :development:
   # Enabling development mode here directs the application to expect
   # a vite server to be running on port 5173 and will attempt to
@@ -261,3 +263,19 @@
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
   :frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
+# Settings for experimental features that are still being tested.
+# All of these features are turned off by default and may not work as expected.
+:experimental:
+  # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
+  # after initialization to prevent any runtime modifications to the app middleware chain.
+  # This is a security measure that prevents malicious code from injecting new middleware.
+  #
+  # Effects:
+  # - Freezes the middleware stack, preventing adding/removing middleware after boot
+  # - Freezes the app object passed to Rack::Builder
+  # - Does not affect request/response object mutability
+  #
+  # Note: This setting can help make your application more secure by preventing
+  # middleware chain manipulation at runtime. For most applications, this should
+  # be enabled in production environments.
+  :freeze_app: false

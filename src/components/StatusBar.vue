@@ -1,60 +1,7 @@
-<template>
-  <Teleport to="body">
-    <Transition enter-active-class="transform ease-out duration-300 transition"
-                :enter-from-class="effectivePosition === 'top'
-                  ? '-translate-y-2 opacity-0 sm:-translate-y-0 sm:translate-x-2'
-                  : 'translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2'"
-                enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-                leave-active-class="transition ease-in duration-100"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0">
-      <div v-if="notifications.isVisible"
-           class="fixed left-0 right-0 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200"
-           :class="[
-            statusConfig?.classes,
-            effectivePosition === 'top' ? 'top-0' : 'bottom-0'
-          ]"
-           role="status"
-           aria-live="polite">
-        <div class="flex items-center space-x-3">
-          <Icon :icon="statusConfig?.icon || 'mdi:information'"
-                class="h-5 w-5 transition-all duration-200"
-                :class="statusConfig?.iconClasses"
-                aria-hidden="true" />
-          <span class="text-sm font-medium transition-all duration-200"
-                :class="statusConfig?.textClasses">
-            {{ notifications.message }}
-          </span>
-        </div>
-
-        <div class="flex items-center">
-          <button v-if="!loading"
-                  type="button"
-                  class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                  @click="notifications.hide">
-            <span class="sr-only">Dismiss</span>
-            <Icon icon="mdi:close"
-                  class="h-5 w-5" />
-          </button>
-        </div>
-
-        <!-- Progress indicator -->
-        <div v-if="autoDismiss && !loading && notifications.type"
-             class="absolute h-1 bg-current opacity-30"
-             :class="position === 'top' ? 'bottom-0' : 'bottom-0'"
-             :style="{
-              animation: `shrink ${duration}ms linear forwards`
-            }" />
-      </div>
-    </Transition>
-  </Teleport>
-</template>
-
-
 <script setup lang="ts">
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
-import { useNotificationsStore } from '@/stores/notifications';
 
 interface Props {
   autoDismiss?: boolean;
@@ -93,6 +40,12 @@ const getStatusConfig = (type: string | null) => ({
     textClasses: 'text-red-700 dark:text-red-100',
     iconClasses: 'text-red-500 dark:text-red-300'
   },
+  warning: {
+    icon: 'mdi:alert',
+    classes: 'bg-amber-50 dark:bg-amber-900',
+    textClasses: 'text-amber-700 dark:text-amber-100',
+    iconClasses: 'text-amber-500 dark:text-amber-300'
+  },
   info: {
     icon: 'mdi:information',
     classes: 'bg-blue-50 dark:bg-blue-900',
@@ -104,28 +57,17 @@ const getStatusConfig = (type: string | null) => ({
     classes: 'bg-blue-50 dark:bg-blue-900',
     textClasses: 'text-blue-700 dark:text-blue-100',
     iconClasses: 'text-blue-500 dark:text-blue-300 animate-spin'
-  }
+  },
 })[type || 'info'];
 
 const statusConfig = computed(() => {
   if (props.loading) {
     return getStatusConfig('loading');
   }
-  return getStatusConfig(notifications.type);
+  return getStatusConfig(notifications.severity);
 });
 </script>
 
-<style>
-@keyframes shrink {
-  from {
-    width: 100%;
-  }
-
-  to {
-    width: 0%;
-  }
-}
-</style>
 
 <script lang="ts">
 /**
@@ -164,3 +106,76 @@ const statusConfig = computed(() => {
  * @prop {number} [duration=5000] - Time in ms before auto-dismiss
  */
 </script>
+
+<template>
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transform ease-out duration-300 transition"
+      :enter-from-class="effectivePosition === 'top'
+        ? '-translate-y-2 opacity-0 sm:-translate-y-0 sm:translate-x-2'
+        : 'translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2'"
+      enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+      leave-active-class="transition ease-in duration-100"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0">
+      <div
+        v-if="notifications.isVisible"
+        class="fixed inset-x-0 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200"
+        :class="[
+          statusConfig?.classes,
+          effectivePosition === 'top' ? 'top-0' : 'bottom-0'
+        ]"
+        role="status"
+        aria-live="polite">
+        <div class="flex items-center space-x-3">
+          <Icon
+            :icon="statusConfig?.icon || 'mdi:information'"
+            class="size-5 transition-all duration-200"
+            :class="statusConfig?.iconClasses"
+            aria-hidden="true"
+          />
+          <span
+            class="text-sm font-medium transition-all duration-200"
+            :class="statusConfig?.textClasses">
+            {{ notifications.message }}
+          </span>
+        </div>
+
+        <div class="flex items-center">
+          <button
+            v-if="!loading"
+            type="button"
+            class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+            @click="notifications.hide">
+            <span class="sr-only">Dismiss</span>
+            <Icon
+              icon="mdi:close"
+              class="size-5"
+            />
+          </button>
+        </div>
+
+        <!-- Progress indicator -->
+        <div
+          v-if="autoDismiss && !loading && notifications.severity"
+          class="absolute h-1 bg-current opacity-30"
+          :class="position === 'top' ? 'bottom-0' : 'bottom-0'"
+          :style="{
+            animation: `shrink ${duration}ms linear forwards`
+          }"></div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<style>
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
+</style>

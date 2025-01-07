@@ -1,29 +1,3 @@
-<template>
-  <router-link
-    :to="to"
-    :aria-label="ariaLabel"
-    class="inline-flex items-center px-2 py-1 text-sm font-medium rounded-md
-           text-white
-           focus:outline-none focus:ring-2 focus:ring-white
-           transition-all duration-300 ease-in-out
-           glow-effect"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-5 w-5 mr-1 animate-pulse"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-    >
-      <path
-        fill-rule="evenodd"
-        d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
-        clip-rule="evenodd"
-      />
-    </svg>
-    <span v-if="text" class="animate-bounce">{{ text }}</span>
-  </router-link>
-</template>
-
 <script setup lang="ts">
 defineProps<{
   text?: string;
@@ -31,6 +5,32 @@ defineProps<{
   ariaLabel: string;
 }>();
 </script>
+
+<template>
+  <router-link
+    :to="to"
+    :aria-label="ariaLabel"
+    class="glow-effect inline-flex items-center rounded-md px-2 py-1 text-sm
+           font-medium
+           text-white transition-all duration-300
+           ease-in-out focus:outline-none focus:ring-2
+           focus:ring-white">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="mr-1 size-5 animate-pulse"
+      viewBox="0 0 20 20"
+      fill="currentColor">
+      <path
+        fill-rule="evenodd"
+        d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+        clip-rule="evenodd"
+      />
+    </svg>
+    <span
+      v-if="text"
+      class="animate-bounce">{{ text }}</span>
+  </router-link>
+</template>
 
 <style scoped>
 .glow-effect {

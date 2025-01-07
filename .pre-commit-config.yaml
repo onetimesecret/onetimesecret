@@ -1,103 +1,139 @@
 ##
-# Pre-Commit Configuration
+# Pre-Commit Hooks Configuration
 #
-# Initial setup:
+# Fast, lightweight code quality checks that run before each commit
 #
-#   0. Install the pre-commit framework (if it isn't already on your system):
+# Setup:
+#   1. Install pre-commit:
+#       $ pip install pre-commit
 #
-#         $ pip install pre-commit
+#   2. Install git hooks:
+#       $ pre-commit install
 #
-#   1. Install the git hook:
+# Usage:
+#   Hooks run automatically on 'git commit'
 #
-#         $ pre-commit install
-#
-#
-# Other commands:
-#
-#   Run it on all the files in this repo:
+#   Manual commands:
+#   - Check all files:
 #     $ pre-commit run --all-files
 #
-#   Updating plugin repositories:
+#   - Update hooks:
 #     $ pre-commit autoupdate
 #
-#   Automatically enable pre-commit on repositories
-#     $ git config --global init.templateDir ~/.git-template
-#     $ pre-commit init-templatedir ~/.git-template
+#   - Reinstall after config changes:
+#     $ pre-commit install
 #
-# See also:
-#   - https://pre-commit.com for more information
-#   - https://pre-commit.com/hooks.html for more hooks
+# Best Practices:
+#   - Reinstall hooks after modifying this config
+#   - Commit config changes in isolation
+#   - Keep checks fast to maintain workflow
 #
+# Resources:
+#   - Docs: https://pre-commit.com
+#   - Available hooks: https://pre-commit.com/hooks.html
+#
+# Note: These lightweight checks maintain code quality without
+# slowing down the local development process.
 
+# Hook installation configuration
 default_install_hook_types:
-  - pre-commit
-  - prepare-commit-msg
-  - post-commit
-  - post-checkout
-  - post-merge
+  - pre-commit # Primary code quality checks
+  - prepare-commit-msg # Commit message preprocessing
+  - post-commit # Actions after successful commit
+  - post-checkout # Triggered after git checkout
+  - post-merge # Triggered after git merge
 
+# Default execution stage
+default_stages: [pre-commit]
+
+# Terminate checks on first failure
 fail_fast: true
 
-# Skip generated/dependency directories
-exclude: '^(vendor|node_modules|dist|build)/'
+# Ignore generated and dependency directories
+exclude: '^$'
 
 repos:
+  # Meta hooks: basic checks for pre-commit config itself
+  - repo: meta
+    hooks:
+      - id: check-hooks-apply
+      - id: check-useless-excludes
+      - id: identity
+        name: Identity Hook (for sanity checking)
+        args: ['--hello', '--world']
+
+  # Standard pre-commit hooks: lightweight, universal checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-      # Fast, essential checks only
-      - id: trailing-whitespace
-        # Remove the --cached argument
-      - id: end-of-file-fixer
-        # Remove the --cached argument
-      - id: check-merge-conflict
-      - id: detect-private-key
-      - id: check-added-large-files
-        args: ["--maxkb=2500"]
-      - id: no-commit-to-branch
-        args: ["--branch", "develop", "--branch", "rel/.*"]
+      # Formatting and basic sanitization
+      - id: trailing-whitespace # Remove trailing whitespaces
+      - id: end-of-file-fixer # Ensure files end with newline
+      - id: check-merge-conflict # Detect unresolved merge conflicts
+      - id: detect-private-key # Warn about committing private keys
+      - id: check-added-large-files # Prevent committing oversized files
+        args: ['--maxkb=2500'] # 2.5MB file size threshold
+      - id: no-commit-to-branch # Prevent direct commits to critical branches
+        args: ['--branch', 'develop', '--branch', 'rel/.*']
 
-
-  # Originally based on Rubocop's own pre-commit configuration
-  # https://github.com/rubocop/rubocop/blob/d5d8828/.pre-commit-hooks.yaml
-  # NOTE: Don't enable '--autocorrect' until codebase is clean
-  # Use Rubocop local hooks for better performance
-  # Fast local Rubocop checks (basic syntax)
+  # Local Ruby linting: syntax and basic style checks
   - repo: local
     hooks:
       - id: local-rubocop-fast
+        stages: [pre-commit]
         name: Quick Rubocop
+        description: Lightweight Ruby syntax and layout validation
         entry: bundle exec rubocop --force-exclusion --config .rubocop.yml --format json --fail-level error --only Syntax,Layout --no-server
         language: system
         types: [ruby]
         files: \.(rb|rake)$
         pass_filenames: true
 
+  # Commit message issue tracking integration
   - repo: https://github.com/avilaton/add-msg-issue-prefix-hook
     rev: v0.0.11
     hooks:
       - id: add-msg-issue-prefix
         stages: [prepare-commit-msg]
+        description: Automatically prefix commits with issue numbers
         args:
-          - "--default=[UNTRACKED]"
-          - "--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}"
-          - "--template=[#{}]"
+          - '--default=[UNTRACKED]'
+          - '--pattern=[a-zA-Z0-9]{0,10}-?[0-9]{1,5}'
+          - '--template=[#{}]'
 
-  # Quick local ESLint checks (syntax only)
+  # Local JavaScript linting: quick syntax checks
   - repo: local
     hooks:
       - id: local-eslint-fast
+        stages: [pre-commit]
         name: Quick ESLint
-        entry: node_modules/.bin/eslint --quiet
+        description: Lightweight TypeScript/Vue syntax validation
+        entry: node_modules/.bin/eslint --quiet --flag unstable_ts_config --config eslint.config.ts
         language: system
-        types: [file]
-        files: \.(mjs|ts|vue)$
+        pass_filenames: true
+        files: (^src/.*\.(mjs|ts|vue)$|^.*\.(mjs|ts|vue)$)
 
+  # Disable type-checking while sorting out tsconfig.json ignore when files specified
+  # Local TypeScript type checking: quick type validation
+  # - repo: local
+  #   hooks:
+  #     - id: typescript-check-quick
+  #       stages: [pre-commit]
+  #       name: TypeScript Type Check
+  #       description: Comprehensive TypeScript type validation (.ts only)
+  #       entry: pnpm run type-check
+  #       language: system
+  #       pass_filenames: false
+  #       types: [file]
+  #       files: ^src/.*\.(ts|tsx)$
+
+  # Commit metadata tracking
   - repo: local
     hooks:
       - id: register-build
         stages: [post-commit, post-checkout, post-merge]
         name: Record commit hash
+        description: Log current commit hash for build reference
         entry: "sh -c 'git rev-parse --short HEAD > .commit_hash.txt; echo Commit hash recorded; head -4 .commit_hash.txt package.json'"
         language: system
         always_run: true

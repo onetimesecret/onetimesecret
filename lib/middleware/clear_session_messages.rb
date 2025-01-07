@@ -7,7 +7,7 @@ module Rack
   class ClearSessionMessages
     attr_reader :logger
 
-    def initialize(app, io: $stdout, check_enabled: nil)
+    def initialize(app, io: $stderr)
       @app = app
       @logger = ::Logger.new(io, level: :info)
     end

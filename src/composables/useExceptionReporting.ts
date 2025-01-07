@@ -1,6 +1,6 @@
 // composables/useExceptionReporting.ts
+import type { ExceptionReport } from '@/schemas/api/requests';
 import api from '@/utils/api';
-import type { ExceptionReport } from '@/types';
 
 export function useExceptionReporting() {
   const reportException = async (report: ExceptionReport) => {
@@ -14,6 +14,6 @@ export function useExceptionReporting() {
   };
 
   return {
-    reportException
+    reportException,
   };
 }

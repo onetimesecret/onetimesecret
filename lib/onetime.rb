@@ -21,7 +21,7 @@ require 'storable'
 require 'sysinfo'
 
 require_relative 'onetime/core_ext'
-require_relative 'refinements/horreum_refinements'
+require_relative 'onetime/refinements/horreum_refinements'
 
 # Ensure immediate flushing of stdout to improve real-time logging visibility.
 # This is particularly useful in development and production environments where
@@ -91,7 +91,8 @@ module Onetime
       @conf # return the config
 
     rescue OT::Problem => e
-      OT.le "Problem booting: #{e.message}"
+      OT.le "Problem booting: #{e}"
+      OT.ld e.backtrace.join("\n")
       exit 1
     rescue Redis::CannotConnectError => e
       OT.le "Cannot connect to redis #{Familia.uri} (#{e.class})"

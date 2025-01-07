@@ -1,3 +1,5 @@
+require_relative 'middleware/domain_strategy'
+
 require_relative 'app/web/endpoints'
 
 require_relative 'app/api/v1/endpoints'

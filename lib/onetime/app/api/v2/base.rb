@@ -81,11 +81,14 @@ module Onetime::App
           logic.raise_concerns
           logic.process
           OT.ld "[process_action] #{logic_class} success=#{logic.greenlighted}"
+
           if logic.greenlighted
             json_success(custid: cust.custid, **logic.success_data)
           else
-            error_response(error_message)
+            # Add a fresh shrimp to allow continuing without refreshing the page
+            error_response(error_message, shrimp: sess.add_shrimp)
           end
+
         end
       end
 
@@ -100,7 +103,10 @@ module Onetime::App
       # entire page).
       def handle_form_error ex, hsh={}
         hsh[:shrimp] = sess.add_shrimp
-        error_response ex.message, hsh
+        hsh[:message] = ex.message
+        hsh[:success] = false
+        res.status = 422 # Unprocessable Entity
+        json hsh
       end
 
       def not_found_response msg, hsh={}

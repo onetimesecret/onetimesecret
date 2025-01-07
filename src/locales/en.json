@@ -15,6 +15,7 @@
 
       "header_settings": "Settings",
       "submit_with": "Submit",
+      "submitting": "Processing",
 
       "description": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
       "keywords": "secret,password generator,share a secret,onetime",
@@ -44,7 +45,7 @@
       "error_passphrase": "Double check that passphrase",
       "enter_passphrase_here": "Enter the passphrase here",
       "view_secret": "View Secret",
-      "careful_only_see_once": "careful: we will only show it once.",
+      "careful_only_see_once": "Careful: we will only show it once.",
       "warning": "Warning",
       "oops": "Oops!",
       "error": "Error",
@@ -103,9 +104,14 @@
     },
     "private": {
       "pretext": "Share this link:",
-      "requires_passphrase": "Requires a passphrase.",
+      "requires_passphrase": "This secret requires a passphrase to decrypt.",
       "this_msg_is_encrypted": "This message is encrypted with your passphrase.",
-      "only_see_once": "you will only see this once"
+      "only_see_once": "you will only see this once",
+      "created_success": "New secret created successfully!",
+      "burned_ago": "Burned {time}",
+      "viewed_ago": "This secret was viewed {time}",
+      "encrypted_message": "This message is encrypted",
+      "destroyed_ago": "Destroyed {time}"
     },
     "shared": {
       "requires_passphrase": "This message requires a passphrase:",
@@ -113,7 +119,10 @@
       "you_created_this_secret": "You created this secret. If you view it, the recipient will not be able to see it.",
       "your_secret_message": "Your secret message:",
       "this_message_for_you": "This message is for you:",
-      "reply_with_secret": "Reply with another secret"
+      "reply_with_secret": "Reply with another secret",
+      "pre_reveal_default": "Click the button below to reveal your secure message.",
+      "post_reveal_default": "Your secure message is shown below."
+
     },
     "dashboard": {
       "title_received": "Received",

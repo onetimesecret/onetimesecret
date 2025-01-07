@@ -1,21 +1,25 @@
-import accountRoutes from '@/router/account.routes'
-import authRoutes from '@/router/auth.routes'
-import dashboardRoutes from '@/router/dashboard.routes'
-import { setupRouterGuards } from '@/router/guards.routes'
-import productRoutes from '@/router/product.routes'
-import publicRoutes from '@/router/public.routes'
-import NotFound from '@/views/NotFound.vue'
-import type { RouteRecordRaw } from 'vue-router'
-import { createRouter, createWebHistory } from 'vue-router'
+import { setupRouterGuards } from '@/router/guards.routes';
+import NotFound from '@/views/NotFound.vue';
+import type { Router, RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 
+import accountRoutes from './account.routes';
+import authRoutes from './auth.routes';
+import dashboardRoutes from './dashboard.routes';
+import metadataRoutes from './metadata.routes';
+import productRoutes from './product.routes';
+import publicRoutes from './public.routes';
+import secretRoutes from './secret.routes';
 
 const routes: RouteRecordRaw[] = [
   ...publicRoutes,
   ...productRoutes,
-  ...dashboardRoutes,
+  ...metadataRoutes,
+  ...secretRoutes,
   ...authRoutes,
+  ...dashboardRoutes,
   ...accountRoutes,
-]
+];
 
 /**
  * Creates and configures the Vue Router instance.
@@ -51,7 +55,7 @@ const routes: RouteRecordRaw[] = [
  *
  * @returns {Router} The configured Vue Router instance.
  */
-export function createAppRouter() {
+export function createAppRouter(): Router {
   const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -59,19 +63,19 @@ export function createAppRouter() {
       // This catch-all 404 route is meant to be added last.
       {
         path: '/:pathMatch(.*)*',
-        name: 'NotFound',
-        component: NotFound
-      }
+        name: 'Not Found',
+        component: NotFound,
+      },
     ],
     scrollBehavior(to, from, savedPosition) {
       // always scroll to top
       if (savedPosition) {
-        return savedPosition
+        return savedPosition;
       } else {
-        return { top: 0 }
+        return { top: 0 };
       }
     },
-  })
+  });
 
   // Set up router guards for authentication and locale settings
   setupRouterGuards(router);

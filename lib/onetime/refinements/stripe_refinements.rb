@@ -1,5 +1,7 @@
 # rubocop:disable
 
+# lives in lib/onetime/refinements
+
 require 'stripe' # ensures Stripe namespace is loaded
 
 module Onetime::StripeRefinements
@@ -8,6 +10,7 @@ module Onetime::StripeRefinements
 
     # Safe fields for Stripe Subscription object
     set_safe_dump_fields [
+      { :identifier => ->(obj) { obj.id } },
       :id,
       :status,
       :current_period_start,
@@ -69,9 +72,9 @@ module Onetime::StripeRefinements
       end
     end
 
-
     # Safe fields for Stripe Customer object
     @safe_dump_fields = [
+      { :identifier => ->(obj) { obj.id } },
       :id,
       :email,
       :name,

@@ -1,28 +1,62 @@
+<script setup lang="ts">
+/**
+ * Props for FancyIconLink component
+ */
+defineProps<{
+  text?: string;
+  to: string;
+  ariaLabel: string;
+}>();
+</script>
+
 <template>
   <router-link
     :to="to"
     :aria-label="ariaLabel"
-    class="inline-flex items-center px-2 py-1 text-sm font-medium rounded-md
-           text-gray-700 hover:text-gray-900
-           focus:outline-none focus:ring-2 focus:ring-brandcomp-500
-           dark:text-gray-300 dark:hover:text-gray-100
-           transition-colors duration-150 ease-in-out"
-  >
+    class="inline-flex items-center rounded-md px-2 py-1 text-sm font-medium
+           text-gray-700 transition-colors
+           duration-150 ease-in-out hover:text-gray-900
+           focus:outline-none focus:ring-2
+           focus:ring-brandcomp-500 dark:text-gray-300 dark:hover:text-gray-100">
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class="h-5 w-5 mr-1 icon-glow"
+      class="icon-glow mr-1 size-5"
       viewBox="0 0 20 20"
-      fill="url(#gradientAnimation)"
-    >
+      fill="url(#gradientAnimation)">
       <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#ff0000" />
-          <stop offset="25%" stop-color="#ff69b4" />
-          <stop offset="50%" stop-color="#ffff00" />
-          <stop offset="75%" stop-color="#ff4500" />
-          <stop offset="100%" stop-color="#ff0000" />
+        <linearGradient
+          id="gradient"
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="100%">
+          <stop
+            offset="0%"
+            stop-color="#ff0000"
+          />
+          <stop
+            offset="25%"
+            stop-color="#ff69b4"
+          />
+          <stop
+            offset="50%"
+            stop-color="#ffff00"
+          />
+          <stop
+            offset="75%"
+            stop-color="#ff4500"
+          />
+          <stop
+            offset="100%"
+            stop-color="#ff0000"
+          />
         </linearGradient>
-        <linearGradient id="gradientAnimation" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient
+          id="gradientAnimation"
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="100%">
           <animateTransform
             attributeName="gradientTransform"
             type="rotate"
@@ -31,17 +65,35 @@
             dur="5s"
             repeatCount="indefinite"
           />
-          <stop offset="0%" stop-color="#ff0000" />
-          <stop offset="25%" stop-color="#ff69b4" />
-          <stop offset="50%" stop-color="#ffff00" />
-          <stop offset="75%" stop-color="#ff4500" />
-          <stop offset="100%" stop-color="#ff0000" />
+          <stop
+            offset="0%"
+            stop-color="#ff0000"
+          />
+          <stop
+            offset="25%"
+            stop-color="#ff69b4"
+          />
+          <stop
+            offset="50%"
+            stop-color="#ffff00"
+          />
+          <stop
+            offset="75%"
+            stop-color="#ff4500"
+          />
+          <stop
+            offset="100%"
+            stop-color="#ff0000"
+          />
         </linearGradient>
         <filter id="glow">
-          <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feGaussianBlur
+            stdDeviation="2.5"
+            result="coloredBlur"
+          />
           <feMerge>
-            <feMergeNode in="coloredBlur"/>
-            <feMergeNode in="SourceGraphic"/>
+            <feMergeNode in="coloredBlur" />
+            <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
       </defs>
@@ -55,17 +107,6 @@
     <span v-if="text">{{ text }}</span>
   </router-link>
 </template>
-
-<script setup lang="ts">
-/**
- * Props for FancyIconLink component
- */
-defineProps<{
-  text?: string;
-  to: string;
-  ariaLabel: string;
-}>();
-</script>
 
 <style scoped>
 .icon-glow {

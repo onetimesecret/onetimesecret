@@ -15,6 +15,7 @@ pnpm-debug.log*
 
 # Directories
 .certs/
+.continue/
 .devcontainer
 .history
 .pnpm/
@@ -49,6 +50,8 @@ etc/config*
 !fly.toml
 .github/*md
 .eslintcache
+.continuerc.json
+tsconfig.tsbuildinfo
 
 # Environment files
 .env*

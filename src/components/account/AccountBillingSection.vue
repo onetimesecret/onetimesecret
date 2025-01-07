@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
 import type Stripe from 'stripe';
+import { computed } from 'vue';
 
 interface Props {
   stripeCustomer: Stripe.Customer | null;
-  stripeSubscriptions: Stripe.Subscription[];
+  stripeSubscriptions?: Stripe.Subscription[] | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,7 +20,7 @@ const defaultPaymentMethod = computed(() => {
 });
 
 const subscriptionDetails = computed(() => {
-  return props.stripeSubscriptions.map(subscription => ({
+  return props?.stripeSubscriptions?.map(subscription => ({
     id: subscription.id,
     status: subscription.status,
     amount: subscription.items.data[0]?.price?.unit_amount ?? 0,
@@ -32,36 +32,51 @@ const subscriptionDetails = computed(() => {
 </script>
 
 <template>
-  <div v-if="props.stripeSubscriptions.length > 0 && props.stripeCustomer"
-       class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md space-y-6 mb-6">
-
+  <div
+    v-if="props.stripeSubscriptions && props.stripeSubscriptions.length > 0 && props.stripeCustomer"
+    class="mb-6 space-y-6 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
     <header class="flex items-center justify-between">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-        <Icon icon="mdi:credit-card-outline" class="w-6 h-6 mr-2 text-brandcomp-500" />
+      <h2 class="flex items-center text-2xl font-bold text-gray-900 dark:text-white">
+        <Icon
+          icon="mdi:credit-card-outline"
+          class="mr-2 size-6 text-brandcomp-500"
+        />
         Subscription
       </h2>
-      <a href="/account/billing_portal"
-         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brandcomp-500 hover:bg-brandcomp-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brandcomp-500 transition-colors duration-150">
+      <a
+        href="/account/billing_portal"
+        class="inline-flex items-center rounded-md border border-transparent bg-brandcomp-500 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brandcomp-600 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2">
         Manage Subscription
       </a>
     </header>
 
-    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <section class="grid grid-cols-1 gap-6 md:grid-cols-2">
       <div class="space-y-4">
-        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Customer Information</h3>
-        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+          Customer Information
+        </h3>
+        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li>Customer since: {{ formatDate(props.stripeCustomer.created) }}</li>
-          <li v-if="props.stripeCustomer.email">Email: {{ props.stripeCustomer.email }}</li>
+          <li v-if="props.stripeCustomer.email">
+            Email: {{ props.stripeCustomer.email }}
+          </li>
           <li v-if="props.stripeCustomer.balance !== 0">
             Account balance: ${{ (props.stripeCustomer.balance / 100).toFixed(2) }}
           </li>
         </ul>
       </div>
 
-      <div v-if="defaultPaymentMethod?.card" class="space-y-4">
-        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Default Payment Method</h3>
+      <div
+        v-if="defaultPaymentMethod?.card"
+        class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+          Default Payment Method
+        </h3>
         <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-          <Icon icon="mdi:credit-card" class="w-8 h-8 mr-2 text-gray-400" />
+          <Icon
+            icon="mdi:credit-card"
+            class="mr-2 size-8 text-gray-400"
+          />
           {{ defaultPaymentMethod.card.brand }}
           ending in {{ defaultPaymentMethod.card.last4 }}
         </div>
@@ -69,15 +84,19 @@ const subscriptionDetails = computed(() => {
     </section>
 
     <section class="space-y-6">
-      <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Subscriptions</h3>
-      <div v-for="subscription in subscriptionDetails"
-           :key="subscription.id"
-           class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-        <div class="flex justify-between items-center mb-4">
-          <span :class="[
-            'px-2 py-1 text-xs font-semibold rounded-full',
-            subscription.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
-          ]">
+      <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+        Subscriptions
+      </h3>
+      <div
+        v-for="subscription in subscriptionDetails"
+        :key="subscription.id"
+        class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
+        <div class="mb-4 flex items-center justify-between">
+          <span
+            :class="[
+              'rounded-full px-2 py-1 text-xs font-semibold',
+              subscription.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
+            ]">
             {{ subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1) }}
           </span>
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">

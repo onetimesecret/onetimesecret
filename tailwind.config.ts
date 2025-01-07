@@ -1,14 +1,13 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
-import typography from '@tailwindcss/typography';
 import forms from '@tailwindcss/forms';
+import typography from '@tailwindcss/typography';
+import defaultTheme from 'tailwindcss/defaultTheme';
 
 /**
  * Tailwind CSS Configuration
  *
-**/
+ **/
 
 export default {
-
   content: [
     /**
      * `content` (Array): tells Tailwind CSS where to look for class
@@ -51,9 +50,9 @@ export default {
      * files in the content array as well.
      *
      */
-    "./src/*.html",
-    "./src/**/*.{vue,js,ts,jsx,tsx,mjs}",
-    "./templates/web/**/*.html",
+    './src/*.html',
+    './src/**/*.{vue,js,ts,jsx,tsx,mjs}',
+    './templates/web/**/*.html',
   ],
 
   darkMode: 'class',
@@ -118,9 +117,8 @@ export default {
           '700': '#0f6594',
           '800': '#0a4c78',
           '900': '#053359',
-          '950': '#021e3b'
-      }
-
+          '950': '#021e3b',
+        },
       },
     },
     // Don't mess with the scaling. rem == root em (ie. <html>). Everything is relative to that.
@@ -139,8 +137,7 @@ export default {
     forms(),
     typography(),
 
-    /* TODO: Check if we can use this in place of the fonts.css */
-    function({ addBase, theme }) {
+    function ({ addBase }: { addBase: (config: any) => void }) {
       addBase({
         '@font-face': [
           {
@@ -172,7 +169,7 @@ export default {
             fontDisplay: 'fallback',
           },
         ],
-      })
+      });
     },
   ],
 };

@@ -1,22 +1,21 @@
-
+import en from '@/locales/en.json';
 import { createI18n } from 'vue-i18n';
-import en from '@/locales/en.json' assert { type: 'json' };
 
 /**
- * This setup accomplishes the following:
+ * Configures internationalization with key behaviors:
  *
- * It loads the English translations by default.
- * It sets English as the fallback locale.
- * It detects the browser's locale and attempts to load the corresponding translation file if it's not English.
- * If the browser locale file is successfully loaded, it sets that as the active locale.
- * If loading fails (e.g., the file doesn't exist), it falls back to English.
+ * Loads English translations as default.
+ * Sets English as fallback locale.
+ * Detects browser locale, attempts
+ * matching translation import.
+ * Sets active locale if file loads.
+ * Falls back to English if load fails.
  **/
 
 const supportedLocales = window.supported_locales || [];
 
 export type MessageSchema = typeof en;
-export type SupportedLocale = typeof supportedLocales[number];
-
+export type SupportedLocale = (typeof supportedLocales)[number];
 
 // First supported locale is assumed to be the default
 const locale = supportedLocales[0] || 'en';

@@ -1,31 +1,48 @@
+<script setup lang="ts">
+import { WindowService } from '@/services/window.service';
+import { useJurisdictionStore } from '@/stores/jurisdictionStore';
+import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
+
+import JurisdictionInfo from './JurisdictionInfo.vue';
+import JurisdictionList from './JurisdictionList.vue';
+
+const cust = WindowService.get('cust');
+const supportHost = WindowService.get('support_host');
+
+const jurisdictionStore = useJurisdictionStore();
+const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
+const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
+const customerId = computed(() => cust?.custid);
+</script>
+
 <template>
-  <div class="space-y-8 max-w-4xl mx-auto px-4 sm:px-6">
+  <div class="mx-auto max-w-4xl space-y-8 px-4 sm:px-6">
     <!-- Data Region Section -->
     <section
-      class="space-y-4 pb-6 border-b border-gray-200 dark:border-gray-700"
-      aria-labelledby="data-region-heading"
-    >
+      class="space-y-4 border-b border-gray-200 pb-6 dark:border-gray-700"
+      aria-labelledby="data-region-heading">
       <h3
         id="data-region-heading"
-        class="text-lg font-semibold text-gray-900 dark:text-white"
-      >
+        class="text-lg font-semibold text-gray-900 dark:text-white">
         Data Region
       </h3>
-      <div class="rounded-lg bg-gray-50 dark:bg-gray-800 p-4 sm:p-6">
-        <div class="flex items-center gap-4 sm:gap-6 flex-col sm:flex-row">
-          <div class="h-16 w-16 flex-shrink-0 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+      <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800 sm:p-6">
+        <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
+          <div class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
             <Icon
-              :icon="currentJurisdiction.icon"
-              class="h-8 sm:h-10 w-8 sm:w-10 text-brand-600 dark:text-brand-400"
+              v-if="currentJurisdiction?.icon"
+              :icon="currentJurisdiction?.icon"
+              class="size-8 text-brand-600 dark:text-brand-400 sm:size-10"
               aria-hidden="true"
             />
           </div>
           <div class="space-y-1 text-center sm:text-left">
             <div class="text-base font-medium text-gray-900 dark:text-white">
-              {{ currentJurisdiction.display_name }}
+              {{ currentJurisdiction?.display_name }}
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">
-              Data center location: {{ currentJurisdiction.identifier }}
+              Data center location: {{ currentJurisdiction?.identifier }}
             </div>
           </div>
         </div>
@@ -35,27 +52,25 @@
     <!-- Jurisdiction Section -->
     <section
       class="space-y-6"
-      aria-labelledby="jurisdiction-heading"
-    >
+      aria-labelledby="jurisdiction-heading">
       <header class="space-y-1">
         <h3
           id="jurisdiction-heading"
-          class="text-lg font-semibold text-gray-900 dark:text-white"
-        >
+          class="text-lg font-semibold text-gray-900 dark:text-white">
           Jurisdiction
         </h3>
         <p
           v-if="customerId"
-          class="text-sm text-gray-500 dark:text-gray-400"
-        >
+          class="text-sm text-gray-500 dark:text-gray-400">
           Account ID: {{ customerId }}
         </p>
       </header>
 
       <!-- Info Card -->
-      <div class="rounded-lg bg-gray-50 p-4 sm:p-6 dark:bg-gray-800 prose prose-base dark:prose-invert max-w-none">
+      <div class="prose prose-base max-w-none rounded-lg bg-gray-50 p-4 dark:prose-invert dark:bg-gray-800 sm:p-6">
         <div class="space-y-4">
           <JurisdictionInfo
+            v-if="currentJurisdiction"
             :jurisdiction="currentJurisdiction"
             :support-host="supportHost"
           />
@@ -70,26 +85,9 @@
 
         <JurisdictionList
           :jurisdictions="jurisdictions"
-          :current-jurisdiction="currentJurisdiction"
+          :currentJurisdiction="currentJurisdiction"
         />
       </div>
     </section>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue';
-import { Icon } from '@iconify/vue';
-import { useWindowProp } from '@/composables/useWindowProps';
-import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import JurisdictionInfo from './JurisdictionInfo.vue';
-import JurisdictionList from './JurisdictionList.vue';
-
-const cust = useWindowProp('cust');
-const supportHost = useWindowProp('support_host');
-
-const jurisdictionStore = useJurisdictionStore();
-const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
-const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
-const customerId = computed(() => cust.value?.custid);
-</script>

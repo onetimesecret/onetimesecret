@@ -26,7 +26,7 @@ module Onetime
 
     module Views
 
-      #
+      ##
       # The VuePoint class serves as a bridge between the Ruby Rack application
       # and the Vue.js frontend. It is responsible for initializing and passing
       # JavaScript variables from the backend to the frontend.
@@ -54,11 +54,6 @@ module Onetime
 
       class UnknownSecret < Onetime::App::View
         self.template_name = :index
-        def init
-          self[:title] = "No such secret"
-          self[:display_feedback] = false
-          self[:display_masthead] = false
-        end
       end
 
     end
