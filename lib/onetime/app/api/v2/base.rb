@@ -103,7 +103,10 @@ module Onetime::App
       # entire page).
       def handle_form_error ex, hsh={}
         hsh[:shrimp] = sess.add_shrimp
-        error_response ex.message, hsh
+        hsh[:message] = ex.message
+        hsh[:success] = false
+        res.status = 422 # Unprocessable Entity
+        json hsh
       end
 
       def not_found_response msg, hsh={}
