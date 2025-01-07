@@ -97,6 +97,6 @@ export const errorClassifier = {
 };
 
 // Convenience function for external use
-export function classifyError(error: Error): ApplicationError {
-  return errorClassifier.classify(error);
+export function classifyError(error: unknown): ApplicationError {
+  return errorClassifier.classify(error as Error);
 }

@@ -24,7 +24,7 @@ export interface ApplicationError extends Error {
   severity: ErrorSeverity;
   code?: string | number | null;
   stack?: string;
-  original?: Error;
+  original?: Error | null;
   details?: Record<string, unknown>;
 }
 
