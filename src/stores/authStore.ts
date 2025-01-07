@@ -1,5 +1,6 @@
 // src/stores/authStore.ts
 import { responseSchemas } from '@/schemas/api';
+import { loggingService } from '@/services/logging.service';
 import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -102,6 +103,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   function init(options?: StoreOptions) {
     if (_initialized.value) return { needsCheck, isInitialized };
+
+    if (options?.api) {
+      loggingService.warn('AuthStore: API instance provided in options, ignoring.');
+    }
 
     const inputValue = WindowService.get('authenticated');
 
@@ -206,10 +211,37 @@ export const useAuthStore = defineStore('auth', () => {
    * - Resetting all related stores
    * - Clearing session storage
    * - Updating window state
+   * Clears authentication state and storage.
+   *
+   * This method resets the store state to its initial values using `this.$reset()`.
+   * It also clears session storage and stops any ongoing authentication checks.
+   * This is typically used during logout to ensure that all user-specific data
+   * is cleared and the store is returned to its default state.
    */
-  async function logout(this: AuthStore) {
-    await this.$stopAuthCheck();
-    this.$logout();
+  async function logout() {
+    await $stopAuthCheck();
+
+    // const authStore = useAuthStore();
+    // const languageStore = useLanguageStore();
+    // const csrfStore = useCsrfStore();
+
+    // // Reset all stores
+    // authStore.$reset();
+    // languageStore.$reset();
+    // csrfStore.$reset();
+
+    // Sync window state
+    window.cust = null;
+    window.authenticated = false;
+
+    deleteCookie('sess');
+    deleteCookie('locale');
+
+    // Clear all session storage;
+    sessionStorage.clear();
+
+    // Remove any and all lingering store state
+    // context.pinia.state.value = {};
   }
   /**
    * Disposes of the store, stopping the auth check.
@@ -255,3 +287,8 @@ export const useAuthStore = defineStore('auth', () => {
     $reset,
   };
 });
+
+const deleteCookie = (name: string) => {
+  console.debug('Deleting cookie:', name);
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+};
