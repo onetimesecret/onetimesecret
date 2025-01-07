@@ -4,7 +4,7 @@ import { useNotificationsStore } from '@/stores';
 import { useDomainsStore } from '@/stores/domainsStore';
 import { detectPlatform, shouldUseLightText } from '@/utils';
 import { computed, onMounted, ref, watch } from 'vue';
-import { createError, useAsyncHandler } from './useAsyncHandler';
+import { AsyncHandlerOptions, createError, useAsyncHandler } from './useAsyncHandler';
 
 /**
  * Composable for displaying domain-specific branding settings
@@ -43,11 +43,13 @@ export function useBranding(domainId?: string) {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
-  const { wrap } = useAsyncHandler({
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isLoading.value = loading),
     // onError: (err) => (error.value = err),
-  });
+  };
+
+  const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   const initialize = () =>
     wrap(async () => {
@@ -73,7 +75,12 @@ export function useBranding(domainId?: string) {
   const primaryColor = computed(() => brandSettings.value.primary_color);
   const fontFamily = computed(() => brandSettings.value.font_family);
   const cornerStyle = computed(() => brandSettings.value.corner_style);
-  const hasCustomBranding = computed(() => brandSettings.value !== store.defaultBranding);
+  const hasCustomBranding = computed(
+    () =>
+      brandSettings.value !== undefined &&
+      brandSettings.value !== null &&
+      brandSettings.value !== undefined
+  );
   const getButtonClass = computed(() => ({
     'text-light': brandSettings.value.button_text_light,
     [`corner-${brandSettings.value.corner_style}`]: true,
@@ -94,7 +101,7 @@ export function useBranding(domainId?: string) {
     () => primaryColor,
     (newColor) => {
       if (newColor) {
-        brandSettings.value.button_text_light = shouldUseLightText(newColor);
+        brandSettings.value.button_text_light = shouldUseLightText(newColor.value);
       }
     }
   );

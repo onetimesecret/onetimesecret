@@ -18,19 +18,15 @@ const hasGlobalBanner = computed(() => { return !!globalBanner });
 const color = ref('#dc4a22');
 const brandStore = useBrandStore();
 
+// Compute primary color styles based on brand color or prop
 const primaryColorClass = computed(() => {
-  if (brandStore.isActive) return '';
-  return !isColorValue(color.value) ? color.value : '';
+  const currentColor = brandStore.primaryColor || color.value;
+  return !isColorValue(currentColor) ? currentColor : '';
 });
 
 const primaryColorStyle = computed(() => {
-  if (brandStore.isActive) {
-    const brandColor = brandStore.primaryColor;
-    return isColorValue(brandColor) ? { backgroundColor: brandColor } : {};
-  }
-  return isColorValue(color.value)
-    ? { backgroundColor: color.value }
-    : {};
+  const currentColor = brandStore.primaryColor || color.value;
+  return isColorValue(currentColor) ? { backgroundColor: currentColor } : {};
 });
 /* =============================== */
 

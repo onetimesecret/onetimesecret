@@ -10,7 +10,7 @@ import type {
   ImageProps,
 } from '@/schemas/models';
 import { loggingService } from '@/services/logging.service';
-import { AxiosInstance } from 'axios';
+import { AxiosError, AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref, Ref } from 'vue';
 
@@ -144,9 +144,9 @@ export const useDomainsStore = defineStore('domains', () => {
       // Use the existing schema to validate the response
       const validated = responseSchemas.imageProps.parse(response.data);
       return validated.record;
-    } catch (error) {
+    } catch (error: unknown) {
       // Handle 404 or other expected errors silently
-      if (error.response?.status === 404) return null;
+      if ((error as AxiosError).response?.status === 404) return null;
       throw error;
     }
   }
@@ -179,7 +179,8 @@ export const useDomainsStore = defineStore('domains', () => {
   // Ensure getBrandSettings always returns valid data
   async function getBrandSettings(domain: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/v2/domains/${domain}/brand`);
-    return responseSchemas.brandSettings.parse(response.data);
+    const validated = responseSchemas.brandSettings.parse(response.data);
+    return validated.record;
   }
 
   /**

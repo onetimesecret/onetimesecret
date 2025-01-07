@@ -2,9 +2,9 @@
 
 import { ApplicationError } from '@/schemas';
 import { useMetadataListStore } from '@/stores/metadataListStore';
-import { NotificationSeverity, useNotificationsStore } from '@/stores/notificationsStore';
+import { useNotificationsStore } from '@/stores/notificationsStore';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
@@ -16,15 +16,17 @@ export function useMetadataList() {
   const notifications = useNotificationsStore();
 
   // Extract store refs
-  const { records, details, count, recordCount } = storeToRefs(store);
+  const { records, details, count } = storeToRefs(store);
+
+  // Access recordCount directly from store
+  const recordCount = computed(() => store.recordCount());
 
   // Local state
   const isLoading = ref(false);
   const error = ref<ApplicationError | null>(null);
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) =>
-      notifications.show(message, severity as NotificationSeverity),
+    notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => (error.value = err),
   };

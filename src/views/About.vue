@@ -28,10 +28,10 @@ const bytesToKB = (bytes: number) => {
 // additional features like burn-before-reading options, which allow senders to
 // delete secrets before they're received.
 // TODO: Cleanup this mess of plans
-const anonymousTtlDays = computed(() => secondsToDays(anonymousPlan?.value?.options?.ttl));
-const anonymousSizeKB = computed(() => bytesToKB(anonymousPlan?.value?.options?.size));
-const defaultTtlDays = computed(() => secondsToDays(defaultPlan?.value?.options?.ttl));
-const defaultSizeKB = computed(() => bytesToKB(defaultPlan?.value?.options?.size));
+const anonymousTtlDays = computed(() => secondsToDays(anonymousPlan?.value?.options?.ttl ?? (3600*24*7)));
+const anonymousSizeKB = computed(() => bytesToKB(anonymousPlan?.value?.options?.size ?? 102400));
+const defaultTtlDays = computed(() => secondsToDays(defaultPlan?.value?.options?.ttl ?? (3600*24*14)));
+const defaultSizeKB = computed(() => bytesToKB(defaultPlan?.value?.options?.size ?? 1024000));
 
 onMounted(() => {
   if (available_plans && default_planid) {

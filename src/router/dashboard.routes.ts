@@ -1,7 +1,5 @@
 import DefaultFooter from '@/components/layout/DefaultFooter.vue';
 import DefaultHeader from '@/components/layout/DefaultHeader.vue';
-import { AsyncDataResult, CustomDomainResponse } from '@/schemas/api/responses';
-import api from '@/utils/api';
 import DashboardIndex from '@/views/dashboard/DashboardIndex.vue';
 import DashboardRecent from '@/views/dashboard/DashboardRecent.vue';
 import { RouteRecordRaw } from 'vue-router';
@@ -99,34 +97,6 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
     },
     props: true,
-    beforeEnter: async (to, from, next) => {
-      try {
-        const domain = to.params.domain as string;
-        const response = await api.get<CustomDomainResponse>(
-          `/api/v2/domains/${domain}/brand`
-        );
-
-        const initialData: AsyncDataResult<CustomDomainResponse> = {
-          status: response.status,
-          data: response.data,
-          error: null,
-        };
-
-        to.meta.initialData = initialData; // Could fix this by adding a AccountInitialData type
-        next();
-      } catch (error) {
-        console.error('Error fetching domain brand data:', error);
-        const initialData: AsyncDataResult<CustomDomainResponse> = {
-          status: 500,
-          data: null,
-          error:
-            error instanceof Error ? error.message : 'Failed to fetch domain brand data',
-        };
-
-        to.meta.initialData = initialData;
-        next();
-      }
-    },
   },
 ];
 

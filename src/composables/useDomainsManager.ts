@@ -32,8 +32,7 @@ export function useDomainsManager() {
   const error = ref<ApplicationError | null>(null); // Add local error state
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity: 'success' | 'error' | 'info') =>
-      notifications.show(message, severity),
+    notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => (error.value = err),
   };
@@ -54,7 +53,7 @@ export function useDomainsManager() {
       const domainData = await store.getDomain(domainName);
       const domain = domainData.record;
       const currentTime = Math.floor(Date.now() / 1000);
-      const lastMonitored = domain?.vhost?.last_monitored_unix || currentTime;
+      const lastMonitored = (domain?.vhost?.last_monitored_unix ?? currentTime) as number;
       const canVerify = currentTime - lastMonitored >= 30;
 
       return {

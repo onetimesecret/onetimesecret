@@ -5,6 +5,7 @@ import { z } from 'zod';
 export const feedbackSchema = createModelSchema({
   // Feedback content using consistent transform pattern
   msg: z.string().min(1).max(1500),
+  stamp: transforms.fromString.date,
 });
 
 // Details schema for feedback-specific metadata

@@ -1,12 +1,15 @@
 // src/composables/useSecret.ts
 
-import { SecretStore, useSecretStore } from '@/stores/secretStore';
+import { ApplicationError } from '@/schemas/errors/types';
+import { useSecretStore } from '@/stores/secretStore';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 
 export function useSecret(key: string) {
-  const store = useSecretStore() as SecretStore;
-  const { record, details, isLoading } = storeToRefs(store);
+  const store = useSecretStore();
+  const isLoading = ref(false);
+  const error = ref<ApplicationError | null>(null);
+  const { record, details } = storeToRefs(store);
 
   // Local state
   const passphrase = ref('');
@@ -24,6 +27,7 @@ export function useSecret(key: string) {
     record: record,
     details: details,
     isLoading,
+    error,
     passphrase,
 
     // Computed

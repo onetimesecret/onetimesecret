@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
 import { useFetchDataRecord } from '@/composables/useFetchData';
-import { ColonelData } from '@/schemas/api/responses';
+import { ColonelData } from '@/schemas/api/endpoints';
 import { computed, onMounted } from 'vue';
 
 const tabs = [
@@ -82,8 +82,8 @@ onMounted(fetchColonelData);
               v-for="section in feedbackSections"
               :key="section.title"
               :title="section.title"
-              :count="section.count"
-              :feedback="section.feedback"
+              :count="section.count ?? 0"
+              :feedback="section.feedback ?? {}"
             />
           </div>
         </div>
@@ -104,14 +104,14 @@ onMounted(fetchColonelData);
             :title="customer.verified ? 'verified' : 'not verified'">
             <div class="flex items-center justify-between">
               <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                <strong>{{ customer.custid }}</strong>{{ customer.colonel ? '*' : '' }}
+                <strong>{{ customer.custid }}</strong>
               </p>
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 {{ customer.secrets_created }}/{{ customer.secrets_shared }}/{{ customer.emails_sent }} [{{ customer.planid }}]
               </p>
             </div>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              <em>{{ customer.stamp }}</em>{{ !customer.verified ? '?' : '' }}
+              <em>{{ customer.created }}</em>{{ !customer.verified ? '?' : '' }}
             </p>
           </li>
         </ul>

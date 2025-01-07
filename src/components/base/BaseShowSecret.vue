@@ -30,10 +30,10 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const { record, details, isLoading, load, reveal } = useSecret(props.secretKey);
+const { record, details, isLoading, load, reveal, error } = useSecret(props.secretKey);
 
-const handleUserConfirmed = (passphrase: Ref) => {
-  reveal(passphrase);
+const handleUserConfirmed = (passphrase: Ref<string>) => {
+  reveal(passphrase.value);
 };
 
 onBeforeRouteUpdate((to, from, next) => {
@@ -113,7 +113,9 @@ onMounted(() => {
     <template v-else-if="!record">
       <slot
         name="unknown"
-        :branded="branded"></slot>
+        :branded="branded"
+        :details="details">
+        </slot>
     </template>
 
     <!-- Footer slot -->

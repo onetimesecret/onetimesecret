@@ -8,6 +8,8 @@
 export type ErrorType = 'technical' | 'human' | 'security';
 export type ErrorSeverity = 'error' | 'warning' | 'info';
 
+export type NotificationSeverity = ErrorSeverity | 'success' | null;
+
 /**
  * Intended to supplement Vue 3's built-in error handling with a structured errorl
  * object that can be passed between components and services.l

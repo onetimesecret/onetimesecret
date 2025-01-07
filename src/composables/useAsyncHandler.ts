@@ -1,17 +1,18 @@
 // src/composables/useAsyncHandler.ts
-import type { ApplicationError, ErrorSeverity } from '@/schemas/errors';
+import type { ApplicationError, NotificationSeverity } from '@/schemas/errors';
 import {
   classifyError,
   createError,
   isOfHumanInterest,
 } from '@/schemas/errors/classifier';
 import { loggingService } from '@/services/logging.service';
+import type {} from '@/stores/notificationsStore';
 
 export interface AsyncHandlerOptions {
   /**
    * Optional handler for user-facing notifications
    */
-  notify?: (message: string, severity: ErrorSeverity) => void;
+  notify?: (message: string, severity: NotificationSeverity) => void;
   /**
    * Optional error logging implementation
    */
@@ -88,7 +89,7 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   const handlers = {
     notify:
       options.notify ??
-      ((message: string, severity: ErrorSeverity) => {
+      ((message: string, severity: NotificationSeverity) => {
         loggingService.info(`[notify] [${severity}] ${message}`);
       }),
     log:

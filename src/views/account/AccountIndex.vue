@@ -56,8 +56,9 @@ onMounted(fetchAccount);
 
     <!-- BILLING INFO -->
     <AccountBillingSection
-      :stripe-customer="account?.stripe_customer"
-      :stripe-subscriptions="account?.stripe_subscriptions"
+      v-if="account && account.stripe_customer"
+      :stripe-customer="account.stripe_customer"
+      :stripe-subscriptions="account.stripe_subscriptions"
     />
 
     <!-- PASSWORD CHANGE -->

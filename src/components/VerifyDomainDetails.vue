@@ -10,7 +10,7 @@ import DetailField from './DetailField.vue';
 
 interface Props {
   domain: CustomDomain;
-  cluster: CustomDomainCluster;
+  cluster?: CustomDomainCluster | null | undefined;
   withVerifyCTA?: boolean;
 }
 
@@ -129,7 +129,7 @@ const verify = async () => {
           />
           <DetailField
             label="Value"
-            :value="cluster?.cluster_ip"
+            :value="cluster?.cluster_ip ?? ''"
           />
         </div>
       </li>

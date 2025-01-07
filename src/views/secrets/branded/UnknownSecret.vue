@@ -4,6 +4,7 @@ import type { BrandSettings } from '@/schemas/models/domain/brand';
 
 interface Props {
   brandSettings?: BrandSettings;
+  branded?: boolean;
 }
 
 defineProps<Props>();
