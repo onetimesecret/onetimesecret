@@ -5,24 +5,12 @@ module Onetime
     module Views
       module ViewHelpers # rubocop:disable Style/Documentation
 
-        def jsvar(name, value)
-          value = case value.class.to_s
-                  when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
-                    if value.to_s.match?(/\A(https?):\/\/[^\s\/$.?#].[^\s]*\z/)
-                      "'#{value}'" # escaping URLs really kills the vibe
-                    else
-                      "'#{Rack::Utils.escape_html(value)}'"
-                    end
-                  when 'Array', 'Hash'
-                    value.to_json
-                  when 'NilClass'
-                    'null'
-                  when 'Boolean', 'FalseClass', 'TrueClass'
-                    value
-                  else
-                    "console.error('#{value.class} is an unhandled type (named #{name})')"
-                  end
-          { name: name, value: value }
+        def jsvar(value)
+          OT::Utils::Sanitation.jsvar(value)
+        end
+
+        def jsvars_to_script
+          OT::Utils::Sanitation.serialize_to_script(self[:jsvars], id: 'onetime-state')
         end
 
         # Caches the result of a method call for a specified duration.

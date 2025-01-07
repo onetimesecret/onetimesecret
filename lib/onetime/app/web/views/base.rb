@@ -64,33 +64,34 @@ module Onetime
         self[:frontend_development] = frontend_development
         self[:no_cache] = false
 
-        self[:jsvars] = []
+        self[:jsvars] = {}
 
         # Add the global site banner if there is one
-        self[:jsvars] << jsvar(:global_banner, OT.global_banner) if OT.global_banner
+        self[:jsvars][:global_banner] = jsvar(OT.global_banner) if OT.global_banner
 
         # Pass the authentication flag settings to the frontends.
-        self[:jsvars] << jsvar(:authentication, authentication) # nil is okay
-        self[:jsvars] << jsvar(:shrimp, sess.add_shrimp) if sess
+        self[:jsvars][:authentication] = jsvar(authentication) # nil is okay
+        self[:jsvars][:shrimp] = jsvar(sess.add_shrimp) if sess
 
         # Only send the regions config when the feature is enabled.
-        self[:jsvars] << jsvar(:regions_enabled, regions_enabled)
-        self[:jsvars] << jsvar(:regions, regions) if regions_enabled
+        self[:jsvars][:regions_enabled] = jsvar(regions_enabled)
+        self[:jsvars][:regions] = jsvar(regions) if regions_enabled
 
         # Ensure that these keys are always present in jsvars, even if nil
         ensure_exist = [:domains_enabled, :custid, :cust, :email, :customer_since, :custom_domains]
 
-        if authenticated && cust
-          self[:jsvars] << jsvar(:domains_enabled, domains_enabled) # only for authenticated
+        self[:jsvars][:domains_enabled] = jsvar(domains_enabled) # only for authenticated
 
-          self[:jsvars] << jsvar(:custid, cust.custid)
-          self[:jsvars] << jsvar(:cust, cust.safe_dump)
-          self[:jsvars] << jsvar(:email, cust.email)
+        if authenticated && cust
+
+          self[:jsvars][:custid] = jsvar(cust.custid)
+          self[:jsvars][:cust] = jsvar(cust.safe_dump)
+          self[:jsvars][:email] = jsvar(cust.email)
 
           # TODO: We can remove this after we update the Account view to use
           # the value of cust.created to calculate the customer_since value
           # on-the-fly and in the time zone of the user.
-          self[:jsvars] << jsvar(:customer_since, epochdom(cust.created))
+          self[:jsvars][:customer_since] = jsvar(epochdom(cust.created))
 
           # There's no custom domain list when the feature is disabled.
           if domains_enabled
@@ -106,13 +107,13 @@ module Onetime
 
               obj.display_domain
             end
-            self[:jsvars] << jsvar(:custom_domains, custom_domains.sort)
+            self[:jsvars][:custom_domains] = jsvar(custom_domains.sort)
           end
         else
           # We do this so that in our typescript we can assume either a value
           # or nil (null), avoiding undefined altogether.
           ensure_exist.each do |key|
-            self[:jsvars] << jsvar(key, nil)
+            self[:jsvars][key] = jsvar(nil)
           end
         end
 
@@ -128,48 +129,49 @@ module Onetime
         end
 
         # Link to the pricing page can be seen regardless of authentication status
-        self[:jsvars] << jsvar(:plans_enabled, site.dig(:plans, :enabled) || false)
-        self[:jsvars] << jsvar(:locale, @locale)
-        self[:jsvars] << jsvar(:is_default_locale, is_default_locale)
-        self[:jsvars] << jsvar(:supported_locales, supported_locales)
+        self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)
+        self[:jsvars][:locale] = jsvar(@locale)
+        self[:jsvars][:is_default_locale] = jsvar(is_default_locale)
+        self[:jsvars][:supported_locales] = jsvar(supported_locales)
 
-        self[:jsvars] << jsvar(:incoming_recipient, incoming_recipient)
-        self[:jsvars] << jsvar(:support_host, support_host)
-        self[:jsvars] << jsvar(:secret_options, secret_options)
-        self[:jsvars] << jsvar(:frontend_host, frontend_host)
-        self[:jsvars] << jsvar(:authenticated, authenticated)
-        self[:jsvars] << jsvar(:site_host, site[:host])
-        self[:jsvars] << jsvar(:canonical_domain, canonical_domain)
-        self[:jsvars] << jsvar(:domain_strategy, domain_strategy)
-        self[:jsvars] << jsvar(:domain_id, domain_id)
-        self[:jsvars] << jsvar(:domain_branding, domain_branding)
-        self[:jsvars] << jsvar(:display_domain, display_domain)
+        self[:jsvars][:incoming_recipient] = jsvar(incoming_recipient)
+        self[:jsvars][:support_host] = jsvar(support_host)
+        self[:jsvars][:secret_options] = jsvar(secret_options)
+        self[:jsvars][:frontend_host] = jsvar(frontend_host)
+        self[:jsvars][:authenticated] = jsvar(authenticated)
+        self[:jsvars][:site_host] = jsvar(site[:host])
+        self[:jsvars][:canonical_domain] = jsvar(canonical_domain)
+        self[:jsvars][:domain_strategy] = jsvar(domain_strategy)
+        self[:jsvars][:domain_id] = jsvar(domain_id)
+        self[:jsvars][:domain_branding] = jsvar(domain_branding)
+        self[:jsvars][:display_domain] = jsvar(display_domain)
 
         # The form fields hash is populated by handle_form_error so only when there's
         # been a form error in the request immediately prior to this one being served
         # now will this have any value at all. This is used to repopulate the form
         # fields with the values that were submitted so the user can try again
         # without having to re-enter everything.
-        self[:jsvars] << jsvar(:form_fields, self.form_fields)
+        self[:jsvars][:form_fields] = jsvar(self.form_fields)
 
-        self[:jsvars] << jsvar(:ot_version, OT::VERSION.inspect)
-        self[:jsvars] << jsvar(:ruby_version, "#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
+        self[:jsvars][:ot_version] = jsvar(OT::VERSION.inspect)
+        self[:jsvars][:ruby_version] = jsvar("#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
 
         plans = Onetime::Plan.plans.transform_values do |plan|
           plan.safe_dump
         end
-        self[:jsvars] << jsvar(:available_plans, plans)
+        self[:jsvars][:available_plans] = jsvar(plans)
 
         @plan = Onetime::Plan.plan(cust.planid) unless cust.nil?
         @plan ||= Onetime::Plan.plan('anonymous')
         @is_paid = plan.paid?
 
-        self[:jsvars] << jsvar(:plan, plan.safe_dump)
-        self[:jsvars] << jsvar(:is_paid, @is_paid)
-        self[:jsvars] << jsvar(:default_planid, 'basic')
+        self[:jsvars][:plan] = jsvar(plan.safe_dump)
+        self[:jsvars][:is_paid] = jsvar(@is_paid)
+        self[:jsvars][:default_planid] = jsvar('basic')
 
         # So the list of template vars shows up sorted variable name
-        self[:jsvars] = self[:jsvars].sort_by { |item| item[:name] }
+        # self[:jsvars] = self[:jsvars].sort
+        self[:window] = self[:jsvars].to_json
 
         init(*args) if respond_to? :init
       end
