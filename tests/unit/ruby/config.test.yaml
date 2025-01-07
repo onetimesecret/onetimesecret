@@ -217,3 +217,5 @@
   # middleware chain manipulation at runtime. For most applications, this should
   # be enabled in production environments.
   :freeze_app: true
+  :csp:
+    :enabled: false
