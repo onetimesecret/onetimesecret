@@ -101,7 +101,8 @@ module Onetime::Logic
 
       def success_data
         {
-          record: {
+          record: {},
+          details: {
             recent_customers: recent_customers,
             today_feedback: today_feedback,
             yesterday_feedback: yesterday_feedback,
@@ -122,8 +123,6 @@ module Onetime::Logic
               yesterday_feedback_count: yesterday_feedback_count,
               older_feedback_count: older_feedback_count
             }
-          },
-          details: {
           }
         }
       end

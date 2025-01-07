@@ -4,11 +4,11 @@ import { Icon } from '@iconify/vue';
 
 const props = defineProps<{
   jurisdictions: Jurisdiction[];
-  currentJurisdiction: Jurisdiction;
+  currentJurisdiction?: Jurisdiction | null;
 }>();
 
 const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
-  jurisdiction.identifier === props.currentJurisdiction.identifier;
+  jurisdiction.identifier === props.currentJurisdiction?.identifier;
 </script>
 
 <template>

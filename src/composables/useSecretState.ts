@@ -1,5 +1,4 @@
 // src/composables/useSecretState.ts
-
 import { Metadata } from '@/schemas/models/index';
 import { formatRelativeTime } from '@/utils/format/index';
 import type { ComputedRef } from 'vue';
@@ -10,6 +9,7 @@ import { useI18n } from 'vue-i18n';
  * Icon path configurations for different states
  */
 /* eslint-disable max-lines-per-function */
+
 const iconPaths = {
   viewable: 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z',
   burned:
@@ -21,58 +21,42 @@ const iconPaths = {
     'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
 } as const;
 
-export function useSecretState(metadata: Metadata, hasPassphrase: ComputedRef) {
+export function useSecretState(metadata: Metadata, hasPassphrase: ComputedRef<boolean>) {
   const { t } = useI18n();
-
-  const messages = computed(() => ({
-    viewable: t('web.private.created_success'),
-    burned: computed(() =>
-      t('web.private.burned_ago', {
-        time: formatRelativeTime(metadata.burned), // timeField
-      })
-    ),
-    received: computed(() =>
-      t('web.private.viewed_ago', {
-        time: formatRelativeTime(metadata.received),
-      })
-    ),
-    protected: computed(() =>
-      hasPassphrase.value
-        ? t('web.private.requires_passphrase')
-        : t('web.private.encrypted_message')
-    ),
-    destroyed: computed(() =>
-      t('web.private.destroyed_ago', {
-        time: formatRelativeTime(metadata.updated),
-      })
-    ),
-  }));
 
   const stateConfig = computed(() => ({
     viewable: {
       icon: iconPaths.viewable,
       color: 'emerald',
-      message: messages.value.viewable,
+      message: t('web.private.created_success'),
     },
     burned: {
       icon: iconPaths.burned,
       color: 'red',
-      message: messages.value.burned.value,
+      message: metadata.burned
+        ? t('web.private.burned_ago', { time: formatRelativeTime(metadata.burned) })
+        : t('web.private.burned'),
     },
     received: {
       icon: iconPaths.viewed,
       color: 'gray',
-      message: messages.value.received.value,
+      message: metadata.received
+        ? t('web.private.viewed_ago', { time: formatRelativeTime(metadata.received) })
+        : t('web.private.viewed'),
     },
     protected: {
       icon: iconPaths.protected,
       color: 'amber',
-      message: messages.value.protected.value,
+      message: hasPassphrase.value
+        ? t('web.private.requires_passphrase')
+        : t('web.private.encrypted_message'),
     },
     destroyed: {
       icon: iconPaths.destroyed,
       color: 'red',
-      message: messages.value.destroyed.value,
+      message: metadata.updated
+        ? t('web.private.destroyed_ago', { time: formatRelativeTime(metadata.updated) })
+        : t('web.private.destroyed'),
     },
   }));
 

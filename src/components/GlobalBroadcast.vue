@@ -21,7 +21,7 @@ import { computed } from 'vue';
 // See: https://vuejs.org/guide/typescript/composition-api.html#props-default-values
 
 export interface Props {
-  content: string; // Can contain HTML
+  content: string | null; // Can contain HTML
   show: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
@@ -38,7 +38,7 @@ function decodeHTMLEntities(html: string) {
 
 // Computed property for decoded and sanitized content
 const sanitizedContent = computed(() => {
-  const decodedContent = decodeHTMLEntities(props.content);
+  const decodedContent = decodeHTMLEntities(props.content ?? '');
   const sanitizeConfig = {
     ALLOWED_TAGS: ['a'],
     ALLOWED_ATTR: ['href', 'target', 'rel', 'class']

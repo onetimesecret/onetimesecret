@@ -113,6 +113,12 @@ module Onetime::App
         Onetime.conf[:site][:ssl] ? 'https://' : 'http://'
       end
 
+      def baseuri
+        scheme = base_scheme
+        host = Onetime.conf[:site][:host]
+        [scheme, host].join
+      end
+
     end
 
   end

@@ -1,52 +1,53 @@
-import {
-  createApplicationError,
-  type ApplicationError,
-  type ErrorSeverity,
-  type ErrorType,
-} from './types';
+import { HTTP_STATUS_CODES } from './constants';
+import { applicationErrorSchema, type ApplicationError, type ErrorType } from './types';
+import { wrapError } from './wrapper';
 
-// HTTP status codes categorized by error type
-const SECURITY_STATUS_CODES = new Set([
-  401, // Unauthorized
-  403, // Forbidden
-  429, // Too Many Requests
-  407, // Proxy Authentication Required
-  423, // Locked
-]);
+// Type guards
+export const errorGuards = {
+  isApplicationError(error: unknown): error is ApplicationError {
+    return (
+      error !== null &&
+      typeof error === 'object' &&
+      'type' in error &&
+      'severity' in error &&
+      (error as any).name === 'ApplicationError'
+    );
+  },
 
-const HUMAN_STATUS_CODES = new Set([
-  404, // Not Found
-  409, // Conflict
-  400, // Bad Request
-  405, // Method Not Allowed
-  410, // Gone
-]);
+  isOfHumanInterest(error: ApplicationError): boolean {
+    return error.type === 'human';
+  },
 
-/**
- * * Creates a structured ApplicationError with consistent typing and metadata
- *
- * Usage example:
- *   throw createTechnicalError(`Failed to fetch secret: ${response.statusText}`, {
- *     status: response.status,
- *     key
- *   });
- *
- *
- * @param message
- * @param type
- * @param severity
- * @param details
- * @returns
- *
- */
-export function createError(
-  message: string,
-  type: ErrorType = 'technical',
-  severity: ErrorSeverity = 'error'
-): ApplicationError {
-  const error = createApplicationError(message, type, severity);
-  Error.captureStackTrace(error, createError);
-  return error;
+  isSecurityIssue(error: ApplicationError): boolean {
+    return error.type === 'security';
+  },
+
+  /**
+   * Type guard to check if an object is an HTTP error (Axios or Fetch)
+   * Handles both error types since they share common network error properties
+   */
+  isHttpError(error: unknown): error is HttpErrorLike {
+    return (
+      error !== null &&
+      typeof error === 'object' &&
+      ('isAxiosError' in error ||
+        ('status' in error &&
+          'statusText' in error &&
+          error instanceof Error &&
+          'response' in error))
+    );
+  },
+};
+
+interface HttpErrorLike {
+  status?: number;
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
 }
 
 /**
@@ -60,56 +61,42 @@ export function createError(
  * @param error - The error to classify
  * @returns ApplicationError with appropriate type and severity
  */
-export function classifyError(error: unknown): ApplicationError {
-  if (isApplicationError(error)) return error;
+export const errorClassifier = {
+  classifyByStatusCode(error: HttpErrorLike): ErrorType {
+    const status = error.status || error.response?.status;
+    if (!status) return 'technical';
 
-  const message = error instanceof Error ? error.message : String(error);
-  let type: ErrorType = 'technical';
+    if (HTTP_STATUS_CODES.SECURITY.has(status)) return 'security';
+    if (HTTP_STATUS_CODES.HUMAN.has(status)) return 'human';
+    return 'technical';
+  },
 
-  if (isApiError(error) && error.status) {
-    if (SECURITY_STATUS_CODES.has(error.status)) {
-      type = 'security';
-    } else if (HUMAN_STATUS_CODES.has(error.status)) {
-      type = 'human';
+  extractMessage(error: unknown): string {
+    if (errorGuards.isHttpError(error)) {
+      return error.response?.data?.message || error.message || String(error);
     }
-  }
+    return error instanceof Error ? error.message : String(error);
+  },
 
-  const classified = createError(message, type, 'error');
-  Error.captureStackTrace(classified, classifyError);
-  return classified;
-}
+  classify(error: unknown): ApplicationError {
+    if (errorGuards.isApplicationError(error)) {
+      const result = applicationErrorSchema.safeParse(error);
+      if (result.success) return error;
+    }
 
-/**
- * Type guard to check if an error is already classified as an ApplicationError
- */
-export function isApplicationError(error: unknown): error is ApplicationError {
-  return (
-    error instanceof Error &&
-    'type' in error &&
-    'severity' in error &&
-    error.name === 'ApplicationError'
-  );
-}
+    const message = this.extractMessage(error);
+    const type = errorGuards.isHttpError(error)
+      ? this.classifyByStatusCode(error)
+      : 'technical';
+    const code = errorGuards.isHttpError(error)
+      ? error.status || error.response?.status || 'ERR_HTTP'
+      : 'ERR_GENERIC';
 
-/**
- * Type guard to check if an error is human-facing
- */
-export function isOfHumanInterest(error: ApplicationError): boolean {
-  return error.type === 'human';
-}
+    return wrapError(message, type, 'error', error as Error, code);
+  },
+};
 
-/**
- * Type guard to check if an error is security-related
- */
-export function isSecurityIssue(error: ApplicationError): boolean {
-  return error.type === 'security';
-}
-
-/**
- * Type guard to check if an object is an API error with status code
- */
-export function isApiError(
-  error: unknown
-): error is { message: string; status?: number } {
-  return typeof error === 'object' && error !== null && 'message' in error;
+// Convenience function for external use
+export function classifyError(error: unknown): ApplicationError {
+  return errorClassifier.classify(error as Error);
 }

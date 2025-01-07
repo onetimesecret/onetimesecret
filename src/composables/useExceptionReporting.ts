@@ -1,5 +1,5 @@
 // composables/useExceptionReporting.ts
-import type { ExceptionReport } from '@/types';
+import type { ExceptionReport } from '@/schemas/api/requests';
 import api from '@/utils/api';
 
 export function useExceptionReporting() {
@@ -14,6 +14,6 @@ export function useExceptionReporting() {
   };
 
   return {
-    reportException
+    reportException,
   };
 }

@@ -1,7 +1,16 @@
 // src/composables/useFetchData.ts
 import type { ApiRecordResponse, ApiRecordsResponse } from '@/schemas/api';
-import { BaseApiRecord, DetailsType } from '@/schemas/models/base';
 import { computed, ref, Ref } from 'vue';
+
+// Core API record interface used across models
+export interface BaseApiRecord {
+  identifier: string;
+  created: string;
+  updated: string;
+}
+
+// Generic details type used in API responses
+export type DetailsType = Record<string, unknown>;
 
 interface FetchDataOptions<T extends BaseApiRecord> {
   url: string;

@@ -1,12 +1,12 @@
 // src/stores/notificationsStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
+import { NotificationSeverity } from '@/types/ui/notifications';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
 
 export type NotificationPosition = 'top' | 'bottom';
-export type NotificationSeverity = 'success' | 'error' | 'info' | 'warning' | null;
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -59,7 +59,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
    * @param sev - Severity level of the notification
    * @param pos - Optional position of notification
    */
-  function show(msg: string, sev: 'success' | 'error' | 'info', pos?: 'top' | 'bottom') {
+  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition) {
     message.value = msg;
     severity.value = sev;
     position.value = pos || 'bottom';

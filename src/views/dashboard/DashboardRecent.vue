@@ -12,7 +12,7 @@ interface Props {
 }
 defineProps<Props>();
 
-const { records, details, isLoading, fetch, error } = useMetadataList();
+const { details, recordCount, isLoading, fetch, error } = useMetadataList();
 
 // Add computed properties for received and not received items
 const receivedItems = computed(() => {
@@ -45,7 +45,7 @@ onMounted(() => {
     </div>
     <div v-else>
       <SecretMetadataTable
-        v-if="records?.length > 0"
+        v-if="recordCount > 0"
         :not-received="notReceivedItems"
         :received="receivedItems"
         :is-loading="isLoading"

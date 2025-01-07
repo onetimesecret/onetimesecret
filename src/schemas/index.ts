@@ -81,7 +81,7 @@ export type {
     SecretResponse
 } from './api/responses';
 
-export type { ColonelData } from './api/endpoints/colonel';
+export type { ColonelDetails } from './api/endpoints/colonel';
 
 // Core model types
 export type {

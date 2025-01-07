@@ -9,8 +9,8 @@ import { z } from 'zod';
 export const accountSchema = z.object({
   cust: customerSchema,
   apitoken: z.string().optional(),
-  stripe_customer: z.custom<Stripe.Customer>(),
-  stripe_subscriptions: z.array(z.custom<Stripe.Subscription>()),
+  stripe_customer: z.custom<Stripe.Customer>().nullable(),
+  stripe_subscriptions: z.array(z.custom<Stripe.Subscription>()).nullable(),
 });
 
 export type Account = z.infer<typeof accountSchema>;

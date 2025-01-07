@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
-import { useFetchDataRecord } from '@/composables/useFetchData';
-import { ColonelData } from '@/schemas/api/responses';
+import { useColonelStore } from '@/stores/colonelStore';
 import { computed, onMounted } from 'vue';
 
 const tabs = [
@@ -12,20 +11,17 @@ const tabs = [
 ];
 
 const feedbackSections = computed(() => {
-  if (!colonelData.value) return [];
+  if (!details) return [];
   return [
-    { title: 'Today', count: colonelData.value.counts.today_feedback_count, feedback: colonelData.value.today_feedback },
-    { title: 'Yesterday', count: colonelData.value.counts.yesterday_feedback_count, feedback: colonelData.value.yesterday_feedback },
-    { title: 'Past 14 Days', count: colonelData.value.counts.older_feedback_count, feedback: colonelData.value.older_feedback },
+    { title: 'Today', count: details.counts.today_feedback_count, feedback: details.today_feedback },
+    { title: 'Yesterday', count: details.counts.yesterday_feedback_count, feedback: details.yesterday_feedback },
+    { title: 'Past 14 Days', count: details.counts.older_feedback_count, feedback: details.older_feedback },
   ];
 });
 
+const { fetch, details } = useColonelStore();
 
-const { record: colonelData, fetchData: fetchColonelData } = useFetchDataRecord<ColonelData>({
-  url: '/api/v2/colonel',
-});
-
-onMounted(fetchColonelData);
+onMounted(fetch);
 </script>
 
 <template>
@@ -52,20 +48,20 @@ onMounted(fetchColonelData);
 
         <div class="mb-4 rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
           <p class="text-gray-800 dark:text-gray-200">
-            Sessions: <span class="font-bold">{{ colonelData?.counts.session_count }}</span> (active in the past 5
+            Sessions: <span class="font-bold">{{ details?.counts.session_count }}</span> (active in the past 5
             minutes)
           </p>
         </div>
 
         <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-gray-200">
-          Secrets ({{ colonelData?.counts.secret_count }})
+          Secrets ({{ details?.counts.secret_count }})
         </h3>
 
         <p class="text-gray-800 dark:text-gray-200">
           Metadata /
           Secrets:
-          {{ colonelData?.counts.metadata_count }}/{{ colonelData?.counts.secret_count }}
-          ({{ colonelData?.counts.secrets_created }}/{{ colonelData?.counts.secrets_shared }}/{{ colonelData?.counts.emails_sent }} total)
+          {{ details?.counts.metadata_count }}/{{ details?.counts.secret_count }}
+          ({{ details?.counts.secrets_created }}/{{ details?.counts.secrets_shared }}/{{ details?.counts.emails_sent }} total)
         </p>
       </div>
 
@@ -73,7 +69,7 @@ onMounted(fetchColonelData);
         id="feedback"
         class="mb-8">
         <h3 class="mb-2 text-lg font-bold text-gray-800 dark:text-gray-200">
-          User Feedback (Total: {{ colonelData?.counts.feedback_count }})
+          User Feedback (Total: {{ details?.counts.feedback_count }})
         </h3>
 
         <div class="overflow-hidden bg-white text-sm shadow dark:bg-gray-800 sm:rounded-lg">
@@ -82,8 +78,8 @@ onMounted(fetchColonelData);
               v-for="section in feedbackSections"
               :key="section.title"
               :title="section.title"
-              :count="section.count"
-              :feedback="section.feedback"
+              :count="section.count ?? 0"
+              :feedback="section.feedback ?? []"
             />
           </div>
         </div>
@@ -93,18 +89,18 @@ onMounted(fetchColonelData);
         id="customers"
         class="mb-8">
         <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-gray-200">
-          Customers ({{ colonelData?.counts.recent_customer_count }} of {{ colonelData?.counts.customer_count }})
+          Customers ({{ details?.counts.recent_customer_count }} of {{ details?.counts.customer_count }})
         </h3>
         <ul
           class="divide-y divide-gray-200 overflow-hidden bg-white shadow dark:divide-gray-700 dark:bg-gray-800 sm:rounded-lg">
           <li
-            v-for="customer in colonelData?.recent_customers"
+            v-for="customer in details?.recent_customers"
             :key="customer.custid"
             class="px-4 py-3 sm:px-6"
             :title="customer.verified ? 'verified' : 'not verified'">
             <div class="flex items-center justify-between">
               <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                <strong>{{ customer.custid }}</strong>{{ customer.colonel ? '*' : '' }}
+                <strong>{{ customer.custid }}</strong>
               </p>
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 {{ customer.secrets_created }}/{{ customer.secrets_shared }}/{{ customer.emails_sent }} [{{ customer.planid }}]
@@ -124,7 +120,7 @@ onMounted(fetchColonelData);
           Redis Info
         </h3>
         <pre
-          class="overflow-x-auto rounded-lg bg-gray-100 p-4 text-sm text-gray-800 dark:bg-gray-700 dark:text-gray-200">{{ colonelData?.redis_info }}</pre>
+          class="overflow-x-auto rounded-lg bg-gray-100 p-4 text-sm text-gray-800 dark:bg-gray-700 dark:text-gray-200">{{ details?.redis_info }}</pre>
       </div>
     </div>
   </div>

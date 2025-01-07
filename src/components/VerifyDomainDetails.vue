@@ -10,7 +10,7 @@ import DetailField from './DetailField.vue';
 
 interface Props {
   domain: CustomDomain;
-  cluster: CustomDomainCluster;
+  cluster?: CustomDomainCluster | null | undefined;
   withVerifyCTA?: boolean;
 }
 
@@ -36,13 +36,16 @@ const verify = async () => {
 
   try {
     const result = await verifyDomain(props.domain.display_domain);
-    success.value = "Domain verification initiated successfully."
-    emit('domainVerify', result);
+    if (result) {
+      success.value = "Domain verification initiated successfully."
+      emit('domainVerify', result);
 
-    buttonDisabledDelay.value = true;
+      buttonDisabledDelay.value = true;
+    }
+
     setTimeout(() => {
       buttonDisabledDelay.value = false;
-    }, 10000);
+    }, 3000);
   } catch (err) {
     console.error('Verification failed:', err);
   }
@@ -129,7 +132,7 @@ const verify = async () => {
           />
           <DetailField
             label="Value"
-            :value="cluster?.cluster_ip"
+            :value="cluster?.cluster_ip ?? ''"
           />
         </div>
       </li>
@@ -160,12 +163,12 @@ const verify = async () => {
           <DetailField
             v-if="domain?.is_apex"
             label="Value"
-            :value="cluster?.cluster_ip"
+            :value="cluster?.cluster_ip ?? ''"
           />
           <DetailField
             v-else
             label="Value"
-            :value="cluster?.cluster_host"
+            :value="cluster?.cluster_host ?? ''"
           />
         </div>
       </li>

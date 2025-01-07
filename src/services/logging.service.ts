@@ -1,4 +1,4 @@
-// services/logging.ts
+// src/services/logging.service.ts
 
 const STARTUP_BANNER = `
 ┏┓┳┓┏┓┏┳┓┳┳┳┓┏┓

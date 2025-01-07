@@ -40,6 +40,12 @@ const getStatusConfig = (type: string | null) => ({
     textClasses: 'text-red-700 dark:text-red-100',
     iconClasses: 'text-red-500 dark:text-red-300'
   },
+  warning: {
+    icon: 'mdi:alert',
+    classes: 'bg-amber-50 dark:bg-amber-900',
+    textClasses: 'text-amber-700 dark:text-amber-100',
+    iconClasses: 'text-amber-500 dark:text-amber-300'
+  },
   info: {
     icon: 'mdi:information',
     classes: 'bg-blue-50 dark:bg-blue-900',
@@ -51,14 +57,14 @@ const getStatusConfig = (type: string | null) => ({
     classes: 'bg-blue-50 dark:bg-blue-900',
     textClasses: 'text-blue-700 dark:text-blue-100',
     iconClasses: 'text-blue-500 dark:text-blue-300 animate-spin'
-  }
+  },
 })[type || 'info'];
 
 const statusConfig = computed(() => {
   if (props.loading) {
     return getStatusConfig('loading');
   }
-  return getStatusConfig(notifications.type);
+  return getStatusConfig(notifications.severity);
 });
 </script>
 
@@ -151,7 +157,7 @@ const statusConfig = computed(() => {
 
         <!-- Progress indicator -->
         <div
-          v-if="autoDismiss && !loading && notifications.type"
+          v-if="autoDismiss && !loading && notifications.severity"
           class="absolute h-1 bg-current opacity-30"
           :class="position === 'top' ? 'bottom-0' : 'bottom-0'"
           :style="{

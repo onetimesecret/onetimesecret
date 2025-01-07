@@ -18,7 +18,7 @@
  import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
  import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
  import ThemeToggle from '@/components/ThemeToggle.vue';
-
+ import { useBranding } from '@/composables/useBranding';
  import UnknownSecret from './UnknownSecret.vue';
 
  interface Props {
@@ -27,6 +27,8 @@
    displayDomain: string;
    siteHost: string;
  }
+
+ const { brandSettings } = useBranding();
 
  defineProps<Props>();
  </script>
@@ -84,10 +86,10 @@
     </template>
 
     <!-- Unknown secret slot -->
-    <template #unknown="{ details }">
+    <template #unknown="{ }">
       <UnknownSecret
         :branded="true"
-        :brand-settings="details?.brand_settings"
+        :brand-settings="brandSettings"
       />
     </template>
 

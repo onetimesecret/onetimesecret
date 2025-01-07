@@ -3,6 +3,7 @@ import DomainInput from '@/components/DomainInput.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { createDomainRequestSchema } from '@/schemas/api/requests';
 import { ref } from 'vue';
+import { createError, type ApplicationError } from '@/schemas/errors';
 
 defineProps<{
   isSubmitting?: boolean,
@@ -11,7 +12,7 @@ defineProps<{
 const domain = ref('');
 // Initialize as null to avoid showing initial error state
 const isValid = ref<boolean|null>(null);
-const localError = ref<string|undefined>();
+const localError = ref<ApplicationError|null>();
 
 const emit = defineEmits<{
   (e: 'submit', domain: string): void
@@ -19,11 +20,11 @@ const emit = defineEmits<{
 }>();
 
 const handleSubmit = () => {
-  localError.value = undefined;
+  localError.value = null;
 
   // Check for empty submission first
   if (!domain.value.trim()) {
-    localError.value = "Please enter a domain name";
+    localError.value = createError("Please enter a domain name", "human");
     isValid.value = false;
     return;
   }
@@ -34,7 +35,7 @@ const handleSubmit = () => {
     emit('submit', validated.domain);
   } catch {
     isValid.value = false;
-    localError.value = "Please enter a valid domain name";
+    localError.value = createError("Please enter a valid domain name", "human");
   }
 };
 </script>

@@ -80,7 +80,7 @@ function redirectToSignIn(from: RouteLocationNormalized) {
 interface AuthValidator {
   needsCheck: boolean;
   isAuthenticated: boolean | null;
-  checkAuthStatus: () => Promise<boolean>;
+  checkAuthStatus: () => Promise<boolean | null>;
 }
 
 /**
@@ -101,7 +101,8 @@ async function validateAuthentication(
   if (!requiresAuthentication(route)) return true;
 
   if (store.needsCheck) {
-    return await store.checkAuthStatus();
+    const authStatus = await store.checkAuthStatus();
+    return authStatus ?? false; // Coalesce null to false
   }
   return store.isAuthenticated ?? false;
 }

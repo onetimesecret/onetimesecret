@@ -94,7 +94,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
 
   /**
    * Find a jurisdiction by its identifier.
-   * @throws ApiError if no jurisdiction is found with the given identifier.
+   * @throws ApplicationError if no jurisdiction is found with the given identifier.
    * @param identifier - The identifier of the jurisdiction to find.
    * @returns The found jurisdiction
    */

@@ -30,10 +30,10 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const { record, details, isLoading, load, reveal } = useSecret(props.secretKey);
+const { record, details, state, load, reveal } = useSecret(props.secretKey);
 
-const handleUserConfirmed = (passphrase: Ref) => {
-  reveal(passphrase);
+const handleUserConfirmed = (passphrase: Ref<string>) => {
+  reveal(passphrase.value);
 };
 
 onBeforeRouteUpdate((to, from, next) => {
@@ -58,17 +58,17 @@ onMounted(() => {
       :details="details"></slot>
 
     <!-- Loading state -->
-    <template v-if="isLoading">
+    <template v-if="state.isLoading">
       <slot
         name="loading"
         :branded="branded"></slot>
     </template>
 
     <!-- Error state -->
-    <template v-else-if="error">
+    <template v-else-if="state.error">
       <slot
         name="error"
-        :error="error"
+        :error="state.error"
         :branded="branded"></slot>
     </template>
 
@@ -89,8 +89,8 @@ onMounted(() => {
           :secret-key="secretKey"
           :record="record"
           :details="details"
-          :error="error"
-          :is-loading="isLoading"
+          :error="state.error"
+          :is-loading="state.isLoading"
           :on-confirm="handleUserConfirmed"></slot>
 
         <!-- Optional onboarding/marketing slot -->
@@ -113,7 +113,9 @@ onMounted(() => {
     <template v-else-if="!record">
       <slot
         name="unknown"
-        :branded="branded"></slot>
+        :branded="branded"
+        :details="details">
+        </slot>
     </template>
 
     <!-- Footer slot -->

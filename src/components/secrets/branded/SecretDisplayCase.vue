@@ -26,7 +26,7 @@ const alertClasses = computed(() => ({
     props.submissionStatus?.status === 'success',
 }));
 
-const domainBranding = useBranding();
+const { brandSettings } = useBranding();
 
 const hasImageError = ref(false);
 const { isCopied, copyToClipboard } = useClipboard();
@@ -59,8 +59,8 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 <template>
   <BaseSecretDisplay
     default-title="You have a message"
-    :instructions="domainBranding?.instructions_pre_reveal"
-    :domain-branding="domainBranding">
+    :instructions="brandSettings?.instructions_pre_reveal"
+    :domain-branding="brandSettings">
     <!-- Alert display -->
     <div
       v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"
@@ -107,9 +107,9 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
       <div class="relative mx-auto sm:mx-0">
         <div
           :class="{
-            'rounded-lg': domainBranding?.corner_style === 'rounded',
-            'rounded-full': domainBranding?.corner_style === 'pill',
-            'rounded-none': domainBranding?.corner_style === 'square'
+            'rounded-lg': brandSettings?.corner_style === 'rounded',
+            'rounded-full': brandSettings?.corner_style === 'pill',
+            'rounded-none': brandSettings?.corner_style === 'square'
           }"
           class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
           role="img"
@@ -137,9 +137,9 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             alt="Brand logo"
             class="size-16 object-contain"
             :class="{
-              'rounded-lg': domainBranding?.corner_style === 'rounded',
-              'rounded-full': domainBranding?.corner_style === 'pill',
-              'rounded-none': domainBranding?.corner_style === 'square'
+              'rounded-lg': brandSettings?.corner_style === 'rounded',
+              'rounded-full': brandSettings?.corner_style === 'pill',
+              'rounded-none': brandSettings?.corner_style === 'square'
             }"
             @error="handleImageError"
           />
@@ -160,12 +160,12 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
               text-base focus:outline-none focus:ring-2
               focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white sm:min-h-36"
           :class="{
-            'rounded-lg': domainBranding?.corner_style === 'rounded',
-            'rounded-full': domainBranding?.corner_style === 'pill',
-            'rounded-none': domainBranding?.corner_style === 'square'
+            'rounded-lg': brandSettings?.corner_style === 'rounded',
+            'rounded-full': brandSettings?.corner_style === 'pill',
+            'rounded-none': brandSettings?.corner_style === 'square'
           }"
           readonly
-          :rows="details?.display_lines"
+          :rows="details?.display_lines ?? 4"
           :value="record?.secret_value"
           aria-label="Secret content"
           ref="secretContent"></textarea>
@@ -184,9 +184,9 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
           focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
           dark:text-brand-100"
         :style="{
-          backgroundColor: domainBranding?.primary_color || 'var(--tw-color-brand-500)',
-          color: domainBranding?.button_text_light ? '#ffffff' : '#000000',
-          fontFamily: domainBranding?.font_family
+          backgroundColor: brandSettings?.primary_color || 'var(--tw-color-brand-500)',
+          color: brandSettings?.button_text_light ? '#ffffff' : '#000000',
+          fontFamily: brandSettings?.font_family
         }"
         aria-live="polite"
         :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"

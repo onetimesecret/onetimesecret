@@ -21,6 +21,7 @@ const currentJurisdiction = computed(() => getCurrentJurisdiction.value || {
   display_name: 'Unknown Jurisdiction',
   domain: '',
   icon: 'mdi:help-circle',
+  enabled: false,
 });
 
 const alternateProviders = [

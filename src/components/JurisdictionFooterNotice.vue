@@ -21,7 +21,7 @@ const jurisdictionStore = useJurisdictionStore();
  *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
  */
 const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
-const jurisdictions = computed(() => jurisdictionStore.getJurisdictions)
+const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions)
 
 const isOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);

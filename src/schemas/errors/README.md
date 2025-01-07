@@ -14,7 +14,12 @@ schemas/
 
 ## Why `schemas/errors`?
 
-In most Vue.js applications, error handling is loosely typed and scattered across components, stores, and utilities. This project takes a different approach by treating errors as strongly typed data structures that are part of our application's schema.
+In an attemot to avoid loose and scattered error handling across components, stores, and utilities, we treat errors as strongly typed data structures that are part of our application's core schema. Errors are classified broadly into one of three types: technical, human, or security (which is kind of both). Each type is based on what action(s) are taken when the error occurs.
+
+* **Technical** errors are logged and reported to the user as a generic error message. e.g. a DB connection error -> "An error occurred. Please try again later.". We would log the error for operational purposes.
+* **Human** errors are displayed to the user as a message that they can understand. e.g. "Invalid email address." We would not log this error.
+* **Security** errors are displayed to the user and also logged for operational purposes. e.g. "Invalid password." We would log this error. In some cases the error message may be generic, e.g. "You have reached your limit." In other cases, the error message may be more generic, e.g. "System error. Please try again later."
+
 
 ### The Case for Schema-Based Errors
 
@@ -27,26 +32,13 @@ Error handling isn't just about catching exceptions - it's about modeling failur
 - Make error handling patterns explicit and discoverable
 
 ```typescript
-// schemas/errors/api.ts
-export class ApiError extends Error {
-  constructor(
-    public code: number,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-  }
-}
-
-// schemas/errors/domain.ts
-export class DomainError extends Error {
-  constructor(
-    public kind: 'validation' | 'business' | 'security',
-    message: string,
-    public context?: Record<string, unknown>
-  ) {
-    super(message);
-  }
+// schemas/errors/types.ts
+export interface ApplicationError extends Error {
+  type: ErrorType;
+  severity: ErrorSeverity;
+  code?: string;
+  original?: Error;
+  details?: Record<string, unknown>;
 }
 ```
 

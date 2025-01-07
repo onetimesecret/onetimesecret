@@ -5,7 +5,7 @@ import { computed } from 'vue';
 
 interface Props {
   stripeCustomer: Stripe.Customer | null;
-  stripeSubscriptions?: Stripe.Subscription[];
+  stripeSubscriptions?: Stripe.Subscription[] | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,7 +20,7 @@ const defaultPaymentMethod = computed(() => {
 });
 
 const subscriptionDetails = computed(() => {
-  return props.stripeSubscriptions.map(subscription => ({
+  return props?.stripeSubscriptions?.map(subscription => ({
     id: subscription.id,
     status: subscription.status,
     amount: subscription.items.data[0]?.price?.unit_amount ?? 0,

@@ -1,21 +1,19 @@
 // src/composables/useAsyncHandler.ts
-import type { ApplicationError, ErrorSeverity } from '@/schemas/errors';
-import {
-  classifyError,
-  createError,
-  isOfHumanInterest,
-} from '@/schemas/errors/classifier';
-import { loggingService } from '@/services/logging';
+import type { ApplicationError } from '@/schemas/errors';
+import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
+import { loggingService } from '@/services/logging.service';
+import type { } from '@/stores/notificationsStore';
+import type { NotificationSeverity } from '@/types/ui/notifications';
 
 export interface AsyncHandlerOptions {
   /**
    * Optional handler for user-facing notifications
    */
-  notify?: (message: string, severity: ErrorSeverity) => void;
+  notify?: ((message: string, severity: NotificationSeverity) => void) | false;
   /**
    * Optional error logging implementation
    */
-  log?: (error: ApplicationError) => void;
+  log?: ((error: ApplicationError) => void) | false;
   /**
    * Optional loading state handler
    */
@@ -28,7 +26,7 @@ export interface AsyncHandlerOptions {
   debug?: boolean;
 }
 
-export { createError }; // Re-export for convenience
+export { createError, errorGuards, wrapError }; // Re-export for convenience
 
 /**
  * Composable for handling async operations with consistent error handling.
@@ -87,15 +85,20 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   // Default implementations that will be used if no options provided
   const handlers = {
     notify:
-      options.notify ??
-      ((message: string, severity: ErrorSeverity) => {
-        loggingService.info(`[notify] [${severity}] ${message}`);
-      }),
+      options.notify === false || options.notify === null
+        ? undefined
+        : (options.notify ??
+          ((message: string, severity: NotificationSeverity) => {
+            loggingService.info(`[notify] [${severity}] ${message}`);
+          })),
+    // Only set default logger if log isn't explicitly false/null
     log:
-      options.log ??
-      ((error: ApplicationError) => {
-        loggingService.error(error);
-      }),
+      options.log === false || options.log === null
+        ? undefined
+        : (options.log ??
+          ((error: ApplicationError) => {
+            loggingService.error(error);
+          })),
     setLoading: options.setLoading ?? (() => {}),
     onError: options.onError,
   };
@@ -122,37 +125,38 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
    * const data = await wrap(() => api.fetchData());
    * ```
    */
-  async function wrap<T>(operation: () => Promise<T>): Promise<T | undefined> {
-    try {
-      handlers.setLoading?.(true);
-      return await operation(); // <-- run the async operation
-    } catch (error) {
-      const classifiedError = classifyError(error);
+   async function wrap<T>(operation: () => Promise<T>): Promise<T | undefined> {
+     try {
+       handlers.setLoading?.(true);
+       return await operation();
+     } catch (error) {
+       const classifiedError = classifyError(error as Error);
 
-      // Call onError callback before  everything else
-      if (handlers.onError) {
-        try {
-          handlers.onError(classifiedError);
-        } catch (callbackError) {
-          // Log but don't throw callback errors
-          handlers.log?.(classifyError(callbackError));
-        }
-      }
+       // Call onError callback before  everything else
+       if (handlers.onError) {
+         try {
+           handlers.onError(classifiedError);
+         } catch (callbackError) {
+                    // Log but don't throw callback errors
+           handlers.log?.(classifyError(callbackError as Error));
+         }
+       }
 
-      // Log all errors regardless of the logic prior to this
-      handlers.log?.(classifiedError);
+       // Only log technical and security errors
+       if (!errorGuards.isOfHumanInterest(classifiedError)) {
+         handlers.log?.(classifiedError);
+       }
 
-      // Only notify for human-facing errors
-      if (isOfHumanInterest(classifiedError) && handlers.notify) {
-        handlers.notify(classifiedError.message, classifiedError.severity);
-      }
+       // Notify for human-facing errors, but don't log
+       if (errorGuards.isOfHumanInterest(classifiedError) && handlers.notify) {
+         handlers.notify(classifiedError.message, classifiedError.severity);
+       }
 
-      // Handle error here - don't let it propagate
-      return undefined;
-    } finally {
-      handlers.setLoading?.(false);
-    }
-  }
+       return undefined;
+     } finally {
+       handlers.setLoading?.(false);
+     }
+   }
 
-  return { wrap, createError };
+  return { wrap, wrapError, createError };
 }

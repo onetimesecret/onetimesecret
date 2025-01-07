@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { ApiError } from '@/schemas/errors/api';
+import type { ApplicationError } from '@/schemas/errors';
 import { computed } from 'vue';
 import { ZodError } from 'zod';
 
 const props = defineProps<{
-  error: ApiError;
+  error: ApplicationError;
 }>();
 
 const isZodError = computed(() => props.error.cause instanceof ZodError);

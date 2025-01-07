@@ -2,7 +2,7 @@
 
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';

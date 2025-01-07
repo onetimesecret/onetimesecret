@@ -12,8 +12,8 @@ const cust = WindowService.get('cust');
 const changeLocale = async (newLocale: string) => {
   if (languageStore.getSupportedLocales.includes(newLocale)) {
     try {
-      if (cust.value) {
-        cust.value.locale = newLocale;
+      if (cust) {
+        cust.locale = newLocale;
       }
       await languageStore.updateLanguage(newLocale);
       await setLanguage(newLocale);

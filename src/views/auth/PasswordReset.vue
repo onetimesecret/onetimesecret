@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { useFetchDataRecord } from '@/composables/useFetchData';
-import { Secret } from '@/schemas/models';
+import { useSecret } from '@/composables/useSecret';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { ApplicationError } from '@/schemas/errors';
+import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 
 const csrfStore = useCsrfStore();
 const router = useRouter();
@@ -13,29 +14,22 @@ export interface Props {
   resetKey: string;
 }
 
-/**
- * Handles errors by redirecting to '/' if the status is 404.
- * @param error - The error object.
- * @param status - The HTTP status code.
- */
- const onError = (error: Error, status?: number | null) => {
-  if (status === 404) {
-    router.push('/');
-  }
-};
-
-
 const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })
 
-const { fetchData: fetchSecret } = useFetchDataRecord<Secret>({
-  url: `/api/v2/secret/${props.resetKey}`,
-  onError,
-});
+const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+  onError: (error: ApplicationError) => {
+    console.log('error status', error.code)
+    if (error.code === 404) {
+      router.push('/');
+    }
+  }
+};
 
-onMounted(fetchSecret)
+const { state, load } = useSecret(props.resetKey, defaultAsyncHandlerOptions);
 
+onMounted(load);
 </script>
 
 <template>
@@ -112,6 +106,7 @@ onMounted(fetchSecret)
       <div class="flex items-center justify-between">
         <button
           type="submit"
+          :disabled="state.isLoading"
           class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none dark:bg-brand-600 dark:hover:bg-brand-800">
           Update Password
         </button>

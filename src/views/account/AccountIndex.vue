@@ -4,10 +4,10 @@ import AccountChangePasswordForm from '@/components/account/AccountChangePasswor
 import AccountDeleteButtonWithModalForm from '@/components/account/AccountDeleteButtonWithModalForm.vue';
 import APIKeyForm from '@/components/account/APIKeyForm.vue';
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import { useFetchDataRecord } from '@/composables/useFetchData';
 import { WindowService } from '@/services/window.service';
-import { Account } from '@/schemas/api/endpoints';
 import { onMounted } from 'vue';
+import { useAccountStore } from '@/stores/accountStore';
+import { storeToRefs } from 'pinia';
 
 // Grabbing values from the window properties is a convenient way to get
 // preformatted template variables (i.e. the jsvars from Onetime::App::View)
@@ -20,16 +20,11 @@ const windowProps = WindowService.getMultiple({
 });
 
 
-const { record: account, fetchData: fetchAccount } = useFetchDataRecord<Account>({
-  url: '/api/v2/account',
-  onSuccess: (data) => {
-    if (data[0]) {
-      //console.log(data[0].cust);
-    }
-  },
-});
+const accountStore = useAccountStore();
+const { account } = storeToRefs(accountStore);
 
-onMounted(fetchAccount);
+onMounted(accountStore.fetch);
+
 </script>
 
 <template>
@@ -56,8 +51,9 @@ onMounted(fetchAccount);
 
     <!-- BILLING INFO -->
     <AccountBillingSection
-      :stripe-customer="account?.stripe_customer"
-      :stripe-subscriptions="account?.stripe_subscriptions"
+      v-if="account && account.stripe_customer"
+      :stripe-customer="account.stripe_customer"
+      :stripe-subscriptions="account.stripe_subscriptions"
     />
 
     <!-- PASSWORD CHANGE -->
@@ -66,7 +62,6 @@ onMounted(fetchAccount);
         <i class="fas fa-lock mr-2"></i> Update Password
       </h2>
       <div class="pl-3">
-        <!-- Added padding-left to align with the title text -->
         <AccountChangePasswordForm />
       </div>
     </div>
