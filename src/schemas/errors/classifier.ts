@@ -88,8 +88,11 @@ export const errorClassifier = {
     const type = errorGuards.isHttpError(error)
       ? this.classifyByStatusCode(error)
       : 'technical';
+    const code = errorGuards.isHttpError(error)
+      ? error.status || error.response?.status || 'ERR_HTTP'
+      : 'ERR_GENERIC';
 
-    return wrapError(message, type, 'error', error as Error);
+    return wrapError(message, type, 'error', error as Error, code);
   },
 };
 

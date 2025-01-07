@@ -22,6 +22,7 @@ export interface ApplicationError extends Error {
   name: 'ApplicationError';
   type: ErrorType;
   severity: ErrorSeverity;
+  code?: string | number | null;
   stack?: string;
   original?: Error;
   details?: Record<string, unknown>;
@@ -39,6 +40,7 @@ export const applicationErrorSchema = z
     message: z.string(),
     type: errorTypeEnum,
     severity: errorSeverityEnum,
+    code: z.union([z.string(), z.number()]).nullable().default(null),
     stack: z.string().optional(),
     original: z.instanceof(Error).optional(),
     details: z.record(z.unknown()).optional(),

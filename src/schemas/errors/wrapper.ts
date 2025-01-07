@@ -5,6 +5,7 @@ export function wrapError(
   type: ErrorType,
   severity: ErrorSeverity,
   original: Error,
+  code?: string | number | null,
   details?: Record<string, unknown>
 ): ApplicationError {
   const error = new Error(message) as ApplicationError;
@@ -24,6 +25,7 @@ export function wrapError(
   error.type = type;
   error.severity = severity;
   error.original = original;
+  error.code = code;
   error.details = details;
 
   return error;
@@ -35,5 +37,5 @@ export function createError(
   severity: ErrorSeverity,
   details?: Record<string, unknown>
 ): ApplicationError {
-  return wrapError(message, type, severity, new Error(message), details);
+  return wrapError(message, type, severity, new Error(message), null, details);
 }
