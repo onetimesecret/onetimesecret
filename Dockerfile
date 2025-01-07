@@ -182,7 +182,7 @@ RUN set -eux \
 ##
 # APPLICATION LAYER (FINAL)
 #
-FROM ruby:3.3-slim-bookworm AS final
+FROM ruby:3.4-slim-bookworm AS final
 ARG CODE_ROOT
 ARG VERSION
 
