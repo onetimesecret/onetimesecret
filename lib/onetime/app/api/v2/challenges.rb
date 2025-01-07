@@ -55,7 +55,7 @@ class Onetime::App::APIV2
         # When verified=false, verification_data can be nil
         verified, verification_data = Altcha.verify_server_signature(
           payload,
-          self.class.secret_key
+          self.class.secret_key,
         )
 
 
