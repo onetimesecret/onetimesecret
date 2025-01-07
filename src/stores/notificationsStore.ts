@@ -1,7 +1,7 @@
 // src/stores/notificationsStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { NotificationSeverity } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
+import { NotificationSeverity } from '@/types/ui/notifications';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
