@@ -168,11 +168,14 @@ module Onetime
       if OT.conf[:site].key?(:regions)
         OT.li "regions: #{OT.conf[:site][:regions].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
-      if OT.conf[:development][:enabled]
-        OT.li "frontend: #{OT.conf[:development][:frontend_host]}"
+      if OT.conf.fetch(:development, false)
+        OT.li "development: #{OT.conf[:development].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
       if OT.conf[:emailer]
         OT.li "mail: smtp=#{OT.conf[:emailer][:host]}:#{OT.conf[:emailer][:port]}, from=#{OT.conf[:emailer][:from]}, mode=#{OT.conf[:emailer][:mode]}"
+      end
+      if OT.conf.fetch(:experimental, false)
+        OT.li "experimental: #{OT.conf[:experimental].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
       OT.li "locales: #{@locales.keys.join(', ')}"
       OT.li "secret options: #{OT.conf.dig(:site, :secret_options)}"

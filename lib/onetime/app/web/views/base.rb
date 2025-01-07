@@ -66,6 +66,9 @@ module Onetime
 
         self[:jsvars] = {}
 
+        # Add the nonce to the jsvars hash if it exists. See `carefully`.
+        self[:nonce] = req.env.fetch('ots.nonce', nil)
+
         # Add the global site banner if there is one
         self[:jsvars][:global_banner] = jsvar(OT.global_banner) if OT.global_banner
 
