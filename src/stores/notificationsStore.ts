@@ -1,6 +1,6 @@
 // src/stores/notificationsStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';

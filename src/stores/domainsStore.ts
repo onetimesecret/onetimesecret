@@ -9,7 +9,7 @@ import type {
   CustomDomainDetails,
   ImageProps,
 } from '@/schemas/models';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref, Ref } from 'vue';

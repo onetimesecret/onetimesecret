@@ -2,7 +2,7 @@
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';

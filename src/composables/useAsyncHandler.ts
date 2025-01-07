@@ -5,7 +5,7 @@ import {
   createError,
   isOfHumanInterest,
 } from '@/schemas/errors/classifier';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
 
 export interface AsyncHandlerOptions {
   /**

@@ -2,7 +2,7 @@
 //
 import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { classifyError, isOfHumanInterest } from '@/schemas/errors/classifier';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
 import type { App, Plugin } from 'vue';
 
 /**

@@ -2,7 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { brandSettingschema } from '@/schemas/models/domain/brand';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import type { PiniaCustomProperties } from 'pinia';
 import { defineStore } from 'pinia';

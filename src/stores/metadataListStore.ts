@@ -2,7 +2,7 @@
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import type { MetadataRecords, MetadataRecordsDetails } from '@/schemas/api/endpoints';
 import { responseSchemas } from '@/schemas/api/responses';
-import { loggingService } from '@/services/logging';
+import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref, type Ref } from 'vue';
