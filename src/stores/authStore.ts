@@ -54,7 +54,6 @@ export type AuthStore = {
   $stopAuthCheck: () => Promise<void>;
   $dispose: () => Promise<void>;
   $reset: () => void;
-  //$logout: () => void;
 } & PiniaCustomProperties;
 
 /**
@@ -204,7 +203,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * Logs out the current user and resets the auth state.
-   * Uses the global $logout plugin which handles:
+   *
    * - Clearing cookies
    * - Resetting all related stores
    * - Clearing session storage

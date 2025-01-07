@@ -1,8 +1,6 @@
 // tests/unit/vue/setup.ts
 /* global global */
-import { apiPlugin } from '@/plugins/pinia/apiPlugin';
 import { autoInitPlugin } from '@/plugins/pinia/autoInitPlugin';
-import { logoutPlugin } from '@/plugins/pinia/logoutPlugin';
 import { createApi } from '@/utils/api';
 import { createTestingPinia } from '@pinia/testing';
 import { vi } from 'vitest';
@@ -24,7 +22,7 @@ export async function setupTestPinia(options = { stubActions: false }) {
 
   const pinia = createTestingPinia({
     ...options,
-    plugins: [apiPlugin(api), logoutPlugin, autoInitPlugin()],
+    plugins: [autoInitPlugin({ api })],
   });
 
   app.use(pinia);
