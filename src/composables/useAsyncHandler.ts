@@ -2,7 +2,7 @@
 import type { ApplicationError } from '@/schemas/errors';
 import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
-import type {} from '@/stores/notificationsStore';
+import type { } from '@/stores/notificationsStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';
 
 export interface AsyncHandlerOptions {
@@ -125,37 +125,38 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
    * const data = await wrap(() => api.fetchData());
    * ```
    */
-  async function wrap<T>(operation: () => Promise<T>): Promise<T | undefined> {
-    try {
-      handlers.setLoading?.(true);
-      return await operation(); // <-- run the async operation
-    } catch (error) {
-      const classifiedError = classifyError(error as Error);
+   async function wrap<T>(operation: () => Promise<T>): Promise<T | undefined> {
+     try {
+       handlers.setLoading?.(true);
+       return await operation();
+     } catch (error) {
+       const classifiedError = classifyError(error as Error);
 
-      // Call onError callback before  everything else
-      if (handlers.onError) {
-        try {
-          handlers.onError(classifiedError);
-        } catch (callbackError) {
-          // Log but don't throw callback errors
-          handlers.log?.(classifyError(callbackError as Error));
-        }
-      }
+       // Call onError callback before  everything else
+       if (handlers.onError) {
+         try {
+           handlers.onError(classifiedError);
+         } catch (callbackError) {
+                    // Log but don't throw callback errors
+           handlers.log?.(classifyError(callbackError as Error));
+         }
+       }
 
-      // Log all errors regardless of the logic prior to this
-      handlers.log?.(classifiedError);
+       // Only log technical and security errors
+       if (!errorGuards.isOfHumanInterest(classifiedError)) {
+         handlers.log?.(classifiedError);
+       }
 
-      // Only notify for human-facing errors
-      if (errorGuards.isOfHumanInterest(classifiedError) && handlers.notify) {
-        handlers.notify(classifiedError.message, classifiedError.severity);
-      }
+       // Notify for human-facing errors, but don't log
+       if (errorGuards.isOfHumanInterest(classifiedError) && handlers.notify) {
+         handlers.notify(classifiedError.message, classifiedError.severity);
+       }
 
-      // Handle error here - don't let it propagate
-      return undefined;
-    } finally {
-      handlers.setLoading?.(false);
-    }
-  }
+       return undefined;
+     } finally {
+       handlers.setLoading?.(false);
+     }
+   }
 
   return { wrap, wrapError, createError };
 }
