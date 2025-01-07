@@ -44,6 +44,7 @@ const closeSettingsModal = () => {
               <img id="logo"
                    src="@/assets/img/onetime-logo-v3-xl.svg"
                    class="size-12 rounded-md sm:size-16"
+                   height="64"
                    alt="Onetime Secret" />
               <span class="ml-2 font-brand text-xl font-bold text-gray-800 dark:text-white">
                 Onetime Secret
