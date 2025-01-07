@@ -1,37 +1,52 @@
 // src/composables/useSecret.ts
 
-import { ApplicationError } from '@/schemas/errors/types';
 import { useSecretStore } from '@/stores/secretStore';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { reactive } from 'vue';
+import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
-export function useSecret(key: string) {
+export function useSecret(secretKey: string, options?: AsyncHandlerOptions) {
   const store = useSecretStore();
-  const isLoading = ref(false);
-  const error = ref<ApplicationError | null>(null);
   const { record, details } = storeToRefs(store);
 
-  // Local state
-  const passphrase = ref('');
+  const state = reactive({
+    isLoading: false,
+    error: '',
+    success: '',
+    passphrase: '',
+  });
 
-  const load = async () => {
-    await store.fetch(key);
+  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+    notify: (message, severity) => {
+      if (severity === 'error') {
+        state.error = message;
+      } else {
+        state.success = message;
+      }
+    },
+    setLoading: (loading) => (state.isLoading = loading),
+    onError: () => (state.success = ''),
+    ...options,
   };
 
-  const reveal = async (passphrase: string) => {
-    await store.reveal(key, passphrase);
-  };
+  const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
+
+  const load = () =>
+    wrap(async () => {
+      await store.fetch(secretKey);
+    });
+
+  const reveal = (passphrase: string) =>
+    wrap(async () => {
+      await store.reveal(secretKey, passphrase);
+      state.passphrase = '';
+    });
 
   return {
     // State
-    record: record,
-    details: details,
-    isLoading,
-    error,
-    passphrase,
-
-    // Computed
-    // canBurn: computed(() => store.canBurn),
+    state,
+    record,
+    details,
 
     // Actions
     load,
