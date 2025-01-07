@@ -88,15 +88,20 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
   // Default implementations that will be used if no options provided
   const handlers = {
     notify:
-      options.notify ??
-      ((message: string, severity: NotificationSeverity) => {
-        loggingService.info(`[notify] [${severity}] ${message}`);
-      }),
+      options.notify === false || options.notify === null
+        ? undefined
+        : (options.notify ??
+          ((message: string, severity: NotificationSeverity) => {
+            loggingService.info(`[notify] [${severity}] ${message}`);
+          })),
+    // Only set default logger if log isn't explicitly false/null
     log:
-      options.log ??
-      ((error: ApplicationError) => {
-        loggingService.error(error);
-      }),
+      options.log === false || options.log === null
+        ? undefined
+        : (options.log ??
+          ((error: ApplicationError) => {
+            loggingService.error(error);
+          })),
     setLoading: options.setLoading ?? (() => {}),
     onError: options.onError,
   };
