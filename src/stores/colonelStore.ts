@@ -1,6 +1,6 @@
 // stores/colonelStore.ts
 
-import { responseSchemas, type ColonelData } from '@/schemas/api';
+import { responseSchemas, type ColonelDetails } from '@/schemas/api';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
@@ -10,11 +10,12 @@ import { inject, ref } from 'vue';
  */
 export type ColonelStore = {
   // State
-  pageData: ColonelData | null;
   _initialized: boolean;
+  record: {} | null; // response is empty object
+  details: ColonelDetails;
 
   // Actions
-  fetch: () => Promise<ColonelData>;
+  fetch: () => Promise<ColonelDetails>;
   dispose: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -23,34 +24,47 @@ export const useColonelStore = defineStore('colonel', () => {
   const $api = inject('api') as AxiosInstance;
 
   // State
-  const pageData = ref<ColonelData | null>(null);
+  const record = ref<{} | null>(null);
+  const details = ref<ColonelDetails | null>(null);
   const _initialized = ref(false);
 
   // Actions
   async function fetch() {
-    const response = await $api.get('/api/v2/colonel/dashboard');
-    const validated = responseSchemas.colonel.parse(response.data);
-    // Access the record property which contains the ColonelData
-    pageData.value = validated.record;
-    return pageData.value;
+    const response = await $api.get('/api/v2/colonel');
+    try {
+      const validated = responseSchemas.colonel.parse(response.data);
+      console.log('Colonel validation successful:', validated);
+      details.value = validated.details;
+
+      return record.value;
+    } catch (error) {
+      console.error('Colonel validation failed:', {
+        error,
+        data: response.data,
+      });
+      throw error;
+    }
   }
 
   function dispose() {
-    pageData.value = null;
+    record.value = null;
+    details.value = null;
   }
 
   /**
    * Reset store state to initial values
    */
   function $reset() {
-    pageData.value = null;
+    record.value = null;
+    details.value = null;
     _initialized.value = false;
   }
 
   // Expose store interface
   return {
     // State
-    pageData,
+    record,
+    details,
 
     // Actions
     fetch,

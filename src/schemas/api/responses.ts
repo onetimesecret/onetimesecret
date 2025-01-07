@@ -4,7 +4,7 @@ import {
   apiTokenSchema,
   checkAuthDetailsSchema,
 } from '@/schemas/api/endpoints/account';
-import { colonelDataSchema } from '@/schemas/api/endpoints/colonel';
+import { colonelDetailsSchema } from '@/schemas/api/endpoints/colonel';
 import {
   concealDataSchema,
   metadataRecordsDetailsSchema,
@@ -37,7 +37,7 @@ export const responseSchemas = {
   apiToken: createApiResponseSchema(apiTokenSchema),
   brandSettings: createApiResponseSchema(brandSettingschema),
   checkAuth: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),
-  colonel: createApiResponseSchema(colonelDataSchema),
+  colonel: createApiResponseSchema(z.object({}), colonelDetailsSchema),
   concealData: createApiResponseSchema(concealDataSchema),
   customDomain: createApiResponseSchema(customDomainSchema, customDomainDetailsSchema),
   customer: createApiResponseSchema(customerSchema, checkAuthDetailsSchema),

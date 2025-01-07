@@ -1,11 +1,10 @@
-import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
-export const feedbackSchema = createModelSchema({
+export const feedbackSchema = z.object({
   // Feedback content using consistent transform pattern
   msg: z.string().min(1).max(1500),
-  stamp: transforms.fromString.date,
+  stamp: z.string(),
 });
 
 // Details schema for feedback-specific metadata
