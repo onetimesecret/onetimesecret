@@ -323,8 +323,8 @@ module Onetime::App
       csp = [
         "default-src 'self';",                                 # Restricts all content to same origin by default
         "script-src 'self' 'nonce-#{nonce}';",                 # Only allow scripts from same origin with nonce
-        "style-src 'self' 'nonce-#{nonce}';",                  # Only allow styles from same origin with nonce
-        "img-src 'self';",                                     # Only allow images from same origin
+        "style-src 'self' 'unsafe-inline';",                   # Only inline styles
+        "img-src 'self' data:;",                                    # Only allow images from same origin
         "font-src 'self';",                                    # Only allow fonts from same origin
         "object-src 'none';",                                  # Block all plugins (object/embed/applet)
         "base-uri 'self';",                                    # Restrict base tag to same origin
@@ -336,7 +336,7 @@ module Onetime::App
       # Make the nonce available to the view
       req.env['ots.nonce'] = nonce
 
-      OT.ld "[CSP] #{csp.join(' ')}"
+      OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
       res.header['Content-Security-Policy'] = csp.join(' ')
     end
