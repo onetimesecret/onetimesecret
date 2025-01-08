@@ -18,7 +18,7 @@ export type MetadataListStore = {
   count: number | null;
 
   // Getters
-  recordCount: number | null;
+  recordCount: number;
   initialized: boolean;
 
   // Actions

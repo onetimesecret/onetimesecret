@@ -1,13 +1,13 @@
 import {
-  AsyncHandlerOptions,
-  createError,
-  useAsyncHandler,
+    AsyncHandlerOptions,
+    createError,
+    useAsyncHandler,
 } from '@/composables/useAsyncHandler';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 /**
@@ -26,6 +26,10 @@ export function useDomainsManager() {
   const router = useRouter();
   const goBack = () => router.back();
   const { records, details } = storeToRefs(store);
+
+  const {refreshRecords} = store;
+
+  const recordCount = computed(() => store.recordCount());
 
   // Local state
   const isLoading = ref(false);
@@ -121,11 +125,15 @@ export function useDomainsManager() {
     isLoading,
     error,
 
+    // Getters
+    recordCount,
+
     // Actions
     fetch,
     getDomain,
     verifyDomain,
     handleAddDomain,
+    refreshRecords,
     deleteDomain,
     goBack,
   };
