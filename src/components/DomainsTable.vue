@@ -56,16 +56,8 @@ const handleDelete = (domainId: string) => {
       </router-link>
     </div>
 
-    <!-- When no domains, use the Add a Domain button -->
-    <div
-      v-if="domains.length === 0"
-      class="py-8 text-center text-gray-500">
-      No domains found. Add a domain to get started.
-    </div>
-
     <!-- List domains -->
     <div
-      v-else
       class="relative rounded-lg border border-gray-200 dark:border-gray-700">
       <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead class="bg-gray-50 font-brand dark:bg-gray-800">
