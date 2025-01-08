@@ -16,6 +16,9 @@ export const WindowService = {
    * @returns The typed window property value
    */
   get<K extends keyof OnetimeWindow>(key: K): OnetimeWindow[K] {
+    if (!window.__ONETIME_STATE__) {
+      throw 'Window.__ONETIME_STATE__ is not set';
+    }
     return (window.__ONETIME_STATE__ as OnetimeWindow)[key];
   },
 
