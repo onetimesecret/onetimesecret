@@ -10,13 +10,13 @@ import DetailField from './DetailField.vue';
 
 interface Props {
   domain: CustomDomain;
-  cluster?: CustomDomainCluster | null | undefined;
+  cluster?: CustomDomainCluster | null;
   withVerifyCTA?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   domain: () => ({} as CustomDomain),
-  cluster: () => ({} as CustomDomainCluster),
+  cluster: null,
   withVerifyCTA: false,
 });
 
