@@ -1,3 +1,4 @@
+// NOTE: Copied these setting to Zed's built-in Prettier settings Jan 8, 2025
 {
   "printWidth": 90,
   "tabWidth": 2,
