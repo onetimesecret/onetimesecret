@@ -14,7 +14,7 @@ import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 // Remember, for security reasons, only variables prefixed with VITE_ are
 // available here to prevent accidental exposure of sensitive
 // environment variables to the client-side code.
-const apiBaseUrl = process.env.VITE_API_BASE_URL || 'https://dev.onetimesecret.com';
+const apiBaseUrl = process.env.VITE_API_BASE_URL;
 
 export default defineConfig({
   // Sets project root to ./src directory
