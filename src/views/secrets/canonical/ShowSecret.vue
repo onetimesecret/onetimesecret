@@ -35,15 +35,13 @@
  </script>
 
 <template>
-  <BaseShowSecret
-    :secret-key="secretKey"
-    :branded="false"
-    class="container mx-auto mt-24 px-4">
+  <BaseShowSecret :secret-key="secretKey"
+                  :branded="false"
+                  class="container mx-auto mt-24 px-4">
     <!-- Loading slot -->
     <template #loading="{}">
       <div class="flex justify-center">
-        <div
-          class="size-32 animate-spin
+        <div class="size-32 animate-spin
           rounded-full border-4 border-brand-500 border-t-transparent"></div>
       </div>
     </template>
@@ -58,36 +56,32 @@
     <!-- Alerts slot -->
     <template #alerts="{ record, isOwner, showSecret }">
       <template v-if="!record.verification">
-        <div
-          v-if="isOwner && !showSecret"
-          class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4
+        <div v-if="isOwner && !showSecret"
+             class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4
              text-amber-700 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
-          role="alert"
-          aria-live="polite">
-          <button
-            type="button"
-            class="float-right hover:text-amber-900 focus:outline-none
+             role="alert"
+             aria-live="polite">
+          <button type="button"
+                  class="float-right hover:text-amber-900 focus:outline-none
                focus:ring-2 focus:ring-amber-500 dark:hover:text-amber-50"
-            @click="closeWarning"
-            aria-label="Dismiss warning">
+                  @click="closeWarning"
+                  aria-label="Dismiss warning">
             <span aria-hidden="true">&times;</span>
           </button>
           <strong class="font-medium">{{ $t('web.COMMON.warning') }}:</strong>
           {{ $t('web.shared.you_created_this_secret') }}
         </div>
 
-        <div
-          v-if="isOwner && showSecret"
-          class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4
+        <div v-if="isOwner && showSecret"
+             class="mb-4 border-l-4 border-brand-400 bg-brand-50 p-4
              text-brand-700 dark:border-brand-500 dark:bg-brand-900 dark:text-brand-100"
-          role="alert"
-          aria-live="polite">
-          <button
-            type="button"
-            class="float-right hover:text-brand-900 focus:outline-none
+             role="alert"
+             aria-live="polite">
+          <button type="button"
+                  class="float-right hover:text-brand-900 focus:outline-none
                focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
-            @click="closeWarning"
-            aria-label="Dismiss notification">
+                  @click="closeWarning"
+                  aria-label="Dismiss notification">
             <span aria-hidden="true">&times;</span>
           </button>
           {{ $t('web.shared.viewed_own_secret') }}
@@ -97,42 +91,36 @@
 
     <!-- Confirmation slot -->
     <template #confirmation="{ record, details, error, isLoading, onConfirm }">
-      <div class="space-y-20">
-        <SecretConfirmationForm
-          :secret-key="secretKey"
-          :record="record"
-          :details="details"
-          :error="error"
-          :is-submitting="isLoading"
-          @user-confirmed="onConfirm"
-        />
+      <div class="mx-auto max-w-2xl space-y-20">
+        <SecretConfirmationForm :secret-key="secretKey"
+                                :record="record"
+                                :details="details"
+                                :error="error"
+                                :is-submitting="isLoading"
+                                @user-confirmed="onConfirm" />
       </div>
     </template>
 
     <!-- Onboarding slot -->
     <template #onboarding="{ record }">
       <div v-if="!record.verification">
-        <SecretRecipientOnboardingContent
-          :display-powered-by="true"
-        />
+        <SecretRecipientOnboardingContent :display-powered-by="true" />
       </div>
     </template>
 
     <!-- Reveal slot -->
     <template #reveal="{ record, details }">
       <div class="space-y-4">
-        <h2
-          class="text-brand-600 dark:text-brand-100"
-          id="secret-heading">
+        <h2 class="text-brand-600 dark:text-brand-100"
+            id="secret-heading">
           {{ $t('web.shared.this_message_for_you') }}
         </h2>
 
-        <SecretDisplayCase
-          aria-labelledby="secret-heading"
-          :display-powered-by="true"
-          :record="record"
-          :details="details"
-        />
+        <SecretDisplayCase aria-labelledby="secret-heading"
+                           class="w-full"
+                           :display-powered-by="true"
+                           :record="record"
+                           :details="details" />
       </div>
     </template>
 
@@ -150,9 +138,9 @@
   </BaseShowSecret>
 </template>
 
- <style scoped>
- :focus {
-   outline: 2px solid currentColor;
-   outline-offset: 2px;
- }
- </style>
+<style scoped>
+:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+</style>

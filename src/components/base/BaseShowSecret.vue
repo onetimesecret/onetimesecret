@@ -47,82 +47,75 @@ onMounted(() => {
 </script>
 
 <template>
-  <main
-    class="min-h-screen"
-    role="main"
-    aria-label="Secret viewing page">
-    <!-- Header slot for branding/title -->
-    <slot
-      name="header"
-      :record="record"
-      :details="details"></slot>
+  <main class="min-h-screen"
+        role="main"
+        aria-label="Secret viewing page">
+    <div class="w-full max-w-4xl mx-auto"> <!-- Add container wrapper -->
 
-    <!-- Loading state -->
-    <template v-if="state.isLoading">
-      <slot
-        name="loading"
-        :branded="branded"></slot>
-    </template>
+      <!-- Header slot for branding/title -->
+      <slot name="header"
+            :record="record"
+            :details="details"></slot>
 
-    <!-- Error state -->
-    <template v-else-if="state.error">
-      <slot
-        name="error"
-        :error="state.error"
-        :branded="branded"></slot>
-    </template>
-
-    <!-- Main content -->
-    <div v-if="record && details">
-      <!-- Alerts slot for owner warnings -->
-      <slot
-        name="alerts"
-        :record="record"
-        :details="details"
-        :is-owner="details.is_owner"
-        :show-secret="details.show_secret"></slot>
-
-      <template v-if="!details.show_secret">
-        <!-- Confirmation form slot -->
-        <slot
-          name="confirmation"
-          :secret-key="secretKey"
-          :record="record"
-          :details="details"
-          :error="state.error"
-          :is-loading="state.isLoading"
-          :on-confirm="handleUserConfirmed"></slot>
-
-        <!-- Optional onboarding/marketing slot -->
-        <slot
-          name="onboarding"
-          :record="record"
-          :details="details"></slot>
+      <!-- Loading state -->
+      <template v-if="state.isLoading">
+        <slot name="loading"
+              :branded="branded"></slot>
       </template>
 
-      <template v-else>
-        <!-- Reveal content slot -->
-        <slot
-          name="reveal"
-          :record="record"
-          :details="details"></slot>
+      <!-- Error state -->
+      <template v-else-if="state.error">
+        <slot name="error"
+              :error="state.error"
+              :branded="branded"></slot>
       </template>
-    </div>
 
-    <!-- Unknown secret slot -->
-    <template v-else-if="!record">
-      <slot
-        name="unknown"
-        :branded="branded"
-        :details="details">
+      <!-- Main content -->
+      <div v-if="record && details">
+        <!-- Alerts slot for owner warnings -->
+        <slot name="alerts"
+              :record="record"
+              :details="details"
+              :is-owner="details.is_owner"
+              :show-secret="details.show_secret"></slot>
+
+        <template v-if="!details.show_secret">
+          <!-- Confirmation form slot -->
+          <slot name="confirmation"
+                :secret-key="secretKey"
+                :record="record"
+                :details="details"
+                :error="state.error"
+                :is-loading="state.isLoading"
+                :on-confirm="handleUserConfirmed"></slot>
+
+          <!-- Optional onboarding/marketing slot -->
+          <slot name="onboarding"
+                :record="record"
+                :details="details"></slot>
+        </template>
+
+        <template v-else>
+          <!-- Reveal content slot -->
+          <slot name="reveal"
+                :record="record"
+                :details="details"></slot>
+        </template>
+      </div>
+
+      <!-- Unknown secret slot -->
+      <template v-else-if="!record">
+        <slot name="unknown"
+              :branded="branded"
+              :details="details">
         </slot>
-    </template>
+      </template>
 
-    <!-- Footer slot -->
-    <slot
-      name="footer"
-      :record="record"
-      :details="details"></slot>
+      <!-- Footer slot -->
+      <slot name="footer"
+            :record="record"
+            :details="details"></slot>
+    </div>
   </main>
 </template>
 
