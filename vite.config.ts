@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import process from 'process';
 import Markdown from 'unplugin-vue-markdown/vite';
 import { defineConfig } from 'vite';
-import checker from 'vite-plugin-checker';
+//import checker from 'vite-plugin-checker';
 //import vueDevTools from 'vite-plugin-vue-devtools';
 //import Inspector from 'vite-plugin-vue-inspector'; // OR vite-plugin-vue-inspector
 import { DEBUG } from './src/utils/debug';
@@ -69,11 +69,11 @@ export default defineConfig({
       },
     }),
 
-    // Enable type checking and linting w/o blocking hmr
-    checker({
-      typescript: true,
-      vueTsc: true,
-    }),
+    // // Enable type checking and linting w/o blocking hmr
+    // checker({
+    //   typescript: true,
+    //   vueTsc: true,
+    // }),
 
     // Enable Vue Devtools
     //vueDevTools(),
