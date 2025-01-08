@@ -42,6 +42,12 @@
 {{! <!-- Passes data to the Vuejs frontend --> }}
 {{{jsvars_to_script}}}
 
+{{! <!-- Hydrating here vs in main.ts is more reliable --> }}
+<script lang="javascript" nonce="{{ nonce }}">
+  var initialData = document.getElementById('onetime-state')?.textContent;
+  window.__ONETIME_STATE__ = (initialData) ? JSON.parse(initialData) : [];
+</script>
+
 {{#frontend_development}}
 {{! <!-- if development --> }}
 <script type="module" nonce="{{ nonce }}" src="{{ frontend_host }}/dist/main.ts"></script>
