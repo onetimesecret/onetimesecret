@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { defineEmits, defineProps } from 'vue';
+import { defineEmits } from 'vue';
 
 // Define the props expected from the parent
 defineProps<{

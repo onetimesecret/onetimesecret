@@ -1,6 +1,5 @@
 <!-- src/layouts/QuietLayout.vue -->
 <script setup lang="ts">
-import { defineProps, withDefaults } from 'vue';
 import type { LayoutProps } from '@/types/ui/layouts';
 import BaseLayout from './BaseLayout.vue';
 
