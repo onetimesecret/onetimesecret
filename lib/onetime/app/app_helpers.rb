@@ -89,7 +89,7 @@ module Onetime::App
     rescue OT::LimitExceeded => ex
       OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
-      throttle_response "Cripes! You have been rate limited.", shrimp: sess.add_shrimp
+      throttle_response "Cripes! You have been rate limited."
 
     rescue Familia::HighRiskFactor => ex
       OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
