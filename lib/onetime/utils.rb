@@ -77,7 +77,7 @@ module Onetime
         when 'Boolean', 'FalseClass', 'TrueClass'
           value
         when 'NilClass'
-          'null'
+          nil
         else
           # Just totally give up if we don't know what to do with it, log
           # an error, and return an empty string so the page doesn't break.
