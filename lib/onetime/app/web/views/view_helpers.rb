@@ -77,7 +77,7 @@ module Onetime
             font_files = @manifest_cache.values.select { |v| v['file'] =~ /\.(woff2?|ttf|otf|eot)$/ }
             font_files.each do |font|
               file_extension = File.extname(font['file']).delete('.')
-              assets << %(    <link rel="preload" href="/dist/#{font['file']}" as="font" type="font/#{file_extension}">)
+              assets << %(    <link rel="preload" href="/dist/#{font['file']}" as="font" type="font/#{file_extension}" crossorigin>)
             end
           else
             OT.le "Main entry point not found in Vite manifest at #{manifest_path}"
