@@ -112,16 +112,24 @@ const handleDelete = (domainId: string) => {
             <td class="px-6 py-4">
               <div class="flex flex-col">
                 <router-link
+                  v-if="domain.vhost?.status === 'ACTIVE'"
                   :to="{ name: 'DomainBrand', params: { domain: domain.display_domain } }"
-                  class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700
-                                        dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
+                  class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
+                  {{ domain.display_domain }}
+                </router-link>
+                <router-link
+                  v-else
+                  :to="{
+                    name: 'DomainVerify',
+                    params: { domain: domain.display_domain },
+                  }"
+                  class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
                   {{ domain.display_domain }}
                 </router-link>
                 <div class="mt-1 flex items-center gap-2">
                   <DomainVerificationInfo
                     mode="icon"
-                    :domain="domain"
-                  />
+                    :domain="domain" />
                   <span class="text-xs text-gray-500 dark:text-gray-400">
                     Added {{ formatDistanceToNow(domain.created, { addSuffix: true }) }}
                   </span>
