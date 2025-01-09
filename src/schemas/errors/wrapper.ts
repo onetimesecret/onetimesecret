@@ -30,12 +30,3 @@ export function wrapError(
 
   return error;
 }
-
-export function createError(
-  message: string,
-  type: ErrorType,
-  severity: ErrorSeverity = 'error',
-  details?: Record<string, unknown>
-): ApplicationError {
-  return wrapError(message, type, severity, null, null, details);
-}

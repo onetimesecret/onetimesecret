@@ -1,5 +1,10 @@
 import { HTTP_STATUS_CODES } from './constants';
-import { applicationErrorSchema, type ApplicationError, type ErrorType } from './types';
+import {
+  applicationErrorSchema,
+  type ApplicationError,
+  type ErrorType,
+  type ErrorSeverity,
+} from './types';
 import { wrapError } from './wrapper';
 
 // Type guards
@@ -30,11 +35,7 @@ export const errorGuards = {
     return (
       error !== null &&
       typeof error === 'object' &&
-      ('isAxiosError' in error ||
-        ('status' in error &&
-          'statusText' in error &&
-          error instanceof Error &&
-          'response' in error))
+      ('isAxiosError' in error || ('status' in error && 'response' in error))
     );
   },
 };
@@ -99,4 +100,13 @@ export const errorClassifier = {
 // Convenience function for external use
 export function classifyError(error: unknown): ApplicationError {
   return errorClassifier.classify(error as Error);
+}
+
+export function createError(
+  message: string,
+  type: ErrorType,
+  severity: ErrorSeverity = 'error',
+  details?: Record<string, unknown>
+): ApplicationError {
+  return wrapError(message, type, severity, null, null, details);
 }
