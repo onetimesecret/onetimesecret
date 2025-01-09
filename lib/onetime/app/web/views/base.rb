@@ -13,7 +13,7 @@ module Onetime
       self.view_path = './app/web/views'
 
       attr_reader :req, :plan, :is_paid, :canonical_domain, :display_domain, :domain_strategy
-      attr_reader :domain_id, :domain_branding, :custom_domain
+      attr_reader :domain_id, :domain_branding, :domain_logo, :custom_domain
       attr_accessor :sess, :cust, :locale, :messages, :form_fields, :pagename
 
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
@@ -32,6 +32,7 @@ module Onetime
           @custom_domain = OT::CustomDomain.from_display_domain(@display_domain)
           @domain_id = custom_domain&.domainid
           @domain_branding = (custom_domain&.brand&.hgetall || {}).to_h # bools are strings
+          @domain_logo = (custom_domain&.logo&.hgetall || {}).to_h # ditto
         end
 
         # TODO: Make better use of fetch/dig to avoid nil checks. Esp important
@@ -147,6 +148,7 @@ module Onetime
         self[:jsvars][:domain_strategy] = jsvar(domain_strategy)
         self[:jsvars][:domain_id] = jsvar(domain_id)
         self[:jsvars][:domain_branding] = jsvar(domain_branding)
+        self[:jsvars][:domain_logo] = jsvar(domain_logo)
         self[:jsvars][:display_domain] = jsvar(display_domain)
 
         # The form fields hash is populated by handle_form_error so only when there's
