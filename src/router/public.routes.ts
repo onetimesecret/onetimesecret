@@ -1,5 +1,13 @@
+// src/router/public.routes.ts
+
+// import DefaultFooter from '@/components/layout/DefaultFooter.vue';
+// import DefaultHeader from '@/components/layout/DefaultHeader.vue';
+import QuietFooter from '@/components/layout/QuietFooter.vue';
+import QuietHeader from '@/components/layout/QuietHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
-import Homepage from '@/views/Homepage.vue';
+// import QuietLayout from '@/layouts/QuietLayout.vue';
+import { WindowService } from '@/services/window.service';
+import HomepageContainer from '@/views/HomepageContainer.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -7,18 +15,39 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'Home',
-    component: Homepage,
+    // component: HomepageContainer,
+    components: {
+      default: HomepageContainer,
+      header: QuietHeader,
+      footer: QuietFooter,
+    },
     meta: {
       requiresAuth: false,
-      layout: DefaultLayout,
+      // layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayLinks: true,
         displayFeedback: true,
       },
     },
+    beforeEnter: async (to) => {
+      const windowProps = WindowService.getMultiple(['domain_id', 'domain_branding', 'domain_strategy', 'display_domain']);
+      console.log('window2Props:', windowProps);
+      if (windowProps.domain_strategy === 'canonical') {
+      } else {
+        to.meta.layoutProps = {
+          ...to.meta.layoutProps,
+          displayMasthead: false,
+          displayNavigation: false,
+          displayLinks: false,
+          displayFeedback: false,
+          displayVersion: false,
+          displayPoweredBy: false,
+          displayToggles: true,
+        };
+      }
+    }
   },
-
   {
     path: '/incoming',
     name: 'Inbound Secrets',

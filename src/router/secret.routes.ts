@@ -30,6 +30,9 @@ const withValidatedSecretKey = {
   }),
 } as const;
 
+/**
+* Routes
+*/
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/secret/:secretKey',
