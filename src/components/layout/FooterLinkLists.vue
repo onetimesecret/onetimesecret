@@ -19,7 +19,7 @@
       <!-- Company links -->
       <div class="space-y-4">
         <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
-          Company {{ displayFeedback }}
+          Company
         </h3>
         <ul class="prose space-y-2 font-brand dark:prose-invert">
           <li>
