@@ -6,7 +6,7 @@
   import { computed, ref, watch } from 'vue';
   import { WindowService } from '@/services/window.service';
   import { useRouter } from 'vue-router';
-
+  import { useProductIdentity } from '@/stores/identityStore';
   import CustomDomainPreview from './../../CustomDomainPreview.vue';
   import ConcealButton from './ConcealButton.vue';
   import GenerateButton from './GenerateButton.vue';
@@ -14,6 +14,7 @@
   import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
 
   const csrfStore = useCsrfStore();
+  const productIdentityStore = useProductIdentity();
 
   export interface Props {
     enabled?: boolean;
@@ -162,6 +163,7 @@
       />
 
       <CustomDomainPreview
+        v-if="productIdentityStore.isCanonical"
         :default_domain="selectedDomain"
         data-testid="custom-domain-preview"
       />
@@ -174,12 +176,14 @@
 
       <div class="mb-4 flex w-full space-x-2">
         <GenerateButton
+          v-if="withGenerate"
           :disabled="isGenerateDisabled || isSubmitting"
           @click="handleButtonClick('generate')"
         />
         <ConcealButton
           :disabled="isCreateDisabled || isSubmitting"
           :with-asterisk="withAsterisk"
+          :primary-color="productIdentityStore.primaryColor"
           @click="handleButtonClick('share')"
         />
       </div>

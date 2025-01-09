@@ -41,8 +41,8 @@ const routes: Array<RouteRecordRaw> = [
           displayNavigation: false,
           displayLinks: false,
           displayFeedback: false,
-          displayVersion: false,
-          displayPoweredBy: false,
+          displayVersion: true,
+          displayPoweredBy: true,
           displayToggles: true,
         };
       }

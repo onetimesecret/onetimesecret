@@ -1,17 +1,24 @@
 
 <script setup lang="ts">
+import { ref } from 'vue';
+
 interface Props {
   disabled: boolean;
   withAsterisk: boolean;
+  primaryColor: string;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const buttonColor = ref(props.primaryColor ?? '#dc4a22');
+
 </script>
 
 <template>
   <button
     type="submit"
-    class="grow rounded bg-orange-600 px-4 py-2
+    :style="{ backgroundColor: buttonColor }"
+    class="grow rounded px-4 py-2
            text-xl font-bold text-white
            transition-all duration-200 ease-in-out
            hover:scale-105 hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
