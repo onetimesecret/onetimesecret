@@ -25,6 +25,7 @@ GET    /private/:key                              Onetime::App::APIV2::Secrets#g
 GET    /secret/:key                               Onetime::App::APIV2::Secrets#get_secret
 POST   /secret/:key/reveal                        Onetime::App::APIV2::Secrets#reveal_secret
 
+POST   /secret/generate                           Onetime::App::APIV2::Secrets#generate_secret
 POST   /secret/conceal                            Onetime::App::APIV2::Secrets#conceal_secret
 
 GET    /supported-locales                         Onetime::App::APIV2#get_supported_locales

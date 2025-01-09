@@ -7,7 +7,10 @@
   import GenerateButton from './GenerateButton.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
   import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
-  import { useSecretForm } from '@/composables/useSecretForm';
+  import {
+    useSecretConcealer,
+    type SecretFormData,
+  } from '@/composables/useSecretConcealer';
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { useCsrfStore } from '@/stores/csrfStore';
   import { useProductIdentity } from '@/stores/identityStore';
@@ -29,15 +32,16 @@
     withGenerate: false,
   });
 
-  const {
-    secretContent,
-    isSubmitting,
-    error,
-    success,
-    formKind,
-    handleButtonClick,
-    submitForm,
-  } = useSecretForm();
+  const { formData, isSubmitting, error, submit } = useSecretConcealer();
+
+  const handleAction = (kind: 'generate' | 'share') => {
+    formData.value.kind = kind;
+    return submit(kind);
+  };
+
+  const updateContent = (content: string) => {
+    formData.value.secret = content;
+  };
 
   const {
     availableDomains,
@@ -51,30 +55,9 @@
 
 <template>
   <div class="min-w-[320px]">
-    <BasicFormAlerts
-      :success="success"
-      :error="error" />
+    <BasicFormAlerts :error="error" />
 
-    <form
-      id="createSecret"
-      method="post"
-      autocomplete="off"
-      @submit.prevent="submitForm"
-      :disabled="!props.enabled">
-      <input
-        type="hidden"
-        name="utf8"
-        value="✓" />
-      <input
-        type="hidden"
-        name="shrimp"
-        :value="csrfStore.shrimp" />
-      <input
-        type="hidden"
-        name="share_domain"
-        :value="selectedDomain" />
-
-      <!--
+    <!--
         Domain selection and persistence logic:
           - getSavedDomain() retrieves the saved domain from localStorage or defaults
             to the first available domain
@@ -88,13 +71,16 @@
           SecretContentInputArea handles the dropdown UI. The selected domain
           persists across sessions and can be overridden when needed.
       -->
+    <form @submit.prevent="handleAction(formData.kind)">
       <SecretContentInputArea
+        :content="formData.secret"
+        :share-domain="formData.share_domain"
         :available-domains="availableDomains"
         :initial-domain="selectedDomain"
         :initial-content="formFields?.secret || ''"
         :with-domain-dropdown="domainsEnabled"
         @update:selected-domain="updateSelectedDomain"
-        @update:content="secretContent = $event" />
+        @update:content="updateContent" />
 
       <CustomDomainPreview
         v-if="productIdentity.isCanonical"
@@ -107,15 +93,17 @@
         :with-passphrase="true" />
 
       <div class="mb-4 flex w-full space-x-2">
-        <GenerateButton
-          v-if="withGenerate"
-          :disabled="hasInitialContent || isSubmitting"
-          @click="handleButtonClick('generate')" />
+        <Suspense v-if="withGenerate">
+          <GenerateButton
+            v-if="withGenerate"
+            :disabled="hasInitialContent || isSubmitting"
+            @click="() => submit('generate')" />
+        </Suspense>
         <ConcealButton
           :disabled="!hasInitialContent || isSubmitting"
           :with-asterisk="withAsterisk"
           :primary-color="productIdentity.primaryColor"
-          @click="handleButtonClick('share')" />
+          @click="() => submit('share')" />
       </div>
     </form>
   </div>

@@ -1,11 +1,17 @@
 // src/stores/secretStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { responseSchemas, type SecretResponse } from '@/schemas/api';
+import {
+  ConcealData,
+  ConcealDataResponse,
+  responseSchemas,
+  type SecretResponse,
+} from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
+import { concealRequestSchema, GeneratePayload, ConcealPayload } from '@/schemas/api';
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -70,10 +76,39 @@ export const useSecretStore = defineStore('secrets', () => {
     return validated;
   }
 
-  async function conceal(payload: z.infer<typeof concealPayloadSchema>) {
-    const response = await $api.post('/api/v2/secret/conceal', payload);
+  /**
+   * Creates a new concealed secret
+   * @param payload - Validated secret creation payload
+   * @throws Will throw an error if the API call fails or validation fails
+   * @returns Validated secret response
+   *
+   * Validation responsibilities:
+   * - Input payload is pre-validated by useSecretConcealer composable
+   * - Store validates complete request structure to ensure API contract
+   * - Store validates API response to ensure data integrity
+   *
+   * This dual validation approach provides:
+   * 1. Early user input validation at form level
+   * 2. API contract enforcement at store level
+   * 3. Type safety and runtime validation of response data
+   *
+   * Note: Store-level request validation may be redundant given TypeScript types
+   * and composable validation. This is an open question. Response validation
+   * should remain the responsibility of this store.
+   */
+  async function conceal(payload: ConcealPayload) {
+    // Remove redundant request validation since payload is pre-validated
+    const response = await $api.post('/api/v2/secret/conceal', { secret: payload });
     const validated = responseSchemas.secret.parse(response.data);
-    record.value = validated.record;
+    record.value = validated;
+    return validated;
+  }
+
+  async function generate(payload: GeneratePayload) {
+    // Remove redundant request validation since payload is pre-validated
+    const response = await $api.post('/api/v2/secret/generate', { secret: payload });
+    const validated = responseSchemas.secret.parse(response.data);
+    record.value = validated;
     return validated;
   }
 
@@ -124,6 +159,7 @@ export const useSecretStore = defineStore('secrets', () => {
     clear,
     fetch,
     conceal,
+    generate,
     reveal,
     $reset,
   };

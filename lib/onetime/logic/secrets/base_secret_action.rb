@@ -1,0 +1,164 @@
+# lib/onetime/logic/secrets/base_secret_action.rb
+module Onetime::Logic
+  module Secrets
+    class BaseSecretAction < OT::Logic::Base
+      attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
+      attr_reader :metadata, :secret, :share_domain, :custom_domain
+      attr_accessor :token
+
+      def process_params
+        process_ttl
+        process_secret
+        process_passphrase
+        process_recipient
+        process_share_domain
+      end
+
+      def raise_concerns
+        limit_action :create_secret
+        limit_action :email_recipient unless recipient.empty?
+        validate_recipient
+        raise_form_error "Unknown type of secret" if kind.nil?
+        validate_share_domain
+      end
+
+      def process
+        create_secret_pair
+        handle_passphrase
+        save_secret
+        handle_success
+      end
+
+
+      def success_data
+        {
+          success: greenlighted,
+          record: {
+            metadata: metadata.safe_dump,
+            secret: secret.safe_dump,
+            share_domain: share_domain
+          },
+          details: {
+            kind: kind,
+            recipient: recipient,
+            recipient_safe: recipient_safe
+          }
+        }
+      end
+
+      def form_fields
+        {
+          share_domain: share_domain,
+          secret: secret_value,
+          recipient: recipient,
+          ttl: ttl,
+          kind: kind
+        }
+      end
+
+      protected
+
+      def process_ttl
+        @ttl = params[:ttl].to_i
+        @ttl = plan.options[:ttl] if @ttl <= 0 || @ttl >= plan.options[:ttl]
+        @ttl = 5.minutes if @ttl < 1.minute
+      end
+
+      def process_secret
+        raise NotImplementedError, "You must implement process_secret"
+      end
+
+      def process_passphrase
+        @passphrase = params[:passphrase].to_s
+      end
+
+      def process_recipient
+        params[:recipient] = [params[:recipient]].flatten.compact.uniq
+        r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
+        @recipient = params[:recipient].collect { |email_address|
+          next if email_address.to_s.empty?
+          email_address.scan(r).uniq.first
+        }.compact.uniq
+        @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
+      end
+
+      # Capture the selected domain the link is meant for, as long as it's
+      # a valid public domain (no pub intended). This is the same validation
+      # that CustomDomain objects go through so if we don't get past this
+      # most basic of checks, then whatever this is never had a whisker's
+      # chance in a lion's den of being a custom domain anyway.
+      def process_share_domain
+        potential_domain = params[:share_domain].to_s
+        return unless potential_domain
+        unless OT::CustomDomain.valid?(potential_domain)
+          return OT.info "[ConcealSecret] Invalid share domain: #{OT::CustomDomain.valid?(potential_domain)}"
+        end
+        # If the given domain is the same as the site's host domain, then
+        # we simply skip the share domain stuff altogether.
+        return if OT::CustomDomain.default_domain?(potential_domain)
+        # Otherewise, it's good to go.
+        @share_domain = potential_domain
+      end
+
+      def validate_recipient
+        return if recipient.empty?
+        raise_form_error "An account is required to send emails." if cust.anonymous?
+        recipient.each do |recip|
+          raise_form_error "Undeliverable email address: #{recip}" unless valid_email?(recip)
+        end
+      end
+
+      def validate_share_domain
+        return unless share_domain
+        @custom_domain = OT::CustomDomain.load(@share_domain, cust.custid)
+        raise_form_error "Unknown share domain (#{@share_domain})" if @custom_domain.nil?
+        raise_form_error "Invalid share domain (#{@share_domain})" unless @custom_domain.owner?(@cust)
+      end
+
+      private
+
+      def create_secret_pair
+        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
+      end
+
+      def handle_passphrase
+        return if passphrase.to_s.empty?
+        secret.update_passphrase passphrase
+        metadata.passphrase = secret.passphrase
+      end
+
+      def save_secret
+        secret.encrypt_value secret_value, :size => plan.options[:size]
+        metadata.ttl, secret.ttl = ttl*2, ttl
+        metadata.secret_shortkey = secret.shortkey
+        metadata.secret_ttl = secret.ttl
+        metadata.share_domain = share_domain
+        secret.share_domain = share_domain
+        secret.save
+        metadata.save
+        @greenlighted = metadata.valid? && secret.valid?
+      end
+
+      def handle_success
+        return raise_form_error "Could not store your secret" unless greenlighted
+        update_stats
+        send_email_notification
+      end
+
+      def update_stats
+        unless cust.anonymous?
+          cust.add_metadata metadata
+          cust.increment_field :secrets_created
+        end
+        OT::Customer.global.increment_field :secrets_created
+        OT::Logic.stathat_count("Secrets", 1)
+      end
+
+      def send_email_notification
+        return if recipient.nil? || recipient.empty?
+        klass = OT::App::Mail::SecretLink
+        metadata.deliver_by_email cust, locale, secret, recipient.first, klass
+      end
+    end
+  end
+end
