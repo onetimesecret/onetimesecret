@@ -76,8 +76,8 @@ export interface OnetimeWindow {
   /** Optional HTML banner displayed at page top */
   global_banner?: string;
 
-  canonical_domain: string | null;
-  domain_strategy: string;
+  canonical_domain: string;
+  domain_strategy: 'canonical' | 'subdomain' | 'custom' | 'invalid';
   domain_id: string;
   display_domain: string;
   domain_branding: BrandSettings;
