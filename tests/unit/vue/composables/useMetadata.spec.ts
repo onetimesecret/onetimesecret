@@ -1,4 +1,6 @@
 import { useMetadata } from '@/composables/useMetadata';
+import { AxiosError } from 'axios';
+import axios from 'axios';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import { createPinia, setActivePinia } from 'pinia';
@@ -59,14 +61,21 @@ describe('useMetadata', () => {
 
   describe('fetching metadata', () => {
     const store = {
-      fetch: vi.fn().mockResolvedValue(mockMetadataRecord),
+      fetch: vi.fn().mockImplementation(async () => {
+        store.record.value = mockMetadataRecord;
+        store.details.value = mockMetadataDetails;
+        return;
+      }),
       record: ref(null),
-      details: ref(mockMetadataDetails),
+      details: ref(null),
       isLoading: ref(false),
     };
 
     beforeEach(() => {
       vi.mocked(useMetadataStore).mockReturnValue(store);
+      store.record.value = null;
+      store.details.value = null;
+      store.isLoading.value = false;
     });
 
     it('should handle successful metadata fetch', async () => {
@@ -76,7 +85,6 @@ describe('useMetadata', () => {
       expect(isLoading.value).toBe(true);
 
       await promise;
-
       expect(store.fetch).toHaveBeenCalledWith('test-key');
       expect(record.value).toEqual(mockMetadataRecord);
       expect(details.value).toEqual(mockMetadataDetails);
@@ -84,14 +92,59 @@ describe('useMetadata', () => {
     });
 
     it('should handle fetch errors', async () => {
-      store.fetch.mockRejectedValueOnce(new Error('Network error'));
+      // Setup
+      const networkError = new Error('Network error');
+      store.fetch.mockRejectedValueOnce(networkError);
       const notifications = { show: vi.fn() };
       vi.mocked(useNotificationsStore).mockReturnValue(notifications);
 
-      const { fetch } = useMetadata('test-key');
+      // Execute
+      const { fetch, isLoading, error } = useMetadata('test-key');
       await fetch();
 
-      expect(notifications.show).toHaveBeenCalledWith('Network error', 'error');
+      // Verify
+      expect(store.fetch).toHaveBeenCalledWith('test-key');
+      expect(isLoading.value).toBe(false);
+      expect(notifications.show).not.toHaveBeenCalled();
+      expect(error.value).toBeDefined();
+      expect(error.value?.type).toBe('technical');
+      expect(error.value?.severity).toBe('error');
+    });
+
+    it('should handle 404 errors as human-facing', async () => {
+      // Setup
+      const notFoundError = new AxiosError(
+        'Request failed with status 404',
+        'ERR_NOT_FOUND',
+        undefined,
+        undefined,
+        {
+          status: 404,
+          data: { message: 'Secret not found or has been burned' },
+        } as any
+      );
+
+      store.fetch.mockRejectedValueOnce(notFoundError);
+      const notifications = { show: vi.fn() };
+      vi.mocked(useNotificationsStore).mockReturnValue(notifications);
+
+      // Execute
+      const { fetch, isLoading, error } = useMetadata('test-key');
+      await fetch();
+
+      // Verify
+      expect(store.fetch).toHaveBeenCalledWith('test-key');
+      expect(isLoading.value).toBe(false);
+      expect(error.value).toMatchObject({
+        message: 'Secret not found or has been burned',
+        type: 'human',
+        severity: 'error',
+        code: 404,
+      });
+      expect(notifications.show).toHaveBeenCalledWith(
+        'Secret not found or has been burned',
+        'error'
+      );
     });
   });
 
