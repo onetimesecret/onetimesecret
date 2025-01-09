@@ -1,12 +1,11 @@
 import { useMetadata } from '@/composables/useMetadata';
 import { AxiosError } from 'axios';
-import axios from 'axios';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import { createPinia, setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { Router, useRouter } from 'vue-router';
 
 import {
   mockBurnedMetadataRecord,
@@ -17,6 +16,11 @@ import {
 vi.mock('@/stores/metadataStore');
 vi.mock('@/stores/notificationsStore');
 vi.mock('vue-router');
+
+const mockRouter = {
+  push: vi.fn(),
+} as unknown as Router; // Use `unknown` as an intermediate type to bypass
+vi.mocked(useRouter).mockReturnValue(mockRouter);
 
 const mockMetadata = { id: 'test-key', value: 'secret-data' };
 
@@ -158,26 +162,36 @@ describe('useMetadata', () => {
         details: ref(mockMetadataDetails),
       };
       const notifications = { show: vi.fn() };
-      const router = { push: vi.fn() };
+      const mockRouter = {
+        push: vi.fn().mockResolvedValue(undefined), // Router push returns a promise
+      } as unknown as Router;
 
       vi.mocked(useMetadataStore).mockReturnValue(store);
       vi.mocked(useNotificationsStore).mockReturnValue(notifications);
-      vi.mocked(useRouter).mockReturnValue(router);
+      vi.mocked(useRouter).mockReturnValue(mockRouter);
 
       const { burn, passphrase } = useMetadata('test-key');
       passphrase.value = 'secret123';
 
+      // Wait for all async operations to complete
       await burn();
 
+      // Verify the entire sequence completed
       expect(store.burn).toHaveBeenCalledWith('test-key', 'secret123');
+      expect(store.fetch).toHaveBeenCalled();
       expect(notifications.show).toHaveBeenCalledWith(
         'Secret burned successfully',
         'success'
       );
-      expect(router.push).toHaveBeenCalled();
+      expect(mockRouter.push).toHaveBeenCalledWith({
+        name: 'Metadata link',
+        params: { metadataKey: 'test-key' },
+        query: expect.objectContaining({ ts: expect.any(String) }),
+      });
     });
 
     it('should prevent plop burn attempts', async () => {
+      // Setup
       const store = {
         burn: vi.fn(),
         fetch: vi.fn().mockResolvedValue(mockMetadataRecord),
@@ -185,17 +199,24 @@ describe('useMetadata', () => {
         record: ref(mockMetadataRecord),
       };
       const notifications = { show: vi.fn() };
-      const router = { push: vi.fn() }; // Add router mock
+      const router = { push: vi.fn() };
 
       vi.mocked(useMetadataStore).mockReturnValue(store);
       vi.mocked(useNotificationsStore).mockReturnValue(notifications);
-      vi.mocked(useRouter).mockReturnValue(router); // Mock useRouter
-      const { fetch, record, details, isLoading, canBurn } = useMetadata('test-key');
+      vi.mocked(useRouter).mockReturnValue(mockRouter);
 
-      const { burn } = useMetadata('test-key');
+      // Execute
+      const { burn, error } = useMetadata('test-key');
       await burn();
 
+      // Verify
       expect(store.burn).not.toHaveBeenCalled();
+      expect(notifications.show).toHaveBeenCalledWith('Cannot burn this secret', 'error');
+      expect(error.value).toMatchObject({
+        message: 'Cannot burn this secret',
+        type: 'human',
+        severity: 'error',
+      });
     });
   });
 });
