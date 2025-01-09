@@ -70,6 +70,13 @@ export const useSecretStore = defineStore('secrets', () => {
     return validated;
   }
 
+  async function conceal(payload: z.infer<typeof concealPayloadSchema>) {
+    const response = await $api.post('/api/v2/secret/conceal', payload);
+    const validated = responseSchemas.secret.parse(response.data);
+    record.value = validated.record;
+    return validated;
+  }
+
   /**
    * Reveals a secret's contents using an optional passphrase
    * @param secretKey - Unique identifier for the secret
@@ -116,6 +123,7 @@ export const useSecretStore = defineStore('secrets', () => {
     init,
     clear,
     fetch,
+    conceal,
     reveal,
     $reset,
   };

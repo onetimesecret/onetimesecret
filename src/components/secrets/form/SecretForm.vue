@@ -1,20 +1,19 @@
+<!-- src/components/secrets/form/SecretForm.vue -->
+
 <script setup lang="ts">
   import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-  import { useFormSubmission } from '@/composables/useFormSubmission';
-  import { ConcealDataResponse } from '@/schemas/api/responses';
-  import { useCsrfStore } from '@/stores/csrfStore';
-  import { computed, ref, watch } from 'vue';
-  import { WindowService } from '@/services/window.service';
-  import { useRouter } from 'vue-router';
-  import { useProductIdentity } from '@/stores/identityStore';
   import CustomDomainPreview from './../../CustomDomainPreview.vue';
   import ConcealButton from './ConcealButton.vue';
   import GenerateButton from './GenerateButton.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
   import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
+  import { useSecretForm } from '@/composables/useSecretForm';
+  import { useDomainDropdown } from '@/composables/useDomainDropdown';
+  import { useCsrfStore } from '@/stores/csrfStore';
+  import { useProductIdentity } from '@/stores/identityStore';
 
   const csrfStore = useCsrfStore();
-  const productIdentityStore = useProductIdentity();
+  const productIdentity = useProductIdentity();
 
   export interface Props {
     enabled?: boolean;
@@ -30,114 +29,50 @@
     withGenerate: false,
   });
 
-  const { form_fields: formFields, domains_enabled: domainsEnabled, site_host: defaultDomain } = WindowService.getMultiple(['form_fields', 'domains_enabled', 'custom_domains', 'site_host']);
-  const availableDomains = WindowService.get('custom_domains') ?? [];
-  const hasInitialContent = computed(() => Boolean(formFields?.secret));
+  const {
+    secretContent,
+    isSubmitting,
+    error,
+    success,
+    formKind,
+    handleButtonClick,
+    submitForm,
+  } = useSecretForm();
 
-  // Add defaultDomain to the list of available domains if it's not already there
-  if (!availableDomains.includes(defaultDomain)) {
-    availableDomains.push(defaultDomain);
-  }
-
-  // Function to get the saved domain or default to the first available domain
-  const getSavedDomain = () => {
-    const savedDomain = localStorage.getItem('selectedDomain');
-    return savedDomain && availableDomains.includes(savedDomain)
-      ? savedDomain
-      : availableDomains[0];
-  };
-
-  // Initialize selectedDomain with the saved domain or default
-  const selectedDomain = ref(getSavedDomain());
-
-  // Watch for changes in selectedDomain and save to localStorage
-  watch(selectedDomain, (newDomain) => {
-    localStorage.setItem('selectedDomain', newDomain);
-  });
-
-  const secretContent = ref('');
-  const isFormValid = computed(() => {
-    return secretContent.value.length > 0 || hasInitialContent.value;
-  });
-
-  // Function to update the selected domain
-  const updateSelectedDomain = (domain: string) => {
-    selectedDomain.value = domain;
-  };
-
-  const isGenerateDisabled = computed(() => isFormValid.value);
-  const isCreateDisabled = computed(() => !isFormValid.value);
-
-  const router = useRouter();
-
-  const formKind = ref('');
-
-  const handleButtonClick = (kind: 'generate' | 'share') => {
-    formKind.value = kind;
-    submitForm();
-  };
-
-  const { isSubmitting, error, success, submitForm } = useFormSubmission({
-    url: '/api/v2/secret/conceal',
-    successMessage: '',
-    onSuccess: (data: ConcealDataResponse) => {
-      // Use router to redirect to the private metadata page
-      router.push({
-        name: 'Metadata link',
-        params: { metadataKey: data.record.metadata.key },
-      });
-    },
-    onError: (data: unknown) => {
-      console.error('Error fetching secret:', data);
-
-      // Let's try to get a new shrimp right away
-      csrfStore.checkShrimpValidity();
-    },
-    getFormData: () => {
-      const form = document.getElementById('createSecret') as HTMLFormElement;
-      const formData = new FormData(form);
-      formData.append('kind', formKind.value);
-      return formData;
-    },
-  });
+  const {
+    availableDomains,
+    selectedDomain,
+    domainsEnabled,
+    hasInitialContent,
+    updateSelectedDomain,
+    formFields,
+  } = useDomainDropdown();
 </script>
 
 <template>
   <div class="min-w-[320px]">
     <BasicFormAlerts
       :success="success"
-      :error="error"
-    />
+      :error="error" />
 
     <form
       id="createSecret"
       method="post"
       autocomplete="off"
       @submit.prevent="submitForm"
-      action="/api/v2/secret/conceal"
-      class=""
       :disabled="!props.enabled">
       <input
         type="hidden"
         name="utf8"
-        value="✓"
-      />
+        value="✓" />
       <input
         type="hidden"
         name="shrimp"
-        :value="csrfStore.shrimp"
-      />
+        :value="csrfStore.shrimp" />
       <input
         type="hidden"
         name="share_domain"
-        :value="selectedDomain"
-      />
-
-      <!--
-          v-model:selectedDomain is equivalent to:
-            :selectedDomain="selectedDomain"
-            @update:selectedDomain="selectedDomain = $event"
-      -->
+        :value="selectedDomain" />
 
       <!--
         Domain selection and persistence logic:
@@ -159,33 +94,28 @@
         :initial-content="formFields?.secret || ''"
         :with-domain-dropdown="domainsEnabled"
         @update:selected-domain="updateSelectedDomain"
-        @update:content="secretContent = $event"
-      />
+        @update:content="secretContent = $event" />
 
       <CustomDomainPreview
-        v-if="productIdentityStore.isCanonical"
+        v-if="productIdentity.isCanonical"
         :default_domain="selectedDomain"
-        data-testid="custom-domain-preview"
-      />
+        data-testid="custom-domain-preview" />
 
       <SecretFormPrivacyOptions
         :with-recipient="props.withRecipient"
         :with-expiry="true"
-        :with-passphrase="true"
-      />
+        :with-passphrase="true" />
 
       <div class="mb-4 flex w-full space-x-2">
         <GenerateButton
           v-if="withGenerate"
-          :disabled="isGenerateDisabled || isSubmitting"
-          @click="handleButtonClick('generate')"
-        />
+          :disabled="hasInitialContent || isSubmitting"
+          @click="handleButtonClick('generate')" />
         <ConcealButton
-          :disabled="isCreateDisabled || isSubmitting"
+          :disabled="!hasInitialContent || isSubmitting"
           :with-asterisk="withAsterisk"
-          :primary-color="productIdentityStore.primaryColor"
-          @click="handleButtonClick('share')"
-        />
+          :primary-color="productIdentity.primaryColor"
+          @click="handleButtonClick('share')" />
       </div>
     </form>
   </div>
