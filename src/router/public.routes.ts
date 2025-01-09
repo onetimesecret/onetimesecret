@@ -5,7 +5,6 @@
 import QuietFooter from '@/components/layout/QuietFooter.vue';
 import QuietHeader from '@/components/layout/QuietHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
-// import QuietLayout from '@/layouts/QuietLayout.vue';
 import { WindowService } from '@/services/window.service';
 import HomepageContainer from '@/views/HomepageContainer.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
@@ -31,8 +30,15 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
     beforeEnter: async (to) => {
-      const windowProps = WindowService.getMultiple(['domain_id', 'domain_branding', 'domain_strategy', 'display_domain']);
-      console.log('window2Props:', windowProps);
+      // Use window service directly rather than the identity store
+      // since the routes start before the pinia stores.
+      const windowProps = WindowService.getMultiple([
+        'domain_id',
+        'domain_branding',
+        'domain_strategy',
+        'display_domain',
+      ]);
+
       if (windowProps.domain_strategy === 'canonical') {
       } else {
         to.meta.layoutProps = {
@@ -46,7 +52,7 @@ const routes: Array<RouteRecordRaw> = [
           displayToggles: true,
         };
       }
-    }
+    },
   },
   {
     path: '/incoming',
