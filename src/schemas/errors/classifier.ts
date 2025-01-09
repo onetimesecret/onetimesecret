@@ -15,7 +15,10 @@ export const errorGuards = {
       typeof error === 'object' &&
       'type' in error &&
       'severity' in error &&
-      (error as any).name === 'ApplicationError'
+      'message' in error && // Add this check
+      typeof (error as any).type === 'string' && // Add type checks
+      typeof (error as any).severity === 'string' &&
+      typeof (error as any).message === 'string'
     );
   },
 
@@ -81,8 +84,7 @@ export const errorClassifier = {
 
   classify(error: unknown): ApplicationError {
     if (errorGuards.isApplicationError(error)) {
-      const result = applicationErrorSchema.safeParse(error);
-      if (result.success) return error;
+      return error;
     }
 
     const message = this.extractMessage(error);
