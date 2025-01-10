@@ -8,7 +8,7 @@ module Onetime::Logic
 
       def process_secret
         @kind = :share
-        @secret_value = params[:secret]
+        @secret_value = payload[:secret]
       end
 
       def raise_concerns

@@ -3,10 +3,15 @@ module Onetime::Logic
   module Secrets
     class BaseSecretAction < OT::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
-      attr_reader :metadata, :secret, :share_domain, :custom_domain
+      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
 
+      # Process methods populate instance variables with the values. The
+      # raise_concerns and process methods deal with the values in the instance
+      # variables only (no more params access).
       def process_params
+        # All parameters are passed in the :secret hash (secret[:ttl], etc)
+        @payload = params[:secret] || {}
         process_ttl
         process_secret
         process_passphrase
@@ -59,7 +64,7 @@ module Onetime::Logic
       protected
 
       def process_ttl
-        @ttl = params[:ttl].to_i
+        @ttl = payload[:ttl].to_i
         @ttl = plan.options[:ttl] if @ttl <= 0 || @ttl >= plan.options[:ttl]
         @ttl = 5.minutes if @ttl < 1.minute
       end
@@ -69,13 +74,13 @@ module Onetime::Logic
       end
 
       def process_passphrase
-        @passphrase = params[:passphrase].to_s
+        @passphrase = payload[:passphrase].to_s
       end
 
       def process_recipient
-        params[:recipient] = [params[:recipient]].flatten.compact.uniq
+        payload[:recipient] = [payload[:recipient]].flatten.compact.uniq # force a list
         r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
-        @recipient = params[:recipient].collect { |email_address|
+        @recipient = payload[:recipient].collect { |email_address|
           next if email_address.to_s.empty?
           email_address.scan(r).uniq.first
         }.compact.uniq
@@ -88,7 +93,7 @@ module Onetime::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       def process_share_domain
-        potential_domain = params[:share_domain].to_s
+        potential_domain = payload[:share_domain].to_s
         return unless potential_domain
         unless OT::CustomDomain.valid?(potential_domain)
           return OT.info "[ConcealSecret] Invalid share domain: #{OT::CustomDomain.valid?(potential_domain)}"
