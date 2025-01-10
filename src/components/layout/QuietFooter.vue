@@ -43,13 +43,6 @@
             Privacy
           </router-link>
         </div>
-
-        <!-- Theme Toggle -->
-        <ThemeToggle
-          v-if="displayToggles"
-          class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-          aria-label="Toggle dark mode" />
-
         <!-- Powered By Link -->
         <a
           v-if="displayPoweredBy"
@@ -59,6 +52,14 @@
           aria-label="Visit Onetime Secret homepage">
           Powered by Onetime Secret
         </a>
+
+
+        <!-- Theme Toggle -->
+        <ThemeToggle
+          v-if="displayToggles"
+          class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+          aria-label="Toggle dark mode" />
+
       </div>
     </div>
   </footer>
