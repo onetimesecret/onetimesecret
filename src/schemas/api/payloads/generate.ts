@@ -9,7 +9,7 @@
 import { z } from 'zod';
 
 export const generatePayloadSchema = z.object({
-  kind: z.enum(['generate', 'share']),
+  kind: z.enum(['generate', 'conceal', 'share']),
   share_domain: z.string(),
   recipient: z.string().optional(),
   passphrase: z.string().optional(),

@@ -25,7 +25,7 @@ describe('useSecretConcealer', () => {
         useSecretConcealer();
 
       expect(secretContent.value).toBe('');
-      expect(formKind.value).toBe('share');
+      expect(formKind.value).toBe('conceal');
       expect(isSubmitting.value).toBe(false);
       expect(error.value).toBeNull();
       expect(success.value).toBeNull();
@@ -99,7 +99,7 @@ describe('useSecretConcealer', () => {
 
     it('maintains share as default form kind', () => {
       const { formKind } = useSecretConcealer();
-      expect(formKind.value).toBe('share');
+      expect(formKind.value).toBe('conceal');
     });
   });
 });

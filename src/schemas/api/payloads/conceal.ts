@@ -9,7 +9,7 @@
 import { z } from 'zod';
 
 export const concealPayloadSchema = z.object({
-  kind: z.enum(['generate', 'share']),
+  kind: z.enum(['generate', 'conceal', 'share']), // share for temporary legacy use with existing secrets
   secret: z.string().min(1),
   share_domain: z.string(),
   recipient: z.string().optional(),

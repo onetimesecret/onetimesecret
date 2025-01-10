@@ -25,7 +25,7 @@
     :aria-label="$t('web.COMMON.button_create_secret')"
     @click="$emit('click')"
     name="kind"
-    value="share">
+    value="conceal">
     {{ $t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
   </button>
 </template>

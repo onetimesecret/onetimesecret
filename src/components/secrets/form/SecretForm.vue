@@ -34,7 +34,7 @@
 
   const { formData, isSubmitting, error, submit } = useSecretConcealer();
 
-  const handleAction = (kind: 'generate' | 'share') => {
+  const handleAction = (kind: 'generate' | 'conceal') => {
     formData.value.kind = kind;
     return submit(kind);
   };
@@ -103,7 +103,7 @@
           :disabled="!hasInitialContent || isSubmitting"
           :with-asterisk="withAsterisk"
           :primary-color="productIdentity.primaryColor"
-          @click="() => submit('share')" />
+          @click="() => submit('conceal')" />
       </div>
     </form>
   </div>

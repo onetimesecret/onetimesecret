@@ -115,7 +115,7 @@ const incomingRecipient = WindowService.get('incoming_recipient');
       <button
         type="submit"
         name="kind"
-        value="share"
+        value="conceal"
         :disabled="isLoading"
         class="flex w-full items-center justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-lg font-semibold
               text-white shadow-sm transition

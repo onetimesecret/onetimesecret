@@ -18,7 +18,7 @@ export function useSecretConcealer() {
   const notifications = useNotificationsStore();
 
   const formData = ref<ConcealPayload>({
-    kind: 'share',
+    kind: 'conceal',
     secret: '',
     share_domain: '', // Default domain should be set here
   });
@@ -34,16 +34,15 @@ export function useSecretConcealer() {
 
   const { wrap } = useAsyncHandler(asyncOptions);
 
-  const submit = async (kind: 'generate' | 'share') => {
+  const submit = async (kind: 'generate' | 'conceal') => {
     return wrap(async () => {
       const payload = { ...formData.value, kind };
-      let response;
-      if (kind === 'generate') {
-        response = await secretStore.generate(payload as GeneratePayload);
-      } else {
-        response = await secretStore.conceal(payload as ConcealPayload);
-      }
-      router.push({
+      const response = await (kind === 'generate'
+        ? secretStore.generate(payload as GeneratePayload)
+        : secretStore.conceal(payload as ConcealPayload));
+
+      // Add error handling for navigation
+      await router.push({
         name: 'Metadata',
         params: { metadataKey: response.record.metadata.key },
       });
