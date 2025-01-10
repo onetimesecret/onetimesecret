@@ -118,43 +118,16 @@ module Onetime::Logic
         end
       end
 
+      # Validates the share domain for secret creation.
+      # Determines appropriate domain and validates access permissions.
       def validate_share_domain
         # If we're on a custom domain creating a link, the only possible share
         # domain  is the custom domain itself. This is bc we only allow logging
         # in on the canonical domain (e.g. onetimesecret.com) AND we don't offer
         # any way to change the share domain when creating a link from a custom
         # domain.
-        if custom_domain?
-          # This means we also ignore the share_domain parameter when a link is
-          # created from a custom domain.
-          @share_domain = display_domain # display_domain can potentially be nil
-          OT.info "[BaseSecretAction] Ignoring share domain for custom domain: #{share_domain}"
-        end
-
-        return unless share_domain
-
-        # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
-        # where key is the domain and value is the domainid
-        domain_record = OT::CustomDomain.from_display_domain(share_domain) # returns nil if not found
-
-        raise_form_error "Unknown share domain (#{@share_domain})" if domain_record.nil?
-
-        OT.ld "[BaseSecretAction] Found domain record: #{domain_record}"
-
-        OT.ld <<~DEBUG
-          [BaseSecretAction]
-            class:     #{self.class}
-            share_domain:   #{@share_domain}
-            custom_domain?:  #{custom_domain?}
-            allow_public?:   #{domain_record.allow_public_homepage?}
-            owner?:          #{domain_record.owner?(@cust)}
-        DEBUG
-
-        if custom_domain? && !domain_record.allow_public_homepage?
-          raise_form_error "Public sharing is disabled for this domain (#{share_domain})"
-        elsif !domain_record.owner?(@cust)
-          raise_form_error "Invalid share domain (#{@share_domain})"
-        end
+        @share_domain = determine_share_domain
+        validate_domain_access(@share_domain)
       end
 
       private
@@ -200,6 +173,61 @@ module Onetime::Logic
         return if recipient.nil? || recipient.empty?
         klass = OT::App::Mail::SecretLink
         metadata.deliver_by_email cust, locale, secret, recipient.first, klass
+      end
+
+      # Determines which domain should be used for sharing.
+      # Uses display domain if on custom domain, otherwise uses specified share domain.
+      #
+      # @return [String, nil] The domain to use for sharing
+      def determine_share_domain
+        return display_domain if custom_domain?
+        share_domain
+      end
+
+      # Validates domain exists and checks access permissions.
+      #
+      # @param domain [String, nil] Domain to validate
+      # @raise [FormError] If domain is invalid or access is not permitted
+      def validate_domain_access(domain)
+        return if domain.nil?
+
+        # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
+        # where key is the domain and value is the domainid
+        domain_record = OT::CustomDomain.from_display_domain(domain)
+        raise_form_error "Unknown domain: #{domain}" if domain_record.nil?
+
+        OT.ld <<~DEBUG
+          [BaseSecretAction]
+            class:     #{self.class}
+            share_domain:   #{@share_domain}
+            custom_domain?:  #{custom_domain?}
+            allow_public?:   #{domain_record.allow_public_homepage?}
+            owner?:          #{domain_record.owner?(@cust)}
+        DEBUG
+
+        validate_domain_permissions(domain_record)
+      end
+
+      # Validates domain permissions based on context and configuration.
+      #
+      # @param domain_record [CustomDomain] The domain record to validate
+      # @raise [FormError] If access is not permitted
+      #
+      # Validation Rules:
+      # - On custom domains:
+      #   - Allows access if public sharing is enabled
+      #   - Rejects if public sharing is disabled
+      # - On canonical domain:
+      #   - Requires domain ownership
+      def validate_domain_permissions(domain_record)
+        if custom_domain?
+          return if domain_record.allow_public_homepage?
+          raise_form_error "Public sharing disabled for domain: #{share_domain}"
+        end
+
+        unless domain_record.owner?(@cust)
+          raise_form_error "Unauthorized domain access: #{share_domain}"
+        end
       end
     end
   end
