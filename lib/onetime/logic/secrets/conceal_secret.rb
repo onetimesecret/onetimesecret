@@ -7,7 +7,7 @@ module Onetime::Logic
     class ConcealSecret < BaseSecretAction
 
       def process_secret
-        @kind = :share
+        @kind = :conceal
         @secret_value = payload[:secret]
       end
 
