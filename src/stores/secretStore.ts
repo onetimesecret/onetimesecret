@@ -1,17 +1,12 @@
 // src/stores/secretStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import {
-  ConcealData,
-  ConcealDataResponse,
-  responseSchemas,
-  type SecretResponse,
-} from '@/schemas/api';
+import { ConcealDataResponse, responseSchemas, type SecretResponse } from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
-import { concealRequestSchema, GeneratePayload, ConcealPayload } from '@/schemas/api';
+import { GeneratePayload, ConcealPayload } from '@/schemas/api';
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -96,20 +91,22 @@ export const useSecretStore = defineStore('secrets', () => {
    * and composable validation. This is an open question. Response validation
    * should remain the responsibility of this store.
    */
-  async function conceal(payload: ConcealPayload) {
+  async function conceal(payload: ConcealPayload): Promise<ConcealDataResponse> {
     // Remove redundant request validation since payload is pre-validated
     const response = await $api.post('/api/v2/secret/conceal', { secret: payload });
-    const validated = responseSchemas.secret.parse(response.data);
-    record.value = validated;
-    return validated;
+    // const validated = responseSchemas.concealData.parse(response.data); // Fails?
+    // record.value = validated.record;
+    // details.value = validated.details;
+    return response.data;
   }
 
-  async function generate(payload: GeneratePayload) {
+  async function generate(payload: GeneratePayload): Promise<ConcealDataResponse> {
     // Remove redundant request validation since payload is pre-validated
     const response = await $api.post('/api/v2/secret/generate', { secret: payload });
-    const validated = responseSchemas.secret.parse(response.data);
-    record.value = validated;
-    return validated;
+    // const validated = responseSchemas.concealData.parse(response.data); // Fails?
+    // record.value = validated.record;
+    // details.value = validated.details;
+    return response.data;
   }
 
   /**

@@ -3,7 +3,12 @@
 import { computed, ref } from 'vue';
 import { useSecretStore } from '@/stores/secretStore';
 import { useRouter } from 'vue-router';
-import { ConcealPayload, GeneratePayload } from '@/schemas/api/payloads';
+import {
+  ConcealPayload,
+  GeneratePayload,
+  concealPayloadSchema,
+  generatePayloadSchema,
+} from '@/schemas/api/payloads';
 import { useAsyncHandler, AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 
@@ -13,11 +18,11 @@ export function useSecretConcealer() {
   const router = useRouter();
   const notifications = useNotificationsStore();
 
-  const formData = ref<ConcealPayload>({
+  const formData = ref<ConcealPayload | GeneratePayload>({
     kind: 'conceal',
-    secret: '',
     share_domain: '',
-    ttl: null, // Default TTL
+    secret: '',
+    ttl: 0, // Default TTL
     passphrase: '',
     recipient: '',
   });
@@ -31,31 +36,35 @@ export function useSecretConcealer() {
     onError: (err) => (error.value = err.message),
   };
 
-  const hasInitialContent = computed(() => formData.value.secret.trim().length > 0);
+  const hasInitialContent = computed(() => formData.value?.secret?.trim().length > 0);
 
   const { wrap } = useAsyncHandler(asyncOptions);
 
-  const generate = async () => {
-    const payload = { ...formData.value, kind: 'generate' };
-    const response = await secretStore.generate(payload as GeneratePayload);
-    return submitAction(response);
-  };
-
-  const conceal = async () => {
-    const payload = { ...formData.value, kind: 'conceal' };
-    const response = await secretStore.conceal(payload as ConcealPayload);
-    return submitAction(response);
-  };
-
-  const submitAction = async (response: any) => {
+  const conceal = () =>
     wrap(async () => {
+      const payload = { ...formData.value, kind: 'conceal' };
+      const validatedPayload = concealPayloadSchema.strip().parse(payload);
+      const response = await secretStore.conceal(validatedPayload);
+
       await router.push({
         name: 'Metadata link',
         params: { metadataKey: response.record.metadata.key },
       });
       return response;
     });
-  };
+
+  const generate = () =>
+    wrap(async () => {
+      const payload = { ...formData.value, kind: 'generate' };
+      const validatedPayload = generatePayloadSchema.strip().parse(payload);
+      const response = await secretStore.generate(validatedPayload);
+
+      await router.push({
+        name: 'Metadata link',
+        params: { metadataKey: response.record.metadata.key },
+      });
+      return response;
+    });
 
   const reset = () => {
     formData.value = <ConcealPayload>{};

@@ -11,7 +11,7 @@ export const concealPayloadSchema = z.object({
   kind: z.enum(['generate', 'conceal', 'share']), // share for temporary legacy use with existing secrets
   secret: z.string().min(1),
   share_domain: z.string(),
-  recipient: z.string().email().optional(),
+  recipient: z.string().optional(),
   passphrase: z.string().optional(),
   ttl: z.number().optional(),
 });
