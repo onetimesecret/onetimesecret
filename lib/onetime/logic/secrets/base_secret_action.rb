@@ -34,7 +34,6 @@ module Onetime::Logic
         handle_success
       end
 
-
       def success_data
         {
           success: greenlighted,
@@ -93,14 +92,20 @@ module Onetime::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       def process_share_domain
+
         potential_domain = payload[:share_domain].to_s
-        return unless potential_domain
+        return if potential_domain.empty?
+
         unless OT::CustomDomain.valid?(potential_domain)
-          return OT.info "[ConcealSecret] Invalid share domain: #{OT::CustomDomain.valid?(potential_domain)}"
+          return OT.info "[BaseSecretAction] Invalid share domain #{potential_domain}"
         end
+
         # If the given domain is the same as the site's host domain, then
         # we simply skip the share domain stuff altogether.
-        return if OT::CustomDomain.default_domain?(potential_domain)
+        if OT::CustomDomain.default_domain?(potential_domain)
+          return OT.info "[BaseSecretAction] Ignoring default share domain: #{potential_domain}"
+        end
+
         # Otherewise, it's good to go.
         @share_domain = potential_domain
       end
@@ -114,10 +119,42 @@ module Onetime::Logic
       end
 
       def validate_share_domain
+        # If we're on a custom domain creating a link, the only possible share
+        # domain  is the custom domain itself. This is bc we only allow logging
+        # in on the canonical domain (e.g. onetimesecret.com) AND we don't offer
+        # any way to change the share domain when creating a link from a custom
+        # domain.
+        if custom_domain?
+          # This means we also ignore the share_domain parameter when a link is
+          # created from a custom domain.
+          @share_domain = display_domain # display_domain can potentially be nil
+          OT.info "[BaseSecretAction] Ignoring share domain for custom domain: #{share_domain}"
+        end
+
         return unless share_domain
-        @custom_domain = OT::CustomDomain.load(@share_domain, cust.custid)
-        raise_form_error "Unknown share domain (#{@share_domain})" if @custom_domain.nil?
-        raise_form_error "Invalid share domain (#{@share_domain})" unless @custom_domain.owner?(@cust)
+
+        # e.g. rediskey -> customdomain:display_domains -> hash -> key: value
+        # where key is the domain and value is the domainid
+        domain_record = OT::CustomDomain.from_display_domain(share_domain) # returns nil if not found
+
+        raise_form_error "Unknown share domain (#{@share_domain})" if domain_record.nil?
+
+        OT.ld "[BaseSecretAction] Found domain record: #{domain_record}"
+
+        OT.ld <<~DEBUG
+          [BaseSecretAction]
+            class:     #{self.class}
+            share_domain:   #{@share_domain}
+            custom_domain?:  #{custom_domain?}
+            allow_public?:   #{domain_record.allow_public_homepage?}
+            owner?:          #{domain_record.owner?(@cust)}
+        DEBUG
+
+        if custom_domain? && !domain_record.allow_public_homepage?
+          raise_form_error "Public sharing is disabled for this domain (#{share_domain})"
+        elsif !domain_record.owner?(@cust)
+          raise_form_error "Invalid share domain (#{@share_domain})"
+        end
       end
 
       private

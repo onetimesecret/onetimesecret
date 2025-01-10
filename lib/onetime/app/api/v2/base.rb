@@ -42,8 +42,20 @@ module Onetime::App
         auth_method.call(allow_anonymous) do
           OT.ld "[retrieve] #{logic_class}"
           logic = logic_class.new(sess, cust, req.params, locale)
+
+          logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
+          logic.display_domain = req.env['onetime.display_domain'] # can be nil
+
+          OT.ld <<~DEBUG
+            [retrieve_records]
+              class:     #{logic_class}
+              strategy:  #{logic.domain_strategy}
+              display:   #{logic.display_domain}
+          DEBUG
+
           logic.raise_concerns
           logic.process
+
           json success: true, **logic.success_data
         end
       end
@@ -78,9 +90,20 @@ module Onetime::App
 
         auth_method.call(allow_anonymous) do
           logic = logic_class.new(sess, cust, req.params, locale)
+
+          logic.domain_strategy = req.env['onetime.domain_strategy'] # never nil
+          logic.display_domain = req.env['onetime.display_domain'] # can be nil
+
           logic.raise_concerns
           logic.process
-          OT.ld "[process_action] #{logic_class} success=#{logic.greenlighted}"
+
+          OT.ld <<~DEBUG
+            [process_action]
+              class:     #{logic_class}
+              success:   #{logic.greenlighted}
+              strategy:  #{logic.domain_strategy}
+              display:   #{logic.display_domain}
+          DEBUG
 
           if logic.greenlighted
             json_success(custid: cust.custid, **logic.success_data)
@@ -88,7 +111,6 @@ module Onetime::App
             # Add a fresh shrimp to allow continuing without refreshing the page
             error_response(error_message, shrimp: sess.add_shrimp)
           end
-
         end
       end
 
