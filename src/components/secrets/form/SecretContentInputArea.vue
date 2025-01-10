@@ -247,7 +247,12 @@ onUnmounted(() => {
     -->
     <div
       v-if="showCounter"
-      class="pointer-events-none hidden select-none rounded-full bg-white px-3 py-1 text-sm text-gray-400 shadow-sm transition-colors duration-200 dark:bg-gray-800 dark:text-gray-500">
+      class="pointer-events-none select-none hidden
+            rounded-full bg-white px-3 py-1
+            text-sm text-gray-400
+            shadow-sm
+            transition-colors duration-200
+            dark:bg-gray-800 dark:text-gray-500">
       {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
 

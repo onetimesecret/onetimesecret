@@ -9,13 +9,11 @@
   import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
   import {
     useSecretConcealer,
-    type SecretFormData,
   } from '@/composables/useSecretConcealer';
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
-  import { useCsrfStore } from '@/stores/csrfStore';
   import { useProductIdentity } from '@/stores/identityStore';
 
-  const csrfStore = useCsrfStore();
+
   const productIdentity = useProductIdentity();
 
   export interface Props {
@@ -32,7 +30,7 @@
     withGenerate: false,
   });
 
-  const { formData, isSubmitting, error, submit } = useSecretConcealer();
+  const { formData, isSubmitting, error, submit, hasInitialContent } = useSecretConcealer();
 
   const handleAction = (kind: 'generate' | 'conceal') => {
     formData.value.kind = kind;
@@ -47,15 +45,13 @@
     availableDomains,
     selectedDomain,
     domainsEnabled,
-    hasInitialContent,
     updateSelectedDomain,
-    formFields,
   } = useDomainDropdown();
 </script>
 
 <template>
   <div class="min-w-[320px]">
-    <BasicFormAlerts :error="error" />
+    <BasicFormAlerts :error="error" class="hidden" />
 
     <!--
         Domain selection and persistence logic:
@@ -77,7 +73,6 @@
         :share-domain="formData.share_domain"
         :available-domains="availableDomains"
         :initial-domain="selectedDomain"
-        :initial-content="formFields?.secret || ''"
         :with-domain-dropdown="domainsEnabled"
         @update:selected-domain="updateSelectedDomain"
         @update:content="updateContent" />
