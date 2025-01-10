@@ -30,12 +30,7 @@
     withGenerate: false,
   });
 
-  const { formData, isSubmitting, error, submit, hasInitialContent } = useSecretConcealer();
-
-  const handleAction = (kind: 'generate' | 'conceal') => {
-    formData.value.kind = kind;
-    return submit(kind);
-  };
+  const { formData, isSubmitting, error, generate, conceal, hasInitialContent } = useSecretConcealer();
 
   const updateContent = (content: string) => {
     formData.value.secret = content;
@@ -67,7 +62,7 @@
           SecretContentInputArea handles the dropdown UI. The selected domain
           persists across sessions and can be overridden when needed.
       -->
-    <form @submit.prevent="handleAction(formData.kind)">
+    <form @submit.prevent="true">
       <SecretContentInputArea
         :content="formData.secret"
         :share-domain="formData.share_domain"
@@ -85,20 +80,23 @@
       <SecretFormPrivacyOptions
         :with-recipient="props.withRecipient"
         :with-expiry="true"
-        :with-passphrase="true" />
+        :with-passphrase="true"
+        @update:ttl="(val) => formData.ttl = val"
+        @update:passphrase="(val) => formData.passphrase = val"
+        @update:recipient="(val) => formData.recipient = val" />
 
       <div class="mb-4 flex w-full space-x-2">
         <Suspense v-if="withGenerate">
           <GenerateButton
             v-if="withGenerate"
             :disabled="hasInitialContent || isSubmitting"
-            @click="() => submit('generate')" />
+            @click="() => generate()" />
         </Suspense>
         <ConcealButton
           :disabled="!hasInitialContent || isSubmitting"
           :with-asterisk="withAsterisk"
           :primary-color="productIdentity.primaryColor"
-          @click="() => submit('conceal')" />
+          @click="() => conceal()" />
       </div>
     </form>
   </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import SecretFormDrawer from './SecretFormDrawer.vue';
@@ -12,8 +12,6 @@ const secretOptions = WindowService.get('secret_options') ?? {
   ttl: 7200,
   recipient: '',
   passphrase: '',
-  metadata_only: false,
-  precomputed_burn: false
 };
 
 interface Props {
@@ -35,7 +33,7 @@ const { t } = useI18n();
 const showPassphrase = ref(false);
 const currentPassphrase = ref('');
 
-const selectedLifetime = ref(secretOptions?.default_ttl?.toString() || 604800); // Default to 7 days if not set
+const selectedLifetime = ref(secretOptions?.default_ttl ?? 604800); // Default to 7 days if not set
 console.debug('Initial selectedLifetime:', selectedLifetime.value);
 
 const lifetimeOptions = computed(() => {
@@ -105,6 +103,22 @@ const filteredLifetimeOptions = computed(() => {
 const togglePassphrase = () => {
   showPassphrase.value = !showPassphrase.value;
 };
+
+const emit = defineEmits(['update:ttl', 'update:passphrase', 'update:recipient']);
+
+// Update refs to emit changes
+watch(selectedLifetime, (value) => {
+  emit('update:ttl', value);
+});
+
+watch(currentPassphrase, (value) => {
+  emit('update:passphrase', value);
+});
+
+const recipientValue = ref('');
+watch(recipientValue, (value) => {
+  emit('update:recipient', value);
+});
 
 </script>
 

@@ -7,6 +7,7 @@ import { ConcealPayload, GeneratePayload } from '@/schemas/api/payloads';
 import { useAsyncHandler, AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 
+/* eslint-disable max-lines-per-function */
 export function useSecretConcealer() {
   const secretStore = useSecretStore();
   const router = useRouter();
@@ -15,7 +16,10 @@ export function useSecretConcealer() {
   const formData = ref<ConcealPayload>({
     kind: 'conceal',
     secret: '',
-    share_domain: '', // Default domain should be set here
+    share_domain: '',
+    ttl: null, // Default TTL
+    passphrase: '',
+    recipient: '',
   });
 
   const isSubmitting = ref(false);
@@ -31,21 +35,27 @@ export function useSecretConcealer() {
 
   const { wrap } = useAsyncHandler(asyncOptions);
 
-  const submit = async (kind: 'generate' | 'conceal') =>
-    wrap(async () => {
-      const payload = { ...formData.value, kind };
-      const response = await (kind === 'generate'
-        ? secretStore.generate(payload as GeneratePayload)
-        : secretStore.conceal(payload as ConcealPayload));
+  const generate = async () => {
+    const payload = { ...formData.value, kind: 'generate' };
+    const response = await secretStore.generate(payload as GeneratePayload);
+    return submitAction(response);
+  };
 
-      // Add error handling for navigation
+  const conceal = async () => {
+    const payload = { ...formData.value, kind: 'conceal' };
+    const response = await secretStore.conceal(payload as ConcealPayload);
+    return submitAction(response);
+  };
+
+  const submitAction = async (response: any) => {
+    wrap(async () => {
       await router.push({
-        name: 'Metadata',
+        name: 'Metadata link',
         params: { metadataKey: response.record.metadata.key },
       });
-
       return response;
     });
+  };
 
   const reset = () => {
     formData.value = <ConcealPayload>{};
@@ -56,7 +66,8 @@ export function useSecretConcealer() {
     formData,
     isSubmitting,
     error,
-    submit,
+    generate,
+    conceal,
     reset,
     hasInitialContent,
   };
