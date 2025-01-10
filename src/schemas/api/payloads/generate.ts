@@ -8,12 +8,8 @@
 
 import { z } from 'zod';
 
-export const generatePayloadSchema = z.object({
-  kind: z.enum(['generate', 'conceal', 'share']),
-  share_domain: z.string(),
-  recipient: z.string().optional(),
-  passphrase: z.string().optional(),
-  ttl: z.number().optional(),
-});
+import { baseSecretPayloadSchema } from './base';
+
+export const generatePayloadSchema = baseSecretPayloadSchema;
 
 export type GeneratePayload = z.infer<typeof generatePayloadSchema>;

@@ -7,13 +7,11 @@
 //import { metadataSchema, secretSchema } from '@/schemas/models';
 
 import { z } from 'zod';
-export const concealPayloadSchema = z.object({
-  kind: z.enum(['generate', 'conceal', 'share']), // share for temporary legacy use with existing secrets
+
+import { baseSecretPayloadSchema } from './base';
+
+export const concealPayloadSchema = baseSecretPayloadSchema.extend({
   secret: z.string().min(1),
-  share_domain: z.string(),
-  recipient: z.string().optional(),
-  passphrase: z.string().optional(),
-  ttl: z.number().optional(),
 });
 
 export type ConcealPayload = z.infer<typeof concealPayloadSchema>;
