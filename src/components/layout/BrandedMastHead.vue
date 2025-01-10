@@ -21,40 +21,42 @@
           class="relative"
           role="region"
           aria-label="Brand logo">
-          <label
-            class="group relative block cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-500"
-            for="logo-upload"
-            role="button"
-            aria-label="Upload logo">
-            <div
-              :class="[
-                productIdentity.cornerClass,
-                'flex size-16 items-center justify-center overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-200',
-                'group-hover:ring-2 group-hover:ring-brand-500 group-hover:ring-offset-2 group-hover:ring-offset-gray-900',
-              ]">
-              <img
-                v-if="productIdentity.logoUri"
-                :src="productIdentity.logoUri"
-                alt="Company logo"
-                class="size-16 object-contain"
-                :class="productIdentity.cornerClass" />
-              <svg
-                v-else
-                aria-hidden="true"
-                class="size-8 text-gray-400 dark:text-gray-500"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </label>
+          <router-link to="/">
+            <label
+              class="group relative block cursor-pointer focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-500"
+              for="logo-upload"
+              role="button"
+              aria-label="Upload logo">
+              <div
+                :class="[
+                  productIdentity.cornerClass,
+                  'flex size-16 items-center justify-center overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-200',
+                  'group-hover:ring-2 group-hover:ring-brand-500 group-hover:ring-offset-2 group-hover:ring-offset-gray-900',
+                ]">
+                <img
+                  v-if="productIdentity.logoUri"
+                  :src="productIdentity.logoUri"
+                  alt="Company logo"
+                  class="size-16 object-contain"
+                  :class="productIdentity.cornerClass" />
+                <svg
+                  v-else
+                  aria-hidden="true"
+                  class="size-8 text-gray-400 dark:text-gray-500"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </label>
+            </router-link>
         </div>
 
         <!-- Content Section -->
