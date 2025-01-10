@@ -22,10 +22,18 @@ export interface ApplicationError extends Error {
   name: 'ApplicationError';
   type: ErrorType;
   severity: ErrorSeverity;
-  code?: string | number | null;
-  stack?: string;
-  original?: Error | null;
+  code: string | number | null;
+  original?: Error;
   details?: Record<string, unknown>;
+}
+
+export interface HttpErrorLike {
+  status?: number;
+  response?: {
+    status?: number;
+    data?: { message?: string };
+  };
+  message?: string;
 }
 
 /**
@@ -41,7 +49,6 @@ export const applicationErrorSchema = z
     type: errorTypeEnum,
     severity: errorSeverityEnum,
     code: z.union([z.string(), z.number()]).nullable().default(null),
-    stack: z.string().optional(),
     original: z.instanceof(Error).optional(),
     details: z.record(z.unknown()).optional(),
   })

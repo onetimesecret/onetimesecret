@@ -1,58 +1,11 @@
-import { HTTP_STATUS_CODES } from './constants';
-import {
-  applicationErrorSchema,
-  type ApplicationError,
-  type ErrorType,
-  type ErrorSeverity,
-} from './types';
+// src/schemas/errors/classifier.ts
+
+import { NavigationFailure, NavigationFailureType } from 'vue-router';
+
+import type { ApplicationError, ErrorType, ErrorSeverity, HttpErrorLike } from './types';
+import { errorGuards } from './guards';
 import { wrapError } from './wrapper';
-
-// Type guards
-export const errorGuards = {
-  isApplicationError(error: unknown): error is ApplicationError {
-    return (
-      error !== null &&
-      typeof error === 'object' &&
-      'type' in error &&
-      'severity' in error &&
-      'message' in error && // Add this check
-      typeof (error as any).type === 'string' && // Add type checks
-      typeof (error as any).severity === 'string' &&
-      typeof (error as any).message === 'string'
-    );
-  },
-
-  isOfHumanInterest(error: ApplicationError): boolean {
-    return error.type === 'human';
-  },
-
-  isSecurityIssue(error: ApplicationError): boolean {
-    return error.type === 'security';
-  },
-
-  /**
-   * Type guard to check if an object is an HTTP error (Axios or Fetch)
-   * Handles both error types since they share common network error properties
-   */
-  isHttpError(error: unknown): error is HttpErrorLike {
-    return (
-      error !== null &&
-      typeof error === 'object' &&
-      ('isAxiosError' in error || ('status' in error && 'response' in error))
-    );
-  },
-};
-
-interface HttpErrorLike {
-  status?: number;
-  response?: {
-    status?: number;
-    data?: {
-      message?: string;
-    };
-  };
-  message?: string;
-}
+import { HTTP_STATUS_CODES } from './constants';
 
 /**
  * Classifies errors into application-specific categories based on their properties.
@@ -66,36 +19,52 @@ interface HttpErrorLike {
  * @returns ApplicationError with appropriate type and severity
  */
 export const errorClassifier = {
-  classifyByStatusCode(error: HttpErrorLike): ErrorType {
-    const status = error.status || error.response?.status;
-    if (!status) return 'technical';
+  classify(error: unknown): ApplicationError {
+    if (errorGuards.isApplicationError(error)) return error;
 
+    if (errorGuards.isHttpError(error)) {
+      return this.classifyHttp(error);
+    }
+
+    if (errorGuards.isRouterError(error)) {
+      return this.classifyRouter(error);
+    }
+
+    return wrapError(
+      error instanceof Error ? error.message : String(error),
+      'technical',
+      'error',
+      error instanceof Error ? error : null
+    );
+  },
+
+  classifyHttp(error: HttpErrorLike): ApplicationError {
+    const status = error.status || error.response?.status;
+    const type = status ? this.getTypeFromStatus(status) : 'technical';
+
+    return wrapError(
+      error.message || 'HTTP Error',
+      type,
+      'error',
+      error as Error,
+      status
+    );
+  },
+
+  classifyRouter(error: NavigationFailure): ApplicationError {
+    return wrapError(
+      error.message || 'Navigation Error',
+      'human',
+      'error',
+      error,
+      NavigationFailureType[error.type] || 'NAVIGATION_ERROR'
+    );
+  },
+
+  getTypeFromStatus(status: number): ErrorType {
     if (HTTP_STATUS_CODES.SECURITY.has(status)) return 'security';
     if (HTTP_STATUS_CODES.HUMAN.has(status)) return 'human';
     return 'technical';
-  },
-
-  extractMessage(error: unknown): string {
-    if (errorGuards.isHttpError(error)) {
-      return error.response?.data?.message || error.message || String(error);
-    }
-    return error instanceof Error ? error.message : String(error);
-  },
-
-  classify(error: unknown): ApplicationError {
-    if (errorGuards.isApplicationError(error)) {
-      return error;
-    }
-
-    const message = this.extractMessage(error);
-    const type = errorGuards.isHttpError(error)
-      ? this.classifyByStatusCode(error)
-      : 'technical';
-    const code = errorGuards.isHttpError(error)
-      ? error.status || error.response?.status || 'ERR_HTTP'
-      : 'ERR_GENERIC';
-
-    return wrapError(message, type, 'error', error as Error, code);
   },
 };
 

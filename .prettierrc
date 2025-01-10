@@ -16,7 +16,6 @@
   "singleAttributePerLine": true,
   "endOfLine": "lf",
   "embeddedLanguageFormatting": "auto",
-
   "functionParenthesis": "multiline",
   "arrayBrackets": "multiline",
   "objectBraces": "multiline"
