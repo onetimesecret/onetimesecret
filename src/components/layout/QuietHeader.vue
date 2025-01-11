@@ -6,18 +6,21 @@
 
   const productIdentity = useProductIdentity();
 
-  withDefaults(defineProps<LayoutProps>(), {
+  const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
-    displayNavigation: true,
-    colonel: false,
+    displayNavigation: false,
   });
+
+
 </script>
 
 <template>
   <header class="bg-white dark:bg-gray-900">
-    <div class="container mx-auto min-w-[320px] max-w-2xl p-4">
-      <MastHead v-if="productIdentity.isCanonical" />
-      <BrandedMasthead v-else />
+    <div
+      v-if="displayMasthead"
+      class="container mx-auto min-w-[320px] max-w-2xl p-4">
+      <MastHead v-if="productIdentity.isCanonical" v-bind="props" />
+      <BrandedMasthead v-else v-bind="props"/>
     </div>
   </header>
 </template>

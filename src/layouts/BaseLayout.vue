@@ -9,10 +9,14 @@ import { isColorValue } from '@/utils/color-utils';
 import { computed, defineProps } from 'vue';
 
 defineProps<LayoutProps>();
-const globalBanner = WindowService.get('global_banner') ?? null;
-const hasGlobalBanner = computed(() => { return !!globalBanner });
 
+const globalBanner = WindowService.get('global_banner') ?? null;
 const identityStore = useProductIdentity();
+
+// If there's a global banner set (in redis), this will be true. The actual
+// content may not show if the feature is by displayGlobalBroadcast=false.
+// For example, custom branded pages have the feature disabled altogether.
+const hasGlobalBanner = computed(() => { return !!globalBanner });
 
 // Compute primary color styles based on brand color or prop
 const primaryColorClass = computed(() => {
@@ -24,8 +28,6 @@ const primaryColorStyle = computed(() => {
   const currentColor = identityStore.primaryColor;
   return isColorValue(currentColor) ? { backgroundColor: currentColor } : {};
 });
-
-
 </script>
 
 <template>
@@ -36,7 +38,8 @@ const primaryColorStyle = computed(() => {
          :style="primaryColorStyle"></div>
 
     <!-- Good morning Vietnam -->
-    <GlobalBroadcast :show="hasGlobalBanner"
+    <GlobalBroadcast v-if="displayGlobalBroadcast"
+                     :show="hasGlobalBanner"
                      :content="globalBanner" />
 
     <!-- Header content, Ramos territory -->

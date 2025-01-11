@@ -109,7 +109,7 @@ useClickOutside(dropdownRef, closeDropdown);
           role="option"
           :aria-selected="currentJurisdiction.identifier === jurisdiction.identifier">
           <a
-            :href="`https://${jurisdiction.domain}/signup`"
+            :href="`https://${jurisdiction.domain}/`"
             :title="`Continue to ${jurisdiction.domain}`">
             <span class="flex items-center">
 

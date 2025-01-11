@@ -5,6 +5,7 @@
 import QuietFooter from '@/components/layout/QuietFooter.vue';
 import QuietHeader from '@/components/layout/QuietHeader.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import QuietLayout from '@/layouts/QuietLayout.vue';
 import { WindowService } from '@/services/window.service';
 import HomepageContainer from '@/views/HomepageContainer.vue';
 import IncomingSupportSecret from '@/views/secrets/IncomingSupportSecret.vue';
@@ -22,11 +23,15 @@ const routes: Array<RouteRecordRaw> = [
     },
     meta: {
       requiresAuth: false,
-      // layout: DefaultLayout,
+      layout: QuietLayout,
       layoutProps: {
         displayMasthead: true,
+        displayNavigation: true,
         displayLinks: true,
         displayFeedback: true,
+        displayPoweredBy: false,
+        displayVersion: true,
+        displayToggles: true,
       },
     },
     beforeEnter: async (to) => {
@@ -43,7 +48,7 @@ const routes: Array<RouteRecordRaw> = [
       } else {
         to.meta.layoutProps = {
           ...to.meta.layoutProps,
-          displayMasthead: false,
+          displayMasthead: true,
           displayNavigation: false,
           displayLinks: false,
           displayFeedback: false,

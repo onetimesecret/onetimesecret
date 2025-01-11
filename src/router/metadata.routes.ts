@@ -1,7 +1,10 @@
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
+import QuietFooter from '@/components/layout/QuietFooter.vue';
+import QuietHeader from '@/components/layout/QuietHeader.vue';
 import BurnSecret from '@/views/secrets/BurnSecret.vue';
 import ShowMetadata from '@/views/secrets/ShowMetadata.vue';
-import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
+import { RouteLocationNormalized, RouteRecordMultipleViews } from 'vue-router';
+import { WindowService } from '@/services/window.service';
 
 /**
  * Type guard that validates a metadata key.
@@ -21,14 +24,39 @@ const validateMetadataKey = (key: string | string[]): key is string =>
  */
 const withValidatedMetadataKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
+    const windowProps = WindowService.getMultiple([
+      'domain_id',
+      'domain_branding',
+      'domain_strategy',
+      'display_domain',
+    ]);
+
+    if (windowProps.domain_strategy === 'canonical') {
+    } else {
+      to.meta.layoutProps = {
+        ...to.meta.layoutProps,
+        displayMasthead: true,
+        displayNavigation: false,
+        displayLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayPoweredBy: true,
+        displayToggles: true,
+      };
+    }
+
     const isValid = validateMetadataKey(to.params.metadataKey);
     if (!isValid) {
       return { name: 'Not Found' };
     }
   },
-  props: (route: RouteLocationNormalized) => ({
-    metadataKey: route.params.metadataKey as string,
-  }),
+  props: {
+    default: (route: RouteLocationNormalized) => ({
+      metadataKey: route.params.metadataKey as string,
+    }),
+    header: false,
+    footer: false,
+  },
 } as const;
 
 /**
@@ -36,28 +64,36 @@ const withValidatedMetadataKey = {
  * - /private/:metadataKey - View metadata and secret details
  * - /private/:metadataKey/burn - Permanently delete a secret
  */
-const routes: Array<RouteRecordRaw> = [
+const routes: Array<RouteRecordMultipleViews> = [
   {
     path: '/private/:metadataKey',
     name: 'Metadata link',
-    component: ShowMetadata,
+    components: {
+      default: ShowMetadata,
+      header: QuietHeader,
+      footer: QuietFooter,
+    },
     ...withValidatedMetadataKey,
     meta: {
-      layout: DefaultLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
         displayLinks: true,
         displayFeedback: true,
+        displayPoweredBy: false,
         displayVersion: true,
-        displayPoweredBy: true,
+        displayToggles: true,
       },
     },
   },
   {
     path: '/private/:metadataKey/burn',
     name: 'Burn secret',
-    component: BurnSecret,
+    components: {
+      default: BurnSecret,
+      header: QuietHeader,
+      footer: QuietFooter,
+    },
     ...withValidatedMetadataKey,
     meta: {
       layout: DefaultLayout,
