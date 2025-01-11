@@ -1,9 +1,11 @@
 <!-- src/layouts/QuietLayout.vue -->
 <script setup lang="ts">
-import type { LayoutProps } from '@/types/ui/layouts';
-import BaseLayout from './BaseLayout.vue';
+  import type { LayoutProps } from '@/types/ui/layouts';
+  import BaseLayout from './BaseLayout.vue';
+  import { WindowService } from '@/services/window.service';
 
-const props = withDefaults(defineProps<LayoutProps>(), {});
+  const sitHost = WindowService.get('site_host') ?? null;
+  const props = withDefaults(defineProps<LayoutProps>(), {});
 </script>
 
 <template>
@@ -17,8 +19,7 @@ const props = withDefaults(defineProps<LayoutProps>(), {});
     <template #header>
       <router-view
         name="header"
-        v-bind="props"
-      />
+        v-bind="props" />
     </template>
     <template #main>
       <main
@@ -30,8 +31,20 @@ const props = withDefaults(defineProps<LayoutProps>(), {});
     <template #footer>
       <router-view
         name="footer"
-        v-bind="props"
-      />
+        v-bind="props" />
+
+      <!-- Powered By Link -->
+      <div
+        v-if="displayPoweredBy"
+        class="mt-8 mb-4 text-center">
+        <a
+          :href="`https://${sitHost}`"
+          class="text-[0.7rem] text-gray-300 transition-colors duration-200 hover:text-gray-400 dark:text-gray-600 dark:hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+          rel="noopener noreferrer"
+          aria-label="Visit Onetime Secret homepage">
+          Powered by Onetime Secret
+        </a>
+      </div>
     </template>
   </BaseLayout>
 </template>

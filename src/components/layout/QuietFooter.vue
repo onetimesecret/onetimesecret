@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
   import ThemeToggle from '@/components/ThemeToggle.vue';
-  import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
 
   withDefaults(defineProps<LayoutProps>(), {
@@ -12,12 +11,6 @@
     displayToggles: false,
   });
 
-  const windowProps = WindowService.getMultiple([
-    'regions_enabled',
-    'regions',
-    'authentication',
-    'site_host',
-  ]);
 </script>
 <template>
   <footer
@@ -43,16 +36,6 @@
             Privacy
           </router-link>
         </div>
-        <!-- Powered By Link -->
-        <a
-          v-if="displayPoweredBy"
-          :href="`https://${windowProps.site_host}`"
-          class="mt-2 text-xs text-gray-400 transition-colors duration-200 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-          rel="noopener noreferrer"
-          aria-label="Visit Onetime Secret homepage">
-          Powered by Onetime Secret
-        </a>
-
 
         <!-- Theme Toggle -->
         <ThemeToggle
