@@ -6,6 +6,8 @@ import FontAwesome6Sprites from '@/components/icons/FontAwesome6Sprites.vue';
 import HeroiconsSprites from '@/components/icons/HeroiconsSprites.vue';
 import MdiSprites from '@/components/icons/MdiSprites.vue';
 import MaterialSymbolsSprites from '@/components/icons/MaterialSymbolsSprites.vue';
+import TablerSprites from '@/components/icons/TablerSprites.vue';
+import PhosphorSprites from '@/components/icons/PhosphorSprites.vue';
 import QuietLayout from '@/layouts/QuietLayout.vue';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { computed } from 'vue';
@@ -70,6 +72,8 @@ const layoutProps = computed(() => ({
       <FontAwesome6Sprites />
       <MdiSprites />
       <MaterialSymbolsSprites />
+      <TablerSprites />
+      <PhosphorSprites />
     </div>
   </component>
 </template>

@@ -117,8 +117,8 @@ watch(isOpen, (newValue) => {
       />
       Instructions
       <OIcon
-        collection="heroicons"
-        :name="isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+        collection="mdi"
+        :name="isOpen ? 'chevron-up' : 'chevron-down'"
         class="ml-2 size-5"
         aria-hidden="true"
       />

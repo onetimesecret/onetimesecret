@@ -156,8 +156,8 @@ const fontFamilyClass = computed(() => {
             <span class="flex items-center gap-1">
               <OIcon
                 collection="mdi"
-                name="trash"
-                aria-hidden="true"
+                name="trash-can"
+                class="size-4"
               />
               Remove
             </span>

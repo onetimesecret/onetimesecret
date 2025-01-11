@@ -13,10 +13,14 @@
     name: string; // ellipses-vertical
   }
   defineProps<Props>();
+
+  // Professional iconist tip:
+  // It's very helpful to console log the props here to see what icons
+  // are coming through with the wrong combo of collection and/or name.
 </script>
 
 <template>
   <svg aria-hidden="true">
-    <use :href="`#${collection}-${name}`" />
+    <use :href="`#${[collection, name].filter(Boolean).join('-')}`" />
   </svg>
 </template>
