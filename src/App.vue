@@ -5,7 +5,7 @@ import CarbonSprites from '@/components/icons/CarbonSprites.vue';
 import FontAwesome6Sprites from '@/components/icons/FontAwesome6Sprites.vue';
 import HeroiconsSprites from '@/components/icons/HeroiconsSprites.vue';
 import MdiSprites from '@/components/icons/MdiSprites.vue';
-import GoogleMaterialSprites from '@/components/icons/GoogleMatierialSprites.vue';
+import MaterialSymbolsSprites from '@/components/icons/MaterialSymbolsSprites.vue';
 import QuietLayout from '@/layouts/QuietLayout.vue';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { computed } from 'vue';
@@ -63,10 +63,13 @@ const layoutProps = computed(() => ({
     </router-view>
 
     <StatusBar position="bottom" />
-    <HeroiconsSprites />
-    <CarbonSprites />
-    <FontAwesome6Sprites />
-    <MdiSprites />
-    <GoogleMaterialSprites />
+
+    <div id="sprites" class="hidden">
+      <HeroiconsSprites />
+      <CarbonSprites />
+      <FontAwesome6Sprites />
+      <MdiSprites />
+      <MaterialSymbolsSprites />
+    </div>
   </component>
 </template>

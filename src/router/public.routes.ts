@@ -96,7 +96,6 @@ const routes: Array<RouteRecordRaw> = [
       layout: DefaultLayout,
     },
   },
-
   {
     path: '/feedback',
     name: 'Feedback',
@@ -111,7 +110,6 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
-
   {
     path: '/about',
     name: 'About',
@@ -126,11 +124,24 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
-
   {
     path: '/translations',
     name: 'Translations',
     component: () => import('@/views/Translations.vue'),
+    meta: {
+      requiresAuth: false,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayLinks: true,
+        displayFeedback: true,
+      },
+    },
+  },
+  {
+    path: '/info/icons',
+    name: 'Icons',
+    component: () => import('@/views/info/IconsInfo.vue'),
     meta: {
       requiresAuth: false,
       layout: DefaultLayout,
