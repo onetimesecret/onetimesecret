@@ -1,11 +1,15 @@
 <!-- src/App.vue -->
 <script setup lang="ts">
+import StatusBar from '@/components/StatusBar.vue';
+import CarbonSprites from '@/components/icons/CarbonSprites.vue';
+import FontAwesome6Sprites from '@/components/icons/FontAwesome6Sprites.vue';
+import HeroiconsSprites from '@/components/icons/HeroiconsSprites.vue';
+import MdiSprites from '@/components/icons/MdiSprites.vue';
 import QuietLayout from '@/layouts/QuietLayout.vue';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
-import StatusBar from './components/StatusBar.vue';
 
 const { locale } = useI18n();
 const route = useRoute();
@@ -51,10 +55,16 @@ const layoutProps = computed(() => ({
              :lang="locale"
              v-bind="layoutProps">
     <!-- Router view with forced component recreation on route changes -->
-    <router-view v-slot="{ Component }" class="rounded-md">
-      <component :is="Component" :key="$route.fullPath" />
+    <router-view v-slot="{ Component }"
+                 class="rounded-md">
+      <component :is="Component"
+                 :key="$route.fullPath" />
     </router-view>
 
     <StatusBar position="bottom" />
+    <HeroiconsSprites />
+    <CarbonSprites />
+    <FontAwesome6Sprites />
+    <MdiSprites />
   </component>
 </template>
