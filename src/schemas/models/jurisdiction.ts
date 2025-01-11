@@ -12,7 +12,10 @@ export const jurisdictionSchema = z.object({
   identifier: z.string().min(2).max(24),
   display_name: z.string(),
   domain: z.string(),
-  icon: z.string(),
+  icon: z.object({
+    collection: z.string(),
+    name: z.string(),
+  }),
   enabled: transforms.fromString.boolean.default(true),
 });
 

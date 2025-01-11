@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import MovingGlobules from '@/components/MovingGlobules.vue';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import DOMPurify from 'dompurify';
 import { computed } from 'vue';
 
@@ -96,8 +96,9 @@ const sanitizedContent = computed(() => {
         type="button"
         class="-m-3 p-3 focus-visible:outline-offset-[-4px]">
         <span class="sr-only">Dismiss</span>
-        <Icon
-          icon="heroicons-solid:xmarkicon"
+        <OIcon
+          collection="heroicons-solid"
+name="xmarkicon"
           class="size-5 text-gray-900 dark:text-gray-100"
           aria-hidden="true"
         />

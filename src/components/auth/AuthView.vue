@@ -2,22 +2,34 @@
 <!-- src/components/auth/AuthView.vue -->
 <script setup lang="ts">
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
+import { Jurisdiction } from '@/schemas/models';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
-// Define props for the component
-const props = withDefaults(defineProps<{
+interface IconConfig {
+  collection: string;
+  name: string;
+}
+
+interface Props {
   heading: string;
   headingId: string;
   title?: string | null;
   titleLogo?: string | null;
-  featureIcon?: string;
+  featureIcon?: IconConfig;
   withSubheading?: boolean;
-}>(), {
+}
+
+// Define props with defaults
+const props = withDefaults(defineProps<Props>(), {
   title: null,
   titleLogo: null,
-  featureIcon: 'ic:outline-mail-lock',
+  withSubheading: false,
+  featureIcon: () => ({
+    collection: 'ic',
+    name: 'outline-mail-lock'
+  })
 });
 
 // Initialize jurisdiction store
@@ -25,18 +37,34 @@ const jurisdictionStore = useJurisdictionStore();
 const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
 
 // Compute the current jurisdiction or default to unknown
-const currentJurisdiction = computed(() => getCurrentJurisdiction.value || {
+const currentJurisdiction = computed((): Jurisdiction => getCurrentJurisdiction.value || {
   identifier: 'Unknown Jurisdiction',
   display_name: 'Unknown Jurisdiction',
   domain: '',
-  icon: 'mdi:help-circle',
+  icon: {
+    collection: 'mdi',
+    name: 'help-circle'
+  },
+  enabled: false
 });
 
 // Compute the background icon based on jurisdiction status
-const backgroundIcon = computed(() => jurisdictionStore.enabled ? currentJurisdiction.value.icon : props.featureIcon);
+const backgroundIcon = computed((): IconConfig => {
+  if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
+    return getCurrentJurisdiction.value.icon;
+  }
+  return props.featureIcon;
+});
+
 
 // Compute the icon to show based on jurisdiction status
-const iconToShow = computed(() => jurisdictionStore.enabled ? currentJurisdiction.value.icon : props.featureIcon);
+
+const iconToShow = computed((): IconConfig => {
+  if (jurisdictionStore.enabled && getCurrentJurisdiction.value?.icon) {
+    return getCurrentJurisdiction.value.icon;
+  }
+  return props.featureIcon;
+});
 </script>
 
 <template>
@@ -52,8 +80,9 @@ const iconToShow = computed(() => jurisdictionStore.enabled ? currentJurisdictio
       class="absolute inset-0 overflow-hidden
                 opacity-5
                 dark:opacity-5">
-      <Icon
-        :icon="backgroundIcon"
+      <OIcon
+        :collection="backgroundIcon.collection"
+:name="backgroundIcon.name"
         class="blur-x absolute left-1/2 top-0 h-auto
                    w-full -translate-x-1/2 translate-y-0 scale-150
                    object-cover object-center
@@ -67,8 +96,9 @@ const iconToShow = computed(() => jurisdictionStore.enabled ? currentJurisdictio
       <!-- Title Icon -->
       <div class="flex flex-col items-center">
         <RouterLink to="/">
-          <Icon
-            :icon="iconToShow"
+          <OIcon
+            :collection="iconToShow.collection"
+:name="iconToShow.name"
             class="mb-8 size-24 text-brand-600
                       dark:text-brand-400"
             aria-hidden="true"

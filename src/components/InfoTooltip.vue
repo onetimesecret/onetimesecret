@@ -29,7 +29,7 @@
 -->
 
 <script setup lang="ts">
-  import { Icon } from '@iconify/vue';
+  import OIcon from '@/components/icons/OIcon.vue';
   import { ref, computed } from 'vue';
 
   const props = defineProps({
@@ -56,8 +56,9 @@
 
 <template>
   <div class="relative mx-1 inline-block">
-    <Icon
-      icon="heroicons:information-circle"
+    <OIcon
+      collection="heroicons"
+name="information-circle"
       class="inline cursor-pointer align-baseline text-base"
       @click="toggleModal"
     />
@@ -73,7 +74,7 @@
           <button
             @click="closeModal"
             class="absolute right-2 top-2 text-gray-500 hover:text-gray-700">
-            <Icon icon="heroicons:x-mark-20-solid" />
+            <OIcon collection="heroicons" name="x-mark-20-solid" />
           </button>
           <slot></slot>
         </div>

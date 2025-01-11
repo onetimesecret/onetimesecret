@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { WindowService } from '@/services/window.service';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 
 import JurisdictionInfo from './JurisdictionInfo.vue';
@@ -30,9 +30,10 @@ const customerId = computed(() => cust?.custid);
       <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800 sm:p-6">
         <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
           <div class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
-            <Icon
+            <OIcon
               v-if="currentJurisdiction?.icon"
-              :icon="currentJurisdiction?.icon"
+              collection="heroicons"
+:name="currentJurisdiction?.icon"
               class="size-8 text-brand-600 dark:text-brand-400 sm:size-10"
               aria-hidden="true"
             />

@@ -4,7 +4,7 @@ import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
 import SettingsModal from '@/components/modals/SettingsModal.vue';
 import { WindowService } from '@/services/window.service';
 import type { LayoutProps } from '@/types/ui/layouts';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
 
 withDefaults(defineProps<LayoutProps>(), {
@@ -63,7 +63,7 @@ const closeSettingsModal = () => {
         <button @click="openSettingsModal"
                 class="text-xl text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
                 aria-label="Settings">
-          <Icon icon="material-symbols:settings"
+          <OIcon icon="material-symbols:settings"
                 aria-hidden="true" />
         </button>
 

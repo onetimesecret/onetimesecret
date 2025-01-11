@@ -1,7 +1,7 @@
 <!-- AccountChangePasswordForm.vue -->
 <script setup lang="ts">
 import { usePasswordChange } from '@/composables/usePasswordChange';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 
 interface Props {
   apitoken?: string;
@@ -42,7 +42,8 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
         <button type="button"
                 @click="togglePassword('current')"
                 class="absolute inset-y-0 right-0 flex items-center pr-3">
-          <Icon :icon="formState.showPassword.current ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
+          <OIcon collection="heroicons-solid"
+:name="formState.showPassword.current ? 'eye' : 'eye-off'"
                 class="size-5 text-gray-400 dark:text-gray-100"
                 aria-hidden="true" />
         </button>
@@ -67,7 +68,8 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
         <button type="button"
                 @click="togglePassword('new')"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
-          <Icon :icon="formState.showPassword.new ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
+          <OIcon collection="heroicons-solid"
+:name="formState.showPassword.new ? 'eye' : 'eye-off'"
                 class="size-5 text-gray-400 dark:text-gray-100"
                 aria-hidden="true" />
         </button>
@@ -92,7 +94,8 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
         <button type="button"
                 @click="togglePassword('confirm')"
                 class="absolute inset-y-0 right-0 flex items-center pr-3">
-          <Icon :icon="formState.showPassword.confirm ? 'heroicons-solid:eye' : 'heroicons-outline:eye-off'"
+          <OIcon collection="heroicons-solid"
+:name="formState.showPassword.confirm ? 'eye' : 'eye-off'"
                 class="size-5 text-gray-400 dark:text-gray-100"
                 aria-hidden="true" />
         </button>

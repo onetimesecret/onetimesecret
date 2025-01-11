@@ -5,7 +5,7 @@ import QuoteSection from '@/components/QuoteSection.vue';
 import { paymentFrequencies, productTiers } from '@/sources/productTiers';
 import { testimonials as testimonialsData } from '@/sources/testimonials';
 import { RadioGroup, RadioGroupOption } from '@headlessui/vue';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { onMounted, ref } from 'vue';
 
 const testimonials = ref(testimonialsData);
@@ -99,8 +99,9 @@ onMounted(() => {
             v-for="feature in tier.features"
             :key="feature"
             class="flex gap-x-3">
-            <Icon
-              icon="heroicons-solid:check"
+            <OIcon
+              collection="heroicons-solid"
+name="check"
               :class="[tier.featured ? 'text-brand-400' : 'text-brand-600 dark:text-brand-400', 'h-6 w-5 flex-none']"
               aria-hidden="true"
             />
@@ -192,8 +193,9 @@ onMounted(() => {
                 <span><strong class="font-medium">Self-Host:</strong> Get our SimpleStack℠ guarantee included</span>
                 <InfoTooltip color="bg-brandcomp-100 dark:bg-brandcomp-900">
                   <div class="shape-icon float-left mb-2 mr-4">
-                    <Icon
-                      icon="fa6-solid:handshake-simple"
+                    <OIcon
+                      collection="fa6-solid"
+name="handshake-simple"
                       class="size-24 text-brandcomp-600 dark:text-brandcomp-400"
                     />
                   </div>

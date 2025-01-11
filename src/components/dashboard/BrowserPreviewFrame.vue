@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 
 interface Props {
   domain: string;
@@ -234,8 +234,9 @@ defineEmits<{
     <div class="px-3 pb-2 pt-3 sm:px-6 sm:pt-6">
       <div
         class="flex items-center gap-2 rounded-lg bg-gray-50 p-2 text-xs italic dark:bg-gray-900 sm:gap-3 sm:p-3 sm:text-sm">
-        <Icon
-          icon="mdi:forum"
+        <OIcon
+          collection="mdi"
+name="forum"
           class="size-5 shrink-0"
         />
         <p>Preview of the secret link page for recipients</p>

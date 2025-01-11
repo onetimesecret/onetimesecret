@@ -76,7 +76,7 @@
  */
 
 // 1. Imports
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
 import { WindowService } from '@/services/window.service';
 
@@ -274,8 +274,9 @@ onUnmounted(() => {
           <span class="max-w-[150px] truncate">
             {{ selectedDomain || 'Select Domain' }}
           </span>
-          <Icon
-            icon="heroicons-solid:chevron-down"
+          <OIcon
+            collection="heroicons-solid"
+name="chevron-down"
             class="ml-2 size-5 shrink-0 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />

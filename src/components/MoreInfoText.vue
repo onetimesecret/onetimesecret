@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { ref } from 'vue';
 
 const isExpanded = ref(false);
@@ -25,8 +25,9 @@ const props = withDefaults(defineProps<Props>(), {
       <button
         @click="toggleExpand"
         :class="`flex items-center text-base font-medium ${props.textColor} hover:text-brandcomp-600 dark:hover:text-brandcomp-400 focus:outline-none`">
-        <Icon
-          :icon="isExpanded ? 'heroicons:chevron-down' : 'heroicons:chevron-right'"
+        <OIcon
+          collection="heroicons"
+:name="isExpanded ? 'chevron-down' : 'chevron-right'"
           class="mr-2 size-5"
         />
         {{ isExpanded ? 'Hide details' : 'Expand for more info' }}

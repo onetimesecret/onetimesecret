@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import SecretFormDrawer from './secrets/form/SecretFormDrawer.vue';
 
@@ -18,8 +18,9 @@ const props = defineProps({
     border="dashed"
     expanded-bg="bg-gray-50 dark:bg-gray-700">
     <div class="mt-2 flex items-center space-x-2 overflow-hidden font-mono">
-      <Icon
-        icon="mdi:link-variant"
+      <OIcon
+        collection="mdi"
+        name="link-variant"
         class="shrink-0 text-gray-400 transition-colors duration-200 dark:text-gray-500"
       />
       <div class="flex items-center space-x-1 overflow-hidden">

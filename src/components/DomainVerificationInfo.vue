@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CustomDomain } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 //import StatusLabel from './StatusLabel.vue';
 //import StatusLabelRow from './StatusLabelRow.vue';
@@ -25,9 +25,9 @@ const isError = computed(() => {
 });
 
 const statusIcon = computed(() => {
-  if (isActive.value) return 'mdi:check-circle';
-  if (isWarning.value) return 'mdi:alert-circle';
-  return 'mdi:close-circle';
+  if (isActive.value) return 'check-circle';
+  if (isWarning.value) return 'alert-circle';
+  return 'close-circle';
 });
 
 const statusColor = computed(() => {
@@ -58,34 +58,30 @@ const formatDate = (dateString: string): string => {
 
 <template>
   <div>
-    <RouterLink
-      v-if="mode === 'icon'"
-      :to="`/domains/${domain?.display_domain}/verify`"
-      class="tooltip inline-flex"
-      data-tooltip="View domain verification status">
-      <Icon
-        :icon="statusIcon"
-        class="opacity-75"
-        :class="[
+    <RouterLink v-if="mode === 'icon'"
+                :to="`/domains/${domain?.display_domain}/verify`"
+                class="tooltip inline-flex"
+                data-tooltip="View domain verification status">
+      <OIcon collection="mdi"
+             :name="statusIcon"
+             class="opacity-75"
+             :class="[
           'size-5 transition-opacity hover:opacity-80',
           {
             'text-emerald-600 dark:text-emerald-400': isActive,
             'text-amber-500 dark:text-amber-400': isWarning,
             'text-rose-600 dark:text-rose-500': isError
           }
-        ]"
-      />
+        ]" />
     </RouterLink>
-    <div
-      v-else
-      class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+    <div v-else
+         class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
       <h2 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
         Domain Status
       </h2>
       <div class="flex flex-col">
-        <div
-          v-if="domain?.vhost"
-          class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div v-if="domain?.vhost"
+             class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Domain</span>
             <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.incoming_address }}</span>
@@ -93,9 +89,8 @@ const formatDate = (dateString: string): string => {
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</span>
-            <span
-              :class="statusColor"
-              class="text-lg">{{ domain?.vhost?.status_message }}</span>
+            <span :class="statusColor"
+                  class="text-lg">{{ domain?.vhost?.status_message }}</span>
           </div>
 
           <div class="flex flex-col">
@@ -111,14 +106,13 @@ const formatDate = (dateString: string): string => {
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">SSL Renews</span>
             <span class="text-lg text-gray-900 dark:text-white"><span
-              v-if="domain?.vhost?.ssl_active_until">{{ formatDate(domain?.vhost?.ssl_active_until as string) }}</span></span>
+                    v-if="domain?.vhost?.ssl_active_until">{{ formatDate(domain?.vhost?.ssl_active_until as string) }}</span></span>
           </div>
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">SSL Status</span>
-            <span
-              class="text-lg"
-              :class="domain?.vhost?.has_ssl ? 'text-green-600' : 'text-red-600'">
+            <span class="text-lg"
+                  :class="domain?.vhost?.has_ssl ? 'text-green-600' : 'text-red-600'">
               {{ domain?.vhost?.has_ssl ? 'Active' : 'Inactive' }}
             </span>
           </div>

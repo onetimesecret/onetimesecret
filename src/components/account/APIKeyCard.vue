@@ -1,6 +1,6 @@
 <!-- src/components/ApiTokenDisplay.vue -->
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { ref } from 'vue';
 
 interface Props {
@@ -41,8 +41,9 @@ const handleCopy = () => {
           @click.stop="handleCopy"
           type="button"
           class="absolute right-2 top-1/2 -translate-y-1/2 text-white transition-colors duration-200 hover:text-gray-200">
-          <Icon
-            :icon="copied ? 'heroicons-outline:check' : 'heroicons-outline:clipboard-copy'"
+          <OIcon
+            collection="heroicons-outline"
+:name="copied ? 'check' : 'clipboard-copy'"
             class="size-6"
           />
         </button>

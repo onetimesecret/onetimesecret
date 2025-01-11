@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
 
 interface Props {
@@ -113,8 +113,9 @@ const handleMouseLeave = () => {
           @click="toggleCollapse"
           :aria-expanded="!isCollapsed"
           aria-haspopup="true">
-          <Icon
-            icon="heroicons-solid:cog"
+          <OIcon
+            collection="heroicons-solid"
+name="cog"
             class="size-5 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />

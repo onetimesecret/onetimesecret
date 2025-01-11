@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue'
 
 // Define the type for the alternate providers
@@ -54,8 +54,9 @@ const gridClass = computed(() => {
                 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500"
           :aria-label="`Sign up with ${provider.name} (coming soon)`"
           disabled>
-          <Icon
-            :icon="provider.icon"
+          <OIcon
+            collection="heroicons"
+:name="provider.icon"
             class="size-5"
             aria-hidden="true"
           />

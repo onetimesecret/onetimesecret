@@ -2,7 +2,7 @@
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { CustomDomainResponse } from '@/schemas/api/responses';
 import { CustomDomain, CustomDomainCluster } from '@/schemas/models/domain';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
 
 import BasicFormAlerts from './BasicFormAlerts.vue';
@@ -78,8 +78,9 @@ const verify = async () => {
           duration-100
           ease-in-out hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-400">
         <span>{{ isLoading ? 'Verifying...' : 'Verify Domain' }}</span>
-        <Icon
-          :icon="isLoading ? 'mdi:loading' : 'mdi:check-circle'"
+        <OIcon
+          collection="mdi"
+:name="isLoading ? 'loading' : 'check-circle'"
           class="size-5"
           :class="{ 'animate-spin': isLoading }"
           aria-hidden="true"
@@ -184,8 +185,9 @@ const verify = async () => {
     </ol>
 
     <div class="mt-5 flex items-start rounded-md bg-white p-4 dark:bg-gray-800">
-      <Icon
-        icon="mdi:information-outline"
+      <OIcon
+        collection="mdi"
+name="information-outline"
         class="mr-2 mt-0.5 size-5 shrink-0 text-brandcomp-700"
         aria-hidden="true"
       />

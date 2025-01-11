@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 
 // Define props for the component
@@ -33,8 +33,9 @@ const backgroundIcon = computed(() => props.defaultIcon);
               lg:px-8">
     <!-- Background Icon -->
     <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-10">
-      <Icon
-        :icon="backgroundIcon"
+      <OIcon
+        collection="heroicons"
+:name="backgroundIcon"
         class="absolute left-1/2 top-0 h-auto w-full
                    -translate-x-1/2 translate-y-0 scale-150 object-cover
                    object-center blur-sm"
@@ -53,9 +54,10 @@ const backgroundIcon = computed(() => props.defaultIcon);
             :alt="`${heading} Logo`"
             class="max-h-full max-w-full rounded-md object-contain"
           />
-          <Icon
+          <OIcon
             v-else
-            :icon="defaultIcon"
+            collection="heroicons"
+:name="defaultIcon"
             class="size-full text-brand-600 dark:text-brand-400"
             aria-hidden="true"
           />

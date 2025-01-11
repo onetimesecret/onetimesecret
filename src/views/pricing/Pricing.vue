@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup>
 import { RadioGroup, RadioGroupOption } from '@headlessui/vue'
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { ref } from 'vue'
 
 const tiers = [
@@ -123,8 +123,9 @@ const frequency = ref(frequencies[0])
                     v-for="feature in tier.features"
                     :key="feature"
                     class="flex gap-x-3">
-                    <Icon
-                      icon="heroicons-solid:check"
+                    <OIcon
+                      collection="heroicons-solid"
+name="check"
                       class="h-6 w-5 flex-none text-indigo-600 dark:text-indigo-400"
                       aria-hidden="true"
                     />

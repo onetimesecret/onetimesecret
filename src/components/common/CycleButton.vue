@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 
 interface Props {
@@ -61,8 +61,9 @@ const cycleValue = () => {
     :aria-label="`Current ${label}: ${modelValue}. Click to cycle through options.`">
     <!-- Icon for current value -->
     <div class="relative size-5 text-gray-700 dark:text-gray-200">
-      <Icon
-        :icon="getCurrentIcon"
+      <OIcon
+        collection="heroicons"
+:name="getCurrentIcon"
         class="size-5 transition-all duration-200"
         :aria-hidden="true"
       />

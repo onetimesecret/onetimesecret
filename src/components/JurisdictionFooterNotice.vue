@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useClickOutside } from '@/composables/useClickOutside';
 import { useJurisdictionStore } from '@/stores/jurisdictionStore';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
 
 const jurisdictionStore = useJurisdictionStore();
@@ -54,8 +54,9 @@ useClickOutside(dropdownRef, closeDropdown);
              dark:focus:ring-brand-400"
       :aria-expanded="isOpen"
       aria-haspopup="listbox">
-      <Icon
-        :icon="currentJurisdiction.icon"
+      <OIcon
+        :collection="currentJurisdiction.icon.collection"
+:name="currentJurisdiction.icon.name"
         class="size-5"
         aria-hidden="true"
       />
@@ -113,8 +114,9 @@ useClickOutside(dropdownRef, closeDropdown);
             :title="`Continue to ${jurisdiction.domain}`">
             <span class="flex items-center">
 
-              <Icon
-                :icon="jurisdiction.icon"
+              <OIcon
+                :collection="currentJurisdiction.icon.collection"
+:name="jurisdiction.icon.name"
                 class="mr-2 size-5"
                 aria-hidden="true"
               />
