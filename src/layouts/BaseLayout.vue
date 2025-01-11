@@ -3,32 +3,27 @@
 <script setup lang="ts">
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import { WindowService } from '@/services/window.service';
-import { useBrandStore } from '@/stores/brandStore';
+import { useProductIdentity } from '@/stores/identityStore';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { isColorValue } from '@/utils/color-utils';
-import { computed, defineProps, ref } from 'vue';
+import { computed, defineProps } from 'vue';
 
 defineProps<LayoutProps>();
 const globalBanner = WindowService.get('global_banner') ?? null;
 const hasGlobalBanner = computed(() => { return !!globalBanner });
 
-/* =============================== */
-/* TODO: PRIMARY COLOUR  */
-// const color = inject('color', ref(props.primaryColor)) as Ref<string>;
-const color = ref('#dc4a22');
-const brandStore = useBrandStore();
+const identityStore = useProductIdentity();
 
 // Compute primary color styles based on brand color or prop
 const primaryColorClass = computed(() => {
-  const currentColor = brandStore.primaryColor || color.value;
+  const currentColor = identityStore.primaryColor;
   return !isColorValue(currentColor) ? currentColor : '';
 });
 
 const primaryColorStyle = computed(() => {
-  const currentColor = brandStore.primaryColor || color.value;
+  const currentColor = identityStore.primaryColor;
   return isColorValue(currentColor) ? { backgroundColor: currentColor } : {};
 });
-/* =============================== */
 
 
 </script>
