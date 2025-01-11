@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -153,8 +153,9 @@ watch(recipientValue, (value) => {
               @click="togglePassphrase()"
               class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition-colors
                            duration-200 dark:text-gray-300">
-              <Icon
-                :icon="showPassphrase ? 'mdi:eye' : 'mdi:eye-off'"
+              <OIcon
+                collection="heroicons"
+                :name="showPassphrase ? 'mdi:eye' : 'mdi:eye-off'"
                 class="size-5"
               />
             </button>

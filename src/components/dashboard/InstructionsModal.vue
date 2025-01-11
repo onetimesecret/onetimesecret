@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { useEventListener } from '@vueuse/core';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 
@@ -109,14 +109,16 @@ watch(isOpen, (newValue) => {
                  dark:focus:ring-offset-gray-900"
       :aria-expanded="isOpen"
       aria-haspopup="true">
-      <Icon
-        icon="mdi:text-box-edit"
+      <OIcon
+        collection="mdi"
+        name="text-box-edit"
         class="mr-2 size-5"
         aria-hidden="true"
       />
       Instructions
-      <Icon
-        :icon="isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+      <OIcon
+        collection="mdi"
+        :name="isOpen ? 'chevron-up' : 'chevron-down'"
         class="ml-2 size-5"
         aria-hidden="true"
       />
@@ -144,8 +146,9 @@ watch(isOpen, (newValue) => {
                        text-sm font-medium text-gray-700
                        dark:text-gray-200">
             Pre-reveal Instructions
-            <Icon
-              icon="mdi:help-circle"
+            <OIcon
+              collection="mdi"
+              name="help-circle"
               class="ml-1
                          inline-block size-4 text-gray-400"
               @mouseenter="tooltipShow = true"

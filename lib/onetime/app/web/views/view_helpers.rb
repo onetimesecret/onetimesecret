@@ -52,9 +52,9 @@ module Onetime
           nonce ||= self[:nonce] # we allow overriding the nonce for testing
 
           manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
-          unless File.exist?(manifest_path)
+                    unless File.exist?(manifest_path)
             OT.le "Vite manifest not found at #{manifest_path}. Run `pnpm run build`"
-            return %W{<script nonce="#{nonce}">console.warn("Vite manifest not found. Run `pnpm run build`")</script>}
+            return "<script nonce=\"#{nonce}\">console.warn(\"Vite manifest not found. Run `pnpm run build`\")</script>"
           end
 
           @manifest_cache ||= JSON.parse(File.read(manifest_path))

@@ -28,7 +28,7 @@
 
 -->
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { ref, watch, computed } from 'vue';
 
 const props = defineProps({
@@ -97,8 +97,9 @@ const collapsedBgClass = computed(() => props.collapsedBg);
       <p class="font-brand text-base font-medium text-gray-700 dark:text-gray-300">
         {{ title }}
       </p>
-      <Icon
-        :icon="isExpanded ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+      <OIcon
+        collection="mdi"
+        :name="isExpanded ? 'chevron-up' : 'chevron-down'"
         class="size-5 text-gray-500 dark:text-gray-400"
       />
     </div>

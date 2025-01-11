@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import FancyIcon from '@/components/ctas/FancyIcon.vue';
   import { Customer } from '@/schemas/models';
-  import { Icon } from '@iconify/vue';
+  import OIcon from '@/components/icons/OIcon.vue';
   import { ref, computed } from 'vue';
   import { WindowService } from '@/services/window.service';
 
@@ -50,8 +50,9 @@
       to="/colonel/"
       title=""
       class="ml-2 text-gray-400 transition hover:text-gray-300">
-      <Icon
-        icon="mdi:star"
+      <OIcon
+        collection="mdi"
+        name="star"
         class="size-4 text-brand-400" />
     </router-link>
     <span

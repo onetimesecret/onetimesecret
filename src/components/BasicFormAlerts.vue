@@ -1,5 +1,5 @@
 <script setup>
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 
 defineProps({
   success: String,
@@ -14,8 +14,9 @@ defineProps({
       class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900">
       <div class="mb-8 flex">
         <div class="shrink-0">
-          <Icon
-            icon="mdi:fire-circle"
+          <OIcon
+            collection="mdi"
+            name="fire-circle"
             class="size-5 text-red-400 dark:text-red-300"
             aria-hidden="true"
           />
@@ -36,8 +37,9 @@ defineProps({
       class="mb-4 rounded-md bg-green-50 p-4 dark:bg-green-900">
       <div class="mb-8 flex">
         <div class="shrink-0">
-          <Icon
-            icon="mdi:check-circle"
+          <OIcon
+            collection="mdi"
+            name="check-circle"
             class="size-5 text-green-400 dark:text-green-300"
             aria-hidden="true"
           />

@@ -1,8 +1,7 @@
 <script setup>
-import { Menu, MenuButton, MenuItems } from '@headlessui/vue'
-import { Icon } from '@iconify/vue'
+  import { Menu, MenuButton, MenuItems } from '@headlessui/vue';
+  import OIcon from '@/components/icons/OIcon.vue';
 </script>
-
 
 <template>
   <Menu
@@ -12,11 +11,10 @@ import { Icon } from '@iconify/vue'
       <MenuButton
         class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900">
         <span class="sr-only">Open options</span>
-        <Icon
-          icon="heroicons:ellipsis-vertical-20-solid"
+        <OIcon
           class="size-5"
-          aria-hidden="true"
-        />
+          collection="heroicons-solid"
+          name="ellipsis-vertical" />
       </MenuButton>
     </div>
 

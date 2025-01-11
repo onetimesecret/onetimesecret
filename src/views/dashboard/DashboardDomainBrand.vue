@@ -7,7 +7,7 @@ import SecretPreview from '@/components/dashboard/SecretPreview.vue';
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import { useBranding } from '@/composables/useBranding';
 import type { CustomDomain } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { detectPlatform } from '@/utils';
 import { computed, onMounted, watch, ref } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
@@ -113,21 +113,24 @@ onBeforeRouteLeave((to, from, next) => {
           <ul class="mb-4 space-y-1 text-sm sm:mb-6 sm:space-y-2"
               :aria-hidden="true">
             <li class="flex items-center gap-2">
-              <Icon icon="mdi:palette-outline"
+              <OIcon collection="mdi"
+              name="palette-outline"
                     class="size-5"
                     aria-label="Customization icon" />
               Use the controls above to customize brand color, styles, and recipient instructions
             </li>
 
             <li class="flex items-center gap-2">
-              <Icon icon="mdi:image-outline"
+              <OIcon collection="mdi"
+              name="image-outline"
                     class="size-5"
                     aria-label="Image icon" />
               Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)
             </li>
 
             <li class="flex items-center gap-2">
-              <Icon icon="mdi:eye-outline"
+              <OIcon collection="mdi"
+              name="eye-outline"
                     class="size-5"
                     aria-label="Eye icon" />
               Preview how recipients will see your secrets by testing the "View Secret" button

@@ -12,23 +12,19 @@
 
 <template>
   <div class="container mx-auto min-w-[320px] max-w-2xl py-1">
-    <HomepageTaglines
-      v-if="!authenticated"
-      class="mb-6" />
+    <HomepageTaglines v-if="!authenticated"
+                      class="mb-6" />
 
-    <HomepagePlansCTA
-      v-if="showPlansCTA"
-      class="mb-6" />
+    <HomepagePlansCTA v-if="showPlansCTA"
+                      class="mb-6" />
 
-    <SecretForm
-      class="mb-8"
-      :with-recipient="false"
-      :with-asterisk="true"
-      :with-generate="true" />
+    <SecretForm class="mb-8"
+                :with-recipient="false"
+                :with-asterisk="true"
+                :with-generate="true" />
 
-    <div
-      v-if="!authenticated"
-      class="flex flex-col items-center text-center">
+    <div v-if="!authenticated"
+         class="flex flex-col items-center text-center">
       <p class="text-sm italic text-gray-400 dark:text-gray-400">
         {{ $t('web.homepage.secret_hint') }}
       </p>

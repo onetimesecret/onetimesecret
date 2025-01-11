@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { defineEmits } from 'vue';
 
 // Define the props expected from the parent
@@ -45,9 +45,10 @@ const onInput = (event: Event) => {
           dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:placeholder:text-gray-400 dark:focus:ring-brandcomp-500"
       />
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-        <Icon
+        <OIcon
           v-if="isValid === false"
-          icon="heroicons:exclamation-circle"
+          collection="heroicons"
+          name="exclamation-circle"
           class="size-6 text-red-500"
           aria-hidden="true"
         />

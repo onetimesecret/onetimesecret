@@ -4,7 +4,7 @@ import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
 import SettingsModal from '@/components/modals/SettingsModal.vue';
 import { WindowService } from '@/services/window.service';
 import type { LayoutProps } from '@/types/ui/layouts';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
 
 withDefaults(defineProps<LayoutProps>(), {
@@ -63,8 +63,9 @@ const closeSettingsModal = () => {
         <button @click="openSettingsModal"
                 class="text-xl text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
                 aria-label="Settings">
-          <Icon icon="material-symbols:settings"
-                aria-hidden="true" />
+          <OIcon class="size-5"
+                collection="material-symbols"
+                name="settings" />
         </button>
 
         <SettingsModal :is-open="isSettingsModalOpen"
@@ -78,17 +79,9 @@ const closeSettingsModal = () => {
                      class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
                      :title="$t('web.COMMON.header_logout')"
                      :aria-label="$t('web.COMMON.header_logout')">
-          <svg xmlns="http://www.w3.org/2000/svg"
-               fill="none"
-               viewBox="0 0 24 24"
-               stroke-width="1.5"
-               stroke="currentColor"
-               class="size-6"
-               aria-hidden="true">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-          </svg>
+          <OIcon class="size-5"
+                collection="heroicons"
+                name="arrow-right-on-rectangle-solid" />
         </router-link>
       </template>
 

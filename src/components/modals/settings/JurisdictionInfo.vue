@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Jurisdiction } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 
 defineProps<{
   jurisdiction: Jurisdiction;
@@ -11,8 +11,9 @@ defineProps<{
 <template>
   <div class="space-y-4 sm:space-y-6">
     <div class="flex flex-col items-center gap-2 sm:flex-row">
-      <Icon
-        :icon="jurisdiction.icon"
+      <OIcon
+        :collection="jurisdiction.icon.collection"
+        :name="jurisdiction.icon.name"
         class="size-5 shrink-0"
         aria-hidden="true"
       />

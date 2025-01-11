@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import LanguageToggle from '@/components/LanguageToggle.vue';
 import ThemeToggle from '@/components/ThemeToggle.vue';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { ref } from 'vue';
 
 const isLoading = ref(false);
@@ -42,7 +42,7 @@ const handleThemeChange = async (isDark: boolean) => {
       <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800 sm:p-4">
         <div class="flex items-start justify-between gap-2 rounded p-2 sm:flex-row sm:items-center sm:gap-4">
           <div class="flex min-w-0 items-center gap-2">
-            <Icon
+            <OIcon
               icon="carbon:light-filled"
               class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
               aria-hidden="true"

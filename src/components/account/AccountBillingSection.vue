@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import type Stripe from 'stripe';
 import { computed } from 'vue';
 
@@ -37,8 +37,9 @@ const subscriptionDetails = computed(() => {
     class="mb-6 space-y-6 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
     <header class="flex items-center justify-between">
       <h2 class="flex items-center text-2xl font-bold text-gray-900 dark:text-white">
-        <Icon
-          icon="mdi:credit-card-outline"
+        <OIcon
+          collection="mdi"
+          name="credit-card-outline"
           class="mr-2 size-6 text-brandcomp-500"
         />
         Subscription
@@ -73,8 +74,9 @@ const subscriptionDetails = computed(() => {
           Default Payment Method
         </h3>
         <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-          <Icon
-            icon="mdi:credit-card"
+          <OIcon
+            collection="mdi"
+            name="credit-card"
             class="mr-2 size-8 text-gray-400"
           />
           {{ defaultPaymentMethod.card.brand }}

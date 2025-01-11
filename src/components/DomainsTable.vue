@@ -4,7 +4,7 @@
   import { WindowService } from '@/services/window.service';
   import type { CustomDomain } from '@/schemas/models/domain';
   import { MenuItem } from '@headlessui/vue';
-  import { Icon } from '@iconify/vue';
+  import OIcon from '@/components/icons/OIcon.vue';
   import { formatDistanceToNow } from 'date-fns';
 
   const cust = WindowService.get('cust'); // Used for feature flags
@@ -43,10 +43,11 @@
       <router-link
         to="/domains/add"
         class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
-        <Icon
-          icon="heroicons:plus-20-solid"
-          class="mr-2 size-4"
-          aria-hidden="true" />
+        <OIcon
+          name="plus-20-solid"
+          collection="heroicons"
+          class="mr-2 size-5"
+        />
         Add Domain
       </router-link>
     </div>
@@ -70,9 +71,11 @@
                 class="flex items-center justify-center">
                 <span class="uppercase">Homepage Access</span>
                 <div class="group relative ml-2">
-                  <Icon
-                    icon="heroicons:question-mark-circle"
-                    class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300" />
+                <OIcon
+                  collection="heroicons"
+                  name="question-mark-circle"
+                  class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
+                />
                   <div
                     class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
                     Control whether users can create secret links from your domain's
@@ -175,10 +178,12 @@
                           'flex w-full items-center px-4 py-2 text-sm text-red-600 transition-colors duration-200 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300',
                         ]"
                         :disabled="isLoading">
-                        <Icon
-                          icon="heroicons:trash-20-solid"
+                        <OIcon
+                          collection="heroicons"
+                          name="trash-20-solid"
                           class="mr-2 size-4"
-                          aria-hidden="true" />
+                          aria-hidden="true"
+                        />
                         Remove
                       </button>
                     </MenuItem>

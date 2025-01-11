@@ -101,6 +101,7 @@ url_prefix = '/dist'
 SSL = 'true'
 RACK_ENV = 'production'
 EMAILER_MODE = 'smtp'
+CSP_ENABLED = 'true'
 
 # [[services.machine_checks]]
 # image = "curlimages/curl"

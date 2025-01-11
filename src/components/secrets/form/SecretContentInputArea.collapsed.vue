@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { ref, onMounted, onUnmounted } from 'vue';
 
 interface Props {
@@ -117,8 +117,9 @@ const handleMouseLeave = () => {
             class="max-w-[150px] truncate text-sm font-bold text-brandcomp-600 dark:text-brandcomp-400">
             {{ selectedDomain || 'Select Domain' }}
           </span>
-          <Icon
-            :icon="isCollapsed ? 'heroicons-solid:chevron-down' : 'heroicons-solid:chevron-left'"
+          <OIcon
+            collection="heroicons"
+            :name="isCollapsed ? 'heroicons-solid:chevron-down' : 'heroicons-solid:chevron-left'"
             class="size-4 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />

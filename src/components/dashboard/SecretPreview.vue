@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
 import { BrandSettings, ImageProps } from '@/schemas/models';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
@@ -154,9 +154,10 @@ const fontFamilyClass = computed(() => {
             @click.stop="onLogoRemove"
             class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
             <span class="flex items-center gap-1">
-              <Icon
-                icon="mdi:trash"
-                aria-hidden="true"
+              <OIcon
+                collection="mdi"
+                name="trash-can"
+                class="size-4"
               />
               Remove
             </span>
@@ -184,8 +185,9 @@ Or a multi-line message</textarea>
         :class="{
           [cornerClass]: true,
         }">
-        <Icon
-          icon="mdi:eye-off"
+        <OIcon
+          collection="mdi"
+          name="eye-off"
           class="mr-2 size-5"
         />
         <span class="text-sm">Content hidden</span>

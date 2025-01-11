@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { Icon } from '@iconify/vue';
+import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 
 interface Props {
@@ -29,31 +29,31 @@ const effectivePosition = computed(() => {
 
 const getStatusConfig = (type: string | null) => ({
   success: {
-    icon: 'mdi:check-circle',
+    icon: 'check-circle',
     classes: 'bg-green-50 dark:bg-green-900',
     textClasses: 'text-green-700 dark:text-green-100',
     iconClasses: 'text-green-500 dark:text-green-300'
   },
   error: {
-    icon: 'mdi:alert-circle',
+    icon: 'alert-circle',
     classes: 'bg-red-50 dark:bg-red-900',
     textClasses: 'text-red-700 dark:text-red-100',
     iconClasses: 'text-red-500 dark:text-red-300'
   },
   warning: {
-    icon: 'mdi:alert',
+    icon: 'alert',
     classes: 'bg-amber-50 dark:bg-amber-900',
     textClasses: 'text-amber-700 dark:text-amber-100',
     iconClasses: 'text-amber-500 dark:text-amber-300'
   },
   info: {
-    icon: 'mdi:information',
+    icon: 'information',
     classes: 'bg-blue-50 dark:bg-blue-900',
     textClasses: 'text-blue-700 dark:text-blue-100',
     iconClasses: 'text-blue-500 dark:text-blue-300'
   },
   loading: {
-    icon: 'mdi:loading',
+    icon: 'loading',
     classes: 'bg-blue-50 dark:bg-blue-900',
     textClasses: 'text-blue-700 dark:text-blue-100',
     iconClasses: 'text-blue-500 dark:text-blue-300 animate-spin'
@@ -128,8 +128,9 @@ const statusConfig = computed(() => {
         role="status"
         aria-live="polite">
         <div class="flex items-center space-x-3">
-          <Icon
-            :icon="statusConfig?.icon || 'mdi:information'"
+          <OIcon
+            collection="mdi"
+            :name="statusConfig?.icon || 'information'"
             class="size-5 transition-all duration-200"
             :class="statusConfig?.iconClasses"
             aria-hidden="true"
@@ -148,8 +149,9 @@ const statusConfig = computed(() => {
             class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
             @click="notifications.hide">
             <span class="sr-only">Dismiss</span>
-            <Icon
-              icon="mdi:close"
+            <OIcon
+              collection="mdi"
+              name="close"
               class="size-5"
             />
           </button>
