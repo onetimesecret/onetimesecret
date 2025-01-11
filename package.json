@@ -69,9 +69,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
-    "@iconify-json/heroicons": "^1.2.1",
-    "@iconify-json/mdi": "^1.2.1",
-    "@iconify/vue": "^4.1.2",
     "@intlify/devtools-types": "^10.0.5",
     "@intlify/eslint-plugin-vue-i18n": "^3.0.0",
     "@pinia/testing": "^0.1.7",
