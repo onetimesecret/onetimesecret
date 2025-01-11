@@ -1,7 +1,10 @@
 //  src/composables/useDomainDropdown.ts
 
 import { WindowService } from '@/services/window.service';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
+
+// Create a single shared ref for selectedDomain
+const selectedDomain = ref('');
 
 export function useDomainDropdown() {
   const { domains_enabled: domainsEnabled, site_host: defaultDomain } =
@@ -16,21 +19,18 @@ export function useDomainDropdown() {
     })()
   );
 
-  const getSavedDomain = () => {
+  // Initialize selectedDomain only if it hasn't been set
+  if (!selectedDomain.value) {
     const savedDomain = localStorage.getItem('selectedDomain');
-    return savedDomain && availableDomains.value.includes(savedDomain)
-      ? savedDomain
-      : availableDomains.value[0];
-  };
-
-  const selectedDomain = ref(getSavedDomain());
-
-  watch(selectedDomain, (newDomain) => {
-    localStorage.setItem('selectedDomain', newDomain);
-  });
+    selectedDomain.value =
+      savedDomain && availableDomains.value.includes(savedDomain)
+        ? savedDomain
+        : availableDomains.value[0];
+  }
 
   const updateSelectedDomain = (domain: string) => {
     selectedDomain.value = domain;
+    localStorage.setItem('selectedDomain', domain);
   };
 
   return {

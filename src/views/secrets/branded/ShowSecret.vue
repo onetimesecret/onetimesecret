@@ -1,4 +1,4 @@
-<!-- BrandedShowSecret.vue -->
+<!-- src/views/secrets/branded/ShowSecret.vue -->
 <script setup lang="ts">
 /**
  * Branded secret display implementation that maintains consistent UI between confirmation
@@ -12,7 +12,6 @@
  * @see SecretConfirmationForm - Handles passphrase entry using BaseSecretDisplay
  * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
  */
-
 
  import BaseShowSecret from '@/components/base/BaseShowSecret.vue';
  import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';

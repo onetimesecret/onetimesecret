@@ -127,7 +127,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // 3. Emits
-const emit = defineEmits(['update:selectedDomain', 'update:content']);
+const emit = defineEmits(['update:selected-domain', 'update:content']);
 
 // 4. Refs
 const content = ref(props.initialContent || '');
@@ -148,7 +148,7 @@ const toggleDropdown = (event: Event) => {
 
 const selectDomain = (domain: string) => {
   selectedDomain.value = domain;
-  emit('update:selectedDomain', domain);
+  emit('update:selected-domain', domain);
   isOpen.value = false;
 };
 

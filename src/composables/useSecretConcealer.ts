@@ -11,6 +11,9 @@ import {
 } from '@/schemas/api/payloads';
 import { useAsyncHandler, AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { useNotificationsStore } from '@/stores/notificationsStore';
+import { useDomainDropdown } from './useDomainDropdown';
+
+const { selectedDomain } = useDomainDropdown();
 
 /* eslint-disable max-lines-per-function */
 export function useSecretConcealer() {
@@ -22,7 +25,7 @@ export function useSecretConcealer() {
     kind: 'conceal',
     share_domain: '',
     secret: '',
-    ttl: 0, // Default TTL
+    ttl: 0,
     passphrase: '',
     recipient: '',
   });
@@ -42,7 +45,11 @@ export function useSecretConcealer() {
 
   const conceal = () =>
     wrap(async () => {
-      const payload = { ...formData.value, kind: 'conceal' };
+      const payload = {
+        ...formData.value,
+        kind: 'conceal',
+        share_domain: selectedDomain.value,
+      };
       const validatedPayload = concealPayloadSchema.strip().parse(payload);
       const response = await secretStore.conceal(validatedPayload);
 
@@ -55,7 +62,11 @@ export function useSecretConcealer() {
 
   const generate = () =>
     wrap(async () => {
-      const payload = { ...formData.value, kind: 'generate' };
+      const payload = {
+        ...formData.value,
+        kind: 'generate',
+        share_domain: selectedDomain.value,
+      };
       const validatedPayload = generatePayloadSchema.strip().parse(payload);
       const response = await secretStore.generate(validatedPayload);
 
