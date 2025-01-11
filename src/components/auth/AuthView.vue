@@ -27,8 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
   titleLogo: null,
   withSubheading: false,
   featureIcon: () => ({
-    collection: 'ic',
-    name: 'outline-mail-lock'
+    collection: 'material-symbols',
+    name: 'mail-lock-outline'
   })
 });
 
