@@ -20,6 +20,7 @@ const routes: Array<RouteRecordRaw> = [
         displayNavigation: true,
         displayLinks: true,
         displayFeedback: true,
+        displayPoweredBy: false,
         displayVersion: true,
       },
     },
@@ -39,6 +40,7 @@ const routes: Array<RouteRecordRaw> = [
         displayNavigation: true,
         displayLinks: true,
         displayFeedback: true,
+        displayPoweredBy: true,
         displayVersion: true,
       },
     },
@@ -53,6 +55,10 @@ const routes: Array<RouteRecordRaw> = [
     },
     meta: {
       requiresAuth: true,
+      layoutProps: {
+        displayFeedback: false,
+        displayPoweredBy: false,
+      },
     },
     props: true,
   },
@@ -68,6 +74,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layoutProps: {
         displayFeedback: false,
+        displayPoweredBy: false,
       },
     },
     props: true,

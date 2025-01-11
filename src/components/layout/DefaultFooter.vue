@@ -14,6 +14,7 @@ withDefaults(defineProps<LayoutProps>(), {
   displayLinks: true,
   displayVersion: true,
   displayToggles: true,
+  displayPoweredBy: false,
 });
 
 const windowProps = WindowService.getMultiple([
