@@ -58,68 +58,77 @@
         :record="record"
         :details="details"></slot>
 
-      <!-- Loading state -->
-      <div v-if="record">
-        <template v-if="state.isLoading">
-          <slot
-            name="loading"
-            :branded="branded"></slot>
-        </template>
+      <!-- Global Loading State -->
+      <div v-if="state.isLoading" class="animate-pulse space-y-6 p-4">
+        <!-- Header/Title Placeholder -->
+        <div class="h-8 w-1/3 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
-        <!-- Error state -->
-        <template v-else-if="state.error">
-          <slot
-            name="error"
-            :error="state.error"
-            :branded="branded"></slot>
-        </template>
+        <!-- Main Content Box -->
+        <div class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
+          <!-- Secret Info Line -->
+          <div class="mb-4 h-6 w-2/3 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
-        <!-- Main content -->
-        <div v-if="record && details">
-          <!-- Alerts slot for owner warnings -->
-          <slot
-            name="alerts"
-            :record="record"
-            :details="details"
-            :is-owner="details.is_owner"
-            :show-secret="details.show_secret"></slot>
-
-          <template v-if="!details.show_secret">
-            <!-- Confirmation form slot -->
-            <slot
-              name="confirmation"
-              :secret-key="secretKey"
-              :record="record"
-              :details="details"
-              :error="state.error"
-              :is-loading="state.isLoading"
-              :on-confirm="handleUserConfirmed"></slot>
-
-            <!-- Optional onboarding/marketing slot -->
-            <slot
-              name="onboarding"
-              :record="record"
-              :details="details"></slot>
-          </template>
-
-          <template v-else>
-            <!-- Reveal content slot -->
-            <slot
-              name="reveal"
-              :record="record"
-              :details="details"></slot>
-          </template>
+          <!-- Form/Content Area -->
+          <div class="space-y-4">
+            <div class="h-12 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-12 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Unknown secret slot -->
-      <template v-else>
+      <!-- Error State -->
+      <template v-else-if="state.error">
+        <slot
+          name="error"
+          :error="state.error"
+          :branded="branded"></slot>
+      </template>
+
+      <!-- Unknown Secret State -->
+      <template v-else-if="!record">
         <slot
           name="unknown"
           :branded="branded"
           :details="details">
         </slot>
       </template>
+
+      <!-- Main Content - Valid Secret -->
+      <div v-else-if="record && details">
+        <!-- Alerts slot for owner warnings -->
+        <slot
+          name="alerts"
+          :record="record"
+          :details="details"
+          :is-owner="details.is_owner"
+          :show-secret="details.show_secret"></slot>
+
+        <template v-if="!details.show_secret">
+          <!-- Confirmation form slot -->
+          <slot
+            name="confirmation"
+            :secret-key="secretKey"
+            :record="record"
+            :details="details"
+            :error="state.error"
+            :is-loading="state.isLoading"
+            :on-confirm="handleUserConfirmed"></slot>
+
+          <!-- Optional onboarding/marketing slot -->
+          <slot
+            name="onboarding"
+            :record="record"
+            :details="details"></slot>
+        </template>
+
+        <template v-else>
+          <!-- Reveal content slot -->
+          <slot
+            name="reveal"
+            :record="record"
+            :details="details"></slot>
+        </template>
+      </div>
 
       <!-- Footer slot -->
       <slot
