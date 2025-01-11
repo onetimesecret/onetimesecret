@@ -23,6 +23,7 @@ interface IdentityState {
   brand: BrandSettings | null;
   /** Primary color for branding */
   primaryColor: string;
+  allowPublicHomepage: boolean;
 }
 
 /**
@@ -50,6 +51,7 @@ const getInitialState = (): IdentityState => {
       domainStrategy === 'custom' && brand?.primary_color
         ? primaryColorValidator.parse(brand.primary_color)
         : defaultPrimaryColor,
+    allowPublicHomepage: brand?.allow_public_homepage === 'true', // TODO: Needs schema validation for boolean
   };
 };
 
@@ -75,6 +77,8 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   /** Display name for current domain context */
   const displayName = computed(() => state.brand?.description || state.displayDomain);
+
+  // const primaryColor = computed(() => state.primaryColor);
 
   const logoUri = computed(() => {
     const template = '/imagine/:custom_domain_id/:image_type.:image_ext';
@@ -127,8 +131,6 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   }
 
   return {
-    ...toRefs(state),
-
     logoUri,
     cornerClass,
     fontFamilyClass,
@@ -140,5 +142,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     isSubdomain,
     displayName,
     $reset,
+
+    ...toRefs(state), //
   };
 });

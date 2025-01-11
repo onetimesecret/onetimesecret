@@ -5,10 +5,16 @@
 
   const productIdentity = useProductIdentity();
 
-  withDefaults(defineProps<LayoutProps>(), {
+  interface Props extends LayoutProps {
+    headertext: string;
+    subtext: string;
+  }
+
+  withDefaults(defineProps<Props>(), {
     displayMasthead: true,
     displayNavigation: true,
-    colonel: false,
+    headertext: 'Secure Links',
+    subtext: 'A trusted way to share sensitive information that self-destructs after being viewed.',
   });
 </script>
 
@@ -66,11 +72,11 @@
           <h1
             class="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-gray-100"
             :class="productIdentity.fontFamilyClass">
-            Create a secure link
+            {{ headertext }}
           </h1>
           <p
             class="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-md mx-auto">
-            Send sensitive information that can only be viewed once
+            {{ subtext }}
           </p>
         </div>
       </div>
