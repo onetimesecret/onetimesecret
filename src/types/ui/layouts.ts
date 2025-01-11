@@ -26,6 +26,7 @@ export interface WindowConfig {
  * UI display configuration for layout components
  */
 export interface LayoutDisplay {
+  displayGlobalBroadcast: boolean;
   displayMasthead: boolean;
   displayNavigation: boolean;
   displayLinks: boolean;

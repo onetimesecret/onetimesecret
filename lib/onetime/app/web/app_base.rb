@@ -12,7 +12,19 @@ module Onetime
           check_locale!      # 2. Check the request for the desired locale
           check_shrimp!      # 3. Check the shrimp for POST,PUT,DELETE (after session)
           check_referrer!    # 4. Check referrers for public requests
-          yield
+          # Generate the response
+          ret = yield
+          # Clear any messages that were set while processing the request. Since
+          # the response has been generated, we don't need to keep them around.
+          # The idea is to make the available exactly once, and only for the
+          # next request.
+          #
+          # There are very few pages that still use session-based messages since
+          # those are handled by Vue.js on the client side. Password reset uses
+          # it since there are no API endpoints for that flow; it's just a
+          # couple HTML forms.
+          sess.clear_messages!
+          ret
         end
       end
 

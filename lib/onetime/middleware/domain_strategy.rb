@@ -1,3 +1,5 @@
+# lib/onetime/middleware/domain_strategy.rb
+
 module Onetime
   # Middleware for handling and validating domain types in incoming requests.
   #

@@ -58,6 +58,60 @@ module Onetime
       el = text.split('@')
       text.gsub regex, '\\3*****\\4@\\6*****\\7'
     end
+
+    module Sanitation
+      extend self
+
+      # Converts a Ruby value into a JavaScript-friendly string or JSON.
+      # This ensures special characters are properly escaped or converted to JSON.
+      def jsvar(value)
+        case value.class.to_s
+        when 'String', 'Gibbler::Digest', 'Symbol', 'Integer', 'Float'
+          if is_https?(value)
+            value
+          else
+            Rack::Utils.escape_html(value)
+          end
+        when 'Array', 'Hash'
+          value
+        when 'Boolean', 'FalseClass', 'TrueClass'
+          value
+        when 'NilClass'
+          nil
+        else
+          # Just totally give up if we don't know what to do with it, log
+          # an error, and return an empty string so the page doesn't break.
+          OT.le "Unsupported type: #{value.class} (#{value})"
+          ''
+        end
+      end
+
+      # Collects data and returns a script tag for embedding.
+      def serialize_to_script(data, id: nil, nonce: nil)
+        sanitized_json = to_sanitized_json(data)
+        attributes = ['type="application/json"']
+        attributes << %{id="#{Rack::Utils.escape_html(id)}"} if id
+        attributes << %{nonce="#{nonce}"} if nonce
+
+        "<script #{attributes.join(' ')}>#{sanitized_json}</script>"
+      end
+
+      # Converts data to JSON and sanitizes it to reduce risk of injection attacks.
+      # Escapes certain special characters and script tags.
+      def to_sanitized_json(data)
+        data.to_json
+            .gsub(%r{</script}i, '<\/script')
+            .gsub(/[\u0000-\u001F]/, '')
+            .gsub(/[^\x20-\x7E]/) { |c| "\\u#{c.ord.to_s(16).rjust(4, '0')}" }
+      end
+
+      def is_https?(str)
+        uri = URI.parse(str)
+        uri.is_a?(URI::HTTPS)
+      rescue URI::InvalidURIError
+        false
+      end
+    end
   end
 
   module TimeUtils

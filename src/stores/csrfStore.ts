@@ -1,6 +1,7 @@
 // src/stores/csrfStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/responses';
+import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { handleError, inject, ref } from 'vue';
@@ -70,7 +71,7 @@ export const useCsrfStore = defineStore('csrf', () => {
 
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
-    shrimp.value = options?.shrimp || window.shrimp || '';
+    shrimp.value = (options?.shrimp || WindowService.get('shrimp')) ?? '';
     _initialized.value = true;
     return _initialized;
   }
@@ -116,7 +117,7 @@ export const useCsrfStore = defineStore('csrf', () => {
    * initialization and ensure predictable reset behavior across the app.
    */
   function $reset() {
-    shrimp.value = window.shrimp || ''; // back to how it all began
+    shrimp.value = WindowService.get('shrimp') ?? '';
     isValid.value = false;
     _initialized.value = false;
     stopPeriodicCheck();

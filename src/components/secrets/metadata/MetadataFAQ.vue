@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Metadata, MetadataDetails } from '@/schemas/models'
-import { defineProps } from 'vue'
+import { Metadata, MetadataDetails } from '@/schemas/models';
 
 interface Props {
   metadata: Metadata;

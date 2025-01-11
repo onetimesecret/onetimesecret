@@ -218,18 +218,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     await $stopAuthCheck();
 
-    // const authStore = useAuthStore();
-    // const languageStore = useLanguageStore();
-    // const csrfStore = useCsrfStore();
-
-    // // Reset all stores
-    // authStore.$reset();
-    // languageStore.$reset();
-    // csrfStore.$reset();
+    $reset();
 
     // Sync window state
-    window.cust = null;
-    window.authenticated = false;
+    window.__ONETIME_STATE__ = undefined;
 
     deleteCookie('sess');
     deleteCookie('locale');

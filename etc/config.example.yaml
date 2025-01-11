@@ -260,9 +260,14 @@
   # is useful for production deployments but also for any deployment
   # where you're not actively working on the frontend JS/CSS etc.
   # Setting RACK_ENV=production disables development mode automatically.
+  # Set `frontend_host` to the local vite development server (usually
+  # http://localhost:5173) or leave empty to allow the vite /main.ts and
+  # /@vite/client scripts to laoad from the same domain as the ruby
+  # server. If you are running OTS behind a reverse proxy, leave this
+  # empty.
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
-  :frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
+  :frontend_host: <%= ENV['FRONTEND_HOST'] %>
 # Settings for experimental features that are still being tested.
 # All of these features are turned off by default and may not work as expected.
 :experimental:
@@ -279,3 +284,14 @@
   # middleware chain manipulation at runtime. For most applications, this should
   # be enabled in production environments.
   :freeze_app: false
+  # When enabled, adds Content-Security-Policy headers to the response. When
+  # `development.enabled=true`, the headers will be less restrictive but still
+  # prevent any content loading from other origins. In regular production mode,
+  # a secure nonce will be included with the headers and unsafe-inline content
+  # is completely blocked. The nonce can be accessed via the rack request object
+  # `req.env['ots.nonce']`. The backend views grab it from there to add it to
+  # all front-end script and style assets automatically. You'd only need to use
+  # the none if you're adding new script or style dependencies.
+  # When disabled, no csp headers are included in any environment.
+  :csp:
+    :enabled: <%= ENV['CSP_ENABLED'] == 'true' %>

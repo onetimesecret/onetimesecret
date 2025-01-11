@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// Import the defineProps function from Vue
-import { defineProps } from 'vue';
-
 // Define your component's props
 defineProps({
   firstVal: String, // Assuming val1 is already being used as shown in your template

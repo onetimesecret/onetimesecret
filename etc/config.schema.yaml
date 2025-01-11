@@ -159,3 +159,8 @@
   :enabled: any()
   :debug: any()
   :frontend_host: str()
+
+:experimental:
+  freeze_app: bool()
+  csp:
+    :enabled: str()

@@ -258,6 +258,14 @@ class Onetime::CustomDomain < Familia::Horreum
     redis.exists?(rediskey)
   end
 
+  def allow_public_homepage?
+    self.brand.get('allow_public_homepage').to_s == 'true'
+  end
+
+  def allow_public_api?
+    self.brand.get('allow_public_api').to_s == 'true'
+  end
+
   # Validates the format of TXT record host and value used for domain verification.
   # The host must be alphanumeric with dots, underscores, or hyphens only.
   # The value must be a 32-character hexadecimal string.

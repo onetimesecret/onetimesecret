@@ -1,4 +1,5 @@
 import en from '@/locales/en.json';
+import { WindowService } from '@/services/window.service';
 import { createI18n } from 'vue-i18n';
 
 /**
@@ -12,7 +13,7 @@ import { createI18n } from 'vue-i18n';
  * Falls back to English if load fails.
  **/
 
-const supportedLocales = window.supported_locales || [];
+const supportedLocales = WindowService.get('supported_locales') || [];
 
 export type MessageSchema = typeof en;
 export type SupportedLocale = (typeof supportedLocales)[number];

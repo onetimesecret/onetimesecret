@@ -1,13 +1,13 @@
 import {
-  AsyncHandlerOptions,
-  createError,
-  useAsyncHandler,
+    AsyncHandlerOptions,
+    createError,
+    useAsyncHandler,
 } from '@/composables/useAsyncHandler';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 /**
@@ -26,6 +26,10 @@ export function useDomainsManager() {
   const router = useRouter();
   const goBack = () => router.back();
   const { records, details } = storeToRefs(store);
+
+  const { refreshRecords } = store;
+
+  const recordCount = computed(() => store.recordCount());
 
   // Local state
   const isLoading = ref(false);
@@ -53,8 +57,13 @@ export function useDomainsManager() {
       const domainData = await store.getDomain(domainName);
       const domain = domainData.record;
       const currentTime = Math.floor(Date.now() / 1000);
-      const lastMonitored = (domain?.vhost?.last_monitored_unix ?? currentTime) as number;
-      const canVerify = currentTime - lastMonitored >= 30;
+      const lastMonitored = domain?.vhost?.last_monitored_unix ?? 0;
+      const domainUpdated = Math.floor(domain.updated.getTime() / 1000);
+      const lastUpdatedDistance = currentTime - domainUpdated;
+      // Approximated hasn't checked this domain yet or it's been more than N
+      // seconds since this domain record was updated. Typically this will be
+      // the amount of time since last clicking the "refresh" button.
+      const canVerify = (!lastMonitored || lastUpdatedDistance >= 10);
 
       return {
         domain,
@@ -121,11 +130,15 @@ export function useDomainsManager() {
     isLoading,
     error,
 
+    // Getters
+    recordCount,
+
     // Actions
     fetch,
     getDomain,
     verifyDomain,
     handleAddDomain,
+    refreshRecords,
     deleteDomain,
     goBack,
   };

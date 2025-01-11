@@ -13,6 +13,8 @@ module Onetime
       attr_reader :sess, :cust, :params, :locale, :processed_params, :plan
       attr_reader :site, :authentication, :domains_enabled
 
+      attr_accessor :domain_strategy, :display_domain
+
       def initialize(sess, cust, params = nil, locale = nil)
         @sess = sess
         @cust = cust
@@ -94,6 +96,10 @@ module Onetime
         return if plan && plan.paid?
 
         sess.event_incr! event
+      end
+
+      def custom_domain?
+        domain_strategy.to_s == 'custom'
       end
 
       module ClassMethods

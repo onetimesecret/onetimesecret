@@ -1,24 +1,31 @@
-
 <script setup lang="ts">
-interface Props {
-  disabled: boolean;
-  withAsterisk: boolean;
-}
+  import { ref } from 'vue';
 
-defineProps<Props>();
+  interface Props {
+    disabled: boolean;
+    withAsterisk: boolean;
+    primaryColor: string;
+  }
+
+  defineEmits<{
+    (e: 'click'): void;
+  }>();
+
+  const props = defineProps<Props>();
+
+  const buttonColor = ref(props.primaryColor ?? '#dc4a22');
 </script>
 
 <template>
   <button
     type="submit"
-    class="grow rounded bg-orange-600 px-4 py-2
-           text-xl font-bold text-white
-           transition-all duration-200 ease-in-out
-           hover:scale-105 hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+    :style="{ backgroundColor: buttonColor }"
+    class="grow rounded px-4 py-2 text-xl font-bold text-white transition-all duration-200 ease-in-out hover:scale-105 hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
     :disabled="disabled"
     :aria-label="$t('web.COMMON.button_create_secret')"
+    @click="$emit('click')"
     name="kind"
-    value="share">
+    value="conceal">
     {{ $t('web.COMMON.button_create_secret') }}<span v-if="withAsterisk">*</span>
   </button>
 </template>

@@ -21,6 +21,15 @@ class Onetime::App::APIV2
       )
     end
 
+    def generate_secret
+      process_action(
+        OT::Logic::Secrets::GenerateSecret,
+        "Secret generate successfully.",
+        "Secret could not be generated.",
+        allow_anonymous: true,
+      )
+    end
+
     def burn_secret
       process_action(
         OT::Logic::Secrets::BurnSecret,

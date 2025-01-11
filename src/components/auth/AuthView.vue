@@ -51,7 +51,7 @@ const iconToShow = computed(() => jurisdictionStore.enabled ? currentJurisdictio
     <div
       class="absolute inset-0 overflow-hidden
                 opacity-5
-                dark:opacity-10">
+                dark:opacity-5">
       <Icon
         :icon="backgroundIcon"
         class="blur-x absolute left-1/2 top-0 h-auto

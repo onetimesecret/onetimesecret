@@ -2,21 +2,23 @@
 import CustomDomainsCTA from '@/components/ctas/CustomDomainsCTA.vue'
 import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
 import DomainsTable from '@/components/DomainsTable.vue';
+import ErrorDisplay from '@/components/ErrorDisplay.vue';
+import EmptyState from '@/components/EmptyState.vue';
 import { useDomainsManager } from '@/composables/useDomainsManager';
 import { WindowService } from '@/services/window.service';
 import { computed, onMounted, ref } from 'vue';
 import type { Plan, CustomDomain } from '@/schemas/models';
+import TableSkeleton from '@/components/TableSkeleton.vue'
 
 const plan = ref<Plan>(WindowService.get('plan'));
-
-// const domainsStore = useDomainsStore() as DomainsStore;
 
 const {
   isLoading,
   deleteDomain,
   records,
+  recordCount,
   error,
-  fetch,
+  refreshRecords,
 } = useDomainsManager();
 
 const planAllowsCustomDomains = computed(() => plan.value.options?.custom_domains === true);
@@ -29,47 +31,44 @@ const domains = computed(() => {
 });
 
 onMounted(() => {
-  fetch()
+  refreshRecords()
 });
 </script>
 
 <template>
-  <div class="dark:bg-gray-900">
-
+  <div>
     <DashboardTabNav />
 
-    <div
-      v-if="isLoading"
-      class="py-8 text-center dark:text-gray-200">
-      <p>Loading domains...</p>
+    <ErrorDisplay v-if="error" :error="error" />
+    <div v-if="isLoading">
+      <TableSkeleton/>
     </div>
-    <div
-      v-else-if="error"
-      class="rounded bg-red-100 p-4 text-red-800 dark:bg-red-900 dark:text-red-200">
-      {{ error }}
-    </div>
+
     <div
       v-else-if="!planAllowsCustomDomains"
       class="w-full">
       <CustomDomainsCTA />
     </div>
 
-    <div
-      v-else-if="domains.length === 0"
-      class="py-8 text-center text-gray-500 dark:text-gray-400">
-      No domains found.
-      <router-link
-        to="/domains/add"
-        class="text-brandcomp-600 underline hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
-        Add a domain
-      </router-link>
-      to get started.
+    <div v-else>
+      <DomainsTable
+        v-if="recordCount > 0"
+        :domains="domains"
+        :is-loading="isLoading"
+        @delete="deleteDomain"
+      />
+
+      <EmptyState
+        v-else
+        actionRoute="/domains/add"
+        actionText="Add a Domain">
+        <template #title>
+          No domains found.
+        </template>
+        <template #description>
+        Get started by adding a custom domain.
+        </template>
+      </EmptyState>
     </div>
-    <DomainsTable
-      v-else
-      :domains="domains"
-      :is-loading="isLoading"
-      @delete="deleteDomain"
-    />
   </div>
 </template>

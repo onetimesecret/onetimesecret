@@ -6,13 +6,14 @@ import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
 import { MetadataRecords } from '@/schemas/api/endpoints';
 import { useMetadataList } from '@/composables/useMetadataList';
 import { onMounted, computed } from 'vue';
+import TableSkeleton from '@/components/TableSkeleton.vue';
 
 // Define props
 interface Props {
 }
 defineProps<Props>();
 
-const { details, recordCount, isLoading, fetch, error } = useMetadataList();
+const { details, recordCount, isLoading, refreshRecords, error } = useMetadataList();
 
 // Add computed properties for received and not received items
 const receivedItems = computed(() => {
@@ -30,7 +31,7 @@ const notReceivedItems = computed(() => {
 });
 
 onMounted(() => {
-  fetch()
+  refreshRecords()
 });
 
 </script>
@@ -40,17 +41,32 @@ onMounted(() => {
     <DashboardTabNav />
 
     <ErrorDisplay v-if="error" :error="error" />
+
     <div v-else-if="isLoading">
-      Loading...
+      <TableSkeleton/>
     </div>
+
     <div v-else>
+
       <SecretMetadataTable
         v-if="recordCount > 0"
         :not-received="notReceivedItems"
         :received="receivedItems"
         :is-loading="isLoading"
       />
-      <EmptyState v-else />
+      <EmptyState
+        v-else
+        actionRoute="/"
+        actionText="Create a Secret">
+        <template #title>
+        {{ $t('web.dashboard.title_no_recent_secrets') }}
+        </template>
+        <template #description>
+        <div>Get started by creating your first secret.</div>
+        <div>They'll appear here once you've shared them.</div>
+
+        </template>
+      </EmptyState>
     </div>
   </div>
 </template>

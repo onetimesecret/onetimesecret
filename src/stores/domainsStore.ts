@@ -71,7 +71,7 @@ export const useDomainsStore = defineStore('domains', () => {
 
   // Getters
   const initialized = _initialized.value;
-  const recordCount = count.value ?? 0;
+  const recordCount = () => count.value ?? 0;
 
   interface StoreOptions extends PiniaPluginOptions {}
 

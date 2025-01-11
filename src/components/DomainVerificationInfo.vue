@@ -13,7 +13,8 @@ interface Props {
 const props = defineProps<Props>();
 
 const isActive = computed(() => {
-  return props.domain.vhost?.status === 'ACTIVE'});
+  return props.domain.vhost?.status === 'ACTIVE' || props.domain.vhost?.status === 'ACTIVE_SSL'|| props.domain.vhost?.status === 'ACTIVE_SSL_PROXIED'
+});
 
 const isWarning = computed(() => {
   return props.domain.vhost?.status === 'DNS_INCORRECT';

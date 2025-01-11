@@ -78,9 +78,11 @@
 // 1. Imports
 import { Icon } from '@iconify/vue';
 import { computed, ref, onMounted, onUnmounted, watch, WatchStopHandle } from 'vue';
+import { WindowService } from '@/services/window.service';
 
-const availablePlans = window.available_plans;
-const cust = window.cust;
+const availablePlans = WindowService.get('available_plans') ?? [];
+const cust = WindowService.get('cust');
+
 const planOptions = cust?.plan.options || availablePlans?.anonymous.options;
 const maxSize = planOptions?.size || 10000; // in characters
 
@@ -125,7 +127,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // 3. Emits
-const emit = defineEmits(['update:selectedDomain', 'update:content']);
+const emit = defineEmits(['update:selected-domain', 'update:content']);
 
 // 4. Refs
 const content = ref(props.initialContent || '');
@@ -146,7 +148,7 @@ const toggleDropdown = (event: Event) => {
 
 const selectDomain = (domain: string) => {
   selectedDomain.value = domain;
-  emit('update:selectedDomain', domain);
+  emit('update:selected-domain', domain);
   isOpen.value = false;
 };
 
@@ -245,7 +247,12 @@ onUnmounted(() => {
     -->
     <div
       v-if="showCounter"
-      class="pointer-events-none hidden select-none rounded-full bg-white px-3 py-1 text-sm text-gray-400 shadow-sm transition-colors duration-200 dark:bg-gray-800 dark:text-gray-500">
+      class="pointer-events-none select-none hidden
+            rounded-full bg-white px-3 py-1
+            text-sm text-gray-400
+            shadow-sm
+            transition-colors duration-200
+            dark:bg-gray-800 dark:text-gray-500">
       {{ formattedCharCount }} / {{ formattedMaxLength }} chars
     </div>
 

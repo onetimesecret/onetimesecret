@@ -71,17 +71,20 @@ export const customDomainSchema = createModelSchema({
 
 /**
  * Input schema for domain cluster from API
- * Used for managing domain routing/infrastructure
+ * Used for managing domain routing/infrastructure. Always null
+ * when DOMAINS_ENABLED is false.
  */
 const customDomainClusterSchema = z
   .object({
     type: z.string().nullable().optional(),
-    cluster_ip: z.string(),
-    cluster_name: z.string(),
-    cluster_host: z.string(),
-    vhost_target: z.string(),
+    cluster_ip: z.string().nullable().optional(),
+    cluster_name: z.string().nullable().optional(),
+    cluster_host: z.string().nullable().optional(),
+    vhost_target: z.string().nullable().optional(),
   })
-  .strip();
+  .strip()
+  .optional()
+  .nullable();
 
 export const customDomainDetailsSchema = z.object({
   cluster: customDomainClusterSchema,

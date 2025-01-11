@@ -56,22 +56,12 @@ module Onetime::Logic
             OT::Logic.stathat_count("Viewed Secrets", 1)
           end
 
-        elsif !correct_passphrase
-          limit_action :failed_passphrase if secret.has_passphrase?
+        elsif continue && secret.has_passphrase? && !correct_passphrase
+          limit_action :failed_passphrase
           # TODO: Something happens like:
           # elsif req.post? && !logic.correct_passphrase
           #   view.add_error view.i18n[:COMMON][:error_passphrase]
         end
-
-        #domain = if domains_enabled
-        #          if secret.share_domain.to_s.empty?
-        #            site_host
-        #          else
-        #            secret.share_domain
-        #          end
-        #        else
-        #          site_host
-        #        end
 
         @display_lines = calculate_display_lines
         @is_owner = secret.owner?(cust)

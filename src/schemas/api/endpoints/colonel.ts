@@ -6,7 +6,7 @@ import { z } from 'zod';
  * An abridged customer record used in the recent list.
  */
 export const recentCustomerSchema = z.object({
-  custid: z.string().email(),
+  custid: z.string(), // Not always an email address (e.g. GLOBAL for new installs)
   planid: z.string(),
   colonel: z.boolean(),
   secrets_created: transforms.fromString.number,

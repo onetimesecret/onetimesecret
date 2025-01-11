@@ -14,14 +14,12 @@ withDefaults(defineProps<LayoutProps>(), {
   displayLinks: true,
   displayVersion: true,
   displayToggles: true,
+  displayPoweredBy: false,
 });
 
 const windowProps = WindowService.getMultiple([
   'regions_enabled', 'regions', 'authentication'
 ]);
-
-const regionsEnabled = windowProps.regions_enabled;
-const regions = windowProps.regions;
 
 const companyName = ref('OnetimeSecret.com');
 </script>
@@ -72,7 +70,7 @@ const companyName = ref('OnetimeSecret.com');
           space-x-4 md:w-auto
           md:justify-end">
 
-          <JurisdictionFooterNotice v-if="regionsEnabled && regions" />
+          <JurisdictionFooterNotice v-if="windowProps.regions_enabled && windowProps.regions" />
 
           <ThemeToggle class="
             text-gray-500 transition-colors

@@ -3,34 +3,31 @@
 <script setup lang="ts">
 import GlobalBroadcast from '@/components/GlobalBroadcast.vue';
 import { WindowService } from '@/services/window.service';
-import { useBrandStore } from '@/stores/brandStore';
+import { useProductIdentity } from '@/stores/identityStore';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { isColorValue } from '@/utils/color-utils';
-import { computed, defineProps, ref } from 'vue';
+import { computed, defineProps } from 'vue';
 
 defineProps<LayoutProps>();
-const globalBanner = WindowService.get('global_banner') ?? null;
-const hasGlobalBanner = computed(() => { return !!globalBanner });
 
-/* =============================== */
-/* TODO: PRIMARY COLOUR  */
-// const color = inject('color', ref(props.primaryColor)) as Ref<string>;
-const color = ref('#dc4a22');
-const brandStore = useBrandStore();
+const globalBanner = WindowService.get('global_banner') ?? null;
+const identityStore = useProductIdentity();
+
+// If there's a global banner set (in redis), this will be true. The actual
+// content may not show if the feature is by displayGlobalBroadcast=false.
+// For example, custom branded pages have the feature disabled altogether.
+const hasGlobalBanner = computed(() => { return !!globalBanner });
 
 // Compute primary color styles based on brand color or prop
 const primaryColorClass = computed(() => {
-  const currentColor = brandStore.primaryColor || color.value;
+  const currentColor = identityStore.primaryColor;
   return !isColorValue(currentColor) ? currentColor : '';
 });
 
 const primaryColorStyle = computed(() => {
-  const currentColor = brandStore.primaryColor || color.value;
+  const currentColor = identityStore.primaryColor;
   return isColorValue(currentColor) ? { backgroundColor: currentColor } : {};
 });
-/* =============================== */
-
-
 </script>
 
 <template>
@@ -41,7 +38,8 @@ const primaryColorStyle = computed(() => {
          :style="primaryColorStyle"></div>
 
     <!-- Good morning Vietnam -->
-    <GlobalBroadcast :show="hasGlobalBanner"
+    <GlobalBroadcast v-if="displayGlobalBroadcast"
+                     :show="hasGlobalBanner"
                      :content="globalBanner" />
 
     <!-- Header content, Ramos territory -->

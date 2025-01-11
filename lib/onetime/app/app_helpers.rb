@@ -35,15 +35,13 @@ module Onetime::App
         redirect = '/500'
       end
 
-      res.header['Content-Type'] ||= content_type
+      # Generate a unique nonce for this response
+      nonce = SecureRandom.base64(16)
+      add_response_headers(content_type, nonce)
 
       return_value = yield
 
-      unless cust.anonymous?
-        reqstr = stringify_request_details(req)
-        custref = cust.obscure_email
-        OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
-      end
+      log_customer_activity
 
       obscured = if cust.anonymous?
         'anonymous'
@@ -91,7 +89,7 @@ module Onetime::App
     rescue OT::LimitExceeded => ex
       OT.le "[limit-exceeded] #{obscured} (#{sess.ipaddress}): #{ex.event}(#{ex.count}) #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
 
-      throttle_response "Cripes! You have been rate limited.", shrimp: sess.add_shrimp
+      throttle_response "Cripes! You have been rate limited."
 
     rescue Familia::HighRiskFactor => ex
       OT.le "[attempt-saving-non-string-to-redis] #{obscured} (#{sess.ipaddress}): #{sess.identifier.shorten(10)} (#{req.current_absolute_uri})"
@@ -267,7 +265,6 @@ module Onetime::App
         custref = cust.obscure_email
         OT.info "[sess.check_session] #{sess.short_identifier} #{custref} authenabled=#{authentication_enabled?.to_s}, sess=#{sess.authenticated?.to_s}"
       end
-
     end
 
     # Checks if authentication is enabled for the site.
@@ -294,6 +291,61 @@ module Onetime::App
       # before the session key expires in Redis, that user will be signed in
       # again. This is a security feature.
       authentication_enabled && signin_enabled
+    end
+
+    def add_response_headers(content_type, nonce)
+      # Set the Content-Type header if it's not already set by the application
+      res.header['Content-Type'] ||= content_type
+
+      # Skip the Content-Security-Policy header if it's already set
+      return if res.header['Content-Security-Policy']
+
+      # Skip the CSP header unless it's enabled in the experimental settings
+      return if OT.conf.dig(:experimental, :csp, :enabled) != true
+
+      # Skip the Content-Security-Policy header if the front is running in
+      # development mode. We need to allow inline scripts and styles for
+      # hot reloading to work.
+      if OT.conf.dig(:development, :enabled)
+        csp = [
+          "default-src 'self';",                               # Restrict to same origin by default
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval';",  # Allow Vite's dynamic module imports and source maps
+          "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
+          "connect-src 'self' ws: wss:;",                      # Allow WebSocket connections for hot module replacement
+          "img-src 'self' data:;",                             # Permit data: URIs for development assets
+          "font-src 'self';",                                  # Restrict fonts to same origin
+          "object-src 'none';",                                # Block <object>, <embed>, and <applet> elements
+          "base-uri 'self';",                                  # Restrict <base> tag targets to same origin
+          "form-action 'self';",                               # Restrict form submissions to same origin
+          "frame-ancestors 'none';",                           # Prevent site from being embedded in frames
+        ]
+    else
+      csp = [
+        "default-src 'self';",                                 # Restricts all content to same origin by default
+        "script-src 'self' 'nonce-#{nonce}';",                 # Only allow scripts from same origin with nonce
+        "style-src 'self' 'unsafe-inline';",                   # Only inline styles
+        "img-src 'self' data:;",                                    # Only allow images from same origin
+        "font-src 'self';",                                    # Only allow fonts from same origin
+        "object-src 'none';",                                  # Block all plugins (object/embed/applet)
+        "base-uri 'self';",                                    # Restrict base tag to same origin
+        "form-action 'self';",                                 # Restrict form submissions to same origin
+        "frame-ancestors 'none';",                             # Prevent site from being embedded in frames
+      ]
+    end
+
+      # Make the nonce available to the view
+      req.env['ots.nonce'] = nonce
+
+      OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
+
+      res.header['Content-Security-Policy'] = csp.join(' ')
+    end
+
+    def log_customer_activity
+      return if cust.anonymous?
+      reqstr = stringify_request_details(req)
+      custref = cust.obscure_email
+      OT.info "[carefully] #{sess.short_identifier} #{custref} at #{reqstr}"
     end
 
     # Collectes request details in a single string for logging purposes.

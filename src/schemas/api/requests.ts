@@ -1,5 +1,6 @@
 import { brandSettingschema } from '@/schemas/models/domain/brand';
 import { z } from 'zod';
+import { concealPayloadSchema, generatePayloadSchema } from './payloads/index';
 
 export const updateDomainBrandRequestSchema = z.object({
   brand: brandSettingschema.partial(),
@@ -15,6 +16,16 @@ export const createDomainRequestSchema = z.object({
 });
 
 export type CreateDomainRequest = z.infer<typeof createDomainRequestSchema>;
+
+export const concealRequestSchema = z.object({
+  secret: concealPayloadSchema,
+});
+export const generateRequestSchema = z.object({
+  secret: generatePayloadSchema,
+});
+
+export type ConcealRequest = z.infer<typeof concealRequestSchema>;
+export type GenerateRequest = z.infer<typeof generateRequestSchema>;
 
 export interface ExceptionReport {
   message: string;
