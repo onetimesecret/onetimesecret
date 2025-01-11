@@ -1,59 +1,59 @@
 <script setup lang="ts">
-import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
-import { useClipboard } from '@/composables/useClipboard';
-import { useBranding } from '@/composables/useBranding';
-import { Secret, SecretDetails } from '@/schemas/models';
-import { ref, computed } from 'vue';
+  import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
+  import { useClipboard } from '@/composables/useClipboard';
+  import { useBranding } from '@/composables/useBranding';
+  import { Secret, SecretDetails } from '@/schemas/models';
+  import { ref, computed } from 'vue';
 
-interface Props {
-  record: Secret | null;
-  details: SecretDetails | null;
-  domainId: string;
-  displayPoweredBy: boolean;
-  submissionStatus?: {
-    status: 'idle' | 'submitting' | 'success' | 'error';
-    message?: string;
-  };
-}
-
-const props = defineProps<Props>();
-
-const alertClasses = computed(() => ({
-  'mb-4 p-4 rounded-md': true,
-  'bg-branddim-50 text-branddim-700 dark:bg-branddim-900 dark:text-branddim-100':
-    props.submissionStatus?.status === 'error',
-  'bg-brand-50 text-brand-700 dark:bg-brand-900 dark:text-brand-100':
-    props.submissionStatus?.status === 'success',
-}));
-
-const { brandSettings } = useBranding();
-
-const hasImageError = ref(false);
-const { isCopied, copyToClipboard } = useClipboard();
-
-const copySecretContent = async () => {
-  if (props.record?.secret_value === undefined) {
-    return;
+  interface Props {
+    record: Secret | null;
+    details: SecretDetails | null;
+    domainId: string;
+    displayPoweredBy: boolean;
+    submissionStatus?: {
+      status: 'idle' | 'submitting' | 'success' | 'error';
+      message?: string;
+    };
   }
 
-  await copyToClipboard(props.record?.secret_value);
+  const props = defineProps<Props>();
 
-  // Announce copy success to screen readers
-  const announcement = document.createElement('div');
-  announcement.setAttribute('role', 'status');
-  announcement.setAttribute('aria-live', 'polite');
-  announcement.textContent = 'Secret content copied to clipboard';
-  document.body.appendChild(announcement);
-  setTimeout(() => announcement.remove(), 1000);
-};
+  const alertClasses = computed(() => ({
+    'mb-4 p-4 rounded-md': true,
+    'bg-branddim-50 text-branddim-700 dark:bg-branddim-900 dark:text-branddim-100':
+      props.submissionStatus?.status === 'error',
+    'bg-brand-50 text-brand-700 dark:bg-brand-900 dark:text-brand-100':
+      props.submissionStatus?.status === 'success',
+  }));
 
-const handleImageError = () => {
-  hasImageError.value = true;
-};
+  const { brandSettings } = useBranding();
 
-// Prepare the standardized path to the logo image.
-// Note that the file extension needs to be present but is otherwise not used.
-const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
+  const hasImageError = ref(false);
+  const { isCopied, copyToClipboard } = useClipboard();
+
+  const copySecretContent = async () => {
+    if (props.record?.secret_value === undefined) {
+      return;
+    }
+
+    await copyToClipboard(props.record?.secret_value);
+
+    // Announce copy success to screen readers
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.textContent = 'Secret content copied to clipboard';
+    document.body.appendChild(announcement);
+    setTimeout(() => announcement.remove(), 1000);
+  };
+
+  const handleImageError = () => {
+    hasImageError.value = true;
+  };
+
+  // Prepare the standardized path to the logo image.
+  // Note that the file extension needs to be present but is otherwise not used.
+  const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 </script>
 
 <template>
@@ -63,7 +63,9 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     :domain-branding="brandSettings">
     <!-- Alert display -->
     <div
-      v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"
+      v-if="
+        submissionStatus?.status === 'error' || submissionStatus?.status === 'success'
+      "
       :class="alertClasses"
       role="alert"
       aria-live="polite">
@@ -78,8 +80,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             <path
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clip-rule="evenodd"
-            />
+              clip-rule="evenodd" />
           </svg>
           <svg
             v-else
@@ -90,13 +91,15 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             <path
               fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clip-rule="evenodd"
-            />
+              clip-rule="evenodd" />
           </svg>
         </div>
         <div class="ml-3">
           <p class="text-sm">
-            {{ submissionStatus.message || (submissionStatus.status === 'error' ? 'An error occurred' : 'Success') }}
+            {{
+              submissionStatus.message ||
+              (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
+            }}
           </p>
         </div>
       </div>
@@ -156,13 +159,11 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
         </label>
         <textarea
           :id="'secret-content-' + record?.identifier"
-          class="block size-full min-h-32 resize-none border border-gray-300 bg-gray-100 font-mono
-              text-base focus:outline-none focus:ring-2
-              focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white sm:min-h-36"
+          class="block size-full min-h-32 resize-none border border-gray-300 bg-gray-100 font-mono text-base focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white sm:min-h-36"
           :class="{
             'rounded-lg': brandSettings?.corner_style === 'rounded',
             'rounded-full': brandSettings?.corner_style === 'pill',
-            'rounded-none': brandSettings?.corner_style === 'square'
+            'rounded-none': brandSettings?.corner_style === 'square',
           }"
           readonly
           :rows="details?.display_lines ?? 4"
@@ -176,17 +177,11 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
       <button
         @click="copySecretContent"
         :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-        class="inline-flex items-center justify-center rounded-md px-4 py-2.5
-          text-sm font-medium text-brand-700
-          shadow-sm transition-colors duration-150
-          ease-in-out hover:shadow
-          focus:outline-none focus:ring-2 focus:ring-brand-500
-          focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
-          dark:text-brand-100"
+        class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
         :style="{
           backgroundColor: brandSettings?.primary_color || 'var(--tw-color-brand-500)',
           color: brandSettings?.button_text_light ? '#ffffff' : '#000000',
-          fontFamily: brandSettings?.font_family
+          fontFamily: brandSettings?.font_family,
         }"
         aria-live="polite"
         :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
@@ -203,8 +198,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-          />
+            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
         <svg
           v-else
@@ -218,8 +212,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M5 13l4 4L19 7"
-          />
+            d="M5 13l4 4L19 7" />
         </svg>
         <span>{{ isCopied ? 'Copied!' : 'Copy to clipboard' }}</span>
       </button>
@@ -228,10 +221,9 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 </template>
 
 <style scoped>
-/* Ensure focus outline is visible in all color schemes */
-:focus {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
+  /* Ensure focus outline is visible in all color schemes */
+  :focus {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
 </style>
