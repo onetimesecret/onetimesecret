@@ -105,45 +105,45 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     <template #logo>
       <!-- Brand Icon -->
       <div class="relative mx-auto sm:mx-0">
-        <div
-          :class="{
-            'rounded-lg': brandSettings?.corner_style === 'rounded',
-            'rounded-full': brandSettings?.corner_style === 'pill',
-            'rounded-none': brandSettings?.corner_style === 'square'
-          }"
-          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
-          role="img"
-          :aria-label="hasImageError ? 'Default lock icon' : 'Brand logo'">
-          <!-- Default lock icon -->
-          <svg
-            v-if="!logoImage || hasImageError"
-            class="size-8 text-gray-400 dark:text-gray-500"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            aria-hidden="true">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
-
-          <!-- Logo -->
-          <img
-            v-if="logoImage && !hasImageError"
-            :src="logoImage"
-            alt="Brand logo"
-            class="size-16 object-contain"
+        <router-link to="/">
+          <div
             :class="{
               'rounded-lg': brandSettings?.corner_style === 'rounded',
               'rounded-full': brandSettings?.corner_style === 'pill',
-              'rounded-none': brandSettings?.corner_style === 'square'
+              'rounded-none': brandSettings?.corner_style === 'square',
             }"
-            @error="handleImageError"
-          />
-        </div>
+            class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
+            role="img"
+            :aria-label="hasImageError ? 'Default lock icon' : 'Brand logo'">
+            <!-- Default lock icon -->
+            <svg
+              v-if="!logoImage || hasImageError"
+              class="size-8 text-gray-400 dark:text-gray-500"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+
+            <!-- Logo -->
+            <img
+              v-if="logoImage && !hasImageError"
+              :src="logoImage"
+              alt="Brand logo"
+              class="size-16 object-contain"
+              :class="{
+                'rounded-lg': brandSettings?.corner_style === 'rounded',
+                'rounded-full': brandSettings?.corner_style === 'pill',
+                'rounded-none': brandSettings?.corner_style === 'square',
+              }"
+              @error="handleImageError" />
+          </div>
+        </router-link>
       </div>
     </template>
 
