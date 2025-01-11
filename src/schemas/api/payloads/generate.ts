@@ -10,6 +10,9 @@ import { z } from 'zod';
 
 import { baseSecretPayloadSchema } from './base';
 
-export const generatePayloadSchema = baseSecretPayloadSchema;
+export const generatePayloadSchema = baseSecretPayloadSchema.extend({
+  kind: z.literal('generate'),
+  secret: z.string().min(1),
+});
 
 export type GeneratePayload = z.infer<typeof generatePayloadSchema>;

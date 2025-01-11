@@ -43,7 +43,8 @@ const handleThemeChange = async (isDark: boolean) => {
         <div class="flex items-start justify-between gap-2 rounded p-2 sm:flex-row sm:items-center sm:gap-4">
           <div class="flex min-w-0 items-center gap-2">
             <OIcon
-              icon="carbon:light-filled"
+              collection="carbon"
+              name="light-filled"
               class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
               aria-hidden="true"
             />
