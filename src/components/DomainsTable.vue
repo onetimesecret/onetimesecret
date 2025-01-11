@@ -3,13 +3,13 @@
   import MinimalDropdownMenu from '@/components/MinimalDropdownMenu.vue';
   import { WindowService } from '@/services/window.service';
   import type { CustomDomain } from '@/schemas/models/domain';
+  import { useDomainStatus } from '@/composables/useDomainStatus';
   import { MenuItem } from '@headlessui/vue';
+  import { computed } from 'vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import { formatDistanceToNow } from 'date-fns';
 
-  const cust = WindowService.get('cust'); // Used for feature flags
-
-  defineProps<{
+  const props = defineProps<{
     domains: CustomDomain[];
     isLoading: boolean;
   }>();
@@ -18,6 +18,16 @@
     (e: 'delete', domainId: string): void;
     (e: 'toggle-homepage', domain: CustomDomain): void;
   }>();
+
+  const cust = WindowService.get('cust'); // Used for feature flags
+  // const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatus(props.domain);
+
+  const domainStatuses = computed(() =>
+    props.domains.map(domain => ({
+      domain,
+      status: useDomainStatus(domain)
+    }))
+  );
 
   const handleDelete = (domainId: string) => {
     emit('delete', domainId);
@@ -96,14 +106,14 @@
         <tbody
           class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
           <tr
-            v-for="domain in domains"
+            v-for="{ domain, status } in domainStatuses"
             :key="domain.identifier"
             class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
             <!-- Domain & Status -->
             <td class="px-6 py-4">
               <div class="flex flex-col">
                 <router-link
-                  v-if="domain.vhost?.status === 'ACTIVE'"
+                  v-if="status.isActive.value"
                   :to="{ name: 'DomainBrand', params: { domain: domain.display_domain } }"
                   class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
                   {{ domain.display_domain }}
