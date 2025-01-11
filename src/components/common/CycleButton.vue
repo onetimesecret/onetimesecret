@@ -15,13 +15,13 @@ const props = withDefaults(defineProps<Props>(), {
   displayMap: () => ({}),
   iconMap: () => ({
     // Default icons for common use cases
-    light: 'ph:sun-bold',
-    dark: 'ph:moon-bold',
-    system: 'ph:desktop-bold',
-    grid: 'ph:grid-four',
-    list: 'ph:list-bold',
-    compact: 'ph:corners-in-bold',
-    comfortable: 'ph:arrows-out-bold',
+    light: 'ph-sun-bold',
+    dark: 'ph-moon-bold',
+    system: 'ph-desktop-bold',
+    grid: 'ph-grid-four',
+    list: 'ph-list-bold',
+    compact: 'ph-corners-in-bold',
+    comfortable: 'ph-arrows-out-bold',
   }),
   defaultValue: '',
 });
@@ -37,7 +37,7 @@ const displayValue = computed(() => {
 
 const getCurrentIcon = computed(() => {
   const value = props.modelValue ?? props.defaultValue;
-  return props.iconMap[value] || 'ph:question-bold';
+  return props.iconMap[value] || 'ph-question-bold';
 });
 
 const cycleValue = () => {
@@ -49,36 +49,31 @@ const cycleValue = () => {
 </script>
 
 <template>
-  <button
-    type="button"
-    @click="cycleValue"
-    class="focus:ring-primary-500 group relative inline-flex h-11 items-center gap-2 rounded-lg
+  <button type="button"
+          @click="cycleValue"
+          class="focus:ring-primary-500 group relative inline-flex h-11 items-center gap-2 rounded-lg
          bg-white px-4 shadow-sm ring-1
          ring-gray-200 transition-all duration-200 ease-in-out
          hover:bg-gray-50 focus:outline-none focus:ring-2
          focus:ring-offset-2 dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700
          dark:focus:ring-offset-gray-900"
-    :aria-label="`Current ${label}: ${modelValue}. Click to cycle through options.`">
+          :aria-label="`Current ${label}: ${modelValue}. Click to cycle through options.`">
     <!-- Icon for current value -->
     <div class="relative size-5 text-gray-700 dark:text-gray-200">
-      <OIcon
-        collection="heroicons"
-        :name="getCurrentIcon"
-        class="size-5 transition-all duration-200"
-        :aria-hidden="true"
-      />
+      <OIcon collection=""
+             :name="getCurrentIcon"
+             class="size-5 transition-all duration-200"
+             :aria-hidden="true" />
     </div>
 
     <!-- Label tooltip on hover -->
-    <div
-      class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0
+    <div class="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0
                 transition-opacity duration-200 group-hover:opacity-100">
       <div class="flex flex-col items-center">
         <div class="min-w-[100px] rounded-md bg-gray-900 px-2 py-1 text-center text-xs text-white dark:bg-gray-700">
           <span class="ml-1">{{ displayValue }}</span>
         </div>
-        <div
-          class="-mb-1 mt-0.5 size-2 rotate-45 bg-gray-900 dark:bg-gray-700"></div>
+        <div class="-mb-1 mt-0.5 size-2 rotate-45 bg-gray-900 dark:bg-gray-700"></div>
       </div>
     </div>
   </button>

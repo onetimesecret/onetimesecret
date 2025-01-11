@@ -46,15 +46,15 @@ const cornerStyleDisplayMap: Record<CornerStyle, string> = {
 
 // 4. Icon maps
 const fontIconMap: Record<FontFamily, string> = {
-  [FontFamily.SANS]: 'ph:text-aa-bold',
-  [FontFamily.SERIF]: 'ph:text-t-bold',
-  [FontFamily.MONO]: 'ph:code',
+  [FontFamily.SANS]: 'ph-text-aa-bold',
+  [FontFamily.SERIF]: 'ph-text-t-bold',
+  [FontFamily.MONO]: 'ph-code',
 };
 
 const cornerStyleIconMap: Record<CornerStyle, string> = {
-  [CornerStyle.ROUNDED]: 'tabler:border-corner-rounded',
-  [CornerStyle.PILL]: 'tabler:border-corner-pill',
-  [CornerStyle.SQUARE]: 'tabler:border-corner-square',
+  [CornerStyle.ROUNDED]: 'tabler-border-corner-rounded',
+  [CornerStyle.PILL]: 'tabler-border-corner-pill',
+  [CornerStyle.SQUARE]: 'tabler-border-corner-square',
 };
 
 export const brandSettingschema = z.object({
