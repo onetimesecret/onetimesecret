@@ -32,8 +32,8 @@ const customerId = computed(() => cust?.custid);
           <div class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
             <OIcon
               v-if="currentJurisdiction?.icon"
-              collection="heroicons"
-:name="currentJurisdiction?.icon"
+              :collection="currentJurisdiction?.icon.collection"
+              :name="currentJurisdiction?.icon.name"
               class="size-8 text-brand-600 dark:text-brand-400 sm:size-10"
               aria-hidden="true"
             />

@@ -114,7 +114,7 @@ onBeforeRouteLeave((to, from, next) => {
               :aria-hidden="true">
             <li class="flex items-center gap-2">
               <OIcon collection="mdi"
-name="palette-outline"
+              name="palette-outline"
                     class="size-5"
                     aria-label="Customization icon" />
               Use the controls above to customize brand color, styles, and recipient instructions
@@ -122,7 +122,7 @@ name="palette-outline"
 
             <li class="flex items-center gap-2">
               <OIcon collection="mdi"
-name="image-outline"
+              name="image-outline"
                     class="size-5"
                     aria-label="Image icon" />
               Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)
@@ -130,7 +130,7 @@ name="image-outline"
 
             <li class="flex items-center gap-2">
               <OIcon collection="mdi"
-name="eye-outline"
+              name="eye-outline"
                     class="size-5"
                     aria-label="Eye icon" />
               Preview how recipients will see your secrets by testing the "View Secret" button

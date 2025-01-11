@@ -48,7 +48,7 @@ const onInput = (event: Event) => {
         <OIcon
           v-if="isValid === false"
           collection="heroicons"
-name="exclamation-circle"
+          name="exclamation-circle"
           class="size-6 text-red-500"
           aria-hidden="true"
         />

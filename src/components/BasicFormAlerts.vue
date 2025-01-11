@@ -16,7 +16,7 @@ defineProps({
         <div class="shrink-0">
           <OIcon
             collection="mdi"
-name="fire-circle"
+            name="fire-circle"
             class="size-5 text-red-400 dark:text-red-300"
             aria-hidden="true"
           />
@@ -39,7 +39,7 @@ name="fire-circle"
         <div class="shrink-0">
           <OIcon
             collection="mdi"
-name="check-circle"
+            name="check-circle"
             class="size-5 text-green-400 dark:text-green-300"
             aria-hidden="true"
           />

@@ -12,8 +12,8 @@ defineProps<{
   <div class="space-y-4 sm:space-y-6">
     <div class="flex flex-col items-center gap-2 sm:flex-row">
       <OIcon
-        :collection="currentJurisdiction.icon.collection"
-:name="jurisdiction.icon.name"
+        :collection="jurisdiction.icon.collection"
+        :name="jurisdiction.icon.name"
         class="size-5 shrink-0"
         aria-hidden="true"
       />

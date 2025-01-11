@@ -43,7 +43,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                 @click="togglePassword('current')"
                 class="absolute inset-y-0 right-0 flex items-center pr-3">
           <OIcon collection="heroicons-solid"
-:name="formState.showPassword.current ? 'eye' : 'eye-off'"
+                :name="formState.showPassword.current ? 'eye' : 'eye-off'"
                 class="size-5 text-gray-400 dark:text-gray-100"
                 aria-hidden="true" />
         </button>
@@ -69,7 +69,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                 @click="togglePassword('new')"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
           <OIcon collection="heroicons-solid"
-:name="formState.showPassword.new ? 'eye' : 'eye-off'"
+                :name="formState.showPassword.new ? 'eye' : 'eye-off'"
                 class="size-5 text-gray-400 dark:text-gray-100"
                 aria-hidden="true" />
         </button>
@@ -95,7 +95,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                 @click="togglePassword('confirm')"
                 class="absolute inset-y-0 right-0 flex items-center pr-3">
           <OIcon collection="heroicons-solid"
-:name="formState.showPassword.confirm ? 'eye' : 'eye-off'"
+                :name="formState.showPassword.confirm ? 'eye' : 'eye-off'"
                 class="size-5 text-gray-400 dark:text-gray-100"
                 aria-hidden="true" />
         </button>

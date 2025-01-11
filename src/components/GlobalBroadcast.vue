@@ -98,7 +98,7 @@ const sanitizedContent = computed(() => {
         <span class="sr-only">Dismiss</span>
         <OIcon
           collection="heroicons-solid"
-name="xmarkicon"
+          name="xmarkicon"
           class="size-5 text-gray-900 dark:text-gray-100"
           aria-hidden="true"
         />

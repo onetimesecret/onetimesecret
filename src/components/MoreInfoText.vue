@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
         :class="`flex items-center text-base font-medium ${props.textColor} hover:text-brandcomp-600 dark:hover:text-brandcomp-400 focus:outline-none`">
         <OIcon
           collection="heroicons"
-:name="isExpanded ? 'chevron-down' : 'chevron-right'"
+          :name="isExpanded ? 'chevron-down' : 'chevron-right'"
           class="mr-2 size-5"
         />
         {{ isExpanded ? 'Hide details' : 'Expand for more info' }}

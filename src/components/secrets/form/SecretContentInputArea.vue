@@ -276,7 +276,7 @@ onUnmounted(() => {
           </span>
           <OIcon
             collection="heroicons-solid"
-name="chevron-down"
+            name="chevron-down"
             class="ml-2 size-5 shrink-0 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />

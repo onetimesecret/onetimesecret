@@ -101,7 +101,7 @@ onMounted(() => {
             class="flex gap-x-3">
             <OIcon
               collection="heroicons-solid"
-name="check"
+              name="check"
               :class="[tier.featured ? 'text-brand-400' : 'text-brand-600 dark:text-brand-400', 'h-6 w-5 flex-none']"
               aria-hidden="true"
             />
@@ -195,7 +195,7 @@ name="check"
                   <div class="shape-icon float-left mb-2 mr-4">
                     <OIcon
                       collection="fa6-solid"
-name="handshake-simple"
+                      name="handshake-simple"
                       class="size-24 text-brandcomp-600 dark:text-brandcomp-400"
                     />
                   </div>

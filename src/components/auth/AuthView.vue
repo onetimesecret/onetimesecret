@@ -82,7 +82,7 @@ const iconToShow = computed((): IconConfig => {
                 dark:opacity-5">
       <OIcon
         :collection="backgroundIcon.collection"
-:name="backgroundIcon.name"
+        :name="backgroundIcon.name"
         class="blur-x absolute left-1/2 top-0 h-auto
                    w-full -translate-x-1/2 translate-y-0 scale-150
                    object-cover object-center
@@ -98,7 +98,7 @@ const iconToShow = computed((): IconConfig => {
         <RouterLink to="/">
           <OIcon
             :collection="iconToShow.collection"
-:name="iconToShow.name"
+            :name="iconToShow.name"
             class="mb-8 size-24 text-brand-600
                       dark:text-brand-400"
             aria-hidden="true"

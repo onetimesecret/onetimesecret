@@ -156,7 +156,7 @@ const fontFamilyClass = computed(() => {
             <span class="flex items-center gap-1">
               <OIcon
                 collection="mdi"
-name="trash"
+                name="trash"
                 aria-hidden="true"
               />
               Remove
@@ -187,7 +187,7 @@ Or a multi-line message</textarea>
         }">
         <OIcon
           collection="mdi"
-name="eye-off"
+          name="eye-off"
           class="mr-2 size-5"
         />
         <span class="text-sm">Content hidden</span>

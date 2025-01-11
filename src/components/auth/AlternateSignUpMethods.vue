@@ -56,7 +56,7 @@ const gridClass = computed(() => {
           disabled>
           <OIcon
             collection="heroicons"
-:name="provider.icon"
+            :name="provider.icon"
             class="size-5"
             aria-hidden="true"
           />

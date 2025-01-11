@@ -155,7 +155,7 @@ watch(recipientValue, (value) => {
                            duration-200 dark:text-gray-300">
               <OIcon
                 collection="heroicons"
-:name="showPassphrase ? 'mdi:eye' : 'mdi:eye-off'"
+                :name="showPassphrase ? 'mdi:eye' : 'mdi:eye-off'"
                 class="size-5"
               />
             </button>

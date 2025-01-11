@@ -119,7 +119,7 @@ const handleMouseLeave = () => {
           </span>
           <OIcon
             collection="heroicons"
-:name="isCollapsed ? 'heroicons-solid:chevron-down' : 'heroicons-solid:chevron-left'"
+            :name="isCollapsed ? 'heroicons-solid:chevron-down' : 'heroicons-solid:chevron-left'"
             class="size-4 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />

@@ -2,8 +2,7 @@
 import OIcon from '@/components/icons/OIcon.vue';
 import { computed } from 'vue';
 
-// Define props for the component
-const props = withDefaults(defineProps<{
+interface Props {
   heading: string;
   headingId: string;
   logoPreview?: string | null;
@@ -11,7 +10,9 @@ const props = withDefaults(defineProps<{
   loading?: boolean;
   error?: string | null;
   success?: string | null;
-}>(), {
+}
+
+const props = withDefaults(defineProps<Props>(), {
   logoPreview: null,
   defaultIcon: 'mdi:domain',
   loading: false,
@@ -35,7 +36,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
     <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-10">
       <OIcon
         collection="heroicons"
-:name="backgroundIcon"
+            :name="backgroundIcon"
         class="absolute left-1/2 top-0 h-auto w-full
                    -translate-x-1/2 translate-y-0 scale-150 object-cover
                    object-center blur-sm"
@@ -57,7 +58,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
           <OIcon
             v-else
             collection="heroicons"
-:name="defaultIcon"
+            :name="defaultIcon"
             class="size-full text-brand-600 dark:text-brand-400"
             aria-hidden="true"
           />

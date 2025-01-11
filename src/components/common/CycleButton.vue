@@ -63,7 +63,7 @@ const cycleValue = () => {
     <div class="relative size-5 text-gray-700 dark:text-gray-200">
       <OIcon
         collection="heroicons"
-:name="getCurrentIcon"
+        :name="getCurrentIcon"
         class="size-5 transition-all duration-200"
         :aria-hidden="true"
       />

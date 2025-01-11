@@ -43,7 +43,7 @@ const handleCopy = () => {
           class="absolute right-2 top-1/2 -translate-y-1/2 text-white transition-colors duration-200 hover:text-gray-200">
           <OIcon
             collection="heroicons-outline"
-:name="copied ? 'check' : 'clipboard-copy'"
+            :name="copied ? 'check' : 'clipboard-copy'"
             class="size-6"
           />
         </button>

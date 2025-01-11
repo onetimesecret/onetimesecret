@@ -161,7 +161,7 @@
         <p class="flex items-center text-xs italic text-gray-400 dark:text-gray-500 sm:text-sm">
           <OIcon
             collection="mdi"
-name="information"
+            name="information"
             class="mr-1 size-4"
           />
           {{ $t('web.COMMON.careful_only_see_once') }}

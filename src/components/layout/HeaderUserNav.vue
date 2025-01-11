@@ -52,7 +52,7 @@
       class="ml-2 text-gray-400 transition hover:text-gray-300">
       <OIcon
         collection="mdi"
-name="star"
+        name="star"
         class="size-4 text-brand-400" />
     </router-link>
     <span

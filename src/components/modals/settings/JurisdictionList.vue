@@ -21,8 +21,8 @@ const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
       class="flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 sm:flex-nowrap sm:p-4">
       <div class="flex w-full items-center gap-3 sm:w-auto">
         <OIcon
-          :collection="currentJurisdiction.icon.collection"
-:name="jurisdiction.icon.name"
+          :collection="jurisdiction.icon.collection"
+          :name="jurisdiction.icon.name"
           class="size-5 shrink-0 text-gray-400 dark:text-gray-500"
           aria-hidden="true"
         />

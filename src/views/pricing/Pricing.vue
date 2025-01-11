@@ -125,7 +125,7 @@ const frequency = ref(frequencies[0])
                     class="flex gap-x-3">
                     <OIcon
                       collection="heroicons-solid"
-name="check"
+                      name="check"
                       class="h-6 w-5 flex-none text-indigo-600 dark:text-indigo-400"
                       aria-hidden="true"
                     />

@@ -111,14 +111,14 @@ watch(isOpen, (newValue) => {
       aria-haspopup="true">
       <OIcon
         collection="mdi"
-name="text-box-edit"
+        name="text-box-edit"
         class="mr-2 size-5"
         aria-hidden="true"
       />
       Instructions
       <OIcon
         collection="heroicons"
-:name="isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+        :name="isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'"
         class="ml-2 size-5"
         aria-hidden="true"
       />
@@ -148,7 +148,7 @@ name="text-box-edit"
             Pre-reveal Instructions
             <OIcon
               collection="mdi"
-name="help-circle"
+              name="help-circle"
               class="ml-1
                          inline-block size-4 text-gray-400"
               @mouseenter="tooltipShow = true"

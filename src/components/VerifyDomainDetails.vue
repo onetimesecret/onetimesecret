@@ -80,7 +80,7 @@ const verify = async () => {
         <span>{{ isLoading ? 'Verifying...' : 'Verify Domain' }}</span>
         <OIcon
           collection="mdi"
-:name="isLoading ? 'loading' : 'check-circle'"
+          :name="isLoading ? 'loading' : 'check-circle'"
           class="size-5"
           :class="{ 'animate-spin': isLoading }"
           aria-hidden="true"
@@ -187,7 +187,7 @@ const verify = async () => {
     <div class="mt-5 flex items-start rounded-md bg-white p-4 dark:bg-gray-800">
       <OIcon
         collection="mdi"
-name="information-outline"
+        name="information-outline"
         class="mr-2 mt-0.5 size-5 shrink-0 text-brandcomp-700"
         aria-hidden="true"
       />

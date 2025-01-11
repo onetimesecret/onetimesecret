@@ -99,7 +99,7 @@ const collapsedBgClass = computed(() => props.collapsedBg);
       </p>
       <OIcon
         collection="heroicons"
-:name="isExpanded ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+        :name="isExpanded ? 'mdi:chevron-up' : 'mdi:chevron-down'"
         class="size-5 text-gray-500 dark:text-gray-400"
       />
     </div>

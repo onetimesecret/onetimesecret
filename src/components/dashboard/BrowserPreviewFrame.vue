@@ -236,7 +236,7 @@ defineEmits<{
         class="flex items-center gap-2 rounded-lg bg-gray-50 p-2 text-xs italic dark:bg-gray-900 sm:gap-3 sm:p-3 sm:text-sm">
         <OIcon
           collection="mdi"
-name="forum"
+          name="forum"
           class="size-5 shrink-0"
         />
         <p>Preview of the secret link page for recipients</p>

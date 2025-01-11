@@ -130,7 +130,7 @@ const statusConfig = computed(() => {
         <div class="flex items-center space-x-3">
           <OIcon
             collection="mdi"
-:name="statusConfig?.icon || 'information'"
+            :name="statusConfig?.icon || 'information'"
             class="size-5 transition-all duration-200"
             :class="statusConfig?.iconClasses"
             aria-hidden="true"
@@ -151,7 +151,7 @@ const statusConfig = computed(() => {
             <span class="sr-only">Dismiss</span>
             <OIcon
               collection="mdi"
-name="close"
+              name="close"
               class="size-5"
             />
           </button>

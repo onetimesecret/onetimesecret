@@ -39,7 +39,7 @@ const subscriptionDetails = computed(() => {
       <h2 class="flex items-center text-2xl font-bold text-gray-900 dark:text-white">
         <OIcon
           collection="mdi"
-name="credit-card-outline"
+          name="credit-card-outline"
           class="mr-2 size-6 text-brandcomp-500"
         />
         Subscription
@@ -76,7 +76,7 @@ name="credit-card-outline"
         <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
           <OIcon
             collection="mdi"
-name="credit-card"
+            name="credit-card"
             class="mr-2 size-8 text-gray-400"
           />
           {{ defaultPaymentMethod.card.brand }}

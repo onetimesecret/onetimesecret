@@ -58,7 +58,7 @@
   <div class="relative mx-1 inline-block">
     <OIcon
       collection="heroicons"
-name="information-circle"
+      name="information-circle"
       class="inline cursor-pointer align-baseline text-base"
       @click="toggleModal"
     />
