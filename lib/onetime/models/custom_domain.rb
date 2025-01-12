@@ -226,6 +226,9 @@ class Onetime::CustomDomain < Familia::Horreum
       multi.zrem(OT::CustomDomain.values.rediskey, identifier)
       multi.hdel(OT::CustomDomain.display_domains.rediskey, display_domain)
       multi.hdel(OT::CustomDomain.owners.rediskey, display_domain)
+      multi.del(self.brand.rediskey)
+      multi.del(self.logo.rediskey)
+      multi.del(self.icon.rediskey)
       unless customer.nil?
         multi.zrem(customer.custom_domains.rediskey, self.display_domain)
       end
