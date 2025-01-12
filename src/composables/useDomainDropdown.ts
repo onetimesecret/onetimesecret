@@ -8,7 +8,7 @@ const selectedDomain = ref('');
 
 export function useDomainDropdown() {
   const { domains_enabled: domainsEnabled, site_host: defaultDomain } =
-    WindowService.getMultiple(['form_fields', 'domains_enabled', 'site_host']);
+    WindowService.getMultiple(['domains_enabled', 'site_host']);
 
   const availableDomains = ref(
     (() => {
@@ -33,10 +33,30 @@ export function useDomainDropdown() {
     localStorage.setItem('selectedDomain', domain);
   };
 
+  const addDomain = (domain: string) => {
+    if (!availableDomains.value.includes(domain)) {
+      availableDomains.value = [...availableDomains.value, domain];
+
+      if (!selectedDomain.value) {
+        updateSelectedDomain(domain);
+      }
+    }
+  };
+
+  const removeDomain = (domain: string) => {
+    availableDomains.value = availableDomains.value.filter((domain) => domain !== domain);
+
+    if (selectedDomain.value === domain && availableDomains.value.length) {
+      updateSelectedDomain(availableDomains.value[0]);
+    }
+  };
+
   return {
     availableDomains: availableDomains.value,
     selectedDomain,
     domainsEnabled,
     updateSelectedDomain,
+    addDomain,
+    removeDomain,
   };
 }
