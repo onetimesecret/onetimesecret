@@ -62,6 +62,13 @@ export const useBrandStore = defineStore('brand', () => {
     return settings.value[domainId];
   }
 
+  async function fetchLogo(domainId: string) {
+    const response = await $api.get(`/api/v2/domains/${domainId}/logo`);
+    const validated = responseSchemas.imageProps.parse(response.data);
+    logos.value[domainId] = validated.record;
+    return validated.record;
+  }
+
   async function uploadLogo(domainId: string, file: File) {
     const formData = new FormData();
     formData.append('image', file);
@@ -96,6 +103,7 @@ export const useBrandStore = defineStore('brand', () => {
     uploadLogo,
     removeLogo,
     getSettings,
+    fetchLogo,
     getLogo,
   };
 });

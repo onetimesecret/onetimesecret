@@ -5,6 +5,7 @@ import { shouldUseLightText } from '@/utils';
 import { computed, onMounted, ref, watch } from 'vue';
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 import { ApplicationError } from '@/schemas';
+import { AxiosError } from 'axios';
 
 /**
  * Composable for displaying domain-specific branding settings
@@ -45,9 +46,18 @@ export function useBranding(domainId: string) {
     wrap(async () => {
       if (!domainId) return;
       const settings = await store.fetchSettings(domainId);
+      try {
+        const logo = await store.fetchLogo(domainId); // Assuming this is async
+        logoImage.value = logo;
+      } catch (err) {
+        console.log(err);
+        if ((err as AxiosError).status !== 404) {
+          throw err;
+        }
+      }
+
       brandSettings.value = settings;
       originalSettings.value = { ...settings };
-      logoImage.value = store.getLogo(domainId);
       isInitialized.value = true;
     });
 
@@ -83,12 +93,16 @@ export function useBranding(domainId: string) {
 
   const handleLogoUpload = async (file: File) =>
     wrap(async () => {
-      await store.uploadLogo(domainId, file);
+      const uploadedLogo = await store.uploadLogo(domainId, file);
+      // Update local state with new logo
+      logoImage.value = uploadedLogo;
     });
 
   const removeLogo = async () =>
     wrap(async () => {
       await store.removeLogo(domainId);
+      // Clear local logo state
+      logoImage.value = null;
     });
 
   return {
