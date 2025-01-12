@@ -18,14 +18,6 @@ const { progress, timeRemaining, expirationDate } = useSecretExpiration(
   props.record.expiration_in_seconds,
 );
 
-// const isAvailable = computed(() => {
-//   return !(
-//     props.details?.is_destroyed ||
-//     props.details?.is_burned ||
-//     props.details?.is_received
-//   );
-// });
-
 // Helper function for consistent time formatting
 const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: true });
 

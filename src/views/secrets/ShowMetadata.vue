@@ -8,8 +8,9 @@
   import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
   import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
   import OIcon from '@/components/icons/OIcon.vue';
+  import UnknownMetadata from './UnknownMetadata.vue';
   import { useMetadata } from '@/composables/useMetadata';
-  import { onMounted, onUnmounted, watch } from 'vue';
+  import { onMounted, onUnmounted, watch, computed } from 'vue';
 
   // Define props
   interface Props {
@@ -18,6 +19,14 @@
   const props = defineProps<Props>();
 
   const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataKey);
+
+  const isAvailable = computed(() => {
+    return !(
+      details.value?.is_destroyed ||
+      details.value?.is_burned ||
+      details.value?.is_received
+    );
+  });
 
   // Watch for route parameter changes to refetch data
   watch(
@@ -46,6 +55,10 @@
 
     <MetadataSkeleton v-if="isLoading" />
 
+    <div v-else-if="!record || !details">
+      <UnknownMetadata />
+    </div>
+
     <div
       v-else-if="record && details"
       class="space-y-8">
@@ -71,7 +84,7 @@
         </div>
 
         <SecretLink
-          v-if="details.show_secret_link"
+          v-if="details.show_secret_link && isAvailable"
           :record="record"
           :details="details"
           class="focus-within:ring-2 focus-within:ring-brand-500 rounded-lg" />

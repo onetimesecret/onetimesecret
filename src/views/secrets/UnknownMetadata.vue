@@ -1,0 +1,58 @@
+// src/views/secrets/UnknownMetadata.vue
+
+<script setup lang="ts">
+  import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
+</script>
+
+<template>
+<BaseUnknownSecret
+  :branded="false"
+  class="my-14">
+  <template #header="{}">
+    <div class="mb-8 flex justify-center items-center flex-col">
+      <svg
+        class="mx-auto mb-4 size-20 text-brand-500"
+        width="60"
+        height="60"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true">
+        <path
+          d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <h1
+        class="mb-6 text-3xl font-bold text-gray-800 dark:text-white text-center"
+        aria-label="Information no longer available">
+        That information is no longer available.
+      </h1>
+    </div>
+  </template>
+    <template #action="{}">
+      <div class="flex justify-center items-center">
+        <!-- Canonical action button -->
+        <router-link
+          to="/"
+          :class="[
+            'inline-block rounded-lg border-2 transition duration-300 ease-in-out',
+            'bg-white dark:bg-gray-800',
+            'hover:bg-brand-100 dark:hover:bg-gray-700',
+            'focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900',
+            'focus:ring-brand-500 dark:focus:ring-brand-400',
+            'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
+          ]"
+          :style="{
+            color: 'var(--color-brand-500)',
+            borderColor: 'var(--color-brand-500)',
+          }"
+          aria-label="Return to home page">
+          Return to Home
+        </router-link>
+      </div>
+    </template>
+  </BaseUnknownSecret>
+</template>
