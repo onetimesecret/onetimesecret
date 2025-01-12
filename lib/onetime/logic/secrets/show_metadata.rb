@@ -8,7 +8,7 @@ module Onetime::Logic
       attr_reader :key, :metadata, :secret
       # Template variables
       attr_reader :metadata_key, :metadata_shortkey, :secret_key,
-            :secret_shortkey, :recipients, :no_cache,
+            :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
             :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
@@ -51,6 +51,7 @@ module Onetime::Logic
 
         @natural_expiration = natural_duration(ttl)
         @expiration = (ttl + metadata.created.to_i)
+        @expiration_in_seconds = ttl
 
         secret = metadata.load_secret
 
@@ -173,6 +174,7 @@ module Onetime::Logic
         attributes.merge!({
           natural_expiration: natural_expiration,
           expiration: expiration,
+          expiration_in_seconds: expiration_in_seconds,
           share_path: share_path,
           burn_path: burn_path,
           metadata_path: metadata_path,

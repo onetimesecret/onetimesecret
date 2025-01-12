@@ -15,7 +15,7 @@ const props = defineProps<Props>();
 
 const { progress, timeRemaining, expirationDate } = useSecretExpiration(
   props.record.created,
-  props.record.expiration.getTime() / 1000
+  props.record.expiration_in_seconds,
 );
 
 // const isAvailable = computed(() => {

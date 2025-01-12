@@ -54,6 +54,7 @@ module Onetime::Logic
         attributes.merge!({
           natural_expiration: natural_duration(metadata.ttl.to_i),
           expiration: (metadata.ttl.to_i + metadata.created.to_i),
+          expiration_in_seconds: (metadata.ttl.to_i),
           share_path: build_path(:secret, metadata.secret_key),
           burn_path: build_path(:private, metadata.key, 'burn'),
           metadata_path: build_path(:private, metadata.key),
