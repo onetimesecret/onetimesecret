@@ -120,6 +120,9 @@ export default {
           '950': '#021e3b',
         },
       },
+      animation: {
+        'spin-slow': 'spin 2s linear infinite',
+      },
     },
     // Don't mess with the scaling. rem == root em (ie. <html>). Everything is relative to that.
     //fontSize: {

@@ -100,7 +100,10 @@
             class="text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ $t('web.LABELS.timeline') }}
           </h2>
-          <StatusBadge :record="record" />
+          <StatusBadge
+            :record="record"
+            :expires-in="details?.secret_realttl"
+            />
         </div>
 
         <TimelineDisplay

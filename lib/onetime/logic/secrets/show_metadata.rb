@@ -44,6 +44,7 @@ module Onetime::Logic
         @recipients = metadata.recipients.to_s
 
         @no_cache = true
+
         # Metadata now lives twice as long as the original secret.
         # Prior to the change they had the same value so we can
         # default to using the metadata ttl.

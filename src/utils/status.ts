@@ -1,6 +1,6 @@
 // src/utils/status.ts
 
-import { type Metadata } from '@/schemas/models';
+import { type Metadata, MetadataState, isValidMetadataState } from '@/schemas/models';
 import type { Composer } from 'vue-i18n';
 
 export type DisplayStatus =
@@ -16,25 +16,31 @@ export type DisplayStatus =
  * Maps record metadata to UI display status
  */
 export function getDisplayStatus(record: Metadata, expiresIn?: number): DisplayStatus {
-  // Handle expiring soon case
-  if (expiresIn && expiresIn < 3600) {
+  if (!record?.state || !isValidMetadataState(record.state)) {
+    return 'processing';
+  }
+
+  // Handle orphaned state first
+  if (record.state === MetadataState.ORPHANED) return 'destroyed';
+
+  // Check expiration
+  if (expiresIn !== undefined && expiresIn > 0 && expiresIn < 3600) {
     return 'expiring-soon';
   }
 
-  // Map record states to display statuses
+  // Map states to display status
   switch (record.state) {
-    case 'new':
-    case 'shared':
+    case MetadataState.NEW:
+    case MetadataState.SHARED:
       return 'active';
-    case 'received':
+    case MetadataState.RECEIVED:
       return 'received';
-    case 'burned':
+    case MetadataState.BURNED:
       return 'burned';
-    case 'orphaned':
-    case 'viewed':
+    case MetadataState.VIEWED:
       return 'destroyed';
     default:
-      return 'secured';
+      return 'processing';
   }
 }
 

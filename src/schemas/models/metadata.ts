@@ -81,7 +81,7 @@ export const metadataDetailsSchema = z.object({
   type: z.literal('record'),
   display_lines: transforms.fromString.number,
   no_cache: transforms.fromString.boolean,
-  secret_realttl: z.number().nullable().optional(),
+  secret_realttl: z.number().nullable(),
   maxviews: transforms.fromString.number,
   has_maxviews: transforms.fromString.boolean,
   view_count: transforms.fromString.number.nullable(),
@@ -102,3 +102,7 @@ export const metadataDetailsSchema = z.object({
 // Export types
 export type Metadata = z.infer<typeof metadataSchema>;
 export type MetadataDetails = z.infer<typeof metadataDetailsSchema>;
+
+export function isValidMetadataState(state: string): state is MetadataState {
+  return Object.values(MetadataState).includes(state as MetadataState);
+}
