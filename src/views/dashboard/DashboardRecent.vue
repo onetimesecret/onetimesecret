@@ -6,7 +6,7 @@ import SecretMetadataTable from '@/components/secrets/SecretMetadataTable.vue';
 import { MetadataRecords } from '@/schemas/api/endpoints';
 import { useMetadataList } from '@/composables/useMetadataList';
 import { onMounted, computed } from 'vue';
-import TableSkeleton from '@/components/TableSkeleton.vue';
+import TableSkeleton from '@/components/closet/TableSkeleton.vue';
 
 // Define props
 interface Props {

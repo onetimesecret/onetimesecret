@@ -2,6 +2,7 @@
   import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
   import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
   // import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
+  import MetadataSkeleton from '@/components/closet/MetadataSkeleton.vue';
   import StatusBadge from '@/components/secrets/metadata/StatusBadge.vue';
   import TimelineDisplay from '@/components/secrets/metadata/TimelineDisplay.vue';
   import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
@@ -43,12 +44,7 @@
   <div class="">
     <DashboardTabNav />
 
-    <!-- Loading State -->
-    <div
-      v-if="isLoading"
-      class="py-8 text-center text-gray-600">
-      <span class="">Loading...</span>
-    </div>
+    <MetadataSkeleton v-if="isLoading" />
 
     <div
       v-else-if="record && details"
