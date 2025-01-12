@@ -1,97 +1,97 @@
 <script setup lang="ts">
-import { WindowService } from '@/services/window.service';
-import { FocusTrap } from 'focus-trap-vue';
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { WindowService } from '@/services/window.service';
+  import { FocusTrap } from 'focus-trap-vue';
+  import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-import GeneralTab from './settings/GeneralTab.vue';
-import JurisdictionTab from './settings/JurisdictionTab.vue';
+  import GeneralTab from './settings/GeneralTab.vue';
+  import JurisdictionTab from './settings/JurisdictionTab.vue';
 
-const regionsEnabled = WindowService.get('regions_enabled');
+  const regionsEnabled = WindowService.get('regions_enabled');
 
-interface Tab {
-  id: string;
-  label: string;
-}
-
-const props = defineProps<{
-  isOpen: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'close'): void;
-}>();
-
-const closeButton = ref<HTMLButtonElement | null>(null);
-let previouslyFocusedElement: HTMLElement | null = null;
-
-
-const tabs = ref<Tab[]>([
-  { id: 'general', label: 'General' },
-]);
-
-if (regionsEnabled) {
-  tabs.value.push({ id: 'data-region', label: 'Data Region' });
-}
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    closeModal();
+  interface Tab {
+    id: string;
+    label: string;
   }
-};
-const activeTab = ref<Tab['id']>(tabs.value[0].id);
 
-const closeModal = () => {
-  emit('close');
-  // Return focus to the previous element when modal closes
-  nextTick(() => {
-    previouslyFocusedElement?.focus();
+  const props = defineProps<{
+    isOpen: boolean;
+  }>();
+
+  const emit = defineEmits<{
+    (e: 'close'): void;
+  }>();
+
+  let previouslyFocusedElement: HTMLElement | null = null;
+
+  const tabs = ref<Tab[]>([{ id: 'general', label: 'General' }]);
+
+  if (regionsEnabled) {
+    tabs.value.push({ id: 'data-region', label: 'Data Region' });
+  }
+  const handleKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  };
+  const activeTab = ref<Tab['id']>(tabs.value[0].id);
+
+  const closeModal = () => {
+    emit('close');
+    // Return focus to the previous element when modal closes
+    nextTick(() => {
+      previouslyFocusedElement?.focus();
+    });
+  };
+
+  // Reset tab when modal closes and re-opens
+  watch(
+    () => props.isOpen,
+    (newValue) => {
+      if (newValue) {
+        activeTab.value = tabs.value[0].id;
+        // Store the currently focused element when modal opens
+        previouslyFocusedElement = document.activeElement as HTMLElement;
+      }
+    }
+  );
+
+  // Clean up when component is destroyed
+  onBeforeUnmount(() => {
+    previouslyFocusedElement = null;
   });
-};
 
-// Reset tab when modal closes and re-opens
-watch(() => props.isOpen, (newValue) => {
-  if (newValue) {
-    activeTab.value = tabs.value[0].id;
-    // Store the currently focused element when modal opens
-    previouslyFocusedElement = document.activeElement as HTMLElement;
-  }
-});
 
-// Clean up when component is destroyed
-onBeforeUnmount(() => {
-  previouslyFocusedElement = null;
-});
 
-onMounted(() => {
-  if (!closeButton.value) {
-    console.warn('Initial focus element not found for settings modal');
-  }
-});
+  onMounted(() => {
 
-const handleTabKeydown = (e: KeyboardEvent) => {
-  const tabButtons = tabs.value.map(tab => tab.id);
-  const currentIndex = tabButtons.indexOf(activeTab.value);
+  });
 
-  switch (e.key) {
-    case 'ArrowRight':
-    case 'ArrowDown':
-      e.preventDefault();
-      activeTab.value = tabButtons[(currentIndex + 1) % tabButtons.length];
-      break;
-    case 'ArrowLeft':
-    case 'ArrowUp':
-      e.preventDefault();
-      activeTab.value = tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
-      break;
-    case 'Home':
-      e.preventDefault();
-      activeTab.value = tabButtons[0];
-      break;
-    case 'End':
-      e.preventDefault();
-      activeTab.value = tabButtons[tabButtons.length - 1];
-      break;
-  }
-};
+  const handleTabKeydown = (e: KeyboardEvent) => {
+    const tabButtons = tabs.value.map((tab) => tab.id);
+    const currentIndex = tabButtons.indexOf(activeTab.value);
+
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        e.preventDefault();
+        activeTab.value = tabButtons[(currentIndex + 1) % tabButtons.length];
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        e.preventDefault();
+        activeTab.value =
+          tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
+        break;
+      case 'Home':
+        e.preventDefault();
+        activeTab.value = tabButtons[0];
+        break;
+      case 'End':
+        e.preventDefault();
+        activeTab.value = tabButtons[tabButtons.length - 1];
+        break;
+    }
+  };
 </script>
 
 <template>
@@ -119,14 +119,14 @@ const handleTabKeydown = (e: KeyboardEvent) => {
     </div>
 
     <FocusTrap
-      :active="isOpen"
-      :initial-focus="() => $refs.closeButton">
+      :active="isOpen">
       <div
         class="relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out dark:bg-gray-800 sm:max-w-md md:max-w-lg"
         :class="{ 'scale-95 opacity-0': !isOpen, 'scale-100 opacity-100': isOpen }">
         <div class="flex h-[90vh] flex-col sm:h-[80vh]">
           <!-- Modal Header -->
-          <div class="flex shrink-0 items-center justify-between bg-gray-50 p-4 dark:bg-gray-700">
+          <div
+            class="flex shrink-0 items-center justify-between bg-gray-50 p-4 dark:bg-gray-700">
             <h2
               id="settings-modal"
               class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -138,7 +138,6 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               @keydown="handleTabKeydown"
               aria-label="Settings sections">
               <button
-                ref="closeButton"
                 @click="closeModal"
                 class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
                 aria-label="Close settings">
@@ -152,8 +151,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                    d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -176,7 +174,7 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               class="rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 dark:text-gray-300"
               :class="{
                 'bg-brandcomp-100 dark:bg-brandcomp-700': activeTab === tab.id,
-                'hover:bg-gray-200 dark:hover:bg-gray-600': activeTab !== tab.id
+                'hover:bg-gray-200 dark:hover:bg-gray-600': activeTab !== tab.id,
               }">
               {{ tab.label }}
             </button>
@@ -236,18 +234,18 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 </template>
 
 <style scoped>
-/* Add focus styles that work in all color schemes */
-.focus-visible:focus {
-  @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-800;
-}
+  /* Add focus styles that work in all color schemes */
+  .focus-visible:focus {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-gray-800;
+  }
 
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 </style>
