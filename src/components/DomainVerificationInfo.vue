@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { CustomDomain } from '@/schemas/models';
 import OIcon from '@/components/icons/OIcon.vue';
-import { computed } from 'vue';
+import { useDomainStatus } from '@/composables/useDomainStatus';
 //import StatusLabel from './StatusLabel.vue';
 //import StatusLabelRow from './StatusLabelRow.vue';
 
@@ -12,29 +12,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const isActive = computed(() => {
-  return props.domain.vhost?.status === 'ACTIVE' || props.domain.vhost?.status === 'ACTIVE_SSL'|| props.domain.vhost?.status === 'ACTIVE_SSL_PROXIED'
-});
-
-const isWarning = computed(() => {
-  return props.domain.vhost?.status === 'DNS_INCORRECT';
-});
-
-const isError = computed(() => {
-  return !isActive.value && !isWarning.value;
-});
-
-const statusIcon = computed(() => {
-  if (isActive.value) return 'check-circle';
-  if (isWarning.value) return 'alert-circle';
-  return 'close-circle';
-});
-
-const statusColor = computed(() => {
-  if (isActive.value) return 'text-green-600';
-  if (isWarning.value) return 'text-yellow-600';
-  return 'text-red-600';
-});
+const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatus(props.domain);
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -70,7 +48,7 @@ const formatDate = (dateString: string): string => {
           {
             'text-emerald-600 dark:text-emerald-400': isActive,
             'text-amber-500 dark:text-amber-400': isWarning,
-            'text-rose-600 dark:text-rose-500': isError
+            'text-rose-600 dark:text-rose-500': isError,
           }
         ]" />
     </RouterLink>

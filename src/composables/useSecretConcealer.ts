@@ -21,7 +21,7 @@ export function useSecretConcealer() {
   const router = useRouter();
   const notifications = useNotificationsStore();
 
-  const formData = ref<ConcealPayload | GeneratePayload>({
+  const formData = ref<ConcealPayload>({
     kind: 'conceal',
     share_domain: '',
     secret: '',
@@ -62,10 +62,12 @@ export function useSecretConcealer() {
 
   const generate = () =>
     wrap(async () => {
-      const payload = {
-        ...formData.value,
+      const payload: GeneratePayload = {
         kind: 'generate',
         share_domain: selectedDomain.value,
+        ttl: formData.value.ttl,
+        passphrase: formData.value.passphrase,
+        recipient: formData.value.recipient,
       };
       const validatedPayload = generatePayloadSchema.strip().parse(payload);
       const response = await secretStore.generate(validatedPayload);

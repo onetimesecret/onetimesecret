@@ -31,6 +31,7 @@ interface IdentityState {
  * Ensures color values conform to brand schema requirements
  */
 const primaryColorValidator = brandSettingschema.shape.primary_color;
+const allowPublicHomepageValidator = brandSettingschema.shape.allow_public_homepage;
 
 /**
  * Creates initial identity state from window service values
@@ -51,7 +52,7 @@ const getInitialState = (): IdentityState => {
       domainStrategy === 'custom' && brand?.primary_color
         ? primaryColorValidator.parse(brand.primary_color)
         : defaultPrimaryColor,
-    allowPublicHomepage: brand?.allow_public_homepage === 'true', // TODO: Needs schema validation for boolean
+    allowPublicHomepage: allowPublicHomepageValidator.parse(brand?.allow_public_homepage),
   };
 };
 
@@ -77,8 +78,6 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   /** Display name for current domain context */
   const displayName = computed(() => state.brand?.description || state.displayDomain);
-
-  // const primaryColor = computed(() => state.primaryColor);
 
   const logoUri = computed(() => {
     const template = '/imagine/:custom_domain_id/:image_type.:image_ext';

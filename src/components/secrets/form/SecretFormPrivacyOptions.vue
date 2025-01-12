@@ -154,8 +154,8 @@ watch(recipientValue, (value) => {
               class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 transition-colors
                            duration-200 dark:text-gray-300">
               <OIcon
-                collection="heroicons"
-                :name="showPassphrase ? 'mdi:eye' : 'mdi:eye-off'"
+                collection="mdi"
+                :name="showPassphrase ? 'eye' : 'eye-off'"
                 class="size-5"
               />
             </button>

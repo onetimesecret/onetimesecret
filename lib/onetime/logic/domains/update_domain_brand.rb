@@ -20,7 +20,7 @@ module Onetime::Logic
           :allow_public_homepage,
           :allow_public_api,
         ]
-        OT.ld "[UpdateDomainBrand] Settings #{params[:brand].keys} for #{@domain_id}"
+        OT.ld "[UpdateDomainBrand] Settings #{params[:brand]&.keys} for #{@domain_id}"
         # Filter out invalid keys and convert keys to symbols
         @brand_settings = params[:brand]&.transform_keys(&:to_sym)&.slice(*valid_keys) || {}
       end
@@ -39,7 +39,6 @@ module Onetime::Logic
       def process
         @greenlighted = true
 
-
         return error("Custom domain not found") unless @custom_domain
 
         update_brand_settings
@@ -48,16 +47,14 @@ module Onetime::Logic
       def success_data
         {
           custid: @cust.custid,
-          record: @custom_domain.safe_dump,
-          details: {
-            cluster: OT::Cluster::Features.cluster_safe_dump
-          }
+          record: @custom_domain.safe_dump.fetch(:brand, {}),
+          details: {}
         }
       end
 
       # Update the brand settings for the custom domain
       # These keys are expected to match those listed in
-      # src/types/onetime.d.ts for BrandSettings.
+      # the brand setting schema.
       def update_brand_settings
         current_brand = custom_domain.brand || {}
 

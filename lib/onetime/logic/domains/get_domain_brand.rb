@@ -29,7 +29,7 @@ module Onetime::Logic
       def success_data
         {
           custid: @cust.custid,
-          record: @custom_domain.safe_dump
+          record: @custom_domain.safe_dump.fetch(:brand, {}),
         }
       end
 

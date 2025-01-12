@@ -27,7 +27,7 @@ module Onetime::Logic
         @parsed_domain = OT::CustomDomain.parse(@domain_input, @cust.custid)
         @display_domain = @parsed_domain.display_domain
 
-        pp [@display_domain, @parsed_domain.identifier, @parsed_domain.exists?]
+        OT.ld "[AddDomain] Display: #{@display_domain}, Identifier: #{@parsed_domain.identifier}, Exists?: #{@parsed_domain.exists?}"
         raise_form_error "Duplicate domain" if @parsed_domain.exists?
       end
 
