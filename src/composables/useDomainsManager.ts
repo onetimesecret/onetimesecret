@@ -1,7 +1,7 @@
 import {
-    AsyncHandlerOptions,
-    createError,
-    useAsyncHandler,
+  AsyncHandlerOptions,
+  createError,
+  useAsyncHandler,
 } from '@/composables/useAsyncHandler';
 import { useConfirmDialog } from '@/composables/useConfirmDialog';
 import { ApplicationError } from '@/schemas/errors';
@@ -63,7 +63,7 @@ export function useDomainsManager() {
       // Approximated hasn't checked this domain yet or it's been more than N
       // seconds since this domain record was updated. Typically this will be
       // the amount of time since last clicking the "refresh" button.
-      const canVerify = (!lastMonitored || lastUpdatedDistance >= 10);
+      const canVerify = !lastMonitored || lastUpdatedDistance >= 10;
 
       return {
         domain,
@@ -85,6 +85,9 @@ export function useDomainsManager() {
       if (result) {
         router.push({ name: 'DomainVerify', params: { domain } });
         notifications.show('Domain added successfully', 'success');
+        setTimeout(() => {
+          verifyDomain(domain);
+        }, 2000);
         return result;
       }
       error.value = createError('Failed to add domain', 'human', 'error');
