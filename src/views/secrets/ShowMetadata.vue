@@ -1,118 +1,185 @@
 <script setup lang="ts">
-import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
-import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
-import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
-import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
-import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
-import { useMetadata } from '@/composables/useMetadata';
-import { onMounted, onUnmounted, watch } from 'vue';
+  import DashboardTabNav from '@/components/dashboard/DashboardTabNav.vue';
+  import BurnButtonForm from '@/components/secrets/metadata/BurnButtonForm.vue';
+  // import MetadataDisplayCase from '@/components/secrets/metadata/MetadataDisplayCase.vue';
+  import StatusBadge from '@/components/secrets/metadata/StatusBadge.vue';
+  import TimelineDisplay from '@/components/secrets/metadata/TimelineDisplay.vue';
+  import NeedHelpModal from '@/components/modals/NeedHelpModal.vue';
+  import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import { useMetadata } from '@/composables/useMetadata';
+  import { onMounted, onUnmounted, watch } from 'vue';
 
-// Define props
-interface Props {
-  metadataKey: string,
-}
-const props = defineProps<Props>();
-
-const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataKey);
-
-// Watch for route parameter changes to refetch data
-watch(
-  () => props.metadataKey,
-  (newKey) => {
-    reset();
-    if (newKey) {
-      fetch();
-    }
+  // Define props
+  interface Props {
+    metadataKey: string;
   }
-);
+  const props = defineProps<Props>();
 
-onMounted(() => {
-  fetch();
-});
+  const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataKey);
 
-// Ensure cleanup when component unmounts
-onUnmounted(() => {
-  reset();
-});
+  // Watch for route parameter changes to refetch data
+  watch(
+    () => props.metadataKey,
+    (newKey) => {
+      reset();
+      if (newKey) {
+        fetch();
+      }
+    }
+  );
+
+  onMounted(() => {
+    fetch();
+  });
+
+  // Ensure cleanup when component unmounts
+  onUnmounted(() => {
+    reset();
+  });
 </script>
 
 <template>
   <div class="">
     <DashboardTabNav />
 
-    <!-- <ErrorDisplay v-if="error" :error="error" /> -->
-
     <!-- Loading State -->
-    <div v-if="isLoading"
-         class="py-8 text-center text-gray-600">
+    <div
+      v-if="isLoading"
+      class="py-8 text-center text-gray-600">
       <span class="">Loading...</span>
     </div>
 
-    <div v-else-if="record && details"
-         class="space-y-8">
-      <!-- Primary Content Section -->
-      <div class="space-y-6">
-        <SecretLink v-if="details.show_secret_link"
-                    :metadata="record"
-                    :details="details" />
+    <div
+      v-else-if="record && details"
+      class="space-y-8">
+      <!-- Secret Link Header -->
+      <section
+        class="animate-fade-in relative"
+        aria-labelledby="secret-header">
+        <h1
+          id="secret-header"
+          class="sr-only">
+          {{ $t('web.LABELS.secret_link') }}
+        </h1>
 
-        <h3 v-if="details.show_recipients"
-            class="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200">
-          {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
-        </h3>
+        <!-- Passphrase Indicator -->
+        <div
+          v-if="details?.has_passphrase"
+          class="absolute -top-4 right-2 flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+          <OIcon
+            collection=""
+            name="mdi-lock"
+            class="w-4 h-4" />
+          {{ $t('web.COMMON.passphrase_protected') }}
+        </div>
 
-        <MetadataDisplayCase :metadata="record"
-                             :details="details"
-                             class="shadow-sm" />
+        <SecretLink
+          v-if="details.show_secret_link"
+          :record="record"
+          :details="details"
+          class="focus-within:ring-2 focus-within:ring-brand-500 rounded-lg" />
+      </section>
 
-        <BurnButtonForm :record="record"
-                        :details="details"
-                        class="pt-2" />
-      </div>
+      <!-- Status & Timeline -->
+      <section
+        class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4"
+        aria-labelledby="section-status">
+        <div class="flex items-center justify-between mb-2">
+          <h2
+            id="section-status"
+            class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ $t('web.LABELS.secret_status') }}
+          </h2>
+          <StatusBadge record="record.state" />
+        </div>
+
+        <TimelineDisplay
+          :record="record"
+          :details="details" />
+      </section>
+
+      <!-- Sharing Instructions -->
+      <section
+        class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3"
+        aria-labelledby="section-sharing">
+        <h2
+          id="section-sharing"
+          class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ $t('web.INSTRUCTION.sharing_instructions') }}
+        </h2>
+
+        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+          <li class="flex items-start gap-2">
+            <OIcon
+              collection="mdi"
+              name="link"
+              class="w-5 h-5 mt-0.5 text-brand-500"
+              aria-hidden="true" />
+            {{ $t('web.INSTRUCTION.share_link_instruction') }}
+          </li>
+          <li
+            v-if="details.has_passphrase"
+            class="flex items-start gap-2">
+            <OIcon
+              collection="mdi"
+              name="key"
+              class="w-5 h-5 mt-0.5 text-amber-500"
+              aria-hidden="true" />
+            {{ $t('web.INSTRUCTION.share_passphrase_instruction') }}
+          </li>
+          <li class="flex items-start gap-2">
+            <OIcon
+              collection="mdi"
+              name="shield-alert"
+              class="w-5 h-5 mt-0.5 text-red-500"
+              aria-hidden="true" />
+            {{ $t('web.INSTRUCTION.secure_channel_instruction') }}
+          </li>
+        </ul>
+      </section>
+
+      <!-- Actions -->
+      <section
+        v-if="true"
+        class="flex flex-col gap-3"
+        aria-labelledby="section-actions">
+        <h2
+          id="section-actions"
+          class="sr-only">
+          {{ $t('web.LABELS.actions') }}
+        </h2>
+
+        <BurnButtonForm
+          :record="record"
+          :details="details"
+          class="pt-2" />
+
+        <router-link
+          type="button"
+          to="/"
+          class="inline-flex items-center justify-center px-4 py-2 text-sm font-brand text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 dark:focus:ring-offset-gray-900">
+          Create another secret
+        </router-link>
+      </section>
 
       <!-- Recipients Section -->
-      <div v-if="details.show_recipients"
-           class="border-t border-gray-100 py-4 dark:border-gray-800">
+      <div
+        v-if="details.show_recipients"
+        class="border-t border-gray-100 py-4 dark:border-gray-800">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
           {{ $t('web.COMMON.sent_to') }} {{ record.recipients }}
         </h3>
       </div>
 
-      <!-- Create Another Secret -->
-      <div class="pt-6">
-        <a href="/"
-           class="
-            mx-auto
-            mb-24
-            mt-12
-            block
-            w-2/3
-            rounded-md
-            border-2
-            border-gray-300
-            bg-gray-200
-            px-4
-            py-2
-            text-center
-            text-base
-            font-medium
-            text-gray-800
-            hover:border-gray-200
-            hover:bg-gray-100
-            dark:border-gray-800
-            dark:bg-gray-700
-            dark:text-gray-200
-            dark:hover:border-gray-600
-            dark:hover:bg-gray-600
-          ">
-          Create another secret
-        </a>
-      </div>
-
-      <!-- FAQ Section -->
-      <MetadataFAQ :metadata="record"
-                   :details="details"
-                   class="border-t border-gray-100 pt-8 dark:border-gray-800" />
+      <!-- Help Section -->
+      <section
+        aria-labelledby="section-help"
+        class="relative">
+        <NeedHelpModal
+          :record="record"
+          :details="details" />
+      </section>
     </div>
   </div>
 </template>

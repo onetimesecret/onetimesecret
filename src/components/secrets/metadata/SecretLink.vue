@@ -3,7 +3,7 @@ import { useClipboard } from '@/composables/useClipboard'
 import { Metadata, MetadataDetails } from '@/schemas/models'
 
 interface Props {
-  metadata: Metadata;
+  record: Metadata;
   details: MetadataDetails;
 }
 
@@ -12,7 +12,7 @@ const props = defineProps<Props>()
 const { isCopied, copyToClipboard } = useClipboard()
 
 const copySecretUrl = () => {
-  copyToClipboard(props.metadata.share_url)
+  copyToClipboard(props.record?.share_url)
 }
 </script>
 
@@ -20,7 +20,7 @@ const copySecretUrl = () => {
   <div class="overflow-hidden rounded-xl border-2 border-brand-100 bg-gradient-to-b from-brand-50/40 to-brand-50/20 shadow-sm dark:border-brand-900 dark:from-brand-950/40 dark:to-brand-950/20">
     <!-- Encryption Status -->
     <div
-      v-if="details.has_passphrase"
+      v-if="details?.has_passphrase"
       class="flex items-center gap-2.5 border-b border-brand-100/50 bg-amber-50/50 px-4 py-2.5 dark:border-brand-900/50 dark:bg-amber-950/30">
       <svg
         class="size-4 text-amber-500"
@@ -55,7 +55,7 @@ const copySecretUrl = () => {
                       focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-2
                       focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-900/80
                       dark:text-gray-200 dark:focus:bg-gray-900"
-          :value="metadata.share_url"
+          :value="record?.share_url"
           readonly
           aria-label="Secret sharing URL"
         />

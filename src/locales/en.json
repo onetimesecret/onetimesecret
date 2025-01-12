@@ -78,6 +78,7 @@
         "show": "Show",
         "hide": "Hide"
       },
+      "close": "Close",
       "loading": "Loading...",
       "cancel": "Cancel",
       "encrypted": "Encrypted",
@@ -103,6 +104,8 @@
       "created": "Created",
       "expires": "Expires",
       "processing": "Processing",
+      "secured": "Secured",
+      "securing": "Securing",
       "time_remaining": "Time Remaining",
       "expired": "Expired",
       "active_description": "Secret is active and ready to be viewed",
@@ -136,7 +139,7 @@
     },
     "INSTRUCTION": {
       "sharing_instructions": "Sharing Instructions",
-      "share_link_instruction": "Share this link with the intended recipient",
+      "share_link_instruction": "Share the link with the intended recipient",
       "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
       "secure_channel_instruction": "Use a different secure channel to share sensitive information"
     },

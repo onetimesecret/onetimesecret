@@ -2,7 +2,7 @@
 import { Metadata, MetadataDetails } from '@/schemas/models';
 
 interface Props {
-  metadata: Metadata;
+  record: Metadata;
   details: MetadataDetails;
 }
 
@@ -62,7 +62,7 @@ defineProps<Props>()
       How long will the secret be available?
     </h4>
     <p class="mb-4">
-      The secret link will be available for {{ metadata.natural_expiration }} or until it's viewed.
+      The secret link will be available for {{ record.natural_expiration }} or until it's viewed.
     </p>
   </div>
 
@@ -86,7 +86,7 @@ defineProps<Props>()
       How long will the secret be available?
     </h4>
     <p class="mb-4">
-      The secret link will be available for {{ metadata.natural_expiration }} or until it's viewed.
+      The secret link will be available for {{ record.natural_expiration }} or until it's viewed.
     </p>
 
     <h4 class="mb-2 mt-4 font-semibold">
