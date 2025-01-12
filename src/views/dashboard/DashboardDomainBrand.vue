@@ -11,6 +11,7 @@ import OIcon from '@/components/icons/OIcon.vue';
 import { detectPlatform } from '@/utils';
 import { computed, onMounted, watch, ref } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
+import { createError } from '@/schemas/errors';
 
 const props = defineProps<{ domain: string }>();
 const {
@@ -40,7 +41,7 @@ const toggleBrowser = () => {
 // Add loading guard
 watch(() => isLoading.value, (loading) => {
   if (!loading && !brandSettings.value) {
-    error.value = 'Failed to load brand settings';
+    error.value = createError('Failed to load brand settings', 'technical', 'error');
   }
 });
 

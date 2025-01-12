@@ -3,7 +3,7 @@ import { useNotificationsStore } from '@/stores';
 import { useBrandStore } from '@/stores/brandStore';
 import { shouldUseLightText } from '@/utils';
 import { computed, onMounted, ref, watch } from 'vue';
-import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
+import { AsyncHandlerOptions, useAsyncHandler, createError } from './useAsyncHandler';
 import { ApplicationError } from '@/schemas';
 import { AxiosError } from 'axios';
 
@@ -23,7 +23,7 @@ import { AxiosError } from 'axios';
  *
  */
 /* eslint max-lines-per-function: off */
-export function useBranding(domainId: string) {
+export function useBranding(domainId?: string) {
   const store = useBrandStore();
   const notifications = useNotificationsStore();
   const isLoading = ref(false);
@@ -93,6 +93,8 @@ export function useBranding(domainId: string) {
 
   const handleLogoUpload = async (file: File) =>
     wrap(async () => {
+      if (!domainId)
+        throw createError('Domain ID is required to upload logo', 'human', 'error');
       const uploadedLogo = await store.uploadLogo(domainId, file);
       // Update local state with new logo
       logoImage.value = uploadedLogo;
@@ -100,6 +102,8 @@ export function useBranding(domainId: string) {
 
   const removeLogo = async () =>
     wrap(async () => {
+      if (!domainId)
+        throw createError('Domain ID is required to remove logo', 'human', 'error');
       await store.removeLogo(domainId);
       // Clear local logo state
       logoImage.value = null;
