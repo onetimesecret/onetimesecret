@@ -65,7 +65,7 @@ onUnmounted(() => {
                              :details="details"
                              class="shadow-sm" />
 
-        <BurnButtonForm :metadata="record"
+        <BurnButtonForm :record="record"
                         :details="details"
                         class="pt-2" />
       </div>

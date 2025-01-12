@@ -44,7 +44,7 @@ export function useMetadata(metadataKey: string) {
       return result;
     });
 
-  const handleBurn = () =>
+  const burn = () =>
     wrap(async () => {
       if (!canBurn.value) {
         throw createError('Cannot burn this secret', 'human', 'error');
@@ -81,7 +81,7 @@ export function useMetadata(metadataKey: string) {
 
     // Actions
     fetch,
-    burn: handleBurn,
+    burn,
     reset,
   };
 }

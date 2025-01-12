@@ -1,49 +1,146 @@
-
 <script setup lang="ts">
-import type { Metadata, MetadataDetails } from '@/schemas/models';
+  import { ref } from 'vue';
+  import type { Metadata, MetadataDetails } from '@/schemas/models';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import { useMetadata } from '@/composables/useMetadata';
 
-interface Props {
-  metadata: Metadata;
-  details: MetadataDetails;
-}
+  interface Props {
+    record: Metadata;
+    details: MetadataDetails;
+  }
 
-defineProps<Props>()
+  const props = defineProps<Props>();
 
+  const { burn, isLoading } = useMetadata(props.record.key);
+
+  const showConfirmation = ref(false);
+  const isHovered = ref(false);
+  const passphrase = ref('');
 </script>
 
 <template>
-  <div v-if="!details.is_destroyed">
-    <router-link
-      :to="{ name: 'Burn secret', params: { metadataKey: metadata.key } }"
-      class="mb-4 block w-full rounded-md bg-yellow-400 px-4 py-2
-      text-center text-base text-gray-800
-      hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
-      <svg
-        class="mr-2 inline-block size-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
-        />
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"
-        />
-      </svg>
-      {{ $t('web.COMMON.burn_this_secret') }}
-    </router-link>
+  <div
+    v-if="!details.is_destroyed"
+    class="flex flex-col items-center">
+    <!-- Initial Burn Button -->
+    <button
+      v-if="!showConfirmation"
+      @click="showConfirmation = true"
+      class="w-full px-4 py-3 inline-flex items-center justify-center gap-2 text-base font-medium text-gray-800 bg-yellow-400 hover:bg-yellow-300 dark:text-gray-900 dark:hover:bg-yellow-300 rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 relative overflow-hidden"
+      :aria-label="$t('web.COMMON.burn_this_secret_aria')">
+      <OIcon
+        collection=""
+        name="heroicons-fire-20-solid"
+        class="w-5 h-5"
+        :class="{ 'animate-bounce': isHovered }" />
+      <span>{{ $t('web.COMMON.burn_this_secret') }}</span>
+    </button>
 
-    <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
-      * {{ $t('web.COMMON.burn_this_secret_hint') }}.
-    </p>
+    <!-- Confirmation Dialog -->
+    <div
+      v-else
+      class="w-full bg-gray-50 dark:bg-gray-800 rounded-lg p-4 animate-fade-in">
+      <div class="text-center mb-4">
+        <OIcon
+          collection=""
+          name="heroicons-exclamation-triangle-20-solid"
+          class="w-12 h-12 text-yellow-500 mx-auto mb-2" />
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+          {{ $t('web.COMMON.burn_confirmation_title') }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ $t('web.COMMON.burn_confirmation_message') }}
+        </p>
+      </div>
+
+      <div v-if="details.has_passphrase">
+        <input
+          type="password"
+          v-model="passphrase"
+          name="passphrase"
+          id="passField"
+          class="w-full px-3 py-2 border rounded-md border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          :placeholder="$t('web.private.enter_passphrase')" />
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <!-- Confirm Burn -->
+        <button
+          type="submit"
+          @click="burn"
+          :disabled="isLoading"
+          class="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+          <OIcon
+            collection=""
+            name="heroicons-fire-20-solid"
+            class="w-5 h-5" />
+          {{ $t('web.COMMON.confirm_burn') }}
+        </button>
+
+        <!-- Cancel Button -->
+        <button
+          @click="showConfirmation = false"
+          type="button"
+          class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800">
+          {{ $t('web.COMMON.cancel') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Security Notice -->
+    <div
+      class="w-full mt-6 space-y-4"
+      role="note">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        <OIcon
+          collection=""
+          name="heroicons-shield-exclamation"
+          class="w-4 h-4 inline-block mr-1" />
+        {{ $t('web.COMMON.burn_security_notice') }}
+      </p>
+
+      <div
+        class="flex items-center gap-4"
+        role="separator"
+        aria-hidden="true">
+        <div class="flex-grow h-px bg-gray-200 dark:bg-gray-700"></div>
+        <OIcon
+          collection=""
+          name="heroicons-lock-closed"
+          class="w-4 h-4 text-gray-400 dark:text-gray-600" />
+        <div class="flex-grow h-px bg-gray-200 dark:bg-gray-700"></div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-bounce {
+    animation: bounce 1s ease-in-out;
+  }
+
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-25%);
+    }
+  }
+</style>
