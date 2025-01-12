@@ -275,8 +275,8 @@ onUnmounted(() => {
             {{ selectedDomain || 'Select Domain' }}
           </span>
           <OIcon
-            collection="heroicons-solid"
-            name="chevron-down"
+            collection="heroicons"
+            name="chevron-down-16-solid"
             class="ml-2 size-5 shrink-0 text-gray-400 dark:text-gray-500"
             aria-hidden="true"
           />

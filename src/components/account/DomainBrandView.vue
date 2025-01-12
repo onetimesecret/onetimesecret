@@ -14,7 +14,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   logoPreview: null,
-  defaultIcon: 'mdi:domain',
+  defaultIcon: 'mdi-domain',
   loading: false,
   error: null,
   success: null,

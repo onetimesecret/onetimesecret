@@ -31,8 +31,8 @@
   );
 
   const alternateProviders = [
-    { name: 'Google', icon: 'mdi:google' },
-    { name: 'GitHub', icon: 'mdi:github' },
+    { name: 'Google', icon: 'mdi-google' },
+    { name: 'GitHub', icon: 'mdi-github' },
   ];
 </script>
 
