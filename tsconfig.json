@@ -67,7 +67,6 @@
     "src/**/*.vue",
     "src/content/*.md",
     "src/types/**/*.ts",
-    "src/types/declarations/*.d.ts",
-    "tests/unit/vue/**/*.spec.ts"
+    "src/types/declarations/*.d.ts"
   ]
 }
