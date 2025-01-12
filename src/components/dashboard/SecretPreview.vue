@@ -9,10 +9,10 @@ const { t } = useI18n();
 
 const props = defineProps<{
   domainBranding: BrandSettings;
-  secretKey: string;
   logoImage?: ImageProps | null;
   onLogoUpload: (file: File) => Promise<void>;
   onLogoRemove: () => Promise<void>;
+  secretKey: string;
 }>();
 
 // Computed property to validate logo data

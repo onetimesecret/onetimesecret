@@ -14,23 +14,20 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router';
 
 const props = defineProps<{ domain: string }>();
 const {
-  brand,
-  brandSettings,
-  fetchBranding,
   isLoading,
   error,
-  hasUnsavedChanges,
-  primaryColor,
-  submitBrandSettings,
+  brandSettings,
   logoImage,
+  primaryColor,
+  hasUnsavedChanges,
+  isInitialized,
+  initialize,
+  saveBranding,
   handleLogoUpload,
   removeLogo,
 } = useBranding(props.domain);
 
 const route = useRoute();
-
-// Ensure brand is initialized before rendering
-// const isReady = computed(() => !isLoading.value && brandSettings.value);
 const displayDomain = computed(() => props.domain || route.params.domain as string);
 const customDomain = ref<CustomDomain | null>(null);
 const color = computed(() => primaryColor.value);
@@ -40,22 +37,14 @@ const toggleBrowser = () => {
   browserType.value = browserType.value === 'safari' ? 'edge' : 'safari';
 };
 
-// Add isLoading guard
-watch(() => isLoading.value, (isLoading) => {
-  if (!isLoading && !brand.value) {
+// Add loading guard
+watch(() => isLoading.value, (loading) => {
+  if (!loading && !brandSettings.value) {
     error.value = 'Failed to load brand settings';
   }
 });
 
-// Ensure data is loaded before mounting
-onMounted(async () => {
-  isLoading.value = true;
-  try {
-    await fetchBranding();
-  } finally {
-    isLoading.value = false;
-  }
-});
+onMounted(initialize);
 
 onBeforeRouteLeave((to, from, next) => {
   if (hasUnsavedChanges.value) {
@@ -81,7 +70,8 @@ onBeforeRouteLeave((to, from, next) => {
         <BrandSettingsBar
           v-model="brandSettings"
           :is-loading="isLoading"
-          @submit="submitBrandSettings">
+          :is-initialized="isInitialized"
+          @submit="() => saveBranding(brandSettings)">
           <template #instructions-button>
             <InstructionsModal
               v-model="brandSettings.instructions_pre_reveal"
