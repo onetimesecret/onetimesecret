@@ -72,8 +72,8 @@ module Onetime::Logic
         else
           @secret_realttl = secret.realttl
           @maxviews = secret.maxviews
-          @has_maxviews = true if @maxviews > 1
-          @view_count = secret.view_count # TODO: Remove
+          @has_maxviews = @maxviews > 1
+          @view_count = nil
           if secret.viewable?
             @has_passphrase = !secret.passphrase.to_s.empty?
             @can_decrypt = secret.can_decrypt?
