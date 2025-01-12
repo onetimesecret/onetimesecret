@@ -51,7 +51,9 @@ export const parseDateValue = (val: unknown): Date | null => {
   return null;
 };
 
-
+// TODO: `parseDateValue` and `parseDateValueSimple` are redundant. Keep
+// `parseDateValueSimple` as it's cleaner and handles all cases. Needs
+// more testing to confirm it's safe to replace `parseDateValue` with it.
 export const parseDateValueSimple = (val: unknown): Date | null => {
   if (val === null || val === undefined || val === '') return null;
   if (val instanceof Date) return val;

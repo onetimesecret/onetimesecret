@@ -85,9 +85,9 @@
           <h2
             id="section-status"
             class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ $t('web.LABELS.secret_status') }}
+            {{ $t('web.LABELS.timeline') }}
           </h2>
-          <StatusBadge record="record.state" />
+          <StatusBadge :record="record" />
         </div>
 
         <TimelineDisplay
