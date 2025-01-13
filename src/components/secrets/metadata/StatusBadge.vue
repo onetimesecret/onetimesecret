@@ -63,27 +63,12 @@
     <OIcon
       collection="material-symbols"
       :name="statusIcon[status]"
-      class="w-4 h-4 mr-1"
-      :class="{ 'animate-spin-slow': status === 'new' }" />
+      class="w-4 h-4 mr-1" />
     {{ displayStatus.text }}
   </span>
 </template>
 
 <style scoped>
-  .animate-spin-slow {
-    animation: spin 2s linear infinite;
-  }
-
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   /* Ensure high contrast in dark mode */
   :deep(.dark) .text-green-800 {
     color: rgb(22, 101, 52);
