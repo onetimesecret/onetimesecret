@@ -5,6 +5,7 @@ import type { Composer } from 'vue-i18n';
 
 export type DisplayStatus =
   | 'new'
+  | 'unread'
   | 'viewed'
   | 'burned'
   | 'received'

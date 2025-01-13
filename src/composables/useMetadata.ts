@@ -28,6 +28,11 @@ export function useMetadata(metadataKey: string) {
   const isLoading = ref(false);
   const error = ref<ApplicationError | null>(null);
 
+  // const hasPassphrase = computed(
+  //   // TODO: could be more consistent
+  //   () => !details?.can_decrypt && !record?.is_received && !record?.is_destroyed
+  // );
+
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) =>
       notifications.show(message, severity as NotificationSeverity),

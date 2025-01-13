@@ -98,6 +98,7 @@
     },
     "STATUS": {
       "new": "New",
+      "unread": "Unread",
       "viewed": "Link opened",
       "received": "Received",
       "burned": "Burned",
@@ -111,6 +112,7 @@
       "securing": "Securing",
       "time_remaining": "Time Remaining",
       "expired": "Expired",
+      "unread_description": "Secret link has been created and has not been viewed",
       "viewed_description": "Secret link has been opened and ready to be viewed",
       "received_description": "Secret has been revealed to the recipient",
       "burned_description": "Secret was manually burned before being viewed",
