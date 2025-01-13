@@ -102,7 +102,7 @@
           </h2>
           <StatusBadge
             :record="record"
-            :expires-in="details?.secret_realttl"
+            :expires-in="details?.secret_realttl ?? undefined"
             />
         </div>
 

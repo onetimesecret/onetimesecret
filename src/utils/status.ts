@@ -1,46 +1,58 @@
 // src/utils/status.ts
 
-import { type Metadata, MetadataState, isValidMetadataState } from '@/schemas/models';
+import { MetadataState, isValidMetadataState } from '@/schemas/models';
 import type { Composer } from 'vue-i18n';
 
 export type DisplayStatus =
-  | 'active'
-  | 'received'
+  | 'new'
+  | 'viewed'
   | 'burned'
-  | 'destroyed'
-  | 'expiring-soon'
-  | 'processing'
-  | 'secured';
+  | 'received'
+  | 'expiring_soon'
+  | 'orphaned'
+  | 'destroyed';
 
 /**
- * Maps record metadata to UI display status
+ * Maps the given state to UI display status.
+ *
+ * The only cases where we might need different names are when:
+ *
+ * 1. We need a more user-friendly display term
+ * 2. We need to represent a composite state (like expiring_soon
+ *    which combines state with time).
  */
-export function getDisplayStatus(record: Metadata, expiresIn?: number): DisplayStatus {
-  if (!record?.state || !isValidMetadataState(record.state)) {
-    return 'processing';
+export function getDisplayStatus(
+  state: MetadataState,
+  expiresIn?: number
+): DisplayStatus {
+  if (!state || !isValidMetadataState(state)) {
+    return 'orphaned';
   }
 
-  // Handle orphaned state first
-  if (record.state === MetadataState.ORPHANED) return 'destroyed';
-
-  // Check expiration
-  if (expiresIn !== undefined && expiresIn > 0 && expiresIn < 3600) {
-    return 'expiring-soon';
+  // Check expiring soon first (if active)
+  if (state === MetadataState.NEW && typeof expiresIn === 'number' && expiresIn < 3600) {
+    return 'expiring_soon';
   }
 
-  // Map states to display status
-  switch (record.state) {
+  switch (state) {
     case MetadataState.NEW:
     case MetadataState.SHARED:
-      return 'active';
-    case MetadataState.RECEIVED:
-      return 'received';
-    case MetadataState.BURNED:
-      return 'burned';
+      return 'new'; // Secret created/shared but not accessed
+
     case MetadataState.VIEWED:
-      return 'destroyed';
+      return 'viewed'; // Secret accessed but not revealed
+
+    case MetadataState.RECEIVED:
+      return 'received'; // Secret revealed/decrypted
+
+    case MetadataState.BURNED:
+      return 'burned'; // Secret manually destroyed
+
+    case MetadataState.ORPHANED:
+      return 'orphaned'; // Secret in invalid state
+
     default:
-      return 'processing';
+      return 'orphaned';
   }
 }
 
