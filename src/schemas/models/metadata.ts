@@ -33,6 +33,7 @@ export const MetadataState = {
   RECEIVED: 'received',
   BURNED: 'burned',
   VIEWED: 'viewed',
+  EXPIRED: 'expired',
   ORPHANED: 'orphaned',
 } as const;
 
@@ -100,7 +101,8 @@ export const metadataDetailsSchema = z.object({
   show_metadata_link: transforms.fromString.boolean,
   show_metadata: transforms.fromString.boolean,
   show_recipients: transforms.fromString.boolean,
-  is_orphaned: transforms.fromString.boolean,
+  is_orphaned: transforms.fromString.boolean.nullable().optional(),
+  is_expired: transforms.fromString.boolean.nullable().optional(),
 });
 
 // Export types

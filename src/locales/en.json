@@ -118,7 +118,8 @@
       "burned_description": "Secret was manually burned before being viewed",
       "destroyed_description": "Secret has been permanently destroyed",
       "expiring_soon_description": "Secret will expire soon",
-      "orphaned_description": "Secret has been orphaned and will be destroyed soon"
+      "orphaned_description": "Secret has been orphaned and will be destroyed soon",
+      "expired_description": "Secret has expired before being viewed"
     },
     "FEATURES": {
       "unlimited_views": "Unlimited Views",

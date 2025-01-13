@@ -29,7 +29,7 @@
     expiring_soon:
       'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
     orphaned: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-    destroyed: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+    expired: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
   };
 
   const statusIcon: Record<DisplayStatus, string> = {
@@ -55,42 +55,40 @@
 </script>
 
 <template>
-  <span
-    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
-    :class="[statusClasses[status], { 'animate-pulse': status === 'expiring_soon' }]"
-    :title="displayStatus.description"
-    role="status">
-    <OIcon
-      collection="material-symbols"
-      :name="statusIcon[status]"
-      class="w-4 h-4 mr-1" />
+  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+        :class="[statusClasses[status], { 'animate-pulse': status === 'expiring_soon' }]"
+        :title="displayStatus.description"
+        role="status">
+    <OIcon collection="material-symbols"
+           :name="statusIcon[status]"
+           class="w-4 h-4 mr-1" />
     {{ displayStatus.text }}
   </span>
 </template>
 
 <style scoped>
-  /* Ensure high contrast in dark mode */
-  :deep(.dark) .text-green-800 {
-    color: rgb(22, 101, 52);
-  }
+/* Ensure high contrast in dark mode */
+:deep(.dark) .text-green-800 {
+  color: rgb(22, 101, 52);
+}
 
-  :deep(.dark) .text-blue-800 {
-    color: rgb(30, 64, 175);
-  }
+:deep(.dark) .text-blue-800 {
+  color: rgb(30, 64, 175);
+}
 
-  :deep(.dark) .text-yellow-800 {
-    color: rgb(133, 77, 14);
-  }
+:deep(.dark) .text-yellow-800 {
+  color: rgb(133, 77, 14);
+}
 
-  :deep(.dark) .text-red-800 {
-    color: rgb(153, 27, 27);
-  }
+:deep(.dark) .text-red-800 {
+  color: rgb(153, 27, 27);
+}
 
-  :deep(.dark) .text-orange-800 {
-    color: rgb(154, 52, 18);
-  }
+:deep(.dark) .text-orange-800 {
+  color: rgb(154, 52, 18);
+}
 
-  :deep(.dark) .text-purple-800 {
-    color: rgb(107, 33, 168);
-  }
+:deep(.dark) .text-purple-800 {
+  color: rgb(107, 33, 168);
+}
 </style>

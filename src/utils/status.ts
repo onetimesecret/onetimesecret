@@ -11,7 +11,7 @@ export type DisplayStatus =
   | 'received'
   | 'expiring_soon'
   | 'orphaned'
-  | 'destroyed';
+  | 'expired';
 
 /**
  * Maps the given state to UI display status.
@@ -31,7 +31,7 @@ export function getDisplayStatus(
   }
 
   // Check expiring soon first (if active)
-  if (state === MetadataState.NEW && typeof expiresIn === 'number' && expiresIn < 3600) {
+  if (state === MetadataState.NEW && typeof expiresIn === 'number' && expiresIn < 1800) {
     return 'expiring_soon';
   }
 
@@ -47,13 +47,12 @@ export function getDisplayStatus(
       return 'received'; // Secret revealed/decrypted
 
     case MetadataState.BURNED:
-      return 'burned'; // Secret manually destroyed
 
-    case MetadataState.ORPHANED:
-      return 'orphaned'; // Secret in invalid state
+    // case MetadataState.ORPHANED:
+    //   return 'orphaned'; // Secret in invalid state
 
     default:
-      return 'orphaned';
+      return 'expired';
   }
 }
 
