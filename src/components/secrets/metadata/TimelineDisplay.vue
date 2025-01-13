@@ -26,7 +26,7 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
 <template>
   <div class="relative pt-4">
     <!-- Timeline Track -->
-    <div class="absolute top-8 left-6 h-full w-px bg-gray-200 dark:bg-gray-700"></div>
+    <div class="absolute top-8 left-6 h-[calc(100%-4rem)] w-px bg-gray-200 dark:bg-gray-700"></div>
 
     <!-- Timeline Events -->
     <div class="space-y-6">
@@ -35,7 +35,7 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
         <div class="
           flex-shrink-0 w-12 h-12
           flex items-center justify-center
-          rounded-full
+          rounded-full z-10
           bg-brand-100 dark:bg-brand-900
           transition-transform duration-200
           group-hover:scale-110">
@@ -61,7 +61,7 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
         <div class="
           flex-shrink-0 w-12 h-12
           flex items-center justify-center
-          rounded-full
+          rounded-full z-10
           bg-green-100 dark:bg-green-900
           transition-transform duration-200
           group-hover:scale-110">
@@ -86,12 +86,12 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
       </div>
 
       <!-- Burned (if applicable) -->
-      <div v-if="details.is_burned"
+      <div v-if="record.is_burned"
            class="group flex gap-4">
         <div class="
           flex-shrink-0 w-12 h-12
           flex items-center justify-center
-          rounded-full
+          rounded-full z-10
           bg-yellow-100 dark:bg-yellow-900
           transition-transform duration-200
           group-hover:scale-110">
@@ -120,7 +120,7 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
         <div class="
           flex-shrink-0 w-12 h-12
           flex items-center justify-center
-          rounded-full
+          rounded-full z-10
           bg-red-100 dark:bg-red-900
           transition-transform duration-200
           group-hover:scale-110">
@@ -131,14 +131,15 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
         </div>
         <div class="flex-grow group-hover:translate-x-1 transition-transform duration-200">
           <p class="text-sm font-brand text-gray-900 dark:text-gray-100">
-            {{ $t('web.STATUS.expires') }}
+          {{ progress >= 100 ? $t('web.STATUS.expired') : $t('web.STATUS.expires') }}
+
           </p>
 
           <!-- Expiration Progress Bar -->
           <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-            <div class="bg-red-500 h-1.5 rounded-full transition-all duration-300"
-                 :style="{ width: `${progress}%` }"
-                 :title="`${progress.toFixed(1)}% elapsed`"></div>
+          <div class="bg-red-500 h-1.5 rounded-full transition-[width] duration-1000 ease-linear"
+               :style="{ width: `${progress}%` }"
+               :title="`${progress.toFixed(1)}% elapsed`"></div>
           </div>
 
           <time :datetime="expirationDate.toISOString()"
