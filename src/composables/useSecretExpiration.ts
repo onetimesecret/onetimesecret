@@ -28,6 +28,7 @@ export function useSecretExpiration(created: Date, ttlSeconds: number) {
     if (now >= end) {
       progress.value = 100;
       timeRemaining.value = 'Expired';
+      clearInterval(timer);
       return;
     }
 
@@ -36,14 +37,15 @@ export function useSecretExpiration(created: Date, ttlSeconds: number) {
     // Format remaining time
     timeRemaining.value = formatDistance(end, now, {
       addSuffix: true,
-      includeSeconds: elapsed < 60000, // Only show seconds in last minute
+      includeSeconds: elapsed < 60000,
     });
   };
 
   let timer: number;
   onMounted(() => {
     updateExpiration();
-    timer = window.setInterval(updateExpiration, 60000);
+    // Update every second for smooth progress
+    timer = window.setInterval(updateExpiration, 1000);
   });
 
   onUnmounted(() => clearInterval(timer));
