@@ -15,7 +15,7 @@ const props = defineProps<Props>();
 
 const { progress, timeRemaining, expirationDate } = useSecretExpiration(
   props.record.created,
-  props.record.expiration_in_seconds,
+  props.record.expiration_in_seconds ?? 0,
 );
 
 // Helper function for consistent time formatting
@@ -45,19 +45,18 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
                  aria-hidden="true" />
         </div>
         <div class="group-hover:translate-x-1 transition-transform duration-200">
-          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <p class="text-sm font-brand text-gray-900 dark:text-gray-100">
             {{ $t('web.STATUS.created') }}
           </p>
           <time :datetime="record.created.toISOString()"
                 class="text-sm text-gray-500 dark:text-gray-400">
-                {{ record.created.toLocaleString() }}
+            {{ record.created.toLocaleString() }}
           </time>
         </div>
       </div>
 
-
       <!-- Received (if applicable) -->
-      <div v-if="details.is_received"
+      <div v-if="record.is_received"
            class="group flex gap-4">
         <div class="
           flex-shrink-0 w-12 h-12
@@ -72,16 +71,16 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
                  aria-hidden="true" />
         </div>
         <div class="group-hover:translate-x-1 transition-transform duration-200">
-          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <p class="text-sm font-brand text-gray-900 dark:text-gray-100">
             {{ $t('web.STATUS.received') }}
           </p>
           <time :datetime="record.received?.toISOString()"
                 class="text-sm text-gray-500 dark:text-gray-400">
-                {{ record.received?.toLocaleString() }}
+            {{ record.received?.toLocaleString() }}
           </time>
           <p v-if="record.received"
              class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-             {{ formatTimeAgo(record.received) }}
+            {{ formatTimeAgo(record.received) }}
           </p>
         </div>
       </div>
@@ -102,16 +101,16 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
                  aria-hidden="true" />
         </div>
         <div class="group-hover:translate-x-1 transition-transform duration-200">
-          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <p class="text-sm font-brand text-gray-900 dark:text-gray-100">
             {{ $t('web.STATUS.burned') }}
           </p>
           <time :datetime="record.burned?.toISOString()"
                 class="text-sm text-gray-500 dark:text-gray-400">
-                {{ record.burned?.toLocaleString() }}
+            {{ record.burned?.toLocaleString() }}
           </time>
           <p v-if="record.burned"
              class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-             {{ formatTimeAgo(record.burned) }}
+            {{ formatTimeAgo(record.burned) }}
           </p>
         </div>
       </div>
@@ -131,7 +130,7 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
                  aria-hidden="true" />
         </div>
         <div class="flex-grow group-hover:translate-x-1 transition-transform duration-200">
-          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <p class="text-sm font-brand text-gray-900 dark:text-gray-100">
             {{ $t('web.STATUS.expires') }}
           </p>
 

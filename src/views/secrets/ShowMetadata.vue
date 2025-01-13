@@ -109,7 +109,8 @@
                    aria-hidden="true" />
             {{ $t('web.private.only_see_once') }}
           </p>
-          <CopyButton class="ml-auto"
+          <CopyButton v-if="details.secret_value"
+                      class="ml-auto"
                       :text="details.secret_value" />
         </div>
       </section>
