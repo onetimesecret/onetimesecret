@@ -32,7 +32,7 @@
 
 <template>
   <div
-    v-if="!details.is_destroyed"
+    v-if="!record.is_destroyed"
     class="flex flex-col items-center">
     <!-- Initial Burn Button -->
     <button
@@ -101,16 +101,15 @@
 
     <!-- Security Notice -->
     <div
-      class="w-full mt-6 space-y-4"
+      class="w-full mt-4 space-y-6"
       role="note">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        <OIcon
-          collection=""
-          name="heroicons-shield-exclamation"
-          class="w-4 h-4 inline-block mr-1" />
-        {{ $t('web.COMMON.burn_security_notice') }}
-      </p>
-
+      <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+      <OIcon
+        collection="heroicons"
+        name="shield-exclamation"
+        class="w-4 h-4 mr-2" />
+      {{ $t('web.COMMON.burn_security_notice') }}
+      </div>
       <div
         class="flex items-center gap-4"
         role="separator"
