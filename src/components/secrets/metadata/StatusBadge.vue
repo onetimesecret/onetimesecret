@@ -39,8 +39,8 @@
     burned: 'local-fire-department-rounded',
     received: 'mark-email-read-outline', // was 'block'
     expiring_soon: 'timer-outline',
-    orphaned: 'refresh',
-    destroyed: 'refresh',
+    orphaned: 'warning-outline',
+    expired: 'timer-off-outline',
   };
 
   const displayStatus = computed(() => getStatusText(status.value, t));

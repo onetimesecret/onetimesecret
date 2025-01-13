@@ -122,6 +122,27 @@ export default {
       },
       animation: {
         'spin-slow': 'spin 2s linear infinite',
+        'kitt-rider': 'kitt-rider 3s linear infinite',
+        'gradient-x': 'gradient-x 5s ease-in-out infinite',
+      },
+      keyframes: {
+        'kitt-rider': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        'gradient-x': {
+          '0%, 100%': {
+            'background-size': '200% 100%',
+            'background-position': 'left center',
+          },
+          '50%': {
+            'background-size': '200% 100%',
+            'background-position': 'right center',
+          },
+        },
+      },
+      backgroundSize: {
+        '200%': '200% 100%',
       },
     },
     // Don't mess with the scaling. rem == root em (ie. <html>). Everything is relative to that.

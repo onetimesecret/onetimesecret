@@ -69,8 +69,8 @@
       "burn_confirmation_title": "Burn Secret Confirmation",
       "burn_confirmation_message": "Are you sure you want to burn this secret? This action cannot be undone.",
       "confirm_burn": "Yes, burn this secret",
-      "burn_security_notice": "For security, burning a secret will permanently delete it and prevent anyone from accessing it.",
-      "share_link_securely": "Share this link securely via a separate channel",
+      "burn_security_notice": "Burning a secret will delete it before it has been received.",
+      "share_link_securely": "For security, share this link separately from other details.",
       "copied_to_clipboard": "Copied to clipboard"
     },
     "LABELS": {

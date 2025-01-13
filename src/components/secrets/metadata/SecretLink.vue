@@ -46,36 +46,49 @@
 <template>
   <div
     class="relative overflow-hidden rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-    <!-- Success Indicator - Changes color based on state -->
-    <div
-      class="absolute top-0 left-0 w-full h-1"
-      :class="[
-        isInitialView
-          ? 'bg-gradient-to-r from-green-400 to-green-600'
-          : 'bg-gradient-to-r from-brand-400 to-brand-600'
-      ]">
+    <!-- Momentum Indicator - Changes color based on state -->
+    <div class="absolute top-0 left-0 w-full h-1 overflow-hidden">
+      <div
+        class="w-full h-full bg-200% animate-gradient-x"
+        :class="[
+          isInitialView
+            ? 'bg-gradient-to-r from-green-400 via-green-600 to-green-400'
+            : 'bg-gradient-to-r from-amber-400 via-amber-600 to-amber-300'
+        ]">
+      </div>
     </div>
 
     <!-- Initial Success Message - Only shown on first view -->
     <div
       v-if="isInitialView"
-      class="flex items-center gap-2 mb-2 px-4 pt-3 text-sm text-green-600 dark:text-green-400">
+      class="flex items-center gap-2 mb-2 px-4 pt-3 text-base font-brand text-green-600 dark:text-green-400">
       <OIcon
         collection="mdi"
         name="check-circle"
-        class="w-4 h-4"
+        class="size-5"
         aria-hidden="true" />
-      <span>{{ $t('web.private.created_success') }}</span>
+        <span>{{ $t('web.private.created_success') }}</span>
+    </div>
+
+    <!-- Subsequent Message - Shown after first view -->
+    <div
+      class="flex items-center gap-2 mb-2 px-4 pt-3 text-sm font-mono text-gray-500 mt-2">
+      <OIcon
+        collection="material-symbols"
+        name="key-vertical"
+        class="size-4"
+        aria-hidden="true" />
+      <span>{{ record.secret_shortkey }}</span>
     </div>
 
     <!-- Secret Link Display -->
-    <div class="flex items-center px-4 py-3">
+    <div class="flex items-start px-4 py-3">
       <div class="flex-grow min-w-0">
         <textarea
           ref="linkInput"
           readonly
           :value="record.share_url"
-          class="w-full bg-transparent border-0 text-gray-900 font-mono text-sm sm:text-base dark:text-gray-100 focus:ring-0 resize-none"
+          class="w-full bg-transparent border-0 text-gray-900 font-mono text-sm sm:text-base dark:text-gray-100 focus:ring-0 resize-none pt-1"
           aria-label="Secret link"></textarea>
       </div>
 
