@@ -104,18 +104,19 @@
       "destroyed": "Destroyed",
       "expiring_soon": "Expiring Soon",
       "created": "Created",
+      "created_description": "",
       "expires": "Expires",
-      "processing": "Processing",
+      "orphaned": "Orphaned",
       "secured": "Secured",
       "securing": "Securing",
       "time_remaining": "Time Remaining",
       "expired": "Expired",
-      "active_description": "Secret is active and ready to be viewed",
-      "received_description": "Secret has been viewed by the recipient",
+      "viewed_description": "Secret link has been opened and ready to be viewed",
+      "received_description": "Secret has been revealed to the recipient",
       "burned_description": "Secret was manually burned before being viewed",
       "destroyed_description": "Secret has been permanently destroyed",
       "expiring_soon_description": "Secret will expire soon",
-      "processing_description": "Secret is being processed"
+      "orphaned_description": "Secret has been orphaned and will be destroyed soon"
     },
     "FEATURES": {
       "unlimited_views": "Unlimited Views",
