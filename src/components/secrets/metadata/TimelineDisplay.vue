@@ -132,14 +132,29 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
         <div class="flex-grow group-hover:translate-x-1 transition-transform duration-200">
           <p class="text-sm font-brand text-gray-900 dark:text-gray-100">
           {{ progress >= 100 ? $t('web.STATUS.expired') : $t('web.STATUS.expires') }}
-
           </p>
 
           <!-- Expiration Progress Bar -->
-          <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-          <div class="bg-red-500 h-1.5 rounded-full transition-[width] duration-1000 ease-linear"
-               :style="{ width: `${progress}%` }"
-               :title="`${progress.toFixed(1)}% elapsed`"></div>
+          <div class="relative group/progress">
+            <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+              <div class="bg-red-500 h-1.5 rounded-full transition-[width] duration-1000 ease-linear"
+                   :style="{ width: `${progress}%` }"></div>
+            </div>
+
+            <!-- Tooltip -->
+            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+                        opacity-0 group-hover/progress:opacity-100
+                        transition-opacity duration-200
+                        whitespace-nowrap
+                        px-2 py-1 text-xs
+                        bg-gray-900 dark:bg-gray-800
+                        text-white dark:text-gray-100
+                        rounded shadow-lg">
+                        {{ timeRemaining }}
+              <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-px
+                          border-4 border-transparent
+                          border-t-gray-900 dark:border-t-gray-800"></div>
+            </div>
           </div>
 
           <time :datetime="expirationDate.toISOString()"
