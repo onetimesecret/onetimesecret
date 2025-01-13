@@ -64,8 +64,9 @@ module Onetime::Logic
 
       def process_ttl
         @ttl = payload[:ttl].to_i
-        @ttl = plan.options[:ttl] if @ttl <= 0 || @ttl >= plan.options[:ttl]
-        @ttl = 5.minutes if @ttl < 1.minute
+        @ttl = plan.options[:ttl] if @ttl >= plan.options[:ttl]
+        @ttl = 7.days if @ttl <= 0
+        @ttl = 1.minute if @ttl < 1.minute # minimum ttl, was 5m prior to 2025-01-12
       end
 
       def process_secret
