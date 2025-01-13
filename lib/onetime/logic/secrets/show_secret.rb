@@ -1,5 +1,4 @@
-
-
+# lib/onetime/logic/secrets/show_secret.rb
 
 module Onetime::Logic
   module Secrets
@@ -58,14 +57,13 @@ module Onetime::Logic
 
         elsif continue && secret.has_passphrase? && !correct_passphrase
           limit_action :failed_passphrase
-          # TODO: Something happens like:
-          # elsif req.post? && !logic.correct_passphrase
-          #   view.add_error view.i18n[:COMMON][:error_passphrase]
         end
 
         @display_lines = calculate_display_lines
         @is_owner = secret.owner?(cust)
         @one_liner = one_liner
+
+        secret.viewed! if secret.state?(:new)
       end
 
       def success_data

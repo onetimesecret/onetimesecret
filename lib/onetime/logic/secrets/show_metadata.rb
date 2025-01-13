@@ -7,7 +7,7 @@ module Onetime::Logic
       # Working variables
       attr_reader :key, :metadata, :secret
       # Template variables
-      attr_reader :metadata_key, :metadata_shortkey, :secret_key,
+      attr_reader :metadata_key, :metadata_shortkey, :secret_key, :secret_state,
             :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
             :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
@@ -71,6 +71,7 @@ module Onetime::Logic
           @is_destroyed = @is_burned || @is_received || @is_orphaned
 
         else
+          @secret_state = secret.state
           @secret_realttl = secret.realttl
           @maxviews = secret.maxviews
           @has_maxviews = @maxviews > 1
@@ -147,7 +148,9 @@ module Onetime::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        metadata.viewed!
+        # We mark the metadata record viewed so that we can support showing the
+        # secret link on the metadata page, just the one time.
+        metadata.viewed! if metadata.state?(:new)
       end
 
       def one_liner
@@ -173,6 +176,7 @@ module Onetime::Logic
 
         # Add additional attributes not included in safe dump
         attributes.merge!({
+          secret_state: secret_state, # can be nil (e.g. if secret is consumed)
           natural_expiration: natural_expiration,
           expiration: expiration,
           expiration_in_seconds: expiration_in_seconds,

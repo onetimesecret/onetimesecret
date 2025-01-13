@@ -97,7 +97,8 @@
       "help_section": "Help Section"
     },
     "STATUS": {
-      "active": "Active",
+      "new": "New",
+      "viewed": "Link opened",
       "received": "Received",
       "burned": "Burned",
       "destroyed": "Destroyed",

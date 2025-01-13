@@ -63,6 +63,7 @@ export const metadataBaseSchema = createModelSchema({
 export const metadataSchema = metadataBaseSchema.merge(
   z.object({
     secret_key: z.string().optional(),
+    secret_state: metadataStateSchema.nullable(),
     natural_expiration: z.string(),
     expiration: transforms.fromString.date,
     expiration_in_seconds: transforms.fromString.number,
