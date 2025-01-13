@@ -8,6 +8,7 @@
   interface Props {
     record: Metadata;
     details: MetadataDetails;
+    isInitialView: boolean;
   }
 
   defineProps<Props>();
@@ -45,23 +46,31 @@
 <template>
   <div
     class="relative overflow-hidden rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-    <!-- Success Indicator (Subtle) -->
+    <!-- Success Indicator - Changes color based on state -->
     <div
-      class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
+      class="absolute top-0 left-0 w-full h-1"
+      :class="[
+        isInitialView
+          ? 'bg-gradient-to-r from-green-400 to-green-600'
+          : 'bg-gradient-to-r from-brand-400 to-brand-600'
+      ]">
+    </div>
+
+    <!-- Initial Success Message - Only shown on first view -->
+    <div
+      v-if="isInitialView"
+      class="flex items-center gap-2 mb-2 px-4 pt-3 text-sm text-green-600 dark:text-green-400">
+      <OIcon
+        collection="mdi"
+        name="check-circle"
+        class="w-4 h-4"
+        aria-hidden="true" />
+      <span>{{ $t('web.private.created_success') }}</span>
+    </div>
 
     <!-- Secret Link Display -->
     <div class="flex items-center px-4 py-3">
       <div class="flex-grow min-w-0">
-        <div
-          class="flex items-center gap-2 mb-2 text-sm text-green-600 dark:text-green-400">
-          <OIcon
-            collection="mdi"
-            name="check-circle"
-            class="w-4 h-4"
-            aria-hidden="true" />
-          <span>{{ $t('web.private.created_success') }}</span>
-        </div>
-
         <textarea
           ref="linkInput"
           readonly

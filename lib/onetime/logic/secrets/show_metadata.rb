@@ -12,7 +12,7 @@ module Onetime::Logic
             :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
-            :show_secret, :show_secret_link, :show_metadata_link,
+            :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
             :show_metadata, :show_recipients, :share_domain, :is_orphaned
       attr_reader :share_path, :burn_path, :metadata_path, :share_url,
             :metadata_url, :burn_url, :display_lines
@@ -148,6 +148,9 @@ module Onetime::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
+        # Dump the metadata attributes before marking as viewed
+        @metadata_attributes = self._metadata_attributes
+
         # We mark the metadata record viewed so that we can support showing the
         # secret link on the metadata page, just the one time.
         metadata.viewed! if metadata.state?(:new)
@@ -167,7 +170,7 @@ module Onetime::Logic
 
       private
 
-      def metadata_attributes
+      def _metadata_attributes
         # Start with safe metadata attributes
         attributes = metadata.safe_dump
 
@@ -196,10 +199,6 @@ module Onetime::Logic
           type: 'record',
           display_lines: display_lines,
           no_cache: no_cache,
-          is_received: is_received,
-          is_burned: is_burned,
-          is_orphaned: is_orphaned,
-          is_destroyed: is_destroyed,
           secret_realttl: secret_realttl,
           maxviews: maxviews,
           has_maxviews: has_maxviews,

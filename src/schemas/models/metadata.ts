@@ -53,13 +53,16 @@ export const metadataBaseSchema = createModelSchema({
   state: metadataStateSchema,
   received: transforms.fromString.dateNullable.optional(),
   burned: transforms.fromString.dateNullable.optional(),
+  viewed: transforms.fromString.dateNullable.optional(),
   // There is no "orphaned" time field. We use updated. To be orphaned is an
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are linked to user actions, we don't know
   // when the metadata got into an orphaned state; only when we flagged it.
-  is_destroyed: transforms.fromString.boolean,
+  is_viewed: transforms.fromString.boolean,
   is_received: transforms.fromString.boolean,
   is_burned: transforms.fromString.boolean,
+  is_destroyed: transforms.fromString.boolean,
+  is_orphaned: transforms.fromString.boolean.nullable().optional(),
 });
 
 // Metadata shape in single record view
