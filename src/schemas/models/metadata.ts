@@ -49,7 +49,7 @@ export const metadataBaseSchema = createModelSchema({
   shortkey: z.string(),
   secret_shortkey: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).optional(),
-  share_domain: z.string().optional(),
+  share_domain: z.string().nullable().optional(),
   state: metadataStateSchema,
   received: transforms.fromString.dateNullable.optional(),
   burned: transforms.fromString.dateNullable.optional(),
@@ -57,13 +57,16 @@ export const metadataBaseSchema = createModelSchema({
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are linked to user actions, we don't know
   // when the metadata got into an orphaned state; only when we flagged it.
+  is_destroyed: transforms.fromString.boolean,
+  is_received: transforms.fromString.boolean,
+  is_burned: transforms.fromString.boolean,
 });
 
 // Metadata shape in single record view
 export const metadataSchema = metadataBaseSchema.merge(
   z.object({
-    secret_key: z.string().optional(),
-    secret_state: metadataStateSchema.nullable(),
+    secret_key: z.string().nullable().optional(),
+    secret_state: metadataStateSchema.nullable().optional(),
     natural_expiration: z.string(),
     expiration: transforms.fromString.date,
     expiration_in_seconds: transforms.fromString.number,
@@ -82,7 +85,7 @@ export const metadataDetailsSchema = z.object({
   type: z.literal('record'),
   display_lines: transforms.fromString.number,
   no_cache: transforms.fromString.boolean,
-  secret_realttl: z.number().nullable(),
+  secret_realttl: z.number().nullable().optional(),
   maxviews: transforms.fromString.number,
   has_maxviews: transforms.fromString.boolean,
   view_count: transforms.fromString.number.nullable(),
@@ -94,9 +97,6 @@ export const metadataDetailsSchema = z.object({
   show_metadata_link: transforms.fromString.boolean,
   show_metadata: transforms.fromString.boolean,
   show_recipients: transforms.fromString.boolean,
-  is_destroyed: transforms.fromString.boolean,
-  is_received: transforms.fromString.boolean,
-  is_burned: transforms.fromString.boolean,
   is_orphaned: transforms.fromString.boolean,
 });
 
