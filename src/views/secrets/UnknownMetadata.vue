@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
+  import OIcon from '@/components/icons/OIcon.vue';
 </script>
 
 <template>
@@ -10,21 +11,11 @@
   class="my-14">
   <template #header="{}">
     <div class="mb-8 flex justify-center items-center flex-col">
-      <svg
-        class="mx-auto mb-4 size-20 text-brand-500"
-        width="60"
-        height="60"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true">
-        <path
-          d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round" />
-      </svg>
+      <OIcon
+        collection="heroicons"
+        name="question-mark-circle-16-solid"
+        class="w-16 h-16 mb-6 text-red-500 dark:text-red-400"
+        aria-hidden="true" />
       <h1
         class="mb-6 text-3xl font-bold text-gray-800 dark:text-white text-center"
         aria-label="Information no longer available">
