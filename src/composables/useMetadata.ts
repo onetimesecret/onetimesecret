@@ -28,6 +28,11 @@ export function useMetadata(metadataKey: string) {
   const isLoading = ref(false);
   const error = ref<ApplicationError | null>(null);
 
+  // const hasPassphrase = computed(
+  //   // TODO: could be more consistent
+  //   () => !details?.can_decrypt && !record?.is_received && !record?.is_destroyed
+  // );
+
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) =>
       notifications.show(message, severity as NotificationSeverity),
@@ -44,7 +49,7 @@ export function useMetadata(metadataKey: string) {
       return result;
     });
 
-  const handleBurn = () =>
+  const burn = () =>
     wrap(async () => {
       if (!canBurn.value) {
         throw createError('Cannot burn this secret', 'human', 'error');
@@ -81,7 +86,7 @@ export function useMetadata(metadataKey: string) {
 
     // Actions
     fetch,
-    burn: handleBurn,
+    burn,
     reset,
   };
 }

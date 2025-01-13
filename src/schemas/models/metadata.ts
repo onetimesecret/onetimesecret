@@ -33,6 +33,7 @@ export const MetadataState = {
   RECEIVED: 'received',
   BURNED: 'burned',
   VIEWED: 'viewed',
+  EXPIRED: 'expired',
   ORPHANED: 'orphaned',
 } as const;
 
@@ -49,22 +50,30 @@ export const metadataBaseSchema = createModelSchema({
   shortkey: z.string(),
   secret_shortkey: z.string().optional(),
   recipients: z.array(z.string()).or(z.string()).optional(),
-  share_domain: z.string().optional(),
+  share_domain: z.string().nullable().optional(),
   state: metadataStateSchema,
   received: transforms.fromString.dateNullable.optional(),
   burned: transforms.fromString.dateNullable.optional(),
+  viewed: transforms.fromString.dateNullable.optional(),
   // There is no "orphaned" time field. We use updated. To be orphaned is an
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are linked to user actions, we don't know
   // when the metadata got into an orphaned state; only when we flagged it.
+  is_viewed: transforms.fromString.boolean,
+  is_received: transforms.fromString.boolean,
+  is_burned: transforms.fromString.boolean,
+  is_destroyed: transforms.fromString.boolean,
+  is_orphaned: transforms.fromString.boolean.nullable().optional(),
 });
 
 // Metadata shape in single record view
 export const metadataSchema = metadataBaseSchema.merge(
   z.object({
-    secret_key: z.string().optional(),
+    secret_key: z.string().nullable().optional(),
+    secret_state: metadataStateSchema.nullable().optional(),
     natural_expiration: z.string(),
     expiration: transforms.fromString.date,
+    expiration_in_seconds: transforms.fromString.number,
     share_path: z.string(),
     burn_path: z.string(),
     metadata_path: z.string(),
@@ -83,7 +92,7 @@ export const metadataDetailsSchema = z.object({
   secret_realttl: z.number().nullable().optional(),
   maxviews: transforms.fromString.number,
   has_maxviews: transforms.fromString.boolean,
-  view_count: transforms.fromString.number,
+  view_count: transforms.fromString.number.nullable(),
   has_passphrase: transforms.fromString.boolean,
   can_decrypt: transforms.fromString.boolean,
   secret_value: z.string().nullable().optional(),
@@ -92,12 +101,14 @@ export const metadataDetailsSchema = z.object({
   show_metadata_link: transforms.fromString.boolean,
   show_metadata: transforms.fromString.boolean,
   show_recipients: transforms.fromString.boolean,
-  is_destroyed: transforms.fromString.boolean,
-  is_received: transforms.fromString.boolean,
-  is_burned: transforms.fromString.boolean,
-  is_orphaned: transforms.fromString.boolean,
+  is_orphaned: transforms.fromString.boolean.nullable().optional(),
+  is_expired: transforms.fromString.boolean.nullable().optional(),
 });
 
 // Export types
 export type Metadata = z.infer<typeof metadataSchema>;
 export type MetadataDetails = z.infer<typeof metadataDetailsSchema>;
+
+export function isValidMetadataState(state: string): state is MetadataState {
+  return Object.values(MetadataState).includes(state as MetadataState);
+}

@@ -59,7 +59,9 @@
         :details="details"></slot>
 
       <!-- Global Loading State -->
-      <div v-if="state.isLoading" class="animate-pulse space-y-6 p-4">
+      <div
+        v-if="state.isLoading"
+        class="animate-pulse space-y-6 p-4">
         <!-- Header/Title Placeholder -->
         <div class="h-8 w-1/3 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
 
@@ -76,14 +78,6 @@
         </div>
       </div>
 
-      <!-- Error State -->
-      <template v-else-if="state.error">
-        <slot
-          name="error"
-          :error="state.error"
-          :branded="branded"></slot>
-      </template>
-
       <!-- Unknown Secret State -->
       <template v-else-if="!record">
         <slot
@@ -91,6 +85,14 @@
           :branded="branded"
           :details="details">
         </slot>
+      </template>
+
+      <!-- Error State -->
+      <template v-else-if="state.error">
+        <slot
+          name="error"
+          :error="state.error"
+          :branded="branded"></slot>
       </template>
 
       <!-- Main Content - Valid Secret -->

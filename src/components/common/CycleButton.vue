@@ -37,7 +37,7 @@ const displayValue = computed(() => {
 
 const getCurrentIcon = computed(() => {
   const value = props.modelValue ?? props.defaultValue;
-  return props.iconMap[value] || 'ph-question-bold';
+  return props.iconMap[value] || 'material-symbols-question-mark';
 });
 
 const cycleValue = () => {

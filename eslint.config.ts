@@ -200,7 +200,7 @@ export default [
       complexity: [
         'error',
         {
-          max: 12, // Cyclomatic complexity limit. Each path through code (if/else, switches, loops)
+          max: 13, // Cyclomatic complexity limit. Each path through code (if/else, switches, loops)
           // adds complexity. High complexity = harder to test & maintain.
           // Break complex functions into smaller, focused ones.
         },

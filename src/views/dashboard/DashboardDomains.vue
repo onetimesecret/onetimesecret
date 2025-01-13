@@ -8,7 +8,7 @@ import { useDomainsManager } from '@/composables/useDomainsManager';
 import { WindowService } from '@/services/window.service';
 import { computed, onMounted, ref } from 'vue';
 import type { Plan, CustomDomain } from '@/schemas/models';
-import TableSkeleton from '@/components/TableSkeleton.vue'
+import TableSkeleton from '@/components/closet/TableSkeleton.vue'
 
 const plan = ref<Plan>(WindowService.get('plan'));
 

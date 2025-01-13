@@ -20,7 +20,7 @@ const validateSecretKey = (key: string | string[]): key is string =>
 const withValidatedSecretKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
     const isValid = validateSecretKey(to.params.secretKey);
-    console.log('route.params.secretKey:', to.params.secretKey);
+
     if (!isValid) {
       return { name: 'Not Found' };
     }
@@ -31,8 +31,8 @@ const withValidatedSecretKey = {
 } as const;
 
 /**
-* Routes
-*/
+ * Routes
+ */
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/secret/:secretKey',

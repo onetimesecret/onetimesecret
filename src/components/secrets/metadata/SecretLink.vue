@@ -1,101 +1,132 @@
+<!-- StatusLink -->
+<!-- older -->
 <script setup lang="ts">
-import { useClipboard } from '@/composables/useClipboard'
-import { Metadata, MetadataDetails } from '@/schemas/models'
+  import type { Metadata, MetadataDetails } from '@/schemas/models';
+  import OIcon from '@/components/icons/OIcon.vue';
+  import { ref } from 'vue';
 
-interface Props {
-  metadata: Metadata;
-  details: MetadataDetails;
-}
+  interface Props {
+    record: Metadata;
+    details: MetadataDetails;
+    isInitialView: boolean;
+  }
 
-const props = defineProps<Props>()
+  defineProps<Props>();
 
-const { isCopied, copyToClipboard } = useClipboard()
+  const copied = ref(false);
+  const showToast = ref(false);
+  const linkInput = ref<HTMLInputElement>();
 
-const copySecretUrl = () => {
-  copyToClipboard(props.metadata.share_url)
-}
+  const copyToClipboard = async () => {
+    if (!linkInput.value) return;
+
+    try {
+      await navigator.clipboard.writeText(linkInput.value.value);
+      copied.value = true;
+      showToast.value = true;
+
+      // Reset copy icon
+      setTimeout(() => {
+        copied.value = false;
+      }, 2000);
+
+      // Hide toast
+      setTimeout(() => {
+        showToast.value = false;
+      }, 1500);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+
+      linkInput.value.select();
+      document.execCommand('copy'); // fallback for older browsers
+    }
+  };
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-xl border-2 border-brand-100 bg-gradient-to-b from-brand-50/40 to-brand-50/20 shadow-sm dark:border-brand-900 dark:from-brand-950/40 dark:to-brand-950/20">
-    <!-- Encryption Status -->
-    <div
-      v-if="details.has_passphrase"
-      class="flex items-center gap-2.5 border-b border-brand-100/50 bg-amber-50/50 px-4 py-2.5 dark:border-brand-900/50 dark:bg-amber-950/30">
-      <svg
-        class="size-4 text-amber-500"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-        />
-      </svg>
-      <span class="text-sm font-medium text-amber-700 dark:text-amber-400">
-        Protected with passphrase
-      </span>
+  <div
+    class="relative overflow-hidden rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+    <!-- Momentum Indicator - Changes color based on state -->
+    <div class="absolute top-0 left-0 w-full h-1 overflow-hidden">
+      <div
+        class="w-full h-full bg-200% animate-gradient-x"
+        :class="[
+          isInitialView
+            ? 'bg-gradient-to-r from-green-400 via-green-600 to-green-400'
+            : 'bg-gradient-to-r from-amber-400 via-amber-600 to-amber-300'
+        ]">
+      </div>
     </div>
 
-    <!-- Share URL Section -->
-    <div class="p-5">
-      <label
-        for="secreturi"
-        class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Secret Share Link
-      </label>
+    <!-- Initial Success Message - Only shown on first view -->
+    <div
+      v-if="isInitialView"
+      class="flex items-center gap-2 mb-2 px-4 pt-3 text-base font-brand text-green-600 dark:text-green-400">
+      <OIcon
+        collection="mdi"
+        name="check-circle"
+        class="size-5"
+        aria-hidden="true" />
+        <span>{{ $t('web.private.created_success') }}</span>
+    </div>
 
-      <div class="group relative mt-1.5">
-        <input
-          id="secreturi"
-          class="w-full rounded-lg border-2 border-gray-200 bg-white/80 px-4 py-3 pr-12
-                      font-mono text-sm shadow-sm transition-colors
-                      focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-2
-                      focus:ring-brand-500/20 dark:border-gray-800 dark:bg-gray-900/80
-                      dark:text-gray-200 dark:focus:bg-gray-900"
-          :value="metadata.share_url"
+    <!-- Subsequent Message - Shown after first view -->
+    <div
+      class="flex items-center gap-2 mb-2 px-4 pt-3 text-sm font-mono text-gray-500 mt-2">
+      <OIcon
+        collection="material-symbols"
+        name="key-vertical"
+        class="size-4"
+        aria-hidden="true" />
+      <span>{{ record.secret_shortkey }}</span>
+    </div>
+
+    <!-- Secret Link Display -->
+    <div class="flex items-start px-4 py-3">
+      <div class="flex-grow min-w-0">
+        <textarea
+          ref="linkInput"
           readonly
-          aria-label="Secret sharing URL"
-        />
+          :value="record.share_url"
+          class="w-full bg-transparent border-0 text-gray-900 font-mono text-sm sm:text-base dark:text-gray-100 focus:ring-0 resize-none pt-1"
+          aria-label="Secret link"></textarea>
+      </div>
 
+      <div class="flex-shrink-0 ml-4">
         <button
-          @click="copySecretUrl"
-          :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
-          class="absolute inset-y-0 right-0 flex items-center justify-center px-3.5
-                       text-gray-400 transition-colors hover:text-brand-600
-                       group-hover:text-gray-500 dark:text-gray-500
-                       dark:hover:text-brand-400 dark:group-hover:text-gray-400"
-          :aria-label="isCopied ? 'URL copied' : 'Copy URL to clipboard'">
-          <svg
-            v-if="!isCopied"
-            class="size-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          </svg>
-          <svg
-            v-else
-            class="size-5 text-emerald-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+          @click="copyToClipboard"
+          class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors duration-150"
+          :class="{ 'text-green-500 dark:text-green-400': copied }">
+          <OIcon
+            collection="material-symbols"
+            :name="copied ? 'check' : 'content-copy-outline'"
+            class="w-5 h-5" />
+          <span class="sr-only">{{ copied ? 'Copied!' : 'Copy to clipboard' }}</span>
         </button>
       </div>
+    </div>
+
+    <!-- Security Notice -->
+    <div
+      class="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
+        <OIcon
+          collection="material-symbols"
+          name="shield-outline"
+          class="w-4 h-4 mr-2" />
+        {{ $t('web.COMMON.share_link_securely') }}
+      </div>
+    </div>
+
+    <!-- Copy Feedback Toast -->
+    <div
+      v-if="showToast"
+      class="absolute top-3 right-3 px-3 py-1.5 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded-md shadow-lg transform transition-all duration-300"
+      :class="{
+        'opacity-0 translate-y-1': !showToast,
+        'opacity-100 translate-y-0': showToast,
+      }">
+      {{ $t('web.COMMON.copied_to_clipboard') }}
     </div>
   </div>
 </template>
