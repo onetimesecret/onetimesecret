@@ -71,7 +71,7 @@ module Onetime
     end
 
     def viewable?
-      has_key?(:value) && (state?(:new) || !maxviews?)
+      has_key?(:value) && (state?(:new) || state?(:viewed) || !maxviews?)
     end
 
     def age
@@ -191,7 +191,7 @@ module Onetime
     def burned!
       # A guard to allow only a fresh, new secret to be burned. Also ensures that
       # we don't support going from :burned back to something else.
-      return unless state?(:new)
+      return unless state?(:new) || state?(:viewed)
       md = load_metadata
       md.burned! unless md.nil?
       @passphrase_temp = nil

@@ -52,6 +52,7 @@ module Onetime::Logic
 
         # Add required URL fields
         attributes.merge!({
+          # secret_state: 'burned',
           natural_expiration: natural_duration(metadata.ttl.to_i),
           expiration: (metadata.ttl.to_i + metadata.created.to_i),
           expiration_in_seconds: (metadata.ttl.to_i),
@@ -72,21 +73,18 @@ module Onetime::Logic
             display_lines: 0,
             display_feedback: false,
             no_cache: true,
-            is_received: metadata.state?(:received),
-            is_burned: metadata.state?(:burned),
-            is_destroyed: metadata.state?(:burned) || metadata.state?(:received),
             maxviews: 0,
             has_maxviews: false,
             view_count: 0,
             has_passphrase: false,
             can_decrypt: false,
-            secret_value: nil,
             is_truncated: false,
             show_secret: false,
             show_secret_link: false,
             show_metadata_link: false,
             show_metadata: true,
-            show_recipients: !metadata.recipients.to_s.empty?
+            show_recipients: !metadata.recipients.to_s.empty?,
+            is_orphaned: false,
           }
         }
       end
