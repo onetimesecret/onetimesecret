@@ -51,6 +51,7 @@ export const mockMetadataRecord: Metadata = {
   state: MetadataState.NEW,
   natural_expiration: '24 hours',
   expiration: new Date('2024-12-26T00:06:54Z'),
+  expiration_in_seconds: 86400,
   share_path: '/share/abc123',
   burn_path: '/burn/abc123',
   metadata_path: '/metadata/abc123',

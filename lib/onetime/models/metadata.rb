@@ -31,6 +31,8 @@ module Onetime
     # into a hidden field which is something a regular person would not do.
     field :token
 
+    # NOTE: Safe dump fields are loaded once at start time so they're
+    # immune to hot reloads.
     @safe_dump_fields = [
       { :identifier => ->(obj) { obj.identifier } },
       :key,
@@ -44,11 +46,13 @@ module Onetime
       :shared,
       :received,
       :burned,
+      :viewed,
       :recipients,
 
       { :shortkey => ->(m) { m.key.slice(0, 8) } },
       { :show_recipients => ->(m) { !m.recipients.to_s.empty? } },
 
+      { :is_viewed => ->(m) { m.state?(:viewed) } },
       { :is_received => ->(m) { m.state?(:received) } },
       { :is_burned => ->(m) { m.state?(:burned) } },
       { :is_destroyed => ->(m) { m.state?(:received) || m.state?(:burned) } },

@@ -51,7 +51,9 @@ export const parseDateValue = (val: unknown): Date | null => {
   return null;
 };
 
-
+// TODO: `parseDateValue` and `parseDateValueSimple` are redundant. Keep
+// `parseDateValueSimple` as it's cleaner and handles all cases. Needs
+// more testing to confirm it's safe to replace `parseDateValue` with it.
 export const parseDateValueSimple = (val: unknown): Date | null => {
   if (val === null || val === undefined || val === '') return null;
   if (val instanceof Date) return val;
@@ -89,6 +91,16 @@ export const parseDateValueSimple = (val: unknown): Date | null => {
 
   return null;
 };
+
+export const formatLocalDateTime = (date: Date): string =>
+  date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 
 // original:
 // export const parseDateValue = (val: unknown): Date | null => {

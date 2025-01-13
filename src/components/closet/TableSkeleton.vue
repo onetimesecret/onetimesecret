@@ -1,4 +1,4 @@
-<!-- components/TableSkeleton.vue -->
+<!-- src/components/closet/TableSkeleton.vue -->
 
 <template>
   <div class="animate-pulse">

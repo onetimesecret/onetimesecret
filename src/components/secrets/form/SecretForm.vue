@@ -7,12 +7,9 @@
   import GenerateButton from './GenerateButton.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
   import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
-  import {
-    useSecretConcealer,
-  } from '@/composables/useSecretConcealer';
+  import { useSecretConcealer } from '@/composables/useSecretConcealer';
   import { useDomainDropdown } from '@/composables/useDomainDropdown';
   import { useProductIdentity } from '@/stores/identityStore';
-
 
   const productIdentity = useProductIdentity();
 
@@ -30,23 +27,22 @@
     withGenerate: false,
   });
 
-  const { formData, isSubmitting, error, generate, conceal, hasInitialContent } = useSecretConcealer();
+  const { formData, isSubmitting, error, generate, conceal, hasInitialContent } =
+    useSecretConcealer();
+
+  const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
+    useDomainDropdown();
 
   const updateContent = (content: string) => {
     formData.value.secret = content;
   };
-
-  const {
-    availableDomains,
-    selectedDomain,
-    domainsEnabled,
-    updateSelectedDomain,
-  } = useDomainDropdown();
 </script>
 
 <template>
   <div class="min-w-[320px]">
-    <BasicFormAlerts :error="error" class="hidden" />
+    <BasicFormAlerts
+      :error="error"
+      class="hidden" />
 
     <!--
         Domain selection and persistence logic:
@@ -81,9 +77,9 @@
         :with-recipient="props.withRecipient"
         :with-expiry="true"
         :with-passphrase="true"
-        @update:ttl="(val) => formData.ttl = val"
-        @update:passphrase="(val) => formData.passphrase = val"
-        @update:recipient="(val) => formData.recipient = val" />
+        @update:ttl="(val) => (formData.ttl = val)"
+        @update:passphrase="(val) => (formData.passphrase = val)"
+        @update:recipient="(val) => (formData.recipient = val)" />
 
       <div class="mb-4 flex w-full space-x-2">
         <Suspense v-if="withGenerate">

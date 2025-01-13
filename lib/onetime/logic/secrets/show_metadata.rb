@@ -7,12 +7,12 @@ module Onetime::Logic
       # Working variables
       attr_reader :key, :metadata, :secret
       # Template variables
-      attr_reader :metadata_key, :metadata_shortkey, :secret_key,
-            :secret_shortkey, :recipients, :no_cache,
+      attr_reader :metadata_key, :metadata_shortkey, :secret_key, :secret_state,
+            :secret_shortkey, :recipients, :no_cache, :expiration_in_seconds,
             :natural_expiration, :is_received, :is_burned, :secret_realttl,
             :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
-            :show_secret, :show_secret_link, :show_metadata_link,
+            :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
             :show_metadata, :show_recipients, :share_domain, :is_orphaned
       attr_reader :share_path, :burn_path, :metadata_path, :share_url,
             :metadata_url, :burn_url, :display_lines
@@ -44,6 +44,7 @@ module Onetime::Logic
         @recipients = metadata.recipients.to_s
 
         @no_cache = true
+
         # Metadata now lives twice as long as the original secret.
         # Prior to the change they had the same value so we can
         # default to using the metadata ttl.
@@ -51,6 +52,7 @@ module Onetime::Logic
 
         @natural_expiration = natural_duration(ttl)
         @expiration = (ttl + metadata.created.to_i)
+        @expiration_in_seconds = ttl
 
         secret = metadata.load_secret
 
@@ -69,10 +71,11 @@ module Onetime::Logic
           @is_destroyed = @is_burned || @is_received || @is_orphaned
 
         else
+          @secret_state = secret.state
           @secret_realttl = secret.realttl
           @maxviews = secret.maxviews
-          @has_maxviews = true if @maxviews > 1
-          @view_count = secret.view_count # TODO: Remove
+          @has_maxviews = @maxviews > 1
+          @view_count = nil
           if secret.viewable?
             @has_passphrase = !secret.passphrase.to_s.empty?
             @can_decrypt = secret.can_decrypt?
@@ -145,7 +148,12 @@ module Onetime::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        metadata.viewed!
+        # Dump the metadata attributes before marking as viewed
+        @metadata_attributes = self._metadata_attributes
+
+        # We mark the metadata record viewed so that we can support showing the
+        # secret link on the metadata page, just the one time.
+        metadata.viewed! if metadata.state?(:new)
       end
 
       def one_liner
@@ -162,7 +170,7 @@ module Onetime::Logic
 
       private
 
-      def metadata_attributes
+      def _metadata_attributes
         # Start with safe metadata attributes
         attributes = metadata.safe_dump
 
@@ -171,8 +179,10 @@ module Onetime::Logic
 
         # Add additional attributes not included in safe dump
         attributes.merge!({
+          secret_state: secret_state, # can be nil (e.g. if secret is consumed)
           natural_expiration: natural_expiration,
           expiration: expiration,
+          expiration_in_seconds: expiration_in_seconds,
           share_path: share_path,
           burn_path: burn_path,
           metadata_path: metadata_path,
@@ -189,10 +199,6 @@ module Onetime::Logic
           type: 'record',
           display_lines: display_lines,
           no_cache: no_cache,
-          is_received: is_received,
-          is_burned: is_burned,
-          is_orphaned: is_orphaned,
-          is_destroyed: is_destroyed,
           secret_realttl: secret_realttl,
           maxviews: maxviews,
           has_maxviews: has_maxviews,
