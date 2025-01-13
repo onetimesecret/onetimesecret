@@ -11,6 +11,7 @@
   import UnknownMetadata from './UnknownMetadata.vue';
   import { useMetadata } from '@/composables/useMetadata';
   import { onMounted, onUnmounted, watch, computed } from 'vue';
+  import { useSecretExpiration, EXPIRATION_EVENTS } from '@/composables/useSecretExpiration';
 
   // Define props
   interface Props {
@@ -19,6 +20,11 @@
   const props = defineProps<Props>();
 
   const { record, details, isLoading, fetch, reset } = useMetadata(props.metadataKey);
+
+  const { onExpirationEvent } = useSecretExpiration(
+    record.value?.created ?? new Date(),
+    record.value?.expiration_in_seconds ?? 0
+  );
 
   const isAvailable = computed(() => {
     return !(
@@ -41,6 +47,15 @@
 
   onMounted(() => {
     fetch();
+
+    // Handle expiration events at page level
+    onExpirationEvent(EXPIRATION_EVENTS.EXPIRED, () => {
+      // Update UI state, show notifications etc
+    });
+
+    onExpirationEvent(EXPIRATION_EVENTS.WARNING, () => {
+      // Show warning notification
+    });
   });
 
   // Ensure cleanup when component unmounts

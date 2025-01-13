@@ -4,30 +4,43 @@
   import OIcon from '@/components/icons/OIcon.vue';
   import { useI18n } from 'vue-i18n';
   import { getDisplayStatus, type DisplayStatus, getStatusText } from '@/utils/status';
+  import { useSecretExpiration } from '@/composables/useSecretExpiration';
 
   interface Props {
     record: Metadata;
-    expiresIn?: number; // Time in seconds until expiration
   }
 
   const props = defineProps<Props>();
   const { t } = useI18n();
 
-  const status = computed(() => {
+  const { expirationState } = useSecretExpiration(
+    props.record.created,
+    props.record.expiration_in_seconds ?? 0
+  );
+
+  const status = computed((): DisplayStatus => {
     const stateValue = props.record.secret_state || props.record.state;
     const state = metadataStateSchema.parse(stateValue) as MetadataState;
 
-    return getDisplayStatus(state, props.expiresIn);
+    // Map expiration states to display states
+    if (expirationState.value === 'expired') {
+      return 'expired';
+    }
+    if (expirationState.value === 'warning') {
+      return 'expiring_soon';
+    }
+
+    return getDisplayStatus(state);
   });
 
+  // Status styling maps
   const statusClasses: Record<DisplayStatus, string> = {
     new: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
     unread: 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300',
     viewed: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
     burned: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
     received: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-    expiring_soon:
-      'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+    expiring_soon: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
     orphaned: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
     expired: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
   };
@@ -37,7 +50,7 @@
     unread: 'mark-email-unread-outline',
     viewed: 'mark-email-unread-outline',
     burned: 'local-fire-department-rounded',
-    received: 'mark-email-read-outline', // was 'block'
+    received: 'mark-email-read-outline',
     expiring_soon: 'timer-outline',
     orphaned: 'warning-outline',
     expired: 'timer-off-outline',
@@ -45,6 +58,7 @@
 
   const displayStatus = computed(() => getStatusText(status.value, t));
 
+  // Handle invalid states
   watchEffect(() => {
     if (!status.value) {
       console.error(
@@ -55,15 +69,26 @@
 </script>
 
 <template>
-  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
-        :class="[statusClasses[status], { 'animate-pulse': status === 'expiring_soon' }]"
-        :title="displayStatus.description"
-        role="status">
-    <OIcon collection="material-symbols"
-           :name="statusIcon[status]"
-           class="w-4 h-4 mr-1" />
-    {{ displayStatus.text }}
-  </span>
+<span
+  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-all duration-200"
+  :class="[
+    statusClasses[status],
+    {
+      'animate-pulse': status === 'expiring_soon',
+      'hover:scale-105': status !== 'expired',
+      'opacity-75': status === 'expired'
+    }
+  ]"
+  :title="displayStatus.description"
+  role="status"
+>
+  <OIcon
+    collection="material-symbols"
+    :name="statusIcon[status]"
+    class="w-4 h-4 mr-1"
+  />
+  {{ displayStatus.text }}
+</span>
 </template>
 
 <style scoped>

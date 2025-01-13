@@ -13,7 +13,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { progress, timeRemaining, expirationDate } = useSecretExpiration(
+const { progress, timeRemaining, expirationDate, expirationState } = useSecretExpiration(
   props.record.created,
   props.record.expiration_in_seconds ?? 0,
 );
@@ -24,7 +24,8 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
 </script>
 
 <template>
-  <div class="relative pt-4">
+  <div class="relative pt-4"
+    :class="{ 'opacity-50': expirationState === 'expired' }">
     <!-- Timeline Track -->
     <div class="absolute top-8 left-6 h-[calc(100%-4rem)] w-px bg-gray-200 dark:bg-gray-700"></div>
 
@@ -138,7 +139,8 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
           <div class="relative group/progress">
             <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
               <div class="bg-red-500 h-1.5 rounded-full transition-[width] duration-1000 ease-linear"
-                   :style="{ width: `${progress}%` }"></div>
+                   :style="{ width: `${progress}%` }"
+                   ></div>
             </div>
 
             <!-- Tooltip -->
