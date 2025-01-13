@@ -97,7 +97,7 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
           transition-transform duration-200
           group-hover:scale-110">
           <OIcon collection="material-symbols"
-                 name="local-fire-department"
+                 name="local-fire-department-rounded"
                  class="w-6 h-6 text-yellow-600 dark:text-yellow-400"
                  aria-hidden="true" />
         </div>

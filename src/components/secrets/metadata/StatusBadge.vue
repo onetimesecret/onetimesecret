@@ -34,7 +34,7 @@
   const statusIcon: Record<DisplayStatus, string> = {
     new: 'check-circle-outline',
     viewed: 'mark-email-read-outline',
-    burned: 'local-fire-department',
+    burned: 'local-fire-department-rounded',
     received: 'block',
     expiring_soon: 'timer-outline',
     orphaned: 'refresh',
