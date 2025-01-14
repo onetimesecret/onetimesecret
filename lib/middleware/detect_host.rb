@@ -103,7 +103,7 @@ module Rack
 
     def initialize(app, io: $stderr)
       @app = app
-      @logger = ::Logger.new(io)
+      @logger = ::Logger.new(io, level: ::Logger::INFO)
     end
 
     def call(env)
@@ -121,7 +121,7 @@ module Rack
           logger.debug("[DetectHost] #{host} via #{header_key}")
           break # stop on first valid host
         else
-          logger.debug("[DetectHost] Invalid host detected from #{header_key}: #{host}")
+          logger.warn("[DetectHost] Invalid host detected from #{header_key}: #{host}")
         end
       end
 
