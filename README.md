@@ -285,20 +285,32 @@ RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
 
 ###### Option B: Frontend Development Mode
 
-Best for active frontend development with live reloading:
+Best for active frontend development with live reloading. You have two options:
 
-1. Enable development mode in `etc/config.yaml`:
-   ```yaml
-   :development:
-     :enabled: true
-   ```
 
-2. Start the main server:
+1. Using the built-in proxy (easier):
+```yaml
+  :development:
+    :enabled: true
+    :frontend_host: 'http://localhost:5173'  # Built-in proxy handles /dist/* requests
+```
+
+2. Using a reverse proxy (like Caddy, nginx):
+```yaml
+  # etc/config.yaml
+  :development:
+    :enabled: true
+    :frontend_host: ''  # Let your reverse proxy handle /dist/* requests
+```
+
+Then:
+
+1. Start the main server:
    ```bash
    RACK_ENV=development bundle exec thin -R config.ru -p 3000 start
    ```
 
-3. Start the Vite dev server (in a separate terminal):
+2. Start the Vite dev server (in a separate terminal):
    ```bash
    pnpm run dev
    ```
@@ -307,13 +319,17 @@ Best for active frontend development with live reloading:
 
 When running in development mode (Option B), the application uses Vite's dev server for dynamic asset loading and hot module replacement. Here's how it works:
 
-- In development mode (`development.enabled: true`), the application loads assets dynamically from the Vite dev server:
+- In development mode (development.enabled: true), the application loads assets from /dist/*:
   ```html
   {{#frontend_development}}
-  <script type="module" src="{{ frontend_host }}/dist/main.ts"></script>
-  <script type="module" src="{{ frontend_host }}/dist/@vite/client"></script>
+  <script type="module" src="/dist/main.ts"></script>
+  <script type="module" src="/dist/@vite/client"></script>
   {{/frontend_development}}
   ```
+These requests are either:
+
+* Handled by the built-in proxy (when `frontend_host` is set)
+* Handled by your reverse proxy (when it's empty or not set)
 
 - In production mode (`development.enabled: false`), it uses pre-built static assets:
   ```html

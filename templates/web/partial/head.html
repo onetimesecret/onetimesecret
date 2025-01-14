@@ -50,8 +50,8 @@
 
 {{#frontend_development}}
 {{! <!-- if development --> }}
-<script type="module" nonce="{{ nonce }}" src="{{ frontend_host }}/dist/main.ts"></script>
-<script type="module" nonce="{{ nonce }}" src="{{ frontend_host }}/dist/@vite/client"></script>
+<script type="module" nonce="{{ nonce }}" src="/dist/main.ts"></script>
+<script type="module" nonce="{{ nonce }}" src="/dist/@vite/client"></script>
 {{/frontend_development}}
 {{^frontend_development}}
 {{! <!-- if production --> }}

@@ -242,11 +242,23 @@
   :report_exception: 50
   :attempt_secret_access: 10
 :development:
-  # Enabling development mode here directs the application to expect
-  # a vite server to be running on port 5173 and will attempt to
-  # connect to that server for each request. This is useful for
-  # development when you want to use a local instance of the frontend
-  # and not have to rebuild it every time you make changes.
+  # Development Mode Configuration
+  #
+  # There are two ways to run the frontend in development:
+  #
+  # 1. Behind a reverse proxy (e.g., Caddy, nginx)
+  #    - Set :enabled to true
+  #    - Leave :frontend_host empty
+  #    - Configure your reverse proxy to handle /dist/* routes
+  #
+  # 2. Using the built-in rack-proxy (new)
+  #    - Set :enabled to true
+  #    - Set :frontend_host to 'http://localhost:5173'
+  #    - The application will proxy /dist/* requests to the Vite dev server
+  #
+  # When development mode is enabled, the application expects a Vite
+  # development server to be running. This allows live-reloading of frontend
+  # changes without rebuilding:
   #
   #   $ pnpm run dev
   #   VITE v5.3.4  ready in 38 ms
@@ -255,19 +267,15 @@
   #   ➜  Network: use --host to expose
   #   ➜  press h + enter to show help
   #
-  # Disabling development mode will cause the application to use the
-  # pre-built JS/CSS assets in the "public/web/dist" directory. This
-  # is useful for production deployments but also for any deployment
-  # where you're not actively working on the frontend JS/CSS etc.
-  # Setting RACK_ENV=production disables development mode automatically.
-  # Set `frontend_host` to the local vite development server (usually
-  # http://localhost:5173) or leave empty to allow the vite /main.ts and
-  # /@vite/client scripts to laoad from the same domain as the ruby
-  # server. If you are running OTS behind a reverse proxy, leave this
-  # empty.
+  # When disabled (or in production), the application serves pre-built assets
+  # from public/web/dist instead.
+  #
   :enabled: <%= ['development', 'dev'].include?(ENV['RACK_ENV']) %>
   :debug: <%= ['true', '1', 'yes'].include?(ENV['ONETIME_DEBUG']) %>
-  :frontend_host: <%= ENV['FRONTEND_HOST'] %>
+  # Frontend host configuration:
+  # - Set to 'http://localhost:5173' to use built-in proxy
+  # - Leave empty when using a reverse proxy (like nginx, caddy, etc)
+  :frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
 # Settings for experimental features that are still being tested.
 # All of these features are turned off by default and may not work as expected.
 :experimental:
