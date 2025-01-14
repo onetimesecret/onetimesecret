@@ -67,11 +67,13 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
    */
   const submit = async (type: SubmitType = 'conceal') =>
     wrap(async () => {
-      if (!validation.validate()) {
+      // Skip validation for generate operations
+      if (type === 'conceal' && !validation.validate()) {
         throw createError('Please check the form for errors', 'human');
       }
 
       const payload = createPayload(type);
+
       const response = await (type === 'conceal'
         ? secretStore.conceal(payload as ConcealPayload)
         : secretStore.generate(payload as GeneratePayload));

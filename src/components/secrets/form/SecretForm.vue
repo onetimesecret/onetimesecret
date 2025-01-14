@@ -1,7 +1,7 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
 
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed, watch, onMounted } from 'vue';
 import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
 import CustomDomainPreview from './../../CustomDomainPreview.vue';
 import ConcealButton from './ConcealButton.vue';
@@ -62,6 +62,10 @@ const handleGenerate = () => submit('generate');
 // Watch for domain changes and update form
 watch(selectedDomain, (domain) => {
   operations.updateField('share_domain', domain);
+});
+
+onMounted(() => {
+  operations.updateField('share_domain', selectedDomain.value);
 });
 </script>
 
