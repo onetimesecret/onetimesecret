@@ -85,6 +85,8 @@ GEM
     rack (2.2.10)
     rack-contrib (2.5.0)
       rack (< 4)
+    rack-proxy (0.7.7)
+      rack
     rainbow (3.1.1)
     rake (13.0.6)
     rbi (0.2.1)
@@ -203,6 +205,7 @@ DEPENDENCIES
   public_suffix
   rack (>= 2.2, < 3.0)
   rack-contrib (~> 2.5)
+  rack-proxy
   rdoc
   redis (~> 5.3.0)
   rubocop
