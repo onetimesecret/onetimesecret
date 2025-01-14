@@ -27,14 +27,14 @@
     withGenerate: false,
   });
 
-  const { formData, isSubmitting, error, generate, conceal, hasInitialContent } =
+  const { form, isSubmitting, error, hasContent, generate, conceal } =
     useSecretConcealer();
 
   const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
     useDomainDropdown();
 
   const updateContent = (content: string) => {
-    formData.value.secret = content;
+    form.secret = content;
   };
 </script>
 
@@ -60,8 +60,8 @@
       -->
     <form @submit.prevent="true">
       <SecretContentInputArea
-        :content="formData.secret"
-        :share-domain="formData.share_domain"
+        :content="form.secret"
+        :share-domain="form.share_domain"
         :available-domains="availableDomains"
         :initial-domain="selectedDomain"
         :with-domain-dropdown="domainsEnabled"
@@ -77,19 +77,19 @@
         :with-recipient="props.withRecipient"
         :with-expiry="true"
         :with-passphrase="true"
-        @update:ttl="(val) => (formData.ttl = val)"
-        @update:passphrase="(val) => (formData.passphrase = val)"
-        @update:recipient="(val) => (formData.recipient = val)" />
+        @update:ttl="(val) => (form.ttl = val)"
+        @update:passphrase="(val) => (form.passphrase = val)"
+        @update:recipient="(val) => (form.recipient = val)" />
 
       <div class="mb-4 flex w-full space-x-2">
         <Suspense v-if="withGenerate">
           <GenerateButton
             v-if="withGenerate"
-            :disabled="hasInitialContent || isSubmitting"
+            :disabled="hasContent || isSubmitting"
             @click="() => generate()" />
         </Suspense>
         <ConcealButton
-          :disabled="!hasInitialContent || isSubmitting"
+          :disabled="!hasContent || isSubmitting"
           :with-asterisk="withAsterisk"
           :primary-color="productIdentity.primaryColor"
           @click="() => conceal()" />
