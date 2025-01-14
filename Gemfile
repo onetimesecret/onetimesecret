@@ -52,6 +52,8 @@ gem 'sendgrid-ruby'
 
 gem 'mail'
 
+gem "fastimage", "~> 2.3"
+
 gem 'psych', '~> 5.2.2'
 gem 'stringio', '~> 3.1.1'
 
@@ -74,6 +76,7 @@ gem 'byebug', require: false, group: :development
 gem 'byebug-dap', require: false, group: :development
 gem 'pry', require: false, group: :development
 gem 'pry-byebug', require: false, group: :development
+gem 'rack-proxy', require: false, group: :development
 gem 'rubocop', require: false, group: :development
 gem 'rubocop-performance', require: false, group: :development
 gem 'rubocop-thread_safety', require: false, group: :development
@@ -85,5 +88,3 @@ gem 'stackprof', require: false, group: :staging # bundle exec stackprof --text 
 gem 'stripe', require: false, group: :plans # bundle install --group plans
 gem 'tapioca', require: false, group: :development
 gem 'tryouts', require: false, group: :development
-
-gem "fastimage", "~> 2.3"
