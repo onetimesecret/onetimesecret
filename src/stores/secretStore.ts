@@ -102,9 +102,6 @@ export const useSecretStore = defineStore('secrets', () => {
     const response = await $api.post('/api/v2/secret/conceal', {
       secret: payload,
     });
-    // const validated = responseSchemas.concealData.parse(response.data); // Fails?
-    // record.value = validated.record;
-    // details.value = validated.details;
     return response.data;
   }
 

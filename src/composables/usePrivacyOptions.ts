@@ -3,16 +3,28 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { WindowService } from '@/services/window.service';
+import type { SecretFormData } from './useSecretForm';
 
-const plan = WindowService.get('plan');
-const secretOptions = WindowService.get('secret_options') ?? {
-  ttl: 7200,
-  ttl_options: [],
-};
+interface PrivacyConfig {
+  plan: {
+    options: {
+      ttl: number;
+    };
+  } | null;
+  secretOptions: {
+    ttl: number;
+    ttl_options: number[];
+  };
+}
 
 interface LifetimeOption {
-  value: string;
+  value: number;
   label: string;
+}
+
+interface PrivacyOptionsState {
+  passphraseVisibility: boolean;
+  lifetimeOptions: LifetimeOption[];
 }
 
 /**
@@ -28,13 +40,32 @@ interface LifetimeOption {
  * - Password visibility
  * - Plan-aware filtering
  */
-export function usePrivacyOptions() {
+/* eslint-disable max-lines-per-function */
+export function usePrivacyOptions(formOperations?: {
+  updateField: <K extends keyof SecretFormData>(
+    field: K,
+    value: SecretFormData[K]
+  ) => void;
+}) {
   const { t } = useI18n();
 
+  // Configuration
+  const config: PrivacyConfig = {
+    plan: WindowService.get('plan'),
+    secretOptions: WindowService.get('secret_options') ?? {
+      ttl: 7200,
+      ttl_options: [],
+    },
+  };
+
+  // UI State
+  const state = ref<PrivacyOptionsState>({
+    passphraseVisibility: false,
+    lifetimeOptions: [],
+  });
+
   /**
-   * Formats the duration from seconds to a human-readable string.
-   * @param {number} seconds - The duration in seconds.
-   * @returns {string} - The formatted duration string.
+   * Formats duration for display
    */
   const formatDuration = (seconds: number): string => {
     const units = [
@@ -64,28 +95,48 @@ export function usePrivacyOptions() {
    * Available lifetime options based on plan limits
    */
   const lifetimeOptions = computed<LifetimeOption[]>(() => {
-    const planTtl = plan?.options?.ttl || 0;
+    const planTtl = config.plan?.options?.ttl || 0;
 
-    return (secretOptions.ttl_options as number[])
+    return config.secretOptions.ttl_options
       .filter((seconds) => seconds <= planTtl)
       .map((seconds) => ({
-        value: seconds.toString(),
+        value: seconds,
         label: formatDuration(seconds),
       }));
   });
 
-  /**
-   * Password visibility state management
-   */
-  const passphraseVisibility = ref(false);
+  // Field Updates
+  const updatePassphrase = (value: string) => {
+    formOperations?.updateField('passphrase', value);
+  };
+
+  const updateTtl = (value: number) => {
+    formOperations?.updateField('ttl', value);
+  };
+
+  const updateRecipient = (value: string) => {
+    formOperations?.updateField('recipient', value);
+  };
+
+  // UI Actions
   const togglePassphraseVisibility = () => {
-    passphraseVisibility.value = !passphraseVisibility.value;
+    state.value.passphraseVisibility = !state.value.passphraseVisibility;
   };
 
   return {
+    // State
+    state,
     lifetimeOptions,
-    passphraseVisibility,
+
+    // Field Updates
+    updatePassphrase,
+    updateTtl,
+    updateRecipient,
+
+    // UI Actions
     togglePassphraseVisibility,
+
+    // Utilities
     formatDuration,
   };
 }

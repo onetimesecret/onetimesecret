@@ -95,7 +95,7 @@
             collection=""
             name="mdi-lock"
             class="w-4 h-4" />
-          {{ $t('web.COMMON.passphrase_protected') }}
+          {{ $t('web.LABELS.passphrase_protected') }}
         </div>
 
         <SecretLink

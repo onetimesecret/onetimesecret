@@ -1,21 +1,22 @@
 // src/composables/useSecretConcealer.ts
 
 import { ref } from 'vue';
-
 import { useSecretForm } from './useSecretForm';
-import { useRouter } from 'vue-router';
 import { useSecretStore } from '@/stores/secretStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import {
   AsyncHandlerOptions,
+  createError,
   useAsyncHandler,
 } from '@/composables/useAsyncHandler';
-import {
-  concealPayloadSchema,
-  generatePayloadSchema,
-} from '@/schemas/api/payloads';
-import { useDomainDropdown } from './useDomainDropdown';
+import { ConcealPayload, GeneratePayload } from '@/schemas/api/payloads';
 import { ConcealDataResponse } from '@/schemas/api';
+
+interface SecretConcealerOptions {
+  onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
+}
+
+type SubmitType = 'conceal' | 'generate';
 
 /**
  * useSecretConcealer
@@ -32,96 +33,60 @@ import { ConcealDataResponse } from '@/schemas/api';
  * - Error management
  */
 /* eslint-disable max-lines-per-function */
-export function useSecretConcealer() {
+export function useSecretConcealer(options?: SecretConcealerOptions) {
   const secretStore = useSecretStore();
-  const router = useRouter();
   const notifications = useNotificationsStore();
 
   const isSubmitting = ref(false);
-  const error = ref<string | null>(null);
 
-  const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
+  const { form, validation, operations } = useSecretForm();
+
+  const asyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isSubmitting.value = loading),
-    // onError: (err) => (error.value = err.message),
   };
 
-  const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
-  const { form, validate, hasContent, reset } = useSecretForm();
-  const { selectedDomain } = useDomainDropdown();
+  const { wrap } = useAsyncHandler(asyncHandlerOptions);
 
   /**
-   * Creates API payload from form state
+   * Creates API payload based on submission type
    */
-  const createConcealPayload = () => {
-    const payload = {
-      kind: 'conceal' as const,
-      secret: form.secret,
-      ttl: form.ttl,
-      passphrase: form.passphrase,
-      recipient: form.recipient,
-      share_domain: selectedDomain.value,
-    };
-    return concealPayloadSchema.strip().parse(payload);
-  };
+  const createPayload = (
+    type: SubmitType
+  ): ConcealPayload | GeneratePayload => ({
+    kind: type,
+    secret: form.secret,
+    ttl: form.ttl,
+    passphrase: form.passphrase,
+    recipient: form.recipient,
+    share_domain: form.share_domain,
+  });
 
   /**
-   * Creates generation payload from form state
+   * Handles form submission for both conceal and generate operations
    */
-  const createGeneratePayload = () => {
-    const payload = {
-      kind: 'generate' as const,
-      ttl: form.ttl,
-      passphrase: form.passphrase,
-      recipient: form.recipient,
-      share_domain: selectedDomain.value,
-    };
-    // const payload = validate();
-    // const payload = formSchema.parse(form); // throws ZodError
-    return generatePayloadSchema.strip().parse(payload);
-  };
-
-  /**
-   * Handles successful secret creation
-   */
-  const handleSuccess = async (response: ConcealDataResponse) => {
-    await router.push({
-      name: 'Metadata link',
-      params: { metadataKey: response.record.metadata.key },
-    });
-    reset();
-    return response;
-  };
-
-  /**
-   * Conceals a secret using form data
-   */
-  const conceal = () => {
+  const submit = async (type: SubmitType = 'conceal') =>
     wrap(async () => {
-      const payload = createConcealPayload();
-      const response = await secretStore.conceal(payload);
-      return handleSuccess(response);
-    });
-  };
+      if (!validation.validate()) {
+        throw createError('Please check the form for errors', 'human');
+      }
 
-  /**
-   * Generates a secret using form data
-   */
-  const generate = () =>
-    wrap(async () => {
-      const payload = createGeneratePayload();
-      const response = await secretStore.generate(payload);
-      return handleSuccess(response);
-    });
+      const payload = createPayload(type);
+      const response = await (type === 'conceal'
+        ? secretStore.conceal(payload as ConcealPayload)
+        : secretStore.generate(payload as GeneratePayload));
 
+      if (options?.onSuccess) {
+        await options.onSuccess(response);
+      }
+
+      return response;
+    });
   return {
     form,
-    validate,
+    validation,
+    operations,
     isSubmitting,
-    error,
-    hasContent,
-    conceal,
-    generate,
-    reset,
+    submit,
   };
 }

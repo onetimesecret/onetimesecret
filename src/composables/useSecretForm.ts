@@ -1,8 +1,23 @@
 // src/composables/useSecretForm.ts
 
 import { transforms } from '@/schemas/transforms';
-import { computed, reactive, ref } from 'vue';
+import { reactive } from 'vue';
 import { z } from 'zod';
+
+export interface SecretFormState {
+  form: SecretFormData;
+  validation: {
+    errors: Map<keyof SecretFormData, string>;
+    validate: () => boolean;
+  };
+  operations: {
+    updateField: <K extends keyof SecretFormData>(
+      field: K,
+      value: SecretFormData[K]
+    ) => void;
+    reset: () => void;
+  };
+}
 
 /**
  * Form validation schema
@@ -50,66 +65,35 @@ function getDefaultFormState(): SecretFormData {
 /* eslint-disable max-lines-per-function */
 export function useSecretForm() {
   const form = reactive<SecretFormData>(getDefaultFormState());
+  const errors = reactive(new Map<keyof SecretFormData, string>());
 
-  const hasContent = computed(() => form.secret.length > 0);
-
-  const updateContent = (content: string) => {
-    form.secret = content;
-  };
-
-  const validationErrors = ref<z.ZodError | null>(null);
-  const validate = () => {
-    try {
-      const result = formSchema.parse(form);
-      validationErrors.value = null;
-      return result;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        validationErrors.value = error;
-      }
-      throw error;
-    }
-  };
-
-  // Add field-level validation
-  const getFieldError = (field: keyof SecretFormData) =>
-    validationErrors.value?.errors.find((error) => error.path[0] === field)
-      ?.message;
-
-  const updateField = <K extends keyof SecretFormData>(
-    field: K,
-    value: SecretFormData[K]
-  ) => {
-    form[field] = value;
-  };
-
-  const handleFieldChange = {
-    ttl: (e: Event) => {
-      const value = (e.target as HTMLSelectElement).value;
-      updateField('ttl', Number(value));
+  const operations = {
+    updateField: <K extends keyof SecretFormData>(
+      field: K,
+      value: SecretFormData[K]
+    ) => {
+      form[field] = value;
     },
-    passphrase: (e: Event) => {
-      const value = (e.target as HTMLInputElement).value;
-      updateField('passphrase', value);
-    },
-    recipient: (e: Event) => {
-      const value = (e.target as HTMLInputElement).value;
-      updateField('recipient', value);
-    },
-  };
-
-  const reset = () => {
-    Object.assign(form, getDefaultFormState());
+    reset: () => Object.assign(form, getDefaultFormState()),
   };
 
   return {
     form,
-    hasContent,
-    updateContent,
-    validate,
-    handleFieldChange,
-    getFieldError,
-    updateField,
-    reset,
+    validation: {
+      errors,
+      validate: () => {
+        const result = formSchema.safeParse(form);
+        errors.clear();
+        if (!result.success) {
+          result.error.errors.forEach((err) => {
+            if (err.path[0]) {
+              errors.set(err.path[0] as keyof SecretFormData, err.message);
+            }
+          });
+        }
+        return result.success;
+      },
+    },
+    operations,
   };
 }
