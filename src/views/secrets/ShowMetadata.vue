@@ -81,22 +81,6 @@
       <section
         class="animate-fade-in relative"
         aria-labelledby="secret-header">
-        <h1
-          id="secret-header"
-          class="sr-only">
-          {{ $t('web.LABELS.secret_link') }}
-        </h1>
-
-        <!-- Passphrase Indicator -->
-        <div
-          v-if="details?.has_passphrase"
-          class="absolute -top-4 right-2 flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
-          <OIcon
-            collection=""
-            name="mdi-lock"
-            class="w-4 h-4" />
-          {{ $t('web.LABELS.passphrase_protected') }}
-        </div>
 
         <SecretLink
           v-if="isAvailable"
