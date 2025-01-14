@@ -1,7 +1,7 @@
 // src/composables/useSecretForm.ts
 
 import { transforms } from '@/schemas/transforms';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { z } from 'zod';
 
 /**
@@ -47,6 +47,7 @@ function getDefaultFormState(): SecretFormData {
  * - Field updates
  * - Form reset
  */
+/* eslint-disable max-lines-per-function */
 export function useSecretForm() {
   const form = reactive<SecretFormData>(getDefaultFormState());
 
@@ -56,7 +57,24 @@ export function useSecretForm() {
     form.secret = content;
   };
 
-  const validate = () => formSchema.parse(form);
+  const validationErrors = ref<z.ZodError | null>(null);
+  const validate = () => {
+    try {
+      const result = formSchema.parse(form);
+      validationErrors.value = null;
+      return result;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        validationErrors.value = error;
+      }
+      throw error;
+    }
+  };
+
+  // Add field-level validation
+  const getFieldError = (field: keyof SecretFormData) =>
+    validationErrors.value?.errors.find((error) => error.path[0] === field)
+      ?.message;
 
   const updateField = <K extends keyof SecretFormData>(
     field: K,
@@ -90,6 +108,7 @@ export function useSecretForm() {
     updateContent,
     validate,
     handleFieldChange,
+    getFieldError,
     updateField,
     reset,
   };
