@@ -42,7 +42,7 @@
   <div class="min-w-[320px]">
     <BasicFormAlerts
       :error="error"
-      class="hidden" />
+      />
 
     <!--
         Domain selection and persistence logic:
@@ -83,16 +83,14 @@
 
       <div class="mb-4 flex w-full space-x-2">
         <Suspense v-if="withGenerate">
-          <GenerateButton
-            v-if="withGenerate"
-            :disabled="hasContent || isSubmitting"
-            @click="() => generate()" />
+          <GenerateButton v-if="withGenerate"
+                          :disabled="hasContent || isSubmitting"
+                          @click="generate" />
         </Suspense>
-        <ConcealButton
-          :disabled="!hasContent || isSubmitting"
-          :with-asterisk="withAsterisk"
-          :primary-color="productIdentity.primaryColor"
-          @click="() => conceal()" />
+        <ConcealButton :disabled="!hasContent || isSubmitting"
+                       :with-asterisk="withAsterisk"
+                       :primary-color="productIdentity.primaryColor"
+                       @click="conceal" />
       </div>
     </form>
   </div>
