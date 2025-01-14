@@ -90,6 +90,7 @@ end
 #     enabled: true
 #     frontend_host: 'http://localhost:5173'
 if Otto.env?(:dev) || Otto.env?(:development)
+
   OT.li "[config.ru] Development environment detected"
   # Rack::Reloader monitors Ruby files for changes and automatically reloads them
   # This allows code changes to take effect without manually restarting the server
@@ -97,23 +98,34 @@ if Otto.env?(:dev) || Otto.env?(:development)
   # NOTE: This middleware should only be used in development, never in production
   use Rack::Reloader, 0
 
-  frontend_host = OT.conf.dig(:development, :frontend_host).to_s.strip
-  return unless OT.conf.dig(:development, :enabled) && !frontend_host.empty?
-  OT.li "[config.ru] Using frontend proxy for /dist to #{frontend_host}"
+  def run_frontend_proxy
+    config = OT.conf.dig(:development)
 
-  require 'rack/proxy'
+    case config
+    in {enabled: true, frontend_host: String => frontend_host}
+      return if frontend_host.strip.empty?
 
-  # Proxy requests to the Vite dev server while preserving path structure
-  # Only forwards /dist/* requests to maintain compatibility with production
-  class DevServerProxy < Rack::Proxy
-    def perform_request(env)
-      return @app.call(env) unless env['PATH_INFO'].start_with?('/dist/')
-      env['REQUEST_PATH'] = env['PATH_INFO']
-      super(env)
+      OT.li "[config.ru] Using frontend proxy for /dist to #{frontend_host}"
+      require 'rack/proxy'
+
+      # Proxy requests to the Vite dev server while preserving path structure
+      # Only forwards /dist/* requests to maintain compatibility with production
+      proxy_klass = Class.new(Rack::Proxy) do
+        define_method(:perform_request) do |env|
+          case env['PATH_INFO']
+          when %r{\A/dist/} then super(env.merge('REQUEST_PATH' => env['PATH_INFO']))
+          else @app.call(env)
+          end
+        end
+      end
+
+      use proxy_klass, backend: frontend_host
+    else
+      OT.ld "[config.ru] Not running frontend proxy"
     end
   end
+  run_frontend_proxy
 
-  use DevServerProxy, backend: frontend_host
 end
 
 # Mount Applications

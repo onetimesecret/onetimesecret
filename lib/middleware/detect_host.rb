@@ -121,7 +121,7 @@ module Rack
           logger.debug("[DetectHost] #{host} via #{header_key}")
           break # stop on first valid host
         else
-          logger.warn("[DetectHost] Invalid host detected from #{header_key}: #{host}")
+          logger.debug("[DetectHost] Invalid host detected from #{header_key}: #{host}")
         end
       end
 
