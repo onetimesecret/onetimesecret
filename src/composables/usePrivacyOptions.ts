@@ -4,17 +4,11 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { WindowService } from '@/services/window.service';
 import type { SecretFormData } from './useSecretForm';
+import type { Plan, SecretOptions } from '@/schemas/models';
 
 interface PrivacyConfig {
-  plan: {
-    options: {
-      ttl: number;
-    };
-  } | null;
-  secretOptions: {
-    ttl: number;
-    ttl_options: number[];
-  };
+  plan: Plan | null;
+  secretOptions: SecretOptions;
 }
 
 interface LifetimeOption {
@@ -49,12 +43,11 @@ export function usePrivacyOptions(formOperations?: {
 }) {
   const { t } = useI18n();
 
-  // Configuration
   const config: PrivacyConfig = {
-    plan: WindowService.get('plan'),
+    plan: WindowService.get('plan') ?? null,
     secretOptions: WindowService.get('secret_options') ?? {
-      ttl: 7200,
-      ttl_options: [],
+      default_ttl: 7200,
+      ttl_options: [7200],
     },
   };
 
@@ -95,10 +88,13 @@ export function usePrivacyOptions(formOperations?: {
    * Available lifetime options based on plan limits
    */
   const lifetimeOptions = computed<LifetimeOption[]>(() => {
-    const planTtl = config.plan?.options?.ttl || 0;
+    const planTtl = config.plan?.options?.ttl ?? Infinity;
 
     return config.secretOptions.ttl_options
-      .filter((seconds) => seconds <= planTtl)
+      .filter(
+        (seconds): seconds is number =>
+          seconds !== null && typeof seconds === 'number' && seconds <= planTtl
+      )
       .map((seconds) => ({
         value: seconds,
         label: formatDuration(seconds),

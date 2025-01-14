@@ -1,8 +1,9 @@
+// src/views/About.vue
 
 <script setup lang="ts">
 
 import { WindowService } from '@/services/window.service';
-import { Plan } from '@/schemas/models/customer';
+import { Plan } from '@/schemas/models';
 import { ref, computed } from 'vue';
 import { onMounted } from 'vue';
 
