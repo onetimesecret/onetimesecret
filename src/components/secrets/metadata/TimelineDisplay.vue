@@ -5,6 +5,7 @@ import type { Metadata, MetadataDetails } from '@/schemas/models';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useSecretExpiration } from '@/composables/useSecretExpiration';
 import { formatDistanceToNow } from 'date-fns';
+import { computed } from 'vue';
 
 interface Props {
   record: Metadata;
@@ -12,6 +13,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const showExpiration = computed(() => !props.record.is_burned);
 
 const { progress, timeRemaining, expirationDate, expirationState } = useSecretExpiration(
   props.record.created,
@@ -117,7 +120,8 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
       </div>
 
       <!-- Expiration -->
-      <div class="group flex gap-4">
+      <div v-if="showExpiration"
+      class="group flex gap-4">
         <div class="
           flex-shrink-0 w-12 h-12
           flex items-center justify-center
