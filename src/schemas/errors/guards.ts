@@ -3,7 +3,13 @@
 // guards.ts - type guards and validation
 
 import { isNavigationFailure, type NavigationFailure } from 'vue-router';
-import { applicationErrorSchema, ApplicationError, HttpErrorLike } from './types';
+import {
+  applicationErrorSchema,
+  ApplicationError,
+  HttpErrorLike,
+} from './types';
+import { ZodError } from 'zod';
+import { AxiosError } from 'axios';
 
 export const errorGuards = {
   isApplicationError(error: unknown): error is ApplicationError {
@@ -22,15 +28,31 @@ export const errorGuards = {
    * Type guard to check if an object is an HTTP error (Axios or Fetch)
    * Handles both error types since they share common network error properties
    */
-  isHttpError(error: unknown): error is HttpErrorLike {
+  isZodError(error: unknown): error is ZodError {
+    return error instanceof ZodError;
+  },
+
+  isAxiosError(error: unknown): error is AxiosError {
+    return error instanceof AxiosError;
+  },
+
+  isFetchError(error: unknown): error is TypeError | DOMException {
     return (
-      error !== null &&
-      typeof error === 'object' &&
-      ('isAxiosError' in error || ('status' in error && 'response' in error))
+      error instanceof TypeError ||
+      // For browsers that don't support AbortError
+      (error instanceof DOMException && error.name === 'AbortError')
     );
   },
 
   isRouterError(error: unknown): error is NavigationFailure {
     return isNavigationFailure(error);
+  },
+
+  isValidationError(error: unknown): error is ZodError {
+    return this.isZodError(error);
+  },
+
+  isHttpError(error: unknown): error is HttpErrorLike {
+    return this.isAxiosError(error) || this.isFetchError(error);
   },
 };
