@@ -94,9 +94,9 @@ if Otto.env?(:dev) || Otto.env?(:development)
   OT.li "[config.ru] Development environment detected"
   # Rack::Reloader monitors Ruby files for changes and automatically reloads them
   # This allows code changes to take effect without manually restarting the server
-  # The argument '0' means check for changes on every request.
+  # The argument '1' means check for changes on every request, with 1s cooldown.
   # NOTE: This middleware should only be used in development, never in production
-  use Rack::Reloader, 0
+  use Rack::Reloader, 1
 
   def run_frontend_proxy
     config = OT.conf.dig(:development)
