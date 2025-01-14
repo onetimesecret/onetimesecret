@@ -34,14 +34,17 @@ module Onetime
     # @param env [Hash] The Rack environment.
     # @return [Array] The Rack response.
     def call(env)
-      return @app.call(env) unless domains_enabled?
+      display_domain = nil
+      domain_strategy = STATES[:canonical]
 
-      request_host = env[Rack::DetectHost.result_field_name]
-      domain_state = process_domain(request_host)
-      env['onetime.display_domain'] = request_host # Store raw host
-      env['onetime.domain_strategy'] = domain_state.value # Store state value
+      if domains_enabled?
+        display_domain = env[Rack::DetectHost.result_field_name]
+        domain_strategy = process_domain(display_domain) # canonical, custom, etc
+      end
 
-      OT.li "[DomainStrategy]: host=#{request_host.inspect} state=#{domain_state.value} normalized=#{domain_state.host.inspect}"
+      env['onetime.display_domain'] = display_domain
+      env['onetime.domain_strategy'] = domain_strategy
+      OT.ld "[DomainStrategy]: strategy=#{domain_strategy} host=#{display_domain.inspect}"
 
       @app.call(env)
     end
@@ -70,7 +73,7 @@ module Onetime
       normalized = Normalizer.normalize(host)
       return State.new(STATES[:invalid]) unless normalized
 
-      determine_state(normalized)
+      determine_state(normalized).value # we ignore the host here
     end
 
     # Determines the state of the normalized host.
