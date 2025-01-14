@@ -96,7 +96,7 @@ module Onetime::Logic
         #   2. The metadata state is NOT in any of these states: viewed,
         #      received, or burned
         #
-        @show_secret = !secret.nil? && !(metadata.state?(:viewed) || metadata.state?(:received) || metadata.state?(:burned) || metadata.state?(:orphaned))
+        @show_secret = !secret.nil? && !has_passphrase && !(metadata.state?(:viewed) || metadata.state?(:received) || metadata.state?(:burned) || metadata.state?(:orphaned))
 
         # The secret link is shown only when appropriate, considering the
         # state, ownership, and recipient information.
