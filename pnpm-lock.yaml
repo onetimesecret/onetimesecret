@@ -12,8 +12,8 @@ importers:
         specifier: ^1.7.23
         version: 1.7.23(vue@3.5.13(typescript@5.6.3))
       '@intlify/core':
-        specifier: ^9.14.1
-        version: 9.14.1
+        specifier: ^11.0.1
+        version: 11.0.1
       '@types/dompurify':
         specifier: ^3.0.5
         version: 3.0.5
@@ -609,8 +609,8 @@ packages:
     resolution: {integrity: sha512-rG5/hlNW6Qfve41go37szEf0mVLcfhYuOu83JcY0jZKasnwsrcZYYWDzebCcuO5I/6Sy1JFWo9p+nvkQS1Dy+w==}
     engines: {node: '>= 16'}
 
-  '@intlify/core@9.14.1':
-    resolution: {integrity: sha512-AT3x7F9YqcWRUBC2maPYven4dTeavJCBYEkDqy1WTif/qtVasDASayKLFf95DsFz7ajhu/3ep9IzTAZayvW9sA==}
+  '@intlify/core@11.0.1':
+    resolution: {integrity: sha512-QBmit2KbVo+9mDiMTula7ZEBzxqd6j9cttHvH8tSiY16tymIN3eJBagAEes9Q1ZGUgypq8PiT966qHvn6Fzwug==}
     engines: {node: '>= 16'}
 
   '@intlify/devtools-types@10.0.5':
@@ -3485,10 +3485,10 @@ snapshots:
       '@intlify/message-compiler': 9.14.1
       '@intlify/shared': 9.14.1
 
-  '@intlify/core@9.14.1':
+  '@intlify/core@11.0.1':
     dependencies:
-      '@intlify/core-base': 9.14.1
-      '@intlify/shared': 9.14.1
+      '@intlify/core-base': 11.0.1
+      '@intlify/shared': 11.0.1
 
   '@intlify/devtools-types@10.0.5':
     dependencies:
