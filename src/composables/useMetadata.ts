@@ -60,10 +60,6 @@ export function useMetadata(metadataKey: string) {
       // Should be handled by the async handler
       //notifications.show('Secret burned successfully', 'success');
 
-
-
-
-
       router.push({
         name: 'Metadata link',
         params: { metadataKey },
