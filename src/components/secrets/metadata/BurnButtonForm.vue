@@ -72,7 +72,7 @@
           name="passphrase"
           id="passField"
           class="w-full px-3 py-2 border rounded-md border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500"
-          :placeholder="$t('web.private.enter_passphrase')" />
+          :placeholder="$t('web.COMMON.enter_passphrase_here')" />
       </div>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
