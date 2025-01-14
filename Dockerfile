@@ -97,7 +97,7 @@ ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
 ARG VERSION=0.0.0
 
-FROM docker.io/library/ruby:3.3-slim-bookworm AS base
+FROM docker.io/library/ruby:3.4-slim-bookworm AS base
 
 # Limit to packages needed for the system itself
 ARG PACKAGES="build-essential rsync netcat-openbsd"
@@ -182,7 +182,7 @@ RUN set -eux \
 ##
 # APPLICATION LAYER (FINAL)
 #
-FROM ruby:3.3-slim-bookworm AS final
+FROM ruby:3.4-slim-bookworm AS final
 ARG CODE_ROOT
 ARG VERSION
 
