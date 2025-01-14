@@ -1,5 +1,7 @@
 {
-  "printWidth": 90,
+  "printWidth": 80,
+  "htmlWhitespaceSensitivity": "strict",
+  "singleAttributePerLine": true,
   "tabWidth": 2,
   "useTabs": false,
   "semi": true,
@@ -11,9 +13,7 @@
   "bracketSameLine": true,
   "arrowParens": "always",
   "proseWrap": "preserve",
-  "htmlWhitespaceSensitivity": "strict",
   "vueIndentScriptAndStyle": true,
-  "singleAttributePerLine": true,
   "endOfLine": "lf",
   "embeddedLanguageFormatting": "auto",
   "functionParenthesis": "multiline",
