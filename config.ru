@@ -91,7 +91,11 @@ end
 #     frontend_host: 'http://localhost:5173'
 if Otto.env?(:dev) || Otto.env?(:development)
   OT.li "[config.ru] Development environment detected"
-  use Rack::Reloader, 1
+  # Rack::Reloader monitors Ruby files for changes and automatically reloads them
+  # This allows code changes to take effect without manually restarting the server
+  # The argument '0' means check for changes on every request.
+  # NOTE: This middleware should only be used in development, never in production
+  use Rack::Reloader, 0
 
   frontend_host = OT.conf.dig(:development, :frontend_host).to_s.strip
   return unless OT.conf.dig(:development, :enabled) && !frontend_host.empty?
