@@ -100,7 +100,7 @@ ARG VERSION=0.0.0
 FROM docker.io/library/ruby:3.4-slim-bookworm AS base
 
 # Limit to packages needed for the system itself
-ARG PACKAGES="build-essential rsync netcat-openbsd"
+ARG PACKAGES="build-essential rsync netcat-openbsd libffi-dev libyaml-dev"
 
 # Fast fail on errors while installing system packages
 RUN set -eux \
