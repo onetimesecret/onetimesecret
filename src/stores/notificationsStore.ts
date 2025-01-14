@@ -33,33 +33,73 @@ export type NotificationsStore = {
 } & PiniaCustomProperties;
 
 /**
- * Store for managing global notification state and behaviors
+ * Global notification management store
+ *
+ * Handles application-wide notifications including success messages,
+ * errors, and info alerts. Provides auto-dismissal and position control.
+ *
+ * @example Basic Usage
+ * ```ts
+ * const notifications = useNotificationsStore();
+ * notifications.show('Operation successful', 'success');
+ * ```
+ *
+ * @example With Position
+ * ```ts
+ * notifications.show('Please check input', 'error', 'top');
+ * ```
+ *
+ * Features:
+ * - Auto-dismissal after 5s
+ * - Multiple severity levels
+ * - Configurable positioning
+ * - Global state management
  */
 export const useNotificationsStore = defineStore('notifications', () => {
   const $api = inject('api') as AxiosInstance; // eslint-disable-line
 
-  // State
+  // State refs with default values
   const message = ref('');
   const severity = ref<NotificationSeverity>(null);
   const isVisible = ref(false);
   const position = ref<NotificationPosition>('bottom');
   const _initialized = ref(false);
 
+  /**
+   * Initialize notification store
+   * @param options - Optional store configuration
+   */
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
 
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
+    if (options?.api)
+      loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
   }
 
   /**
-   * Display a notification message with specified settings
-   * @param msg - The message to display
-   * @param sev - Severity level of the notification
-   * @param pos - Optional position of notification
+   * Display notification with auto-dismissal
+   *
+   * @param msg - Notification message text
+   * @param sev - Message severity: 'success' | 'error' | 'info'
+   * @param pos - Optional display position, defaults to 'bottom'
+   *
+   * @example Error Notification
+   * ```ts
+   * show('Failed to save', 'error');
+   * ```
+   *
+   * @example Success with Position
+   * ```ts
+   * show('Changes saved', 'success', 'top');
+   * ```
    */
-  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition) {
+  function show(
+    msg: string,
+    sev: NotificationSeverity,
+    pos?: NotificationPosition
+  ) {
     message.value = msg;
     severity.value = sev;
     position.value = pos || 'bottom';
@@ -71,7 +111,13 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   /**
-   * Hide the current notification and reset its state
+   * Hide current notification and reset state
+   *
+   * @example
+   * ```ts
+   * // Manually dismiss notification
+   * notifications.hide();
+   * ```
    */
   function hide() {
     isVisible.value = false;
@@ -80,7 +126,8 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   /**
-   * Reset store state to initial values
+   * Reset store to initial state
+   * Clears message, severity, visibility and position
    */
   function $reset() {
     message.value = '';
