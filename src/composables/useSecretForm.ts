@@ -1,5 +1,6 @@
 // src/composables/useSecretForm.ts
 
+import { transforms } from '@/schemas/transforms';
 import { computed, reactive } from 'vue';
 import { z } from 'zod';
 
@@ -10,7 +11,7 @@ const formSchema = z.object({
   secret: z.string().min(1, 'Secret content is required'),
   ttl: z.number().min(1, 'Expiration time is required'),
   passphrase: z.string(),
-  recipient: z.string().email().optional(),
+  recipient: transforms.fromString.optionalEmail,
   share_domain: z.string(),
 });
 
