@@ -77,11 +77,39 @@ common_middleware.each { |middleware|
   use middleware
 }
 
-if Otto.env?(:dev) && !OT.conf.dig(:experimental, :freeze_app)
-  use Rack::Reloader, 1
-else
+# Support development without code reloading in production-like environments
+if OT.conf.dig(:experimental, :freeze_app)
   OT.li "[experimental] Freezing app by request (env: #{ENV['RACK_ENV']})"
   freeze_app
+end
+
+# Enable local frontend development server proxy
+# Supports running Vite dev server separately from the Ruby backend
+# Configure via config.yml:
+#   development:
+#     enabled: true
+#     frontend_host: 'http://localhost:5173'
+if Otto.env?(:dev) || Otto.env?(:development)
+  OT.li "[config.ru] Development environment detected"
+  use Rack::Reloader, 1
+
+  frontend_host = OT.conf.dig(:development, :frontend_host).to_s.strip
+  return unless OT.conf.dig(:development, :enabled) && !frontend_host.empty?
+  OT.li "[config.ru] Using frontend proxy for /dist to #{frontend_host}"
+
+  require 'rack/proxy'
+
+  # Proxy requests to the Vite dev server while preserving path structure
+  # Only forwards /dist/* requests to maintain compatibility with production
+  class DevServerProxy < Rack::Proxy
+    def perform_request(env)
+      return @app.call(env) unless env['PATH_INFO'].start_with?('/dist/')
+      env['REQUEST_PATH'] = env['PATH_INFO']
+      super(env)
+    end
+  end
+
+  use DevServerProxy, backend: frontend_host
 end
 
 # Mount Applications
