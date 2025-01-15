@@ -17,7 +17,7 @@
  import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
  import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
  import ThemeToggle from '@/components/ThemeToggle.vue';
- import { useBranding } from '@/composables/useBranding';
+ import { useProductIdentity } from '@/stores/identityStore';
  import UnknownSecret from './UnknownSecret.vue';
 
  interface Props {
@@ -27,7 +27,8 @@
    siteHost: string;
  }
 
- const { brandSettings } = useBranding();
+ const productIdentity = useProductIdentity();
+ const brandSettings = productIdentity.brand; // Not reactive
 
  defineProps<Props>();
  </script>
@@ -54,7 +55,14 @@
 
     <!-- Confirmation slot -->
     <template #confirmation="{ secretKey, record, details }">
-      <div class="mx-auto max-w-2xl space-y-20">
+      <div
+        :class="{
+          'rounded-lg': brandSettings?.corner_style === 'rounded',
+          'rounded-2xl': brandSettings?.corner_style === 'pill',
+          'rounded-none': brandSettings?.corner_style === 'square',
+          'mx-auto max-w-2xl space-y-20': true,
+        }"
+        >
         <SecretConfirmationForm :secret-key="secretKey"
                                 :record="record"
                                 :details="details"
@@ -66,10 +74,7 @@
     <!-- Reveal slot -->
     <template #reveal="{ record, details }">
       <div class="mx-auto max-w-2xl w-full">
-        <h2 class="text-brand-600 dark:text-brand-100"
-            id="secret-heading">
-          {{ $t('web.shared.this_message_for_you') }}
-        </h2>
+
         <SecretDisplayCase aria-labelledby="secret-heading"
                            :secret-key="secretKey"
                            :record="record"
@@ -84,7 +89,7 @@
     <template #unknown="{ }">
       <div class="mx-auto max-w-2xl">
         <UnknownSecret :branded="true"
-                       :brand-settings="brandSettings" />
+                       :brand-settings="brandSettings ?? undefined" />
       </div>
     </template>
 

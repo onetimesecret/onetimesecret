@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useBranding } from '@/composables/useBranding';
-import { Secret, SecretDetails } from '@/schemas/models';
+import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
 import { useSecretStore } from '@/stores/secretStore';
-import { ref } from 'vue';
+import { useProductIdentity } from '@/stores/identityStore';
+import { ref, computed } from 'vue';
 
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
@@ -20,7 +20,12 @@ const passphrase = ref('');
 const isSubmitting = ref(false);
 const error = ref('');
 
-const { brandSettings } = useBranding();
+const productIdentity = useProductIdentity();
+const brandSettings = productIdentity.brand; // Not reactive
+const defaultBranding = brandSettingschema.parse({});
+const safeBrandSettings = computed(() =>
+  brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
+);
 
 const submitForm = async () => {
   if (isSubmitting.value) return;
@@ -50,6 +55,15 @@ const submitForm = async () => {
 
 const hasImageError = ref(false);
 
+const cornerStyle = computed(() => {
+  switch (brandSettings?.corner_style) {
+    case 'rounded': return 'rounded-lg';
+    case 'pill': return 'rounded-full';
+    case 'square': return 'rounded-none';
+    default: return 'rounded-lg';
+  }
+});
+
 const handleImageError = () => {
   hasImageError.value = true;
 };
@@ -62,52 +76,47 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 <template>
   <BaseSecretDisplay
     default-title="You have a message"
-    :domain-branding="brandSettings"
+    :domain-branding="safeBrandSettings"
     :instructions="brandSettings?.instructions_pre_reveal">
     <template #logo>
-      <!-- Brand Icon -->
-      <div class="relative mx-auto sm:mx-0">
-        <div
-          :class="{
-            'rounded-lg': brandSettings?.corner_style === 'rounded',
-            'rounded-full': brandSettings?.corner_style === 'pill',
-            'rounded-none': brandSettings?.corner_style === 'square'
-          }"
-          class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
-          role="img"
-          :aria-label="hasImageError ? 'Default lock icon' : 'Brand logo'">
-          <!-- Default lock icon -->
-          <svg
-            v-if="!logoImage || hasImageError"
-            class="size-8 text-gray-400 dark:text-gray-500"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            aria-hidden="true">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
+        <div class="relative mx-auto sm:mx-0">
+        <div :class="[cornerStyle, 'size-14 sm:size-16 overflow-hidden']">
+          <!-- Background container with matching corner style -->
+          <div
+            :class="[
+              cornerStyle,
+              'absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700',
+              { 'hidden': logoImage && !hasImageError }
+            ]">
+              <!-- Default lock icon -->
+              <svg
+                v-if="!logoImage || hasImageError"
+                class="size-8 text-gray-400 dark:text-gray-500"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
 
-          <!-- Logo -->
-          <img
-            v-if="logoImage && !hasImageError"
-            :src="logoImage"
-            alt="Brand logo"
-            class="size-16 object-contain"
-            :class="{
-              'rounded-lg': brandSettings?.corner_style === 'rounded',
-              'rounded-full': brandSettings?.corner_style === 'pill',
-              'rounded-none': brandSettings?.corner_style === 'square'
-            }"
-            @error="handleImageError"
-          />
+            <!-- Logo -->
+            <img
+              v-if="logoImage && !hasImageError"
+              :src="logoImage"
+              alt="Brand logo"
+              class="size-full object-contain"
+              :class="cornerStyle"
+              @error="handleImageError"
+            />
+          </div>
         </div>
-      </div>
-    </template>
+      </template>
 
     <template #content>
       <div
@@ -161,7 +170,6 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
               'rounded-none': brandSettings?.corner_style === 'square',
               'w-full border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white': true
             }"
-            :style="{ fontFamily: brandSettings?.font_family }"
             autocomplete="current-password"
             :aria-label="$t('web.COMMON.enter_passphrase_here')"
             :placeholder="$t('web.COMMON.enter_passphrase_here')"
@@ -177,12 +185,12 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
             'rounded-lg': brandSettings?.corner_style === 'rounded',
             'rounded-full': brandSettings?.corner_style === 'pill',
             'rounded-none': brandSettings?.corner_style === 'square',
+            [`font-${brandSettings?.font_family}`]: true,
             'w-full py-3 text-base font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg': true
           }"
           :style="{
             backgroundColor: brandSettings?.primary_color || 'var(--tw-color-brand-500)',
             color: brandSettings?.button_text_light ? '#ffffff' : '#000000',
-            fontFamily: brandSettings?.font_family
           }"
           class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           aria-live="polite">
