@@ -45,14 +45,9 @@ module Onetime::Logic
 
         @no_cache = true
 
-        # Metadata now lives twice as long as the original secret.
-        # Prior to the change they had the same value so we can
-        # default to using the metadata ttl.
-        ttl = (metadata.secret_ttl || metadata.ttl).to_i
-
-        @natural_expiration = natural_duration(ttl)
-        @expiration = (ttl + metadata.created.to_i)
-        @expiration_in_seconds = ttl
+        @natural_expiration = metadata.secret_natural_duration
+        @expiration = metadata.secret_expiration
+        @expiration_in_seconds = metadata.secret_ttl
 
         secret = metadata.load_secret
 
