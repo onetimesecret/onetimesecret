@@ -183,8 +183,8 @@ RUN VERSION=$(node -p "require('./package.json').version") \
     && mkdir -p /tmp/build-meta \
     && echo "VERSION=$VERSION" > /tmp/build-meta/version_env \
     && if [ ! -f /tmp/build-meta/commit_hash.txt ]; then \
-          echo "dev" > /tmp/build-meta/commit_hash.txt; \
-        fi
+      date -u +%s > /tmp/build-meta/commit_hash.txt; \
+    fi
 
 ##
 # APPLICATION LAYER (FINAL)
