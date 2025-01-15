@@ -208,21 +208,6 @@ COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
 # Copy build stage metadata files
 COPY --from=build /tmp/build-meta/commit_hash.txt $CODE_ROOT/.commit_hash.txt
-COPY --from=build /tmp/build-meta/version_env /tmp/
-
-RUN . /tmp/version_env \
-    && echo "Version: $VERSION" \
-    && echo "LABEL Name=onetimesecret Version=$VERSION" >> /tmp/docker-labels \
-    && echo "LABEL Maintainer=\"Onetime Secret <docker-maint@onetimesecret.com>\"" >> /tmp/docker-labels \
-    && cat /tmp/docker-labels >> Dockerfile \
-    && rm /tmp/version_env /tmp/docker-labels
-
-# OCI Labels using extracted version
-LABEL org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.title="Onetime Secret" \
-      org.opencontainers.image.description="Onetime Secret is a web application to share sensitive information securely and temporarily." \
-      org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret" \
-      org.opencontainers.image.licenses="MIT"
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
