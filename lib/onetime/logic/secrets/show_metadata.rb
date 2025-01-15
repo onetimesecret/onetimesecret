@@ -13,8 +13,8 @@ module Onetime::Logic
             :is_destroyed, :expiration, :maxviews, :has_maxviews, :view_count,
             :has_passphrase, :can_decrypt, :secret_value, :is_truncated,
             :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
-            :show_metadata, :show_recipients, :share_domain, :is_orphaned
-      attr_reader :share_path, :burn_path, :metadata_path, :share_url,
+            :show_metadata, :show_recipients, :share_domain, :is_orphaned,
+            :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
             :metadata_url, :burn_url, :display_lines
 
       def process_params
@@ -52,19 +52,28 @@ module Onetime::Logic
         secret = metadata.load_secret
 
         if secret.nil?
-          # Take this opportunity to check whether the metadata still has a
-          # secret_key. If it does, then it's orphaned. This is a rare case
-          # but it can happen when the secret is manually deleted.
-          unless metadata.secret_key.to_s.empty?
-            OT.le("[show_metadata] Metadata has a secret_key but no secret. Orphaning metadata #{metadata.key}")
+
+          burned_or_received = metadata.state?(:burned) || metadata.state?(:received)
+
+          if !burned_or_received && metadata.secret_expired?
+            OT.le("[show_metadata] Metadata has expired secret. {metadata.shortkey}")
+            metadata.secret_key = nil
+            metadata.expired!
+          elsif !burned_or_received
+            OT.le("[show_metadata] Metadata is an orphan. #{metadata.shortkey}")
+            metadata.secret_key = nil
             metadata.orphaned!
           end
 
           @is_received = metadata.state?(:received)
           @is_burned = metadata.state?(:burned)
+          @is_expired = metadata.state?(:expired)
           @is_orphaned = metadata.state?(:orphaned)
-          @is_destroyed = @is_burned || @is_received || @is_orphaned
+          @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
 
+          if is_destroyed && metadata.secret_key
+            metadata.secret_key! nil
+          end
         else
           @secret_state = secret.state
           @secret_realttl = secret.realttl
