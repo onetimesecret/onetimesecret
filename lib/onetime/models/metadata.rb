@@ -24,6 +24,9 @@ module Onetime
     field :burned
     field :created
     field :updated
+    # NOTE: There is no `expired` timestamp field since we can calculate
+    # that based on the `secret_ttl` and the `created` timestamp. See
+    # the secret_expired? and expiration methods.
     field :recipients
     field :truncate # boolean
 
@@ -55,7 +58,9 @@ module Onetime
       { :is_viewed => ->(m) { m.state?(:viewed) } },
       { :is_received => ->(m) { m.state?(:received) } },
       { :is_burned => ->(m) { m.state?(:burned) } },
-      { :is_destroyed => ->(m) { m.state?(:received) || m.state?(:burned) } },
+      { :is_expired => ->(m) { m.state?(:expired) } },
+      { :is_orphaned => ->(m) { m.state?(:orphaned) } },
+      { :is_destroyed => ->(m) { m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned) } },
 
       # We use the hash syntax here since `:truncated?` is not a valid symbol.
       { :is_truncated => ->(m) { m.truncated? } },

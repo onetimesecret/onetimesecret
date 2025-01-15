@@ -55,6 +55,10 @@ export const metadataBaseSchema = createModelSchema({
   received: transforms.fromString.dateNullable.optional(),
   burned: transforms.fromString.dateNullable.optional(),
   viewed: transforms.fromString.dateNullable.optional(),
+  // There is no "expired" time field as a time stamp that is set when the
+  // metadata expires. We calculate expiration based on the lifespan (TTL).
+  // of the secret.
+  //
   // There is no "orphaned" time field. We use updated. To be orphaned is an
   // exceptional case and it's not something we specifically control. Unlike
   // burning or receiving which are linked to user actions, we don't know
@@ -63,7 +67,8 @@ export const metadataBaseSchema = createModelSchema({
   is_received: transforms.fromString.boolean,
   is_burned: transforms.fromString.boolean,
   is_destroyed: transforms.fromString.boolean,
-  is_orphaned: transforms.fromString.boolean.nullable().optional(),
+  is_expired: transforms.fromString.boolean,
+  is_orphaned: transforms.fromString.boolean,
 });
 
 // Metadata shape in single record view
