@@ -24,8 +24,8 @@ app = 'ots-staging-ui'
 primary_region = 'ams'
 
 [build]
-image = 'ghcr.io/onetimesecret/onetimesecret:v0.19.0-RC0'
-# dockerfile = 'Dockerfile' # builds the current local state (incl etc/config)
+#image = 'ghcr.io/onetimesecret/onetimesecret:v0.19.0-RC0'
+dockerfile = 'Dockerfile' # builds the current local state (incl etc/config)
 
 [[vm]]
 size = 'shared-cpu-1x'

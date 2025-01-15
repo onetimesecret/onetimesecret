@@ -77,6 +77,16 @@ jobs:
             ${{ github.repository }}${{ inputs.image-suffix }}
           flavor: |
             latest=${{ !contains(github.ref, '-rc') }}
+          annotations: |
+            org.opencontainers.image.description=Onetime Secret is a web application to share sensitive information securely and temporarily.
+          labels: |
+            org.opencontainers.image.title=Onetime Secret
+            org.opencontainers.image.description=Onetime Secret is a web application to share sensitive information securely and temporarily.
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ fromJSON(steps.meta.outputs.json).version }}
+            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).created }}
 
       - name: Build and push Docker image
         id: build-and-push
@@ -87,6 +97,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          provenance: false
           annotations: ${{ steps.meta.outputs.annotations }}
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
+            GITHUB_SHA=${{ github.sha }}
