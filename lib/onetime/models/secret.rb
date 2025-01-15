@@ -79,6 +79,18 @@ module Onetime
       @age
     end
 
+    def expiration
+      # Unix timestamp of when this secret will expire. Based on
+      # the secret's TTL (lifespan) and the created time of the secret.
+      lifespan.to_i + created.to_i if lifespan
+    end
+
+    def natural_duration
+      # Colloquial representation of the TTL. e.g. "1 day"
+      OT::Utils::TimeUtils.natural_duration lifespan
+    end
+    alias :natural_ttl :natural_duration
+
     def older_than? seconds
       age > seconds
     end

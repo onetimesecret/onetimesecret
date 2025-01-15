@@ -75,6 +75,48 @@ module Onetime
       @age
     end
 
+    def metadata_ttl
+      # Stay alive for twice as long as the secret so that we can
+      # provide the metadata page even after the secret is gone.
+      (secret_ttl.to_i * 2) if secret_ttl.to_i > 0
+    end
+    alias :expiration_in_seconds :metadata_ttl
+
+    def expiration
+      # Unix timestamp of when the metadata will expire. Based on
+      # the secret_ttl and the created time of the metadata.
+      metadata_ttl.to_i + created.to_i if metadata_ttl
+    end
+
+    def natural_duration
+      # Colloquial representation of the TTL. e.g. "1 day"
+      OT::TimeUtils.natural_duration metadata_ttl
+    end
+    alias :natural_ttl :natural_duration
+
+    alias :secret_expiration_in_seconds :secret_ttl
+
+    def secret_expiration
+      # Unix timestamp of when the secret will expire. Based on
+      # the secret_ttl and the created time of the metadata
+      # (which should be identical. See Secret.spawn_pair).
+      secret_ttl.to_i + created.to_i if secret_ttl
+    end
+
+    def secret_natural_duration
+      # Colloquial representation of the TTL. e.g. "1 day"
+      OT::TimeUtils.natural_duration secret_ttl.to_i if secret_ttl
+    end
+    alias :secret_natural_ttl :secret_natural_duration
+
+    def secret_expired?
+      Time.now.utc.to_i >= (secret_expiration || 0)
+    end
+
+    def older_than? seconds
+      age > seconds
+    end
+
     def shortkey
       key.slice(0,6)
     end
@@ -85,6 +127,10 @@ module Onetime
 
     def owner? cust
       !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
+    end
+
+    def valid?
+      exists?
     end
 
     def deliver_by_email cust, locale, secret, eaddrs, template=nil, ticketno=nil
@@ -112,14 +158,6 @@ module Onetime
         view.deliver_email self.token  # pass the token from spawn_pair through
         break # force just a single recipient
       end
-    end
-
-    def older_than? seconds
-      age > seconds
-    end
-
-    def valid?
-      exists?
     end
 
     # NOTE: We override the default fast writer (bang!) methods from familia
@@ -162,8 +200,9 @@ module Onetime
     # it's a bug and although unintentional we want to handle it gracefully here.
     def orphaned!
       # A guard to prevent modifying metadata records that already have
-      # cleared out the secret (and that probably have alrady set a reason).
+      # cleared out the secret (and that probably have already set a reason).
       return if secret_key.to_s.empty?
+      return unless state?(:new) || state?(:viewed) # only new or viewed secrets can be orphaned
       self.state = 'orphaned'
       self.updated = Time.now.utc.to_i
       self.secret_key = ''
@@ -175,6 +214,16 @@ module Onetime
       return unless state?(:new) || state?(:viewed)
       self.state = 'burned'
       self.burned = Time.now.utc.to_i
+      self.secret_key = ''
+      save update_expiration: false
+    end
+
+    def expired!
+      # A guard to prevent prematurely expiring a secret. We only want to
+      # expire secrets that are actually old enough to be expired.
+      return unless secret_expired?
+      self.state = 'expired'
+      self.updated = Time.now.utc.to_i
       self.secret_key = ''
       save update_expiration: false
     end
