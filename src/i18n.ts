@@ -22,7 +22,7 @@ export type SupportedLocale = (typeof supportedLocales)[number];
 const locale = supportedLocales[0] || 'en';
 
 const i18n = createI18n<{ message: typeof en }, SupportedLocale>({
-  //legacy: false,
+  // legacy: false,  // TODO: https://vue-i18n.intlify.dev/guide/advanced/composition
   locale: locale,
   fallbackLocale: 'en',
   messages: {
@@ -33,7 +33,9 @@ const i18n = createI18n<{ message: typeof en }, SupportedLocale>({
 
 export default i18n;
 
-async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
+async function loadLocaleMessages(
+  locale: string
+): Promise<MessageSchema | null> {
   console.debug(`Attempting to load locale: ${locale}`);
   try {
     const messages = await import(`@/locales/${locale}.json`);
