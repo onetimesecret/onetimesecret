@@ -2,7 +2,7 @@
 # check=error=true
 
 ##
-# ONETIME SECRET - DOCKER IMAGE - 2024-10-10
+# ONETIME SECRET - DOCKER IMAGE - 2025-01-15
 #
 # For detailed instructions on building, running, and deploying this Docker image,
 # please refer to our comprehensive Docker guide:
@@ -91,11 +91,11 @@
 #
 # Installs system packages, updates RubyGems, and prepares the
 # application's package management dependencies using a Debian
-# Ruby 3.3 base image.
+# Ruby 3 base image.
 #
 ARG CODE_ROOT=/app
 ARG ONETIME_HOME=/opt/onetime
-ARG VERSION=0.0.0
+ARG VERSION
 
 FROM docker.io/library/ruby:3.4-slim-bookworm AS base
 
@@ -176,8 +176,15 @@ RUN set -eux \
   && pnpm run build-only \
   && pnpm prune --prod \
   && rm -rf node_modules \
-  && npm uninstall -g pnpm \
-  && touch .commit_hash.txt  # avoid ignorable error later on
+  && npm uninstall -g pnpm
+
+# Create both version and commit hash files while we can
+RUN VERSION=$(node -p "require('./package.json').version") \
+    && mkdir -p /tmp/build-meta \
+    && echo "VERSION=$VERSION" > /tmp/build-meta/version_env \
+    && if [ ! -f /tmp/build-meta/commit_hash.txt ]; then \
+      date -u +%s > /tmp/build-meta/commit_hash.txt; \
+    fi
 
 ##
 # APPLICATION LAYER (FINAL)
@@ -193,16 +200,29 @@ COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build $CODE_ROOT/public $CODE_ROOT/public
 COPY --from=build $CODE_ROOT/templates $CODE_ROOT/templates
 COPY --from=build $CODE_ROOT/src $CODE_ROOT/src
-COPY --from=build $CODE_ROOT/.commit_hash.txt $CODE_ROOT/
 COPY bin $CODE_ROOT/bin
 COPY etc $CODE_ROOT/etc
 COPY lib $CODE_ROOT/lib
 COPY migrate $CODE_ROOT/migrate
 COPY package.json config.ru Gemfile Gemfile.lock $CODE_ROOT/
 
-LABEL Name=onetimesecret Version=$VERSION
-LABEL maintainer="Onetime Secret <docker-maint@onetimesecret.com>"
-LABEL org.opencontainers.image.description="Onetime Secret is a web application to share sensitive information securely and temporarily. This image contains the application and its dependencies."
+# Copy build stage metadata files
+COPY --from=build /tmp/build-meta/commit_hash.txt $CODE_ROOT/.commit_hash.txt
+COPY --from=build /tmp/build-meta/version_env /tmp/
+
+RUN . /tmp/version_env \
+    && echo "Version: $VERSION" \
+    && echo "LABEL Name=onetimesecret Version=$VERSION" >> /tmp/docker-labels \
+    && echo "LABEL Maintainer=\"Onetime Secret <docker-maint@onetimesecret.com>\"" >> /tmp/docker-labels \
+    && cat /tmp/docker-labels >> Dockerfile \
+    && rm /tmp/version_env /tmp/docker-labels
+
+# OCI Labels using extracted version
+LABEL org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.title="Onetime Secret" \
+      org.opencontainers.image.description="Onetime Secret is a web application to share sensitive information securely and temporarily." \
+      org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret" \
+      org.opencontainers.image.licenses="MIT"
 
 # See: https://fly.io/docs/rails/cookbooks/deploy/
 ENV RUBY_YJIT_ENABLE=1
