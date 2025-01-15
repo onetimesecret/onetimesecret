@@ -1,96 +1,94 @@
 // src/composables/useSecretConcealer.ts
 
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
+import { useSecretForm } from './useSecretForm';
 import { useSecretStore } from '@/stores/secretStore';
-import { useRouter } from 'vue-router';
-import {
-  ConcealPayload,
-  GeneratePayload,
-  concealPayloadSchema,
-  generatePayloadSchema,
-} from '@/schemas/api/payloads';
-import { useAsyncHandler, AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { useNotificationsStore } from '@/stores/notificationsStore';
-import { useDomainDropdown } from './useDomainDropdown';
+import {
+  AsyncHandlerOptions,
+  createError,
+  useAsyncHandler,
+} from '@/composables/useAsyncHandler';
+import { ConcealPayload, GeneratePayload } from '@/schemas/api/payloads';
+import { ConcealDataResponse } from '@/schemas/api';
 
-const { selectedDomain } = useDomainDropdown();
+interface SecretConcealerOptions {
+  onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
+}
 
+type SubmitType = 'conceal' | 'generate';
+
+/**
+ * useSecretConcealer
+ *
+ * Orchestrates secret creation workflow. Transforms form data into API
+ * payloads, handles submission, and manages async state. Coordinates
+ * between form state and API operations.
+ *
+ * Responsibilities:
+ * - API payload creation
+ * - Form submission
+ * - Response handling
+ * - Navigation after success
+ * - Error management
+ */
 /* eslint-disable max-lines-per-function */
-export function useSecretConcealer() {
+export function useSecretConcealer(options?: SecretConcealerOptions) {
   const secretStore = useSecretStore();
-  const router = useRouter();
   const notifications = useNotificationsStore();
 
-  const formData = ref<ConcealPayload>({
-    kind: 'conceal',
-    share_domain: '',
-    secret: '',
-    ttl: 0,
-    passphrase: '',
-    recipient: '',
-  });
-
   const isSubmitting = ref(false);
-  const error = ref<string | null>(null);
 
-  const asyncOptions: AsyncHandlerOptions = {
+  const { form, validation, operations } = useSecretForm();
+
+  const asyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isSubmitting.value = loading),
-    onError: (err) => (error.value = err.message),
   };
 
-  const hasInitialContent = computed(() => formData.value?.secret?.trim().length > 0);
+  const { wrap } = useAsyncHandler(asyncHandlerOptions);
 
-  const { wrap } = useAsyncHandler(asyncOptions);
+  /**
+   * Creates API payload based on submission type
+   */
+  const createPayload = (
+    type: SubmitType
+  ): ConcealPayload | GeneratePayload => ({
+    kind: type,
+    secret: form.secret,
+    ttl: form.ttl,
+    passphrase: form.passphrase,
+    recipient: form.recipient,
+    share_domain: form.share_domain,
+  });
 
-  const conceal = () =>
+  /**
+   * Handles form submission for both conceal and generate operations
+   */
+  const submit = async (type: SubmitType = 'conceal') =>
     wrap(async () => {
-      const payload = {
-        ...formData.value,
-        kind: 'conceal',
-        share_domain: selectedDomain.value,
-      };
-      const validatedPayload = concealPayloadSchema.strip().parse(payload);
-      const response = await secretStore.conceal(validatedPayload);
+      // Skip validation for generate operations
+      if (type === 'conceal' && !validation.validate()) {
+        throw createError('Please check the form for errors', 'human');
+      }
 
-      await router.push({
-        name: 'Metadata link',
-        params: { metadataKey: response.record.metadata.key },
-      });
+      const payload = createPayload(type);
+
+      const response = await (type === 'conceal'
+        ? secretStore.conceal(payload as ConcealPayload)
+        : secretStore.generate(payload as GeneratePayload));
+
+      if (options?.onSuccess) {
+        await options.onSuccess(response);
+      }
+
       return response;
     });
-
-  const generate = () =>
-    wrap(async () => {
-      const payload: GeneratePayload = {
-        kind: 'generate',
-        share_domain: selectedDomain.value,
-        ttl: formData.value.ttl,
-        passphrase: formData.value.passphrase,
-        recipient: formData.value.recipient,
-      };
-      const validatedPayload = generatePayloadSchema.strip().parse(payload);
-      const response = await secretStore.generate(validatedPayload);
-
-      await router.push({
-        name: 'Metadata link',
-        params: { metadataKey: response.record.metadata.key },
-      });
-      return response;
-    });
-
-  const reset = () => {
-    formData.value = <ConcealPayload>{};
-    error.value = null;
-  };
-
   return {
-    formData,
+    form,
+    validation,
+    operations,
     isSubmitting,
-    error,
-    generate,
-    conceal,
-    reset,
-    hasInitialContent,
+    submit,
   };
 }

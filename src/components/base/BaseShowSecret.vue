@@ -15,6 +15,7 @@
    * @slot footer - Page footer content
    */
 
+  import SecretSkeleton from '@/components/closet/SecretSkeleton.vue';
   import { useSecret } from '@/composables/useSecret';
   import { onMounted, Ref } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
@@ -62,20 +63,13 @@
       <div
         v-if="state.isLoading"
         class="animate-pulse space-y-6 p-4">
-        <!-- Header/Title Placeholder -->
-        <div class="h-8 w-1/3 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        <SecretSkeleton />
+      </div>
 
-        <!-- Main Content Box -->
-        <div class="rounded-lg border border-gray-200 p-6 dark:border-gray-700">
-          <!-- Secret Info Line -->
-          <div class="mb-4 h-6 w-2/3 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
-
-          <!-- Form/Content Area -->
-          <div class="space-y-4">
-            <div class="h-12 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
-            <div class="h-12 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
-          </div>
-        </div>
+      <!-- Initial Loading - Prevent UnknownSecret flash -->
+      <div v-else-if="!state.isLoading && !record && !state.error"
+           class="animate-pulse space-y-6 p-4">
+           <SecretSkeleton />
       </div>
 
       <!-- Unknown Secret State -->

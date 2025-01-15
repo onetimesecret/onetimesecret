@@ -5,6 +5,7 @@ import type { Metadata, MetadataDetails } from '@/schemas/models';
 import OIcon from '@/components/icons/OIcon.vue';
 import { useSecretExpiration } from '@/composables/useSecretExpiration';
 import { formatDistanceToNow } from 'date-fns';
+import { computed } from 'vue';
 
 interface Props {
   record: Metadata;
@@ -18,6 +19,9 @@ const { progress, timeRemaining, expirationDate, expirationState } = useSecretEx
   props.record.expiration_in_seconds ?? 0,
 );
 
+const showExpiration = computed(() => !props.record.is_burned && ! props.record.is_received);
+const showFaded = computed(() => expirationState.value === 'expired' || !showExpiration.value );
+
 // Helper function for consistent time formatting
 const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: true });
 
@@ -25,7 +29,7 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
 
 <template>
   <div class="relative pt-4"
-    :class="{ 'opacity-50': expirationState === 'expired' }">
+    :class="{ 'opacity-50': showFaded }">
     <!-- Timeline Track -->
     <div class="absolute top-8 left-6 h-[calc(100%-4rem)] w-px bg-gray-200 dark:bg-gray-700"></div>
 
@@ -117,7 +121,8 @@ const formatTimeAgo = (date: Date) => formatDistanceToNow(date, { addSuffix: tru
       </div>
 
       <!-- Expiration -->
-      <div class="group flex gap-4">
+      <div v-if="showExpiration"
+      class="group flex gap-4">
         <div class="
           flex-shrink-0 w-12 h-12
           flex items-center justify-center

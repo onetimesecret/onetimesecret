@@ -1,50 +1,80 @@
 <!-- src/components/secrets/form/SecretForm.vue -->
 
 <script setup lang="ts">
-  import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
-  import CustomDomainPreview from './../../CustomDomainPreview.vue';
-  import ConcealButton from './ConcealButton.vue';
-  import GenerateButton from './GenerateButton.vue';
-  import SecretContentInputArea from './SecretContentInputArea.vue';
-  import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
-  import { useSecretConcealer } from '@/composables/useSecretConcealer';
-  import { useDomainDropdown } from '@/composables/useDomainDropdown';
-  import { useProductIdentity } from '@/stores/identityStore';
+import { computed, watch, onMounted } from 'vue';
+import BasicFormAlerts from '@/components/BasicFormAlerts.vue';
+import CustomDomainPreview from './../../CustomDomainPreview.vue';
+import ConcealButton from './ConcealButton.vue';
+import GenerateButton from './GenerateButton.vue';
+import SecretContentInputArea from './SecretContentInputArea.vue';
+import SecretFormPrivacyOptions from './SecretFormPrivacyOptions.vue';
+import { useSecretConcealer } from '@/composables/useSecretConcealer';
+import { useDomainDropdown } from '@/composables/useDomainDropdown';
+import { useProductIdentity } from '@/stores/identityStore';
+import { useRouter } from 'vue-router';
 
-  const productIdentity = useProductIdentity();
+export interface Props {
+  enabled?: boolean;
+  withRecipient?: boolean;
+  withAsterisk?: boolean;
+  withGenerate?: boolean;
+}
 
-  export interface Props {
-    enabled?: boolean;
-    withRecipient?: boolean;
-    withAsterisk?: boolean;
-    withGenerate?: boolean;
+const props = withDefaults(defineProps<Props>(), {
+  enabled: true,
+  withRecipient: false,
+  withAsterisk: false,
+  withGenerate: false,
+});
+
+const router = useRouter();
+const productIdentity = useProductIdentity();
+
+const {
+  form,
+  validation,
+  operations,
+  isSubmitting,
+  submit
+} = useSecretConcealer({
+  onSuccess: async (response) => {
+    await router.push({
+      name: 'Metadata link',
+      params: { metadataKey: response.record.metadata.key }
+    });
+    operations.reset();
   }
+});
 
-  const props = withDefaults(defineProps<Props>(), {
-    enabled: true,
-    withRecipient: false,
-    withAsterisk: false,
-    withGenerate: false,
-  });
+const {
+  availableDomains,
+  selectedDomain,
+  domainsEnabled,
+  updateSelectedDomain
+} = useDomainDropdown();
 
-  const { formData, isSubmitting, error, generate, conceal, hasInitialContent } =
-    useSecretConcealer();
+const hasContent = computed(() => form.secret.length > 0);
 
-  const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
-    useDomainDropdown();
+// Form submission handlers
+const handleConceal = () => submit('conceal');
+const handleGenerate = () => submit('generate');
 
-  const updateContent = (content: string) => {
-    formData.value.secret = content;
-  };
+// Watch for domain changes and update form
+watch(selectedDomain, (domain) => {
+  operations.updateField('share_domain', domain);
+});
+
+onMounted(() => {
+  operations.updateField('share_domain', selectedDomain.value);
+});
 </script>
 
 <template>
   <div class="min-w-[320px]">
-    <BasicFormAlerts
-      :error="error"
-      class="hidden" />
+    <BasicFormAlerts :errors="Array.from(validation.errors.values())" />
 
-    <!--
+    <form @submit.prevent="handleConceal">
+      <!--
         Domain selection and persistence logic:
           - getSavedDomain() retrieves the saved domain from localStorage or defaults
             to the first available domain
@@ -58,41 +88,37 @@
           SecretContentInputArea handles the dropdown UI. The selected domain
           persists across sessions and can be overridden when needed.
       -->
-    <form @submit.prevent="true">
-      <SecretContentInputArea
-        :content="formData.secret"
-        :share-domain="formData.share_domain"
-        :available-domains="availableDomains"
-        :initial-domain="selectedDomain"
-        :with-domain-dropdown="domainsEnabled"
-        @update:selected-domain="updateSelectedDomain"
-        @update:content="updateContent" />
+      <SecretContentInputArea :content="form.secret"
+                              :share-domain="form.share_domain"
+                              :available-domains="availableDomains"
+                              :initial-domain="selectedDomain"
+                              :with-domain-dropdown="domainsEnabled"
+                              :disabled="isSubmitting"
+                              @update:selected-domain="updateSelectedDomain"
+                              @update:content="(content) => operations.updateField('secret', content)" />
 
-      <CustomDomainPreview
-        v-if="productIdentity.isCanonical"
-        :default_domain="selectedDomain"
-        data-testid="custom-domain-preview" />
+      <CustomDomainPreview v-if="productIdentity.isCanonical"
+                           :default_domain="selectedDomain"
+                           data-testid="custom-domain-preview" />
 
-      <SecretFormPrivacyOptions
-        :with-recipient="props.withRecipient"
-        :with-expiry="true"
-        :with-passphrase="true"
-        @update:ttl="(val) => (formData.ttl = val)"
-        @update:passphrase="(val) => (formData.passphrase = val)"
-        @update:recipient="(val) => (formData.recipient = val)" />
+      <SecretFormPrivacyOptions :form="form"
+                                :with-recipient="props.withRecipient"
+                                :with-expiry="true"
+                                :with-passphrase="true"
+                                :validation="validation"
+                                :operations="operations"
+                                :disabled="isSubmitting" />
 
       <div class="mb-4 flex w-full space-x-2">
-        <Suspense v-if="withGenerate">
-          <GenerateButton
-            v-if="withGenerate"
-            :disabled="hasInitialContent || isSubmitting"
-            @click="() => generate()" />
+        <Suspense v-if="props.withGenerate">
+          <GenerateButton :disabled="hasContent || isSubmitting"
+                          @click="handleGenerate" />
         </Suspense>
-        <ConcealButton
-          :disabled="!hasInitialContent || isSubmitting"
-          :with-asterisk="withAsterisk"
-          :primary-color="productIdentity.primaryColor"
-          @click="() => conceal()" />
+
+        <ConcealButton :disabled="!hasContent || isSubmitting"
+                       :with-asterisk="withAsterisk"
+                       :primary-color="productIdentity.primaryColor"
+                       @click="handleConceal" />
       </div>
     </form>
   </div>

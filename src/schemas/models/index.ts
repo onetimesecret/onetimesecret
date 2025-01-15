@@ -10,6 +10,7 @@ export * from './feedback';
 export * from './jurisdiction';
 export * from './public';
 export * from './secret';
+export * from './plan';
 
 /**
  * Secondary models have a relation to primaries.

@@ -81,22 +81,6 @@
       <section
         class="animate-fade-in relative"
         aria-labelledby="secret-header">
-        <h1
-          id="secret-header"
-          class="sr-only">
-          {{ $t('web.LABELS.secret_link') }}
-        </h1>
-
-        <!-- Passphrase Indicator -->
-        <div
-          v-if="details?.has_passphrase"
-          class="absolute -top-4 right-2 flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
-          <OIcon
-            collection=""
-            name="mdi-lock"
-            class="w-4 h-4" />
-          {{ $t('web.COMMON.passphrase_protected') }}
-        </div>
 
         <SecretLink
           v-if="isAvailable"
@@ -163,40 +147,6 @@
           :record="record"
           :details="details" />
       </section>
-
-      <!-- Sharing Instructions -->
-      <!-- <section class="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 space-y-3"
-               aria-labelledby="section-sharing">
-        <h2 id="section-sharing"
-            class="text-sm font-medium text-slate-700 dark:text-slate-300">
-          {{ $t('web.INSTRUCTION.sharing_instructions') }}
-        </h2>
-
-        <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-          <li class="flex items-start gap-2">
-            <OIcon collection="mdi"
-                   name="link"
-                   class="w-5 h-5 mt-0.5 text-brand-500"
-                   aria-hidden="true" />
-            {{ $t('web.INSTRUCTION.share_link_instruction') }}
-          </li>
-          <li v-if="details.has_passphrase"
-              class="flex items-start gap-2">
-            <OIcon collection="mdi"
-                   name="key"
-                   class="w-5 h-5 mt-0.5 text-amber-500"
-                   aria-hidden="true" />
-            {{ $t('web.INSTRUCTION.share_passphrase_instruction') }}
-          </li>
-          <li class="flex items-start gap-2">
-            <OIcon collection="mdi"
-                   name="shield-alert"
-                   class="w-5 h-5 mt-0.5 text-red-500"
-                   aria-hidden="true" />
-            {{ $t('web.INSTRUCTION.secure_channel_instruction') }}
-          </li>
-        </ul>
-      </section> -->
 
       <!-- Actions -->
       <section

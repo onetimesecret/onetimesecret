@@ -94,7 +94,8 @@
       "views": "Views",
       "times_viewed": "times viewed",
       "view_progress": "View Progress",
-      "help_section": "Help Section"
+      "help_section": "Help Section",
+      "passphrase_protected": "Protected with passphrase"
     },
     "STATUS": {
       "new": "New",
@@ -125,8 +126,7 @@
     "FEATURES": {
       "unlimited_views": "Unlimited Views",
       "custom_domain_protected": "Trusted domain branding",
-      "encrypted_in_transit": "Encrypted in transit and at rest",
-      "passphrase_protected": "Protected with passphrase"
+      "encrypted_in_transit": "Encrypted in transit and at rest"
     },
     "UNITS": {
       "ttl": {

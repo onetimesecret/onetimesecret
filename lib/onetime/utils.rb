@@ -115,6 +115,7 @@ module Onetime
   end
 
   module TimeUtils
+    extend self
 
       def epochdate(time_in_s)
         time_parsed = Time.at time_in_s.to_i

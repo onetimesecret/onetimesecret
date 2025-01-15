@@ -1,7 +1,8 @@
-import { createModelSchema } from '@/schemas/models/base';
 import { transforms } from '@/schemas/transforms';
 import { withFeatureFlags } from '@/schemas/utils/feature_flags';
 import { z } from 'zod';
+import { createModelSchema } from './base';
+import { planSchema } from './plan';
 
 /**
  * @fileoverview Customer schema with simplified type boundaries
@@ -19,36 +20,6 @@ export const CustomerRole = {
   RECIPIENT: 'recipient',
   USER_DELETED_SELF: 'user_deleted_self',
 } as const;
-
-/**
- * Plan options schema matching Ruby model
- */
-export const planOptionsSchema = z.object({
-  ttl: transforms.fromString.number,
-  size: transforms.fromString.number,
-  api: transforms.fromString.boolean,
-  name: z.string(),
-  email: transforms.fromString.boolean.optional(),
-  custom_domains: transforms.fromString.boolean.optional(),
-  dark_mode: transforms.fromString.boolean.optional(),
-  cname: transforms.fromString.boolean.optional(),
-  private: transforms.fromString.boolean.optional(),
-});
-
-export type PlanOptions = z.infer<typeof planOptionsSchema>;
-
-/**
- * Plan schema for customer plans
- */
-export const planSchema = z.object({
-  identifier: z.string(),
-  planid: z.string(),
-  price: transforms.fromString.number,
-  discount: transforms.fromString.number,
-  options: planOptionsSchema,
-});
-
-export type Plan = z.infer<typeof planSchema>;
 
 /**
  * Customer schema with unified transformations
@@ -93,7 +64,10 @@ export const customerSchema = withFeatureFlags(
 );
 
 // Update the type to explicitly use Date for timestamps
-export type Customer = Omit<z.infer<typeof customerSchema>, 'created' | 'updated'> & {
+export type Customer = Omit<
+  z.infer<typeof customerSchema>,
+  'created' | 'updated'
+> & {
   created: Date;
   updated: Date;
 };

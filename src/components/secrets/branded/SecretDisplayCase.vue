@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import BaseSecretDisplay from '@/components/secrets/branded/BaseSecretDisplay.vue';
   import { useClipboard } from '@/composables/useClipboard';
-  import { useBranding } from '@/composables/useBranding';
-  import { Secret, SecretDetails } from '@/schemas/models';
+  import { useProductIdentity } from '@/stores/identityStore';
+  import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
   import { ref, computed } from 'vue';
 
   interface Props {
@@ -18,6 +18,22 @@
 
   const props = defineProps<Props>();
 
+
+  const productIdentity = useProductIdentity();
+  const brandSettings = productIdentity.brand; // Not reactive
+  const defaultBranding = brandSettingschema.parse({});
+  const safeBrandSettings = computed(() =>
+    brandSettings ? brandSettingschema.parse(brandSettings) : defaultBranding
+  );
+  const cornerStyle = computed(() => {
+    switch (brandSettings?.corner_style) {
+      case 'rounded': return 'rounded-lg';
+      case 'pill': return 'rounded-2xl'; // Changed from rounded-full for textarea
+      case 'square': return 'rounded-none';
+      default: return 'rounded-lg';
+    }
+  });
+
   const alertClasses = computed(() => ({
     'mb-4 p-4 rounded-md': true,
     'bg-branddim-50 text-branddim-700 dark:bg-branddim-900 dark:text-branddim-100':
@@ -26,7 +42,7 @@
       props.submissionStatus?.status === 'success',
   }));
 
-  const { brandSettings } = useBranding();
+
 
   const hasImageError = ref(false);
   const { isCopied, copyToClipboard } = useClipboard();
@@ -60,7 +76,7 @@
   <BaseSecretDisplay
     default-title="You have a message"
     :instructions="brandSettings?.instructions_pre_reveal"
-    :domain-branding="brandSettings">
+    :domain-branding="safeBrandSettings">
     <!-- Alert display -->
     <div
       v-if="
@@ -152,24 +168,21 @@
 
     <template #content>
       <div class="relative size-full p-0">
-        <label
-          :for="'secret-content-' + record?.identifier"
-          class="sr-only">
-          Secret content
-        </label>
-        <textarea
-          :id="'secret-content-' + record?.identifier"
-          class="block size-full min-h-32 resize-none border border-gray-300 bg-gray-100 font-mono text-base focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white sm:min-h-36"
-          :class="{
-            'rounded-lg': brandSettings?.corner_style === 'rounded',
-            'rounded-full': brandSettings?.corner_style === 'pill',
-            'rounded-none': brandSettings?.corner_style === 'square',
-          }"
-          readonly
-          :rows="details?.display_lines ?? 4"
-          :value="record?.secret_value"
-          aria-label="Secret content"
-          ref="secretContent"></textarea>
+        <div :class="[cornerStyle, 'size-full overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600']">
+          <label
+            :for="'secret-content-' + record?.identifier"
+            class="sr-only">
+            Secret content
+          </label>
+          <textarea
+            :id="'secret-content-' + record?.identifier"
+            class="block size-full min-h-32 resize-none border-none bg-transparent font-mono text-base focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-white sm:min-h-36"
+            readonly
+            :rows="details?.display_lines ?? 4"
+            :value="record?.secret_value"
+            aria-label="Secret content"
+            ref="secretContent"></textarea>
+        </div>
       </div>
     </template>
 
@@ -178,10 +191,16 @@
         @click="copySecretContent"
         :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
         class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
+        :class="[
+          {
+            'font-sans': brandSettings?.font_family === 'sans',
+            'font-serif': brandSettings?.font_family === 'serif',
+            'font-mono': brandSettings?.font_family === 'mono'
+          }
+        ]"
         :style="{
           backgroundColor: brandSettings?.primary_color || 'var(--tw-color-brand-500)',
-          color: brandSettings?.button_text_light ? '#ffffff' : '#000000',
-          fontFamily: brandSettings?.font_family,
+          color: brandSettings?.button_text_light ? '#ffffff' : '#000000'
         }"
         aria-live="polite"
         :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"

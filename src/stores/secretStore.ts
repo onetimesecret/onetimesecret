@@ -1,6 +1,10 @@
 // src/stores/secretStore.ts
 import { PiniaPluginOptions } from '@/plugins/pinia';
-import { ConcealDataResponse, responseSchemas, type SecretResponse } from '@/schemas/api';
+import {
+  ConcealDataResponse,
+  responseSchemas,
+  type SecretResponse,
+} from '@/schemas/api';
 import { type Secret, type SecretDetails } from '@/schemas/models/secret';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
@@ -49,7 +53,8 @@ export const useSecretStore = defineStore('secrets', () => {
   function init(options?: StoreOptions) {
     if (_initialized.value) return { isInitialized };
 
-    if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
+    if (options?.api)
+      loggingService.warn('API instance provided in options, ignoring.');
 
     _initialized.value = true;
 
@@ -91,18 +96,21 @@ export const useSecretStore = defineStore('secrets', () => {
    * and composable validation. This is an open question. Response validation
    * should remain the responsibility of this store.
    */
-  async function conceal(payload: ConcealPayload): Promise<ConcealDataResponse> {
-    // Remove redundant request validation since payload is pre-validated
-    const response = await $api.post('/api/v2/secret/conceal', { secret: payload });
-    // const validated = responseSchemas.concealData.parse(response.data); // Fails?
-    // record.value = validated.record;
-    // details.value = validated.details;
+  async function conceal(
+    payload: ConcealPayload
+  ): Promise<ConcealDataResponse> {
+    const response = await $api.post('/api/v2/secret/conceal', {
+      secret: payload,
+    });
     return response.data;
   }
 
-  async function generate(payload: GeneratePayload): Promise<ConcealDataResponse> {
-    // Remove redundant request validation since payload is pre-validated
-    const response = await $api.post('/api/v2/secret/generate', { secret: payload });
+  async function generate(
+    payload: GeneratePayload
+  ): Promise<ConcealDataResponse> {
+    const response = await $api.post('/api/v2/secret/generate', {
+      secret: payload,
+    });
     // const validated = responseSchemas.concealData.parse(response.data); // Fails?
     // record.value = validated.record;
     // details.value = validated.details;

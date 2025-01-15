@@ -52,11 +52,14 @@ export function useMetadata(metadataKey: string) {
   const burn = () =>
     wrap(async () => {
       if (!canBurn.value) {
-        throw createError('Cannot burn this secret', 'human', 'error');
+        throw createError('Cannot burn this secret', 'human', 'error'); // fires synchronously fyi
       }
+
       await store.burn(metadataKey, passphrase.value);
-      notifications.show('Secret burned successfully', 'success');
-      await fetch();
+
+      // Should be handled by the async handler
+      //notifications.show('Secret burned successfully', 'success');
+
       router.push({
         name: 'Metadata link',
         params: { metadataKey },

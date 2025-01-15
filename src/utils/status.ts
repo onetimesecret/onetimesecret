@@ -31,7 +31,11 @@ export function getDisplayStatus(
   }
 
   // Check expiring soon first (if active)
-  if (state === MetadataState.NEW && typeof expiresIn === 'number' && expiresIn < 1800) {
+  if (
+    state === MetadataState.NEW &&
+    typeof expiresIn === 'number' &&
+    expiresIn < 1800
+  ) {
     return 'expiring_soon';
   }
 
@@ -47,6 +51,7 @@ export function getDisplayStatus(
       return 'received'; // Secret revealed/decrypted
 
     case MetadataState.BURNED:
+      return 'burned';
 
     // case MetadataState.ORPHANED:
     //   return 'orphaned'; // Secret in invalid state

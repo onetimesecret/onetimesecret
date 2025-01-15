@@ -2,10 +2,16 @@
 
 import { NavigationFailure, NavigationFailureType } from 'vue-router';
 
-import type { ApplicationError, ErrorType, ErrorSeverity, HttpErrorLike } from './types';
+import type {
+  ApplicationError,
+  ErrorType,
+  ErrorSeverity,
+  HttpErrorLike,
+} from './types';
 import { errorGuards } from './guards';
 import { wrapError } from './wrapper';
 import { HTTP_STATUS_CODES } from './constants';
+import { ZodError } from 'zod';
 
 /**
  * Classifies errors into application-specific categories based on their properties.
@@ -28,6 +34,10 @@ export const errorClassifier = {
 
     if (errorGuards.isRouterError(error)) {
       return this.classifyRouter(error);
+    }
+
+    if (errorGuards.isValidationError(error)) {
+      return this.classifyValidation(error);
     }
 
     return wrapError(
@@ -58,6 +68,15 @@ export const errorClassifier = {
       'error',
       error,
       NavigationFailureType[error.type] || 'NAVIGATION_ERROR'
+    );
+  },
+
+  classifyValidation(error: ZodError): ApplicationError {
+    return wrapError(
+      error.message || 'Validation Error',
+      'human',
+      'error',
+      error
     );
   },
 
