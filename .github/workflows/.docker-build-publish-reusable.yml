@@ -63,6 +63,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get Version
+        id: package_version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
@@ -77,16 +81,13 @@ jobs:
             ${{ github.repository }}${{ inputs.image-suffix }}
           flavor: |
             latest=${{ !contains(github.ref, '-rc') }}
-          annotations: |
-            org.opencontainers.image.description=Onetime Secret is a web application to share sensitive information securely and temporarily.
           labels: |
             org.opencontainers.image.title=Onetime Secret
             org.opencontainers.image.description=Onetime Secret is a web application to share sensitive information securely and temporarily.
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.licenses=MIT
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=${{ fromJSON(steps.meta.outputs.json).version }}
-            org.opencontainers.image.created=${{ fromJSON(steps.meta.outputs.json).created }}
+            org.opencontainers.image.version=${{ steps.package_version.outputs.version }}
 
       - name: Build and push Docker image
         id: build-and-push
@@ -100,5 +101,5 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
           platforms: linux/amd64,linux/arm64
           build-args: |
-            VERSION=${{ steps.meta.outputs.version }}
+            VERSION=${{ steps.package_version.outputs.version }}
             GITHUB_SHA=${{ github.sha }}
