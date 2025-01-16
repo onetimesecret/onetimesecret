@@ -46,7 +46,7 @@ secret.generate_id
   ttl: '7200',
   recipient: 'recipient@example.com'
 }
-logic = OT::Logic::Secrets::ConcealSecret.new @sess, @cust, @secret_params
+logic = OT::Logic::Secrets::ConcealSecret.new @sess, @cust, {secret: @secret_params}
 [
   logic.secret_value,
   logic.passphrase,
