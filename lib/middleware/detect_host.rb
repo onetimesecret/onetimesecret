@@ -79,14 +79,14 @@ module Rack
         'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
         'X-Original-Host',    # Various proxy services
         'Forwarded',          # RFC 7239 standard (host parameter)
-        'Host'                # Default HTTP host header
+        'Host',               # Default HTTP host header
       ]
 
       INVALID_HOSTS = [
         'localhost',
         'localhost.localdomain',
         '127.0.0.1',
-        '::1'
+        '::1',
       ].freeze
 
       IP_PATTERN = /\A(\d{1,3}\.){3}\d{1,3}\z|\A[0-9a-fA-F:]+\z/

@@ -67,17 +67,17 @@ view = OT::App::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
 
 ## Sets authentication status correctly
 view = OT::App::Views::VuePoint.new(@req, @sess, @cust, 'en', @metadata)
-authenticated_value = view[:jsvars].find { |key, value| key[:name] == :authenticated }
+authenticated_value = view[:jsvars][:authenticated]
 authenticated_value
-#=> {:name=>:authenticated, :value=>true}
+#=> true
 
 ## Handles unauthenticated user correctly
 unauthenticated_sess = MockSession.new
 def unauthenticated_sess.authenticated?; false; end
 view = OT::App::Views::VuePoint.new(@req, unauthenticated_sess, OT::Customer.anonymous, 'en', @metadata)
-authenticated_value = view[:jsvars].find { |key, value| key[:name] == :authenticated }
+authenticated_value = view[:jsvars][:authenticated]
 authenticated_value
-#=> {:name=>:authenticated, :value=>false}
+#=> false
 
 ## Sets locale correctly
 view = OT::App::Views::VuePoint.new(@req, @sess, @cust, 'es', @metadata)

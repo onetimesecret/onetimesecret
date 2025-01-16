@@ -83,6 +83,7 @@ module Onetime::Logic
       end
 
       def success_data
+        return nil unless secret
         ret = {
           record: secret.safe_dump,
           details: {

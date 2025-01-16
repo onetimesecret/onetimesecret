@@ -70,10 +70,6 @@ module Onetime
       self.view_count.to_s.to_i >= self.maxviews
     end
 
-    def viewable?
-      has_key?(:value) && (state?(:new) || state?(:viewed) || !maxviews?)
-    end
-
     def age
       @age ||= Time.now.utc.to_i-self.updated
       @age
@@ -184,9 +180,21 @@ module Onetime
       !anonymous? && (cust.is_a?(OT::Customer) ? cust.custid : cust).to_s == custid.to_s
     end
 
+    def viewable?
+      has_key?(:value) && (state?(:new) || state?(:viewed))
+    end
+
+    def receivable?
+      has_key?(:value) && (state?(:new) || state?(:viewed))
+    end
+
     def viewed!
+      # A guard to prevent regressing (e.g. from :burned back to :viewed)
+      return unless state?(:new)
       # The secret link has been accessed but the secret has not been consumed yet
-      self.state = 'viewed'
+      @state = 'viewed'
+      # NOTE: calling save re-creates all fields so if you're relying on
+      # has_field? to be false, it will start returning true after a save.
       save update_expiration: false
     end
 
@@ -196,7 +204,15 @@ module Onetime
       return unless state?(:new) || state?(:viewed)
       md = load_metadata
       md.received! unless md.nil?
+      # It's important for the state to change here, even though we're about to
+      # destroy the secret. This is because the state is used to determine if
+      # the secret is viewable. If we don't change the state here, the secret
+      # will still be viewable b/c (state?(:new) || state?(:viewed) == true).
+      @state = 'received'
+      @value = nil
       @passphrase_temp = nil
+      @metadata_key = nil
+      @original_size = nil
       self.destroy!
     end
 

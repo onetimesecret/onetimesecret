@@ -1,5 +1,8 @@
 // stores/productIdentity.ts
-import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
+import {
+  brandSettingschema,
+  type BrandSettings,
+} from '@/schemas/models/domain/brand';
 import { WindowService } from '@/services/window.service';
 import { defineStore } from 'pinia';
 import { computed, reactive, toRefs } from 'vue';
@@ -15,6 +18,8 @@ interface IdentityState {
   domainsEnabled: boolean;
   /** Current domain being served */
   displayDomain: string;
+  /** Site host for this application */
+  siteHost: string;
   /** System's primary domain */
   canonicalDomain: string;
   /** Database ID of custom domain if applicable */
@@ -31,7 +36,8 @@ interface IdentityState {
  * Ensures color values conform to brand schema requirements
  */
 const primaryColorValidator = brandSettingschema.shape.primary_color;
-const allowPublicHomepageValidator = brandSettingschema.shape.allow_public_homepage;
+const allowPublicHomepageValidator =
+  brandSettingschema.shape.allow_public_homepage;
 
 /**
  * Creates initial identity state from window service values
@@ -45,6 +51,7 @@ const getInitialState = (): IdentityState => {
     domainStrategy,
     domainsEnabled: WindowService.get('domains_enabled'),
     displayDomain: WindowService.get('display_domain'),
+    siteHost: WindowService.get('site_host'),
     canonicalDomain: WindowService.get('canonical_domain'),
     domainId: WindowService.get('domain_id'),
     brand,
@@ -52,7 +59,9 @@ const getInitialState = (): IdentityState => {
       domainStrategy === 'custom' && brand?.primary_color
         ? primaryColorValidator.parse(brand.primary_color)
         : defaultPrimaryColor,
-    allowPublicHomepage: allowPublicHomepageValidator.parse(brand?.allow_public_homepage),
+    allowPublicHomepage: allowPublicHomepageValidator.parse(
+      brand?.allow_public_homepage
+    ),
   };
 };
 
@@ -77,7 +86,9 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   const isSubdomain = computed(() => state.domainStrategy === 'subdomain');
 
   /** Display name for current domain context */
-  const displayName = computed(() => state.brand?.description || state.displayDomain);
+  const displayName = computed(
+    () => state.brand?.description || state.displayDomain
+  );
 
   const logoUri = computed(() => {
     const template = '/imagine/:custom_domain_id/:image_type.:image_ext';
@@ -115,12 +126,14 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   const preRevealInstructions = computed(
     () =>
-      state.brand?.instructions_pre_reveal?.trim() || t('web.shared.pre_reveal_default')
+      state.brand?.instructions_pre_reveal?.trim() ||
+      t('web.shared.pre_reveal_default')
   );
 
   const postRevealInstructions = computed(
     () =>
-      state.brand?.instructions_post_reveal?.trim() || t('web.shared.post_reveal_default')
+      state.brand?.instructions_post_reveal?.trim() ||
+      t('web.shared.post_reveal_default')
   );
 
   /** Resets state to initial values from window service */

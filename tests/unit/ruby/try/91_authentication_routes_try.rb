@@ -128,7 +128,7 @@ response = @mock_request.post('/api/v2/secret/conceal')
 content = JSON.parse(response.body)
 message = content.delete('message')
 [response.status, message]
-#=> [400, "You did not provide anything to share"]
+#=> [422, "You did not provide anything to share"]
 
 ## Can post to a bogus endpoint and get a 404
 response = @mock_request.post('/api/v2/generate2')

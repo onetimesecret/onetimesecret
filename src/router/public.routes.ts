@@ -15,7 +15,6 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'Home',
-    // component: HomepageContainer,
     components: {
       default: HomepageContainer,
       header: QuietHeader,
@@ -37,15 +36,9 @@ const routes: Array<RouteRecordRaw> = [
     beforeEnter: async (to) => {
       // Use window service directly rather than the identity store
       // since the routes start before the pinia stores.
-      const windowProps = WindowService.getMultiple([
-        'domain_id',
-        'domain_branding',
-        'domain_strategy',
-        'display_domain',
-      ]);
+      const domainStrategy = WindowService.get('domain_strategy') as string;
 
-      if (windowProps.domain_strategy === 'canonical') {
-      } else {
+      if (domainStrategy === 'custom') {
         to.meta.layoutProps = {
           ...to.meta.layoutProps,
           displayMasthead: true,

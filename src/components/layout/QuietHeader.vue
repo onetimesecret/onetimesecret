@@ -3,7 +3,7 @@
   import { useProductIdentity } from '@/stores/identityStore';
   import MastHead from '@/components/layout/MastHead.vue';
   import BrandedMasthead from '@/components/layout/BrandedMastHead.vue';
-import { computed } from 'vue';
+  import { computed } from 'vue';
   const productIdentity = useProductIdentity();
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -27,12 +27,13 @@ import { computed } from 'vue';
     <div
       v-if="displayMasthead"
       class="container mx-auto min-w-[320px] max-w-2xl p-4">
-      <MastHead v-if="productIdentity.isCanonical" v-bind="props" />
+
       <BrandedMasthead
-        v-else
+        v-if="productIdentity.isCustom"
         :headertext="headertext"
         :subtext="subtext"
         v-bind="props"/>
+      <MastHead v-else v-bind="props" />
     </div>
 
   </header>

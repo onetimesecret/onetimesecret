@@ -71,12 +71,21 @@ logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
 [logic.sess, logic.cust, logic.params, logic.locale]
 #=> [@sess, @cust, {}, 'en']
 
-## Correctly sets basic success_data
+## success_data returns nil when no secret
 params = {}
 logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
-res = logic.success_data
-res.keys
-[:record, :details]
+logic.success_data
+#=> nil
+
+## success_data returns correct structure when secret is viewable
+metadata = @create_metadata.call
+secret = metadata.load_secret
+params = {
+  key: metadata.secret_key
+}
+logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+ret = logic.success_data
+ret.keys
 #=> [:record, :details]
 
 ## Has some essential settings
@@ -136,40 +145,15 @@ rescue Onetime::MissingSecret
 end
 #=> true
 
-## Share domain is site.host by default (same as metadata)
+## Display domain is nil by default (previously called share_domain, that defaulted to site_host)
 metadata = @create_metadata.call
 params = {
   key: metadata.secret_key
 }
-@this_logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
-@this_logic.process
-@this_logic.share_domain
-#=> "https://127.0.0.1:3000"
-
-## Share domain is still site.host even when the secret has it set if domains is disabled
-metadata = @create_metadata.call
-secret = metadata.load_secret
-secret.share_domain! "example.com"
-params = {
-  key: metadata.secret_key
-}
-@this_logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
-@this_logic.process
-[@this_logic.share_domain, @this_logic.domains_enabled]
-#=> ["https://127.0.0.1:3000", false]
-
-## Share domain is processed correctly when the secret has it set
-metadata = @create_metadata.call
-secret = metadata.load_secret
-secret.share_domain! "example.com"
-params = {
-  key: metadata.secret_key
-}
-@this_logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
-@this_logic.instance_variable_set(:@domains_enabled, true)
-@this_logic.process
-[@this_logic.share_domain, @this_logic.domains_enabled]
-#=> ["https://example.com", true]
+this_logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+this_logic.process
+this_logic.display_domain
+#=> nil
 
 ## Sets locale correctly
 logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, {}, 'es')
@@ -210,7 +194,7 @@ logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
 logic.raise_concerns
 logic.process
 [logic.secret.viewable?, logic.show_secret, logic.one_liner, logic.secret.can_decrypt?]
-#=> [false, true, true, true]
+#=> [false, true, true, false]
 
 ## Correctly determines if secret is a one-liner if the secret is readable
 metadata = @create_metadata.call

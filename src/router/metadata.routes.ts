@@ -24,15 +24,11 @@ const validateMetadataKey = (key: string | string[]): key is string =>
  */
 const withValidatedMetadataKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
-    const windowProps = WindowService.getMultiple([
-      'domain_id',
-      'domain_branding',
-      'domain_strategy',
-      'display_domain',
-    ]);
+    // Use window service directly rather than the identity store
+    // since the routes start before the pinia stores.
+    const domainStrategy = WindowService.get('domain_strategy') as string;
 
-    if (windowProps.domain_strategy === 'canonical') {
-    } else {
+    if (domainStrategy === 'custom') {
       to.meta.layoutProps = {
         ...to.meta.layoutProps,
         displayMasthead: true,
