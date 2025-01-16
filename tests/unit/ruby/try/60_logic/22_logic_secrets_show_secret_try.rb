@@ -136,7 +136,7 @@ rescue Onetime::MissingSecret
 end
 #=> true
 
-## Share domain is site.host by default (same as metadata)
+## Display domain is nil by default (previously called share_domain, that defaulted to site_host)
 metadata = @create_metadata.call
 params = {
   secret: {
