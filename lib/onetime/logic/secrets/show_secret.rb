@@ -59,6 +59,7 @@ module Onetime::Logic
           limit_action :failed_passphrase
         end
 
+        @has_passphrase = @secret.has_passphrase?
         @display_lines = calculate_display_lines
         @is_owner = secret.owner?(cust)
         @one_liner = one_liner
