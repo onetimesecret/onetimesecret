@@ -118,16 +118,16 @@ module Rack
 
         if self.class.valid_host?(host)
           detected_host = host
-          logger.info("[DetectHost] #{host} via #{header_key}")
+          logger.debug("[DetectHost] #{host} via #{header_key}")
           break # stop on first valid host
         else
-          logger.warn("[DetectHost] Invalid host detected from #{header_key}: #{host}")
+          logger.debug("[DetectHost] Invalid host detected from #{header_key}: #{host}")
         end
       end
 
       # Log indication if no valid host found in debug mode
       unless detected_host
-        logger.warn("[DetectHost] No valid host detected in request")
+        logger.debug("[DetectHost] No valid host detected in request")
       end
 
       # e.g. env['rack.detected_host'] = 'example.com'
