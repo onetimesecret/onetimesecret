@@ -71,12 +71,22 @@ logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
 [logic.sess, logic.cust, logic.params, logic.locale]
 #=> [@sess, @cust, {}, 'en']
 
-## Correctly sets basic success_data
+## success_data returns nil when no secret
 params = {}
 logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
-res = logic.success_data
-res.keys
-[:record, :details]
+logic.success_data
+#=> nil
+
+
+## success_data returns correct structure when secret is viewable
+metadata = @create_metadata.call
+secret = metadata.load_secret
+params = {
+  key: metadata.secret_key
+}
+logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
+ret = logic.success_data
+ret.keys
 #=> [:record, :details]
 
 ## Has some essential settings
@@ -139,9 +149,7 @@ end
 ## Display domain is nil by default (previously called share_domain, that defaulted to site_host)
 metadata = @create_metadata.call
 params = {
-  secret: {
-    key: metadata.secret_key
-  }
+  key: metadata.secret_key
 }
 this_logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
 this_logic.process
