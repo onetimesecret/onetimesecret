@@ -39,7 +39,7 @@ module Onetime
 
       if domains_enabled?
         display_domain = env[Rack::DetectHost.result_field_name]
-        domain_strategy = process_domain(display_domain) # canonical, custom, etc
+        domain_strategy = process_domain(display_domain).value # canonical, custom, etc
       end
 
       env['onetime.display_domain'] = display_domain
@@ -73,7 +73,7 @@ module Onetime
       normalized = Normalizer.normalize(host)
       return State.new(STATES[:invalid]) unless normalized
 
-      determine_state(normalized).value # we ignore the host here
+      determine_state(normalized)
     end
 
     # Determines the state of the normalized host.
