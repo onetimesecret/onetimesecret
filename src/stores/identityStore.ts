@@ -15,6 +15,8 @@ interface IdentityState {
   domainsEnabled: boolean;
   /** Current domain being served */
   displayDomain: string;
+  /** Site host for this application */
+  siteHost: string;
   /** System's primary domain */
   canonicalDomain: string;
   /** Database ID of custom domain if applicable */
@@ -45,6 +47,7 @@ const getInitialState = (): IdentityState => {
     domainStrategy,
     domainsEnabled: WindowService.get('domains_enabled'),
     displayDomain: WindowService.get('display_domain'),
+    siteHost: WindowService.get('site_host'),
     canonicalDomain: WindowService.get('canonical_domain'),
     domainId: WindowService.get('domain_id'),
     brand,

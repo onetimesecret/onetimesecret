@@ -24,7 +24,8 @@ module Onetime
         is_default_locale = OT.conf[:locales].first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
 
-        # TODO: This only needs to happen once at boot time.
+        # TODO: The normalizing only needs to happen once at boot time. And canonicalDomain
+        # should fully replace siteHost in the frontend.
         @canonical_domain = Onetime::DomainStrategy.normalize_canonical_domain(site) # can be nil
         @domain_strategy = req.env['onetime.domain_strategy'] # never nil
         @display_domain = req.env['onetime.display_domain'] # can be nil
