@@ -185,8 +185,12 @@ module Onetime
     end
 
     def viewed!
+      # A guard to prevent regressing (e.g. from :burned back to :viewed)
+      return unless state?(:new)
       # The secret link has been accessed but the secret has not been consumed yet
-      self.state = 'viewed'
+      @state = 'viewed'
+      # NOTE: calling save re-creates all fields so if you're relying on
+      # has_field? to be false, it will start returning true after a save.
       save update_expiration: false
     end
 
