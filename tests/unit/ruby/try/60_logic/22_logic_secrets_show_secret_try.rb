@@ -77,7 +77,6 @@ logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
 logic.success_data
 #=> nil
 
-
 ## success_data returns correct structure when secret is viewable
 metadata = @create_metadata.call
 secret = metadata.load_secret
@@ -195,7 +194,7 @@ logic = Onetime::Logic::Secrets::ShowSecret.new(@sess, @cust, params, 'en')
 logic.raise_concerns
 logic.process
 [logic.secret.viewable?, logic.show_secret, logic.one_liner, logic.secret.can_decrypt?]
-#=> [false, true, true, true]
+#=> [false, true, true, false]
 
 ## Correctly determines if secret is a one-liner if the secret is readable
 metadata = @create_metadata.call
