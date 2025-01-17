@@ -12,7 +12,6 @@ module Onetime::Logic
       def process_params
         # All parameters are passed in the :secret hash (secret[:ttl], etc)
         @payload = params[:secret] || {}
-        raise_form_error "Payload missing" if payload.empty?
         raise_form_error "Incorrect payload format" if payload.is_a?(String)
         process_ttl
         process_secret

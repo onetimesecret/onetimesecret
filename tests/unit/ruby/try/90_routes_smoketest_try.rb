@@ -72,6 +72,20 @@ content = JSON.parse(response.body)
 [response.status, content["custid"]]
 #=> [200, 'anon']
 
+## Can access the API share endpoint
+response = @mock_request.post('/api/v2/secret/create')
+content = JSON.parse(response.body) rescue {}
+has_msg = content.slice('message').eql?({'message' => 'Not Found'})
+[response.status, has_msg, content.keys.sort]
+#=> [404, true, ['message']]
+
+## Can access the API generate endpoint
+response = @mock_request.post('/api/v2/secret/generate')
+content = JSON.parse(response.body)
+p [:plop, content]
+[response.status, content["custid"]]
+#=> [200, 'anon']
+
 
 # API v2 Routes
 

@@ -124,7 +124,7 @@ response = @mock_request.get('/api/v2/status')
 #=> [200, '{"status":"nominal","locale":"en"}']
 
 ## Can access the API share endpoint
-response = @mock_request.post('/api/v2/secret/conceal')
+response = @mock_request.post('/api/v2/secret/conceal', {secret:{secret: 'hello', value: 'world'}})
 content = JSON.parse(response.body)
 message = content.delete('message')
 [response.status, message]
