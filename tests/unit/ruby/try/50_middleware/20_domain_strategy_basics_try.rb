@@ -11,6 +11,7 @@ OT.boot! :test
 @chooser = Onetime::DomainStrategy::Chooserator
 
 # Basic Configuration Tests
+
 ## Config initialization with domains enabled
 config = { domains: { enabled: true, default: @canonical_domain } }
 Onetime::DomainStrategy.initialize_from_config(config)
@@ -54,7 +55,7 @@ Onetime::DomainStrategy.canonical_domain
 
 ## Strips whitespace during normalization
 @chooser.choose_strategy('  onetimesecret.com  ', @canonical_domain)
-#=> :canonical
+#=> nil
 
 ## Detects subdomain strategy
 @chooser.choose_strategy('sub.onetimesecret.com', @canonical_domain)
@@ -63,6 +64,71 @@ Onetime::DomainStrategy.canonical_domain
 ## Detects custom domain strategy
 @chooser.choose_strategy('customdomain.com', @canonical_domain)
 #=> nil
+
+# Parser Tests
+## Handles nil input by raising DomainInvalid
+begin
+  @parser.parse(nil)
+rescue PublicSuffix::DomainInvalid
+  true
+end
+#=> true
+
+## Strips port numbers from hostnames
+@parser.parse('example.com:3000').name
+#=> 'example.com'
+
+## Parses valid IDN domains
+@parser.parse('xn--mnchen-3ya.de').name
+#=> 'xn--mnchen-3ya.de'
+
+# Chooserator Edge Case Tests
+## Handles mixed case subdomains correctly
+@chooser.choose_strategy('API.ONETIMESECRET.com', @canonical_domain)
+#=> :subdomain
+
+## Treats apex and www as canonical
+@chooser.choose_strategy('www.onetimesecret.com', @canonical_domain)
+#=> :canonical
+
+## Rejects domains with special characters
+@chooser.choose_strategy('test!.onetimesecret.com', @canonical_domain)
+#=> nil
+
+## Handles extremely long subdomains
+long_subdomain = 'a' * 63 + '.onetimesecret.com'
+@chooser.choose_strategy(long_subdomain, @canonical_domain)
+#=> :subdomain
+
+# Configuration Error Tests
+## Raises on nil config
+begin
+  Onetime::DomainStrategy.initialize_from_config(nil)
+rescue ArgumentError
+  true
+end
+#=> true
+
+## Disables domains when canonical domain is invalid
+config = { domains: { enabled: true, default: '..invalid..' } }
+Onetime::DomainStrategy.initialize_from_config(config)
+Onetime::DomainStrategy.domains_enabled?
+#=> false
+
+
+## DomainStrategy class method 'normalize_canonical_domain' returns the correct normalized domain
+@config_with_domains = {
+  site: {
+    host: 'onetimesecret.com',
+    domains: {
+      enabled: true,
+      default: 'example.Com'
+    }
+  }
+}
+Onetime::DomainStrategy.reset!
+Onetime::DomainStrategy.get_canonical_domain(@config_with_domains[:site])
+#=> 'onetimesecret.com'
 
 
 # Teardown

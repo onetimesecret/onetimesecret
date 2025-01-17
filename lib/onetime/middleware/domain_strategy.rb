@@ -21,6 +21,11 @@ module Onetime
     @domains_enabled = nil
     @canonical_domain_parsed = nil
 
+    unless defined?(MAX_SUBDOMAIN_DEPTH)
+      MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
+      MAX_TOTAL_LENGTH = 253   # RFC 1034 section 3.1
+    end
+
     # Initializes the DomainStrategy middleware.
     #
     # @param app [Object] The Rack application.
@@ -77,7 +82,7 @@ module Onetime
           when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
           when ->(d) { peer_of?(d, canonical_domain) }     then :canonical
           when ->(d) { subdomain_of?(d, canonical_domain)} then :subdomain
-          when ->(d) { known_custom_domain?(d.domain)}            then :custom
+          when ->(d) { known_custom_domain?(d.domain)}     then :custom
           else
             nil
           end
@@ -94,7 +99,8 @@ module Onetime
 
         def equal_to?(left, right)
           return false unless left.domain? && right.domain?
-          left.name.eql?(right.name)
+
+          left.name.eql?(right.name) || left.domain.eql?(right.domain) && left.trd.eql?('www')
         end
         # equal_to?('Example.com', 'example.com') # => true
         # equal_to?('sub.EXAMPLE.COM', 'sub.example.com') # => true
@@ -135,11 +141,24 @@ module Onetime
         # @raises [PublicSuffix::DomainInvalid]
         # @return [PublicSuffix::Domain]
         def parse(host)
-          raise PublicSuffix::DomainInvalid.new("Host is nil") if host.nil?
-          raise PublicSuffix::DomainInvalid.new("Host is malformed") if host.nil?
-          host = host.split(':').first # remove port (e.g. localhost:3000)
-          PublicSuffix.parse(host, default_rule: nil, ignore_private: false)
+          host = host.to_s.split(':').first # remove port (e.g. localhost:3000)
+          raise PublicSuffix::DomainInvalid.new("Cannot parse host") unless basically_valid?(host)
+          PublicSuffix.parse(host, default_rule: nil, ignore_private: false) # calls normalize
         end
+
+        def basically_valid?(input)
+          return false if input.to_s.empty?
+          return false if input.length > MAX_TOTAL_LENGTH
+
+          # Only alphanumeric, dots, and hyphens are valid in domain names
+          return false unless input.to_s.match?(/\A[a-zA-Z0-9.-]+\z/)
+
+          segments = input.to_s.split('.').reject(&:empty?)
+          return false if segments.length > MAX_SUBDOMAIN_DEPTH
+
+          true
+        end
+
       end
     end
 
@@ -154,8 +173,10 @@ module Onetime
       def initialize_from_config(config)
         raise ArgumentError, "Configuration cannot be nil" if config.nil?
 
+        OT.le "[DomainStrategy]: Initializing from config1: #{@domains_enabled} "
         @domains_enabled = config.dig(:domains, :enabled) || false
         @canonical_domain = get_canonical_domain(config)
+        OT.le "[DomainStrategy]: Initializing from config2: #{@domains_enabled} "
 
         # We don't need to get into any domain parsing if domains are disabled
         return unless domains_enabled?
@@ -169,7 +190,8 @@ module Onetime
       # The canonical domain is the configured default domain or the site host.
       # @return [String, nil] The canonical domain or nil
       def get_canonical_domain(config)
-        default_domain = domains_enabled? ? config.dig(:domains, :default) : nil
+        p [:get_canonical_domain, config.dig(:domains, :default), config.dig(:domains, :enabled) || false, @domains_enabled ]
+        default_domain = @domains_enabled ? config.dig(:domains, :default) : nil
         site_host = config.fetch(:host, nil)
         default_domain || site_host
       end
