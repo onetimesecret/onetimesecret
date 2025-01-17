@@ -103,7 +103,7 @@ module Rack
 
     def initialize(app, io: $stderr)
       @app = app
-      @logger = ::Logger.new(io, level: ::Logger::INFO)
+      @logger = ::Logger.new(io, level: ::Logger::DEBUG)
     end
 
     def call(env)
