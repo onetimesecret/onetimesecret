@@ -201,7 +201,6 @@ module Onetime
       # The canonical domain is the configured default domain or the site host.
       # @return [String, nil] The canonical domain or nil
       def get_canonical_domain(config)
-        p [:get_canonical_domain, config.dig(:domains, :default), config.dig(:domains, :enabled) || false, @domains_enabled ]
         default_domain = @domains_enabled ? config.dig(:domains, :default) : nil
         site_host = config.fetch(:host, nil)
         default_domain || site_host
