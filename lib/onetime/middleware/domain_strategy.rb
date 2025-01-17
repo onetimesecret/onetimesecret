@@ -13,6 +13,9 @@ module Onetime
   #        :custom       # Different valid domain
   #        :invalid      # Invalid/malformed domain
   #
+  # As middleware, this class won't halt the request, but will log a detailed error
+  # if something unexpected happens.
+  #
   class DomainStrategy
     @canonical_domain = nil
     @domains_enabled = nil
@@ -24,7 +27,7 @@ module Onetime
     def initialize(app)
       @app = app
       site_config = OT.conf.fetch(:site, {})
-      self.class.parse_config(site_config)
+      self.class.initialize_from_config(site_config)
       OT.info "[DomainStrategy]: canonical_domain=#{canonical_domain} enabled=#{domains_enabled?}"
     end
 
@@ -42,7 +45,7 @@ module Onetime
       end
 
       env['onetime.display_domain'] = display_domain
-      env['onetime.domain_strategy'] = domain_strategy
+      env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
 
       OT.ld "[DomainStrategy]: host=#{display_domain.inspect} strategy=#{domain_strategy}"
 
@@ -63,42 +66,33 @@ module Onetime
 
     module Chooserator
       class << self
-        def choose_strategy(input, canonical_domain)
-          if canonical_domain.is_a?(PublicSuffix::Domain)
-            canonical_domain_parsed = canonical_domain
-          else
-            canonical_domain_parsed = Parser.parse(canonical_domain)
-          end
 
-          normalized = Parser.normalize(input)
-          domain = Parser.parse(normalized)
-          case domain
-          when ->(d) { invalid?(d) }                       then :invalid
-          when ->(d) { equal_to?(d, canonical_domain_parsed) }    then :canonical
-          when ->(d) { peer_of?(d, canonical_domain_parsed) }     then :canonical
-          when ->(d) { subdomain_of?(d, canonical_domain_parsed)} then :subdomain
+        # @param request_domain [String] The domain associated to the current request
+        # @param canonical_domain [PublicSuffix::Domain, String] The canonical domain.
+        def choose_strategy(request_domain, canonical_domain)
+          canonical_domain = Parser.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
+          request_domain = Parser.parse(request_domain)
+
+          case request_domain
+          when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
+          when ->(d) { peer_of?(d, canonical_domain) }     then :canonical
+          when ->(d) { subdomain_of?(d, canonical_domain)} then :subdomain
+          when ->(d) { known_custom_domain?(d.domain)}            then :custom
           else
-            :custom
+            nil
           end
 
         rescue PublicSuffix::DomainInvalid => e
-          OT.ld "[DomainStrategy]: Invalid domain: #{input.inspect} error=#{e.message}"
-          :invalid
+          OT.ld "[DomainStrategy]: Invalid domain #{request_domain} #{e.message}"
+          nil
         rescue => e
           OT.le "[DomainStrategy]: Unhandled error: #{e.message} (backtrace: " \
-                "#{e.backtrace[0..2].join("\n")}) (args: #{input.inspect}, " \
-                "#{canonical_domain_parsed.inspect})"
-          :invalid
-        end
-
-        def invalid?(domain)
-          raise ArgumentError, "Domain object required (not #{domain.inspect})" unless domain.is_a?(PublicSuffix::Domain)
-
-          !Parser.valid?(domain)
+                "#{e.backtrace[0..2].join("\n")}) (args: #{request_domain.inspect}, " \
+                "#{canonical_domain.inspect})"
+          nil
         end
 
         def equal_to?(left, right)
-
           return false unless left.domain? && right.domain?
           left.name.eql?(right.name)
         end
@@ -111,7 +105,7 @@ module Onetime
         def peer_of?(left, right)
           return false unless left.subdomain? && right.subdomain?
           # NOTE: We do not re-check if the domains are the same
-          equal_to?(left.domain, right.domain)
+          left.domain.eql?(right.domain)
         end
         # peer_of?('blog.example.com', 'shop.example.com') # => true
         # peer_of?('sub.blog.example.com', 'sub.shop.example.com') # => true
@@ -122,12 +116,16 @@ module Onetime
         def subdomain_of?(left, right)
           return false unless left.subdomain? && !right.subdomain?
           return false if left.subdomain.nil?
-          equal_to?(left.domain, right.name)
+          left.domain.eql?(right.name)
         end
         # subdomain_of?('sub.example.com', 'example.com') # => true
         # subdomain_of?('other.com', 'example.com') # => false
         # subdomain_of?('deep.sub.example.com', 'example.com') # => true
         # subdomain_of?('example.com', 'example.com') # => false
+
+        def known_custom_domain?(potential_custom_domain)
+          !OT::CustomDomain.from_display_domain(potential_custom_domain).nil?
+        end
 
       end
     end
@@ -138,31 +136,9 @@ module Onetime
         # @return [PublicSuffix::Domain]
         def parse(host)
           raise PublicSuffix::DomainInvalid.new("Host is nil") if host.nil?
+          raise PublicSuffix::DomainInvalid.new("Host is malformed") if host.nil?
           host = host.split(':').first # remove port (e.g. localhost:3000)
           PublicSuffix.parse(host, default_rule: nil, ignore_private: false)
-        end
-
-        # @raises [PublicSuffix::DomainInvalid]
-        # @return [String] The normalized domain
-        def normalize(input)
-          raise PublicSuffix::DomainInvalid.new("Host is not valid") unless valid?(input)
-          output = PublicSuffix.normalize(input)
-          raise output if output.is_a?(PublicSuffix::DomainInvalid)
-          output
-        end
-
-        def valid_format?(input)
-          return false if input.nil?
-          !input.include?('..') && !input.start_with?('.') && !input.end_with?('.')
-        end
-
-        def valid?(input)
-          valid_format?(input) &&
-            PublicSuffix.valid?(input, default_rule: nil, ignore_private: false)
-        end
-
-        def invalid?(input)
-          !valid?(input)
         end
       end
     end
@@ -175,35 +151,27 @@ module Onetime
       alias :domains_enabled? :domains_enabled
 
       # Sets class instance variables based on the site configuration.
-      def parse_config(config)
+      def initialize_from_config(config)
         raise ArgumentError, "Configuration cannot be nil" if config.nil?
 
-        @canonical_domain = get_canonical_domain(config)
         @domains_enabled = config.dig(:domains, :enabled) || false
+        @canonical_domain = get_canonical_domain(config)
 
-        if domains_enabled? && canonical_domain.to_s.empty?
-          OT.le "[DomainStrategy]: No canonical domain configured"
-          @domains_enabled = false
-          return
-        end
-
+        # We don't need to get into any domain parsing if domains are disabled
         return unless domains_enabled?
 
         @canonical_domain_parsed = Parser.parse(canonical_domain)
       rescue PublicSuffix::DomainInvalid => e
-        OT.le "[DomainStrategy]: Invalid canonical domain: #{canonical_domain.inspect} error=#{e.message}"
+        OT.le "[DomainStrategy]: Invalid canonical domain: #{@canonical_domain.inspect} error=#{e.message}"
         @domains_enabled = false
       end
 
-      # Normalizes the canonical domain from the configuration.
-      #
-      # @return [String, nil] The normalized canonical domain or nil if not configured.
+      # The canonical domain is the configured default domain or the site host.
+      # @return [String, nil] The canonical domain or nil
       def get_canonical_domain(config)
+        default_domain = domains_enabled? ? config.dig(:domains, :default) : nil
         site_host = config.fetch(:host, nil)
-        return site_host unless domains_enabled?
-        default_domain = config.dig(:domains, :default)
-
-        Parser.normalize(default_domain || site_host)
+        default_domain || site_host
       end
 
       def reset!
