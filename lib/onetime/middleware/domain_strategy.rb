@@ -81,6 +81,7 @@ module Onetime
           case request_domain
           when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
           when ->(d) { peer_of?(d, canonical_domain) }     then :canonical
+          when ->(d) { parent_of?(d, canonical_domain)}    then :canonical
           when ->(d) { subdomain_of?(d, canonical_domain)} then :subdomain
           when ->(d) { known_custom_domain?(d.domain)}     then :custom
           else
@@ -119,9 +120,18 @@ module Onetime
         # peer_of?('blog.example.com', 'blog.other.com') # => false
         # peer_of?('example.com', 'example.com') # => false
 
+        def parent_of?(left, right)
+          return false unless !left.subdomain? && right.subdomain?
+          left.name.eql?(right.domain)
+        end
+        # subdomain_of?('sub.example.com', 'example.com') # => true
+        # subdomain_of?('other.com', 'example.com') # => false
+        # subdomain_of?('deep.sub.example.com', 'example.com') # => true
+        # subdomain_of?('eu.onetimesecret.com', 'onetimesecret.com') # => false
+        # subdomain_of?('.onetimesecret.com', 'eu.onetimesecret.com') # => false
+
         def subdomain_of?(left, right)
           return false unless left.subdomain? && !right.subdomain?
-          return false if left.subdomain.nil?
           left.domain.eql?(right.name)
         end
         # subdomain_of?('sub.example.com', 'example.com') # => true
@@ -129,6 +139,7 @@ module Onetime
         # subdomain_of?('deep.sub.example.com', 'example.com') # => true
         # subdomain_of?('example.com', 'example.com') # => false
 
+        # Checks data in redis
         def known_custom_domain?(potential_custom_domain)
           !OT::CustomDomain.from_display_domain(potential_custom_domain).nil?
         end
