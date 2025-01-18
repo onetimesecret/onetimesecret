@@ -6,7 +6,7 @@ require 'onetime/middleware/domain_strategy'
 OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
 OT.boot! :test
 
-@canonical_domain = 'eu.onetimesecret.com'
+@canonical_domain = 'eu.example.com'
 @parser = Onetime::DomainStrategy::Parser
 @chooser = Onetime::DomainStrategy::Chooserator
 
@@ -16,21 +16,21 @@ OT.boot! :test
 #=> :canonical
 
 ## Valid subdomain passes validation
-@chooser.choose_strategy('onetimesecret.com', @canonical_domain)
-#=> nil
+@chooser.choose_strategy('example.com', @canonical_domain)
+#=> :canonical
 
 ## Domain with consecutive dots fails validation
-@chooser.choose_strategy('us.onetimesecret.com', @canonical_domain)
+@chooser.choose_strategy('us.example.com', @canonical_domain)
 #=> :canonical
 
 ## Valid subdomain passes validation
-@chooser.choose_strategy('onetimesecret.com', 'onetimesecret.com')
+@chooser.choose_strategy('example.com', 'example.com')
 #=> :canonical
 
 ## Valid subdomain passes validation
-@chooser.choose_strategy('eu.onetimesecret.com', 'onetimesecret.com')
+@chooser.choose_strategy('eu.example.com', 'example.com')
 #=> :subdomain
 
 ## Valid subdomain passes validation
-@chooser.choose_strategy('onetimesecret.com', 'eu.onetimesecret.com')
-#=> nil
+@chooser.choose_strategy('example.com', 'eu.example.com')
+#=> :canonical
