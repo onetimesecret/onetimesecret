@@ -109,8 +109,8 @@ module Onetime
         # @param request_domain [String] The domain associated to the current request
         # @param canonical_domain [PublicSuffix::Domain, String] The canonical domain.
         def choose_strategy(request_domain, canonical_domain)
-          canonical_domain = PublicSuffix.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
-          request_domain = PublicSuffix.parse(request_domain)
+          canonical_domain = Parser.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
+          request_domain = Parser.parse(request_domain)
 
           case request_domain
           when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
