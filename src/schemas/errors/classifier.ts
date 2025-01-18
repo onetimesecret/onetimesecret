@@ -49,15 +49,27 @@ export const errorClassifier = {
   },
 
   classifyHttp(error: HttpErrorLike): ApplicationError {
+    if (!error.response) {
+      return wrapError(
+        error.message || 'Network Error',
+        'technical',
+        'error',
+        error as Error,
+        error.status // there may not be a status
+      );
+    }
+
     const status = error.status || error.response?.status;
     const type = status ? this.getTypeFromStatus(status) : 'technical';
+    const details = error.response?.data || {};
 
     return wrapError(
-      error.message || 'HTTP Error',
+      details.message || error.message || 'HTTP Error',
       type,
       'error',
       error as Error,
-      status
+      status,
+      details // include the response payload
     );
   },
 
