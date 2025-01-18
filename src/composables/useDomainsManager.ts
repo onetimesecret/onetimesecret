@@ -36,7 +36,9 @@ export function useDomainsManager() {
   const error = ref<ApplicationError | null>(null); // Add local error state
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) => notifications.show(message, severity),
+    notify: (message, severity) => {
+      notifications.show(message, severity);
+    },
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => (error.value = err),
   };
@@ -75,7 +77,10 @@ export function useDomainsManager() {
   const verifyDomain = async (domainName: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(domainName);
-      notifications.show('Domain verification initiated successfully', 'success');
+      notifications.show(
+        'Domain verification initiated successfully',
+        'success'
+      );
       return result;
     });
 
@@ -104,7 +109,10 @@ export function useDomainsManager() {
     });
 
   const confirmDelete = async (domainId: string): Promise<string | null> => {
-    console.debug('[useDomainsManager] Confirming delete for domain:', domainId);
+    console.debug(
+      '[useDomainsManager] Confirming delete for domain:',
+      domainId
+    );
 
     try {
       const confirmed = await showConfirmDialog({
