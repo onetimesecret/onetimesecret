@@ -209,10 +209,18 @@ module Onetime
       # the secret is viewable. If we don't change the state here, the secret
       # will still be viewable b/c (state?(:new) || state?(:viewed) == true).
       @state = 'received'
+      # We clear the value and passphrase_temp immediately so that the secret
+      # payload is not recoverable from this instance of the secret; however,
+      # we shouldn't clear arbitrary fields here b/c there are valid reasons
+      # to be able to call secret.safe_dump for example. This is exactly what
+      # happens in Logic::RevealSecret.process which prepares the secret value
+      # to be included in the response and then calls this method att the end.
+      # It's at that point that `Logic::RevealSecret.success_data` is called
+      # which means if we were to clear out say -- original_size -- it would
+      # be null in the API's JSON response. Not a huge deal in that case, but
+      # we validate response data in the UI now and this would raise an error.
       @value = nil
       @passphrase_temp = nil
-      @metadata_key = nil
-      @original_size = nil
       self.destroy!
     end
 
