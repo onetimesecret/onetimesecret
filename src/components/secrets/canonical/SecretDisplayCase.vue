@@ -218,8 +218,7 @@ const closeTruncatedWarning = (event: Event) => {
             <span aria-hidden="true">&times;</span>
           </button>
           <p>
-            Once you've finished viewing the secret, feel free to navigate away from this page or
-            close the window.
+            Once you've finished viewing the secret, feel free to close the window.
           </p>
         </div>
         <div v-else>
