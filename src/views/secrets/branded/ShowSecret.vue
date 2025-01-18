@@ -54,7 +54,7 @@
     </template>
 
     <!-- Confirmation slot -->
-    <template #confirmation="{ secretKey, record, details }">
+    <template #confirmation="{ secretKey, record, details, error, isLoading, onConfirm }">
       <div
         :class="{
           'rounded-lg': brandSettings?.corner_style === 'rounded',
@@ -67,7 +67,10 @@
                                 :record="record"
                                 :details="details"
                                 :domain-id="domainId"
-                                :display-powered-by="true" />
+                                :error="error"
+                                :is-submitting="isLoading"
+                                :display-powered-by="true"
+                                @user-confirmed="onConfirm" />
       </div>
     </template>
 
