@@ -3,18 +3,52 @@
 require 'public_suffix'
 
 module Onetime
-  # Middleware for handling and validating domain types in incoming requests.
+  # Domain Strategy Middleware
   #
-  # This class normalizes the incoming host, determines its state (canonical, subdomain,
-  # custom, or invalid), and updates the Rack environment with the domain strategy.
+  # Normalizes incoming request domains and classifies them into strategies:
+  #   :canonical  - Exact match with configured domain (example.com)
+  #   :subdomain  - Valid subdomain of canonical domain (*.example.com)
+  #   :custom     - Partner/custom domain from database
+  #   :invalid    - Malformed or unrecognized domain
   #
-  #        :canonical    # Matches configured domain exactly
-  #        :subdomain    # Valid subdomain of canonical domain
-  #        :custom       # Different valid domain
-  #        :invalid      # Invalid/malformed domain
+  # = Domain Resolution Overview
   #
-  # As middleware, this class won't halt the request, but will log a detailed error
-  # if something unexpected happens.
+  # Uses heuristic pattern matching to identify domains as either:
+  # - MAIN branded domains (example.com and variants)
+  # - PARTNER branded domains (custom domains from database)
+  #
+  # == Implementation
+  #
+  # 1. Parses domains using PublicSuffix for reliable TLD handling
+  # 2. Checks domain against canonical configuration
+  # 3. Validates subdomains and variant patterns
+  # 4. Performs database lookup for custom/partner domains
+  #
+  # == Design Philosophy
+  #
+  # Follows "convention over configuration" by recognizing standard domain patterns:
+  #
+  #   example.com        # Canonical domain
+  #   www.example.com    # Standard WWW variant
+  #   fr.example.com     # Language/region subdomain
+  #
+  # Benefits:
+  # - Zero configuration for common domain patterns
+  # - Automatic handling of www/language variants
+  # - Flexible subdomain support
+  # - Simple partner domain onboarding
+  #
+  # Tradeoffs:
+  # - More complex than explicit domain lists
+  # - Requires comprehensive test coverage
+  # - Pattern updates may need maintenance
+  #
+  # The middleware updates the Rack environment with:
+  # - domain_strategy: The determined strategy
+  # - domain_id: Database ID for custom domains
+  # - display_domain: Normalized domain for display
+  #
+  # Note: This middleware logs errors but does not halt request processing
   #
   class DomainStrategy
     @canonical_domain = nil
@@ -75,8 +109,8 @@ module Onetime
         # @param request_domain [String] The domain associated to the current request
         # @param canonical_domain [PublicSuffix::Domain, String] The canonical domain.
         def choose_strategy(request_domain, canonical_domain)
-          canonical_domain = Parser.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
-          request_domain = Parser.parse(request_domain)
+          canonical_domain = PublicSuffix.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
+          request_domain = PublicSuffix.parse(request_domain)
 
           case request_domain
           when ->(d) { equal_to?(d, canonical_domain) }    then :canonical
