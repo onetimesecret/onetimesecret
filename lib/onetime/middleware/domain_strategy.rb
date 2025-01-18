@@ -117,7 +117,7 @@ module Onetime
           when ->(d) { peer_of?(d, canonical_domain) }     then :canonical
           when ->(d) { parent_of?(d, canonical_domain)}    then :canonical
           when ->(d) { subdomain_of?(d, canonical_domain)} then :subdomain
-          when ->(d) { known_custom_domain?(d.domain)}     then :custom
+          when ->(d) { known_custom_domain?(d.name)}       then :custom
           else
             nil
           end

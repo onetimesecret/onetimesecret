@@ -230,7 +230,7 @@ module Onetime::Logic
         end
 
         unless domain_record.owner?(@cust)
-          raise_form_error "Unauthorized domain access: #{share_domain}"
+          OT.li "[validate_domain_perm]: #{share_domain} non-owner [#{cust.custid}]"
         end
       end
     end

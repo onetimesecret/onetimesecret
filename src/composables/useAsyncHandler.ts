@@ -1,6 +1,11 @@
 // src/composables/useAsyncHandler.ts
 import type { ApplicationError } from '@/schemas/errors';
-import { classifyError, createError, errorGuards, wrapError } from '@/schemas/errors';
+import {
+  classifyError,
+  createError,
+  errorGuards,
+  wrapError,
+} from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import type {} from '@/stores/notificationsStore';
 import type { NotificationSeverity } from '@/types/ui/notifications';

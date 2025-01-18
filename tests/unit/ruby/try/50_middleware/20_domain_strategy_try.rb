@@ -50,6 +50,13 @@ custom_domain = Onetime::CustomDomain.create(@canonical_domain, @customer_id)
 @chooser.choose_strategy(custom_domain.display_domain, @canonical_domain)
 #=> :canonical
 
+## parent_of? matches parent to child relationship (configured onetimesecret.com)
+custom_domain = Onetime::CustomDomain.create('fr.example.com', @customer_id)
+@delete_domains << custom_domain
+@chooser.known_custom_domain?(custom_domain.display_domain)
+#=> true
+
+
 # Teardown
 @delete_domains.map { |d|
   OT.ld "Deleting custom domain: #{d}"

@@ -1,4 +1,5 @@
-# tryouts/domain_strategy_chooserator_tryouts.rb
+# tests/unit/ruby/try/50_middleware/22_domain_strategy_chooserator_try.rb
+
 require 'onetime'
 require 'middleware/detect_host'
 require 'onetime/middleware/domain_strategy'
@@ -55,17 +56,17 @@ Onetime::DomainStrategy::Chooserator.parent_of?(
 )
 #=> true
 
-## parent_of? matches parent to child relationship (configured eu.onetimesecret.com)
+## parent_of? matches parent to child relationship (configured eu.example.com)
 Onetime::DomainStrategy::Chooserator.parent_of?(
-  PublicSuffix.parse('onetimesecret.com'),
-  PublicSuffix.parse('eu.onetimesecret.com')
+  PublicSuffix.parse('example.com'),
+  PublicSuffix.parse('eu.example.com')
 )
 #=> true
 
-## parent_of? matches parent to child relationship (configured onetimesecret.com)
+## parent_of? matches parent to child relationship (configured example.com)
 Onetime::DomainStrategy::Chooserator.subdomain_of?(
-  PublicSuffix.parse('eu.onetimesecret.com'),
-  PublicSuffix.parse('onetimesecret.com')
+  PublicSuffix.parse('eu.example.com'),
+  PublicSuffix.parse('example.com')
 )
 #=> true
 
