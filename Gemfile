@@ -88,3 +88,11 @@ gem 'stackprof', require: false, group: :staging # bundle exec stackprof --text 
 gem 'stripe', require: false, group: :plans # bundle install --group plans
 gem 'tapioca', require: false, group: :development
 gem 'tryouts', require: false, group: :development
+
+group :test do
+  gem 'simplecov', require: false
+  gem 'rspec', git: "https://github.com/rspec/rspec"
+  %w[rspec-core rspec-expectations rspec-mocks rspec-support].each do |lib|
+    gem lib, git: "https://github.com/rspec/rspec", glob: "#{lib}/#{lib}.gemspec"
+  end
+end

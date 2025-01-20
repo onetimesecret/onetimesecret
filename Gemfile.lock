@@ -1,3 +1,45 @@
+GIT
+  remote: https://github.com/rspec/rspec
+  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  specs:
+    rspec (3.14.0.pre)
+      rspec-core (= 3.14.0.pre)
+      rspec-expectations (= 3.14.0.pre)
+      rspec-mocks (= 3.14.0.pre)
+
+GIT
+  remote: https://github.com/rspec/rspec
+  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  glob: rspec-core/rspec-core.gemspec
+  specs:
+    rspec-core (3.14.0.pre)
+      rspec-support (= 3.14.0.pre)
+
+GIT
+  remote: https://github.com/rspec/rspec
+  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  glob: rspec-expectations/rspec-expectations.gemspec
+  specs:
+    rspec-expectations (3.14.0.pre)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (= 3.14.0.pre)
+
+GIT
+  remote: https://github.com/rspec/rspec
+  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  glob: rspec-mocks/rspec-mocks.gemspec
+  specs:
+    rspec-mocks (3.14.0.pre)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (= 3.14.0.pre)
+
+GIT
+  remote: https://github.com/rspec/rspec
+  revision: 5946b3c9aa61279bf52363bfde4d850810daaa3a
+  glob: rspec-support/rspec-support.gemspec
+  specs:
+    rspec-support (3.14.0.pre)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -19,6 +61,8 @@ GEM
     csv (3.3.0)
     daemons (1.4.1)
     date (3.4.0)
+    diff-lcs (1.5.1)
+    docile (1.4.1)
     dotenv (3.1.4)
     drydock (0.6.9)
     encryptor (1.1.3)
@@ -125,6 +169,12 @@ GEM
     sentry-ruby (5.21.0)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.13.1)
+    simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
     sorbet (0.5.11751)
       sorbet-static (= 0.5.11751)
@@ -208,11 +258,17 @@ DEPENDENCIES
   rack-proxy
   rdoc
   redis (~> 5.3.0)
+  rspec!
+  rspec-core!
+  rspec-expectations!
+  rspec-mocks!
+  rspec-support!
   rubocop
   rubocop-performance
   rubocop-thread_safety
   sendgrid-ruby
   sentry-ruby
+  simplecov
   sorbet
   sorbet-runtime
   spoom
