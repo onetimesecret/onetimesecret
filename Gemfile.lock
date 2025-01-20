@@ -190,7 +190,7 @@ GEM
       prism (>= 0.28.0)
       sorbet-static-and-runtime (>= 0.5.10187)
       thor (>= 0.19.2)
-    stackprof (0.2.26)
+    stackprof (0.2.27)
     storable (0.10.0)
     stringio (3.1.2)
     stripe (13.3.0)
