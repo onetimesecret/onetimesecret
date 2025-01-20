@@ -3,7 +3,7 @@
 import { WindowService } from '@/services/window.service';
 import { setLanguage } from '@/i18n';
 import { useLanguageStore } from '@/stores/languageStore';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, nextTick } from 'vue';
 
 import DropdownToggle from './DropdownToggle.vue';
 
@@ -23,7 +23,13 @@ const currentLocale = computed(() => selectedLocale.value);
 const dropdownRef = ref<InstanceType<typeof DropdownToggle> | null>(null);
 
 const changeLocale = async (newLocale: string) => {
-  if (!languageStore.getSupportedLocales.includes(newLocale)) {
+  await nextTick(); // Ensure store is ready
+
+  if (!languageStore._initialized) {
+    console.debug('Language store not initialized yet');
+  }
+
+  if (!languageStore.getSupportedLocales?.includes(newLocale)) {
     console.warn(`Unsupported locale: ${newLocale}`);
     return;
   }
