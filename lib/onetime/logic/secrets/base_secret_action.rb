@@ -5,6 +5,7 @@ module Onetime::Logic
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
+      using Onetime::RackRefinements
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance
