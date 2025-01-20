@@ -4,6 +4,7 @@ require 'stathat'
 require 'timeout'
 
 require_relative 'logic_helpers'
+require_relative '../refinements/rack_refinements'
 
 module Onetime
   module Logic
