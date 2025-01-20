@@ -10,16 +10,28 @@ require 'simplecov'
 SimpleCov.start if ENV['COVERAGE']
 
 # Adds the 'lib' directory to the load path to ensure that the Onetime library can be required.
-$LOAD_PATH.unshift File.expand_path('../../../../lib', __FILE__)
+# Add lib directory to load path
+lib_path = File.expand_path('../../../../lib', __FILE__)
+$LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
+
+# Add spec directory to load path
+spec_path = File.expand_path('../..', __FILE__)
+$LOAD_PATH.unshift(spec_path) unless $LOAD_PATH.include?(spec_path)
 
 begin
+  require 'onetime'
+  require 'onetime/alias' # OT
   require 'onetime/refinements/rack_refinements'
+  require 'onetime/logic/secrets/show_secret'
 rescue LoadError => e
   puts "Failed to load refinements: #{e.message}"
   puts "Current directory: #{Dir.pwd}"
   puts "Load path: #{$LOAD_PATH}"
   exit
 end
+
+OT::Config.path = File.join(Onetime::HOME, 'tests', 'unit', 'ruby', 'config.test.yaml')
+OT.boot! :test
 
 # Mocking the OT module to stub logging methods during tests.
 # This prevents actual logging and allows tests to run without external dependencies.

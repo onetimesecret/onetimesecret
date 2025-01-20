@@ -1,7 +1,6 @@
 # tests/unit/ruby/rspec/onetime/refinements/rack_refinements_spec.rb
 
 require_relative '../../spec_helper.rb'
-# require_relative "./hash_spec.rb"
 
 require 'onetime/refinements/rack_refinements'
 

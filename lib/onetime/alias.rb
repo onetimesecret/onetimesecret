@@ -1,3 +1,4 @@
+# lib/onetime/alias.rb
 # typed: ignore
 
 # This file exists solely to define the OT = Onetime constant.
