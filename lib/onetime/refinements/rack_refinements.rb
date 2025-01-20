@@ -8,18 +8,12 @@ module Onetime
         OT.ld "[Hash#fetch] key: #{key}, args: #{args}"
         string_key = key.to_s
         symbol_key = key.respond_to?(:to_sym) ? key.to_sym : nil
-
-        if key?(string_key)
-          super(string_key, *args)
-        elsif symbol_key && key?(symbol_key)
-          super(symbol_key, *args)
-        elsif block_given?
-          yield key
-        elsif args.any?
-          args.first
-        else
-          raise KeyError, "key not found: #{key.inspect}"
-        end
+        return super(string_key, *args) if key?(string_key)
+        return super(symbol_key, *args) if symbol_key && key?(symbol_key)
+        return yield(key) if block_given?
+        return args.first if args.length > 0
+        return nil if args == [nil]  # Handle explicit nil default
+        raise KeyError, "key not found: #{key.inspect}"
       end
 
       def dig(key, *rest)

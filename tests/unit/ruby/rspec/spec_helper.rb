@@ -28,7 +28,7 @@ module OT
     # Stub method for logging to avoid cluttering test output.
     # @param message [String] The message intended for logging.
     def ld(message)
-      # Stub logging in test environment
+      puts message
     end
   end
 end

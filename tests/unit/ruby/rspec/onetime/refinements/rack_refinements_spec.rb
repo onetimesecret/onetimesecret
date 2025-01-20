@@ -6,7 +6,6 @@ require_relative '../../spec_helper.rb'
 require 'onetime/refinements/rack_refinements'
 
 RSpec.describe Onetime::RackRefinements do
-  # Define module for testing scope
   module RefineTest
     using Onetime::RackRefinements
 
@@ -19,55 +18,82 @@ RSpec.describe Onetime::RackRefinements do
     end
   end
 
+  let(:nested_hash) do
+    {
+      "level1" => {
+        "level2" => {
+          symbol_key: "nested_value_symbol_key",
+          "string_key" => "nested_value_string_key"
+        }
+      },
+      deep: {
+        nested: {
+          value: "found"
+        }
+      }
+    }
+  end
+
   let(:test_hash) { {"string_key" => "value1", symbol_key: "value2"} }
 
-  shared_examples "hash access behavior" do |refined: false|
-    context "#fetch" do
-      if refined
-        def fetch_from(hash, *args, &block)
-          RefineTest.fetch_with_refinements(hash, *args, &block)
-        end
-      else
-        def fetch_from(hash, *args, &block)
-          hash.fetch(*args, &block)
-        end
+  describe "#fetch" do
+    context "with refinements" do
+      def fetch(hash, *args, &block)
+        RefineTest.fetch_with_refinements(hash, *args, &block)
       end
 
-      it "retrieves string key values" do
-        expect(fetch_from(test_hash, "string_key")).to eq("value1")
+      it "retrieves string keys" do
+        expect(fetch(test_hash, "string_key")).to eq("value1")
       end
 
-      it "retrieves symbol key values using string" do
-        if refined
-          expect(fetch_from(test_hash, "symbol_key")).to eq("value2")
-        else
-          expect { fetch_from(test_hash, "symbol_key") }.to raise_error(KeyError)
-        end
+      it "retrieves symbol keys using strings" do
+        expect(fetch(test_hash, "symbol_key")).to eq("value2")
       end
 
-      it "retrieves symbol key values using symbol" do
-        expect(fetch_from(test_hash, :symbol_key)).to eq("value2")
+      it "retrieves symbol keys using actual symbol)" do
+        expect(fetch(test_hash, :symbol_key)).to eq("value2")
       end
 
-      it "handles missing keys with default" do
-        expect(fetch_from(test_hash, "missing", "default")).to eq("default")
+      it "retrieves string keys using incorrect symbol" do
+        expect(fetch(test_hash, :string_key)).to eq("value1")
       end
 
-      it "handles missing keys with block" do
-        expect(fetch_from(test_hash, "missing") { "block_value" }).to eq("block_value")
+      it "returns default for missing keys" do
+        expect(fetch(test_hash, "missing", "default")).to eq("default")
       end
 
-      it "raises KeyError for missing keys" do
-        expect { fetch_from(test_hash, "missing") }.to raise_error(KeyError)
+      it "executes block for missing keys" do
+        expect(fetch(test_hash, "missing") { |k| "#{k}_not_found" }).to eq("missing_not_found")
+      end
+
+      it "raises KeyError without default or block" do
+        expect { fetch(test_hash, "missing") }.to raise_error(KeyError)
+      end
+
+      it "handles nil keys" do
+        expect { fetch(test_hash, nil) }.to raise_error(KeyError)
       end
     end
   end
 
-  context "with refinements" do
-    include_examples "hash access behavior", refined: true
-  end
+  describe '#dig' do
+    let(:nested_hash) { {'a' => {'b' => {'c' => 1}}} }
+    def dig(hash, *args, &block)
+      RefineTest.dig_with_refinements(hash, *args, &block)
+    end
 
-  context "without refinements" do
-    include_examples "hash access behavior", refined: false
+    it 'retrieves nested values' do
+      expect(dig(nested_hash, 'a', 'b', 'c')).to eq(1)
+    end
+
+    it 'handles symbol keys' do
+      expect(dig(nested_hash, :a, :b, :c)).to eq(1)
+    end
+
+
+    it 'returns nil for missing nested keys' do
+      expect(dig(nested_hash, 'a', 'missing', 'c')).to be_nil
+    end
+
   end
 end
