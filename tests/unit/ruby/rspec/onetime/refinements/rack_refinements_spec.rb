@@ -69,8 +69,20 @@ RSpec.describe Onetime::RackRefinements do
         expect { fetch(test_hash, "missing") }.to raise_error(KeyError)
       end
 
-      it "handles nil keys" do
+      it "handles nil keys, by raising an error when no default provided" do
         expect { fetch(test_hash, nil) }.to raise_error(KeyError)
+      end
+
+      it "handles nil keys, by returning a default value when provided (nil)" do
+        expect(fetch(test_hash, nil, nil)).to eq(nil)
+      end
+
+      it "handles nil keys, by returning a default value when provided (empty hash)" do
+        expect(fetch(test_hash, nil, {})).to eq({})
+      end
+
+      it "handles nil keys, by returning a default value when provided (string)" do
+        expect(fetch(test_hash, nil, 'default')).to eq('default')
       end
     end
   end
