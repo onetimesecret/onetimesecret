@@ -5,7 +5,6 @@ module Onetime
   module RackRefinements
     refine Hash do
       def fetch(key, *args)
-        OT.ld "[Hash#fetch] key: #{key}, args: #{args}"
         string_key = key.to_s
         symbol_key = key.respond_to?(:to_sym) ? key.to_sym : nil
         return super(string_key, *args) if key?(string_key)
@@ -17,7 +16,6 @@ module Onetime
       end
 
       def dig(key, *rest)
-        OT.ld "[Hash#dig] key: #{key}, rest: #{rest}"
         value = fetch(key, nil)  # Explicitly pass nil as default
         return value if rest.empty? || value.nil?
         value.respond_to?(:dig) ? value.dig(*rest) : nil
