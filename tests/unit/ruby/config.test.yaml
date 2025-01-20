@@ -185,7 +185,7 @@
   :email_recipient: 50
   :send_feedback: 10
   :authenticate_session: 5
-  :get_page: 500
+  :get_page: 1000
   :dashboard: 1000
   :failed_passphrase: 5
   :show_metadata: 1000
