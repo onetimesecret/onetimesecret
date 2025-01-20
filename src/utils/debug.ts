@@ -28,5 +28,5 @@ export const debugLog = {
       return () => console.timeEnd(label);
     }
     return () => {};
-  }
+  },
 };

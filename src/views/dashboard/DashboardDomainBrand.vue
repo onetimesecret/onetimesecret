@@ -135,7 +135,7 @@ onBeforeRouteLeave((to, from, next) => {
                               aria-labelledby="previewHeading">
             <div class=" z-50 h-1 w-full"
                 :style="{ backgroundColor: color }"></div>
-            <SecretPreview v-if="!isLoading && !error"
+            <SecretPreview v-if="!isLoading"
                           ref="secretPreview"
                           :domain-branding="brandSettings"
                           :logo-image="logoImage"
@@ -153,11 +153,6 @@ onBeforeRouteLeave((to, from, next) => {
             <!-- Add isLoading spinner -->
           </div>
 
-          <div v-if="error"
-              role="alert"
-              class="py-8 text-center text-red-600">
-            {{ error }}
-          </div>
         </div>
       </div>
 
