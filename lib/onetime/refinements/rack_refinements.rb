@@ -22,11 +22,11 @@ module Onetime
         end
       end
 
-      def dig(key, *args)
-        OT.ld "[Hash#dig] key: #{key}, args: #{args}"
-        value = fetch(key, nil)
-        return value if args.empty? || value.nil?
-        value.dig(*args) if value.respond_to?(:dig)
+      def dig(key, *rest)
+        OT.ld "[Hash#dig] key: #{key}, rest: #{rest}"
+        value = fetch(key, nil)  # Explicitly pass nil as default
+        return value if rest.empty? || value.nil?
+        value.respond_to?(:dig) ? value.dig(*rest) : nil
       end
     end
   end
