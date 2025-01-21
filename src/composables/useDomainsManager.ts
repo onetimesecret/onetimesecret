@@ -40,7 +40,13 @@ export function useDomainsManager() {
       notifications.show(message, severity);
     },
     setLoading: (loading) => (isLoading.value = loading),
-    onError: (err) => (error.value = err),
+    onError: (err) => {
+      if (err.code === 404 || err.code === 422 || err.code === 403) {
+        return router.push({ name: 'NotFound' });
+      }
+
+      error.value = err;
+    },
   };
 
   // Composable async handler

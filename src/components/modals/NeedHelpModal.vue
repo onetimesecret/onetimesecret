@@ -6,16 +6,11 @@
     TransitionChild,
     TransitionRoot,
   } from '@headlessui/vue';
-  import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
   import OIcon from '@/components/icons/OIcon.vue';
-  import { Metadata, MetadataDetails } from '@/schemas/models';
   import { ref } from 'vue';
   const showHelp = ref(false);
 
-  interface Props {
-    record: Metadata;
-    details: MetadataDetails;
-  }
+  interface Props {};
 
   defineProps<Props>();
 </script>
@@ -85,9 +80,9 @@
                 </div>
 
                 <!-- Content -->
-                <MetadataFAQ
-                  :record="record"
-                  :details="details" />
+                <slot name="content">
+                  Help content goes here.
+                </slot>
 
                 <!-- Footer with close button -->
                 <div class="mt-6 flex justify-end">

@@ -3,7 +3,13 @@ import { useNotificationsStore } from '@/stores';
 import { useBrandStore } from '@/stores/brandStore';
 import { shouldUseLightText } from '@/utils';
 import { computed, onMounted, ref, watch } from 'vue';
-import { AsyncHandlerOptions, useAsyncHandler, createError } from './useAsyncHandler';
+import { useRouter } from 'vue-router';
+
+import {
+  AsyncHandlerOptions,
+  useAsyncHandler,
+  createError,
+} from './useAsyncHandler';
 import { ApplicationError } from '@/schemas';
 import { AxiosError } from 'axios';
 
@@ -29,6 +35,7 @@ export function useBranding(domainId?: string) {
   const isLoading = ref(false);
   const isInitialized = ref(false);
   const error = ref<ApplicationError | null>(null);
+  const router = useRouter();
 
   const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
   const originalSettings = ref<BrandSettings | null>(null);
@@ -37,7 +44,16 @@ export function useBranding(domainId?: string) {
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isLoading.value = loading),
-    onError: (err) => (error.value = err),
+    onError: (err) => {
+      if (err.code === 404 || err.code === 422 || err.code === 403) {
+        return router.push({ name: 'NotFound' });
+      }
+
+      if ((err as ApplicationError).code !== 404) {
+        throw err;
+      }
+      error.value = err;
+    },
   };
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
@@ -46,6 +62,13 @@ export function useBranding(domainId?: string) {
     wrap(async () => {
       if (!domainId) return;
       const settings = await store.fetchSettings(domainId);
+
+      if (!settings) {
+        // Redirect to 404 if settings not found
+        return router.push('NotFound');
+      }
+
+      // Quietly handle 404 errors for logo fetch
       try {
         const logo = await store.fetchLogo(domainId); // Assuming this is async
         logoImage.value = logo;
@@ -69,7 +92,8 @@ export function useBranding(domainId?: string) {
   const hasUnsavedChanges = computed(() => {
     if (!originalSettings.value) return false;
     return !Object.entries(brandSettings.value).every(
-      ([key, value]) => originalSettings.value?.[key as keyof BrandSettings] === value
+      ([key, value]) =>
+        originalSettings.value?.[key as keyof BrandSettings] === value
     );
   });
 
@@ -94,7 +118,11 @@ export function useBranding(domainId?: string) {
   const handleLogoUpload = async (file: File) =>
     wrap(async () => {
       if (!domainId)
-        throw createError('Domain ID is required to upload logo', 'human', 'error');
+        throw createError(
+          'Domain ID is required to upload logo',
+          'human',
+          'error'
+        );
       const uploadedLogo = await store.uploadLogo(domainId, file);
       // Update local state with new logo
       logoImage.value = uploadedLogo;
@@ -103,7 +131,11 @@ export function useBranding(domainId?: string) {
   const removeLogo = async () =>
     wrap(async () => {
       if (!domainId)
-        throw createError('Domain ID is required to remove logo', 'human', 'error');
+        throw createError(
+          'Domain ID is required to remove logo',
+          'human',
+          'error'
+        );
       await store.removeLogo(domainId);
       // Clear local logo state
       logoImage.value = null;
