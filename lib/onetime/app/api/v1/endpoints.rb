@@ -112,13 +112,6 @@ module Onetime::App
           json :value => logic.secret_value,
                :secret_key => req.params[:key],
                :share_domain => logic.share_domain
-
-          # Immediately mark the secret as viewed, so that it
-          # can't be shown again. If there's a network failure
-          # that prevents the client from receiving the response,
-          # we're not able to show it again. This is a feature
-          # not a bug.
-          logic.secret.received!
         else
           secret_not_found_response
         end

@@ -54,6 +54,17 @@ module Onetime::Logic
             owner.increment_field :secrets_shared unless owner.anonymous?
             OT::Customer.global.increment_field :secrets_shared
 
+            # Immediately mark the secret as viewed, so that it
+            # can't be shown again. If there's a network failure
+            # that prevents the client from receiving the response,
+            # we're not able to show it again. This is a feature
+            # not a bug.
+            #
+            # NOTE: This destructive action is called before the
+            # response is returned or even fully generated (which
+            # happens in success_data). This is a feature, not a
+            # bug but it means that all return values need to be
+            # pluck out of the secret object before this is called.
             secret.received!
 
             OT::Logic.stathat_count("Viewed Secrets", 1)
