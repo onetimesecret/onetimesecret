@@ -100,8 +100,8 @@ onMounted(() => {
             :key="feature"
             class="flex gap-x-3">
             <OIcon
-              collection="heroicons-solid"
-              name="check"
+              collection="heroicons"
+              name="check-16-solid"
               :class="[tier.featured ? 'text-brand-400' : 'text-brand-600 dark:text-brand-400', 'h-6 w-5 flex-none']"
               aria-hidden="true"
             />
