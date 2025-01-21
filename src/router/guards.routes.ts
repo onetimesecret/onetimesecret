@@ -5,19 +5,23 @@ import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
 
-export function setupRouterGuards(router: Router) {
+export async function setupRouterGuards(router: Router): Promise<void> {
   router.beforeEach(async (to: RouteLocationNormalized) => {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
 
-    // Redirect authenticated users away from auth routes
-    if (isAuthRoute(to) && authStore.isAuthenticated) {
-      return { name: 'Dashboard' };
+    if (to.name === 'NotFound') {
+      return true;
     }
 
     // Handle root path redirect
     if (to.path === '/') {
       return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
+    }
+
+    // Redirect authenticated users away from auth routes
+    if (isAuthRoute(to) && authStore.isAuthenticated) {
+      return { name: 'Dashboard' };
     }
 
     // Validate authentication for protected routes
