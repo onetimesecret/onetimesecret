@@ -62,6 +62,10 @@ module Onetime::Logic
         }
       end
 
+      def redirect_uri
+        ['/private/', metadata.key].join
+      end
+
       protected
 
       def process_ttl
