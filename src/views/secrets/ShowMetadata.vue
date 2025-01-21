@@ -8,6 +8,7 @@
   import SecretLink from '@/components/secrets/metadata/SecretLink.vue';
   import CopyButton from '@/components/CopyButton.vue';
   import OIcon from '@/components/icons/OIcon.vue';
+  import MetadataFAQ from '@/components/secrets/metadata/MetadataFAQ.vue';
   import UnknownMetadata from './UnknownMetadata.vue';
   import { useMetadata } from '@/composables/useMetadata';
   import { onMounted, onUnmounted, watch, computed } from 'vue';
@@ -185,9 +186,13 @@
       <section
         aria-labelledby="section-help"
         class="relative">
-        <NeedHelpModal
-          :record="record"
-          :details="details" />
+        <NeedHelpModal>
+          <template #content>
+            <MetadataFAQ
+              :record="record"
+              :details="details" />
+          </template>
+        </NeedHelpModal>
       </section>
     </div>
   </div>
