@@ -37,11 +37,7 @@
     await fetchDomain();
   };
 
-  onMounted(() => {
-    console.debug('DomainVerify component mounted');
-    console.debug('Domain parameter:', route.params.domain);
-    fetchDomain();
-  });
+  onMounted(fetchDomain);
 </script>
 
 <template>
@@ -53,15 +49,15 @@
     </h1>
 
     <DomainVerificationInfo
-      v-if="domain?.vhost?.last_monitored_unix"
+      v-if="domain && domain.vhost?.last_monitored_unix"
       :domain="domain"
       mode="table" />
     <p
-      v-else
+      v-else-if="domain"
       class="mb-6 text-lg text-gray-600 dark:text-gray-300">
       Before we can activate links for
       <span class="bg-white text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{
-        domain?.display_domain
+        domain.display_domain
       }}</span
       >, you'll need to complete these steps.
     </p>

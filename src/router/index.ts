@@ -63,8 +63,11 @@ export function createAppRouter(): Router {
       // This catch-all 404 route is meant to be added last.
       {
         path: '/:pathMatch(.*)*',
-        name: 'Not Found',
+        name: 'NotFound',
         component: NotFound,
+        meta: {
+          requiresAuth: false,
+        },
       },
     ],
     scrollBehavior(to, from, savedPosition) {
@@ -77,26 +80,28 @@ export function createAppRouter(): Router {
     },
   });
 
-  // router.onError() is intentionally omitted here to avoid redundant error handling.
-  //
-  // Router errors are already handled by:
-  // 1. Route guards via setupRouterGuards()
-  // 2. Global error boundary (globalErrorBoundary.ts)
-  // 3. useAsyncHandler composable when used in navigation guards
-  //
-  // Router errors fall into two main categories:
-  // - Navigation failures: Handled by guards and classifyError()
-  // - Chunk loading failures: Caught by global error handler
-  //
-  // Adding router.onError would:
-  // - Create duplicate error handling paths
-  // - Interfere with our centralized error classification flow
-  // - Add unnecessary complexity to the error architecture
-  //
-  // For new router-related error cases, extend the existing guard or
-  // classification system rather than adding a new error handler here.
-
-  // Set up router guards for authentication and locale settings
+  /**
+   * router.onError() is intentionally omitted to avoid redundant error handling.
+   *
+   * Router errors are already handled by:
+   * 1. Route guards via setupRouterGuards()
+   * 2. Global error boundary (globalErrorBoundary.ts)
+   * 3. useAsyncHandler composable when used in navigation guards or composables.
+   *
+   * Router errors fall into two main categories:
+   * - Navigation failures: Handled by guards and classifyError()
+   * - Chunk loading failures: Caught by global error handler
+   *
+   * Adding router.onError would:
+   * - Create duplicate error handling paths
+   * - Interfere with our centralized error classification flow
+   * - Add unnecessary complexity to the error architecture
+   *
+   * For new router-related error cases, extend the existing guard or
+   * classification system rather than adding a new error handler here.
+   *
+   * Set up router guards for authentication and locale settings
+   */
   setupRouterGuards(router);
 
   return router;
@@ -104,10 +109,7 @@ export function createAppRouter(): Router {
 /**
  * About Auto vs Lazy loading
  *
- * When components are auto-loaded instead of lazy-loaded, there are a few
- * potential reasons why they might not display correctly:
- *
- * 1. **Dependencies and Timing:**
+ * **Dependencies and Timing:**
  *    Auto-loaded components are imported and initialized immediately when the
  *    application starts. If these components have dependencies that are not
  *    yet available or initialized, they might not function correctly.
