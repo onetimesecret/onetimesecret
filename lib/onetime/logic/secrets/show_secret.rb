@@ -8,7 +8,7 @@ module Onetime::Logic
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
                   :original_size, :verification, :correct_passphrase,
                   :display_lines, :one_liner, :is_owner, :has_passphrase,
-                  :secret_key
+                  :secret_key, :share_domain
 
       def process_params
         @key = params[:key].to_s
@@ -50,7 +50,7 @@ module Onetime::Logic
             owner.increment_field :secrets_shared unless owner.anonymous?
             OT::Customer.global.increment_field :secrets_shared
 
-            secret.received!
+            # secret.received!
 
             OT::Logic.stathat_count("Viewed Secrets", 1)
           end
@@ -59,6 +59,13 @@ module Onetime::Logic
           limit_action :failed_passphrase
         end
 
+        domain = if domains_enabled && !secret.share_domain.to_s.empty?
+          secret.share_domain
+        else
+          site_host # via LogicHlpers#site_host
+        end
+
+        @share_domain = [base_scheme, domain].join
         @has_passphrase = secret.has_passphrase?
         @display_lines = calculate_display_lines
         @is_owner = secret.owner?(cust)
