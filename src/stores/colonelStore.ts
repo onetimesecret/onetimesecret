@@ -45,7 +45,7 @@ export const useColonelStore = defineStore('colonel', () => {
     } catch (error) {
       console.error('Colonel validation failed:', {
         error,
-        data: response.data,
+        data: response?.data,
       });
       throw error;
     } finally {
