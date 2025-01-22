@@ -36,10 +36,7 @@ class Onetime::RateLimit < Familia::Horreum
   ttl 20.minutes
 
   prefix :limiter
-
-  string :counter, :quantize => [20.minutes, '%H:%M'], :ttl => 20.minutes
-
-  def_delegators :@counter, :value=, :to_i, :to_s
+  suffix :counter
 
   # limiter:cryt61zzviouw9bhxju71wv64q4yba3:get_page:0240
   identifier [:external_identifier, :event, :timeblock]
@@ -55,7 +52,6 @@ class Onetime::RateLimit < Familia::Horreum
   # @param event [Symbol] the type of event being limited
   # @return [Onetime::RateLimit]
   def init
-    self.counter.value = "0" unless exists?
     update_expiration
   end
 
