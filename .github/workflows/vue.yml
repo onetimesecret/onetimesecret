@@ -63,7 +63,7 @@ jobs:
 
       - name: Run type check
         run: pnpm run type-check
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Run tests
         run: pnpm test
