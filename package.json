@@ -50,6 +50,8 @@
     "@intlify/core": "^11.0.1",
     "@types/dompurify": "^3.0.5",
     "@types/jsdom": "^21.1.7",
+    "@vtsls/language-server": "^0.2.8",
+    "@vue/language-server": "^1.8.0",
     "@vueuse/integrations": "^12.4.0",
     "altcha": "^1.0.7",
     "axios": "^1.7.7",
