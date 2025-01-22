@@ -33,8 +33,9 @@ module Onetime::Logic
         @secret_shortkey = @secret.shortkey
 
         owner = secret.load_customer
-
         if show_secret
+          OT.ld "[reveal_secret] secret=#{secret.shortkey} viewable=#{secret.viewable?} correct_passphrase=#{correct_passphrase} continue=#{continue}"
+
           # If we can't decrypt that's great! We just set secret_value to
           # the encrypted string.
           @secret_value = secret.can_decrypt? ? secret.decrypted_value : secret.value
@@ -42,15 +43,23 @@ module Onetime::Logic
           @original_size = secret.original_size
 
           if verification
-            if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+            if owner.nil? || owner.anonymous? || owner.verified?
+              OT.le "[verification] Invalid verification attempt for secret #{secret.shortkey} - no owner or anonymous owner or already verified"
+              secret.received!
+              raise_form_error "This verification is not valid"
+
+            elsif cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
+              OT.li "[verification] Verifying owner #{owner.custid} for secret #{secret.shortkey}"
               owner.verified! "true"
+              owner.reset_secret.delete!
               sess.destroy!
               secret.received!
             else
+              OT.le "[verification] Invalid verification - user already logged in"
               raise_form_error "You can't verify an account when you're already logged in."
             end
           else
-
+            OT.li "[reveal_secret] #{secret.key} viewed successfully"
             owner.increment_field :secrets_shared unless owner.anonymous?
             OT::Customer.global.increment_field :secrets_shared
 
@@ -60,6 +69,7 @@ module Onetime::Logic
           end
 
         elsif secret.has_passphrase? && !correct_passphrase
+          OT.le "[reveal_secret] Failed passphrase attempt for secret #{secret.shortkey} #{session.short_identifier} #{session.ipaddress}"
           limit_action :failed_passphrase if secret.has_passphrase?
           message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
           raise_form_error message
