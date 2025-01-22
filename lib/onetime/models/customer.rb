@@ -213,6 +213,10 @@ class Onetime::Customer < Familia::Horreum
     custid.to_s.eql?('anon')
   end
 
+  def global?
+    custid.to_s.eql?('GLOBAL')
+  end
+
   def obscure_email
     if anonymous?
       'anon'
@@ -405,6 +409,7 @@ class Onetime::Customer < Familia::Horreum
     end
 
     def increment_field(cust, field)
+      return if cust.global?
       curval = cust.send(field)
       OT.info "[increment_field] cust.#{field} is #{curval} for #{cust}"
 

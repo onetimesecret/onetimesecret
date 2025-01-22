@@ -6,6 +6,8 @@
 require 'rspec'
 require 'simplecov'
 
+require_relative 'support/rack_context'
+
 # Starts SimpleCov for code coverage analysis if the COVERAGE environment variable is set.
 SimpleCov.start if ENV['COVERAGE']
 
@@ -70,4 +72,12 @@ RSpec.configure do |config|
 
   # Seeds the random number generator based on RSpec's seed to allow reproducible test order.
   Kernel.srand config.seed
+
+  # Shared Context
+  config.include_context "rack_test_context", type: :request
+
+  config.before(:each, type: :request) do
+    allow(Rack::Request).to receive(:new).and_return(rack_request)
+    allow(Rack::Response).to receive(:new).and_return(rack_response)
+  end
 end
