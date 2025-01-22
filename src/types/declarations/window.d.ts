@@ -51,7 +51,6 @@ export interface OnetimeWindow {
   site_host: string;
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
-  form_fields?: { [key: string]: string };
   authentication: AuthenticationSettings; // TODO: May need to offer default values
   secret_options: SecretOptions;
 

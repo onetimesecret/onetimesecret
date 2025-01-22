@@ -126,8 +126,6 @@ module Onetime
             @messages = sess.get_messages || []
           end
 
-          add_messages sess.get_info_messages
-          add_form_fields sess.get_form_fields!
         end
 
         # Link to the pricing page can be seen regardless of authentication status
@@ -148,13 +146,6 @@ module Onetime
         self[:jsvars][:domain_branding] = jsvar(domain_branding)
         self[:jsvars][:domain_logo] = jsvar(domain_logo)
         self[:jsvars][:display_domain] = jsvar(display_domain)
-
-        # The form fields hash is populated by handle_form_error so only when there's
-        # been a form error in the request immediately prior to this one being served
-        # now will this have any value at all. This is used to repopulate the form
-        # fields with the values that were submitted so the user can try again
-        # without having to re-enter everything.
-        self[:jsvars][:form_fields] = jsvar(self.form_fields)
 
         self[:jsvars][:ot_version] = jsvar(OT::VERSION.inspect)
         self[:jsvars][:ruby_version] = jsvar("#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
