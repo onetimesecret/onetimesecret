@@ -18,7 +18,7 @@ export interface ProductTier {
 export const paymentFrequencies: Array<PaymentFrequency> = [
   { value: 'monthly', label: 'Monthly', priceSuffix: '/month' },
   { value: 'annually', label: 'Yearly', priceSuffix: '/year' },
-]
+];
 
 export const productTiers: Array<ProductTier> = [
   {
@@ -33,10 +33,11 @@ export const productTiers: Array<ProductTier> = [
     //description: "Secure sharing that elevates your brand and simplifies communication.",
     //description: "Elevate your brand with secure sharing that simplifies communication.",
     //description: "Elevate your brand with secure, streamlined communication.",
-    description: "Secure your brand, build customer trust with links from your domain.",
+    description: 'Secure your brand, build customer trust with links from your domain.',
     features: [
       'Unlimited custom domains',
-      //'Unlimited sharing capacity',
+      'Custom branding with your logo',
+      'Branded homepage destination',
       'Privacy-first design',
       'Full API access',
       'Meets and exceeds compliance standards',
@@ -50,7 +51,7 @@ export const productTiers: Array<ProductTier> = [
     cta: 'Coming this fall',
     price: {
       monthly: '$245',
-      annually: '$2545'
+      annually: '$2545',
     },
     description: 'Dedicated infrastructure for data-compliance and deep integrations.',
     features: [
@@ -63,4 +64,4 @@ export const productTiers: Array<ProductTier> = [
 
     featured: true,
   },
-]
+];

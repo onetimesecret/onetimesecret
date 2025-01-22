@@ -1,11 +1,11 @@
-import WideLayout from '@/layouts/WideLayout.vue'
-import { RouteRecordRaw } from 'vue-router'
+import WideLayout from '@/layouts/WideLayout.vue';
+import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/pricing',
     name: 'Pricing',
-    component: () => import('@/views/pricing/PricingDual.vue'),
+    component: () => import('@/views/pricing/PricingSolo.vue'),
     meta: {
       requiresAuth: false,
       layout: WideLayout,
@@ -19,6 +19,6 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
-]
+];
 
 export default routes;
