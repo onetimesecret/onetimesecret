@@ -78,6 +78,10 @@ class Onetime::RateLimit < Familia::Horreum
     get
   end
 
+  def to_s
+    get
+  end
+
   # Increment the counter and raise OT::LimitExceeded if limit is exceeded
   # @return [Integer] the new count
   # @raise [OT::LimitExceeded] if the limit is exceeded
