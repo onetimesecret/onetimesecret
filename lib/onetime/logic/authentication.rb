@@ -32,7 +32,18 @@ module Onetime::Logic
 
       def process
 
+
         if success?
+
+          if cust.pending?
+            OT.info "[login-pending-customer] #{sess.short_identifier} #{cust.custid} #{cust.role} (pending)"
+            OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
+            self.send_verification_email nil
+
+            msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
+            return sess.set_info_message msg
+          end
+
           @greenlighted = true
 
           OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (replacing sessid)"
@@ -92,7 +103,7 @@ module Onetime::Logic
         if cust.pending?
           OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
           self.send_verification_email
-          msg = i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
+          msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
           return sess.set_info_message msg
         end
 
@@ -100,6 +111,8 @@ module Onetime::Logic
         secret.ttl = 24.hours
         secret.verification = "true"
         secret.save
+
+        cust.reset_secret = secret.key  # as a standalone rediskey, writes immediately
 
         view = OT::App::Mail::PasswordRequest.new cust, locale, secret
         view.emailer.from = OT.conf[:emailer][:from]
