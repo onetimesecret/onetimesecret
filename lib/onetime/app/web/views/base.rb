@@ -19,6 +19,7 @@ module Onetime
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
+        @messages ||= []
         site = OT.conf.fetch(:site, {})
         is_default_locale = OT.conf[:locales].first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
@@ -118,15 +119,7 @@ module Onetime
           end
         end
 
-        unless sess.nil?
-          if cust.pending?
-            msg = i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
-            @messages << {type: 'info', content: msg}
-          else
-            @messages = sess.get_messages || []
-          end
-
-        end
+        @messages = sess.get_messages || [] unless sess.nil?
 
         # Link to the pricing page can be seen regardless of authentication status
         self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)

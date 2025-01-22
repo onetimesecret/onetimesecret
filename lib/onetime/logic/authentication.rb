@@ -55,7 +55,9 @@ module Onetime::Logic
           else
             cust.role = :customer unless cust.role?(:customer)
           end
+
         else
+          OT.ld "[login-failure] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (failed)"
           raise_form_error "Try again"
         end
       end
@@ -86,6 +88,14 @@ module Onetime::Logic
 
       def process
         cust = OT::Customer.load @custid
+
+        if cust.pending?
+          OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
+          self.send_verification_email
+          msg = i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
+          return sess.set_info_message msg
+        end
+
         secret = OT::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
         secret.verification = "true"

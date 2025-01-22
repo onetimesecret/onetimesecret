@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# lib/onetime/models/mixins/passphrase.rb
 
 module Onetime::Models
   module Passphrase

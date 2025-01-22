@@ -64,37 +64,20 @@ module Onetime::Logic
         OT.info "[new-customer] #{cust.custid} #{cust.role} #{sess.ipaddress} #{plan.planid} #{sess.short_identifier}"
         OT::Logic.stathat_count("New Customers (OTS)", 1)
 
-        if autoverify
-          sess.set_info_message "Account created"
+
+        success_message = if autoverify
+          "Account created."
         else
           self.send_verification_email
+
+          i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
         end
+
+        sess.set_success_message success_message
 
       end
 
       private
-
-      def send_verification_email
-        _, secret = Onetime::Secret.spawn_pair cust.custid, token
-
-        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
-
-        secret.encrypt_value msg
-        secret.verification = true
-        secret.custid = cust.custid
-        secret.save
-
-        view = OT::App::Mail::Welcome.new cust, locale, secret
-
-        begin
-          view.deliver_email self.token
-
-        rescue StandardError => ex
-          errmsg = "Couldn't send the verification email. Let us know below."
-          OT.le "Error sending verification email: #{ex.message}"
-          sess.set_info_message errmsg
-        end
-      end
 
       def form_fields
         { :planid => planid, :custid => custid }

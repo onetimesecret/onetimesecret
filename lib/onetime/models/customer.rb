@@ -1,3 +1,7 @@
+# lib/onetime/models/customer.rb
+
+require 'rack/utils'
+
 class Onetime::Customer < Familia::Horreum
   include Gibbler::Complex
 
@@ -15,6 +19,9 @@ class Onetime::Customer < Familia::Horreum
   sorted_set :metadata
 
   hashkey :feature_flags # To turn on allow_public_homepage column in domains table
+
+  # Used to track the current and most recently created password reset secret.
+  string :reset_secret, ttl: 24.hours
 
   identifier :custid
 
@@ -244,6 +251,20 @@ class Onetime::Customer < Familia::Horreum
     # and have a role of 'customer'. If any one of these conditions is changes
     # then the customer is no longer pending.
     !anonymous? && !verified? && role?('customer')  # we modify the role when destroying
+  end
+
+  def reset_secret? secret
+    return false if secret.nil? || !secret.exists? || secret.key.to_s.empty?
+    Rack::Utils.secure_compare(self.reset_secret.to_s, secret.key)
+  end
+
+  def valid_reset_secret! secret
+    if is_valid = reset_secret?(secret)
+      OT.ld "[valid_reset_secret!] Reset secret is valid for #{custid} #{secret.shortkey}"
+      secret.delete!
+      self.reset_secret.delete!
+    end
+    is_valid
   end
 
   # Loads an existing session or creates a new one if it doesn't exist.

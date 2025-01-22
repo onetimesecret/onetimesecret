@@ -63,6 +63,15 @@ module Onetime
         raise NotImplementedError
       end
 
+      def i18n
+        locale = self.locale || 'en'
+        @i18n ||= {
+          locale: locale,
+          email: OT.locales[locale][:email],
+          web: OT.locales[locale][:web]
+        }
+      end
+
       protected
 
       def process_params
@@ -101,6 +110,31 @@ module Onetime
 
       def custom_domain?
         domain_strategy.to_s == 'custom'
+      end
+
+      # Requires the implementing class to have cust and session fields
+      def send_verification_email token=nil
+        _, secret = Onetime::Secret.spawn_pair cust.custid, token
+
+        msg = "Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"" % OT::Utils.random_fortune
+
+        secret.encrypt_value msg
+        secret.verification = true
+        secret.custid = cust.custid
+        secret.save
+
+        cust.reset_secret = secret.key # as a standalone rediskey, writes immediately
+
+        view = OT::App::Mail::Welcome.new cust, locale, secret
+
+        begin
+          view.deliver_email self.token
+
+        rescue StandardError => ex
+          errmsg = "Couldn't send the verification email. Let us know below."
+          OT.le "Error sending verification email: #{ex.message}"
+          sess.set_info_message errmsg
+        end
       end
 
       module ClassMethods
