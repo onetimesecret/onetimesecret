@@ -70,7 +70,7 @@ module Onetime::Logic
         else
           self.send_verification_email
 
-          i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
+          "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
         end
 
         sess.set_success_message success_message

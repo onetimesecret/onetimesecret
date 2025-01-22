@@ -128,11 +128,11 @@ module Onetime
         view = OT::App::Mail::Welcome.new cust, locale, secret
 
         begin
-          view.deliver_email self.token
+          view.deliver_email token
 
         rescue StandardError => ex
           errmsg = "Couldn't send the verification email. Let us know below."
-          OT.le "Error sending verification email: #{ex.message}"
+          OT.le "Error sending verification email: #{ex.message}", ex.backtrace
           sess.set_info_message errmsg
         end
       end
