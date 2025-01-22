@@ -52,6 +52,7 @@ class Onetime::RateLimit < Familia::Horreum
   # @param event [Symbol] the type of event being limited
   # @return [Onetime::RateLimit]
   def init
+    redis.setnx(rediskey, 0) # nx = set if not exists
     update_expiration
   end
 
