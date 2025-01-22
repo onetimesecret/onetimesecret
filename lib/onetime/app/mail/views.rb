@@ -100,12 +100,13 @@ module Onetime::App
     end
 
     class FeedbackEmail < OT::App::Mail::Base
-      attr_accessor :message
+      attr_accessor :message, :display_domain, :domain_strategy
       def init
         self[:email_address] = cust.email
       end
       def subject
-        "Feedback email #{OT.now}"
+        stamp = OT.now.strftime('%b %d, %Y') # in UTC
+        "Feedback on #{stamp} via #{display_domain} (#{domain_strategy})"
       end
     end
   end

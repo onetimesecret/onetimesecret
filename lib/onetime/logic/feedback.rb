@@ -98,6 +98,8 @@ module Onetime::Logic
         view = OT::App::Mail::FeedbackEmail.new cust, locale
         view.emailer.from = OT.conf[:emailer][:from]
         view.emailer.fromname = OT.conf[:emailer][:fromname]
+        view.display_domain = self.display_domain
+        view.domain_strategy = self.domain_strategy
         view.message = message
 
         OT.ld "[send_feedback] Calling deliver_email #{message.gibbler}"
@@ -106,9 +108,9 @@ module Onetime::Logic
           view.deliver_email
 
         rescue StandardError => ex
-          errmsg = "Couldn't send the feedback email. Let know below."
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
-          sess.set_error_message errmsg
+          # No need to notify the user of this error. The message is still
+          # saved in Redis and available via the colonel interface.
         end
       end
     end
