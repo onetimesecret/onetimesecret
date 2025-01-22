@@ -2,12 +2,9 @@
 import { useSecret } from '@/composables/useSecret';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { ApplicationError } from '@/schemas/errors';
 import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 
 const csrfStore = useCsrfStore();
-const router = useRouter();
 
 export interface Props {
   enabled?: boolean;
@@ -18,14 +15,8 @@ const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })
 
-const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-  onError: (error: ApplicationError) => {
-    console.log('error status', error.code)
-    if (error.code === 404) {
-      router.push('/');
-    }
-  }
-};
+const defaultAsyncHandlerOptions: AsyncHandlerOptions = {}
+
 
 const { state, load } = useSecret(props.resetKey, defaultAsyncHandlerOptions);
 

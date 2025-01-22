@@ -26,6 +26,8 @@ GET   /signup                                    Onetime::App::Page#index
 GET   /signup/*                                  Onetime::App::Page#index
 GET   /logout                                    Onetime::App::Data#logout
 
+GET   /forgot                                    Onetime::App::Page#index
+GET   /forgot/:key                               Onetime::App::Page#index
 POST  /forgot                                    Onetime::App::Data#request_reset
 POST  /forgot/:key                               Onetime::App::Data#request_reset
 
