@@ -11,8 +11,10 @@
   export interface Props {
     collection: string; // heroicons-solid
     name: string; // ellipses-vertical
+    size?: string; // size-5
   }
-  defineProps<Props>();
+  const props = defineProps<Props>();
+  const size = `size-${props.size ?? 5}`;
 
   // Professional iconist tip:
   // It's very helpful to console log the props here to see what icons
@@ -20,7 +22,7 @@
 </script>
 
 <template>
-  <svg aria-hidden="true">
+  <svg aria-hidden="true" :class="size" >
     <use :href="`#${[collection, name].filter(Boolean).join('-')}`" />
   </svg>
 </template>

@@ -48,6 +48,28 @@ module Onetime::Logic
         @greenlighted = true
         @msg = format_feedback_message
         OT.ld [:receive_feedback, msg].inspect
+
+
+        begin
+          configured_colonels = OT.conf[:colonels] || []
+
+          first_colonel = nil
+          configured_colonels.each do |colonel_email|
+            OT.ld "Colonel: #{colonel_email}"
+            first_colonel = OT::Customer.find colonel_email
+            if first_colonel
+              OT.ld "[receive_feedback] Sending feedback to colonel: #{colonel_email} #{first_colonel}"
+              send_feedback first_colonel, msg
+              break
+            end
+          end
+
+        rescue StandardError => ex
+          # We liberally rescue all StandError exceptions here because we don't
+          # want to fail the user's feedback submission if we can't send an email.
+          OT.le "Error sending feedback email to first colonel: #{ex.message}", ex.backtrace
+        end
+
         OT::Feedback.add @msg
       end
 
@@ -70,6 +92,26 @@ module Onetime::Logic
 
       def secret_key
         OT.conf.dig(:site, :authenticity, :secret_key) # ALTCHA_HMAC_KEY
+      end
+
+      def send_feedback cust, message
+        view = OT::App::Mail::FeedbackEmail.new cust, locale
+        view.emailer.from = OT.conf[:emailer][:from]
+        view.emailer.fromname = OT.conf[:emailer][:fromname]
+        view.display_domain = self.display_domain
+        view.domain_strategy = self.domain_strategy
+        view.message = message
+
+        OT.ld "[send_feedback] Calling deliver_email #{message.gibbler}"
+
+        begin
+          view.deliver_email
+
+        rescue StandardError => ex
+          OT.le "Error sending feedback email: #{ex.message}", ex.backtrace
+          # No need to notify the user of this error. The message is still
+          # saved in Redis and available via the colonel interface.
+        end
       end
     end
 

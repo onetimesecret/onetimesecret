@@ -55,12 +55,12 @@ const {
   },
 });
 
-// New function to handle keydown events
+const form = ref<HTMLFormElement | null>(null);
+
 const handleKeydown = (event: KeyboardEvent) => {
-  // Check if the key pressed is Enter and if Command (Mac) or Control (Windows) is held
   if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-    event.preventDefault(); // Prevent default behavior (new line in textarea)
-    submitForm(); // Submit the form
+    event.preventDefault();
+    form.value?.requestSubmit(); // This triggers the form submission event
   }
 };
 
@@ -114,7 +114,8 @@ const submitWithCheck = async (event?: Event) => {
 <template>
   <div class="space-y-8">
     <!-- Feedback Form -->
-    <form @submit.prevent="submitWithCheck"
+    <form ref="form"
+          @submit.prevent="submitWithCheck"
           class="space-y-6">
       <input type="hidden"
              name="utf8"
@@ -173,13 +174,15 @@ const submitWithCheck = async (event?: Event) => {
       <AltchaChallenge v-if="!cust" />
     </form>
 
-    <div v-if="error"
-         class="mt-4 text-red-600 dark:text-red-400">
-      {{ error }}
-    </div>
-    <div v-if="success"
-         class="mt-4 text-green-600 dark:text-green-400">
-      {{ success }}
+    <div class="h-6">
+      <div v-if="error"
+          class="mt-4 text-red-600 dark:text-red-400">
+        {{ error }}
+      </div>
+      <div v-if="success"
+          class="mt-4 text-green-600 dark:text-green-400">
+        {{ success }}
+      </div>
     </div>
 
     <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">

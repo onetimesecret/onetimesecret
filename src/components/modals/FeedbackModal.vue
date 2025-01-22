@@ -69,8 +69,8 @@ onBeforeUnmount(() => {
           <FeedbackModalForm :show-red-button="true" />
 
           <p class="mt-6 text-center text-sm italic text-gray-500 dark:text-gray-400">
-            Your feedback <RouterLink to="/feedback"
-                        class="underline">helps us improve</RouterLink>. Especially the annoyances!
+            <RouterLink to="/feedback"
+                        class="underline">Help us improve</RouterLink>. All feedback welcome!
           </p>
         </div>
       </FocusTrap>
