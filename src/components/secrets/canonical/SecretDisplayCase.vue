@@ -191,6 +191,17 @@ const closeTruncatedWarning = (event: Event) => {
             You can safely close this tab.
           </p>
         </div>
+        <div v-else class="mt-16">
+          <a
+            href="/signin"
+            class="block w-full rounded-md border border-slate-500 bg-white px-4 py-2
+              text-center text-slate-500 hover:bg-slate-50
+              focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2
+              dark:border-slate-400 dark:bg-gray-800 dark:text-slate-400 dark:hover:bg-gray-700"
+            aria-label="Sign in to your account">
+            {{ $t('web.COMMON.login_to_your_account') }}
+          </a>
+        </div>
 
       </div>
     </template>
