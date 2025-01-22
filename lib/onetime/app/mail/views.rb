@@ -98,5 +98,15 @@ module Onetime::App
         'test_value'
       end
     end
+
+    class FeedbackEmail < OT::App::Mail::Base
+      attr_accessor :message
+      def init
+        self[:email_address] = cust.email
+      end
+      def subject
+        "Feedback email #{OT.now}"
+      end
+    end
   end
 end
