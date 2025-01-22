@@ -32,9 +32,10 @@ module Onetime::App
           host: OT.conf[:emailer][:host],
           port: OT.conf[:emailer][:port],
           user: OT.conf[:emailer][:user],
-          tls: OT.conf[:emailer][:tls]
+          tls: OT.conf[:emailer][:tls],
+          auth: OT.conf[:emailer][:auth],
         }
-        OT.info "[mailer] #{@mode} #{safe_mail_config.to_json}"
+        OT.info "[mailer] #{mode} #{safe_mail_config.to_json}"
         init(*args) if respond_to? :init
       end
 
