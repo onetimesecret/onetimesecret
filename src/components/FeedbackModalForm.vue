@@ -174,13 +174,15 @@ const submitWithCheck = async (event?: Event) => {
       <AltchaChallenge v-if="!cust" />
     </form>
 
-    <div v-if="error"
-         class="mt-4 text-red-600 dark:text-red-400">
-      {{ error }}
-    </div>
-    <div v-if="success"
-         class="mt-4 text-green-600 dark:text-green-400">
-      {{ success }}
+    <div class="h-6">
+      <div v-if="error"
+          class="mt-4 text-red-600 dark:text-red-400">
+        {{ error }}
+      </div>
+      <div v-if="success"
+          class="mt-4 text-green-600 dark:text-green-400">
+        {{ success }}
+      </div>
     </div>
 
     <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
