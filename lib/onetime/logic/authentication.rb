@@ -103,9 +103,10 @@ module Onetime::Logic
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           OT.le "Error sending password reset email: #{ex.message}"
-          sess.set_info_message errmsg
+          sess.set_error_message errmsg
         else
-          sess.set_info_message "We sent instructions to #{cust.custid}"
+          OT.info "Password reset email sent to #{@custid} for sess=#{sess.short_identifier}"
+          sess.set_success_message "We sent instructions to #{cust.custid}"
         end
 
       end
@@ -143,7 +144,7 @@ module Onetime::Logic
           cust.update_passphrase @newp
 
           # Set a success message in the session
-          sess.set_info_message "Password changed"
+          sess.set_success_message "Password changed"
 
           # Destroy the secret on successful attempt only. Otherwise
           # the user will need to make a new request if the passwords
