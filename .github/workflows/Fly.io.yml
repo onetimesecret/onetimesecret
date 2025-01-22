@@ -17,6 +17,11 @@ on:
       - develop
     types:
       - closed
+      - opened
+      - ready_for_review
+      - review_requested
+      - edited
+      - synchronize
 
   # Automatic trigger on pushes to feature and work-in-progress branches
   # Allows for continuous integration and testing of new features
