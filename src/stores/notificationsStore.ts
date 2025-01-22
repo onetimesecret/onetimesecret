@@ -5,6 +5,7 @@ import { NotificationSeverity } from '@/types/ui/notifications';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { inject, ref } from 'vue';
+import { WindowService } from '@/services/window.service';
 
 export type NotificationPosition = 'top' | 'bottom';
 
@@ -33,28 +34,28 @@ export type NotificationsStore = {
 } & PiniaCustomProperties;
 
 /**
- * Global notification management store
+ * Frontend notification management store integrated with server-side messages
  *
  * Handles application-wide notifications including success messages,
  * errors, and info alerts. Provides auto-dismissal and position control.
  *
- * @example Basic Usage
+ * Architecture:
+ * - Initializes from server messages on mount
+ * - Manages client-only state after initialization
+ * - No direct coupling with SessionMessages module
+ *
+ * @example Initialize and handle server messages
  * ```ts
- * const notifications = useNotificationsStore();
- * notifications.show('Operation successful', 'success');
+ * const store = useNotificationsStore();
+ * store.init(); // Processes window.messages
  * ```
  *
- * @example With Position
+ * @example Client-side notification
  * ```ts
- * notifications.show('Please check input', 'error', 'top');
+ * store.show('Operation completed', 'success', 'top');
  * ```
- *
- * Features:
- * - Auto-dismissal after 5s
- * - Multiple severity levels
- * - Configurable positioning
- * - Global state management
  */
+/* eslint-disable max-lines-per-function */
 export const useNotificationsStore = defineStore('notifications', () => {
   const $api = inject('api') as AxiosInstance; // eslint-disable-line
 
@@ -72,8 +73,27 @@ export const useNotificationsStore = defineStore('notifications', () => {
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
 
-    if (options?.api)
+    if (options?.api) {
       loggingService.warn('API instance provided in options, ignoring.');
+    }
+
+    const serverMessages = WindowService.get('messages');
+    if (!serverMessages?.length) return;
+
+    // Get last error or info message
+    const messages = [...serverMessages].reverse();
+    const errorMessage = messages.find((msg) => msg.type === 'error');
+    const successMessage = messages.find((msg) => msg.type === 'success');
+    const infoMessage = messages.find((msg) => msg.type === 'info');
+
+    // Display error message with priority over info
+    if (errorMessage) {
+      show(errorMessage.content, 'error');
+    } else if (successMessage) {
+      show(successMessage.content, 'success');
+    } else if (infoMessage) {
+      show(infoMessage.content, 'info');
+    }
 
     _initialized.value = true;
   }
