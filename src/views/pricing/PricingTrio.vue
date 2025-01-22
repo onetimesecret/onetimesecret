@@ -2,12 +2,13 @@
   import { ref } from 'vue';
   import { RadioGroup, RadioGroupOption } from '@headlessui/vue';
   import OIcon from '@/components/icons/OIcon.vue';
+  import type { PaymentFrequency, ProductTier } from '@/sources/productTiers';
 
-  const frequencies = [
+  const frequencies: PaymentFrequency[] = [
     { value: 'monthly', label: 'Monthly', priceSuffix: '/month' },
     { value: 'annually', label: 'Annually', priceSuffix: '/year' },
   ];
-  const tiers = [
+  const tiers: ProductTier[] = [
     {
       name: 'Freelancer',
       id: 'tier-freelancer',
@@ -38,7 +39,7 @@
       name: 'Enterprise',
       id: 'tier-enterprise',
       href: '#',
-      price: 'Custom',
+      price: { monthly: 'Custom', annually: 'Custom' },
       description: 'Dedicated support and infrastructure for your company.',
       features: [
         'Unlimited products',
@@ -53,7 +54,7 @@
     },
   ];
 
-  const frequency = ref(frequencies[0]);
+  const frequency = ref<PaymentFrequency>(frequencies[0])
 </script>
 
 <template>
