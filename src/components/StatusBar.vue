@@ -165,7 +165,8 @@ const statusConfig = computed(() => {
           ]"
           :style="{
             animation: `shrink ${duration}ms linear forwards`
-          }"></div>
+          }">
+        </div>
       </div>
     </Transition>
   </Teleport>
