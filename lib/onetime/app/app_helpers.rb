@@ -37,7 +37,12 @@ module Onetime::App
 
       # Generate a unique nonce for this response
       nonce = SecureRandom.base64(16)
+
+      # Make the nonce available to the CSP header
       add_response_headers(content_type, nonce)
+
+      # Make the nonce available to the view
+      req.env['ots.nonce'] = nonce
 
       return_value = yield
 
@@ -308,33 +313,35 @@ module Onetime::App
       # hot reloading to work.
       if OT.conf.dig(:development, :enabled)
         csp = [
-          "default-src 'self';",                               # Restrict to same origin by default
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval';",  # Allow Vite's dynamic module imports and source maps
+          "default-src 'none';",                               # Restrict to same origin by default
+          "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # Allow Vite's dynamic module imports and source maps
           "style-src 'self' 'unsafe-inline';",                 # Enable Vite's dynamic style injection
-          "connect-src 'self' ws: wss:;",                      # Allow WebSocket connections for hot module replacement
-          "img-src 'self' data:;",                             # Permit data: URIs for development assets
-          "font-src 'self';",                                  # Restrict fonts to same origin
+          "connect-src 'self' ws: wss: http: https:;",         # Allow WebSocket connections for hot module replacement
+          "img-src 'self' data:;",                             # Allow images from same origin only
+          "font-src 'self';",                                  # Allow fonts from same origin only
           "object-src 'none';",                                # Block <object>, <embed>, and <applet> elements
           "base-uri 'self';",                                  # Restrict <base> tag targets to same origin
           "form-action 'self';",                               # Restrict form submissions to same origin
           "frame-ancestors 'none';",                           # Prevent site from being embedded in frames
+          "manifest-src 'self';",
+          "require-trusted-types-for 'script';",
         ]
-    else
-      csp = [
-        "default-src 'self';",                                 # Restricts all content to same origin by default
-        "script-src 'self' 'nonce-#{nonce}';",                 # Only allow scripts from same origin with nonce
-        "style-src 'self' 'unsafe-inline';",                   # Only inline styles
-        "img-src 'self' data:;",                                    # Only allow images from same origin
-        "font-src 'self';",                                    # Only allow fonts from same origin
-        "object-src 'none';",                                  # Block all plugins (object/embed/applet)
-        "base-uri 'self';",                                    # Restrict base tag to same origin
-        "form-action 'self';",                                 # Restrict form submissions to same origin
-        "frame-ancestors 'none';",                             # Prevent site from being embedded in frames
-      ]
-    end
-
-      # Make the nonce available to the view
-      req.env['ots.nonce'] = nonce
+      else
+        csp = [
+          "default-src 'none';",
+          "script-src 'unsafe-inline' 'nonce-#{nonce}';",        # unsafe-inline is ignored with a nonce
+          "style-src 'self' 'unsafe-inline';",
+          "connect-src 'self' wss: https:;",                     # Only HTTPS and secure WebSockets
+          "img-src 'self' data:;",
+          "font-src 'self';",
+          "object-src 'none';",
+          "base-uri 'self';",
+          "form-action 'self';",
+          "frame-ancestors 'none';",
+          "manifest-src 'self';",
+          "require-trusted-types-for 'script';",
+        ]
+      end
 
       OT.ld "[CSP] #{csp.join(' ')}" if OT.debug?
 
