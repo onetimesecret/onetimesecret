@@ -555,7 +555,10 @@ class Onetime::CustomDomain < Familia::Horreum
     # correct derived ID is used as the key.
     def load display_domain, custid
 
-      custom_domain = parse(display_domain, custid)
+      custom_domain = parse(display_domain, custid).tap do |obj|
+        OT.ld "[CustomDomain.load] Got #{obj.identifier} #{obj.display_domain} #{obj.custid}"
+        raise OT::RecordNotFound, "Domain not found #{obj.display_domain}" unless obj.exists?
+      end
 
       # Continue with the built-in `load` from Familia.
       super(custom_domain.identifier)
