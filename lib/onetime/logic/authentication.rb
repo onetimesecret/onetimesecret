@@ -32,7 +32,18 @@ module Onetime::Logic
 
       def process
 
+
         if success?
+
+          if cust.pending?
+            OT.info "[login-pending-customer] #{sess.short_identifier} #{cust.custid} #{cust.role} (pending)"
+            OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
+            self.send_verification_email nil
+
+            msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
+            return sess.set_info_message msg
+          end
+
           @greenlighted = true
 
           OT.info "[login-success] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (replacing sessid)"
@@ -55,7 +66,9 @@ module Onetime::Logic
           else
             cust.role = :customer unless cust.role?(:customer)
           end
+
         else
+          OT.ld "[login-failure] #{sess.short_identifier} #{cust.obscure_email} #{cust.role} (failed)"
           raise_form_error "Try again"
         end
       end
@@ -86,10 +99,20 @@ module Onetime::Logic
 
       def process
         cust = OT::Customer.load @custid
+
+        if cust.pending?
+          OT.li "[ResetPasswordRequest] Resending verification email to #{cust.custid}"
+          self.send_verification_email
+          msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.custid}."
+          return sess.set_info_message msg
+        end
+
         secret = OT::Secret.create @custid, [@custid]
         secret.ttl = 24.hours
         secret.verification = "true"
         secret.save
+
+        cust.reset_secret = secret.key  # as a standalone rediskey, writes immediately
 
         view = OT::App::Mail::PasswordRequest.new cust, locale, secret
         view.emailer.from = OT.conf[:emailer][:from]
@@ -103,9 +126,10 @@ module Onetime::Logic
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
           OT.le "Error sending password reset email: #{ex.message}"
-          sess.set_info_message errmsg
+          sess.set_error_message errmsg
         else
-          sess.set_info_message "We sent instructions to #{cust.custid}"
+          OT.info "Password reset email sent to #{@custid} for sess=#{sess.short_identifier}"
+          sess.set_success_message "We sent instructions to #{cust.custid}"
         end
 
       end
@@ -139,11 +163,27 @@ module Onetime::Logic
           # Load the customer information from the premade secret
           cust = secret.load_customer
 
+          unless cust.valid_reset_secret!(secret)
+            # If the secret is a reset secret, we can proceed to change
+            # the password. Otherwise, we should not be able to change
+            # the password.
+            secret.received!
+            raise_form_error "Invalid reset secret"
+          end
+
+          if cust.pending?
+            # If the customer is pending, we need to verify the account
+            # before we can change the password. We should not be able to
+            # change the password of an account that has not been verified.
+            # This is to prevent unauthorized password changes.
+            raise_form_error "Account not verified"
+          end
+
           # Update the customer's passphrase
           cust.update_passphrase @newp
 
           # Set a success message in the session
-          sess.set_info_message "Password changed"
+          sess.set_success_message "Password changed"
 
           # Destroy the secret on successful attempt only. Otherwise
           # the user will need to make a new request if the passwords

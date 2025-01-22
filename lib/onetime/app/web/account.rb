@@ -247,6 +247,7 @@ module Onetime
     end
 
     private
+
     def _auth_settings
       OT.conf.dig(:site, :authentication)
     end

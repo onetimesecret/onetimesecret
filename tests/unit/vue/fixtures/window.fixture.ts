@@ -20,7 +20,6 @@ export const windowFixture: OnetimeWindow = {
   site_host: 'dev.onetimesecret.com',
   stripe_customer: undefined,
   stripe_subscriptions: undefined,
-  form_fields: {},
   authentication: {
     enabled: true,
     signup: true,

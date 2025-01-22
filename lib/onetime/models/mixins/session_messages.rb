@@ -4,7 +4,29 @@ require 'json'
 
 module Onetime::Models
 
-  # Module containing helper methods for session-related functionality
+  # Provides session-based messaging and form state persistence functionality
+  #
+  # @example Basic usage
+  #   class MyModel
+  #     include SessionMessages
+  #
+  #     def process_form
+  #       set_error_message("Invalid input")
+  #       set_form_fields(params)
+  #     end
+  #   end
+  #
+  # Key Features:
+  # - Temporary form field storage for error recovery
+  # - Flash-style messaging between requests
+  # - Support for error and info message types
+  # - Auto-expiring messages via Redis TTL
+  #
+  # Implementation Notes:
+  # - form_fields remains server-side only, not exposed to frontend
+  # - messages rendered via session_messages.html template and window state
+  #   as `messages` array of objects.
+  # - 20 minute TTL on message persistence
   module SessionMessages
 
     def self.included base
@@ -20,7 +42,10 @@ module Onetime::Models
       # displaying a message to a user the next time they load a page.
       #
       # Each message is a small JSON blob: {type: 'error', content: '...'}
-      base.list :messages, ttl: 20.minutes
+      #
+      # We give them a very short shelf life so they don't linger
+      # around and confuse the user.
+      base.list :messages, ttl: 15.seconds
     end
 
     def set_form_fields hsh
@@ -44,6 +69,20 @@ module Onetime::Models
 
     def set_info_message msg
       self.messages << _json(msg, :info)
+    end
+
+    def set_success_message msg
+      self.messages << _json(msg, :success)
+    end
+
+    def get_messages
+      messages.to_a.filter_map do |message|
+        next if message.to_s.empty?
+        JSON.parse(message, symbolize_names: true)
+      rescue JSON::ParserError => e
+        OT.le "Error parsing JSON message: #{e.message}"
+        nil
+      end
     end
 
     def get_info_messages

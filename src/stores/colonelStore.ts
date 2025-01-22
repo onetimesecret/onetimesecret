@@ -27,22 +27,29 @@ export const useColonelStore = defineStore('colonel', () => {
   const record = ref<{} | null>(null);
   const details = ref<ColonelDetails | null>(null);
   const _initialized = ref(false);
+  const isLoading = ref(false);
 
   // Actions
   async function fetch() {
-    const response = await $api.get('/api/v2/colonel');
+    isLoading.value = true;
+    let response;
+
     try {
+      response = await $api.get('/api/v2/colonel');
+
       const validated = responseSchemas.colonel.parse(response.data);
-      console.log('Colonel validation successful:', validated);
+      console.debug('Colonel validation successful:', validated);
       details.value = validated.details;
 
       return record.value;
     } catch (error) {
       console.error('Colonel validation failed:', {
         error,
-        data: response.data,
+        data: response?.data,
       });
       throw error;
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -65,6 +72,7 @@ export const useColonelStore = defineStore('colonel', () => {
     // State
     record,
     details,
+    isLoading,
 
     // Actions
     fetch,

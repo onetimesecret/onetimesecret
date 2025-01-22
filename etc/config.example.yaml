@@ -93,15 +93,34 @@
   # accounts will have full control over the system.
   - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
 :emailer:
+  # Local Development with Mailpit
+  # -----------------------------
+  # Mailpit is a dev SMTP server that captures emails for testing
+  # Install: brew install mailpit
+  # Start: mailpit
+  # Web UI: http://localhost:8025
+  #
+  #  :mode: smtp                      # Use SMTP mode for local testing
+  #  :from: support@onetimesecret.com # Sender address
+  #  :fromname: OTS Support          # Sender name
+  #  :host: 127.0.0.1                # Mailpit host
+  #  :port: 1025                     # Mailpit default SMTP port
+  #  :user: ~                        # No auth needed for Mailpit
+  #  :pass: ~                        # No auth needed for Mailpit
+  #  :auth: false                    # Disable SMTP auth for Mailpit
+  #  :tls: false                     # Disable TLS for local testing
+
+  # Production Settings (for reference)
+  # ----------------------------------
   :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
   :from: <%= ENV['FROM'] || 'CHANGEME@example.com' %>
-  :fromname: <%= ENV['FROMNAME'] || 'Jan' %>
-  :host: <%= ENV['SMTP_HOST'] || 'localhost' %>
+  :fromname: <%= ENV['FROMNAME'] || 'Support' %>
+  :host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
   :port: <%= ENV['SMTP_PORT'] || 587 %>
-  :user: <%= ENV['SMTP_USERNAME'] || 'CHANGEME' %>
-  :pass: <%= ENV['SMTP_PASSWORD'] || 'CHANGEME' %>
+  :user: <%= ENV['SMTP_USERNAME'] %>
+  :pass: <%= ENV['SMTP_PASSWORD'] %>
   :auth: <%= ENV['SMTP_AUTH'] || 'login' %>
-  :tls: <%= ENV['SMTP_TLS'] || true %>
+  :tls: <%= ENV['SMTP_TLS'] %>
 :incoming:
   :enabled: false
   :email: CHANGEME@example.com

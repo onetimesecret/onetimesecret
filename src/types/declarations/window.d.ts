@@ -22,6 +22,8 @@ import { Stripe } from 'stripe';
  * - This declaration file enables TypeScript type checking and IDE support
  */
 
+type Message = { type: 'success' | 'error' | 'info'; content: string };
+
 export interface OnetimeWindow {
   apitoken?: string;
   authenticated: boolean;
@@ -51,7 +53,6 @@ export interface OnetimeWindow {
   site_host: string;
   stripe_customer?: Stripe.Customer;
   stripe_subscriptions?: Stripe.Subscriptions[];
-  form_fields?: { [key: string]: string };
   authentication: AuthenticationSettings; // TODO: May need to offer default values
   secret_options: SecretOptions;
 
@@ -82,5 +83,7 @@ export interface OnetimeWindow {
   domain_id: string;
   display_domain: string;
   domain_branding: BrandSettings;
-  domain_logo: ImageProps,
+  domain_logo: ImageProps;
+
+  messages: Message[];
 }

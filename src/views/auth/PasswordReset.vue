@@ -2,12 +2,9 @@
 import { useSecret } from '@/composables/useSecret';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { ApplicationError } from '@/schemas/errors';
 import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 
 const csrfStore = useCsrfStore();
-const router = useRouter();
 
 export interface Props {
   enabled?: boolean;
@@ -18,14 +15,8 @@ const props = withDefaults(defineProps<Props>(), {
   enabled: true,
 })
 
-const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-  onError: (error: ApplicationError) => {
-    console.log('error status', error.code)
-    if (error.code === 404) {
-      router.push('/');
-    }
-  }
-};
+const defaultAsyncHandlerOptions: AsyncHandlerOptions = {}
+
 
 const { state, load } = useSecret(props.resetKey, defaultAsyncHandlerOptions);
 
@@ -34,7 +25,7 @@ onMounted(load);
 
 <template>
   <h3 class="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-    Request password reset
+    Choose a new password
   </h3>
 
   <div class="mb-4 rounded bg-white px-8 pb-8 pt-6 shadow-md dark:bg-gray-800">

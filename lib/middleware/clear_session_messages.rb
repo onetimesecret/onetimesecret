@@ -31,7 +31,7 @@ module Rack
 
       if response_has_content && is_successful_response
         # Clear the messages if all conditions are met
-        sess.messages.clear
+        sess.clear_messages!
         logger.info("[ClearSessionMessages] Session messages cleared")
       end
 

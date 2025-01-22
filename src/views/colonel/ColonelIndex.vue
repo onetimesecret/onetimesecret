@@ -2,6 +2,7 @@
 import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
 import { useColonelStore } from '@/stores/colonelStore';
 import { computed, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 
 const tabs = [
   { name: 'Stats', href: '#stats' },
@@ -11,15 +12,16 @@ const tabs = [
 ];
 
 const feedbackSections = computed(() => {
-  if (!details) return [];
   return [
-    { title: 'Today', count: details.counts.today_feedback_count, feedback: details.today_feedback },
-    { title: 'Yesterday', count: details.counts.yesterday_feedback_count, feedback: details.yesterday_feedback },
-    { title: 'Past 14 Days', count: details.counts.older_feedback_count, feedback: details.older_feedback },
+    { title: 'Today', count: details?.value?.counts.today_feedback_count, feedback: details?.value?.today_feedback },
+    { title: 'Yesterday', count: details?.value?.counts.yesterday_feedback_count, feedback: details?.value?.yesterday_feedback },
+    { title: 'Past 14 Days', count: details?.value?.counts.older_feedback_count, feedback: details?.value?.older_feedback },
   ];
 });
 
-const { fetch, details } = useColonelStore();
+const store = useColonelStore();
+const { details, isLoading } = storeToRefs(store);
+const { fetch } = store; // Actions are extracted directly
 
 onMounted(fetch);
 </script>
@@ -40,7 +42,9 @@ onMounted(fetch);
       </nav>
     </div>
 
-    <div class="p-6">
+    <div v-if="isLoading">Loading...</div>
+
+    <div v-else class="p-6">
       <div
         id="stats"
         class="mb-8">

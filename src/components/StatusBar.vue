@@ -17,7 +17,6 @@ const props = withDefaults(defineProps<Props>(), {
   position: 'bottom'
 });
 
-
 const notifications = useNotificationsStore();
 
 // Add a computed property for the effective position
@@ -26,37 +25,36 @@ const effectivePosition = computed(() => {
   return notifications.position || props.position;
 });
 
-
 const getStatusConfig = (type: string | null) => ({
   success: {
     icon: 'check-circle',
-    classes: 'bg-green-50 dark:bg-green-900',
+    classes: 'bg-green-50/90 dark:bg-green-950/90',
     textClasses: 'text-green-700 dark:text-green-100',
-    iconClasses: 'text-green-500 dark:text-green-300'
+    iconClasses: 'text-green-600 dark:text-green-300'
   },
   error: {
     icon: 'alert-circle',
-    classes: 'bg-red-50 dark:bg-red-900',
-    textClasses: 'text-red-700 dark:text-red-100',
-    iconClasses: 'text-red-500 dark:text-red-300'
+    classes: 'bg-brand-50/90 dark:bg-brand-950/90',
+    textClasses: 'text-brand-700 dark:text-brand-100',
+    iconClasses: 'text-brand-600 dark:text-brand-300'
   },
   warning: {
     icon: 'alert',
-    classes: 'bg-amber-50 dark:bg-amber-900',
-    textClasses: 'text-amber-700 dark:text-amber-100',
-    iconClasses: 'text-amber-500 dark:text-amber-300'
+    classes: 'bg-branddim-50/90 dark:bg-branddim-950/90',
+    textClasses: 'text-branddim-700 dark:text-branddim-100',
+    iconClasses: 'text-branddim-600 dark:text-branddim-300'
   },
   info: {
     icon: 'information',
-    classes: 'bg-blue-50 dark:bg-blue-900',
-    textClasses: 'text-blue-700 dark:text-blue-100',
-    iconClasses: 'text-blue-500 dark:text-blue-300'
+    classes: 'bg-brandcomp-50/90 dark:bg-brandcomp-950/90',
+    textClasses: 'text-brandcomp-700 dark:text-brandcomp-100',
+    iconClasses: 'text-brandcomp-600 dark:text-brandcomp-300'
   },
   loading: {
     icon: 'loading',
-    classes: 'bg-blue-50 dark:bg-blue-900',
-    textClasses: 'text-blue-700 dark:text-blue-100',
-    iconClasses: 'text-blue-500 dark:text-blue-300 animate-spin'
+    classes: 'bg-brandcompdim-50/90 dark:bg-brandcompdim-950/90',
+    textClasses: 'text-brandcompdim-700 dark:text-brandcompdim-100',
+    iconClasses: 'text-brandcompdim-600 dark:text-brandcompdim-300 animate-spin'
   },
 })[type || 'info'];
 
@@ -120,7 +118,7 @@ const statusConfig = computed(() => {
       leave-to-class="opacity-0">
       <div
         v-if="notifications.isVisible"
-        class="fixed inset-x-0 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200"
+        class="fixed inset-x-0 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200 z-50"
         :class="[
           statusConfig?.classes,
           effectivePosition === 'top' ? 'top-0' : 'bottom-0'
@@ -160,11 +158,15 @@ const statusConfig = computed(() => {
         <!-- Progress indicator -->
         <div
           v-if="autoDismiss && !loading && notifications.severity"
-          class="absolute h-1 bg-current opacity-30"
-          :class="position === 'top' ? 'bottom-0' : 'bottom-0'"
+          class="absolute left-0 h-1 bg-current opacity-30"
+          :class="[
+            (effectivePosition === 'top' ? 'bottom-0' : 'top-0'),
+            statusConfig?.textClasses
+          ]"
           :style="{
             animation: `shrink ${duration}ms linear forwards`
-          }"></div>
+          }">
+        </div>
       </div>
     </Transition>
   </Teleport>

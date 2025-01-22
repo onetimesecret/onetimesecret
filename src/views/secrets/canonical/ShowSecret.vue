@@ -129,6 +129,7 @@
 
     <!-- Unknown secret slot -->
     <template #unknown="{ branded }">
+
       <UnknownSecret :branded="branded" />
     </template>
 

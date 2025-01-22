@@ -19,7 +19,7 @@ module Onetime
       def initialize req, sess=nil, cust=nil, locale=nil, *args # rubocop:disable Metrics/MethodLength
         @req, @sess, @cust, @locale = req, sess, cust, locale
         @locale ||= req.env['ots.locale'] || OT.conf[:locales].first.to_s || 'en' unless req.nil?
-        @messages = { :info => [], :error => [] }
+        @messages ||= []
         site = OT.conf.fetch(:site, {})
         is_default_locale = OT.conf[:locales].first.to_s == locale
         supported_locales = OT.conf.fetch(:locales, []).map(&:to_s)
@@ -86,7 +86,6 @@ module Onetime
         self[:jsvars][:domains_enabled] = jsvar(domains_enabled) # only for authenticated
 
         if authenticated && cust
-
           self[:jsvars][:custid] = jsvar(cust.custid)
           self[:jsvars][:cust] = jsvar(cust.safe_dump)
           self[:jsvars][:email] = jsvar(cust.email)
@@ -120,16 +119,7 @@ module Onetime
           end
         end
 
-        unless sess.nil?
-          if cust.pending?
-            add_message i18n[:COMMON][:verification_sent_to] + " #{cust.custid}."
-          else
-            add_errors sess.get_error_messages
-          end
-
-          add_messages sess.get_info_messages
-          add_form_fields sess.get_form_fields!
-        end
+        @messages = sess.get_messages || [] unless sess.nil?
 
         # Link to the pricing page can be seen regardless of authentication status
         self[:jsvars][:plans_enabled] = jsvar(site.dig(:plans, :enabled) || false)
@@ -150,15 +140,10 @@ module Onetime
         self[:jsvars][:domain_logo] = jsvar(domain_logo)
         self[:jsvars][:display_domain] = jsvar(display_domain)
 
-        # The form fields hash is populated by handle_form_error so only when there's
-        # been a form error in the request immediately prior to this one being served
-        # now will this have any value at all. This is used to repopulate the form
-        # fields with the values that were submitted so the user can try again
-        # without having to re-enter everything.
-        self[:jsvars][:form_fields] = jsvar(self.form_fields)
-
         self[:jsvars][:ot_version] = jsvar(OT::VERSION.inspect)
         self[:jsvars][:ruby_version] = jsvar("#{OT.sysinfo.vm}-#{OT.sysinfo.ruby.join}")
+
+        self[:jsvars][:messages] = jsvar(self[:messages])
 
         plans = Onetime::Plan.plans.transform_values do |plan|
           plan.safe_dump
@@ -190,24 +175,19 @@ module Onetime
         }
       end
 
-      def add_message msg
-        messages[:info] << {type: 'info', content: msg} unless msg.to_s.empty?
+      # Add notification message to be displayed in StatusBar component
+      # @param msg [String] message content to be displayed
+      # @param type [String] type of message, one of: info, error, success (default: 'info')
+      # @return [Array<Hash>] array containing message objects {type: String, content: String}
+      def add_message msg, type='info'
+        messages << {type: type, content: msg}
       end
 
-      def add_messages *msgs
-        messages[:info].concat msgs.flatten unless msgs.flatten.empty?
-      end
-
+      # Add error message to be displayed in StatusBar component
+      # @param msg [String] error message content to be displayed
+      # @return [Array<Hash>] array containing message objects {type: String, content: String}
       def add_error msg
-        messages[:error] << {type: 'error', content: msg} unless msg.to_s.empty?
-      end
-
-      def add_errors *msgs
-        messages[:error].concat msgs.flatten unless msgs.flatten.empty?
-      end
-
-      def add_form_fields hsh
-        (self.form_fields ||= {}).merge! hsh unless hsh.nil?
+        add_message(msg, 'error')
       end
 
       class << self

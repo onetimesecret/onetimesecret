@@ -172,7 +172,15 @@ module Onetime
         OT.li "development: #{OT.conf[:development].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
       if OT.conf[:emailer]
-        OT.li "mail: smtp=#{OT.conf[:emailer][:host]}:#{OT.conf[:emailer][:port]}, from=#{OT.conf[:emailer][:from]}, mode=#{OT.conf[:emailer][:mode]}"
+        email_config = OT.conf[:emailer]
+        mail_settings = {
+          smtp: "#{email_config[:host]}:#{email_config[:port]}",
+          from: email_config[:from],
+          mode: email_config[:mode],
+          tls: email_config[:tls],
+          auth: email_config[:auth], # this is an smtp feature and not credentials
+        }.map { |k,v| "#{k}=#{v}" }.join(', ')
+        OT.li "mail: #{mail_settings}"
       end
       if OT.conf.fetch(:experimental, false)
         OT.li "experimental: #{OT.conf[:experimental].map { |k,v| "#{k}=#{v}" }.join(', ')}"
