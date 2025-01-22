@@ -25,7 +25,7 @@ onMounted(load);
 
 <template>
   <h3 class="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-    Request password reset
+    Choose a new password
   </h3>
 
   <div class="mb-4 rounded bg-white px-8 pb-8 pt-6 shadow-md dark:bg-gray-800">
