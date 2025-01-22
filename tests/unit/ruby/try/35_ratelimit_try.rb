@@ -60,7 +60,7 @@ OT::RateLimit.event_limit(:unknown_event)
 
 ## Creates limiter with proper Redis key format
 [@limiter.class, @limiter.rediskey]
-#=> [Onetime::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}:object"]
+#=> [Onetime::RateLimit, "limiter:#{@identifier}:test_limit:#{@stamp}:counter"]
 
 ## Can get the external identifier of the limiter
 pp [:identifier, @limiter.identifier, @identifier]
@@ -81,25 +81,19 @@ p @limiter.incr!
 #=> true
 
 ## Redis relation key has proper TTL (should be around 1200 seconds / 20 minutes)
-ttl = @limiter.counter.realttl
-p [:ttl, ttl, @limiter.counter.realttl, @limiter.counter.class.ttl]
+ttl = @limiter.realttl
+p [:ttl, ttl, @limiter.realttl, @limiter.class.ttl]
 (ttl > 1100 && ttl <= 1200)
 #=> true
 
 ## Redis relation key is updated when parent is updated
-before_ttl = @limiter.counter.realttl
+before_ttl = @limiter.realttl
 p [:before, before_ttl]
 @limiter.update_expiration(ttl: 5)
-after_ttl = @limiter.counter.realttl
+after_ttl = @limiter.realttl
 p [:after, after_ttl]
 [before_ttl, after_ttl]
 #=> [1200, 5]
-
-## Supports string operations from Familia::String
-@limiter.clear
-@limiter.value = "5"
-[@limiter.to_i, @limiter.to_s]
-#=> [5, "5"]
 
 ## Can track multiple increments
 @limiter.clear
