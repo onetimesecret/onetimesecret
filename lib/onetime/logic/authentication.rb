@@ -150,6 +150,22 @@ module Onetime::Logic
           # Load the customer information from the premade secret
           cust = secret.load_customer
 
+          unless cust.valid_reset_secret!(secret)
+            # If the secret is a reset secret, we can proceed to change
+            # the password. Otherwise, we should not be able to change
+            # the password.
+            secret.received!
+            raise_form_error "Invalid reset secret"
+          end
+
+          if cust.pending?
+            # If the customer is pending, we need to verify the account
+            # before we can change the password. We should not be able to
+            # change the password of an account that has not been verified.
+            # This is to prevent unauthorized password changes.
+            raise_form_error "Account not verified"
+          end
+
           # Update the customer's passphrase
           cust.update_passphrase @newp
 
