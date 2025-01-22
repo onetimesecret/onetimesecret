@@ -17,7 +17,6 @@ const props = withDefaults(defineProps<Props>(), {
   position: 'bottom'
 });
 
-
 const notifications = useNotificationsStore();
 
 // Add a computed property for the effective position
@@ -25,7 +24,6 @@ const effectivePosition = computed(() => {
   // Store position takes precedence if it exists
   return notifications.position || props.position;
 });
-
 
 const getStatusConfig = (type: string | null) => ({
   success: {
@@ -120,7 +118,7 @@ const statusConfig = computed(() => {
       leave-to-class="opacity-0">
       <div
         v-if="notifications.isVisible"
-        class="fixed inset-x-0 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200"
+        class="fixed inset-x-0 flex items-center justify-between px-4 py-3 shadow-lg transition-colors duration-200 z-50"
         :class="[
           statusConfig?.classes,
           effectivePosition === 'top' ? 'top-0' : 'bottom-0'
@@ -161,7 +159,10 @@ const statusConfig = computed(() => {
         <div
           v-if="autoDismiss && !loading && notifications.severity"
           class="absolute h-1 bg-current opacity-30"
-          :class="position === 'top' ? 'bottom-0' : 'bottom-0'"
+          :class="[
+            (effectivePosition === 'top' ? 'bottom-0' : 'top-0'),
+            statusConfig?.textClasses
+          ]"
           :style="{
             animation: `shrink ${duration}ms linear forwards`
           }"></div>
