@@ -46,6 +46,8 @@ on:
 
 jobs:
   build:
+    timeout-minutes: 15 # prevent hung jobs
+
     # Can also be set to `self-hosted` if worker is running. Possible
     # issue when switching (or trying to run a mix of github-hosted
     # and self-hosted). All workflows in the repo stopped being queued
