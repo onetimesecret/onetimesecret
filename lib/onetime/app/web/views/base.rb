@@ -1,10 +1,12 @@
 require_relative 'view_helpers'
+require_relative 'vite_helpers'
 
 module Onetime
   module App
 
     class View < Mustache
       include Onetime::App::Views::ViewHelpers
+      include Onetime::App::Views::ViteHelpers
       include Onetime::TimeUtils
 
       self.template_path = './templates/web'
