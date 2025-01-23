@@ -102,13 +102,23 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       - name: Run test specs
-        run: bundle exec rspec tests/unit/ruby/rspec/**/*_spec.rb --format progress --format json --out tmp/rspec_results.json
+        run: |
+          bundle exec rspec \
+            --require ./tests/unit/ruby/rspec/spec_helper.rb \
+            --format progress \
+            --format json \
+            --out tmp/rspec_results.json \
+            $(find tests/unit/ruby/rspec -name '*_spec.rb' ! -name 'spec_helper.rb')
 
       - name: Generate job summary
         if: always()
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "$(bundle exec rspec --dry-run --format documentation)" >> $GITHUB_STEP_SUMMARY
+          echo "$(bundle exec rspec \
+            --require ./tests/unit/ruby/rspec/spec_helper.rb \
+            --dry-run \
+            --format documentation \
+            $(find tests/unit/ruby/rspec -name '*_spec.rb' ! -name 'spec_helper.rb'))" >> $GITHUB_STEP_SUMMARY
           echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
 
       - name: Run tryouts
