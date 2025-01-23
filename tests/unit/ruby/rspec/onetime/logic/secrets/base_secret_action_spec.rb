@@ -101,7 +101,7 @@ RSpec.describe Onetime::Logic::Secrets::BaseSecretAction do
       allow(validator_result).to receive(:valid?).and_return(false)
       allow(Truemail).to receive(:validate).with('invalid-email').and_return(validator)
 
-      expect(OT).to receive(:info).with(/Validator \(false\)/)
+      expect(OT).to receive(:info).with(/\[valid_email\?\] Address is valid \(false\)/)
 
       expect(subject.valid_email?('invalid-email')).to be false
     end
