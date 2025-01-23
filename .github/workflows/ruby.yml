@@ -69,11 +69,6 @@ jobs:
 
           - ruby: '3.1'
 
-          - ruby: '3.0'
-            continue-on-error: true
-            bundler: latest
-            rubygems: '3.5.23'
-
     # Make redis available for running the tryouts
     services:
       redis:
