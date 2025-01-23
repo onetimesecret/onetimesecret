@@ -12,7 +12,7 @@ module Onetime
     #
     # GET /pricing/:tier/:billing_cycle
     #
-    # @param [String] tier The selected plan tier (e.g., 'free', 'pro', 'business')
+    # @param [String] tier The selected plan tier (e.g., 'free', 'identity', 'dedicated')
     # @param [String] billing_cycle The chosen billing frequency (e.g., 'month', 'year')
     #
     # @return [HTTP 302] Redirects to the Stripe Payment Link for the selected plan
@@ -23,6 +23,8 @@ module Onetime
     #       in the Stripe checkout process.
     #
     # @see OT.conf[:site][:plans][:payment_links] For the configuration of Stripe Payment Links
+    #
+    # @see https://docs.stripe.com/api/payment-link/object For API reference
     #
     def plan_redirect
       publically do
@@ -58,6 +60,12 @@ module Onetime
 
         # Adding the existing customer details streamlines the payment flow
         # by prepolulating the email address.
+        #
+        # For testing Adaptive Pricing, pass a "location-formatted email" as
+        # the prefilled_email to simulate currency presentment for customers in
+        # different countries. e.g. `test+location_FR@example.com` where FR is
+        # a two-charactor ISO country code. https://www.iso.org/obp/ui/#search
+        #
         unless cust.anonymous?
           stripe_params[:prefilled_email] = cust.custid
           stripe_params[:client_reference_id] = ''

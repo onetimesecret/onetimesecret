@@ -83,6 +83,7 @@ const iconToShow = computed((): IconConfig => {
       <OIcon
         :collection="backgroundIcon.collection"
         :name="backgroundIcon.name"
+        size="24"
         class="blur-x absolute left-1/2 top-32 h-auto transform-cpu
                    w-full -translate-x-1/2 translate-y-0 scale-[5]
                    object-cover object-center
