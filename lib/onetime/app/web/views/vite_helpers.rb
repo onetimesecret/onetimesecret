@@ -8,8 +8,8 @@ module Onetime
       # ViteHelpers - Asset Management for Multiple Vite Configurations
       #
       # Supports two Vite build configurations:
-      # 1. Default (vite.config.ts) - Code splitting with CSS in main entry
-      # 2. Alternative (vite.config.alt.ts) - Consolidated assets with separate style entry
+      # 1. Default (vite.config.ts) - Consolidated assets with separate style entry
+      # 2. Alternative (vite.config.local.ts) - Same, without the hash in the filenames
       #
       # Asset Loading Strategy:
       # - Checks main.ts entry for embedded CSS references
@@ -18,7 +18,7 @@ module Onetime
       # - Handles font preloading for both configurations
       #
       # @see vite.config.ts
-      # @see vite.config.alt.ts
+      # @see vite.config.local.ts
       #
       module ViteHelpers # rubocop:disable Style/Documentation
 
