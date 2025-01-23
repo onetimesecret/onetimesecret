@@ -16,6 +16,41 @@ import { addTrailingNewline } from './src/build/plugins/addTrailingNewline';
 // environment variables to the client-side code.
 const apiBaseUrl = process.env.VITE_API_BASE_URL;
 
+/**
+ * Vite Configuration - Consolidated Assets
+ * ------------------------------------------------
+ * This configuration consolidates assets for simpler CSP management:
+ * - Single JS bundle (no code splitting)
+ * - Separate style.css entry
+ * - Simplified manifest format
+ *
+ * Manifest Output Example:
+ * {
+ *   "main.ts": {
+ *     "file": "assets/main.[hash].js",
+ *     "isEntry": true
+ *   },
+ *   "style.css": {
+ *     "file": "assets/style.[hash].css"
+ *   }
+ * }
+ *
+ * @see 29ffd790d74599bbbe3755d0fcba2b59c2f59ed7
+ *
+ * Previously used Vite's default code splitting behavior, producing:
+ * - Multiple JS chunks for dynamic imports
+ * - Separate CSS files
+ * - Standard Vite manifest format with CSS files listed in main entry
+ *
+ * Manifest Output Example:
+ * {
+ *   "main.ts": {
+ *     "file": "assets/main.[hash].js",
+ *     "css": ["assets/style.[hash].css"],
+ *     "imports": ["_vendor.[hash].js"]
+ *   }
+ * }
+ */
 export default defineConfig({
   // Sets project root to ./src directory
   // - All imports will be resolved relative to ./src
@@ -165,22 +200,25 @@ export default defineConfig({
     manifest: true,
     rollupOptions: {
       input: {
-        main: 'src/main.ts', // Explicitly define the entry point here
-        //index: 'src/index.html'
+        main: 'src/main.ts',
       },
-      //output: {
-      //  manualChunks: undefined, // Disable code splitting
-      //  entryFileNames: 'assets/[name].[hash].js', // Single JS file
-      //  chunkFileNames: 'assets/[name].[hash].js', // Single JS file
-      //  assetFileNames: 'assets/[name].[hash].[ext]', // Single CSS file
-      //},
+      output: {
+        // Enforce single chunk output
+        inlineDynamicImports: true,
+        format: 'es',
+        entryFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]',
+        // Prevent dynamic imports
+        preserveModules: false,
+      },
     },
 
     // https://guybedford.com/es-module-preloading-integrity
     // https://github.com/vitejs/vite/issues/5120#issuecomment-971952210
-    modulePreload: {
-      polyfill: true,
-    },
+    // modulepreload: true,
+
+    cssCodeSplit: false,
+    sourcemap: true,
   },
 
   server: {
