@@ -32,6 +32,10 @@ on:
       - main
       - develop
       - feature/*
+  pull_request_target: # Runs workflow from base branch context
+    branches:
+      - main
+    types: [opened, synchronize]
   workflow_dispatch:
     inputs:
       debug_enabled:
