@@ -152,6 +152,14 @@ export default defineConfig({
 
   // be simpler and more efficient.
   build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        passes: 2, // Number of compression passes
+      },
+    },
     outDir: '../public/web/dist',
 
     // It's important in staging to keep the previous files around during and
@@ -213,12 +221,22 @@ export default defineConfig({
       },
     },
 
+    // Pollyfill preloads are disabled while we establish our
+    // strict CSP headers. We will revisit again whether these
+    // are still useful or to remove.
     // https://guybedford.com/es-module-preloading-integrity
     // https://github.com/vitejs/vite/issues/5120#issuecomment-971952210
-    // modulepreload: true,
+    //modulePreload: {
+    //  polyfill: true,
+    //},
 
     cssCodeSplit: false,
     sourcemap: true,
+  },
+
+  css: {
+    // Helps debugging in dev. No effect on builds.
+    devSourcemap: true,
   },
 
   server: {
