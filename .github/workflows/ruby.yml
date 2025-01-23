@@ -100,6 +100,16 @@ jobs:
           bundle config path vendor/bundle
           bundle install --jobs 4 --retry 3
 
+      - name: Run test specs
+        run: bundle exec rspec tests/unit/ruby/rspec/**/*_spec.rb --format progress --format json --out tmp/rspec_results.json
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "$(bundle exec rspec --dry-run --format documentation)" >> $GITHUB_STEP_SUMMARY
+          echo "Total tests: $(jq '.summary.example_count' tmp/rspec_results.json)" >> $GITHUB_STEP_SUMMARY
+
       - name: Run tryouts
         continue-on-error: ${{ matrix.continue-on-error || false }}
         run: |
