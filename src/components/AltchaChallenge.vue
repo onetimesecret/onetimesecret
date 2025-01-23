@@ -5,7 +5,8 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 //
 // See compilerOptions in vite.config.ts.
 import 'altcha';
-
+// import '@/../node_modules/altcha/dist_external/altcha.js';
+import { altchaWorkerUrl } from '@/workers/altcha-worker';
 
 interface Props {
   payload?: string;
@@ -61,6 +62,7 @@ onUnmounted(() => {
     <altcha-widget
       ref="altchaWidget"
       challengeurl="/api/v2/altcha/challenge"
+      :workerurl="altchaWorkerUrl"
       name="authenticity_payload"
       :floating="isFloating"
       floatinganchor="bottom-right"
