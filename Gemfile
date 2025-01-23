@@ -64,7 +64,7 @@ gem 'stringio', '~> 3.1.1'
 # Including them explicitly ensures they are part of the application's
 # dependencies and silences the warnings.
 gem 'base64'
-gem 'syslog'
+gem 'syslog', '~> 0.2.0'
 
 # As of Ruby 3.5, these are no longer in the standard library
 gem 'fiddle'   # Fiddle library for handling dynamic libraries (required by reline)

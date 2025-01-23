@@ -197,7 +197,7 @@ GEM
     sysinfo (0.10.0)
       drydock (< 1.0)
       storable (~> 0.10)
-    syslog (0.1.2)
+    syslog (0.2.0)
     tapioca (0.16.4)
       bundler (>= 2.2.25)
       netrc (>= 0.11.0)
@@ -277,7 +277,7 @@ DEPENDENCIES
   stringio (~> 3.1.1)
   stripe
   sysinfo
-  syslog
+  syslog (~> 0.2.0)
   tapioca
   thin
   truemail
@@ -288,4 +288,4 @@ RUBY VERSION
    ruby 3.3.5p100
 
 BUNDLED WITH
-   2.5.16
+   2.6.3
