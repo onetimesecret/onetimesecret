@@ -3,6 +3,23 @@
 module Onetime
   module App
     module Views
+
+      ##
+      # ViteHelpers - Asset Management for Multiple Vite Configurations
+      #
+      # Supports two Vite build configurations:
+      # 1. Default (vite.config.ts) - Code splitting with CSS in main entry
+      # 2. Alternative (vite.config.alt.ts) - Consolidated assets with separate style entry
+      #
+      # Asset Loading Strategy:
+      # - Checks main.ts entry for embedded CSS references
+      # - Checks for separate style.css entry
+      # - Maintains backward compatibility with both manifest formats
+      # - Handles font preloading for both configurations
+      #
+      # @see vite.config.ts
+      # @see vite.config.alt.ts
+      #
       module ViteHelpers # rubocop:disable Style/Documentation
 
         def vite_assets(nonce: nil)
@@ -17,35 +34,30 @@ module Onetime
 
           @manifest_cache ||= JSON.parse(File.read(manifest_path))
           main_entry = @manifest_cache["main.ts"]
+          style_entry = @manifest_cache["style.css"] # may not exist
 
           return error_script(nonce, "Main entry not found in Vite manifest") unless main_entry
 
-          assets = build_asset_tags(main_entry, nonce)
-
-          # require 'pry-byebug'; binding.pry
-
-          if assets.empty?
-            OT.le "No assets found in Vite manifest at #{manifest_path}"
-            return error_script(nonce, "No assets found for main entry point in Vite manifest")
-          end
-
-          assets.join("\n")
-        end
-
-        def build_asset_tags(entry, nonce)
           assets = []
-          assets << build_script_tag(entry['file'], nonce)
+          assets << build_script_tag(main_entry['file'], nonce)
 
-          # Add CSS from main entry
-          if entry['css']&.any?
-            entry['css'].each do |css_file|
+          # Handle CSS from main entry
+          if main_entry['css']&.any?
+            main_entry['css'].each do |css_file|
               assets << build_css_tag(css_file, nonce)
             end
           end
 
+          # Handle separate style.css entry
+          if style_entry && style_entry['file']
+            assets << build_css_tag(style_entry['file'], nonce)
+          end
+
           assets.concat(build_font_preloads(@manifest_cache, nonce))
-          assets
+          assets.join("\n")
         end
+
+        private
 
         def build_script_tag(file, nonce)
           %(<script type="module" nonce="#{nonce}" src="/dist/#{file}"></script>)
