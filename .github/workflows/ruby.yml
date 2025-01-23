@@ -59,15 +59,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     strategy:
+      fail-fast: false # continue other matrix jobs if one fails
       matrix:
-        include:
-          - ruby: '3.4'
-
-          - ruby: '3.3'
-
-          - ruby: '3.2'
-
-          - ruby: '3.1'
+        ruby: ['3.4', '3.3', '3.2', '3.1']
+        chunk: [1, 2, 3, 4]
 
     # Make redis available for running the tryouts
     services:
@@ -85,22 +80,13 @@ jobs:
           - 6379:6379
 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
 
-      - name: Set up Ruby ${{ matrix.ruby }}
-        uses: ruby/setup-ruby@v1
-        continue-on-error: ${{ matrix.continue-on-error || false }}
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          rubygems: ${{ matrix.rubygems || 'latest' }}
-          bundler: ${{ matrix.bundler || 'latest' }}
-          # When the following is true, also run "bundle install",
-          # and cache the result automatically. Ran into an issue
-          # with the caching and multiple ruby version? See commit
-          # message for this change.
-          bundler-cache: false
+          bundler-cache: true
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@e5c7151931ca95bad1c6f4190c730ecf8c7dde48 # v3
