@@ -62,8 +62,6 @@ jobs:
       matrix:
         include:
           - ruby: '3.4'
-            continue-on-error: true
-            experimental: true
 
           - ruby: '3.3'
 
