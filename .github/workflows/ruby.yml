@@ -103,7 +103,7 @@ jobs:
 
       - name: Run test specs
         run: |
-          bundle exec rspec \
+          mkdir tmp && bundle exec rspec \
             --require ./tests/unit/ruby/rspec/spec_helper.rb \
             --format progress \
             --format json \
