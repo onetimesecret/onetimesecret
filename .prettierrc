@@ -9,7 +9,16 @@
   "htmlWhitespaceSensitivity": "strict",
   "jsxSingleQuote": false,
   "objectBraces": "multiline",
-  "plugins": ["prettier-plugin-vue"],
+  "overrides": [
+    {
+      "files": "*.rb",
+      "options": {
+        "parser": "ruby",
+        "rubyParser": "syntax_tree"
+      }
+    }
+  ],
+  "plugins": ["prettier-plugin-vue", "@prettier/plugin-ruby"],
   "printWidth": 120,
   "proseWrap": "preserve",
   "quoteProps": "as-needed",

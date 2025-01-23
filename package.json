@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build-only:local": "vite build --config vite.config.local.ts",
-    "build-only": "vite build",
+    "build-only": "vite build --config vite.config.ts",
     "build:local": "pnpm run type-check && pnpm run build-only:local",
     "build": "pnpm run type-check && pnpm run build-only",
     "clean": "rimraf public/web/dist",
@@ -48,6 +48,7 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@intlify/core": "^11.0.1",
+    "@prettier/plugin-ruby": "^4.0.4",
     "@types/dompurify": "^3.0.5",
     "@types/jsdom": "^21.1.7",
     "@vueuse/integrations": "^12.4.0",

@@ -14,6 +14,9 @@ importers:
       '@intlify/core':
         specifier: ^11.0.1
         version: 11.0.1
+      '@prettier/plugin-ruby':
+        specifier: ^4.0.4
+        version: 4.0.4(prettier@3.4.2)
       '@types/dompurify':
         specifier: ^3.0.5
         version: 3.0.5
@@ -737,6 +740,11 @@ packages:
 
   '@polka/url@1.0.0-next.28':
     resolution: {integrity: sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw==}
+
+  '@prettier/plugin-ruby@4.0.4':
+    resolution: {integrity: sha512-lCpvfS/dQU5WrwN3AQ5vR8qrvj2h5gE41X08NNzAAXvHdM4zwwGRcP2sHSxfu6n6No+ljWCVx95NvJPFTTjCTg==}
+    peerDependencies:
+      prettier: ^3.0.0
 
   '@rollup/pluginutils@4.2.1':
     resolution: {integrity: sha512-iKnFXr7NkdZAIHiIWE+BX5ULi/ucVFYWD6TbAV+rZctiRTY2PL6tsIKhoIOaoskiWAkgu+VsbXgUVDNLHf+InQ==}
@@ -3650,6 +3658,10 @@ snapshots:
       playwright: 1.48.2
 
   '@polka/url@1.0.0-next.28': {}
+
+  '@prettier/plugin-ruby@4.0.4(prettier@3.4.2)':
+    dependencies:
+      prettier: 3.4.2
 
   '@rollup/pluginutils@4.2.1':
     dependencies:
