@@ -32,10 +32,6 @@ on:
       - main
       - develop
       - feature/*
-  pull_request_target: # Runs workflow from base branch context
-    branches:
-      - main
-    types: [opened, synchronize]
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -68,7 +64,6 @@ jobs:
       fail-fast: false # continue other matrix jobs if one fails
       matrix:
         ruby: ['3.4', '3.3', '3.2', '3.1']
-        chunk: [1, 2, 3, 4]
 
     # Make redis available for running the tryouts
     services:
