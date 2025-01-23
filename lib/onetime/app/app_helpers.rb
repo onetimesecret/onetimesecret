@@ -324,7 +324,8 @@ module Onetime::App
           "form-action 'self';",                               # Restrict form submissions to same origin
           "frame-ancestors 'none';",                           # Prevent site from being embedded in frames
           "manifest-src 'self';",
-          "require-trusted-types-for 'script';",
+          # "require-trusted-types-for 'script';",
+          "worker-src 'self';",                                # Allow Workers from same origin only
         ]
       else
         csp = [
@@ -340,6 +341,7 @@ module Onetime::App
           "frame-ancestors 'none';",
           "manifest-src 'self';",
           "require-trusted-types-for 'script';",
+          "worker-src 'self';",
         ]
       end
 

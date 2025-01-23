@@ -61,6 +61,7 @@ fi
 # in the docker-compose.yaml file, or a default if none is
 # provided. See Dockerfile for more details.
 if [ -z "$@" ]; then
+  PORT="${PORT:-3000}" # explicit default
   exec bundle exec thin -R config.ru -p $PORT start
 else
   exec bundle exec "$@"
