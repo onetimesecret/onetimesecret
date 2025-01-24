@@ -1,12 +1,11 @@
 // stores/productIdentity.ts
-import {
-  brandSettingschema,
-  type BrandSettings,
-} from '@/schemas/models/domain/brand';
+import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
 import { WindowService } from '@/services/window.service';
 import { defineStore } from 'pinia';
 import { computed, reactive, toRefs } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+const DEFAULT_PRIMARY_COLOR = 'dc4a22';
 
 /**
  * Represents the product's identity state for a given domain context
@@ -36,9 +35,9 @@ interface IdentityState {
  * Ensures color values conform to brand schema requirements
  */
 const primaryColorValidator = brandSettingschema.shape.primary_color;
-const allowPublicHomepageValidator =
-  brandSettingschema.shape.allow_public_homepage;
+// const allowPublicHomepageValidator = brandSettingschema.shape.allow_public_homepage;
 
+const domainId: string = WindowService.get('domain_id') ?? '';
 /**
  * Creates initial identity state from window service values
  * Handles validation and default values for branding fields
@@ -46,22 +45,28 @@ const allowPublicHomepageValidator =
 const getInitialState = (): IdentityState => {
   const domainStrategy = WindowService.get('domain_strategy');
   const brand = WindowService.get('domain_branding');
-  const defaultPrimaryColor = primaryColorValidator.parse(undefined);
+
+  // Parse with fallback values
+  let primaryColor: string = (() => {
+    try {
+      return primaryColorValidator.parse(brand?.primary_color) as string;
+    } catch {
+      return DEFAULT_PRIMARY_COLOR;
+    }
+  })();
+
+  const allowPublicHomepage = brand?.allow_public_homepage ?? false;
+
   return {
     domainStrategy,
     domainsEnabled: WindowService.get('domains_enabled'),
     displayDomain: WindowService.get('display_domain'),
     siteHost: WindowService.get('site_host'),
     canonicalDomain: WindowService.get('canonical_domain'),
-    domainId: WindowService.get('domain_id'),
+    domainId,
     brand,
-    primaryColor:
-      domainStrategy === 'custom' && brand?.primary_color
-        ? primaryColorValidator.parse(brand.primary_color)
-        : defaultPrimaryColor,
-    allowPublicHomepage: allowPublicHomepageValidator.parse(
-      brand?.allow_public_homepage
-    ),
+    primaryColor,
+    allowPublicHomepage,
   };
 };
 
@@ -86,9 +91,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   const isSubdomain = computed(() => state.domainStrategy === 'subdomain');
 
   /** Display name for current domain context */
-  const displayName = computed(
-    () => state.brand?.description || state.displayDomain
-  );
+  const displayName = computed(() => state.brand?.description || state.displayDomain);
 
   const logoUri = computed(() => {
     const template = '/imagine/:custom_domain_id/:image_type.:image_ext';
@@ -125,15 +128,11 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   });
 
   const preRevealInstructions = computed(
-    () =>
-      state.brand?.instructions_pre_reveal?.trim() ||
-      t('web.shared.pre_reveal_default')
+    () => state.brand?.instructions_pre_reveal?.trim() || t('web.shared.pre_reveal_default')
   );
 
   const postRevealInstructions = computed(
-    () =>
-      state.brand?.instructions_post_reveal?.trim() ||
-      t('web.shared.post_reveal_default')
+    () => state.brand?.instructions_post_reveal?.trim() || t('web.shared.post_reveal_default')
   );
 
   /** Resets state to initial values from window service */

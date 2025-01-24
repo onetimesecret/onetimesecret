@@ -14,23 +14,23 @@ const props = defineProps<Props>();
 
 const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatus(props.domain);
 
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  /**
-   * About Intl.DateTimeFormat:
-   *
-   *  - It automatically respects the user's locale settings.
-   *  - It handles internationalization correctly, using the appropriate
-   *      date format for the user's locale.
-   *  - It's more efficient than toLocaleDateString for repeated use, as
-   *      you can reuse the formatter.
-   */
-  return new Intl.DateTimeFormat(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(date);
-};
+// const formatDate = (dateString: string): string => {
+//   const date = new Date(dateString);
+//   /**
+//    * About Intl.DateTimeFormat:
+//    *
+//    *  - It automatically respects the user's locale settings.
+//    *  - It handles internationalization correctly, using the appropriate
+//    *      date format for the user's locale.
+//    *  - It's more efficient than toLocaleDateString for repeated use, as
+//    *      you can reuse the formatter.
+//    */
+//   return new Intl.DateTimeFormat(undefined, {
+//     year: 'numeric',
+//     month: 'long',
+//     day: 'numeric'
+//   }).format(date);
+// };
 
 </script>
 
@@ -84,7 +84,7 @@ const formatDate = (dateString: string): string => {
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">SSL Renews</span>
             <span class="text-lg text-gray-900 dark:text-white"><span
-                    v-if="domain?.vhost?.ssl_active_until">{{ formatDate(domain?.vhost?.ssl_active_until as string) }}</span></span>
+                    v-if="domain?.vhost.ssl_active_until">{{ domain?.vhost.ssl_active_until }}</span></span>
           </div>
 
           <div class="flex flex-col">
