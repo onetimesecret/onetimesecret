@@ -5,7 +5,7 @@ import type { BrandSettings, ImageProps } from '@/schemas/models';
 import { responseSchemas } from '@/schemas/api';
 
 const defaultBranding: BrandSettings = {
-  primary_color: '#000000',
+  primary_color: '#dc4a22',
   font_family: 'sans',
   corner_style: 'rounded',
   button_text_light: true,
