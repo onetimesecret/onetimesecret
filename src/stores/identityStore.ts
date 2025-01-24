@@ -1,4 +1,5 @@
-// stores/productIdentity.ts
+// src/stores/identityStore.ts
+
 import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
 import { WindowService } from '@/services/window.service';
 import { defineStore } from 'pinia';
@@ -48,15 +49,9 @@ const getInitialState = (): IdentityState => {
   const brand = brandSettingschema.parse(domainBranding ?? {});
 
   // Parse with fallback values
-  let primaryColor: string = (() => {
-    try {
-      return primaryColorValidator.parse(brand?.primary_color) as string;
-    } catch {
-      return DEFAULT_PRIMARY_COLOR;
-    }
-  })();
+  let primaryColor = primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
 
-  const allowPublicHomepage = brand?.allow_public_homepage ?? false;
+  const allowPublicHomepage = brand.allow_public_homepage ?? false;
 
   return {
     domainStrategy,
