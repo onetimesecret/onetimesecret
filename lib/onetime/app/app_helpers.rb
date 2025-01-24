@@ -330,9 +330,9 @@ module Onetime::App
       else
         csp = [
           "default-src 'none';",
-          "script-src 'unsafe-inline' 'nonce-#{nonce}';",        # unsafe-inline is ignored with a nonce
+          "script-src 'unsafe-inline' 'nonce-#{nonce}';",      # unsafe-inline is ignored with a nonce
           "style-src 'self' 'unsafe-inline';",
-          "connect-src 'self' wss: https:;",                     # Only HTTPS and secure WebSockets
+          "connect-src 'self' wss: https:;",                   # Only HTTPS and secure WebSockets
           "img-src 'self' data:;",
           "font-src 'self';",
           "object-src 'none';",
@@ -340,7 +340,7 @@ module Onetime::App
           "form-action 'self';",
           "frame-ancestors 'none';",
           "manifest-src 'self';",
-          "require-trusted-types-for 'script';",
+          #"require-trusted-types-for 'script';",
           "worker-src 'self';",
         ]
       end
