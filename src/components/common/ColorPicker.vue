@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{
   label: string;
   id?: string;
 }>(), {
-  modelValue: '#000000', // Provide default color
+  modelValue: '#dc4a22', // Provide default color
   id: undefined
 });
 
@@ -19,7 +19,7 @@ const emit = defineEmits<{
 const label = computed(() => props.label || 'Color Picker');
 const id = computed(() => props.id || 'color-picker');
 const name = computed(() => props.name || 'color');
-const currentColor = computed(() => props.modelValue || '#000000');
+const currentColor = computed(() => props.modelValue || '#dc4a22');
 
 const updateColor = (event: Event, isText = false) => {
   const target = event.target as HTMLInputElement;
