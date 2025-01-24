@@ -1,12 +1,13 @@
 <script setup lang="ts">
   import DomainVerificationInfo from '@/components/DomainVerificationInfo.vue';
-  import DomainsTableRowActionDropdown from '@/components/dashboard/DomainsTableRowActionDropdown.vue'
-  import { WindowService } from '@/services/window.service';
+  import DomainsTableRowActionDropdown from '@/components/dashboard/DomainsTableRowActionDropdown.vue';
+  import ToggleWithIcon from '@/components/common/ToggleWithIcon.vue';
   import type { CustomDomain } from '@/schemas/models/domain';
   import { useDomainStatus } from '@/composables/useDomainStatus';
   import { computed } from 'vue';
   import OIcon from '@/components/icons/OIcon.vue';
   import { formatDistanceToNow } from 'date-fns';
+  import { useBranding } from '@/composables/useBranding';
 
   const props = defineProps<{
     domains: CustomDomain[];
@@ -18,18 +19,29 @@
     (e: 'toggle-homepage', domain: CustomDomain): void;
   }>();
 
-  const cust = WindowService.get('cust'); // Used for feature flags
-  // const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatus(props.domain);
-
   const domainStatuses = computed(() =>
-    props.domains.map(domain => ({
+    props.domains.map((domain) => ({
       domain,
-      status: useDomainStatus(domain)
+      status: useDomainStatus(domain),
     }))
   );
 
   const handleDelete = (domainId: string) => {
     emit('delete', domainId);
+  };
+
+  const handleHomepageToggle = async (domain: CustomDomain) => {
+    const { saveBranding } = useBranding(domain.display_domain);
+
+    await saveBranding({
+      allow_public_homepage: !domain.brand?.allow_public_homepage
+    });
+
+    // Update local domain state after successful API call
+    domain.brand = {
+      ...domain.brand,
+      allow_public_homepage: !domain.brand?.allow_public_homepage
+    };
   };
 </script>
 
@@ -45,9 +57,7 @@
           class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
           Domains
         </h1>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Manage and configure your verified custom domains
-        </p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400"> Manage and configure your verified custom domains </p>
       </div>
       <router-link
         to="/domains/add"
@@ -55,8 +65,7 @@
         <OIcon
           name="plus-20-solid"
           collection="heroicons"
-          class="mr-2 size-5"
-        />
+          class="mr-2 size-5" />
         Add Domain
       </router-link>
     </div>
@@ -75,20 +84,16 @@
             <th
               scope="col"
               class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
-              <div
-                v-if="cust?.feature_flags?.homepage_toggle"
-                class="flex items-center justify-center">
+              <div class="flex items-center justify-center">
                 <span class="uppercase">Homepage Access</span>
                 <div class="group relative ml-2">
-                <OIcon
-                  collection="heroicons"
-                  name="question-mark-circle"
-                  class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
-                />
+                  <OIcon
+                    collection="heroicons"
+                    name="question-mark-circle"
+                    class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300" />
                   <div
                     class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
-                    Control whether users can create secret links from your domain's
-                    homepage
+                    Control whether users can create secret links from your domain's homepage
                   </div>
                 </div>
               </div>
@@ -102,8 +107,7 @@
           </tr>
         </thead>
 
-        <tbody
-          class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+        <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
           <tr
             v-for="{ domain, status } in domainStatuses"
             :key="domain.identifier"
@@ -139,8 +143,12 @@
 
             <!-- Homepage Access -->
             <td class="px-6 py-4 text-center">
-              <div v-if="cust?.feature_flags?.homepage_toggle">
-                <!-- Add your homepage access toggle/content here -->
+              <div>
+                <!-- domain.brand?.allow_public_homepage -->
+                <ToggleWithIcon
+                  :enabled="domain.brand?.allow_public_homepage ?? false"
+                  :disabled="isLoading"
+                  @update:enabled="handleHomepageToggle(domain)" />
               </div>
             </td>
 
@@ -148,8 +156,7 @@
             <td class="px-6 py-4 text-right">
               <DomainsTableRowActionDropdown
                 :domain="domain"
-                @delete="handleDelete"
-                />
+                @delete="handleDelete" />
             </td>
           </tr>
         </tbody>

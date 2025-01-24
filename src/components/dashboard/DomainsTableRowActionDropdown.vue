@@ -29,21 +29,6 @@
         <MenuItem v-slot="{ active }">
           <router-link
             :to="{
-              name: 'DomainVerify',
-              params: { domain: domain.display_domain },
-            }"
-            :class="[
-              active
-                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                : 'text-gray-700 dark:text-gray-200',
-              'block px-4 py-2 text-sm transition-colors duration-200',
-            ]">
-            Verify Domain
-          </router-link>
-        </MenuItem>
-        <MenuItem v-slot="{ active }">
-          <router-link
-            :to="{
               name: 'DomainBrand',
               params: { domain: domain.display_domain },
             }"
@@ -54,6 +39,21 @@
               'block px-4 py-2 text-sm transition-colors duration-200',
             ]">
             Manage Brand
+          </router-link>
+        </MenuItem>
+        <MenuItem v-slot="{ active }">
+          <router-link
+            :to="{
+              name: 'DomainVerify',
+              params: { domain: domain.display_domain },
+            }"
+            :class="[
+              active
+                ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                : 'text-gray-700 dark:text-gray-200',
+              'block px-4 py-2 text-sm transition-colors duration-200',
+            ]">
+            Verify Domain
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">
