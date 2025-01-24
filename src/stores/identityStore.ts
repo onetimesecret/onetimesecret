@@ -5,7 +5,7 @@ import { defineStore } from 'pinia';
 import { computed, reactive, toRefs } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const DEFAULT_PRIMARY_COLOR = 'dc4a22';
+const DEFAULT_PRIMARY_COLOR = '#dc4a22';
 
 /**
  * Represents the product's identity state for a given domain context
@@ -44,7 +44,8 @@ const domainId: string = WindowService.get('domain_id') ?? '';
  */
 const getInitialState = (): IdentityState => {
   const domainStrategy = WindowService.get('domain_strategy');
-  const brand = WindowService.get('domain_branding');
+  const domainBranding = WindowService.get('domain_branding');
+  const brand = brandSettingschema.parse(domainBranding ?? {});
 
   // Parse with fallback values
   let primaryColor: string = (() => {
