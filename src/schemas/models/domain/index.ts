@@ -18,8 +18,7 @@ export const DomainStrategyValues = {
   INVALID: 'invalid',
 } as const;
 
-export type DomainStrategy =
-  (typeof DomainStrategyValues)[keyof typeof DomainStrategyValues];
+export type DomainStrategy = (typeof DomainStrategyValues)[keyof typeof DomainStrategyValues];
 
 /**
  * Input schema for custom domain from API
@@ -62,8 +61,10 @@ export const customDomainSchema = createModelSchema({
   // - Prevents validation errors from unexpected API fields
   // - Centralizes stripping behavior at the root level
   // - Makes debugging easier by allowing field inspection before stripping
-  vhost: vhostSchema.optional().or(z.object({}).passthrough()),
-  brand: brandSettingschema.optional().or(z.object({}).passthrough()),
+  // - Added `.passthrough()` to allow unknown properties during validation
+  // - Added `.strip()` to remove unknown properties after validation
+  vhost: transforms.fromObject.nested(vhostSchema.passthrough().strip()).nullable(),
+  brand: transforms.fromObject.nested(brandSettingschema.passthrough().strip()).nullable(),
   // The .strip() modifier removes all unknown properties throughout the entire
   // object hierarchy after validation. This ensures our domain objects maintain
   // a consistent shape regardless of API response variations.

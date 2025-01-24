@@ -57,22 +57,24 @@ const cornerStyleIconMap: Record<CornerStyle, string> = {
   [CornerStyle.SQUARE]: 'tabler-border-corner-square',
 };
 
-export const brandSettingschema = z.object({
-  primary_color: z
-    .string()
-    .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
-    .default('#dc4a22'), // Default to Onetime Secret brand colour
-  colour: z.string().optional(),
-  instructions_pre_reveal: z.string().optional(),
-  instructions_reveal: z.string().optional(),
-  instructions_post_reveal: z.string().optional(),
-  description: z.string().optional(),
-  button_text_light: transforms.fromString.boolean.default(false),
-  allow_public_homepage: transforms.fromString.boolean.default(false),
-  allow_public_api: transforms.fromString.boolean.default(false),
-  font_family: z.enum(fontOptions).optional(),
-  corner_style: z.enum(cornerStyleOptions).optional(),
-});
+export const brandSettingschema = z
+  .object({
+    primary_color: z
+      .string()
+      .regex(/^#[0-9A-F]{6}$/i, 'Invalid hex color')
+      .default('#dc4a22'), // Default to Onetime Secret brand colour
+    colour: z.string().optional(),
+    instructions_pre_reveal: z.string().optional(),
+    instructions_reveal: z.string().optional(),
+    instructions_post_reveal: z.string().optional(),
+    description: z.string().optional(),
+    button_text_light: transforms.fromString.boolean.default(false),
+    allow_public_homepage: transforms.fromString.boolean.default(false),
+    allow_public_api: transforms.fromString.boolean.default(false),
+    font_family: z.enum(fontOptions).optional(),
+    corner_style: z.enum(cornerStyleOptions).optional(),
+  })
+  .partial(); // Makes all fields optional;
 
 export const imagePropsSchema = z
   .object({
@@ -84,7 +86,7 @@ export const imagePropsSchema = z
     height: transforms.fromString.number.optional(),
     ratio: transforms.fromString.number.optional(),
   })
-  .strip();
+  .partial(); // Makes all fields optional
 
 export type BrandSettings = z.infer<typeof brandSettingschema>;
 export type ImageProps = z.infer<typeof imagePropsSchema>;
