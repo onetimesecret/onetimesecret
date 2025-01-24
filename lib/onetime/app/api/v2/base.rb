@@ -146,7 +146,7 @@ module Onetime::App
       def error_response msg, hsh={}
         hsh[:message] = msg
         hsh[:success] = false
-        res.status = 400 # Bad Request
+        res.status = 500 # Bad Request
         json hsh
       end
 
