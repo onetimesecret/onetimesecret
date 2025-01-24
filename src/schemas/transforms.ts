@@ -1,5 +1,5 @@
 import { ttlToNaturalLanguage } from '@/utils/format/index';
-import { parseBoolean, parseDateValue, parseNumber } from '@/utils/parse/index';
+import { parseBoolean, parseDateValue, parseNumber, parseNestedObject } from '@/utils/parse/index';
 import { z } from 'zod';
 
 /**
@@ -43,9 +43,17 @@ export const transforms = {
      * Input: "test@example.com" -> "test@example.com"
      * Input: "invalid" -> ZodError
      */
-    optionalEmail: z.preprocess(
-      (val) => (val === '' ? undefined : val),
-      z.string().email().optional()
-    ),
+    optionalEmail: z.preprocess((val) => (val === '' ? undefined : val), z.string().email().optional()),
+  },
+
+  fromNumber: {
+    secondsToDate: z.preprocess((val) => new Date((val as number) * 1000), z.date()),
+  },
+
+  fromObject: {
+    /**
+     * Transforms API nested objects using consistent preprocessing pattern
+     */
+    nested: <T extends z.ZodType>(schema: T) => z.preprocess(parseNestedObject, schema),
   },
 } as const;

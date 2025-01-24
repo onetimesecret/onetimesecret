@@ -19,3 +19,7 @@ export function parseNumber(val: unknown): number | null {
   const num = Number(val);
   return isNaN(num) ? null : num;
 }
+
+export function parseNestedObject(val: unknown) {
+  return val && typeof val === 'object' && Object.keys(val).length > 0 ? val : {}; // default to empty object
+}

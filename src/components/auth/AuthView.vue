@@ -100,6 +100,7 @@ const iconToShow = computed((): IconConfig => {
           <OIcon
             :collection="iconToShow.collection"
             :name="iconToShow.name"
+            size="32"
             class="mb-8 size-24 text-brand-600
                       dark:text-brand-400"
             aria-hidden="true"

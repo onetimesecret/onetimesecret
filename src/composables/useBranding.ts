@@ -2,7 +2,7 @@ import { ImageProps, type BrandSettings } from '@/schemas/models';
 import { useNotificationsStore } from '@/stores';
 import { useBrandStore } from '@/stores/brandStore';
 import { shouldUseLightText } from '@/utils';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import {
@@ -35,7 +35,6 @@ export function useBranding(domainId?: string) {
   const isLoading = ref(false);
   const isInitialized = ref(false);
   const error = ref<ApplicationError | null>(null);
-  const router = useRouter();
 
   const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
   const originalSettings = ref<BrandSettings | null>(null);
@@ -45,6 +44,7 @@ export function useBranding(domainId?: string) {
     notify: (message, severity) => notifications.show(message, severity),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
+      const router = useRouter();
       if (err.code === 404 || err.code === 422 || err.code === 403) {
         return router.push({ name: 'NotFound' });
       }
@@ -58,7 +58,8 @@ export function useBranding(domainId?: string) {
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
-  const initialize = () =>
+  const initialize = () => {
+    const router = useRouter();
     wrap(async () => {
       if (!domainId) return;
       const settings = await store.fetchSettings(domainId);
@@ -83,8 +84,7 @@ export function useBranding(domainId?: string) {
       originalSettings.value = { ...settings };
       isInitialized.value = true;
     });
-
-  onMounted(initialize);
+  };
 
   const primaryColor = computed(() =>
     isInitialized.value ? brandSettings.value.primary_color : undefined

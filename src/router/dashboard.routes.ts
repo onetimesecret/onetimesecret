@@ -56,7 +56,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       requiresAuth: true,
       layoutProps: {
-        displayFeedback: false,
+        displayFeedback: true,
         displayPoweredBy: false,
       },
     },

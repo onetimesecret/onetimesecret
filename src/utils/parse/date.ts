@@ -51,47 +51,6 @@ export const parseDateValue = (val: unknown): Date | null => {
   return null;
 };
 
-// TODO: `parseDateValue` and `parseDateValueSimple` are redundant. Keep
-// `parseDateValueSimple` as it's cleaner and handles all cases. Needs
-// more testing to confirm it's safe to replace `parseDateValue` with it.
-export const parseDateValueSimple = (val: unknown): Date | null => {
-  if (val === null || val === undefined || val === '') return null;
-  if (val instanceof Date) return val;
-
-  // If string, try parsing as ISO date first
-  if (typeof val === 'string') {
-    // Check if it's an ISO date string format
-    if (val.includes('T') || val.includes('-')) {
-      const dateFromString = new Date(val);
-      if (!isNaN(dateFromString.getTime())) {
-        return dateFromString;
-      }
-    }
-
-    // If not ISO format, try as timestamp
-    const timestamp = parseInt(val, 10);
-    if (!isNaN(timestamp)) {
-      const date = new Date(
-        timestamp.toString().length > 10 ? timestamp : timestamp * 1000
-      );
-      if (!isNaN(date.getTime())) {
-        return date;
-      }
-    }
-    return null;
-  }
-
-  // If number, handle both seconds and milliseconds
-  if (typeof val === 'number') {
-    const date = new Date(val.toString().length > 10 ? val : val * 1000);
-    if (!isNaN(date.getTime())) {
-      return date;
-    }
-  }
-
-  return null;
-};
-
 export const formatLocalDateTime = (date: Date): string =>
   date.toLocaleString(undefined, {
     year: 'numeric',

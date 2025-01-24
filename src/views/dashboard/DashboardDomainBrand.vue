@@ -1,17 +1,16 @@
 <script setup lang="ts">
+import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
 import BrandSettingsBar from '@/components/dashboard/BrandSettingsBar.vue';
 import BrowserPreviewFrame from '@/components/dashboard/BrowserPreviewFrame.vue';
 import DomainHeader from '@/components/dashboard/DomainHeader.vue';
 import InstructionsModal from '@/components/dashboard/InstructionsModal.vue';
 import SecretPreview from '@/components/dashboard/SecretPreview.vue';
-import LoadingOverlay from '@/components/common/LoadingOverlay.vue';
-import { useBranding } from '@/composables/useBranding';
-import type { CustomDomain } from '@/schemas/models';
 import OIcon from '@/components/icons/OIcon.vue';
-import { detectPlatform } from '@/utils';
-import { computed, onMounted, watch, ref } from 'vue';
-import { onBeforeRouteLeave, useRoute } from 'vue-router';
+import { useBranding } from '@/composables/useBranding';
 import { createError } from '@/schemas/errors';
+import { detectPlatform } from '@/utils';
+import { computed, onMounted, ref, watch } from 'vue';
+import { onBeforeRouteLeave, useRoute } from 'vue-router';
 
 const props = defineProps<{ domain: string }>();
 const {
@@ -30,7 +29,7 @@ const {
 
 const route = useRoute();
 const displayDomain = computed(() => props.domain || route.params.domain as string);
-const customDomain = ref<CustomDomain | null>(null);
+
 const color = computed(() => primaryColor.value);
 const browserType = ref<'safari' | 'edge'>(detectPlatform());
 
@@ -65,8 +64,7 @@ onBeforeRouteLeave((to, from, next) => {
 
       <!-- Header Section -->
       <div class="sticky top-0 z-30">
-        <DomainHeader :display-domain="displayDomain"
-                      :domain="customDomain" />
+        <DomainHeader :display-domain="displayDomain" />
 
         <BrandSettingsBar
           v-model="brandSettings"
