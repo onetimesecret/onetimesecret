@@ -36,7 +36,7 @@ export const useBrandStore = defineStore('brand', () => {
     _initialized.value = true;
   }
 
-  async function fetchSettings(domainId: string) {
+  async function fetchSettings(domainId: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/v2/domains/${domainId}/brand`);
     const validated = responseSchemas.brandSettings.parse(response.data);
     settings.value[domainId] = validated.record;
@@ -85,21 +85,26 @@ export const useBrandStore = defineStore('brand', () => {
     delete logos.value[domainId];
   }
 
-  function getSettings(domainId: string) {
+  function getSettings(domainId: string): BrandSettings {
     return {
       ...defaultBranding,
       ...settings.value[domainId],
     };
   }
 
-  function getLogo(domainId: string) {
+  function getLogo(domainId: string): ImageProps | null {
     return logos.value[domainId] || null;
+  }
+
+  function compareSettings(domainId: string, newSettings: BrandSettings) {
+    return isEqual(settings.value[domainId], newSettings);
   }
 
   return {
     init,
     fetchSettings,
     updateSettings,
+    compareSettings,
     uploadLogo,
     removeLogo,
     getSettings,
@@ -108,18 +113,18 @@ export const useBrandStore = defineStore('brand', () => {
   };
 });
 
-// function isEqual(a: BrandSettings, b: BrandSettings) {
-//   const keys: (keyof BrandSettings)[] = [
-//     'primary_color',
-//     'font_family',
-//     'corner_style',
-//     'button_text_light',
-//     'instructions_pre_reveal',
-//     'instructions_post_reveal',
-//     'instructions_reveal',
-//     'allow_public_api',
-//     'allow_public_homepage',
-//   ];
+function isEqual(a: BrandSettings, b: BrandSettings): boolean {
+  const keys: (keyof BrandSettings)[] = [
+    'primary_color',
+    'font_family',
+    'corner_style',
+    'button_text_light',
+    'instructions_pre_reveal',
+    'instructions_post_reveal',
+    'instructions_reveal',
+    'allow_public_api',
+    'allow_public_homepage',
+  ];
 
-//   return keys.every((key) => a[key] === b[key]);
-// }
+  return keys.every((key) => a[key] === b[key]);
+}

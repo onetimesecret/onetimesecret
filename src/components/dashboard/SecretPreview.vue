@@ -203,8 +203,8 @@ Or a multi-line message</textarea>
           [fontFamilyClass]: true,
         }"
         :style="{
-          backgroundColor: domainBranding.primary_color,
-          color: domainBranding.button_text_light ? '#ffffff' : '#000000',
+          backgroundColor: domainBranding.primary_color ??' #dc4a22',
+          color: (domainBranding.button_text_light ?? true) ? '#ffffff' : '#000000',
         }"
         @click="toggleReveal"
         :aria-expanded="isRevealed"
