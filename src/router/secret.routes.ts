@@ -38,6 +38,15 @@ const routes: Array<RouteRecordRaw> = [
     path: '/secret/:secretKey',
     name: 'Secret link',
     component: ShowSecretContainer,
+    meta: {
+      requiresAuth: false,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayPoweredBy: false,
+        displayVersion: false,
+      },
+    },
     ...withValidatedSecretKey,
   },
 ];
