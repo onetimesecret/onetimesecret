@@ -7,6 +7,10 @@ import { createTestingPinia } from '@pinia/testing';
 import { vi } from 'vitest';
 import { createApp, h } from 'vue';
 import { stateFixture } from './fixtures/window.fixture';
+import { mount } from '@vue/test-utils';
+import type { ComponentPublicInstance } from 'vue';
+import type { MountingOptions, VueWrapper } from '@vue/test-utils';
+import type { OnetimeWindow } from '@/types/declarations/window';
 
 // Mock global objects that JSDOM doesn't support
 global.fetch = vi.fn();
@@ -18,7 +22,7 @@ global.Response = {
   prototype: Response.prototype,
 } as unknown as typeof Response;
 
-window.matchMedia = vi.fn().mockImplementation(query => ({
+window.matchMedia = vi.fn().mockImplementation((query) => ({
   matches: query === '(prefers-color-scheme: dark)', // we start dark
   media: query,
   onchange: null,
@@ -49,7 +53,7 @@ export function createVueWrapper() {
     legacy: false,
     locale: 'en',
     fallbackLocale: 'en',
-    messages: { en: {} }
+    messages: { en: {} },
   });
 
   app.use(i18n);
@@ -59,7 +63,7 @@ export function createVueWrapper() {
 
 export async function setupTestPinia(options = { stubActions: false }) {
   const api = createApi();
-  const { app, el } = createVueWrapper();
+  const { app } = createVueWrapper();
 
   const pinia = createTestingPinia({
     ...options,
@@ -67,14 +71,34 @@ export async function setupTestPinia(options = { stubActions: false }) {
   });
 
   app.use(pinia);
-  app.provide('api', api);
-
-  // Mount the app
-  app.mount(el);
+  // app.provide('api', api);
 
   // Wait for both microtasks and macrotasks to complete
   await Promise.resolve();
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   return { pinia, api, app };
+}
+
+export async function mountComponent<
+  C extends ComponentPublicInstance
+>(
+  component: any,
+  options: MountingOptions<any> = {},
+  state: OnetimeWindow = stateFixture
+): Promise<VueWrapper<C>> {
+  const revert = setupWindowState(state);
+  try {
+    const { pinia, api, app } = await setupTestPinia();
+    return mount(component, {
+      global: {
+        plugins: [pinia],
+        mocks: { api },
+        ...(options.global || {}),
+      },
+      ...options,
+    }) as VueWrapper<C>;
+  } finally {
+    revert();
+  }
 }
