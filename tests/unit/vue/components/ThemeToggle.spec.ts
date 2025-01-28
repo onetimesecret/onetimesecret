@@ -7,12 +7,15 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 const mockInitializeTheme = vi.fn();
 const mockToggleDarkMode = vi.fn();
 const mockIsDarkMode = { value: false };
+const mockGetThemeListenersSize = vi.fn();
 
 vi.mock('@/composables/useTheme', () => ({
   useTheme: vi.fn(() => ({
     isDarkMode: mockIsDarkMode,
     toggleDarkMode: mockToggleDarkMode,
     initializeTheme: mockInitializeTheme,
+    clearThemeListeners: vi.fn(),
+    getThemeListenersSize: mockGetThemeListenersSize,
   })),
 }));
 
@@ -27,5 +30,13 @@ describe('ThemeToggle', () => {
   it('initializes theme on mount', () => {
     mount(ThemeToggle);
     expect(mockInitializeTheme).toHaveBeenCalled();
+  });
+
+  it('cleans up listeners on unmount', () => {
+    mockGetThemeListenersSize.mockReturnValue(0);
+    const wrapper = mount(ThemeToggle);
+    expect(mockGetThemeListenersSize()).toBe(0);
+    wrapper.unmount();
+    expect(mockGetThemeListenersSize()).toBe(0);
   });
 });
