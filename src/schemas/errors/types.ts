@@ -23,7 +23,7 @@ export interface ApplicationError extends Error {
   type: ErrorType;
   severity: ErrorSeverity;
   code: string | number | null;
-  original?: Error;
+  original?: Error | null;
   details?: Record<string, unknown>;
 }
 
