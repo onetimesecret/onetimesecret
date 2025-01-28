@@ -59,6 +59,12 @@ export const mockMetadataRecord: Metadata = {
   metadata_url: 'https://example.com/metadata/abc123',
   burn_url: 'https://example.com/burn/abc123',
   identifier: 'test-identifier',
+  is_viewed: false,
+  is_received: false,
+  is_burned: false,
+  is_destroyed: false,
+  is_expired: false,
+  is_orphaned: false,
   burned: null,
   received: null,
   created: new Date('2024-12-25T16:06:54Z'),
@@ -82,10 +88,6 @@ export const mockMetadataDetails: MetadataDetails = {
   show_metadata_link: true,
   show_metadata: true,
   show_recipients: false,
-  is_destroyed: false,
-  is_received: false,
-  is_burned: false,
-  is_orphaned: false,
 };
 
 export const mockBurnedMetadataRecord: Metadata = {
@@ -96,11 +98,11 @@ export const mockBurnedMetadataRecord: Metadata = {
   burned: new Date('2024-12-25T16:06:54Z'),
   secret_key: 'secret-burned-key-123', // Updated
   secret_shortkey: 'secret-burned-abc123', // Updated
+  is_burned: true,
 };
 
 export const mockBurnedMetadataDetails: MetadataDetails = {
   ...mockMetadataDetails,
-  is_burned: true,
   show_secret: false,
   show_secret_link: false,
   can_decrypt: false,
@@ -115,11 +117,11 @@ export const mockReceivedMetadataRecord: Metadata = {
   received: new Date('2024-12-25T16:06:54Z'),
   secret_key: 'secret-received-key-123', // Updated
   secret_shortkey: 'secret-received-abc123', // Updated
+  is_received: true,
 };
 
 export const mockReceivedMetadataDetails: MetadataDetails = {
   ...mockMetadataDetails,
-  is_received: true,
   show_metadata_link: false,
 };
 
@@ -130,11 +132,11 @@ export const mockOrphanedMetadataRecord: Metadata = {
   state: MetadataState.ORPHANED,
   secret_key: 'secret-orphaned-key-123',
   secret_shortkey: 'secret-orphaned-abc123', // Changed from 'so-abc123'
+  is_orphaned: true,
 };
 
 export const mockOrphanedMetadataDetails: MetadataDetails = {
   ...mockMetadataDetails,
-  is_orphaned: true,
   show_secret: false,
   show_secret_link: false,
   can_decrypt: false,
