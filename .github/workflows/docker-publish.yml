@@ -13,10 +13,14 @@ name: Docker Build and Publish
 
 on:
   push:
-    tags: [ "v*" ]
+    tags: ['v*']
   pull_request:
     types: [closed]
-    branches: [ "develop", "feature/*", "rel/*" ]
+    branches: ['develop', 'feature/*', 'rel/*']
+    # Don't deploy on PRs from forks
+    paths-ignore:
+      - '**'
+
   workflow_dispatch:
 
 permissions:
