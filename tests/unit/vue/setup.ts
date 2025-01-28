@@ -16,6 +16,19 @@ global.Response = {
   prototype: Response.prototype,
 } as unknown as typeof Response;
 
+window.matchMedia = vi.fn().mockImplementation(query => {
+  return {
+    matches: query === '(prefers-color-scheme: dark)', // we start dark
+    media: query,
+    onchange: null,
+    addListener: vi.fn(), // deprecated
+    removeListener: vi.fn(), // deprecated
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  };
+});
+
 export async function setupTestPinia(options = { stubActions: false }) {
   const api = createApi();
   const app = createApp({});

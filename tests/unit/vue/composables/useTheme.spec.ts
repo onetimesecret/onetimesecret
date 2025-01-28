@@ -8,18 +8,6 @@ describe('useTheme', () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.classList.remove('dark');
-    window.matchMedia = vi.fn().mockImplementation(query => {
-      return {
-        matches: query === '(prefers-color-scheme: dark)',
-        media: query,
-        onchange: null,
-        addListener: vi.fn(), // deprecated
-        removeListener: vi.fn(), // deprecated
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      };
-    });
   });
 
   it('initializes theme based on localStorage', async () => {
