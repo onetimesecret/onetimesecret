@@ -76,17 +76,17 @@
   # Note: If using a Redis provider with single-database limitation (e.g., Upstash),
   # set all values to 0.
   :dbs:
-    :session: 1
-    :splittest: 1
-    :custom_domain: 6
-    :customer: 6
-    :subdomain: 6
-    :metadata: 7
-    :email_receipt: 8
-    :secret: 8
-    :rate_limit: 2
-    :feedback: 11
-    :exception_info: 12
+    :session: <%= ENV['REDIS_DBS_SESSION'] || 1 %>
+    :splittest: <%= ENV['REDIS_DBS_SPLITTEST'] || 1 %>
+    :custom_domain: <%= ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 6 %>
+    :customer: <%= ENV['REDIS_DBS_CUSTOMER'] || 6 %>
+    :subdomain: <%= ENV['REDIS_DBS_SUBDOMAIN'] || 6 %>
+    :metadata: <%= ENV['REDIS_DBS_METADATA'] || 7 %>
+    :email_receipt: <%= ENV['REDIS_DBS_EMAIL_RECEIPT'] || 8 %>
+    :secret: <%= ENV['REDIS_DBS_SECRET'] || 8 %>
+    :rate_limit: <%= ENV['REDIS_DBS_RATE_LIMIT'] || 2 %>
+    :feedback: <%= ENV['REDIS_DBS_FEEDBACK'] || 11 %>
+    :exception_info: <%= ENV['REDIS_DBS_EXCEPTION_INFO'] || 12 %>
 :colonels:
   # Email addresses listed below will be granted automatic
   # administrative privileges upon account creation. These
