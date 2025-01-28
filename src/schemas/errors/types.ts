@@ -49,7 +49,7 @@ export const applicationErrorSchema = z
     type: errorTypeEnum,
     severity: errorSeverityEnum,
     code: z.union([z.string(), z.number()]).nullable().default(null),
-    original: z.instanceof(Error).optional(),
-    details: z.record(z.unknown()).optional(),
+    original: z.instanceof(Error).optional().nullable().default(null),
+    details: z.record(z.unknown()).optional().default({}),
   })
   .strict();
