@@ -7,6 +7,20 @@ const themeListeners = new Set<(isDark: boolean) => void>();
 const isInitialized = ref(false);
 
 export function useTheme() {
+
+  const initializeTheme = () => {
+    if (isInitialized.value) return;
+    const storedPreference = localStorage.getItem('restMode');
+    console.debug('storedPreference', storedPreference, isInitialized.value);
+    isDarkMode.value =
+      storedPreference !== null
+        ? storedPreference === 'true'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    updateDarkMode();
+    isInitialized.value = true;
+  };
+
   const onThemeChange = (callback: (isDark: boolean) => void) => {
     themeListeners.add(callback);
     return () => themeListeners.delete(callback);
@@ -24,18 +38,6 @@ export function useTheme() {
   const updateDarkMode = () => {
     localStorage.setItem('restMode', isDarkMode.value.toString());
     document.documentElement.classList.toggle('dark', isDarkMode.value);
-  };
-
-  const initializeTheme = () => {
-    const storedPreference = localStorage.getItem('restMode');
-
-    isDarkMode.value =
-      storedPreference !== null
-        ? storedPreference === 'true'
-        : window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    updateDarkMode();
-    isInitialized.value = true;
   };
 
   watch(isDarkMode, updateDarkMode);
