@@ -15,6 +15,7 @@ export function useTheme() {
     isDarkMode.value = !isDarkMode.value;
     localStorage.setItem('restMode', isDarkMode.value.toString());
     updateDarkMode();
+    themeListeners.forEach(listener => listener(isDarkMode.value));
   };
 
   const updateDarkMode = () => {
