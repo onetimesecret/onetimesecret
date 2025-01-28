@@ -67,6 +67,13 @@
     "src/**/*.vue",
     "src/content/*.md",
     "src/types/**/*.ts",
-    "src/types/declarations/*.d.ts"
+    "src/types/declarations/*.d.ts",
+    "tests/**/*.ts",
+    "tests/**/*.vue"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build"
   ]
 }
