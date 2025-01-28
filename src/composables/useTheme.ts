@@ -40,6 +40,10 @@ export function useTheme() {
     document.documentElement.classList.toggle('dark', isDarkMode.value);
   };
 
+  function getThemeListenersSize() {
+    return themeListeners.size;
+  }
+
   watch(isDarkMode, updateDarkMode);
 
   return {
@@ -48,5 +52,7 @@ export function useTheme() {
     initializeTheme,
     onThemeChange,
     isInitialized,
+    getThemeListenersSize,
+    clearThemeListeners: () => themeListeners.clear(),
   };
 }

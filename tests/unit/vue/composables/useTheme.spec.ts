@@ -3,6 +3,7 @@
 import { useTheme } from '@/composables/useTheme';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { nextTick } from 'vue';
+import { shallowMount } from '@vue/test-utils';
 
 describe('useTheme', () => {
   beforeEach(() => {
@@ -60,5 +61,26 @@ describe('useTheme', () => {
     toggleDarkMode();
     await nextTick();
     expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('themeListeners should start empty and be empty after unmount', async () => {
+    const comp = {
+      template: '<div>test comp</div>',
+      setup() {
+        const theme = useTheme();
+        return { theme };
+      },
+    };
+    const wrapper = shallowMount(comp);
+    expect(wrapper.vm.theme.getThemeListenersSize()).toBe(1); // There is a mock spy taking up a spot
+
+    const removeListener = wrapper.vm.theme.onThemeChange(() => {});
+    expect(wrapper.vm.theme.getThemeListenersSize()).toBe(2);
+
+    wrapper.unmount(); // Nothing happens automatically on unmount
+    expect(wrapper.vm.theme.getThemeListenersSize()).toBe(2);
+
+    wrapper.vm.theme.clearThemeListeners();
+    expect(wrapper.vm.theme.getThemeListenersSize()).toBe(0);
   });
 });
