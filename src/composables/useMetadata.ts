@@ -34,8 +34,7 @@ export function useMetadata(metadataKey: string) {
   // );
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
-    notify: (message, severity) =>
-      notifications.show(message, severity as NotificationSeverity),
+    notify: (message, severity) => notifications.show(message, severity as NotificationSeverity),
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => (error.value = err),
   };
@@ -49,8 +48,7 @@ export function useMetadata(metadataKey: string) {
       return result;
     });
 
-  const burn = () =>
-    wrap(async () => {
+  const burn = () => wrap(async () => {
       if (!canBurn.value) {
         throw createError('Cannot burn this secret', 'human', 'error'); // fires synchronously fyi
       }

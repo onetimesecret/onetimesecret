@@ -1,7 +1,7 @@
 // tests/unit/vue/fixtures/window.fixture.ts
 import { OnetimeWindow } from '@/types/declarations/window';
 
-export const windowFixture: OnetimeWindow = {
+export const stateFixture: OnetimeWindow = {
   authenticated: false,
   baseuri: 'https://dev.onetimesecret.com',
   cust: null,
@@ -56,14 +56,20 @@ export const windowFixture: OnetimeWindow = {
         identifier: 'EU',
         display_name: 'European Union',
         domain: 'eu.onetimesecret.com',
-        icon: 'fa6-solid:earth-europe',
+        icon: {
+          collection: 'fa6-solid',
+          name: 'earth-europe',
+        },
       },
       {
         enabled: true,
         identifier: 'US',
         display_name: 'United States',
         domain: 'us.onetimesecret.com',
-        icon: 'fa6-solid:earth-americas',
+        icon: {
+          collection: 'fa6-solid',
+          name: 'earth-americas',
+        },
       },
     ],
   },
@@ -75,16 +81,24 @@ export const windowFixture: OnetimeWindow = {
   domain_id: '',
   display_domain: 'dev.onetimesecret.com',
   domain_branding: {
-    allow_public_homepage: 'false',
-    button_text_light: 'true',
+    allow_public_homepage: false,
+    button_text_light: true,
     corner_style: 'rounded',
     font_family: 'sans',
-    image_content_type: 'image/png',
-    image_encoded: '',
-    image_filename: '',
     instructions_post_reveal: '',
     instructions_pre_reveal: '',
     instructions_reveal: '',
     primary_color: '#36454F',
   },
-};
+  domain_logo: {
+    content_type: 'image/png',
+    encoded: '',
+    filename: '',
+  },
+  messages: [],
+} as const;
+
+// Export the window fixture with the new structure
+export const windowFixture = {
+  __ONETIME_STATE__: stateFixture,
+} as Window & typeof globalThis;

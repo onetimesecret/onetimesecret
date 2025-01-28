@@ -36,7 +36,11 @@ export default defineConfig({
       '**/dist/**',
       '**/.{idea,git,cache,output,temp}/**',
     ],
-    setupFiles: ['tests/unit/vue/setup.ts'],
+    setupFiles: [
+      'tests/unit/vue/setup.ts',
+      'tests/unit/vue/setupWindow.ts',
+      'tests/unit/vue/setupRouter.ts',
+    ],
     sequence: {
       hooks: 'list', // runs beforeEachand afterEach in the order defined
     },

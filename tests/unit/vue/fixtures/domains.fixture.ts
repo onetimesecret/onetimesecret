@@ -1,31 +1,6 @@
 // tests/unit/fixtures/domains.fixture.ts
 import type { CustomDomain } from '@/schemas/models';
 
-export const mockDomainsOld: Record<string, CustomDomain> = {
-  'domain-1': {
-    identifier: 'domain-1',
-    name: 'example.com',
-    status: 'verified',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
-  },
-  'domain-2': {
-    identifier: 'domain-2',
-    name: 'test.com',
-    status: 'pending',
-    createdAt: '2024-01-02T00:00:00Z',
-    updatedAt: '2024-01-02T00:00:00Z',
-  },
-};
-
-export const newDomainDataOld = {
-  name: 'new-domain.com',
-  identifier: 'domain-3',
-  status: 'pending',
-  createdAt: '2024-01-03T00:00:00Z',
-  updatedAt: '2024-01-03T00:00:00Z',
-} as const;
-
 const BASE_DOMAIN = {
   identifier: '',
   domainid: '',
@@ -59,6 +34,7 @@ export const mockDomains: Record<string, CustomDomain> = {
       corner_style: 'sharp',
       button_text_light: false,
     },
+    vhost: {},
   },
   'domain-2': {
     ...BASE_DOMAIN,
@@ -79,6 +55,7 @@ export const mockDomains: Record<string, CustomDomain> = {
       corner_style: 'rounded',
       button_text_light: true,
     },
+    vhost: {},
   },
 };
 
@@ -101,4 +78,5 @@ export const newDomainData: CustomDomain = {
     corner_style: 'rounded',
     button_text_light: true,
   },
+  vhost: {},
 };
