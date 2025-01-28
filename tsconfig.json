@@ -58,7 +58,7 @@
       "@/*": ["./src/*"],
       "@tests/*": ["./tests/*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types", "./tests/unit/vue"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["jsdom", "node"]
   },
   "include": [
@@ -68,8 +68,6 @@
     "src/content/*.md",
     "src/types/**/*.ts",
     "src/types/declarations/*.d.ts",
-    "tests/**/*.ts",
-    "tests/**/*.vue"
   ],
   "exclude": [
     "node_modules",
