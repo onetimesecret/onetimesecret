@@ -10,12 +10,15 @@ export function useTheme() {
 
   const initializeTheme = () => {
     if (isInitialized.value) return;
-    const storedPreference = localStorage.getItem('restMode');
-    console.debug('storedPreference', storedPreference, isInitialized.value);
+    const hasLocalStorage = typeof localStorage !== 'undefined';
+    const hasMatchMedia = typeof window !== 'undefined' && 'matchMedia' in window;
+
+    const storedPreference = hasLocalStorage ? localStorage.getItem('restMode') : null;
+
     isDarkMode.value =
       storedPreference !== null
         ? storedPreference === 'true'
-        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        : hasMatchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     updateDarkMode();
     isInitialized.value = true;
