@@ -83,7 +83,7 @@ GEM
       multi_xml (>= 0.5.2)
     json (2.8.2)
     language_server-protocol (3.17.0.3)
-    logger (1.6.1)
+    logger (1.6.5)
     mail (2.8.1)
       mini_mime (>= 0.1.1)
       net-imap
