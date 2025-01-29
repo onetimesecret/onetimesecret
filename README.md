@@ -167,10 +167,6 @@ Regardless of how you obtained or built the image, follow these steps to run One
 
 OnetimeSecret should now be running and accessible at `http://localhost:3000`.
 
-
-Ah yes, the classic sudo paradox! Here's my attempt to handle this clearly:
-
-
 ### Manual Installation
 
 This guide covers installing OnetimeSecret manually, whether you're working with an existing development environment or starting from a fresh system.
@@ -562,7 +558,6 @@ This section provides an overview of services similar to our project, highlighti
 | <https://cryptgeon.com/>           | Cryptgeon          | A service for sharing secrets and passwords securely.                                                                                                           | Offers a secret generator, password generator, and secret vault   |
 | <https://www.vanish.so/>           | Vanish             | A service for sharing secrets and passwords securely.                                                                                                           | Self-destructing messages with strong encryption                  |
 | <https://password.link/en>         | Password.link      | A service for securely sending and receiving sensitive information.                                                                                             | Secure link creation for sensitive information sharing            |
-| <https://sebsauvage.net/>          | sebsauvage.net     | A website offering various information and services.                                                                                                            | Software to recover stolen computers                              |
 | <https://www.sharesecret.co/>      | ShareSecret        | A service for securely sharing passwords in Slack and email.                                                                                                    | Secure password sharing with Slack and email integration          |
 | <https://teampassword.com/>        | TeamPassword       | A password manager for teams.                                                                                                                                   | Fast, easy-to-use, and secure team password management            |
 | <https://secretshare.io/>          | Secret Share       | A service for sharing passwords securely.                                                                                                                       | Strong encryption for data in transit and at rest                 |
