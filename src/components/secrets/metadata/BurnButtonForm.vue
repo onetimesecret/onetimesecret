@@ -37,7 +37,7 @@
       <button v-if="!showConfirmation"
               type="button"
               @click="showConfirmation = true"
-              class="group w-full flex items-center justify-center gap-3 px-6 py-3 text-base font-semibold bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50"
+              class="group w-full flex items-center justify-center gap-3 px-6 py-3 text-base font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50"
               :disabled="isLoading"
               :aria-label="$t('web.COMMON.burn_this_secret_aria')"
               :aria-busy="isLoading"
@@ -94,7 +94,7 @@
           <button type="submit"
                   @click="burn"
                   :disabled="isLoading"
-                  class="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50">
+                  class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50">
             {{ $t('web.COMMON.confirm_burn') }}
           </button>
         </div>
