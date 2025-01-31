@@ -1,11 +1,16 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "version": "2.1.0",
-    "title": "Onetime Secret API [2024-10-09]",
+    "version": "2.2.0",
+    "title": "Onetime Secret API [2025-01-24]",
     "description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications."
   },
   "servers": [
+    {
+      "url": "https://dev.onetime.dev/api",
+      "description": "Local development",
+      "variables": {}
+    },
     {
       "url": "https://onetimesecret.com/api",
       "description": "Production - Cloudflare LB (Global)",
@@ -24,11 +29,6 @@
     {
       "url": "https://staging.onetimesecret.com/api",
       "description": "Staging on fly.io (ams)",
-      "variables": {}
-    },
-    {
-      "url": "https://dev.onetimesecret.com/api",
-      "description": "Local development",
       "variables": {}
     }
   ],
@@ -61,10 +61,7 @@
                     "description": "Email addresses of recipients"
                   }
                 },
-                "required": [
-                  "secret",
-                  "ticketno"
-                ]
+                "required": ["secret", "ticketno"]
               }
             }
           }
@@ -85,15 +82,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "secrets"
-        ]
+        "tags": ["secrets"]
       }
     },
     "/signup": {
@@ -128,12 +123,7 @@
                     "description": "Hidden field for bot detection (should be empty)"
                   }
                 },
-                "required": [
-                  "u",
-                  "p",
-                  "p2",
-                  "planid"
-                ]
+                "required": ["u", "p", "p2", "planid"]
               }
             }
           }
@@ -154,15 +144,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "accounts"
-        ]
+        "tags": ["accounts"]
       }
     },
     "/signin": {
@@ -185,10 +173,7 @@
                     "description": "User's password"
                   }
                 },
-                "required": [
-                  "u",
-                  "p"
-                ]
+                "required": ["u", "p"]
               }
             }
           }
@@ -209,15 +194,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "authentication"
-        ]
+        "tags": ["authentication"]
       }
     },
     "/welcome/stripe/webhook": {
@@ -235,9 +218,7 @@
                     "description": "Stripe event payload"
                   }
                 },
-                "required": [
-                  "payload"
-                ]
+                "required": ["payload"]
               }
             }
           }
@@ -274,16 +255,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "webhooks",
-          "stripe"
-        ]
+        "tags": ["webhooks", "stripe"]
       }
     },
     "/feedback": {
@@ -307,9 +285,7 @@
                     "description": "Authenticity payload for spam prevention"
                   }
                 },
-                "required": [
-                  "msg"
-                ]
+                "required": ["msg"]
               }
             }
           }
@@ -330,15 +306,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "feedback"
-        ]
+        "tags": ["feedback"]
       }
     },
     "/forgot": {
@@ -357,9 +331,7 @@
                     "description": "User's email address"
                   }
                 },
-                "required": [
-                  "u"
-                ]
+                "required": ["u"]
               }
             }
           }
@@ -380,15 +352,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "authentication"
-        ]
+        "tags": ["authentication"]
       }
     },
     "/forgot/{key}": {
@@ -421,10 +391,7 @@
                     "description": "New password confirmation"
                   }
                 },
-                "required": [
-                  "newp",
-                  "newp2"
-                ]
+                "required": ["newp", "newp2"]
               }
             }
           }
@@ -445,15 +412,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ApiErrorResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "authentication"
-        ]
+        "tags": ["authentication"]
       }
     },
     "/v2/domains/add": {
@@ -470,9 +435,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "domain"
-                ]
+                "required": ["domain"]
               }
             }
           }
@@ -482,11 +445,7 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
+        "tags": ["v2", "accounts", "domains"]
       }
     },
     "/v2/domains/{domain}": {
@@ -510,11 +469,7 @@
             "links": {}
           }
         },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
+        "tags": ["v2", "accounts", "domains"]
       }
     },
     "/v2/domains": {
@@ -525,11 +480,7 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
+        "tags": ["v2", "accounts", "domains"]
       }
     },
     "/v2/domains/{domain}/remove": {
@@ -550,11 +501,7 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
+        "tags": ["v2", "accounts", "domains"]
       }
     },
     "/v2/domains/{domain}/verify": {
@@ -575,11 +522,7 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v2",
-          "accounts",
-          "domains"
-        ]
+        "tags": ["v2", "accounts", "domains"]
       }
     },
     "/v2/account/change-password": {
@@ -602,11 +545,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "currentp",
-                  "newp",
-                  "newp2"
-                ]
+                "required": ["currentp", "newp", "newp2"]
               }
             }
           }
@@ -623,11 +562,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "accounts",
-          "danger"
-        ]
+        "tags": ["v2", "accounts", "danger"]
       }
     },
     "/v2/account/destroy": {
@@ -644,9 +579,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "confirmation"
-                ]
+                "required": ["confirmation"]
               }
             }
           }
@@ -663,11 +596,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "accounts",
-          "danger"
-        ]
+        "tags": ["v2", "accounts", "danger"]
       }
     },
     "/v2/account/apitoken": {
@@ -685,11 +614,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "accounts",
-          "danger"
-        ]
+        "tags": ["v2", "accounts", "danger"]
       }
     },
     "/v2/account": {
@@ -707,10 +632,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "accounts"
-        ]
+        "tags": ["v2", "accounts"]
       }
     },
     "/v2/account/update-locale": {
@@ -728,10 +650,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "accounts"
-        ]
+        "tags": ["v2", "accounts"]
       }
     },
     "/v2/private/recent": {
@@ -743,18 +662,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiRecordsResponse",
-                  "x-generic": "Metadata"
+                  "$ref": "#/components/schemas/ApiRecordsResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "v2",
-          "secrets",
-          "metadata"
-        ]
+        "tags": ["v2", "secrets", "metadata"]
       }
     },
     "/v2/private/{key}/burn": {
@@ -782,11 +696,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "secrets",
-          "danger"
-        ]
+        "tags": ["v2", "secrets", "danger"]
       }
     },
     "/v2/private/{key}": {
@@ -814,11 +724,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "secrets",
-          "metadata"
-        ]
+        "tags": ["v2", "secrets", "metadata"]
       }
     },
     "/v2/secret/{key}": {
@@ -846,10 +752,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "secrets"
-        ]
+        "tags": ["v2", "secrets"]
       },
       "post": {
         "summary": "Reveal Secret",
@@ -875,16 +778,29 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "secrets",
-          "danger"
-        ]
+        "tags": ["v2", "secrets", "danger"]
       }
     },
-    "/v2/secret/conceal": {
+    "/v2/secret/generate": {
       "post": {
-        "summary": "Conceal Secret",
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
+        "description": "Generates a password and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
+        "summary": "Generate Secret",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeneratePayload"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful response",
@@ -897,15 +813,54 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "secrets",
-          "create"
-        ]
+        "tags": ["v2", "secrets", "generate"]
+      }
+    },
+    "/v2/secret/conceal": {
+      "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
+        "description": "Creates an encrypted secret and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
+        "summary": "Conceal Secret",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConcealPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConcealDataResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets", "create"]
       }
     },
     "/v2/authcheck": {
       "get": {
+        "security": [
+          {
+            "CookieAuth": []
+          },
+          {
+            "BasicAuth": []
+          }
+        ],
         "summary": "Auth Check",
         "responses": {
           "200": {
@@ -919,14 +874,19 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "accounts"
-        ]
+        "tags": ["v2", "accounts"]
       }
     },
     "/v2/validate-shrimp": {
       "post": {
+        "security": [
+          {
+            "CookieAuth": []
+          },
+          {
+            "BasicAuth": []
+          }
+        ],
         "summary": "Validate Shrimp",
         "responses": {
           "200": {
@@ -940,10 +900,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "system"
-        ]
+        "tags": ["v2", "system"]
       }
     },
     "/v2/supported-locales": {
@@ -955,17 +912,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiRecordsResponse",
-                  "x-generic": "string"
+                  "$ref": "#/components/schemas/ApiRecordsResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "v2",
-          "localization"
-        ]
+        "tags": ["v2", "localization"]
       }
     },
     "/v2/version": {
@@ -983,10 +936,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "system"
-        ]
+        "tags": ["v2", "system"]
       }
     },
     "/v2/status": {
@@ -1004,10 +954,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "readonly"
-        ]
+        "tags": ["v2", "readonly"]
       },
       "head": {
         "summary": "Head system status",
@@ -1023,10 +970,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "readonly"
-        ]
+        "tags": ["v2", "readonly"]
       }
     },
     "/v2/altcha/challenge": {
@@ -1044,10 +988,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "challenges"
-        ]
+        "tags": ["v2", "challenges"]
       }
     },
     "/v2/altcha/verify": {
@@ -1065,10 +1006,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "challenges"
-        ]
+        "tags": ["v2", "challenges"]
       }
     },
     "/v2/altcha/verify-spam": {
@@ -1086,10 +1024,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "challenges"
-        ]
+        "tags": ["v2", "challenges"]
       }
     },
     "/v2/colonel": {
@@ -1107,10 +1042,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "colonel"
-        ]
+        "tags": ["v2", "colonel"]
       }
     },
     "/v2/domains/{domain}/brand": {
@@ -1148,11 +1080,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "domains",
-          "branding"
-        ]
+        "tags": ["v2", "domains", "branding"]
       }
     },
     "/v2/domains/{domain}/brand/image": {
@@ -1190,11 +1118,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "domains",
-          "branding"
-        ]
+        "tags": ["v2", "domains", "branding"]
       }
     },
     "/v2/domains/{domain}/brand/remove-image": {
@@ -1222,11 +1146,7 @@
             }
           }
         },
-        "tags": [
-          "v2",
-          "domains",
-          "branding"
-        ]
+        "tags": ["v2", "domains", "branding"]
       }
     },
     "/v1/private/{metadata_key}/burn": {
@@ -1247,12 +1167,7 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v1",
-          "secrets",
-          "metadata",
-          "danger"
-        ]
+        "tags": ["v1", "secrets", "metadata", "danger"]
       }
     },
     "/v1/private/{metadata_key}": {
@@ -1273,11 +1188,7 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v1",
-          "secrets",
-          "metadata"
-        ]
+        "tags": ["v1", "secrets", "metadata"]
       }
     },
     "/v1/private/recent": {
@@ -1288,45 +1199,44 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v1",
-          "secrets",
-          "metadata",
-          "readonly"
-        ]
+        "tags": ["v1", "secrets", "metadata", "readonly"]
       }
     },
     "/v1/share": {
       "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
         "summary": "Create a secret",
+        "description": "Creates an encrypted secret and returns a link that can be viewed only once. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
         "requestBody": {
           "required": true,
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "secret": {
-                    "type": "string"
+                "allOf": [
+                  {
+                    "$ref": "#/paths/~1v1~1generate/post/requestBody/content/application~1x-www-form-urlencoded/schema"
                   },
-                  "ttl": {
-                    "type": "string"
-                  },
-                  "passphrase": {
-                    "type": "string"
-                  },
-                  "recipient": {
-                    "type": "string"
-                  },
-                  "kind": {
-                    "type": "string"
-                  },
-                  "share_domain": {
-                    "type": "string"
+                  {
+                    "type": "object",
+                    "properties": {
+                      "secret": {
+                        "type": "string",
+                        "maxLength": 10000,
+                        "minLength": 1,
+                        "description": "The secret content to be encrypted and shared"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": ["share"]
+                      }
+                    },
+                    "required": ["secret", "kind"]
                   }
-                },
-                "required": [
-                  "secret"
                 ]
               }
             }
@@ -1334,26 +1244,75 @@
         },
         "responses": {
           "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShareV1ApiResponse"
-                }
-              }
-            }
+            "description": "Secret created successfully"
+          },
+          "400": {
+            "description": "Invalid request parameters"
+          },
+          "401": {
+            "description": "Unauthorized request"
+          },
+          "429": {
+            "description": "Too many requests"
           }
-        },
-        "tags": [
-          "v1",
-          "secrets",
-          "create"
-        ]
+        }
       }
     },
     "/v1/generate": {
       "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
         "summary": "Generate a secret",
+        "description": "Generates a random password and returns a link that can be viewed only once. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (identity plan).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ttl": {
+                    "type": "integer",
+                    "minimum": 60,
+                    "maximum": 2592000,
+                    "default": 86400,
+                    "description": "Time-to-live in seconds. Maximum varies by authentication:\n* Anonymous: 604800 (7 days)\n* Basic free plan: 1209600 (14 days)\n* Premium plan: 2592000 (30 days)",
+                    "x-plan-limits": {
+                      "anonymous": {
+                        "maximum": 604800
+                      },
+                      "basic": {
+                        "maximum": 1209600
+                      },
+                      "premium": {
+                        "maximum": 2592000
+                      }
+                    }
+                  },
+                  "passphrase": {
+                    "type": "string",
+                    "pattern": "^[\\S]{8,64}$",
+                    "description": "Optional password protection. Must be 8-64 characters"
+                  },
+                  "recipient": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address of intended recipient. Triggers notification when specified"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": ["generate"]
+                  }
+                },
+                "required": ["kind"]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful response",
@@ -1366,11 +1325,7 @@
             }
           }
         },
-        "tags": [
-          "v1",
-          "secrets",
-          "create"
-        ]
+        "tags": ["v1", "secrets", "create"]
       }
     },
     "/v1/secret/{secret_key}": {
@@ -1398,12 +1353,7 @@
             }
           }
         },
-        "tags": [
-          "v1",
-          "secrets",
-          "reveal",
-          "danger"
-        ]
+        "tags": ["v1", "secrets", "reveal", "danger"]
       }
     },
     "/v1/status": {
@@ -1421,10 +1371,7 @@
             }
           }
         },
-        "tags": [
-          "v1",
-          "readonly"
-        ]
+        "tags": ["v1", "readonly"]
       },
       "head": {
         "summary": "Head system status",
@@ -1433,15 +1380,659 @@
             "description": "Successful response"
           }
         },
-        "tags": [
-          "v1",
-          "readonly"
-        ]
+        "tags": ["v1", "readonly"]
       }
     }
   },
   "components": {
     "schemas": {
+      "ConcealPayload": {
+        "type": "object",
+        "required": ["secret"],
+        "properties": {
+          "secret": {
+            "type": "object",
+            "required": ["kind", "secret"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["conceal"]
+              },
+              "secret": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 10000
+              },
+              "share_domain": {
+                "type": "string"
+              },
+              "recipient": {
+                "type": "string",
+                "format": "email"
+              },
+              "passphrase": {
+                "type": "string",
+                "pattern": "^[\\S]{8,64}$"
+              },
+              "ttl": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d+$"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 60,
+                    "maximum": 2592000,
+                    "default": 86400,
+                    "x-plan-limits": {
+                      "anonymous": {
+                        "maximum": 604800
+                      },
+                      "basic": {
+                        "maximum": 1209600
+                      },
+                      "premium": {
+                        "maximum": 2592000
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "GeneratePayload": {
+        "type": "object",
+        "required": ["secret"],
+        "properties": {
+          "secret": {
+            "type": "object",
+            "required": ["kind"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["generate"]
+              },
+              "share_domain": {
+                "type": "string"
+              },
+              "recipient": {
+                "type": "string",
+                "format": "email"
+              },
+              "passphrase": {
+                "type": "string",
+                "pattern": "^[\\S]{8,64}$"
+              },
+              "ttl": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d+$"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 60,
+                    "maximum": 2592000,
+                    "default": 86400,
+                    "x-plan-limits": {
+                      "anonymous": {
+                        "maximum": 604800
+                      },
+                      "basic": {
+                        "maximum": 1209600
+                      },
+                      "premium": {
+                        "maximum": 2592000
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "SecretDetails": {
+        "type": "object",
+        "properties": {
+          "continue": {
+            "type": "boolean"
+          },
+          "show_secret": {
+            "type": "boolean"
+          },
+          "correct_passphrase": {
+            "type": "boolean"
+          },
+          "display_lines": {
+            "type": "number"
+          },
+          "one_liner": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SecretList": {
+        "type": "object",
+        "required": [
+          "identifier",
+          "created",
+          "updated",
+          "custid",
+          "state",
+          "metadata_key",
+          "original_size",
+          "value_checksum",
+          "value_encryption",
+          "lifespan",
+          "share_domain",
+          "verification"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "created": {
+            "type": "number",
+            "description": "UTC timestamp in seconds"
+          },
+          "updated": {
+            "type": "number",
+            "description": "UTC timestamp in seconds"
+          },
+          "custid": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "metadata_key": {
+            "type": "string"
+          },
+          "original_size": {
+            "type": "number"
+          },
+          "value_checksum": {
+            "type": "string"
+          },
+          "value_encryption": {
+            "type": "string"
+          },
+          "lifespan": {
+            "type": "number"
+          },
+          "share_domain": {
+            "type": "string"
+          },
+          "verification": {
+            "type": "string"
+          }
+        }
+      },
+      "MetadataRecordsDetails": {
+        "type": "object",
+        "required": ["type", "since", "now", "has_items", "received", "notreceived"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["list"]
+          },
+          "since": {
+            "type": "number"
+          },
+          "now": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "has_items": {
+            "type": "boolean"
+          },
+          "received": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetadataRecord"
+            }
+          },
+          "notreceived": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetadataRecord"
+            }
+          }
+        }
+      },
+      "MetadataRecord": {
+        "type": "object",
+        "required": [
+          "identifier",
+          "created",
+          "updated",
+          "custid",
+          "secret_ttl",
+          "show_recipients",
+          "is_received",
+          "is_burned",
+          "is_orphaned",
+          "is_destroyed",
+          "is_truncated"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "created": {
+            "type": "number",
+            "description": "UTC timestamp in seconds"
+          },
+          "updated": {
+            "type": "number",
+            "description": "UTC timestamp in seconds"
+          },
+          "custid": {
+            "type": "string"
+          },
+          "secret_ttl": {
+            "type": "number"
+          },
+          "show_recipients": {
+            "type": "boolean"
+          },
+          "is_received": {
+            "type": "boolean"
+          },
+          "is_burned": {
+            "type": "boolean"
+          },
+          "is_orphaned": {
+            "type": "boolean"
+          },
+          "is_destroyed": {
+            "type": "boolean"
+          },
+          "is_truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MetadataDetails": {
+        "type": "object",
+        "properties": {
+          "body_class": {
+            "type": "string"
+          },
+          "can_decrypt": {
+            "type": "boolean"
+          },
+          "display_feedback": {
+            "type": "boolean"
+          },
+          "display_lines": {
+            "type": "number"
+          },
+          "has_maxviews": {
+            "type": "boolean"
+          },
+          "has_passphrase": {
+            "type": "boolean"
+          },
+          "is_burned": {
+            "type": "boolean"
+          },
+          "is_destroyed": {
+            "type": "boolean"
+          },
+          "is_received": {
+            "type": "boolean"
+          },
+          "maxviews": {
+            "type": "number"
+          },
+          "no_cache": {
+            "type": "boolean"
+          },
+          "show_metadata_link": {
+            "type": "boolean"
+          },
+          "show_metadata": {
+            "type": "boolean"
+          },
+          "show_recipients": {
+            "type": "boolean"
+          },
+          "show_secret_link": {
+            "type": "boolean"
+          },
+          "show_secret": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "view_count": {
+            "type": "number"
+          }
+        }
+      },
+      "SecretRecord": {
+        "type": "object",
+        "required": [
+          "identifier",
+          "created",
+          "updated",
+          "custid",
+          "state",
+          "value",
+          "metadata_key",
+          "original_size",
+          "value_checksum",
+          "value_encryption",
+          "lifespan",
+          "share_domain",
+          "verification",
+          "is_truncated",
+          "is_owner",
+          "has_passphrase"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "created": {
+            "type": "number",
+            "description": "UTC timestamp in seconds"
+          },
+          "updated": {
+            "type": "number",
+            "description": "UTC timestamp in seconds"
+          },
+          "custid": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "metadata_key": {
+            "type": "string"
+          },
+          "original_size": {
+            "type": "number"
+          },
+          "value_checksum": {
+            "type": "string"
+          },
+          "value_encryption": {
+            "type": "string"
+          },
+          "lifespan": {
+            "type": "number"
+          },
+          "share_domain": {
+            "type": "string"
+          },
+          "verification": {
+            "type": "string"
+          },
+          "is_truncated": {
+            "type": "boolean"
+          },
+          "is_owner": {
+            "type": "boolean"
+          },
+          "has_passphrase": {
+            "type": "boolean"
+          },
+          "secret_value": {
+            "type": "string"
+          }
+        }
+      },
+      "ApplicationError": {
+        "type": "object",
+        "required": ["name", "message", "type", "severity"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["ApplicationError"]
+          },
+          "message": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["api", "validation", "auth", "network", "unknown"]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["error", "warning", "info"]
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "nullable": true
+              }
+            ]
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "ApiTokenResponse": {
+        "type": "object",
+        "required": ["success", "record"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record": {
+            "type": "object",
+            "required": ["apitoken", "active"],
+            "properties": {
+              "apitoken": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "AccountResponse": {
+        "type": "object",
+        "required": ["success", "record"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record": {
+            "type": "object",
+            "required": ["cust", "stripe_customer", "stripe_subscriptions"],
+            "properties": {
+              "cust": {
+                "$ref": "#/components/schemas/Customer"
+              },
+              "apitoken": {
+                "type": "string"
+              },
+              "stripe_customer": {
+                "type": "object",
+                "nullable": true
+              },
+              "stripe_subscriptions": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "nullable": true
+              }
+            }
+          }
+        }
+      },
+      "MetadataListResponse": {
+        "type": "object",
+        "required": ["success", "records", "count"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "custid": {
+            "type": "string"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MetadataRecord"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "details": {
+            "$ref": "#/components/schemas/MetadataRecordsDetails"
+          }
+        }
+      },
+      "MetadataResponse": {
+        "type": "object",
+        "required": ["success", "record"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record": {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          "details": {
+            "$ref": "#/components/schemas/MetadataDetails"
+          }
+        }
+      },
+      "SecretListResponse": {
+        "type": "object",
+        "required": ["success", "records", "count"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "custid": {
+            "type": "string"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecretList"
+            }
+          },
+          "count": {
+            "type": "number"
+          }
+        }
+      },
+      "SecretResponse": {
+        "type": "object",
+        "required": ["success", "record"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record": {
+            "$ref": "#/components/schemas/Secret"
+          },
+          "details": {
+            "$ref": "#/components/schemas/SecretDetails"
+          }
+        }
+      },
+      "ColonelResponse": {
+        "type": "object",
+        "required": ["success", "details"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record": {
+            "type": "object"
+          },
+          "details": {
+            "$ref": "#/components/schemas/ColonelDetails"
+          }
+        }
+      },
+      "ConcealDataResponse": {
+        "type": "object",
+        "required": ["success", "record"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record": {
+            "type": "object",
+            "required": ["metadata", "secret", "share_domain"],
+            "properties": {
+              "metadata": {
+                "$ref": "#/components/schemas/Metadata"
+              },
+              "secret": {
+                "$ref": "#/components/schemas/Secret"
+              },
+              "share_domain": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "CheckAuthResponse": {
+        "type": "object",
+        "required": ["success", "record"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "record": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "details": {
+            "type": "object",
+            "required": ["authenticated"],
+            "properties": {
+              "authenticated": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "ShareV1ApiResponse": {
+        "type": "object",
+        "required": ["success", "secret_key", "metadata_key"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "secret_key": {
+            "type": "string"
+          },
+          "metadata_key": {
+            "type": "string"
+          }
+        }
+      },
       "BaseApiV2Record": {
         "type": "object",
         "properties": {
@@ -1471,11 +2062,7 @@
             "description": "UTC timestamp in seconds"
           }
         },
-        "required": [
-          "identifier",
-          "created",
-          "updated"
-        ]
+        "required": ["identifier", "created", "updated"]
       },
       "BaseCustomer": {
         "type": "object",
@@ -1502,14 +2089,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "custid",
-          "role",
-          "verified",
-          "active",
-          "locale",
-          "secrets_created"
-        ]
+        "required": ["custid", "role", "verified", "active", "locale", "secrets_created"]
       },
       "BaseMetadata": {
         "allOf": [
@@ -1535,13 +2115,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "key",
-              "shortkey",
-              "secret_key",
-              "secret_shortkey",
-              "share_domain"
-            ]
+            "required": ["key", "shortkey", "secret_key", "secret_shortkey", "share_domain"]
           }
         ]
       },
@@ -1638,13 +2212,7 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "custid",
-              "display_domain",
-              "base_domain",
-              "subdomain",
-              "verified"
-            ]
+            "required": ["custid", "display_domain", "base_domain", "subdomain", "verified"]
           }
         ]
       },
@@ -1661,21 +2229,13 @@
               },
               "role": {
                 "type": "string",
-                "enum": [
-                  "customer",
-                  "colonel",
-                  "recipient",
-                  "user_deleted_self"
-                ]
+                "enum": ["customer", "colonel", "recipient", "user_deleted_self"]
               },
               "verified": {
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "true",
-                      "false"
-                    ]
+                    "enum": ["true", "false"]
                   },
                   {
                     "type": "boolean"
@@ -1686,10 +2246,7 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "true",
-                      "false"
-                    ]
+                    "enum": ["true", "false"]
                   },
                   {
                     "type": "boolean"
@@ -1700,10 +2257,7 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": [
-                      "true",
-                      "false"
-                    ]
+                    "enum": ["true", "false"]
                   },
                   {
                     "type": "boolean"
@@ -1788,13 +2342,7 @@
                 }
               }
             },
-            "required": [
-              "custid",
-              "role",
-              "verified",
-              "active",
-              "locale"
-            ]
+            "required": ["custid", "role", "verified", "active", "locale"]
           }
         ]
       },
@@ -1819,12 +2367,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "colonel",
-              "secrets_shared",
-              "emails_sent",
-              "stamp"
-            ]
+            "required": ["colonel", "secrets_shared", "emails_sent", "stamp"]
           }
         ]
       },
@@ -1852,11 +2395,7 @@
                 }
               }
             },
-            "required": [
-              "cust",
-              "stripe_customer",
-              "stripe_subscriptions"
-            ]
+            "required": ["cust", "stripe_customer", "stripe_subscriptions"]
           }
         ]
       },
@@ -1891,17 +2430,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "ttl",
-          "size",
-          "api",
-          "name",
-          "email",
-          "custom_domains",
-          "dark_mode",
-          "cname",
-          "private"
-        ]
+        "required": ["ttl", "size", "api", "name", "email", "custom_domains", "dark_mode", "cname", "private"]
       },
       "Plan": {
         "allOf": [
@@ -1924,12 +2453,7 @@
                 "$ref": "#/components/schemas/PlanOptions"
               }
             },
-            "required": [
-              "planid",
-              "price",
-              "discount",
-              "options"
-            ]
+            "required": ["planid", "price", "discount", "options"]
           }
         ]
       },
@@ -2080,12 +2604,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "type",
-              "cluster_ip",
-              "cluster_name",
-              "vhost_target"
-            ]
+            "required": ["type", "cluster_ip", "cluster_name", "vhost_target"]
           }
         ]
       },
@@ -2247,10 +2766,7 @@
                 }
               }
             },
-            "required": [
-              "is_owner",
-              "has_passphrase"
-            ]
+            "required": ["is_owner", "has_passphrase"]
           }
         ]
       },
@@ -2279,18 +2795,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "kind",
-              "recipient",
-              "recipient_safe"
-            ]
+            "required": ["kind", "recipient", "recipient_safe"]
           }
         },
-        "required": [
-          "metadata",
-          "secret",
-          "share_domain"
-        ]
+        "required": ["metadata", "secret", "share_domain"]
       },
       "BaseApiResponse": {
         "type": "object",
@@ -2302,9 +2810,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "success"
-        ]
+        "required": ["success"]
       },
       "ApiErrorResponse": {
         "allOf": [
@@ -2327,9 +2833,7 @@
                 "type": "object"
               }
             },
-            "required": [
-              "message"
-            ]
+            "required": ["message"]
           }
         ]
       },
@@ -2357,11 +2861,7 @@
                 "type": "object"
               }
             },
-            "required": [
-              "custid",
-              "records",
-              "count"
-            ]
+            "required": ["custid", "records", "count"]
           }
         ]
       },
@@ -2385,10 +2885,7 @@
             "additionalProperties": true
           }
         },
-        "required": [
-          "success",
-          "record"
-        ]
+        "required": ["success", "record"]
       },
       "AuthenticationSettings": {
         "type": "object",
@@ -2406,12 +2903,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "enabled",
-          "signup",
-          "signin",
-          "autoverify"
-        ]
+        "required": ["enabled", "signup", "signin", "autoverify"]
       },
       "ApiToken": {
         "allOf": [
@@ -2428,10 +2920,7 @@
                 "type": "boolean"
               }
             },
-            "required": [
-              "apitoken",
-              "active"
-            ]
+            "required": ["apitoken", "active"]
           }
         ]
       },
@@ -2551,9 +3040,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "authorized"
-        ]
+        "required": ["authorized"]
       },
       "Feedback": {
         "type": "object",
@@ -2565,10 +3052,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "msg",
-          "stamp"
-        ]
+        "required": ["msg", "stamp"]
       },
       "brandSettingsSchema": {
         "type": "object",
@@ -2596,17 +3080,10 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "logo",
-              "favicon",
-              "og_image"
-            ]
+            "enum": ["logo", "favicon", "og_image"]
           }
         },
-        "required": [
-          "file",
-          "type"
-        ]
+        "required": ["file", "type"]
       },
       "concealDataSchema": {
         "type": "object",
@@ -2629,9 +3106,7 @@
             "format": "email"
           }
         },
-        "required": [
-          "secret"
-        ]
+        "required": ["secret"]
       },
       "metadataDetailsSchema": {
         "type": "object",
@@ -2684,21 +3159,27 @@
             "format": "email"
           }
         },
-        "required": [
-          "message"
-        ]
+        "required": ["message"]
       }
     },
     "securitySchemes": {
       "BasicAuth": {
         "type": "http",
-        "scheme": "basic"
+        "scheme": "basic",
+        "description": "Basic auth for API access"
+      },
+      "CookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sess",
+        "description": "Session cookie for authenticated web access"
       }
     }
   },
   "security": [
     {
-      "BasicAuth": []
+      "BasicAuth": [],
+      "CookieAuth": []
     }
   ]
 }
