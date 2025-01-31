@@ -33,6 +33,7 @@
         :headertext="headertext"
         :subtext="subtext"
         v-bind="props"/>
+
       <MastHead v-else v-bind="props" />
     </div>
 
