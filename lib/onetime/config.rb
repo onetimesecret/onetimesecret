@@ -86,6 +86,7 @@ module Onetime
         3.days,         # 259200
         1.week,         # 604800
         2.weeks,        # 1209600
+        30.days,        # 2592000
       ]
 
       # Disable all authentication sub-features when main feature is off for
