@@ -1,4 +1,5 @@
 <!-- src/components/layout/Masthead.vue -->
+
 <script setup lang="ts">
   import HeaderUserNav from '@/components/layout/HeaderUserNav.vue';
   import SettingsModal from '@/components/modals/SettingsModal.vue';
@@ -122,7 +123,15 @@
                         <span
                           v-if="currentJurisdiction?.identifier === jurisdiction.identifier"
                           class="ml-auto text-brand-500">
-                          ✓
+                          <svg class="size-5"
+                               xmlns="http://www.w3.org/2000/svg"
+                               viewBox="0 0 20 20"
+                               fill="currentColor"
+                               aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clip-rule="evenodd" />
+                          </svg>
                         </span>
                       </div>
                     </div>
@@ -134,7 +143,12 @@
               Onetime Secret
             </span>
             <span class="text-xs text-gray-500 dark:text-gray-400">
-            Signed. Sealed. Delivered.<sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite]">*</sup>
+              Signed. Sealed.
+              <span class="relative group">
+                Delivered.<sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover:[animation:none]">*</sup>
+                <span class="absolute bottom-full left-36 -translate-x-1/2 hidden group-hover:block bg-gray-200/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 text-xs rounded py-1 px-2 w-max">
+                <sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover:[animation:none]">*</sup> Recipient delivery is optional</span>
+              </span>
             </span>
           </div>
         </router-link>
