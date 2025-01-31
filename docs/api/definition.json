@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "version": "2.1.0",
+    "version": "2.2.0",
     "title": "Onetime Secret API [2025-01-24]",
     "description": "The Onetime Secret API allows you to securely share secrets. This API provides endpoints to create, retrieve, and manage secrets. You can use this API to generate a secret URL that can be shared with others, ensuring that the secret is only accessible once. The API supports various operations such as creating a new secret, retrieving a secret, and deleting a secret. It is designed to be simple and secure, making it easy to integrate into your applications."
   },
@@ -890,7 +890,7 @@
           }
         ],
         "description": "Generates a password and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
-        "summary": "Conceal Secret",
+        "summary": "Generate Secret",
         "requestBody": {
           "required": true,
           "content": {
@@ -1582,18 +1582,18 @@
         ],
         "properties": {
           "allOf": {
-            "$ref": "#/components/schemas/GeneratePayload",
-            "kind": {
-              "type": "string",
-              "literal": [
-                "share"
-              ]
-            },
-            "secret": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 10000
-            }
+            "$ref": "#/components/schemas/GeneratePayload"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "share"
+            ]
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000
           }
         }
       },
@@ -1613,11 +1613,6 @@
           "share_domain": {
             "type": "string",
             "description": "Optional domain to use for sharing. Must be an official first-party domain or a domain that has been added to the account making the request."
-          },
-          "secret": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 10000
           },
           "recipient": {
             "type": "string",
