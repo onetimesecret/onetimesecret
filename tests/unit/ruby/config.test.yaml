@@ -49,7 +49,7 @@
   - 'CHANGEME@EXAMPLE.com'
 :emailer:
   :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
-  :from: <%= ENV['FROM'] || 'tests@example.com' %>
+  :from: <%= ENV['FROM_EMAIL'] || ENV['FROM_EMAIL'] || 'tests@example.com' %>
   :fromname: <%= ENV['FROMNAME'] || 'Jan' %>
   :host: <%= ENV['SMTP_HOST'] || 'localhost' %>
   :port: <%= ENV['SMTP_PORT'] || 587 %>
