@@ -23,8 +23,9 @@ env:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    # Only run this job on the main repository
-    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    if: github.repository == 'onetimesecret/onetimesecret'
+
     permissions:
       contents: read
       packages: write
