@@ -36,8 +36,7 @@ jobs:
     name: Deploy
     runs-on: ubuntu-24.04
     environment: Fly.io
-    # Only run this job on the main repository
-    if: github.event.pull_request.head.repo.full_name == github.repository
+
     steps:
       # Step 1: Check this out
       - name: Checkout repository
