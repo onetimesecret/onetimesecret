@@ -24,6 +24,8 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
+    if: github.repository == 'onetimesecret/onetimesecret'
+
     permissions:
       contents: read
       packages: write

@@ -36,6 +36,7 @@ jobs:
     name: Deploy
     runs-on: ubuntu-24.04
     environment: Fly.io
+    if: github.repository == 'onetimesecret/onetimesecret'
 
     steps:
       - name: Debug Repository Info
@@ -46,7 +47,7 @@ jobs:
           echo "Ref: ${{ github.ref }}"
 
       - name: Debug PR Info
-        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'pull_request'
         run: |
           echo "PR Number: ${{ github.event.number }}"
           echo "PR Source: ${{ github.event.pull_request.head.label }}"
