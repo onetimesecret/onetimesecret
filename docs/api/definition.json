@@ -61,7 +61,10 @@
                     "description": "Email addresses of recipients"
                   }
                 },
-                "required": ["secret", "ticketno"]
+                "required": [
+                  "secret",
+                  "ticketno"
+                ]
               }
             }
           }
@@ -88,7 +91,9 @@
             }
           }
         },
-        "tags": ["secrets"]
+        "tags": [
+          "secrets"
+        ]
       }
     },
     "/signup": {
@@ -123,7 +128,12 @@
                     "description": "Hidden field for bot detection (should be empty)"
                   }
                 },
-                "required": ["u", "p", "p2", "planid"]
+                "required": [
+                  "u",
+                  "p",
+                  "p2",
+                  "planid"
+                ]
               }
             }
           }
@@ -150,7 +160,9 @@
             }
           }
         },
-        "tags": ["accounts"]
+        "tags": [
+          "accounts"
+        ]
       }
     },
     "/signin": {
@@ -173,7 +185,10 @@
                     "description": "User's password"
                   }
                 },
-                "required": ["u", "p"]
+                "required": [
+                  "u",
+                  "p"
+                ]
               }
             }
           }
@@ -200,7 +215,9 @@
             }
           }
         },
-        "tags": ["authentication"]
+        "tags": [
+          "authentication"
+        ]
       }
     },
     "/welcome/stripe/webhook": {
@@ -218,7 +235,9 @@
                     "description": "Stripe event payload"
                   }
                 },
-                "required": ["payload"]
+                "required": [
+                  "payload"
+                ]
               }
             }
           }
@@ -261,7 +280,10 @@
             }
           }
         },
-        "tags": ["webhooks", "stripe"]
+        "tags": [
+          "webhooks",
+          "stripe"
+        ]
       }
     },
     "/feedback": {
@@ -285,7 +307,9 @@
                     "description": "Authenticity payload for spam prevention"
                   }
                 },
-                "required": ["msg"]
+                "required": [
+                  "msg"
+                ]
               }
             }
           }
@@ -312,7 +336,9 @@
             }
           }
         },
-        "tags": ["feedback"]
+        "tags": [
+          "feedback"
+        ]
       }
     },
     "/forgot": {
@@ -331,7 +357,9 @@
                     "description": "User's email address"
                   }
                 },
-                "required": ["u"]
+                "required": [
+                  "u"
+                ]
               }
             }
           }
@@ -358,7 +386,9 @@
             }
           }
         },
-        "tags": ["authentication"]
+        "tags": [
+          "authentication"
+        ]
       }
     },
     "/forgot/{key}": {
@@ -391,7 +421,10 @@
                     "description": "New password confirmation"
                   }
                 },
-                "required": ["newp", "newp2"]
+                "required": [
+                  "newp",
+                  "newp2"
+                ]
               }
             }
           }
@@ -418,7 +451,9 @@
             }
           }
         },
-        "tags": ["authentication"]
+        "tags": [
+          "authentication"
+        ]
       }
     },
     "/v2/domains/add": {
@@ -435,7 +470,9 @@
                     "type": "string"
                   }
                 },
-                "required": ["domain"]
+                "required": [
+                  "domain"
+                ]
               }
             }
           }
@@ -445,7 +482,11 @@
             "description": "Successful response"
           }
         },
-        "tags": ["v2", "accounts", "domains"]
+        "tags": [
+          "v2",
+          "accounts",
+          "domains"
+        ]
       }
     },
     "/v2/domains/{domain}": {
@@ -469,7 +510,11 @@
             "links": {}
           }
         },
-        "tags": ["v2", "accounts", "domains"]
+        "tags": [
+          "v2",
+          "accounts",
+          "domains"
+        ]
       }
     },
     "/v2/domains": {
@@ -480,7 +525,11 @@
             "description": "Successful response"
           }
         },
-        "tags": ["v2", "accounts", "domains"]
+        "tags": [
+          "v2",
+          "accounts",
+          "domains"
+        ]
       }
     },
     "/v2/domains/{domain}/remove": {
@@ -501,7 +550,11 @@
             "description": "Successful response"
           }
         },
-        "tags": ["v2", "accounts", "domains"]
+        "tags": [
+          "v2",
+          "accounts",
+          "domains"
+        ]
       }
     },
     "/v2/domains/{domain}/verify": {
@@ -522,7 +575,11 @@
             "description": "Successful response"
           }
         },
-        "tags": ["v2", "accounts", "domains"]
+        "tags": [
+          "v2",
+          "accounts",
+          "domains"
+        ]
       }
     },
     "/v2/account/change-password": {
@@ -545,7 +602,11 @@
                     "type": "string"
                   }
                 },
-                "required": ["currentp", "newp", "newp2"]
+                "required": [
+                  "currentp",
+                  "newp",
+                  "newp2"
+                ]
               }
             }
           }
@@ -562,7 +623,11 @@
             }
           }
         },
-        "tags": ["v2", "accounts", "danger"]
+        "tags": [
+          "v2",
+          "accounts",
+          "danger"
+        ]
       }
     },
     "/v2/account/destroy": {
@@ -579,7 +644,9 @@
                     "type": "string"
                   }
                 },
-                "required": ["confirmation"]
+                "required": [
+                  "confirmation"
+                ]
               }
             }
           }
@@ -596,7 +663,11 @@
             }
           }
         },
-        "tags": ["v2", "accounts", "danger"]
+        "tags": [
+          "v2",
+          "accounts",
+          "danger"
+        ]
       }
     },
     "/v2/account/apitoken": {
@@ -614,7 +685,11 @@
             }
           }
         },
-        "tags": ["v2", "accounts", "danger"]
+        "tags": [
+          "v2",
+          "accounts",
+          "danger"
+        ]
       }
     },
     "/v2/account": {
@@ -632,7 +707,10 @@
             }
           }
         },
-        "tags": ["v2", "accounts"]
+        "tags": [
+          "v2",
+          "accounts"
+        ]
       }
     },
     "/v2/account/update-locale": {
@@ -650,7 +728,10 @@
             }
           }
         },
-        "tags": ["v2", "accounts"]
+        "tags": [
+          "v2",
+          "accounts"
+        ]
       }
     },
     "/v2/private/recent": {
@@ -668,7 +749,11 @@
             }
           }
         },
-        "tags": ["v2", "secrets", "metadata"]
+        "tags": [
+          "v2",
+          "secrets",
+          "metadata"
+        ]
       }
     },
     "/v2/private/{key}/burn": {
@@ -696,7 +781,11 @@
             }
           }
         },
-        "tags": ["v2", "secrets", "danger"]
+        "tags": [
+          "v2",
+          "secrets",
+          "danger"
+        ]
       }
     },
     "/v2/private/{key}": {
@@ -724,7 +813,11 @@
             }
           }
         },
-        "tags": ["v2", "secrets", "metadata"]
+        "tags": [
+          "v2",
+          "secrets",
+          "metadata"
+        ]
       }
     },
     "/v2/secret/{key}": {
@@ -752,7 +845,10 @@
             }
           }
         },
-        "tags": ["v2", "secrets"]
+        "tags": [
+          "v2",
+          "secrets"
+        ]
       },
       "post": {
         "summary": "Reveal Secret",
@@ -778,7 +874,11 @@
             }
           }
         },
-        "tags": ["v2", "secrets", "danger"]
+        "tags": [
+          "v2",
+          "secrets",
+          "danger"
+        ]
       }
     },
     "/v2/secret/generate": {
@@ -813,7 +913,11 @@
             }
           }
         },
-        "tags": ["v2", "secrets", "generate"]
+        "tags": [
+          "v2",
+          "secrets",
+          "generate"
+        ]
       }
     },
     "/v2/secret/conceal": {
@@ -848,13 +952,19 @@
             }
           }
         },
-        "tags": ["v2", "secrets", "create"]
+        "tags": [
+          "v2",
+          "secrets",
+          "create"
+        ]
       }
     },
     "/v2/authcheck": {
       "get": {
         "security": [
-          { "CookieAuth": [] },
+          {
+            "CookieAuth": []
+          },
           {
             "BasicAuth": []
           }
@@ -872,13 +982,18 @@
             }
           }
         },
-        "tags": ["v2", "accounts"]
+        "tags": [
+          "v2",
+          "accounts"
+        ]
       }
     },
     "/v2/validate-shrimp": {
       "post": {
         "security": [
-          { "CookieAuth": [] },
+          {
+            "CookieAuth": []
+          },
           {
             "BasicAuth": []
           }
@@ -896,7 +1011,10 @@
             }
           }
         },
-        "tags": ["v2", "system"]
+        "tags": [
+          "v2",
+          "system"
+        ]
       }
     },
     "/v2/supported-locales": {
@@ -914,7 +1032,10 @@
             }
           }
         },
-        "tags": ["v2", "localization"]
+        "tags": [
+          "v2",
+          "localization"
+        ]
       }
     },
     "/v2/version": {
@@ -932,7 +1053,10 @@
             }
           }
         },
-        "tags": ["v2", "system"]
+        "tags": [
+          "v2",
+          "system"
+        ]
       }
     },
     "/v2/status": {
@@ -950,7 +1074,10 @@
             }
           }
         },
-        "tags": ["v2", "readonly"]
+        "tags": [
+          "v2",
+          "readonly"
+        ]
       },
       "head": {
         "summary": "Head system status",
@@ -966,7 +1093,10 @@
             }
           }
         },
-        "tags": ["v2", "readonly"]
+        "tags": [
+          "v2",
+          "readonly"
+        ]
       }
     },
     "/v2/altcha/challenge": {
@@ -984,7 +1114,10 @@
             }
           }
         },
-        "tags": ["v2", "challenges"]
+        "tags": [
+          "v2",
+          "challenges"
+        ]
       }
     },
     "/v2/altcha/verify": {
@@ -1002,7 +1135,10 @@
             }
           }
         },
-        "tags": ["v2", "challenges"]
+        "tags": [
+          "v2",
+          "challenges"
+        ]
       }
     },
     "/v2/altcha/verify-spam": {
@@ -1020,7 +1156,10 @@
             }
           }
         },
-        "tags": ["v2", "challenges"]
+        "tags": [
+          "v2",
+          "challenges"
+        ]
       }
     },
     "/v2/colonel": {
@@ -1038,7 +1177,10 @@
             }
           }
         },
-        "tags": ["v2", "colonel"]
+        "tags": [
+          "v2",
+          "colonel"
+        ]
       }
     },
     "/v2/domains/{domain}/brand": {
@@ -1076,7 +1218,11 @@
             }
           }
         },
-        "tags": ["v2", "domains", "branding"]
+        "tags": [
+          "v2",
+          "domains",
+          "branding"
+        ]
       }
     },
     "/v2/domains/{domain}/brand/image": {
@@ -1114,7 +1260,11 @@
             }
           }
         },
-        "tags": ["v2", "domains", "branding"]
+        "tags": [
+          "v2",
+          "domains",
+          "branding"
+        ]
       }
     },
     "/v2/domains/{domain}/brand/remove-image": {
@@ -1142,7 +1292,11 @@
             }
           }
         },
-        "tags": ["v2", "domains", "branding"]
+        "tags": [
+          "v2",
+          "domains",
+          "branding"
+        ]
       }
     },
     "/v1/private/{metadata_key}/burn": {
@@ -1163,7 +1317,12 @@
             "description": "Successful response"
           }
         },
-        "tags": ["v1", "secrets", "metadata", "danger"]
+        "tags": [
+          "v1",
+          "secrets",
+          "metadata",
+          "danger"
+        ]
       }
     },
     "/v1/private/{metadata_key}": {
@@ -1184,7 +1343,11 @@
             "description": "Successful response"
           }
         },
-        "tags": ["v1", "secrets", "metadata"]
+        "tags": [
+          "v1",
+          "secrets",
+          "metadata"
+        ]
       }
     },
     "/v1/private/recent": {
@@ -1195,7 +1358,12 @@
             "description": "Successful response"
           }
         },
-        "tags": ["v1", "secrets", "metadata", "readonly"]
+        "tags": [
+          "v1",
+          "secrets",
+          "metadata",
+          "readonly"
+        ]
       }
     },
     "/v1/share": {
@@ -1228,10 +1396,15 @@
                       },
                       "kind": {
                         "type": "string",
-                        "enum": ["share"]
+                        "enum": [
+                          "share"
+                        ]
                       }
                     },
-                    "required": ["secret", "kind"]
+                    "required": [
+                      "secret",
+                      "kind"
+                    ]
                   }
                 ]
               }
@@ -1301,10 +1474,14 @@
                   },
                   "kind": {
                     "type": "string",
-                    "enum": ["generate"]
+                    "enum": [
+                      "generate"
+                    ]
                   }
                 },
-                "required": ["kind"]
+                "required": [
+                  "kind"
+                ]
               }
             }
           }
@@ -1321,7 +1498,11 @@
             }
           }
         },
-        "tags": ["v1", "secrets", "create"]
+        "tags": [
+          "v1",
+          "secrets",
+          "create"
+        ]
       }
     },
     "/v1/secret/{secret_key}": {
@@ -1349,7 +1530,12 @@
             }
           }
         },
-        "tags": ["v1", "secrets", "reveal", "danger"]
+        "tags": [
+          "v1",
+          "secrets",
+          "reveal",
+          "danger"
+        ]
       }
     },
     "/v1/status": {
@@ -1367,7 +1553,10 @@
             }
           }
         },
-        "tags": ["v1", "readonly"]
+        "tags": [
+          "v1",
+          "readonly"
+        ]
       },
       "head": {
         "summary": "Head system status",
@@ -1376,7 +1565,10 @@
             "description": "Successful response"
           }
         },
-        "tags": ["v1", "readonly"]
+        "tags": [
+          "v1",
+          "readonly"
+        ]
       }
     }
   },
@@ -1384,15 +1576,19 @@
     "schemas": {
       "ConcealPayload": {
         "type": "object",
-        "required": ["kind", "secret"],
+        "required": [
+          "kind",
+          "secret"
+        ],
         "properties": {
           "allOf": {
             "$ref": "#/components/schemas/GeneratePayload",
             "kind": {
               "type": "string",
-              "literal": ["share"]
+              "literal": [
+                "share"
+              ]
             },
-
             "secret": {
               "type": "string",
               "minLength": 1,
@@ -1403,11 +1599,16 @@
       },
       "GeneratePayload": {
         "type": "object",
-        "required": ["kind", "secret"],
+        "required": [
+          "kind",
+          "secret"
+        ],
         "properties": {
           "kind": {
             "type": "string",
-            "enum": ["generate"]
+            "enum": [
+              "generate"
+            ]
           },
           "share_domain": {
             "type": "string",
@@ -1474,7 +1675,6 @@
           }
         }
       },
-
       "SecretList": {
         "type": "object",
         "required": [
@@ -1532,14 +1732,22 @@
           }
         }
       },
-
       "MetadataRecordsDetails": {
         "type": "object",
-        "required": ["type", "since", "now", "has_items", "received", "notreceived"],
+        "required": [
+          "type",
+          "since",
+          "now",
+          "has_items",
+          "received",
+          "notreceived"
+        ],
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["list"]
+            "enum": [
+              "list"
+            ]
           },
           "since": {
             "type": "number"
@@ -1565,7 +1773,6 @@
           }
         }
       },
-
       "MetadataRecord": {
         "type": "object",
         "required": [
@@ -1619,7 +1826,6 @@
           }
         }
       },
-
       "MetadataDetails": {
         "type": "object",
         "properties": {
@@ -1679,7 +1885,6 @@
           }
         }
       },
-
       "SecretRecord": {
         "type": "object",
         "required": [
@@ -1758,25 +1963,52 @@
       },
       "ApplicationError": {
         "type": "object",
-        "required": ["name", "message", "type", "severity"],
+        "required": [
+          "name",
+          "message",
+          "type",
+          "severity"
+        ],
         "properties": {
           "name": {
             "type": "string",
-            "enum": ["ApplicationError"]
+            "enum": [
+              "ApplicationError"
+            ]
           },
           "message": {
             "type": "string"
           },
           "type": {
             "type": "string",
-            "enum": ["api", "validation", "auth", "network", "unknown"]
+            "enum": [
+              "api",
+              "validation",
+              "auth",
+              "network",
+              "unknown"
+            ]
           },
           "severity": {
             "type": "string",
-            "enum": ["error", "warning", "info"]
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ]
           },
           "code": {
-            "anyOf": [{ "type": "string" }, { "type": "number" }, { "nullable": true }]
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "nullable": true
+              }
+            ]
           },
           "details": {
             "type": "object",
@@ -1784,17 +2016,22 @@
           }
         }
       },
-
       "ApiTokenResponse": {
         "type": "object",
-        "required": ["success", "record"],
+        "required": [
+          "success",
+          "record"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
           },
           "record": {
             "type": "object",
-            "required": ["apitoken", "active"],
+            "required": [
+              "apitoken",
+              "active"
+            ],
             "properties": {
               "apitoken": {
                 "type": "string"
@@ -1806,17 +2043,23 @@
           }
         }
       },
-
       "AccountResponse": {
         "type": "object",
-        "required": ["success", "record"],
+        "required": [
+          "success",
+          "record"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
           },
           "record": {
             "type": "object",
-            "required": ["cust", "stripe_customer", "stripe_subscriptions"],
+            "required": [
+              "cust",
+              "stripe_customer",
+              "stripe_subscriptions"
+            ],
             "properties": {
               "cust": {
                 "$ref": "#/components/schemas/Customer"
@@ -1839,10 +2082,13 @@
           }
         }
       },
-
       "MetadataListResponse": {
         "type": "object",
-        "required": ["success", "records", "count"],
+        "required": [
+          "success",
+          "records",
+          "count"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
@@ -1864,10 +2110,12 @@
           }
         }
       },
-
       "MetadataResponse": {
         "type": "object",
-        "required": ["success", "record"],
+        "required": [
+          "success",
+          "record"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
@@ -1880,10 +2128,13 @@
           }
         }
       },
-
       "SecretListResponse": {
         "type": "object",
-        "required": ["success", "records", "count"],
+        "required": [
+          "success",
+          "records",
+          "count"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
@@ -1902,10 +2153,12 @@
           }
         }
       },
-
       "SecretResponse": {
         "type": "object",
-        "required": ["success", "record"],
+        "required": [
+          "success",
+          "record"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
@@ -1918,10 +2171,12 @@
           }
         }
       },
-
       "ColonelResponse": {
         "type": "object",
-        "required": ["success", "details"],
+        "required": [
+          "success",
+          "details"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
@@ -1934,17 +2189,23 @@
           }
         }
       },
-
       "ConcealDataResponse": {
         "type": "object",
-        "required": ["success", "record"],
+        "required": [
+          "success",
+          "record"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
           },
           "record": {
             "type": "object",
-            "required": ["metadata", "secret", "share_domain"],
+            "required": [
+              "metadata",
+              "secret",
+              "share_domain"
+            ],
             "properties": {
               "metadata": {
                 "$ref": "#/components/schemas/Metadata"
@@ -1959,10 +2220,12 @@
           }
         }
       },
-
       "CheckAuthResponse": {
         "type": "object",
-        "required": ["success", "record"],
+        "required": [
+          "success",
+          "record"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
@@ -1972,7 +2235,9 @@
           },
           "details": {
             "type": "object",
-            "required": ["authenticated"],
+            "required": [
+              "authenticated"
+            ],
             "properties": {
               "authenticated": {
                 "type": "boolean"
@@ -1981,10 +2246,13 @@
           }
         }
       },
-
       "ShareV1ApiResponse": {
         "type": "object",
-        "required": ["success", "secret_key", "metadata_key"],
+        "required": [
+          "success",
+          "secret_key",
+          "metadata_key"
+        ],
         "properties": {
           "success": {
             "type": "boolean"
@@ -2026,7 +2294,11 @@
             "description": "UTC timestamp in seconds"
           }
         },
-        "required": ["identifier", "created", "updated"]
+        "required": [
+          "identifier",
+          "created",
+          "updated"
+        ]
       },
       "BaseCustomer": {
         "type": "object",
@@ -2053,7 +2325,14 @@
             "type": "number"
           }
         },
-        "required": ["custid", "role", "verified", "active", "locale", "secrets_created"]
+        "required": [
+          "custid",
+          "role",
+          "verified",
+          "active",
+          "locale",
+          "secrets_created"
+        ]
       },
       "BaseMetadata": {
         "allOf": [
@@ -2079,7 +2358,13 @@
                 "type": "string"
               }
             },
-            "required": ["key", "shortkey", "secret_key", "secret_shortkey", "share_domain"]
+            "required": [
+              "key",
+              "shortkey",
+              "secret_key",
+              "secret_shortkey",
+              "share_domain"
+            ]
           }
         ]
       },
@@ -2176,7 +2461,13 @@
                 "type": "boolean"
               }
             },
-            "required": ["custid", "display_domain", "base_domain", "subdomain", "verified"]
+            "required": [
+              "custid",
+              "display_domain",
+              "base_domain",
+              "subdomain",
+              "verified"
+            ]
           }
         ]
       },
@@ -2193,13 +2484,21 @@
               },
               "role": {
                 "type": "string",
-                "enum": ["customer", "colonel", "recipient", "user_deleted_self"]
+                "enum": [
+                  "customer",
+                  "colonel",
+                  "recipient",
+                  "user_deleted_self"
+                ]
               },
               "verified": {
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": ["true", "false"]
+                    "enum": [
+                      "true",
+                      "false"
+                    ]
                   },
                   {
                     "type": "boolean"
@@ -2210,7 +2509,10 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": ["true", "false"]
+                    "enum": [
+                      "true",
+                      "false"
+                    ]
                   },
                   {
                     "type": "boolean"
@@ -2221,7 +2523,10 @@
                 "oneOf": [
                   {
                     "type": "string",
-                    "enum": ["true", "false"]
+                    "enum": [
+                      "true",
+                      "false"
+                    ]
                   },
                   {
                     "type": "boolean"
@@ -2306,7 +2611,13 @@
                 }
               }
             },
-            "required": ["custid", "role", "verified", "active", "locale"]
+            "required": [
+              "custid",
+              "role",
+              "verified",
+              "active",
+              "locale"
+            ]
           }
         ]
       },
@@ -2331,7 +2642,12 @@
                 "type": "string"
               }
             },
-            "required": ["colonel", "secrets_shared", "emails_sent", "stamp"]
+            "required": [
+              "colonel",
+              "secrets_shared",
+              "emails_sent",
+              "stamp"
+            ]
           }
         ]
       },
@@ -2359,7 +2675,11 @@
                 }
               }
             },
-            "required": ["cust", "stripe_customer", "stripe_subscriptions"]
+            "required": [
+              "cust",
+              "stripe_customer",
+              "stripe_subscriptions"
+            ]
           }
         ]
       },
@@ -2394,7 +2714,17 @@
             "type": "boolean"
           }
         },
-        "required": ["ttl", "size", "api", "name", "email", "custom_domains", "dark_mode", "cname", "private"]
+        "required": [
+          "ttl",
+          "size",
+          "api",
+          "name",
+          "email",
+          "custom_domains",
+          "dark_mode",
+          "cname",
+          "private"
+        ]
       },
       "Plan": {
         "allOf": [
@@ -2417,7 +2747,12 @@
                 "$ref": "#/components/schemas/PlanOptions"
               }
             },
-            "required": ["planid", "price", "discount", "options"]
+            "required": [
+              "planid",
+              "price",
+              "discount",
+              "options"
+            ]
           }
         ]
       },
@@ -2568,7 +2903,12 @@
                 "type": "string"
               }
             },
-            "required": ["type", "cluster_ip", "cluster_name", "vhost_target"]
+            "required": [
+              "type",
+              "cluster_ip",
+              "cluster_name",
+              "vhost_target"
+            ]
           }
         ]
       },
@@ -2730,7 +3070,10 @@
                 }
               }
             },
-            "required": ["is_owner", "has_passphrase"]
+            "required": [
+              "is_owner",
+              "has_passphrase"
+            ]
           }
         ]
       },
@@ -2759,10 +3102,18 @@
                 "type": "string"
               }
             },
-            "required": ["kind", "recipient", "recipient_safe"]
+            "required": [
+              "kind",
+              "recipient",
+              "recipient_safe"
+            ]
           }
         },
-        "required": ["metadata", "secret", "share_domain"]
+        "required": [
+          "metadata",
+          "secret",
+          "share_domain"
+        ]
       },
       "BaseApiResponse": {
         "type": "object",
@@ -2774,7 +3125,9 @@
             "type": "boolean"
           }
         },
-        "required": ["success"]
+        "required": [
+          "success"
+        ]
       },
       "ApiErrorResponse": {
         "allOf": [
@@ -2797,7 +3150,9 @@
                 "type": "object"
               }
             },
-            "required": ["message"]
+            "required": [
+              "message"
+            ]
           }
         ]
       },
@@ -2825,7 +3180,11 @@
                 "type": "object"
               }
             },
-            "required": ["custid", "records", "count"]
+            "required": [
+              "custid",
+              "records",
+              "count"
+            ]
           }
         ]
       },
@@ -2849,7 +3208,10 @@
             "additionalProperties": true
           }
         },
-        "required": ["success", "record"]
+        "required": [
+          "success",
+          "record"
+        ]
       },
       "AuthenticationSettings": {
         "type": "object",
@@ -2867,7 +3229,12 @@
             "type": "boolean"
           }
         },
-        "required": ["enabled", "signup", "signin", "autoverify"]
+        "required": [
+          "enabled",
+          "signup",
+          "signin",
+          "autoverify"
+        ]
       },
       "ApiToken": {
         "allOf": [
@@ -2884,7 +3251,10 @@
                 "type": "boolean"
               }
             },
-            "required": ["apitoken", "active"]
+            "required": [
+              "apitoken",
+              "active"
+            ]
           }
         ]
       },
@@ -3004,7 +3374,9 @@
             "type": "boolean"
           }
         },
-        "required": ["authorized"]
+        "required": [
+          "authorized"
+        ]
       },
       "Feedback": {
         "type": "object",
@@ -3016,7 +3388,10 @@
             "type": "string"
           }
         },
-        "required": ["msg", "stamp"]
+        "required": [
+          "msg",
+          "stamp"
+        ]
       },
       "brandSettingsSchema": {
         "type": "object",
@@ -3044,10 +3419,17 @@
           },
           "type": {
             "type": "string",
-            "enum": ["logo", "favicon", "og_image"]
+            "enum": [
+              "logo",
+              "favicon",
+              "og_image"
+            ]
           }
         },
-        "required": ["file", "type"]
+        "required": [
+          "file",
+          "type"
+        ]
       },
       "concealDataSchema": {
         "type": "object",
@@ -3070,7 +3452,9 @@
             "format": "email"
           }
         },
-        "required": ["secret"]
+        "required": [
+          "secret"
+        ]
       },
       "metadataDetailsSchema": {
         "type": "object",
@@ -3123,7 +3507,9 @@
             "format": "email"
           }
         },
-        "required": ["message"]
+        "required": [
+          "message"
+        ]
       }
     },
     "securitySchemes": {
