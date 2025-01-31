@@ -781,9 +781,61 @@
         "tags": ["v2", "secrets", "danger"]
       }
     },
+    "/v2/secret/generate": {
+      "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
+        "description": "Generates a password and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
+        "summary": "Conceal Secret",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeneratePayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConcealDataResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["v2", "secrets", "generate"]
+      }
+    },
     "/v2/secret/conceal": {
       "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
+        "description": "Creates an encrypted secret and returns a link that can be viewed only once. This is the v2 API version od the /v1/share endpoint. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
         "summary": "Conceal Secret",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConcealPayload"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful response",
@@ -801,6 +853,12 @@
     },
     "/v2/authcheck": {
       "get": {
+        "security": [
+          { "CookieAuth": [] },
+          {
+            "BasicAuth": []
+          }
+        ],
         "summary": "Auth Check",
         "responses": {
           "200": {
@@ -819,6 +877,12 @@
     },
     "/v2/validate-shrimp": {
       "post": {
+        "security": [
+          { "CookieAuth": [] },
+          {
+            "BasicAuth": []
+          }
+        ],
         "summary": "Validate Shrimp",
         "responses": {
           "200": {
@@ -1136,7 +1200,70 @@
     },
     "/v1/share": {
       "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
         "summary": "Create a secret",
+        "description": "Creates an encrypted secret and returns a link that can be viewed only once. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (premium plan).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/paths/~1v1~1generate/post/requestBody/content/application~1x-www-form-urlencoded/schema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "secret": {
+                        "type": "string",
+                        "maxLength": 10000,
+                        "minLength": 1,
+                        "description": "The secret content to be encrypted and shared"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": ["share"]
+                      }
+                    },
+                    "required": ["secret", "kind"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret created successfully"
+          },
+          "400": {
+            "description": "Invalid request parameters"
+          },
+          "401": {
+            "description": "Unauthorized request"
+          },
+          "429": {
+            "description": "Too many requests"
+          }
+        }
+      }
+    },
+    "/v1/generate": {
+      "post": {
+        "security": [
+          {},
+          {
+            "BasicAuth": []
+          }
+        ],
+        "summary": "Generate a secret",
+        "description": "Generates a random password and returns a link that can be viewed only once. TTL is limited to 7 days (anonymous), 14 days (basic free plan), and 30 days (identity plan).",
         "requestBody": {
           "required": true,
           "content": {
@@ -1144,48 +1271,44 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "secret": {
-                    "type": "string"
-                  },
                   "ttl": {
-                    "type": "string"
+                    "type": "integer",
+                    "minimum": 60,
+                    "maximum": 2592000,
+                    "default": 86400,
+                    "description": "Time-to-live in seconds. Maximum varies by authentication:\n* Anonymous: 604800 (7 days)\n* Basic free plan: 1209600 (14 days)\n* Premium plan: 2592000 (30 days)",
+                    "x-plan-limits": {
+                      "anonymous": {
+                        "maximum": 604800
+                      },
+                      "basic": {
+                        "maximum": 1209600
+                      },
+                      "premium": {
+                        "maximum": 2592000
+                      }
+                    }
                   },
                   "passphrase": {
-                    "type": "string"
+                    "type": "string",
+                    "pattern": "^[\\S]{8,64}$",
+                    "description": "Optional password protection. Must be 8-64 characters"
                   },
                   "recipient": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address of intended recipient. Triggers notification when specified"
                   },
                   "kind": {
-                    "type": "string"
-                  },
-                  "share_domain": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": ["generate"]
                   }
                 },
-                "required": ["secret"]
+                "required": ["kind"]
               }
             }
           }
         },
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ShareV1ApiResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["v1", "secrets", "create"]
-      }
-    },
-    "/v1/generate": {
-      "post": {
-        "summary": "Generate a secret",
         "responses": {
           "200": {
             "description": "Successful response",
@@ -1259,6 +1382,78 @@
   },
   "components": {
     "schemas": {
+      "ConcealPayload": {
+        "type": "object",
+        "required": ["kind", "secret"],
+        "properties": {
+          "allOf": {
+            "$ref": "#/components/schemas/GeneratePayload",
+            "kind": {
+              "type": "string",
+              "literal": ["share"]
+            },
+
+            "secret": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 10000
+            }
+          }
+        }
+      },
+      "GeneratePayload": {
+        "type": "object",
+        "required": ["kind", "secret"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["generate"]
+          },
+          "share_domain": {
+            "type": "string",
+            "description": "Optional domain to use for sharing. Must be an official first-party domain or a domain that has been added to the account making the request."
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000
+          },
+          "recipient": {
+            "type": "string",
+            "format": "email"
+          },
+          "passphrase": {
+            "type": "string",
+            "pattern": "^[\\S]{8,64}$"
+          },
+          "ttl": {
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d+$"
+              },
+              {
+                "type": "integer",
+                "minimum": 60,
+                "maximum": 2592000,
+                "default": 86400,
+                "description": "Time-to-live in seconds. Maximum varies by authentication:\n* Anonymous: 604800 (7 days)\n* Basic free plan: 1209600 (14 days)\n* Premium plan: 2592000 (30 days)",
+                "x-plan-limits": {
+                  "anonymous": {
+                    "maximum": 604800
+                  },
+                  "basic": {
+                    "maximum": 1209600
+                  },
+                  "premium": {
+                    "maximum": 2592000
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
       "SecretDetails": {
         "type": "object",
         "properties": {
@@ -2934,13 +3129,21 @@
     "securitySchemes": {
       "BasicAuth": {
         "type": "http",
-        "scheme": "basic"
+        "scheme": "basic",
+        "description": "Basic auth for API access"
+      },
+      "CookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sess",
+        "description": "Session cookie for authenticated web access"
       }
     }
   },
   "security": [
     {
-      "BasicAuth": []
+      "BasicAuth": [],
+      "CookieAuth": []
     }
   ]
 }
