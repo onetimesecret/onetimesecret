@@ -113,7 +113,7 @@
   # Production Settings (for reference)
   # ----------------------------------
   :mode: <%= ENV['EMAILER_MODE'] || 'smtp' %>
-  :from: <%= ENV['FROM'] || 'CHANGEME@example.com' %>
+  :from: <%= ENV['FROM_EMAIL'] || ENV['FROM'] || 'CHANGEME@example.com' %>
   :fromname: <%= ENV['FROMNAME'] || 'Support' %>
   :host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
   :port: <%= ENV['SMTP_PORT'] || 587 %>
