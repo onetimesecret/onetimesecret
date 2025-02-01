@@ -1,9 +1,7 @@
 project_id_env: CROWDIN_PROJECT_ID
 api_token_env: CROWDIN_PERSONAL_TOKEN
 base_path: src/locales
-preserve_hierarchy: 
+preserve_hierarchy: true
 files:
-  - source: en.json
-    translation: '%locale_with_underscore%.json'
-  - source: en.json
-    translation: '%two_letters_code%.json'
+  - source: /en.json
+    translation: /%two_letters_code%.json
