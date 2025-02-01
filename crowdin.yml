@@ -1,12 +1,7 @@
-"project_id_env": "CROWDIN_PROJECT_ID"
-"api_token_env": "CROWDIN_PERSONAL_TOKEN"
-"base_path": "src/locales/crowdin"
-
-"preserve_hierarchy": false
-
-"files": [
-  {
-    "source": "src/locales/en.json",
-    "translation": "src/locales/%locale_with_underscore%.json"
-  }
-]
+project_id_env: CROWDIN_PROJECT_ID
+api_token_env: CROWDIN_PERSONAL_TOKEN
+base_path: src/locales/crowdin
+preserve_hierarchy: 
+files:
+  - source: src/locales/en.json
+    translation: src/locales/%locale_with_underscore%.json
