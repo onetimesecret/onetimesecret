@@ -2,7 +2,7 @@
 "api_token_env": "CROWDIN_PERSONAL_TOKEN"
 "base_path": "src/locales/crowdin"
 
-"preserve_hierarchy": true
+"preserve_hierarchy": false
 
 "files": [
   {
