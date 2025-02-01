@@ -31,12 +31,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: nrkno/yaml-schema-validator-github-action@v5.1
+      - uses: nrkno/yaml-schema-validator-github-action@v4
         with:
           schema: config/config.schema.yaml
           target: config/config.example.yaml
 
-      - uses: nrkno/yaml-schema-validator-github-action@v5.1
+      - uses: nrkno/yaml-schema-validator-github-action@v4
         with:
           schema: config/config.schema.yaml
           target: tests/unit/ruby/config.test.yaml
