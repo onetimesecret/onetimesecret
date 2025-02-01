@@ -33,12 +33,12 @@ jobs:
 
       - uses: nrkno/yaml-schema-validator-github-action@v4
         with:
-          schema: config/config.schema.yaml
-          target: config/config.example.yaml
+          schema: etc/config.schema.yaml
+          target: etc/config.example.yaml
 
       - uses: nrkno/yaml-schema-validator-github-action@v4
         with:
-          schema: config/config.schema.yaml
+          schema: etc/config.schema.yaml
           target: tests/unit/ruby/config.test.yaml
           # Disable strict checks for test config
           no-strict: true
