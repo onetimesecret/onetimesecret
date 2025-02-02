@@ -31,11 +31,11 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
           </div>
           <h1
             class="mb-6 text-center text-3xl font-bold text-gray-800 dark:text-white"
-            aria-label="404 - Page Not Found">
-            404 - Page Not Found
+            :aria-label="$t('404-page-not-found')">
+            {{ $t('404-page-not-found-0') }}
           </h1>
           <p class="mb-20 text-center text-lg text-gray-600 dark:text-gray-300">
-            Oops! The page you are looking for doesn't exist or has been moved.
+            {{ $t('oops-the-page-you-are-looking-for-doesnt-exist-o') }}
           </p>
 
           <div class="text-center">
@@ -47,8 +47,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
               duration-300 ease-in-out hover:bg-gray-100
               dark:border-brand-400
               dark:bg-gray-700 dark:text-brand-400 dark:hover:bg-gray-600"
-              aria-label="Return to home page">
-              Return home
+              aria-label="$t('return-to-home-page')">
+              {{ $t('return-home') }}
             </router-link>
           </div>
         </div>

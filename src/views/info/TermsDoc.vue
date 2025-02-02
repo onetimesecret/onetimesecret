@@ -8,7 +8,7 @@ import Terms from '@/content/info/terms.md'
 <template>
   <article class="prose">
     <h1 class="intro dark:text-gray-300">
-      Terms of Service
+      {{ $t('terms-of-service') }}
     </h1>
 
     <Terms class="prose prose-sm max-w-none dark:prose-invert sm:prose-base lg:prose-lg dark:text-gray-300" />

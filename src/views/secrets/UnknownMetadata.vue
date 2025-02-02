@@ -1,4 +1,4 @@
-// src/views/secrets/UnknownMetadata.vue
+<!--src/views/secrets/UnknownMetadata.vue-->
 
 <script setup lang="ts">
   import BaseUnknownSecret from '@/components/base/BaseUnknownSecret.vue';
@@ -18,8 +18,8 @@
         aria-hidden="true" />
       <h1
         class="mb-6 text-3xl font-bold text-gray-800 dark:text-white text-center"
-        aria-label="Information no longer available">
-        That information is no longer available.
+        aria-label="$t('information-no-longer-available')">
+        {{ $t('that-information-is-no-longer-available') }}
       </h1>
     </div>
   </template>
@@ -40,8 +40,8 @@
             color: 'var(--color-brand-500)',
             borderColor: 'var(--color-brand-500)',
           }"
-          aria-label="Return to home page">
-          Return to Home
+          aria-label="$t('return-to-home-page')">
+          {{ $t('return-to-home') }}
         </router-link>
       </div>
     </template>
