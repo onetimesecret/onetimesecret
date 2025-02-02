@@ -2,6 +2,8 @@
 
 <script setup lang="ts">
 import { ref, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 interface Props {
   text: string;
@@ -16,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 const copied = ref(false);
 const showTooltip = ref(false);
 let tooltipTimeout: number | null = null;
+const ariaLabel = copied.value ? t('copied') : t('copy_to_clipboard');
 
 const copyToClipboard = () => {
   navigator.clipboard.writeText(props.text).then(() => {
@@ -44,7 +47,7 @@ onBeforeUnmount(() => {
       @mouseenter="showTooltip = true"
       @mouseleave="showTooltip = false"
       class="text-gray-600 hover:text-gray-900 focus:outline-none dark:text-gray-400 dark:hover:text-white"
-      :aria-label="copied ? 'Copied' : 'Copy to clipboard'">
+      :aria-label="ariaLabel">
       <svg
         v-if="!copied"
         class="size-5"

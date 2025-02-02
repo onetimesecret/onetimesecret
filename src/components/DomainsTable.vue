@@ -44,16 +44,16 @@ import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCel
       <div>
         <h1 id="domains-heading"
             class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-          Domains
+          {{ $t('domains') }}
         </h1>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400"> Manage and configure your verified custom domains </p>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400"> {{ $t('manage-and-configure-your-verified-custom-domains') }} </p>
       </div>
       <router-link to="/domains/add"
                    class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
         <OIcon name="plus-20-solid"
                collection="heroicons"
                class="mr-2 size-5" />
-        Add Domain
+        {{ $t('add-domain') }}
       </router-link>
     </div>
 
@@ -64,20 +64,20 @@ import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCel
           <tr>
             <th scope="col"
                 class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
-              <span class="uppercase">Domain & Status</span>
+              <span class="uppercase">{{ $t('domain') }} {{ $t('and-status') }}</span>
             </th>
 
             <th scope="col"
                 class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
               <div class="flex items-center justify-center">
-                <span class="uppercase">Homepage Access</span>
+                <span class="uppercase">{{ $t('homepage-access') }}</span>
                 <div class="group relative ml-2">
                   <OIcon collection="heroicons"
                          name="question-mark-circle"
                          class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300" />
                   <div
                        class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
-                    Control whether users can create secret links from your domain's homepage
+                    {{ $t('control-whether-users-can-create-secret-links-from-your-domains-homepage') }}
                   </div>
                 </div>
               </div>
@@ -85,7 +85,7 @@ import DomainsTableDomainCell from '@/components/dashboard/DomainsTableDomainCel
 
             <th scope="col"
                 class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Actions
+              {{ $t('web.LABELS.actions') }}
             </th>
           </tr>
         </thead>

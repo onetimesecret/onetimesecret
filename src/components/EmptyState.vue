@@ -28,8 +28,8 @@ defineProps<{
     </h3>
     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
       <slot name="description">
-        <div>Get started by creating your first secret.</div>
-        <div>They'll appear here once you've shared them.</div>
+        <div>{{ $t('web.dashboard.get-started-by-creating-your-first-secret') }}</div>
+        <div>{{ $t('theyll-appear-here-once-youve-shared-them') }}</div>
       </slot>
     </p>
     <div class="mt-6">

@@ -6,7 +6,7 @@ import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-const {t} = useI18n();
+const { t } = useI18n();
 
 const csrfStore = useCsrfStore();
 
@@ -113,7 +113,7 @@ const {
             <div class="grow">
               <label
                 for="feedback-message"
-                class="sr-only">Your feedback</label>
+                class="sr-only">{{ $t('your-feedback') }}</label>
               <textarea
                 id="feedback-message"
                 v-model="feedbackMessage"

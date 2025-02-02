@@ -122,7 +122,8 @@
       "destroyed_description": "Secret has been permanently destroyed",
       "expiring_soon_description": "Secret will expire soon",
       "orphaned_description": "Secret has been orphaned and will be destroyed soon",
-      "expired_description": "Secret has expired before being viewed"
+      "expired_description": "Secret has expired before being viewed",
+      "success": "Success"
     },
     "FEATURES": {
       "unlimited_views": "Unlimited Views",
@@ -202,7 +203,8 @@
     "dashboard": {
       "title_received": "Received",
       "title_not_received": "Not Received",
-      "title_no_recent_secrets": "No recent secrets"
+      "title_no_recent_secrets": "No recent secrets",
+      "get-started-by-creating-your-first-secret": "Get started by creating your first secret."
     },
     "login": {
       "need_an_account": "Or, create your account today",
@@ -328,5 +330,33 @@
       "feedback_hint": "If you have any questions, there is a feedback form at the bottom of (almost) every page.",
       "signature": "Happy sharing,\n{name}"
     }
-  }
+  },
+  "your-feedback": "Your feedback",
+  "link-preview": "Link Preview",
+  "please-enter-a-domain-name": "Please enter a {0} domain name",
+  "go-back-to-previous-page": "Go back to previous page",
+  "continue": "Continue",
+  "adding_ellipses": "Adding",
+  "back": "Back",
+  "e-g-example": "e.g.",
+  "domain-name": "Domain name",
+  "control-whether-users-can-create-secret-links-from-your-domains-homepage": "Control whether users can create secret links from your domain's homepage",
+  "homepage-access": "Homepage Access",
+  "and-status": "& Status",
+  "domain": "Domain",
+  "add-domain": "Add Domain",
+  "manage-and-configure-your-verified-custom-domains": "Manage and configure your verified custom domains",
+  "domains": "Domains",
+  "last-monitored": "Last Monitored",
+  "ssl-status": "SSL Status",
+  "ssl-renews": "SSL Renews",
+  "dns-record": "DNS Record",
+  "target-address": "Target Address",
+  "status": "Status",
+  "domain-status": "Domain Status",
+  "escape": "Escape",
+  "active": "Active",
+  "theyll-appear-here-once-youve-shared-them": "They'll appear here once you've shared them.",
+  "copy_to_clipboard": "Copy to clipboard",
+  "copied": "Copied"
 }

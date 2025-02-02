@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 withDefaults(defineProps<{
   title: string;
@@ -8,8 +10,8 @@ withDefaults(defineProps<{
   cancelText?: string;
   type?: 'danger' | 'default';
 }>(), {
-  confirmText: 'Confirm',
-  cancelText: 'Cancel',
+  confirmText: t('web.COMMON.word_confirm'),
+  cancelText: t('web.COMMON.word_cancel'),
   type: 'default'
 });
 
