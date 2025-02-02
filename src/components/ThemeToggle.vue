@@ -21,10 +21,11 @@ onUnmounted(clearThemeListeners);
 </script>
 
 <template>
-  <button @click="handleToggle"
+<button @click="handleToggle"
           :aria-label="$t('toggle-dark-mode')"
           :aria-pressed="isDarkMode"
-          class="rounded-md p-1 text-gray-400 opacity-80 transition-colors hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700">
+          class="size-10 p-1 rounded-md text-gray-400 opacity-80 hover:opacity-100
+          transition-colors hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 inline-flex items-center justify-center">
     <svg v-if="isDarkMode"
          viewBox="0 0 24 24"
          fill="none"
