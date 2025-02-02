@@ -129,7 +129,12 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   function determineLocale(preferredLocale?: string): string {
-    const locales = [preferredLocale, preferredLocale?.split('-')[0], currentLocale.value, storedLocale.value];
+    const locales = [
+      preferredLocale,
+      preferredLocale?.split('-')[0],
+      currentLocale.value,
+      storedLocale.value,
+    ];
 
     const supported = locales.find((locale) => locale && supportedLocales.value.includes(locale));
 
