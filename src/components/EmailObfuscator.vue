@@ -1,6 +1,7 @@
 <!-- EmailObfuscator.vue -->
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
   email: string;
@@ -10,6 +11,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   subject: '',
 });
+const { t } = useI18n();
 
 const obfuscateEmail = (email: string): string => {
   return email.replace('@', ' &#65;&#84; ').replace('.', ' D0T ');
@@ -30,7 +32,7 @@ const handleClick = async () => {
   // Copy email to clipboard
   try {
     await navigator.clipboard.writeText(deobfuscatedEmail);
-    alert('Email address copied to clipboard!');
+    alert(t('email-address-copied-to-clipboard'));
   } catch (err) {
     console.error('Failed to copy email: ', err);
   }

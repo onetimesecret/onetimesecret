@@ -108,7 +108,7 @@
             readonly
             :value="record.share_url"
             class="w-full bg-transparent border-0 text-gray-900 font-mono text-sm sm:text-base dark:text-gray-100 focus:ring-0 resize-none pt-1"
-            aria-label="Secret link"></textarea>
+            :aria-label="$t('secret-link')"></textarea>
         </div>
 
         <div class="flex-shrink-0 ml-4">

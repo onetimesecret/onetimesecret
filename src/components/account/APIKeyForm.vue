@@ -4,8 +4,10 @@
   import { responseSchemas } from '@/schemas/api/responses';
   import { useCsrfStore } from '@/stores/csrfStore';
   import { ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   const csrfStore = useCsrfStore();
+  const { t } = useI18n();
 
   interface Props {
     apitoken?: string;
@@ -30,7 +32,7 @@
     submitForm: generateAPIKey,
   } = useFormSubmission({
     url: '/api/v2/account/apitoken',
-    successMessage: 'Token generated.',
+    successMessage: t('token-generated'),
     schema: responseSchemas.apiToken,
     onSuccess: async (data) => {
       // data is now properly typed as ApiTokenResponse

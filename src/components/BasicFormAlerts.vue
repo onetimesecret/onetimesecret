@@ -23,7 +23,7 @@ defineProps({
         </div>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-red-800 dark:text-red-100">
-            Error
+            {{ $t('web.COMMON.error') }}
           </h3>
           <div class="mt-2 text-sm text-red-700 dark:text-red-200">
             <p>{{ error }}</p>
@@ -46,7 +46,7 @@ defineProps({
         </div>
         <div class="ml-3">
           <h3 class="text-sm font-medium text-green-800 dark:text-green-100">
-            Success
+            {{ $t('web.STATUS.success') }}
           </h3>
           <div class="mt-2 text-sm text-green-700 dark:text-green-200">
             <p>{{ success }}</p>

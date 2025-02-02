@@ -40,7 +40,7 @@ const toggleBrowser = () => {
 // Add loading guard
 watch(() => isLoading.value, (loading) => {
   if (!loading && !brandSettings.value) {
-    error.value = createError('Failed to load brand settings', 'technical', 'error');
+    error.value = createError(this.$t('failed-to-load-brand-settings'), 'technical', 'error');
   }
 });
 
@@ -48,7 +48,7 @@ onMounted(initialize);
 
 onBeforeRouteLeave((to, from, next) => {
   if (hasUnsavedChanges.value) {
-    const answer = window.confirm('You have unsaved changes. Are you sure?')
+    const answer = window.confirm(this.$t('you-have-unsaved-changes-are-you-sure'))
     if (answer) next()
     else next(false)
   } else {
@@ -86,16 +86,13 @@ onBeforeRouteLeave((to, from, next) => {
         <div class="relative mb-6 sm:mb-12">
           <h2 id="previewHeading"
               class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Preview & Customize
+            {{ $t('preview-0') }} {{ $t('and-customize') }}
           </h2>
 
           <!-- Instructions for screen readers -->
           <div class="sr-only"
               role="note">
-            This is an interactive preview of how recipients will see your secure messages. You can:
-            - Customize colors and fonts using the controls above
-            - Upload a logo (minimum 128x128 pixels recommended, 1MB max)
-            - Test the preview using the "View Secret" button
+            {{ $t('this-is-an-interactive-preview-of-how-recipients') }}
           </div>
 
           <!-- Visual instructions -->
@@ -105,24 +102,24 @@ onBeforeRouteLeave((to, from, next) => {
               <OIcon collection="mdi"
               name="palette-outline"
                     class="size-5"
-                    aria-label="Customization icon" />
-              Use the controls above to customize brand color, styles, and recipient instructions
+                    aria-label="$t('customization-icon')" />
+              {{ $t('use-the-controls-above-to-customize-brand-color-styles-and-recipient-instructions') }}
             </li>
 
             <li class="flex items-center gap-2">
               <OIcon collection="mdi"
               name="image-outline"
                     class="size-5"
-                    aria-label="Image icon" />
-              Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)
+                    aria-label="$t('image-icon')" />
+              {{ $t('click-the-preview-image-below-to-update-your-logo-minimum-128x128-pixels-recommended-1mb-max') }}
             </li>
 
             <li class="flex items-center gap-2">
               <OIcon collection="mdi"
               name="eye-outline"
                     class="size-5"
-                    aria-label="Eye icon" />
-              Preview how recipients will see your secrets by testing the "View Secret" button
+                    aria-label="$t('eye-icon')" />
+              {{ $t('preview-how-recipients-will-see-your-secrets-by-testing-the-view-secret-button') }}
             </li>
           </ul>
 
@@ -147,7 +144,7 @@ onBeforeRouteLeave((to, from, next) => {
           <div v-if="isLoading"
               role="status"
               class="py-8 text-center">
-            <span class="sr-only">Loading preview...</span>
+            <span class="sr-only">{{ $t('loading-preview') }}</span>
             <!-- Add isLoading spinner -->
           </div>
 

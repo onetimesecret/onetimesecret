@@ -236,7 +236,7 @@ onUnmounted(() => {
       autofocus
       autocomplete="off"
       :placeholder="$t('web.COMMON.secret_placeholder')"
-      aria-label="Enter the secret content to share here">
+      :aria-label="$t('enter-the-secret-content-to-share-here')">
     </textarea>
 
     <!--
@@ -253,7 +253,7 @@ onUnmounted(() => {
             shadow-sm
             transition-colors duration-200
             dark:bg-gray-800 dark:text-gray-500">
-      {{ formattedCharCount }} / {{ formattedMaxLength }} chars
+      {{ $t('formattedcharcount-formattedmaxlength-chars', [formattedCharCount, formattedMaxLength]) }}
     </div>
 
     <div

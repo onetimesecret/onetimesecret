@@ -34,7 +34,7 @@
               hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
               dark:bg-brand-500 dark:text-white dark:hover:bg-brand-600 sm:w-auto sm:py-2 sm:text-base
               md:px-4 md:py-1 md:text-xs">
-            <span class="sm:hidden">Now with custom domains</span>
+            <span class="sm:hidden">{{ $t('now-with-custom-domains') }}</span>
             <span class="hidden sm:inline">{{ $t('web.homepage.explore_premium_plans') }}</span>
             <svg
               class="ml-2 size-5 md:size-4"

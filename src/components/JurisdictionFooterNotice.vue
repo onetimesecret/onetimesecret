@@ -59,7 +59,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
            py-1 text-base font-medium text-gray-500
            shadow-sm transition-all duration-100
            ease-in-out hover:shadow-md dark:bg-gray-800 dark:text-gray-400">
-    <span class="sr-only">Current jurisdiction:</span>
+    <span class="sr-only">{{ $t('current-jurisdiction') }}</span>
     <button @click="toggleDropdown"
             class="flex items-center space-x-2
              focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
@@ -99,7 +99,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
           aria-labelledby="listbox-label">
         <li
             class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-100">
-          Regions
+          {{ $t('regions') }}
         </li>
 
         <li v-for="jurisdiction in jurisdictions"
@@ -111,7 +111,7 @@ const getIconName = (jurisdiction: Jurisdiction | null): string => {
             role="option"
             :aria-selected="currentJurisdiction?.identifier === jurisdiction.identifier">
           <a :href="`https://${jurisdiction.domain}/`"
-             :title="`Continue to ${jurisdiction.domain}`">
+             :title="$t('continue-to-jurisdiction-domain', [jurisdiction.domain])">
             <span class="flex items-center">
               <OIcon :collection="getIconCollection(jurisdiction)"
                      :name="getIconName(jurisdiction)"

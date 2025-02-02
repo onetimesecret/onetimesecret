@@ -38,7 +38,7 @@
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200',
             ]">
-            Manage Brand
+            {{ $t('manage-brand') }}
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">
@@ -53,7 +53,7 @@
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200',
             ]">
-            Verify Domain
+            {{ $t('verify-domain') }}
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">
@@ -68,7 +68,7 @@
               name="trash-20-solid"
               class="mr-2 size-4"
               aria-hidden="true" />
-            Remove
+            {{ $t('remove') }}
           </button>
         </MenuItem>
       </div>

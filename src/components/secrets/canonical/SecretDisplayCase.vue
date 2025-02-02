@@ -2,6 +2,7 @@
 import { useClipboard } from '@/composables/useClipboard';
 import { Secret, SecretDetails } from '@/schemas/models';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
@@ -16,6 +17,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 
 const alertClasses = computed(() => ({
   'mb-4 p-4 rounded-md': true,
@@ -24,7 +26,7 @@ const alertClasses = computed(() => ({
 }));
 
 const { isCopied, copyToClipboard } = useClipboard();
-
+const isCopiedText = computed(() => isCopied ? t('copied') : t('copy_to_clipboard') );
 const copySecretContent = async () => {
   if (props.record?.secret_value === undefined) {
     return;
@@ -36,7 +38,7 @@ const copySecretContent = async () => {
   const announcement = document.createElement('div');
   announcement.setAttribute('role', 'status');
   announcement.setAttribute('aria-live', 'polite');
-  announcement.textContent = 'Secret content copied to clipboard';
+  announcement.textContent = t('secret-content-copied-to-clipboard');
   document.body.appendChild(announcement);
   setTimeout(() => announcement.remove(), 1000);
 };
@@ -50,7 +52,7 @@ const closeTruncatedWarning = (event: Event) => {
     const announcement = document.createElement('div');
     announcement.setAttribute('role', 'status');
     announcement.setAttribute('aria-live', 'polite');
-    announcement.textContent = 'Warning dismissed';
+    announcement.textContent = t('warning-dismissed');
     document.body.appendChild(announcement);
     setTimeout(() => announcement.remove(), 1000);
   }
@@ -97,7 +99,7 @@ const closeTruncatedWarning = (event: Event) => {
       <div class="relative">
         <label :for="'secret-content-' + record?.identifier"
                class="sr-only">
-          Secret content
+          {{ $t('secret-content') }}
         </label>
         <textarea v-if="record?.secret_value"
                   :id="'secret-content-' + record?.identifier"
@@ -107,11 +109,11 @@ const closeTruncatedWarning = (event: Event) => {
                   readonly
                   :rows="details?.display_lines ?? 4"
                   :value="record?.secret_value"
-                  aria-label="Secret content"></textarea>
+                  aria-label="$t('secret-content')"></textarea>
         <div v-else
              class="text-red-500 dark:text-red-400"
              role="alert">
-          Secret value not available
+          {{ $t('secret-value-not-available') }}
         </div>
       </div>
     </template>
@@ -135,7 +137,7 @@ const closeTruncatedWarning = (event: Event) => {
               hover:text-brandcomp-900 focus:outline-none
               focus:ring-2 focus:ring-brandcomp-500 dark:hover:text-brandcomp-50"
                   @click="closeTruncatedWarning"
-                  aria-label="Dismiss truncation warning">
+                  :aria-label="$t('dismiss-truncation-warning')">
             <span aria-hidden="true">&times;</span>
           </button>
           <strong>{{ $t('web.COMMON.warning') }}</strong>
@@ -147,7 +149,7 @@ const closeTruncatedWarning = (event: Event) => {
     <template #cta>
       <div class="mt-4">
         <button @click="copySecretContent"
-                :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
+                :title="isCopiedText"
                 class="inline-flex items-center justify-center rounded-md bg-brand-500 px-4 py-2.5
             text-sm font-medium text-brand-50
             shadow-sm transition-colors duration-150
@@ -155,7 +157,7 @@ const closeTruncatedWarning = (event: Event) => {
             focus:outline-none focus:ring-2 focus:ring-brand-500
             focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-700
             dark:text-brand-100 dark:hover:bg-brand-600"
-                :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
+                :aria-label="isCopiedText"
                 :aria-pressed="isCopied">
           <svg v-if="!isCopied"
                xmlns="http://www.w3.org/2000/svg"
@@ -188,7 +190,7 @@ const closeTruncatedWarning = (event: Event) => {
         <div v-if="!record?.verification"
              class="mt-24 text-center text-sm text-slate-500 dark:text-slate-400 italic">
           <p>
-            You can safely close this tab.
+            {{ $t('you-can-safely-close-this-tab') }}
           </p>
         </div>
         <div v-else class="mt-16">
@@ -198,7 +200,7 @@ const closeTruncatedWarning = (event: Event) => {
               text-center text-slate-500 hover:bg-slate-50
               focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2
               dark:border-slate-400 dark:bg-gray-800 dark:text-slate-400 dark:hover:bg-gray-700"
-            aria-label="Sign in to your account">
+            :aria-label="$t('sign-in-to-your-account')">
             {{ $t('web.COMMON.login_to_your_account') }}
           </a>
         </div>

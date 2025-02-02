@@ -50,7 +50,7 @@ const handleCopy = () => {
       </div>
     </div>
     <p class="mt-2 text-sm font-semibold text-white">
-      🔐 Keep this token secure! It provides full access to your account.
+      {{ $t('keep-this-token-secure-it-provides-full-access-t') }}
     </p>
   </div>
 </template>

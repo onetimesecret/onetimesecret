@@ -14,7 +14,7 @@ const {
 <template>
   <div class="">
     <h1 class="mb-6 text-3xl font-bold dark:text-white">
-      Add your domain
+      {{ $t('add-your-domain') }}
     </h1>
 
     <ErrorDisplay v-if="error" :error="error" />

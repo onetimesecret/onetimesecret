@@ -39,7 +39,7 @@ const status = useDomainStatus(props.domain);
         target="_blank"
         rel="noopener noreferrer"
         class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-        title="Open domain in new tab">
+        title="$t('open-domain-in-new-tab')">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-4 w-4"
@@ -60,7 +60,7 @@ const status = useDomainStatus(props.domain);
         mode="icon"
         :domain="domain" />
       <span class="text-xs text-gray-500 dark:text-gray-400">
-        Added {{ formatDistanceToNow(domain.created, { addSuffix: true }) }}
+        {{ $t('added-formatdistancetonow-domain-created-addsuffix-true', [formatDistanceToNow(domain.created, { addSuffix: true })]) }}
       </span>
     </div>
   </div>

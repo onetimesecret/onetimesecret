@@ -2,6 +2,18 @@
   "web": {
     "COMMON": {
       "broadcast": "",
+      "button_generate_secret_short": "Generate Password",
+      "generate_password_disabled": "Generate Password is disabled when the form is valid",
+      "email_placeholder": "e.g. tom{'@'}myspace.com",
+      "password_placeholder": "Enter your password",
+      "custom_domains_title": "Custom Domains",
+      "custom_domains_description": "Strengthen connections and build trust with your own branded secret links.",
+      "get_started_button": "Get Started",
+      "confirm_password_placeholder": "Confirm your password",
+      "skill_placeholder": "",
+      "header_settings": "Settings",
+      "submit_with": "Submit",
+      "submitting": "Processing",
       "description": "Ne stockez aucune information confidentielle dans vos emails ou fils de discussion. Partagez un lien secret, disponible qu'une seule fois.",
       "keywords": "secret, générateur de mot de passe, usage unique",
       "button_create_secret": "Créer un lien secret",
@@ -52,7 +64,96 @@
       "word_cancel": "Annuler",
       "feedback_text": "Une question ou un commentaire ?",
       "button_send_feedback": "Envoyer une réaction",
-      "verification_sent_to": "Une vérification a été envoyée à -"
+      "verification_sent_to": "Une vérification a été envoyée à -",
+      "burn_this_secret_aria": "Burn this secret permanently",
+      "burn_confirmation_title": "Please Confirm",
+      "burn_confirmation_message": "Are you sure you want to burn this secret? This action cannot be undone.",
+      "confirm_burn": "Yes, burn this secret",
+      "burn_security_notice": "Burning a secret will delete it before it has been received.",
+      "share_link_securely": "For security, share this link separately from other details.",
+      "copied_to_clipboard": "Copied to clipboard"
+    },
+    "LABELS": {
+      "view_toggle": {
+        "show": "Show",
+        "hide": "Hide"
+      },
+      "timeline": "Timeline",
+      "close": "Close",
+      "loading": "Loading...",
+      "cancel": "Cancel",
+      "encrypted": "Encrypted",
+      "secret_status": "Secret Status",
+      "need_help": "Need help?",
+      "create_new_secret": "Create New Secret",
+      "actions": "Actions",
+      "no_passphrase": "No Passphrase Required",
+      "secret_link": "Secret Link",
+      "security_details": "Security Details",
+      "recipients_count": "{count} Recipients",
+      "views": "Views",
+      "times_viewed": "times viewed",
+      "view_progress": "View Progress",
+      "help_section": "Help Section",
+      "passphrase_protected": "Protected with passphrase"
+    },
+    "STATUS": {
+      "new": "New",
+      "unread": "Unread",
+      "viewed": "Link opened",
+      "received": "Received",
+      "burned": "Burned",
+      "destroyed": "Destroyed",
+      "expiring_soon": "Expiring Soon",
+      "created": "Created",
+      "created_description": "",
+      "expires": "Expires",
+      "expired": "Expired",
+      "orphaned": "Orphaned",
+      "secured": "Secured",
+      "securing": "Securing",
+      "time_remaining": "Time Remaining",
+      "new_description": "Secret link has been created and not yet viewed",
+      "unread_description": "Secret link has been created and has not been viewed",
+      "viewed_description": "Secret link has been opened and ready to be viewed",
+      "received_description": "Secret has been revealed to the recipient",
+      "burned_description": "Secret was manually burned before being viewed",
+      "destroyed_description": "Secret has been permanently destroyed",
+      "expiring_soon_description": "Secret will expire soon",
+      "orphaned_description": "Secret has been orphaned and will be destroyed soon",
+      "expired_description": "Secret has expired before being viewed"
+    },
+    "FEATURES": {
+      "unlimited_views": "Unlimited Views",
+      "custom_domain_protected": "Trusted domain branding",
+      "encrypted_in_transit": "Encrypted in transit and at rest"
+    },
+    "UNITS": {
+      "ttl": {
+        "duration": "{count} {unit}",
+        "time": {
+          "day": "day | days",
+          "hour": "hour | hours",
+          "minute": "minute | minutes",
+          "second": "second | seconds"
+        },
+        "noOptionsAvailable": "---"
+      },
+      "limited_views": "{count} view limit",
+      "days_remaining": "{count} Days Left",
+      "hours_remaining": "{count} Hours Left",
+      "minutes_remaining": "{count} Minutes Left"
+    },
+    "INSTRUCTION": {
+      "sharing_instructions": "Sharing Instructions",
+      "share_link_instruction": "Share the link with the intended recipient",
+      "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
+      "secure_channel_instruction": "Use a different secure channel to share sensitive information"
+    },
+    "secrets": {
+      "privacyOptions": "Privacy Options",
+      "selectDuration": "Select duration",
+      "expiresIn": "Expires in {duration}"
     },
     "homepage": {
       "tagline1": "Collez votre mot de passe, message secret ou lien privé ci-dessous",
@@ -74,7 +175,14 @@
       "pretext": "Partager ce lien :",
       "requires_passphrase": "Demande un mot de de passe.",
       "this_msg_is_encrypted": "Ce message est chiffré avec votre mot de passe.",
-      "only_see_once": "ne sera lisible qu'une seule fois."
+      "only_see_once": "ne sera lisible qu'une seule fois.",
+      "created_success": "Secret created successfully!",
+      "created_success_key": "Secret {shortKey} created successfully!",
+      "created_securely": "Your secret has been created securely",
+      "burned_ago": "Burned {time}",
+      "viewed_ago": "This secret was viewed {time}",
+      "encrypted_message": "This message is encrypted",
+      "destroyed_ago": "Destroyed {time}"
     },
     "shared": {
       "requires_passphrase": "Lire ce message exige un mot de passe :",
@@ -82,7 +190,9 @@
       "you_created_this_secret": "Vous avez créé ce secret. Si vous le voyez, le destinateur ne pourra plus le voir.",
       "your_secret_message": "Votre message secret :",
       "this_message_for_you": "Ce message est pour vous :",
-      "reply_with_secret": "Répondre avec un autre secret"
+      "reply_with_secret": "Répondre avec un autre secret",
+      "pre_reveal_default": "Click the button below to reveal your secure message.",
+      "post_reveal_default": "Your secure message is shown below."
     },
     "dashboard": {
       "title_received": "Délivré",
@@ -93,7 +203,11 @@
       "need_an_account": "Besoin d'un compte ?",
       "forgot_your_password": "Mot de passe oublié ?",
       "button_sign_in": "Se connecter",
-      "enter_your_credentials": "Saisissez vos identifiants"
+      "enter_your_credentials": "Saisissez vos identifiants",
+      "remember_me": "Rembember me"
+    },
+    "signup": {
+      "have_an_account": "Or, sign in to your account"
     },
     "incoming": {
       "tagline1": "Collez un mot de passe, message secret ou lien privé ci-dessous",

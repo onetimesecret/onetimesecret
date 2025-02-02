@@ -51,12 +51,12 @@ const handleUpgrade = () => {
             </svg>
           </span>
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Identity Plus
+            {{ $t('identity-plus') }}
           </h2>
         </div>
 
         <p class="max-w-xl text-gray-600 dark:text-gray-300">
-          Secure your brand, build customer trust with links from your domain.
+          {{ $t('secure-your-brand-build-customer-trust-with-links-from-your-domain') }}
         </p>
 
         <ul class="space-y-3">
@@ -73,7 +73,7 @@ const handleUpgrade = () => {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            Unlimited custom domains
+            {{ $t('web.homepage.cta_feature1') }}
           </li>
           <li class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
             <svg
@@ -88,7 +88,7 @@ const handleUpgrade = () => {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            Privacy-first design
+            {{ $t('privacy-first-design') }}
           </li>
           <li class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
             <svg
@@ -103,7 +103,7 @@ const handleUpgrade = () => {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            Full API access
+            {{ $t('full-api-access') }}
           </li>
         </ul>
       </div>
@@ -115,7 +115,7 @@ const handleUpgrade = () => {
             $35
           </p>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            per month
+            {{ $t('per-month') }}
           </p>
         </div>
         <button
@@ -124,8 +124,8 @@ const handleUpgrade = () => {
             bg-brand-600 px-6 py-3 text-base font-medium text-white
             transition-colors duration-200
             hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-          aria-label="Start today with Identity Plus">
-          <span>Start today</span>
+          aria-label="$t('start-today-with-identity-plus')">
+          <span>{{ $t('start-today') }}</span>
           <svg
             class="-mr-1 ml-2 size-5"
             fill="none"
@@ -140,7 +140,7 @@ const handleUpgrade = () => {
           </svg>
         </button>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Meets and exceeds compliance standards
+          {{ $t('meets-and-exceeds-compliance-standards') }}
         </p>
       </div>
     </div>

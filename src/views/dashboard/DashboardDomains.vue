@@ -63,10 +63,10 @@ onMounted(() => {
         actionRoute="/domains/add"
         actionText="Add a Domain">
         <template #title>
-          No domains found.
+          {{ $t('no-domains-found') }}
         </template>
         <template #description>
-        Get started by adding a custom domain.
+        {{ $t('get-started-by-adding-a-custom-domain') }}
         </template>
       </EmptyState>
     </div>

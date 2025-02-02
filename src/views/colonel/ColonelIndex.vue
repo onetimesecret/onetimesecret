@@ -3,19 +3,21 @@ import FeedbackSection from '@/components/colonel/FeedbackSection.vue';
 import { useColonelStore } from '@/stores/colonelStore';
 import { computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const tabs = [
-  { name: 'Stats', href: '#stats' },
-  { name: 'Customers', href: '#customers' },
-  { name: 'Feedback', href: '#feedback' },
-  { name: 'Misc', href: '#misc' },
+  { name: t('stats'), href: '#stats' },
+  { name: t('customers'), href: '#customers' },
+  { name: t('feedback'), href: '#feedback' },
+  { name: t('misc'), href: '#misc' },
 ];
 
 const feedbackSections = computed(() => {
   return [
-    { title: 'Today', count: details?.value?.counts.today_feedback_count, feedback: details?.value?.today_feedback },
-    { title: 'Yesterday', count: details?.value?.counts.yesterday_feedback_count, feedback: details?.value?.yesterday_feedback },
-    { title: 'Past 14 Days', count: details?.value?.counts.older_feedback_count, feedback: details?.value?.older_feedback },
+    { title: t('today'), count: details?.value?.counts.today_feedback_count, feedback: details?.value?.today_feedback },
+    { title: t('yesterday'), count: details?.value?.counts.yesterday_feedback_count, feedback: details?.value?.yesterday_feedback },
+    { title: t('past-14-days'), count: details?.value?.counts.older_feedback_count, feedback: details?.value?.older_feedback },
   ];
 });
 
@@ -52,20 +54,16 @@ onMounted(fetch);
 
         <div class="mb-4 rounded-lg bg-gray-100 p-4 dark:bg-gray-700">
           <p class="text-gray-800 dark:text-gray-200">
-            Sessions: <span class="font-bold">{{ details?.counts.session_count }}</span> (active in the past 5
-            minutes)
+            Sessions: <span class="font-bold">{{ details?.counts.session_count }}</span> {{ $t('web.colonel.active-in-the-past-5-minutes-0') }}
           </p>
         </div>
 
         <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-gray-200">
-          Secrets ({{ details?.counts.secret_count }})
+          {{ $t('web.colonel.secrets-details-counts-secret_count-0', [details?.counts.secret_count]) }}
         </h3>
 
         <p class="text-gray-800 dark:text-gray-200">
-          Metadata /
-          Secrets:
-          {{ details?.counts.metadata_count }}/{{ details?.counts.secret_count }}
-          ({{ details?.counts.secrets_created }}/{{ details?.counts.secrets_shared }}/{{ details?.counts.emails_sent }} total)
+          {{ $t('web.colonel.metadata-secrets-details-counts-metadata_count-d-0', [details?.counts.metadata_count, details?.counts.secret_count, details?.counts.secrets_created, details?.counts.secrets_shared, details?.counts.emails_sent]) }}
         </p>
       </div>
 
@@ -73,7 +71,7 @@ onMounted(fetch);
         id="feedback"
         class="mb-8">
         <h3 class="mb-2 text-lg font-bold text-gray-800 dark:text-gray-200">
-          User Feedback (Total: {{ details?.counts.feedback_count }})
+          {{ $t('web.colonel.user-feedback-total-details-counts-feedback_coun-0', [details?.counts.feedback_count]) }}
         </h3>
 
         <div class="overflow-hidden bg-white text-sm shadow dark:bg-gray-800 sm:rounded-lg">
@@ -93,7 +91,7 @@ onMounted(fetch);
         id="customers"
         class="mb-8">
         <h3 class="mb-2 text-xl font-bold text-gray-800 dark:text-gray-200">
-          Customers ({{ details?.counts.recent_customer_count }} of {{ details?.counts.customer_count }})
+          {{ $t('web.colonel.customers-details-counts-recent_customer_count-o-0', [details?.counts.recent_customer_count, details?.counts.customer_count]) }}
         </h3>
         <ul
           class="divide-y divide-gray-200 overflow-hidden bg-white shadow dark:divide-gray-700 dark:bg-gray-800 sm:rounded-lg">
@@ -101,13 +99,13 @@ onMounted(fetch);
             v-for="customer in details?.recent_customers"
             :key="customer.custid"
             class="px-4 py-3 sm:px-6"
-            :title="customer.verified ? 'verified' : 'not verified'">
+            :title="$t('web.colonel.customer-verified-verified-not-verified-0')">
             <div class="flex items-center justify-between">
               <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                 <strong>{{ customer.custid }}</strong>
               </p>
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ customer.secrets_created }}/{{ customer.secrets_shared }}/{{ customer.emails_sent }} [{{ customer.planid }}]
+                {{ $t('web.colonel.customer-secrets_created-customer-secrets_shared-0', [customer.secrets_created, customer.secrets_shared, customer.emails_sent, customer.planid]) }}
               </p>
             </div>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -121,7 +119,7 @@ onMounted(fetch);
         id="misc"
         class="mb-8">
         <h3 class="mb-2 mt-6 text-xl font-bold text-gray-800 dark:text-gray-200">
-          Redis Info
+          {{ $t('redis-info') }}
         </h3>
         <pre
           class="overflow-x-auto rounded-lg bg-gray-100 p-4 text-sm text-gray-800 dark:bg-gray-700 dark:text-gray-200">{{ details?.redis_info }}</pre>

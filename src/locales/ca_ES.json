@@ -22,7 +22,7 @@
       "expires_in": "Caducitat",
       "burn_this_secret": "Crema aquest secret",
       "burn_this_secret_hint": "Cremar un secret l'eliminarà abans que s'hagi llegit (feu clic per a nfirmar)",
-      "bun_this_secret_confirm_hint": "La crema d'un secret és permanent i no es pot desfer",
+      "burn_this_secret_confirm_hint": "La crema d'un secret és permanent i no es pot desfer",
       "msg_check_email": "Verifica el correu electrònic",
       "click_to_continue": "Clica per a continuar →",
       "click_to_verify": "Continua per a verificar el compte:",

@@ -57,13 +57,13 @@ onMounted(() => {
       <EmptyState
         v-else
         actionRoute="/"
-        actionText="Create a Secret">
+        :actionText="$t('create-a-secret')">
         <template #title>
         {{ $t('web.dashboard.title_no_recent_secrets') }}
         </template>
         <template #description>
-        <div>Get started by creating your first secret.</div>
-        <div>They'll appear here once you've shared them.</div>
+        <div>{{ $t('web.dashboard.get-started-by-creating-your-first-secret') }}</div>
+        <div>{{ $t('theyll-appear-here-once-youve-shared-them') }}</div>
 
         </template>
       </EmptyState>

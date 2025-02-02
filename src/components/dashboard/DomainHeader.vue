@@ -12,7 +12,7 @@ defineProps<{
       <div class="flex items-center space-x-4">
         <RouterLink to="/domains"
                     class="inline-flex items-center text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                    aria-label="Return to domains list">
+                    aria-label="$t('return-to-domains-list')">
           <svg class="mr-2 size-5"
                fill="none"
                stroke="currentColor"
@@ -23,7 +23,7 @@ defineProps<{
                   stroke-width="2"
                   d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Domains
+          {{ $t('back-to-domains') }}
         </RouterLink>
       </div>
       <!-- Title section - make text smaller on mobile -->
@@ -36,7 +36,7 @@ defineProps<{
                target="_blank"
                rel="noopener noreferrer"
                class="ml-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-               title="Open domain in new tab">
+               title="$t('open-domain-in-new-tab')">
               <svg xmlns="http://www.w3.org/2000/svg"
                    class="h-5 w-5"
                    viewBox="0 0 24 24"
@@ -51,7 +51,7 @@ defineProps<{
           </h1>
           <span class="rounded-md bg-gray-100 px-3 py-1 font-brand text-xs text-gray-800 dark:bg-gray-700 dark:text-gray-100"
                 role="status">
-            Custom Domain
+            {{ $t('custom-domain') }}
           </span>
         </div>
       </div>

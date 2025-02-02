@@ -18,7 +18,7 @@ import SignInForm from '@/components/auth/SignInForm.vue';
             <router-link
               to="/forgot"
               class="text-sm text-gray-600 transition duration-300 ease-in-out hover:underline dark:text-gray-400"
-              aria-label="Forgot Password">
+              :aria-label="$t('forgot-password')">
               {{ $t('web.login.forgot_your_password') }}
             </router-link>
           </li>

@@ -2,8 +2,9 @@
 import DomainInput from '@/components/DomainInput.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { createDomainRequestSchema } from '@/schemas/api/requests';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { createError, type ApplicationError } from '@/schemas/errors';
+import { useI18n } from 'vue-i18n';
 
 defineProps<{
   isSubmitting?: boolean,
@@ -13,18 +14,21 @@ const domain = ref('');
 // Initialize as null to avoid showing initial error state
 const isValid = ref<boolean|null>(null);
 const localError = ref<ApplicationError|null>();
+const { t } = useI18n();
 
 const emit = defineEmits<{
   (e: 'submit', domain: string): void
   (e: 'back'): void
 }>();
 
+const placeholderText = computed(() => `${t('e-g-example')} ${t('secrets-example-dot-com')}`);
+
 const handleSubmit = () => {
   localError.value = null;
 
   // Check for empty submission first
   if (!domain.value.trim()) {
-    localError.value = createError("Please enter a domain name", "human");
+    localError.value = createError(t('please-enter-a-domain-name', ''), "human");
     isValid.value = false;
     return;
   }
@@ -35,7 +39,7 @@ const handleSubmit = () => {
     emit('submit', validated.domain);
   } catch {
     isValid.value = false;
-    localError.value = createError("Please enter a valid domain name", "human");
+    localError.value = createError(t('please-enter-a-domain-name', 'valid'), "human");
   }
 };
 </script>
@@ -48,7 +52,7 @@ const handleSubmit = () => {
         :is-valid="isValid"
         autofocus
         required
-        placeholder="e.g. secrets.example.com"
+        :placeholder="placeholderText"
         class="dark:border-gray-700 dark:bg-gray-800 dark:text-white"
       />
 
@@ -74,7 +78,7 @@ const handleSubmit = () => {
             focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600
             dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700
             dark:focus:ring-offset-gray-900 sm:w-1/2"
-          aria-label="Go back to previous page">
+          aria-label="`t('go-back-to-previous-page')`">
           <svg
             class="-ml-1 mr-2 size-5"
             xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +92,7 @@ const handleSubmit = () => {
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          Back
+          {{ $t('back') }}
         </button>
 
         <!-- Submit Button -->
@@ -128,9 +132,9 @@ const handleSubmit = () => {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            Adding...
+            {{ $t('adding_ellipses') }}...
           </span>
-          <span v-else>Continue</span>
+          <span v-else>{{ $t('continue') }}</span>
         </button>
       </div>
     </form>

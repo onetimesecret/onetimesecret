@@ -4,6 +4,9 @@
   import MastHead from '@/components/layout/MastHead.vue';
   import BrandedMasthead from '@/components/layout/BrandedMastHead.vue';
   import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  const { t } = useI18n();
+
   const productIdentity = useProductIdentity();
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -12,12 +15,12 @@
   });
 
   const headertext = computed(() => {
-    return productIdentity.allowPublicHomepage ? 'Create a secure link' : 'Secure Links';
+    return productIdentity.allowPublicHomepage ? t('create-a-secure-link') : t('secure-links');
   });
   const subtext = computed(() => {
     return productIdentity.allowPublicHomepage
-      ? 'Send sensitive information that can only be viewed once'
-      : 'A trusted way to share sensitive information that self-destructs after being viewed.';
+      ? t('send-sensitive-information-that-can-only-be-viewed-once')
+      : t('a-trusted-way-to-share-sensitive-information-that-self-destructs-after-being-viewed');
   });
 </script>
 

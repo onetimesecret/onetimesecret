@@ -23,19 +23,18 @@
   </div>
 
   <h2 class="mb-4 text-3xl font-bold text-gray-800 dark:text-gray-200">
-    {{ $t('web.COMMON.oops') }} Something went wrong
+    {{ $t('t-web-common-oops-something-went-wrong', [$t('web.COMMON.oops')]) }}
   </h2>
 
   <p class="mb-6 text-lg text-gray-600 dark:text-gray-400">
-    We're sorry, but an unexpected error occurred while processing your request. Our team has been
-    notified and we're working to fix it.
+    {{ $t('were-sorry-but-an-unexpected-error-occurred-whil') }}
   </p>
 
   <nav class="mb-8">
     <a
       href="/"
       class="inline-block rounded-lg bg-brand-500 px-6 py-3 text-white shadow-md transition-colors duration-300 hover:bg-brand-600 hover:shadow-lg dark:bg-brand-600 dark:hover:bg-brand-700">
-      Return to Home
+      {{ $t('return-to-home') }}
     </a>
   </nav>
 </template>

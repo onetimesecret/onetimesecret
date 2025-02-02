@@ -4,6 +4,8 @@ import OIcon from '@/components/icons/OIcon.vue';
 import { useDomainStatus } from '@/composables/useDomainStatus';
 //import StatusLabel from './StatusLabel.vue';
 //import StatusLabelRow from './StatusLabelRow.vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 interface Props {
   domain: CustomDomain;
@@ -55,48 +57,48 @@ const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatu
     <div v-else
          class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
       <h2 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-        Domain Status
+        {{ $t('domain-status') }}
       </h2>
       <div class="flex flex-col">
         <div v-if="domain?.vhost"
              class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Domain</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('domain') }}</span>
             <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.incoming_address }}</span>
           </div>
 
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Status</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('status') }}</span>
             <span :class="statusColor"
                   class="text-lg">{{ domain?.vhost?.status_message }}</span>
           </div>
 
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Target Address</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('target-address') }}</span>
             <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.target_address }}</span>
           </div>
 
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">DNS Record</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('dns-record') }}</span>
             <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.dns_pointed_at }}</span>
           </div>
 
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">SSL Renews</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('ssl-renews') }}</span>
             <span class="text-lg text-gray-900 dark:text-white"><span
                     v-if="domain?.vhost.ssl_active_until">{{ domain?.vhost.ssl_active_until }}</span></span>
           </div>
 
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">SSL Status</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('ssl-status') }}</span>
             <span class="text-lg"
                   :class="domain?.vhost?.has_ssl ? 'text-green-600' : 'text-red-600'">
-              {{ domain?.vhost?.has_ssl ? 'Active' : 'Inactive' }}
+              {{ domain?.vhost?.has_ssl ? t('active') : t('inactive') }}
             </span>
           </div>
 
           <div class="flex flex-col">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Monitored</span>
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $t('last-monitored') }}</span>
             <span class="text-lg text-gray-900 dark:text-white">{{ domain?.vhost?.last_monitored_humanized }}</span>
           </div>
         </div>

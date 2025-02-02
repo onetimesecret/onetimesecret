@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Wrapper to repair all locale files
+# Repairs i18n locale files to match base en.json key structure
+# Preserves existing translations while adding missing keys
+# Usage: ./repair-locale-files [-q quiet] [-f filename-only] [-v verbose]
+# Exit: 0 if all repairs succeed, 1 if any fail
+# Options:
+#   -q: Suppress all output
+#   -f: Only output filenames of failed repairs
+#   -v: Show verbose repair output
+
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
+EXIT_CODE=0
+for locale in src/locales/*.json; do
+  [ "$locale" = "src/locales/en.json" ] && continue
+  "$SCRIPT_DIR/repair-locale-file" "$@" "$locale" || EXIT_CODE=1
+done
+exit $EXIT_CODE

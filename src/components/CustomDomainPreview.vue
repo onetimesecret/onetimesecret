@@ -14,7 +14,7 @@ const props = defineProps({
 
 <template>
   <SecretFormDrawer
-    title="Link Preview"
+    :title="$t('link-preview')"
     border="dashed"
     expanded-bg="bg-gray-50 dark:bg-gray-700">
     <div class="mt-2 flex items-center space-x-2 overflow-hidden font-mono">

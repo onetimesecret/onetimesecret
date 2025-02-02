@@ -13,7 +13,7 @@ const authenticated = WindowService.get('authenticated') ?? false;
 
     <InboundSecretForm
       :enabled="true"
-      title="Support Details"
+      title="$t('support-details')"
     />
   </div>
 </template>

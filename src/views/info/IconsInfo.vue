@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import IconSources from '@/components/icons/IconSources.vue';
+import { useI18n } from 'vue-i18n';
 
 interface IconSet {
   prefix: string;
@@ -10,13 +11,14 @@ interface IconSet {
 }
 
 const icons = ref<IconSet[]>([]);
+const { t } = useI18n();
 
 const ICON_PREFIXES = {
-  'fa6-solid': 'Font Awesome 6',
-  'carbon': 'Carbon',
-  'heroicon': 'Heroicons',
-  'mdi': 'Material Design Icons',
-  'gm': 'Google Material'
+  'fa6-solid': t('font-awesome-6'),
+  'carbon': t('carbon'),
+  'heroicon': t('heroicons'),
+  'mdi': t('material-design-icons'),
+  'gm': t('google-material')
 } as const;
 
 
@@ -24,7 +26,7 @@ const categorizeIcon = (id: string): IconSet => {
   const prefix = Object.keys(ICON_PREFIXES).find(p => id.startsWith(p));
   return {
     prefix: prefix || 'other',
-    name: prefix ? ICON_PREFIXES[prefix as keyof typeof ICON_PREFIXES] : 'Other',
+    name: prefix ? ICON_PREFIXES[prefix as keyof typeof ICON_PREFIXES] : t('other'),
     id
   };
 };
@@ -47,7 +49,7 @@ onMounted(() => {
 
 <template>
   <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-semibold mb-6">Icon Library</h1>
+    <h1 class="text-2xl font-semibold mb-6">{{ $t('icon-library') }}</h1>
     <IconSources :icons="icons" />
   </div>
 </template>

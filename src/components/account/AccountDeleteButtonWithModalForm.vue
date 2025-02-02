@@ -3,8 +3,10 @@ import { useFormSubmission } from '@/composables/useFormSubmission';
 import { Customer } from '@/schemas/models';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const csrfStore = useCsrfStore();
+const { t } = useI18n();
 
 interface Props {
   apitoken?: string;
@@ -24,7 +26,7 @@ const {
   submitForm: submitDeleteAccount
 } = useFormSubmission({
   url: '/api/v2/account/destroy',
-  successMessage: 'Account deleted successfully.',
+  successMessage: t('account-deleted-successfully'),
   onSuccess: () => {
     emit('delete:account');
     showDeleteModal.value = false;
@@ -44,23 +46,23 @@ const closeDeleteModal = () => {
 
 <template>
   <p class="mb-4 dark:text-gray-300">
-    Please be advised:
+    {{ $t('please-be-advised') }}
   </p>
   <ul class="mb-4 list-inside list-disc dark:text-gray-300">
-    <li><span class="font-bold">Secrets will remain active until they expire.</span></li>
+    <li><span class="font-bold">{{ $t('secrets-will-remain-active-until-they-expire') }}</span></li>
     <li>
-      Any secrets you wish to remove, <span
-        class="underline">burn them before continuing</span>.
+      {{ $t('any-secrets-you-wish-to-remove') }} <span
+        class="underline">{{ $t('burn-them-before-continuing') }}</span>.
     </li>
-    <li>Deleting your account is <span class="italic">permanent and non-reversible.</span></li>
+    <li>{{ $t('deleting-your-account-is') }} <span class="italic">{{ $t('permanent-and-non-reversible') }}</span></li>
   </ul>
   <button
     @click="openDeleteModal"
     class="flex w-full items-center justify-center rounded bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700">
-    <i class="fas fa-trash-alt mr-2"></i> Permanently Delete Account
+    <i class="fas fa-trash-alt mr-2"></i> {{ $t('permanently-delete-account') }}
   </button>
   <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-    Deleting {{ cust?.custid }}
+    {{ $t('deleting-cust-custid', [cust?.custid]) }}
   </p>
 
   <!-- Delete Account Confirmation Modal -->
@@ -78,11 +80,10 @@ const closeDeleteModal = () => {
 
       <div class="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
         <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-          Confirm Account Deletion
+          {{ $t('confirm-account-deletion') }}
         </h3>
         <p class="mb-4 text-gray-700 dark:text-gray-300">
-          Are you sure you want to permanently delete your account?
-          This action cannot be undone.
+          {{ $t('are-you-sure-you-want-to-permanently-delete-your') }}
         </p>
 
         <input
@@ -98,7 +99,7 @@ const closeDeleteModal = () => {
             type="password"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             autocomplete="confirmation"
-            placeholder="Confirm with your password"
+            placeholder="$t('confirm-with-your-password')"
           />
         </div>
 
@@ -118,7 +119,7 @@ const closeDeleteModal = () => {
             @click="closeDeleteModal"
             type="button"
             class="rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-            Cancel
+            {{ $t('web.COMMON.word_cancel') }}
           </button>
           <button
             type="submit"

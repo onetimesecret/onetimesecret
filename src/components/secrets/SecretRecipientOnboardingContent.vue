@@ -18,19 +18,19 @@ const siteHost = WindowService.get('site_host');
             class="text-base font-semibold
             uppercase tracking-wide
             text-brandcomp-700 opacity-40 dark:text-brandcomp-600">
-            Onetime Secret
+            {{ $t('onetime-secret') }}
           </h2>
           <h3
             class="mt-1 text-3xl font-extrabold
               text-gray-500 dark:text-gray-300
               sm:text-3xl sm:tracking-tight lg:text-4xl">
-            You've got (secret) mail
+            {{ $t('youve-got-secret-mail') }}
           </h3>
           <p
             class="mx-auto mt-5 max-w-xl text-xl
               text-gray-400 dark:text-gray-400">
-            A secure, one-time message awaits you. <br />
-            Before you open it, here's what you should know:
+            {{ $t('a-secure-one-time-message-awaits-you') }} <br />
+            {{ $t('before-you-open-it-heres-what-you-should-know') }}
           </p>
         </div>
       </div>
@@ -40,29 +40,26 @@ const siteHost = WindowService.get('site_host');
         <div class="lg:grid lg:grid-cols-3 lg:gap-8">
           <div>
             <h3 class="text-lg font-medium text-gray-600 dark:text-white">
-              What is this?
+              {{ $t('what-is-this') }}
             </h3>
             <p class="mt-3 text-base text-gray-400 dark:text-gray-300">
-              Onetime Secret is a secure way to share sensitive information that self-destructs
-              after a single viewing.
+              {{ $t('onetime-secret-is-a-secure-way-to-share-sensitiv') }}
             </p>
           </div>
           <div class="mt-8 lg:mt-0">
             <h3 class="text-lg font-medium text-gray-600 dark:text-white">
-              Is it secure?
+              {{ $t('is-it-secure') }}
             </h3>
             <p class="mt-3 text-base text-gray-400 dark:text-gray-300">
-              Yes. After viewing, the secret is permanently deleted from our servers, ensuring your
-              privacy.
+              {{ $t('yes-after-viewing-the-secret-is-permanently-dele') }}
             </p>
           </div>
           <div class="mt-8 lg:mt-0">
             <h3 class="text-gray6900 whitespace-nowrap text-lg font-medium dark:text-white">
-              What happens next?
+              {{ $t('what-happens-next') }}
             </h3>
             <p class="mt-3 text-base text-gray-400 dark:text-gray-300">
-              When ready, click the "View Secret" button at the top of the page to reveal your
-              one-time message.
+              {{ $t('when-ready-click-the-view-secret-button-at-the-t') }}
             </p>
           </div>
         </div>
@@ -76,19 +73,19 @@ const siteHost = WindowService.get('site_host');
           :href="`https://${siteHost}`"
           class="hover:underline"
           rel="noopener noreferrer">
-          Powered by Onetime Secret
+          {{ $t('powered-by-onetime-secret') }}
         </a>
-        <span v-if="displayPoweredBy">·</span>
+        <span v-if="displayPoweredBy">.</span>
         <router-link
           to="/info/terms"
           class="hover:underline">
-          Terms
+          {{ $t('terms') }}
         </router-link>
-        <span>·</span>
+        <span>.</span>
         <router-link
           to="/info/privacy"
           class="hover:underline">
-          Privacy
+          {{ $t('privacy') }}
         </router-link>
       </div>
     </div>

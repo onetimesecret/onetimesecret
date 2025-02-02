@@ -43,7 +43,7 @@
     <FancyIcon
       v-if="showUpgrade"
       to="/pricing"
-      aria-label="Click this lightning bolt to upgrade for custom domains" />
+      :aria-label="$t('click-this-lightning-bolt-to-upgrade-for-custom-domains')" />
 
     <router-link
       v-if="colonel"

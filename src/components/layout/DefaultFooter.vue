@@ -30,7 +30,7 @@ const companyName = ref('OnetimeSecret.com');
     bg-gray-100
     py-16 transition-all
     duration-300 dark:bg-gray-800"
-          aria-label="Site footer">
+          :aria-label="$t('site-footer')">
     <div class="container mx-auto max-w-2xl px-4">
       <FooterLinkLists v-if="displayLinks"
                        v-bind="$props" />
@@ -53,12 +53,12 @@ const companyName = ref('OnetimeSecret.com');
                class="text-inherit">
             <router-link to="/info/terms"
                          class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100">
-              Terms
+              {{ $t('terms') }}
             </router-link>
             <span class="mx-2">·</span>
             <router-link to="/info/privacy"
                          class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100">
-              Privacy
+              {{ $t('privacy') }}
             </router-link>
           </div>
         </div>
@@ -76,14 +76,14 @@ const companyName = ref('OnetimeSecret.com');
             text-gray-500 transition-colors
             duration-200 hover:text-gray-800
             dark:text-gray-400 dark:hover:text-gray-100"
-                       aria-label="Toggle dark mode" />
+                       :aria-label="$t('toggle-dark-mode')" />
 
           <FeedbackToggle v-if="displayFeedback && windowProps.authentication?.enabled"
                           class="
             text-gray-500 transition-colors
             duration-200 hover:text-gray-800
             dark:text-gray-400 dark:hover:text-gray-100"
-                          aria-label="Provide feedback" />
+                          :aria-label="$t('provide-feedback')" />
         </div>
       </div>
     </div>

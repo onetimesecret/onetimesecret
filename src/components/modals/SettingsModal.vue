@@ -2,6 +2,7 @@
   import { WindowService } from '@/services/window.service';
   import { FocusTrap } from 'focus-trap-vue';
   import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   import GeneralTab from './settings/GeneralTab.vue';
   import JurisdictionTab from './settings/JurisdictionTab.vue';
@@ -13,6 +14,8 @@
     label: string;
   }
 
+  const { t } = useI18n();
+
   const props = defineProps<{
     isOpen: boolean;
   }>();
@@ -23,13 +26,13 @@
 
   let previouslyFocusedElement: HTMLElement | null = null;
 
-  const tabs = ref<Tab[]>([{ id: 'general', label: 'General' }]);
+  const tabs = ref<Tab[]>([{ id: 'general', label: t('general') }]);
 
   if (regionsEnabled) {
-    tabs.value.push({ id: 'data-region', label: 'Data Region' });
+    tabs.value.push({ id: 'data-region', label: t('data-region') });
   }
   const handleKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
+    if (e.key === t('escape')) {
       closeModal();
     }
   };
@@ -82,11 +85,11 @@
         activeTab.value =
           tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
         break;
-      case 'Home':
+      case this.$t('web.COMMON.title_home'):
         e.preventDefault();
         activeTab.value = tabButtons[0];
         break;
-      case 'End':
+      case this.$t('end'):
         e.preventDefault();
         activeTab.value = tabButtons[tabButtons.length - 1];
         break;
@@ -115,7 +118,7 @@
     <div
       id="settings-modal-description"
       class="sr-only">
-      Customize your app preferences and settings
+      {{ $t('customize-your-app-preferences-and-settings') }}
     </div>
 
     <FocusTrap
@@ -130,17 +133,17 @@
             <h2
               id="settings-modal"
               class="text-2xl font-bold text-gray-900 dark:text-white">
-              Settings
+              {{ $t('web.COMMON.header_settings') }}
             </h2>
             <div
               class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2"
               role="tablist"
               @keydown="handleTabKeydown"
-              aria-label="Settings sections">
+              aria-label="$t('settings-sections')">
               <button
                 @click="closeModal"
                 class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
-                aria-label="Close settings">
+                aria-label="$t('close-settings')">
                 <svg
                   class="size-5"
                   fill="none"
@@ -161,7 +164,7 @@
           <div
             class="flex shrink-0 gap-2 overflow-x-auto px-6 py-2"
             role="tablist"
-            aria-label="Settings sections">
+            aria-label="$t('settings-sections-0')">
             <button
               v-for="tab in tabs"
               :key="tab.id"
@@ -212,7 +215,7 @@
                   <div
                     class="size-8 animate-spin rounded-full border-y-2 border-brand-600"
                     role="status">
-                    <span class="sr-only">Loading settings content...</span>
+                    <span class="sr-only">{{ $t('loading-settings-content') }}</span>
                   </div>
                 </div>
               </template>
@@ -224,7 +227,7 @@
             <button
               @click="closeModal"
               class="rounded-md bg-brand-600 px-4 py-2 text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-              Done
+              {{ $t('done') }}
             </button>
           </div>
         </div>

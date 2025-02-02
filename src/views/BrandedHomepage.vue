@@ -81,8 +81,7 @@
               <div class="ml-3">
                 <p
                   class="text-sm">
-                  This is a private instance. Only authorized
-                  team members can generate new secure links.
+                  {{ $t('this-is-a-private-instance-only-authorized-team-') }}
                 </p>
               </div>
             </div>
@@ -107,7 +106,7 @@
                     d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                 </svg>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                Secure, encrypted storage
+                {{ $t('secure-encrypted-storage') }}
                 </p>
               </div>
             </div>
@@ -126,7 +125,7 @@
                     d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                  Auto-expire after viewing
+                  {{ $t('auto-expire-after-viewing') }}
                 </p>
               </div>
             </div>

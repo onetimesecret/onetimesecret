@@ -47,7 +47,7 @@
           </svg>
         </div>
         <div>
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white"> Not Found </h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white"> {{ $t('not-found') }} </h2>
         </div>
       </div>
     </template>
@@ -59,8 +59,7 @@
           {{ brandSettings?.instructions_post_reveal }}
         </span>
         <span v-else>
-          Information shared through this service can only be accessed once. Once viewed,
-          the content is permanently deleted to ensure confidentiality.
+          {{ $t('information-shared-through-this-service-can-only') }}
         </span>
       </p>
     </template>
@@ -81,7 +80,7 @@
                 borderColor: 'var(--color-brand-500)',
               }
         ">
-        Return to Home
+        {{ $t('return-to-home') }}
       </router-link>
     </template>
   </BaseUnknownSecret>

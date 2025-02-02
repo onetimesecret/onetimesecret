@@ -6,7 +6,9 @@ import { WindowService } from '@/services/window.service';
 import { useCsrfStore } from '@/stores/csrfStore';
 import { useMediaQuery } from '@vueuse/core';
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const csrfStore = useCsrfStore();
 
 export interface Props {
@@ -44,7 +46,7 @@ const {
   submitForm
 } = useFormSubmission({
   url: '/api/v2/feedback',
-  successMessage: 'Feedback received.',
+  successMessage: t('web.LABELS.feedback-received'),
   onSuccess: (data: unknown) => {
     console.debug('Feedback sent:', data);
     emit('feedback-sent');
@@ -58,7 +60,7 @@ const {
 const form = ref<HTMLFormElement | null>(null);
 
 const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+  if (event.key === t('enter') && (event.metaKey || event.ctrlKey)) {
     event.preventDefault();
     form.value?.requestSubmit(); // This triggers the form submission event
   }
@@ -70,13 +72,13 @@ const handleKeydown = (event: KeyboardEvent) => {
  * Computed property to determine the submit key combination text based on the platform
  */
 const submitWithText = computed(() => {
-  return navigator.platform.includes('Mac') ? '⌘ + Enter' : 'Ctrl + Enter';
+  return navigator.platform.includes(t('mac')) ? t('enter-0') : t('ctrl-enter');
 });
 
 /**
  * State to track if the device is a desktop using useMediaQuery
  */
-const isDesktop = useMediaQuery('(min-width: 1024px)');
+const isDesktop = useMediaQuery(t('min-width-1024px'));
 
 // UseExceptionReporting integration
 const { reportException } = useExceptionReporting();
@@ -84,9 +86,9 @@ const { reportException } = useExceptionReporting();
 const handleSpecialMessages = (message: string) => {
   console.log(`Checking for special message: ${message}`)
   if (message.startsWith('#ex')) {
-    const error = new Error('Test error triggered via feedback');
+    const error = new Error(t('test-error-triggered-via-feedback'));
     reportException({
-      message: `Test exception: ${message.substring(11)}`,
+      message: t('test-exception-message-substring-11', [message.substring(11)]),
       type: 'TestFeedbackError',
       stack: error.stack || '',
       url: window.location.href,
@@ -109,6 +111,8 @@ const submitWithCheck = async (event?: Event) => {
   }
   await submitForm(event);
 };
+
+const buttonText = computed(() => isSubmitting ? t('web.LABELS.sending-ellipses') : t('web.COMMON.button_send_feedback'))
 </script>
 
 <template>
@@ -126,7 +130,7 @@ const submitWithCheck = async (event?: Event) => {
 
       <div>
         <label for="feedback-message"
-               class="sr-only">Your feedback</label>
+               class="sr-only">{{ $t('your-feedback') }}</label>
         <textarea id="feedback-message"
                   v-model="feedbackMessage"
                   class="w-full
@@ -142,7 +146,7 @@ const submitWithCheck = async (event?: Event) => {
                   required
                   @keydown="handleKeydown"
                   :placeholder="$t('web.COMMON.feedback_text')"
-                  aria-label="Enter your feedback"></textarea>
+                  aria-label="$t('enter-your-feedback')"></textarea>
         <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>
@@ -167,8 +171,8 @@ const submitWithCheck = async (event?: Event) => {
                     focus:ring-offset-gray-50
                     disabled:cursor-not-allowed disabled:opacity-50
                     dark:focus:ring-offset-gray-800"
-              aria-label="Send feedback">
-        {{ isSubmitting ? 'Sending...' : $t('web.COMMON.button_send_feedback') }}
+              :aria-label="$t('web.feedback.send-feedback')">
+        {{ buttonText }}
       </button>
 
       <AltchaChallenge v-if="!cust" />
@@ -187,14 +191,14 @@ const submitWithCheck = async (event?: Event) => {
 
     <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
       <h3 class="mb-2 text-lg font-medium text-gray-500">
-        When you submit feedback, we'll see:
+        {{ $t('web.feedback.when-you-submit-feedback-well-see') }}
       </h3>
       <ul class="space-y-1">
         <li v-if="cust">
-          • Customer ID: {{ cust?.custid }}
+          • {{ $t('web.account.customer-id') }} {{ cust?.custid }}
         </li>
-        <li>• Timezone: {{ userTimezone }}</li>
-        <li>• Website Version: v{{ ot_version }}</li>
+        <li>• {{ $t('web.account.timezone') }} {{ userTimezone }}</li>
+        <li>• {{ $t('web.site.website-version') }} {{ ot_version }}</li>
       </ul>
     </div>
   </div>

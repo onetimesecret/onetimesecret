@@ -65,7 +65,7 @@
             type="button"
             class="float-right hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:hover:text-amber-50"
             @click="closeWarning"
-            aria-label="Dismiss warning">
+            :aria-label="$t('dismiss-warning')">
             <span aria-hidden="true">&times;</span>
           </button>
           <strong class="font-medium">{{ $t('web.COMMON.warning') }}:</strong>
@@ -81,7 +81,7 @@
             type="button"
             class="float-right hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:hover:text-brand-50"
             @click="closeWarning"
-            aria-label="Dismiss notification">
+            :aria-label="$t('dismiss-notification')">
             <span aria-hidden="true">&times;</span>
           </button>
           {{ $t('web.shared.viewed_own_secret') }}
