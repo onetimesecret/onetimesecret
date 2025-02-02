@@ -1,51 +1,20 @@
 #!/bin/bash
 
+# Wrapper to repair all locale files
 # Repairs i18n locale files to match base en.json key structure
 # Preserves existing translations while adding missing keys
 # Usage: ./repair-locale-files [-q quiet] [-f filename-only] [-v verbose]
+# Exit: 0 if all repairs succeed, 1 if any fail
+# Options:
+#   -q: Suppress all output
+#   -f: Only output filenames of failed repairs
+#   -v: Show verbose repair output
 
-QUIET=${QUIET:-0}
-FILENAME_ONLY=${FILENAME_ONLY:-0}
-VERBOSE=${VERBOSE:-0}
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
 EXIT_CODE=0
-
-OPTIND=1
-while getopts ":qfv" opt; do
-  case $opt in
-    q) QUIET=1 ;;
-    f) FILENAME_ONLY=1 ;;
-    v) VERBOSE=1 ;;
-    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
-  esac
-done
-shift $((OPTIND -1))
-
 for locale in src/locales/*.json; do
-  if [ "$locale" != "src/locales/en.json" ]; then
-    LOCALE_NAME=$(basename "$locale" .json)
-    OUTPUT="${locale%.json}.transformed.json"
-
-    if ! jq -f src/locales/utils/transform.jq --argfile base src/locales/en.json "$locale" > "$OUTPUT"; then
-      EXIT_CODE=1
-      [ $QUIET -eq 1 ] && continue
-
-      if [ $FILENAME_ONLY -eq 1 ]; then
-        echo "$locale"
-        continue
-      fi
-
-      if [ $VERBOSE -eq 1 ]; then
-        echo "Failed repairing $locale"
-      fi
-      continue
-    fi
-
-    mv "$OUTPUT" "$locale"
-
-    if [ $VERBOSE -eq 1 ]; then
-      echo "Repaired $locale"
-    fi
-  fi
+  [ "$locale" = "src/locales/en.json" ] && continue
+  "$SCRIPT_DIR/repair-locale-file" "$@" "$locale" || EXIT_CODE=1
 done
-
 exit $EXIT_CODE

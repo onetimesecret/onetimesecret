@@ -1,57 +1,20 @@
 #!/bin/bash
 
+# Wrapper to check all locale files
 # Validates i18n locale files maintain consistent key structure with base en.json
 # Flags structural differences in translation keys without comparing values
 # Usage: ./check-locale-files [-q quiet] [-f filename-only] [-v verbose]
-# Exit: 0 if structures match, 1 if differences found
+# Exit: 0 if all structures match, 1 if any differences found
+# Options:
+#   -q: Suppress all output
+#   -f: Only output filenames of mismatched files
+#   -v: Show verbose diff output
 
-QUIET=${QUIET:-0}
-FILENAME_ONLY=${FILENAME_ONLY:-0}
-VERBOSE=${VERBOSE:-0}
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
 EXIT_CODE=0
-
-OPTIND=1
-while getopts ":qfv" opt; do
-  case $opt in
-    q) QUIET=1 ;;
-    f) FILENAME_ONLY=1 ;;
-    v) VERBOSE=1 ;;
-    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
-  esac
-done
-shift $((OPTIND -1))
-
-# Extract keys from base locale
-jq -r 'paths | join(".")' src/locales/en.json > "$TMPDIR/en_keys.txt"
-
 for locale in src/locales/*.json; do
-  if [ "$locale" != "src/locales/en.json" ]; then
-    LOCALE_NAME=$(basename "$locale" .json)
-
-    # Extract keys from target locale
-    jq -r 'paths | join(".")' "$locale" > "$TMPDIR/locale_keys.txt"
-
-    if ! diff --unified "$TMPDIR/en_keys.txt" "$TMPDIR/locale_keys.txt" > "$TMPDIR/diff.txt"; then
-      EXIT_CODE=1
-      [ $QUIET -eq 1 ] && continue
-
-      if [ $FILENAME_ONLY -eq 1 ]; then
-        echo "$locale"
-        continue
-      fi
-
-      if [ $VERBOSE -eq 1 ]; then
-        echo "Checking $locale..."
-        sed "s/^/$LOCALE_NAME: /" "$TMPDIR/diff.txt"
-        echo "$LOCALE_NAME: ❌ Key structure mismatch"
-      else
-        echo "Checking $LOCALE_NAME locale..."
-        cat "$TMPDIR/diff.txt"
-        echo "❌ Key structure mismatch in $LOCALE_NAME"
-      fi
-      echo
-    fi
-  fi
+  [ "$locale" = "src/locales/en.json" ] && continue
+  "$SCRIPT_DIR/check-locale-file" "$@" "$locale" || EXIT_CODE=1
 done
-
 exit $EXIT_CODE
