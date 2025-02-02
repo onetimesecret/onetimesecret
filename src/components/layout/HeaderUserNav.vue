@@ -43,7 +43,7 @@
     <FancyIcon
       v-if="showUpgrade"
       to="/pricing"
-      aria-label="Click this lightning bolt to upgrade for custom domains" />
+      :aria-label="$t('click-this-lightning-bolt-to-upgrade-for-custom-domains')" />
 
     <router-link
       v-if="colonel"
@@ -59,7 +59,7 @@
       class="ml-2 text-gray-400"
       aria-hidden="true"
       role="separator"
-      >|</span
+      >{{ $t('or') }}</span
     >
   </div>
 </template>

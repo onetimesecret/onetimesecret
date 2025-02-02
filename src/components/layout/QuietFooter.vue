@@ -26,7 +26,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 <template>
   <footer
     class="w-full min-w-[320px] bg-gray-100 py-8 transition-colors duration-300 dark:bg-gray-800"
-    aria-label="Site footer">
+    :aria-label="$t('site-footer')">
     <div
       v-if="productIdentity.isCanonical"
       class="container mx-auto max-w-2xl px-4">
@@ -62,14 +62,14 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
             text-gray-500 transition-colors
             duration-200 hover:text-gray-800
             dark:text-gray-400 dark:hover:text-gray-100"
-                       aria-label="Toggle dark mode" />
+                       :aria-label="$t('toggle-dark-mode')" />
 
           <FeedbackToggle v-if="displayFeedback && windowProps.authentication?.enabled"
                           class="
             text-gray-500 transition-colors
             duration-200 hover:text-gray-800
             dark:text-gray-400 dark:hover:text-gray-100"
-                          aria-label="Provide feedback" />
+                          :aria-label="$t('provide-feedback')" />
         </div>
       </div>
     </div>
@@ -81,7 +81,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
           <router-link
             to="/info/terms"
             class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-            Terms
+            {{ $t('terms') }}
           </router-link>
           <span
             class="mx-2 select-none"
@@ -91,7 +91,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
           <router-link
             to="/info/privacy"
             class="transition-colors duration-200 hover:text-gray-800 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-            Privacy
+            {{ $t('privacy') }}
           </router-link>
         </div>
 
@@ -99,7 +99,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
         <ThemeToggle
           v-if="displayToggles"
           class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-          aria-label="Toggle dark mode" />
+          :aria-label="$t('toggle-dark-mode')" />
 
       </div>
     </div>

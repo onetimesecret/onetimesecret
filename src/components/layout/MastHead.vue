@@ -67,7 +67,7 @@
         <router-link
           to="/"
           class="group flex items-center"
-          aria-label="Onetime Secret Homepage">
+          aria-label="$t('onetime-secret-homepage')">
           <div class="relative">
             <img
               id="logo"
@@ -98,7 +98,7 @@
                     <div class="py-2">
                       <div class="px-3 py-2 font-brand text-xs uppercase
                                   tracking-wider text-gray-700 dark:text-gray-100">
-                        Regions
+                        {{ $t('regions') }}
                       </div>
                       <div
                         v-for="jurisdiction in jurisdictionStore.jurisdictions"
@@ -140,14 +140,14 @@
           </div>
           <div class="ml-3 flex flex-col">
             <span class="font-brand text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Onetime Secret
+              {{ $t('onetime-secret') }}
             </span>
             <span class="text-xs text-gray-500 dark:text-gray-400">
-              Signed. Sealed.
+              {{ $t('signed-sealed') }}
               <span class="relative group">
                 Delivered.<sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover:[animation:none]">*</sup>
                 <span class="absolute bottom-full left-36 -translate-x-1/2 hidden group-hover:block bg-gray-200/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 text-xs rounded py-1 px-2 w-max">
-                <sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover:[animation:none]">*</sup> Recipient delivery is optional</span>
+                <sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover:[animation:none]">*</sup> {{ $t('recipient-delivery-is-optional') }}</span>
               </span>
             </span>
           </div>
@@ -157,7 +157,7 @@
       <nav
         v-if="displayNavigation"
         role="navigation"
-        aria-label="Main navigation"
+        aria-label="$t('main-navigation')"
         class="flex flex-wrap items-center justify-center gap-4 font-brand text-sm sm:justify-end sm:text-base">
         <template v-if="windowProps.authenticated && windowProps.cust">
           <HeaderUserNav
@@ -167,7 +167,7 @@
           <button
             @click="openSettingsModal"
             class="text-xl text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
-            aria-label="Settings">
+            aria-label="$t('web.COMMON.header_settings')">
             <OIcon
               class="size-5"
               collection="material-symbols"
@@ -202,7 +202,7 @@
             <router-link
               v-if="windowProps.authentication.signup"
               to="/signup"
-              title="Signup - Individual and Business plans"
+              title="$t('signup-individual-and-business-plans')"
               class="font-bold text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ $t('web.COMMON.header_create_account') }}
             </router-link>
@@ -214,7 +214,7 @@
             </span>
             <router-link
               to="/about"
-              title="About Onetime Secret"
+              title="$t('about-onetime-secret')"
               class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ $t('web.COMMON.header_about') }}
             </router-link>
@@ -227,7 +227,7 @@
             <router-link
               v-if="windowProps.authentication.signin"
               to="/signin"
-              title="Log in to Onetime Secret"
+              title="$t('log-in-to-onetime-secret')"
               class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ $t('web.COMMON.header_sign_in') }}
             </router-link>
@@ -236,7 +236,7 @@
           <router-link
             v-else
             to="/about"
-            title="About Onetime Secret"
+            title="$t('about-onetime-secret-0')"
             class="text-gray-600 transition-colors duration-200 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
             {{ $t('web.COMMON.header_about') }}
           </router-link>
