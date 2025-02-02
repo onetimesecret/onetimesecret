@@ -38,19 +38,19 @@ const close = () => {
 
 // Handle ESC key press globally
 const handleEscPress = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && isOpen.value) {
+  if (e.key === this.$t('escape') && isOpen.value) {
     close();
   }
 };
 const handleKeydown = (e: KeyboardEvent) => {
   // Close on escape
-  if (e.key === 'Escape') {
+  if (e.key === this.$t('escape')) {
     close();
     return;
   }
 
   // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
-  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+  if (e.key === this.$t('enter') && (e.metaKey || e.ctrlKey)) {
     emit('save');
     close();
   }
@@ -115,7 +115,7 @@ watch(isOpen, (newValue) => {
         class="mr-2 size-5"
         aria-hidden="true"
       />
-      Instructions
+      {{ $t('instructions') }}
       <OIcon
         collection="mdi"
         :name="isOpen ? 'chevron-up' : 'chevron-down'"
@@ -145,7 +145,7 @@ watch(isOpen, (newValue) => {
                        block
                        text-sm font-medium text-gray-700
                        dark:text-gray-200">
-            Pre-reveal Instructions
+            {{ $t('pre-reveal-instructions') }}
             <OIcon
               collection="mdi"
               name="help-circle"
@@ -163,7 +163,7 @@ watch(isOpen, (newValue) => {
                         text-xs text-white
                         shadow-lg
                         dark:bg-gray-700">
-              These instructions will be shown to recipients before they reveal the secret content
+              {{ $t('these-instructions-will-be-shown-to-recipients-before-they-reveal-the-secret-content') }}
             </div>
           </label>
           <textarea
@@ -178,7 +178,7 @@ watch(isOpen, (newValue) => {
                            shadow-sm
                            focus:border-brand-300 focus:ring focus:ring-brand-200
                            focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            placeholder="e.g. Use your phone to scan the QR code"
+            :placeholder="`$t('e-g-example') ('use-your-phone-to-scan-the-qr-code')`"
             @keydown.esc="close"></textarea>
 
           <div
@@ -186,8 +186,8 @@ watch(isOpen, (newValue) => {
                       justify-between
                       text-xs text-gray-500
                       dark:text-gray-400">
-            <span>{{ characterCount }}/500 characters</span>
-            <span>Press ESC to close</span>
+            <span>{{ $t('charactercount-500-characters', [characterCount]) }}</span>
+            <span>{{ $t('press-esc-to-close') }}</span>
           </div>
         </div>
       </div>

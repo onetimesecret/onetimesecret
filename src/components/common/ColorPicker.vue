@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 const props = withDefaults(defineProps<{
   modelValue?: string;
@@ -16,7 +18,7 @@ const emit = defineEmits<{
 }>();
 
 // Provide default props
-const label = computed(() => props.label || 'Color Picker');
+const label = computed(() => props.label || t('color-picker'));
 const id = computed(() => props.id || 'color-picker');
 const name = computed(() => props.name || 'color');
 const currentColor = computed(() => props.modelValue || '#dc4a22');

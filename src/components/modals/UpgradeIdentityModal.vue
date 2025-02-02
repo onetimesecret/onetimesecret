@@ -3,6 +3,8 @@ import { productTiers, paymentFrequencies } from '@/sources/productTiers'
 import type { Testimonial } from '@/sources/testimonials';
 import { testimonials } from '@/sources/testimonials';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 // Props
 const props = defineProps<{
@@ -54,7 +56,7 @@ const getPriceSuffix = (frequency: string) => {
 
 // Handle ESC key press
 const handleEscKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && props.isOpen) {
+  if (event.key === t('escape') && props.isOpen) {
     closeModal();
   }
 };
@@ -114,7 +116,7 @@ onUnmounted(() => {
               <h3
                 class="text-xl font-semibold leading-6 text-gray-900 dark:text-white"
                 id="modal-title">
-                Upgrade to Identity Plus
+                {{ $t('upgrade-to-identity-plus') }}
               </h3>
               <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">
                 {{ productTiers[0].description }}
@@ -129,13 +131,13 @@ onUnmounted(() => {
                 @click="toggleFrequency('monthly')"
                 :class="{ 'bg-white shadow-sm dark:bg-gray-600': frequency === 'monthly' }"
                 class="relative rounded-full px-3 py-1 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-                Monthly
+                {{ $t('monthly') }}
               </button>
               <button
                 @click="toggleFrequency('annually')"
                 :class="{ 'bg-white shadow-sm dark:bg-gray-600': frequency === 'annually' }"
                 class="relative rounded-full px-3 py-1 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-                Yearly
+                {{ $t('yearly') }}
               </button>
             </div>
           </div>
@@ -153,7 +155,8 @@ onUnmounted(() => {
           <!-- Benefits -->
           <div class="mt-6">
             <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-              Benefits of Identity Plus:
+              {{ $t('benefits-of') }}:
+              {{ $t('identity-plus') }}
             </h4>
             <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
               <li
@@ -183,7 +186,7 @@ onUnmounted(() => {
             v-if="randomTestimonial"
             class="mt-6 rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
             <h5 class="mb-2 text-sm font-bold text-gray-700 dark:text-gray-200">
-              AI-Generated Testimonial:
+              {{ $t('ai-generated-testimonial') }}:
             </h5>
             <blockquote class="text-sm italic text-gray-600 dark:text-gray-300">
               "{{ randomTestimonial.quote }}"
@@ -219,7 +222,7 @@ onUnmounted(() => {
                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600
                     dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 sm:mb-0 sm:w-auto"
               type="button">
-              Maybe Later
+              {{ $t('maybe-later') }}
             </button>
 
             <a
@@ -231,7 +234,7 @@ onUnmounted(() => {
                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-brand-500
                dark:hover:bg-brand-600 sm:w-auto"
               type="button"
-              aria-label="Upgrade account">
+              :aria-label="$t('upgrade-account')">
               {{ productTiers[0].cta }}
             </a>
           </div>
@@ -239,7 +242,7 @@ onUnmounted(() => {
 
           <!-- Disclaimer -->
           <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-            Note: AI-generated content for demonstration. Not from an actual person or company.
+            {{ $t('note') }}: {{ $t('ai-generated-content-disclaimer') }}
           </p>
         </div>
       </div>

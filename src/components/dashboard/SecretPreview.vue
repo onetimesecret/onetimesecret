@@ -94,7 +94,7 @@ const fontFamilyClass = computed(() => {
           class="block cursor-pointer"
           for="logo-upload"
           role="button"
-          aria-label="Upload logo"
+          aria-label="$t('upload-logo')"
           aria-describedby="logoHelp">
           <div
             :class="{
@@ -105,7 +105,7 @@ const fontFamilyClass = computed(() => {
             <img
               v-if="isValidLogo"
               :src="logoSrc"
-              :alt="logoImage?.filename || 'Brand logo'"
+              :alt="$t('logoimage-filename-or-or-brand-logo')"
               class="size-16 object-contain"
               :class="{
                 [cornerClass]: true,
@@ -131,8 +131,7 @@ const fontFamilyClass = computed(() => {
         <div
           id="logoHelp"
           class="sr-only">
-          Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG,
-          SVG
+          {{ $t('click-to-upload-a-logo-recommended-size-128x128-pixels-maximum-file-size-1mb-supported-formats-png-jpg-svg') }}
         </div>
 
         <input
@@ -149,7 +148,7 @@ const fontFamilyClass = computed(() => {
           v-if="isValidLogo"
           class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
           role="group"
-          aria-label="Logo controls">
+          aria-label="$t('logo-controls')">
           <button
             @click.stop="onLogoRemove"
             class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
@@ -159,7 +158,7 @@ const fontFamilyClass = computed(() => {
                 name="trash-can"
                 class="size-4"
               />
-              Remove
+              {{ $t('remove') }}
             </span>
           </button>
         </div>
@@ -175,10 +174,7 @@ const fontFamilyClass = computed(() => {
           [cornerClass]: true
         }"
         rows="3"
-        aria-label="Sample secret content">Sample secret content
-This could be sensitive data
-Or a multi-line message</textarea>
-
+        :aria-label="$t('sample-secret-content')"></textarea>
       <div
         v-else
         class="flex items-center text-gray-400 dark:text-gray-500"
@@ -190,7 +186,7 @@ Or a multi-line message</textarea>
           name="eye-off"
           class="mr-2 size-5"
         />
-        <span class="text-sm">Content hidden</span>
+        <span class="text-sm">{{ $t('content-hidden') }}</span>
       </div>
     </template>
 
@@ -209,7 +205,7 @@ Or a multi-line message</textarea>
         @click="toggleReveal"
         :aria-expanded="isRevealed"
         aria-controls="secretContent"
-        :aria-label="isRevealed ? 'Hide secret message' : 'View secret message'">
+        :aria-label="$t('isrevealed-hide-secret-message-view-secret-message')">
         {{ isRevealed ? 'Hide Secret' : $t('web.COMMON.click_to_continue') }}
       </button>
     </template>

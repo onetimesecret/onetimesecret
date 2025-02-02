@@ -59,7 +59,7 @@
       class="ml-2 text-gray-400"
       aria-hidden="true"
       role="separator"
-      >{{ $t('or') }}</span
+      >|</span
     >
   </div>
 </template>

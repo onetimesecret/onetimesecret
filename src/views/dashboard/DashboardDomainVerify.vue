@@ -45,81 +45,60 @@
     <DashboardTabNav />
 
     <h1 class="mb-6 text-3xl font-bold text-gray-900 dark:text-white">
-      Verify your domain
+      {{ $t('verify-your-domain') }}
     </h1>
 
-    <DomainVerificationInfo
-      v-if="domain && domain.vhost?.last_monitored_unix"
-      :domain="domain"
-      mode="table" />
-    <p
-      v-else-if="domain"
-      class="mb-6 text-lg text-gray-600 dark:text-gray-300">
-      Before we can activate links for
+    <DomainVerificationInfo v-if="domain && domain.vhost?.last_monitored_unix"
+                            :domain="domain"
+                            mode="table" />
+    <p v-else-if="domain"
+       class="mb-6 text-lg text-gray-600 dark:text-gray-300">
+      {{ $t('before-we-can-activate-links-for') }}
       <span class="bg-white text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{
         domain.display_domain
-      }}</span
-      >, you'll need to complete these steps.
+      }}</span>{{ $t('youll-need-to-complete-these-steps') }}
     </p>
 
-    <MoreInfoText
-      text-color="text-brandcomp-800 dark:text-gray-100"
-      bg-color="bg-white dark:bg-gray-800">
+    <MoreInfoText text-color="text-brandcomp-800 dark:text-gray-100"
+                  bg-color="bg-white dark:bg-gray-800">
       <div class="prose p-6">
         <div class="max-w-xl text-base text-gray-600 dark:text-gray-300">
           <p>
-            In order to connect your domain, you'll need to have a CNAME record in your
-            DNS that points
+            {{ $t('in-order-to-connect-your-domain-youll-need-to-ha-0') }}
             <span
-              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400"
-              >{{ domain?.display_domain }}</span
-            >
+                  class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at
-            <span
-              :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800"
-              >{{ cluster?.cluster_host }}</span
-            >. If you already have a CNAME record for that address, please change it to
-            point at
-            <span
-              :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800"
-              >{{ cluster?.cluster_host }}</span
-            >
-            and remove any other A, AAAA, or CNAME records for that exact address.
+            <span :title="cluster?.cluster_name ?? ''"
+                  class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>{{ $t('if-you-already-have-a-cname-record-for-that-addr-0') }}
+            <span :title="cluster?.cluster_name ?? ''"
+                  class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>
+            {{ $t('and-remove-any-other-a-aaaa-or-cname-records-for') }}
           </p>
-          <p
-            v-if="domain?.is_apex"
-            class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
+          <p v-if="domain?.is_apex"
+             class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
             <!-- Disclaimer for apex domains -->
-            <strong>Important:</strong> Please note that for apex domains (e.g.,
+            <strong>{{ $t('important') }}:</strong> {{ $t('please-note-that-for-apex-domains') }}
             <span
-              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400"
-              >{{ domain?.display_domain }}</span
-            >), a CNAME record is not allowed. Instead, you'll need to create an A record.
-            Details on how to do this are provided further down the page.
+                  class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>{{ $t('a-cname-record-is-not-allowed-instead-youll-need-1') }}
           </p>
         </div>
         <div class="mt-4 text-sm">
-          <a
-            href="#"
-            class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
+          <a href="#"
+             class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
             <!--Learn more about DNS configuration <span aria-hidden="true">&rarr;</span>-->
           </a>
         </div>
       </div>
     </MoreInfoText>
 
-    <VerifyDomainDetails
-      v-if="domain"
-      :domain="domain"
-      :cluster="cluster"
-      :withVerifyCTA="allowVerifyCTA"
-      @domain-verify="handleDomainVerify" />
-    <p
-      v-else
-      class="text-gray-600 dark:text-gray-400">
-      Loading domain information...
+    <VerifyDomainDetails v-if="domain"
+                         :domain="domain"
+                         :cluster="cluster"
+                         :withVerifyCTA="allowVerifyCTA"
+                         @domain-verify="handleDomainVerify" />
+    <p v-else
+       class="text-gray-600 dark:text-gray-400">
+      {{ $t('loading-domain-information') }}
     </p>
   </div>
 </template>
