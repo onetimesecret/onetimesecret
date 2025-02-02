@@ -27,19 +27,19 @@ defineProps<Props>();
             :href="`https://${siteHost}`"
             class="hover:underline"
             rel="noopener noreferrer">
-            Powered by Onetime Secret
+            {{ $t('powered-by-onetime-secret') }}
           </a>
           <span>·</span>
           <router-link
             to="/info/terms"
             class="hover:underline">
-            Terms
+            {{ $t('terms') }}
           </router-link>
           <span>·</span>
           <router-link
             to="/info/privacy"
             class="hover:underline">
-            Privacy
+            {{ $t('privacy') }}
           </router-link>
         </div>
       </div>

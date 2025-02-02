@@ -4,7 +4,6 @@ import { useProductIdentity } from '@/stores/identityStore';
 import { ref, computed } from 'vue';
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
 
-
 interface Props {
   secretKey: string;
   record: Secret | null;
@@ -81,7 +80,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
           <!-- Logo -->
           <img v-if="logoImage && !hasImageError"
                :src="logoImage"
-               alt="Brand logo"
+               alt="$t('brand-logo')"
                class="size-full object-contain"
                :class="cornerStyle"
                @error="handleImageError" />
@@ -92,7 +91,7 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
     <template #content>
       <div class="flex items-center text-gray-400 dark:text-gray-500"
            role="status"
-           aria-label="Content status">
+           aria-label="$t('content-status')">
         <svg class="mr-2 size-5"
              viewBox="0 0 24 24"
              fill="none"
@@ -103,13 +102,13 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
                 stroke-width="2"
                 d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7A9.97 9.97 0 014.02 8.971m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
         </svg>
-        <span class="text-sm">Content hidden</span>
+        <span class="text-sm">{{ $t('content-hidden') }}</span>
       </div>
     </template>
 
     <template #action-button>
       <form @submit.prevent="submitForm"
-            aria-label="Secret access form">
+            aria-label="$t('secret-access-form')">
         <!-- Error Message -->
         <div v-if="error"
              class="mb-4 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-200"

@@ -20,7 +20,7 @@ defineProps<Props>();
       <!-- Add a loading indicator here -->
       <div class="text-justify">
         <p class="text-gray-600 dark:text-gray-400">
-          Loading...
+          {{ $t('loading_ellipses') }}
         </p>
       </div>
     </template>
@@ -41,12 +41,12 @@ defineProps<Props>();
         <p
           v-else
           class="italic text-gray-600 dark:text-gray-400">
-          Go on then.
+          {{ $t('go-on-then') }}
           <router-link
             to="/"
             class="text-brand-500 hover:underline">
             {{ $t('web.COMMON.share_a_secret') }}
-          </router-link>!
+          </router-link>
         </p>
       </section>
 

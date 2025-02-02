@@ -4,6 +4,7 @@
   import { useProductIdentity } from '@/stores/identityStore';
   import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
   import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   interface Props {
     record: Secret | null;
@@ -17,7 +18,7 @@
   }
 
   const props = defineProps<Props>();
-
+  const { t } = useI18n();
 
   const productIdentity = useProductIdentity();
   const brandSettings = productIdentity.brand; // Not reactive
@@ -43,10 +44,10 @@
   }));
 
 
-
   const hasImageError = ref(false);
   const { isCopied, copyToClipboard } = useClipboard();
 
+  const logoAriaLabel = hasImageError.value ? t('default-logo-icon') : t('brand-logo')
   const copySecretContent = async () => {
     if (props.record?.secret_value === undefined) {
       return;
@@ -58,7 +59,7 @@
     const announcement = document.createElement('div');
     announcement.setAttribute('role', 'status');
     announcement.setAttribute('aria-live', 'polite');
-    announcement.textContent = 'Secret content copied to clipboard';
+    announcement.textContent = t('secret-content-copied-to-clipboard');
     document.body.appendChild(announcement);
     setTimeout(() => announcement.remove(), 1000);
   };
@@ -66,6 +67,7 @@
   const handleImageError = () => {
     hasImageError.value = true;
   };
+  const isCopiedText = computed(() => isCopied ? t('copied') : t('copy_to_clipboard') );
 
   // Prepare the standardized path to the logo image.
   // Note that the file extension needs to be present but is otherwise not used.
@@ -133,7 +135,7 @@
             }"
             class="flex size-14 items-center justify-center bg-gray-100 dark:bg-gray-700 sm:size-16"
             role="img"
-            :aria-label="hasImageError ? 'Default lock icon' : 'Brand logo'">
+            :aria-label="logoAriaLabel">
             <!-- Default lock icon -->
             <svg
               v-if="!logoImage || hasImageError"
@@ -153,7 +155,7 @@
             <img
               v-if="logoImage && !hasImageError"
               :src="logoImage"
-              alt="Brand logo"
+              :alt="$t('brand-logo')"
               class="size-16 object-contain"
               :class="{
                 'rounded-lg': brandSettings?.corner_style === 'rounded',
@@ -172,7 +174,7 @@
           <label
             :for="'secret-content-' + record?.identifier"
             class="sr-only">
-            Secret content
+            {{ $t('secret-content') }}
           </label>
           <textarea
             :id="'secret-content-' + record?.identifier"
@@ -180,7 +182,7 @@
             readonly
             :rows="details?.display_lines ?? 4"
             :value="record?.secret_value"
-            aria-label="Secret content"
+            :aria-label="$t('secret-content')"
             ref="secretContent"></textarea>
         </div>
       </div>
@@ -189,7 +191,7 @@
     <template #action-button>
       <button
         @click="copySecretContent"
-        :title="isCopied ? 'Copied!' : 'Copy to clipboard'"
+        :title="isCopiedText"
         class="inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium text-brand-700 shadow-sm transition-colors duration-150 ease-in-out hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-100"
         :class="[
           {

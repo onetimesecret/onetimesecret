@@ -2,7 +2,7 @@
 import DomainInput from '@/components/DomainInput.vue'
 import ErrorDisplay from '@/components/ErrorDisplay.vue'
 import { createDomainRequestSchema } from '@/schemas/api/requests';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { createError, type ApplicationError } from '@/schemas/errors';
 import { useI18n } from 'vue-i18n';
 
@@ -20,6 +20,8 @@ const emit = defineEmits<{
   (e: 'submit', domain: string): void
   (e: 'back'): void
 }>();
+
+const placeholderText = computed(() => `${t('e-g-example')} ${t('secrets-example-dot-com')}`);
 
 const handleSubmit = () => {
   localError.value = null;
@@ -50,7 +52,7 @@ const handleSubmit = () => {
         :is-valid="isValid"
         autofocus
         required
-        :placeholder="t('e-g-secrets-example-dot-com')"
+        :placeholder="placeholderText"
         class="dark:border-gray-700 dark:bg-gray-800 dark:text-white"
       />
 

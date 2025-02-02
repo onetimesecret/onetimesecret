@@ -3,6 +3,8 @@ import { type MetadataRecords } from '@/schemas/api';
 import { formatRelativeTime } from '@/utils/format'
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 
 interface Props {
   secretMetadata: MetadataRecords;
@@ -16,6 +18,7 @@ const linkClass = computed(() => {
     : 'no-underline';
 });
 
+const linkTitle = computed(() => props.secretMetadata.is_destroyed ? t('received') : t('not-received'))
 const displayKey = computed(() => {
   return `${props.secretMetadata.shortkey}`;
 });
@@ -29,7 +32,7 @@ const formattedDate = computed(() =>
   <router-link
     :to="{ name: 'Metadata link', params: { metadataKey: secretMetadata.identifier } }"
     :class="[linkClass, 'transition-colors hover:text-brand-500 dark:hover:text-brand-500']"
-    :title="secretMetadata.is_destroyed ? 'RECEIVED' : 'NOT RECEIVED'">
+    :title="linkTitle">
     {{ displayKey }}
     <span
       v-if="secretMetadata.show_recipients"
