@@ -30,6 +30,7 @@ const logoSrc = computed(() => {
 });
 
 const isRevealed = ref(false);
+const textareaPlaceholder = t('sample-secret-content-this-could-be-sensitive-data');
 
 // Computed property for instructions text
 const instructions = computed(() => {
@@ -174,7 +175,9 @@ const fontFamilyClass = computed(() => {
           [cornerClass]: true
         }"
         rows="3"
-        :aria-label="$t('sample-secret-content')"></textarea>
+        :aria-label="$t('sample-secret-content')"
+        v-model="textareaPlaceholder"></textarea>
+
       <div
         v-else
         class="flex items-center text-gray-400 dark:text-gray-500"

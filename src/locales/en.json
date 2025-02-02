@@ -441,7 +441,7 @@
   "enter": "Enter",
   "isrevealed-hide-secret-message-view-secret-message": "`+isRevealed ? `Hide secret message` : `View secret message",
   "content-hidden": "Content hidden",
-  "sample-secret-content-this-could-be-sensitive-data-or-a-multi-line-message": "Sample secret content This could be sensitive data Or a multi-line message",
+  "sample-secret-content-this-could-be-sensitive-data": "Sample secret content This could be sensitive data Or a multi-line message",
   "sample-secret-content": "Sample secret content",
   "logo-controls": "Logo controls",
   "click-to-upload-a-logo-recommended-size-128x128-pixels-maximum-file-size-1mb-supported-formats-png-jpg-svg": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
