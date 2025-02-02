@@ -17,7 +17,7 @@ const localeSchema = z
   .string()
   .min(2)
   .max(5)
-  .regex(/^[a-z]{2}(-[A-Z]{2})?$/);
+  .regex(/^[a-z]{2}(_-[A-Z]{2})?$/);
 
 interface StoreOptions extends PiniaPluginOptions {
   deviceLocale?: string;
@@ -129,16 +129,9 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   function determineLocale(preferredLocale?: string): string {
-    const locales = [
-      preferredLocale,
-      preferredLocale?.split('-')[0],
-      currentLocale.value,
-      storedLocale.value,
-    ];
+    const locales = [preferredLocale, preferredLocale?.split('-')[0], currentLocale.value, storedLocale.value];
 
-    const supported = locales.find(
-      (locale) => locale && supportedLocales.value.includes(locale)
-    );
+    const supported = locales.find((locale) => locale && supportedLocales.value.includes(locale));
 
     return supported ?? DEFAULT_LOCALE;
   }
