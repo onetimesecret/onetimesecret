@@ -154,7 +154,6 @@
   - ar
   - bg
   - ca_ES
-  - cn
   - cs
   - da_DK
   - de
@@ -174,6 +173,7 @@
   - sv_SE
   - tr
   - vi
+  - zh
 :services:
   :sentry:
     :dsn: <%= ENV['SENTRY_DSN'] || 'CHANGEME' %>
