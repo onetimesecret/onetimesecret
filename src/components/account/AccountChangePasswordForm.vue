@@ -1,4 +1,5 @@
 <!-- AccountChangePasswordForm.vue -->
+
 <script setup lang="ts">
 import { usePasswordChange } from '@/composables/usePasswordChange';
 import OIcon from '@/components/icons/OIcon.vue';
@@ -17,7 +18,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
   <form @submit.prevent="handleSubmit">
     <!-- Visually Hidden Fields -->
     <div class="hidden">
-      <label for="username">Username</label>
+      <label for="username">{{ $t('account.changePassword.username') }}</label>
       <input type="text"
              id="username"
              autocomplete="username" />
@@ -26,8 +27,9 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
     <div class="relative mb-4">
       <label for="currentPassword"
              id="currentPasswordLabel"
-             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
-
+             class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ $t('account.changePassword.currentPassword') }}
+      </label>
       <div class="relative">
         <input :type="formState.showPassword.current ? 'text' : 'password'"
                name="currentp"
@@ -36,7 +38,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                required
                tabindex="1"
                autocomplete="current-password"
-               aria-label="Current Password"
+               :aria-label="$t('account.changePassword.currentPassword')"
                aria-labelledby="currentPasswordLabel"
                class="mt-1 block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         <button type="button"
@@ -49,11 +51,13 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
         </button>
       </div>
     </div>
+
     <div class="relative mb-4">
       <label for="newPassword"
              id="newPasswordLabel"
-             class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
-
+             class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ $t('account.changePassword.newPassword') }}
+      </label>
       <div class="relative">
         <input :type="formState.showPassword.new ? 'text' : 'password'"
                name="newp"
@@ -62,12 +66,12 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                required
                tabindex="2"
                autocomplete="new-password"
-               aria-label="New Password"
+               :aria-label="$t('account.changePassword.newPassword')"
                aria-labelledby="newPasswordLabel"
                class="mt-1 block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         <button type="button"
                 @click="togglePassword('new')"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+                class="absolute inset-y-0 right-0 flex items-center pr-3">
           <OIcon collection="heroicons-solid"
                 :name="formState.showPassword.new ? 'eye' : 'eye-off'"
                 class="size-5 text-gray-400 dark:text-gray-100"
@@ -75,11 +79,13 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
         </button>
       </div>
     </div>
+
     <div class="relative mb-4">
       <label for="confirmPassword"
-             id="confirmPasswordlabel"
-             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm</label>
-
+             id="confirmPasswordLabel"
+             class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ $t('account.changePassword.confirmPassword') }}
+      </label>
       <div class="relative">
         <input :type="formState.showPassword.confirm ? 'text' : 'password'"
                name="newp2"
@@ -88,8 +94,8 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
                required
                tabindex="3"
                autocomplete="confirm-password"
-               aria-label="New Password"
-               aria-labelledby="confirmPasswordlabel"
+               :aria-label="$t('account.changePassword.newPassword')"
+               aria-labelledby="confirmPasswordLabel"
                class="mt-1 block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring focus:ring-brand-500 focus:ring-opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         <button type="button"
                 @click="togglePassword('confirm')"
@@ -102,14 +108,11 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
       </div>
     </div>
 
-    <!-- Similar updates for new password and confirm password fields -->
-
-    <div v-if="formState.error"
-         class="mb-4 text-red-500">
+    <!-- Notification messages -->
+    <div v-if="formState.error" class="mb-4 text-red-500">
       {{ formState.error }}
     </div>
-    <div v-if="formState.success"
-         class="mb-4 text-green-500">
+    <div v-if="formState.success" class="mb-4 text-green-500">
       {{ formState.success }}
     </div>
 
@@ -117,7 +120,7 @@ const { formState, isValid, handleSubmit, togglePassword } = usePasswordChange(e
             :disabled="!isValid || formState.isSubmitting"
             class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 disabled:opacity-50">
       <i class="fas fa-save mr-2"></i>
-      {{ formState.isSubmitting ? 'Updating...' : 'Update Password' }}
+      {{ formState.isSubmitting ? $t('account.changePassword.updating') : $t('account.changePassword.updatePassword') }}
     </button>
   </form>
 </template>

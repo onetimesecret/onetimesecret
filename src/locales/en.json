@@ -182,7 +182,10 @@
       "burned_ago": "Burned {time}",
       "viewed_ago": "This secret was viewed {time}",
       "encrypted_message": "This message is encrypted",
-      "destroyed_ago": "Destroyed {time}"
+      "destroyed_ago": "Destroyed {time}",
+      "burned": "",
+      "viewed": "",
+      "destroyed": ""
     },
     "shared": {
       "requires_passphrase": "This message requires a passphrase:",
@@ -192,7 +195,8 @@
       "this_message_for_you": "This message is for you:",
       "reply_with_secret": "Reply with another secret",
       "pre_reveal_default": "Click the button below to reveal your secure message.",
-      "post_reveal_default": "Your secure message is shown below."
+      "post_reveal_default": "Your secure message is shown below.",
+      "secret_was_truncated": ""
     },
     "dashboard": {
       "title_received": "Received",
@@ -219,7 +223,39 @@
       "incoming_ticket_number": "Enter Ticket #",
       "incoming_ticket_number_hint": "You can find this in your email (e.g. 123456)",
       "incoming_recipient_address": "Support recipient",
-      "incoming_success_message": "Your email has been sent"
+      "incoming_success_message": "Your email has been sent",
+      "incoming_button_creating": ""
+    },
+    "page": {
+      "cta_title": "",
+      "cta_subtitle": "",
+      "cta_feature1": "",
+      "cta_feature2": "",
+      "cta_feature3": "",
+      "explore_premium_plans": "",
+      "need_free_account": "",
+      "sign_up_free": ""
+    },
+    "account": {
+      "subscription_title": "Subscription",
+      "manage_subscription": "Manage Subscription",
+      "customer_information": "Customer Information",
+      "customer_since": "Customer since:",
+      "email": "Email:",
+      "account_balance": "Account balance:",
+      "default_payment_method": "Default Payment Method",
+      "card_ending": "ending in",
+      "subscriptions_title": "Subscriptions",
+      "quantity": "Quantity:",
+      "next_billing_date": "Next billing date:",
+      "changePassword": {
+        "username": "Username",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm",
+        "updatePassword": "Update Password",
+        "updating": "Updating..."
+      }
     }
   },
   "email": {

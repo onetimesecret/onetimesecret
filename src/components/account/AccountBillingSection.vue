@@ -42,27 +42,27 @@ const subscriptionDetails = computed(() => {
           name="credit-card-outline"
           class="mr-2 size-6 text-brandcomp-500"
         />
-        Subscription
+        {{ $t('account.subscription_title') }}
       </h2>
       <a
         href="/account/billing_portal"
         class="inline-flex items-center rounded-md border border-transparent bg-brandcomp-500 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brandcomp-600 focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2">
-        Manage Subscription
+        {{ $t('account.manage_subscription') }}
       </a>
     </header>
 
     <section class="grid grid-cols-1 gap-6 md:grid-cols-2">
       <div class="space-y-4">
         <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-          Customer Information
+          {{ $t('account.customer_information') }}
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-          <li>Customer since: {{ formatDate(props.stripeCustomer.created) }}</li>
+          <li>{{ $t('account.customer_since') }} {{ formatDate(props.stripeCustomer.created) }}</li>
           <li v-if="props.stripeCustomer.email">
-            Email: {{ props.stripeCustomer.email }}
+            {{ $t('account.email') }} {{ props.stripeCustomer.email }}
           </li>
           <li v-if="props.stripeCustomer.balance !== 0">
-            Account balance: ${{ (props.stripeCustomer.balance / 100).toFixed(2) }}
+            {{ $t('account.account_balance') }} ${{ (props.stripeCustomer.balance / 100).toFixed(2) }}
           </li>
         </ul>
       </div>
@@ -71,7 +71,7 @@ const subscriptionDetails = computed(() => {
         v-if="defaultPaymentMethod?.card"
         class="space-y-4">
         <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-          Default Payment Method
+          {{ $t('account.default_payment_method') }}
         </h3>
         <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
           <OIcon
@@ -80,14 +80,14 @@ const subscriptionDetails = computed(() => {
             class="mr-2 size-8 text-gray-400"
           />
           {{ defaultPaymentMethod.card.brand }}
-          ending in {{ defaultPaymentMethod.card.last4 }}
+          {{ $t('account.card_ending') }} {{ defaultPaymentMethod.card.last4 }}
         </div>
       </div>
     </section>
 
     <section class="space-y-6">
       <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-        Subscriptions
+        {{ $t('account.subscriptions_title') }}
       </h3>
       <div
         v-for="subscription in subscriptionDetails"
@@ -102,15 +102,14 @@ const subscriptionDetails = computed(() => {
             {{ subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1) }}
           </span>
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            ${{ ((subscription.amount * subscription.quantity) / 100).toFixed(2) }} /
-            {{ subscription.interval }}
+            ${{ ((subscription.amount * subscription.quantity) / 100).toFixed(2) }} / {{ subscription.interval }}
           </span>
         </div>
         <div class="text-sm text-gray-600 dark:text-gray-400">
           <p v-if="subscription.quantity > 1">
-            Quantity: {{ subscription.quantity }} x ${{ (subscription.amount / 100).toFixed(2) }}
+            {{ $t('account.quantity') }} {{ subscription.quantity }} x ${{ (subscription.amount / 100).toFixed(2) }}
           </p>
-          <p>Next billing date: {{ formatDate(subscription.currentPeriodEnd) }}</p>
+          <p>{{ $t('account.next_billing_date') }} {{ formatDate(subscription.currentPeriodEnd) }}</p>
         </div>
       </div>
     </section>
