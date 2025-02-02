@@ -1,0 +1,15 @@
+# Ignore node_modules
+node_modules
+
+dist
+public
+lib
+scripts
+migrate
+sorbet
+tests
+templates
+docs
+etc
+bin
+support

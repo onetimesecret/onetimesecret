@@ -6,8 +6,6 @@ import { WindowService } from '@/services/window.service';
 import { Plan } from '@/schemas/models';
 import { ref, computed } from 'vue';
 import { onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-const { t } = useI18n();
 
 const { available_plans, default_planid } = WindowService.getMultiple({
   available_plans: null,
@@ -44,7 +42,6 @@ onMounted(() => {
 });
 const githubLink = '<a href="https://github.com/onetimesecret/onetimesecret">our code remains open-source</a>';
 const privacyPolicyLink = `<router-link to="/info/privacy">privacy policy</router-link>`;
-const trustPoints = t('about.faq.trust_points');
 </script>
 
 <template>
@@ -127,9 +124,10 @@ const trustPoints = t('about.faq.trust_points');
       {{ $t('about.faq.trust_description') }}
     </p>
     <ul>
-      <li v-for="(point, index) in trustPoints" :key="index">
-        {{ point }}
-      </li>
+      <li>{{ $t('about.faq.trust_points.0') }}</li>
+      <li>{{ $t('about.faq.trust_points.1') }}</li>
+      <li>{{ $t('about.faq.trust_points.2') }}</li>
+      <li>{{ $t('about.faq.trust_points.3') }}</li>
     </ul>
 
     <h4>{{ $t('about.faq.passphrase_title') }}</h4>
@@ -137,9 +135,10 @@ const trustPoints = t('about.faq.trust_points');
       {{ $t('about.faq.passphrase_description') }}
     </p>
     <ul>
-      <li v-for="(point, index) in $t('about.faq.passphrase_points')" :key="index">
-        {{ point }}
-      </li>
+      <li>{{ $t('about.faq.passphrase_points.0') }}</li>
+      <li>{{ $t('about.faq.passphrase_points.1') }}</li>
+      <li>{{ $t('about.faq.passphrase_points.2') }}</li>
+      <li>{{ $t('about.faq.passphrase_points.3') }}</li>
     </ul>
     <p>
       {{ $t('about.faq.passphrase_final_note') }}
