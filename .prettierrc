@@ -19,7 +19,7 @@
     }
   ],
   "plugins": ["prettier-plugin-vue", "@prettier/plugin-ruby"],
-  "printWidth": 120,
+  "printWidth": 100,
   "proseWrap": "preserve",
   "quoteProps": "as-needed",
   "semi": true,

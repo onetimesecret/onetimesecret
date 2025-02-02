@@ -136,9 +136,7 @@ export const useLanguageStore = defineStore('language', () => {
       storedLocale.value,
     ];
 
-    const supported = locales.find(
-      (locale) => locale && supportedLocales.value.includes(locale)
-    );
+    const supported = locales.find((locale) => locale && supportedLocales.value.includes(locale));
 
     return supported ?? DEFAULT_LOCALE;
   }
