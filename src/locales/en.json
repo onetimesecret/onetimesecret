@@ -206,7 +206,8 @@
       "each-secret-can-only-be-viewed-once-after-viewin": "Each secret can only be viewed once. After viewing, it's permanently deleted from our servers. This ensures your sensitive information isn't accidentally exposed through browser history or mistakenly shared private links.",
       "one-time-access": "One-time Access",
       "core-security-features": "Core Security Features",
-      "expires-in-record-natural_expiration": "Expires in {0}"
+      "expires-in-record-natural_expiration": "Expires in {0}",
+      "send-feedback": "Send feedback"
     },
     "shared": {
       "requires_passphrase": "This message requires a passphrase:",
@@ -292,7 +293,8 @@
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",
-      "send-feedback": "Send feedback"
+      "send-feedback": "Send feedback",
+      "sending-ellipses": "Sending..."
     },
     "security": {
       "thank-you-for-helping-us-keep-onetime-secret-sec": "Thank you for helping us keep Onetime Secret secure and excellent!",
@@ -353,16 +355,16 @@
     "title": "About Us",
     "faq": {
       "trust_points": [
-        "We can't access your information even if we wanted to (which we don't). For example, if you share a password, we don't know the username or even the application it's for.",
-        "If you use a passphrase (available under \"Privacy Options\"), we include that in the encryption key for the secret. We only store a bcrypt hash of the passphrase, making it impossible for us to decrypt your secret once it's saved.",
-        "Our code is {openSourceLink}. You can review it yourself or even run your own instance if you prefer.",
-        "We use industry-standard security practices, including HTTPS for all connections and encryption at rest for stored data."
+        "",
+        "",
+        "",
+        ""
       ],
       "passphrase_points": [
-        "We never store the unencrypted secret or the passphrase.",
-        "The bcrypt hash cannot be used to decrypt the secret.",
-        "Without the original passphrase, the encrypted secret cannot be decrypted, even by us.",
-        "This means that even if our servers were compromised, your secret would remain secure as long as the passphrase remains unknown."
+        "",
+        "",
+        "",
+        ""
       ],
       "why_use_title": "Why would I use this?",
       "why_use_description": "When you send people passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.",
@@ -514,7 +516,6 @@
   "image-icon": "Image icon",
   "use-the-controls-above-to-customize-brand-color-styles-and-recipient-instructions": "Use the controls above to customize brand color, styles, and recipient instructions",
   "customization-icon": "Customization icon",
-  "this-is-an-interactive-preview-of-how-recipients-will-see-your-secure-messages-you-can-customize-colors-and-fonts-using-the-controls-above-upload-a-logo-minimum-128x128-pixels-recommended-1mb-max-test-the-preview-using-the-view-secret-button": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
   "and-customize": "& Customize",
   "you-have-unsaved-changes-are-you-sure": "You have unsaved changes. Are you sure?",
   "failed-to-load-brand-settings": "Failed to load brand settings",
@@ -820,5 +821,6 @@
   "continue-to-jurisdiction-domain": "Continue to {0}",
   "current-jurisdiction": "Current jurisdiction:",
   "welcome-to-the-global-broadcast": "Welcome to the Global Broadcast!",
-  "secret-link": "Secret link"
+  "secret-link": "Secret link",
+  "inactive": ""
 }

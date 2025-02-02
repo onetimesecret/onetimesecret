@@ -147,7 +147,7 @@ const {
                   isSubmitting ? 'cursor-not-allowed opacity-50' : ''
                 ]"
                 :aria-label="$t('web.feedback.send-feedback')">
-                {{ isSubmitting ? $t('web.feedback.sending=ellipses') : $t('web.COMMON.button_send_feedback') }}
+                {{ isSubmitting ? $t('web.feedback.sending-ellipses') : $t('web.COMMON.button_send_feedback') }}
               </button>
             </div>
           </div>
