@@ -46,7 +46,7 @@ const { reportException } = useExceptionReporting();
 const handleSpecialMessages = (message: string) => {
   console.log(`Checking for special message: ${message}`)
   if (message.startsWith('#ex')) {
-    const error = new Error('Test error triggered via feedback');
+    const error = new Error(t('test-error-triggered-via-feedback'));
     reportException({
       message: `Test exception: ${message.substring(11)}`,
       type: 'TestFeedbackError',
@@ -147,7 +147,7 @@ const {
                   isSubmitting ? 'cursor-not-allowed opacity-50' : ''
                 ]"
                 :aria-label="$t('web.feedback.send-feedback')">
-                {{ isSubmitting ? $t('web.feedback.sending_ellipses') : $t('web.COMMON.button_send_feedback') }}
+                {{ isSubmitting ? $t('web.feedback.sending=ellipses') : $t('web.COMMON.button_send_feedback') }}
               </button>
             </div>
           </div>

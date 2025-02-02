@@ -28,8 +28,8 @@ const closeFeedbackModal = () => {
                focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300
                dark:hover:bg-slate-900
                dark:focus:ring-brand-400"
-      aria-label="Open feedback form">
-      <span class="inline">Feedback</span>
+      aria-label="$t('open-feedback-form')">
+      <span class="inline">{{ $t('feedback') }}</span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         class="size-4 text-gray-500 transition-colors group-hover:text-brand-500 dark:text-gray-300

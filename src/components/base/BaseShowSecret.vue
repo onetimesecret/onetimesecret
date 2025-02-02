@@ -51,7 +51,7 @@
   <main
     class="min-h-screen"
     role="main"
-    aria-label="Secret viewing page">
+    :aria-label="$t('secret-viewing-page')">
     <div class="w-full max-w-4xl mx-auto">
       <!-- Header slot for branding/title -->
       <slot

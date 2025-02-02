@@ -1,4 +1,4 @@
-// src/components/secrets/metadata/TimelineDisplay.vue
+<!-- src/components/secrets/metadata/TimelineDisplay.vue -->
 
 <script setup lang="ts">
 import type { Metadata, MetadataDetails } from '@/schemas/models';

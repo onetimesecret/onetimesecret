@@ -2,7 +2,9 @@
 import type { ApplicationError } from '@/schemas/errors';
 import { computed } from 'vue';
 import { ZodError } from 'zod';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const props = defineProps<{
   error: ApplicationError;
 }>();
@@ -10,7 +12,7 @@ const props = defineProps<{
 const isZodError = computed(() => props.error.cause instanceof ZodError);
 const friendlyMessage = computed(() => {
   if (!isZodError.value) return props.error.message;
-  return "Unable to load the list due to data format issues. Please try again later.";
+  return t('unable-to-load-data-due-to-data-format-issues-pl');
 });
 </script>
 
