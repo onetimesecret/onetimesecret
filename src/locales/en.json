@@ -819,5 +819,6 @@
   "open-options": "Open options",
   "continue-to-jurisdiction-domain": "Continue to {0}",
   "current-jurisdiction": "Current jurisdiction:",
-  "welcome-to-the-global-broadcast": "Welcome to the Global Broadcast!"
+  "welcome-to-the-global-broadcast": "Welcome to the Global Broadcast!",
+  "secret-link": "Secret link"
 }
