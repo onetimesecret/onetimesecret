@@ -17,7 +17,7 @@ const localeSchema = z
   .string()
   .min(2)
   .max(5)
-  .regex(/^[a-z]{2}(_-[A-Z]{2})?$/);
+  .regex(/^[a-z]{2}(-[A-Z]{2})?$/);
 
 interface StoreOptions extends PiniaPluginOptions {
   deviceLocale?: string;
