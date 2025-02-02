@@ -72,8 +72,7 @@
       "burn_security_notice": "Wenn Sie ein Geheimnis verbrennen, wird es gelöscht, bevor es empfangen wurde.",
       "share_link_securely": "Geben Sie diesen Link aus Sicherheitsgründen getrennt von anderen Angaben weiter.",
       "copied_to_clipboard": "In die Zwischenablage kopiert",
-      "button_create_incoming": "",
-      "bun_this_secret_confirm_hint": ""
+      "button_create_incoming": ""
     },
     "LABELS": {
       "view_toggle": {

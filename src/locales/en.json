@@ -72,8 +72,7 @@
       "burn_security_notice": "Burning a secret will delete it before it has been received.",
       "share_link_securely": "For security, share this link separately from other details.",
       "copied_to_clipboard": "Copied to clipboard",
-      "button_create_incoming": "",
-      "bun_this_secret_confirm_hint": ""
+      "button_create_incoming": ""
     },
     "LABELS": {
       "view_toggle": {
