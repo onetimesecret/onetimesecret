@@ -26,7 +26,7 @@ const emit = defineEmits<{
     :aria-checked="!!modelValue"
     @click="emit('update:modelValue', !modelValue)">
     <span class="sr-only">
-      {{ modelValue ? 'Disable' : 'Enable' }} homepage access
+      {{ modelValue ? 'Disable' : 'Enable' }} {{ $t('homepage-access') }}
     </span>
     <span
       :class="[
