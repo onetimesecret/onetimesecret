@@ -8,6 +8,7 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 import { WindowService } from '@/services/window.service';
 import type { LayoutProps } from '@/types/ui/layouts';
 import { ref } from 'vue';
+import LanguageToggle from '@/components/LanguageToggle.vue';
 
 withDefaults(defineProps<LayoutProps>(), {
   displayFeedback: true,
@@ -77,6 +78,8 @@ const companyName = ref('OnetimeSecret.com');
             duration-200 hover:text-gray-800
             dark:text-gray-400 dark:hover:text-gray-100"
                        :aria-label="$t('toggle-dark-mode')" />
+
+          <LanguageToggle :compact="true" />
 
           <FeedbackToggle v-if="displayFeedback && windowProps.authentication?.enabled"
                           class="

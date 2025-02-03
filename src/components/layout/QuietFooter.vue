@@ -10,6 +10,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
   import { ref } from 'vue';
 
+  import LanguageToggle from '@/components/LanguageToggle.vue';
+
   const productIdentity = useProductIdentity();
 
   withDefaults(defineProps<LayoutProps>(), {
@@ -58,18 +60,14 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 
           <JurisdictionFooterNotice v-if="windowProps.regions_enabled && windowProps.regions" />
 
-          <ThemeToggle class="
-            text-gray-500 transition-colors
-            duration-200 hover:text-gray-800
-            dark:text-gray-400 dark:hover:text-gray-100"
-                       :aria-label="$t('toggle-dark-mode')" />
-
-          <FeedbackToggle v-if="displayFeedback && windowProps.authentication?.enabled"
-                          class="
-            text-gray-500 transition-colors
-            duration-200 hover:text-gray-800
-            dark:text-gray-400 dark:hover:text-gray-100"
-                          :aria-label="$t('provide-feedback')" />
+          <ThemeToggle
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('toggle-dark-mode')" />
+          <LanguageToggle :compact="true" />
+          <FeedbackToggle
+            v-if="displayFeedback && windowProps.authentication?.enabled"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('provide-feedback')" />
         </div>
       </div>
     </div>
