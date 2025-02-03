@@ -10,7 +10,6 @@
     record: Secret | null;
     details: SecretDetails | null;
     domainId: string;
-    displayPoweredBy: boolean;
     submissionStatus?: {
       status: 'idle' | 'submitting' | 'success' | 'error';
       message?: string;

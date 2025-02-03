@@ -1,14 +1,12 @@
-import {
-  AsyncHandlerOptions,
-  createError,
-  useAsyncHandler,
-} from '@/composables/useAsyncHandler';
-import { useConfirmDialog } from '@/composables/useConfirmDialog';
+// src/composables/useDomainsManager.ts
+
+import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 /**
  * Composable for managing custom domains and their brand settings
@@ -28,6 +26,7 @@ export function useDomainsManager() {
   const { records, details } = storeToRefs(store);
 
   const { refreshRecords } = store;
+  const { t } = useI18n();
 
   const recordCount = computed(() => store.recordCount());
 
@@ -51,8 +50,6 @@ export function useDomainsManager() {
 
   // Composable async handler
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
-
-  const showConfirmDialog = useConfirmDialog();
 
   /**
    * Fetch domains list
@@ -83,10 +80,7 @@ export function useDomainsManager() {
   const verifyDomain = async (domainName: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(domainName);
-      notifications.show(
-        'Domain verification initiated successfully',
-        'success'
-      );
+      notifications.show(t('domain-verification-initiated-successfully'), 'success');
       return result;
     });
 
@@ -95,49 +89,19 @@ export function useDomainsManager() {
       const result = await store.addDomain(domain);
       if (result) {
         router.push({ name: 'DomainVerify', params: { domain } });
-        notifications.show('Domain added successfully', 'success');
+        notifications.show(t('domain-added-successfully'), 'success');
         setTimeout(() => {
           verifyDomain(domain);
         }, 2000);
         return result;
       }
-      error.value = createError('Failed to add domain', 'human', 'error');
+      error.value = createError(t('failed-to-add-domain'), 'human', 'error');
       return null;
     });
 
-  const deleteDomain = async (domainId: string) =>
-    wrap(async () => {
-      const confirmed = await confirmDelete(domainId);
-      if (!confirmed) return;
-
-      await store.deleteDomain(domainId);
-      notifications.show('Domain removed successfully', 'success');
-    });
-
-  const confirmDelete = async (domainId: string): Promise<string | null> => {
-    console.debug(
-      '[useDomainsManager] Confirming delete for domain:',
-      domainId
-    );
-
-    try {
-      const confirmed = await showConfirmDialog({
-        title: 'Remove Domain',
-        message: `Are you sure you want to remove this domain? This action cannot be undone.`,
-        confirmText: 'Remove Domain',
-        cancelText: 'Cancel',
-        type: 'danger',
-      });
-
-      if (!confirmed) {
-        console.debug('[useDomainsManager] Confirmation cancelled');
-        return null;
-      }
-      return domainId;
-    } catch (error) {
-      console.error('[useDomainsManager] Error in confirm dialog:', error);
-      return null;
-    }
+  const deleteDomain = async (domainId: string) => {
+    await store.deleteDomain(domainId);
+    notifications.show(t('domain-removed-successfully'), 'success');
   };
 
   return {
