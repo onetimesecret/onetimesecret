@@ -1,5 +1,6 @@
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { createApp } from 'vue';
+import i18n from '@/i18n'; // Import your i18n instance
 
 interface ConfirmDialogOptions {
   title: string;
@@ -29,7 +30,7 @@ export function useConfirmDialog() {
           resolve(false);
         },
       });
-
+      app.use(i18n);
       app.mount(dialogContainer);
     });
 
