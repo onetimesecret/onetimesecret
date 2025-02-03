@@ -18,8 +18,8 @@
   import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
   import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
-  import ThemeToggle from '@/components/ThemeToggle.vue';
-  import LanguageToggle from '@/components/LanguageToggle.vue';
+  import FooterControls from '@/components/layout/SecretFooterControls.vue';
+  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
 
   import UnknownSecret from './UnknownSecret.vue';
 
@@ -38,6 +38,7 @@
   <BaseShowSecret
     :secret-key="secretKey"
     :branded="false"
+    :site-host="siteHost"
     class="container mx-auto mt-24 px-4">
     <!-- Loading slot -->
     <template #loading="{}">
@@ -106,7 +107,7 @@
     <!-- Onboarding slot -->
     <template #onboarding="{ record }">
       <div v-if="!record.verification">
-        <SecretRecipientOnboardingContent :display-powered-by="true" />
+        <SecretRecipientOnboardingContent />
       </div>
     </template>
 
@@ -122,7 +123,6 @@
         <SecretDisplayCase
           aria-labelledby="secret-heading"
           class="w-full"
-          :display-powered-by="true"
           :record="record"
           :details="details" />
       </div>
@@ -130,15 +130,18 @@
 
     <!-- Unknown secret slot -->
     <template #unknown="{ branded }">
-
       <UnknownSecret :branded="branded" />
     </template>
 
     <!-- Footer slot -->
-    <template #footer="{}">
-      <div class="flex justify-center pt-16">
-        <ThemeToggle />
-        <LanguageToggle :compact="true" />
+    <template #footer="{ siteHost }">
+    <div class="flex flex-col items-center space-y-8 py-8">
+        <FooterControls :show-language="true" />
+        <FooterAttribution
+          :site-host="siteHost"
+          :show-nav="false"
+          :show-terms="false"
+        />
       </div>
     </template>
   </BaseShowSecret>

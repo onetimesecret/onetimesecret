@@ -12,8 +12,7 @@
 
   const props = defineProps<Props>();
 
-const status = useDomainStatus(props.domain);
-
+  const status = useDomainStatus(props.domain);
 </script>
 
 <template>
@@ -60,7 +59,11 @@ const status = useDomainStatus(props.domain);
         mode="icon"
         :domain="domain" />
       <span class="text-xs text-gray-500 dark:text-gray-400">
-        {{ $t('added-formatdistancetonow-domain-created-addsuffix-true', [formatDistanceToNow(domain.created, { addSuffix: true })]) }}
+        {{
+          $t('added-formatdistancetonow-domain-created-addsuffix-true', [
+            formatDistanceToNow(domain.created, { addSuffix: true }),
+          ])
+        }}
       </span>
     </div>
   </div>
