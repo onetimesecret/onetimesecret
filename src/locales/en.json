@@ -126,7 +126,8 @@
       "expiring_soon_description": "Secret will expire soon",
       "orphaned_description": "Secret has been orphaned and will be destroyed soon",
       "expired_description": "Secret has expired before being viewed",
-      "success": "Success"
+      "success": "Success",
+      "delivered": "Delivered"
     },
     "FEATURES": {
       "unlimited_views": "Unlimited Views",

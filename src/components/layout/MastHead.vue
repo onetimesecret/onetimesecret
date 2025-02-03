@@ -145,7 +145,7 @@
             <span class="text-xs text-gray-500 dark:text-gray-400">
               {{ $t('signed-sealed') }}
               <span class="relative group">
-                Delivered.<sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover:[animation:none]">*</sup>
+                {{ $t('web.STATUS.delivered') }}.<sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover:[animation:none]">*</sup>
                 <span class="absolute bottom-full left-36 -translate-x-1/2 hidden group-hover:block bg-gray-200/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400 text-xs rounded py-1 px-2 w-max">
                 <sup class="text-[0.7em] text-gray-500 dark:text-gray-400 [animation:pulse_4s_ease-in-out_infinite] group-hover:[animation:none]">*</sup> {{ $t('recipient-delivery-is-optional') }}</span>
               </span>
