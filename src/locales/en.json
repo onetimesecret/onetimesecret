@@ -355,18 +355,8 @@
   "about": {
     "title": "About Us",
     "faq": {
-      "trust_points": [
-        "",
-        "",
-        "",
-        ""
-      ],
-      "passphrase_points": [
-        "",
-        "",
-        "",
-        ""
-      ],
+      "trust_points": ["", "", "", ""],
+      "passphrase_points": ["", "", "", ""],
       "why_use_title": "Why would I use this?",
       "why_use_description": "When you send people passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.",
       "file_limitation_title": "Why can't I send pictures or other kinds of files?",
