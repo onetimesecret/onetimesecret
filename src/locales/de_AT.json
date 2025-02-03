@@ -14,6 +14,7 @@
       "header_settings": "Einstellungen",
       "submit_with": "Einreichen",
       "submitting": "Verarbeitung",
+      "processing": "",
       "description": "Halten Sie sensible Informationen aus Ihren Chat-Protokollen und E-Mails heraus. Geben Sie einen geheimen Link weiter, der nur einmalig verfügbar ist.",
       "keywords": "geheimnis, Passwortgenerator, Geheimnis teilen, einmalig",
       "button_create_secret": "Einen geheimen Link erstellen",
@@ -125,7 +126,8 @@
       "expiring_soon_description": "Geheimnis läuft bald aus",
       "orphaned_description": "Das Geheimnis ist verwaist und wird bald zerstört werden",
       "expired_description": "Das Geheimnis ist abgelaufen, bevor es angezeigt wurde",
-      "success": "Erfolg"
+      "success": "Erfolg",
+      "delivered": ""
     },
     "FEATURES": {
       "unlimited_views": "Unbegrenzte Ansichten",
@@ -821,5 +823,20 @@
   "current-jurisdiction": "Derzeitige Rechtsprechung:",
   "welcome-to-the-global-broadcast": "Willkommen bei der Global Broadcast!",
   "secret-link": "",
-  "inactive": ""
+  "inactive": "",
+  "current-language-is-currentlocal": "",
+  "language-changed-to-newlocale": "",
+  "switch-to-blank-mode": "",
+  "blank-mode-enabled": "",
+  "are-you-sure-you-want-to-remove-this-domain": "",
+  "remove-domain": "",
+  "domain-removed-successfully": "",
+  "failed-to-add-domain": "",
+  "domain-added-successfully": "",
+  "you-have-a-message": "",
+  "hide-secret": "",
+  "click-to-continue": "",
+  "an-error-occurred": "",
+  "copy-secret-to-clipboard": "",
+  "secret-copied-to-clipboard": ""
 }
