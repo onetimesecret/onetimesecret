@@ -50,7 +50,7 @@
 </script>
 
 <template>
-  <template>
+  <div>
     <section
       class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-6 lg:p-8"
       aria-labelledby="domains-heading">
@@ -158,5 +158,5 @@
       :title="$t('delete-domain')"
       :message="$t('delete-domain-warning')"
       type="danger" />
-  </template>
+  </div>
 </template>
