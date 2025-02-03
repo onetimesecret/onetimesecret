@@ -1,11 +1,11 @@
 <!-- src/components/layout/DefaultFooter.vue -->
 
 <script setup lang="ts">
-import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
-import FeedbackToggle from '@/components/FeedbackToggle.vue';
-import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
-import ThemeToggle from '@/components/ThemeToggle.vue';
-  import { useProductIdentity } from '@/stores/identityStore';;
+  import FooterLinkLists from '@/components/layout/FooterLinkLists.vue';
+  import FeedbackToggle from '@/components/FeedbackToggle.vue';
+  import JurisdictionFooterNotice from '@/components/JurisdictionFooterNotice.vue';
+  import ThemeToggle from '@/components/ThemeToggle.vue';
+  import { useProductIdentity } from '@/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { WindowService } from '@/services/window.service';
   import { ref } from 'vue';
@@ -14,16 +14,11 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
 
   const productIdentity = useProductIdentity();
 
-  withDefaults(defineProps<LayoutProps>(), {
+  withDefaults(defineProps<LayoutProps>(), {});
 
-  });
-
-  const windowProps = WindowService.getMultiple([
-    'regions_enabled', 'regions', 'authentication'
-  ]);
+  const windowProps = WindowService.getMultiple(['regions_enabled', 'regions', 'authentication']);
 
   const companyName = ref('OnetimeSecret.com');
-
 </script>
 <template>
   <footer
@@ -32,32 +27,22 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
     <div
       v-if="productIdentity.isCanonical"
       class="container mx-auto max-w-2xl px-4">
-      <FooterLinkLists v-if="displayLinks"
-                       v-bind="$props" />
+      <FooterLinkLists
+        v-if="displayLinks"
+        v-bind="$props" />
 
-      <div class="
-        mt-6 flex
-        flex-col-reverse items-center
-        justify-between
-        space-y-6 space-y-reverse md:flex-row
-        md:space-y-0">
-        <div class="
-          flex w-full
-          flex-wrap items-center justify-center
-          gap-4 text-center
-          text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
+      <div
+        class="mt-6 flex flex-col-reverse items-center justify-between space-y-6 space-y-reverse md:flex-row md:space-y-0">
+        <div
+          class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span v-if="displayVersion">
             &copy; {{ new Date().getFullYear() }} {{ companyName }}.
           </span>
         </div>
 
-        <div v-if="displayToggles"
-             class="
-          flex w-full
-          flex-wrap items-center justify-center
-          space-x-4 md:w-auto
-          md:justify-end">
-
+        <div
+          v-if="displayToggles"
+          class="flex w-full flex-wrap items-center justify-center space-x-4 md:w-auto md:justify-end">
           <JurisdictionFooterNotice v-if="windowProps.regions_enabled && windowProps.regions" />
 
           <ThemeToggle
@@ -71,7 +56,8 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
         </div>
       </div>
     </div>
-    <div v-else
+    <div
+      v-else
       class="container mx-auto max-w-2xl px-4">
       <div class="flex flex-col items-center justify-center space-y-4">
         <!-- Links Section -->
@@ -98,7 +84,6 @@ import ThemeToggle from '@/components/ThemeToggle.vue';
           v-if="displayToggles"
           class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
           :aria-label="$t('toggle-dark-mode')" />
-
       </div>
     </div>
   </footer>
