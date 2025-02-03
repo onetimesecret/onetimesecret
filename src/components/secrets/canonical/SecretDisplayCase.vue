@@ -9,7 +9,6 @@ import BaseSecretDisplay from './BaseSecretDisplay.vue';
 interface Props {
   record: Secret | null;
   details: SecretDetails | null;
-  displayPoweredBy: boolean;
   submissionStatus?: {
     status: 'idle' | 'submitting' | 'success' | 'error';
     message?: string;
@@ -60,7 +59,7 @@ const closeTruncatedWarning = (event: Event) => {
 </script>
 
 <template>
-  <BaseSecretDisplay :display-powered-by="displayPoweredBy">
+  <BaseSecretDisplay>
     <!-- Alert display -->
     <div v-if="submissionStatus?.status === 'error' || submissionStatus?.status === 'success'"
          :class="alertClasses"

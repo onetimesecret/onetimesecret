@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { WindowService } from '@/services/window.service';
 
-interface Props {
-  displayPoweredBy: boolean;
-}
+interface Props {}
 defineProps<Props>();
 
-const siteHost = WindowService.get('site_host');
 </script>
 
 <template>
@@ -63,30 +59,6 @@ const siteHost = WindowService.get('site_host');
             </p>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600">
-      <div class="space-x-2">
-        <a
-          v-if="displayPoweredBy"
-          :href="`https://${siteHost}`"
-          class="hover:underline"
-          rel="noopener noreferrer">
-          {{ $t('powered-by-onetime-secret') }}
-        </a>
-        <span v-if="displayPoweredBy">.</span>
-        <router-link
-          to="/info/terms"
-          class="hover:underline">
-          {{ $t('terms') }}
-        </router-link>
-        <span>.</span>
-        <router-link
-          to="/info/privacy"
-          class="hover:underline">
-          {{ $t('privacy') }}
-        </router-link>
       </div>
     </div>
   </div>

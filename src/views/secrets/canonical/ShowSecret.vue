@@ -23,7 +23,6 @@
 
   import UnknownSecret from './UnknownSecret.vue';
 
-
   defineProps<Props>();
 
   const closeWarning = (event: Event) => {
@@ -108,7 +107,7 @@
     <!-- Onboarding slot -->
     <template #onboarding="{ record }">
       <div v-if="!record.verification">
-        <SecretRecipientOnboardingContent :display-powered-by="true" />
+        <SecretRecipientOnboardingContent />
       </div>
     </template>
 
@@ -124,7 +123,6 @@
         <SecretDisplayCase
           aria-labelledby="secret-heading"
           class="w-full"
-          :display-powered-by="true"
           :record="record"
           :details="details" />
       </div>
@@ -132,7 +130,6 @@
 
     <!-- Unknown secret slot -->
     <template #unknown="{ branded }">
-
       <UnknownSecret :branded="branded" />
     </template>
 

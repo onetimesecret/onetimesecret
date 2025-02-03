@@ -72,7 +72,6 @@
           :domain-id="domainId"
           :error="error"
           :is-submitting="isLoading"
-          :display-powered-by="true"
           @user-confirmed="onConfirm" />
       </div>
     </template>
@@ -86,7 +85,6 @@
           :record="record"
           :details="details"
           :domain-id="domainId"
-          :display-powered-by="true"
           class="w-full" />
       </div>
     </template>
