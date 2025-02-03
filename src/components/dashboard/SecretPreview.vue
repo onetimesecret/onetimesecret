@@ -85,7 +85,7 @@ const fontFamilyClass = computed(() => {
 
 <template>
   <BaseSecretDisplay
-    default-title="You have a message"
+    :default-title="$t('you-have-a-message')"
     :domain-branding="domainBranding"
     :instructions="instructions">
     <template #logo>
@@ -209,7 +209,7 @@ const fontFamilyClass = computed(() => {
         :aria-expanded="isRevealed"
         aria-controls="secretContent"
         :aria-label="$t('isrevealed-hide-secret-message-view-secret-message')">
-        {{ isRevealed ? 'Hide Secret' : $t('web.COMMON.click_to_continue') }}
+        {{ isRevealed ? $t('hide-secret') : $t('web.COMMON.click_to_continue') }}
       </button>
     </template>
   </BaseSecretDisplay>
