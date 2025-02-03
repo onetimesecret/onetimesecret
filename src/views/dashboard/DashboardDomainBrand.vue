@@ -11,6 +11,9 @@ import { createError } from '@/schemas/errors';
 import { detectPlatform } from '@/utils';
 import { computed, onMounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{ domain: string }>();
 const {
@@ -40,7 +43,7 @@ const toggleBrowser = () => {
 // Add loading guard
 watch(() => isLoading.value, (loading) => {
   if (!loading && !brandSettings.value) {
-    error.value = createError(this.$t('failed-to-load-brand-settings'), 'technical', 'error');
+    error.value = createError(t('failed-to-load-brand-settings'), 'technical', 'error');
   }
 });
 
@@ -48,7 +51,7 @@ onMounted(initialize);
 
 onBeforeRouteLeave((to, from, next) => {
   if (hasUnsavedChanges.value) {
-    const answer = window.confirm(this.$t('you-have-unsaved-changes-are-you-sure'))
+    const answer = window.confirm(t('you-have-unsaved-changes-are-you-sure'))
     if (answer) next()
     else next(false)
   } else {

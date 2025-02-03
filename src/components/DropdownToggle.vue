@@ -3,12 +3,13 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 
 interface Props {
-  ariaLabel: string;
   openDirection?: 'up' | 'down';
+  mode?: 'dropdown' | 'icon';
 }
 
 withDefaults(defineProps<Props>(), {
-  openDirection: 'up'
+  openDirection: 'up',
+  mode: 'dropdown'
 });
 
 const emit = defineEmits(['menuToggled']);
@@ -70,19 +71,32 @@ onUnmounted(() => {
 
 // Expose methods to parent component
 defineExpose({ closeMenu });
+
+const dropdownId = `language-dropdown-${Math.random().toString(36).substr(2, 9)}`;
+
 </script>
 
 <template>
   <div
     class="relative flex items-center"
     :class="{ 'opacity-60 hover:opacity-100': !isMenuOpen }"
-    :aria-label="ariaLabel">
+    :aria-haspopup="true"
+    :aria-controls="dropdownId"
+    :aria-expanded="isMenuOpen">
     <button
       type="button"
-      class="inline-flex w-full items-center justify-center rounded-md border
-           border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50
-           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100
-           dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900"
+      :class="[
+          'inline-flex items-center justify-center rounded-md shadow-sm',
+          'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100',
+          'dark:focus:ring-offset-gray-900',
+          mode === 'icon' ? [
+            'size-10 p-1',
+            'border-transparent hover:bg-gray-200 dark:hover:bg-gray-700' // Updated hover color
+          ] : [
+            'w-full px-4 py-2',
+            'border border-gray-300 bg-white hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700'
+          ]
+        ]"
       :aria-expanded="isMenuOpen"
       aria-haspopup="true"
       @click="toggleMenu"
@@ -91,7 +105,11 @@ defineExpose({ closeMenu });
       @keydown.space.prevent="openMenu">
       <slot name="button-content"></slot>
       <svg
-        class="-mr-1 ml-2 size-5"
+      v-show="mode !== 'icon'"
+        :class="[
+          'size-5',
+          mode === 'icon' ? 'size-7' : 'size-5 -mr-1 ml-2'
+        ]"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 20 20"
         fill="currentColor"
@@ -116,6 +134,7 @@ defineExpose({ closeMenu });
       @keydown.up.prevent="focusPreviousItem"
       @keydown.down.prevent="focusNextItem">
       <div
+        id="dropdownId"
         class="max-h-60 overflow-y-auto py-1"
         role="none">
         <slot name="menu-items"></slot>

@@ -3,7 +3,9 @@
 import OIcon from '@/components/icons/OIcon.vue';
 import { useEventListener } from '@vueuse/core';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 
 const props = withDefaults(defineProps<{
   modelValue?: string;
@@ -38,19 +40,19 @@ const close = () => {
 
 // Handle ESC key press globally
 const handleEscPress = (e: KeyboardEvent) => {
-  if (e.key === this.$t('escape') && isOpen.value) {
+  if (e.key === t('escape') && isOpen.value) {
     close();
   }
 };
 const handleKeydown = (e: KeyboardEvent) => {
   // Close on escape
-  if (e.key === this.$t('escape')) {
+  if (e.key === t('escape')) {
     close();
     return;
   }
 
   // Save on Cmd+Enter (Mac) or Ctrl+Enter (Windows)
-  if (e.key === this.$t('enter') && (e.metaKey || e.ctrlKey)) {
+  if (e.key === t('enter') && (e.metaKey || e.ctrlKey)) {
     emit('save');
     close();
   }

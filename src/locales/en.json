@@ -46,7 +46,7 @@
       "warning": "Warning",
       "oops": "Oops!",
       "error": "Error",
-      "secret_was_truncated": "The message was truncated b\/c it was over",
+      "secret_was_truncated": "The message was truncated",
       "signup_for_more": "Signup for more",
       "login_to_your_account": "Log in to your account",
       "sent_to": "Sent to: ",
@@ -284,11 +284,11 @@
       "customer-id": "Customer ID"
     },
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}\/{1}\/{2} [{3}]",
+      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
       "customer-verified-verified-not-verified-0": "`+customer.verified ? `verified` : `not verified",
       "customers-details-counts-recent_customer_count-o-0": "Customers ({0} of {1})",
       "user-feedback-total-details-counts-feedback_coun-0": "User Feedback (Total: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metadata \/ Secrets: {0}\/{1} ({2}\/{3}\/{4} total)",
+      "metadata-secrets-details-counts-metadata_count-d-0": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
       "secrets-details-counts-secret_count-0": "Secrets ({0})",
       "active-in-the-past-5-minutes-0": "(active in the past 5 minutes)"
     },
@@ -355,18 +355,8 @@
   "about": {
     "title": "About Us",
     "faq": {
-      "trust_points": [
-        "",
-        "",
-        "",
-        ""
-      ],
-      "passphrase_points": [
-        "",
-        "",
-        "",
-        ""
-      ],
+      "trust_points": ["", "", "", ""],
+      "passphrase_points": ["", "", "", ""],
       "why_use_title": "Why would I use this?",
       "why_use_description": "When you send people passwords and private links via email or chat, there are copies of that information stored in many places. If you use a Onetime link instead, the information persists for a single viewing which means it can't be read by someone else later. This allows you to send sensitive information in a safe way knowing it's seen by one person only. Think of it like a self-destructing message.",
       "file_limitation_title": "Why can't I send pictures or other kinds of files?",
@@ -496,7 +486,7 @@
   "manage-brand": "Manage Brand",
   "added-formatdistancetonow-domain-created-addsuffix-true": "Added {0}",
   "press-esc-to-close": "Press ESC to close",
-  "charactercount-500-characters": "{0}\/500 characters",
+  "charactercount-500-characters": "{0}/500 characters",
   "use-your-phone-to-scan-the-qr-code": "Use your phone to scan the QR code",
   "these-instructions-will-be-shown-to-recipients-before-they-reveal-the-secret-content": "These instructions will be shown to recipients before they reveal the secret content",
   "pre-reveal-instructions": "Pre-reveal Instructions",
@@ -589,7 +579,7 @@
   "monthly": "Monthly",
   "yearly": "Yearly",
   "benefits-of": "Benefits of",
-  "randomtestimonial-stars-5": "{0}\/5",
+  "randomtestimonial-stars-5": "{0}/5",
   "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
   "randomtestimonial-quote": "\"{0}\"",
   "t-ai-generated-testimonial": "{0}:",
@@ -609,7 +599,7 @@
   "sign-in-to-your-account": "Sign in to your account",
   "enter-the-secret-content-here": "Enter the secret content here",
   "enter-the-secret-content-to-share-here": "Enter the secret content to share here",
-  "formattedcharcount-formattedmaxlength-chars": "{0} \/ {1} chars",
+  "formattedcharcount-formattedmaxlength-chars": "{0} / {1} chars",
   "enter-a-passphrase": "Enter a passphrase",
   "go-on-then": "Go on then.",
   "loading_ellipses": "Loading...",
@@ -645,11 +635,11 @@
   "unknown-jurisdiction-0": "Unknown Jurisdiction",
   "unknown-jurisdiction": "Unknown Jurisdiction",
   "redis-info": "Redis Info",
-  "customer-secrets_created-customer-secrets_shared": "{0}\/{1}\/{2} [{3}]",
+  "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
   "customer-verified-verified-not-verified": "`+customer.verified ? `verified` : `not verified",
   "customers-details-counts-recent_customer_count-o": "Customers ({0} of {1})",
   "user-feedback-total-details-counts-feedback_coun": "User Feedback (Total: {0})",
-  "metadata-secrets-details-counts-metadata_count-d": "Metadata \/ Secrets: {0}\/{1} ({2}\/{3}\/{4} total)",
+  "metadata-secrets-details-counts-metadata_count-d": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
   "secrets-details-counts-secret_count": "Secrets ({0})",
   "active-in-the-past-5-minutes": "(active in the past 5 minutes)",
   "past-14-days": "Past 14 Days",
@@ -821,5 +811,9 @@
   "current-jurisdiction": "Current jurisdiction:",
   "welcome-to-the-global-broadcast": "Welcome to the Global Broadcast!",
   "secret-link": "Secret link",
-  "inactive": "Inactive"
+  "inactive": "Inactive",
+  "current-language-is-currentlocal": "Change language. Current language is {0}",
+  "language-changed-to-newlocale": "Language changed to {0}",
+  "switch-to-blank-mode": "Switch to {0} mode",
+  "blank-mode-enabled": "{0} mode enabled"
 }

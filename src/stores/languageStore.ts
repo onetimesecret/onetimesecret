@@ -13,11 +13,15 @@ import { AxiosInstance } from 'axios';
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
 
+// Validates ISO language codes:
+// - 2-letter code (en)
+// - 4-letter codes with separator (en, pt_PT, DE-at)
+// Case insensitive. Must match entire string.
 const localeSchema = z
   .string()
   .min(2)
   .max(5)
-  .regex(/^[a-z]{2}(-[A-Z]{2})?$/);
+  .regex(/^([a-z]{2})([_\-]([a-z]{2}))?$/i);
 
 interface StoreOptions extends PiniaPluginOptions {
   deviceLocale?: string;

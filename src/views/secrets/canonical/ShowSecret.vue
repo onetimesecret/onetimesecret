@@ -19,6 +19,7 @@
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
   import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
   import ThemeToggle from '@/components/ThemeToggle.vue';
+  import LanguageToggle from '@/components/LanguageToggle.vue';
 
   import UnknownSecret from './UnknownSecret.vue';
 
@@ -137,6 +138,7 @@
     <template #footer="{}">
       <div class="flex justify-center pt-16">
         <ThemeToggle />
+        <LanguageToggle :compact="true" />
       </div>
     </template>
   </BaseShowSecret>

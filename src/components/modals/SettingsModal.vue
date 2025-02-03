@@ -85,11 +85,11 @@
         activeTab.value =
           tabButtons[(currentIndex - 1 + tabButtons.length) % tabButtons.length];
         break;
-      case this.$t('web.COMMON.title_home'):
+      case t('web.COMMON.title_home'):
         e.preventDefault();
         activeTab.value = tabButtons[0];
         break;
-      case this.$t('end'):
+      case t('end'):
         e.preventDefault();
         activeTab.value = tabButtons[tabButtons.length - 1];
         break;
