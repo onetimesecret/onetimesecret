@@ -3,6 +3,8 @@ import { Secret, SecretDetails, brandSettingschema } from '@/schemas/models';
 import { useProductIdentity } from '@/stores/identityStore';
 import { ref, computed } from 'vue';
 import BaseSecretDisplay from './BaseSecretDisplay.vue';
+import { useI18n } from 'vue-i18n';
+
 
 interface Props {
   secretKey: string;
@@ -14,6 +16,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { t } = useI18n();
 
 const emit = defineEmits(['user-confirmed']);
 // const useSecret = useSecret();
@@ -45,13 +49,16 @@ const handleImageError = () => {
   hasImageError.value = true;
 };
 
+const buttonText = computed(() => {
+  return props.isSubmitting ? t('web.COMMON.submitting') : t('click-to-continue')
+})
 // Prepare the standardized path to the logo image.
 // Note that the file extension needs to be present but is otherwise not used.
 const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
 </script>
 
 <template>
-  <BaseSecretDisplay default-title="You have a message"
+  <BaseSecretDisplay :default-title="$t('you-have-a-message')"
                      :domain-branding="safeBrandSettings"
                      :instructions="brandSettings?.instructions_pre_reveal">
     <template #logo>
@@ -151,11 +158,11 @@ const logoImage = ref<string>(`/imagine/${props.domainId}/logo.png`);
           }"
                 :style="{
             backgroundColor: brandSettings?.primary_color ?? '#dc4a22',
-            color: brandSettings?.button_text_light ? '#ffffff' : '#222222',
+            color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#222222',
           }"
                 class="focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
                 aria-live="polite">
-          <span class="sr-only">{{ isSubmitting ? 'Submitting...' : 'Click to continue' }}</span>
+          <span class="sr-only">{{ buttonText }}</span>
           {{ isSubmitting ? $t('web.COMMON.submitting') : $t('web.COMMON.click_to_continue') }}
         </button>
       </form>

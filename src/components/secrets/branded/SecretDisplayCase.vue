@@ -75,7 +75,7 @@
 
 <template>
   <BaseSecretDisplay
-    default-title="You have a message"
+    :default-title="$t('you-have-a-message')"
     :instructions="brandSettings?.instructions_pre_reveal"
     :domain-branding="safeBrandSettings">
     <!-- Alert display -->
@@ -115,7 +115,7 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-              (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
+              (submissionStatus.status === 'error' ? $t('an-error-occurred') : $t('web.STATUS.success'))
             }}
           </p>
         </div>
@@ -200,11 +200,11 @@
           }
         ]"
         :style="{
-          backgroundColor: brandSettings?.primary_color || 'var(--tw-color-brand-500)',
-          color: brandSettings?.button_text_light ? '#ffffff' : '#000000'
+          backgroundColor: brandSettings?.primary_color ??' #dc4a22',
+          color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#000000'
         }"
         aria-live="polite"
-        :aria-label="isCopied ? 'Secret copied to clipboard' : 'Copy secret to clipboard'"
+        :aria-label="isCopied ? $t('secret-copied-to-clipboard') : $t('copy-secret-to-clipboard')"
         :aria-pressed="isCopied">
         <svg
           v-if="!isCopied"
@@ -234,7 +234,7 @@
             stroke-width="2"
             d="M5 13l4 4L19 7" />
         </svg>
-        <span>{{ isCopied ? 'Copied!' : 'Copy to clipboard' }}</span>
+        <span>{{ isCopied ? $t('copied') : $t('copy_to_clipboard') }}</span>
       </button>
     </template>
   </BaseSecretDisplay>
