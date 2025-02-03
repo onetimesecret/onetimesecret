@@ -815,5 +815,10 @@
   "current-language-is-currentlocal": "Change language. Current language is {0}",
   "language-changed-to-newlocale": "Language changed to {0}",
   "switch-to-blank-mode": "Switch to {0} mode",
-  "blank-mode-enabled": "{0} mode enabled"
+  "blank-mode-enabled": "{0} mode enabled",
+  "are-you-sure-you-want-to-remove-this-domain": "Are you sure you want to remove this domain? This action cannot be undone.",
+  "remove-domain": "Remove Domain",
+  "domain-removed-successfully": "Domain removed successfully",
+  "failed-to-add-domain": "Failed to add domain",
+  "domain-added-successfully": "Domain added successfully"
 }

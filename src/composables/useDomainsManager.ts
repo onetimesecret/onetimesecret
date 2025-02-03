@@ -6,6 +6,7 @@ import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 /**
  * Composable for managing custom domains and their brand settings
@@ -25,6 +26,7 @@ export function useDomainsManager() {
   const { records, details } = storeToRefs(store);
 
   const { refreshRecords } = store;
+  const { t } = useI18n();
 
   const recordCount = computed(() => store.recordCount());
 
@@ -78,7 +80,7 @@ export function useDomainsManager() {
   const verifyDomain = async (domainName: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(domainName);
-      notifications.show('Domain verification initiated successfully', 'success');
+      notifications.show(t('domain-verification-initiated-successfully'), 'success');
       return result;
     });
 
@@ -87,19 +89,19 @@ export function useDomainsManager() {
       const result = await store.addDomain(domain);
       if (result) {
         router.push({ name: 'DomainVerify', params: { domain } });
-        notifications.show('Domain added successfully', 'success');
+        notifications.show(t('domain-added-successfully'), 'success');
         setTimeout(() => {
           verifyDomain(domain);
         }, 2000);
         return result;
       }
-      error.value = createError('Failed to add domain', 'human', 'error');
+      error.value = createError(t('failed-to-add-domain'), 'human', 'error');
       return null;
     });
 
   const deleteDomain = async (domainId: string) => {
     await store.deleteDomain(domainId);
-    notifications.show('Domain removed successfully', 'success');
+    notifications.show(t('domain-removed-successfully'), 'success');
   };
 
   return {

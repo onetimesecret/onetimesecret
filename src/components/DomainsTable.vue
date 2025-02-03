@@ -155,8 +155,8 @@
       v-if="isRevealed"
       @confirm="confirm"
       @cancel="cancel"
-      :title="$t('delete-domain')"
-      :message="$t('delete-domain-warning')"
+      :title="$t('remove-domain')"
+      :message="$t('are-you-sure-you-want-to-remove-this-domain')"
       type="danger" />
   </div>
 </template>
