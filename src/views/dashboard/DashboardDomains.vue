@@ -14,7 +14,6 @@ const plan = ref<Plan>(WindowService.get('plan'));
 
 const {
   isLoading,
-  deleteDomain,
   records,
   recordCount,
   error,
@@ -55,7 +54,6 @@ onMounted(() => {
         v-if="recordCount > 0"
         :domains="domains"
         :is-loading="isLoading"
-        @delete="deleteDomain"
       />
 
       <EmptyState

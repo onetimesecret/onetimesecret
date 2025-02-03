@@ -1,9 +1,6 @@
-import {
-  AsyncHandlerOptions,
-  createError,
-  useAsyncHandler,
-} from '@/composables/useAsyncHandler';
-import { useConfirmDialog } from '@/composables/useConfirmDialog';
+// src/composables/useDomainsManager.ts
+
+import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/composables/useAsyncHandler';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/stores';
 import { storeToRefs } from 'pinia';
@@ -52,8 +49,6 @@ export function useDomainsManager() {
   // Composable async handler
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
-  const showConfirmDialog = useConfirmDialog();
-
   /**
    * Fetch domains list
    * @param force - Force refresh even if already initialized
@@ -83,10 +78,7 @@ export function useDomainsManager() {
   const verifyDomain = async (domainName: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(domainName);
-      notifications.show(
-        'Domain verification initiated successfully',
-        'success'
-      );
+      notifications.show('Domain verification initiated successfully', 'success');
       return result;
     });
 
@@ -105,39 +97,9 @@ export function useDomainsManager() {
       return null;
     });
 
-  const deleteDomain = async (domainId: string) =>
-    wrap(async () => {
-      const confirmed = await confirmDelete(domainId);
-      if (!confirmed) return;
-
-      await store.deleteDomain(domainId);
-      notifications.show('Domain removed successfully', 'success');
-    });
-
-  const confirmDelete = async (domainId: string): Promise<string | null> => {
-    console.debug(
-      '[useDomainsManager] Confirming delete for domain:',
-      domainId
-    );
-
-    try {
-      const confirmed = await showConfirmDialog({
-        title: 'Remove Domain',
-        message: `Are you sure you want to remove this domain? This action cannot be undone.`,
-        confirmText: 'Remove Domain',
-        cancelText: 'Cancel',
-        type: 'danger',
-      });
-
-      if (!confirmed) {
-        console.debug('[useDomainsManager] Confirmation cancelled');
-        return null;
-      }
-      return domainId;
-    } catch (error) {
-      console.error('[useDomainsManager] Error in confirm dialog:', error);
-      return null;
-    }
+  const deleteDomain = async (domainId: string) => {
+    await store.deleteDomain(domainId);
+    notifications.show('Domain removed successfully', 'success');
   };
 
   return {
