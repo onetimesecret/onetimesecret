@@ -811,5 +811,9 @@
   "current-jurisdiction": "Current jurisdiction:",
   "welcome-to-the-global-broadcast": "Welcome to the Global Broadcast!",
   "secret-link": "Secret link",
-  "inactive": "Inactive"
+  "inactive": "Inactive",
+  "current-language-is-currentlocal": "Change language. Current language is {0}",
+  "language-changed-to-newlocale": "Language changed to {0}",
+  "switch-to-blank-mode": "Switch to {0} mode",
+  "blank-mode-enabled": "{0} mode enabled"
 }
