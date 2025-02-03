@@ -14,7 +14,7 @@
       "header_settings": "Einstellungen",
       "submit_with": "Einreichen",
       "submitting": "Verarbeitung",
-      "processing": "",
+      "processing": "Verarbeitung",
       "description": "Halten Sie sensible Informationen aus Ihren Chat-Protokollen und E-Mails heraus. Geben Sie einen geheimen Link weiter, der nur einmalig verfügbar ist.",
       "keywords": "geheimnis, Passwortgenerator, Geheimnis teilen, einmalig",
       "button_create_secret": "Einen geheimen Link erstellen",
@@ -73,7 +73,7 @@
       "burn_security_notice": "Wenn Sie ein Geheimnis verbrennen, wird es gelöscht, bevor es empfangen wurde.",
       "share_link_securely": "Geben Sie diesen Link aus Sicherheitsgründen getrennt von anderen Angaben weiter.",
       "copied_to_clipboard": "In die Zwischenablage kopiert",
-      "button_create_incoming": ""
+      "button_create_incoming": "Nachricht senden"
     },
     "LABELS": {
       "view_toggle": {
@@ -127,7 +127,7 @@
       "orphaned_description": "Das Geheimnis ist verwaist und wird bald zerstört werden",
       "expired_description": "Das Geheimnis ist abgelaufen, bevor es angezeigt wurde",
       "success": "Erfolg",
-      "delivered": ""
+      "delivered": "Geliefert"
     },
     "FEATURES": {
       "unlimited_views": "Unbegrenzte Ansichten",
@@ -136,7 +136,7 @@
     },
     "UNITS": {
       "ttl": {
-        "duration": "",
+        "duration": "{count} {unit}",
         "time": {
           "day": "tag | Tage",
           "hour": "stunde | Stunden",
@@ -210,7 +210,7 @@
       "one-time-access": "Einmaliger Zugang",
       "core-security-features": "Zentrale Sicherheitsmerkmale",
       "expires-in-record-natural_expiration": "Läuft ab in {0}",
-      "send-feedback": ""
+      "send-feedback": "Feedback senden"
     },
     "shared": {
       "requires_passphrase": "Für diese Nachricht ist eine Passphrase erforderlich:",
@@ -297,7 +297,7 @@
     "feedback": {
       "when-you-submit-feedback-well-see": "Wenn Sie ein Feedback abgeben, werden wir es sehen:",
       "send-feedback": "Feedback senden",
-      "sending-ellipses": ""
+      "sending-ellipses": "Ich schicke..."
     },
     "security": {
       "thank-you-for-helping-us-keep-onetime-secret-sec": "Vielen Dank, dass Sie uns helfen, Onetime Secret sicher und ausgezeichnet zu halten!",
@@ -822,21 +822,21 @@
   "continue-to-jurisdiction-domain": "Weiter zu {0}",
   "current-jurisdiction": "Derzeitige Rechtsprechung:",
   "welcome-to-the-global-broadcast": "Willkommen bei der Global Broadcast!",
-  "secret-link": "",
-  "inactive": "",
-  "current-language-is-currentlocal": "",
-  "language-changed-to-newlocale": "",
-  "switch-to-blank-mode": "",
-  "blank-mode-enabled": "",
-  "are-you-sure-you-want-to-remove-this-domain": "",
-  "remove-domain": "",
-  "domain-removed-successfully": "",
-  "failed-to-add-domain": "",
-  "domain-added-successfully": "",
-  "you-have-a-message": "",
-  "hide-secret": "",
-  "click-to-continue": "",
-  "an-error-occurred": "",
-  "copy-secret-to-clipboard": "",
-  "secret-copied-to-clipboard": ""
+  "secret-link": "Geheime Verbindung",
+  "inactive": "Inaktiv",
+  "current-language-is-currentlocal": "Sprache ändern. Die derzeitige Sprache ist {0}",
+  "language-changed-to-newlocale": "Sprache geändert in {0}",
+  "switch-to-blank-mode": "In den Modus {0} wechseln",
+  "blank-mode-enabled": "{0} Modus aktiviert",
+  "are-you-sure-you-want-to-remove-this-domain": "Sind Sie sicher, dass Sie diese Domäne entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "remove-domain": "Bereich entfernen",
+  "domain-removed-successfully": "Domain erfolgreich entfernt",
+  "failed-to-add-domain": "Domäne kann nicht hinzugefügt werden",
+  "domain-added-successfully": "Domain erfolgreich hinzugefügt",
+  "you-have-a-message": "Sie haben eine Nachricht",
+  "hide-secret": "Geheimnis verbergen",
+  "click-to-continue": "Zum Fortfahren klicken",
+  "an-error-occurred": "Es ist ein Fehler aufgetreten",
+  "copy-secret-to-clipboard": "Geheimnis in die Zwischenablage kopieren",
+  "secret-copied-to-clipboard": "Geheimnis in die Zwischenablage kopiert"
 }
