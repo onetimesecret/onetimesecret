@@ -18,8 +18,8 @@
   import SecretConfirmationForm from '@/components/secrets/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/components/secrets/canonical/SecretDisplayCase.vue';
   import SecretRecipientOnboardingContent from '@/components/secrets/SecretRecipientOnboardingContent.vue';
-  import ThemeToggle from '@/components/ThemeToggle.vue';
-  import LanguageToggle from '@/components/LanguageToggle.vue';
+  import FooterControls from '@/components/layout/SecretFooterControls.vue';
+  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
 
   import UnknownSecret from './UnknownSecret.vue';
 
@@ -135,10 +135,14 @@
     </template>
 
     <!-- Footer slot -->
-    <template #footer="{}">
-      <div class="flex justify-center pt-16">
-        <ThemeToggle />
-        <LanguageToggle :compact="true" />
+    <template #footer="{ siteHost }">
+    <div class="flex flex-col items-center space-y-8 py-8">
+        <FooterControls :show-language="true" />
+        <FooterAttribution
+          :site-host="siteHost"
+          :show-nav="false"
+          :show-terms="false"
+        />
       </div>
     </template>
   </BaseShowSecret>

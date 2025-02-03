@@ -13,12 +13,14 @@
  * @see SecretDisplayCase - Displays revealed content using BaseSecretDisplay
  */
 
- import BaseShowSecret from '@/components/base/BaseShowSecret.vue';
- import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
- import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
- import ThemeToggle from '@/components/ThemeToggle.vue';
- import { useProductIdentity } from '@/stores/identityStore';
- import UnknownSecret from './UnknownSecret.vue';
+  import BaseShowSecret from '@/components/base/BaseShowSecret.vue';
+  import SecretConfirmationForm from '@/components/secrets/branded/SecretConfirmationForm.vue';
+  import SecretDisplayCase from '@/components/secrets/branded/SecretDisplayCase.vue';
+  import { useProductIdentity } from '@/stores/identityStore';
+  import FooterControls from '@/components/layout/SecretFooterControls.vue';
+  import FooterAttribution from '@/components/layout/SecretFooterAttribution.vue';
+
+  import UnknownSecret from './UnknownSecret.vue';
 
  interface Props {
    secretKey: string;
@@ -97,39 +99,13 @@
     </template>
 
     <!-- Footer slot -->
-    <template #footer>
-      <div class="mx-auto max-w-2xl">
-        <footer class="pt-20 text-center text-xs text-gray-400 dark:text-gray-600"
-                role="contentinfo">
-          <nav class="space-x-2"
-               aria-label="$t('footer-navigation')">
-            <a :href="`https://${siteHost}`"
-               class="hover:underline
-                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-               rel="noopener noreferrer"
-               aria-label="$t('visit-onetime-secret-homepage')">
-              {{ $t('powered-by-onetime-secret') }}
-            </a>
-            <span aria-hidden="true">.</span>
-            <router-link to="/info/terms"
-                         class="hover:underline
-                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                         aria-label="$t('view-terms-of-service')">
-              {{ $t('terms') }}
-            </router-link>
-            <span aria-hidden="true">.</span>
-            <router-link to="/info/privacy"
-                         class="hover:underline
-                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                         aria-label="$t('view-privacy-policy')">
-              {{ $t('privacy') }}
-            </router-link>
-          </nav>
-        </footer>
-
-        <div class="flex justify-center pt-16">
-          <ThemeToggle />
-        </div>
+    <template #footer="{ siteHost }">
+      <div class="flex flex-col items-center space-y-8 py-8">
+        <FooterControls :show-language="true" />
+        <FooterAttribution
+          :site-host="siteHost"
+          :show-nav="true"
+          :show-terms="true" />
       </div>
     </template>
   </BaseShowSecret>
