@@ -5,6 +5,7 @@
   import { setLanguage } from '@/i18n';
   import { useLanguageStore } from '@/stores/languageStore';
   import { computed, onMounted, ref, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
   import DropdownToggle from './DropdownToggle.vue';
 
@@ -12,10 +13,11 @@
     compact?: boolean;
   }
 
-  withDefaults(defineProps<Props>(), {
+  const props = withDefaults(defineProps<Props>(), {
     compact: false,
   });
 
+  const { t } = useI18n();
   const emit = defineEmits<{
     (e: 'localeChanged', locale: string): void;
   }>();
@@ -46,6 +48,20 @@
       await Promise.all([languageStore.updateLanguage(newLocale), setLanguage(newLocale)]);
       selectedLocale.value = newLocale;
       emit('localeChanged', newLocale);
+
+      // Add an ARIA live announcement
+      const liveRegion = document.createElement('div');
+      liveRegion.setAttribute('role', 'status');
+      liveRegion.setAttribute('aria-live', 'polite');
+      liveRegion.className = 'sr-only';  // visually hidden but available to screen readers
+      liveRegion.textContent = t('language-changed-to-newlocale', [newLocale]);
+      document.body.appendChild(liveRegion);
+
+      // Clean up after announcement
+      setTimeout(() => {
+        document.body.removeChild(liveRegion);
+      }, 1000);
+
     } catch (err) {
       console.error('Failed to update language:', err);
     } finally {
@@ -56,22 +72,28 @@
   onMounted(() => {
     setLanguage(selectedLocale.value);
   });
+
+  const ariaLabel = t('current-language-is-currentlocal', [currentLocale.value]);
+  const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
 </script>
 
 <template>
   <DropdownToggle
     ref="dropdownRef"
-    ariaLabel="Change language"
+    class="text-gray-700"
     open-direction="up"
-    :mode="compact ? 'icon' : 'dropdown' ">
+    :aria-label="ariaLabel"
+    :mode="dropdownMode">
     <template #button-content>
       <template v-if="compact">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="size-5 text-gray-400"
+          class="size-5 text-gray-600 dark:text-gray-400"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="currentColor">
+          stroke="currentColor"
+          aria-hidden="true"
+          role="img">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -107,7 +129,9 @@
             ? 'bg-gray-100 font-bold text-indigo-600 dark:bg-gray-700 dark:text-indigo-400'
             : 'text-gray-700 dark:text-gray-300',
         ]"
-        role="menuitem">
+        role="menuitem"
+        :aria-current="locale === currentLocale ? 'true' : undefined"
+        :lang="locale">
         {{ locale }}
       </a>
     </template>

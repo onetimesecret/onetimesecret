@@ -3,7 +3,6 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 
 interface Props {
-  ariaLabel: string;
   openDirection?: 'up' | 'down';
   mode?: 'dropdown' | 'icon';
 }
@@ -72,18 +71,22 @@ onUnmounted(() => {
 
 // Expose methods to parent component
 defineExpose({ closeMenu });
+
+const dropdownId = `language-dropdown-${Math.random().toString(36).substr(2, 9)}`;
+
 </script>
 
 <template>
   <div
     class="relative flex items-center"
     :class="{ 'opacity-60 hover:opacity-100': !isMenuOpen }"
-    :aria-label="ariaLabel">
+    :aria-haspopup="true"
+    :aria-controls="dropdownId"
+    :aria-expanded="isMenuOpen">
     <button
       type="button"
       :class="[
           'inline-flex items-center justify-center rounded-md shadow-sm',
-          'text-gray-400 dark:text-gray-400', // Added consistent text color
           'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100',
           'dark:focus:ring-offset-gray-900',
           mode === 'icon' ? [
@@ -131,6 +134,7 @@ defineExpose({ closeMenu });
       @keydown.up.prevent="focusPreviousItem"
       @keydown.down.prevent="focusNextItem">
       <div
+        id="dropdownId"
         class="max-h-60 overflow-y-auto py-1"
         role="none">
         <slot name="menu-items"></slot>
