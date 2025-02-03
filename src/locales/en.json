@@ -46,7 +46,7 @@
       "warning": "Warning",
       "oops": "Oops!",
       "error": "Error",
-      "secret_was_truncated": "The message was truncated b\/c it was over",
+      "secret_was_truncated": "The message was truncated",
       "signup_for_more": "Signup for more",
       "login_to_your_account": "Log in to your account",
       "sent_to": "Sent to: ",
