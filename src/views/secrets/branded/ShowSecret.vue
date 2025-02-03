@@ -110,14 +110,14 @@
                aria-label="$t('visit-onetime-secret-homepage')">
               {{ $t('powered-by-onetime-secret') }}
             </a>
-            <span aria-hidden="true">.</span>
+            <span aria-hidden="true" class="text-gray-400 dark:text-gray-600">&middot;</span>
             <router-link to="/info/terms"
                          class="hover:underline
                 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
                          aria-label="$t('view-terms-of-service')">
               {{ $t('terms') }}
             </router-link>
-            <span aria-hidden="true">.</span>
+            <span aria-hidden="true">&middot;</span>
             <router-link to="/info/privacy"
                          class="hover:underline
                 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"

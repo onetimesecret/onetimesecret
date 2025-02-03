@@ -75,13 +75,13 @@ const siteHost = WindowService.get('site_host');
           rel="noopener noreferrer">
           {{ $t('powered-by-onetime-secret') }}
         </a>
-        <span v-if="displayPoweredBy">.</span>
+        <span v-if="displayPoweredBy">&middot;</span>
         <router-link
           to="/info/terms"
           class="hover:underline">
           {{ $t('terms') }}
         </router-link>
-        <span>.</span>
+        <span>&middot;</span>
         <router-link
           to="/info/privacy"
           class="hover:underline">
