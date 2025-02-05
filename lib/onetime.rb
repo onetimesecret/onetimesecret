@@ -278,6 +278,18 @@ module Onetime
   extend ClassMethods
 end
 
+# Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
+# trying to send events over the network when we're shutting down via ctrl-c.
+trap("SIGINT") do
+  begin
+    Sentry.close(timeout: 2)  # Attempt graceful shutdown with a short timeout
+  rescue StandardError => ex
+    # Ignore Sentry errors during shutdown
+    OT.le "Error during shutdown: #{ex}"
+  end
+  exit
+end
+
 require_relative 'onetime/errors'
 require_relative 'onetime/utils'
 require_relative 'onetime/version'
