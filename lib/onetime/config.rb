@@ -164,7 +164,6 @@ module Onetime
         sentry: merged
       }
 
-      OT.conf[:services][:sentry][:enabled] = false
       backend = OT.conf[:services][:sentry].fetch(:backend, {})
       dsn = backend.fetch(:dsn, nil)
 
@@ -196,7 +195,8 @@ module Onetime
         end
 
         OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
-        OT.conf[:services][:sentry][:enabled] = true
+
+        OT.d9s = true # enable diagnostics
       end
 
       development = conf[:development]

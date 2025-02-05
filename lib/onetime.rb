@@ -44,8 +44,9 @@ module Onetime
   end
   @mode = :app
 
+  # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
   module ClassMethods
-    attr_accessor :mode, :env
+    attr_accessor :mode, :env, :d9s
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret, :global_banner
     attr_writer :debug
 
@@ -72,6 +73,7 @@ module Onetime
     def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
       OT.env = ENV['RACK_ENV'] || 'production'
+      OT.d9s = false # diagnostics are disabled by default
       @conf = OT::Config.load # load config before anything else.
       OT::Config.after_load(@conf)
 
@@ -124,6 +126,11 @@ module Onetime
       return unless Onetime.debug
       msg = msgs.join("#{$/}")
       stderr("D", msg)
+    end
+
+    def with_diagnostics &block
+      return unless Onetime.d9s
+      yield # call the block in its own context
     end
 
     private

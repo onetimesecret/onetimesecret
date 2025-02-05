@@ -71,6 +71,14 @@ common_middleware = [
   Onetime::DomainStrategy,  # Added after DetectHost
 ]
 
+# If Sentry is not successfully enabled, there will be
+# no `Sentry::Rack::CaptureExceptions` constant available.
+Onetime.with_diagnostics do
+  OT.ld "[config.ru] Sentry enabled"
+  # Put Sentry middleware first to catch exceptions as early as possible
+  common_middleware.unshift(Sentry::Rack::CaptureExceptions)
+end
+
 # Apply common middleware to all apps
 common_middleware.each { |middleware|
   OT.li "[config.ru] Using #{middleware}"
