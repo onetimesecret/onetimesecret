@@ -113,6 +113,7 @@ module Onetime
         end
       end
 
+      site_host = OT.conf.dig(:site, :host)
       ttl_options = OT.conf.dig(:site, :secret_options, :ttl_options)
       default_ttl = OT.conf.dig(:site, :secret_options, :default_ttl)
 
@@ -157,26 +158,34 @@ module Onetime
         end
       end
 
-      development = conf[:development]
-      development[:enabled] ||= false
-      development[:frontend_host] ||= ''  # make sure this is set
+      # Apply the defaults to backend and frontend
+      merged = merge_config_sections(conf.dig(:services, :sentry))
+      OT.conf[:services] = {
+        sentry: merged
+      }
 
-      sentry = merge_config_sections(conf.dig(:services, :sentry))
+      OT.conf[:services][:sentry][:enabled] = false
+      backend = OT.conf[:services][:sentry].fetch(:backend, {})
+      dsn = backend.fetch(:dsn, nil)
 
-      if sentry&.dig(:enabled)
-        OT.ld "Setting up Sentry #{sentry}..."
-        dsn = sentry&.dig(:dsn)
+      unless dsn.nil?
+        OT.ld "Setting up Sentry #{backend}..."
 
-        unless dsn
-          OT.le "No DSN"
-        end
-
+        # Require only if we have a DSN
         require 'sentry-ruby'
         require 'stackprof'
 
         OT.li "[sentry-init] Initializing with DSN: #{dsn[0..10]}..."
         Sentry.init do |config|
-          config.dsn = sentry[:dsn]
+          config.dsn = dsn
+          config.environment = "#{site_host} (#{OT.env})"
+          config.release = OT::VERSION.inspect
+
+          # Configure breadcrumbs logger for detailed error tracking.
+          # Uses sentry_logger to capture progression of events leading
+          # to errors, providing context for debugging.
+          config.breadcrumbs_logger = [:sentry_logger]
+
           # Set traces_sample_rate to capture 10% of
           # transactions for performance monitoring.
           config.traces_sample_rate = 0.1
@@ -186,7 +195,13 @@ module Onetime
           config.profiles_sample_rate = 0.1
         end
 
+        OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
+        OT.conf[:services][:sentry][:enabled] = true
       end
+
+      development = conf[:development]
+      development[:enabled] ||= false
+      development[:frontend_host] ||= ''  # make sure this is set
 
     end
 
@@ -206,6 +221,51 @@ module Onetime
       # `key` is a symbol. Returns a symbol.
       # If the key is not in the KEY_MAP, return the key itself.
       KEY_MAP[key] || key
+    end
+
+    # Merges section configurations with defaults
+    #
+    # @param config [Hash] Raw configuration with :defaults and named sections
+    # @return [Hash] Processed sections with defaults applied
+    #
+    # @example Basic usage
+    #   config = {
+    #     defaults: { timeout: 5, enabled: true },
+    #     api: { timeout: 10 },
+    #     web: {}
+    #   }
+    #   merge_config_sections(config)
+    #   # => {
+    #   #   api: { timeout: 10, enabled: true },
+    #   #   web: { timeout: 5, enabled: true }
+    #   # }
+    #
+    # @example With nil config
+    #   merge_config_sections(nil) #=> {}
+    #
+    # @example Real world config
+    #   service_config = {
+    #     defaults: { dsn: ENV['DSN'] },
+    #     backend: { path: '/api' },
+    #     frontend: { path: '/web' }
+    #   }
+    #   sections = merge_config_sections(service_config)
+    #   sections[:backend][:dsn] #=> ENV['DSN']
+    def merge_config_sections(config)
+      return {} if config.nil? || config.empty?
+
+      defaults = config[:defaults] || {}
+      return {} unless defaults.is_a?(Hash)
+
+      config.each_with_object({}) do |(section, values), result|
+        next if section == :defaults
+        next unless values.is_a?(Hash)
+
+        # Deep merge defaults with section values, preserving nil values only for explicitly set keys
+        result[section] = defaults.merge(values) do |_key, default_val, section_val|
+          section_val.nil? ? default_val : section_val
+        end
+      end
     end
 
     def find_configs(filename = nil)

@@ -127,6 +127,17 @@ RSpec.describe Onetime::Config do
       expect(result).to eq({})
     end
 
+    it 'preserves defaults when section value is nil' do
+      config = {
+        defaults: { dsn: 'default-dsn' },
+        backend: { dsn: nil },
+        frontend: { dsn: nil }
+      }
+      result = described_class.merge_config_sections(config)
+      expect(result[:backend][:dsn]).to eq('default-dsn')
+      expect(result[:frontend][:dsn]).to eq('default-dsn')
+    end
+
     it 'processes real world service config correctly' do
       result = described_class.merge_config_sections(service_config)
 
