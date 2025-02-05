@@ -62,7 +62,21 @@ jobs:
         run: |
           echo ${GITHUB_SHA::7} > .commit_hash.txt
           echo Commit hash recorded
-          head -4 .commit_hash.txt package.json
+          head -4 package.json .commit_hash.txt
+
+      - name: Create Sentry release (backend)
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_URL: ${{ secrets.SENTRY_URL }}
+
+        with:
+          environment: ${{ env.ONETIME_ENV }}
+          version: ${GITHUB_SHA::7}
+          # inject: true
+          # sourcemaps: './dist'
 
       # Step 3: Set up Fly.io CLI
       - name: Set up Fly.io CLI
@@ -76,5 +90,3 @@ jobs:
           # Generate a long-lived token for reliable automated deployments
           # Command: flyctl tokens create deploy -x 13140h (valid 18 months)
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-# Fortune: As this code vanishes into the ether, so too shall your
-# secrets be whispered once and forgotten.
