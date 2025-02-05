@@ -161,7 +161,7 @@ module Onetime
       development[:enabled] ||= false
       development[:frontend_host] ||= ''  # make sure this is set
 
-      sentry = conf[:services][:sentry]
+      sentry = merge_config_sections(conf.dig(:services, :sentry))
 
       if sentry&.dig(:enabled)
         OT.ld "Setting up Sentry #{sentry}..."
@@ -185,6 +185,7 @@ module Onetime
           # of sampled transactions.
           config.profiles_sample_rate = 0.1
         end
+
       end
 
     end
