@@ -2,19 +2,16 @@
 # typed: false
 
 #
-# Recommended: Ruby 3.3+
+# Recommended: Ruby 3.4+
 #
 # status: normal maintenance
-# release date: 2022-12-25
+# release date: 2024-12-25
 # normal maintenance until: TBD
-# EOL: 2026-03-31 (expected)
+# end of life: 2028ish
 #
-# We maintain Ruby 2.7+ support for the time being for
-# anyone wanting to run the latest code but are not
-# able to update the system to Ruby 3 just yet (not
-# uncommon in legacy environments).
+# We support versions of Ruby that are still in normal maintenance.
 #
-ruby '>= 2.7.8'
+ruby '>= 3.1.5'
 
 source 'https://rubygems.org/'
 
