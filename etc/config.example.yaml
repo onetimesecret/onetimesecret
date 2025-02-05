@@ -1,3 +1,4 @@
+---
 :site:
   :host: <%= ENV['HOST'] || 'localhost:3000' %>
   :domains:
@@ -231,8 +232,12 @@
   - zh
 :services:
   :sentry:
-    :dsn: <%= ENV['SENTRY_DSN'] || 'CHANGEME' %>
-    :enabled: <%= !ENV['SENTRY_DSN'].nil? %>
+    :defaults:
+      :dsn: <%= ENV['SENTRY_DSN'] || nil %>
+    :backend:
+      :dsn: <%= ENV['SENTRY_DSN_BACKEND'] || nil %>
+    :frontend:
+      :dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
 :limits:
   # This section defines rate limits for various events per user
   # per a rolling 20 minute period. Each key is an event name
