@@ -45,7 +45,7 @@ module Onetime
   @mode = :app
 
   module ClassMethods
-    attr_accessor :mode
+    attr_accessor :mode, :env
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret, :global_banner
     attr_writer :debug
 
@@ -71,6 +71,7 @@ module Onetime
 
     def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
+      OT.env = ENV['RACK_ENV'] || 'production'
       @conf = OT::Config.load # load config before anything else.
       OT::Config.after_load(@conf)
 
@@ -99,6 +100,7 @@ module Onetime
       exit 10
     rescue StandardError => e
       OT.le "Unexpected error `#{e}` (#{e.class})"
+      OT.ld e.backtrace.join("\n")
       exit 99
     end
 
