@@ -26,6 +26,14 @@ def flatten:
 flatten
 ' src/locales/en.json > flat_values.tsv
 ```
+#### List 2nd level keys:
+
+This extracts and displays arrays of second-level key names found under 'web' and 'email' top-level keys.
+
+```bash
+jq '{web: .web | keys, email: .email | keys}' src/locales/en.json
+```
+
 
 #### Validate structure matches:
 
