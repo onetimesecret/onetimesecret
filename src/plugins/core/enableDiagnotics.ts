@@ -110,5 +110,14 @@ export const EnableDiagnostics: Plugin = {
 
     // Make the Sentry client available to the Vue app
     app.provide('sentry', { client, scope });
+
+    // Auto-cleanup on unmount. Otherwise some events might be
+    // lost if the application shuts down unexpectedly.
+    app.unmount = ((original) =>
+      function (this: App) {
+        client.close(2000).then(() => {
+          original.call(this);
+        });
+      })(app.unmount);
   },
 };
