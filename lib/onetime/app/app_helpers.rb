@@ -424,11 +424,17 @@ module Onetime::App
     def capture_error(error, level=:error, &block)
       return unless OT.d9s # diagnostics are disabled by default
       Sentry.capture_exception(error, level: level, &block)
+    rescue StandardError => ex
+      OT.le "[capture_error] #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
     end
 
     def capture_message(message, level=:log, &block)
       return unless OT.d9s # diagnostics are disabled by default
       Sentry.capture_message(message, level: level, &block)
+    rescue StandardError => ex
+      OT.le "[capture_message] #{ex.class}: #{ex.message}"
+      OT.ld ex.backtrace.join("\n")
     end
 
     # Collects and formats specific HTTP header details from the given
