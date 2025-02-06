@@ -11,7 +11,7 @@ This directory contains the locales for the Onetime Secret project in JSON forma
 #### Create a flattened keymap from the base locale:
 
 ```bash
-jq -r 'paths(scalars) as $p | [$p[] | tostring] | join(".")' en.json > keys.txt
+jq -r 'paths(scalars) as $p | [$p[] | tostring] | join(".")' src/locales/en.json > keys.txt
 ```
 
 #### Create a flattened keymap with values from the base locale:
@@ -24,8 +24,81 @@ def flatten:
   | ($path | join(".")) + "\t" + ($root | getpath($path) | tostring)
 ;
 flatten
-' src/locales/en.json > flat_values.tsv
+' src/locales/en.json > keys.txt
 ```
+
+The output will be:
+
+```
+web.COMMON.broadcast
+web.COMMON.button_generate_secret_short
+web.COMMON.generate_password_disabled
+...
+```
+
+#### Transform the keys list into JSON
+
+
+```bash
+# 1. Reads raw input (-R)
+# 2. Collects all input into a single string (-s)
+# 3. Splits into array by newlines
+# 4. Filters empty lines
+# 5. Maps each key to object with required structure
+# 6. Wraps in a container object with "keys" property
+cat keys.txt | jq -R -s '
+  split("\n")
+  | map(select(length > 0))
+  | map({
+      oldkey: .,
+      files: [],
+      count: 0,
+      newkey: null
+    })
+  | {keys: .}
+' > keys.json
+```
+
+The output structure will be:
+
+```json
+{
+  "keys": [
+    {
+      "oldkey": "web.COMMON.broadcast",
+      "files": [],
+      "count": 0,
+      "newkey": null
+    },
+    {
+      "oldkey": "web.COMMON.button_generate_secret_short",
+      "files": [],
+      "count": 0,
+      "newkey": null
+    }
+    // ...
+  ]
+}
+```
+
+#### Update the files list for each key
+
+```bash
+$ src/locales/scripts/search-key-usage
+```
+
+#### Sort keys.json by number of files
+
+```bash
+jq '
+.keys |= map(. + {count: (.files | length)}) |
+.keys |= sort_by(.count) |
+.keys |= reverse
+' keys.json > keys_sorted.json
+```
+
+### Adhoc commands
+
 #### List 2nd level keys:
 
 This extracts and displays arrays of second-level key names found under 'web' and 'email' top-level keys.
