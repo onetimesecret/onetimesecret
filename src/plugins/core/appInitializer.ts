@@ -3,11 +3,13 @@
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
 import { loggingService } from '@/services/logging.service';
+import { WindowService } from '@/services/window.service';
 import { createApi } from '@/utils/api';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
 import { autoInitPlugin } from '../pinia/autoInitPlugin';
+import { EnableDiagnostics } from './enableDiagnotics';
 import { GlobalErrorBoundary } from './globalErrorBoundary';
 
 interface AppInitializerOptions {
@@ -36,11 +38,17 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  * We separate this from the main plugin to interface for testing purposes.
  */
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
+  const diagnostics = WindowService.get('diagnostics');
+  const router = createAppRouter();
   const pinia = createPinia();
   const api = options.api ?? createApi();
 
   // Make API client available to Vue app (and pinia stores)
   app.provide('api', api);
+
+  // Must be before GlobalErrorBoundary. The earlier the better.
+  app.use(EnableDiagnostics, { options: diagnostics, router: router });
+
 
   // Register auto-init plugin before creating stores
   pinia.use(autoInitPlugin(options));
@@ -48,7 +56,7 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   app.use(pinia);
   app.use(GlobalErrorBoundary, { debug: options.debug });
   app.use(i18n);
-  app.use(createAppRouter());
+  app.use(router);
 
   // Display startup banner
   loggingService.banner();

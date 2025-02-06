@@ -5,6 +5,8 @@ import { classifyError, errorGuards } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
 import type { App, Plugin } from 'vue';
 
+import * as Sentry from '@sentry/vue';
+
 /**
  * Global error handling plugin for Vue 3 applications that connects
  * with Vue's built-in error handling system
@@ -32,6 +34,13 @@ export const GlobalErrorBoundary: Plugin = {
       if (errorGuards.isOfHumanInterest(classifiedError) && options.notify) {
         options.notify(classifiedError.message, classifiedError.severity);
       }
+
+      Sentry.captureException(error, {
+        extra: {
+          componentName: instance?.$.type.name,
+          info,
+        },
+      });
 
       if (options.debug) {
         loggingService.debug('[ErrorContext]', { instance, info });
