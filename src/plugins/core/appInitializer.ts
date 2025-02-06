@@ -40,25 +40,28 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  */
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
   const diagnostics = WindowService.get('diagnostics');
+  const d9sEnabled = WindowService.get('d9s_enabled');
   const displayDomain = WindowService.get('display_domain');
   const router = createAppRouter();
   const pinia = createPinia();
   const api = options.api ?? createApi();
 
-  // Create plugin instances
-  const diagnosticsPlugin = createDiagnostics({
-    host: displayDomain,
-    config: diagnostics,
-    router,
-  });
+  if (d9sEnabled) {
+    // Create plugin instances
+    const diagnosticsPlugin = createDiagnostics({
+      host: displayDomain,
+      config: diagnostics,
+      router,
+    });
+
+    // Must be before GlobalErrorBoundary. The earlier the better.
+    app.use(diagnosticsPlugin);
+  }
 
   const errorBoundary = createErrorBoundary({
     debug: options.debug,
     // notify: notifications.add,
   });
-
-  // Must be before GlobalErrorBoundary. The earlier the better.
-  app.use(diagnosticsPlugin);
 
   // Register auto-init plugin before creating stores
   pinia.use(autoInitPlugin(options));
