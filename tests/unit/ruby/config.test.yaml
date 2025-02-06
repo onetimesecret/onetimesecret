@@ -177,8 +177,34 @@
   - zh
 :services:
   :sentry:
-    :dsn: <%= ENV['SENTRY_DSN'] || 'CHANGEME' %>
-    :enabled: <%= !ENV['SENTRY_DSN'].nil? %>
+    # Default Sentry configuration that applies to both frontend and
+    # backend. Values set here are overridden by codebase-specific ones.
+    #
+    # `dsn` - Primary Sentry DSN.
+    # `sampleRate` - Percentage of events to sample (0.0 to 1.0)
+    # `maxBreadcrumbs` - Maximum number of breadcrumbs to capture
+    # `logErrors` - Whether to log errors to console
+    :defaults:
+      :dsn: <%= ENV['SENTRY_DSN'] || nil %>
+      :sampleRate: 0.11
+      :maxBreadcrumbs: 22
+      :logErrors: true
+    # Ruby backend-specific Sentry configuration
+    #
+    # `dsn` - Backend-specific Sentry DSN
+    :backend:
+      :dsn: <%= ENV['SENTRY_DSN_BACKEND'] || nil %>
+    # Vue frontend-specific Sentry configuration
+    # Options here map directly to @sentry/vue client options
+    # These options are passed directly to @sentry/vue client initialization
+    # and to maintain type safety, they must be typed in
+    # src/types/diagnostics.ts DiagnosticsConfig interface.
+    #
+    # `dsn` - Frontend-specific Sentry DSN
+    # `trackComponents` - Enable automatic instrumentation of Vue components
+    :frontend:
+      :dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
+      :trackComponents: true
 :limits:
   :create_secret: 250
   :create_account: 10
