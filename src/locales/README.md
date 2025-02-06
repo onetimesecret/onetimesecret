@@ -8,25 +8,11 @@ This directory contains the locales for the Onetime Secret project in JSON forma
 
 ### Commands
 
-#### Create a flattened keymap from the base locale:
+#### 1. Create a flattened keymap from the base locale:
 
 ```bash
 jq -r 'paths(scalars) as $p | [$p[] | tostring] | join(".")' src/locales/en.json > keys.txt
 ```
-
-#### Create a flattened keymap with values from the base locale:
-
-```bash
-jq -r '
-def flatten:
-  . as $root
-  | paths(scalars) as $path
-  | ($path | join(".")) + "\t" + ($root | getpath($path) | tostring)
-;
-flatten
-' src/locales/en.json > keys.txt
-```
-
 The output will be:
 
 ```
@@ -36,7 +22,29 @@ web.COMMON.generate_password_disabled
 ...
 ```
 
-#### Transform the keys list into JSON
+Alternately, create a flattened keymap with values from the base locale:
+
+```bash
+jq -r '
+def flatten:
+  . as $root
+  | paths(scalars) as $path
+  | ($path | join(".")) + "\t" + ($root | getpath($path) | tostring)
+;
+flatten
+' src/locales/en.json > keys_with_values.txt
+```
+
+The output will be:
+
+```
+web.COMMON.broadcast ""
+web.COMMON.button_generate_secret_short "Generate"
+web.COMMON.generate_password_disabled "Generate password is disabled"
+...
+```
+
+#### 2. Transform the keys list into JSON
 
 
 ```bash
@@ -81,13 +89,13 @@ The output structure will be:
 }
 ```
 
-#### Update the files list for each key
+#### 3. Update the files list for each key
 
 ```bash
 $ src/locales/scripts/search-key-usage
 ```
 
-#### Sort keys.json by number of files
+#### 4. Sort keys.json by number of files
 
 ```bash
 jq '
@@ -96,6 +104,7 @@ jq '
 .keys |= reverse
 ' keys.json > keys_sorted.json
 ```
+
 
 ### Adhoc commands
 
