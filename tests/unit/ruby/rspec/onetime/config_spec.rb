@@ -3,7 +3,7 @@
 require_relative '../spec_helper'
 
 RSpec.describe Onetime::Config do
-  describe '#merge_config_sections' do
+  describe '#apply_defaults' do
       let(:basic_config) do
         {
           defaults: { timeout: 5, enabled: true },
@@ -32,13 +32,13 @@ RSpec.describe Onetime::Config do
 
       context 'with valid inputs' do
         it 'merges defaults into sections' do
-          result = described_class.merge_config_sections(basic_config)
+          result = described_class.apply_defaults(basic_config)
           expect(result[:api]).to eq({ timeout: 10, enabled: true })
           expect(result[:web]).to eq({ timeout: 5, enabled: true })
         end
 
         it 'handles sentry-specific configuration' do
-          result = described_class.merge_config_sections(sentry_config)
+          result = described_class.apply_defaults(sentry_config)
 
           expect(result[:backend]).to eq({
             dsn: 'backend-dsn',
@@ -59,16 +59,16 @@ RSpec.describe Onetime::Config do
 
       context 'with edge cases' do
         it 'handles nil config' do
-          expect(described_class.merge_config_sections(nil)).to eq({})
+          expect(described_class.apply_defaults(nil)).to eq({})
         end
 
         it 'handles empty config' do
-          expect(described_class.merge_config_sections({})).to eq({})
+          expect(described_class.apply_defaults({})).to eq({})
         end
 
         it 'handles missing defaults section' do
           config = { api: { timeout: 10 } }
-          result = described_class.merge_config_sections(config)
+          result = described_class.apply_defaults(config)
           expect(result).to eq({ api: { timeout: 10 } })
         end
 
@@ -78,19 +78,19 @@ RSpec.describe Onetime::Config do
             api: "invalid",
             web: { port: 3000 }
           }
-          result = described_class.merge_config_sections(config)
+          result = described_class.apply_defaults(config)
           expect(result.keys).to contain_exactly(:web)
         end
 
         it 'preserves original defaults' do
           original = sentry_config[:defaults].dup
-          described_class.merge_config_sections(sentry_config)
+          described_class.apply_defaults(sentry_config)
           expect(sentry_config[:defaults]).to eq(original)
         end
       end
     end
 
-  describe '#merge_config_sections' do
+  describe '#apply_defaults' do
     let(:config_with_defaults) do
       {
         defaults: { timeout: 5, enabled: true },
@@ -111,19 +111,19 @@ RSpec.describe Onetime::Config do
     end
 
     it 'merges defaults into sections while preserving overrides' do
-      result = described_class.merge_config_sections(config_with_defaults)
+      result = described_class.apply_defaults(config_with_defaults)
 
       expect(result[:api]).to eq({ timeout: 10, enabled: true })
       expect(result[:web]).to eq({ timeout: 5, enabled: true })
     end
 
     it 'handles empty config' do
-      result = described_class.merge_config_sections(empty_config)
+      result = described_class.apply_defaults(empty_config)
       expect(result).to eq({})
     end
 
     it 'handles nil config' do
-      result = described_class.merge_config_sections(nil_config)
+      result = described_class.apply_defaults(nil_config)
       expect(result).to eq({})
     end
 
@@ -133,13 +133,13 @@ RSpec.describe Onetime::Config do
         backend: { dsn: nil },
         frontend: { dsn: nil }
       }
-      result = described_class.merge_config_sections(config)
+      result = described_class.apply_defaults(config)
       expect(result[:backend][:dsn]).to eq('default-dsn')
       expect(result[:frontend][:dsn]).to eq('default-dsn')
     end
 
     it 'processes real world service config correctly' do
-      result = described_class.merge_config_sections(service_config)
+      result = described_class.apply_defaults(service_config)
 
       expect(result[:backend]).to eq({
         dsn: 'backend-dsn',
@@ -155,7 +155,7 @@ RSpec.describe Onetime::Config do
 
     it 'preserves original defaults hash' do
       original_defaults = service_config[:defaults].dup
-      described_class.merge_config_sections(service_config)
+      described_class.apply_defaults(service_config)
 
       expect(service_config[:defaults]).to eq(original_defaults)
     end

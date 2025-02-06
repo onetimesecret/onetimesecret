@@ -158,16 +158,21 @@ module Onetime
         end
       end
 
-      # Apply the defaults to backend and frontend
-      merged = merge_config_sections(conf.dig(:services, :sentry))
-      OT.conf[:services] = {
+      diagnostics = OT.conf.fetch(:diagnostics, {})
+      OT.d9s_enabled = diagnostics[:enabled] || false
+
+      # Apply the defaults to sentry backend and frontend configs
+      # and update the config with the merged values.
+      merged = apply_defaults(diagnostics[:sentry])
+      OT.conf[:diagnostics] = {
+        enabled: OT.d9s_enabled,
         sentry: merged
       }
 
-      sentry = OT.conf[:services][:sentry].fetch(:backend, {})
+      sentry = merged[:backend]
       dsn = sentry.fetch(:dsn, nil)
 
-      unless dsn.nil?
+      if OT.d9s_enabled && !dsn.nil?
         OT.ld "Setting up Sentry #{sentry}..."
 
         # Require only if we have a DSN
@@ -196,7 +201,6 @@ module Onetime
 
         OT.li "[sentry-init] Status: #{Sentry.initialized? ? 'OK' : 'Failed'}"
 
-        OT.d9s = true # enable diagnostics
       end
 
       development = conf[:development]
@@ -234,14 +238,14 @@ module Onetime
     #     api: { timeout: 10 },
     #     web: {}
     #   }
-    #   merge_config_sections(config)
+    #   apply_defaults(config)
     #   # => {
     #   #   api: { timeout: 10, enabled: true },
     #   #   web: { timeout: 5, enabled: true }
     #   # }
     #
     # @example With nil config
-    #   merge_config_sections(nil) #=> {}
+    #   apply_defaults(nil) #=> {}
     #
     # @example Real world config
     #   service_config = {
@@ -249,9 +253,9 @@ module Onetime
     #     backend: { path: '/api' },
     #     frontend: { path: '/web' }
     #   }
-    #   sections = merge_config_sections(service_config)
+    #   sections = apply_defaults(service_config)
     #   sections[:backend][:dsn] #=> ENV['DSN']
-    def merge_config_sections(config)
+    def apply_defaults(config)
       return {} if config.nil? || config.empty?
 
       defaults = config[:defaults] || {}
