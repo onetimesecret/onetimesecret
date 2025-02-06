@@ -94,7 +94,7 @@ RSpec.describe Onetime::App::View do
       allow(Onetime).to receive(:with_diagnostics).and_yield
       allow(OT).to receive(:d9s).and_return(true)
       allow(OT).to receive(:conf).and_return(config.merge(
-        services: {
+        diagnostics: {
           sentry: {
             frontend: {
               dsn: 'https://test-dsn@sentry.example.com/1'
