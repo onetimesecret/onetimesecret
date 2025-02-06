@@ -1,8 +1,5 @@
 // src/plugins/core/enableDiagnotics.ts
 
-/**
- *
- */
 import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { DEBUG } from '@/utils/debug';
 import {
@@ -65,7 +62,19 @@ export const EnableDiagnostics: Plugin = {
       linkedErrorsIntegration(),
       dedupeIntegration(),
       SentryVue.browserTracingIntegration({ router }),
-      SentryVue.replayIntegration(),
+
+      /**
+       * Sentry Replay is disabled. There is a conflict with strict CSP headers
+       * and defining workers with a blob. The solution is to remove the worker
+       * code during the build process and to serve it from a static file. The
+       * worker compresses payloads for session replay which would otherwise be
+       * large and slow to upload.
+       *
+       * @see https://github.com/getsentry/sentry-javascript/pull/9409
+       * @see (original thread) https://github.com/getsentry/sentry-javascript/issues/6739
+       *
+       */
+      // SentryVue.replayIntegration(),
     ];
 
     // All options you normally pass to Sentry.init. The values
@@ -87,12 +96,12 @@ export const EnableDiagnostics: Plugin = {
         new RegExp(`^https:\\/\\/[^/]+${host.replace('.', '\\.')}`),
       ],
 
-      // Session Replay
-      replaysSessionSampleRate: 0.1, // Capture 10% of the sessions
-      replaysOnErrorSampleRate: 1.0, // Capture 100% of the errors
-
       // Only the integrations listed here will be used
       integrations,
+
+      /** Session Replay is disabled. See note above. */
+      // replaysSessionSampleRate: 0.1, // Capture 10% of the sessions
+      // replaysOnErrorSampleRate: 1.0, // Capture 100% of the errors
 
       // This is called for message and error events
       beforeSend(event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> {
