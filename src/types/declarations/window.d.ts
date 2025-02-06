@@ -10,7 +10,7 @@ import {
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
-import { SentryConfig } from '../sentry';
+import { DiagnosticsConfig } from '../diagnostics';
 import { Stripe } from 'stripe';
 
 /**
@@ -89,5 +89,5 @@ export interface OnetimeWindow {
   messages: Message[];
 
   d9s_enabled: boolean;
-  sentry: SentryConfig;
+  diagnostics: DiagnosticsConfig;
 }

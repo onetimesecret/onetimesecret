@@ -106,8 +106,10 @@ RSpec.describe Onetime::App::View do
 
     it 'sets diagnostic variables when enabled' do
       expect(subject[:jsvars][:d9s_enabled]).to be true
-      expect(subject[:jsvars][:sentry]).to eq({
-        dsn: 'https://test-dsn@sentry.example.com/1'
+      expect(subject[:jsvars][:diagnostics]).to eq({
+        sentry: {
+          dsn: 'https://test-dsn@sentry.example.com/1',
+        }
       })
     end
   end

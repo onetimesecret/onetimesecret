@@ -75,8 +75,10 @@ module Onetime
         Onetime.with_diagnostics do
           self[:jsvars][:d9s_enabled] = jsvar(OT.d9s)
           sentry = OT.conf[:services][:sentry].fetch(:frontend, {})
-          # e.g. {dsn: "https://...", ...}
-          self[:jsvars][:sentry] = jsvar(sentry)
+          self[:jsvars][:diagnostics] = {
+            # e.g. {dsn: "https://...", ...}
+            sentry: jsvar(sentry)
+          }
         end
 
         # Add the nonce to the jsvars hash if it exists. See `carefully`.
