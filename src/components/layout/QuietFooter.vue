@@ -80,10 +80,14 @@
         </div>
 
         <!-- Theme Toggle -->
-        <ThemeToggle
+        <div
           v-if="displayToggles"
-          class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-          :aria-label="$t('toggle-dark-mode')" />
+          class="flex items-center space-x-2">
+          <ThemeToggle
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+            :aria-label="$t('toggle-dark-mode')" />
+          <LanguageToggle :compact="true" />
+        </div>
       </div>
     </div>
   </footer>
