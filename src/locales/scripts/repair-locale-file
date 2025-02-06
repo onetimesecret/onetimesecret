@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Repairs i18n locale files to match base en.json key structure
-# Preserves existing translations while adding missing keys
+# Preserves existing translations while moving/adding keys
 # Usage: ./repair-locale-file [-q] [-f] [-v] [-c] LOCALE_FILE
 # -q: quiet mode
 # -f: filename only output
@@ -32,7 +32,7 @@ LOCALE="$1"
 OUTPUT="${LOCALE%.json}.transformed.json"
 
 jq_script='
-def walk($base):
+def walk($base; $full_target):
   . as $target |
   if type == "object" then
     $base | with_entries(
@@ -40,14 +40,22 @@ def walk($base):
       .value as $v |
       {
         key: $k,
-        value: ($target[$k] | if . == null then (if '$COPY_VALUES' == 1 then $v else "" end) else walk($v) end)
+        value: (
+          if $k == "about" and $target[$k] == null and $full_target.about != null then
+            $full_target.about
+          elif $target[$k] != null then
+            $target[$k] | walk($v; $full_target)
+          else
+            if '$COPY_VALUES' == 1 then $v else "" end
+          end
+        )
       }
     )
   else
     if . == null then (if '$COPY_VALUES' == 1 then $base else "" end) else . end
   end;
 
-$target[0] | walk($base[0])
+$target[0] | walk($base[0]; $target[0])
 '
 
 if ! jq -n --slurpfile base src/locales/en.json --slurpfile target "$LOCALE" "$jq_script" > "$OUTPUT"; then
