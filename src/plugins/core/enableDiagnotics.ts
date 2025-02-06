@@ -21,6 +21,7 @@ import type { App, Plugin } from 'vue';
 import type { Router } from 'vue-router';
 
 interface EnableDiagnosticsOptions {
+  host: string;
   config: DiagnosticsConfig;
   router: Router;
 }
@@ -32,6 +33,8 @@ interface EnableDiagnosticsOptions {
  * @plugin
  * @param {App} app - Vue application instance
  * @param {EnableDiagnosticsOptions} options - Configuration options
+ * @param {string} options.host - Display domain. This is the domain the user
+ *  is interacting with, not the Sentry domain. Same meaning as `display_domain`.
  * @param {DiagnosticsConfig} options.config - Sentry configuration from backend
  * @param {Router} options.router - Vue Router instance for route tracking
  *
@@ -51,7 +54,7 @@ interface EnableDiagnosticsOptions {
  */
 export const EnableDiagnostics: Plugin = {
   install(app: App, options: EnableDiagnosticsOptions) {
-    const { config, router } = options;
+    const { host, config, router } = options;
 
     console.debug('[EnableDiagnostics] sentry:', config['sentry']);
 
@@ -77,8 +80,12 @@ export const EnableDiagnostics: Plugin = {
 
       // Tracing
       tracesSampleRate: 0.01, //  Capture 1% of the transactions
+
       // Controls for which URLs distributed tracing should be enabled
-      tracePropagationTargets: ['localhost', /^https:\/\/\*\.onetimesecret\.com\//],
+      tracePropagationTargets: [
+        'localhost',
+        new RegExp(`^https:\\/\\/[^/]+${host.replace('.', '\\.')}`),
+      ],
 
       // Session Replay
       replaysSessionSampleRate: 0.1, // Capture 10% of the sessions
