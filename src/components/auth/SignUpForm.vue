@@ -74,7 +74,7 @@ const togglePasswordVisibility = () => {
                       focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          placeholder="$t('email-address')"
+          :placeholder="$t('email-address')"
           v-model="email"
         />
       </div>
@@ -99,7 +99,7 @@ const togglePasswordVisibility = () => {
                  focus:z-10 focus:border-brand-500 focus:outline-none focus:ring-brand-500
                  dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
                  dark:focus:border-brand-500 dark:focus:ring-brand-500"
-          placeholder="$t('web.COMMON.field_password')"
+          :placeholder="$t('web.COMMON.field_password')"
           v-model="password"
         />
         <button
