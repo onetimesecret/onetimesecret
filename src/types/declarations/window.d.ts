@@ -10,6 +10,7 @@ import {
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
+import { SentryConfig } from '../sentry';
 import { Stripe } from 'stripe';
 
 /**
@@ -86,4 +87,7 @@ export interface OnetimeWindow {
   domain_logo: ImageProps;
 
   messages: Message[];
+
+  d9s_enabled: boolean;
+  sentry: SentryConfig;
 }
