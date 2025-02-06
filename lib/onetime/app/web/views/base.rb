@@ -1,3 +1,5 @@
+# lib/onetime/app/web/views/base.rb
+
 require_relative 'view_helpers'
 require_relative 'vite_helpers'
 
@@ -67,6 +69,15 @@ module Onetime
         self[:no_cache] = false
 
         self[:jsvars] = {}
+
+        # Diagnostics
+        self[:jsvars][:d9s_enabled] = false
+        Onetime.with_diagnostics do
+          self[:jsvars][:d9s_enabled] = jsvar(OT.d9s)
+          sentry = OT.conf[:services][:sentry].fetch(:frontend, {})
+          # e.g. {dsn: "https://...", ...}
+          self[:jsvars][:sentry] = jsvar(sentry)
+        end
 
         # Add the nonce to the jsvars hash if it exists. See `carefully`.
         self[:nonce] = req.env.fetch('ots.nonce', nil)

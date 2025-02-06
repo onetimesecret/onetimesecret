@@ -164,11 +164,11 @@ module Onetime
         sentry: merged
       }
 
-      backend = OT.conf[:services][:sentry].fetch(:backend, {})
-      dsn = backend.fetch(:dsn, nil)
+      sentry = OT.conf[:services][:sentry].fetch(:backend, {})
+      dsn = sentry.fetch(:dsn, nil)
 
       unless dsn.nil?
-        OT.ld "Setting up Sentry #{backend}..."
+        OT.ld "Setting up Sentry #{sentry}..."
 
         # Require only if we have a DSN
         require 'sentry-ruby'
