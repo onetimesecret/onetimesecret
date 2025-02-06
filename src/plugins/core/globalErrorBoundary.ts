@@ -3,10 +3,9 @@
 import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
-import { BrowserClient, Scope } from '@sentry/browser';
 import type { App, Plugin } from 'vue';
 import { inject } from 'vue';
-import { SENTRY_KEY } from './enableDiagnotics';
+import { SENTRY_KEY, SentryInstance } from './enableDiagnotics';
 
 interface ErrorBoundaryOptions extends AsyncHandlerOptions {
   debug?: boolean;
@@ -40,10 +39,7 @@ export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin 
        * @see https://vuejs.org/api/application#app-config-errorhandler
        */
       app.config.errorHandler = (error, instance, info) => {
-        const { client, scope } = inject(SENTRY_KEY) as {
-          client: BrowserClient;
-          scope: Scope;
-        };
+        const { client, scope } = inject(SENTRY_KEY) as SentryInstance;
 
         if (!client) {
           console.debug('Sentry not initialized');
