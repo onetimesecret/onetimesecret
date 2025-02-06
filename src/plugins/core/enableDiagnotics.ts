@@ -14,62 +14,78 @@ import {
   globalHandlersIntegration,
   linkedErrorsIntegration,
   makeFetchTransport,
-  type ErrorEvent,
 } from '@sentry/browser';
+import { type ErrorEvent, type Integration } from '@sentry/core';
 import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
 import type { Router } from 'vue-router';
 
+interface EnableDiagnosticsOptions {
+  config: DiagnosticsConfig;
+  router: Router;
+}
+
 /**
- * Global error handling plugin for Vue 3 applications that connects
- * with Vue's built-in error handling system
+ * Vue plugin that initializes Sentry error tracking and monitoring.
+ * Provides centralized error handling, performance monitoring, and session replay.
  *
- * @description Provides a centralized error handling mechanism for the entire Vue application
+ * @plugin
  * @param {App} app - Vue application instance
- * @param {BrowserClient} [options={}] - Plugin options
+ * @param {EnableDiagnosticsOptions} options - Configuration options
+ * @param {DiagnosticsConfig} options.config - Sentry configuration from backend
+ * @param {Router} options.router - Vue Router instance for route tracking
+ *
+ * @example
+ * ```ts
+ * app.use(EnableDiagnostics, {
+ *   config: window.diagnostics,
+ *   router: router
+ * });
+ * ```
  *
  * @see https://docs.sentry.io/platforms/javascript/guides/vue/configuration/options/
  * @see https://docs.sentry.io/platforms/javascript/guides/vue/best-practices/sentry-testkit/
- *
- * @see https://docs.sentry.io/platforms/javascript/guides/vue/configuration/tree-shaking/
  * @see https://docs.sentry.io/platforms/javascript/guides/vue/sourcemaps/
  * @see https://docs.sentry.io/platforms/javascript/guides/vue/configuration/integrations/browserapierrors/
  * @see https://docs.sentry.io/platforms/javascript/guides/vue/features/
  */
 export const EnableDiagnostics: Plugin = {
-  install(app: App, options: DiagnosticsConfig, router: Router) {
+  install(app: App, options: EnableDiagnosticsOptions) {
+    const { config, router } = options;
+
+    console.debug('[EnableDiagnostics] sentry:', config['sentry']);
+
+    // @see https://docs.sentry.io/platforms/javascript/guides/vue/configuration/tree-shaking/
+    const integrations: Integration[] = [
+      breadcrumbsIntegration(),
+      globalHandlersIntegration(),
+      linkedErrorsIntegration(),
+      dedupeIntegration(),
+      SentryVue.browserTracingIntegration({ router }),
+      SentryVue.replayIntegration(),
+    ];
+
     // All options you normally pass to Sentry.init. The values
     // here are the defaults if not provided in options.
-    const clientOptions = {
+    const sentryOptions = {
       debug: DEBUG,
 
-      trackComponents: true, // vue-specific
-      logErrors: true,
-
-      sampleRate: 1.0,
-      maxBreadcrumbs: 20,
+      sampleRate: 0.001, // just a trickle by default. More than none.
 
       transport: makeFetchTransport,
       stackParser: defaultStackParser,
 
       // Tracing
-      tracesSampleRate: 1.0, //  Capture 100% of the transactions
+      tracesSampleRate: 0.01, //  Capture 1% of the transactions
       // Controls for which URLs distributed tracing should be enabled
       tracePropagationTargets: ['localhost', /^https:\/\/\*\.onetimesecret\.com\//],
+
       // Session Replay
       replaysSessionSampleRate: 0.1, // Capture 10% of the sessions
       replaysOnErrorSampleRate: 1.0, // Capture 100% of the errors
 
       // Only the integrations listed here will be used
-      integrations: [
-        breadcrumbsIntegration(),
-        globalHandlersIntegration(),
-        linkedErrorsIntegration(),
-        dedupeIntegration(),
-
-        SentryVue.browserTracingIntegration({ router }),
-        SentryVue.replayIntegration(),
-      ],
+      integrations,
 
       // This is called for message and error events
       beforeSend(event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> {
@@ -79,9 +95,12 @@ export const EnableDiagnostics: Plugin = {
         return event;
       },
 
-      ...options, // includes dsn, environment, release, etc.
+      ...config.sentry, // includes dsn, environment, release, etc.
     };
-    const client = new BrowserClient(clientOptions);
+
+    console.debug('[EnableDiagnostics] sentryOptions:', sentryOptions);
+
+    const client = new BrowserClient(sentryOptions);
     const scope = new Scope();
     scope.setClient(client);
 
