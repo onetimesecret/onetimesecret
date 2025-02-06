@@ -10,6 +10,7 @@ import {
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
+import { DiagnosticsConfig } from '../diagnostics';
 import { Stripe } from 'stripe';
 
 /**
@@ -86,4 +87,7 @@ export interface OnetimeWindow {
   domain_logo: ImageProps;
 
   messages: Message[];
+
+  d9s_enabled: boolean;
+  diagnostics: DiagnosticsConfig;
 }

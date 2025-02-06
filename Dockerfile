@@ -153,7 +153,11 @@ COPY package.json pnpm-lock.yaml ./
 RUN set -eux \
   && bundle config set --local without 'development test' \
   && bundle update --bundler \
-  && bundle install \
+  && bundle install
+
+# Put the npm depdenencies in a separate layer to avoid
+# rebuilding the gems when the package.json is updated.
+RUN set -eux \
   && pnpm install --frozen-lockfile
 
 ##

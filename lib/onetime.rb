@@ -44,8 +44,9 @@ module Onetime
   end
   @mode = :app
 
+  # d9s: diagnostics is a boolean flag. If true, it will enable Sentry
   module ClassMethods
-    attr_accessor :mode
+    attr_accessor :mode, :env, :d9s_enabled
     attr_reader :conf, :locales, :instance, :sysinfo, :emailer, :global_secret, :global_banner
     attr_writer :debug
 
@@ -71,6 +72,9 @@ module Onetime
 
     def boot!(mode = nil)
       OT.mode = mode unless mode.nil?
+      OT.env = ENV['RACK_ENV'] || 'production'
+      OT.d9s_enabled = false # diagnostics are disabled by default
+
       @conf = OT::Config.load # load config before anything else.
       OT::Config.after_load(@conf)
 
@@ -99,6 +103,7 @@ module Onetime
       exit 10
     rescue StandardError => e
       OT.le "Unexpected error `#{e}` (#{e.class})"
+      OT.ld e.backtrace.join("\n")
       exit 99
     end
 
@@ -122,6 +127,11 @@ module Onetime
       return unless Onetime.debug
       msg = msgs.join("#{$/}")
       stderr("D", msg)
+    end
+
+    def with_diagnostics &block
+      return unless Onetime.d9s_enabled
+      yield # call the block in its own context
     end
 
     private
@@ -159,6 +169,7 @@ module Onetime
       OT.li "redis: #{redis_info['redis_version']} (#{Familia.uri.serverid})"
       OT.li "familia: v#{Familia::VERSION}"
       OT.li "colonels: #{OT.conf[:colonels].join(', ')}"
+      OT.li "diagnotics: #{OT.d9s_enabled}"
       if OT.conf[:site].key?(:authentication)
         OT.li "auth: #{OT.conf[:site][:authentication].map { |k,v| "#{k}=#{v}" }.join(', ')}"
       end
@@ -267,6 +278,18 @@ module Onetime
   end
 
   extend ClassMethods
+end
+
+# Sets the SIGINT handler for a graceful shutdown and prevents Sentry from
+# trying to send events over the network when we're shutting down via ctrl-c.
+trap("SIGINT") do
+  begin
+    Sentry.close(timeout: 2)  # Attempt graceful shutdown with a short timeout
+  rescue StandardError => ex
+    # Ignore Sentry errors during shutdown
+    OT.le "Error during shutdown: #{ex}"
+  end
+  exit
 end
 
 require_relative 'onetime/errors'

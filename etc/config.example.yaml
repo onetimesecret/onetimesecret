@@ -1,3 +1,4 @@
+---
 :site:
   :host: <%= ENV['HOST'] || 'localhost:3000' %>
   :domains:
@@ -229,10 +230,38 @@
   - uk
   - vi
   - zh
-:services:
+:diagnostics:
+  # If this is false, the rest of the settings are ignored
+  :enabled: <%= ENV['DIAGNOSTICS_ENABLED'] == 'true' || false %>
   :sentry:
-    :dsn: <%= ENV['SENTRY_DSN'] || 'CHANGEME' %>
-    :enabled: <%= !ENV['SENTRY_DSN'].nil? %>
+    # Default Sentry configuration that applies to both frontend and
+    # backend. Values set here are overridden by codebase-specific ones.
+    #
+    # `dsn` - Primary Sentry DSN.
+    # `sampleRate` - Percentage of events to sample (0.0 to 1.0)
+    # `maxBreadcrumbs` - Maximum number of breadcrumbs to capture
+    # `logErrors` - Whether to log errors to console
+    :defaults:
+      :dsn: <%= ENV['SENTRY_DSN'] || nil %>
+      :sampleRate: 0.11
+      :maxBreadcrumbs: 22
+      :logErrors: true
+    # Ruby backend-specific Sentry configuration
+    #
+    # `dsn` - Backend-specific Sentry DSN
+    :backend:
+      :dsn: <%= ENV['SENTRY_DSN_BACKEND'] || nil %>
+    # Vue frontend-specific Sentry configuration
+    # Options here map directly to @sentry/vue client options
+    # These options are passed directly to @sentry/vue client initialization
+    # and to maintain type safety, they must be typed in
+    # src/types/diagnostics.ts DiagnosticsConfig interface.
+    #
+    # `dsn` - Frontend-specific Sentry DSN
+    # `trackComponents` - Enable automatic instrumentation of Vue components
+    :frontend:
+      :dsn: <%= ENV['SENTRY_DSN_FRONTEND'] || nil %>
+      :trackComponents: true
 :limits:
   # This section defines rate limits for various events per user
   # per a rolling 20 minute period. Each key is an event name
