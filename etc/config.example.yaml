@@ -230,7 +230,9 @@
   - uk
   - vi
   - zh
-:services:
+:diagnostics:
+  # If this is false, the rest of the settings are ignored
+  :enabled: <%= ENV['DIAGNOSTICS_ENABLED'] == 'true' || false %>
   :sentry:
     # Default Sentry configuration that applies to both frontend and
     # backend. Values set here are overridden by codebase-specific ones.
