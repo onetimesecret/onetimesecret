@@ -71,13 +71,13 @@ module Onetime
         self[:jsvars] = {}
 
         # Diagnostics
-        self[:jsvars][:d9s_enabled] = false
+        sentry = OT.conf.dig(:diagnostics, :sentry) || {}
+        self[:jsvars][:d9s_enabled] = jsvar(OT.d9s_enabled) # pass global flag
         Onetime.with_diagnostics do
-          self[:jsvars][:d9s_enabled] = jsvar(OT.d9s)
-          sentry = OT.conf[:services][:sentry].fetch(:frontend, {})
+          config = sentry.fetch(:frontend, {})
           self[:jsvars][:diagnostics] = {
             # e.g. {dsn: "https://...", ...}
-            sentry: jsvar(sentry)
+            sentry: jsvar(config)
           }
         end
 

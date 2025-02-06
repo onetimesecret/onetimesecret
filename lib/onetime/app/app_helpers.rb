@@ -422,7 +422,7 @@ module Onetime::App
     # and :debug. The Sentry default, if not specified, is :error.
     #
     def capture_error(error, level=:error, &block)
-      return unless OT.d9s # diagnostics are disabled by default
+      return unless OT.d9s_enabled # diagnostics are disabled by default
       Sentry.capture_exception(error, level: level, &block)
     rescue StandardError => ex
       OT.le "[capture_error] #{ex.class}: #{ex.message}"
@@ -430,7 +430,7 @@ module Onetime::App
     end
 
     def capture_message(message, level=:log, &block)
-      return unless OT.d9s # diagnostics are disabled by default
+      return unless OT.d9s_enabled # diagnostics are disabled by default
       Sentry.capture_message(message, level: level, &block)
     rescue StandardError => ex
       OT.le "[capture_message] #{ex.class}: #{ex.message}"
