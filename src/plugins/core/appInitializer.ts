@@ -9,8 +9,9 @@ import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
 import { autoInitPlugin } from '../pinia/autoInitPlugin';
-import { EnableDiagnostics } from './enableDiagnotics';
-import { GlobalErrorBoundary } from './globalErrorBoundary';
+
+import { createDiagnostics } from './enableDiagnotics';
+import { createErrorBoundary } from './globalErrorBoundary';
 
 interface AppInitializerOptions {
   api?: AxiosInstance;
@@ -44,17 +45,29 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   const pinia = createPinia();
   const api = options.api ?? createApi();
 
-  // Make API client available to Vue app (and pinia stores)
-  app.provide('api', api);
+  // Create plugin instances
+  const diagnosticsPlugin = createDiagnostics({
+    host: displayDomain,
+    config: diagnostics,
+    router,
+  });
+
+  const errorBoundary = createErrorBoundary({
+    debug: options.debug,
+    // notify: notifications.add,
+  });
 
   // Must be before GlobalErrorBoundary. The earlier the better.
-  app.use(EnableDiagnostics, { host: displayDomain, config: diagnostics, router: router });
+  app.use(diagnosticsPlugin);
 
   // Register auto-init plugin before creating stores
   pinia.use(autoInitPlugin(options));
 
+  // Make API client available to Vue app (and pinia stores)
+  app.provide('api', api);
+
   app.use(pinia);
-  app.use(GlobalErrorBoundary, { debug: options.debug });
+  app.use(errorBoundary);
   app.use(i18n);
   app.use(router);
 

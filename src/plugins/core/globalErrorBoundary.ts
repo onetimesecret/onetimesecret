@@ -3,48 +3,68 @@
 import { AsyncHandlerOptions } from '@/composables/useAsyncHandler';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
+import { BrowserClient, Scope } from '@sentry/browser';
 import type { App, Plugin } from 'vue';
+import { inject } from 'vue';
+import { SENTRY_KEY } from './enableDiagnotics';
 
-import * as Sentry from '@sentry/vue';
+interface ErrorBoundaryOptions extends AsyncHandlerOptions {
+  debug?: boolean;
+}
 
 /**
- * Global error handling plugin for Vue 3 applications that connects
- * with Vue's built-in error handling system
+ * Creates a Vue plugin that provides global error handling
  *
- * @description Provides a centralized error handling mechanism for the entire Vue application
- * @param {App} app - Vue application instance
- * @param {AsyncHandlerOptions} [options={}] - Plugin options
+ * @param {ErrorBoundaryOptions} options - Configuration options
+ * @returns {Plugin} Vue plugin instance
+ *
+ * @example
+ * ```ts
+ * const errorBoundary = createErrorBoundary({
+ *   debug: true,
+ *   notify: (msg, severity) => notifications.add(msg, severity)
+ * });
+ * app.use(errorBoundary);
+ * ```
  */
-export const GlobalErrorBoundary: Plugin = {
-  install(app: App, options: AsyncHandlerOptions = {}) {
-    /**
-     * Vue 3 global error handler
-     *
-     * @param error: The error that was thrown
-     * @param instance: The component instance that triggered the error
-     * @param info: A string containing information about where the error was caught
-     *
-     * @see https://vuejs.org/api/application#app-config-errorhandler
-     */
-    app.config.errorHandler = (error, instance, info) => {
-      const classifiedError = classifyError(error);
-      loggingService.error(error as Error); // was: classifiedError
+export function createErrorBoundary(options: ErrorBoundaryOptions = {}): Plugin {
+  return {
+    install(app: App) {
+      /**
+       * Vue 3 global error handler
+       *
+       * @param error: The error that was thrown
+       * @param instance: The component instance that triggered the error
+       * @param info: A string containing information about where the error was caught
+       *
+       * @see https://vuejs.org/api/application#app-config-errorhandler
+       */
+      app.config.errorHandler = (error, instance, info) => {
+        const { client, scope } = inject(SENTRY_KEY) as {
+          client: BrowserClient;
+          scope: Scope;
+        };
 
-      // Only notify user for human-facing errors
-      if (errorGuards.isOfHumanInterest(classifiedError) && options.notify) {
-        options.notify(classifiedError.message, classifiedError.severity);
-      }
+        if (!client) {
+          console.debug('Sentry not initialized');
+          return;
+        }
 
-      Sentry.captureException(error, {
-        extra: {
-          componentName: instance?.$.type.name,
-          info,
-        },
-      });
+        const classifiedError = classifyError(error);
+        loggingService.error(error as Error);
 
-      if (options.debug) {
-        loggingService.debug('[ErrorContext]', { instance, info });
-      }
-    };
-  },
-};
+        // Only notify user for human-facing errors
+        if (errorGuards.isOfHumanInterest(classifiedError) && options.notify) {
+          options.notify(classifiedError.message, classifiedError.severity);
+        }
+
+        console.debug('[GlobalErrorBoundary] Sending to Sentry', { scope, error });
+        scope.captureException(error);
+
+        if (options.debug) {
+          loggingService.debug('[ErrorContext]', { instance, info });
+        }
+      };
+    },
+  };
+}

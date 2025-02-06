@@ -1,3 +1,3 @@
 // Re-export all types
-export * from './sentry';
+export * from './diagnostics';
 export * from './ui';
