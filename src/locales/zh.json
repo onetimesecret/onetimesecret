@@ -40,7 +40,6 @@
       "sent_to": "发送至: ",
       "field_email": "电子邮箱",
       "field_password": "密码",
-      "field_password": "密码",
       "field_password2": "确认密码",
       "button_create_account": "创建账户",
       "share_a_secret": "分享密文",
@@ -126,5 +125,11 @@
       "postscript1": "这封电子邮件被送至",
       "postscript2": "如果您并未创建此帐户，请您删除此邮件。我们将不会再和您联系。"
     }
-  }
+  },
+  "api-key": "API键",
+  "custom-domain": "自定义域",
+  "security": "安全",
+  "secure-links": "安全链接",
+  "enter-a-passphrase": "输入密码",
+  "email-address": "电子邮件"
 }
