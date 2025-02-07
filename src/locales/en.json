@@ -376,6 +376,12 @@
         "feedback_hint": "If you have any questions, there is a feedback form at the bottom of (almost) every page.",
         "signature": "Happy sharing,\n{name}"
       }
+    },
+    "meta": {
+      "were-making-onetime-secret-available-in-multiple": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
+      "translations-are-new-spotted-an-error": "Translations are new. Spotted an error? {send-feedback}",
+      "we-recently-added-translations": "We recently added translations. Spotted an error? {send-feedback}",
+      "privacy-and-security-should-be-accessible": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues"
     }
   },
   "email": {
