@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# Repairs i18n locale files to match base en.json key structure
+# Preserves existing translations while moving/adding keys. To put it another
+# way, the `keys` move but the existing values are preserved.
+#
+# Usage: ./repair-locale-file [-q] [-f] [-v] [-c] LOCALE_FILE
+# -q: quiet mode
+# -f: filename only output
+# -v: verbose output
+# -c: copy values from base file
+# Exit: 0 if repair succeeds, 1 if fails
+
+QUIET=${QUIET:-0}
+FILENAME_ONLY=${FILENAME_ONLY:-0}
+VERBOSE=${VERBOSE:-0}
+COPY_VALUES=${COPY_VALUES:-0}
+
+while getopts ":qfvc" opt; do
+  case $opt in
+    q) QUIET=1 ;;
+    f) FILENAME_ONLY=1 ;;
+    v) VERBOSE=1 ;;
+    c) COPY_VALUES=1 ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+  esac
+done
+shift $((OPTIND -1))
+
+LOCALE="$1"
+[ -z "$LOCALE" ] && echo "Usage: $0 [-q] [-f] [-v] [-c] LOCALE_FILE" >&2 && exit 1
+[ ! -f "$LOCALE" ] && echo "File not found: $LOCALE" >&2 && exit 1
+
+OUTPUT="${LOCALE%.json}.transformed.json"
+
+# `find_value` searches for a key's value anywhere in the object structure
+#  `walk`:
+#    - First checks for direct matches
+#    - Then searches for the value anywhere in the target object
+#    - Finally falls back to empty string or base value
+#
+# This handles all cases of key restructuring:
+# - Moving keys from top-level to nested
+# - Moving keys from nested to top-level
+# - Preserving all existing translations regardless of location
+# - Adding missing keys with empty strings (or base values with -c)
+
+jq_script='
+def find_value($key; $obj):
+  if $obj == null then
+    null
+  elif type == "object" then
+    if has($key) then
+      .[$key]
+    else
+      reduce to_entries[] as $entry (null;
+        if . != null then .
+        else $entry.value | find_value($key; .)
+        end
+      )
+    end
+  else
+    null
+  end;
+
+def empty_structure($v):
+  if $v | type == "object" then
+    $v | map_values(empty_structure(.))
+  else
+    ""
+  end;
+
+def walk($base; $target_root):
+  . as $target |
+  if type == "object" then
+    $base | with_entries(
+      .key as $k |
+      .value as $v |
+      {
+        key: $k,
+        value: (
+          if $target[$k] != null then
+            $target[$k] | walk($v; $target_root)
+          else
+            $target_root | find_value($k; .) as $existing_value |
+            if $existing_value != null then
+              $existing_value
+            else
+              if '$COPY_VALUES' == 1 then
+                $v
+              else
+                empty_structure($v)
+              end
+            end
+          end
+        )
+      }
+    )
+  else
+    if . == null then (if '$COPY_VALUES' == 1 then $base else "" end) else . end
+  end;
+
+$target[0] | walk($base[0]; $target[0])
+'
+
+if ! jq -n --slurpfile base src/locales/en.json --slurpfile target "$LOCALE" "$jq_script" > "$OUTPUT"; then
+  [ $FILENAME_ONLY -eq 1 ] && echo "$LOCALE" && exit 1
+  [ $QUIET -eq 1 ] && exit 1
+  [ $VERBOSE -eq 1 ] && echo "Failed repairing $LOCALE"
+  exit 1
+fi
+
+mv "$OUTPUT" "$LOCALE"
+[ $VERBOSE -eq 1 ] && echo "Repaired $LOCALE"
+exit 0

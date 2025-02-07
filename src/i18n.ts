@@ -33,9 +33,7 @@ const i18n = createI18n<{ message: typeof en }, SupportedLocale>({
 
 export default i18n;
 
-async function loadLocaleMessages(
-  locale: string
-): Promise<MessageSchema | null> {
+async function loadLocaleMessages(locale: string): Promise<MessageSchema | null> {
   console.debug(`Attempting to load locale: ${locale}`);
   try {
     const messages = await import(`@/locales/${locale}.json`);
@@ -66,4 +64,32 @@ export async function setLanguage(lang: string): Promise<void> {
   } else {
     console.log(`Failed to set language to: ${lang}. Falling back to default.`);
   }
+}
+
+/**
+ * Creates a compatibility layer for i18n message structure migration
+ * Maintains both flat and nested key access patterns for backwards compatibility
+ * @param messages - Source message object with nested structure
+ * @returns Flattened message object with both original and nested key paths
+ */
+export function createCompatibilityLayer(messages: Record<string, any>): Record<string, string> {
+  const flat: Record<string, string> = {}; /**
+   * Recursively flattens nested object structure into dot notation
+   * @param obj - Object to flatten
+   * @param prefix - Current key path prefix
+   */
+
+  function flattenKeys(obj: Record<string, unknown>, prefix = ''): void {
+    Object.entries(obj).forEach(([key, value]) => {
+      if (value && typeof value === 'object') {
+        flattenKeys(value as Record<string, unknown>, `${prefix}${key}.`);
+      } else {
+        flat[key] = value as string; // Maintain old keys
+        flat[`${prefix}${key}`] = value as string; // Add new nested keys
+      }
+    });
+  }
+
+  flattenKeys(messages);
+  return flat;
 }
