@@ -239,5 +239,11 @@
       "postscript1": "Ce email a été envoyé à",
       "postscript2": "Si vous n’avez pas créé ce compte, supprimez ce message et nous ne vous contacterons plus."
     }
-  }
+  },
+  "api-key": "Clé API",
+  "custom-domain": "Domaine personnalisé",
+  "security": "Sécurité",
+  "secure-links": "Liens sécurisés",
+  "enter-a-passphrase": "Entrez une phrase secrète",
+  "email-address": "Adresse email"
 }

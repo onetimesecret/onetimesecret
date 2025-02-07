@@ -50,17 +50,17 @@ GEM
       rake (~> 13.0.6)
     base64 (0.2.0)
     bcrypt (3.1.20)
-    bigdecimal (3.1.8)
+    bigdecimal (3.1.9)
     byebug (11.1.3)
     byebug-dap (0.1.4)
       byebug (~> 11.1)
       ruby-dap (~> 0.1.2)
     coderay (1.1.3)
-    concurrent-ruby (1.3.4)
+    concurrent-ruby (1.3.5)
     connection_pool (2.4.1)
     csv (3.3.0)
     daemons (1.4.1)
-    date (3.4.0)
+    date (3.4.1)
     diff-lcs (1.5.1)
     docile (1.4.1)
     dotenv (3.1.7)
@@ -121,7 +121,7 @@ GEM
     pry-byebug (3.10.1)
       byebug (~> 11.0)
       pry (>= 0.13, < 0.15)
-    psych (5.2.2)
+    psych (5.2.3)
       date
       stringio
     public_suffix (6.0.1)
@@ -166,7 +166,7 @@ GEM
     ruby_http_client (3.5.5)
     sendgrid-ruby (6.7.0)
       ruby_http_client (~> 3.4)
-    sentry-ruby (5.21.0)
+    sentry-ruby (5.22.3)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
     simplecov (0.22.0)
@@ -251,7 +251,7 @@ DEPENDENCIES
   otto (~> 1.1.0.pre.alpha4)
   pry
   pry-byebug
-  psych (~> 5.2.2)
+  psych (~> 5.2.3)
   public_suffix
   rack (>= 2.2, < 3.0)
   rack-contrib (~> 2.5)

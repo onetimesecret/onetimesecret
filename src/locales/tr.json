@@ -125,5 +125,7 @@
       "postscript1": "Bu e-posta şu adrese yolandı",
       "postscript2": "Eğer bu hesabı siz oluşturmadıysanız, bu mesajı silin ve sizi bir daha rahatsız etmeyeceğiz."
     }
-  }
+  },
+  "custom-domain": "Özel alan",
+  "security": "Güvenlik"
 }

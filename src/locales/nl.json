@@ -239,5 +239,11 @@
       "postscript1": "Deze E-mail is verstuurd naar",
       "postscript2": "Als u dit account niet heeft aangemaakt negeer dit bericht, we zullen u niet meer lastig vallen."
     }
-  }
+  },
+  "api-key": "API-sleutel",
+  "custom-domain": "Aangepast domein",
+  "security": "Beveiliging",
+  "secure-links": "Veilige links",
+  "enter-a-passphrase": "Voer een wachtwoordzin in",
+  "email-address": "E -mailadres"
 }
