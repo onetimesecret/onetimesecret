@@ -52,7 +52,8 @@
       "word_cancel": "取消",
       "feedback_text": "有疑问或建议？",
       "button_send_feedback": "发送反馈",
-      "verification_sent_to": "验证消息已送至"
+      "verification_sent_to": "验证消息已送至",
+      "processing": "加工"
     },
     "homepage": {
       "tagline1": "在下方窗格输入您想要加密的内容。",
@@ -106,6 +107,10 @@
       "incoming_ticket_number_hint": "您将在您的电子邮件中找到它（例：123456）",
       "incoming_recipient_address": "接受地址",
       "incoming_success_message": "邮件已发出"
+    },
+    "secrets": {
+      "privacyOptions": "隐私选项",
+      "expiresIn": "在{持续时间}中到期"
     }
   },
   "email": {
@@ -131,5 +136,6 @@
   "security": "安全",
   "secure-links": "安全链接",
   "enter-a-passphrase": "输入密码",
-  "email-address": "电子邮件"
+  "email-address": "电子邮件",
+  "ai-generated-content-disclaimer": "AI生成的内容用于演示。\n不是来自实际的人或公司。"
 }

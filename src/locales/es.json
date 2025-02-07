@@ -106,6 +106,10 @@
       "incoming_ticket_number_hint": "You can find this in your email (e.g. 123456)",
       "incoming_recipient_address": "Support recipient",
       "incoming_success_message": "Your email has been sent"
+    },
+    "secrets": {
+      "privacyOptions": "Opciones de privacidad",
+      "expiresIn": "Expira en {duración}"
     }
   },
   "email": {
@@ -125,5 +129,8 @@
       "postscript1": "Este email se le envio a",
       "postscript2": "Si usted no ha creado esta cuenta, borre este mensaje y no lo contactaremos de nuevo."
     }
-  }
+  },
+  "ai-generated-content-disclaimer": "Contenido generado por IA para la demostración. \nNo de una persona o empresa real.",
+  "secure-links": "Enlaces seguros",
+  "security": "Seguridad"
 }

@@ -40,7 +40,6 @@
       "sent_to": "Elküldve a következő címre: ",
       "field_email": "Email",
       "field_password": "Jelszó",
-      "field_password": "Jelszó",
       "field_password2": "Jelszó megerősítése",
       "button_create_account": "Fiók létrehozása",
       "share_a_secret": "Ossz meg egy titkot",
@@ -107,6 +106,9 @@
       "incoming_ticket_number_hint": "Ezt megtalálod az emailjeidben (pl. 123456)",
       "incoming_recipient_address": "Támogató címzett",
       "incoming_success_message": "Az email elküldve."
+    },
+    "secrets": {
+      "privacyOptions": "Adatvédelmi lehetőségek"
     }
   },
   "email": {
@@ -126,5 +128,8 @@
       "postscript1": "Ez az email elküldve ide:",
       "postscript2": "Ha nem te hoztad létre ezt a fiókot, töröld ezt az üzenetet, és nem fogunk többé kapcsolatba lépni veled."
     }
-  }
+  },
+  "api-key": "API kulcs",
+  "ai-generated-content-disclaimer": "AI által generált tartalom a demonstrációhoz. \nNem tényleges személytől vagy társaságtól.",
+  "secure-links": "Biztonságos linkek"
 }

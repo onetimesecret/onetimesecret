@@ -4,9 +4,14 @@
     "faq": {
       "file_limitation_title": "なぜ写真やその他のファイルを送信できないのですか？",
       "passphrase_final_note": "覚えておいてください。秘密のセキュリティは、パスフレーズの強度と、それを受信者にどれだけ安全に伝えるかに依存します。",
-      "passphrase_points": [ "bcrypt ハッシュは秘密を復号化するために使用できません。", "元のパスフレーズがないと、暗号化された秘密は私たちでも復号できません。" ],
+      "passphrase_points": [
+        "bcrypt ハッシュは秘密を復号化するために使用できません。",
+        "元のパスフレーズがないと、暗号化された秘密は私たちでも復号できません。"
+      ],
       "text_copy_title": "しかし、秘密のテキストをコピーすることができます。違いは何ですか？",
-      "trust_points": [ "私たちは、すべての接続に HTTPS を使用し、保存されたデータには保存時の暗号化を含む業界標準のセキュリティ プラクティスを使用しています。" ]
+      "trust_points": [
+        "私たちは、すべての接続に HTTPS を使用し、保存されたデータには保存時の暗号化を含む業界標準のセキュリティ プラクティスを使用しています。"
+      ]
     },
     "intro": {
       "paragraph1": "こんにちは、私は {name} です。Onetime Secret の作成者です。2012 年にシンプルで安全な機密情報の共有方法として始まったものが、私たちの想像を超えて成長しました。10 年以上経った今、私たちは毎月何百万もの秘密の安全な共有を促進しており、想像もしなかった使用例が生まれています。",
@@ -193,7 +198,11 @@
       "submitting": "処理中",
       "submit_with": "送信",
       "verification_sent_to": "確認が送信されました",
-      "word_received": "受信"
+      "word_received": "受信",
+      "error": "Error",
+      "oops": "Oops!",
+      "secret": "Secret",
+      "received": "Received"
     },
     "FEATURES": {
       "encrypted_in_transit": "転送中および保存中の暗号化"
@@ -242,7 +251,8 @@
       "why-can-i-only-see-the-secret-value-once": "なぜシークレット値は一度しか表示されないのですか？"
     },
     "secrets": {
-      "privacyOptions": "プライバシーオプション"
+      "privacyOptions": "プライバシーオプション",
+      "expiresIn": "Expires in {duration}"
     },
     "security": {
       "a-detailed-description-of-the-vulnerability": "脆弱性の詳細な説明。",
@@ -288,5 +298,6 @@
   "whove-helped-with-translations-as-we-continue-to": "新機能の開発を続ける中で、翻訳を手伝ってくれた人々。",
   "yearly": "毎年",
   "yesterday": "昨日",
-  "your-language-skills-can-help-expand-access-to-s": "あなたの言語スキルは、安全な通信へのアクセスを拡大するのに役立ちます。"
+  "your-language-skills-can-help-expand-access-to-s": "あなたの言語スキルは、安全な通信へのアクセスを拡大するのに役立ちます。",
+  "api-key": "API Key"
 }

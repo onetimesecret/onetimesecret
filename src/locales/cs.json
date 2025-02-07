@@ -126,5 +126,7 @@
       "postscript2": "Pokud jste nevytvořili tento účet, smažte tuto zprávu a my vás už nebudeme znovu kontaktovat."
     }
   },
-  "security": "Zabezpečení"
+  "security": "Zabezpečení",
+  "ai-generated-content-disclaimer": "Obsah generovaný AI pro demonstraci. \nNe od skutečné osoby nebo společnosti.",
+  "secure-links": "Zabezpečené odkazy"
 }
