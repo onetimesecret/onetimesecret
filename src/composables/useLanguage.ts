@@ -4,16 +4,10 @@ import { ref, inject } from 'vue';
 import type { AxiosInstance } from 'axios';
 import { useLanguageStore } from '@/stores/languageStore';
 import { setLanguage } from '@/i18n';
-import { z } from 'zod';
+import { localeSchema } from '@/schemas/i18n/locale';
 
 const languageListeners = new Set<(locale: string) => void>();
 const isInitialized = ref(false);
-
-const localeSchema = z
-  .string()
-  .min(2)
-  .max(5)
-  .regex(/^([a-z]{2})([_\-]([a-z]{2}))?$/i);
 
 export function useLanguage() {
   const $api = inject('api') as AxiosInstance;

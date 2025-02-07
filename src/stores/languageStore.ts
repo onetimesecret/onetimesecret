@@ -1,59 +1,20 @@
 // src/stores/languageStore.ts
 
-import type { PiniaCustomProperties } from 'pinia';
+import { setLanguage } from '@/i18n';
+import type { PiniaPluginOptions } from '@/plugins/pinia/types';
+import { localeSchema } from '@/schemas/i18n/locale';
+import { WindowService } from '@/services/window.service';
+import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref, watch } from 'vue';
-import { z } from 'zod';
-
-import { setLanguage } from '@/i18n';
-import { PiniaPluginOptions } from '@/plugins/pinia/types';
-import { WindowService } from '@/services/window.service';
-import { AxiosInstance } from 'axios';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
 export const DEFAULT_LOCALE = 'en';
-
-// Validates ISO language codes:
-// - 2-letter code (en)
-// - 4-letter codes with separator (en, pt_PT, DE-at)
-// Case insensitive. Must match entire string.
-const localeSchema = z
-  .string()
-  .min(2)
-  .max(5)
-  .regex(/^([a-z]{2})([_\-]([a-z]{2}))?$/i);
 
 interface StoreOptions extends PiniaPluginOptions {
   deviceLocale?: string;
   storageKey?: string;
 }
-
-/**
- * Type definition for LanguageStore.
- */
-export type LanguageStore = {
-  // State
-  deviceLocale: string | null;
-  currentLocale: string;
-  storageKey: string;
-  supportedLocales: string[];
-  storedLocale: string | null;
-  _initialized: boolean;
-
-  // Getters
-  getDeviceLocale: string | null;
-  getCurrentLocale: string;
-  getStorageKey: string;
-  getSupportedLocales: string[];
-
-  // Actions
-  init: (options?: StoreOptions) => void;
-  initializeLocale: () => string | null;
-  determineLocale: (preferredLocale?: string) => string;
-  setCurrentLocale: (locale: string) => void;
-  updateLanguage: (newLocale: string) => Promise<void>;
-  $reset: () => void;
-} & PiniaCustomProperties;
 
 /* eslint-disable max-lines-per-function */
 export const useLanguageStore = defineStore('language', () => {
@@ -74,28 +35,15 @@ export const useLanguageStore = defineStore('language', () => {
   const getSupportedLocales = computed(() => supportedLocales.value);
 
   // Actions
-
   function init(options?: StoreOptions) {
-    // Set device locale from options if provided
-    if (options?.deviceLocale) {
-      deviceLocale.value = options.deviceLocale;
-    }
+    if (_initialized.value) return getCurrentLocale.value;
 
-    // Set custom storage key if provided
+    if (options?.deviceLocale) {
+      deviceLocale.value = validateAndNormalizeLocale(options.deviceLocale);
+    }
     if (options?.storageKey) {
       storageKey.value = options.storageKey;
     }
-    // console.log(100000, options);
-    // // Set custom storage key if provided
-    // if (options?.api) {
-    //   $api = options.api;
-    // }
-
-    // Don't set language here. We want to allow the calling code to set the
-    // language if it so chooses. It does this for example in the LanguageToggle
-    // component.
-    //
-    // ❌ setLanguage(getCurrentLocale.value);
 
     watch(
       () => currentLocale.value,
@@ -111,56 +59,73 @@ export const useLanguageStore = defineStore('language', () => {
 
   function initializeLocale() {
     try {
-      supportedLocales.value = WindowService.get('supported_locales') ?? [];
+      loadSupportedLocales();
+      storedLocale.value = loadStoredLocale();
 
-      storedLocale.value = sessionStorage.getItem(getStorageKey.value);
-
-      // First try to use stored locale
-      if (storedLocale.value) {
+      if (storedLocale.value && supportedLocales.value.includes(storedLocale.value)) {
         currentLocale.value = storedLocale.value;
-      }
-      // Then fallback to device locale if available
-      else if (deviceLocale.value) {
+      } else if (deviceLocale.value) {
         const primaryLocale = deviceLocale.value.split('-')[0];
-        currentLocale.value = primaryLocale;
+        currentLocale.value = supportedLocales.value.includes(primaryLocale)
+          ? primaryLocale
+          : DEFAULT_LOCALE;
       }
 
-      return getCurrentLocale;
+      _initialized.value = true;
+      return getCurrentLocale.value;
     } catch (error) {
-      console.error('[initializeLocale] Error:', error, currentLocale.value);
-      return (currentLocale.value = deviceLocale.value);
+      console.error('[initializeLocale] Error:', error);
+      currentLocale.value = DEFAULT_LOCALE;
+      return DEFAULT_LOCALE;
     }
   }
 
-  function determineLocale(preferredLocale?: string): string {
-    const locales = [
-      preferredLocale,
-      preferredLocale?.split('-')[0],
-      currentLocale.value,
-      storedLocale.value,
-    ];
-
-    const supported = locales.find((locale) => locale && supportedLocales.value.includes(locale));
-
-    return supported ?? DEFAULT_LOCALE;
-  }
-
   function setCurrentLocale(locale: string) {
-    if (supportedLocales.value.includes(locale)) {
-      currentLocale.value = locale;
-      sessionStorage.setItem(getStorageKey.value, locale);
-    } else {
-      console.warn(`Unsupported locale: ${locale}`);
+    const normalizedLocale = validateAndNormalizeLocale(locale);
+    if (supportedLocales.value.includes(normalizedLocale)) {
+      currentLocale.value = normalizedLocale;
+      sessionStorage.setItem(getStorageKey.value, normalizedLocale);
     }
   }
 
   async function updateLanguage(newLocale: string) {
-    const validatedLocale = localeSchema.parse(newLocale);
+    const validatedLocale = validateAndNormalizeLocale(newLocale);
     setCurrentLocale(validatedLocale);
-    await $api.post('/api/v2/account/update-locale', {
-      locale: validatedLocale,
-    });
+    await $api.post('/api/v2/account/update-locale', { locale: validatedLocale });
   }
+
+  function determineLocale(preferredLocale?: string): string {
+    if (!preferredLocale) return getCurrentLocale.value;
+
+    const normalizedLocale = validateAndNormalizeLocale(preferredLocale);
+    return supportedLocales.value.includes(normalizedLocale)
+      ? normalizedLocale
+      : getCurrentLocale.value;
+  }
+
+  // Private methods
+  const validateAndNormalizeLocale = (locale: string): string => {
+    try {
+      return localeSchema.parse(locale.toLowerCase());
+    } catch (error) {
+      console.warn(`Invalid locale format: ${locale}`, error);
+      return DEFAULT_LOCALE;
+    }
+  };
+
+  const loadSupportedLocales = () => {
+    const locales = WindowService.get('supported_locales');
+    supportedLocales.value = Array.isArray(locales) ? locales : [];
+  };
+
+  const loadStoredLocale = () => {
+    try {
+      return sessionStorage.getItem(getStorageKey.value);
+    } catch (error) {
+      console.error('[loadStoredLocale] Error:', error);
+      return null;
+    }
+  };
 
   function $reset() {
     deviceLocale.value = null;
