@@ -92,7 +92,7 @@
       "no_passphrase": "Keine Passphrase erforderlich",
       "secret_link": "Geheime Verbindung",
       "security_details": "Details zur Sicherheit",
-      "recipients_count": "{Anzahl} Empfänger",
+      "recipients_count": "{count} Empfänger",
       "views": "Ansichten",
       "times_viewed": "mal angesehen",
       "view_progress": "Fortschritte anzeigen",
@@ -159,7 +159,7 @@
     "secrets": {
       "privacyOptions": "Datenschutz-Optionen",
       "selectDuration": "Dauer auswählen",
-      "expiresIn": "Läuft ab in {Laufzeit}"
+      "expiresIn": "Läuft ab in {duration}"
     },
     "homepage": {
       "tagline1": "Fügen Sie unten ein Passwort, eine geheime Nachricht oder einen privaten Link ein.",
