@@ -107,7 +107,8 @@
         href="#"
         @click.prevent="changeLocale(locale)"
         :class="[
-          'flex items-center justify-between gap-2 px-4 py-2 text-sm transition-colors duration-200',
+          'flex items-center justify-between gap-2 font-brand',
+          'px-4 py-2 text-base transition-colors duration-200',
           'hover:bg-gray-100 hover:text-gray-900',
           'dark:hover:bg-gray-700 dark:hover:text-gray-100',
           locale === currentLocale
