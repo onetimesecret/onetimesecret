@@ -139,8 +139,6 @@
   "stats": "統計",
   "switch": "スイッチ",
   "target-address": "ターゲット アドレス",
-  "text-green-500-dark-text-green-400": "text-green-500 dark:text-green-400",
-  "text-red-500-dark-text-red-400": "text-red-500 dark:text-red-400",
   "the-page-youre-looking-for-doesnt-exist-or-has-b": "お探しのページは存在しないか、移動された可能性があります。心配しないでください、誰にでも起こることです！",
   "these-instructions-will-be-shown-to-recipients-before-they-reveal-the-secret-content": "これらの指示は、受信者が秘密の内容を明らかにする前に表示されます",
   "this-is-an-interactive-preview-o": "これは、受信者があなたのセキュアメッセージをどのように見るかのインタラクティブプレビューです。次のことができます：- 上のコントロールを使用して色とフォントをカスタマイズする - ロゴをアップロードする（最小 128x128 ピクセル推奨、最大 1MB） - \"View Secret\" ボタンを使用してプレビューをテストする",
