@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
-  import { WindowService } from '@/services/window.service';
   import { useLanguage } from '@/composables/useLanguage';
   import DropdownToggle from './DropdownToggle.vue';
   import OIcon from './icons/OIcon.vue';
@@ -25,11 +24,9 @@
     currentLocale,
     supportedLocales,
     updateLanguage,
-    saveLanguage,
     initializeLanguage
   } = useLanguage();
   const dropdownRef = ref<InstanceType<typeof DropdownToggle> | null>(null);
-  const cust = WindowService.get('cust');
 
   const announceLanguageChange = (locale: string) => {
     const liveRegion = document.createElement('div');
@@ -51,9 +48,6 @@
 
     try {
       await updateLanguage(newLocale);
-      if (cust?.locale) {
-        await saveLanguage(newLocale);
-      }
       emit('localeChanged', newLocale);
       announceLanguageChange(newLocale);
     } catch (err) {

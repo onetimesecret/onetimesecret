@@ -60,8 +60,15 @@ export const useLanguageStore = defineStore('language', () => {
   function initializeLocale() {
     try {
       loadSupportedLocales();
-      storedLocale.value = loadStoredLocale();
 
+      // Check for user preference first
+      const userLocale = WindowService.get('cust')?.locale;
+      if (userLocale && supportedLocales.value.includes(userLocale)) {
+        currentLocale.value = userLocale;
+        return getCurrentLocale.value;
+      }
+      // Fall back to stored/device locale
+      storedLocale.value = loadStoredLocale();
       if (storedLocale.value && supportedLocales.value.includes(storedLocale.value)) {
         currentLocale.value = storedLocale.value;
       } else if (deviceLocale.value) {
@@ -94,8 +101,14 @@ export const useLanguageStore = defineStore('language', () => {
 
   async function updateLanguage(newLocale: string) {
     const validatedLocale = validateAndNormalizeLocale(newLocale);
-    setCurrentLocale(validatedLocale);
+    if (!supportedLocales.value.includes(validatedLocale)) {
+      throw new Error(`Unsupported locale: ${validatedLocale}`);
+    }
+
+    await setLanguage(validatedLocale); // via i18n
+    setCurrentLocale(validatedLocale); // save to session storage
     await $api.post('/api/v2/account/update-locale', { locale: validatedLocale });
+    return validatedLocale;
   }
 
   function determineLocale(preferredLocale?: string): string {
@@ -110,7 +123,7 @@ export const useLanguageStore = defineStore('language', () => {
   // Private methods
   const validateAndNormalizeLocale = (locale: string): string => {
     try {
-      return localeSchema.parse(locale.toLowerCase());
+      return localeSchema.parse(locale);
     } catch (error) {
       console.warn(`Invalid locale format: ${locale}`, error);
       return DEFAULT_LOCALE;

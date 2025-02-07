@@ -1,10 +1,7 @@
 // src/composables/useLanguage.ts
 
-import { ref, inject, reactive, computed } from 'vue';
-import type { AxiosInstance } from 'axios';
+import { ref, reactive, computed } from 'vue';
 import { useLanguageStore } from '@/stores/languageStore';
-import { setLanguage } from '@/i18n';
-import { localeSchema } from '@/schemas/i18n/locale';
 import { useAsyncHandler, AsyncHandlerOptions } from './useAsyncHandler';
 
 const languageListeners = new Set<(locale: string) => void>();
@@ -12,7 +9,6 @@ const isInitialized = ref(false);
 
 /* eslint-disable max-lines-per-function */
 export function useLanguage(options?: AsyncHandlerOptions) {
-  const $api = inject('api') as AxiosInstance;
   const languageStore = useLanguageStore();
 
   const state = reactive({
@@ -37,16 +33,10 @@ export function useLanguage(options?: AsyncHandlerOptions) {
   const { wrap } = useAsyncHandler(defaultOptions);
 
   const initializeLanguage = () => {
-    if (isInitialized.value) return;
-
-    const locale = languageStore.getCurrentLocale;
-    if (locale) {
-      setLanguage(locale);
-      notifyListeners(locale);
+    if (!isInitialized.value) {
+      isInitialized.value = true;
+      return languageStore.init();
     }
-
-    isInitialized.value = true;
-    return locale;
   };
 
   const onLanguageChange = (callback: (locale: string) => void) => {
@@ -54,32 +44,7 @@ export function useLanguage(options?: AsyncHandlerOptions) {
     return () => languageListeners.delete(callback);
   };
 
-  const notifyListeners = (locale: string) => {
-    languageListeners.forEach((listener) => listener(locale));
-  };
-
-  const updateLanguage = (newLocale: string) =>
-    wrap(async () => {
-      const validatedLocale = localeSchema.parse(newLocale);
-
-      if (!languageStore.getSupportedLocales.includes(validatedLocale)) {
-        throw new Error(`Unsupported locale: ${validatedLocale}`);
-      }
-
-      await Promise.all([
-        setLanguage(validatedLocale),
-        languageStore.setCurrentLocale(validatedLocale),
-      ]);
-
-      notifyListeners(validatedLocale);
-      return validatedLocale;
-    });
-
-  const saveLanguage = (newLocale: string) =>
-    wrap(async () => {
-      const validatedLocale = localeSchema.parse(newLocale);
-      await $api.post('/api/v2/account/update-locale', { locale: validatedLocale });
-    });
+  const updateLanguage = (newLocale: string) => wrap(() => languageStore.updateLanguage(newLocale));
 
   return {
     // Expose store values through composable
@@ -88,7 +53,6 @@ export function useLanguage(options?: AsyncHandlerOptions) {
 
     // Encapsulate business logic and side effects
     updateLanguage,
-    saveLanguage,
     initializeLanguage,
     onLanguageChange,
     state,
