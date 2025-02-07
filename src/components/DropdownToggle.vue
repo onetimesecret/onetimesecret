@@ -72,7 +72,7 @@ onUnmounted(() => {
 // Expose methods to parent component
 defineExpose({ closeMenu });
 
-const dropdownId = `language-dropdown-${Math.random().toString(36).substr(2, 9)}`;
+const dropdownId = `dropdown-${Math.random().toString(36).slice(2, 11)}`;
 
 </script>
 
